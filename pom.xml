@@ -1,0 +1,40 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>GoldenGateR66</groupId>
+  <artifactId>GoldenGateR66</artifactId>
+  <name>GoldenGate OpenR66</name>
+  <version>0.5.1-SNAPSHOT</version>
+  <description>OpenR66 is a File Transfer Monitor to be used in real production to transfer files between servers.</description>
+  <dependencies>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-access</artifactId>
+      <version>0.9.15</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>0.9.15</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-core</artifactId>
+      <version>0.9.15</version>
+    </dependency>
+    <dependency>
+      <groupId>dom4j</groupId>
+      <artifactId>dom4j</artifactId>
+      <version>1.6.1</version>
+    </dependency>
+    <dependency>
+      <groupId>jaxen</groupId>
+      <artifactId>jaxen</artifactId>
+      <version>1.1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.5.6</version>
+    </dependency>
+  </dependencies>
+</project>
