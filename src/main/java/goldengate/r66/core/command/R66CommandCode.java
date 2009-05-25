@@ -22,8 +22,7 @@ package goldengate.r66.core.command;
 
 import goldengate.common.command.CommandInterface;
 import goldengate.common.file.SessionInterface;
-//XXX TODO FIXME
-import goldengate.ftp.core.command.FtpCommandCode;
+//FIXME XXX TODO 
 import goldengate.ftp.core.command.internal.ConnectionCommand;
 import goldengate.ftp.core.command.internal.IncorrectCommand;
 import goldengate.ftp.core.command.internal.UnimplementedCommand;
@@ -263,7 +262,7 @@ public enum R66CommandCode {
      * @return True if the command is a Store like operation (APPE, STOR, STOU,
      *         ...)
      */
-    public static boolean isStoreLikeCommand(FtpCommandCode command) {
+    public static boolean isStoreLikeCommand(R66CommandCode command) {
         return false; //XXX TODO FIXME command == APPE || command == STOR || command == STOU;
     }
 
@@ -273,7 +272,7 @@ public enum R66CommandCode {
      * @param command
      * @return True if the command is a Retrieve like operation (RETR, ...)
      */
-    public static boolean isRetrLikeCommand(FtpCommandCode command) {
+    public static boolean isRetrLikeCommand(R66CommandCode command) {
         return false; //XXX TODO FIXME command == RETR;
     }
 
@@ -285,7 +284,7 @@ public enum R66CommandCode {
      * @return True if the command is a List like operation (LIST, NLST, MLSD,
      *         MLST, ...)
      */
-    public static boolean isListLikeCommand(FtpCommandCode command) {
+    public static boolean isListLikeCommand(R66CommandCode command) {
         return false; //XXX TODO FIXME command == LIST || command == NLST || command == MLSD || command == MLST;
     }
 
@@ -296,7 +295,7 @@ public enum R66CommandCode {
      * @return True if the command is a special operation (QUIT, ABOR, NOOP,
      *         STAT, ...)
      */
-    public static boolean isSpecialCommand(FtpCommandCode command) {
+    public static boolean isSpecialCommand(R66CommandCode command) {
         return false; //XXX TODO FIXME command == QUIT || command == ABOR || command == NOOP || command == STAT;
     }
 
@@ -307,7 +306,7 @@ public enum R66CommandCode {
      * @return True if the command is an extension operation (XMD5, XCRC, XSHA1,
      *         ...)
      */
-    public static boolean isExtensionCommand(FtpCommandCode command) {
+    public static boolean isExtensionCommand(R66CommandCode command) {
         return false; //XXX TODO FIXME command == XMD5 || command == XCRC || command == XSHA1 ||
         //XXX TODO FIXME command == INTERNALSHUTDOWN || command == LIMITBANDWIDTH;
     }
