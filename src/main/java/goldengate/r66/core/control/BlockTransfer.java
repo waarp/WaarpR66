@@ -28,7 +28,7 @@ package goldengate.r66.core.control;
  * </ul><br>
  * Then according to the first byte:<br>
  * <ul>
- * <li>1: 4 bytes for Command name, (length-4) bytes for arguments (generally one string with whitespace)</li>
+ * <li>1: 4 bytes for Command name, (length-4) bytes for arguments (generally one string with whitespace), Data block could be not empty</li>
  * <li>2: 4 bytes for Command name, (length-4) bytes for arguments (generally one string with whitespace)</li>
  * <li>4: 4 bytes for Command name, (length-4) bytes for arguments (could be split into 8 bytes for transfer id, 8 bytes for date-time, 4 or 8 bytes for values with a 8 bytes property id, ...)</li>
  * <li>8: 4 bytes for Command name, then (length-4) bytes arguments that should be split into<ul>
@@ -61,7 +61,7 @@ package goldengate.r66.core.control;
  * So length = 4+1+16+4+4+4+4+16 = 53 bytes<br>
  * In case of retry, the position (starting from 0) in the target is equal to padding length*rank.<br>
  * The Data block has a length of data length. If it is compressed, the uncompressed size is final data length.</li>
- * <li>128: 4 bytes for Command name, (length-4) bytes for arguments (generally one string with whitespace)</li>
+ * <li>128: 4 bytes for Command name, (length-4) bytes for arguments (generally one string with whitespace), Data block could be not empty</li>
  * </ul>
  * 
  * @author frederic bregier
