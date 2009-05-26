@@ -1,7 +1,7 @@
 /**
  * 
  */
-package goldengate.r66.core.control;
+package goldengate.r66.core.protocol;
 
 /**
  * This is the Object used in every communication between OpenR66 hosts.
@@ -67,6 +67,6 @@ package goldengate.r66.core.control;
  * @author frederic bregier
  *
  */
-public class BlockTransfer {
-	
+public abstract class BlockTransfer {
+    
 }
