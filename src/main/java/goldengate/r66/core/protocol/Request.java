@@ -3,6 +3,9 @@
  */
 package goldengate.r66.core.protocol;
 
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
+
 /**
  * This is the Object used in every communication between OpenR66 hosts.
  * Its logic is as follow:<br>
@@ -67,6 +70,60 @@ package goldengate.r66.core.protocol;
  * @author frederic bregier
  *
  */
-public abstract class BlockTransfer {
+public abstract class Request {
+	public static byte CONTROL = 1;
+	public static byte GLOBAL = 2;
+	public static byte TRANSFER = 4;
+	public static byte INITTRF = 8;
+	public static byte SENDOP = 0x10;
+	public static byte RECVOP = 0x20;
+	public static byte ADMIN = 0x40;
+	public static byte NOOP = (byte)0x80;
+	
+	protected byte type;
+    protected int headerLength;
+    protected String command;
+    protected int dataLength;
+    protected byte[] data;
+    protected ChannelBuffer header;
+	/**
+	 * @return the type
+	 */
+	public byte getType() {
+		return type;
+	}
+	/**
+	 * @return the headerLength
+	 */
+	public int getHeaderLength() {
+		return headerLength;
+	}
+	
+	/**
+	 * @return the dataLength
+	 */
+	public int getDataLength() {
+		return dataLength;
+	}
+	/**
+	 * @return the command
+	 */
+	public String getCommand() {
+		return command;
+	}
+	/**
+	 * @return the data
+	 */
+	public byte[] getData() {
+		return data;
+	}
+    protected abstract void finalizeHeader();
+    public abstract void setData(byte[] data);
     
+    public ChannelBuffer toChannelBuffer() {
+		this.finalizeHeader();
+		ChannelBuffer buffer = ChannelBuffers.wrappedBuffer(
+				this.header,ChannelBuffers.wrappedBuffer(this.data));
+		return buffer;
+	}
 }
