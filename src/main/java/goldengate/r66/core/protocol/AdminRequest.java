@@ -3,6 +3,9 @@
  */
 package goldengate.r66.core.protocol;
 
+import java.nio.charset.Charset;
+
+import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 
 /**
@@ -43,6 +46,20 @@ public class AdminRequest extends Request {
 	public void setData(byte[] data) {
 		this.data = data;
 		this.dataLength = data.length;
+	}
+	@Override
+	public void fromChannelBuffer(ChannelBuffer buffer) {
+		// byte header is already read
+		this.headerLength = buffer.readInt();
+		this.dataLength = buffer.readInt();
+		this.command = buffer.toString(0,this.headerLength,Charset.defaultCharset().name());
+		buffer.skipBytes(this.headerLength);
+		if (this.dataLength > 0) {
+			this.data = new byte[this.dataLength];
+			buffer.readBytes(this.data);
+		} else {
+			this.data = null;
+		}
 	}
 
 }

@@ -126,4 +126,5 @@ public abstract class Request {
 				this.header,ChannelBuffers.wrappedBuffer(this.data));
 		return buffer;
 	}
+    public abstract void fromChannelBuffer(ChannelBuffer buffer);
 }
