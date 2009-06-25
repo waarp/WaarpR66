@@ -7,7 +7,7 @@ import org.jboss.netty.channel.SimpleChannelHandler;
 
 /**
  * @author fbregier
- *
+ * 
  */
 public class LocalServerHandler extends SimpleChannelHandler {
 
