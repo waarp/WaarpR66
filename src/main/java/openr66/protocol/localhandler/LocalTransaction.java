@@ -16,7 +16,6 @@ import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.local.DefaultLocalClientChannelFactory;
 import org.jboss.netty.channel.local.DefaultLocalServerChannelFactory;
 import org.jboss.netty.channel.local.LocalAddress;
-import org.jboss.netty.handler.execution.ExecutionHandler;
 import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
 
 /**
@@ -62,8 +61,8 @@ public class LocalTransaction {
                 maxGlobalMemory, 200,
                 TimeUnit.MILLISECONDS, Executors.defaultThreadFactory());
     
-    public LocalTransaction() {
-        serverBootstrap.setPipelineFactory(new LocalServerPipelineFactory());
+    public LocalTransaction(Channel networkChannel) {
+        serverBootstrap.setPipelineFactory(new LocalServerPipelineFactory(networkChannel));
         serverChannel = serverBootstrap.bind(socketServerAddress);
         localChannelGroup.add(serverChannel);
         clientBootstrap.setPipelineFactory(new LocalClientPipelineFactory(pipelineExecutor));

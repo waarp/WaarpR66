@@ -15,7 +15,7 @@ import org.jboss.netty.channel.WriteCompletionEvent;
  * 
  */
 public class LocalClientHandler extends SimpleChannelHandler {
-
+	
     /* (non-Javadoc)
      * @see org.jboss.netty.channel.SimpleChannelHandler#channelClosed(org.jboss.netty.channel.ChannelHandlerContext, org.jboss.netty.channel.ChannelStateEvent)
      */

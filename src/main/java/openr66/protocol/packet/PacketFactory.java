@@ -20,6 +20,8 @@
  */
 package openr66.protocol.packet;
 
+import openr66.protocol.exception.OpenR66ProtocolPacketException;
+
 import org.jboss.netty.buffer.ChannelBuffer;
 
 /**
@@ -28,18 +30,32 @@ import org.jboss.netty.buffer.ChannelBuffer;
  *
  */
 public class PacketFactory {
-    private byte packetType;
+	public static final byte TESTPACKET = 0;
     /**
-     * This method create a Packet from the packetType.
-     * @param packetType
-     * @param headerLength 
+     * This method create a Packet from the ChannelBuffer.
+     * @param headerLength length of the header from the current position of the buffer
      * @param middleLength 
      * @param endLength 
      * @param buf
      * @return the newly created Packet
+     * @throws OpenR66ProtocolPacketException 
      */
-    public static AbstractPacket createPacketFromChannelBuffer(byte packetType, int headerLength, 
-            int middleLength, int endLength, ChannelBuffer buf) {
-        return null;
+    public static AbstractPacket createPacketFromChannelBuffer(int headerLength, 
+            int middleLength, int endLength, ChannelBuffer buf) throws OpenR66ProtocolPacketException {
+    	byte packetType = buf.readByte();
+    	switch (packetType) {
+    		case TESTPACKET:
+    			byte[] bheader = new byte[headerLength-1];
+    			byte[] bmiddle = new byte[middleLength];
+    			byte[] bend = new byte[endLength];
+    			buf.readBytes(bheader);
+    			buf.readBytes(bmiddle);
+    			buf.readBytes(bend);
+    			return new TestPacket(new String(bheader),
+    					new String(bmiddle),
+    					new String(bend));
+    		default:
+    			throw new OpenR66ProtocolPacketException("Unvalid Packet Type received: "+packetType);
+    	}
     }
 }

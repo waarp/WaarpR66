@@ -20,6 +20,7 @@
  */
 package openr66.protocol.localhandler;
 
+import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.Channels;
@@ -30,11 +31,15 @@ import org.jboss.netty.channel.Channels;
  */
 public class LocalServerPipelineFactory implements ChannelPipelineFactory {
 
+	private Channel networkChannel;
+	public LocalServerPipelineFactory(Channel networkChannel) {
+		this.networkChannel = networkChannel;
+	}
     @Override
     public ChannelPipeline getPipeline() throws Exception {
         ChannelPipeline pipeline = Channels.pipeline();
         pipeline.addLast("handler",
-                new LocalServerHandler());
+                new LocalServerHandler(this.networkChannel));
         return pipeline;
     }
 

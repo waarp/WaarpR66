@@ -60,7 +60,7 @@ public class PacketCodec extends FrameDecoder implements ChannelDownstreamHandle
             return null;
         }
         // Now we can read the header
-        // Header: Header: length field (4 bytes) = Middle length field (4 bytes), End length field (4 bytes), type field (1 byte), ...
+        // Header: Header length field (4 bytes) = Middle length field (4 bytes), End length field (4 bytes), type field (1 byte), ...
         int middleLength = buf.readInt();
         int endLength = buf.readInt();
         // check if the packet is complete
@@ -68,9 +68,7 @@ public class PacketCodec extends FrameDecoder implements ChannelDownstreamHandle
             buf.resetReaderIndex();
             return null;
         }
-        byte packetType = buf.readByte();
-        AbstractPacket packet = PacketFactory.createPacketFromChannelBuffer(packetType, length, middleLength, endLength, buf);
-        return packet;
+        return PacketFactory.createPacketFromChannelBuffer(length-8, middleLength, endLength, buf);
     }
 
     @Override

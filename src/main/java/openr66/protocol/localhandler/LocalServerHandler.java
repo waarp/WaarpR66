@@ -3,6 +3,7 @@
  */
 package openr66.protocol.localhandler;
 
+import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.ExceptionEvent;
@@ -15,6 +16,10 @@ import org.jboss.netty.channel.SimpleChannelHandler;
  */
 public class LocalServerHandler extends SimpleChannelHandler {
 
+	private Channel networkChannel;
+	public LocalServerHandler(Channel networkChannel) {
+		this.networkChannel = networkChannel;
+	}
     /* (non-Javadoc)
      * @see org.jboss.netty.channel.SimpleChannelHandler#channelClosed(org.jboss.netty.channel.ChannelHandlerContext, org.jboss.netty.channel.ChannelStateEvent)
      */

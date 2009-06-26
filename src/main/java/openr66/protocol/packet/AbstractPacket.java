@@ -34,22 +34,30 @@ public abstract class AbstractPacket {
 
     public abstract void createEnd() throws OpenR66ProtocolPacketException;
 
-    public abstract void updateHeader() throws OpenR66ProtocolPacketException;
-
-    public abstract void updateMiddle() throws OpenR66ProtocolPacketException;
-
-    public abstract void updateEnd() throws OpenR66ProtocolPacketException;
-
-    public ChannelBuffer getPacket() {
-        ChannelBuffer buf = ChannelBuffers.buffer(Integer.SIZE*3);// 3 header lengths
-        int headerLength = header.readableBytes()+Integer.SIZE*2;
-        int middleLength = middle.readableBytes();
-        int endLength = end.readableBytes();
+    public abstract String toString();
+    
+    public ChannelBuffer getPacket() throws OpenR66ProtocolPacketException {
+        ChannelBuffer buf = ChannelBuffers.buffer(4*3);// 3 header lengths
+        if (header == null) {
+        	this.createHeader();
+        }
+        ChannelBuffer newHeader = (header != null) ? header : ChannelBuffers.EMPTY_BUFFER;
+        int headerLength = 4*2+newHeader.readableBytes();
+        if (middle == null) {
+        	this.createMiddle();
+        }
+        ChannelBuffer newMiddle = (middle != null) ? middle : ChannelBuffers.EMPTY_BUFFER;
+        int middleLength = newMiddle.readableBytes();
+        if (end == null) {
+        	this.createEnd();
+        }
+        ChannelBuffer newEnd = (end != null) ? end : ChannelBuffers.EMPTY_BUFFER;
+        int endLength = newEnd.readableBytes();
         buf.writeInt(headerLength);
         buf.writeInt(middleLength);
         buf.writeInt(endLength);
-        ChannelBuffer channelBuffer = ChannelBuffers.wrappedBuffer(buf, header,
-                middle, end);
+        ChannelBuffer channelBuffer = ChannelBuffers.wrappedBuffer(buf, newHeader,
+        		newMiddle, newEnd);
         return channelBuffer;
     }
 }
