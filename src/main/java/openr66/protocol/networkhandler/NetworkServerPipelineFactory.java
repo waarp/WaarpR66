@@ -18,7 +18,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF
  * site: http://www.fsf.org.
  */
-package openr66.protocol.localhandler;
+package openr66.protocol.networkhandler;
 
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
@@ -28,12 +28,12 @@ import org.jboss.netty.channel.Channels;
  * @author Frederic Bregier
  * 
  */
-public class LocalClientPipelineFactory implements ChannelPipelineFactory {
+public class NetworkServerPipelineFactory implements ChannelPipelineFactory {
 
     @Override
     public ChannelPipeline getPipeline() throws Exception {
         ChannelPipeline pipeline = Channels.pipeline();
-        pipeline.addLast("handler", new LocalClientHandler());
+        pipeline.addLast("handler", new NetworkServerHandler());
         return pipeline;
     }
 

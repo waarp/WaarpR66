@@ -15,9 +15,14 @@ import org.jboss.netty.channel.WriteCompletionEvent;
  * 
  */
 public class LocalClientHandler extends SimpleChannelHandler {
-	
-    /* (non-Javadoc)
-     * @see org.jboss.netty.channel.SimpleChannelHandler#channelClosed(org.jboss.netty.channel.ChannelHandlerContext, org.jboss.netty.channel.ChannelStateEvent)
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.jboss.netty.channel.SimpleChannelHandler#channelClosed(org.jboss.
+     * netty.channel.ChannelHandlerContext,
+     * org.jboss.netty.channel.ChannelStateEvent)
      */
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e)
@@ -26,8 +31,13 @@ public class LocalClientHandler extends SimpleChannelHandler {
         super.channelClosed(ctx, e);
     }
 
-    /* (non-Javadoc)
-     * @see org.jboss.netty.channel.SimpleChannelHandler#channelConnected(org.jboss.netty.channel.ChannelHandlerContext, org.jboss.netty.channel.ChannelStateEvent)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.jboss.netty.channel.SimpleChannelHandler#channelConnected(org.jboss
+     * .netty.channel.ChannelHandlerContext,
+     * org.jboss.netty.channel.ChannelStateEvent)
      */
     @Override
     public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
@@ -36,8 +46,13 @@ public class LocalClientHandler extends SimpleChannelHandler {
         super.channelConnected(ctx, e);
     }
 
-    /* (non-Javadoc)
-     * @see org.jboss.netty.channel.SimpleChannelHandler#messageReceived(org.jboss.netty.channel.ChannelHandlerContext, org.jboss.netty.channel.MessageEvent)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.jboss.netty.channel.SimpleChannelHandler#messageReceived(org.jboss
+     * .netty.channel.ChannelHandlerContext,
+     * org.jboss.netty.channel.MessageEvent)
      */
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
@@ -46,8 +61,13 @@ public class LocalClientHandler extends SimpleChannelHandler {
         super.messageReceived(ctx, e);
     }
 
-    /* (non-Javadoc)
-     * @see org.jboss.netty.channel.SimpleChannelHandler#writeComplete(org.jboss.netty.channel.ChannelHandlerContext, org.jboss.netty.channel.WriteCompletionEvent)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.jboss.netty.channel.SimpleChannelHandler#writeComplete(org.jboss.
+     * netty.channel.ChannelHandlerContext,
+     * org.jboss.netty.channel.WriteCompletionEvent)
      */
     @Override
     public void writeComplete(ChannelHandlerContext ctx, WriteCompletionEvent e)
@@ -56,8 +76,13 @@ public class LocalClientHandler extends SimpleChannelHandler {
         super.writeComplete(ctx, e);
     }
 
-    /* (non-Javadoc)
-     * @see org.jboss.netty.channel.SimpleChannelHandler#exceptionCaught(org.jboss.netty.channel.ChannelHandlerContext, org.jboss.netty.channel.ExceptionEvent)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.jboss.netty.channel.SimpleChannelHandler#exceptionCaught(org.jboss
+     * .netty.channel.ChannelHandlerContext,
+     * org.jboss.netty.channel.ExceptionEvent)
      */
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
