@@ -87,7 +87,7 @@ public class Configuration {
      * client for Executor in the Pipeline for Business logic. Server will
      * change this value on startup if not set.
      */
-    public static int SERVER_THREAD = 8;
+    public static int SERVER_THREAD = 16;
     /**
      * Nb of milliseconds after connection is in timeout
      */
@@ -183,6 +183,10 @@ public class Configuration {
      */
     private final LocalTransaction localTransaction = new LocalTransaction();
     
+    public Configuration() {
+        // Init signal handler
+        OpenR66SignalHandler.initSignalHandler(this);
+    }
     /**
      * Startup the server
      *
@@ -210,8 +214,6 @@ public class Configuration {
         serverChannelGroup.add(serverBootstrap
                 .bind(new InetSocketAddress(SERVER_PORT)));
 
-        // Init signal handler
-        OpenR66SignalHandler.initSignalHandler(this);
         // Factory for TrafficShapingHandler
         objectSizeEstimator = new DataBlockSizeEstimator();
         globalTrafficShapingHandler = new GlobalTrafficShapingHandler(

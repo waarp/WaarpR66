@@ -86,6 +86,10 @@ public class LocalPacketCodec extends FrameDecoder implements
             throws Exception {
         if (e instanceof MessageEvent) {
             MessageEvent evt = (MessageEvent) e;
+            if (evt.getMessage() instanceof ChannelBuffer) {
+                Channels.write(ctx, evt.getFuture(), evt.getMessage());
+                return;
+            }
             if (!(evt.getMessage() instanceof AbstractLocalPacket)) {
                 throw new InvalidArgumentException("Incorrect write object: " +
                         evt.getMessage().getClass().getName());

@@ -3,21 +3,33 @@
  */
 package openr66.protocol.networkhandler;
 
-import openr66.protocol.localhandler.LocalTransaction;
+import goldengate.common.logging.GgInternalLogger;
+import goldengate.common.logging.GgInternalLoggerFactory;
+import openr66.protocol.localhandler.LocalChannelReference;
+import openr66.protocol.packet.ErrorPacket;
 import openr66.protocol.packet.NetworkPacket;
 
 import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.ChannelPipelineCoverage;
 import org.jboss.netty.channel.ChannelStateEvent;
+import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelHandler;
 
 /**
- * @author fbregier
+ * @author frederic bregier
  * 
  */
+@ChannelPipelineCoverage("one")
 public class NetworkServerHandler extends SimpleChannelHandler {
-
+    /**
+     * Internal Logger
+     */
+    private static final GgInternalLogger logger = GgInternalLoggerFactory
+            .getLogger(NetworkServerHandler.class);
+    
+    private LocalChannelReference localChannelReference = null;
     /*
      * (non-Javadoc)
      * 
@@ -29,8 +41,11 @@ public class NetworkServerHandler extends SimpleChannelHandler {
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
-        // TODO Auto-generated method stub
-        super.channelClosed(ctx, e);
+        logger.info("Network Channel Closed: "+e.getChannel().getId());
+        // FIXME close if necessary the local channel
+        if (localChannelReference != null) {
+            Channels.close(localChannelReference.getLocalChannel());
+        }
     }
 
     /*
@@ -44,10 +59,7 @@ public class NetworkServerHandler extends SimpleChannelHandler {
     @Override
     public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
-        
-        
-        // TODO Auto-generated method stub
-        super.channelConnected(ctx, e);
+        logger.info("Network Channel Connected: "+e.getChannel().getId());
     }
 
     /*
@@ -61,10 +73,13 @@ public class NetworkServerHandler extends SimpleChannelHandler {
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
             throws Exception {
-        // Chaque message recu devra etre prefixe de channelId destinataire,
-        // channelId source(localchannel Id)
+        logger.info("Network Channel Recv: "+e.getChannel().getId());
         NetworkPacket packet = (NetworkPacket) e.getMessage();
-        
+        if (localChannelReference == null) {
+            localChannelReference = NetworkTransaction.configuration.getLocalTransaction().
+                createNewClient(e.getChannel(), packet.getRemoteId());
+        }
+        Channels.write(localChannelReference.getLocalChannel(), packet.getBuffer());
     }
 
     /*
@@ -78,8 +93,13 @@ public class NetworkServerHandler extends SimpleChannelHandler {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
             throws Exception {
-        // TODO Auto-generated method stub
-        super.exceptionCaught(ctx, e);
+        logger.error("Network Channel Exception: "+e.getChannel().getId(), e.getCause());
+        if (localChannelReference != null) {
+            ErrorPacket packet = new ErrorPacket(e.getCause().getMessage(),null,null);
+            NetworkPacket networkPacket = new NetworkPacket(localChannelReference.getId(),
+                    localChannelReference.getRemoteId(),packet.getLocalPacket());
+            Channels.write(e.getChannel(), networkPacket);
+        }
     }
 
 }

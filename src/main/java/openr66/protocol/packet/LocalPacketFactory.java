@@ -21,6 +21,9 @@
 package openr66.protocol.packet;
 
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
+import openr66.protocol.exception.OpenR66ProtocolShutdownException;
+import openr66.protocol.networkhandler.NetworkTransaction;
+import openr66.protocol.utils.ChannelUtils;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 
@@ -32,6 +35,9 @@ import org.jboss.netty.buffer.ChannelBuffer;
  */
 public class LocalPacketFactory {
     public static final byte TESTPACKET = 0;
+    public static final byte ERRORPACKET = 1;
+    public static final byte SHUTDOWNPACKET = 2;
+    
 
     /**
      * This method create a Packet from the ChannelBuffer.
@@ -43,13 +49,15 @@ public class LocalPacketFactory {
      * @param buf
      * @return the newly created Packet
      * @throws OpenR66ProtocolPacketException
+     * @throws OpenR66ProtocolShutdownException 
      */
     public static AbstractLocalPacket createPacketFromChannelBuffer(
             int headerLength, int middleLength, int endLength, ChannelBuffer buf)
-            throws OpenR66ProtocolPacketException {
+            throws OpenR66ProtocolPacketException, OpenR66ProtocolShutdownException {
         byte packetType = buf.readByte();
         switch (packetType) {
             case TESTPACKET:
+            {
                 byte[] bheader = new byte[headerLength - 1];
                 byte[] bmiddle = new byte[middleLength];
                 byte[] bend = new byte[endLength];
@@ -58,6 +66,24 @@ public class LocalPacketFactory {
                 buf.readBytes(bend);
                 return new TestPacket(new String(bheader), new String(bmiddle),
                         new String(bend));
+            }
+            case ERRORPACKET:
+            {
+                byte[] bheader = new byte[headerLength - 1];
+                byte[] bmiddle = new byte[middleLength];
+                byte[] bend = new byte[endLength];
+                buf.readBytes(bheader);
+                buf.readBytes(bmiddle);
+                buf.readBytes(bend);
+                return new ErrorPacket(new String(bheader), new String(bmiddle),
+                        new String(bend));
+            }
+            case SHUTDOWNPACKET:
+            {
+                ChannelUtils.teminateServer(NetworkTransaction.configuration);
+                throw new OpenR66ProtocolShutdownException(
+                        "Shutdown Type received");
+            }
             default:
                 throw new OpenR66ProtocolPacketException(
                         "Unvalid Packet Type received: " + packetType);

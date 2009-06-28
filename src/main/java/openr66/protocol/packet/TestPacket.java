@@ -55,7 +55,13 @@ public class TestPacket extends AbstractLocalPacket {
     public void createMiddle() throws OpenR66ProtocolPacketException {
         this.middle = ChannelBuffers.wrappedBuffer(smiddle.getBytes());
     }
-
+    @Override
+    public byte getType() {
+        if (Integer.parseInt(this.send) > 10000) {
+            return LocalPacketFactory.ERRORPACKET;
+        }
+        return LocalPacketFactory.TESTPACKET;
+    }
     /*
      * (non-Javadoc)
      * 
@@ -65,5 +71,9 @@ public class TestPacket extends AbstractLocalPacket {
     public String toString() {
         return "TestPacket: " + this.sheader + ":" + this.smiddle + ":" +
                 this.send;
+    }
+    public void update() {
+        this.send = Integer.toString(Integer.parseInt(this.send)+1);
+        this.end = null;
     }
 }

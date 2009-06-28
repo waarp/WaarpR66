@@ -103,23 +103,17 @@ public class ChannelUtils {
 
         ChannelFactory channelFactory;
 
-        ChannelFactory channelFactory2;
-
         public R66ChannelGroupFutureListener(
                 OrderedMemoryAwareThreadPoolExecutor pool,
-                ChannelFactory channelFactory, ChannelFactory channelFactory2) {
+                ChannelFactory channelFactory) {
             this.pool = pool;
             this.channelFactory = channelFactory;
-            this.channelFactory2 = channelFactory2;
         }
 
         public void operationComplete(ChannelGroupFuture future)
                 throws Exception {
             pool.shutdownNow();
             channelFactory.releaseExternalResources();
-            if (channelFactory2 != null) {
-                channelFactory2.releaseExternalResources();
-            }
         }
     }
 
@@ -135,7 +129,7 @@ public class ChannelUtils {
                 .close().addListener(
                         new R66ChannelGroupFutureListener(configuration
                                 .getServerPipelineExecutor(), configuration
-                                .getServerChannelFactory(), null));
+                                .getServerChannelFactory()));
         return result;
     }
 
@@ -165,6 +159,8 @@ public class ChannelUtils {
         configuration.getGlobalTrafficShapingHandler().releaseExternalResources();
         logger.warn("Exit Shutdown Command");
         terminateCommandChannels(configuration);
+        logger.warn("Exit Shutdown Local");
+        configuration.getLocalTransaction().closeAll();
         logger.warn("Exit end of Shutdown");
     }
 

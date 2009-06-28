@@ -49,7 +49,7 @@ public class LocalTransaction {
         clientBootstrap.setPipelineFactory(new LocalClientPipelineFactory());
     }
 
-    public void createNewClient(Channel networkChannel, Integer remoteId) {
+    public LocalChannelReference createNewClient(Channel networkChannel, Integer remoteId) {
         ChannelFuture channelFuture = clientBootstrap
                 .connect(socketServerAddress);
         channelFuture.awaitUninterruptibly();
@@ -57,6 +57,7 @@ public class LocalTransaction {
         localChannelGroup.add(channel);
         LocalChannelReference localChannelReference = new LocalChannelReference(channel, networkChannel, remoteId);
         localChannelHashMap.put(channel.getId(), localChannelReference);
+        return localChannelReference;
     }
 
     public void closeAll() {
@@ -68,5 +69,8 @@ public class LocalTransaction {
     }
     public LocalChannelReference getFromId(Integer id) {
         return this.localChannelHashMap.get(id);
+    }
+    public void removeFromId(Integer id) {
+        this.localChannelHashMap.remove(id);
     }
 }

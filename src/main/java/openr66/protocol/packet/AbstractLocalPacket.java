@@ -48,17 +48,19 @@ public abstract class AbstractLocalPacket {
     public abstract void createMiddle() throws OpenR66ProtocolPacketException;
 
     public abstract void createEnd() throws OpenR66ProtocolPacketException;
+    
+    public abstract byte getType();
 
     public abstract String toString();
 
     public ChannelBuffer getLocalPacket() throws OpenR66ProtocolPacketException {
-        ChannelBuffer buf = ChannelBuffers.buffer(4 * 3);// 3 header lengths
+        ChannelBuffer buf = ChannelBuffers.buffer(4 * 3+1);// 3 header lengths+type
         if (header == null) {
             this.createHeader();
         }
         ChannelBuffer newHeader = (header != null)? header
                 : ChannelBuffers.EMPTY_BUFFER;
-        int headerLength = 4 * 2 + newHeader.readableBytes();
+        int headerLength = 4 * 2 +1+ newHeader.readableBytes();
         if (middle == null) {
             this.createMiddle();
         }
@@ -73,6 +75,7 @@ public abstract class AbstractLocalPacket {
         buf.writeInt(headerLength);
         buf.writeInt(middleLength);
         buf.writeInt(endLength);
+        buf.writeByte(this.getType());
         ChannelBuffer channelBuffer = ChannelBuffers.wrappedBuffer(buf,
                 newHeader, newMiddle, newEnd);
         return channelBuffer;

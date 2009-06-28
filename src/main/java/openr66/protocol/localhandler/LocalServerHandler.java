@@ -3,8 +3,18 @@
  */
 package openr66.protocol.localhandler;
 
+import goldengate.common.logging.GgInternalLogger;
+import goldengate.common.logging.GgInternalLoggerFactory;
+
+import openr66.protocol.exception.OpenR66ProtocolShutdownException;
+import openr66.protocol.packet.AbstractLocalPacket;
+import openr66.protocol.packet.ErrorPacket;
+import openr66.protocol.packet.TestPacket;
+
 import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.ChannelPipelineCoverage;
 import org.jboss.netty.channel.ChannelStateEvent;
+import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelHandler;
@@ -14,8 +24,14 @@ import org.jboss.netty.channel.SimpleChannelHandler;
  * @author frederic bregier
  * 
  */
+@ChannelPipelineCoverage("one")
 public class LocalServerHandler extends SimpleChannelHandler {
-
+    /**
+     * Internal Logger
+     */
+    private static final GgInternalLogger logger = GgInternalLoggerFactory
+            .getLogger(LocalServerHandler.class);
+    
     /*
      * (non-Javadoc)
      * 
@@ -27,9 +43,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
-        // TODO Auto-generated method stub
+        logger.info("Local Server Channel Closed: "+e.getChannel().getId());
         // FIXME clean session objects like files
-        super.channelClosed(ctx, e);
     }
 
     /*
@@ -43,9 +58,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
     @Override
     public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
-        // TODO Auto-generated method stub
+        logger.info("Local Server Channel Connected: "+e.getChannel().getId());
         // FIXME prepare session objects
-        super.channelConnected(ctx, e);
     }
 
     /*
@@ -59,9 +73,19 @@ public class LocalServerHandler extends SimpleChannelHandler {
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
             throws Exception {
+        logger.info("Local Server Channel Recv: "+e.getChannel().getId());
         // FIXME action as requested and answer if necessary
-        // TODO Auto-generated method stub
-        super.messageReceived(ctx, e);
+        AbstractLocalPacket packet = (AbstractLocalPacket) e.getMessage();
+        if (packet instanceof TestPacket) {
+            logger.info(e.getChannel().getId()+": "+((TestPacket) packet).toString());
+            // simply write back after+1
+            ((TestPacket) packet).update();
+            Channels.write(e.getChannel(), packet);
+        } else if (packet instanceof ErrorPacket) {
+            logger.warn(e.getChannel().getId()+": "+((ErrorPacket) packet).toString());
+        } else {
+            logger.error("Unknown Mesg");
+        }
     }
 
     /*
@@ -76,8 +100,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
             throws Exception {
         // FIXME inform clients
-        // TODO Auto-generated method stub
-        super.exceptionCaught(ctx, e);
+        logger.error("Local Server Channel Exception: "+e.getChannel().getId(), e.getCause());
     }
 
 }
