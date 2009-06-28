@@ -5,6 +5,8 @@ package openr66.protocol.networkhandler;
 
 import java.net.SocketAddress;
 
+import openr66.protocol.config.Configuration;
+
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
@@ -20,6 +22,8 @@ import org.jboss.netty.channel.group.DefaultChannelGroup;
  * 
  */
 public class NetworkTransaction {
+    public static Configuration configuration = new Configuration();
+    
     private final ChannelFactory channelClientFactory = null;
 
     private final ChannelFactory channelServerFactory = null;

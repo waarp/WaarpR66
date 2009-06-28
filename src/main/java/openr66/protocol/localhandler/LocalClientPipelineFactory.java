@@ -20,11 +20,14 @@
  */
 package openr66.protocol.localhandler;
 
+import openr66.protocol.packet.LocalPacketCodec;
+
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.Channels;
 
 /**
+ * Pipeline Factory for Local Client
  * @author Frederic Bregier
  * 
  */
@@ -33,6 +36,7 @@ public class LocalClientPipelineFactory implements ChannelPipelineFactory {
     @Override
     public ChannelPipeline getPipeline() throws Exception {
         ChannelPipeline pipeline = Channels.pipeline();
+        pipeline.addLast("codec", new LocalPacketCodec());
         pipeline.addLast("handler", new LocalClientHandler());
         return pipeline;
     }

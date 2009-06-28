@@ -37,7 +37,7 @@ import org.jboss.netty.handler.codec.frame.FrameDecoder;
  * @author Frederic Bregier
  * 
  */
-public class PacketCodec extends FrameDecoder implements
+public class LocalPacketCodec extends FrameDecoder implements
         ChannelDownstreamHandler {
 
     /*
@@ -76,7 +76,8 @@ public class PacketCodec extends FrameDecoder implements
             buf.resetReaderIndex();
             return null;
         }
-        return PacketFactory.createPacketFromChannelBuffer(length - 8,
+        // createPacketFromChannelBuffer read the buffer
+        return LocalPacketFactory.createPacketFromChannelBuffer(length - 8,
                 middleLength, endLength, buf);
     }
 
@@ -85,12 +86,12 @@ public class PacketCodec extends FrameDecoder implements
             throws Exception {
         if (e instanceof MessageEvent) {
             MessageEvent evt = (MessageEvent) e;
-            if (!(evt.getMessage() instanceof AbstractPacket)) {
+            if (!(evt.getMessage() instanceof AbstractLocalPacket)) {
                 throw new InvalidArgumentException("Incorrect write object: " +
                         evt.getMessage().getClass().getName());
             }
-            AbstractPacket packet = (AbstractPacket) evt.getMessage();
-            ChannelBuffer buf = packet.getPacket();
+            AbstractLocalPacket packet = (AbstractLocalPacket) evt.getMessage();
+            ChannelBuffer buf = packet.getLocalPacket();
             Channels.write(ctx, evt.getFuture(), buf);
         } else {
             ctx.sendDownstream(e);

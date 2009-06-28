@@ -13,7 +13,7 @@ import openr66.protocol.exception.OpenR66ProtocolPacketException;
  * @author frederic bregier
  * 
  */
-public class TestPacket extends AbstractPacket {
+public class TestPacket extends AbstractLocalPacket {
     private String sheader = null;
 
     private String smiddle = null;
@@ -29,7 +29,7 @@ public class TestPacket extends AbstractPacket {
     /*
      * (non-Javadoc)
      * 
-     * @see openr66.protocol.packet.AbstractPacket#createEnd()
+     * @see openr66.protocol.packet.AbstractLocalPacket#createEnd()
      */
     @Override
     public void createEnd() throws OpenR66ProtocolPacketException {
@@ -39,7 +39,7 @@ public class TestPacket extends AbstractPacket {
     /*
      * (non-Javadoc)
      * 
-     * @see openr66.protocol.packet.AbstractPacket#createHeader()
+     * @see openr66.protocol.packet.AbstractLocalPacket#createHeader()
      */
     @Override
     public void createHeader() throws OpenR66ProtocolPacketException {
@@ -49,7 +49,7 @@ public class TestPacket extends AbstractPacket {
     /*
      * (non-Javadoc)
      * 
-     * @see openr66.protocol.packet.AbstractPacket#createMiddle()
+     * @see openr66.protocol.packet.AbstractLocalPacket#createMiddle()
      */
     @Override
     public void createMiddle() throws OpenR66ProtocolPacketException {
@@ -59,7 +59,7 @@ public class TestPacket extends AbstractPacket {
     /*
      * (non-Javadoc)
      * 
-     * @see openr66.protocol.packet.AbstractPacket#toString()
+     * @see openr66.protocol.packet.AbstractLocalPacket#toString()
      */
     @Override
     public String toString() {

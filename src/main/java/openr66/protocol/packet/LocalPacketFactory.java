@@ -30,7 +30,7 @@ import org.jboss.netty.buffer.ChannelBuffer;
  * @author Frederic Bregier
  * 
  */
-public class PacketFactory {
+public class LocalPacketFactory {
     public static final byte TESTPACKET = 0;
 
     /**
@@ -44,7 +44,7 @@ public class PacketFactory {
      * @return the newly created Packet
      * @throws OpenR66ProtocolPacketException
      */
-    public static AbstractPacket createPacketFromChannelBuffer(
+    public static AbstractLocalPacket createPacketFromChannelBuffer(
             int headerLength, int middleLength, int endLength, ChannelBuffer buf)
             throws OpenR66ProtocolPacketException {
         byte packetType = buf.readByte();

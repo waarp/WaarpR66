@@ -3,8 +3,14 @@
  */
 package openr66.protocol.localhandler;
 
+import openr66.protocol.networkhandler.NetworkTransaction;
+import openr66.protocol.packet.AbstractLocalPacket;
+import openr66.protocol.packet.NetworkPacket;
+
+import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
+import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelHandler;
@@ -16,6 +22,8 @@ import org.jboss.netty.channel.WriteCompletionEvent;
  */
 public class LocalClientHandler extends SimpleChannelHandler {
 
+    private LocalChannelReference localChannelReference = null;
+    
     /*
      * (non-Javadoc)
      * 
@@ -27,6 +35,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
+        // FIXME nothing to do ?
         // TODO Auto-generated method stub
         super.channelClosed(ctx, e);
     }
@@ -42,10 +51,14 @@ public class LocalClientHandler extends SimpleChannelHandler {
     @Override
     public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
+        // FIXME once connected, should get the LocalChannelReference (not now)
         // TODO Auto-generated method stub
         super.channelConnected(ctx, e);
     }
 
+    private void initLocalClientHandler(Channel channel) {
+        this.localChannelReference = NetworkTransaction.configuration.getLocalTransaction().getFromId(channel.getId());
+    }
     /*
      * (non-Javadoc)
      * 
@@ -57,8 +70,15 @@ public class LocalClientHandler extends SimpleChannelHandler {
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
             throws Exception {
-        // TODO Auto-generated method stub
-        super.messageReceived(ctx, e);
+        if (this.localChannelReference == null) {
+            this.initLocalClientHandler(e.getChannel());
+        }
+        // FIXME now handle message from local server and write back them the network channel
+        AbstractLocalPacket packet = (AbstractLocalPacket) e.getMessage();
+        // FIXME write back to the network channel
+        NetworkPacket networkPacket = new NetworkPacket(this.localChannelReference.getId(),
+                this.localChannelReference.getRemoteId(),packet.getLocalPacket());
+        Channels.write(this.localChannelReference.getNetworkChannel(), networkPacket);
     }
 
     /*

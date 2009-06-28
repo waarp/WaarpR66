@@ -23,21 +23,21 @@ import org.jboss.netty.buffer.ChannelBuffers;
  * @author frederic bregier
  * 
  */
-public abstract class AbstractPacket {
+public abstract class AbstractLocalPacket {
     protected ChannelBuffer header;
 
     protected ChannelBuffer middle;
 
     protected ChannelBuffer end;
 
-    public AbstractPacket(ChannelBuffer header, ChannelBuffer middle,
+    public AbstractLocalPacket(ChannelBuffer header, ChannelBuffer middle,
             ChannelBuffer end) {
         this.header = header;
         this.middle = middle;
         this.end = end;
     }
 
-    public AbstractPacket() {
+    public AbstractLocalPacket() {
         this.header = null;
         this.middle = null;
         this.end = null;
@@ -51,7 +51,7 @@ public abstract class AbstractPacket {
 
     public abstract String toString();
 
-    public ChannelBuffer getPacket() throws OpenR66ProtocolPacketException {
+    public ChannelBuffer getLocalPacket() throws OpenR66ProtocolPacketException {
         ChannelBuffer buf = ChannelBuffers.buffer(4 * 3);// 3 header lengths
         if (header == null) {
             this.createHeader();

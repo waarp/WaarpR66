@@ -3,7 +3,6 @@
  */
 package openr66.protocol.localhandler;
 
-import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.ExceptionEvent;
@@ -11,16 +10,11 @@ import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelHandler;
 
 /**
- * @author fbregier
+ * The local server handler handles real end file operations.
+ * @author frederic bregier
  * 
  */
 public class LocalServerHandler extends SimpleChannelHandler {
-
-    private Channel networkChannel;
-
-    public LocalServerHandler(Channel networkChannel) {
-        this.networkChannel = networkChannel;
-    }
 
     /*
      * (non-Javadoc)
@@ -34,6 +28,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
         // TODO Auto-generated method stub
+        // FIXME clean session objects like files
         super.channelClosed(ctx, e);
     }
 
@@ -49,6 +44,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
     public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
         // TODO Auto-generated method stub
+        // FIXME prepare session objects
         super.channelConnected(ctx, e);
     }
 
@@ -63,9 +59,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
             throws Exception {
+        // FIXME action as requested and answer if necessary
         // TODO Auto-generated method stub
-        // Chaque message recu devra etre prefixe de channelId destinataire,
-        // channelId source(localchannel Id)
         super.messageReceived(ctx, e);
     }
 
@@ -80,6 +75,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
             throws Exception {
+        // FIXME inform clients
         // TODO Auto-generated method stub
         super.exceptionCaught(ctx, e);
     }

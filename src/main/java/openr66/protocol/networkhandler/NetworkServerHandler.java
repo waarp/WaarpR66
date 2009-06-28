@@ -3,6 +3,9 @@
  */
 package openr66.protocol.networkhandler;
 
+import openr66.protocol.localhandler.LocalTransaction;
+import openr66.protocol.packet.NetworkPacket;
+
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.ExceptionEvent;
@@ -41,6 +44,8 @@ public class NetworkServerHandler extends SimpleChannelHandler {
     @Override
     public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
+        
+        
         // TODO Auto-generated method stub
         super.channelConnected(ctx, e);
     }
@@ -56,10 +61,10 @@ public class NetworkServerHandler extends SimpleChannelHandler {
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
             throws Exception {
-        // TODO Auto-generated method stub
         // Chaque message recu devra etre prefixe de channelId destinataire,
         // channelId source(localchannel Id)
-        super.messageReceived(ctx, e);
+        NetworkPacket packet = (NetworkPacket) e.getMessage();
+        
     }
 
     /*

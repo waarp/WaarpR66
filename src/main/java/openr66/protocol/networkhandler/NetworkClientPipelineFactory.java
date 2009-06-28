@@ -20,6 +20,8 @@
  */
 package openr66.protocol.networkhandler;
 
+import openr66.protocol.packet.NetworkPacketCodec;
+
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.Channels;
@@ -33,6 +35,7 @@ public class NetworkClientPipelineFactory implements ChannelPipelineFactory {
     @Override
     public ChannelPipeline getPipeline() throws Exception {
         ChannelPipeline pipeline = Channels.pipeline();
+        pipeline.addLast("codec", new NetworkPacketCodec());
         pipeline.addLast("handler", new NetworkClientHandler());
         return pipeline;
     }

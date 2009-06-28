@@ -3,6 +3,8 @@
  */
 package openr66.protocol.localhandler;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
@@ -21,6 +23,8 @@ import org.jboss.netty.channel.local.LocalAddress;
  * 
  */
 public class LocalTransaction {
+    private final ConcurrentHashMap<Integer, LocalChannelReference> localChannelHashMap
+     = new ConcurrentHashMap<Integer, LocalChannelReference>();
     private final ChannelFactory channelClientFactory = new DefaultLocalClientChannelFactory();
 
     private final ChannelFactory channelServerFactory = new DefaultLocalServerChannelFactory();
@@ -38,26 +42,21 @@ public class LocalTransaction {
     private final ChannelGroup localChannelGroup = new DefaultChannelGroup(
             "LocalChannels");
 
-    public LocalTransaction(Channel networkChannel) {
-        serverBootstrap.setPipelineFactory(new LocalServerPipelineFactory(
-                networkChannel));
+    public LocalTransaction() {
+        serverBootstrap.setPipelineFactory(new LocalServerPipelineFactory());
         serverChannel = serverBootstrap.bind(socketServerAddress);
         localChannelGroup.add(serverChannel);
         clientBootstrap.setPipelineFactory(new LocalClientPipelineFactory());
     }
 
-    public Channel createNewClient() {
+    public void createNewClient(Channel networkChannel, Integer remoteId) {
         ChannelFuture channelFuture = clientBootstrap
                 .connect(socketServerAddress);
         channelFuture.awaitUninterruptibly();
         Channel channel = channelFuture.getChannel();
         localChannelGroup.add(channel);
-        return channel;
-    }
-
-    public void clientChannelClose(Channel channel) {
-        channel.close();
-        channel.getCloseFuture().awaitUninterruptibly();
+        LocalChannelReference localChannelReference = new LocalChannelReference(channel, networkChannel, remoteId);
+        localChannelHashMap.put(channel.getId(), localChannelReference);
     }
 
     public void closeAll() {
@@ -66,5 +65,8 @@ public class LocalTransaction {
         channelClientFactory.releaseExternalResources();
         serverBootstrap.releaseExternalResources();
         channelServerFactory.releaseExternalResources();
+    }
+    public LocalChannelReference getFromId(Integer id) {
+        return this.localChannelHashMap.get(id);
     }
 }
