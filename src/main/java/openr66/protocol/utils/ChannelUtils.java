@@ -1,22 +1,17 @@
 /**
- * Copyright 2009, Frederic Bregier, and individual contributors
- * by the @author tags. See the COPYRIGHT.txt in the distribution for a
- * full listing of individual contributors.
- *
- * This is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 3.0 of
- * the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ * Copyright 2009, Frederic Bregier, and individual contributors by the @author
+ * tags. See the COPYRIGHT.txt in the distribution for a full listing of
+ * individual contributors. This is free software; you can redistribute it
+ * and/or modify it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 3.0 of the License,
+ * or (at your option) any later version. This software is distributed in the
+ * hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
+ * the GNU Lesser General Public License for more details. You should have
+ * received a copy of the GNU Lesser General Public License along with this
+ * software; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF site:
+ * http://www.fsf.org.
  */
 package openr66.protocol.utils;
 
@@ -36,18 +31,17 @@ import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
 
 /**
  * @author Frederic Bregier
- *
  */
-public class ChannelUtils {
+public class ChannelUtils implements Runnable {
     /**
      * Internal Logger
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(ChannelUtils.class);
-    
+
     /**
      * Get the Remote InetAddress
-     *
+     * 
      * @param channel
      * @return the remote InetAddress
      */
@@ -62,19 +56,19 @@ public class ChannelUtils {
 
     /**
      * Get the Local InetAddress
-     *
+     * 
      * @param channel
      * @return the local InetAddress
      */
     public static InetAddress getLocalInetAddress(Channel channel) {
-        InetSocketAddress socketAddress = (InetSocketAddress) channel
+        final InetSocketAddress socketAddress = (InetSocketAddress) channel
                 .getLocalAddress();
         return socketAddress.getAddress();
     }
 
     /**
      * Get the Remote InetSocketAddress
-     *
+     * 
      * @param channel
      * @return the remote InetSocketAddress
      */
@@ -84,18 +78,18 @@ public class ChannelUtils {
 
     /**
      * Get the Local InetSocketAddress
-     *
+     * 
      * @param channel
      * @return the local InetSocketAddress
      */
     public static InetSocketAddress getLocalInetSocketAddress(Channel channel) {
         return (InetSocketAddress) channel.getLocalAddress();
     }
+
     /**
      * Finalize resources attached to handlers
-     *
+     * 
      * @author Frederic Bregier
-     *
      */
     private static class R66ChannelGroupFutureListener implements
             ChannelGroupFutureListener {
@@ -119,23 +113,26 @@ public class ChannelUtils {
 
     /**
      * Terminate all registered channels
-     *
-     * @param configuration
+     * 
      * @return the number of previously registered network channels
      */
-    private static int terminateCommandChannels(Configuration configuration) {
-        int result = configuration.getServerChannelGroup().size();
-        configuration.getServerChannelGroup()
-                .close().addListener(
-                        new R66ChannelGroupFutureListener(configuration
-                                .getServerPipelineExecutor(), configuration
-                                .getServerChannelFactory()));
+    private static int terminateCommandChannels() {
+        final int result = Configuration.configuration.getServerChannelGroup()
+                .size();
+        logger.info("ServerChannelGroup: " + result);
+        Configuration.configuration.getServerChannelGroup().close()
+                .addListener(
+                        new R66ChannelGroupFutureListener(
+                                Configuration.configuration
+                                        .getServerPipelineExecutor(),
+                                Configuration.configuration
+                                        .getServerChannelFactory()));
         return result;
     }
 
     /**
      * Return the current number of network connections
-     *
+     * 
      * @param configuration
      * @return the current number of network connections
      */
@@ -145,32 +142,30 @@ public class ChannelUtils {
 
     /**
      * Exit global ChannelFactory
-     *
-     * @param configuration
      */
-    public static void exit(Configuration configuration) {
-        configuration.isShutdown = true;
-        long delay = 2 * Configuration.TIMEOUTCON;
+    public static void exit() {
+        Configuration.configuration.isShutdown = true;
+        final long delay = Configuration.TIMEOUTCON;
         logger.warn("Exit: Give a delay of " + delay + " ms");
         try {
             Thread.sleep(delay);
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
         }
-        configuration.getGlobalTrafficShapingHandler().releaseExternalResources();
+        Configuration.configuration.getGlobalTrafficShapingHandler()
+                .releaseExternalResources();
         logger.warn("Exit Shutdown Command");
-        terminateCommandChannels(configuration);
+        terminateCommandChannels();
         logger.warn("Exit Shutdown Local");
-        configuration.getLocalTransaction().closeAll();
+        Configuration.configuration.getLocalTransaction().closeAll();
         logger.warn("Exit end of Shutdown");
     }
 
     /**
      * This function is the top function to be called when the server is to be
      * shutdown.
-     *
-     * @param configuration
      */
-    public static void teminateServer(Configuration configuration) {
-        OpenR66SignalHandler.terminate(true, configuration);
+    @Override
+    public void run() {
+        OpenR66SignalHandler.terminate(true);
     }
 }

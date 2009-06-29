@@ -1,22 +1,17 @@
 /**
- * Copyright 2009, Frederic Bregier, and individual contributors
- * by the @author tags. See the COPYRIGHT.txt in the distribution for a
- * full listing of individual contributors.
- *
- * This is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 3.0 of
- * the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ * Copyright 2009, Frederic Bregier, and individual contributors by the @author
+ * tags. See the COPYRIGHT.txt in the distribution for a full listing of
+ * individual contributors. This is free software; you can redistribute it
+ * and/or modify it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 3.0 of the License,
+ * or (at your option) any later version. This software is distributed in the
+ * hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
+ * the GNU Lesser General Public License for more details. You should have
+ * received a copy of the GNU Lesser General Public License along with this
+ * software; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF site:
+ * http://www.fsf.org.
  */
 package goldengate.r66.core.session;
 
@@ -30,11 +25,9 @@ import goldengate.common.file.Restart;
 import goldengate.common.file.SessionInterface;
 import goldengate.r66.core.command.AbstractCommand;
 import goldengate.r66.core.control.BusinessHandler;
-import goldengate.r66.core.control.NetworkHandler;
 
 /**
  * @author Frederic Bregier
- *
  */
 public class R66Session implements SessionInterface {
     /**
@@ -70,13 +63,14 @@ public class R66Session implements SessionInterface {
     /**
      * Current Restart information
      */
-    private Restart restart = null;
+    private final Restart restart = null;
 
     private BusinessHandler businessHandler = null;
     /**
      * Is the control ready to accept command
      */
     private boolean isReady = false;
+
     /**
      * 
      */
@@ -87,13 +81,14 @@ public class R66Session implements SessionInterface {
     }
 
     /**
-	 * @return the businessHandler
-	 */
-	public BusinessHandler getBusinessHandler() {
-		return businessHandler;
-	}
+     * @return the businessHandler
+     */
+    public BusinessHandler getBusinessHandler() {
+        return businessHandler;
+    }
 
-	/* (non-Javadoc)
+    /*
+     * (non-Javadoc)
      * @see goldengate.common.file.SessionInterface#clean()
      */
     @Override
@@ -114,7 +109,8 @@ public class R66Session implements SessionInterface {
         isReady = false;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
      * @see goldengate.common.file.SessionInterface#getAuth()
      */
     @Override
@@ -122,7 +118,8 @@ public class R66Session implements SessionInterface {
         return r66Auth;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
      * @see goldengate.common.file.SessionInterface#getBlockSize()
      */
     @Override
@@ -131,7 +128,8 @@ public class R66Session implements SessionInterface {
         return 0;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
      * @see goldengate.common.file.SessionInterface#getDir()
      */
     @Override
@@ -139,7 +137,8 @@ public class R66Session implements SessionInterface {
         return r66Dir;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
      * @see goldengate.common.file.SessionInterface#getFileParameter()
      */
     @Override
@@ -148,16 +147,18 @@ public class R66Session implements SessionInterface {
         return null;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
      * @see goldengate.common.file.SessionInterface#getRestart()
      */
     @Override
     public Restart getRestart() {
         return restart;
     }
+
     /**
      * Set the new current command
-     *
+     * 
      * @param command
      */
     public void setNextCommand(CommandInterface command) {
@@ -182,7 +183,6 @@ public class R66Session implements SessionInterface {
     /**
      * Set the previous command as the new current command (used after a
      * incorrect sequence of commands or unknown command)
-     *
      */
     public void setPreviousAsCurrentCommand() {
         currentCommand = previousCommand;
@@ -221,7 +221,7 @@ public class R66Session implements SessionInterface {
 
     /**
      * Set Exit code after an error
-     *
+     * 
      * @param answer
      */
     public void setExitErrorCode(String answer) {
@@ -233,7 +233,7 @@ public class R66Session implements SessionInterface {
 
     /**
      * Set Exit normal code
-     *
+     * 
      * @param answer
      */
     public void setExitNormalCode(String answer) {
@@ -247,6 +247,7 @@ public class R66Session implements SessionInterface {
     public ReplyCode getReplyCode() {
         return replyCode;
     }
+
     /**
      * @return True if the Control is ready to accept command
      */
@@ -261,26 +262,26 @@ public class R66Session implements SessionInterface {
     public void setReady(boolean isReady) {
         this.isReady = isReady;
     }
+
     @Override
     public String toString() {
         String mesg = "R66Session: ";
         if (currentCommand != null) {
-            mesg += "CMD: " + currentCommand.getCommand() + " " +
-                    currentCommand.getArg() + " ";
+            mesg += "CMD: " + currentCommand.getCommand() + " "
+                    + currentCommand.getArg() + " ";
         }
         if (replyCode != null) {
-            mesg += "Reply: " +
-                    (answer != null? answer : replyCode
-                            .getMesg()) + " ";
+            mesg += "Reply: " + (answer != null ? answer : replyCode.getMesg())
+                    + " ";
         }
-        //FIXME XXX TODO 
-        /*if (dataConn != null) {
-            mesg += dataConn.toString();
-        }*/
+        // FIXME XXX TODO
+        /*
+         * if (dataConn != null) { mesg += dataConn.toString(); }
+         */
         if (r66Dir != null) {
             try {
                 mesg += "PWD: " + r66Dir.getPwd();
-            } catch (CommandAbstractException e) {
+            } catch (final CommandAbstractException e) {
             }
         }
         return mesg + "\n";

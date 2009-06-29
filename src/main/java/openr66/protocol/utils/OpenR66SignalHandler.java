@@ -1,22 +1,17 @@
 /**
- * Copyright 2009, Frederic Bregier, and individual contributors
- * by the @author tags. See the COPYRIGHT.txt in the distribution for a
- * full listing of individual contributors.
- *
- * This is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 3.0 of
- * the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ * Copyright 2009, Frederic Bregier, and individual contributors by the @author
+ * tags. See the COPYRIGHT.txt in the distribution for a full listing of
+ * individual contributors. This is free software; you can redistribute it
+ * and/or modify it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 3.0 of the License,
+ * or (at your option) any later version. This software is distributed in the
+ * hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
+ * the GNU Lesser General Public License for more details. You should have
+ * received a copy of the GNU Lesser General Public License along with this
+ * software; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF site:
+ * http://www.fsf.org.
  */
 package openr66.protocol.utils;
 
@@ -37,7 +32,6 @@ import sun.misc.SignalHandler;
  * Signal Handler to allow trapping signals.
  * 
  * @author Frederic Bregier
- *
  */
 public class OpenR66SignalHandler implements SignalHandler {
     /**
@@ -56,22 +50,8 @@ public class OpenR66SignalHandler implements SignalHandler {
     private SignalHandler oldHandler = null;
 
     /**
-     * Configuration
-     */
-    private final Configuration configuration;
-
-    /**
-     *
-     * @param configuration
-     */
-    private OpenR66SignalHandler(Configuration configuration) {
-        super();
-        this.configuration = configuration;
-    }
-
-    /**
      * Says if the Process is currently in shutdown
-     *
+     * 
      * @return True if already in shutdown
      */
     public static boolean isInShutdown() {
@@ -81,22 +61,21 @@ public class OpenR66SignalHandler implements SignalHandler {
     /**
      * This function is the top function to be called when the process is to be
      * shutdown.
-     *
+     * 
      * @param immediate
      * @param configuration
      */
-    public static void terminate(boolean immediate,
-            Configuration configuration) {
+    public static void terminate(boolean immediate) {
         if (immediate) {
             shutdown = immediate;
         }
-        terminate(configuration);
+        terminate();
     }
+
     /**
      * Finalize resources attached to handlers
-     *
+     * 
      * @author Frederic Bregier
-     *
      */
     private static class R66TimerTask extends TimerTask {
         /**
@@ -117,7 +96,7 @@ public class OpenR66SignalHandler implements SignalHandler {
 
         /**
          * Constructor from type
-         *
+         * 
          * @param type
          */
         public R66TimerTask(int type) {
@@ -127,52 +106,47 @@ public class OpenR66SignalHandler implements SignalHandler {
 
         /*
          * (non-Javadoc)
-         *
          * @see java.util.TimerTask#run()
          */
         @Override
         public void run() {
             switch (type) {
-                case TIMER_EXIT:
-                    logger.error("System will force EXIT");
-                    System.exit(1);
-                    break;
-                default:
-                    logger.warn("Type unknown in TimerTask");
+            case TIMER_EXIT:
+                logger.error("System will force EXIT");
+                System.exit(1);
+                break;
+            default:
+                logger.warn("Type unknown in TimerTask");
             }
         }
     }
 
     /**
      * Function to terminate IoSession and Connection.
-     *
-     * @param configuration
      */
-    private static void terminate(Configuration configuration) {
+    private static void terminate() {
         Timer timer = null;
         timer = new Timer(true);
-        R66TimerTask timerTask = new R66TimerTask(R66TimerTask.TIMER_EXIT);
-        timer.schedule(timerTask, Configuration.TIMEOUTCON * 4);
+        final R66TimerTask timerTask = new R66TimerTask(R66TimerTask.TIMER_EXIT);
+        timer.schedule(timerTask, Configuration.TIMEOUTCON * 2);
         if (shutdown) {
-            ChannelUtils.exit(configuration);
+            ChannelUtils.exit();
             // shouldn't be System.exit(2);
         } else {
-            ChannelUtils.exit(configuration);
+            ChannelUtils.exit();
             shutdown = true;
         }
     }
 
     /**
      * Function to initialized the SignalHandler
-     *
-     * @param configuration
      */
-    public static void initSignalHandler(Configuration configuration) {
+    public static void initSignalHandler() {
         if (initialized) {
             return;
         }
         Signal diagSignal = new Signal("TERM");
-        OpenR66SignalHandler diagHandler = new OpenR66SignalHandler(configuration);
+        OpenR66SignalHandler diagHandler = new OpenR66SignalHandler();
         diagHandler.oldHandler = Signal.handle(diagSignal, diagHandler);
         // Not on WINDOWS
         if (Configuration.ISUNIX) {
@@ -180,7 +154,7 @@ public class OpenR66SignalHandler implements SignalHandler {
             vendor = vendor.toLowerCase();
             if (vendor.indexOf("ibm") >= 0) {
                 diagSignal = new Signal("USR1");
-                diagHandler = new OpenR66SignalHandler(configuration);
+                diagHandler = new OpenR66SignalHandler();
                 diagHandler.oldHandler = Signal.handle(diagSignal, diagHandler);
             }
         }
@@ -189,17 +163,17 @@ public class OpenR66SignalHandler implements SignalHandler {
 
     /**
      * Handle signal
-     *
+     * 
      * @param signal
      */
     public void handle(Signal signal) {
         try {
-            terminate(configuration);
+            terminate();
             // Chain back to previous handler, if one exists
-            if (oldHandler != SIG_DFL && oldHandler != SIG_IGN) {
+            if ((oldHandler != SIG_DFL) && (oldHandler != SIG_IGN)) {
                 oldHandler.handle(signal);
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
         }
         System.exit(signal.getNumber());
     }

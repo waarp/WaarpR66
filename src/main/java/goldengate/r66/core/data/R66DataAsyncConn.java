@@ -1,37 +1,26 @@
 /**
- * Copyright 2009, Frederic Bregier, and individual contributors
- * by the @author tags. See the COPYRIGHT.txt in the distribution for a
- * full listing of individual contributors.
- *
- * This is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 3.0 of
- * the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ * Copyright 2009, Frederic Bregier, and individual contributors by the @author
+ * tags. See the COPYRIGHT.txt in the distribution for a full listing of
+ * individual contributors. This is free software; you can redistribute it
+ * and/or modify it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 3.0 of the License,
+ * or (at your option) any later version. This software is distributed in the
+ * hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
+ * the GNU Lesser General Public License for more details. You should have
+ * received a copy of the GNU Lesser General Public License along with this
+ * software; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF site:
+ * http://www.fsf.org.
  */
 package goldengate.r66.core.data;
 
 import goldengate.common.command.exception.Reply425Exception;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
-import goldengate.ftp.core.command.FtpArgumentCode;
-import goldengate.ftp.core.command.FtpArgumentCode.TransferMode;
-import goldengate.ftp.core.command.FtpArgumentCode.TransferStructure;
-import goldengate.ftp.core.command.FtpArgumentCode.TransferType;
-import goldengate.ftp.core.config.FtpConfiguration;
-import goldengate.ftp.core.data.handler.DataNetworkHandler;
-import goldengate.ftp.core.exception.FtpNoConnectionException;
-import goldengate.ftp.core.session.FtpSession;
-import goldengate.ftp.core.utils.FtpChannelUtils;
+import goldengate.r66.core.command.R66ArgumentCode.TransferMode;
+import goldengate.r66.core.command.R66ArgumentCode.TransferType;
+import goldengate.r66.core.data.handler.DataNetworkHandler;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -42,9 +31,8 @@ import org.jboss.netty.channel.Channels;
 /**
  * Main class that handles Data connection using asynchronous connection with
  * Netty
- *
+ * 
  * @author Frederic Bregier
- *
  */
 public class R66DataAsyncConn {
     /**
@@ -128,14 +116,14 @@ public class R66DataAsyncConn {
 
     /**
      * Constructor for Active session by default
-     *
+     * 
      * @param session
      */
     public R66DataAsyncConn(FtpSession session) {
         this.session = session;
         dataChannel = null;
-        remoteAddress = FtpChannelUtils
-                .getRemoteInetSocketAddress(this.session.getControlChannel());
+        remoteAddress = FtpChannelUtils.getRemoteInetSocketAddress(this.session
+                .getControlChannel());
         remotePort = remoteAddress.getPort();
         setDefaultLocalPort();
         localAddress = new InetSocketAddress(FtpChannelUtils
@@ -148,7 +136,6 @@ public class R66DataAsyncConn {
 
     /**
      * Clear the Data Connection
-     *
      */
     public void clear() {
         unbindPassive();
@@ -160,7 +147,6 @@ public class R66DataAsyncConn {
 
     /**
      * Set the local port to the default (20)
-     *
      */
     private void setDefaultLocalPort() {
         setLocalPort(session.getConfiguration().getServerPort() - 1);// Default
@@ -169,7 +155,7 @@ public class R66DataAsyncConn {
 
     /**
      * Set the Local Port (Active or Passive)
-     *
+     * 
      * @param localPort
      */
     public void setLocalPort(int localPort) {
@@ -206,7 +192,7 @@ public class R66DataAsyncConn {
 
     /**
      * Change to active connection (don't change localPort)
-     *
+     * 
      * @param address
      *            remote address
      */
@@ -225,11 +211,10 @@ public class R66DataAsyncConn {
     public void setPassive() {
         unbindPassive();
         localAddress = new InetSocketAddress(FtpChannelUtils
-                .getLocalInetAddress(session.getControlChannel()),
-                localPort);
+                .getLocalInetAddress(session.getControlChannel()), localPort);
         passiveMode = true;
         isBind = false;
-        //logger.debug("Passive prepared");
+        // logger.debug("Passive prepared");
     }
 
     /**
@@ -240,7 +225,6 @@ public class R66DataAsyncConn {
     }
 
     /**
-     *
      * @return True if the connection is bind (active = connected, passive = not
      *         necessarily connected)
      */
@@ -250,11 +234,11 @@ public class R66DataAsyncConn {
 
     /**
      * Is the Data dataChannel connected
-     *
+     * 
      * @return True if the dataChannel is connected
      */
     public boolean isConnected() {
-        return dataChannel != null && dataChannel.isConnected();
+        return (dataChannel != null) && dataChannel.isConnected();
     }
 
     /**
@@ -322,54 +306,52 @@ public class R66DataAsyncConn {
     }
 
     /**
-     *
      * @return True if the current mode for data connection is FileInterface +
      *         (Stream or Block) + (Ascii or Image)
      */
     public boolean isFileStreamBlockAsciiImage() {
-        return transferStructure == TransferStructure.FILE &&
-                (transferMode == TransferMode.STREAM || transferMode == TransferMode.BLOCK) && (transferType == TransferType.ASCII || transferType == TransferType.IMAGE);
+        return (transferStructure == TransferStructure.FILE)
+                && ((transferMode == TransferMode.STREAM) || (transferMode == TransferMode.BLOCK))
+                && ((transferType == TransferType.ASCII) || (transferType == TransferType.IMAGE));
     }
 
     /**
-     *
      * @return True if the current mode for data connection is Stream
      */
     public boolean isStreamFile() {
-        return transferMode == TransferMode.STREAM && transferStructure == TransferStructure.FILE;
+        return (transferMode == TransferMode.STREAM)
+                && (transferStructure == TransferStructure.FILE);
     }
 
     /**
      * This function must be called after any changes of parameters, ie after
      * MODE, STRU, TYPE
-     *
      */
     private void setCorrectCodec() {
         try {
             getDataNetworkHandler().setCorrectCodec();
-        } catch (FtpNoConnectionException e) {
+        } catch (final FtpNoConnectionException e) {
         }
     }
 
     /**
      * Unbind passive connection when close the Data Channel (from
      * channelClosed())
-     *
      */
     public void unbindPassive() {
         if (isBind && passiveMode) {
             isBind = false;
-            InetSocketAddress local = getLocalAddress();
-            if (dataChannel != null && dataChannel.isConnected()) {
-                //logger.debug("PASSIVE MODE CLOSE");
+            final InetSocketAddress local = getLocalAddress();
+            if ((dataChannel != null) && dataChannel.isConnected()) {
+                // logger.debug("PASSIVE MODE CLOSE");
                 Channels.close(dataChannel);
             }
-            //logger.debug("Passive mode unbind");
+            // logger.debug("Passive mode unbind");
             session.getConfiguration().getFtpInternalConfiguration()
                     .unbindPassive(local);
             // Previous mode was Passive so remove the current configuration if
             // any
-            InetAddress remote = remoteAddress.getAddress();
+            final InetAddress remote = remoteAddress.getAddress();
             session.getConfiguration().delFtpSession(remote, local);
         }
         dataChannel = null;
@@ -378,7 +360,7 @@ public class R66DataAsyncConn {
 
     /**
      * Initialize the socket from Server side (only used in Passive)
-     *
+     * 
      * @return True if OK
      * @throws Reply425Exception
      */
@@ -388,7 +370,7 @@ public class R66DataAsyncConn {
             // Connection is enable but the client will do the real connection
             session.getConfiguration().getFtpInternalConfiguration()
                     .bindPassive(getLocalAddress());
-            //logger.debug("Passive mode ready");
+            // logger.debug("Passive mode ready");
             isBind = true;
             return true;
         }
@@ -398,7 +380,7 @@ public class R66DataAsyncConn {
 
     /**
      * Return the current Data Channel
-     *
+     * 
      * @return the current Data Channel
      * @throws FtpNoConnectionException
      */
@@ -410,7 +392,6 @@ public class R66DataAsyncConn {
     }
 
     /**
-     *
      * @return the DataNetworkHandler
      * @throws FtpNoConnectionException
      */
@@ -423,7 +404,6 @@ public class R66DataAsyncConn {
     }
 
     /**
-     *
      * @param dataNetworkHandler
      *            the {@link DataNetworkHandler} to set
      */
@@ -432,7 +412,6 @@ public class R66DataAsyncConn {
     }
 
     /**
-     *
      * @param configuration
      * @return a new Passive Port
      */
@@ -444,10 +423,10 @@ public class R66DataAsyncConn {
      * @return The current status in String of the different parameters
      */
     public String getStatus() {
-        StringBuilder builder = new StringBuilder("Data connection: ");
-        builder.append((isConnected()? "connected " : "not connected "));
-        builder.append((isBind()? "bind " : "not bind "));
-        builder.append((isPassiveMode()? "passive mode" : "active mode"));
+        final StringBuilder builder = new StringBuilder("Data connection: ");
+        builder.append((isConnected() ? "connected " : "not connected "));
+        builder.append((isBind() ? "bind " : "not bind "));
+        builder.append((isPassiveMode() ? "passive mode" : "active mode"));
         builder.append('\n');
         builder.append("Mode: ");
         builder.append(transferMode.name());
@@ -471,7 +450,6 @@ public class R66DataAsyncConn {
     }
 
     /**
-     *
      * @return the R66TransferControl
      */
     public R66TransferControl getFtpTransferControl() {
@@ -480,13 +458,14 @@ public class R66DataAsyncConn {
 
     /**
      * Set the new connected Data Channel
-     *
-     * @param dataChannel the new Data Channel
+     * 
+     * @param dataChannel
+     *            the new Data Channel
      * @throws InterruptedException
      * @throws Reply425Exception
      */
-    public void setNewOpenedDataChannel(Channel dataChannel) throws InterruptedException,
-            Reply425Exception {
+    public void setNewOpenedDataChannel(Channel dataChannel)
+            throws InterruptedException, Reply425Exception {
         this.dataChannel = dataChannel;
         if (dataChannel == null) {
             String curmode = null;
@@ -495,10 +474,10 @@ public class R66DataAsyncConn {
             } else {
                 curmode = "active";
             }
-            //logger.debug("Connection impossible in {} mode", curmode);
+            // logger.debug("Connection impossible in {} mode", curmode);
             // Cannot open connection
-            throw new Reply425Exception("Cannot open " + curmode +
-                    " data connection");
+            throw new Reply425Exception("Cannot open " + curmode
+                    + " data connection");
         }
         isBind = true;
     }

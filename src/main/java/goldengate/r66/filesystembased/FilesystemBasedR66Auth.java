@@ -1,26 +1,19 @@
 /**
- * Copyright 2009, Frederic Bregier, and individual contributors
- * by the @author tags. See the COPYRIGHT.txt in the distribution for a
- * full listing of individual contributors.
- *
- * This is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 3.0 of
- * the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ * Copyright 2009, Frederic Bregier, and individual contributors by the @author
+ * tags. See the COPYRIGHT.txt in the distribution for a full listing of
+ * individual contributors. This is free software; you can redistribute it
+ * and/or modify it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 3.0 of the License,
+ * or (at your option) any later version. This software is distributed in the
+ * hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
+ * the GNU Lesser General Public License for more details. You should have
+ * received a copy of the GNU Lesser General Public License along with this
+ * software; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF site:
+ * http://www.fsf.org.
  */
 package goldengate.r66.filesystembased;
-
-import java.io.File;
 
 import goldengate.common.command.NextCommandReply;
 import goldengate.common.command.ReplyCode;
@@ -35,9 +28,10 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.r66.core.auth.R66Auth;
 import goldengate.r66.core.command.R66CommandCode;
 
+import java.io.File;
+
 /**
  * @author Frederic Bregier
- *
  */
 public class FilesystemBasedR66Auth extends FilesystemBasedAuthImpl {
     /**
@@ -50,7 +44,7 @@ public class FilesystemBasedR66Auth extends FilesystemBasedAuthImpl {
      * Current authentication
      */
     private R66Auth currentAuth = null;
-    
+
     /**
      * @param session
      */
@@ -58,24 +52,32 @@ public class FilesystemBasedR66Auth extends FilesystemBasedAuthImpl {
         super(session);
     }
 
-    /* (non-Javadoc)
-     * @see goldengate.common.file.filesystembased.FilesystemBasedAuthImpl#businessClean()
+    /*
+     * (non-Javadoc)
+     * @see
+     * goldengate.common.file.filesystembased.FilesystemBasedAuthImpl#businessClean
+     * ()
      */
     @Override
     protected void businessClean() {
         currentAuth = null;
     }
 
-    /* (non-Javadoc)
-     * @see goldengate.common.file.filesystembased.FilesystemBasedAuthImpl#getBaseDirectory()
+    /*
+     * (non-Javadoc)
+     * @seegoldengate.common.file.filesystembased.FilesystemBasedAuthImpl#
+     * getBaseDirectory()
      */
     @Override
     protected String getBaseDirectory() {
-        return null; //XXX TODO FIXME ((FtpSession) getSession()).getConfiguration().getBaseDirectory();
+        return null; // XXX TODO FIXME ((FtpSession)
+        // getSession()).getConfiguration().getBaseDirectory();
     }
 
-    /* (non-Javadoc)
-     * @see goldengate.common.file.filesystembased.FilesystemBasedAuthImpl#setBusinessAccount(java.lang.String)
+    /*
+     * (non-Javadoc)
+     * @seegoldengate.common.file.filesystembased.FilesystemBasedAuthImpl#
+     * setBusinessAccount(java.lang.String)
      */
     @Override
     protected NextCommandReply setBusinessAccount(String account)
@@ -94,8 +96,10 @@ public class FilesystemBasedR66Auth extends FilesystemBasedAuthImpl {
         throw new Reply530Exception("Account is not valid");
     }
 
-    /* (non-Javadoc)
-     * @see goldengate.common.file.filesystembased.FilesystemBasedAuthImpl#setBusinessPassword(java.lang.String)
+    /*
+     * (non-Javadoc)
+     * @seegoldengate.common.file.filesystembased.FilesystemBasedAuthImpl#
+     * setBusinessPassword(java.lang.String)
      */
     @Override
     protected NextCommandReply setBusinessPassword(String password)
@@ -109,7 +113,7 @@ public class FilesystemBasedR66Auth extends FilesystemBasedAuthImpl {
                 logger.debug("User test");
                 try {
                     return setAccount("test");
-                } catch (Reply502Exception e) {
+                } catch (final Reply502Exception e) {
                 }
             }
             return new NextCommandReply(R66CommandCode.ACCT,
@@ -119,8 +123,10 @@ public class FilesystemBasedR66Auth extends FilesystemBasedAuthImpl {
 
     }
 
-    /* (non-Javadoc)
-     * @see goldengate.common.file.filesystembased.FilesystemBasedAuthImpl#setBusinessRootFromAuth()
+    /*
+     * (non-Javadoc)
+     * @seegoldengate.common.file.filesystembased.FilesystemBasedAuthImpl#
+     * setBusinessRootFromAuth()
      */
     @Override
     protected String setBusinessRootFromAuth() throws Reply421Exception {
@@ -128,24 +134,28 @@ public class FilesystemBasedR66Auth extends FilesystemBasedAuthImpl {
         if (account == null) {
             path = DirInterface.SEPARATOR + user;
         } else {
-            path = DirInterface.SEPARATOR + user + DirInterface.SEPARATOR +
-                    account;
+            path = DirInterface.SEPARATOR + user + DirInterface.SEPARATOR
+                    + account;
         }
-        String fullpath = getAbsolutePath(path);
-        File file = new File(fullpath);
+        final String fullpath = getAbsolutePath(path);
+        final File file = new File(fullpath);
         if (!file.isDirectory()) {
             throw new Reply421Exception("Filesystem not ready");
         }
         return path;
     }
 
-    /* (non-Javadoc)
-     * @see goldengate.common.file.filesystembased.FilesystemBasedAuthImpl#setBusinessUser(java.lang.String)
+    /*
+     * (non-Javadoc)
+     * @seegoldengate.common.file.filesystembased.FilesystemBasedAuthImpl#
+     * setBusinessUser(java.lang.String)
      */
     @Override
     protected NextCommandReply setBusinessUser(String user)
             throws Reply421Exception, Reply530Exception {
-        R66Auth auth = null;//XXX TODO FIXME((FileBasedConfiguration) ((FtpSession) getSession()).getConfiguration()).getSimpleAuth(user);
+        final R66Auth auth = null;// XXX TODO FIXME((FileBasedConfiguration)
+        // ((FtpSession)
+        // getSession()).getConfiguration()).getSimpleAuth(user);
         if (auth == null) {
             setIsIdentified(false);
             currentAuth = null;
@@ -157,7 +167,8 @@ public class FilesystemBasedR66Auth extends FilesystemBasedAuthImpl {
                 ReplyCode.REPLY_331_USER_NAME_OKAY_NEED_PASSWORD, null);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
      * @see goldengate.common.file.AuthInterface#isAdmin()
      */
     @Override
@@ -165,8 +176,11 @@ public class FilesystemBasedR66Auth extends FilesystemBasedAuthImpl {
         return currentAuth.isAdmin;
     }
 
-    /* (non-Javadoc)
-     * @see goldengate.common.file.AuthInterface#isBusinessPathValid(java.lang.String)
+    /*
+     * (non-Javadoc)
+     * @see
+     * goldengate.common.file.AuthInterface#isBusinessPathValid(java.lang.String
+     * )
      */
     @Override
     public boolean isBusinessPathValid(String newPath) {

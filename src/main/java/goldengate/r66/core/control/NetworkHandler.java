@@ -1,22 +1,17 @@
 /**
- * Copyright 2009, Frederic Bregier, and individual contributors
- * by the @author tags. See the COPYRIGHT.txt in the distribution for a
- * full listing of individual contributors.
- *
- * This is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 3.0 of
- * the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ * Copyright 2009, Frederic Bregier, and individual contributors by the @author
+ * tags. See the COPYRIGHT.txt in the distribution for a full listing of
+ * individual contributors. This is free software; you can redistribute it
+ * and/or modify it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 3.0 of the License,
+ * or (at your option) any later version. This software is distributed in the
+ * hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
+ * the GNU Lesser General Public License for more details. You should have
+ * received a copy of the GNU Lesser General Public License along with this
+ * software; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF site:
+ * http://www.fsf.org.
  */
 package goldengate.r66.core.control;
 
@@ -47,9 +42,8 @@ import org.jboss.netty.channel.SimpleChannelHandler;
 /**
  * Main Network Handler (Control part) implementing RFC 959, 775, 2389, 2428,
  * 3659 and supports XCRC and XMD5 commands.
- *
+ * 
  * @author Frederic Bregier
- *
  */
 @ChannelPipelineCoverage("one")
 public class NetworkHandler extends SimpleChannelHandler {
@@ -76,7 +70,7 @@ public class NetworkHandler extends SimpleChannelHandler {
 
     /**
      * Constructor from session
-     *
+     * 
      * @param session
      */
     public NetworkHandler(R66Session session) {
@@ -101,7 +95,6 @@ public class NetworkHandler extends SimpleChannelHandler {
     }
 
     /**
-     *
      * @return the Control Channel
      */
     public Channel getControlChannel() {
@@ -110,15 +103,15 @@ public class NetworkHandler extends SimpleChannelHandler {
 
     /**
      * Run firstly executeChannelClosed.
-     *
+     * 
      * @see org.jboss.netty.channel.SimpleChannelHandler#channelClosed(org.jboss.netty.channel.ChannelHandlerContext,
      *      org.jboss.netty.channel.ChannelStateEvent)
      */
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
-        if (session == null || session.getDataConn() == null ||
-                session.getDataConn().getFtpTransferControl() == null) {
+        if ((session == null) || (session.getDataConn() == null)
+                || (session.getDataConn().getFtpTransferControl() == null)) {
             super.channelClosed(ctx, e);
             return;
         }
@@ -128,7 +121,7 @@ public class NetworkHandler extends SimpleChannelHandler {
         while (session.getDataConn().getFtpTransferControl()
                 .isFtpTransferExecuting()) {
             Thread.sleep(10);
-            limit --;
+            limit--;
             if (limit <= 0) {
                 logger
                         .warn("Waiting for transfer finished but 1s is not enough");
@@ -147,20 +140,20 @@ public class NetworkHandler extends SimpleChannelHandler {
 
     /**
      * Initialiaze the Handler.
-     *
+     * 
      * @see org.jboss.netty.channel.SimpleChannelHandler#channelConnected(org.jboss.netty.channel.ChannelHandlerContext,
      *      org.jboss.netty.channel.ChannelStateEvent)
      */
     @Override
     public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) {
-        Channel channel = e.getChannel();
+        final Channel channel = e.getChannel();
         controlChannel = channel;
         session.setControlConnected();
-        R66ChannelUtils.addCommandChannel(channel, session
-                .getConfiguration());
+        R66ChannelUtils.addCommandChannel(channel, session.getConfiguration());
         if (isStillAlive()) {
             // Make the first execution ready
-            AbstractCommand command = new ConnectionCommand(getFtpSession());
+            final AbstractCommand command = new ConnectionCommand(
+                    getFtpSession());
             session.setNextCommand(command);
             // This command can change the next Command
             businessHandler.executeChannelConnected(channel);
@@ -173,7 +166,7 @@ public class NetworkHandler extends SimpleChannelHandler {
     /**
      * If the service is going to shutdown, it sends back a 421 message to the
      * connection
-     *
+     * 
      * @return True if the service is alive, else False if the system is going
      *         down
      */
@@ -189,25 +182,25 @@ public class NetworkHandler extends SimpleChannelHandler {
     /**
      * Default exception task: close the current connection after calling
      * exceptionLocalCaught and writing if possible the current replyCode.
-     *
+     * 
      * @see org.jboss.netty.channel.SimpleChannelHandler#exceptionCaught(org.jboss.netty.channel.ChannelHandlerContext,
      *      org.jboss.netty.channel.ExceptionEvent)
      */
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
-        Throwable e1 = e.getCause();
-        Channel channel = e.getChannel();
+        final Throwable e1 = e.getCause();
+        final Channel channel = e.getChannel();
         if (session == null) {
             // should not be
-            logger.warn("NO SESSION",e1);
+            logger.warn("NO SESSION", e1);
             return;
         }
         if (e1 instanceof ConnectException) {
-            ConnectException e2 = (ConnectException) e1;
+            final ConnectException e2 = (ConnectException) e1;
             logger.warn("Connection impossible since {} with Channel {}", e2
                     .getMessage(), e.getChannel());
         } else if (e1 instanceof ChannelException) {
-            ChannelException e2 = (ChannelException) e1;
+            final ChannelException e2 = (ChannelException) e1;
             logger
                     .warn(
                             "Connection (example: timeout) impossible since {} with Channel {}",
@@ -216,7 +209,7 @@ public class NetworkHandler extends SimpleChannelHandler {
             logger.warn("Connection closed before end");
         } else if (e1 instanceof CommandAbstractException) {
             // FTP Exception: not close if not necessary
-            CommandAbstractException e2 = (CommandAbstractException) e1;
+            final CommandAbstractException e2 = (CommandAbstractException) e1;
             logger.warn("Command Error Reply", e2);
             session.setReplyCode(e2);
             businessHandler.afterRunCommandKo(e2);
@@ -225,7 +218,7 @@ public class NetworkHandler extends SimpleChannelHandler {
             }
             return;
         } else if (e1 instanceof NullPointerException) {
-            NullPointerException e2 = (NullPointerException) e1;
+            final NullPointerException e2 = (NullPointerException) e1;
             logger.warn("Null pointer Exception", e2);
             try {
                 if (session != null) {
@@ -239,16 +232,16 @@ public class NetworkHandler extends SimpleChannelHandler {
                         }
                     }
                 }
-            } catch (NullPointerException e3) {
+            } catch (final NullPointerException e3) {
             }
             return;
         } else if (e1 instanceof IOException) {
-            IOException e2 = (IOException) e1;
+            final IOException e2 = (IOException) e1;
             logger.warn("Connection aborted since {} with Channel {}", e2
                     .getMessage(), e.getChannel());
         } else {
-            logger.warn("Unexpected exception from downstream" +
-                    " Ref Channel: " + e.getChannel().toString(), e1);
+            logger.warn("Unexpected exception from downstream"
+                    + " Ref Channel: " + e.getChannel().toString(), e1);
         }
         session.setExitErrorCode("Internal error: disconnect");
         businessHandler.exceptionLocalCaught(e);
@@ -259,7 +252,7 @@ public class NetworkHandler extends SimpleChannelHandler {
 
     /**
      * Simply call messageRun with the received message
-     *
+     * 
      * @see org.jboss.netty.channel.SimpleChannelHandler#messageReceived(org.jboss.netty.channel.ChannelHandlerContext,
      *      org.jboss.netty.channel.MessageEvent)
      */
@@ -270,25 +263,27 @@ public class NetworkHandler extends SimpleChannelHandler {
             while (!session.isReady()) {
                 try {
                     Thread.sleep(5);
-                } catch (InterruptedException e1) {
+                } catch (final InterruptedException e1) {
                 }
             }
-            String message = (String) e.getMessage();
-            AbstractCommand command = R66CommandCode.getFromLine(getFtpSession(), message);
+            final String message = (String) e.getMessage();
+            AbstractCommand command = R66CommandCode.getFromLine(
+                    getFtpSession(), message);
             // Default message
             session.setReplyCode(ReplyCode.REPLY_200_COMMAND_OKAY, null);
             logger.info("RECVMSG: {} CMD: {}", message, command.getCommand());
             // First check if the command is an ABORT, QUIT or STAT
             if (!R66CommandCode.isSpecialCommand(command.getCode())) {
                 // Now check if a transfer is on its way: illegal to have at
-                // same time two commands (except ABORT). Wait is at most 100 RETRYINMS=1s
+                // same time two commands (except ABORT). Wait is at most 100
+                // RETRYINMS=1s
                 boolean notFinished = true;
-                for (int i = 0; i < R66InternalConfiguration.RETRYNB*100; i ++) {
+                for (int i = 0; i < R66InternalConfiguration.RETRYNB * 100; i++) {
                     if (session.getDataConn().getFtpTransferControl()
                             .isFtpTransferExecuting()) {
                         try {
                             Thread.sleep(R66InternalConfiguration.RETRYINMS);
-                        } catch (InterruptedException e1) {
+                        } catch (final InterruptedException e1) {
                             break;
                         }
                     } else {
@@ -320,16 +315,16 @@ public class NetworkHandler extends SimpleChannelHandler {
     /**
      * Write the current answer and eventually close channel if necessary (421
      * or 221)
-     *
+     * 
      * @return True if the channel is closed due to the code
      */
     private boolean writeFinalAnswer() {
-        if (session.getReplyCode() == ReplyCode.REPLY_421_SERVICE_NOT_AVAILABLE_CLOSING_CONTROL_CONNECTION ||
-                session.getReplyCode() == ReplyCode.REPLY_221_CLOSING_CONTROL_CONNECTION) {
-            //logger.debug("Will close Control Connection since: {}", session.getAnswer());
+        if ((session.getReplyCode() == ReplyCode.REPLY_421_SERVICE_NOT_AVAILABLE_CLOSING_CONTROL_CONNECTION)
+                || (session.getReplyCode() == ReplyCode.REPLY_221_CLOSING_CONTROL_CONNECTION)) {
+            // logger.debug("Will close Control Connection since: {}",
+            // session.getAnswer());
             session.getDataConn().getFtpTransferControl().clear();
-            writeIntermediateAnswer().addListener(
-                    ChannelFutureListener.CLOSE);
+            writeIntermediateAnswer().addListener(ChannelFutureListener.CLOSE);
             return true;
         }
         writeIntermediateAnswer();
@@ -339,7 +334,7 @@ public class NetworkHandler extends SimpleChannelHandler {
     /**
      * Write an intermediate Answer from Business before last answer also set by
      * the Business
-     *
+     * 
      * @return the ChannelFuture associated with the write
      */
     public ChannelFuture writeIntermediateAnswer() {
@@ -352,12 +347,10 @@ public class NetworkHandler extends SimpleChannelHandler {
     private void messageRunAnswer() {
         try {
             businessHandler.beforeRunCommand();
-            logger
-                    .info("Run {}", session.getCurrentCommand()
-                            .getCommand());
+            logger.info("Run {}", session.getCurrentCommand().getCommand());
             session.getCurrentCommand().exec();
             businessHandler.afterRunCommandOk();
-        } catch (CommandAbstractException e) {
+        } catch (final CommandAbstractException e) {
             session.setReplyCode(e);
             businessHandler.afterRunCommandKo(e);
         }

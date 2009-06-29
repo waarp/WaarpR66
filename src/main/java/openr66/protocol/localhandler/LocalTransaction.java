@@ -20,11 +20,9 @@ import org.jboss.netty.channel.local.LocalAddress;
  * This class handles Local Transaction connections
  * 
  * @author frederic bregier
- * 
  */
 public class LocalTransaction {
-    private final ConcurrentHashMap<Integer, LocalChannelReference> localChannelHashMap
-     = new ConcurrentHashMap<Integer, LocalChannelReference>();
+    private final ConcurrentHashMap<Integer, LocalChannelReference> localChannelHashMap = new ConcurrentHashMap<Integer, LocalChannelReference>();
     private final ChannelFactory channelClientFactory = new DefaultLocalClientChannelFactory();
 
     private final ChannelFactory channelServerFactory = new DefaultLocalServerChannelFactory();
@@ -49,13 +47,15 @@ public class LocalTransaction {
         clientBootstrap.setPipelineFactory(new LocalClientPipelineFactory());
     }
 
-    public LocalChannelReference createNewClient(Channel networkChannel, Integer remoteId) {
-        ChannelFuture channelFuture = clientBootstrap
+    public LocalChannelReference createNewClient(Channel networkChannel,
+            Integer remoteId) {
+        final ChannelFuture channelFuture = clientBootstrap
                 .connect(socketServerAddress);
         channelFuture.awaitUninterruptibly();
-        Channel channel = channelFuture.getChannel();
+        final Channel channel = channelFuture.getChannel();
         localChannelGroup.add(channel);
-        LocalChannelReference localChannelReference = new LocalChannelReference(channel, networkChannel, remoteId);
+        final LocalChannelReference localChannelReference = new LocalChannelReference(
+                channel, networkChannel, remoteId);
         localChannelHashMap.put(channel.getId(), localChannelReference);
         return localChannelReference;
     }
@@ -67,10 +67,12 @@ public class LocalTransaction {
         serverBootstrap.releaseExternalResources();
         channelServerFactory.releaseExternalResources();
     }
+
     public LocalChannelReference getFromId(Integer id) {
-        return this.localChannelHashMap.get(id);
+        return localChannelHashMap.get(id);
     }
+
     public void removeFromId(Integer id) {
-        this.localChannelHashMap.remove(id);
+        localChannelHashMap.remove(id);
     }
 }

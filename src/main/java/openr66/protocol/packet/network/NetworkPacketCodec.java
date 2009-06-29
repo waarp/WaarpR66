@@ -1,24 +1,19 @@
 /**
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author
  * tags. See the COPYRIGHT.txt in the distribution for a full listing of
- * individual contributors.
- * 
- * This is free software; you can redistribute it and/or modify it under the
- * terms of the GNU Lesser General Public License as published by the Free
- * Software Foundation; either version 3.0 of the License, or (at your option)
- * any later version.
- * 
- * This software is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
- * details.
- * 
- * You should have received a copy of the GNU Lesser General Public License
- * along with this software; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF
- * site: http://www.fsf.org.
+ * individual contributors. This is free software; you can redistribute it
+ * and/or modify it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 3.0 of the License,
+ * or (at your option) any later version. This software is distributed in the
+ * hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
+ * the GNU Lesser General Public License for more details. You should have
+ * received a copy of the GNU Lesser General Public License along with this
+ * software; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF site:
+ * http://www.fsf.org.
  */
-package openr66.protocol.packet;
+package openr66.protocol.packet.network;
 
 import goldengate.common.exception.InvalidArgumentException;
 
@@ -36,14 +31,12 @@ import org.jboss.netty.handler.codec.frame.FrameDecoder;
  * Packet Decoder
  * 
  * @author Frederic Bregier
- * 
  */
 public class NetworkPacketCodec extends FrameDecoder implements
         ChannelDownstreamHandler {
 
     /*
      * (non-Javadoc)
-     * 
      * @see
      * org.jboss.netty.handler.codec.frame.FrameDecoder#decode(org.jboss.netty
      * .channel.ChannelHandlerContext, org.jboss.netty.channel.Channel,
@@ -62,16 +55,16 @@ public class NetworkPacketCodec extends FrameDecoder implements
         // Mark the current buffer position
         buf.markReaderIndex();
         // Read the length field
-        int length = buf.readInt();
+        final int length = buf.readInt();
         if (buf.readableBytes() < length) {
             buf.resetReaderIndex();
             return null;
         }
         // Now we can read the two Ids
-        int localId = buf.readInt();
-        int remoteId = buf.readInt();
-        ChannelBuffer buffer = ChannelBuffers.buffer(length-8); 
-        buf.readBytes(buffer, length-8);
+        final int localId = buf.readInt();
+        final int remoteId = buf.readInt();
+        final ChannelBuffer buffer = ChannelBuffers.buffer(length - 8);
+        buf.readBytes(buffer, length - 8);
         return new NetworkPacket(localId, remoteId, buffer);
     }
 
@@ -79,13 +72,13 @@ public class NetworkPacketCodec extends FrameDecoder implements
     public void handleDownstream(ChannelHandlerContext ctx, ChannelEvent e)
             throws Exception {
         if (e instanceof MessageEvent) {
-            MessageEvent evt = (MessageEvent) e;
+            final MessageEvent evt = (MessageEvent) e;
             if (!(evt.getMessage() instanceof NetworkPacket)) {
-                throw new InvalidArgumentException("Incorrect write object: " +
-                        evt.getMessage().getClass().getName());
+                throw new InvalidArgumentException("Incorrect write object: "
+                        + evt.getMessage().getClass().getName());
             }
-            NetworkPacket packet = (NetworkPacket) evt.getMessage();
-            ChannelBuffer finalBuf = packet.getNetworkPacket();
+            final NetworkPacket packet = (NetworkPacket) evt.getMessage();
+            final ChannelBuffer finalBuf = packet.getNetworkPacket();
             Channels.write(ctx, evt.getFuture(), finalBuf);
         } else {
             ctx.sendDownstream(e);

@@ -1,22 +1,17 @@
 /**
- * Copyright 2009, Frederic Bregier, and individual contributors
- * by the @author tags. See the COPYRIGHT.txt in the distribution for a
- * full listing of individual contributors.
- *
- * This is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 3.0 of
- * the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ * Copyright 2009, Frederic Bregier, and individual contributors by the @author
+ * tags. See the COPYRIGHT.txt in the distribution for a full listing of
+ * individual contributors. This is free software; you can redistribute it
+ * and/or modify it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 3.0 of the License,
+ * or (at your option) any later version. This software is distributed in the
+ * hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
+ * the GNU Lesser General Public License for more details. You should have
+ * received a copy of the GNU Lesser General Public License along with this
+ * software; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF site:
+ * http://www.fsf.org.
  */
 package openr66.protocol.config;
 
@@ -44,11 +39,15 @@ import org.jboss.netty.util.ObjectSizeEstimator;
 
 /**
  * Configuration class
+ * 
  * @author Frederic Bregier
- *
  */
 public class Configuration {
     // Static values
+    /**
+     * General Configuration object
+     */
+    public static final Configuration configuration = new Configuration();
     /**
      * Time elapse for retry in ms
      */
@@ -141,12 +140,14 @@ public class Configuration {
     /**
      * ExecutorService Server Boss
      */
-    private final ExecutorService execServerBoss = Executors.newCachedThreadPool();
+    private final ExecutorService execServerBoss = Executors
+            .newCachedThreadPool();
 
     /**
      * ExecutorService Server Worker
      */
-    private final ExecutorService execServerWorker = Executors.newCachedThreadPool();
+    private final ExecutorService execServerWorker = Executors
+            .newCachedThreadPool();
 
     /**
      * ChannelFactory for Server part
@@ -155,12 +156,9 @@ public class Configuration {
     /**
      * ThreadPoolExecutor for Server
      */
-    private volatile OrderedMemoryAwareThreadPoolExecutor serverPipelineExecutor = 
-        new OrderedMemoryAwareThreadPoolExecutor(
-                SERVER_THREAD+1,
-                maxGlobalMemory / 10,
-                maxGlobalMemory, 200,
-                TimeUnit.MILLISECONDS, Executors.defaultThreadFactory());
+    private volatile OrderedMemoryAwareThreadPoolExecutor serverPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
+            SERVER_THREAD + 1, maxGlobalMemory / 10, maxGlobalMemory, 200,
+            TimeUnit.MILLISECONDS, Executors.defaultThreadFactory());
     /**
      * Bootstrap for server
      */
@@ -182,63 +180,62 @@ public class Configuration {
      * LocalTransaction
      */
     private final LocalTransaction localTransaction = new LocalTransaction();
-    
+
     public Configuration() {
         // Init signal handler
-        OpenR66SignalHandler.initSignalHandler(this);
+        OpenR66SignalHandler.initSignalHandler();
     }
+
     /**
      * Startup the server
-     *
      */
     public void serverStartup() {
         InternalLoggerFactory.setDefaultFactory(InternalLoggerFactory
                 .getDefaultFactory());
         // Command
         serverChannelGroup = new DefaultChannelGroup("OpenR66");
-        serverChannelFactory = new NioServerSocketChannelFactory(execServerBoss,
-                execServerWorker, SERVER_THREAD);
+        serverChannelFactory = new NioServerSocketChannelFactory(
+                execServerBoss, execServerWorker, SERVER_THREAD);
         // Main Command server
         serverBootstrap = new ServerBootstrap(serverChannelFactory);
         serverBootstrap.setPipelineFactory(new NetworkServerPipelineFactory());
         serverBootstrap.setOption("child.tcpNoDelay", true);
         serverBootstrap.setOption("child.keepAlive", true);
         serverBootstrap.setOption("child.reuseAddress", true);
-        serverBootstrap.setOption("child.connectTimeoutMillis",
-                TIMEOUTCON);
+        serverBootstrap.setOption("child.connectTimeoutMillis", TIMEOUTCON);
         serverBootstrap.setOption("tcpNoDelay", true);
         serverBootstrap.setOption("reuseAddress", true);
-        serverBootstrap.setOption("connectTimeoutMillis",
-                TIMEOUTCON);
+        serverBootstrap.setOption("connectTimeoutMillis", TIMEOUTCON);
 
-        serverChannelGroup.add(serverBootstrap
-                .bind(new InetSocketAddress(SERVER_PORT)));
+        serverChannelGroup.add(serverBootstrap.bind(new InetSocketAddress(
+                SERVER_PORT)));
 
         // Factory for TrafficShapingHandler
         objectSizeEstimator = new DataBlockSizeEstimator();
         globalTrafficShapingHandler = new GlobalTrafficShapingHandler(
-                objectSizeEstimator, execTrafficCounter, serverGlobalWriteLimit,
-                serverGlobalReadLimit, delayLimit);
+                objectSizeEstimator, execTrafficCounter,
+                serverGlobalWriteLimit, serverGlobalReadLimit, delayLimit);
     }
+
     /**
      * Reset the global monitor for bandwidth limitation and change future
      * channel monitors with values divided by 10 (channel = global / 10)
-     *
+     * 
      * @param writeLimit
      * @param readLimit
      */
     public void changeNetworkLimit(long writeLimit, long readLimit) {
-        long newWriteLimit = writeLimit > 1024? writeLimit
+        long newWriteLimit = writeLimit > 1024 ? writeLimit
                 : serverGlobalWriteLimit;
         if (writeLimit <= 0) {
             newWriteLimit = 0;
         }
-        long newReadLimit = readLimit > 1024? readLimit : serverGlobalReadLimit;
+        long newReadLimit = readLimit > 1024 ? readLimit
+                : serverGlobalReadLimit;
         if (readLimit <= 0) {
             newReadLimit = 0;
         }
-        globalTrafficShapingHandler.configure(
-                newWriteLimit, newReadLimit);
+        globalTrafficShapingHandler.configure(newWriteLimit, newReadLimit);
         serverChannelReadLimit = newReadLimit / 10;
         serverChannelWriteLimit = newWriteLimit / 10;
     }
@@ -247,52 +244,56 @@ public class Configuration {
      * Compute number of threads for both client and server from the real number
      * of available processors (double + 1) if the value is less than 64
      * threads.
-     *
      */
     public void computeNbThreads() {
-        int nb = Runtime.getRuntime().availableProcessors() * 2 + 1;
+        final int nb = Runtime.getRuntime().availableProcessors() * 2 + 1;
         if (SERVER_THREAD < nb) {
             SERVER_THREAD = nb;
         }
     }
+
     /**
-    *
-    * @return a new ChannelTrafficShapingHandler
-    */
-   public ChannelTrafficShapingHandler newChannelTrafficShapingHandler() {
-       return new ChannelTrafficShapingHandler(objectSizeEstimator,
-               execTrafficCounter, serverChannelWriteLimit,
-               serverChannelReadLimit, delayLimit);
-   }
+     * @return a new ChannelTrafficShapingHandler
+     */
+    public ChannelTrafficShapingHandler newChannelTrafficShapingHandler() {
+        return new ChannelTrafficShapingHandler(objectSizeEstimator,
+                execTrafficCounter, serverChannelWriteLimit,
+                serverChannelReadLimit, delayLimit);
+    }
+
     /**
      * @return the serverChannelGroup
      */
     public ChannelGroup getServerChannelGroup() {
         return serverChannelGroup;
     }
+
     /**
      * @return the serverChannelFactory
      */
     public ChannelFactory getServerChannelFactory() {
         return serverChannelFactory;
     }
+
     /**
      * @return the serverPipelineExecutor
      */
     public OrderedMemoryAwareThreadPoolExecutor getServerPipelineExecutor() {
         return serverPipelineExecutor;
     }
+
     /**
      * @return the globalTrafficShapingHandler
      */
     public GlobalTrafficShapingHandler getGlobalTrafficShapingHandler() {
         return globalTrafficShapingHandler;
     }
+
     /**
      * @return the localTransaction
      */
     public LocalTransaction getLocalTransaction() {
         return localTransaction;
     }
-    
+
 }

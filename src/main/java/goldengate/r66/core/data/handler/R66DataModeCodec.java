@@ -1,22 +1,17 @@
 /**
- * Copyright 2009, Frederic Bregier, and individual contributors
- * by the @author tags. See the COPYRIGHT.txt in the distribution for a
- * full listing of individual contributors.
- *
- * This is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 3.0 of
- * the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ * Copyright 2009, Frederic Bregier, and individual contributors by the @author
+ * tags. See the COPYRIGHT.txt in the distribution for a full listing of
+ * individual contributors. This is free software; you can redistribute it
+ * and/or modify it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 3.0 of the License,
+ * or (at your option) any later version. This software is distributed in the
+ * hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
+ * the GNU Lesser General Public License for more details. You should have
+ * received a copy of the GNU Lesser General Public License along with this
+ * software; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF site:
+ * http://www.fsf.org.
  */
 package goldengate.r66.core.data.handler;
 
@@ -25,6 +20,7 @@ import goldengate.common.file.DataBlock;
 import goldengate.common.future.GgFuture;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+import goldengate.r66.core.command.R66ArgumentCode.TransferMode;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -41,91 +37,64 @@ import org.jboss.netty.handler.codec.frame.FrameDecoder;
  * First CODEC :<br>
  * - encode : takes a {@link DataBlock} and transforms it to a ChannelBuffer<br>
  * - decode : takes a ChannelBuffer and transforms it to a {@link DataBlock}<br>
- * STREAM and BLOCK mode are implemented. COMPRESSED mode is implemented but
- * in a different way than FTP standard mode.
- *
+ * STREAM and BLOCK mode are implemented. COMPRESSED mode is implemented but in
+ * a different way than FTP standard mode.
+ * 
  * @author Frederic Bregier
- *
  */
 @ChannelPipelineCoverage("one")
-public class R66DataModeCodec extends FrameDecoder implements ChannelDownstreamHandler {
+public class R66DataModeCodec extends FrameDecoder implements
+        ChannelDownstreamHandler {
     /*
-     *
-     * 3.4.1. STREAM MODE
-     *
-     * The data is transmitted as a stream of bytes. There is no restriction on
-     * the representation type used; record structures are allowed.
-     *
-     * In a record structured file EOR and EOF will each be indicated by a
-     * two-byte control code. The first byte of the control code will be all
-     * ones, the escape character. The second byte will have the low order bit
-     * on and zeros elsewhere for EOR and the second low order bit on for EOF;
-     * that is, the byte will have value 1 for EOR and value 2 for EOF. EOR and
-     * EOF may be indicated together on the last byte transmitted by turning
+     * 3.4.1. STREAM MODE The data is transmitted as a stream of bytes. There is
+     * no restriction on the representation type used; record structures are
+     * allowed. In a record structured file EOR and EOF will each be indicated
+     * by a two-byte control code. The first byte of the control code will be
+     * all ones, the escape character. The second byte will have the low order
+     * bit on and zeros elsewhere for EOR and the second low order bit on for
+     * EOF; that is, the byte will have value 1 for EOR and value 2 for EOF. EOR
+     * and EOF may be indicated together on the last byte transmitted by turning
      * both low order bits on (i.e., the value 3). If a byte of all ones was
      * intended to be sent as data, it should be repeated in the second byte of
-     * the control code.
-     *
-     * If the structure is a file structure, the EOF is indicated by the sending
-     * host closing the data connection and all bytes are data bytes.
-     *
-     * 3.4.2. BLOCK MODE
-     *
-     * The file is transmitted as a series of data blocks preceded by one or
-     * more header bytes. The header bytes contain a count field, and descriptor
-     * code. The count field indicates the total length of the data block in
-     * bytes, thus marking the beginning of the next data block (there are no
-     * filler bits). The descriptor code defines: last block in the file (EOF)
-     * last block in the record (EOR), restart marker (see the Section on Error
-     * Recovery and Restart) or suspect data (i.e., the data being transferred
-     * is suspected of errors and is not reliable). This last code is NOT
-     * intended for error control within FTP. It is motivated by the desire of
-     * sites exchanging certain types of data (e.g., seismic or weather data) to
-     * send and receive all the data despite local errors (such as "magnetic
-     * tape read errors"), but to indicate in the transmission that certain
-     * portions are suspect). Record structures are allowed in this mode, and
-     * any representation type may be used.
-     *
-     * The header consists of the three bytes. Of the 24 bits of header
-     * information, the 16 low order bits shall represent byte count, and the 8
-     * high order bits shall represent descriptor codes as shown below.
-     *
-     *
-     * Block Header
-     *
-     * +----------------+----------------+----------------+ 
-     * | Descriptor | Byte Count | | 8 bits | 16 bits |
-     * +----------------+----------------+----------------+
-     *
-     *
-     * The descriptor codes are indicated by bit flags in the descriptor byte.
-     * Four codes have been assigned, where each code number is the decimal
-     * value of the corresponding bit in the byte.
-     *
-     * Code Meaning
-     *
-     * 128 End of data block is EOR 64 End of data block is EOF 32 Suspected
-     * errors in data block 16 Data block is a restart marker
-     *
-     * With this encoding, more than one descriptor coded condition may exist
-     * for a particular block. As many bits as necessary may be flagged.
-     *
-     * The restart marker is embedded in the data stream as an integral number
-     * of 8-bit bytes representing printable characters in the language being
-     * used over the control connection (e.g., default--NVT-ASCII). <SP> (Space,
-     * in the appropriate language) must not be used WITHIN a restart marker.
-     *
-     * For example, to transmit a six-character marker, the following would be
-     * sent:
-     *
-     * +--------+--------+--------+ |Descrptr| Byte count | |code= 16| = 6 |
+     * the control code. If the structure is a file structure, the EOF is
+     * indicated by the sending host closing the data connection and all bytes
+     * are data bytes. 3.4.2. BLOCK MODE The file is transmitted as a series of
+     * data blocks preceded by one or more header bytes. The header bytes
+     * contain a count field, and descriptor code. The count field indicates the
+     * total length of the data block in bytes, thus marking the beginning of
+     * the next data block (there are no filler bits). The descriptor code
+     * defines: last block in the file (EOF) last block in the record (EOR),
+     * restart marker (see the Section on Error Recovery and Restart) or suspect
+     * data (i.e., the data being transferred is suspected of errors and is not
+     * reliable). This last code is NOT intended for error control within FTP.
+     * It is motivated by the desire of sites exchanging certain types of data
+     * (e.g., seismic or weather data) to send and receive all the data despite
+     * local errors (such as "magnetic tape read errors"), but to indicate in
+     * the transmission that certain portions are suspect). Record structures
+     * are allowed in this mode, and any representation type may be used. The
+     * header consists of the three bytes. Of the 24 bits of header information,
+     * the 16 low order bits shall represent byte count, and the 8 high order
+     * bits shall represent descriptor codes as shown below. Block Header
+     * +----------------+----------------+----------------+ | Descriptor | Byte
+     * Count | | 8 bits | 16 bits |
+     * +----------------+----------------+----------------+ The descriptor codes
+     * are indicated by bit flags in the descriptor byte. Four codes have been
+     * assigned, where each code number is the decimal value of the
+     * corresponding bit in the byte. Code Meaning 128 End of data block is EOR
+     * 64 End of data block is EOF 32 Suspected errors in data block 16 Data
+     * block is a restart marker With this encoding, more than one descriptor
+     * coded condition may exist for a particular block. As many bits as
+     * necessary may be flagged. The restart marker is embedded in the data
+     * stream as an integral number of 8-bit bytes representing printable
+     * characters in the language being used over the control connection (e.g.,
+     * default--NVT-ASCII). <SP> (Space, in the appropriate language) must not
+     * be used WITHIN a restart marker. For example, to transmit a six-character
+     * marker, the following would be sent: +--------+--------+--------+
+     * |Descrptr| Byte count | |code= 16| = 6 | +--------+--------+--------+
+     * +--------+--------+--------+ | Marker | Marker | Marker | | 8 bits | 8
+     * bits | 8 bits | +--------+--------+--------+ +--------+--------+--------+
+     * | Marker | Marker | Marker | | 8 bits | 8 bits | 8 bits |
      * +--------+--------+--------+
-     *
-     * +--------+--------+--------+ | Marker | Marker | Marker | | 8 bits | 8
-     * bits | 8 bits | +--------+--------+--------+
-     *
-     * +--------+--------+--------+ | Marker | Marker | Marker | | 8 bits | 8
-     * bits | 8 bits | +--------+--------+--------+
      */
     /**
      * Internal Logger
@@ -177,16 +146,14 @@ public class R66DataModeCodec extends FrameDecoder implements ChannelDownstreamH
     /**
      * Inform the Codec that DataNetworkHandler is ready (called from
      * DataNetworkHandler after setCorrectCodec).
-     *
      */
     public void setCodecReady() {
-        //logger.debug("ModeCodec ready");
+        // logger.debug("ModeCodec ready");
         codecLocked.setSuccess();
     }
 
     /*
      * (non-Javadoc)
-     *
      * @see
      * org.jboss.netty.handler.codec.frame.FrameDecoder#decode(org.jboss.netty
      * .channel.ChannelHandlerContext, org.jboss.netty.channel.Channel,
@@ -201,17 +168,18 @@ public class R66DataModeCodec extends FrameDecoder implements ChannelDownstreamH
         if (!isReady) {
             codecLocked.await();
             isReady = true;
-            //logger.debug("ModeCodec ready");
+            // logger.debug("ModeCodec ready");
         }
         // If STREAM Mode, no task to do, just next filter
         if (mode == TransferMode.STREAM) {
             dataBlock = new DataBlock();
-            int length = buf.readableBytes();
+            final int length = buf.readableBytes();
             // Except if RECORD Structure!
             if (structure == TransferStructure.RECORD) {
-                ChannelBuffer newbuf = ChannelBuffers.dynamicBuffer(length);
+                final ChannelBuffer newbuf = ChannelBuffers
+                        .dynamicBuffer(length);
                 if (lastbyte == 0xFF) {
-                    int nextbyte = buf.readByte();
+                    final int nextbyte = buf.readByte();
                     if (nextbyte == 0xFF) {
                         newbuf.writeByte((byte) (lastbyte & 0xFF));
                     } else {
@@ -230,7 +198,7 @@ public class R66DataModeCodec extends FrameDecoder implements ChannelDownstreamH
                     while (true) {
                         lastbyte = buf.readByte();
                         if (lastbyte == 0xFF) {
-                            int nextbyte = buf.readByte();
+                            final int nextbyte = buf.readByte();
                             if (nextbyte == 0xFF) {
                                 newbuf.writeByte((byte) (lastbyte & 0xFF));
                             } else {
@@ -248,7 +216,7 @@ public class R66DataModeCodec extends FrameDecoder implements ChannelDownstreamH
                         }
                         lastbyte = 0;
                     }
-                } catch (IndexOutOfBoundsException e) {
+                } catch (final IndexOutOfBoundsException e) {
                     // End of read
                 }
                 dataBlock.setBlock(newbuf);
@@ -282,8 +250,8 @@ public class R66DataModeCodec extends FrameDecoder implements ChannelDownstreamH
             dataBlock.setDescriptor(buf.readByte());
 
             // Read the length field.
-            byte upper = buf.readByte();
-            byte lower = buf.readByte();
+            final byte upper = buf.readByte();
+            final byte lower = buf.readByte();
             dataBlock.setByteCount(upper, lower);
 
             // Make sure if there's enough bytes in the buffer.
@@ -300,23 +268,21 @@ public class R66DataModeCodec extends FrameDecoder implements ChannelDownstreamH
             }
             if (dataBlock.getByteCount() > 0) {
                 // There's enough bytes in the buffer. Read it.
-                dataBlock.setBlock(buf.readBytes(dataBlock
-                        .getByteCount()));
+                dataBlock.setBlock(buf.readBytes(dataBlock.getByteCount()));
             }
-            DataBlock returnDataBlock = dataBlock;
+            final DataBlock returnDataBlock = dataBlock;
             // Free the datablock for next frame
             dataBlock = null;
             // Successfully decoded a frame. Return the decoded frame.
             return returnDataBlock;
         }
         // Type unimplemented
-        throw new InvalidArgumentException("Mode unimplemented: " +
-                mode.name());
+        throw new InvalidArgumentException("Mode unimplemented: " + mode.name());
     }
 
     /**
      * Encode a DataBlock in the correct format for Mode
-     *
+     * 
      * @param msg
      * @return the ChannelBuffer or null when the last block is already done
      * @throws InvalidArgumentException
@@ -326,11 +292,11 @@ public class R66DataModeCodec extends FrameDecoder implements ChannelDownstreamH
         if (msg.isCleared()) {
             return null;
         }
-        ChannelBuffer buffer = msg.getBlock();
+        final ChannelBuffer buffer = msg.getBlock();
         if (mode == TransferMode.STREAM) {
             // If record structure, special attention
             if (structure == TransferStructure.RECORD) {
-                ChannelBuffer newbuf = ChannelBuffers.dynamicBuffer(msg
+                final ChannelBuffer newbuf = ChannelBuffers.dynamicBuffer(msg
                         .getByteCount());
                 int newbyte = 0;
                 try {
@@ -341,7 +307,7 @@ public class R66DataModeCodec extends FrameDecoder implements ChannelDownstreamH
                         }
                         newbuf.writeByte((byte) (newbyte & 0xFF));
                     }
-                } catch (IndexOutOfBoundsException e) {
+                } catch (final IndexOutOfBoundsException e) {
                     // end of read
                 }
                 int value = 0;
@@ -362,9 +328,9 @@ public class R66DataModeCodec extends FrameDecoder implements ChannelDownstreamH
             return buffer;
         } else if (mode == TransferMode.BLOCK) {
             int length = msg.getByteCount();
-            ChannelBuffer newbuf = ChannelBuffers
-                    .dynamicBuffer(length > 0xFFFF? 0xFFFF + 3 : length + 3);
-            byte[] header = new byte[3];
+            final ChannelBuffer newbuf = ChannelBuffers
+                    .dynamicBuffer(length > 0xFFFF ? 0xFFFF + 3 : length + 3);
+            final byte[] header = new byte[3];
             // Is there any data left
             if (length == 0) {
                 // It could be an empty block for EOR or EOF
@@ -422,8 +388,7 @@ public class R66DataModeCodec extends FrameDecoder implements ChannelDownstreamH
             return newbuf;
         }
         // Mode unimplemented
-        throw new InvalidArgumentException("Mode unimplemented: " +
-                mode.name());
+        throw new InvalidArgumentException("Mode unimplemented: " + mode.name());
     }
 
     /**
@@ -464,8 +429,10 @@ public class R66DataModeCodec extends FrameDecoder implements ChannelDownstreamH
             ctx.sendDownstream(e);
         }
     }
+
     /**
      * Coder part, taking a DataBlock and converting it to ChannelBuffer
+     * 
      * @param ctx
      * @param evt
      * @throws Exception
@@ -473,8 +440,8 @@ public class R66DataModeCodec extends FrameDecoder implements ChannelDownstreamH
     private void writeRequested(ChannelHandlerContext ctx, MessageEvent evt)
             throws Exception {
         if (!(evt.getMessage() instanceof DataBlock)) {
-            throw new InvalidArgumentException("Incorrect write object: " +
-                    evt.getMessage().getClass().getName());
+            throw new InvalidArgumentException("Incorrect write object: "
+                    + evt.getMessage().getClass().getName());
         }
         // First test if the connection is fully ready (block might be
         // transfered
@@ -482,9 +449,9 @@ public class R66DataModeCodec extends FrameDecoder implements ChannelDownstreamH
         if (!isReady) {
             codecLocked.await();
             isReady = true;
-            //logger.debug("ModeCodec ready");
+            // logger.debug("ModeCodec ready");
         }
-        DataBlock newDataBlock = (DataBlock) evt.getMessage();
+        final DataBlock newDataBlock = (DataBlock) evt.getMessage();
         ChannelBuffer next = encode(newDataBlock);
         // Could be splitten in several block
         while (next != null) {

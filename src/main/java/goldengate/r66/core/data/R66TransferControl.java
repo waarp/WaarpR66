@@ -1,22 +1,17 @@
 /**
- * Copyright 2009, Frederic Bregier, and individual contributors
- * by the @author tags. See the COPYRIGHT.txt in the distribution for a
- * full listing of individual contributors.
- *
- * This is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 3.0 of
- * the License, or (at your option) any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ * Copyright 2009, Frederic Bregier, and individual contributors by the @author
+ * tags. See the COPYRIGHT.txt in the distribution for a full listing of
+ * individual contributors. This is free software; you can redistribute it
+ * and/or modify it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 3.0 of the License,
+ * or (at your option) any later version. This software is distributed in the
+ * hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
+ * the GNU Lesser General Public License for more details. You should have
+ * received a copy of the GNU Lesser General Public License along with this
+ * software; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF site:
+ * http://www.fsf.org.
  */
 package goldengate.r66.core.data;
 
@@ -28,14 +23,8 @@ import goldengate.common.future.GgChannelFuture;
 import goldengate.common.future.GgFuture;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
-import goldengate.ftp.core.command.FtpCommandCode;
-import goldengate.ftp.core.command.service.ABOR;
-import goldengate.ftp.core.control.NetworkHandler;
-import goldengate.ftp.core.data.handler.DataNetworkHandler;
-import goldengate.ftp.core.exception.FtpNoConnectionException;
-import goldengate.ftp.core.exception.FtpNoFileException;
-import goldengate.ftp.core.exception.FtpNoTransferException;
-import goldengate.ftp.core.session.FtpSession;
+import goldengate.r66.core.control.NetworkHandler;
+import goldengate.r66.core.data.handler.DataNetworkHandler;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -51,9 +40,8 @@ import org.jboss.netty.channel.Channels;
 
 /**
  * Main class that handles transfers and their execution
- *
+ * 
  * @author Frederic Bregier
- *
  */
 public class R66TransferControl {
     /**
@@ -80,7 +68,8 @@ public class R66TransferControl {
     /**
      * Waiter for the dataChannel to be opened
      */
-    private volatile GgChannelFuture waitForOpenedDataChannel = new GgChannelFuture(true);
+    private volatile GgChannelFuture waitForOpenedDataChannel = new GgChannelFuture(
+            true);
     /**
      * Waiter for the dataChannel to be closed
      */
@@ -113,7 +102,6 @@ public class R66TransferControl {
     private volatile boolean isCheckAlreadyCalled = false;
 
     /**
-     *
      * @param session
      */
     public R66TransferControl(FtpSession session) {
@@ -124,7 +112,6 @@ public class R66TransferControl {
     // XXX DataNetworkHandler functions
     /**
      * The DataNetworkHandler is ready (from setNewFtpExecuteTransfer)
-     *
      */
     private void setDataNetworkHandlerReady() {
         isCheckAlreadyCalled = false;
@@ -137,20 +124,20 @@ public class R66TransferControl {
     /**
      * Wait for the DataNetworkHandler to be ready (from trueRetrieve of
      * {@link FileInterface})
-     *
+     * 
      * @throws InterruptedException
-     *
      */
     public void waitForDataNetworkHandlerReady() throws InterruptedException {
         if (!isDataNetworkHandlerReady) {
-            //logger.debug("Wait for DataNetwork Ready over {}");
+            // logger.debug("Wait for DataNetwork Ready over {}");
             throw new InterruptedException("Bad initialization");
         }
     }
+
     /**
      * Set the new opened Channel (from channelConnected of
      * {@link DataNetworkHandler})
-     *
+     * 
      * @param channel
      * @param dataNetworkHandler
      */
@@ -168,13 +155,15 @@ public class R66TransferControl {
     /**
      * Wait that the new opened connection is ready (same method in
      * {@link R66DataAsyncConn} from openConnection)
-     *
+     * 
      * @return the new opened Channel
      * @throws InterruptedException
      */
     public Channel waitForOpenedDataChannel() throws InterruptedException {
         Channel channel = null;
-        if (waitForOpenedDataChannel.await(session.getConfiguration().TIMEOUTCON+1000, TimeUnit.MILLISECONDS)) {
+        if (waitForOpenedDataChannel.await(
+                session.getConfiguration().TIMEOUTCON + 1000,
+                TimeUnit.MILLISECONDS)) {
             if (waitForOpenedDataChannel.isSuccess()) {
                 channel = waitForOpenedDataChannel.getChannel();
             } else {
@@ -197,24 +186,25 @@ public class R66TransferControl {
     /**
      * Wait for the client to be connected (Passive) or Wait for the server to
      * be connected to the client (Active)
-     *
+     * 
      * @return True if the connection is OK
      * @throws Reply425Exception
      */
     public boolean openDataConnection() throws Reply425Exception {
         // Prepare this Data channel to be closed ;-)
-        // In fact, prepare the future close op which should occur since it is now opened
+        // In fact, prepare the future close op which should occur since it is
+        // now opened
         closedDataChannel = new GgFuture(true);
-        R66DataAsyncConn dataAsyncConn = session.getDataConn();
+        final R66DataAsyncConn dataAsyncConn = session.getDataConn();
         if (!dataAsyncConn.isStreamFile()) {
             // FIXME isConnected or isDNHReady ?
             if (dataAsyncConn.isConnected()) {
                 // Already connected
-                //logger.debug("Connection already open");
+                // logger.debug("Connection already open");
                 session.setReplyCode(
                         ReplyCode.REPLY_125_DATA_CONNECTION_ALREADY_OPEN,
-                        dataAsyncConn.getType().name() +
-                                " mode data connection already open");
+                        dataAsyncConn.getType().name()
+                                + " mode data connection already open");
                 return true;
             }
         } else {
@@ -227,84 +217,76 @@ public class R66TransferControl {
             }
         }
         // Need to open connection
-        session.setReplyCode(ReplyCode.REPLY_150_FILE_STATUS_OKAY,
-                "Opening " + dataAsyncConn.getType().name() +
-                        " mode data connection");
+        session.setReplyCode(ReplyCode.REPLY_150_FILE_STATUS_OKAY, "Opening "
+                + dataAsyncConn.getType().name() + " mode data connection");
         if (dataAsyncConn.isPassiveMode()) {
-            if (! dataAsyncConn.isBind()) {
+            if (!dataAsyncConn.isBind()) {
                 // No passive connection prepared
                 throw new Reply425Exception(
-                    "No passive data connection prepared");
+                        "No passive data connection prepared");
             }
             // Wait for the connection to be done by the client
-            //logger.debug("Passive mode standby");
+            // logger.debug("Passive mode standby");
             try {
-            	dataChannel = waitForOpenedDataChannel();
-            	dataAsyncConn.setNewOpenedDataChannel(dataChannel);
-            } catch (InterruptedException e) {
+                dataChannel = waitForOpenedDataChannel();
+                dataAsyncConn.setNewOpenedDataChannel(dataChannel);
+            } catch (final InterruptedException e) {
                 logger.warn("Connection abort in passive mode", e);
                 // Cannot open connection
                 throw new Reply425Exception(
                         "Cannot open passive data connection");
             }
-            //logger.debug("Passive mode connected");
+            // logger.debug("Passive mode connected");
         } else {
             // Wait for the server to be connected to the client
-            InetAddress inetAddress = 
-                dataAsyncConn.getLocalAddress().getAddress();
-            InetSocketAddress inetSocketAddress = 
-                dataAsyncConn.getRemoteAddress();
-            if (session.getConfiguration()
-                .getFtpInternalConfiguration().hasFtpSession(
-                        inetAddress,
-                        inetSocketAddress)) {
+            final InetAddress inetAddress = dataAsyncConn.getLocalAddress()
+                    .getAddress();
+            final InetSocketAddress inetSocketAddress = dataAsyncConn
+                    .getRemoteAddress();
+            if (session.getConfiguration().getFtpInternalConfiguration()
+                    .hasFtpSession(inetAddress, inetSocketAddress)) {
                 throw new Reply425Exception(
-                    "Cannot open active data connection since remote address is already in use: "+inetSocketAddress);
+                        "Cannot open active data connection since remote address is already in use: "
+                                + inetSocketAddress);
             }
-            //logger.debug("Active mode standby");
-            ClientBootstrap clientBootstrap = session
-                .getConfiguration().getFtpInternalConfiguration()
-                .getActiveBootstrap();
-            session.getConfiguration()
-                .setNewFtpSession(
-                        inetAddress,
-                        inetSocketAddress,
-                        session);
+            // logger.debug("Active mode standby");
+            final ClientBootstrap clientBootstrap = session.getConfiguration()
+                    .getFtpInternalConfiguration().getActiveBootstrap();
+            session.getConfiguration().setNewFtpSession(inetAddress,
+                    inetSocketAddress, session);
             // Set the session for the future dataChannel
-            ChannelFuture future = clientBootstrap.connect(dataAsyncConn
-                    .getRemoteAddress(), dataAsyncConn
-                    .getLocalAddress());
+            final ChannelFuture future = clientBootstrap.connect(dataAsyncConn
+                    .getRemoteAddress(), dataAsyncConn.getLocalAddress());
             future.awaitUninterruptibly();
             if (!future.isSuccess()) {
-                logger.warn("Connection abort in active mode from future", future.getCause());
+                logger.warn("Connection abort in active mode from future",
+                        future.getCause());
                 // Cannot open connection
-                session.getConfiguration().delFtpSession(
-                            inetAddress, 
-                            inetSocketAddress);
+                session.getConfiguration().delFtpSession(inetAddress,
+                        inetSocketAddress);
                 throw new Reply425Exception(
                         "Cannot open active data connection");
             }
             try {
-            	dataChannel = waitForOpenedDataChannel();
-            	dataAsyncConn.setNewOpenedDataChannel(dataChannel);
-            } catch (InterruptedException e) {
+                dataChannel = waitForOpenedDataChannel();
+                dataAsyncConn.setNewOpenedDataChannel(dataChannel);
+            } catch (final InterruptedException e) {
                 logger.warn("Connection abort in active mode", e);
                 // Cannot open connection
-                session.getConfiguration().delFtpSession(
-                            inetAddress, 
-                            inetSocketAddress);
+                session.getConfiguration().delFtpSession(inetAddress,
+                        inetSocketAddress);
                 throw new Reply425Exception(
                         "Cannot open active data connection");
             }
-            //logger.debug("Active mode connected");
+            // logger.debug("Active mode connected");
         }
         if (dataChannel == null) {
             // Cannot have a new Data connection since shutdown
-            if (! dataAsyncConn.isPassiveMode()) {
-                session.getConfiguration().getFtpInternalConfiguration().
-                    delFtpSession(
-                            dataAsyncConn.getLocalAddress().getAddress(), 
-                            dataAsyncConn.getRemoteAddress());
+            if (!dataAsyncConn.isPassiveMode()) {
+                session.getConfiguration().getFtpInternalConfiguration()
+                        .delFtpSession(
+                                dataAsyncConn.getLocalAddress().getAddress(),
+                                dataAsyncConn.getRemoteAddress());
             }
             throw new Reply425Exception(
                     "Cannot open data connection, shuting down");
@@ -319,9 +301,8 @@ public class R66TransferControl {
     private void runExecutor() {
         // Unlock Mode Codec
         try {
-            session.getDataConn().getDataNetworkHandler()
-                    .unlockModeCodec();
-        } catch (FtpNoConnectionException e) {
+            session.getDataConn().getDataNetworkHandler().unlockModeCodec();
+        } catch (final FtpNoConnectionException e) {
             setTransferAbortedFromInternal(false);
             return;
         }
@@ -338,13 +319,13 @@ public class R66TransferControl {
      * Add a new transfer to be executed. This is to be called from Command
      * after connection is opened and before answering to the client that
      * command is ready to be executed (for Store or Retrieve like operations).
-     *
+     * 
      * @param command
      * @param file
      */
     public void setNewFtpTransfer(FtpCommandCode command, FileInterface file) {
         isExecutingCommandFinished = false;
-        //logger.debug("setNewCommand: {}", command);
+        // logger.debug("setNewCommand: {}", command);
         setDataNetworkHandlerReady();
         executingCommand = new R66Transfer(command, file);
         runExecutor();
@@ -354,7 +335,7 @@ public class R66TransferControl {
      * Add a new transfer to be executed. This is to be called from Command
      * after connection is opened and before answering to the client that
      * command is ready to be executed (for List like operations).
-     *
+     * 
      * @param command
      * @param list
      * @param path
@@ -363,7 +344,7 @@ public class R66TransferControl {
     public void setNewFtpTransfer(FtpCommandCode command, List<String> list,
             String path) {
         isExecutingCommandFinished = false;
-        //logger.debug("setNewCommand: {}", command);
+        // logger.debug("setNewCommand: {}", command);
         setDataNetworkHandlerReady();
         executingCommand = new R66Transfer(command, list, path);
         runExecutor();
@@ -373,7 +354,7 @@ public class R66TransferControl {
      * Is a command currently executing (called from {@link NetworkHandler} when
      * a message is received to see if another transfer command is already in
      * execution, which is not allowed)
-     *
+     * 
      * @return True if a command is currently executing
      */
     public boolean isFtpTransferExecuting() {
@@ -381,7 +362,6 @@ public class R66TransferControl {
     }
 
     /**
-     *
      * @return the current executing R66Transfer
      * @throws FtpNoTransferException
      */
@@ -393,7 +373,6 @@ public class R66TransferControl {
     }
 
     /**
-     *
      * @return True if the current R66Transfer is a Retrieve like transfer
      * @throws FtpNoTransferException
      * @throws CommandAbstractException
@@ -403,8 +382,8 @@ public class R66TransferControl {
             throws FtpNoTransferException, CommandAbstractException,
             FtpNoFileException {
         return FtpCommandCode.isRetrLikeCommand(getExecutingFtpTransfer()
-                .getCommand()) && getExecutingFtpTransfer().getFtpFile()
-                .isInReading();
+                .getCommand())
+                && getExecutingFtpTransfer().getFtpFile().isInReading();
     }
 
     /**
@@ -416,15 +395,15 @@ public class R66TransferControl {
             if (isExecutingRetrLikeTransfer()) {
                 getExecutingFtpTransfer().getFtpFile().trueRetrieve();
             }
-        } catch (CommandAbstractException e) {
-        } catch (FtpNoTransferException e) {
-        } catch (FtpNoFileException e) {
+        } catch (final CommandAbstractException e) {
+        } catch (final FtpNoTransferException e) {
+        } catch (final FtpNoFileException e) {
         }
     }
 
     /**
      * Called when a transfer is finished from setEndOfTransfer
-     *
+     * 
      * @return True if it was already called before
      * @throws FtpNoTransferException
      */
@@ -444,17 +423,17 @@ public class R66TransferControl {
             throw new FtpNoTransferException("No connection");
         }
         isCheckAlreadyCalled = true;
-        R66Transfer executedTransfer = getExecutingFtpTransfer();
-        //logger.debug("Check: command {}", executedTransfer.getCommand());
+        final R66Transfer executedTransfer = getExecutingFtpTransfer();
+        // logger.debug("Check: command {}", executedTransfer.getCommand());
         // DNH is ready and Transfer is running
         if (FtpCommandCode.isListLikeCommand(executedTransfer.getCommand())) {
             if (executedTransfer.getStatus()) {
                 // Special status for List Like command
-                //logger.debug("Check: List OK");
+                // logger.debug("Check: List OK");
                 closeTransfer(true);
                 return false;
             }
-            //logger.debug("Check: List Ko");
+            // logger.debug("Check: List Ko");
             abortTransfer(true);
             return false;
         } else if (FtpCommandCode.isRetrLikeCommand(executedTransfer
@@ -462,8 +441,8 @@ public class R66TransferControl {
             FileInterface file = null;
             try {
                 file = executedTransfer.getFtpFile();
-            } catch (FtpNoFileException e) {
-                //logger.debug("Check: Retr no FileInterface for Retr");
+            } catch (final FtpNoFileException e) {
+                // logger.debug("Check: Retr no FileInterface for Retr");
                 abortTransfer(true);
                 return false;
             }
@@ -477,14 +456,14 @@ public class R66TransferControl {
                             .debug("Check: Retr FileInterface no more in reading OK");
                     closeTransfer(true);
                 }
-            } catch (CommandAbstractException e) {
+            } catch (final CommandAbstractException e) {
                 logger.warn("Retr Test is in Reading problem", e);
                 closeTransfer(true);
             }
             return false;
         } else if (FtpCommandCode.isStoreLikeCommand(executedTransfer
                 .getCommand())) {
-            //logger.debug("Check: Store OK");
+            // logger.debug("Check: Store OK");
             closeTransfer(true);
             return false;
         } else {
@@ -496,23 +475,23 @@ public class R66TransferControl {
 
     /**
      * Abort the current transfer
-     *
+     * 
      * @param write
      *            True means the message is write back to the control command,
      *            false it is only prepared
      */
     private void abortTransfer(boolean write) {
-        //logger.debug("Will abort transfer and write: ", write);
+        // logger.debug("Will abort transfer and write: ", write);
         FileInterface file = null;
         R66Transfer current = null;
         try {
             current = getExecutingFtpTransfer();
             file = current.getFtpFile();
             file.abortFile();
-        } catch (FtpNoTransferException e) {
+        } catch (final FtpNoTransferException e) {
             logger.warn("Abort problem", e);
-        } catch (FtpNoFileException e) {
-        } catch (CommandAbstractException e) {
+        } catch (final FtpNoFileException e) {
+        } catch (final CommandAbstractException e) {
             logger.warn("Abort problem", e);
         }
         if (current != null) {
@@ -521,8 +500,8 @@ public class R66TransferControl {
         endDataConnection();
         session.setReplyCode(
                 ReplyCode.REPLY_426_CONNECTION_CLOSED_TRANSFER_ABORTED,
-                "Transfer aborted for " +
-                        (current == null? "Unknown command" : current
+                "Transfer aborted for "
+                        + (current == null ? "Unknown command" : current
                                 .toString()));
         if (write) {
             session.getNetworkHandler().writeIntermediateAnswer();
@@ -537,23 +516,23 @@ public class R66TransferControl {
 
     /**
      * Finish correctly a transfer
-     *
+     * 
      * @param write
      *            True means the message is write back to the control command,
      *            false it is only prepared
      */
     private void closeTransfer(boolean write) {
-        //logger.debug("Will close transfer and write: {}", write);
+        // logger.debug("Will close transfer and write: {}", write);
         FileInterface file = null;
         R66Transfer current = null;
         try {
             current = getExecutingFtpTransfer();
             file = current.getFtpFile();
             file.closeFile();
-        } catch (FtpNoTransferException e) {
+        } catch (final FtpNoTransferException e) {
             logger.warn("Close problem", e);
-        } catch (FtpNoFileException e) {
-        } catch (CommandAbstractException e) {
+        } catch (final FtpNoFileException e) {
+        } catch (final CommandAbstractException e) {
             logger.warn("Close problem", e);
         }
         if (current != null) {
@@ -562,10 +541,9 @@ public class R66TransferControl {
         if (session.getDataConn().isStreamFile()) {
             endDataConnection();
         }
-        session.setReplyCode(
-                ReplyCode.REPLY_250_REQUESTED_FILE_ACTION_OKAY,
-                "Transfer correctly finished for " +
-                        (current == null? "Unknown command" : current
+        session.setReplyCode(ReplyCode.REPLY_250_REQUESTED_FILE_ACTION_OKAY,
+                "Transfer correctly finished for "
+                        + (current == null ? "Unknown command" : current
                                 .toString()));
         if (write) {
             session.getNetworkHandler().writeIntermediateAnswer();
@@ -581,25 +559,24 @@ public class R66TransferControl {
     /**
      * Set the current transfer as finished. Called from
      * {@link R66TransferExecutor} when a transfer is over.
-     *
      */
     public void setEndOfTransfer() {
         try {
             checkFtpTransferStatus();
-        } catch (FtpNoTransferException e) {
+        } catch (final FtpNoTransferException e) {
             return;
         }
     }
 
     /**
      * To enable abort from internal error
-     *
+     * 
      * @param write
      *            True means the message is write back to the control command,
      *            false it is only prepared
      */
     public void setTransferAbortedFromInternal(boolean write) {
-        //logger.debug("Set transfer aborted internal {}", write);
+        // logger.debug("Set transfer aborted internal {}", write);
         abortTransfer(write);
         endOfCommand.cancel();
     }
@@ -618,7 +595,7 @@ public class R66TransferControl {
     /**
      * Wait for the current transfer to finish, called from
      * {@link R66TransferExecutor}
-     *
+     * 
      * @throws InterruptedException
      */
     public void waitForEndOfTransfer() throws InterruptedException {
@@ -626,16 +603,15 @@ public class R66TransferControl {
         if (endOfCommand.isCancelled()) {
             throw new InterruptedException("Transfer aborted");
         }
-        //logger.debug("waitEndOfCommand over");
+        // logger.debug("waitEndOfCommand over");
     }
 
     // XXX ExecutorHandler functions
     /**
      * Finalize execution
-     *
      */
     private void finalizeExecution() {
-        //logger.debug("Finalize execution");
+        // logger.debug("Finalize execution");
         isExecutingCommandFinished = true;
         executingCommand = null;
     }
@@ -645,15 +621,16 @@ public class R66TransferControl {
      * End the data connection if any
      */
     private void endDataConnection() {
-        //logger.debug("End Data connection");
+        // logger.debug("End Data connection");
         if (isDataNetworkHandlerReady) {
             isDataNetworkHandlerReady = false;
             Channels.close(dataChannel);
             try {
-                closedDataChannel.await(session.getConfiguration().TIMEOUTCON, TimeUnit.MILLISECONDS);
-            } catch (InterruptedException e) {
+                closedDataChannel.await(session.getConfiguration().TIMEOUTCON,
+                        TimeUnit.MILLISECONDS);
+            } catch (final InterruptedException e) {
             }
-            //logger.debug("waitForClosedDataChannel over");
+            // logger.debug("waitForClosedDataChannel over");
             dataChannel = null;
         }
     }
@@ -662,10 +639,9 @@ public class R66TransferControl {
      * Clear the R66TransferControl (called when the data connection must be
      * over like from clear of {@link R66DataAsyncConn}, abort from {@link ABOR}
      * or ending control connection from {@link NetworkHandler}.
-     *
      */
     public void clear() {
-        //logger.debug("Clear Ftp Transfer Control");
+        // logger.debug("Clear Ftp Transfer Control");
         endDataConnection();
         finalizeExecution();
         if (closedDataChannel != null) {
