@@ -57,7 +57,7 @@ public class TestClient {
         final NetworkPacket networkPacket = new NetworkPacket(-1, 0, packet
                 .getLocalPacket());
         logger.warn("START");
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             final Channel channel = networkTransaction
                     .createNewClient(socketServerAddress);
             Channels.write(channel, networkPacket);

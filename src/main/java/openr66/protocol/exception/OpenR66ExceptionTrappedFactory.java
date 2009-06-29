@@ -26,6 +26,11 @@ public class OpenR66ExceptionTrappedFactory {
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(OpenR66ExceptionTrappedFactory.class);
 
+    /**
+     * @param channel
+     * @param e
+     * @return the OpenR66ProtocolException corresponding to the ExceptionEvent, or null if the exception should be ignored
+     */
     public static OpenR66ProtocolException getExceptionFromTrappedException(
             Channel channel, ExceptionEvent e) {
         final Throwable e1 = e.getCause();

@@ -37,7 +37,7 @@ public class TestServer {
     public static void main(String[] args)
             throws OpenR66ProtocolPacketException {
         InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
-                Level.INFO));
+                Level.WARN));
         final GgInternalLogger logger = GgInternalLoggerFactory
                 .getLogger(TestServer.class);
         Configuration.configuration.serverStartup();

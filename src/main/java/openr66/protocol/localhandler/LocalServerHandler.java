@@ -101,8 +101,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
             throws Exception {
         // FIXME inform clients
-        logger.error("Local Server Channel Exception: "
-                + e.getChannel().getId(), e.getCause());
         OpenR66ProtocolException exception = 
             OpenR66ExceptionTrappedFactory.getExceptionFromTrappedException(e.getChannel(), e);
         if (exception != null) {

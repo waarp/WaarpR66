@@ -53,9 +53,12 @@ public class LocalPacketFactory {
             final byte[] bheader = new byte[headerLength - 1];
             final byte[] bmiddle = new byte[middleLength];
             final byte[] bend = new byte[endLength];
-            buf.readBytes(bheader);
-            buf.readBytes(bmiddle);
-            buf.readBytes(bend);
+            if (headerLength-1 > 0)
+                buf.readBytes(bheader);
+            if (middleLength > 0)
+                buf.readBytes(bmiddle);
+            if (endLength > 0)
+                buf.readBytes(bend);
             return new TestPacket(new String(bheader), new String(bmiddle),
                     new String(bend));
         }
@@ -63,9 +66,12 @@ public class LocalPacketFactory {
             final byte[] bheader = new byte[headerLength - 1];
             final byte[] bmiddle = new byte[middleLength];
             final byte[] bend = new byte[endLength];
-            buf.readBytes(bheader);
-            buf.readBytes(bmiddle);
-            buf.readBytes(bend);
+            if (headerLength-1 > 0)
+                buf.readBytes(bheader);
+            if (middleLength > 0)
+                buf.readBytes(bmiddle);
+            if (endLength > 0)
+                buf.readBytes(bend);
             return new ErrorPacket(new String(bheader), new String(bmiddle),
                     new String(bend));
         }

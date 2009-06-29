@@ -54,7 +54,7 @@ public class TestPacket extends AbstractLocalPacket {
 
     @Override
     public byte getType() {
-        if (Integer.parseInt(send) > 10) {
+        if (Integer.parseInt(send) > 100) {
             return LocalPacketFactory.ERRORPACKET;
         }
         return LocalPacketFactory.TESTPACKET;
