@@ -30,6 +30,7 @@ public class LocalPacketFactory {
     public static final byte TESTPACKET = 0;
     public static final byte ERRORPACKET = 1;
     public static final byte SHUTDOWNPACKET = 2;
+    public static final byte REQUESTPACKET = 3;
 
     /**
      * This method create a Packet from the ChannelBuffer.
