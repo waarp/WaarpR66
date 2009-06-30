@@ -16,12 +16,13 @@ import org.jboss.netty.buffer.ChannelBuffers;
  * 
  * @author frederic bregier
  */
-public class SendPacket extends AbstractLocalPacket {
+public class DataPacket extends AbstractLocalPacket {
     private int packetRank;
     private int lengthPacket;
     private ChannelBuffer data;
+    private ChannelBuffer key;
     
-    public static SendPacket createFromBuffer(int headerLength,
+    public static DataPacket createFromBuffer(int headerLength,
             int middleLength, int endLength, ChannelBuffer buf) throws OpenR66ProtocolPacketException {
         if (headerLength-1 <=0) {
             throw new OpenR66ProtocolPacketException("Not enough data");
@@ -31,12 +32,15 @@ public class SendPacket extends AbstractLocalPacket {
         }
         int packetRank = buf.readInt();
         ChannelBuffer data = buf.readBytes(middleLength);
-        return new SendPacket(packetRank, data);
+        ChannelBuffer key = (endLength > 0 ) ? buf.readBytes(endLength) :
+            ChannelBuffers.EMPTY_BUFFER;
+        return new DataPacket(packetRank, data, key);
     }
     
-    public SendPacket(int packetRank, ChannelBuffer data) {
+    public DataPacket(int packetRank, ChannelBuffer data, ChannelBuffer key) {
         this.packetRank = packetRank;
         this.data = data;
+        this.key = (key == null) ? ChannelBuffers.EMPTY_BUFFER : key;
         this.lengthPacket = data.readableBytes();
     }
     /*
@@ -45,7 +49,7 @@ public class SendPacket extends AbstractLocalPacket {
      */
     @Override
     public void createEnd() throws OpenR66ProtocolPacketException {
-        end = ChannelBuffers.wrappedBuffer(send.getBytes());
+        this.end = this.key;
     }
 
     /*
@@ -54,7 +58,8 @@ public class SendPacket extends AbstractLocalPacket {
      */
     @Override
     public void createHeader() throws OpenR66ProtocolPacketException {
-        header = ChannelBuffers.wrappedBuffer(sheader.getBytes());
+        this.header = 
+            ChannelBuffers.wrappedBuffer(Integer.toString(this.packetRank).getBytes());
     }
 
     /*
@@ -63,15 +68,12 @@ public class SendPacket extends AbstractLocalPacket {
      */
     @Override
     public void createMiddle() throws OpenR66ProtocolPacketException {
-        middle = ChannelBuffers.wrappedBuffer(smiddle.getBytes());
+        this.middle = this.data;
     }
 
     @Override
     public byte getType() {
-        if (Integer.parseInt(send) > 100) {
-            return LocalPacketFactory.ERRORPACKET;
-        }
-        return LocalPacketFactory.TESTPACKET;
+        return LocalPacketFactory.DATAPACKET;
     }
 
     /*
@@ -80,11 +82,9 @@ public class SendPacket extends AbstractLocalPacket {
      */
     @Override
     public String toString() {
-        return "TestPacket: " + sheader + ":" + smiddle + ":" + send;
+        return "DataPacket: " + packetRank + ":" + lengthPacket;
     }
-
-    public void update() {
-        send = Integer.toString(Integer.parseInt(send) + 1);
-        end = null;
+    public void updateKey(ChannelBuffer key) {
+        this.key = (key == null) ? ChannelBuffers.EMPTY_BUFFER : key;
     }
 }

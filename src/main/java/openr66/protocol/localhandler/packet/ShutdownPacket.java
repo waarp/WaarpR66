@@ -42,9 +42,7 @@ public class ShutdownPacket extends AbstractLocalPacket {
      */
     @Override
     public void createEnd() throws OpenR66ProtocolPacketException {
-        if (spassword != null) {
-            end = ChannelBuffers.wrappedBuffer(spassword.getBytes());
-        }
+        this.end = ChannelBuffers.EMPTY_BUFFER;
     }
 
     /*
@@ -53,6 +51,9 @@ public class ShutdownPacket extends AbstractLocalPacket {
      */
     @Override
     public void createHeader() throws OpenR66ProtocolPacketException {
+        if (spassword != null) {
+            header = ChannelBuffers.wrappedBuffer(spassword.getBytes());
+        }
     }
 
     /*
@@ -61,6 +62,7 @@ public class ShutdownPacket extends AbstractLocalPacket {
      */
     @Override
     public void createMiddle() throws OpenR66ProtocolPacketException {
+        this.middle = ChannelBuffers.EMPTY_BUFFER;
     }
 
     /*
