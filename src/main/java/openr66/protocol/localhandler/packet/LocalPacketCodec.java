@@ -13,12 +13,11 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF site:
  * http://www.fsf.org.
  */
-package openr66.protocol.packet.network;
+package openr66.protocol.localhandler.packet;
 
 import goldengate.common.exception.InvalidArgumentException;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelDownstreamHandler;
 import org.jboss.netty.channel.ChannelEvent;
@@ -32,7 +31,7 @@ import org.jboss.netty.handler.codec.frame.FrameDecoder;
  * 
  * @author Frederic Bregier
  */
-public class NetworkPacketCodec extends FrameDecoder implements
+public class LocalPacketCodec extends FrameDecoder implements
         ChannelDownstreamHandler {
 
     /*
@@ -60,12 +59,19 @@ public class NetworkPacketCodec extends FrameDecoder implements
             buf.resetReaderIndex();
             return null;
         }
-        // Now we can read the two Ids
-        final int localId = buf.readInt();
-        final int remoteId = buf.readInt();
-        final ChannelBuffer buffer = ChannelBuffers.buffer(length - 8);
-        buf.readBytes(buffer, length - 8);
-        return new NetworkPacket(localId, remoteId, buffer);
+        // Now we can read the header
+        // Header: Header length field (4 bytes) = Middle length field (4
+        // bytes), End length field (4 bytes), type field (1 byte), ...
+        final int middleLength = buf.readInt();
+        final int endLength = buf.readInt();
+        // check if the packet is complete
+        if (middleLength + endLength + length - 8 > buf.readableBytes()) {
+            buf.resetReaderIndex();
+            return null;
+        }
+        // createPacketFromChannelBuffer read the buffer
+        return LocalPacketFactory.createPacketFromChannelBuffer(length - 8,
+                middleLength, endLength, buf);
     }
 
     @Override
@@ -73,13 +79,18 @@ public class NetworkPacketCodec extends FrameDecoder implements
             throws Exception {
         if (e instanceof MessageEvent) {
             final MessageEvent evt = (MessageEvent) e;
-            if (!(evt.getMessage() instanceof NetworkPacket)) {
+            if (evt.getMessage() instanceof ChannelBuffer) {
+                Channels.write(ctx, evt.getFuture(), evt.getMessage());
+                return;
+            }
+            if (!(evt.getMessage() instanceof AbstractLocalPacket)) {
                 throw new InvalidArgumentException("Incorrect write object: "
                         + evt.getMessage().getClass().getName());
             }
-            final NetworkPacket packet = (NetworkPacket) evt.getMessage();
-            final ChannelBuffer finalBuf = packet.getNetworkPacket();
-            Channels.write(ctx, evt.getFuture(), finalBuf);
+            final AbstractLocalPacket packet = (AbstractLocalPacket) evt
+                    .getMessage();
+            final ChannelBuffer buf = packet.getLocalPacket();
+            Channels.write(ctx, evt.getFuture(), buf);
         } else {
             ctx.sendDownstream(e);
         }

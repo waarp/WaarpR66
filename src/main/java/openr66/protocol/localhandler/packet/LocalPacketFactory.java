@@ -13,7 +13,7 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF site:
  * http://www.fsf.org.
  */
-package openr66.protocol.packet;
+package openr66.protocol.localhandler.packet;
 
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolShutdownException;
@@ -31,6 +31,12 @@ public class LocalPacketFactory {
     public static final byte ERRORPACKET = 1;
     public static final byte SHUTDOWNPACKET = 2;
     public static final byte REQUESTPACKET = 3;
+    public static final byte SENDPACKET = 4;
+    public static final byte RECVPACKET = 5;
+    public static final byte STATUSPACKET = 6;
+    public static final byte CANCELPACKET = 7;
+    public static final byte CONFIGSENDPACKET = 8;
+    public static final byte CONFIGRECVPACKET = 9;
 
     /**
      * This method create a Packet from the ChannelBuffer.
@@ -51,32 +57,13 @@ public class LocalPacketFactory {
         final byte packetType = buf.readByte();
         switch (packetType) {
         case TESTPACKET: {
-            final byte[] bheader = new byte[headerLength - 1];
-            final byte[] bmiddle = new byte[middleLength];
-            final byte[] bend = new byte[endLength];
-            if (headerLength-1 > 0)
-                buf.readBytes(bheader);
-            if (middleLength > 0)
-                buf.readBytes(bmiddle);
-            if (endLength > 0)
-                buf.readBytes(bend);
-            return new TestPacket(new String(bheader), new String(bmiddle),
-                    new String(bend));
+            return TestPacket.createFromBuffer(headerLength, middleLength, endLength, buf);
         }
         case ERRORPACKET: {
-            final byte[] bheader = new byte[headerLength - 1];
-            final byte[] bmiddle = new byte[middleLength];
-            final byte[] bend = new byte[endLength];
-            if (headerLength-1 > 0)
-                buf.readBytes(bheader);
-            if (middleLength > 0)
-                buf.readBytes(bmiddle);
-            if (endLength > 0)
-                buf.readBytes(bend);
-            return new ErrorPacket(new String(bheader), new String(bmiddle),
-                    new String(bend));
+            return ErrorPacket.createFromBuffer(headerLength, middleLength, endLength, buf);
         }
         case SHUTDOWNPACKET: {
+            
             new Thread(new ChannelUtils()).start();
             // ChannelUtils.teminateServer(Configuration.configuration);
             throw new OpenR66ProtocolShutdownException("Shutdown Type received");

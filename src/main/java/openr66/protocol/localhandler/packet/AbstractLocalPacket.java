@@ -1,7 +1,7 @@
 /**
  * 
  */
-package openr66.protocol.packet;
+package openr66.protocol.localhandler.packet;
 
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 

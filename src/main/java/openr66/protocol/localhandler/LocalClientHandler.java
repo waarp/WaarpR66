@@ -8,9 +8,9 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolException;
-import openr66.protocol.packet.AbstractLocalPacket;
-import openr66.protocol.packet.ErrorPacket;
-import openr66.protocol.packet.network.NetworkPacket;
+import openr66.protocol.localhandler.packet.AbstractLocalPacket;
+import openr66.protocol.localhandler.packet.ErrorPacket;
+import openr66.protocol.networkhandler.packet.NetworkPacket;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;

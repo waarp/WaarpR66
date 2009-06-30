@@ -24,9 +24,9 @@ import java.net.SocketAddress;
 
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
+import openr66.protocol.localhandler.packet.TestPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
-import openr66.protocol.packet.TestPacket;
-import openr66.protocol.packet.network.NetworkPacket;
+import openr66.protocol.networkhandler.packet.NetworkPacket;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.Channels;

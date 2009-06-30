@@ -1,14 +1,17 @@
 /**
  * 
  */
-package openr66.protocol.packet;
+package openr66.protocol.localhandler.packet;
 
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 
+import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 
 /**
  * Test class for packet
+ * 
+ * 3 strings: sheader,smiddle,send
  * 
  * @author frederic bregier
  */
@@ -19,6 +22,21 @@ public class TestPacket extends AbstractLocalPacket {
 
     private String send = null;
 
+    public static TestPacket createFromBuffer(int headerLength,
+            int middleLength, int endLength, ChannelBuffer buf) {
+        final byte[] bheader = new byte[headerLength - 1];
+        final byte[] bmiddle = new byte[middleLength];
+        final byte[] bend = new byte[endLength];
+        if (headerLength-1 > 0)
+            buf.readBytes(bheader);
+        if (middleLength > 0)
+            buf.readBytes(bmiddle);
+        if (endLength > 0)
+            buf.readBytes(bend);
+        return new TestPacket(new String(bheader), new String(bmiddle),
+                new String(bend));
+    }
+    
     public TestPacket(String header, String middle, String end) {
         sheader = header;
         smiddle = middle;
@@ -27,7 +45,7 @@ public class TestPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     * @see openr66.protocol.packet.AbstractLocalPacket#createEnd()
+     * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createEnd()
      */
     @Override
     public void createEnd() throws OpenR66ProtocolPacketException {
@@ -36,7 +54,7 @@ public class TestPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     * @see openr66.protocol.packet.AbstractLocalPacket#createHeader()
+     * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createHeader()
      */
     @Override
     public void createHeader() throws OpenR66ProtocolPacketException {
@@ -45,7 +63,7 @@ public class TestPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     * @see openr66.protocol.packet.AbstractLocalPacket#createMiddle()
+     * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createMiddle()
      */
     @Override
     public void createMiddle() throws OpenR66ProtocolPacketException {
@@ -62,7 +80,7 @@ public class TestPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     * @see openr66.protocol.packet.AbstractLocalPacket#toString()
+     * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
      */
     @Override
     public String toString() {

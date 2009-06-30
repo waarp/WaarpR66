@@ -15,7 +15,7 @@
  */
 package openr66.protocol.networkhandler;
 
-import openr66.protocol.packet.network.NetworkPacketCodec;
+import openr66.protocol.networkhandler.packet.NetworkPacketCodec;
 
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;

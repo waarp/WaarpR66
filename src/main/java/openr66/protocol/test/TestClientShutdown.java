@@ -24,9 +24,9 @@ import java.net.SocketAddress;
 
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
+import openr66.protocol.localhandler.packet.ShutdownPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
-import openr66.protocol.packet.ShutdownPacket;
-import openr66.protocol.packet.network.NetworkPacket;
+import openr66.protocol.networkhandler.packet.NetworkPacket;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.Channels;
@@ -52,8 +52,7 @@ public class TestClientShutdown {
         final NetworkTransaction networkTransaction = new NetworkTransaction();
         final SocketAddress socketServerAddress = new InetSocketAddress(
                 Configuration.SERVER_PORT);
-        final ShutdownPacket packet = new ShutdownPacket("header test",
-                "middle test", Integer.toString(0));
+        final ShutdownPacket packet = new ShutdownPacket("password");
         final NetworkPacket networkPacket = new NetworkPacket(-1, 0, packet
                 .getLocalPacket());
         logger.warn("START");

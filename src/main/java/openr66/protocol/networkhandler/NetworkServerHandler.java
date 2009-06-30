@@ -9,8 +9,8 @@ import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolException;
 import openr66.protocol.localhandler.LocalChannelReference;
-import openr66.protocol.packet.ErrorPacket;
-import openr66.protocol.packet.network.NetworkPacket;
+import openr66.protocol.localhandler.packet.ErrorPacket;
+import openr66.protocol.networkhandler.packet.NetworkPacket;
 
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipelineCoverage;
