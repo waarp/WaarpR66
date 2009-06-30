@@ -19,7 +19,10 @@ public class ShutdownPacket extends AbstractLocalPacket {
     private String spassword = null;
 
     public static ShutdownPacket createFromBuffer(int headerLength,
-            int middleLength, int endLength, ChannelBuffer buf) {
+            int middleLength, int endLength, ChannelBuffer buf) throws OpenR66ProtocolPacketException {
+        if (headerLength-1 <=0) {
+            throw new OpenR66ProtocolPacketException("Not enough data");
+        }
         final byte[] bpassword = new byte[headerLength - 1];
         if (headerLength-1 > 0)
             buf.readBytes(bpassword);
@@ -29,7 +32,10 @@ public class ShutdownPacket extends AbstractLocalPacket {
     public ShutdownPacket(String spassword) {
         this.spassword = spassword;
     }
-
+    public boolean isShutdownValid() {
+        // FIXME XXX fix validation
+        return true;
+    }
     /*
      * (non-Javadoc)
      * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createEnd()

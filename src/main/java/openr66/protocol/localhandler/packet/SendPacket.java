@@ -5,18 +5,40 @@ package openr66.protocol.localhandler.packet;
 
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 
+import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 
 /**
  * Send packet
  * 
+ * header = packetRank
+ * middle = data
+ * 
  * @author frederic bregier
  */
 public class SendPacket extends AbstractLocalPacket {
-    private String filename;
-    private String rulename;
-    private String transferInformation;
+    private int packetRank;
+    private int lengthPacket;
+    private ChannelBuffer data;
     
+    public static SendPacket createFromBuffer(int headerLength,
+            int middleLength, int endLength, ChannelBuffer buf) throws OpenR66ProtocolPacketException {
+        if (headerLength-1 <=0) {
+            throw new OpenR66ProtocolPacketException("Not enough data");
+        }
+        if (middleLength <=0) {
+            throw new OpenR66ProtocolPacketException("Not enough data");
+        }
+        int packetRank = buf.readInt();
+        ChannelBuffer data = buf.readBytes(middleLength);
+        return new SendPacket(packetRank, data);
+    }
+    
+    public SendPacket(int packetRank, ChannelBuffer data) {
+        this.packetRank = packetRank;
+        this.data = data;
+        this.lengthPacket = data.readableBytes();
+    }
     /*
      * (non-Javadoc)
      * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createEnd()

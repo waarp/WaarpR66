@@ -8,9 +8,11 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolException;
+import openr66.protocol.exception.OpenR66ProtocolShutdownException;
 import openr66.protocol.localhandler.packet.AbstractLocalPacket;
 import openr66.protocol.localhandler.packet.ErrorPacket;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
+import openr66.protocol.utils.ChannelUtils;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -121,6 +123,11 @@ public class LocalClientHandler extends SimpleChannelHandler {
             OpenR66ProtocolException exception = 
                 OpenR66ExceptionTrappedFactory.getExceptionFromTrappedException(e.getChannel(), e);
             if (exception != null) {
+                if (exception instanceof OpenR66ProtocolShutdownException) {
+                    new Thread(new ChannelUtils()).start();
+                    Channels.close(e.getChannel());
+                    return;
+                }
                 final ErrorPacket errorPacket = new ErrorPacket(exception
                         .getMessage(), null, null);
                 final NetworkPacket networkPacket = new NetworkPacket(

@@ -17,7 +17,6 @@ package openr66.protocol.localhandler.packet;
 
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolShutdownException;
-import openr66.protocol.utils.ChannelUtils;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 
@@ -63,10 +62,11 @@ public class LocalPacketFactory {
             return ErrorPacket.createFromBuffer(headerLength, middleLength, endLength, buf);
         }
         case SHUTDOWNPACKET: {
-            
-            new Thread(new ChannelUtils()).start();
-            // ChannelUtils.teminateServer(Configuration.configuration);
-            throw new OpenR66ProtocolShutdownException("Shutdown Type received");
+            ShutdownPacket packet = ShutdownPacket.createFromBuffer(headerLength, middleLength, endLength, buf);
+            if (packet.isShutdownValid()) {
+                throw new OpenR66ProtocolShutdownException("Shutdown Type received");                
+            }
+            throw new OpenR66ProtocolPacketException("Invalid Shutdown command");
         }
         default:
             throw new OpenR66ProtocolPacketException(
