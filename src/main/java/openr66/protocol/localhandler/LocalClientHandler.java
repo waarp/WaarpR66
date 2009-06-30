@@ -46,7 +46,6 @@ public class LocalClientHandler extends SimpleChannelHandler {
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
-        // FIXME nothing to do ?
         logger.info("Local Client Channel Closed: " + e.getChannel().getId());
         if (localChannelReference != null) {
             Configuration.configuration.getLocalTransaction().removeFromId(

@@ -10,7 +10,9 @@ import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolException;
 import openr66.protocol.exception.OpenR66ProtocolShutdownException;
 import openr66.protocol.localhandler.packet.AbstractLocalPacket;
+import openr66.protocol.localhandler.packet.DataPacket;
 import openr66.protocol.localhandler.packet.ErrorPacket;
+import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.localhandler.packet.TestPacket;
 import openr66.protocol.utils.ChannelUtils;
 
@@ -85,8 +87,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
             ((TestPacket) packet).update();
             Channels.write(e.getChannel(), packet);
         } else if (packet instanceof ErrorPacket) {
+            // FIXME do something according to the error
             logger.warn(e.getChannel().getId() + ": "
                     + ((ErrorPacket) packet).toString());
+        } else if (packet instanceof RequestPacket) {
+            // FIXME do something
+        } else if (packet instanceof DataPacket) {
+            // FIXME do something
         } else {
             logger.error("Unknown Mesg");
         }
