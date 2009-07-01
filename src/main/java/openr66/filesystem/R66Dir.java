@@ -21,8 +21,8 @@
 package openr66.filesystem;
 
 import goldengate.common.command.exception.CommandAbstractException;
-import goldengate.common.file.OptsMLSxInterface;
 import goldengate.common.file.filesystembased.FilesystemBasedDirImpl;
+import goldengate.common.file.filesystembased.FilesystemBasedOptsMLSxImpl;
 
 /**
  * @author frederic bregier
@@ -32,10 +32,9 @@ public class R66Dir extends FilesystemBasedDirImpl {
 
     /**
      * @param session
-     * @param optsMLSx
      */
-    public R66Dir(R66Session session, OptsMLSxInterface optsMLSx) {
-        super(session, optsMLSx);
+    public R66Dir(R66Session session) {
+        super(session, new FilesystemBasedOptsMLSxImpl());
         // TODO Auto-generated constructor stub
     }
 
@@ -43,10 +42,9 @@ public class R66Dir extends FilesystemBasedDirImpl {
      * @see goldengate.common.file.DirInterface#newFile(java.lang.String, boolean)
      */
     @Override
-    public R66File newFile(String arg0, boolean arg1)
+    public R66File newFile(String path, boolean append)
             throws CommandAbstractException {
-        // TODO Auto-generated method stub
-        return null;
+        return new R66File((R66Session) getSession(), this, path, append);
     }
 
 }

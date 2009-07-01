@@ -20,6 +20,7 @@
  */
 package openr66.filesystem;
 
+import openr66.authentication.R66Auth;
 import goldengate.common.file.SessionInterface;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 

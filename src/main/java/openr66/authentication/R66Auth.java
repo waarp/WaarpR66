@@ -18,26 +18,40 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF
  * site: http://www.fsf.org.
  */
-package openr66.filesystem;
+package openr66.authentication;
 
+import java.io.File;
+
+import openr66.filesystem.R66Session;
 import goldengate.common.command.NextCommandReply;
 import goldengate.common.command.exception.Reply421Exception;
 import goldengate.common.command.exception.Reply502Exception;
 import goldengate.common.command.exception.Reply530Exception;
+import goldengate.common.file.DirInterface;
 import goldengate.common.file.filesystembased.FilesystemBasedAuthImpl;
+import goldengate.common.logging.GgInternalLogger;
+import goldengate.common.logging.GgInternalLoggerFactory;
 
 /**
  * @author frederic bregier
  *
  */
 public class R66Auth extends FilesystemBasedAuthImpl {
-
+    /**
+     * Internal Logger
+     */
+    private static final GgInternalLogger logger = GgInternalLoggerFactory
+            .getLogger(R66Auth.class);
+    /**
+     * Current authentication
+     */
+    private R66SimpleAuth currentAuth = null;
+    
     /**
      * @param session
      */
     public R66Auth(R66Session session) {
         super(session);
-        // TODO Auto-generated constructor stub
     }
 
     /* (non-Javadoc)
@@ -45,8 +59,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
      */
     @Override
     protected void businessClean() {
-        // TODO Auto-generated method stub
-        
+        currentAuth = null;        
     }
 
     /* (non-Javadoc)
@@ -83,8 +96,19 @@ public class R66Auth extends FilesystemBasedAuthImpl {
      */
     @Override
     protected String setBusinessRootFromAuth() throws Reply421Exception {
-        // TODO Auto-generated method stub
-        return null;
+        String path = null;
+        if (account == null) {
+            path = DirInterface.SEPARATOR + user;
+        } else {
+            path = DirInterface.SEPARATOR + user + DirInterface.SEPARATOR +
+                    account;
+        }
+        String fullpath = getAbsolutePath(path);
+        File file = new File(fullpath);
+        if (!file.isDirectory()) {
+            throw new Reply421Exception("Filesystem not ready");
+        }
+        return path;
     }
 
     /* (non-Javadoc)
@@ -102,17 +126,18 @@ public class R66Auth extends FilesystemBasedAuthImpl {
      */
     @Override
     public boolean isAdmin() {
-        // TODO Auto-generated method stub
-        return false;
+        return currentAuth.isAdmin;
     }
 
     /* (non-Javadoc)
      * @see goldengate.common.file.AuthInterface#isBusinessPathValid(java.lang.String)
      */
     @Override
-    public boolean isBusinessPathValid(String arg0) {
-        // TODO Auto-generated method stub
-        return false;
+    public boolean isBusinessPathValid(String newPath) {
+        if (newPath == null) {
+            return false;
+        }
+        return newPath.startsWith(getBusinessPath());
     }
 
 }

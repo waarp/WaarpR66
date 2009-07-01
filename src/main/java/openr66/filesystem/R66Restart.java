@@ -34,7 +34,6 @@ public class R66Restart extends FilesystemBasedRestartImpl {
      */
     public R66Restart(R66Session session) {
         super(session);
-        // TODO Auto-generated constructor stub
     }
 
     /* (non-Javadoc)
