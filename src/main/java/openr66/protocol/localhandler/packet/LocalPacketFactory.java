@@ -36,6 +36,7 @@ public class LocalPacketFactory {
     public static final byte CONFIGSENDPACKET = 7;
     public static final byte CONFIGRECVPACKET = 8;
     public static final byte AUTHENTPACKET = 9;
+    public static final byte VALIDPACKET = 10;
 
     /**
      * This method create a Packet from the ChannelBuffer.
@@ -46,13 +47,12 @@ public class LocalPacketFactory {
      * @param endLength
      * @param buf
      * @return the newly created Packet
+     * @throws OpenR66ProtocolPacketException 
      * @throws OpenR66ProtocolPacketException
      * @throws OpenR66ProtocolShutdownException
      */
     public static AbstractLocalPacket createPacketFromChannelBuffer(
-            int headerLength, int middleLength, int endLength, ChannelBuffer buf)
-            throws OpenR66ProtocolPacketException,
-            OpenR66ProtocolShutdownException {
+            int headerLength, int middleLength, int endLength, ChannelBuffer buf) throws OpenR66ProtocolPacketException {
         final byte packetType = buf.readByte();
         switch (packetType) {
         case TESTPACKET: {
@@ -62,17 +62,19 @@ public class LocalPacketFactory {
             return ErrorPacket.createFromBuffer(headerLength, middleLength, endLength, buf);
         }
         case SHUTDOWNPACKET: {
-            ShutdownPacket packet = ShutdownPacket.createFromBuffer(headerLength, middleLength, endLength, buf);
-            if (packet.isShutdownValid()) {
-                throw new OpenR66ProtocolShutdownException("Shutdown Type received");                
-            }
-            throw new OpenR66ProtocolPacketException("Invalid Shutdown command");
+            return ShutdownPacket.createFromBuffer(headerLength, middleLength, endLength, buf);
         }
         case REQUESTPACKET: {
             return RequestPacket.createFromBuffer(headerLength, middleLength, endLength, buf);
         }
         case DATAPACKET: {
             return DataPacket.createFromBuffer(headerLength, middleLength, endLength, buf);
+        }
+        case AUTHENTPACKET: {
+            return AuthentPacket.createFromBuffer(headerLength, middleLength, endLength, buf);
+        }
+        case VALIDPACKET: {
+            return ValidPacket.createFromBuffer(headerLength, middleLength, endLength, buf);
         }
         default:
             throw new OpenR66ProtocolPacketException(

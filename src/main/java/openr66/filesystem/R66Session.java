@@ -40,6 +40,9 @@ public class R66Session implements SessionInterface {
      */
     private R66Restart restart = null;
     
+    /**
+     * @param localServerHandler
+     */
     public R66Session(LocalServerHandler localServerHandler) {
         this.localServerHandler = localServerHandler;
         isReady = false;
@@ -107,6 +110,16 @@ public class R66Session implements SessionInterface {
         auth = new R66Auth(this);
         dir = new R66Dir(this);
         restart = new R66Restart(this);
+    }
+    /**
+     * 
+     * @return True if the connection is currently authenticated
+     */
+    public boolean isAuthenticated() {
+        if (auth == null) {
+            return false;
+        }
+        return auth.isIdentified();
     }
     /**
      * @return True if the Channel is ready to accept command

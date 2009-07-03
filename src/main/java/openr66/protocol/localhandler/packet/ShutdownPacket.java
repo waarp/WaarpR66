@@ -16,8 +16,16 @@ import org.jboss.netty.buffer.ChannelBuffers;
  * @author frederic bregier
  */
 public class ShutdownPacket extends AbstractLocalPacket {
-    private String spassword = null;
+    private byte[] key = null;
 
+    /**
+     * @param headerLength
+     * @param middleLength
+     * @param endLength
+     * @param buf
+     * @return the new ShutdownPacket from buffer
+     * @throws OpenR66ProtocolPacketException
+     */
     public static ShutdownPacket createFromBuffer(int headerLength,
             int middleLength, int endLength, ChannelBuffer buf) throws OpenR66ProtocolPacketException {
         if (headerLength-1 <=0) {
@@ -26,16 +34,16 @@ public class ShutdownPacket extends AbstractLocalPacket {
         final byte[] bpassword = new byte[headerLength - 1];
         if (headerLength-1 > 0)
             buf.readBytes(bpassword);
-        return new ShutdownPacket(new String(bpassword));
+        return new ShutdownPacket(bpassword);
     }
     
-    public ShutdownPacket(String spassword) {
-        this.spassword = spassword;
+    /**
+     * @param spassword
+     */
+    public ShutdownPacket(byte[] spassword) {
+        this.key = spassword;
     }
-    public boolean isShutdownValid() {
-        // FIXME XXX fix validation
-        return true;
-    }
+    
     /*
      * (non-Javadoc)
      * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createEnd()
@@ -51,8 +59,8 @@ public class ShutdownPacket extends AbstractLocalPacket {
      */
     @Override
     public void createHeader() throws OpenR66ProtocolPacketException {
-        if (spassword != null) {
-            header = ChannelBuffers.wrappedBuffer(spassword.getBytes());
+        if (key != null) {
+            header = ChannelBuffers.wrappedBuffer(key);
         }
     }
 
@@ -78,4 +86,12 @@ public class ShutdownPacket extends AbstractLocalPacket {
     public byte getType() {
         return LocalPacketFactory.SHUTDOWNPACKET;
     }
+
+    /**
+     * @return the key
+     */
+    public byte[] getKey() {
+        return key;
+    }
+    
 }

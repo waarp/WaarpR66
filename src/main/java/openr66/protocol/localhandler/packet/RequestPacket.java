@@ -24,6 +24,14 @@ public class RequestPacket extends AbstractLocalPacket {
     private int mode;
     private String fileInformation;
     
+    /**
+     * @param headerLength
+     * @param middleLength
+     * @param endLength
+     * @param buf
+     * @return the new RequestPacket from buffer
+     * @throws OpenR66ProtocolPacketException
+     */
     public static RequestPacket createFromBuffer(int headerLength,
             int middleLength, int endLength, ChannelBuffer buf) throws OpenR66ProtocolPacketException {
         if (headerLength-1 <=0) {
@@ -53,6 +61,13 @@ public class RequestPacket extends AbstractLocalPacket {
                 Integer.parseInt(amiddle[1]), send);
     }
     
+    /**
+     * @param hostId
+     * @param rulename
+     * @param filename
+     * @param mode
+     * @param fileInformation
+     */
     public RequestPacket(String hostId, String rulename, String filename, int mode,
             String fileInformation) {
         this.hostId = hostId;
@@ -110,6 +125,41 @@ public class RequestPacket extends AbstractLocalPacket {
     @Override
     public String toString() {
         return "RequestPacket: " + hostId + ":" + rulename+" : "+filename+" : "+mode+" : "+fileInformation;
+    }
+
+    /**
+     * @return the hostId
+     */
+    public String getHostId() {
+        return hostId;
+    }
+
+    /**
+     * @return the rulename
+     */
+    public String getRulename() {
+        return rulename;
+    }
+
+    /**
+     * @return the filename
+     */
+    public String getFilename() {
+        return filename;
+    }
+
+    /**
+     * @return the mode
+     */
+    public int getMode() {
+        return mode;
+    }
+
+    /**
+     * @return the fileInformation
+     */
+    public String getFileInformation() {
+        return fileInformation;
     }
 
 }

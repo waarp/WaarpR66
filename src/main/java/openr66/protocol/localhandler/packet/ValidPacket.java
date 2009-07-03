@@ -9,39 +9,38 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 
 /**
- * Error Message class for packet
+ * Validation Message class for packet
  * 
- * 3 strings: sheader,smiddle,send
+ * 2 strings and one byte: sheader,smiddle,send
  * 
  * @author frederic bregier
  */
-public class ErrorPacket extends AbstractLocalPacket {
+public class ValidPacket extends AbstractLocalPacket {
     private String sheader = null;
 
     private String smiddle = null;
 
-    private String send = null;
+    private byte send;
 
     /**
      * @param headerLength
      * @param middleLength
      * @param endLength
      * @param buf
-     * @return the new ErrorPacket from buffer
+     * @return the new ValidPacket from buffer
      */
-    public static ErrorPacket createFromBuffer(int headerLength,
+    public static ValidPacket createFromBuffer(int headerLength,
             int middleLength, int endLength, ChannelBuffer buf) {
         final byte[] bheader = new byte[headerLength - 1];
         final byte[] bmiddle = new byte[middleLength];
-        final byte[] bend = new byte[endLength];
+        final byte bend;
         if (headerLength-1 > 0)
             buf.readBytes(bheader);
         if (middleLength > 0)
             buf.readBytes(bmiddle);
-        if (endLength > 0)
-            buf.readBytes(bend);
-        return new ErrorPacket(new String(bheader), new String(bmiddle),
-                new String(bend));
+        bend = buf.readByte();
+        return new ValidPacket(new String(bheader), new String(bmiddle),
+                bend);
     }
     
     /**
@@ -49,7 +48,7 @@ public class ErrorPacket extends AbstractLocalPacket {
      * @param middle
      * @param end
      */
-    public ErrorPacket(String header, String middle, String end) {
+    public ValidPacket(String header, String middle, byte end) {
         sheader = header;
         smiddle = middle;
         send = end;
@@ -61,9 +60,8 @@ public class ErrorPacket extends AbstractLocalPacket {
      */
     @Override
     public void createEnd() throws OpenR66ProtocolPacketException {
-        if (send != null) {
-            end = ChannelBuffers.wrappedBuffer(send.getBytes());
-        }
+        end = ChannelBuffers.buffer(1);
+        end.writeByte(send);
     }
 
     /*
@@ -94,12 +92,12 @@ public class ErrorPacket extends AbstractLocalPacket {
      */
     @Override
     public String toString() {
-        return "ErrorPacket: " + sheader + ":" + smiddle + ":" + send;
+        return "ValidPacket: " + sheader + ":" + smiddle + ":" + send;
     }
 
     @Override
     public byte getType() {
-        return LocalPacketFactory.ERRORPACKET;
+        return LocalPacketFactory.VALIDPACKET;
     }
 
     /**
@@ -117,9 +115,9 @@ public class ErrorPacket extends AbstractLocalPacket {
     }
 
     /**
-     * @return the send
+     * @return the type
      */
-    public String getSend() {
+    public byte getTypeValid() {
         return send;
     }
     

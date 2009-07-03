@@ -22,6 +22,14 @@ public class DataPacket extends AbstractLocalPacket {
     private ChannelBuffer data;
     private ChannelBuffer key;
     
+    /**
+     * @param headerLength
+     * @param middleLength
+     * @param endLength
+     * @param buf
+     * @return the new DataPacket from buffer
+     * @throws OpenR66ProtocolPacketException
+     */
     public static DataPacket createFromBuffer(int headerLength,
             int middleLength, int endLength, ChannelBuffer buf) throws OpenR66ProtocolPacketException {
         if (headerLength-1 <=0) {
@@ -37,6 +45,11 @@ public class DataPacket extends AbstractLocalPacket {
         return new DataPacket(packetRank, data, key);
     }
     
+    /**
+     * @param packetRank
+     * @param data
+     * @param key
+     */
     public DataPacket(int packetRank, ChannelBuffer data, ChannelBuffer key) {
         this.packetRank = packetRank;
         this.data = data;
@@ -84,7 +97,40 @@ public class DataPacket extends AbstractLocalPacket {
     public String toString() {
         return "DataPacket: " + packetRank + ":" + lengthPacket;
     }
-    public void updateKey(ChannelBuffer key) {
-        this.key = (key == null) ? ChannelBuffers.EMPTY_BUFFER : key;
+    /**
+     * Update the key associated to the data
+     * @param key1
+     */
+    public void updateKey(ChannelBuffer key1) {
+        this.key = (key1 == null) ? ChannelBuffers.EMPTY_BUFFER : key1;
     }
+
+    /**
+     * @return the packetRank
+     */
+    public int getPacketRank() {
+        return packetRank;
+    }
+
+    /**
+     * @return the lengthPacket
+     */
+    public int getLengthPacket() {
+        return lengthPacket;
+    }
+
+    /**
+     * @return the data
+     */
+    public ChannelBuffer getData() {
+        return data;
+    }
+
+    /**
+     * @return the key
+     */
+    public ChannelBuffer getKey() {
+        return key;
+    }
+    
 }

@@ -77,7 +77,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
     @Override
     protected NextCommandReply setBusinessAccount(String arg0)
             throws Reply421Exception, Reply530Exception, Reply502Exception {
-        return null;
+        throw new Reply421Exception("Command not valid");
     }
 
     /* (non-Javadoc)
@@ -86,9 +86,16 @@ public class R66Auth extends FilesystemBasedAuthImpl {
     @Override
     protected NextCommandReply setBusinessPassword(String arg0)
             throws Reply421Exception, Reply530Exception {
-        return null;
+        throw new Reply421Exception("Command not valid");
     }
-    
+    /**
+     * 
+     * @param hostId
+     * @param arg0
+     * @return True if the connection is OK (authentication is OK)
+     * @throws Reply530Exception if the authentication is wrong
+     * @throws Reply421Exception If the service is not available
+     */
     public boolean connection(String hostId, byte [] arg0) throws Reply530Exception, Reply421Exception {
         R66SimpleAuth auth = Configuration.configuration.fileBasedConfiguration.getSimpleAuth(user);
         if (auth == null) {
@@ -108,6 +115,14 @@ public class R66Auth extends FilesystemBasedAuthImpl {
             return true;
         }
         throw new Reply530Exception("Key is not valid for this HostId");
+    }
+    /**
+     * 
+     * @param key
+     * @return True if the key is valid for the current user
+     */
+    public boolean isKeyValid(byte[] key) {
+        return currentAuth.isKeyValid(key);
     }
     /**
      * Set the root relative Path from current status of Authentication (should
@@ -144,7 +159,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
     @Override
     protected NextCommandReply setBusinessUser(String arg0)
             throws Reply421Exception, Reply530Exception {
-        return null;
+        throw new Reply421Exception("Command not valid");
     }
 
     /* (non-Javadoc)

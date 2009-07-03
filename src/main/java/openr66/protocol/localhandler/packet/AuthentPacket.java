@@ -21,6 +21,14 @@ public class AuthentPacket extends AbstractLocalPacket {
     private String hostId;
     private byte [] key;
     
+    /**
+     * @param headerLength
+     * @param middleLength
+     * @param endLength
+     * @param buf
+     * @return the new AuthentPacket from buffer
+     * @throws OpenR66ProtocolPacketException
+     */
     public static AuthentPacket createFromBuffer(int headerLength,
             int middleLength, int endLength, ChannelBuffer buf) throws OpenR66ProtocolPacketException {
         if (headerLength-1 <=0) {
@@ -39,6 +47,10 @@ public class AuthentPacket extends AbstractLocalPacket {
         return new AuthentPacket(sheader, bmiddle);
     }
     
+    /**
+     * @param hostId
+     * @param key
+     */
     public AuthentPacket(String hostId, byte []key) {
         this.hostId = hostId;
         this.key = key;
@@ -88,6 +100,20 @@ public class AuthentPacket extends AbstractLocalPacket {
     @Override
     public String toString() {
         return "AuthentPacket: " + hostId;
+    }
+
+    /**
+     * @return the hostId
+     */
+    public String getHostId() {
+        return hostId;
+    }
+
+    /**
+     * @return the key
+     */
+    public byte[] getKey() {
+        return key;
     }
 
 }
