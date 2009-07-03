@@ -22,12 +22,13 @@ package openr66.authentication;
 
 import java.io.File;
 
+import openr66.filesystem.R66Dir;
 import openr66.filesystem.R66Session;
+import openr66.protocol.config.Configuration;
 import goldengate.common.command.NextCommandReply;
 import goldengate.common.command.exception.Reply421Exception;
 import goldengate.common.command.exception.Reply502Exception;
 import goldengate.common.command.exception.Reply530Exception;
-import goldengate.common.file.DirInterface;
 import goldengate.common.file.filesystembased.FilesystemBasedAuthImpl;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
@@ -67,8 +68,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
      */
     @Override
     protected String getBaseDirectory() {
-        // TODO Auto-generated method stub
-        return null;
+        return Configuration.baseDirectory;
     }
 
     /* (non-Javadoc)
@@ -77,7 +77,6 @@ public class R66Auth extends FilesystemBasedAuthImpl {
     @Override
     protected NextCommandReply setBusinessAccount(String arg0)
             throws Reply421Exception, Reply530Exception, Reply502Exception {
-        // TODO Auto-generated method stub
         return null;
     }
 
@@ -87,22 +86,50 @@ public class R66Auth extends FilesystemBasedAuthImpl {
     @Override
     protected NextCommandReply setBusinessPassword(String arg0)
             throws Reply421Exception, Reply530Exception {
-        // TODO Auto-generated method stub
         return null;
     }
-
+    
+    public boolean connection(String hostId, byte [] arg0) throws Reply530Exception, Reply421Exception {
+        R66SimpleAuth auth = Configuration.configuration.fileBasedConfiguration.getSimpleAuth(user);
+        if (auth == null) {
+            setIsIdentified(false);
+            currentAuth = null;
+            throw new Reply530Exception("HostId not allowed");
+        }
+        currentAuth = auth;
+        if (currentAuth == null) {
+            setIsIdentified(false);
+            throw new Reply530Exception("Needs a correct HostId");
+        }
+        if (currentAuth.isKeyValid(arg0)) {
+            this.user = hostId;
+            setRootFromAuth();
+            getSession().getDir().initAfterIdentification();
+            return true;
+        }
+        throw new Reply530Exception("Key is not valid for this HostId");
+    }
+    /**
+     * Set the root relative Path from current status of Authentication (should
+     * be the highest level for the current authentication). If
+     * setBusinessRootFromAuth returns null, by default set /user.
+     *
+     * @exception Reply421Exception
+     *                if the business root is not available
+     */
+    private void setRootFromAuth() throws Reply421Exception {
+        rootFromAuth = setBusinessRootFromAuth();
+        if (rootFromAuth == null) {
+            rootFromAuth = R66Dir.SEPARATOR + user;
+        }
+    }
     /* (non-Javadoc)
      * @see goldengate.common.file.filesystembased.FilesystemBasedAuthImpl#setBusinessRootFromAuth()
      */
     @Override
     protected String setBusinessRootFromAuth() throws Reply421Exception {
         String path = null;
-        if (account == null) {
-            path = DirInterface.SEPARATOR + user;
-        } else {
-            path = DirInterface.SEPARATOR + user + DirInterface.SEPARATOR +
-                    account;
-        }
+        path = R66Dir.SEPARATOR + user;
         String fullpath = getAbsolutePath(path);
         File file = new File(fullpath);
         if (!file.isDirectory()) {
@@ -117,7 +144,6 @@ public class R66Auth extends FilesystemBasedAuthImpl {
     @Override
     protected NextCommandReply setBusinessUser(String arg0)
             throws Reply421Exception, Reply530Exception {
-        // TODO Auto-generated method stub
         return null;
     }
 

@@ -18,40 +18,14 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF
  * site: http://www.fsf.org.
  */
-package openr66.filesystem;
-
-import goldengate.common.command.exception.CommandAbstractException;
-import goldengate.common.command.exception.Reply502Exception;
-import goldengate.common.file.filesystembased.FilesystemBasedRestartImpl;
+package openr66.command;
 
 /**
  * @author frederic bregier
  *
  */
-public class R66Restart extends FilesystemBasedRestartImpl {
-
-    /**
-     * @param session
-     */
-    public R66Restart(R66Session session) {
-        super(session);
-    }
-
-    /* (non-Javadoc)
-     * @see goldengate.common.file.Restart#restartMarker(java.lang.String)
-     */
-    @Override
-    public boolean restartMarker(String marker) throws CommandAbstractException {
-        long newposition = 0;
-        try {
-            newposition = Long.parseLong(marker);
-        } catch (NumberFormatException e) {
-            throw new Reply502Exception(
-                    "Marker must be length in byte as a position");
-        }
-        position = newposition;
-        setSet(true);
-        return true;
-    }
-
+public enum R66CommandCode {
+    Connection,
+    Connected,
+    Disconnected;
 }

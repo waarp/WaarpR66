@@ -20,6 +20,8 @@
  */
 package openr66.authentication;
 
+import java.util.Arrays;
+
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
@@ -35,78 +37,46 @@ public class R66SimpleAuth {
             .getLogger(R66SimpleAuth.class);
 
     /**
-     * User name
+     * Host ID
      */
-    public String user = null;
+    public String hostId = null;
 
     /**
-     * Password
+     * Key
      */
-    public String password = null;
+    public byte [] key = null;
 
     /**
-     * Multiple accounts
-     */
-    public String[] accounts = null;
-
-    /**
-     * Is the current user an administrator (which can shutdown or change
+     * Is the current host Id an administrator (which can shutdown or change
      * bandwidth limitation)
      */
     public boolean isAdmin = false;
 
     /**
-     * @param user
-     * @param password
-     * @param accounts
+     * @param hostId
+     * @param key
      */
-    public R66SimpleAuth(String user, String password, String[] accounts) {
-        this.user = user;
-        this.password = password;
-        this.accounts = accounts;
+    public R66SimpleAuth(String hostId, byte []key) {
+        this.hostId = hostId;
+        this.key = key;
     }
 
     /**
-     * Is the given password a valid one
+     * Is the given key a valid one
      *
-     * @param newpassword
-     * @return True if the password is valid (or any password is valid)
+     * @param newkey
+     * @return True if the key is valid (or any key is valid)
      */
-    public boolean isPasswordValid(String newpassword) {
-        if (password == null) {
+    public boolean isKeyValid(byte []newkey) {
+        if (key == null) {
             return true;
         }
-        if (newpassword == null) {
+        if (newkey == null) {
             return false;
         }
-        return password.equals(newpassword);
+        return Arrays.equals(key, newkey);
     }
-
-    /**
-     * Is the given account a valid one
-     *
-     * @param account
-     * @return True if the account is valid (or any account is valid)
-     */
-    public boolean isAccountValid(String account) {
-        if (accounts == null) {
-            logger.info("No account needed");
-            return true;
-        }
-        if (account == null) {
-            logger.info("No account given");
-            return false;
-        }
-        for (String acct: accounts) {
-            if (acct.equals(account)) {
-                logger.info("Account found");
-                return true;
-            }
-        }
-        logger.info("No account found");
-        return false;
-    }
-
+    
     /**
      *
      * @param isAdmin

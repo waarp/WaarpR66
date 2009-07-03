@@ -10,6 +10,7 @@ import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolException;
 import openr66.protocol.exception.OpenR66ProtocolShutdownException;
 import openr66.protocol.localhandler.packet.AbstractLocalPacket;
+import openr66.protocol.localhandler.packet.AuthentPacket;
 import openr66.protocol.localhandler.packet.DataPacket;
 import openr66.protocol.localhandler.packet.ErrorPacket;
 import openr66.protocol.localhandler.packet.RequestPacket;
@@ -80,7 +81,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
         logger.info("Local Server Channel Recv: " + e.getChannel().getId());
         // FIXME action as requested and answer if necessary
         final AbstractLocalPacket packet = (AbstractLocalPacket) e.getMessage();
-        if (packet instanceof TestPacket) {
+        if (packet instanceof AuthentPacket) {
+            
+        } else if (packet instanceof TestPacket) {
             logger.info(e.getChannel().getId() + ": "
                     + ((TestPacket) packet).toString());
             // simply write back after+1

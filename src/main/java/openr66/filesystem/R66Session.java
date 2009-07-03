@@ -21,6 +21,8 @@
 package openr66.filesystem;
 
 import openr66.authentication.R66Auth;
+import openr66.protocol.config.Configuration;
+import openr66.protocol.localhandler.LocalServerHandler;
 import goldengate.common.file.SessionInterface;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 
@@ -29,14 +31,32 @@ import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
  *
  */
 public class R66Session implements SessionInterface {
-
+    private final LocalServerHandler localServerHandler;
+    private R66Auth auth;
+    private R66Dir dir;
+    private volatile boolean isReady = false;
+    /**
+     * Current Restart information
+     */
+    private R66Restart restart = null;
+    
+    public R66Session(LocalServerHandler localServerHandler) {
+        this.localServerHandler = localServerHandler;
+        isReady = false;
+    }
     /* (non-Javadoc)
      * @see goldengate.common.file.SessionInterface#clear()
      */
     @Override
     public void clear() {
         // TODO Auto-generated method stub
-        
+        if (dir != null) {
+            dir.clear();
+        }
+        if (auth != null) {
+            auth.clear();
+        }
+        isReady = false;
     }
 
     /* (non-Javadoc)
@@ -44,8 +64,7 @@ public class R66Session implements SessionInterface {
      */
     @Override
     public R66Auth getAuth() {
-        // TODO Auto-generated method stub
-        return null;
+        return auth;
     }
 
     /* (non-Javadoc)
@@ -53,8 +72,7 @@ public class R66Session implements SessionInterface {
      */
     @Override
     public int getBlockSize() {
-        // TODO Auto-generated method stub
-        return 0;
+        return Configuration.BLOCKSIZE;
     }
 
     /* (non-Javadoc)
@@ -62,8 +80,7 @@ public class R66Session implements SessionInterface {
      */
     @Override
     public R66Dir getDir() {
-        // TODO Auto-generated method stub
-        return null;
+        return dir;
     }
 
     /* (non-Javadoc)
@@ -71,8 +88,7 @@ public class R66Session implements SessionInterface {
      */
     @Override
     public FilesystemBasedFileParameterImpl getFileParameter() {
-        // TODO Auto-generated method stub
-        return null;
+        return Configuration.getFileParameter();
     }
 
     /* (non-Javadoc)
@@ -80,8 +96,36 @@ public class R66Session implements SessionInterface {
      */
     @Override
     public R66Restart getRestart() {
-        // TODO Auto-generated method stub
-        return null;
+        return restart;
     }
-
+    /**
+     * This function is called when the Channel is connected
+     */
+    public void setControlConnected() {
+        //dataConn = new FtpDataAsyncConn(this);
+        // AuthInterface must be done before FtpFile
+        auth = new R66Auth(this);
+        dir = new R66Dir(this);
+        restart = new R66Restart(this);
+    }
+    /**
+     * @return True if the Channel is ready to accept command
+     */
+    public boolean isReady() {
+        return isReady;
+    }
+    /**
+     * @param isReady
+     *            the isReady to set
+     */
+    public void setReady(boolean isReady) {
+        this.isReady = isReady;
+    }
+    /**
+     * @return the localServerHandler
+     */
+    public LocalServerHandler getLocalServerHandler() {
+        return localServerHandler;
+    }
+    
 }

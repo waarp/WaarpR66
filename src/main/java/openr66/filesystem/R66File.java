@@ -61,6 +61,7 @@ public class R66File extends FilesystemBasedFileImpl {
     public void trueRetrieve() {
         retrieveLock.lock();
         try {
+            // FIXME TODO
             /*if (!isReady) {
                 return;
             }

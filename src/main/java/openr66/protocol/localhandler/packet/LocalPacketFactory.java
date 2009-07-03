@@ -35,6 +35,7 @@ public class LocalPacketFactory {
     public static final byte CANCELPACKET = 6;
     public static final byte CONFIGSENDPACKET = 7;
     public static final byte CONFIGRECVPACKET = 8;
+    public static final byte AUTHENTPACKET = 9;
 
     /**
      * This method create a Packet from the ChannelBuffer.

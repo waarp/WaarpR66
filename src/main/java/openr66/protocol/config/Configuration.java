@@ -16,12 +16,14 @@
 package openr66.protocol.config;
 
 import goldengate.common.file.DataBlockSizeEstimator;
+import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import openr66.authentication.R66FileBasedConfiguration;
 import openr66.protocol.localhandler.LocalTransaction;
 import openr66.protocol.networkhandler.NetworkServerPipelineFactory;
 import openr66.protocol.utils.OpenR66SignalHandler;
@@ -101,7 +103,17 @@ public class Configuration {
      * Max global memory limit: default is 4GB
      */
     public static long maxGlobalMemory = 0x100000000L;
-
+    /**
+     * FileParameter
+     */
+    private static final FilesystemBasedFileParameterImpl fileParameter = 
+        new FilesystemBasedFileParameterImpl();
+    /**
+     * Base Directory
+     */
+    //FIXME TODO
+    public static String baseDirectory;
+    
     // Dynamic values
     /**
      * True if the service is going to shutdown
@@ -110,27 +122,27 @@ public class Configuration {
     /**
      * Limit in Write byte/s to apply globally to the FTP Server
      */
-    protected long serverGlobalWriteLimit = DEFAULT_GLOBAL_LIMIT;
+    public long serverGlobalWriteLimit = DEFAULT_GLOBAL_LIMIT;
 
     /**
      * Limit in Read byte/s to apply globally to the FTP Server
      */
-    protected long serverGlobalReadLimit = DEFAULT_GLOBAL_LIMIT;
+    public long serverGlobalReadLimit = DEFAULT_GLOBAL_LIMIT;
 
     /**
      * Limit in Write byte/s to apply by session to the FTP Server
      */
-    protected long serverChannelWriteLimit = DEFAULT_SESSION_LIMIT;
+    public long serverChannelWriteLimit = DEFAULT_SESSION_LIMIT;
 
     /**
      * Limit in Read byte/s to apply by session to the FTP Server
      */
-    protected long serverChannelReadLimit = DEFAULT_SESSION_LIMIT;
+    public long serverChannelReadLimit = DEFAULT_SESSION_LIMIT;
 
     /**
      * Delay in ms between two checks
      */
-    protected long delayLimit = 10000;
+    public long delayLimit = 10000;
     /**
      * List of all Server Channels to enable the close call on them using Netty
      * ChannelGroup
@@ -180,10 +192,15 @@ public class Configuration {
      * LocalTransaction
      */
     private final LocalTransaction localTransaction = new LocalTransaction();
-
+    /**
+     * R66FileBasedConfiguration
+     */
+    public R66FileBasedConfiguration fileBasedConfiguration;
+    
     public Configuration() {
         // Init signal handler
         OpenR66SignalHandler.initSignalHandler();
+        computeNbThreads();
     }
 
     /**
@@ -295,5 +312,12 @@ public class Configuration {
     public LocalTransaction getLocalTransaction() {
         return localTransaction;
     }
-
+    /**
+     * 
+     * @return the FilesystemBasedFileParameterImpl
+     */
+    public static FilesystemBasedFileParameterImpl getFileParameter() {
+        return fileParameter;
+    }
+    
 }

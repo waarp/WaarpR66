@@ -35,7 +35,6 @@ public class R66Dir extends FilesystemBasedDirImpl {
      */
     public R66Dir(R66Session session) {
         super(session, new FilesystemBasedOptsMLSxImpl());
-        // TODO Auto-generated constructor stub
     }
 
     /* (non-Javadoc)
