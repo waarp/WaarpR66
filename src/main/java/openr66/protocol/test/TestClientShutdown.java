@@ -52,7 +52,7 @@ public class TestClientShutdown {
         final NetworkTransaction networkTransaction = new NetworkTransaction();
         final SocketAddress socketServerAddress = new InetSocketAddress(
                 Configuration.SERVER_PORT);
-        final ShutdownPacket packet = new ShutdownPacket("password");
+        final ShutdownPacket packet = new ShutdownPacket("password".getBytes());
         final NetworkPacket networkPacket = new NetworkPacket(-1, 0, packet
                 .getLocalPacket());
         logger.warn("START");
