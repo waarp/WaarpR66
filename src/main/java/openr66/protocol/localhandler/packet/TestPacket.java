@@ -20,27 +20,24 @@ public class TestPacket extends AbstractLocalPacket {
 
     private String smiddle = null;
 
-    private String send = null;
+    private int code = 0;
 
     public static TestPacket createFromBuffer(int headerLength,
             int middleLength, int endLength, ChannelBuffer buf) {
         final byte[] bheader = new byte[headerLength - 1];
         final byte[] bmiddle = new byte[middleLength];
-        final byte[] bend = new byte[endLength];
         if (headerLength-1 > 0)
             buf.readBytes(bheader);
         if (middleLength > 0)
             buf.readBytes(bmiddle);
-        if (endLength > 0)
-            buf.readBytes(bend);
         return new TestPacket(new String(bheader), new String(bmiddle),
-                new String(bend));
+                buf.readInt());
     }
     
-    public TestPacket(String header, String middle, String end) {
+    public TestPacket(String header, String middle, int code) {
         sheader = header;
         smiddle = middle;
-        send = end;
+        this.code = code;
     }
 
     /*
@@ -49,7 +46,8 @@ public class TestPacket extends AbstractLocalPacket {
      */
     @Override
     public void createEnd() throws OpenR66ProtocolPacketException {
-        end = ChannelBuffers.wrappedBuffer(send.getBytes());
+        end = ChannelBuffers.buffer(4);
+        end.writeInt(code);
     }
 
     /*
@@ -72,7 +70,7 @@ public class TestPacket extends AbstractLocalPacket {
 
     @Override
     public byte getType() {
-        if (Integer.parseInt(send) > 100) {
+        if (this.code > 100) {
             return LocalPacketFactory.ERRORPACKET;
         }
         return LocalPacketFactory.TESTPACKET;
@@ -84,11 +82,11 @@ public class TestPacket extends AbstractLocalPacket {
      */
     @Override
     public String toString() {
-        return "TestPacket: " + sheader + ":" + smiddle + ":" + send;
+        return "TestPacket: " + sheader + ":" + smiddle + ":" + code;
     }
 
     public void update() {
-        send = Integer.toString(Integer.parseInt(send) + 1);
+        code++;
         end = null;
     }
 }

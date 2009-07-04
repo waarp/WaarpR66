@@ -3,8 +3,6 @@
  */
 package openr66.protocol.localhandler;
 
-import java.util.Arrays;
-
 import goldengate.common.command.exception.Reply421Exception;
 import goldengate.common.command.exception.Reply530Exception;
 import goldengate.common.logging.GgInternalLogger;
@@ -12,6 +10,7 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.filesystem.R66Session;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolBusinessException;
+import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
 import openr66.protocol.exception.OpenR66ProtocolException;
 import openr66.protocol.exception.OpenR66ProtocolNotAuthenticatedException;
 import openr66.protocol.exception.OpenR66ProtocolShutdownException;
@@ -19,6 +18,7 @@ import openr66.protocol.localhandler.packet.AbstractLocalPacket;
 import openr66.protocol.localhandler.packet.AuthentPacket;
 import openr66.protocol.localhandler.packet.DataPacket;
 import openr66.protocol.localhandler.packet.ErrorPacket;
+import openr66.protocol.localhandler.packet.LocalPacketFactory;
 import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.localhandler.packet.ShutdownPacket;
 import openr66.protocol.localhandler.packet.TestPacket;
@@ -57,8 +57,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
      */
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) {
-        logger.info("Local Server Channel Closed: " + e.getChannel().getId());
+        logger.warn("Local Server Channel Closed: " + e.getChannel().getId());
         // FIXME clean session objects like files
+        session.clear();
     }
 
     /*
@@ -126,14 +127,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 new Thread(new ChannelUtils()).start();
             }
             final ErrorPacket errorPacket = new ErrorPacket(exception
-                    .getMessage(), null, null);
-            Channels.write(e.getChannel(), errorPacket)
-                .addListener(ChannelFutureListener.CLOSE);
+                    .getMessage(), null, ErrorPacket.FORWARDCLOSECODE);
+            // Do not close, client will close
+            ChannelUtils.write(e.getChannel(), errorPacket);
         } else {
             // Nothing to do
             return;
         }
-        Channels.close(e.getChannel());
     }
 
     private void authent(Channel channel, AuthentPacket packet) {
@@ -141,17 +141,19 @@ public class LocalServerHandler extends SimpleChannelHandler {
             this.session.getAuth().connection(packet.getHostId(), packet.getKey());
         } catch (Reply530Exception e1) {
             logger.error("Cannot connect: "+packet.getHostId(),e1);
-            ErrorPacket error = new ErrorPacket("Connection not allowed",null,null);
-            Channels.write(channel, error).addListener(ChannelFutureListener.CLOSE);
+            ErrorPacket error = new ErrorPacket("Connection not allowed",null,ErrorPacket.FORWARDCLOSECODE);
+            // Do not close, client will close
+            ChannelUtils.write(channel, error);
             return;
         } catch (Reply421Exception e1) {
             logger.error("Service unavailable: "+packet.getHostId(),e1);
-            ErrorPacket error = new ErrorPacket("Service unavailable",null,null);
-            Channels.write(channel, error).addListener(ChannelFutureListener.CLOSE);
+            ErrorPacket error = new ErrorPacket("Service unavailable",null,ErrorPacket.FORWARDCLOSECODE);
+            // Do not close, client will close
+            ChannelUtils.write(channel, error);
             return;
         }
         ValidPacket validPacket = new ValidPacket("Authenticated",null,packet.getType());
-        Channels.write(channel, validPacket);
+        ChannelUtils.write(channel, validPacket);
     }
     private void data(Channel channel, DataPacket packet) throws OpenR66ProtocolNotAuthenticatedException {
         // FIXME do something
@@ -159,10 +161,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
             throw new OpenR66ProtocolNotAuthenticatedException("Not authenticated");
         }
     }
-    private void error(Channel channel, ErrorPacket packet) {
+    private void error(Channel channel, ErrorPacket packet) throws OpenR66ProtocolBusinessNoWriteBackException {
         // FIXME do something according to the error
         logger.warn(channel.getId() + ": "
                 + packet.toString());
+        throw new OpenR66ProtocolBusinessNoWriteBackException(packet.toString());
     }
     private void request(Channel channel, RequestPacket packet) throws OpenR66ProtocolNotAuthenticatedException {
         // FIXME do something
@@ -172,17 +175,29 @@ public class LocalServerHandler extends SimpleChannelHandler {
         
     }
     private void test(Channel channel, TestPacket packet) throws OpenR66ProtocolNotAuthenticatedException {
-        if (! this.session.isAuthenticated()) {
+        /*if (! this.session.isAuthenticated()) {
             throw new OpenR66ProtocolNotAuthenticatedException("Not authenticated");
-        }
+        }*/
         logger.info(channel.getId() + ": "
                 + packet.toString());
         // simply write back after+1
         packet.update();
-        Channels.write(channel, packet);
+        if (packet.getType() == LocalPacketFactory.ERRORPACKET) {
+            logger.warn(packet.toString());
+            ValidPacket validPacket = new ValidPacket(packet.toString(),null,LocalPacketFactory.TESTPACKET);
+            // dont'close, client will do
+            ChannelUtils.write(channel, validPacket);
+        } else {
+            ChannelUtils.write(channel, packet);
+        }
     }
     private void valid(Channel channel, ValidPacket packet) throws OpenR66ProtocolNotAuthenticatedException {
         // FIXME do something
+        if (packet.getTypeValid() == LocalPacketFactory.TESTPACKET) {
+            logger.info("Will close channel");
+            Channels.close(channel);
+            return;
+        }
         if (! this.session.isAuthenticated()) {
             throw new OpenR66ProtocolNotAuthenticatedException("Not authenticated");
         }

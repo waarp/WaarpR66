@@ -8,6 +8,7 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolException;
+import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolShutdownException;
 import openr66.protocol.localhandler.packet.AbstractLocalPacket;
 import openr66.protocol.localhandler.packet.ErrorPacket;
@@ -48,9 +49,8 @@ public class LocalClientHandler extends SimpleChannelHandler {
             throws Exception {
         logger.info("Local Client Channel Closed: " + e.getChannel().getId());
         if (localChannelReference != null) {
-            Configuration.configuration.getLocalTransaction().removeFromId(
-                    localChannelReference.getId());
-            localChannelReference = null;
+            logger.info("Will close Network channel");
+            Channels.close(localChannelReference.getNetworkChannel());
         }
     }
 
@@ -72,11 +72,16 @@ public class LocalClientHandler extends SimpleChannelHandler {
     }
 
     private void initLocalClientHandler(Channel channel)
-            throws InterruptedException {
+            throws InterruptedException, OpenR66ProtocolNetworkException {
+        int i = 0;
         while (localChannelReference == null) {
             Thread.sleep(Configuration.RETRYINMS);
             localChannelReference = Configuration.configuration
                     .getLocalTransaction().getFromId(channel.getId());
+            i++;
+            if (i > Configuration.RETRYNB*10) {
+                throw new OpenR66ProtocolNetworkException("Cannot find local connection");
+            }
         }
     }
 
@@ -98,11 +103,28 @@ public class LocalClientHandler extends SimpleChannelHandler {
         final AbstractLocalPacket packet = (AbstractLocalPacket) e.getMessage();
         logger.info("Local Client Channel Recv: " + e.getChannel().getId());
         // FIXME write back to the network channel
+        if (packet instanceof ErrorPacket) {
+            ErrorPacket errorPacket = (ErrorPacket) packet;
+            if (errorPacket.getCode() == ErrorPacket.CLOSECODE) {
+                logger.info("Will close channel");
+                Channels.close(e.getChannel());
+            } else if (errorPacket.getCode() == ErrorPacket.IGNORECODE) {
+                return;
+            }
+        }
         final NetworkPacket networkPacket = new NetworkPacket(
                 localChannelReference.getId(), localChannelReference
                         .getRemoteId(), packet.getLocalPacket());
-        Channels
-                .write(localChannelReference.getNetworkChannel(), networkPacket);
+        if (packet instanceof ErrorPacket && ((ErrorPacket) packet).getCode() == ErrorPacket.FORWARDCODE) {
+            ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket);
+        } else if (packet instanceof ErrorPacket && ((ErrorPacket) packet).getCode() == ErrorPacket.FORWARDCLOSECODE) {
+            ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket).awaitUninterruptibly();
+            logger.info("Will close channel");
+            Channels.close(e.getChannel());
+        } else {
+            ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket);
+        }
+        
     }
 
     /*
@@ -118,27 +140,32 @@ public class LocalClientHandler extends SimpleChannelHandler {
         // FIXME informs network of the problem
         logger.error("Local Client Channel Exception: "
                 + e.getChannel().getId(), e.getCause());
+        if (localChannelReference == null) {
+            initLocalClientHandler(e.getChannel());
+        }
         if (localChannelReference != null) {
             OpenR66ProtocolException exception = 
                 OpenR66ExceptionTrappedFactory.getExceptionFromTrappedException(e.getChannel(), e);
             if (exception != null) {
                 if (exception instanceof OpenR66ProtocolShutdownException) {
                     new Thread(new ChannelUtils()).start();
+                    logger.info("Will close channel");
                     Channels.close(e.getChannel());
                     return;
                 }
                 final ErrorPacket errorPacket = new ErrorPacket(exception
-                        .getMessage(), null, null);
+                        .getMessage(), null, ErrorPacket.FORWARDCLOSECODE);
                 final NetworkPacket networkPacket = new NetworkPacket(
                         localChannelReference.getId(), localChannelReference
                                 .getRemoteId(), errorPacket.getLocalPacket());
-                Channels.write(localChannelReference.getNetworkChannel(),
-                        networkPacket).awaitUninterruptibly(Configuration.TIMEOUTCON);
+                ChannelUtils.write(localChannelReference.getNetworkChannel(),
+                        networkPacket).awaitUninterruptibly();
             } else {
                 // Nothing to do
                 return;
             }
         }
+        logger.info("Will close channel");
         Channels.close(e.getChannel());
     }
 

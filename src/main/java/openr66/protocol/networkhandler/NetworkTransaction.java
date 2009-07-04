@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import openr66.protocol.config.Configuration;
+import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.channel.Channel;
@@ -48,14 +49,16 @@ public class NetworkTransaction {
         clientBootstrap.setPipelineFactory(new NetworkServerPipelineFactory());
     }
 
-    public Channel createNewClient(SocketAddress socketServerAddress) {
+    public Channel createNewClient(SocketAddress socketServerAddress) throws OpenR66ProtocolNetworkException {
         final ChannelFuture channelFuture = clientBootstrap
                 .connect(socketServerAddress);
         channelFuture.awaitUninterruptibly();
-        final Channel channel = channelFuture.getChannel();
-        networkChannelGroup.add(channel);
-
-        return channel;
+        if (channelFuture.isSuccess()) {
+            final Channel channel = channelFuture.getChannel();
+            networkChannelGroup.add(channel);
+            return channel;
+        }
+        throw new OpenR66ProtocolNetworkException("Cannot connect to remote server", channelFuture.getCause());
     }
 
     public void closeAll() {

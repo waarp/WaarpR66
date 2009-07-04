@@ -23,13 +23,14 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
 import openr66.protocol.config.Configuration;
+import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.localhandler.packet.TestPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
+import openr66.protocol.utils.ChannelUtils;
 
 import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.Channels;
 import org.jboss.netty.logging.InternalLoggerFactory;
 
 import ch.qos.logback.classic.Level;
@@ -49,21 +50,29 @@ public class TestClient {
                 Level.WARN));
         final GgInternalLogger logger = GgInternalLoggerFactory
                 .getLogger(TestClient.class);
+        Configuration.configuration.computeNbThreads();
         final NetworkTransaction networkTransaction = new NetworkTransaction();
         final SocketAddress socketServerAddress = new InetSocketAddress(
                 Configuration.SERVER_PORT);
-        final TestPacket packet = new TestPacket("header test", "middle test",
-                Integer.toString(0));
+        final TestPacket packet = new TestPacket("header test", "middle test 0123456789012345678901234567890123456789012345678901",
+                0);
         final NetworkPacket networkPacket = new NetworkPacket(-1, 0, packet
                 .getLocalPacket());
         logger.warn("START");
-        for (int i = 0; i < 100; i++) {
-            final Channel channel = networkTransaction
-                    .createNewClient(socketServerAddress);
-            Channels.write(channel, networkPacket);
+        for (int i = 0; i < 1000; i++) {
+            Channel channel;
+            try {
+                channel = networkTransaction
+                        .createNewClient(socketServerAddress);
+            } catch (OpenR66ProtocolNetworkException e1) {
+                logger.error("Cannot connect", e1);
+                networkTransaction.closeAll();
+                return;
+            }
+            ChannelUtils.write(channel, networkPacket);
         }
         try {
-            Thread.sleep(3000);
+            Thread.sleep(30000);
         } catch (final InterruptedException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

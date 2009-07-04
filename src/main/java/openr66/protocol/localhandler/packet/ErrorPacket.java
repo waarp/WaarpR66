@@ -16,11 +16,16 @@ import org.jboss.netty.buffer.ChannelBuffers;
  * @author frederic bregier
  */
 public class ErrorPacket extends AbstractLocalPacket {
+    public static final int IGNORECODE = 0;
+    public static final int CLOSECODE = 1;
+    public static final int FORWARDCODE = 2;
+    public static final int FORWARDCLOSECODE = 3;
+    
     private String sheader = null;
 
     private String smiddle = null;
 
-    private String send = null;
+    private int code = IGNORECODE;
 
     /**
      * @param headerLength
@@ -28,31 +33,32 @@ public class ErrorPacket extends AbstractLocalPacket {
      * @param endLength
      * @param buf
      * @return the new ErrorPacket from buffer
+     * @throws OpenR66ProtocolPacketException 
      */
     public static ErrorPacket createFromBuffer(int headerLength,
-            int middleLength, int endLength, ChannelBuffer buf) {
+            int middleLength, int endLength, ChannelBuffer buf) throws OpenR66ProtocolPacketException {
         final byte[] bheader = new byte[headerLength - 1];
         final byte[] bmiddle = new byte[middleLength];
-        final byte[] bend = new byte[endLength];
         if (headerLength-1 > 0)
             buf.readBytes(bheader);
         if (middleLength > 0)
             buf.readBytes(bmiddle);
-        if (endLength > 0)
-            buf.readBytes(bend);
+        if (endLength != 4) {
+            throw new OpenR66ProtocolPacketException("Packet not correct");
+        }
         return new ErrorPacket(new String(bheader), new String(bmiddle),
-                new String(bend));
+                buf.readInt());
     }
     
     /**
      * @param header
      * @param middle
-     * @param end
+     * @param code
      */
-    public ErrorPacket(String header, String middle, String end) {
+    public ErrorPacket(String header, String middle, int code) {
         sheader = header;
         smiddle = middle;
-        send = end;
+        this.code = code;
     }
 
     /*
@@ -61,9 +67,8 @@ public class ErrorPacket extends AbstractLocalPacket {
      */
     @Override
     public void createEnd() throws OpenR66ProtocolPacketException {
-        if (send != null) {
-            end = ChannelBuffers.wrappedBuffer(send.getBytes());
-        }
+        end = ChannelBuffers.buffer(4);
+        end.writeInt(this.code);
     }
 
     /*
@@ -94,7 +99,7 @@ public class ErrorPacket extends AbstractLocalPacket {
      */
     @Override
     public String toString() {
-        return "ErrorPacket: " + sheader + ":" + smiddle + ":" + send;
+        return "ErrorPacket: " + sheader + ":" + smiddle + ":" + code;
     }
 
     @Override
@@ -117,10 +122,10 @@ public class ErrorPacket extends AbstractLocalPacket {
     }
 
     /**
-     * @return the send
+     * @return the code
      */
-    public String getSend() {
-        return send;
+    public int getCode() {
+        return code;
     }
     
 }

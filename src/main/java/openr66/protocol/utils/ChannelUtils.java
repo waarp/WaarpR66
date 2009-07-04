@@ -22,9 +22,13 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 import openr66.protocol.config.Configuration;
+import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFactory;
+import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.channel.Channels;
+import org.jboss.netty.channel.FailedChannelFuture;
 import org.jboss.netty.channel.group.ChannelGroupFuture;
 import org.jboss.netty.channel.group.ChannelGroupFutureListener;
 import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
@@ -139,7 +143,18 @@ public class ChannelUtils implements Runnable {
     public static int nbCommandChannels(Configuration configuration) {
         return configuration.getServerChannelGroup().size();
     }
-
+    /**
+     * 
+     * @param channel
+     * @param message
+     * @return ChannelFuture
+     */
+    public static ChannelFuture write(Channel channel, Object message) {
+        if (channel.isConnected()) {
+            return Channels.write(channel, message);
+        }
+        return new FailedChannelFuture(channel,new OpenR66ProtocolNetworkException("Not connected"));
+    }
     /**
      * Exit global ChannelFactory
      */

@@ -101,7 +101,7 @@ public class R66File extends FilesystemBasedFileImpl {
             // While not last block
             ChannelFuture future = null;
             while (block != null && !block.isEOF()) {
-                future = Channels.write(channel, block);
+                future = ChannelUtils.write(channel, block);
                 // Test if channel is writable in order to prevent OOM
                 if (channel.isWritable()) {
                     try {
@@ -121,7 +121,7 @@ public class R66File extends FilesystemBasedFileImpl {
             // Last block
             closeFile();
             if (block != null) {
-                future = Channels.write(channel, block);
+                future = ChannelUtils.write(channel, block);
             }
             // Wait for last write
             if (future != null) {

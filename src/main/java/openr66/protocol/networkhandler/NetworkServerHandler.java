@@ -8,9 +8,11 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolException;
+import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.ErrorPacket;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
+import openr66.protocol.utils.ChannelUtils;
 
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipelineCoverage;
@@ -46,6 +48,7 @@ public class NetworkServerHandler extends SimpleChannelHandler {
         logger.info("Network Channel Closed: " + e.getChannel().getId());
         // FIXME close if necessary the local channel
         if (localChannelReference != null) {
+            logger.info("Will close Local channel");
             Channels.close(localChannelReference.getLocalChannel());
         }
     }
@@ -76,11 +79,24 @@ public class NetworkServerHandler extends SimpleChannelHandler {
         logger.info("Network Channel Recv: " + e.getChannel().getId());
         final NetworkPacket packet = (NetworkPacket) e.getMessage();
         if (localChannelReference == null) {
-            localChannelReference = Configuration.configuration
-                    .getLocalTransaction().createNewClient(e.getChannel(),
-                            packet.getRemoteId());
+            OpenR66ProtocolSystemException ebak = null;
+            for (int i = 0; i < Configuration.RETRYNB*2; i++) {
+                try {
+                    localChannelReference = Configuration.configuration
+                        .getLocalTransaction().createNewClient(e.getChannel(),
+                                packet.getRemoteId());
+                    ebak = null;
+                    break;
+                } catch (OpenR66ProtocolSystemException e1) {
+                    Thread.sleep(Configuration.RETRYINMS);
+                    ebak = e1;
+                }
+            }
+            if (ebak != null) {
+                throw ebak;
+            }
         }
-        Channels.write(localChannelReference.getLocalChannel(), packet
+        ChannelUtils.write(localChannelReference.getLocalChannel(), packet
                 .getBuffer());
     }
 
@@ -101,18 +117,19 @@ public class NetworkServerHandler extends SimpleChannelHandler {
                 OpenR66ExceptionTrappedFactory.getExceptionFromTrappedException(e.getChannel(), e);
             if (exception != null) {
                 final ErrorPacket errorPacket = new ErrorPacket(exception
-                        .getMessage(), null, null);
+                        .getMessage(), null, ErrorPacket.FORWARDCLOSECODE);
                 final NetworkPacket networkPacket = new NetworkPacket(
                         localChannelReference.getId(), localChannelReference
                                 .getRemoteId(), errorPacket.getLocalPacket());
-                Channels.write(e.getChannel(), networkPacket)
-                    .awaitUninterruptibly(Configuration.TIMEOUTCON);;
+                ChannelUtils.write(e.getChannel(), networkPacket)
+                    .awaitUninterruptibly();
             } else {
                 // Nothing to do
                 return;
             }
-            Channels.close(e.getChannel());
         }
+        logger.info("Will close channel");
+        Channels.close(e.getChannel());
     }
 
 }

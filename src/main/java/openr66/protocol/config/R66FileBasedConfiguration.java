@@ -18,7 +18,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF
  * site: http://www.fsf.org.
  */
-package openr66.authentication;
+package openr66.protocol.config;
 
 import goldengate.common.digest.FilesystemBasedDigest;
 import goldengate.common.digest.MD5;
@@ -33,8 +33,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import openr66.authentication.R66SimpleAuth;
 import openr66.filesystem.R66Dir;
-import openr66.protocol.config.Configuration;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentException;

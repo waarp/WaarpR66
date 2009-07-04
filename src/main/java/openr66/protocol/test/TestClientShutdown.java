@@ -23,10 +23,12 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
 import openr66.protocol.config.Configuration;
+import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.localhandler.packet.ShutdownPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
+import openr66.protocol.utils.ChannelUtils;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.Channels;
@@ -46,7 +48,7 @@ public class TestClientShutdown {
     public static void main(String[] args)
             throws OpenR66ProtocolPacketException {
         InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
-                Level.WARN));
+                Level.INFO));
         final GgInternalLogger logger = GgInternalLoggerFactory
                 .getLogger(TestClientShutdown.class);
         final NetworkTransaction networkTransaction = new NetworkTransaction();
@@ -56,9 +58,16 @@ public class TestClientShutdown {
         final NetworkPacket networkPacket = new NetworkPacket(-1, 0, packet
                 .getLocalPacket());
         logger.warn("START");
-        final Channel channel = networkTransaction
-                .createNewClient(socketServerAddress);
-        Channels.write(channel, networkPacket);
+        Channel channel;
+        try {
+            channel = networkTransaction
+                    .createNewClient(socketServerAddress);
+        } catch (OpenR66ProtocolNetworkException e1) {
+            logger.error("Cannot connect", e1);
+            networkTransaction.closeAll();
+            return;
+        }
+        ChannelUtils.write(channel, networkPacket);
         try {
             Thread.sleep(10000);
         } catch (final InterruptedException e) {

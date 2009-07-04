@@ -15,11 +15,13 @@
  */
 package openr66.protocol.networkhandler;
 
+import openr66.protocol.config.Configuration;
 import openr66.protocol.networkhandler.packet.NetworkPacketCodec;
 
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.Channels;
+import org.jboss.netty.handler.execution.ExecutionHandler;
 
 /**
  * @author Frederic Bregier
@@ -30,6 +32,8 @@ public class NetworkServerPipelineFactory implements ChannelPipelineFactory {
     public ChannelPipeline getPipeline() throws Exception {
         final ChannelPipeline pipeline = Channels.pipeline();
         pipeline.addLast("codec", new NetworkPacketCodec());
+        pipeline.addLast("pipelineExecutor", 
+                new ExecutionHandler(Configuration.configuration.getServerPipelineExecutor()));
         pipeline.addLast("handler", new NetworkServerHandler());
         return pipeline;
     }

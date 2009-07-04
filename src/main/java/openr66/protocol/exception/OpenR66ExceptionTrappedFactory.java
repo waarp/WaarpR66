@@ -14,6 +14,7 @@ import java.nio.channels.ClosedChannelException;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelException;
+import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.ExceptionEvent;
 
 /**
@@ -58,6 +59,11 @@ public class OpenR66ExceptionTrappedFactory {
             logger.warn("Connection closed before end");
             return new OpenR66ProtocolNetworkException(
                     "Connection closed before end", e1);
+        } else if (e1 instanceof OpenR66ProtocolBusinessNoWriteBackException) {
+            final OpenR66ProtocolBusinessNoWriteBackException e2 = (OpenR66ProtocolBusinessNoWriteBackException) e1;
+            logger.warn("Command Error Reply", e2);
+            Channels.close(channel);
+            return null;
         } else if (e1 instanceof OpenR66ProtocolException) {
             final OpenR66ProtocolException e2 = (OpenR66ProtocolException) e1;
             logger.warn("Command Error Reply", e2);

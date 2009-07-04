@@ -23,7 +23,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import openr66.authentication.R66FileBasedConfiguration;
 import openr66.protocol.localhandler.LocalTransaction;
 import openr66.protocol.networkhandler.NetworkServerPipelineFactory;
 import openr66.protocol.utils.OpenR66SignalHandler;
@@ -169,7 +168,7 @@ public class Configuration {
      * ThreadPoolExecutor for Server
      */
     private volatile OrderedMemoryAwareThreadPoolExecutor serverPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
-            SERVER_THREAD + 1, maxGlobalMemory / 10, maxGlobalMemory, 200,
+            SERVER_THREAD*10 + 1, maxGlobalMemory / 10, maxGlobalMemory, 200,
             TimeUnit.MILLISECONDS, Executors.defaultThreadFactory());
     /**
      * Bootstrap for server
