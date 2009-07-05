@@ -12,6 +12,7 @@ import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolShutdownException;
 import openr66.protocol.localhandler.packet.AbstractLocalPacket;
 import openr66.protocol.localhandler.packet.ErrorPacket;
+import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
 import openr66.protocol.utils.ChannelUtils;
 
@@ -50,7 +51,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
         logger.info("Local Client Channel Closed: " + e.getChannel().getId());
         if (localChannelReference != null) {
             logger.info("Will close Network channel");
-            Channels.close(localChannelReference.getNetworkChannel());
+            NetworkTransaction.removeNetworkChannel(localChannelReference.getNetworkChannel());
         }
     }
 
@@ -74,14 +75,15 @@ public class LocalClientHandler extends SimpleChannelHandler {
     private void initLocalClientHandler(Channel channel)
             throws InterruptedException, OpenR66ProtocolNetworkException {
         int i = 0;
-        while (localChannelReference == null) {
-            Thread.sleep(Configuration.RETRYINMS);
-            localChannelReference = Configuration.configuration
+        if (localChannelReference == null) {
+            for (i = 0; i < Configuration.RETRYNB*10; i++, Thread.sleep(Configuration.RETRYINMS)) {
+                localChannelReference = Configuration.configuration
                     .getLocalTransaction().getFromId(channel.getId());
-            i++;
-            if (i > Configuration.RETRYNB*10) {
-                throw new OpenR66ProtocolNetworkException("Cannot find local connection");
+                if (localChannelReference != null) {
+                    return;
+                }
             }
+            throw new OpenR66ProtocolNetworkException(channel.getId(), "Cannot find local connection");            
         }
     }
 
@@ -113,7 +115,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
             }
         }
         final NetworkPacket networkPacket = new NetworkPacket(
-                localChannelReference.getId(), localChannelReference
+                localChannelReference.getLocalId(), localChannelReference
                         .getRemoteId(), packet.getLocalPacket());
         if (packet instanceof ErrorPacket && ((ErrorPacket) packet).getCode() == ErrorPacket.FORWARDCODE) {
             ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket);
@@ -156,7 +158,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
                 final ErrorPacket errorPacket = new ErrorPacket(exception
                         .getMessage(), null, ErrorPacket.FORWARDCLOSECODE);
                 final NetworkPacket networkPacket = new NetworkPacket(
-                        localChannelReference.getId(), localChannelReference
+                        localChannelReference.getLocalId(), localChannelReference
                                 .getRemoteId(), errorPacket.getLocalPacket());
                 ChannelUtils.write(localChannelReference.getNetworkChannel(),
                         networkPacket).awaitUninterruptibly();
