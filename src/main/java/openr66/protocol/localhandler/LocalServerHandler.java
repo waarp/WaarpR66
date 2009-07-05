@@ -50,6 +50,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(LocalServerHandler.class);
     private R66Session session;
+    private boolean status = true;
+    
     /*
      * (non-Javadoc)
      * @see
@@ -61,6 +63,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) {
         logger.warn("Local Server Channel Closed: " + ((this.session.getLocalChannelReference() != null) ? this.session.getLocalChannelReference().toString() : "no LocalChannelReference"));
         // FIXME clean session objects like files
+        if ((this.session.getLocalChannelReference() != null) && (! this.session.getLocalChannelReference().getFuture().isDone())) {
+            if (!status) {
+                logger.error("Finalize BUT SHOULD NOT");
+            }
+            this.setFinalize(status, null);
+        }
         session.clear();
     }
 
@@ -129,12 +137,16 @@ public class LocalServerHandler extends SimpleChannelHandler {
             OpenR66ExceptionTrappedFactory.getExceptionFromTrappedException(e.getChannel(), e);
         if (exception != null) {
             if (exception instanceof OpenR66ProtocolShutdownException) {
+                setFinalize(true, null);
                 new Thread(new ChannelUtils()).start();
+            } else {
+                setFinalize(false, null);
             }
             final ErrorPacket errorPacket = new ErrorPacket(exception
                     .getMessage(), null, ErrorPacket.FORWARDCLOSECODE);
-            // Do not close, client will close
+            // XXX FIXME Do not close, client will close
             ChannelUtils.write(e.getChannel(), errorPacket);
+            status = false;
         } else {
             // Nothing to do
             return;
@@ -147,9 +159,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
             Configuration.configuration.getLocalTransaction().getFromId(packet.getLocalId());
         if (localChannelReference == null) {
             logger.error("Cannot startup");
+            setFinalize(false, null);
             ErrorPacket error = new ErrorPacket("Cannot startup connection",null,ErrorPacket.FORWARDCLOSECODE);
-            // Do not close, client will close
+            // XXX FIXME  Do not close, client will close
             ChannelUtils.write(channel, error);
+            status = false;
             return;
         }
         logger.info("Get LocalChannel: "+localChannelReference.getLocalId());
@@ -160,15 +174,19 @@ public class LocalServerHandler extends SimpleChannelHandler {
             this.session.getAuth().connection(packet.getHostId(), packet.getKey());
         } catch (Reply530Exception e1) {
             logger.error("Cannot connect: "+packet.getHostId(),e1);
+            setFinalize(false, null);
             ErrorPacket error = new ErrorPacket("Connection not allowed",null,ErrorPacket.FORWARDCLOSECODE);
-            // Do not close, client will close
+            // XXX FIXME Do not close, client will close
             ChannelUtils.write(channel, error);
+            status = false;
             return;
         } catch (Reply421Exception e1) {
             logger.error("Service unavailable: "+packet.getHostId(),e1);
+            setFinalize(false, null);
             ErrorPacket error = new ErrorPacket("Service unavailable",null,ErrorPacket.FORWARDCLOSECODE);
-            // Do not close, client will close
+            // XXX FIXME Do not close, client will close
             ChannelUtils.write(channel, error);
+            status = false;
             return;
         }
         ValidPacket validPacket = new ValidPacket("Authenticated",null,packet.getType());
@@ -180,12 +198,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
             throw new OpenR66ProtocolNotAuthenticatedException("Not authenticated");
         }
     }
-    private void connectionError(Channel channel, ConnectionErrorPacket packet) throws OpenR66ProtocolBusinessNoWriteBackException {
+    private void connectionError(Channel channel, ConnectionErrorPacket packet) {
         // FIXME do something according to the error
         logger.warn(channel.getId() + ": "
                 + packet.toString());
+        setFinalize(false, null);
         Channels.close(channel);
-        //throw new OpenR66ProtocolBusinessNoWriteBackException(packet.toString());
     }
     private void error(Channel channel, ErrorPacket packet) throws OpenR66ProtocolBusinessNoWriteBackException {
         // FIXME do something according to the error
@@ -211,8 +229,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
         if (packet.getType() == LocalPacketFactory.ERRORPACKET) {
             logger.warn(packet.toString());
             ValidPacket validPacket = new ValidPacket(packet.toString(),null,LocalPacketFactory.TESTPACKET);
-            // dont'close, client will do
-            ChannelUtils.write(channel, validPacket);
+            // XXX FIXME dont'close, client will do: no, it will not
+            ChannelUtils.write(channel, validPacket).awaitUninterruptibly();
+            Channels.close(channel);
         } else {
             ChannelUtils.write(channel, packet);
         }
@@ -220,7 +239,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
     private void valid(Channel channel, ValidPacket packet) throws OpenR66ProtocolNotAuthenticatedException {
         // FIXME do something
         if (packet.getTypeValid() == LocalPacketFactory.TESTPACKET) {
-            logger.info("Will close channel");
+            logger.warn("Valid TEST so Will close channel");
+            setFinalize(true, packet);
             Channels.close(channel);
             return;
         }
@@ -238,5 +258,21 @@ public class LocalServerHandler extends SimpleChannelHandler {
         }
         logger.error("Invalid Shutdown command");
         throw new OpenR66ProtocolBusinessException("Invalid Shutdown comand");
+    }
+    
+    private void setFinalize(boolean status, Object finalValue) {
+        LocalChannelReference localChannelReference =
+            this.session.getLocalChannelReference();
+        if (localChannelReference != null) {
+            if (!localChannelReference.getFuture().isDone()) {
+                if (status) {
+                    localChannelReference.getFuture().setResult(finalValue);
+                    localChannelReference.getFuture().setSuccess();                    
+                } else {
+                    localChannelReference.getFuture().setResult(finalValue);
+                    localChannelReference.getFuture().setFailure(null);
+                }
+            }
+        }        
     }
 }

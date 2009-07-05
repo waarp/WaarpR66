@@ -61,7 +61,6 @@ public class NetworkServerHandler extends SimpleChannelHandler {
     @Override
     public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) {
         logger.info("Network Channel Connected: " + e.getChannel().getId());
-        NetworkTransaction.addNetworkChannel(e.getChannel());
     }
 
     /*
@@ -74,7 +73,7 @@ public class NetworkServerHandler extends SimpleChannelHandler {
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) {
         final NetworkPacket packet = (NetworkPacket) e.getMessage();
-        logger.info("Network Channel Recv: " + e.getChannel().getId()+" "+packet.toString());
+        logger.warn("Network Channel Recv: " + e.getChannel().getId()+" "+packet.toString());
         if (packet.getCode() == LocalPacketFactory.CONNECTERRORPACKET) {
             // Special code to stop here
             if (packet.getLocalId() == ChannelUtils.NOCHANNEL) {
@@ -138,7 +137,7 @@ public class NetworkServerHandler extends SimpleChannelHandler {
             return;
         }
         logger.info("Will close channel");
-        NetworkTransaction.removeNetworkChannel(e.getChannel());
+        while (NetworkTransaction.removeNetworkChannel(e.getChannel()) > 0) {}
     }
 
     private void writeError(Channel channel, Integer remoteId, Integer localId, ConnectionErrorPacket error) {

@@ -1,0 +1,2 @@
+- Network close anormaly : first close => All close
+- When a close occurs from outside at connect: status = true but should be false!

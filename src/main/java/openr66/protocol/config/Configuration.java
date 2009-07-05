@@ -92,6 +92,10 @@ public class Configuration {
      * Nb of milliseconds after connection is in timeout
      */
     public static int TIMEOUTCON = 30000;
+    /**
+     * Time elapse for WRITE WAIT in ms
+     */
+    public static final long WAITFORWRITE = 1000;
 
     /**
      * Size by default of block size for receive/sending files. Should be a

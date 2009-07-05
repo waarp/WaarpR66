@@ -25,6 +25,7 @@ import java.net.SocketAddress;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
+import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.ShutdownPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
@@ -61,13 +62,22 @@ public class TestClientShutdown {
         Channel channel;
         try {
             channel = networkTransaction
-                    .createNewClient(socketServerAddress);
+                    .createNewConnection(socketServerAddress);
         } catch (OpenR66ProtocolNetworkException e1) {
             logger.error("Cannot connect", e1);
             networkTransaction.closeAll();
             return;
         }
-        ChannelUtils.write(channel, networkPacket);
+        LocalChannelReference localChannelReference;
+        try {
+            localChannelReference = networkTransaction
+                    .createNewClient(channel);
+        } catch (OpenR66ProtocolNetworkException e1) {
+            logger.error("Cannot connect", e1);
+            networkTransaction.closeAll();
+            return;
+        }
+        ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket);
         try {
             Thread.sleep(10000);
         } catch (final InterruptedException e) {

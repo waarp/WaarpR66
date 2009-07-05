@@ -12,8 +12,6 @@ import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolShutdownException;
 import openr66.protocol.localhandler.packet.AbstractLocalPacket;
 import openr66.protocol.localhandler.packet.ErrorPacket;
-import openr66.protocol.localhandler.packet.LocalPacketFactory;
-import openr66.protocol.localhandler.packet.ValidPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
 import openr66.protocol.utils.ChannelUtils;
@@ -120,7 +118,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
                     localChannelReference.getLocalId(), localChannelReference
                             .getRemoteId(), packet.getType(), errorPacket.getLocalPacket());
             if (errorPacket.getCode() == ErrorPacket.FORWARDCODE) {
-                ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket);
+                ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket).awaitUninterruptibly(Configuration.WAITFORWRITE);
             } else if (errorPacket.getCode() == ErrorPacket.FORWARDCLOSECODE) {
                 ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket).awaitUninterruptibly();
                 logger.info("Will close channel");
@@ -131,31 +129,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
         final NetworkPacket networkPacket = new NetworkPacket(
                 localChannelReference.getLocalId(), localChannelReference
                         .getRemoteId(), packet.getType(), packet.getLocalPacket());
-        /*if (packet instanceof ValidPacket) {
-            ValidPacket validPacket = (ValidPacket) packet;
-            switch (validPacket.getType()) {
-                case LocalPacketFactory.DATAPACKET: // end of Data
-                    ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket).awaitUninterruptibly();
-                    Channels.close(e.getChannel());
-                    return;
-                case LocalPacketFactory.REQUESTPACKET: // end of request
-                    ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket).awaitUninterruptibly();
-                    Channels.close(e.getChannel());
-                    return;
-                case LocalPacketFactory.SHUTDOWNPACKET: // shutdown asked
-                    ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket).awaitUninterruptibly();
-                    Channels.close(e.getChannel());
-                    return;
-                case LocalPacketFactory.TESTPACKET: // end of Test
-                    ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket).awaitUninterruptibly();
-                    Channels.close(e.getChannel());
-                    return;
-                default:
-                    ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket);
-            }
-            return;
-        }*/
-        ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket);
+        ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket).awaitUninterruptibly(Configuration.WAITFORWRITE);
     }
 
     /*

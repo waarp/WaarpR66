@@ -15,6 +15,10 @@
  */
 package openr66.protocol.localhandler;
 
+import goldengate.common.future.GgFuture;
+
+import openr66.protocol.utils.R66Future;
+
 import org.jboss.netty.channel.Channel;
 
 /**
@@ -28,6 +32,7 @@ public class LocalChannelReference {
     private final Channel networkChannel;
     private final Integer localId;
     private Integer remoteId;
+    private final R66Future future = new R66Future(true);
 
     public LocalChannelReference(Channel localChannel, Channel networkChannel,
             Integer remoteId) {
@@ -70,6 +75,14 @@ public class LocalChannelReference {
      */
     public void setRemoteId(Integer remoteId) {
         this.remoteId = remoteId;
+    }
+
+    
+    /**
+     * @return the future
+     */
+    public R66Future getFuture() {
+        return future;
     }
 
     @Override
