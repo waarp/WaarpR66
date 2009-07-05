@@ -21,6 +21,9 @@ import goldengate.common.logging.GgSlf4JLoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
@@ -56,10 +59,12 @@ public class TestClient {
                 Configuration.SERVER_PORT);
         final TestPacket packet = new TestPacket("header test", "middle test 0123456789012345678901234567890123456789012345678901",
                 0);
-        final NetworkPacket networkPacket = new NetworkPacket(-1, 0, packet
+        NetworkPacket networkPacket = new NetworkPacket(-1, 0, packet
                 .getLocalPacket());
+        ExecutorService executor = Executors.newCachedThreadPool();
+        
         logger.warn("START");
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 10; i++) {
             Channel channel;
             try {
                 channel = networkTransaction
@@ -68,6 +73,11 @@ public class TestClient {
                 logger.error("Cannot connect", e1);
                 networkTransaction.closeAll();
                 return;
+            }
+            for (int j = 1; j <= 10; j++) {
+                networkPacket = new NetworkPacket(-j, 0, packet
+                        .getLocalPacket());
+                ChannelUtils.write(channel, networkPacket);
             }
             ChannelUtils.write(channel, networkPacket);
         }
