@@ -169,7 +169,13 @@ public class Configuration {
      */
     private volatile OrderedMemoryAwareThreadPoolExecutor serverPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
             SERVER_THREAD*10 + 1, maxGlobalMemory / 10, maxGlobalMemory, 200,
-            TimeUnit.MILLISECONDS, Executors.defaultThreadFactory());
+            TimeUnit.MILLISECONDS);
+    /**
+     * ThreadPoolExecutor for LocalServer
+     */
+    private volatile OrderedMemoryAwareThreadPoolExecutor localPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
+            SERVER_THREAD*10 + 1, maxGlobalMemory / 10, maxGlobalMemory, 100,
+            TimeUnit.MILLISECONDS);
     /**
      * Bootstrap for server
      */
@@ -296,6 +302,12 @@ public class Configuration {
      */
     public OrderedMemoryAwareThreadPoolExecutor getServerPipelineExecutor() {
         return serverPipelineExecutor;
+    }
+    /**
+     * @return the localPipelineExecutor
+     */
+    public OrderedMemoryAwareThreadPoolExecutor getLocalPipelineExecutor() {
+        return localPipelineExecutor;
     }
 
     /**

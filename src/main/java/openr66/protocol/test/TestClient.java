@@ -21,13 +21,11 @@ import goldengate.common.logging.GgSlf4JLoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
+import openr66.protocol.localhandler.packet.LocalPacketFactory;
 import openr66.protocol.localhandler.packet.TestPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
@@ -57,11 +55,9 @@ public class TestClient {
         final NetworkTransaction networkTransaction = new NetworkTransaction();
         final SocketAddress socketServerAddress = new InetSocketAddress(
                 Configuration.SERVER_PORT);
-        final TestPacket packet = new TestPacket("header test", "middle test 0123456789012345678901234567890123456789012345678901",
+        final TestPacket packet = new TestPacket("header test", "middle test",
                 0);
-        NetworkPacket networkPacket = new NetworkPacket(-1, 0, packet
-                .getLocalPacket());
-        ExecutorService executor = Executors.newCachedThreadPool();
+        NetworkPacket networkPacket;
         
         logger.warn("START");
         for (int i = 0; i < 10; i++) {
@@ -74,12 +70,12 @@ public class TestClient {
                 networkTransaction.closeAll();
                 return;
             }
-            for (int j = 1; j <= 10; j++) {
-                networkPacket = new NetworkPacket(-j, 0, packet
-                        .getLocalPacket());
+            for (int j = 1; j <= 100; j++) {
+                networkPacket = new NetworkPacket(ChannelUtils.NOCHANNEL, ChannelUtils.NOCHANNEL, 
+                        LocalPacketFactory.TESTPACKET,
+                        packet.getLocalPacket());
                 ChannelUtils.write(channel, networkPacket);
             }
-            ChannelUtils.write(channel, networkPacket);
         }
         try {
             Thread.sleep(30000);

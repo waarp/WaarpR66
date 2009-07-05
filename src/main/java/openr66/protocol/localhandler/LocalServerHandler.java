@@ -8,6 +8,7 @@ import goldengate.common.command.exception.Reply530Exception;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.filesystem.R66Session;
+import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
@@ -16,17 +17,18 @@ import openr66.protocol.exception.OpenR66ProtocolNotAuthenticatedException;
 import openr66.protocol.exception.OpenR66ProtocolShutdownException;
 import openr66.protocol.localhandler.packet.AbstractLocalPacket;
 import openr66.protocol.localhandler.packet.AuthentPacket;
+import openr66.protocol.localhandler.packet.ConnectionErrorPacket;
 import openr66.protocol.localhandler.packet.DataPacket;
 import openr66.protocol.localhandler.packet.ErrorPacket;
 import openr66.protocol.localhandler.packet.LocalPacketFactory;
 import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.localhandler.packet.ShutdownPacket;
+import openr66.protocol.localhandler.packet.StartupPacket;
 import openr66.protocol.localhandler.packet.TestPacket;
 import openr66.protocol.localhandler.packet.ValidPacket;
 import openr66.protocol.utils.ChannelUtils;
 
 import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipelineCoverage;
 import org.jboss.netty.channel.ChannelStateEvent;
@@ -57,7 +59,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
      */
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) {
-        logger.warn("Local Server Channel Closed: " + e.getChannel().getId());
+        logger.warn("Local Server Channel Closed: " + ((this.session.getLocalChannelReference() != null) ? this.session.getLocalChannelReference().toString() : "no LocalChannelReference"));
         // FIXME clean session objects like files
         session.clear();
     }
@@ -74,8 +76,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         logger
                 .info("Local Server Channel Connected: "
                         + e.getChannel().getId());
-        this.session = new R66Session(this);
-        this.session.setControlConnected();
+        this.session = new R66Session();
         // FIXME prepare session objects
     }
 
@@ -105,8 +106,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
             test(e.getChannel(), (TestPacket) packet);
         } else if (packet instanceof ShutdownPacket) {
             shutdown(e.getChannel(), (ShutdownPacket) packet);
+        } else if (packet instanceof StartupPacket) {
+            startup(e.getChannel(), (StartupPacket) packet);
+        } else if (packet instanceof ConnectionErrorPacket) {
+            connectionError(e.getChannel(), (ConnectionErrorPacket) packet);
         } else {
-            logger.error("Unknown Mesg");
+            logger.error("Unknown Mesg: "+packet.getClass().getName());
         }
     }
 
@@ -136,6 +141,20 @@ public class LocalServerHandler extends SimpleChannelHandler {
         }
     }
 
+    private void startup(Channel channel, StartupPacket packet) {
+        logger.info("Recv: "+packet.toString());
+        LocalChannelReference localChannelReference = 
+            Configuration.configuration.getLocalTransaction().getFromId(packet.getLocalId());
+        if (localChannelReference == null) {
+            logger.error("Cannot startup");
+            ErrorPacket error = new ErrorPacket("Cannot startup connection",null,ErrorPacket.FORWARDCLOSECODE);
+            // Do not close, client will close
+            ChannelUtils.write(channel, error);
+            return;
+        }
+        logger.info("Get LocalChannel: "+localChannelReference.getLocalId());
+        this.session.setLocalChannelReference(localChannelReference);
+    }
     private void authent(Channel channel, AuthentPacket packet) {
         try {
             this.session.getAuth().connection(packet.getHostId(), packet.getKey());
@@ -160,6 +179,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
         if (! this.session.isAuthenticated()) {
             throw new OpenR66ProtocolNotAuthenticatedException("Not authenticated");
         }
+    }
+    private void connectionError(Channel channel, ConnectionErrorPacket packet) throws OpenR66ProtocolBusinessNoWriteBackException {
+        // FIXME do something according to the error
+        logger.warn(channel.getId() + ": "
+                + packet.toString());
+        Channels.close(channel);
+        //throw new OpenR66ProtocolBusinessNoWriteBackException(packet.toString());
     }
     private void error(Channel channel, ErrorPacket packet) throws OpenR66ProtocolBusinessNoWriteBackException {
         // FIXME do something according to the error

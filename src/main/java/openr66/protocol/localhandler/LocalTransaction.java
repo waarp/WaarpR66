@@ -12,6 +12,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
+import openr66.protocol.localhandler.packet.StartupPacket;
+import openr66.protocol.utils.ChannelUtils;
 
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.bootstrap.ServerBootstrap;
@@ -57,7 +59,7 @@ public class LocalTransaction {
 
     private final Channel serverChannel;
 
-    private final LocalAddress socketServerAddress = new LocalAddress("0");
+    private final LocalAddress socketServerAddress = new LocalAddress("LOCALROOT");
 
     private final ChannelGroup localChannelGroup = new DefaultChannelGroup(
             "LocalChannels");
@@ -69,8 +71,7 @@ public class LocalTransaction {
         clientBootstrap.setPipelineFactory(new LocalClientPipelineFactory());
     }
 
-    public LocalChannelReference getOrCreateNewClient(Channel networkChannel,
-            Integer remoteId, Integer localId) throws OpenR66ProtocolSystemException {
+    public LocalChannelReference getClient(Integer remoteId, Integer localId) throws OpenR66ProtocolSystemException {
         LocalChannelReference localChannelReference = getFromId(localId);
         if (localChannelReference != null) {
             if (localChannelReference.getRemoteId() != remoteId) {
@@ -78,11 +79,9 @@ public class LocalTransaction {
             }
             return localChannelReference;
         }
-        // Do not exist yet
-        localChannelReference = createNewClient(networkChannel, remoteId);
-        return localChannelReference;
+        throw new OpenR66ProtocolSystemException("Cannot find LocalChannelReference");
     }
-    private LocalChannelReference createNewClient(Channel networkChannel,
+    public LocalChannelReference createNewClient(Channel networkChannel,
             Integer remoteId) throws OpenR66ProtocolSystemException {
         ChannelFuture channelFuture = null;
         for (int i = 0; i < Configuration.RETRYNB*2; i++) {
@@ -94,8 +93,12 @@ public class LocalTransaction {
                 localChannelGroup.add(channel);
                 final LocalChannelReference localChannelReference = new LocalChannelReference(
                         channel, networkChannel, remoteId);
+                logger.info("Create LocalChannel entry: "+localChannelReference);
                 localChannelHashMap.put(channel.getId(), localChannelReference);
                 channel.getCloseFuture().addListener(remover);
+                // Now send first a Startup message
+                StartupPacket startup = new StartupPacket(localChannelReference.getLocalId());
+                ChannelUtils.write(channel, startup).awaitUninterruptibly();
                 return localChannelReference;
             }
             try {
@@ -109,7 +112,7 @@ public class LocalTransaction {
     public LocalChannelReference getFromId(Integer id) {
         return localChannelHashMap.get(id);
     }
-    public void closeLocalChannelFromNetworkChannel(Channel networkChannel) {
+    public void closeLocalChannelsFromNetworkChannel(Channel networkChannel) {
         Collection<LocalChannelReference> collection = localChannelHashMap.values();
         Iterator<LocalChannelReference> iterator = collection.iterator();
         for (; iterator.hasNext() ;) { 

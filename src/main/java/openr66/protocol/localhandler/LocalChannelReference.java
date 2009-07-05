@@ -72,4 +72,8 @@ public class LocalChannelReference {
         this.remoteId = remoteId;
     }
 
+    @Override
+    public String toString() {
+        return "LCR: L: "+this.localId+" R: "+this.remoteId;
+    }
 }

@@ -12,6 +12,8 @@ import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolShutdownException;
 import openr66.protocol.localhandler.packet.AbstractLocalPacket;
 import openr66.protocol.localhandler.packet.ErrorPacket;
+import openr66.protocol.localhandler.packet.LocalPacketFactory;
+import openr66.protocol.localhandler.packet.ValidPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
 import openr66.protocol.utils.ChannelUtils;
@@ -48,7 +50,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
-        logger.info("Local Client Channel Closed: " + e.getChannel().getId());
+        logger.warn("Local Client Channel Closed: " + e.getChannel().getId());
         if (localChannelReference != null) {
             logger.info("Will close Network channel");
             NetworkTransaction.removeNetworkChannel(localChannelReference.getNetworkChannel());
@@ -83,7 +85,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
                     return;
                 }
             }
-            throw new OpenR66ProtocolNetworkException(channel.getId(), "Cannot find local connection");            
+            throw new OpenR66ProtocolNetworkException("Cannot find local connection");            
         }
     }
 
@@ -110,23 +112,50 @@ public class LocalClientHandler extends SimpleChannelHandler {
             if (errorPacket.getCode() == ErrorPacket.CLOSECODE) {
                 logger.info("Will close channel");
                 Channels.close(e.getChannel());
+                return;
             } else if (errorPacket.getCode() == ErrorPacket.IGNORECODE) {
                 return;
             }
+            final NetworkPacket networkPacket = new NetworkPacket(
+                    localChannelReference.getLocalId(), localChannelReference
+                            .getRemoteId(), packet.getType(), errorPacket.getLocalPacket());
+            if (errorPacket.getCode() == ErrorPacket.FORWARDCODE) {
+                ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket);
+            } else if (errorPacket.getCode() == ErrorPacket.FORWARDCLOSECODE) {
+                ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket).awaitUninterruptibly();
+                logger.info("Will close channel");
+                Channels.close(e.getChannel());
+            }
+            return;
         }
         final NetworkPacket networkPacket = new NetworkPacket(
                 localChannelReference.getLocalId(), localChannelReference
-                        .getRemoteId(), packet.getLocalPacket());
-        if (packet instanceof ErrorPacket && ((ErrorPacket) packet).getCode() == ErrorPacket.FORWARDCODE) {
-            ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket);
-        } else if (packet instanceof ErrorPacket && ((ErrorPacket) packet).getCode() == ErrorPacket.FORWARDCLOSECODE) {
-            ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket).awaitUninterruptibly();
-            logger.info("Will close channel");
-            Channels.close(e.getChannel());
-        } else {
-            ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket);
-        }
-        
+                        .getRemoteId(), packet.getType(), packet.getLocalPacket());
+        /*if (packet instanceof ValidPacket) {
+            ValidPacket validPacket = (ValidPacket) packet;
+            switch (validPacket.getType()) {
+                case LocalPacketFactory.DATAPACKET: // end of Data
+                    ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket).awaitUninterruptibly();
+                    Channels.close(e.getChannel());
+                    return;
+                case LocalPacketFactory.REQUESTPACKET: // end of request
+                    ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket).awaitUninterruptibly();
+                    Channels.close(e.getChannel());
+                    return;
+                case LocalPacketFactory.SHUTDOWNPACKET: // shutdown asked
+                    ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket).awaitUninterruptibly();
+                    Channels.close(e.getChannel());
+                    return;
+                case LocalPacketFactory.TESTPACKET: // end of Test
+                    ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket).awaitUninterruptibly();
+                    Channels.close(e.getChannel());
+                    return;
+                default:
+                    ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket);
+            }
+            return;
+        }*/
+        ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket);
     }
 
     /*
@@ -159,7 +188,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
                         .getMessage(), null, ErrorPacket.FORWARDCLOSECODE);
                 final NetworkPacket networkPacket = new NetworkPacket(
                         localChannelReference.getLocalId(), localChannelReference
-                                .getRemoteId(), errorPacket.getLocalPacket());
+                                .getRemoteId(), errorPacket.getType(), errorPacket.getLocalPacket());
                 ChannelUtils.write(localChannelReference.getNetworkChannel(),
                         networkPacket).awaitUninterruptibly();
             } else {

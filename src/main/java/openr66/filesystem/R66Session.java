@@ -23,7 +23,6 @@ package openr66.filesystem;
 import openr66.authentication.R66Auth;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.localhandler.LocalChannelReference;
-import openr66.protocol.localhandler.LocalServerHandler;
 import goldengate.common.file.SessionInterface;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 
@@ -33,7 +32,6 @@ import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
  */
 public class R66Session implements SessionInterface {
     private LocalChannelReference localChannelReference;
-    private final LocalServerHandler localServerHandler;
     private R66Auth auth;
     private R66Dir dir;
     private volatile boolean isReady = false;
@@ -43,11 +41,12 @@ public class R66Session implements SessionInterface {
     private R66Restart restart = null;
     
     /**
-     * @param localServerHandler
      */
-    public R66Session(LocalServerHandler localServerHandler) {
-        this.localServerHandler = localServerHandler;
+    public R66Session() {
         isReady = false;
+        auth = new R66Auth(this);
+        dir = new R66Dir(this);
+        restart = new R66Restart(this);
     }
     /* (non-Javadoc)
      * @see goldengate.common.file.SessionInterface#clear()
@@ -104,16 +103,6 @@ public class R66Session implements SessionInterface {
         return restart;
     }
     /**
-     * This function is called when the Channel is connected
-     */
-    public void setControlConnected() {
-        //dataConn = new FtpDataAsyncConn(this);
-        // AuthInterface must be done before FtpFile
-        auth = new R66Auth(this);
-        dir = new R66Dir(this);
-        restart = new R66Restart(this);
-    }
-    /**
      * 
      * @return True if the connection is currently authenticated
      */
@@ -137,10 +126,16 @@ public class R66Session implements SessionInterface {
         this.isReady = isReady;
     }
     /**
-     * @return the localServerHandler
+     * @return the localChannelReference
      */
-    public LocalServerHandler getLocalServerHandler() {
-        return localServerHandler;
+    public LocalChannelReference getLocalChannelReference() {
+        return localChannelReference;
+    }
+    /**
+     * @param localChannelReference
+     */
+    public void setLocalChannelReference(LocalChannelReference localChannelReference) {
+        this.localChannelReference = localChannelReference;
     }
     
 }

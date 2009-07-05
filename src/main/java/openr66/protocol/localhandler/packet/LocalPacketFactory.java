@@ -16,7 +16,6 @@
 package openr66.protocol.localhandler.packet;
 
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
-import openr66.protocol.exception.OpenR66ProtocolShutdownException;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 
@@ -37,6 +36,8 @@ public class LocalPacketFactory {
     public static final byte CONFIGRECVPACKET = 8;
     public static final byte AUTHENTPACKET = 9;
     public static final byte VALIDPACKET = 10;
+    public static final byte STARTUPPACKET = 11;
+    public static final byte CONNECTERRORPACKET = 12;
 
     /**
      * This method create a Packet from the ChannelBuffer.
@@ -48,8 +49,6 @@ public class LocalPacketFactory {
      * @param buf
      * @return the newly created Packet
      * @throws OpenR66ProtocolPacketException 
-     * @throws OpenR66ProtocolPacketException
-     * @throws OpenR66ProtocolShutdownException
      */
     public static AbstractLocalPacket createPacketFromChannelBuffer(
             int headerLength, int middleLength, int endLength, ChannelBuffer buf) throws OpenR66ProtocolPacketException {
@@ -75,6 +74,12 @@ public class LocalPacketFactory {
         }
         case VALIDPACKET: {
             return ValidPacket.createFromBuffer(headerLength, middleLength, endLength, buf);
+        }
+        case STARTUPPACKET: {
+            return StartupPacket.createFromBuffer(headerLength, middleLength, endLength, buf);
+        }
+        case CONNECTERRORPACKET: {
+            return ConnectionErrorPacket.createFromBuffer(headerLength, middleLength, endLength, buf);
         }
         default:
             throw new OpenR66ProtocolPacketException(

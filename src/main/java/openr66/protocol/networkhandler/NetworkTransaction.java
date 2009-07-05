@@ -3,6 +3,9 @@
  */
 package openr66.protocol.networkhandler;
 
+import goldengate.common.logging.GgInternalLogger;
+import goldengate.common.logging.GgInternalLoggerFactory;
+
 import java.net.SocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -12,6 +15,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
+import openr66.protocol.exception.OpenR66ProtocolSystemException;
 
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.channel.Channel;
@@ -28,6 +32,12 @@ import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
  * @author frederic bregier
  */
 public class NetworkTransaction {
+    /**
+     * Internal Logger
+     */
+    private static final GgInternalLogger logger = GgInternalLoggerFactory
+            .getLogger(NetworkTransaction.class);
+    
     static class NetworkChannel {
         AtomicInteger count = new AtomicInteger(1);
         Channel channel;
@@ -112,7 +122,10 @@ public class NetworkTransaction {
                     Channels.close(channel);
                 }
             } else {
-                Channels.close(channel);
+                if (channel.isConnected()) {
+                    logger.error("Should not be here",new OpenR66ProtocolSystemException());
+                    Channels.close(channel);
+                }
             }
         } finally {
             lock.unlock();

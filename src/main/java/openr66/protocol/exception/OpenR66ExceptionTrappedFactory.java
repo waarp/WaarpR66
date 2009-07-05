@@ -61,7 +61,7 @@ public class OpenR66ExceptionTrappedFactory {
                     "Connection closed before end", e1);
         } else if (e1 instanceof OpenR66ProtocolBusinessNoWriteBackException) {
             final OpenR66ProtocolBusinessNoWriteBackException e2 = (OpenR66ProtocolBusinessNoWriteBackException) e1;
-            logger.warn("Command Error Reply", e2);
+            logger.error("Command Error Reply", e2);
             Channels.close(channel);
             return null;
         } else if (e1 instanceof OpenR66ProtocolException) {

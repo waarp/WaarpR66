@@ -29,15 +29,18 @@ public class NetworkPacket {
     private final ChannelBuffer buffer;
     private final int remoteId;
     private final int localId;
+    private final byte code;
 
     /**
      * @param localId
      * @param remoteId
+     * @param code 
      * @param buffer
      */
-    public NetworkPacket(int localId, int remoteId, ChannelBuffer buffer) {
+    public NetworkPacket(int localId, int remoteId, byte code, ChannelBuffer buffer) {
         this.remoteId = remoteId;
         this.localId = localId;
+        this.code = code;
         this.buffer = buffer;
     }
 
@@ -62,17 +65,28 @@ public class NetworkPacket {
         return localId;
     }
 
+    /**
+     * @return the code
+     */
+    public byte getCode() {
+        return code;
+    }
+
+    /**
+     * @return The corresponding ChannelBuffer
+     */
     public ChannelBuffer getNetworkPacket() {
-        final ChannelBuffer buf = ChannelBuffers.dynamicBuffer(12);
-        buf.writeInt(buffer.readableBytes() + 8);
+        final ChannelBuffer buf = ChannelBuffers.dynamicBuffer(13);
+        buf.writeInt(buffer.readableBytes() + 9);
         buf.writeInt(remoteId);
         buf.writeInt(localId);
+        buf.writeByte(code);
         return ChannelBuffers.wrappedBuffer(buf, buffer);
     }
 
     @Override
     public String toString() {
-        return "RId: " + remoteId + " LId: " + localId + " Length: "
+        return "RId: " + remoteId + " LId: " + localId + " Code: "+ code + " Length: "
                 + buffer.readableBytes();
     }
 
