@@ -42,7 +42,7 @@ public class ChannelUtils implements Runnable {
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(ChannelUtils.class);
-
+    public static final Integer NOCHANNEL = (-1);
     /**
      * Get the Remote InetAddress
      * 
