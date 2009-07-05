@@ -18,7 +18,7 @@ package openr66.protocol.localhandler;
 import org.jboss.netty.channel.Channel;
 
 /**
- * Reference of one object using Local Channel Id and containing local channel
+ * Reference of one object using Local Channel localId and containing local channel
  * and network channel.
  * 
  * @author Frederic Bregier
@@ -26,14 +26,14 @@ import org.jboss.netty.channel.Channel;
 public class LocalChannelReference {
     private final Channel localChannel;
     private final Channel networkChannel;
-    private final Integer Id;
-    private final Integer remoteId;
+    private final Integer localId;
+    private Integer remoteId;
 
     public LocalChannelReference(Channel localChannel, Channel networkChannel,
             Integer remoteId) {
         this.localChannel = localChannel;
         this.networkChannel = networkChannel;
-        Id = this.localChannel.getId();
+        localId = this.localChannel.getId();
         this.remoteId = remoteId;
     }
 
@@ -54,8 +54,8 @@ public class LocalChannelReference {
     /**
      * @return the id
      */
-    public Integer getId() {
-        return Id;
+    public Integer getLocalId() {
+        return localId;
     }
 
     /**
@@ -63,6 +63,13 @@ public class LocalChannelReference {
      */
     public Integer getRemoteId() {
         return remoteId;
+    }
+    
+    /**
+     * @param remoteId the remoteId to set
+     */
+    public void setRemoteId(Integer remoteId) {
+        this.remoteId = remoteId;
     }
 
 }
