@@ -58,7 +58,7 @@ public class TestTransaction implements Runnable {
     
     final private NetworkTransaction networkTransaction;
     final private R66Future future;
-    final private Channel networkChannel;
+    private Channel networkChannel;
     final private TestPacket testPacket;
     
     public TestTransaction(NetworkTransaction networkTransaction, R66Future future, Channel networkChannel, TestPacket packet) {
@@ -74,6 +74,7 @@ public class TestTransaction implements Runnable {
     public void run() {
         LocalChannelReference localChannelReference;
         try {
+            this.networkChannel = networkTransaction.validNetworkChannel(this.networkChannel);
             localChannelReference = this.networkTransaction
                     .createNewClient(this.networkChannel);
         } catch (OpenR66ProtocolNetworkException e1) {
@@ -100,7 +101,12 @@ public class TestTransaction implements Runnable {
             this.future.setSuccess();
         } else {
             this.future.setResult(null);
-            this.future.setFailure(localChannelReference.getFuture().getCause());
+            Throwable throwable = localChannelReference.getFuture().getCause();
+            if (throwable == null) {
+                this.future.cancel();
+            } else {
+                this.future.setFailure(throwable);
+            }
         }
     }
     

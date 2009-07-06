@@ -70,7 +70,7 @@ public class TestPacket extends AbstractLocalPacket {
 
     @Override
     public byte getType() {
-        if (this.code > 100) {
+        if (this.code > 10) {
             return LocalPacketFactory.ERRORPACKET;
         }
         return LocalPacketFactory.TESTPACKET;

@@ -95,7 +95,18 @@ public class NetworkTransaction {
         throw new OpenR66ProtocolNetworkException("Cannot connect to remote server", channelFuture.getCause());
     }
 
+    public Channel validNetworkChannel(Channel channel) throws OpenR66ProtocolNetworkException {
+        if (! channel.isConnected()) {
+            SocketAddress socketAddress = channel.getRemoteAddress();
+            logger.warn("Will reconnect Network Channel to: "+socketAddress);
+            return createNewConnection(socketAddress);
+        }
+        return channel;
+    }
     public LocalChannelReference createNewClient(Channel channel) throws OpenR66ProtocolNetworkException {
+        if (! channel.isConnected()) {
+            throw new OpenR66ProtocolNetworkException("Network channel no more connected");            
+        }
         LocalChannelReference localChannelReference = null;
         try {
             localChannelReference = 
@@ -118,7 +129,7 @@ public class NetworkTransaction {
             NetworkChannel networkChannel = networkChannelConcurrentHashMap.get(channel.getId());
             if (networkChannel != null) {
                 int cpt = networkChannel.count.incrementAndGet();
-                logger.warn("NC: "+networkChannel.count.get());
+                logger.warn("NC active: "+cpt);
             } else {
                 networkChannel = new NetworkChannel(channel);
                 networkChannelConcurrentHashMap.put(channel.getId(), networkChannel);
@@ -132,17 +143,19 @@ public class NetworkTransaction {
         try {
             NetworkChannel networkChannel = networkChannelConcurrentHashMap.get(channel.getId());
             if (networkChannel != null) {
-                if (networkChannel.count.decrementAndGet() == 0) {
+                if (networkChannel.count.decrementAndGet() <= 0) {
+                    //networkChannel.count.set(0);
                     networkChannelConcurrentHashMap.remove(channel.getId());
+                    logger.info("Close network channel");
                     Channels.close(channel);
                     return 0;
                 }
-                logger.warn("NC: "+networkChannel.count.get());
-                return networkChannelConcurrentHashMap.size();
+                logger.warn("NC left: "+networkChannel.count.get());
+                return networkChannel.count.get();
             } else {
                 if (channel.isConnected()) {
                     logger.error("Should not be here",new OpenR66ProtocolSystemException());
-                    Channels.close(channel);
+                    //Channels.close(channel);
                 }
             }
             return 0;

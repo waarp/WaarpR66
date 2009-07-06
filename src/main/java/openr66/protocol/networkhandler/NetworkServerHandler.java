@@ -74,7 +74,7 @@ public class NetworkServerHandler extends SimpleChannelHandler {
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) {
         final NetworkPacket packet = (NetworkPacket) e.getMessage();
-        logger.warn("Network Channel Recv: " + e.getChannel().getId()+" "+packet.toString());
+        logger.info("Network Channel Recv: " + e.getChannel().getId()+" "+packet.toString());
         if (packet.getCode() == LocalPacketFactory.CONNECTERRORPACKET) {
             // Special code to stop here
             if (packet.getLocalId() == ChannelUtils.NOCHANNEL) {
@@ -90,12 +90,13 @@ public class NetworkServerHandler extends SimpleChannelHandler {
             try {
                 localChannelReference = Configuration.configuration
                     .getLocalTransaction().createNewClient(e.getChannel(), packet.getRemoteId());
+                NetworkTransaction.addNetworkChannel(e.getChannel());
                 logger.info("Create LocalChannel: "+localChannelReference.getLocalId());
             } catch (OpenR66ProtocolSystemException e1) {
-                logger.error("Cannot create LocalChannel: "+packet);
+                logger.error("Cannot create LocalChannel: "+packet,e1);
                 final ConnectionErrorPacket error = 
                     new ConnectionErrorPacket("Cannot connect to localChannel", null);
-                this.writeError(e.getChannel(), ChannelUtils.NOCHANNEL, packet.getRemoteId(), error);
+                this.writeError(e.getChannel(), packet.getRemoteId(), packet.getLocalId(), error);
                 return;
             }
         } else {
@@ -104,10 +105,10 @@ public class NetworkServerHandler extends SimpleChannelHandler {
                     getLocalTransaction().getClient(packet.getRemoteId(), packet.getLocalId());
                 logger.info("Get LocalChannel: "+localChannelReference.getLocalId());
             } catch (OpenR66ProtocolSystemException e1) {
-                logger.error("Cannot get LocalChannel: "+packet);
+                logger.error("Cannot get LocalChannel: "+packet,e1);
                 final ConnectionErrorPacket error = 
                     new ConnectionErrorPacket("Cannot get localChannel", null);
-                this.writeError(e.getChannel(), packet.getLocalId(), packet.getRemoteId(), error);
+                this.writeError(e.getChannel(), packet.getRemoteId(), packet.getLocalId(), error);
                 return;
             }
         }

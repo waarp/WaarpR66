@@ -64,7 +64,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
      */
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) {
-        logger.warn("Local Server Channel Closed: " + ((this.localChannelReference != null) ? this.localChannelReference.toString() : "no LocalChannelReference"));
+        logger.warn("Local Server Channel Closed: " +status+" "+ ((this.localChannelReference != null) ? this.localChannelReference.toString() : "no LocalChannelReference"));
         // FIXME clean session objects like files
         if ((this.localChannelReference != null) && (! this.localChannelReference.getFuture().isDone())) {
             if (!status) {
@@ -103,31 +103,42 @@ public class LocalServerHandler extends SimpleChannelHandler {
         // FIXME action as requested and answer if necessary
         final AbstractLocalPacket packet = (AbstractLocalPacket) e.getMessage();
         logger.info("Local Server Channel Recv: " + e.getChannel().getId()+" : "+packet.getClass().getSimpleName());
-        if (packet instanceof DataPacket) {
-            data(e.getChannel(), (DataPacket) packet);
-        } else if (packet instanceof ValidPacket) {
-            valid(e.getChannel(),(ValidPacket) packet);
-        } else if (packet instanceof RequestPacket) {
-            request(e.getChannel(),(RequestPacket) packet);
-        } else if (packet instanceof AuthentPacket) {
-            authent(e.getChannel(), (AuthentPacket) packet);
-        } else if (packet instanceof ErrorPacket) {
-            error(e.getChannel(), (ErrorPacket) packet);
-        } else if (packet instanceof TestPacket) {
-            test(e.getChannel(), (TestPacket) packet);
-        } else if (packet instanceof ShutdownPacket) {
-            shutdown(e.getChannel(), (ShutdownPacket) packet);
-        } else if (packet instanceof StartupPacket) {
+        if (packet instanceof StartupPacket) {
             startup(e.getChannel(), (StartupPacket) packet);
-        } else if (packet instanceof ConnectionErrorPacket) {
-            connectionError(e.getChannel(), (ConnectionErrorPacket) packet);
         } else {
-            logger.error("Unknown Mesg: "+packet.getClass().getName());
-            setFinalize(false, null);
-            final ErrorPacket errorPacket = new ErrorPacket("Unkown Mesg: "+packet.getClass().getName(), 
-                    null, ErrorPacket.FORWARDCLOSECODE);
-            writeBack(errorPacket, true);
-            Channels.close(e.getChannel());
+            if (localChannelReference == null) {
+                logger.error("No LocalChannelReference at "+packet.getClass().getName());
+                setFinalize(false, null);
+                final ErrorPacket errorPacket = new ErrorPacket("No LocalChannelReference at "+packet.getClass().getName(), 
+                        null, ErrorPacket.FORWARDCLOSECODE);
+                ChannelUtils.write(e.getChannel(), errorPacket).awaitUninterruptibly();
+                Channels.close(e.getChannel());
+                return;
+            }
+            if (packet instanceof DataPacket) {
+                data(e.getChannel(), (DataPacket) packet);
+            } else if (packet instanceof ValidPacket) {
+                valid(e.getChannel(),(ValidPacket) packet);
+            } else if (packet instanceof RequestPacket) {
+                request(e.getChannel(),(RequestPacket) packet);
+            } else if (packet instanceof AuthentPacket) {
+                authent(e.getChannel(), (AuthentPacket) packet);
+            } else if (packet instanceof ErrorPacket) {
+                error(e.getChannel(), (ErrorPacket) packet);
+            } else if (packet instanceof TestPacket) {
+                test(e.getChannel(), (TestPacket) packet);
+            } else if (packet instanceof ShutdownPacket) {
+                shutdown(e.getChannel(), (ShutdownPacket) packet);
+            } else if (packet instanceof ConnectionErrorPacket) {
+                connectionError(e.getChannel(), (ConnectionErrorPacket) packet);
+            } else {
+                logger.error("Unknown Mesg: "+packet.getClass().getName());
+                setFinalize(false, null);
+                final ErrorPacket errorPacket = new ErrorPacket("Unkown Mesg: "+packet.getClass().getName(), 
+                        null, ErrorPacket.FORWARDCLOSECODE);
+                writeBack(errorPacket, true);
+                Channels.close(e.getChannel());
+            }
         }
     }
 
@@ -175,11 +186,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
             setFinalize(false, null);
             ErrorPacket error = new ErrorPacket("Cannot startup connection",null,ErrorPacket.FORWARDCLOSECODE);
             // XXX FIXME  Do not close, client will close
-            writeBack(error, true);
+            ChannelUtils.write(channel, error).awaitUninterruptibly();
+            //Cannot do writeBack(error, true);
             Channels.close(channel);
-            //ChannelUtils.write(channel, error);
             return;
         }
+        ChannelUtils.write(channel, packet);
         logger.info("Get LocalChannel: "+localChannelReference.getLocalId());
     }
     private void authent(Channel channel, AuthentPacket packet) throws OpenR66ProtocolPacketException {
@@ -216,14 +228,14 @@ public class LocalServerHandler extends SimpleChannelHandler {
     }
     private void connectionError(Channel channel, ConnectionErrorPacket packet) {
         // FIXME do something according to the error
-        logger.warn(channel.getId() + ": "
+        logger.error(channel.getId() + ": "
                 + packet.toString());
         setFinalize(false, null);
         Channels.close(channel);
     }
     private void error(Channel channel, ErrorPacket packet) throws OpenR66ProtocolBusinessNoWriteBackException {
         // FIXME do something according to the error
-        logger.warn(channel.getId() + ": "
+        logger.error(channel.getId() + ": "
                 + packet.toString());
         throw new OpenR66ProtocolBusinessNoWriteBackException(packet.toString());
     }
@@ -289,7 +301,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     localChannelReference.getFuture().setSuccess();                    
                 } else {
                     localChannelReference.getFuture().setResult(finalValue);
-                    localChannelReference.getFuture().setFailure(null);
+                    localChannelReference.getFuture().cancel();
                 }
             }
         }        

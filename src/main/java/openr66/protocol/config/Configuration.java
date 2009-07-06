@@ -200,7 +200,7 @@ public class Configuration {
     /**
      * LocalTransaction
      */
-    private final LocalTransaction localTransaction = new LocalTransaction();
+    private final LocalTransaction localTransaction;
     /**
      * R66FileBasedConfiguration
      */
@@ -210,6 +210,7 @@ public class Configuration {
         // Init signal handler
         OpenR66SignalHandler.initSignalHandler();
         computeNbThreads();
+        localTransaction = new LocalTransaction();
     }
 
     /**

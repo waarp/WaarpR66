@@ -74,6 +74,7 @@ public class TestClient {
             LocalChannelReference localChannelReference;
             for (int j = 1; j <= 100; j++) {
                 try {
+                    channel = networkTransaction.validNetworkChannel(channel);
                     localChannelReference = networkTransaction.createNewClient(channel);
                 } catch (OpenR66ProtocolNetworkException e) {
                     logger.error("Cannot connect", e);

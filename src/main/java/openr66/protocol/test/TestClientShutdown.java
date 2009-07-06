@@ -70,6 +70,7 @@ public class TestClientShutdown {
         }
         LocalChannelReference localChannelReference;
         try {
+            channel = networkTransaction.validNetworkChannel(channel);
             localChannelReference = networkTransaction
                     .createNewClient(channel);
         } catch (OpenR66ProtocolNetworkException e1) {

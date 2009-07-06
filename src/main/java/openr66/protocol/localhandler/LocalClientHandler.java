@@ -9,9 +9,12 @@ import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolException;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
+import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolShutdownException;
+import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.packet.AbstractLocalPacket;
 import openr66.protocol.localhandler.packet.ErrorPacket;
+import openr66.protocol.localhandler.packet.StartupPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
 import openr66.protocol.utils.ChannelUtils;
@@ -48,10 +51,11 @@ public class LocalClientHandler extends SimpleChannelHandler {
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
-        logger.warn("Local Client Channel Closed: " + e.getChannel().getId());
+        logger.info("Local Client Channel Closed: " + e.getChannel().getId());
         if (localChannelReference != null) {
-            logger.info("Will close Network channel");
             NetworkTransaction.removeNetworkChannel(localChannelReference.getNetworkChannel());
+        } else {
+            logger.error("Local Client Channel Closed but no LocalChannelReference: " + e.getChannel().getId());
         }
     }
 
@@ -103,7 +107,15 @@ public class LocalClientHandler extends SimpleChannelHandler {
         // FIXME now handle message from local server and write back them the
         // network channel
         final AbstractLocalPacket packet = (AbstractLocalPacket) e.getMessage();
-        logger.info("Local Client Channel Recv: " + e.getChannel().getId());
+        if (! (packet instanceof StartupPacket)) {
+            logger.error("Local Client Channel Recv: " + e.getChannel().getId()+" : "
+                    +packet.toString());
+            throw new OpenR66ProtocolSystemException("Should not be here");
+        }
+        if (true) {
+            logger.info("LocalClientHandler initialized: "+(localChannelReference!=null));
+            return;
+        }
         // FIXME write back to the network channel
         if (packet instanceof ErrorPacket) {
             ErrorPacket errorPacket = (ErrorPacket) packet;

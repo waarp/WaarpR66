@@ -68,6 +68,7 @@ public class LocalTransaction {
         serverBootstrap.setPipelineFactory(new LocalServerPipelineFactory());
         serverChannel = serverBootstrap.bind(socketServerAddress);
         localChannelGroup.add(serverChannel);
+        serverChannel.getCloseFuture().addListener(ChannelUtils.channelClosedLogger);
         clientBootstrap.setPipelineFactory(new LocalClientPipelineFactory());
     }
 
@@ -107,7 +108,8 @@ public class LocalTransaction {
                 throw new OpenR66ProtocolSystemException("Cannot connect to local handler", e);
             }
         }
-        throw new OpenR66ProtocolSystemException("Cannot connect to local handler", channelFuture.getCause());
+        throw new OpenR66ProtocolSystemException("Cannot connect to local handler: "+socketServerAddress, 
+                channelFuture.getCause());
     }
     public LocalChannelReference getFromId(Integer id) {
         return localChannelHashMap.get(id);

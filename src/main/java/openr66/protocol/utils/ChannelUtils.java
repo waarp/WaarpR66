@@ -23,10 +23,12 @@ import java.net.InetSocketAddress;
 
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
+import openr66.protocol.exception.OpenR66ProtocolSystemException;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFactory;
 import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.FailedChannelFuture;
 import org.jboss.netty.channel.group.ChannelGroupFuture;
@@ -43,6 +45,12 @@ public class ChannelUtils implements Runnable {
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(ChannelUtils.class);
     public static final Integer NOCHANNEL = Integer.MIN_VALUE;
+    public static final ChannelFutureListener channelClosedLogger =
+        new ChannelFutureListener() {
+        public void operationComplete(ChannelFuture future) {
+            logger.warn("Channel closed", new OpenR66ProtocolSystemException());
+        }
+    };
     /**
      * Get the Remote InetAddress
      * 
