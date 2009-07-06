@@ -47,19 +47,17 @@ public class LocalTransaction {
             localChannelHashMap.remove(future.getChannel().getId());
         }
     };
-    private final ChannelFactory channelClientFactory = new DefaultLocalClientChannelFactory();
 
     private final ChannelFactory channelServerFactory = new DefaultLocalServerChannelFactory();
-
-    private final ClientBootstrap clientBootstrap = new ClientBootstrap(
-            channelClientFactory);
-
     private final ServerBootstrap serverBootstrap = new ServerBootstrap(
             channelServerFactory);
 
     private final Channel serverChannel;
-
     private final LocalAddress socketServerAddress = new LocalAddress("LOCALROOT");
+
+    private final ChannelFactory channelClientFactory = new DefaultLocalClientChannelFactory();
+    private final ClientBootstrap clientBootstrap = new ClientBootstrap(
+            channelClientFactory);
 
     private final ChannelGroup localChannelGroup = new DefaultChannelGroup(
             "LocalChannels");
@@ -108,7 +106,8 @@ public class LocalTransaction {
                 throw new OpenR66ProtocolSystemException("Cannot connect to local handler", e);
             }
         }
-        throw new OpenR66ProtocolSystemException("Cannot connect to local handler: "+socketServerAddress, 
+        throw new OpenR66ProtocolSystemException("Cannot connect to local handler: "+socketServerAddress+
+                " "+serverChannel.isBound(), 
                 channelFuture.getCause());
     }
     public LocalChannelReference getFromId(Integer id) {

@@ -17,6 +17,8 @@ package openr66.protocol.config;
 
 import goldengate.common.file.DataBlockSizeEstimator;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
+import goldengate.common.logging.GgInternalLogger;
+import goldengate.common.logging.GgInternalLoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
@@ -44,6 +46,12 @@ import org.jboss.netty.util.ObjectSizeEstimator;
  * @author Frederic Bregier
  */
 public class Configuration {
+    /**
+     * Internal Logger
+     */
+    private static final GgInternalLogger logger = GgInternalLoggerFactory
+            .getLogger(Configuration.class);
+    
     // Static values
     /**
      * General Configuration object
@@ -219,11 +227,11 @@ public class Configuration {
     public void serverStartup() {
         InternalLoggerFactory.setDefaultFactory(InternalLoggerFactory
                 .getDefaultFactory());
-        // Command
+        // Global Server
+        logger.warn("THREAD: "+Configuration.SERVER_THREAD);
         serverChannelGroup = new DefaultChannelGroup("OpenR66");
         serverChannelFactory = new NioServerSocketChannelFactory(
                 execServerBoss, execServerWorker, SERVER_THREAD);
-        // Main Command server
         serverBootstrap = new ServerBootstrap(serverChannelFactory);
         serverBootstrap.setPipelineFactory(new NetworkServerPipelineFactory());
         serverBootstrap.setOption("child.tcpNoDelay", true);

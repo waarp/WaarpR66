@@ -138,6 +138,12 @@ public class TestTransaction implements Runnable {
             TestPacket packet = new TestPacket("Test", ""+i, 0);
             TestTransaction transaction = new TestTransaction(networkTransaction, arrayFuture[i], channel, packet);
             executorService.execute(transaction);
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
         int success = 0;
         int error = 0;
