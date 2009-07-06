@@ -1,2 +1,2 @@
-- Network close anormaly : first close => All close
-- When a close occurs from outside at connect: status = true but should be false!
+- Network close abnormally : first close => All close
+- Network in client does not count down

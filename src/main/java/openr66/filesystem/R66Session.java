@@ -22,7 +22,6 @@ package openr66.filesystem;
 
 import openr66.authentication.R66Auth;
 import openr66.protocol.config.Configuration;
-import openr66.protocol.localhandler.LocalChannelReference;
 import goldengate.common.file.SessionInterface;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 
@@ -31,7 +30,6 @@ import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
  *
  */
 public class R66Session implements SessionInterface {
-    private LocalChannelReference localChannelReference;
     private R66Auth auth;
     private R66Dir dir;
     private volatile boolean isReady = false;
@@ -125,17 +123,4 @@ public class R66Session implements SessionInterface {
     public void setReady(boolean isReady) {
         this.isReady = isReady;
     }
-    /**
-     * @return the localChannelReference
-     */
-    public LocalChannelReference getLocalChannelReference() {
-        return localChannelReference;
-    }
-    /**
-     * @param localChannelReference
-     */
-    public void setLocalChannelReference(LocalChannelReference localChannelReference) {
-        this.localChannelReference = localChannelReference;
-    }
-    
 }

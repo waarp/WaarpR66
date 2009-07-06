@@ -109,6 +109,9 @@ public class LocalClientHandler extends SimpleChannelHandler {
             ErrorPacket errorPacket = (ErrorPacket) packet;
             if (errorPacket.getCode() == ErrorPacket.CLOSECODE) {
                 logger.info("Will close channel");
+                if (!localChannelReference.getFuture().isDone()) {
+                    localChannelReference.getFuture().setFailure(null);
+                }
                 Channels.close(e.getChannel());
                 return;
             } else if (errorPacket.getCode() == ErrorPacket.IGNORECODE) {
@@ -120,6 +123,9 @@ public class LocalClientHandler extends SimpleChannelHandler {
             if (errorPacket.getCode() == ErrorPacket.FORWARDCODE) {
                 ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket).awaitUninterruptibly(Configuration.WAITFORWRITE);
             } else if (errorPacket.getCode() == ErrorPacket.FORWARDCLOSECODE) {
+                if (!localChannelReference.getFuture().isDone()) {
+                    localChannelReference.getFuture().setFailure(null);
+                }
                 ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket).awaitUninterruptibly();
                 logger.info("Will close channel");
                 Channels.close(e.getChannel());
@@ -157,6 +163,9 @@ public class LocalClientHandler extends SimpleChannelHandler {
                     logger.info("Will close channel");
                     Channels.close(e.getChannel());
                     return;
+                }
+                if (!localChannelReference.getFuture().isDone()) {
+                    localChannelReference.getFuture().setFailure(exception);
                 }
                 final ErrorPacket errorPacket = new ErrorPacket(exception
                         .getMessage(), null, ErrorPacket.FORWARDCLOSECODE);

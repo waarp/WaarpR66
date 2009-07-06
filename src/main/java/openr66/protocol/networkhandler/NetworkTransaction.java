@@ -150,4 +150,11 @@ public class NetworkTransaction {
             lock.unlock();
         }
     }
+    public static int getNbLocalChannel(Channel channel) {
+        NetworkChannel networkChannel = networkChannelConcurrentHashMap.get(channel.getId());
+        if (networkChannel != null) {
+            return networkChannel.count.get();
+        }
+        return -1;
+    }
 }
