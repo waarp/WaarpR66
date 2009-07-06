@@ -32,7 +32,6 @@ import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
 import openr66.protocol.utils.ChannelUtils;
 
-import org.jboss.netty.channel.Channel;
 import org.jboss.netty.logging.InternalLoggerFactory;
 
 import ch.qos.logback.classic.Level;
@@ -62,20 +61,10 @@ public class TestClient {
         
         logger.warn("START");
         for (int i = 0; i < 10; i++) {
-            Channel channel;
-            try {
-                channel = networkTransaction
-                        .createNewConnection(socketServerAddress);
-            } catch (OpenR66ProtocolNetworkException e1) {
-                logger.error("Cannot connect", e1);
-                networkTransaction.closeAll();
-                return;
-            }
             LocalChannelReference localChannelReference;
             for (int j = 1; j <= 100; j++) {
                 try {
-                    channel = networkTransaction.validNetworkChannel(channel);
-                    localChannelReference = networkTransaction.createNewClient(channel);
+                    localChannelReference = networkTransaction.createConnection(socketServerAddress);
                 } catch (OpenR66ProtocolNetworkException e) {
                     logger.error("Cannot connect", e);
                     networkTransaction.closeAll();

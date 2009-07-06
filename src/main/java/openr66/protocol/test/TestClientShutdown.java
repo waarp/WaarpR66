@@ -59,20 +59,10 @@ public class TestClientShutdown {
         final NetworkPacket networkPacket = new NetworkPacket(ChannelUtils.NOCHANNEL, ChannelUtils.NOCHANNEL, 
                 packet.getType(), packet.getLocalPacket());
         logger.warn("START");
-        Channel channel;
-        try {
-            channel = networkTransaction
-                    .createNewConnection(socketServerAddress);
-        } catch (OpenR66ProtocolNetworkException e1) {
-            logger.error("Cannot connect", e1);
-            networkTransaction.closeAll();
-            return;
-        }
         LocalChannelReference localChannelReference;
         try {
-            channel = networkTransaction.validNetworkChannel(channel);
             localChannelReference = networkTransaction
-                    .createNewClient(channel);
+                    .createConnection(socketServerAddress);
         } catch (OpenR66ProtocolNetworkException e1) {
             logger.error("Cannot connect", e1);
             networkTransaction.closeAll();

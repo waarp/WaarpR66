@@ -16,6 +16,8 @@ import org.jboss.netty.buffer.ChannelBuffers;
  * @author frederic bregier
  */
 public class TestPacket extends AbstractLocalPacket {
+    public static final int pingpong = 100;
+    
     private String sheader = null;
 
     private String smiddle = null;
@@ -70,7 +72,7 @@ public class TestPacket extends AbstractLocalPacket {
 
     @Override
     public byte getType() {
-        if (this.code > 10) {
+        if (this.code > pingpong) {
             return LocalPacketFactory.ERRORPACKET;
         }
         return LocalPacketFactory.TESTPACKET;

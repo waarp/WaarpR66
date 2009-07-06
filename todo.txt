@@ -1,2 +1,1 @@
-- Network close abnormally : first close => All close
-- Network in client does not count down
+- After one pass of connection to local channel, when the network is down, no more connection can be done???

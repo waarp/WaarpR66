@@ -58,25 +58,24 @@ public class TestTransaction implements Runnable {
     
     final private NetworkTransaction networkTransaction;
     final private R66Future future;
-    private Channel networkChannel;
+    private final SocketAddress socketAddress;
     final private TestPacket testPacket;
     
-    public TestTransaction(NetworkTransaction networkTransaction, R66Future future, Channel networkChannel, TestPacket packet) {
+    public TestTransaction(NetworkTransaction networkTransaction, R66Future future, SocketAddress socketAddress, TestPacket packet) {
         if (logger == null) {
             logger = GgInternalLoggerFactory
                 .getLogger(TestTransaction.class);
         }
         this.networkTransaction = networkTransaction;
         this.future = future;
-        this.networkChannel = networkChannel;
+        this.socketAddress = socketAddress;
         this.testPacket = packet;
     }
     public void run() {
         LocalChannelReference localChannelReference;
         try {
-            this.networkChannel = networkTransaction.validNetworkChannel(this.networkChannel);
             localChannelReference = this.networkTransaction
-                    .createNewClient(this.networkChannel);
+                    .createConnection(this.socketAddress);
         } catch (OpenR66ProtocolNetworkException e1) {
             logger.error("Cannot connect", e1);
             this.future.setResult(null);
@@ -120,15 +119,8 @@ public class TestTransaction implements Runnable {
         final NetworkTransaction networkTransaction = new NetworkTransaction();
         final SocketAddress socketServerAddress = new InetSocketAddress(
                 Configuration.SERVER_PORT);
-        Channel channel;
-        try {
-            channel = networkTransaction.createNewConnection(socketServerAddress);
-        } catch (OpenR66ProtocolNetworkException e) {
-            logger.error("Cannot connect",e);
-            return;
-        }
         ExecutorService executorService = Executors.newCachedThreadPool();
-        int nb = 100;
+        int nb = 2;
         
         R66Future []arrayFuture = new R66Future[nb];
         logger.warn("Start");
@@ -136,7 +128,7 @@ public class TestTransaction implements Runnable {
         for (int i = 0; i < nb; i++) {
             arrayFuture[i] = new R66Future(true);
             TestPacket packet = new TestPacket("Test", ""+i, 0);
-            TestTransaction transaction = new TestTransaction(networkTransaction, arrayFuture[i], channel, packet);
+            TestTransaction transaction = new TestTransaction(networkTransaction, arrayFuture[i], socketServerAddress, packet);
             executorService.execute(transaction);
             try {
                 Thread.sleep(10);
@@ -156,7 +148,7 @@ public class TestTransaction implements Runnable {
             }
         }
         long time2 = System.currentTimeMillis();
-        logger.warn("Success: "+success+" Error: "+error+" NB/s: "+(success*1000/(time2-time1)));
+        logger.warn("Success: "+success+" Error: "+error+" NB/s: "+(success*TestPacket.pingpong*1000/(time2-time1)));
         networkTransaction.closeAll();
         executorService.shutdown();
     }

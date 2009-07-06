@@ -53,7 +53,7 @@ public class LocalTransaction {
             channelServerFactory);
 
     private final Channel serverChannel;
-    private final LocalAddress socketServerAddress = new LocalAddress("LOCALROOT");
+    private final LocalAddress socketServerAddress = new LocalAddress("0");
 
     private final ChannelFactory channelClientFactory = new DefaultLocalClientChannelFactory();
     private final ClientBootstrap clientBootstrap = new ClientBootstrap(
@@ -106,8 +106,10 @@ public class LocalTransaction {
                 throw new OpenR66ProtocolSystemException("Cannot connect to local handler", e);
             }
         }
+        logger.error("LocalChannelServer: "+serverChannel.getClass().getName()+" "+
+                serverChannel.getConfig().getConnectTimeoutMillis()+" "+serverChannel.isBound());
         throw new OpenR66ProtocolSystemException("Cannot connect to local handler: "+socketServerAddress+
-                " "+serverChannel.isBound(), 
+                " "+serverChannel.isBound()+" "+serverChannel, 
                 channelFuture.getCause());
     }
     public LocalChannelReference getFromId(Integer id) {

@@ -79,56 +79,46 @@ public class NetworkTransaction {
         clientBootstrap.setPipelineFactory(new NetworkServerPipelineFactory());
     }
     
-    public Channel createNewConnection(SocketAddress socketServerAddress) throws OpenR66ProtocolNetworkException {
+    public LocalChannelReference createConnection(SocketAddress socketAddress) throws OpenR66ProtocolNetworkException {
         lock.lock();
         try {
-            NetworkChannel networkChannel = networkChannelOnSocketAddressConcurrentHashMap.get(socketServerAddress.hashCode());
-            if (networkChannel != null) {
-                if (networkChannel.channel.isConnected()) {
-                    logger.warn("Already Connected: "+networkChannel.toString());
-                    return networkChannel.channel;
-                }
-            }
-            ChannelFuture channelFuture = null;
-            for (int i = 0; i < Configuration.RETRYNB; i++) {
-                channelFuture = clientBootstrap
-                        .connect(socketServerAddress);
-                channelFuture.awaitUninterruptibly();
-                if (channelFuture.isSuccess()) {
-                    final Channel channel = channelFuture.getChannel();
-                    networkChannelGroup.add(channel);
-                    if (networkChannel != null) {
-                        networkChannel.channel = channel;
-                    }
-                    return channel;
-                }
-                try {
-                    Thread.sleep(Configuration.RETRYINMS);
-                } catch (InterruptedException e) {
-                    throw new OpenR66ProtocolNetworkException("Cannot connect to remote server",e);
-                }
-            }
-            throw new OpenR66ProtocolNetworkException("Cannot connect to remote server", channelFuture.getCause());
+            Channel channel = createNewConnection(socketAddress);
+            return createNewClient(channel);
         } finally {
             lock.unlock();
         }
+    }
+    private Channel createNewConnection(SocketAddress socketServerAddress) throws OpenR66ProtocolNetworkException {
+        NetworkChannel networkChannel = networkChannelOnSocketAddressConcurrentHashMap.get(socketServerAddress.hashCode());
+        if (networkChannel != null) {
+            if (networkChannel.channel.isConnected()) {
+                logger.warn("Already Connected: "+networkChannel.toString());
+                return networkChannel.channel;
+            }
+        }
+        ChannelFuture channelFuture = null;
+        for (int i = 0; i < Configuration.RETRYNB; i++) {
+            channelFuture = clientBootstrap
+                    .connect(socketServerAddress);
+            channelFuture.awaitUninterruptibly();
+            if (channelFuture.isSuccess()) {
+                final Channel channel = channelFuture.getChannel();
+                networkChannelGroup.add(channel);
+                if (networkChannel != null) {
+                    networkChannel.channel = channel;
+                }
+                return channel;
+            }
+            try {
+                Thread.sleep(Configuration.RETRYINMS);
+            } catch (InterruptedException e) {
+                throw new OpenR66ProtocolNetworkException("Cannot connect to remote server",e);
+            }
+        }
+        throw new OpenR66ProtocolNetworkException("Cannot connect to remote server", channelFuture.getCause());
     }
 
-    public Channel validNetworkChannel(Channel channel) throws OpenR66ProtocolNetworkException {
-        lock.lock();
-        try {
-            if (! channel.isConnected()) {
-                SocketAddress socketAddress = channel.getRemoteAddress();
-                logger.error("Will reconnect Network Channel to: "+socketAddress+" "+socketAddress.hashCode());
-                return createNewConnection(socketAddress);
-            }
-            logger.warn("Network Channel OK: "+channel.getRemoteAddress()+" "+channel.getRemoteAddress().hashCode());
-            return channel;
-        } finally {
-            lock.unlock();
-        }
-    }
-    public LocalChannelReference createNewClient(Channel channel) throws OpenR66ProtocolNetworkException {
+    private LocalChannelReference createNewClient(Channel channel) throws OpenR66ProtocolNetworkException {
         if (! channel.isConnected()) {
             throw new OpenR66ProtocolNetworkException("Network channel no more connected");            
         }
