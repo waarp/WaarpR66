@@ -52,6 +52,7 @@ public class TestClientShutdown {
                 Level.INFO));
         final GgInternalLogger logger = GgInternalLoggerFactory
                 .getLogger(TestClientShutdown.class);
+        Configuration.configuration.pipelineInit();
         final NetworkTransaction networkTransaction = new NetworkTransaction();
         final SocketAddress socketServerAddress = new InetSocketAddress(
                 Configuration.SERVER_PORT);

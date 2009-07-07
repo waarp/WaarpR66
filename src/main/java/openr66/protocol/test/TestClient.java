@@ -52,6 +52,7 @@ public class TestClient {
         final GgInternalLogger logger = GgInternalLoggerFactory
                 .getLogger(TestClient.class);
         Configuration.configuration.computeNbThreads();
+        Configuration.configuration.pipelineInit();
         final NetworkTransaction networkTransaction = new NetworkTransaction();
         final SocketAddress socketServerAddress = new InetSocketAddress(
                 Configuration.SERVER_PORT);

@@ -16,7 +16,7 @@ import org.jboss.netty.buffer.ChannelBuffers;
  * @author frederic bregier
  */
 public class TestPacket extends AbstractLocalPacket {
-    public static final int pingpong = 400;
+    public static final int pingpong = 10;
     
     private String sheader = null;
 

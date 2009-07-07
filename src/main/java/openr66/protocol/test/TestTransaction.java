@@ -115,11 +115,13 @@ public class TestTransaction implements Runnable {
             logger = GgInternalLoggerFactory.getLogger(TestTransaction.class);
         }
         Configuration.configuration.computeNbThreads();
+        Configuration.configuration.pipelineInit();
+        
         final NetworkTransaction networkTransaction = new NetworkTransaction();
         final SocketAddress socketServerAddress = new InetSocketAddress(
                 Configuration.SERVER_PORT);
         ExecutorService executorService = Executors.newCachedThreadPool();
-        int nb = 100;
+        int nb = 2;
         
         R66Future []arrayFuture = new R66Future[nb];
         logger.warn("Start");

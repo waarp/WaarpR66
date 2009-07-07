@@ -179,15 +179,11 @@ public class Configuration {
     /**
      * ThreadPoolExecutor for Server
      */
-    private volatile OrderedMemoryAwareThreadPoolExecutor serverPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
-            SERVER_THREAD*10 + 1, maxGlobalMemory / 10, maxGlobalMemory, 200,
-            TimeUnit.MILLISECONDS);
+    private volatile OrderedMemoryAwareThreadPoolExecutor serverPipelineExecutor;
     /**
      * ThreadPoolExecutor for LocalServer
      */
-    private volatile OrderedMemoryAwareThreadPoolExecutor localPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
-            SERVER_THREAD*10 + 1, maxGlobalMemory / 10, maxGlobalMemory, 100,
-            TimeUnit.MILLISECONDS);
+    private volatile OrderedMemoryAwareThreadPoolExecutor localPipelineExecutor;
     /**
      * Bootstrap for server
      */
@@ -214,6 +210,8 @@ public class Configuration {
      */
     public R66FileBasedConfiguration fileBasedConfiguration;
     
+    private volatile boolean configured = false;
+    
     public Configuration() {
         // Init signal handler
         OpenR66SignalHandler.initSignalHandler();
@@ -221,14 +219,27 @@ public class Configuration {
         localTransaction = new LocalTransaction();
     }
 
+    public void pipelineInit() {
+        if (configured) {
+            return;
+        }
+        InternalLoggerFactory.setDefaultFactory(InternalLoggerFactory
+                .getDefaultFactory());
+        logger.warn("THREAD: "+Configuration.SERVER_THREAD);
+        serverPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
+                SERVER_THREAD*10 + 1, maxGlobalMemory / 10, maxGlobalMemory, 200,
+                TimeUnit.MILLISECONDS);
+        localPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
+                SERVER_THREAD*10 + 1, maxGlobalMemory / 10, maxGlobalMemory, 100,
+                TimeUnit.MILLISECONDS);
+        configured = true;
+    }
     /**
      * Startup the server
      */
     public void serverStartup() {
-        InternalLoggerFactory.setDefaultFactory(InternalLoggerFactory
-                .getDefaultFactory());
+        pipelineInit();
         // Global Server
-        logger.warn("THREAD: "+Configuration.SERVER_THREAD);
         serverChannelGroup = new DefaultChannelGroup("OpenR66");
         serverChannelFactory = new NioServerSocketChannelFactory(
                 execServerBoss, execServerWorker, SERVER_THREAD);
