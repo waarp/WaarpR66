@@ -36,7 +36,6 @@ import openr66.protocol.networkhandler.packet.NetworkPacket;
 import openr66.protocol.utils.ChannelUtils;
 import openr66.protocol.utils.R66Future;
 
-import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.logging.InternalLoggerFactory;
 
@@ -120,7 +119,7 @@ public class TestTransaction implements Runnable {
         final SocketAddress socketServerAddress = new InetSocketAddress(
                 Configuration.SERVER_PORT);
         ExecutorService executorService = Executors.newCachedThreadPool();
-        int nb = 2;
+        int nb = 20;
         
         R66Future []arrayFuture = new R66Future[nb];
         logger.warn("Start");

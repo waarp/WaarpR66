@@ -9,7 +9,6 @@ import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolException;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
-import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolShutdownException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.packet.AbstractLocalPacket;
@@ -104,50 +103,14 @@ public class LocalClientHandler extends SimpleChannelHandler {
         if (localChannelReference == null) {
             initLocalClientHandler(e.getChannel());
         }
-        // FIXME now handle message from local server and write back them the
-        // network channel
+        // FIXME only Startup Packet should arrived here !
         final AbstractLocalPacket packet = (AbstractLocalPacket) e.getMessage();
         if (! (packet instanceof StartupPacket)) {
             logger.error("Local Client Channel Recv: " + e.getChannel().getId()+" : "
                     +packet.toString());
             throw new OpenR66ProtocolSystemException("Should not be here");
         }
-        if (true) {
-            logger.info("LocalClientHandler initialized: "+(localChannelReference!=null));
-            return;
-        }
-        // FIXME write back to the network channel
-        if (packet instanceof ErrorPacket) {
-            ErrorPacket errorPacket = (ErrorPacket) packet;
-            if (errorPacket.getCode() == ErrorPacket.CLOSECODE) {
-                logger.info("Will close channel");
-                if (!localChannelReference.getFuture().isDone()) {
-                    localChannelReference.getFuture().setFailure(null);
-                }
-                Channels.close(e.getChannel());
-                return;
-            } else if (errorPacket.getCode() == ErrorPacket.IGNORECODE) {
-                return;
-            }
-            final NetworkPacket networkPacket = new NetworkPacket(
-                    localChannelReference.getLocalId(), localChannelReference
-                            .getRemoteId(), packet.getType(), errorPacket.getLocalPacket());
-            if (errorPacket.getCode() == ErrorPacket.FORWARDCODE) {
-                ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket).awaitUninterruptibly(Configuration.WAITFORWRITE);
-            } else if (errorPacket.getCode() == ErrorPacket.FORWARDCLOSECODE) {
-                if (!localChannelReference.getFuture().isDone()) {
-                    localChannelReference.getFuture().setFailure(null);
-                }
-                ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket).awaitUninterruptibly();
-                logger.info("Will close channel");
-                Channels.close(e.getChannel());
-            }
-            return;
-        }
-        final NetworkPacket networkPacket = new NetworkPacket(
-                localChannelReference.getLocalId(), localChannelReference
-                        .getRemoteId(), packet.getType(), packet.getLocalPacket());
-        ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket).awaitUninterruptibly(Configuration.WAITFORWRITE);
+        logger.info("LocalClientHandler initialized: "+(localChannelReference!=null));
     }
 
     /*

@@ -134,6 +134,7 @@ public class NetworkTransaction {
     }
 
     public void closeAll() {
+        logger.warn("close All Network Channels");
         networkChannelGroup.close().awaitUninterruptibly();
         clientBootstrap.releaseExternalResources();
         channelClientFactory.releaseExternalResources();

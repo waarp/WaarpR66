@@ -64,6 +64,7 @@ public class LocalTransaction {
 
     public LocalTransaction() {
         serverBootstrap.setPipelineFactory(new LocalServerPipelineFactory());
+        serverBootstrap.setOption("connectTimeoutMillis", Configuration.TIMEOUTCON);
         serverChannel = serverBootstrap.bind(socketServerAddress);
         localChannelGroup.add(serverChannel);
         serverChannel.getCloseFuture().addListener(ChannelUtils.channelClosedLogger);
@@ -83,6 +84,8 @@ public class LocalTransaction {
     public LocalChannelReference createNewClient(Channel networkChannel,
             Integer remoteId) throws OpenR66ProtocolSystemException {
         ChannelFuture channelFuture = null;
+        logger.info("Status LocalChannelServer: "+serverChannel.getClass().getName()+" "+
+                serverChannel.getConfig().getConnectTimeoutMillis()+" "+serverChannel.isBound());
         for (int i = 0; i < Configuration.RETRYNB*2; i++) {
             channelFuture = clientBootstrap
                     .connect(socketServerAddress);
@@ -127,6 +130,7 @@ public class LocalTransaction {
         }
     }
     public void closeAll() {
+        logger.warn("close All Local Channels");
         localChannelGroup.close().awaitUninterruptibly();
         clientBootstrap.releaseExternalResources();
         channelClientFactory.releaseExternalResources();
