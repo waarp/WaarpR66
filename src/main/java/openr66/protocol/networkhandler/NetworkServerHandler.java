@@ -7,6 +7,7 @@ import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
+import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
 import openr66.protocol.exception.OpenR66ProtocolException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
@@ -131,6 +132,11 @@ public class NetworkServerHandler extends SimpleChannelHandler {
             OpenR66ExceptionTrappedFactory.getExceptionFromTrappedException(e.getChannel(), e);
         if (exception != null) {
             logger.error("Network Channel Exception: " + e.getChannel().getId(), exception);
+            if (exception instanceof OpenR66ProtocolBusinessNoWriteBackException) {
+                logger.error("Will close channel",exception);
+                Channels.close(e.getChannel());
+                return;
+            }
             final ConnectionErrorPacket errorPacket = new ConnectionErrorPacket(exception
                     .getMessage(), null);
             this.writeError(e.getChannel(), ChannelUtils.NOCHANNEL, ChannelUtils.NOCHANNEL, errorPacket);
@@ -139,7 +145,7 @@ public class NetworkServerHandler extends SimpleChannelHandler {
             return;
         }
         logger.info("Will close channel");
-        while (NetworkTransaction.removeNetworkChannel(e.getChannel()) > 0) {}
+        Channels.close(e.getChannel());
     }
 
     private void writeError(Channel channel, Integer remoteId, Integer localId, ConnectionErrorPacket error) {

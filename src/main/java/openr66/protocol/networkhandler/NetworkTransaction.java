@@ -15,8 +15,12 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
+import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.LocalChannelReference;
+import openr66.protocol.localhandler.packet.StartupPacket;
+import openr66.protocol.localhandler.packet.ValidateConnectionPacket;
+import openr66.protocol.networkhandler.packet.NetworkPacket;
 import openr66.protocol.utils.ChannelUtils;
 
 import org.jboss.netty.bootstrap.ClientBootstrap;
@@ -83,7 +87,9 @@ public class NetworkTransaction {
         lock.lock();
         try {
             Channel channel = createNewConnection(socketAddress);
-            return createNewClient(channel);
+            LocalChannelReference localChannelReference = createNewClient(channel);
+            sendValidationConnection(localChannelReference);
+            return localChannelReference;
         } finally {
             lock.unlock();
         }
@@ -92,7 +98,7 @@ public class NetworkTransaction {
         NetworkChannel networkChannel = networkChannelOnSocketAddressConcurrentHashMap.get(socketServerAddress.hashCode());
         if (networkChannel != null) {
             if (networkChannel.channel.isConnected()) {
-                logger.warn("Already Connected: "+networkChannel.toString());
+                logger.info("Already Connected: "+networkChannel.toString());
                 return networkChannel.channel;
             }
         }
@@ -132,6 +138,26 @@ public class NetworkTransaction {
         NetworkTransaction.addNetworkChannel(channel);
         return localChannelReference;
     }
+    
+    private void sendValidationConnection(LocalChannelReference localChannelReference) throws OpenR66ProtocolNetworkException {
+        ValidateConnectionPacket validate = new ValidateConnectionPacket(localChannelReference.getLocalId());
+        NetworkPacket packet;
+        try {
+            packet = new NetworkPacket(localChannelReference.getLocalId(), localChannelReference.getRemoteId(), 
+                    validate.getType(), validate.getLocalPacket());
+        } catch (OpenR66ProtocolPacketException e) {
+            throw new OpenR66ProtocolNetworkException("Bad packet",e);
+        }
+        Channel channel = localChannelReference.getNetworkChannel();
+        if (! channel.isConnected()) {
+            throw new OpenR66ProtocolNetworkException("Cannot validate connection since connection closed");
+        }
+        ChannelUtils.write(localChannelReference.getNetworkChannel(), packet).awaitUninterruptibly();
+        if (! localChannelReference.getValidation()) {
+            Channels.close(channel);
+            throw new OpenR66ProtocolNetworkException("Cannot validate connection");
+        }
+    }
 
     public void closeAll() {
         logger.warn("close All Network Channels");
@@ -146,7 +172,7 @@ public class NetworkTransaction {
                 networkChannelOnSocketAddressConcurrentHashMap.get(channel.getRemoteAddress().hashCode());
             if (networkChannel != null) {
                 networkChannel.count.incrementAndGet();
-                logger.warn("NC active: "+networkChannel.toString());
+                logger.info("NC active: "+networkChannel.toString());
             } else {
                 networkChannel = new NetworkChannel(channel);
                 networkChannelOnSocketAddressConcurrentHashMap.put(channel.getRemoteAddress().hashCode(), networkChannel);
@@ -164,10 +190,10 @@ public class NetworkTransaction {
                     //networkChannel.count.set(0);
                     networkChannelOnSocketAddressConcurrentHashMap.remove(channel.getRemoteAddress().hashCode());
                     logger.info("Close network channel");
-                    Channels.close(channel);
+                    Channels.close(channel).awaitUninterruptibly();
                     return 0;
                 }
-                logger.warn("NC left: "+networkChannel.toString());
+                logger.info("NC left: "+networkChannel.toString());
                 return networkChannel.count.get();
             } else {
                 if (channel.isConnected()) {

@@ -164,6 +164,17 @@ public class ChannelUtils implements Runnable {
         return new FailedChannelFuture(channel,new OpenR66ProtocolNetworkException("Not connected"));
     }
     /**
+     * 
+     * @param channel
+     */
+    public static void close(Channel channel) {
+        try {
+            Thread.sleep(Configuration.WAITFORNETOP);
+        } catch (InterruptedException e) {
+        }
+        Channels.close(channel);
+    }
+    /**
      * Exit global ChannelFactory
      */
     public static void exit() {

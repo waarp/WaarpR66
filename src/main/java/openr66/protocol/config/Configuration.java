@@ -101,9 +101,9 @@ public class Configuration {
      */
     public static int TIMEOUTCON = 30000;
     /**
-     * Time elapse for WRITE WAIT in ms
+     * Time elapse for WRITE OR CLOSE WAIT elaps in ms
      */
-    public static final long WAITFORWRITE = 1000;
+    public static final long WAITFORNETOP = 1000;
 
     /**
      * Size by default of block size for receive/sending files. Should be a

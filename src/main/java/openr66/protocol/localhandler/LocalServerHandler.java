@@ -27,6 +27,8 @@ import openr66.protocol.localhandler.packet.ShutdownPacket;
 import openr66.protocol.localhandler.packet.StartupPacket;
 import openr66.protocol.localhandler.packet.TestPacket;
 import openr66.protocol.localhandler.packet.ValidPacket;
+import openr66.protocol.localhandler.packet.ValidateConnectionPacket;
+import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
 import openr66.protocol.utils.ChannelUtils;
 
@@ -72,6 +74,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
             }
             this.setFinalize(status, null);
         }
+        if (localChannelReference != null) {
+            NetworkTransaction.removeNetworkChannel(localChannelReference.getNetworkChannel());
+        } else {
+            logger.error("Local Server Channel Closed but no LocalChannelReference: " + e.getChannel().getId());
+        }
         session.clear();
     }
 
@@ -112,7 +119,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 final ErrorPacket errorPacket = new ErrorPacket("No LocalChannelReference at "+packet.getClass().getName(), 
                         null, ErrorPacket.FORWARDCLOSECODE);
                 ChannelUtils.write(e.getChannel(), errorPacket).awaitUninterruptibly();
-                Channels.close(e.getChannel());
+                ChannelUtils.close(e.getChannel());
                 return;
             }
             if (packet instanceof DataPacket) {
@@ -131,13 +138,15 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 shutdown(e.getChannel(), (ShutdownPacket) packet);
             } else if (packet instanceof ConnectionErrorPacket) {
                 connectionError(e.getChannel(), (ConnectionErrorPacket) packet);
+            } else if (packet instanceof ValidateConnectionPacket) {
+                validateConnection(e.getChannel(), (ValidateConnectionPacket) packet);
             } else {
                 logger.error("Unknown Mesg: "+packet.getClass().getName());
                 setFinalize(false, null);
                 final ErrorPacket errorPacket = new ErrorPacket("Unkown Mesg: "+packet.getClass().getName(), 
                         null, ErrorPacket.FORWARDCLOSECODE);
                 writeBack(errorPacket, true);
-                Channels.close(e.getChannel());
+                ChannelUtils.close(e.getChannel());
             }
         }
     }
@@ -161,6 +170,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
             } else {
                 setFinalize(false, null);
             }
+            if (exception instanceof OpenR66ProtocolBusinessNoWriteBackException) {
+                logger.error("Will close channel", exception);
+                Channels.close(e.getChannel());
+                return;
+            }
             final ErrorPacket errorPacket = new ErrorPacket(exception
                     .getMessage(), null, ErrorPacket.FORWARDCLOSECODE);
             // XXX FIXME Do not close, client will close
@@ -169,7 +183,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             } catch (OpenR66ProtocolPacketException e1) {
                 // should not be
             }
-            Channels.close(e.getChannel());
+            ChannelUtils.close(e.getChannel());
             //ChannelUtils.write(e.getChannel(), errorPacket);
         } else {
             // Nothing to do
@@ -188,12 +202,22 @@ public class LocalServerHandler extends SimpleChannelHandler {
             // XXX FIXME  Do not close, client will close
             ChannelUtils.write(channel, error).awaitUninterruptibly();
             //Cannot do writeBack(error, true);
-            Channels.close(channel);
+            ChannelUtils.close(channel);
             return;
         }
         ChannelUtils.write(channel, packet);
         logger.info("Get LocalChannel: "+localChannelReference.getLocalId());
     }
+    private void validateConnection(Channel channel, ValidateConnectionPacket packet) throws OpenR66ProtocolPacketException {
+        logger.info("Recv: "+packet.toString());
+        this.localChannelReference.validateConnection(true);
+        if (packet.isToValidate()) {
+            packet.validate();
+            writeBack(packet, false);
+        }
+    }
+    
+    
     private void authent(Channel channel, AuthentPacket packet) throws OpenR66ProtocolPacketException {
         try {
             this.session.getAuth().connection(packet.getHostId(), packet.getKey());
@@ -203,7 +227,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             ErrorPacket error = new ErrorPacket("Connection not allowed",null,ErrorPacket.FORWARDCLOSECODE);
             // XXX FIXME Do not close, client will close
             writeBack(error, true);
-            Channels.close(channel);
+            ChannelUtils.close(channel);
             //ChannelUtils.write(channel, error);
             return;
         } catch (Reply421Exception e1) {
@@ -212,7 +236,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             ErrorPacket error = new ErrorPacket("Service unavailable",null,ErrorPacket.FORWARDCLOSECODE);
             // XXX FIXME Do not close, client will close
             writeBack(error, true);
-            Channels.close(channel);
+            ChannelUtils.close(channel);
             //ChannelUtils.write(channel, error);
             return;
         }
@@ -271,7 +295,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
     private void valid(Channel channel, ValidPacket packet) throws OpenR66ProtocolNotAuthenticatedException {
         // FIXME do something
         if (packet.getTypeValid() == LocalPacketFactory.TESTPACKET) {
-            logger.warn("Valid TEST so Will close channel");
+            logger.warn("Valid TEST so Will close channel"+localChannelReference.toString());
             setFinalize(true, packet);
             Channels.close(channel);
             return;

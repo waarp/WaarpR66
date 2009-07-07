@@ -44,7 +44,8 @@ public class LocalTransaction {
     private final ChannelFutureListener remover =
         new ChannelFutureListener() {
         public void operationComplete(ChannelFuture future) {
-            localChannelHashMap.remove(future.getChannel().getId());
+            LocalChannelReference localChannelReference = localChannelHashMap.remove(future.getChannel().getId());
+            localChannelReference.validateConnection(false);
         }
     };
 

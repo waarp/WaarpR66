@@ -7,6 +7,7 @@ import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
+import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
 import openr66.protocol.exception.OpenR66ProtocolException;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolShutdownException;
@@ -51,11 +52,6 @@ public class LocalClientHandler extends SimpleChannelHandler {
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
         logger.info("Local Client Channel Closed: " + e.getChannel().getId());
-        if (localChannelReference != null) {
-            NetworkTransaction.removeNetworkChannel(localChannelReference.getNetworkChannel());
-        } else {
-            logger.error("Local Client Channel Closed but no LocalChannelReference: " + e.getChannel().getId());
-        }
     }
 
     /*
@@ -138,6 +134,10 @@ public class LocalClientHandler extends SimpleChannelHandler {
                     logger.info("Will close channel");
                     Channels.close(e.getChannel());
                     return;
+                } else if (exception instanceof OpenR66ProtocolBusinessNoWriteBackException) {
+                    logger.error("Will close channel", exception);
+                    Channels.close(e.getChannel());
+                    return;
                 }
                 if (!localChannelReference.getFuture().isDone()) {
                     localChannelReference.getFuture().setFailure(exception);
@@ -155,7 +155,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
             }
         }
         logger.info("Will close channel");
-        Channels.close(e.getChannel());
+        ChannelUtils.close(e.getChannel());
     }
 
 }

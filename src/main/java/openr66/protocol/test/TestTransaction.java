@@ -83,7 +83,7 @@ public class TestTransaction implements Runnable {
         }
         NetworkPacket networkPacket;
         try {
-            networkPacket = new NetworkPacket(localChannelReference.getLocalId(), ChannelUtils.NOCHANNEL, 
+            networkPacket = new NetworkPacket(localChannelReference.getLocalId(), localChannelReference.getRemoteId(), 
                     LocalPacketFactory.TESTPACKET,
                     this.testPacket.getLocalPacket());
         } catch (OpenR66ProtocolPacketException e) {
@@ -119,7 +119,7 @@ public class TestTransaction implements Runnable {
         final SocketAddress socketServerAddress = new InetSocketAddress(
                 Configuration.SERVER_PORT);
         ExecutorService executorService = Executors.newCachedThreadPool();
-        int nb = 20;
+        int nb = 100;
         
         R66Future []arrayFuture = new R66Future[nb];
         logger.warn("Start");

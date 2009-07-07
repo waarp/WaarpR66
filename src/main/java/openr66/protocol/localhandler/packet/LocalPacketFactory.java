@@ -38,6 +38,7 @@ public class LocalPacketFactory {
     public static final byte VALIDPACKET = 10;
     public static final byte STARTUPPACKET = 11;
     public static final byte CONNECTERRORPACKET = 12;
+    public static final byte VALIDATECONNECTIONPACKET = 13;
 
     /**
      * This method create a Packet from the ChannelBuffer.
@@ -80,6 +81,9 @@ public class LocalPacketFactory {
         }
         case CONNECTERRORPACKET: {
             return ConnectionErrorPacket.createFromBuffer(headerLength, middleLength, endLength, buf);
+        }
+        case VALIDATECONNECTIONPACKET: {
+            return ValidateConnectionPacket.createFromBuffer(headerLength, middleLength, endLength, buf);
         }
         default:
             throw new OpenR66ProtocolPacketException(

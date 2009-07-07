@@ -16,7 +16,10 @@
 package openr66.protocol.localhandler;
 
 import goldengate.common.future.GgFuture;
+import goldengate.common.logging.GgInternalLogger;
+import goldengate.common.logging.GgInternalLoggerFactory;
 
+import openr66.protocol.config.Configuration;
 import openr66.protocol.utils.R66Future;
 
 import org.jboss.netty.channel.Channel;
@@ -28,11 +31,18 @@ import org.jboss.netty.channel.Channel;
  * @author Frederic Bregier
  */
 public class LocalChannelReference {
+    /**
+     * Internal Logger
+     */
+    private static final GgInternalLogger logger = GgInternalLoggerFactory
+            .getLogger(LocalChannelReference.class);
+    
     private final Channel localChannel;
     private final Channel networkChannel;
     private final Integer localId;
     private Integer remoteId;
     private final R66Future future = new R66Future(true);
+    private final R66Future futureValidate = new R66Future(true);
 
     public LocalChannelReference(Channel localChannel, Channel networkChannel,
             Integer remoteId) {
@@ -84,7 +94,32 @@ public class LocalChannelReference {
     public R66Future getFuture() {
         return future;
     }
-
+    /**
+     * Validate or Invalidate the connection
+     * @param validate
+     */
+    public void validateConnection(boolean validate) {
+        if (this.futureValidate.isDone()) {
+            logger.info("LocalChannelReference already validated: "+this.futureValidate.isSuccess());
+            return;
+        }
+        logger.info("LocalChannelReference validate: "+validate);
+        if (validate) {
+            this.futureValidate.setSuccess();
+        } else {
+            this.futureValidate.cancel();
+        }
+    }
+    /**
+     * 
+     * @return True if the connection is OK
+     */
+    public boolean getValidation() {
+        if (! this.futureValidate.awaitUninterruptibly(Configuration.WAITFORNETOP)) {
+            this.futureValidate.cancel();
+        }
+        return this.futureValidate.isSuccess();
+    }
     @Override
     public String toString() {
         return "LCR: L: "+this.localId+" R: "+this.remoteId;
