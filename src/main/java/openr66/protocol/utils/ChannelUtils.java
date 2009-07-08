@@ -44,16 +44,18 @@ public class ChannelUtils implements Runnable {
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(ChannelUtils.class);
+
     public static final Integer NOCHANNEL = Integer.MIN_VALUE;
-    public static final ChannelFutureListener channelClosedLogger =
-        new ChannelFutureListener() {
+
+    public static final ChannelFutureListener channelClosedLogger = new ChannelFutureListener() {
         public void operationComplete(ChannelFuture future) {
             logger.warn("Channel closed", new OpenR66ProtocolSystemException());
         }
     };
+
     /**
      * Get the Remote InetAddress
-     * 
+     *
      * @param channel
      * @return the remote InetAddress
      */
@@ -68,7 +70,7 @@ public class ChannelUtils implements Runnable {
 
     /**
      * Get the Local InetAddress
-     * 
+     *
      * @param channel
      * @return the local InetAddress
      */
@@ -80,7 +82,7 @@ public class ChannelUtils implements Runnable {
 
     /**
      * Get the Remote InetSocketAddress
-     * 
+     *
      * @param channel
      * @return the remote InetSocketAddress
      */
@@ -90,7 +92,7 @@ public class ChannelUtils implements Runnable {
 
     /**
      * Get the Local InetSocketAddress
-     * 
+     *
      * @param channel
      * @return the local InetSocketAddress
      */
@@ -100,7 +102,7 @@ public class ChannelUtils implements Runnable {
 
     /**
      * Finalize resources attached to handlers
-     * 
+     *
      * @author Frederic Bregier
      */
     private static class R66ChannelGroupFutureListener implements
@@ -125,7 +127,7 @@ public class ChannelUtils implements Runnable {
 
     /**
      * Terminate all registered channels
-     * 
+     *
      * @return the number of previously registered network channels
      */
     private static int terminateCommandChannels() {
@@ -144,15 +146,16 @@ public class ChannelUtils implements Runnable {
 
     /**
      * Return the current number of network connections
-     * 
+     *
      * @param configuration
      * @return the current number of network connections
      */
     public static int nbCommandChannels(Configuration configuration) {
         return configuration.getServerChannelGroup().size();
     }
+
     /**
-     * 
+     *
      * @param channel
      * @param message
      * @return ChannelFuture
@@ -161,10 +164,12 @@ public class ChannelUtils implements Runnable {
         if (channel.isConnected()) {
             return Channels.write(channel, message);
         }
-        return new FailedChannelFuture(channel,new OpenR66ProtocolNetworkException("Not connected"));
+        return new FailedChannelFuture(channel,
+                new OpenR66ProtocolNetworkException("Not connected"));
     }
+
     /**
-     * 
+     *
      * @param channel
      */
     public static void close(Channel channel) {
@@ -174,6 +179,7 @@ public class ChannelUtils implements Runnable {
         }
         Channels.close(channel);
     }
+
     /**
      * Exit global ChannelFactory
      */

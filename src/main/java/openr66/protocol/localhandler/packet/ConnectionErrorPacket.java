@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package openr66.protocol.localhandler.packet;
 
@@ -10,13 +10,13 @@ import org.jboss.netty.buffer.ChannelBuffers;
 
 /**
  * Error Message class for packet
- * 
+ *
  * 3 strings: sheader,smiddle,send
- * 
+ *
  * @author frederic bregier
  */
 public class ConnectionErrorPacket extends AbstractLocalPacket {
-    
+
     private String sheader = null;
 
     private String smiddle = null;
@@ -27,19 +27,23 @@ public class ConnectionErrorPacket extends AbstractLocalPacket {
      * @param endLength
      * @param buf
      * @return the new ErrorPacket from buffer
-     * @throws OpenR66ProtocolPacketException 
+     * @throws OpenR66ProtocolPacketException
      */
     public static ConnectionErrorPacket createFromBuffer(int headerLength,
-            int middleLength, int endLength, ChannelBuffer buf) throws OpenR66ProtocolPacketException {
+            int middleLength, int endLength, ChannelBuffer buf)
+            throws OpenR66ProtocolPacketException {
         final byte[] bheader = new byte[headerLength - 1];
         final byte[] bmiddle = new byte[middleLength];
-        if (headerLength-1 > 0)
+        if (headerLength - 1 > 0) {
             buf.readBytes(bheader);
-        if (middleLength > 0)
+        }
+        if (middleLength > 0) {
             buf.readBytes(bmiddle);
-        return new ConnectionErrorPacket(new String(bheader), new String(bmiddle));
+        }
+        return new ConnectionErrorPacket(new String(bheader), new String(
+                bmiddle));
     }
-    
+
     /**
      * @param header
      * @param middle
@@ -51,6 +55,7 @@ public class ConnectionErrorPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
+     *
      * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createEnd()
      */
     @Override
@@ -60,7 +65,9 @@ public class ConnectionErrorPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createHeader()
+     *
+     * @see
+     * openr66.protocol.localhandler.packet.AbstractLocalPacket#createHeader()
      */
     @Override
     public void createHeader() throws OpenR66ProtocolPacketException {
@@ -71,7 +78,9 @@ public class ConnectionErrorPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createMiddle()
+     *
+     * @see
+     * openr66.protocol.localhandler.packet.AbstractLocalPacket#createMiddle()
      */
     @Override
     public void createMiddle() throws OpenR66ProtocolPacketException {
@@ -82,6 +91,7 @@ public class ConnectionErrorPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
+     *
      * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
      */
     @Override

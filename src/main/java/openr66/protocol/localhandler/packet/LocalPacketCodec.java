@@ -28,7 +28,7 @@ import org.jboss.netty.handler.codec.frame.FrameDecoder;
 
 /**
  * Packet Decoder
- * 
+ *
  * @author Frederic Bregier
  */
 public class LocalPacketCodec extends FrameDecoder implements
@@ -36,6 +36,7 @@ public class LocalPacketCodec extends FrameDecoder implements
 
     /*
      * (non-Javadoc)
+     *
      * @see
      * org.jboss.netty.handler.codec.frame.FrameDecoder#decode(org.jboss.netty
      * .channel.ChannelHandlerContext, org.jboss.netty.channel.Channel,
@@ -84,8 +85,8 @@ public class LocalPacketCodec extends FrameDecoder implements
                 return;
             }
             if (!(evt.getMessage() instanceof AbstractLocalPacket)) {
-                throw new InvalidArgumentException("Incorrect write object: "
-                        + evt.getMessage().getClass().getName());
+                throw new InvalidArgumentException("Incorrect write object: " +
+                        evt.getMessage().getClass().getName());
             }
             final AbstractLocalPacket packet = (AbstractLocalPacket) evt
                     .getMessage();

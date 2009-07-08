@@ -25,7 +25,5 @@ package openr66.command;
  *
  */
 public enum R66CommandCode {
-    Connection,
-    Connected,
-    Disconnected;
+    Connection, Connected, Disconnected;
 }

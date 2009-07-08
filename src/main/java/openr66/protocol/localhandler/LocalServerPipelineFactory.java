@@ -25,7 +25,7 @@ import org.jboss.netty.handler.execution.ExecutionHandler;
 
 /**
  * Pipeline Factory for Local Server
- * 
+ *
  * @author Frederic Bregier
  */
 public class LocalServerPipelineFactory implements ChannelPipelineFactory {
@@ -33,8 +33,8 @@ public class LocalServerPipelineFactory implements ChannelPipelineFactory {
     public ChannelPipeline getPipeline() throws Exception {
         final ChannelPipeline pipeline = Channels.pipeline();
         pipeline.addLast("codec", new LocalPacketCodec());
-        pipeline.addLast("pipelineExecutor", 
-                new ExecutionHandler(Configuration.configuration.getLocalPipelineExecutor()));
+        pipeline.addLast("pipelineExecutor", new ExecutionHandler(
+                Configuration.configuration.getLocalPipelineExecutor()));
         pipeline.addLast("handler", new LocalServerHandler());
         return pipeline;
     }

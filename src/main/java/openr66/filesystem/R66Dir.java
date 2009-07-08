@@ -37,8 +37,11 @@ public class R66Dir extends FilesystemBasedDirImpl {
         super(session, new FilesystemBasedOptsMLSxImpl());
     }
 
-    /* (non-Javadoc)
-     * @see goldengate.common.file.DirInterface#newFile(java.lang.String, boolean)
+    /*
+     * (non-Javadoc)
+     *
+     * @see goldengate.common.file.DirInterface#newFile(java.lang.String,
+     * boolean)
      */
     @Override
     public R66File newFile(String path, boolean append)

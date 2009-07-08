@@ -21,73 +21,97 @@ import org.jboss.netty.buffer.ChannelBuffer;
 
 /**
  * Factory to create Packet according to type from a buffer
- * 
+ *
  * @author Frederic Bregier
  */
 public class LocalPacketFactory {
     public static final byte TESTPACKET = 0;
+
     public static final byte ERRORPACKET = 1;
+
     public static final byte SHUTDOWNPACKET = 2;
+
     public static final byte REQUESTPACKET = 3;
+
     public static final byte DATAPACKET = 4;
+
     public static final byte STATUSPACKET = 5;
+
     public static final byte CANCELPACKET = 6;
+
     public static final byte CONFIGSENDPACKET = 7;
+
     public static final byte CONFIGRECVPACKET = 8;
+
     public static final byte AUTHENTPACKET = 9;
+
     public static final byte VALIDPACKET = 10;
+
     public static final byte STARTUPPACKET = 11;
+
     public static final byte CONNECTERRORPACKET = 12;
+
     public static final byte VALIDATECONNECTIONPACKET = 13;
 
     /**
      * This method create a Packet from the ChannelBuffer.
-     * 
+     *
      * @param headerLength
      *            length of the header from the current position of the buffer
      * @param middleLength
      * @param endLength
      * @param buf
      * @return the newly created Packet
-     * @throws OpenR66ProtocolPacketException 
+     * @throws OpenR66ProtocolPacketException
      */
     public static AbstractLocalPacket createPacketFromChannelBuffer(
-            int headerLength, int middleLength, int endLength, ChannelBuffer buf) throws OpenR66ProtocolPacketException {
+            int headerLength, int middleLength, int endLength, ChannelBuffer buf)
+            throws OpenR66ProtocolPacketException {
         final byte packetType = buf.readByte();
         switch (packetType) {
-        case TESTPACKET: {
-            return TestPacket.createFromBuffer(headerLength, middleLength, endLength, buf);
-        }
-        case ERRORPACKET: {
-            return ErrorPacket.createFromBuffer(headerLength, middleLength, endLength, buf);
-        }
-        case SHUTDOWNPACKET: {
-            return ShutdownPacket.createFromBuffer(headerLength, middleLength, endLength, buf);
-        }
-        case REQUESTPACKET: {
-            return RequestPacket.createFromBuffer(headerLength, middleLength, endLength, buf);
-        }
-        case DATAPACKET: {
-            return DataPacket.createFromBuffer(headerLength, middleLength, endLength, buf);
-        }
-        case AUTHENTPACKET: {
-            return AuthentPacket.createFromBuffer(headerLength, middleLength, endLength, buf);
-        }
-        case VALIDPACKET: {
-            return ValidPacket.createFromBuffer(headerLength, middleLength, endLength, buf);
-        }
-        case STARTUPPACKET: {
-            return StartupPacket.createFromBuffer(headerLength, middleLength, endLength, buf);
-        }
-        case CONNECTERRORPACKET: {
-            return ConnectionErrorPacket.createFromBuffer(headerLength, middleLength, endLength, buf);
-        }
-        case VALIDATECONNECTIONPACKET: {
-            return ValidateConnectionPacket.createFromBuffer(headerLength, middleLength, endLength, buf);
-        }
-        default:
-            throw new OpenR66ProtocolPacketException(
-                    "Unvalid Packet Type received: " + packetType);
+            case TESTPACKET: {
+                return TestPacket.createFromBuffer(headerLength, middleLength,
+                        endLength, buf);
+            }
+            case ERRORPACKET: {
+                return ErrorPacket.createFromBuffer(headerLength, middleLength,
+                        endLength, buf);
+            }
+            case SHUTDOWNPACKET: {
+                return ShutdownPacket.createFromBuffer(headerLength,
+                        middleLength, endLength, buf);
+            }
+            case REQUESTPACKET: {
+                return RequestPacket.createFromBuffer(headerLength,
+                        middleLength, endLength, buf);
+            }
+            case DATAPACKET: {
+                return DataPacket.createFromBuffer(headerLength, middleLength,
+                        endLength, buf);
+            }
+            case AUTHENTPACKET: {
+                return AuthentPacket.createFromBuffer(headerLength,
+                        middleLength, endLength, buf);
+            }
+            case VALIDPACKET: {
+                return ValidPacket.createFromBuffer(headerLength, middleLength,
+                        endLength, buf);
+            }
+            case STARTUPPACKET: {
+                return StartupPacket.createFromBuffer(headerLength,
+                        middleLength, endLength, buf);
+            }
+            case CONNECTERRORPACKET: {
+                return ConnectionErrorPacket.createFromBuffer(headerLength,
+                        middleLength, endLength, buf);
+            }
+            case VALIDATECONNECTIONPACKET: {
+                return ValidateConnectionPacket.createFromBuffer(headerLength,
+                        middleLength, endLength, buf);
+            }
+            default:
+                throw new OpenR66ProtocolPacketException(
+                        "Unvalid Packet Type received: " + packetType);
         }
     }
 }

@@ -1,24 +1,28 @@
 /**
- * Copyright 2009, Frederic Bregier, and individual contributors
- * by the @author tags. See the COPYRIGHT.txt in the distribution for a
- * full listing of individual contributors.
+ * Copyright 2009, Frederic Bregier, and individual contributors by the @author
+ * tags. See the COPYRIGHT.txt in the distribution for a full listing of
+ * individual contributors.
  *
- * This is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 3.0 of
- * the License, or (at your option) any later version.
+ * This is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
  *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
+ * This software is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this software; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF
+ * site: http://www.fsf.org.
  */
 package openr66.protocol.test;
+
+import goldengate.common.logging.GgInternalLogger;
+import goldengate.common.logging.GgInternalLoggerFactory;
+import goldengate.common.logging.GgSlf4JLoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -41,10 +45,6 @@ import org.jboss.netty.logging.InternalLoggerFactory;
 
 import ch.qos.logback.classic.Level;
 
-import goldengate.common.logging.GgInternalLogger;
-import goldengate.common.logging.GgInternalLoggerFactory;
-import goldengate.common.logging.GgSlf4JLoggerFactory;
-
 /**
  * @author Frederic Bregier
  *
@@ -54,60 +54,67 @@ public class TestTransaction implements Runnable {
      * Internal Logger
      */
     private static GgInternalLogger logger;
-    
+
     final private NetworkTransaction networkTransaction;
+
     final private R66Future future;
+
     private final SocketAddress socketAddress;
+
     final private TestPacket testPacket;
-    
-    public TestTransaction(NetworkTransaction networkTransaction, R66Future future, SocketAddress socketAddress, TestPacket packet) {
+
+    public TestTransaction(NetworkTransaction networkTransaction,
+            R66Future future, SocketAddress socketAddress, TestPacket packet) {
         if (logger == null) {
-            logger = GgInternalLoggerFactory
-                .getLogger(TestTransaction.class);
+            logger = GgInternalLoggerFactory.getLogger(TestTransaction.class);
         }
         this.networkTransaction = networkTransaction;
         this.future = future;
         this.socketAddress = socketAddress;
-        this.testPacket = packet;
+        testPacket = packet;
     }
+
     public void run() {
         LocalChannelReference localChannelReference;
         try {
-            localChannelReference = this.networkTransaction
-                    .createConnection(this.socketAddress);
+            localChannelReference = networkTransaction
+                    .createConnection(socketAddress);
         } catch (OpenR66ProtocolNetworkException e1) {
             logger.error("Cannot connect", e1);
-            this.future.setResult(null);
-            this.future.setFailure(e1);
+            future.setResult(null);
+            future.setFailure(e1);
             return;
         }
         NetworkPacket networkPacket;
         try {
-            networkPacket = new NetworkPacket(localChannelReference.getLocalId(), localChannelReference.getRemoteId(), 
-                    LocalPacketFactory.TESTPACKET,
-                    this.testPacket.getLocalPacket());
+            networkPacket = new NetworkPacket(localChannelReference
+                    .getLocalId(), localChannelReference.getRemoteId(),
+                    LocalPacketFactory.TESTPACKET, testPacket
+                            .getLocalPacket());
         } catch (OpenR66ProtocolPacketException e) {
-            this.future.setResult(null);
-            this.future.setFailure(e);
+            future.setResult(null);
+            future.setFailure(e);
             Channels.close(localChannelReference.getLocalChannel());
             return;
         }
-        ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket);
+        ChannelUtils.write(localChannelReference.getNetworkChannel(),
+                networkPacket);
         localChannelReference.getFuture().awaitUninterruptibly();
         if (localChannelReference.getFuture().isSuccess()) {
-            this.future.setResult(localChannelReference.getFuture().getResult());
-            this.future.setSuccess();
+            future
+                    .setResult(localChannelReference.getFuture().getResult());
+            future.setSuccess();
         } else {
-            this.future.setResult(null);
+            future.setResult(null);
             Throwable throwable = localChannelReference.getFuture().getCause();
             if (throwable == null) {
-                this.future.cancel();
+                future.cancel();
             } else {
-                this.future.setFailure(throwable);
+                future.setFailure(throwable);
             }
         }
     }
-    
+
     public static void main(String[] args) {
         InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
                 Level.WARN));
@@ -116,42 +123,43 @@ public class TestTransaction implements Runnable {
         }
         Configuration.configuration.computeNbThreads();
         Configuration.configuration.pipelineInit();
-        
+
         final NetworkTransaction networkTransaction = new NetworkTransaction();
         final SocketAddress socketServerAddress = new InetSocketAddress(
                 Configuration.SERVER_PORT);
         ExecutorService executorService = Executors.newCachedThreadPool();
         int nb = 20;
-        
-        R66Future []arrayFuture = new R66Future[nb];
+
+        R66Future[] arrayFuture = new R66Future[nb];
         logger.warn("Start");
         long time1 = System.currentTimeMillis();
-        for (int i = 0; i < nb; i++) {
+        for (int i = 0; i < nb; i ++) {
             arrayFuture[i] = new R66Future(true);
-            TestPacket packet = new TestPacket("Test", ""+i, 0);
-            TestTransaction transaction = new TestTransaction(networkTransaction, arrayFuture[i], socketServerAddress, packet);
+            TestPacket packet = new TestPacket("Test", "" + i, 0);
+            TestTransaction transaction = new TestTransaction(
+                    networkTransaction, arrayFuture[i], socketServerAddress,
+                    packet);
             executorService.execute(transaction);
-            /*try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }*/
+            /*
+             * try { Thread.sleep(10); } catch (InterruptedException e) { //
+             * TODO Auto-generated catch block e.printStackTrace(); }
+             */
         }
         int success = 0;
         int error = 0;
-        for (int i = 0; i < nb; i++) {
+        for (int i = 0; i < nb; i ++) {
             arrayFuture[i].awaitUninterruptibly();
             if (arrayFuture[i].isSuccess()) {
-                success++;
+                success ++;
             } else {
-                error++;
+                error ++;
             }
         }
         long time2 = System.currentTimeMillis();
-        logger.warn("Success: "+success+" Error: "+error+" NB/s: "+(success*TestPacket.pingpong*1000/(time2-time1)));
+        logger.warn("Success: " + success + " Error: " + error + " NB/s: " +
+                success * TestPacket.pingpong * 1000 / (time2 - time1));
         networkTransaction.closeAll();
         executorService.shutdown();
     }
-    
+
 }

@@ -32,8 +32,8 @@ public class NetworkServerPipelineFactory implements ChannelPipelineFactory {
     public ChannelPipeline getPipeline() throws Exception {
         final ChannelPipeline pipeline = Channels.pipeline();
         pipeline.addLast("codec", new NetworkPacketCodec());
-        pipeline.addLast("pipelineExecutor", 
-                new ExecutionHandler(Configuration.configuration.getServerPipelineExecutor()));
+        pipeline.addLast("pipelineExecutor", new ExecutionHandler(
+                Configuration.configuration.getServerPipelineExecutor()));
         pipeline.addLast("handler", new NetworkServerHandler());
         return pipeline;
     }

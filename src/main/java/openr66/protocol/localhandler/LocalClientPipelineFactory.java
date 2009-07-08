@@ -23,7 +23,7 @@ import org.jboss.netty.channel.Channels;
 
 /**
  * Pipeline Factory for Local Client
- * 
+ *
  * @author Frederic Bregier
  */
 public class LocalClientPipelineFactory implements ChannelPipelineFactory {

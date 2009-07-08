@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package openr66.protocol.localhandler.packet;
 
@@ -15,7 +15,7 @@ import org.jboss.netty.buffer.ChannelBuffers;
  * length field (4 bytes), type field (1 byte), ...<br>
  * Middle: (Middle length field bytes)<br>
  * End: (End length field bytes) = code status field (4 bytes), ...<br>
- * 
+ *
  * @author frederic bregier
  */
 public abstract class AbstractLocalPacket {
@@ -55,19 +55,19 @@ public abstract class AbstractLocalPacket {
         if (header == null) {
             createHeader();
         }
-        final ChannelBuffer newHeader = (header != null) ? header
+        final ChannelBuffer newHeader = header != null? header
                 : ChannelBuffers.EMPTY_BUFFER;
         final int headerLength = 4 * 2 + 1 + newHeader.readableBytes();
         if (middle == null) {
             createMiddle();
         }
-        final ChannelBuffer newMiddle = (middle != null) ? middle
+        final ChannelBuffer newMiddle = middle != null? middle
                 : ChannelBuffers.EMPTY_BUFFER;
         final int middleLength = newMiddle.readableBytes();
         if (end == null) {
             createEnd();
         }
-        final ChannelBuffer newEnd = (end != null) ? end
+        final ChannelBuffer newEnd = end != null? end
                 : ChannelBuffers.EMPTY_BUFFER;
         final int endLength = newEnd.readableBytes();
         buf.writeInt(headerLength);

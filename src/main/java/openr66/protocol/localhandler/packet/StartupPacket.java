@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package openr66.protocol.localhandler.packet;
 
@@ -10,13 +10,13 @@ import org.jboss.netty.buffer.ChannelBuffers;
 
 /**
  * Startup Message class
- * 
+ *
  * 1 localId (Integer): localId
- * 
+ *
  * @author frederic bregier
  */
 public class StartupPacket extends AbstractLocalPacket {
-    private Integer localId;
+    private final Integer localId;
 
     /**
      * @param headerLength
@@ -30,16 +30,17 @@ public class StartupPacket extends AbstractLocalPacket {
         Integer newId = buf.readInt();
         return new StartupPacket(newId);
     }
-    
+
     /**
      * @param newId
      */
     public StartupPacket(Integer newId) {
-        this.localId = newId;
+        localId = newId;
     }
 
     /*
      * (non-Javadoc)
+     *
      * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createEnd()
      */
     @Override
@@ -49,17 +50,21 @@ public class StartupPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createHeader()
+     *
+     * @see
+     * openr66.protocol.localhandler.packet.AbstractLocalPacket#createHeader()
      */
     @Override
     public void createHeader() throws OpenR66ProtocolPacketException {
         header = ChannelBuffers.buffer(4);
-        header.writeInt(this.localId);
+        header.writeInt(localId);
     }
 
     /*
      * (non-Javadoc)
-     * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createMiddle()
+     *
+     * @see
+     * openr66.protocol.localhandler.packet.AbstractLocalPacket#createMiddle()
      */
     @Override
     public void createMiddle() throws OpenR66ProtocolPacketException {
@@ -68,11 +73,12 @@ public class StartupPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
+     *
      * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
      */
     @Override
     public String toString() {
-        return "StartupPacket: " + this.localId;
+        return "StartupPacket: " + localId;
     }
 
     @Override
@@ -84,7 +90,7 @@ public class StartupPacket extends AbstractLocalPacket {
      * @return the localId
      */
     public Integer getLocalId() {
-        return this.localId;
+        return localId;
     }
-    
+
 }

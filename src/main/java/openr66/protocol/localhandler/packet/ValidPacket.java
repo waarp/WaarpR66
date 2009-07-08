@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package openr66.protocol.localhandler.packet;
 
@@ -10,9 +10,9 @@ import org.jboss.netty.buffer.ChannelBuffers;
 
 /**
  * Validation Message class for packet
- * 
+ *
  * 2 strings and one byte: sheader,smiddle,send
- * 
+ *
  * @author frederic bregier
  */
 public class ValidPacket extends AbstractLocalPacket {
@@ -20,7 +20,7 @@ public class ValidPacket extends AbstractLocalPacket {
 
     private String smiddle = null;
 
-    private byte send;
+    private final byte send;
 
     /**
      * @param headerLength
@@ -34,15 +34,16 @@ public class ValidPacket extends AbstractLocalPacket {
         final byte[] bheader = new byte[headerLength - 1];
         final byte[] bmiddle = new byte[middleLength];
         final byte bend;
-        if (headerLength-1 > 0)
+        if (headerLength - 1 > 0) {
             buf.readBytes(bheader);
-        if (middleLength > 0)
+        }
+        if (middleLength > 0) {
             buf.readBytes(bmiddle);
+        }
         bend = buf.readByte();
-        return new ValidPacket(new String(bheader), new String(bmiddle),
-                bend);
+        return new ValidPacket(new String(bheader), new String(bmiddle), bend);
     }
-    
+
     /**
      * @param header
      * @param middle
@@ -56,6 +57,7 @@ public class ValidPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
+     *
      * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createEnd()
      */
     @Override
@@ -66,7 +68,9 @@ public class ValidPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createHeader()
+     *
+     * @see
+     * openr66.protocol.localhandler.packet.AbstractLocalPacket#createHeader()
      */
     @Override
     public void createHeader() throws OpenR66ProtocolPacketException {
@@ -77,7 +81,9 @@ public class ValidPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createMiddle()
+     *
+     * @see
+     * openr66.protocol.localhandler.packet.AbstractLocalPacket#createMiddle()
      */
     @Override
     public void createMiddle() throws OpenR66ProtocolPacketException {
@@ -88,6 +94,7 @@ public class ValidPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
+     *
      * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
      */
     @Override
@@ -120,5 +127,5 @@ public class ValidPacket extends AbstractLocalPacket {
     public byte getTypeValid() {
         return send;
     }
-    
+
 }

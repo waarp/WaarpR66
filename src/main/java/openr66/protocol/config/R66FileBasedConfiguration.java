@@ -22,6 +22,7 @@ package openr66.protocol.config;
 
 import goldengate.common.digest.FilesystemBasedDigest;
 import goldengate.common.digest.MD5;
+import goldengate.common.file.filesystembased.FilesystemBasedDirImpl;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 import goldengate.common.file.filesystembased.specific.FilesystemBasedDirJdkAbstract;
 import goldengate.common.logging.GgInternalLogger;
@@ -34,7 +35,6 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import openr66.authentication.R66SimpleAuth;
-import openr66.filesystem.R66Dir;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -143,8 +143,7 @@ public class R66FileBasedConfiguration {
     /**
      * All authentications
      */
-    private final ConcurrentHashMap<String, R66SimpleAuth> authentications = 
-        new ConcurrentHashMap<String, R66SimpleAuth>();
+    private final ConcurrentHashMap<String, R66SimpleAuth> authentications = new ConcurrentHashMap<String, R66SimpleAuth>();
 
     /**
      * Initiate the configuration from the xml file
@@ -173,7 +172,7 @@ public class R66FileBasedConfiguration {
         }
         String passwd = node.getText();
         // FIXME load from a file and store as a key
-        //setPassword(passwd);
+        // setPassword(passwd);
         node = document.selectSingleNode(XML_SERVER_PORT);
         int port = 21;
         if (node != null) {
@@ -188,7 +187,7 @@ public class R66FileBasedConfiguration {
         String path = node.getText();
         File file = new File(path);
         try {
-            Configuration.baseDirectory = R66Dir.normalizePath(file
+            Configuration.baseDirectory = FilesystemBasedDirImpl.normalizePath(file
                     .getCanonicalPath());
         } catch (IOException e1) {
             logger.error("Unable to set Home in Config file: " + filename);
@@ -204,37 +203,35 @@ public class R66FileBasedConfiguration {
         }
         node = document.selectSingleNode(XML_LIMITGLOBAL);
         if (node != null) {
-            Configuration.configuration.serverGlobalReadLimit = 
-                Long.parseLong(node.getText());
+            Configuration.configuration.serverGlobalReadLimit = Long
+                    .parseLong(node.getText());
             if (Configuration.configuration.serverGlobalReadLimit <= 0) {
                 Configuration.configuration.serverGlobalReadLimit = 0;
             }
-            Configuration.configuration.serverGlobalWriteLimit = 
-                Configuration.configuration.serverGlobalReadLimit;
-            logger.warn("Global Limit: {}", 
+            Configuration.configuration.serverGlobalWriteLimit = Configuration.configuration.serverGlobalReadLimit;
+            logger.warn("Global Limit: {}",
                     Configuration.configuration.serverGlobalReadLimit);
         }
         node = document.selectSingleNode(XML_LIMITSESSION);
         if (node != null) {
-            Configuration.configuration.serverChannelReadLimit = 
-                Long.parseLong(node.getText());
+            Configuration.configuration.serverChannelReadLimit = Long
+                    .parseLong(node.getText());
             if (Configuration.configuration.serverChannelReadLimit <= 0) {
                 Configuration.configuration.serverChannelReadLimit = 0;
             }
-            Configuration.configuration.serverChannelWriteLimit = 
-                Configuration.configuration.serverChannelReadLimit;
-            logger.warn("SessionInterface Limit: {}", 
+            Configuration.configuration.serverChannelWriteLimit = Configuration.configuration.serverChannelReadLimit;
+            logger.warn("SessionInterface Limit: {}",
                     Configuration.configuration.serverChannelReadLimit);
         }
-        Configuration.configuration.delayLimit = 
-            AbstractTrafficShapingHandler.DEFAULT_CHECK_INTERVAL;
+        Configuration.configuration.delayLimit = AbstractTrafficShapingHandler.DEFAULT_CHECK_INTERVAL;
         node = document.selectSingleNode(XML_TIMEOUTCON);
         if (node != null) {
             Configuration.TIMEOUTCON = Integer.parseInt(node.getText());
         }
         node = document.selectSingleNode(XML_DELETEONABORT);
         if (node != null) {
-            Configuration.getFileParameter().deleteOnAbort = Integer.parseInt(node.getText()) == 1? true : false;
+            Configuration.getFileParameter().deleteOnAbort = Integer
+                    .parseInt(node.getText()) == 1? true : false;
         }
         node = document.selectSingleNode(XML_USENIO);
         if (node != null) {
@@ -256,7 +253,8 @@ public class R66FileBasedConfiguration {
                     } else {
                         logger.info("FastMD5 init lib to " +
                                 FilesystemBasedDigest.fastMd5Path);
-                        MD5.initNativeLibrary(FilesystemBasedDigest.fastMd5Path);
+                        MD5
+                                .initNativeLibrary(FilesystemBasedDigest.fastMd5Path);
                     }
                 }
             } else {
@@ -304,7 +302,7 @@ public class R66FileBasedConfiguration {
             }
             String skey = node.getText();
             // FIXME load key from file
-            byte []key = null;
+            byte[] key = null;
             node = nodebase.selectSingleNode(XML_AUTHENTIFICATION_ADMIN);
             boolean isAdmin = false;
             if (node != null) {

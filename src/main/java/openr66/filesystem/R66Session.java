@@ -20,24 +20,27 @@
  */
 package openr66.filesystem;
 
-import openr66.authentication.R66Auth;
-import openr66.protocol.config.Configuration;
 import goldengate.common.file.SessionInterface;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
+import openr66.authentication.R66Auth;
+import openr66.protocol.config.Configuration;
 
 /**
  * @author frederic bregier
  *
  */
 public class R66Session implements SessionInterface {
-    private R66Auth auth;
-    private R66Dir dir;
+    private final R66Auth auth;
+
+    private final R66Dir dir;
+
     private volatile boolean isReady = false;
+
     /**
      * Current Restart information
      */
     private R66Restart restart = null;
-    
+
     /**
      */
     public R66Session() {
@@ -46,7 +49,10 @@ public class R66Session implements SessionInterface {
         dir = new R66Dir(this);
         restart = new R66Restart(this);
     }
-    /* (non-Javadoc)
+
+    /*
+     * (non-Javadoc)
+     *
      * @see goldengate.common.file.SessionInterface#clear()
      */
     @Override
@@ -61,7 +67,9 @@ public class R66Session implements SessionInterface {
         isReady = false;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see goldengate.common.file.SessionInterface#getAuth()
      */
     @Override
@@ -69,7 +77,9 @@ public class R66Session implements SessionInterface {
         return auth;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see goldengate.common.file.SessionInterface#getBlockSize()
      */
     @Override
@@ -77,7 +87,9 @@ public class R66Session implements SessionInterface {
         return Configuration.BLOCKSIZE;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see goldengate.common.file.SessionInterface#getDir()
      */
     @Override
@@ -85,7 +97,9 @@ public class R66Session implements SessionInterface {
         return dir;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see goldengate.common.file.SessionInterface#getFileParameter()
      */
     @Override
@@ -93,15 +107,18 @@ public class R66Session implements SessionInterface {
         return Configuration.getFileParameter();
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see goldengate.common.file.SessionInterface#getRestart()
      */
     @Override
     public R66Restart getRestart() {
         return restart;
     }
+
     /**
-     * 
+     *
      * @return True if the connection is currently authenticated
      */
     public boolean isAuthenticated() {
@@ -110,12 +127,14 @@ public class R66Session implements SessionInterface {
         }
         return auth.isIdentified();
     }
+
     /**
      * @return True if the Channel is ready to accept command
      */
     public boolean isReady() {
         return isReady;
     }
+
     /**
      * @param isReady
      *            the isReady to set

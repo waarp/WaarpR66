@@ -15,19 +15,17 @@
  */
 package openr66.protocol.localhandler;
 
-import goldengate.common.future.GgFuture;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
-
 import openr66.protocol.config.Configuration;
 import openr66.protocol.utils.R66Future;
 
 import org.jboss.netty.channel.Channel;
 
 /**
- * Reference of one object using Local Channel localId and containing local channel
- * and network channel.
- * 
+ * Reference of one object using Local Channel localId and containing local
+ * channel and network channel.
+ *
  * @author Frederic Bregier
  */
 public class LocalChannelReference {
@@ -36,12 +34,17 @@ public class LocalChannelReference {
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(LocalChannelReference.class);
-    
+
     private final Channel localChannel;
+
     private final Channel networkChannel;
+
     private final Integer localId;
+
     private Integer remoteId;
+
     private final R66Future future = new R66Future(true);
+
     private final R66Future futureValidate = new R66Future(true);
 
     public LocalChannelReference(Channel localChannel, Channel networkChannel,
@@ -79,49 +82,55 @@ public class LocalChannelReference {
     public Integer getRemoteId() {
         return remoteId;
     }
-    
+
     /**
-     * @param remoteId the remoteId to set
+     * @param remoteId
+     *            the remoteId to set
      */
     public void setRemoteId(Integer remoteId) {
         this.remoteId = remoteId;
     }
 
-    
     /**
      * @return the future
      */
     public R66Future getFuture() {
         return future;
     }
+
     /**
      * Validate or Invalidate the connection
+     *
      * @param validate
      */
     public void validateConnection(boolean validate) {
-        if (this.futureValidate.isDone()) {
-            logger.info("LocalChannelReference already validated: "+this.futureValidate.isSuccess());
+        if (futureValidate.isDone()) {
+            logger.info("LocalChannelReference already validated: " +
+                    futureValidate.isSuccess());
             return;
         }
-        logger.info("LocalChannelReference validate: "+validate);
+        logger.info("LocalChannelReference validate: " + validate);
         if (validate) {
-            this.futureValidate.setSuccess();
+            futureValidate.setSuccess();
         } else {
-            this.futureValidate.cancel();
+            futureValidate.cancel();
         }
     }
+
     /**
-     * 
+     *
      * @return True if the connection is OK
      */
     public boolean getValidation() {
-        if (! this.futureValidate.awaitUninterruptibly(Configuration.WAITFORNETOP)) {
-            this.futureValidate.cancel();
+        if (!futureValidate
+                .awaitUninterruptibly(Configuration.WAITFORNETOP)) {
+            futureValidate.cancel();
         }
-        return this.futureValidate.isSuccess();
+        return futureValidate.isSuccess();
     }
+
     @Override
     public String toString() {
-        return "LCR: L: "+this.localId+" R: "+this.remoteId;
+        return "LCR: L: " + localId + " R: " + remoteId;
     }
 }

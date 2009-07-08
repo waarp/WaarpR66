@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package openr66.protocol.localhandler.packet;
 
@@ -10,17 +10,16 @@ import org.jboss.netty.buffer.ChannelBuffers;
 
 /**
  * Request class
- * 
- * header = "hostId"
- * middle = "key bytes"
- * end = none
- * 
+ *
+ * header = "hostId" middle = "key bytes" end = none
+ *
  * @author frederic bregier
  */
 public class AuthentPacket extends AbstractLocalPacket {
-    private String hostId;
-    private byte [] key;
-    
+    private final String hostId;
+
+    private final byte[] key;
+
     /**
      * @param headerLength
      * @param middleLength
@@ -30,33 +29,38 @@ public class AuthentPacket extends AbstractLocalPacket {
      * @throws OpenR66ProtocolPacketException
      */
     public static AuthentPacket createFromBuffer(int headerLength,
-            int middleLength, int endLength, ChannelBuffer buf) throws OpenR66ProtocolPacketException {
-        if (headerLength-1 <=0) {
+            int middleLength, int endLength, ChannelBuffer buf)
+            throws OpenR66ProtocolPacketException {
+        if (headerLength - 1 <= 0) {
             throw new OpenR66ProtocolPacketException("Not enough data");
         }
-        if (middleLength <=0) {
+        if (middleLength <= 0) {
             throw new OpenR66ProtocolPacketException("Not enough data");
         }
         final byte[] bheader = new byte[headerLength - 1];
         final byte[] bmiddle = new byte[middleLength];
-        if (headerLength-1 > 0)
+        if (headerLength - 1 > 0) {
             buf.readBytes(bheader);
-        if (middleLength > 0)
+        }
+        if (middleLength > 0) {
             buf.readBytes(bmiddle);
+        }
         final String sheader = new String(bheader);
         return new AuthentPacket(sheader, bmiddle);
     }
-    
+
     /**
      * @param hostId
      * @param key
      */
-    public AuthentPacket(String hostId, byte []key) {
+    public AuthentPacket(String hostId, byte[] key) {
         this.hostId = hostId;
         this.key = key;
     }
+
     /*
      * (non-Javadoc)
+     *
      * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createEnd()
      */
     @Override
@@ -66,26 +70,30 @@ public class AuthentPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createHeader()
+     *
+     * @see
+     * openr66.protocol.localhandler.packet.AbstractLocalPacket#createHeader()
      */
     @Override
     public void createHeader() throws OpenR66ProtocolPacketException {
-        if (this.hostId == null) {
+        if (hostId == null) {
             throw new OpenR66ProtocolPacketException("Not enough data");
         }
-        header = ChannelBuffers.wrappedBuffer(this.hostId.getBytes());
+        header = ChannelBuffers.wrappedBuffer(hostId.getBytes());
     }
 
     /*
      * (non-Javadoc)
-     * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createMiddle()
+     *
+     * @see
+     * openr66.protocol.localhandler.packet.AbstractLocalPacket#createMiddle()
      */
     @Override
     public void createMiddle() throws OpenR66ProtocolPacketException {
-        if (this.key == null) {
+        if (key == null) {
             throw new OpenR66ProtocolPacketException("Not enough data");
         }
-        middle = ChannelBuffers.wrappedBuffer(this.key);
+        middle = ChannelBuffers.wrappedBuffer(key);
     }
 
     @Override
@@ -95,6 +103,7 @@ public class AuthentPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
+     *
      * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
      */
     @Override

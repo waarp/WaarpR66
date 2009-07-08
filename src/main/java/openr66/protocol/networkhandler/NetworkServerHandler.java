@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package openr66.protocol.networkhandler;
 
@@ -39,6 +39,7 @@ public class NetworkServerHandler extends SimpleChannelHandler {
 
     /*
      * (non-Javadoc)
+     *
      * @see
      * org.jboss.netty.channel.SimpleChannelHandler#channelClosed(org.jboss.
      * netty.channel.ChannelHandlerContext,
@@ -47,16 +48,18 @@ public class NetworkServerHandler extends SimpleChannelHandler {
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) {
         if (NetworkTransaction.getNbLocalChannel(e.getChannel()) > 0) {
-            logger.warn("Network Channel Closed: " + e.getChannel().getId()
-                +" LocalChannels Left: "+NetworkTransaction.getNbLocalChannel(e.getChannel()));
+            logger.warn("Network Channel Closed: " + e.getChannel().getId() +
+                    " LocalChannels Left: " +
+                    NetworkTransaction.getNbLocalChannel(e.getChannel()));
             // FIXME close if necessary the local channel
-            Configuration.configuration
-                .getLocalTransaction().closeLocalChannelsFromNetworkChannel(e.getChannel());
+            Configuration.configuration.getLocalTransaction()
+                    .closeLocalChannelsFromNetworkChannel(e.getChannel());
         }
     }
 
     /*
      * (non-Javadoc)
+     *
      * @see
      * org.jboss.netty.channel.SimpleChannelHandler#channelConnected(org.jboss
      * .netty.channel.ChannelHandlerContext,
@@ -69,6 +72,7 @@ public class NetworkServerHandler extends SimpleChannelHandler {
 
     /*
      * (non-Javadoc)
+     *
      * @see
      * org.jboss.netty.channel.SimpleChannelHandler#messageReceived(org.jboss
      * .netty.channel.ChannelHandlerContext,
@@ -77,13 +81,16 @@ public class NetworkServerHandler extends SimpleChannelHandler {
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) {
         final NetworkPacket packet = (NetworkPacket) e.getMessage();
-        logger.info("Network Channel Recv: " + e.getChannel().getId()+" "+packet.toString());
+        logger.info("Network Channel Recv: " + e.getChannel().getId() + " " +
+                packet.toString());
         if (packet.getCode() == LocalPacketFactory.CONNECTERRORPACKET) {
             // Special code to stop here
             if (packet.getLocalId() == ChannelUtils.NOCHANNEL) {
-                // No way to know what is wrong: close all connections with remote host
-                logger.error("Cannot continue connection with remote Host: "+packet.toString()+
-                        " : "+e.getChannel().getRemoteAddress());
+                // No way to know what is wrong: close all connections with
+                // remote host
+                logger.error("Cannot continue connection with remote Host: " +
+                        packet.toString() + " : " +
+                        e.getChannel().getRemoteAddress());
                 Channels.close(e.getChannel());
                 return;
             }
@@ -92,26 +99,32 @@ public class NetworkServerHandler extends SimpleChannelHandler {
         if (packet.getLocalId() == ChannelUtils.NOCHANNEL) {
             try {
                 localChannelReference = Configuration.configuration
-                    .getLocalTransaction().createNewClient(e.getChannel(), packet.getRemoteId());
+                        .getLocalTransaction().createNewClient(e.getChannel(),
+                                packet.getRemoteId());
                 NetworkTransaction.addNetworkChannel(e.getChannel());
-                logger.info("Create LocalChannel: "+localChannelReference.getLocalId());
+                logger.info("Create LocalChannel: " +
+                        localChannelReference.getLocalId());
             } catch (OpenR66ProtocolSystemException e1) {
-                logger.error("Cannot create LocalChannel: "+packet,e1);
-                final ConnectionErrorPacket error = 
-                    new ConnectionErrorPacket("Cannot connect to localChannel", null);
-                this.writeError(e.getChannel(), packet.getRemoteId(), packet.getLocalId(), error);
+                logger.error("Cannot create LocalChannel: " + packet, e1);
+                final ConnectionErrorPacket error = new ConnectionErrorPacket(
+                        "Cannot connect to localChannel", null);
+                writeError(e.getChannel(), packet.getRemoteId(), packet
+                        .getLocalId(), error);
                 return;
             }
         } else {
             try {
-                localChannelReference = Configuration.configuration.
-                    getLocalTransaction().getClient(packet.getRemoteId(), packet.getLocalId());
-                logger.info("Get LocalChannel: "+localChannelReference.getLocalId());
+                localChannelReference = Configuration.configuration
+                        .getLocalTransaction().getClient(packet.getRemoteId(),
+                                packet.getLocalId());
+                logger.info("Get LocalChannel: " +
+                        localChannelReference.getLocalId());
             } catch (OpenR66ProtocolSystemException e1) {
-                logger.error("Cannot get LocalChannel: "+packet,e1);
-                final ConnectionErrorPacket error = 
-                    new ConnectionErrorPacket("Cannot get localChannel", null);
-                this.writeError(e.getChannel(), packet.getRemoteId(), packet.getLocalId(), error);
+                logger.error("Cannot get LocalChannel: " + packet, e1);
+                final ConnectionErrorPacket error = new ConnectionErrorPacket(
+                        "Cannot get localChannel", null);
+                writeError(e.getChannel(), packet.getRemoteId(), packet
+                        .getLocalId(), error);
                 return;
             }
         }
@@ -121,6 +134,7 @@ public class NetworkServerHandler extends SimpleChannelHandler {
 
     /*
      * (non-Javadoc)
+     *
      * @see
      * org.jboss.netty.channel.SimpleChannelHandler#exceptionCaught(org.jboss
      * .netty.channel.ChannelHandlerContext,
@@ -130,18 +144,21 @@ public class NetworkServerHandler extends SimpleChannelHandler {
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
         logger.info("Network Channel Exception: " + e.getChannel().getId(), e
                 .getCause());
-        OpenR66ProtocolException exception = 
-            OpenR66ExceptionTrappedFactory.getExceptionFromTrappedException(e.getChannel(), e);
+        OpenR66ProtocolException exception = OpenR66ExceptionTrappedFactory
+                .getExceptionFromTrappedException(e.getChannel(), e);
         if (exception != null) {
-            logger.error("Network Channel Exception: " + e.getChannel().getId(), exception);
+            logger.error(
+                    "Network Channel Exception: " + e.getChannel().getId(),
+                    exception);
             if (exception instanceof OpenR66ProtocolBusinessNoWriteBackException) {
-                logger.error("Will close channel",exception);
+                logger.error("Will close channel", exception);
                 Channels.close(e.getChannel());
                 return;
             }
-            final ConnectionErrorPacket errorPacket = new ConnectionErrorPacket(exception
-                    .getMessage(), null);
-            this.writeError(e.getChannel(), ChannelUtils.NOCHANNEL, ChannelUtils.NOCHANNEL, errorPacket);
+            final ConnectionErrorPacket errorPacket = new ConnectionErrorPacket(
+                    exception.getMessage(), null);
+            writeError(e.getChannel(), ChannelUtils.NOCHANNEL,
+                    ChannelUtils.NOCHANNEL, errorPacket);
         } else {
             // Nothing to do
             return;
@@ -150,11 +167,13 @@ public class NetworkServerHandler extends SimpleChannelHandler {
         Channels.close(e.getChannel());
     }
 
-    private void writeError(Channel channel, Integer remoteId, Integer localId, ConnectionErrorPacket error) {
-        NetworkPacket networkPacket = null;;
+    private void writeError(Channel channel, Integer remoteId, Integer localId,
+            ConnectionErrorPacket error) {
+        NetworkPacket networkPacket = null;
+        ;
         try {
-            networkPacket = new NetworkPacket(
-                    localId, remoteId, error.getType(), error.getLocalPacket());
+            networkPacket = new NetworkPacket(localId, remoteId, error
+                    .getType(), error.getLocalPacket());
         } catch (OpenR66ProtocolPacketException e) {
         }
         ChannelUtils.write(channel, networkPacket).awaitUninterruptibly();

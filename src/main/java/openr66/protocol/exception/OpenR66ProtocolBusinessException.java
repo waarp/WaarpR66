@@ -1,22 +1,22 @@
 /**
- * 
+ *
  */
 package openr66.protocol.exception;
 
 /**
  * Protocol exception on Business part
- * 
+ *
  * @author frederic bregier
  */
 public class OpenR66ProtocolBusinessException extends OpenR66ProtocolException {
 
     /**
-	 * 
+	 *
 	 */
     private static final long serialVersionUID = -7827259682529953206L;
 
     /**
-	 * 
+	 *
 	 */
     public OpenR66ProtocolBusinessException() {
         super();

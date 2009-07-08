@@ -42,7 +42,7 @@ import org.jboss.netty.util.ObjectSizeEstimator;
 
 /**
  * Configuration class
- * 
+ *
  * @author Frederic Bregier
  */
 public class Configuration {
@@ -51,12 +51,13 @@ public class Configuration {
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(Configuration.class);
-    
+
     // Static values
     /**
      * General Configuration object
      */
     public static final Configuration configuration = new Configuration();
+
     /**
      * Time elapse for retry in ms
      */
@@ -72,10 +73,12 @@ public class Configuration {
      */
     public static final boolean ISUNIX = !System.getProperty("os.name")
             .toLowerCase().startsWith("windows");
+
     /**
      * Default size for buffers (NIO)
      */
     public static final int BUFFERSIZEDEFAULT = 0x10000; // 64K
+
     // Global unique values
     /**
      * Default session limit 64Mbit, so up to 8 full simultaneous clients
@@ -86,20 +89,24 @@ public class Configuration {
      * Default global limit 512Mbit
      */
     public static long DEFAULT_GLOBAL_LIMIT = 0x4000000L;
+
     /**
      * Default server port
      */
     public static int SERVER_PORT = 6666;
+
     /**
      * Default number of threads in pool for Server. The default value is for
      * client for Executor in the Pipeline for Business logic. Server will
      * change this value on startup if not set.
      */
     public static int SERVER_THREAD = 16;
+
     /**
      * Nb of milliseconds after connection is in timeout
      */
     public static int TIMEOUTCON = 30000;
+
     /**
      * Time elapse for WRITE OR CLOSE WAIT elaps in ms
      */
@@ -110,26 +117,29 @@ public class Configuration {
      * multiple of 8192 (maximum = 64K due to block limitation to 2 bytes)
      */
     public static int BLOCKSIZE = 0x10000; // 64K
+
     /**
      * Max global memory limit: default is 4GB
      */
     public static long maxGlobalMemory = 0x100000000L;
+
     /**
      * FileParameter
      */
-    private static final FilesystemBasedFileParameterImpl fileParameter = 
-        new FilesystemBasedFileParameterImpl();
+    private static final FilesystemBasedFileParameterImpl fileParameter = new FilesystemBasedFileParameterImpl();
+
     /**
      * Base Directory
      */
-    //FIXME TODO
+    // FIXME TODO
     public static String baseDirectory;
-    
+
     // Dynamic values
     /**
      * True if the service is going to shutdown
      */
     public volatile boolean isShutdown = false;
+
     /**
      * Limit in Write byte/s to apply globally to the FTP Server
      */
@@ -154,6 +164,7 @@ public class Configuration {
      * Delay in ms between two checks
      */
     public long delayLimit = 10000;
+
     /**
      * List of all Server Channels to enable the close call on them using Netty
      * ChannelGroup
@@ -176,42 +187,50 @@ public class Configuration {
      * ChannelFactory for Server part
      */
     private ChannelFactory serverChannelFactory = null;
+
     /**
      * ThreadPoolExecutor for Server
      */
     private volatile OrderedMemoryAwareThreadPoolExecutor serverPipelineExecutor;
+
     /**
      * ThreadPoolExecutor for LocalServer
      */
     private volatile OrderedMemoryAwareThreadPoolExecutor localPipelineExecutor;
+
     /**
      * Bootstrap for server
      */
     private ServerBootstrap serverBootstrap = null;
+
     /**
      * ExecutorService for TrafficCounter
      */
     private final ExecutorService execTrafficCounter = Executors
             .newCachedThreadPool();
+
     /**
      * Global TrafficCounter (set from global configuration)
      */
     private volatile GlobalTrafficShapingHandler globalTrafficShapingHandler = null;
+
     /**
      * ObjectSizeEstimator
      */
     private ObjectSizeEstimator objectSizeEstimator = null;
+
     /**
      * LocalTransaction
      */
     private final LocalTransaction localTransaction;
+
     /**
      * R66FileBasedConfiguration
      */
     public R66FileBasedConfiguration fileBasedConfiguration;
-    
+
     private volatile boolean configured = false;
-    
+
     public Configuration() {
         // Init signal handler
         OpenR66SignalHandler.initSignalHandler();
@@ -225,15 +244,16 @@ public class Configuration {
         }
         InternalLoggerFactory.setDefaultFactory(InternalLoggerFactory
                 .getDefaultFactory());
-        logger.warn("THREAD: "+Configuration.SERVER_THREAD);
+        logger.warn("THREAD: " + Configuration.SERVER_THREAD);
         serverPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
-                SERVER_THREAD*10 + 1, maxGlobalMemory / 10, maxGlobalMemory, 200,
-                TimeUnit.MILLISECONDS);
+                SERVER_THREAD * 10 + 1, maxGlobalMemory / 10, maxGlobalMemory,
+                200, TimeUnit.MILLISECONDS);
         localPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
-                SERVER_THREAD*10 + 1, maxGlobalMemory / 10, maxGlobalMemory, 100,
-                TimeUnit.MILLISECONDS);
+                SERVER_THREAD * 10 + 1, maxGlobalMemory / 10, maxGlobalMemory,
+                100, TimeUnit.MILLISECONDS);
         configured = true;
     }
+
     /**
      * Startup the server
      */
@@ -266,18 +286,17 @@ public class Configuration {
     /**
      * Reset the global monitor for bandwidth limitation and change future
      * channel monitors with values divided by 10 (channel = global / 10)
-     * 
+     *
      * @param writeLimit
      * @param readLimit
      */
     public void changeNetworkLimit(long writeLimit, long readLimit) {
-        long newWriteLimit = writeLimit > 1024 ? writeLimit
+        long newWriteLimit = writeLimit > 1024? writeLimit
                 : serverGlobalWriteLimit;
         if (writeLimit <= 0) {
             newWriteLimit = 0;
         }
-        long newReadLimit = readLimit > 1024 ? readLimit
-                : serverGlobalReadLimit;
+        long newReadLimit = readLimit > 1024? readLimit : serverGlobalReadLimit;
         if (readLimit <= 0) {
             newReadLimit = 0;
         }
@@ -327,6 +346,7 @@ public class Configuration {
     public OrderedMemoryAwareThreadPoolExecutor getServerPipelineExecutor() {
         return serverPipelineExecutor;
     }
+
     /**
      * @return the localPipelineExecutor
      */
@@ -347,12 +367,13 @@ public class Configuration {
     public LocalTransaction getLocalTransaction() {
         return localTransaction;
     }
+
     /**
-     * 
+     *
      * @return the FilesystemBasedFileParameterImpl
      */
     public static FilesystemBasedFileParameterImpl getFileParameter() {
         return fileParameter;
     }
-    
+
 }

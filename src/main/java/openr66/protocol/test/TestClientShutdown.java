@@ -31,8 +31,6 @@ import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
 import openr66.protocol.utils.ChannelUtils;
 
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.Channels;
 import org.jboss.netty.logging.InternalLoggerFactory;
 
 import ch.qos.logback.classic.Level;
@@ -57,8 +55,9 @@ public class TestClientShutdown {
         final SocketAddress socketServerAddress = new InetSocketAddress(
                 Configuration.SERVER_PORT);
         final ShutdownPacket packet = new ShutdownPacket("password".getBytes());
-        final NetworkPacket networkPacket = new NetworkPacket(ChannelUtils.NOCHANNEL, ChannelUtils.NOCHANNEL, 
-                packet.getType(), packet.getLocalPacket());
+        final NetworkPacket networkPacket = new NetworkPacket(
+                ChannelUtils.NOCHANNEL, ChannelUtils.NOCHANNEL, packet
+                        .getType(), packet.getLocalPacket());
         logger.warn("START");
         LocalChannelReference localChannelReference;
         try {
@@ -69,7 +68,8 @@ public class TestClientShutdown {
             networkTransaction.closeAll();
             return;
         }
-        ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket);
+        ChannelUtils.write(localChannelReference.getNetworkChannel(),
+                networkPacket);
         try {
             Thread.sleep(10000);
         } catch (final InterruptedException e) {

@@ -1,22 +1,22 @@
 /**
- * 
+ *
  */
 package openr66.protocol.exception;
 
 /**
  * Protocol Exception to enable Shutdown
- * 
+ *
  * @author frederic bregier
  */
 public class OpenR66ProtocolShutdownException extends OpenR66ProtocolException {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 9047867109141561841L;
 
     /**
-	 * 
+	 *
 	 */
     public OpenR66ProtocolShutdownException() {
         super();

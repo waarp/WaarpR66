@@ -20,18 +20,19 @@
  */
 package openr66.authentication;
 
-import java.io.File;
-
-import openr66.filesystem.R66Dir;
-import openr66.filesystem.R66Session;
-import openr66.protocol.config.Configuration;
 import goldengate.common.command.NextCommandReply;
 import goldengate.common.command.exception.Reply421Exception;
 import goldengate.common.command.exception.Reply502Exception;
 import goldengate.common.command.exception.Reply530Exception;
+import goldengate.common.file.DirInterface;
 import goldengate.common.file.filesystembased.FilesystemBasedAuthImpl;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+
+import java.io.File;
+
+import openr66.filesystem.R66Session;
+import openr66.protocol.config.Configuration;
 
 /**
  * @author frederic bregier
@@ -43,11 +44,12 @@ public class R66Auth extends FilesystemBasedAuthImpl {
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(R66Auth.class);
+
     /**
      * Current authentication
      */
     private R66SimpleAuth currentAuth = null;
-    
+
     /**
      * @param session
      */
@@ -55,24 +57,34 @@ public class R66Auth extends FilesystemBasedAuthImpl {
         super(session);
     }
 
-    /* (non-Javadoc)
-     * @see goldengate.common.file.filesystembased.FilesystemBasedAuthImpl#businessClean()
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * goldengate.common.file.filesystembased.FilesystemBasedAuthImpl#businessClean
+     * ()
      */
     @Override
     protected void businessClean() {
-        currentAuth = null;        
+        currentAuth = null;
     }
 
-    /* (non-Javadoc)
-     * @see goldengate.common.file.filesystembased.FilesystemBasedAuthImpl#getBaseDirectory()
+    /*
+     * (non-Javadoc)
+     *
+     * @seegoldengate.common.file.filesystembased.FilesystemBasedAuthImpl#
+     * getBaseDirectory()
      */
     @Override
     protected String getBaseDirectory() {
         return Configuration.baseDirectory;
     }
 
-    /* (non-Javadoc)
-     * @see goldengate.common.file.filesystembased.FilesystemBasedAuthImpl#setBusinessAccount(java.lang.String)
+    /*
+     * (non-Javadoc)
+     *
+     * @seegoldengate.common.file.filesystembased.FilesystemBasedAuthImpl#
+     * setBusinessAccount(java.lang.String)
      */
     @Override
     protected NextCommandReply setBusinessAccount(String arg0)
@@ -80,24 +92,32 @@ public class R66Auth extends FilesystemBasedAuthImpl {
         throw new Reply421Exception("Command not valid");
     }
 
-    /* (non-Javadoc)
-     * @see goldengate.common.file.filesystembased.FilesystemBasedAuthImpl#setBusinessPassword(java.lang.String)
+    /*
+     * (non-Javadoc)
+     *
+     * @seegoldengate.common.file.filesystembased.FilesystemBasedAuthImpl#
+     * setBusinessPassword(java.lang.String)
      */
     @Override
     protected NextCommandReply setBusinessPassword(String arg0)
             throws Reply421Exception, Reply530Exception {
         throw new Reply421Exception("Command not valid");
     }
+
     /**
-     * 
+     *
      * @param hostId
      * @param arg0
      * @return True if the connection is OK (authentication is OK)
-     * @throws Reply530Exception if the authentication is wrong
-     * @throws Reply421Exception If the service is not available
+     * @throws Reply530Exception
+     *             if the authentication is wrong
+     * @throws Reply421Exception
+     *             If the service is not available
      */
-    public boolean connection(String hostId, byte [] arg0) throws Reply530Exception, Reply421Exception {
-        R66SimpleAuth auth = Configuration.configuration.fileBasedConfiguration.getSimpleAuth(user);
+    public boolean connection(String hostId, byte[] arg0)
+            throws Reply530Exception, Reply421Exception {
+        R66SimpleAuth auth = Configuration.configuration.fileBasedConfiguration
+                .getSimpleAuth(user);
         if (auth == null) {
             setIsIdentified(false);
             currentAuth = null;
@@ -109,21 +129,23 @@ public class R66Auth extends FilesystemBasedAuthImpl {
             throw new Reply530Exception("Needs a correct HostId");
         }
         if (currentAuth.isKeyValid(arg0)) {
-            this.user = hostId;
+            user = hostId;
             setRootFromAuth();
             getSession().getDir().initAfterIdentification();
             return true;
         }
         throw new Reply530Exception("Key is not valid for this HostId");
     }
+
     /**
-     * 
+     *
      * @param key
      * @return True if the key is valid for the current user
      */
     public boolean isKeyValid(byte[] key) {
         return currentAuth.isKeyValid(key);
     }
+
     /**
      * Set the root relative Path from current status of Authentication (should
      * be the highest level for the current authentication). If
@@ -135,16 +157,20 @@ public class R66Auth extends FilesystemBasedAuthImpl {
     private void setRootFromAuth() throws Reply421Exception {
         rootFromAuth = setBusinessRootFromAuth();
         if (rootFromAuth == null) {
-            rootFromAuth = R66Dir.SEPARATOR + user;
+            rootFromAuth = DirInterface.SEPARATOR + user;
         }
     }
-    /* (non-Javadoc)
-     * @see goldengate.common.file.filesystembased.FilesystemBasedAuthImpl#setBusinessRootFromAuth()
+
+    /*
+     * (non-Javadoc)
+     *
+     * @seegoldengate.common.file.filesystembased.FilesystemBasedAuthImpl#
+     * setBusinessRootFromAuth()
      */
     @Override
     protected String setBusinessRootFromAuth() throws Reply421Exception {
         String path = null;
-        path = R66Dir.SEPARATOR + user;
+        path = DirInterface.SEPARATOR + user;
         String fullpath = getAbsolutePath(path);
         File file = new File(fullpath);
         if (!file.isDirectory()) {
@@ -153,8 +179,11 @@ public class R66Auth extends FilesystemBasedAuthImpl {
         return path;
     }
 
-    /* (non-Javadoc)
-     * @see goldengate.common.file.filesystembased.FilesystemBasedAuthImpl#setBusinessUser(java.lang.String)
+    /*
+     * (non-Javadoc)
+     *
+     * @seegoldengate.common.file.filesystembased.FilesystemBasedAuthImpl#
+     * setBusinessUser(java.lang.String)
      */
     @Override
     protected NextCommandReply setBusinessUser(String arg0)
@@ -162,7 +191,9 @@ public class R66Auth extends FilesystemBasedAuthImpl {
         throw new Reply421Exception("Command not valid");
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see goldengate.common.file.AuthInterface#isAdmin()
      */
     @Override
@@ -170,8 +201,12 @@ public class R66Auth extends FilesystemBasedAuthImpl {
         return currentAuth.isAdmin;
     }
 
-    /* (non-Javadoc)
-     * @see goldengate.common.file.AuthInterface#isBusinessPathValid(java.lang.String)
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * goldengate.common.file.AuthInterface#isBusinessPathValid(java.lang.String
+     * )
      */
     @Override
     public boolean isBusinessPathValid(String newPath) {

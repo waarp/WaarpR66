@@ -30,7 +30,7 @@ import sun.misc.SignalHandler;
 
 /**
  * Signal Handler to allow trapping signals.
- * 
+ *
  * @author Frederic Bregier
  */
 public class OpenR66SignalHandler implements SignalHandler {
@@ -51,7 +51,7 @@ public class OpenR66SignalHandler implements SignalHandler {
 
     /**
      * Says if the Process is currently in shutdown
-     * 
+     *
      * @return True if already in shutdown
      */
     public static boolean isInShutdown() {
@@ -61,7 +61,7 @@ public class OpenR66SignalHandler implements SignalHandler {
     /**
      * This function is the top function to be called when the process is to be
      * shutdown.
-     * 
+     *
      * @param immediate
      * @param configuration
      */
@@ -74,7 +74,7 @@ public class OpenR66SignalHandler implements SignalHandler {
 
     /**
      * Finalize resources attached to handlers
-     * 
+     *
      * @author Frederic Bregier
      */
     private static class R66TimerTask extends TimerTask {
@@ -96,7 +96,7 @@ public class OpenR66SignalHandler implements SignalHandler {
 
         /**
          * Constructor from type
-         * 
+         *
          * @param type
          */
         public R66TimerTask(int type) {
@@ -106,17 +106,18 @@ public class OpenR66SignalHandler implements SignalHandler {
 
         /*
          * (non-Javadoc)
+         *
          * @see java.util.TimerTask#run()
          */
         @Override
         public void run() {
             switch (type) {
-            case TIMER_EXIT:
-                logger.error("System will force EXIT");
-                System.exit(1);
-                break;
-            default:
-                logger.warn("Type unknown in TimerTask");
+                case TIMER_EXIT:
+                    logger.error("System will force EXIT");
+                    System.exit(1);
+                    break;
+                default:
+                    logger.warn("Type unknown in TimerTask");
             }
         }
     }
@@ -163,14 +164,14 @@ public class OpenR66SignalHandler implements SignalHandler {
 
     /**
      * Handle signal
-     * 
+     *
      * @param signal
      */
     public void handle(Signal signal) {
         try {
             terminate();
             // Chain back to previous handler, if one exists
-            if ((oldHandler != SIG_DFL) && (oldHandler != SIG_IGN)) {
+            if (oldHandler != SIG_DFL && oldHandler != SIG_IGN) {
                 oldHandler.handle(signal);
             }
         } catch (final Exception e) {

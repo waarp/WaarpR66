@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package openr66.protocol.exception;
 
@@ -29,7 +29,8 @@ public class OpenR66ExceptionTrappedFactory {
     /**
      * @param channel
      * @param e
-     * @return the OpenR66ProtocolException corresponding to the ExceptionEvent, or null if the exception should be ignored
+     * @return the OpenR66ProtocolException corresponding to the ExceptionEvent,
+     *         or null if the exception should be ignored
      */
     public static OpenR66ProtocolException getExceptionFromTrappedException(
             Channel channel, ExceptionEvent e) {
@@ -86,8 +87,8 @@ public class OpenR66ExceptionTrappedFactory {
                     .getMessage(), channel);
             return new OpenR66ProtocolSystemException("Connection aborted", e2);
         } else {
-            logger.warn("Unexpected exception from downstream"
-                    + " Ref Channel: " + channel.toString(), e1);
+            logger.warn("Unexpected exception from downstream" +
+                    " Ref Channel: " + channel.toString(), e1);
         }
         return new OpenR66ProtocolSystemException("Unexpected exception", e1);
     }

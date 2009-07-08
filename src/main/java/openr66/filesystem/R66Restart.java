@@ -37,7 +37,9 @@ public class R66Restart extends FilesystemBasedRestartImpl {
         super(session);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see goldengate.common.file.Restart#restartMarker(java.lang.String)
      */
     @Override

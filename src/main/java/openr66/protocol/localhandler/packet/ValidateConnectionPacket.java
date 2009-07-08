@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package openr66.protocol.localhandler.packet;
 
@@ -10,16 +10,18 @@ import org.jboss.netty.buffer.ChannelBuffers;
 
 /**
  * Validation of Connection (Hello and back) Message class
- * 
+ *
  * 1 localId (Integer): localId
- * 
+ *
  * @author frederic bregier
  */
 public class ValidateConnectionPacket extends AbstractLocalPacket {
     private static final byte ASKVALIDATE = 0;
+
     private static final byte ANSWERVALIDATE = 1;
-    
-    private Integer localId;
+
+    private final Integer localId;
+
     private byte way;
 
     /**
@@ -35,25 +37,27 @@ public class ValidateConnectionPacket extends AbstractLocalPacket {
         byte valid = buf.readByte();
         return new ValidateConnectionPacket(newId, valid);
     }
-    
+
     /**
      * @param newId
-     * @param valid 
+     * @param valid
      */
     private ValidateConnectionPacket(Integer newId, byte valid) {
-        this.localId = newId;
-        this.way = valid;
+        localId = newId;
+        way = valid;
     }
 
     /**
      * @param newId
      */
     public ValidateConnectionPacket(Integer newId) {
-        this.localId = newId;
-        this.way = ASKVALIDATE;
+        localId = newId;
+        way = ASKVALIDATE;
     }
+
     /*
      * (non-Javadoc)
+     *
      * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createEnd()
      */
     @Override
@@ -63,18 +67,22 @@ public class ValidateConnectionPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createHeader()
+     *
+     * @see
+     * openr66.protocol.localhandler.packet.AbstractLocalPacket#createHeader()
      */
     @Override
     public void createHeader() throws OpenR66ProtocolPacketException {
         header = ChannelBuffers.buffer(5);
-        header.writeInt(this.localId);
-        header.writeByte(this.way);
+        header.writeInt(localId);
+        header.writeByte(way);
     }
 
     /*
      * (non-Javadoc)
-     * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createMiddle()
+     *
+     * @see
+     * openr66.protocol.localhandler.packet.AbstractLocalPacket#createMiddle()
      */
     @Override
     public void createMiddle() throws OpenR66ProtocolPacketException {
@@ -83,11 +91,12 @@ public class ValidateConnectionPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
+     *
      * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
      */
     @Override
     public String toString() {
-        return "ValidateConnectionPacket: " + this.localId+" "+this.way;
+        return "ValidateConnectionPacket: " + localId + " " + way;
     }
 
     @Override
@@ -99,19 +108,20 @@ public class ValidateConnectionPacket extends AbstractLocalPacket {
      * @return the localId
      */
     public Integer getLocalId() {
-        return this.localId;
+        return localId;
     }
 
     /**
      * @return True if this packet is to be validated
      */
     public boolean isToValidate() {
-        return (way == ASKVALIDATE);
+        return way == ASKVALIDATE;
     }
+
     /**
      * Validate the connection
      */
     public void validate() {
-        this.way = ANSWERVALIDATE;
+        way = ANSWERVALIDATE;
     }
 }

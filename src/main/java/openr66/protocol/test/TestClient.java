@@ -59,22 +59,24 @@ public class TestClient {
         final TestPacket packet = new TestPacket("header test", "middle test",
                 0);
         NetworkPacket networkPacket;
-        
+
         logger.warn("START");
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 10; i ++) {
             LocalChannelReference localChannelReference;
-            for (int j = 1; j <= 100; j++) {
+            for (int j = 1; j <= 100; j ++) {
                 try {
-                    localChannelReference = networkTransaction.createConnection(socketServerAddress);
+                    localChannelReference = networkTransaction
+                            .createConnection(socketServerAddress);
                 } catch (OpenR66ProtocolNetworkException e) {
                     logger.error("Cannot connect", e);
                     networkTransaction.closeAll();
                     return;
                 }
-                networkPacket = new NetworkPacket(localChannelReference.getLocalId(), ChannelUtils.NOCHANNEL, 
-                        LocalPacketFactory.TESTPACKET,
-                        packet.getLocalPacket());
-                ChannelUtils.write(localChannelReference.getNetworkChannel(), networkPacket);
+                networkPacket = new NetworkPacket(localChannelReference
+                        .getLocalId(), ChannelUtils.NOCHANNEL,
+                        LocalPacketFactory.TESTPACKET, packet.getLocalPacket());
+                ChannelUtils.write(localChannelReference.getNetworkChannel(),
+                        networkPacket);
             }
         }
         try {

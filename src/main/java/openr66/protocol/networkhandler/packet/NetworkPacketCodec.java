@@ -29,7 +29,7 @@ import org.jboss.netty.handler.codec.frame.FrameDecoder;
 
 /**
  * Packet Decoder
- * 
+ *
  * @author Frederic Bregier
  */
 public class NetworkPacketCodec extends FrameDecoder implements
@@ -37,6 +37,7 @@ public class NetworkPacketCodec extends FrameDecoder implements
 
     /*
      * (non-Javadoc)
+     *
      * @see
      * org.jboss.netty.handler.codec.frame.FrameDecoder#decode(org.jboss.netty
      * .channel.ChannelHandlerContext, org.jboss.netty.channel.Channel,
@@ -75,8 +76,8 @@ public class NetworkPacketCodec extends FrameDecoder implements
         if (e instanceof MessageEvent) {
             final MessageEvent evt = (MessageEvent) e;
             if (!(evt.getMessage() instanceof NetworkPacket)) {
-                throw new InvalidArgumentException("Incorrect write object: "
-                        + evt.getMessage().getClass().getName());
+                throw new InvalidArgumentException("Incorrect write object: " +
+                        evt.getMessage().getClass().getName());
             }
             final NetworkPacket packet = (NetworkPacket) evt.getMessage();
             final ChannelBuffer finalBuf = packet.getNetworkPacket();

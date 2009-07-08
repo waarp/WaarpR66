@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package openr66.protocol.localhandler.packet;
 
@@ -10,9 +10,9 @@ import org.jboss.netty.buffer.ChannelBuffers;
 
 /**
  * Error Message class for packet
- * 
+ *
  * 1 string: spassword(or key)
- * 
+ *
  * @author frederic bregier
  */
 public class ShutdownPacket extends AbstractLocalPacket {
@@ -27,35 +27,40 @@ public class ShutdownPacket extends AbstractLocalPacket {
      * @throws OpenR66ProtocolPacketException
      */
     public static ShutdownPacket createFromBuffer(int headerLength,
-            int middleLength, int endLength, ChannelBuffer buf) throws OpenR66ProtocolPacketException {
-        if (headerLength-1 <=0) {
+            int middleLength, int endLength, ChannelBuffer buf)
+            throws OpenR66ProtocolPacketException {
+        if (headerLength - 1 <= 0) {
             throw new OpenR66ProtocolPacketException("Not enough data");
         }
         final byte[] bpassword = new byte[headerLength - 1];
-        if (headerLength-1 > 0)
+        if (headerLength - 1 > 0) {
             buf.readBytes(bpassword);
+        }
         return new ShutdownPacket(bpassword);
     }
-    
+
     /**
      * @param spassword
      */
     public ShutdownPacket(byte[] spassword) {
-        this.key = spassword;
-    }
-    
-    /*
-     * (non-Javadoc)
-     * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createEnd()
-     */
-    @Override
-    public void createEnd() throws OpenR66ProtocolPacketException {
-        this.end = ChannelBuffers.EMPTY_BUFFER;
+        key = spassword;
     }
 
     /*
      * (non-Javadoc)
-     * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createHeader()
+     *
+     * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createEnd()
+     */
+    @Override
+    public void createEnd() throws OpenR66ProtocolPacketException {
+        end = ChannelBuffers.EMPTY_BUFFER;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * openr66.protocol.localhandler.packet.AbstractLocalPacket#createHeader()
      */
     @Override
     public void createHeader() throws OpenR66ProtocolPacketException {
@@ -66,15 +71,18 @@ public class ShutdownPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createMiddle()
+     *
+     * @see
+     * openr66.protocol.localhandler.packet.AbstractLocalPacket#createMiddle()
      */
     @Override
     public void createMiddle() throws OpenR66ProtocolPacketException {
-        this.middle = ChannelBuffers.EMPTY_BUFFER;
+        middle = ChannelBuffers.EMPTY_BUFFER;
     }
 
     /*
      * (non-Javadoc)
+     *
      * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
      */
     @Override
@@ -93,5 +101,5 @@ public class ShutdownPacket extends AbstractLocalPacket {
     public byte[] getKey() {
         return key;
     }
-    
+
 }
