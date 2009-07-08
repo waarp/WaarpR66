@@ -247,10 +247,10 @@ public class Configuration {
         logger.warn("THREAD: " + Configuration.SERVER_THREAD);
         serverPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
                 SERVER_THREAD * 10 + 1, maxGlobalMemory / 10, maxGlobalMemory,
-                200, TimeUnit.MILLISECONDS);
+                500, TimeUnit.MILLISECONDS);
         localPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
                 SERVER_THREAD * 10 + 1, maxGlobalMemory / 10, maxGlobalMemory,
-                100, TimeUnit.MILLISECONDS);
+                500, TimeUnit.MILLISECONDS);
         configured = true;
     }
 
