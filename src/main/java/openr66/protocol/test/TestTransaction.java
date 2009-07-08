@@ -121,7 +121,7 @@ public class TestTransaction implements Runnable {
         final SocketAddress socketServerAddress = new InetSocketAddress(
                 Configuration.SERVER_PORT);
         ExecutorService executorService = Executors.newCachedThreadPool();
-        int nb = 2;
+        int nb = 200;
         
         R66Future []arrayFuture = new R66Future[nb];
         logger.warn("Start");

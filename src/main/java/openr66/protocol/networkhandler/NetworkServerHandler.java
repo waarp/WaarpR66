@@ -46,11 +46,13 @@ public class NetworkServerHandler extends SimpleChannelHandler {
      */
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) {
-        logger.warn("Network Channel Closed: " + e.getChannel().getId()
+        if (NetworkTransaction.getNbLocalChannel(e.getChannel()) > 0) {
+            logger.warn("Network Channel Closed: " + e.getChannel().getId()
                 +" LocalChannels Left: "+NetworkTransaction.getNbLocalChannel(e.getChannel()));
-        // FIXME close if necessary the local channel
-        Configuration.configuration
-            .getLocalTransaction().closeLocalChannelsFromNetworkChannel(e.getChannel());
+            // FIXME close if necessary the local channel
+            Configuration.configuration
+                .getLocalTransaction().closeLocalChannelsFromNetworkChannel(e.getChannel());
+        }
     }
 
     /*
