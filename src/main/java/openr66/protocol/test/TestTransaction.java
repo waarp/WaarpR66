@@ -121,7 +121,7 @@ public class TestTransaction implements Runnable {
         final SocketAddress socketServerAddress = new InetSocketAddress(
                 Configuration.SERVER_PORT);
         ExecutorService executorService = Executors.newCachedThreadPool();
-        int nb = 200;
+        int nb = 20;
         
         R66Future []arrayFuture = new R66Future[nb];
         logger.warn("Start");
@@ -131,12 +131,12 @@ public class TestTransaction implements Runnable {
             TestPacket packet = new TestPacket("Test", ""+i, 0);
             TestTransaction transaction = new TestTransaction(networkTransaction, arrayFuture[i], socketServerAddress, packet);
             executorService.execute(transaction);
-            try {
+            /*try {
                 Thread.sleep(10);
             } catch (InterruptedException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
-            }
+            }*/
         }
         int success = 0;
         int error = 0;
