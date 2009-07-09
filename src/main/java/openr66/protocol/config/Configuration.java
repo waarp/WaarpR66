@@ -100,7 +100,7 @@ public class Configuration {
      * client for Executor in the Pipeline for Business logic. Server will
      * change this value on startup if not set.
      */
-    public static int SERVER_THREAD = 16;
+    public static int SERVER_THREAD = 4;
 
     /**
      * Nb of milliseconds after connection is in timeout
