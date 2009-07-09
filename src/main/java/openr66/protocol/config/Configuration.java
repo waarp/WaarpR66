@@ -96,13 +96,6 @@ public class Configuration {
     public static int SERVER_PORT = 6666;
 
     /**
-     * Default number of threads in pool for Server. The default value is for
-     * client for Executor in the Pipeline for Business logic. Server will
-     * change this value on startup if not set.
-     */
-    public static int SERVER_THREAD = 4;
-
-    /**
      * Nb of milliseconds after connection is in timeout
      */
     public static int TIMEOUTCON = 30000;
@@ -135,6 +128,13 @@ public class Configuration {
     public static String baseDirectory;
 
     // Dynamic values
+    /**
+     * Default number of threads in pool for Server. The default value is for
+     * client for Executor in the Pipeline for Business logic. Server will
+     * change this value on startup if not set.
+     */
+    private int SERVER_THREAD = 8;
+
     /**
      * True if the service is going to shutdown
      */
@@ -244,7 +244,7 @@ public class Configuration {
         }
         InternalLoggerFactory.setDefaultFactory(InternalLoggerFactory
                 .getDefaultFactory());
-        logger.warn("THREAD: " + Configuration.SERVER_THREAD);
+        logger.warn("THREAD: " + SERVER_THREAD);
         serverPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
                 SERVER_THREAD * 10 + 1, maxGlobalMemory / 10, maxGlobalMemory,
                 500, TimeUnit.MILLISECONDS);
@@ -313,10 +313,18 @@ public class Configuration {
     public void computeNbThreads() {
         final int nb = Runtime.getRuntime().availableProcessors() * 2 + 1;
         if (SERVER_THREAD < nb) {
+            logger.warn("Change default number of threads to "+nb);
             SERVER_THREAD = nb;
         }
     }
 
+    public void setNbThreads(int nbThread) {
+        this.SERVER_THREAD = nbThread;
+    }
+
+    public int getNbThreads() {
+        return this.SERVER_THREAD;
+    }
     /**
      * @return a new ChannelTrafficShapingHandler
      */

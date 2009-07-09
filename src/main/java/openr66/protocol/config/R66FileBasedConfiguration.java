@@ -199,7 +199,7 @@ public class R66FileBasedConfiguration {
         }
         node = document.selectSingleNode(XML_SERVER_THREAD);
         if (node != null) {
-            Configuration.SERVER_THREAD = Integer.parseInt(node.getText());
+            Configuration.configuration.setNbThreads(Integer.parseInt(node.getText()));
         }
         node = document.selectSingleNode(XML_LIMITGLOBAL);
         if (node != null) {
