@@ -88,7 +88,25 @@ public class Configuration {
      */
     private static final FilesystemBasedFileParameterImpl fileParameter = new FilesystemBasedFileParameterImpl();
 
-    // Global unique values
+    // Global Dynamic values
+    /**
+     * Actual Host ID
+     */
+    public String HOST_ID;
+    /**
+     * Default number of threads in pool for Server (true network listeners). Server will
+     * change this value on startup if not set.
+     * The value should be closed to the number of CPU.
+     */
+    public int SERVER_THREAD = 8;
+    /**
+     * Default number of threads in pool for Client. The value is for
+     * true client for Executor in the Pipeline for Business logic.
+     * The value does not indicate a limit of concurrent clients, but
+     * a limit on truly packet concurrent actions.
+     */
+    public int CLIENT_THREAD = 80;
+
     /**
      * Default session limit 64Mbit, so up to 8 full simultaneous clients
      */
@@ -126,14 +144,6 @@ public class Configuration {
      */
     // FIXME TODO
     public String baseDirectory;
-
-    // Dynamic values
-    /**
-     * Default number of threads in pool for Server. The default value is for
-     * client for Executor in the Pipeline for Business logic. Server will
-     * change this value on startup if not set.
-     */
-    private int SERVER_THREAD = 8;
 
     /**
      * True if the service is going to shutdown
@@ -248,12 +258,13 @@ public class Configuration {
         localTransaction = new LocalTransaction();
         InternalLoggerFactory.setDefaultFactory(InternalLoggerFactory
                 .getDefaultFactory());
-        logger.warn("THREAD: " + SERVER_THREAD);
+        logger.warn("SERVER THREAD: " + SERVER_THREAD);
+        logger.warn("CLIENT THREAD: " + CLIENT_THREAD);
         serverPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
-                SERVER_THREAD * 10 + 1, maxGlobalMemory / 10, maxGlobalMemory,
+                CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory,
                 500, TimeUnit.MILLISECONDS);
         localPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
-                SERVER_THREAD * 10 + 1, maxGlobalMemory / 10, maxGlobalMemory,
+                CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory,
                 500, TimeUnit.MILLISECONDS);
         configured = true;
     }
@@ -314,6 +325,7 @@ public class Configuration {
      * of available processors (double + 1) if the value is less than 64
      * threads.
      */
+    // FIXME *2+1 or +1 comment or code
     public void computeNbThreads() {
         final int nb = Runtime.getRuntime().availableProcessors() * 2 + 1;
         if (SERVER_THREAD < nb) {
@@ -322,13 +334,6 @@ public class Configuration {
         }
     }
 
-    public void setNbThreads(int nbThread) {
-        this.SERVER_THREAD = nbThread;
-    }
-
-    public int getNbThreads() {
-        return this.SERVER_THREAD;
-    }
     /**
      * @return a new ChannelTrafficShapingHandler
      */

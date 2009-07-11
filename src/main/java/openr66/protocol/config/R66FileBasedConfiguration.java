@@ -55,6 +55,10 @@ public class R66FileBasedConfiguration {
             .getLogger(R66FileBasedConfiguration.class);
 
     /**
+     * SERVER HOSTID
+     */
+    private static final String XML_SERVER_HOSTID = "/config/hostid";
+    /**
      * SERVER PASSWORD (shutdown)
      */
     private static final String XML_SERVER_PASSWD = "/config/serverpasswd";
@@ -73,6 +77,10 @@ public class R66FileBasedConfiguration {
      * Default number of threads in pool for Server.
      */
     private static final String XML_SERVER_THREAD = "/config/serverthread";
+    /**
+     * Default number of threads in pool for Client (truly concurrent).
+     */
+    private static final String XML_CLIENT_THREAD = "/config/clientthread";
 
     /**
      * Limit per session
@@ -166,6 +174,12 @@ public class R66FileBasedConfiguration {
             return false;
         }
         Node nodebase, node = null;
+        node = document.selectSingleNode(XML_SERVER_HOSTID);
+        if (node == null) {
+            logger.error("Unable to find Host ID in Config file: " + filename);
+            return false;
+        }
+        Configuration.configuration.HOST_ID = node.getText();
         node = document.selectSingleNode(XML_SERVER_PASSWD);
         if (node == null) {
             logger.error("Unable to find Password in Config file: " + filename);
@@ -215,7 +229,13 @@ public class R66FileBasedConfiguration {
         }
         node = document.selectSingleNode(XML_SERVER_THREAD);
         if (node != null) {
-            Configuration.configuration.setNbThreads(Integer.parseInt(node.getText()));
+            Configuration.configuration.SERVER_THREAD =
+                Integer.parseInt(node.getText());
+        }
+        node = document.selectSingleNode(XML_CLIENT_THREAD);
+        if (node != null) {
+            Configuration.configuration.CLIENT_THREAD =
+                Integer.parseInt(node.getText());
         }
         node = document.selectSingleNode(XML_LIMITGLOBAL);
         if (node != null) {

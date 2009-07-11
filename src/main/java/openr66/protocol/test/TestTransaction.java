@@ -30,6 +30,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import openr66.protocol.config.Configuration;
+import openr66.protocol.config.R66FileBasedConfiguration;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.localhandler.LocalChannelReference;
@@ -132,7 +133,16 @@ public class TestTransaction implements Runnable {
         if (logger == null) {
             logger = GgInternalLoggerFactory.getLogger(TestTransaction.class);
         }
-        Configuration.configuration.computeNbThreads();
+        if (args.length < 1) {
+            logger.error("Needs at least the configuration file as first argument");
+            return;
+        }
+        Configuration.configuration.fileBasedConfiguration =
+            new R66FileBasedConfiguration();
+        if (! Configuration.configuration.fileBasedConfiguration.setConfigurationFromXml(args[0])) {
+            logger.error("Needs a correct configuration file as first argument");
+            return;
+        }
         Configuration.configuration.pipelineInit();
 
         final NetworkTransaction networkTransaction = new NetworkTransaction();

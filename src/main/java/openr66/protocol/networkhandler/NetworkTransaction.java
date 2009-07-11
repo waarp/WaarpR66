@@ -76,7 +76,7 @@ public class NetworkTransaction {
             .newCachedThreadPool();
 
     private final ChannelFactory channelClientFactory = new NioClientSocketChannelFactory(
-            execServerBoss, execServerWorker, Configuration.configuration.getNbThreads());
+            execServerBoss, execServerWorker, Configuration.configuration.SERVER_THREAD);
 
     private final ClientBootstrap clientBootstrap = new ClientBootstrap(
             channelClientFactory);
@@ -85,7 +85,7 @@ public class NetworkTransaction {
             "NetworkChannels");
 
     public NetworkTransaction() {
-        logger.warn("THREAD: " + Configuration.configuration.getNbThreads());
+        logger.warn("THREAD: " + Configuration.configuration.SERVER_THREAD);
         clientBootstrap.setPipelineFactory(new NetworkServerPipelineFactory());
     }
 
