@@ -53,7 +53,7 @@ public class TestClientShutdown {
         Configuration.configuration.pipelineInit();
         final NetworkTransaction networkTransaction = new NetworkTransaction();
         final SocketAddress socketServerAddress = new InetSocketAddress(
-                Configuration.SERVER_PORT);
+                Configuration.configuration.SERVER_PORT);
         final ShutdownPacket packet = new ShutdownPacket("password".getBytes());
         final NetworkPacket networkPacket = new NetworkPacket(
                 ChannelUtils.NOCHANNEL, ChannelUtils.NOCHANNEL, packet

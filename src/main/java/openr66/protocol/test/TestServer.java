@@ -19,6 +19,7 @@ import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
 import openr66.protocol.config.Configuration;
+import openr66.protocol.config.R66FileBasedConfiguration;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
@@ -40,6 +41,16 @@ public class TestServer {
                 Level.WARN));
         final GgInternalLogger logger = GgInternalLoggerFactory
                 .getLogger(TestServer.class);
+        if (args.length < 1) {
+            logger.error("Needs at least the configuration file as first argument");
+            return;
+        }
+        Configuration.configuration.fileBasedConfiguration =
+            new R66FileBasedConfiguration();
+        if (! Configuration.configuration.fileBasedConfiguration.setConfigurationFromXml(args[0])) {
+            logger.error("Needs a correct configuration file as first argument");
+            return;
+        }
         Configuration.configuration.serverStartup();
     }
 

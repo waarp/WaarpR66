@@ -46,7 +46,9 @@ public class LocalTransaction {
         public void operationComplete(ChannelFuture future) {
             LocalChannelReference localChannelReference = localChannelHashMap
                     .remove(future.getChannel().getId());
-            localChannelReference.validateConnection(false);
+            if (localChannelReference != null) {
+                localChannelReference.validateConnection(false);
+            }
         }
     };
 
@@ -70,7 +72,7 @@ public class LocalTransaction {
     public LocalTransaction() {
         serverBootstrap.setPipelineFactory(new LocalServerPipelineFactory());
         serverBootstrap.setOption("connectTimeoutMillis",
-                Configuration.TIMEOUTCON);
+                Configuration.configuration.TIMEOUTCON);
         serverChannel = serverBootstrap.bind(socketServerAddress);
         localChannelGroup.add(serverChannel);
         serverChannel.getCloseFuture().addListener(
@@ -145,7 +147,7 @@ public class LocalTransaction {
             LocalChannelReference localChannelReference = iterator.next();
             if (localChannelReference.getNetworkChannel().compareTo(
                     networkChannel) == 0) {
-                logger.warn("Will close local channel");
+                logger.info("Will close local channel");
                 Channels.close(localChannelReference.getLocalChannel());
             }
         }

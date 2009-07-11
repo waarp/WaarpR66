@@ -29,6 +29,7 @@ import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
@@ -172,13 +173,28 @@ public class R66FileBasedConfiguration {
         }
         String passwd = node.getText();
         // FIXME load from a file and store as a key
-        // setPassword(passwd);
+        File key = new File(passwd);
+        if (! key.canRead()) {
+            logger.error("Unable to Load Server Password in Config file from: " + passwd);
+            return false;
+        }
+        byte [] byteKeys = new byte[(int)key.length()];
+        FileInputStream inputStream;
+        try {
+            inputStream = new FileInputStream(key);
+            inputStream.read(byteKeys);
+            inputStream.close();
+        } catch (IOException e2) {
+            logger.error("Unable to Load Server Password in Config file from: " + passwd, e2);
+            return false;
+        }
+        Configuration.configuration.setSERVERKEY(byteKeys);
         node = document.selectSingleNode(XML_SERVER_PORT);
         int port = 21;
         if (node != null) {
             port = Integer.parseInt(node.getText());
         }
-        Configuration.SERVER_PORT = port;
+        Configuration.configuration.SERVER_PORT = port;
         node = document.selectSingleNode(XML_SERVER_HOME);
         if (node == null) {
             logger.error("Unable to find Home in Config file: " + filename);
@@ -187,7 +203,7 @@ public class R66FileBasedConfiguration {
         String path = node.getText();
         File file = new File(path);
         try {
-            Configuration.baseDirectory = FilesystemBasedDirImpl.normalizePath(file
+            Configuration.configuration.baseDirectory = FilesystemBasedDirImpl.normalizePath(file
                     .getCanonicalPath());
         } catch (IOException e1) {
             logger.error("Unable to set Home in Config file: " + filename);
@@ -226,7 +242,7 @@ public class R66FileBasedConfiguration {
         Configuration.configuration.delayLimit = AbstractTrafficShapingHandler.DEFAULT_CHECK_INTERVAL;
         node = document.selectSingleNode(XML_TIMEOUTCON);
         if (node != null) {
-            Configuration.TIMEOUTCON = Integer.parseInt(node.getText());
+            Configuration.configuration.TIMEOUTCON = Integer.parseInt(node.getText());
         }
         node = document.selectSingleNode(XML_DELETEONABORT);
         if (node != null) {
@@ -263,7 +279,7 @@ public class R66FileBasedConfiguration {
         }
         node = document.selectSingleNode(XML_BLOCKSIZE);
         if (node != null) {
-            Configuration.BLOCKSIZE = Integer.parseInt(node.getText());
+            Configuration.configuration.BLOCKSIZE = Integer.parseInt(node.getText());
         }
         // We use Apache Commons IO
         FilesystemBasedDirJdkAbstract.ueApacheCommonsIo = true;
@@ -302,13 +318,30 @@ public class R66FileBasedConfiguration {
             }
             String skey = node.getText();
             // FIXME load key from file
-            byte[] key = null;
+            key = new File(skey);
+            if (! key.canRead()) {
+                logger.warn("Cannot read key for hostId "+user);
+                continue;
+            }
+            byteKeys = new byte[(int) key.length()];
+            try {
+                inputStream = new FileInputStream(key);
+                inputStream.read(byteKeys);
+                inputStream.close();
+            } catch (IOException e) {
+                logger.warn("Cannot read key for hostId "+user, e);
+                try {
+                    inputStream.close();
+                } catch (IOException e1) {
+                }
+                continue;
+            }
             node = nodebase.selectSingleNode(XML_AUTHENTIFICATION_ADMIN);
             boolean isAdmin = false;
             if (node != null) {
                 isAdmin = node.getText().equals("1")? true : false;
             }
-            R66SimpleAuth auth = new R66SimpleAuth(user, key);
+            R66SimpleAuth auth = new R66SimpleAuth(user, byteKeys);
             auth.setAdmin(isAdmin);
             authentications.put(user, auth);
         }

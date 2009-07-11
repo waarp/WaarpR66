@@ -1,0 +1,15 @@
+<authent>
+	<entry>
+		<hostid>hosta</hostid>
+		<keyfile>src/main/config/serverHosta.txt</keyfile>
+		<admin>1</admin>
+	</entry>
+	<entry>
+		<hostid>hostb</hostid>
+		<keyfile>src/main/config/serverHostb.txt</keyfile>
+	</entry>
+	<entry>
+		<hostid>test</hostid>
+		<keyfile>src/main/config/serverHosttest.txt</keyfile>
+	</entry>
+</authent>

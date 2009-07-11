@@ -33,6 +33,7 @@ import sun.misc.SignalHandler;
  *
  * @author Frederic Bregier
  */
+@SuppressWarnings("restriction")
 public class OpenR66SignalHandler implements SignalHandler {
     /**
      * Set if the program is in shutdown
@@ -129,7 +130,7 @@ public class OpenR66SignalHandler implements SignalHandler {
         Timer timer = null;
         timer = new Timer(true);
         final R66TimerTask timerTask = new R66TimerTask(R66TimerTask.TIMER_EXIT);
-        timer.schedule(timerTask, Configuration.TIMEOUTCON * 2);
+        timer.schedule(timerTask, Configuration.configuration.TIMEOUTCON * 2);
         if (shutdown) {
             ChannelUtils.exit();
             // shouldn't be System.exit(2);

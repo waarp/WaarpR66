@@ -185,7 +185,7 @@ public class ChannelUtils implements Runnable {
      */
     public static void exit() {
         Configuration.configuration.isShutdown = true;
-        final long delay = Configuration.TIMEOUTCON;
+        final long delay = Configuration.configuration.TIMEOUTCON;
         logger.warn("Exit: Give a delay of " + delay + " ms");
         try {
             Thread.sleep(delay);

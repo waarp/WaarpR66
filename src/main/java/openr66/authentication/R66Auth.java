@@ -77,7 +77,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
      */
     @Override
     protected String getBaseDirectory() {
-        return Configuration.baseDirectory;
+        return Configuration.configuration.baseDirectory;
     }
 
     /*

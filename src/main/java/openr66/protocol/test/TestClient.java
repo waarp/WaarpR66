@@ -55,7 +55,7 @@ public class TestClient {
         Configuration.configuration.pipelineInit();
         final NetworkTransaction networkTransaction = new NetworkTransaction();
         final SocketAddress socketServerAddress = new InetSocketAddress(
-                Configuration.SERVER_PORT);
+                Configuration.configuration.SERVER_PORT);
         final TestPacket packet = new TestPacket("header test", "middle test",
                 0);
         NetworkPacket networkPacket;

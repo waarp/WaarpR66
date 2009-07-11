@@ -78,54 +78,54 @@ public class Configuration {
      * Default size for buffers (NIO)
      */
     public static final int BUFFERSIZEDEFAULT = 0x10000; // 64K
-
-    // Global unique values
-    /**
-     * Default session limit 64Mbit, so up to 8 full simultaneous clients
-     */
-    public static long DEFAULT_SESSION_LIMIT = 0x800000L;
-
-    /**
-     * Default global limit 512Mbit
-     */
-    public static long DEFAULT_GLOBAL_LIMIT = 0x4000000L;
-
-    /**
-     * Default server port
-     */
-    public static int SERVER_PORT = 6666;
-
-    /**
-     * Nb of milliseconds after connection is in timeout
-     */
-    public static int TIMEOUTCON = 30000;
-
     /**
      * Time elapse for WRITE OR CLOSE WAIT elaps in ms
      */
     public static final long WAITFORNETOP = 1000;
 
     /**
-     * Size by default of block size for receive/sending files. Should be a
-     * multiple of 8192 (maximum = 64K due to block limitation to 2 bytes)
+     * FileParameter
      */
-    public static int BLOCKSIZE = 0x10000; // 64K
+    private static final FilesystemBasedFileParameterImpl fileParameter = new FilesystemBasedFileParameterImpl();
+
+    // Global unique values
+    /**
+     * Default session limit 64Mbit, so up to 8 full simultaneous clients
+     */
+    public long DEFAULT_SESSION_LIMIT = 0x800000L;
+
+    /**
+     * Default global limit 512Mbit
+     */
+    public long DEFAULT_GLOBAL_LIMIT = 0x4000000L;
+
+    /**
+     * Default server port
+     */
+    public int SERVER_PORT = 6666;
+
+    /**
+     * Nb of milliseconds after connection is in timeout
+     */
+    public int TIMEOUTCON = 30000;
+
+
+    /**
+     * Size by default of block size for receive/sending files. Should be a
+     * multiple of 8192 (maximum = 2^30K due to block limitation to 4 bytes)
+     */
+    public int BLOCKSIZE = 0x10000; // 64K
 
     /**
      * Max global memory limit: default is 4GB
      */
-    public static long maxGlobalMemory = 0x100000000L;
-
-    /**
-     * FileParameter
-     */
-    private static final FilesystemBasedFileParameterImpl fileParameter = new FilesystemBasedFileParameterImpl();
+    public long maxGlobalMemory = 0x100000000L;
 
     /**
      * Base Directory
      */
     // FIXME TODO
-    public static String baseDirectory;
+    public String baseDirectory;
 
     // Dynamic values
     /**
@@ -159,6 +159,10 @@ public class Configuration {
      * Limit in Read byte/s to apply by session to the FTP Server
      */
     public long serverChannelReadLimit = DEFAULT_SESSION_LIMIT;
+    /**
+     * Server Key
+     */
+    private byte[] SERVERKEY = null;
 
     /**
      * Delay in ms between two checks
@@ -222,7 +226,7 @@ public class Configuration {
     /**
      * LocalTransaction
      */
-    private final LocalTransaction localTransaction;
+    private LocalTransaction localTransaction;
 
     /**
      * R66FileBasedConfiguration
@@ -235,13 +239,13 @@ public class Configuration {
         // Init signal handler
         OpenR66SignalHandler.initSignalHandler();
         computeNbThreads();
-        localTransaction = new LocalTransaction();
     }
 
     public void pipelineInit() {
         if (configured) {
             return;
         }
+        localTransaction = new LocalTransaction();
         InternalLoggerFactory.setDefaultFactory(InternalLoggerFactory
                 .getDefaultFactory());
         logger.warn("THREAD: " + SERVER_THREAD);
@@ -382,6 +386,20 @@ public class Configuration {
      */
     public static FilesystemBasedFileParameterImpl getFileParameter() {
         return fileParameter;
+    }
+
+    /**
+     * @return the sERVERKEY
+     */
+    public byte[] getSERVERKEY() {
+        return SERVERKEY;
+    }
+
+    /**
+     * @param serverkey the sERVERKEY to set
+     */
+    public void setSERVERKEY(byte[] serverkey) {
+        SERVERKEY = serverkey;
     }
 
 }

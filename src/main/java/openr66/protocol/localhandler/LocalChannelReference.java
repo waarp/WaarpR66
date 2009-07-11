@@ -123,7 +123,7 @@ public class LocalChannelReference {
      */
     public boolean getValidation() {
         if (!futureValidate
-                .awaitUninterruptibly(Configuration.WAITFORNETOP)) {
+                .awaitUninterruptibly(Configuration.WAITFORNETOP*2)) {
             futureValidate.cancel();
         }
         return futureValidate.isSuccess();

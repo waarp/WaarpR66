@@ -14,7 +14,7 @@ import openr66.protocol.exception.OpenR66ProtocolShutdownException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.packet.AbstractLocalPacket;
 import openr66.protocol.localhandler.packet.ErrorPacket;
-import openr66.protocol.localhandler.packet.StartupPacket;
+import openr66.protocol.localhandler.packet.LocalPacketFactory;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
 import openr66.protocol.utils.ChannelUtils;
 
@@ -105,7 +105,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
         }
         // FIXME only Startup Packet should arrived here !
         final AbstractLocalPacket packet = (AbstractLocalPacket) e.getMessage();
-        if (!(packet instanceof StartupPacket)) {
+        if (packet.getType() != LocalPacketFactory.STARTUPPACKET) {
             logger.error("Local Client Channel Recv: " +
                     e.getChannel().getId() + " : " + packet.toString());
             throw new OpenR66ProtocolSystemException("Should not be here");

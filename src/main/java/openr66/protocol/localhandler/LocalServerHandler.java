@@ -71,7 +71,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) {
         logger
-                .warn("Local Server Channel Closed: " +
+                .info("Local Server Channel Closed: " +
                         status +
                         " " +
                         (localChannelReference != null? localChannelReference
@@ -89,9 +89,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
             NetworkTransaction.removeNetworkChannel(localChannelReference
                     .getNetworkChannel());
         } else {
-            logger
-                    .error("Local Server Channel Closed but no LocalChannelReference: " +
-                            e.getChannel().getId());
+            logger.error(
+               "Local Server Channel Closed but no LocalChannelReference: " +
+               e.getChannel().getId());
         }
         session.clear();
     }
@@ -128,7 +128,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         final AbstractLocalPacket packet = (AbstractLocalPacket) e.getMessage();
         logger.info("Local Server Channel Recv: " + e.getChannel().getId() +
                 " : " + packet.getClass().getSimpleName());
-        if (packet instanceof StartupPacket) {
+        if (packet.getType() == LocalPacketFactory.STARTUPPACKET) {
             startup(e.getChannel(), (StartupPacket) packet);
         } else {
             if (localChannelReference == null) {
@@ -144,33 +144,67 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 ChannelUtils.close(e.getChannel());
                 return;
             }
-            if (packet instanceof DataPacket) {
-                data(e.getChannel(), (DataPacket) packet);
-            } else if (packet instanceof ValidPacket) {
-                valid(e.getChannel(), (ValidPacket) packet);
-            } else if (packet instanceof RequestPacket) {
-                request(e.getChannel(), (RequestPacket) packet);
-            } else if (packet instanceof AuthentPacket) {
-                authent(e.getChannel(), (AuthentPacket) packet);
-            } else if (packet instanceof ErrorPacket) {
-                error(e.getChannel(), (ErrorPacket) packet);
-            } else if (packet instanceof TestPacket) {
-                test(e.getChannel(), (TestPacket) packet);
-            } else if (packet instanceof ShutdownPacket) {
-                shutdown(e.getChannel(), (ShutdownPacket) packet);
-            } else if (packet instanceof ConnectionErrorPacket) {
-                connectionError(e.getChannel(), (ConnectionErrorPacket) packet);
-            } else if (packet instanceof ValidateConnectionPacket) {
-                validateConnection(e.getChannel(),
-                        (ValidateConnectionPacket) packet);
-            } else {
-                logger.error("Unknown Mesg: " + packet.getClass().getName());
-                setFinalize(false, null);
-                final ErrorPacket errorPacket = new ErrorPacket(
-                        "Unkown Mesg: " + packet.getClass().getName(), null,
-                        ErrorPacket.FORWARDCLOSECODE);
-                writeBack(errorPacket, true);
-                ChannelUtils.close(e.getChannel());
+            switch (packet.getType()) {
+                case LocalPacketFactory.VALIDATECONNECTIONPACKET: {
+                    validateConnection(e.getChannel(),
+                            (ValidateConnectionPacket) packet);
+                    break;
+                }
+                // Already done case LocalPacketFactory.STARTUPPACKET:
+                case LocalPacketFactory.DATAPACKET: {
+                    data(e.getChannel(), (DataPacket) packet);
+                    break;
+                }
+                case LocalPacketFactory.VALIDPACKET: {
+                    valid(e.getChannel(), (ValidPacket) packet);
+                    break;
+                }
+                case LocalPacketFactory.ERRORPACKET: {
+                    error(e.getChannel(), (ErrorPacket) packet);
+                    break;
+                }
+                case LocalPacketFactory.CONNECTERRORPACKET: {
+                    connectionError(e.getChannel(), (ConnectionErrorPacket) packet);
+                    break;
+                }
+                case LocalPacketFactory.REQUESTPACKET: {
+                    request(e.getChannel(), (RequestPacket) packet);
+                    break;
+                }
+                case LocalPacketFactory.AUTHENTPACKET: {
+                    authent(e.getChannel(), (AuthentPacket) packet);
+                    break;
+                }
+                case LocalPacketFactory.SHUTDOWNPACKET: {
+                    shutdown(e.getChannel(), (ShutdownPacket) packet);
+                    break;
+                }
+                case LocalPacketFactory.STATUSPACKET:
+                case LocalPacketFactory.CANCELPACKET:
+                case LocalPacketFactory.CONFIGSENDPACKET:
+                case LocalPacketFactory.CONFIGRECVPACKET: {
+                    logger.error("Unimplemented Mesg: " + packet.getClass().getName());
+                    setFinalize(false, null);
+                    final ErrorPacket errorPacket = new ErrorPacket(
+                            "Unkown Mesg: " + packet.getClass().getName(), null,
+                            ErrorPacket.FORWARDCLOSECODE);
+                    writeBack(errorPacket, true);
+                    ChannelUtils.close(e.getChannel());
+                    break;
+                }
+                case LocalPacketFactory.TESTPACKET: {
+                    test(e.getChannel(), (TestPacket) packet);
+                    break;
+                }
+                default: {
+                    logger.error("Unknown Mesg: " + packet.getClass().getName());
+                    setFinalize(false, null);
+                    final ErrorPacket errorPacket = new ErrorPacket(
+                            "Unkown Mesg: " + packet.getClass().getName(), null,
+                            ErrorPacket.FORWARDCLOSECODE);
+                    writeBack(errorPacket, true);
+                    ChannelUtils.close(e.getChannel());
+                }
             }
         }
     }
@@ -323,7 +357,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         // simply write back after+1
         packet.update();
         if (packet.getType() == LocalPacketFactory.ERRORPACKET) {
-            logger.warn(packet.toString());
+            logger.info(packet.toString());
             ValidPacket validPacket = new ValidPacket(packet.toString(), null,
                     LocalPacketFactory.TESTPACKET);
             // XXX FIXME dont'close, client will do: no, it will not

@@ -75,15 +75,26 @@ public class TestTransaction implements Runnable {
     }
 
     public void run() {
-        LocalChannelReference localChannelReference;
-        try {
-            localChannelReference = networkTransaction
-                    .createConnection(socketAddress);
-        } catch (OpenR66ProtocolNetworkException e1) {
-            logger.error("Cannot connect", e1);
+        LocalChannelReference localChannelReference = null;
+        OpenR66ProtocolNetworkException lastException = null;
+        for (int i = 0; i < Configuration.RETRYNB; i++)
+        {
+            try {
+                localChannelReference = networkTransaction
+                        .createConnection(socketAddress);
+                break;
+            } catch (OpenR66ProtocolNetworkException e1) {
+                lastException = e1;
+                localChannelReference = null;
+            }
+        }
+        if (localChannelReference == null) {
+            logger.error("Cannot connect", lastException);
             future.setResult(null);
-            future.setFailure(e1);
+            future.setFailure(lastException);
             return;
+        } else if (lastException != null) {
+            logger.warn("Connection retry since ",lastException);
         }
         NetworkPacket networkPacket;
         try {
@@ -126,7 +137,7 @@ public class TestTransaction implements Runnable {
 
         final NetworkTransaction networkTransaction = new NetworkTransaction();
         final SocketAddress socketServerAddress = new InetSocketAddress(
-                Configuration.SERVER_PORT);
+                Configuration.configuration.SERVER_PORT);
         ExecutorService executorService = Executors.newCachedThreadPool();
         int nb = 100;
 

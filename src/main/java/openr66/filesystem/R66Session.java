@@ -84,7 +84,7 @@ public class R66Session implements SessionInterface {
      */
     @Override
     public int getBlockSize() {
-        return Configuration.BLOCKSIZE;
+        return Configuration.configuration.BLOCKSIZE;
     }
 
     /*
