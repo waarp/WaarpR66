@@ -11,12 +11,17 @@ import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
 import openr66.protocol.config.Configuration;
+import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
+import openr66.protocol.localhandler.packet.LocalPacketFactory;
 import openr66.protocol.localhandler.packet.StartupPacket;
+import openr66.protocol.localhandler.packet.ValidPacket;
+import openr66.protocol.networkhandler.packet.NetworkPacket;
 import openr66.protocol.utils.ChannelUtils;
 
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.bootstrap.ServerBootstrap;
+import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFactory;
 import org.jboss.netty.channel.ChannelFuture;
@@ -47,7 +52,7 @@ public class LocalTransaction {
             LocalChannelReference localChannelReference = localChannelHashMap
                     .remove(future.getChannel().getId());
             if (localChannelReference != null) {
-                localChannelReference.validateConnection(false);
+                localChannelReference.validateConnection(false, "While closing Local Channel");
             }
         }
     };
@@ -75,8 +80,6 @@ public class LocalTransaction {
                 Configuration.configuration.TIMEOUTCON);
         serverChannel = serverBootstrap.bind(socketServerAddress);
         localChannelGroup.add(serverChannel);
-        serverChannel.getCloseFuture().addListener(
-                ChannelUtils.channelClosedLogger);
         clientBootstrap.setPipelineFactory(new LocalClientPipelineFactory());
     }
 
@@ -150,6 +153,26 @@ public class LocalTransaction {
                 logger.info("Will close local channel");
                 Channels.close(localChannelReference.getLocalChannel());
             }
+        }
+    }
+
+    public void shutdownLocalChannels() {
+        Collection<LocalChannelReference> collection = localChannelHashMap
+                .values();
+        Iterator<LocalChannelReference> iterator = collection.iterator();
+        ValidPacket packet = new ValidPacket("Shutdown forced", null,
+                LocalPacketFactory.SHUTDOWNPACKET);
+        ChannelBuffer buffer = null;
+        try {
+            buffer = packet.getLocalPacket();
+        } catch (OpenR66ProtocolPacketException e1) {
+        }
+        for (; iterator.hasNext();) {
+            LocalChannelReference localChannelReference = iterator.next();
+            NetworkPacket message = new NetworkPacket(localChannelReference.getLocalId(),
+                        localChannelReference.getRemoteId(),
+                        packet.getType(),buffer.duplicate());
+            ChannelUtils.write(localChannelReference.getNetworkChannel(), message);
         }
     }
 

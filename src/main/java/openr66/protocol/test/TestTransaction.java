@@ -31,10 +31,11 @@ import java.util.concurrent.Executors;
 
 import openr66.protocol.config.Configuration;
 import openr66.protocol.config.R66FileBasedConfiguration;
+import openr66.protocol.exception.OpenR66ProtocolException;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
+import openr66.protocol.exception.OpenR66ProtocolRemoteShutdownException;
 import openr66.protocol.localhandler.LocalChannelReference;
-import openr66.protocol.localhandler.packet.LocalPacketFactory;
 import openr66.protocol.localhandler.packet.TestPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
@@ -77,7 +78,7 @@ public class TestTransaction implements Runnable {
 
     public void run() {
         LocalChannelReference localChannelReference = null;
-        OpenR66ProtocolNetworkException lastException = null;
+        OpenR66ProtocolException lastException = null;
         for (int i = 0; i < Configuration.RETRYNB; i++)
         {
             try {
@@ -87,6 +88,10 @@ public class TestTransaction implements Runnable {
             } catch (OpenR66ProtocolNetworkException e1) {
                 lastException = e1;
                 localChannelReference = null;
+            } catch (OpenR66ProtocolRemoteShutdownException e1) {
+                lastException = e1;
+                localChannelReference = null;
+                break;
             }
         }
         if (localChannelReference == null) {
@@ -101,8 +106,7 @@ public class TestTransaction implements Runnable {
         try {
             networkPacket = new NetworkPacket(localChannelReference
                     .getLocalId(), localChannelReference.getRemoteId(),
-                    LocalPacketFactory.TESTPACKET, testPacket
-                            .getLocalPacket());
+                    testPacket);
         } catch (OpenR66ProtocolPacketException e) {
             future.setResult(null);
             future.setFailure(e);

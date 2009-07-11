@@ -15,6 +15,9 @@
  */
 package openr66.protocol.networkhandler.packet;
 
+import openr66.protocol.exception.OpenR66ProtocolPacketException;
+import openr66.protocol.localhandler.packet.AbstractLocalPacket;
+
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 
@@ -46,6 +49,18 @@ public class NetworkPacket {
         this.localId = localId;
         this.code = code;
         this.buffer = buffer;
+    }
+    /**
+     * @param localId
+     * @param remoteId
+     * @param buffer
+     * @throws OpenR66ProtocolPacketException
+     */
+    public NetworkPacket(int localId, int remoteId, AbstractLocalPacket packet) throws OpenR66ProtocolPacketException {
+        this.remoteId = remoteId;
+        this.localId = localId;
+        this.code = packet.getType();
+        this.buffer = packet.getLocalPacket();
     }
 
     /**

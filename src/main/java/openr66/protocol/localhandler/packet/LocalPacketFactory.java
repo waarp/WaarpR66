@@ -25,20 +25,19 @@ import org.jboss.netty.buffer.ChannelBuffer;
  * @author Frederic Bregier
  */
 public class LocalPacketFactory {
-    public static final byte VALIDATECONNECTIONPACKET = 1;
+    public static final byte AUTHENTPACKET = 1;
     public static final byte STARTUPPACKET = 2;
     public static final byte DATAPACKET = 3;
     public static final byte VALIDPACKET = 4;
     public static final byte ERRORPACKET = 5;
     public static final byte CONNECTERRORPACKET = 6;
     public static final byte REQUESTPACKET = 7;
-    public static final byte AUTHENTPACKET = 8;
-    public static final byte SHUTDOWNPACKET = 9;
-    public static final byte STATUSPACKET = 10;
-    public static final byte CANCELPACKET = 11;
-    public static final byte CONFIGSENDPACKET = 12;
-    public static final byte CONFIGRECVPACKET = 13;
-    public static final byte TESTPACKET = 14;
+    public static final byte SHUTDOWNPACKET = 8;
+    public static final byte STATUSPACKET = 9;
+    public static final byte CANCELPACKET = 10;
+    public static final byte CONFIGSENDPACKET = 11;
+    public static final byte CONFIGRECVPACKET = 12;
+    public static final byte TESTPACKET = 13;
 
     /**
      * This method create a Packet from the ChannelBuffer.
@@ -56,8 +55,8 @@ public class LocalPacketFactory {
             throws OpenR66ProtocolPacketException {
         final byte packetType = buf.readByte();
         switch (packetType) {
-            case VALIDATECONNECTIONPACKET: {
-                return ValidateConnectionPacket.createFromBuffer(headerLength,
+            case AUTHENTPACKET: {
+                return AuthentPacket.createFromBuffer(headerLength,
                         middleLength, endLength, buf);
             }
             case STARTUPPACKET: {
@@ -82,10 +81,6 @@ public class LocalPacketFactory {
             }
             case REQUESTPACKET: {
                 return RequestPacket.createFromBuffer(headerLength,
-                        middleLength, endLength, buf);
-            }
-            case AUTHENTPACKET: {
-                return AuthentPacket.createFromBuffer(headerLength,
                         middleLength, endLength, buf);
             }
             case SHUTDOWNPACKET: {

@@ -331,7 +331,7 @@ public class R66FileBasedConfiguration {
             if (node == null) {
                 continue;
             }
-            String user = node.getText();
+            String refHostId = node.getText();
             node = nodebase.selectSingleNode(XML_AUTHENTIFICATION_KEYFILE);
             if (node == null) {
                 continue;
@@ -340,7 +340,7 @@ public class R66FileBasedConfiguration {
             // FIXME load key from file
             key = new File(skey);
             if (! key.canRead()) {
-                logger.warn("Cannot read key for hostId "+user);
+                logger.warn("Cannot read key for hostId "+refHostId);
                 continue;
             }
             byteKeys = new byte[(int) key.length()];
@@ -349,7 +349,7 @@ public class R66FileBasedConfiguration {
                 inputStream.read(byteKeys);
                 inputStream.close();
             } catch (IOException e) {
-                logger.warn("Cannot read key for hostId "+user, e);
+                logger.warn("Cannot read key for hostId "+refHostId, e);
                 try {
                     inputStream.close();
                 } catch (IOException e1) {
@@ -361,9 +361,10 @@ public class R66FileBasedConfiguration {
             if (node != null) {
                 isAdmin = node.getText().equals("1")? true : false;
             }
-            R66SimpleAuth auth = new R66SimpleAuth(user, byteKeys);
+            R66SimpleAuth auth = new R66SimpleAuth(refHostId, byteKeys);
             auth.setAdmin(isAdmin);
-            authentications.put(user, auth);
+            authentications.put(refHostId, auth);
+            logger.warn("Add "+refHostId+" "+auth.toString());
         }
         document = null;
         return true;

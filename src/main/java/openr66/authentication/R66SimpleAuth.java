@@ -68,6 +68,7 @@ public class R66SimpleAuth {
      * @return True if the key is valid (or any key is valid)
      */
     public boolean isKeyValid(byte[] newkey) {
+        //FIXME is it valid to not have a key ?
         if (key == null) {
             return true;
         }
@@ -84,5 +85,9 @@ public class R66SimpleAuth {
      */
     public void setAdmin(boolean isAdmin) {
         this.isAdmin = isAdmin;
+    }
+
+    public String toString() {
+        return "SimpleAuth: "+hostId+" "+isAdmin;
     }
 }

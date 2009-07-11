@@ -21,6 +21,7 @@ import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -93,6 +94,10 @@ public class Configuration {
      * Actual Host ID
      */
     public String HOST_ID;
+    /**
+     * Server Administration Key
+     */
+    private byte[] SERVERADMINKEY = null;
     /**
      * Default number of threads in pool for Server (true network listeners). Server will
      * change this value on startup if not set.
@@ -169,10 +174,6 @@ public class Configuration {
      * Limit in Read byte/s to apply by session to the FTP Server
      */
     public long serverChannelReadLimit = DEFAULT_SESSION_LIMIT;
-    /**
-     * Server Key
-     */
-    private byte[] SERVERKEY = null;
 
     /**
      * Delay in ms between two checks
@@ -394,17 +395,29 @@ public class Configuration {
     }
 
     /**
-     * @return the sERVERKEY
+     * @return the SERVERADMINKEY
      */
-    public byte[] getSERVERKEY() {
-        return SERVERKEY;
+    public byte[] getSERVERADMINKEY() {
+        return SERVERADMINKEY;
     }
 
     /**
-     * @param serverkey the sERVERKEY to set
+     * Is the given key a valid one
+     *
+     * @param newkey
+     * @return True if the key is valid (or any key is valid)
+     */
+    public boolean isKeyValid(byte[] newkey) {
+        if (newkey == null) {
+            return false;
+        }
+        return Arrays.equals(SERVERADMINKEY, newkey);
+    }
+    /**
+     * @param serverkey the SERVERADMINKEY to set
      */
     public void setSERVERKEY(byte[] serverkey) {
-        SERVERKEY = serverkey;
+        SERVERADMINKEY = serverkey;
     }
 
 }

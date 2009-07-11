@@ -135,8 +135,8 @@ public class OpenR66SignalHandler implements SignalHandler {
             ChannelUtils.exit();
             // shouldn't be System.exit(2);
         } else {
-            ChannelUtils.exit();
             shutdown = true;
+            ChannelUtils.exit();
         }
     }
 

@@ -103,7 +103,7 @@ public class LocalChannelReference {
      *
      * @param validate
      */
-    public void validateConnection(boolean validate) {
+    public void validateConnection(boolean validate, Object result) {
         if (futureValidate.isDone()) {
             logger.info("LocalChannelReference already validated: " +
                     futureValidate.isSuccess());
@@ -111,22 +111,25 @@ public class LocalChannelReference {
         }
         logger.info("LocalChannelReference validate: " + validate);
         if (validate) {
+            futureValidate.setResult(result);
             futureValidate.setSuccess();
         } else {
+            futureValidate.setResult(result);
             futureValidate.cancel();
         }
     }
 
     /**
      *
-     * @return True if the connection is OK
+     * @return the future
      */
-    public boolean getValidation() {
+    public R66Future getValidateFuture() {
         if (!futureValidate
                 .awaitUninterruptibly(Configuration.WAITFORNETOP*2)) {
-            futureValidate.cancel();
+            validateConnection(false, "Out of time");
+            return futureValidate;
         }
-        return futureValidate.isSuccess();
+        return futureValidate;
     }
 
     @Override

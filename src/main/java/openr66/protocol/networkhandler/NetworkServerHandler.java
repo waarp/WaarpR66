@@ -10,12 +10,15 @@ import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
 import openr66.protocol.exception.OpenR66ProtocolException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
+import openr66.protocol.exception.OpenR66ProtocolRemoteShutdownException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.LocalChannelReference;
+import openr66.protocol.localhandler.packet.AbstractLocalPacket;
 import openr66.protocol.localhandler.packet.ConnectionErrorPacket;
 import openr66.protocol.localhandler.packet.LocalPacketFactory;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
 import openr66.protocol.utils.ChannelUtils;
+import openr66.protocol.utils.OpenR66SignalHandler;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -111,6 +114,9 @@ public class NetworkServerHandler extends SimpleChannelHandler {
                 writeError(e.getChannel(), packet.getRemoteId(), packet
                         .getLocalId(), error);
                 return;
+            } catch (OpenR66ProtocolRemoteShutdownException e1) {
+                // ignore
+                return;
             }
         } else {
             try {
@@ -120,7 +126,12 @@ public class NetworkServerHandler extends SimpleChannelHandler {
                 logger.info("Get LocalChannel: " +
                         localChannelReference.getLocalId());
             } catch (OpenR66ProtocolSystemException e1) {
-                logger.error("Cannot get LocalChannel: " + packet, e1);
+                if (NetworkTransaction.isShuttingdownNetworkChannel(e.getChannel()) ||
+                        OpenR66SignalHandler.isInShutdown()) {
+                    // ignore
+                    return;
+                }
+                logger.error("Cannot get LocalChannel: " + packet+" due to "+e1.getMessage());
                 final ConnectionErrorPacket error = new ConnectionErrorPacket(
                         "Cannot get localChannel", null);
                 writeError(e.getChannel(), packet.getRemoteId(), packet
@@ -168,12 +179,10 @@ public class NetworkServerHandler extends SimpleChannelHandler {
     }
 
     private void writeError(Channel channel, Integer remoteId, Integer localId,
-            ConnectionErrorPacket error) {
+            AbstractLocalPacket error) {
         NetworkPacket networkPacket = null;
-        ;
         try {
-            networkPacket = new NetworkPacket(localId, remoteId, error
-                    .getType(), error.getLocalPacket());
+            networkPacket = new NetworkPacket(localId, remoteId, error);
         } catch (OpenR66ProtocolPacketException e) {
         }
         ChannelUtils.write(channel, networkPacket).awaitUninterruptibly();

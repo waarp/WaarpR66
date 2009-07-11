@@ -27,7 +27,6 @@ import openr66.protocol.localhandler.packet.ShutdownPacket;
 import openr66.protocol.localhandler.packet.StartupPacket;
 import openr66.protocol.localhandler.packet.TestPacket;
 import openr66.protocol.localhandler.packet.ValidPacket;
-import openr66.protocol.localhandler.packet.ValidateConnectionPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
 import openr66.protocol.utils.ChannelUtils;
@@ -145,9 +144,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 return;
             }
             switch (packet.getType()) {
-                case LocalPacketFactory.VALIDATECONNECTIONPACKET: {
-                    validateConnection(e.getChannel(),
-                            (ValidateConnectionPacket) packet);
+                case LocalPacketFactory.AUTHENTPACKET: {
+                    authent(e.getChannel(), (AuthentPacket) packet);
                     break;
                 }
                 // Already done case LocalPacketFactory.STARTUPPACKET:
@@ -169,10 +167,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 }
                 case LocalPacketFactory.REQUESTPACKET: {
                     request(e.getChannel(), (RequestPacket) packet);
-                    break;
-                }
-                case LocalPacketFactory.AUTHENTPACKET: {
-                    authent(e.getChannel(), (AuthentPacket) packet);
                     break;
                 }
                 case LocalPacketFactory.SHUTDOWNPACKET: {
@@ -224,8 +218,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 .getExceptionFromTrappedException(e.getChannel(), e);
         if (exception != null) {
             if (exception instanceof OpenR66ProtocolShutdownException) {
+                logger.warn("Shutdown order received and going from: "+
+                        session.getAuth().getUser());
                 setFinalize(true, null);
+                // XXX FIXME dont'close, client will do: no, it will not
                 new Thread(new ChannelUtils()).start();
+                // FIXME: set global shutdown info and before close, send a valid shutdown to all
+                return;
             } else {
                 setFinalize(false, null);
             }
@@ -266,19 +265,20 @@ public class LocalServerHandler extends SimpleChannelHandler {
             ChannelUtils.close(channel);
             return;
         }
+        /*if (NetworkTransaction.isShuttingdownNetworkChannel(localChannelReference.getNetworkChannel())
+                || OpenR66SignalHandler.isInShutdown()) {
+            logger.warn("Shutdown is on going so Will close channel" +
+                    localChannelReference.toString());
+            setFinalize(false, packet);
+            ErrorPacket error = new ErrorPacket("Shutdown is on going",
+                    null, ErrorPacket.FORWARDCLOSECODE);
+            // XXX FIXME Do not close, client will close
+            writeBack(error, true);
+            Channels.close(channel);
+            return;
+        }*/
         ChannelUtils.write(channel, packet);
         logger.info("Get LocalChannel: " + localChannelReference.getLocalId());
-    }
-
-    private void validateConnection(Channel channel,
-            ValidateConnectionPacket packet)
-            throws OpenR66ProtocolPacketException {
-        logger.info("Recv: " + packet.toString());
-        localChannelReference.validateConnection(true);
-        if (packet.isToValidate()) {
-            packet.validate();
-            writeBack(packet, false);
-        }
     }
 
     private void authent(Channel channel, AuthentPacket packet)
@@ -293,6 +293,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     ErrorPacket.FORWARDCLOSECODE);
             // XXX FIXME Do not close, client will close
             writeBack(error, true);
+            localChannelReference.validateConnection(false, error);
             ChannelUtils.close(channel);
             // ChannelUtils.write(channel, error);
             return;
@@ -303,14 +304,16 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     ErrorPacket.FORWARDCLOSECODE);
             // XXX FIXME Do not close, client will close
             writeBack(error, true);
+            localChannelReference.validateConnection(false, error);
             ChannelUtils.close(channel);
             // ChannelUtils.write(channel, error);
             return;
         }
-        ValidPacket validPacket = new ValidPacket("Authenticated", null, packet
-                .getType());
-        writeBack(validPacket, false);
-        // ChannelUtils.write(channel, validPacket);
+        localChannelReference.validateConnection(true, packet);
+        if (packet.isToValidate()) {
+            packet.validate();
+            writeBack(packet, false);
+        }
     }
 
     private void data(Channel channel, DataPacket packet)
@@ -349,14 +352,14 @@ public class LocalServerHandler extends SimpleChannelHandler {
     private void test(Channel channel, TestPacket packet)
             throws OpenR66ProtocolNotAuthenticatedException,
             OpenR66ProtocolPacketException {
-        /*
-         * if (! this.session.isAuthenticated()) { throw new
-         * OpenR66ProtocolNotAuthenticatedException("Not authenticated"); }
-         */
+        if (!session.isAuthenticated()) {
+            throw new OpenR66ProtocolNotAuthenticatedException(
+                    "Not authenticated");
+        }
         logger.info(channel.getId() + ": " + packet.toString());
         // simply write back after+1
         packet.update();
-        if (packet.getType() == LocalPacketFactory.ERRORPACKET) {
+        if (packet.getType() == LocalPacketFactory.VALIDPACKET) {
             logger.info(packet.toString());
             ValidPacket validPacket = new ValidPacket(packet.toString(), null,
                     LocalPacketFactory.TESTPACKET);
@@ -375,18 +378,26 @@ public class LocalServerHandler extends SimpleChannelHandler {
     private void valid(Channel channel, ValidPacket packet)
             throws OpenR66ProtocolNotAuthenticatedException {
         // FIXME do something
-        if (packet.getTypeValid() == LocalPacketFactory.TESTPACKET) {
-            logger.warn("Valid TEST so Will close channel" +
-                    localChannelReference.toString());
-            setFinalize(true, packet);
-            Channels.close(channel);
-            return;
-        }
-        if (!session.isAuthenticated()) {
+        if ((packet.getTypeValid() != LocalPacketFactory.SHUTDOWNPACKET) && (!session.isAuthenticated())) {
             throw new OpenR66ProtocolNotAuthenticatedException(
                     "Not authenticated");
         }
-
+        switch (packet.getTypeValid()) {
+            case LocalPacketFactory.SHUTDOWNPACKET:
+                logger.warn("Shutdown received so Will close channel" +
+                        localChannelReference.toString());
+                setFinalize(false, packet);
+                Channels.close(channel);
+                break;
+            case LocalPacketFactory.TESTPACKET:
+                logger.warn("Valid TEST so Will close channel" +
+                        localChannelReference.toString());
+                setFinalize(true, packet);
+                Channels.close(channel);
+                break;
+            default:
+                logger.warn("Validation is ignored: "+packet.getTypeValid());
+        }
     }
 
     private void shutdown(Channel channel, ShutdownPacket packet)
@@ -398,7 +409,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     "Not authenticated");
         }
         if (session.getAuth().isAdmin() &&
-                session.getAuth().isKeyValid(packet.getKey())) {
+               Configuration.configuration.isKeyValid(packet.getKey())) {
             throw new OpenR66ProtocolShutdownException("Shutdown Type received");
         }
         logger.error("Invalid Shutdown command");
@@ -425,8 +436,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         NetworkPacket networkPacket;
         try {
             networkPacket = new NetworkPacket(localChannelReference
-                    .getLocalId(), localChannelReference.getRemoteId(), packet
-                    .getType(), packet.getLocalPacket());
+                    .getLocalId(), localChannelReference.getRemoteId(), packet);
         } catch (OpenR66ProtocolPacketException e) {
             logger.error("Cannot construct message from " + packet.toString(),
                     e);

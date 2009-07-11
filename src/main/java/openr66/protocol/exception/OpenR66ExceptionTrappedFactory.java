@@ -12,6 +12,9 @@ import java.net.ConnectException;
 import java.nio.channels.CancelledKeyException;
 import java.nio.channels.ClosedChannelException;
 
+import openr66.protocol.networkhandler.NetworkTransaction;
+import openr66.protocol.utils.OpenR66SignalHandler;
+
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelException;
 import org.jboss.netty.channel.ExceptionEvent;
@@ -57,11 +60,20 @@ public class OpenR66ExceptionTrappedFactory {
             return null;
         } else if (e1 instanceof ClosedChannelException) {
             logger.warn("Connection closed before end");
+            if (NetworkTransaction.isShuttingdownNetworkChannel(channel) ||
+                    OpenR66SignalHandler.isInShutdown()) {
+                // no action
+                return null;
+            }
             return new OpenR66ProtocolBusinessNoWriteBackException(
                     "Connection closed before end", e1);
         } else if (e1 instanceof OpenR66ProtocolBusinessNoWriteBackException) {
             final OpenR66ProtocolBusinessNoWriteBackException e2 = (OpenR66ProtocolBusinessNoWriteBackException) e1;
             logger.error("Command Error Reply", e2);
+            return e2;
+        } else if (e1 instanceof OpenR66ProtocolShutdownException) {
+            final OpenR66ProtocolShutdownException e2 = (OpenR66ProtocolShutdownException) e1;
+            logger.info("Command Shutdown", e2);
             return e2;
         } else if (e1 instanceof OpenR66ProtocolException) {
             final OpenR66ProtocolException e2 = (OpenR66ProtocolException) e1;

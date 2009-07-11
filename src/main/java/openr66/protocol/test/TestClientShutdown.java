@@ -23,10 +23,15 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
 import openr66.protocol.config.Configuration;
+import openr66.protocol.config.R66FileBasedConfiguration;
+import openr66.protocol.exception.OpenR66ProtocolException;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
+import openr66.protocol.exception.OpenR66ProtocolRemoteShutdownException;
 import openr66.protocol.localhandler.LocalChannelReference;
+import openr66.protocol.localhandler.packet.LocalPacketFactory;
 import openr66.protocol.localhandler.packet.ShutdownPacket;
+import openr66.protocol.localhandler.packet.ValidPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
 import openr66.protocol.utils.ChannelUtils;
@@ -47,34 +52,66 @@ public class TestClientShutdown {
     public static void main(String[] args)
             throws OpenR66ProtocolPacketException {
         InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
-                Level.INFO));
+                Level.WARN));
         final GgInternalLogger logger = GgInternalLoggerFactory
                 .getLogger(TestClientShutdown.class);
+        if (args.length < 1) {
+            logger.error("Needs at least the configuration file as first argument");
+            return;
+        }
+        Configuration.configuration.fileBasedConfiguration =
+            new R66FileBasedConfiguration();
+        if (! Configuration.configuration.fileBasedConfiguration.setConfigurationFromXml(args[0])) {
+            logger.error("Needs a correct configuration file as first argument");
+            return;
+        }
         Configuration.configuration.pipelineInit();
+
+        final ShutdownPacket packet = new ShutdownPacket(
+                Configuration.configuration.getSERVERADMINKEY());
         final NetworkTransaction networkTransaction = new NetworkTransaction();
         final SocketAddress socketServerAddress = new InetSocketAddress(
                 Configuration.configuration.SERVER_PORT);
-        final ShutdownPacket packet = new ShutdownPacket("password".getBytes());
-        final NetworkPacket networkPacket = new NetworkPacket(
-                ChannelUtils.NOCHANNEL, ChannelUtils.NOCHANNEL, packet
-                        .getType(), packet.getLocalPacket());
-        logger.warn("START");
-        LocalChannelReference localChannelReference;
-        try {
-            localChannelReference = networkTransaction
-                    .createConnection(socketServerAddress);
-        } catch (OpenR66ProtocolNetworkException e1) {
-            logger.error("Cannot connect", e1);
+        LocalChannelReference localChannelReference = null;
+        OpenR66ProtocolException lastException = null;
+        for (int i = 0; i < Configuration.RETRYNB; i++)
+        {
+            try {
+                localChannelReference = networkTransaction
+                        .createConnection(socketServerAddress);
+                break;
+            } catch (OpenR66ProtocolNetworkException e1) {
+                lastException = e1;
+                localChannelReference = null;
+            } catch (OpenR66ProtocolRemoteShutdownException e1) {
+                lastException = e1;
+                localChannelReference = null;
+            }
+        }
+        if (localChannelReference == null) {
+            logger.error("Cannot connect", lastException);
             networkTransaction.closeAll();
             return;
+        } else if (lastException != null) {
+            logger.warn("Connection retry since ",lastException);
         }
+        final NetworkPacket networkPacket = new NetworkPacket(
+                localChannelReference
+                .getLocalId(), localChannelReference.getRemoteId(), packet);
+        logger.warn("START");
         ChannelUtils.write(localChannelReference.getNetworkChannel(),
                 networkPacket);
-        try {
-            Thread.sleep(10000);
-        } catch (final InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        localChannelReference.getFuture().awaitUninterruptibly();
+        if (localChannelReference.getFuture().isSuccess()) {
+            logger.warn("Shutdown OK");
+        } else {
+            if ((localChannelReference.getFuture().getResult() instanceof ValidPacket) &&
+                (((ValidPacket) localChannelReference.getFuture().getResult()).getTypeValid()
+                        == LocalPacketFactory.SHUTDOWNPACKET)) {
+                    logger.warn("Shutdown command OK");
+            } else {
+                logger.warn("Cannot Shutdown", localChannelReference.getFuture().getCause());
+            }
         }
         networkTransaction.closeAll();
     }

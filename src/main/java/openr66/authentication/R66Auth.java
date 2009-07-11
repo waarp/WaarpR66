@@ -117,7 +117,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
     public boolean connection(String hostId, byte[] arg0)
             throws Reply530Exception, Reply421Exception {
         R66SimpleAuth auth = Configuration.configuration.fileBasedConfiguration
-                .getSimpleAuth(user);
+                .getSimpleAuth(hostId);
         if (auth == null) {
             setIsIdentified(false);
             currentAuth = null;
@@ -129,6 +129,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
             throw new Reply530Exception("Needs a correct HostId");
         }
         if (currentAuth.isKeyValid(arg0)) {
+            setIsIdentified(true);
             user = hostId;
             setRootFromAuth();
             getSession().getDir().initAfterIdentification();
@@ -215,5 +216,12 @@ public class R66Auth extends FilesystemBasedAuthImpl {
         }
         return newPath.startsWith(getBusinessPath());
     }
-
+    /**
+     *
+     * @return the Key of the Hosting server
+     */
+    public static byte[] getServerAuth() {
+        return Configuration.configuration.fileBasedConfiguration
+            .getSimpleAuth(Configuration.configuration.HOST_ID).key;
+    }
 }

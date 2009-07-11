@@ -80,7 +80,7 @@ public class TestPacket extends AbstractLocalPacket {
     @Override
     public byte getType() {
         if (code > pingpong) {
-            return LocalPacketFactory.ERRORPACKET;
+            return LocalPacketFactory.VALIDPACKET;
         }
         return LocalPacketFactory.TESTPACKET;
     }

@@ -11,11 +11,19 @@ import org.jboss.netty.buffer.ChannelBuffers;
 /**
  * Request class
  *
- * header = "hostId" middle = "key bytes" end = none
+ * header = "hostId" middle = "key bytes" end = localId + way
  *
  * @author frederic bregier
  */
 public class AuthentPacket extends AbstractLocalPacket {
+    private static final byte ASKVALIDATE = 0;
+
+    private static final byte ANSWERVALIDATE = 1;
+
+    private final Integer localId;
+
+    private byte way;
+
     private final String hostId;
 
     private final byte[] key;
@@ -37,6 +45,9 @@ public class AuthentPacket extends AbstractLocalPacket {
         if (middleLength <= 0) {
             throw new OpenR66ProtocolPacketException("Not enough data");
         }
+        if (endLength < 5) {
+            throw new OpenR66ProtocolPacketException("Not enough data");
+        }
         final byte[] bheader = new byte[headerLength - 1];
         final byte[] bmiddle = new byte[middleLength];
         if (headerLength - 1 > 0) {
@@ -45,17 +56,35 @@ public class AuthentPacket extends AbstractLocalPacket {
         if (middleLength > 0) {
             buf.readBytes(bmiddle);
         }
+        Integer newId = buf.readInt();
+        byte valid = buf.readByte();
         final String sheader = new String(bheader);
-        return new AuthentPacket(sheader, bmiddle);
+        return new AuthentPacket(sheader, bmiddle, newId, valid);
     }
 
     /**
      * @param hostId
      * @param key
+     * @param newId
+     * @param valid
      */
-    public AuthentPacket(String hostId, byte[] key) {
+    private AuthentPacket(String hostId, byte[] key, Integer newId, byte valid) {
         this.hostId = hostId;
         this.key = key;
+        localId = newId;
+        way = valid;
+    }
+
+    /**
+     * @param hostId
+     * @param key
+     * @param newId
+     */
+    public AuthentPacket(String hostId, byte[] key, Integer newId) {
+        this.hostId = hostId;
+        this.key = key;
+        localId = newId;
+        way = ASKVALIDATE;
     }
 
     /*
@@ -65,7 +94,9 @@ public class AuthentPacket extends AbstractLocalPacket {
      */
     @Override
     public void createEnd() throws OpenR66ProtocolPacketException {
-        end = ChannelBuffers.EMPTY_BUFFER;
+        end = ChannelBuffers.buffer(5);
+        end.writeInt(localId);
+        end.writeByte(way);
     }
 
     /*
@@ -108,7 +139,7 @@ public class AuthentPacket extends AbstractLocalPacket {
      */
     @Override
     public String toString() {
-        return "AuthentPacket: " + hostId;
+        return "AuthentPacket: " + hostId+" "+localId + " " + way;
     }
 
     /**
@@ -124,5 +155,24 @@ public class AuthentPacket extends AbstractLocalPacket {
     public byte[] getKey() {
         return key;
     }
+    /**
+     * @return the localId
+     */
+    public Integer getLocalId() {
+        return localId;
+    }
 
+    /**
+     * @return True if this packet is to be validated
+     */
+    public boolean isToValidate() {
+        return way == ASKVALIDATE;
+    }
+
+    /**
+     * Validate the connection
+     */
+    public void validate() {
+        way = ANSWERVALIDATE;
+    }
 }

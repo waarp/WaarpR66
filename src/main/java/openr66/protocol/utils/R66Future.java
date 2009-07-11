@@ -57,4 +57,9 @@ public class R66Future extends GgFuture {
     public void setResult(Object result) {
         this.result = result;
     }
+
+    public String toString() {
+        return "Future: "+this.isDone()+" "+this.isSuccess()+" "+(this.getCause() != null ? this.getCause().getMessage() :"no cause")+
+        " "+(this.result != null ? this.result.toString():"no result");
+    }
 }

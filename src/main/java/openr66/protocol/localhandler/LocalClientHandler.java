@@ -152,8 +152,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
                         .getMessage(), null, ErrorPacket.FORWARDCLOSECODE);
                 final NetworkPacket networkPacket = new NetworkPacket(
                         localChannelReference.getLocalId(),
-                        localChannelReference.getRemoteId(), errorPacket
-                                .getType(), errorPacket.getLocalPacket());
+                        localChannelReference.getRemoteId(), errorPacket);
                 ChannelUtils.write(localChannelReference.getNetworkChannel(),
                         networkPacket).awaitUninterruptibly();
             } else {
