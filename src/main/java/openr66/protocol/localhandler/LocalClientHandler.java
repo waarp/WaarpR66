@@ -65,10 +65,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
     @Override
     public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
-        // FIXME once connected, first message should create the
-        // LocalChannelReference (not now)
-        logger
-                .info("Local Client Channel Connected: " +
+        logger.info("Local Client Channel Connected: " +
                         e.getChannel().getId());
     }
 
@@ -103,7 +100,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
         if (localChannelReference == null) {
             initLocalClientHandler(e.getChannel());
         }
-        // FIXME only Startup Packet should arrived here !
+        // only Startup Packet should arrived here !
         final AbstractLocalPacket packet = (AbstractLocalPacket) e.getMessage();
         if (packet.getType() != LocalPacketFactory.STARTUPPACKET) {
             logger.error("Local Client Channel Recv: " +
@@ -126,7 +123,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
             throws Exception {
         // FIXME informs network of the problem
-        logger.error("Local Client Channel Exception: " +
+        logger.info("Local Client Channel Exception: " +
                 e.getChannel().getId(), e.getCause());
         if (localChannelReference == null) {
             initLocalClientHandler(e.getChannel());
@@ -153,7 +150,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
                 final NetworkPacket networkPacket = new NetworkPacket(
                         localChannelReference.getLocalId(),
                         localChannelReference.getRemoteId(), errorPacket);
-                ChannelUtils.write(localChannelReference.getNetworkChannel(),
+                Channels.write(localChannelReference.getNetworkChannel(),
                         networkPacket).awaitUninterruptibly();
             } else {
                 // Nothing to do

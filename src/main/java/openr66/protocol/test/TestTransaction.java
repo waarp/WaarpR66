@@ -39,7 +39,6 @@ import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.TestPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
-import openr66.protocol.utils.ChannelUtils;
 import openr66.protocol.utils.R66Future;
 
 import org.jboss.netty.channel.Channels;
@@ -95,7 +94,7 @@ public class TestTransaction implements Runnable {
             }
         }
         if (localChannelReference == null) {
-            logger.error("Cannot connect", lastException);
+            logger.error("Cannot connect: "+lastException.getMessage());
             future.setResult(null);
             future.setFailure(lastException);
             return;
@@ -113,7 +112,7 @@ public class TestTransaction implements Runnable {
             Channels.close(localChannelReference.getLocalChannel());
             return;
         }
-        ChannelUtils.write(localChannelReference.getNetworkChannel(),
+        Channels.write(localChannelReference.getNetworkChannel(),
                 networkPacket);
         localChannelReference.getFuture().awaitUninterruptibly();
         if (localChannelReference.getFuture().isSuccess()) {
@@ -181,7 +180,7 @@ public class TestTransaction implements Runnable {
             }
         }
         long time2 = System.currentTimeMillis();
-        logger.warn("Success: " + success + " Error: " + error + " NB/s: " +
+        logger.error("Success: " + success + " Error: " + error + " NB/s: " +
                 success * TestPacket.pingpong * 1000 / (time2 - time1));
         networkTransaction.closeAll();
         executorService.shutdown();

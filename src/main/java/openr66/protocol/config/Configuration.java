@@ -326,7 +326,6 @@ public class Configuration {
      * of available processors (double + 1) if the value is less than 64
      * threads.
      */
-    // FIXME *2+1 or +1 comment or code
     public void computeNbThreads() {
         final int nb = Runtime.getRuntime().availableProcessors() * 2 + 1;
         if (SERVER_THREAD < nb) {

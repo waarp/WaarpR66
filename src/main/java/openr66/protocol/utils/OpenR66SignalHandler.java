@@ -38,7 +38,7 @@ public class OpenR66SignalHandler implements SignalHandler {
     /**
      * Set if the program is in shutdown
      */
-    private static boolean shutdown = false;
+    private static volatile boolean shutdown = false;
 
     /**
      * Set if the Handler is initialized

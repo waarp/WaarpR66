@@ -36,6 +36,7 @@ import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
 import openr66.protocol.utils.ChannelUtils;
 
+import org.jboss.netty.channel.Channels;
 import org.jboss.netty.logging.InternalLoggerFactory;
 
 import ch.qos.logback.classic.Level;
@@ -99,7 +100,7 @@ public class TestClientShutdown {
                 localChannelReference
                 .getLocalId(), localChannelReference.getRemoteId(), packet);
         logger.warn("START");
-        ChannelUtils.write(localChannelReference.getNetworkChannel(),
+        Channels.write(localChannelReference.getNetworkChannel(),
                 networkPacket);
         localChannelReference.getFuture().awaitUninterruptibly();
         if (localChannelReference.getFuture().isSuccess()) {

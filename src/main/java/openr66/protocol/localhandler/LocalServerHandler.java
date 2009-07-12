@@ -138,7 +138,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         "No LocalChannelReference at " +
                                 packet.getClass().getName(), null,
                         ErrorPacket.FORWARDCLOSECODE);
-                ChannelUtils.write(e.getChannel(), errorPacket)
+                Channels.write(e.getChannel(), errorPacket)
                         .awaitUninterruptibly();
                 ChannelUtils.close(e.getChannel());
                 return;
@@ -221,9 +221,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 logger.warn("Shutdown order received and going from: "+
                         session.getAuth().getUser());
                 setFinalize(true, null);
-                // XXX FIXME dont'close, client will do: no, it will not
+                // XXX dont'close
                 new Thread(new ChannelUtils()).start();
-                // FIXME: set global shutdown info and before close, send a valid shutdown to all
+                // set global shutdown info and before close, send a valid shutdown to all
                 return;
             } else {
                 setFinalize(false, null);
@@ -235,14 +235,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
             }
             final ErrorPacket errorPacket = new ErrorPacket(exception
                     .getMessage(), null, ErrorPacket.FORWARDCLOSECODE);
-            // XXX FIXME Do not close, client will close
             try {
                 writeBack(errorPacket, true);
             } catch (OpenR66ProtocolPacketException e1) {
                 // should not be
             }
             ChannelUtils.close(e.getChannel());
-            // ChannelUtils.write(e.getChannel(), errorPacket);
         } else {
             // Nothing to do
             return;
@@ -259,25 +257,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
             setFinalize(false, null);
             ErrorPacket error = new ErrorPacket("Cannot startup connection",
                     null, ErrorPacket.FORWARDCLOSECODE);
-            // XXX FIXME Do not close, client will close
-            ChannelUtils.write(channel, error).awaitUninterruptibly();
+            Channels.write(channel, error).awaitUninterruptibly();
             // Cannot do writeBack(error, true);
             ChannelUtils.close(channel);
             return;
         }
-        /*if (NetworkTransaction.isShuttingdownNetworkChannel(localChannelReference.getNetworkChannel())
-                || OpenR66SignalHandler.isInShutdown()) {
-            logger.warn("Shutdown is on going so Will close channel" +
-                    localChannelReference.toString());
-            setFinalize(false, packet);
-            ErrorPacket error = new ErrorPacket("Shutdown is on going",
-                    null, ErrorPacket.FORWARDCLOSECODE);
-            // XXX FIXME Do not close, client will close
-            writeBack(error, true);
-            Channels.close(channel);
-            return;
-        }*/
-        ChannelUtils.write(channel, packet);
+        Channels.write(channel, packet);
         logger.info("Get LocalChannel: " + localChannelReference.getLocalId());
     }
 
@@ -291,22 +276,18 @@ public class LocalServerHandler extends SimpleChannelHandler {
             setFinalize(false, e1);
             ErrorPacket error = new ErrorPacket("Connection not allowed", null,
                     ErrorPacket.FORWARDCLOSECODE);
-            // XXX FIXME Do not close, client will close
             writeBack(error, true);
             localChannelReference.validateConnection(false, error);
             ChannelUtils.close(channel);
-            // ChannelUtils.write(channel, error);
             return;
         } catch (Reply421Exception e1) {
             logger.error("Service unavailable: " + packet.getHostId(), e1);
             setFinalize(false, e1);
             ErrorPacket error = new ErrorPacket("Service unavailable", null,
                     ErrorPacket.FORWARDCLOSECODE);
-            // XXX FIXME Do not close, client will close
             writeBack(error, true);
             localChannelReference.validateConnection(false, error);
             ChannelUtils.close(channel);
-            // ChannelUtils.write(channel, error);
             return;
         }
         localChannelReference.validateConnection(true, packet);
@@ -363,15 +344,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
             logger.info(packet.toString());
             ValidPacket validPacket = new ValidPacket(packet.toString(), null,
                     LocalPacketFactory.TESTPACKET);
-            // XXX FIXME dont'close, client will do: no, it will not
             setFinalize(true, validPacket);
             writeBack(validPacket, true);
             Channels.close(channel);
-            // ChannelUtils.write(channel, validPacket).awaitUninterruptibly();
-            // Channels.close(channel);
         } else {
             writeBack(packet, false);
-            // ChannelUtils.write(channel, packet);
         }
     }
 
@@ -386,6 +363,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             case LocalPacketFactory.SHUTDOWNPACKET:
                 logger.warn("Shutdown received so Will close channel" +
                         localChannelReference.toString());
+                NetworkTransaction.shuttingdownNetworkChannel(localChannelReference.getNetworkChannel());
                 setFinalize(false, packet);
                 Channels.close(channel);
                 break;
@@ -443,10 +421,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
             throw e;
         }
         if (await) {
-            ChannelUtils.write(localChannelReference.getNetworkChannel(),
+            Channels.write(localChannelReference.getNetworkChannel(),
                     networkPacket).awaitUninterruptibly();
         } else {
-            ChannelUtils.write(localChannelReference.getNetworkChannel(),
+            Channels.write(localChannelReference.getNetworkChannel(),
                     networkPacket);
         }
     }

@@ -13,7 +13,6 @@ import java.nio.channels.CancelledKeyException;
 import java.nio.channels.ClosedChannelException;
 
 import openr66.protocol.networkhandler.NetworkTransaction;
-import openr66.protocol.utils.OpenR66SignalHandler;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelException;
@@ -42,7 +41,7 @@ public class OpenR66ExceptionTrappedFactory {
             final ConnectException e2 = (ConnectException) e1;
             logger.warn("Connection impossible since {} with Channel {}", e2
                     .getMessage(), channel);
-            return new OpenR66ProtocolNetworkException("Connection impossible",
+            return new OpenR66ProtocolBusinessNoWriteBackException("Connection impossible",
                     e2);
         } else if (e1 instanceof ChannelException) {
             final ChannelException e2 = (ChannelException) e1;
@@ -60,11 +59,6 @@ public class OpenR66ExceptionTrappedFactory {
             return null;
         } else if (e1 instanceof ClosedChannelException) {
             logger.warn("Connection closed before end");
-            if (NetworkTransaction.isShuttingdownNetworkChannel(channel) ||
-                    OpenR66SignalHandler.isInShutdown()) {
-                // no action
-                return null;
-            }
             return new OpenR66ProtocolBusinessNoWriteBackException(
                     "Connection closed before end", e1);
         } else if (e1 instanceof OpenR66ProtocolBusinessNoWriteBackException) {
@@ -73,7 +67,7 @@ public class OpenR66ExceptionTrappedFactory {
             return e2;
         } else if (e1 instanceof OpenR66ProtocolShutdownException) {
             final OpenR66ProtocolShutdownException e2 = (OpenR66ProtocolShutdownException) e1;
-            logger.info("Command Shutdown", e2);
+            logger.info("Command Shutdown"+ e2.getMessage());
             return e2;
         } else if (e1 instanceof OpenR66ProtocolException) {
             final OpenR66ProtocolException e2 = (OpenR66ProtocolException) e1;

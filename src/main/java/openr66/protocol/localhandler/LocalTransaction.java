@@ -118,7 +118,7 @@ public class LocalTransaction {
                 // Now send first a Startup message
                 StartupPacket startup = new StartupPacket(localChannelReference
                         .getLocalId());
-                ChannelUtils.write(channel, startup).awaitUninterruptibly();
+                Channels.write(channel, startup).awaitUninterruptibly();
                 return localChannelReference;
             }
             try {
@@ -169,10 +169,11 @@ public class LocalTransaction {
         }
         for (; iterator.hasNext();) {
             LocalChannelReference localChannelReference = iterator.next();
+            logger.info("Inform Shutdown "+localChannelReference.toString());
             NetworkPacket message = new NetworkPacket(localChannelReference.getLocalId(),
                         localChannelReference.getRemoteId(),
                         packet.getType(),buffer.duplicate());
-            ChannelUtils.write(localChannelReference.getNetworkChannel(), message);
+            Channels.write(localChannelReference.getNetworkChannel(), message);
         }
     }
 
