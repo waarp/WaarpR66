@@ -12,8 +12,6 @@ import java.net.ConnectException;
 import java.nio.channels.CancelledKeyException;
 import java.nio.channels.ClosedChannelException;
 
-import openr66.protocol.networkhandler.NetworkTransaction;
-
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelException;
 import org.jboss.netty.channel.ExceptionEvent;

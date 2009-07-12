@@ -34,7 +34,6 @@ import openr66.protocol.localhandler.packet.ShutdownPacket;
 import openr66.protocol.localhandler.packet.ValidPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
-import openr66.protocol.utils.ChannelUtils;
 
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.logging.InternalLoggerFactory;
@@ -102,16 +101,16 @@ public class TestClientShutdown {
         logger.warn("START");
         Channels.write(localChannelReference.getNetworkChannel(),
                 networkPacket);
-        localChannelReference.getFuture().awaitUninterruptibly();
-        if (localChannelReference.getFuture().isSuccess()) {
+        localChannelReference.getFutureAction().awaitUninterruptibly();
+        if (localChannelReference.getFutureAction().isSuccess()) {
             logger.warn("Shutdown OK");
         } else {
-            if ((localChannelReference.getFuture().getResult() instanceof ValidPacket) &&
-                (((ValidPacket) localChannelReference.getFuture().getResult()).getTypeValid()
+            if ((localChannelReference.getFutureAction().getResult() instanceof ValidPacket) &&
+                (((ValidPacket) localChannelReference.getFutureAction().getResult()).getTypeValid()
                         == LocalPacketFactory.SHUTDOWNPACKET)) {
                     logger.warn("Shutdown command OK");
             } else {
-                logger.warn("Cannot Shutdown", localChannelReference.getFuture().getCause());
+                logger.warn("Cannot Shutdown", localChannelReference.getFutureAction().getCause());
             }
         }
         networkTransaction.closeAll();

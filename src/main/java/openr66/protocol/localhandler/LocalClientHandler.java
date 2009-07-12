@@ -142,8 +142,8 @@ public class LocalClientHandler extends SimpleChannelHandler {
                     Channels.close(e.getChannel());
                     return;
                 }
-                if (!localChannelReference.getFuture().isDone()) {
-                    localChannelReference.getFuture().setFailure(exception);
+                if (!localChannelReference.getFutureAction().isDone()) {
+                    localChannelReference.getFutureAction().setFailure(exception);
                 }
                 final ErrorPacket errorPacket = new ErrorPacket(exception
                         .getMessage(), null, ErrorPacket.FORWARDCLOSECODE);

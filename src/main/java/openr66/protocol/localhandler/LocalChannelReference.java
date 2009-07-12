@@ -43,7 +43,7 @@ public class LocalChannelReference {
 
     private Integer remoteId;
 
-    private final R66Future future = new R66Future(true);
+    private final R66Future futureAction = new R66Future(true);
 
     private final R66Future futureValidate = new R66Future(true);
 
@@ -92,10 +92,10 @@ public class LocalChannelReference {
     }
 
     /**
-     * @return the future
+     * @return the futureAction
      */
-    public R66Future getFuture() {
-        return future;
+    public R66Future getFutureAction() {
+        return futureAction;
     }
 
     /**
@@ -121,9 +121,9 @@ public class LocalChannelReference {
 
     /**
      *
-     * @return the future
+     * @return the futureAction
      */
-    public R66Future getValidateFuture() {
+    public R66Future getFutureValidateConnection() {
         if (!futureValidate
                 .awaitUninterruptibly(Configuration.WAITFORNETOP*2)) {
             validateConnection(false, "Out of time");

@@ -25,7 +25,6 @@ import openr66.protocol.config.Configuration;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFactory;
-import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.group.ChannelGroupFuture;
 import org.jboss.netty.channel.group.ChannelGroupFutureListener;

@@ -26,8 +26,6 @@ import goldengate.common.command.exception.Reply502Exception;
 import goldengate.common.command.exception.Reply530Exception;
 import goldengate.common.file.DirInterface;
 import goldengate.common.file.filesystembased.FilesystemBasedAuthImpl;
-import goldengate.common.logging.GgInternalLogger;
-import goldengate.common.logging.GgInternalLoggerFactory;
 
 import java.io.File;
 
@@ -39,12 +37,6 @@ import openr66.protocol.config.Configuration;
  *
  */
 public class R66Auth extends FilesystemBasedAuthImpl {
-    /**
-     * Internal Logger
-     */
-    private static final GgInternalLogger logger = GgInternalLoggerFactory
-            .getLogger(R66Auth.class);
-
     /**
      * Current authentication
      */

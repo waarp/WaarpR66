@@ -114,14 +114,14 @@ public class TestTransaction implements Runnable {
         }
         Channels.write(localChannelReference.getNetworkChannel(),
                 networkPacket);
-        localChannelReference.getFuture().awaitUninterruptibly();
-        if (localChannelReference.getFuture().isSuccess()) {
+        localChannelReference.getFutureAction().awaitUninterruptibly();
+        if (localChannelReference.getFutureAction().isSuccess()) {
             future
-                    .setResult(localChannelReference.getFuture().getResult());
+                    .setResult(localChannelReference.getFutureAction().getResult());
             future.setSuccess();
         } else {
             future.setResult(null);
-            Throwable throwable = localChannelReference.getFuture().getCause();
+            Throwable throwable = localChannelReference.getFutureAction().getCause();
             if (throwable == null) {
                 future.cancel();
             } else {

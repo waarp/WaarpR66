@@ -20,9 +20,6 @@
  */
 package openr66.authentication;
 
-import goldengate.common.logging.GgInternalLogger;
-import goldengate.common.logging.GgInternalLoggerFactory;
-
 import java.util.Arrays;
 
 /**
@@ -30,12 +27,6 @@ import java.util.Arrays;
  *
  */
 public class R66SimpleAuth {
-    /**
-     * Internal Logger
-     */
-    private static final GgInternalLogger logger = GgInternalLoggerFactory
-            .getLogger(R66SimpleAuth.class);
-
     /**
      * Host ID
      */

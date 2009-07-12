@@ -78,7 +78,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                                 : "no LocalChannelReference"));
         // FIXME clean session objects like files
         if (localChannelReference != null &&
-                !localChannelReference.getFuture().isDone()) {
+                !localChannelReference.getFutureAction().isDone()) {
             if (!status) {
                 logger.error("Finalize BUT SHOULD NOT");
             }
@@ -397,13 +397,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
     private void setFinalize(boolean status, Object finalValue) {
         this.status = status;
         if (localChannelReference != null) {
-            if (!localChannelReference.getFuture().isDone()) {
+            if (!localChannelReference.getFutureAction().isDone()) {
                 if (status) {
-                    localChannelReference.getFuture().setResult(finalValue);
-                    localChannelReference.getFuture().setSuccess();
+                    localChannelReference.getFutureAction().setResult(finalValue);
+                    localChannelReference.getFutureAction().setSuccess();
                 } else {
-                    localChannelReference.getFuture().setResult(finalValue);
-                    localChannelReference.getFuture().cancel();
+                    localChannelReference.getFutureAction().setResult(finalValue);
+                    localChannelReference.getFutureAction().cancel();
                 }
             }
         }

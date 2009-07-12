@@ -160,6 +160,7 @@ public class R66FileBasedConfiguration {
      * @param filename
      * @return True if OK
      */
+    @SuppressWarnings("unchecked")
     public boolean setConfigurationFromXml(String filename) {
         Document document = null;
         // Open config file

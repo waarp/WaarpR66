@@ -174,7 +174,7 @@ public class NetworkTransaction {
         }
         Channels.write(localChannelReference.getNetworkChannel(), packet)
                 .awaitUninterruptibly();
-        R66Future future = localChannelReference.getValidateFuture();
+        R66Future future = localChannelReference.getFutureValidateConnection();
         if (future.isCancelled()) {
             logger.info("Will close NETWORK channel since Future cancelled: "+future.toString());
             throw new OpenR66ProtocolNetworkException(
