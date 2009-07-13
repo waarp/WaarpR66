@@ -327,6 +327,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
             throw new OpenR66ProtocolNotAuthenticatedException(
                     "Not authenticated");
         }
+        // FIXME will have to check request is valid
+        session.setRequest(packet);
 
     }
 

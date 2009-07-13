@@ -11,18 +11,21 @@ import org.jboss.netty.buffer.ChannelBuffers;
 /**
  * Request class
  *
- * header = "hostId rulename" middle = "filename mode" end = "fileInformation"
+ * header = "rulename mode" middle = "filename" end = "fileInformation"
  *
  * @author frederic bregier
  */
 public class RequestPacket extends AbstractLocalPacket {
-    private final String hostId;
+    public static final int SENDMODE = 1;
+    public static final int RECVMODE = 2;
+    public static final int SENDMD5MODE = 3;
+    public static final int RECVMD5MODE = 4;
 
     private final String rulename;
 
-    private final String filename;
-
     private final int mode;
+
+    private final String filename;
 
     private final String fileInformation;
 
@@ -59,27 +62,25 @@ public class RequestPacket extends AbstractLocalPacket {
         final String smiddle = new String(bmiddle);
         final String send = new String(bend);
         final String[] aheader = sheader.split(" ");
-        final String[] amiddle = smiddle.split(" ");
-        if (aheader.length != 2 && amiddle.length != 2) {
+        if (aheader.length != 2) {
             throw new OpenR66ProtocolPacketException("Not enough data");
         }
-        return new RequestPacket(aheader[0], aheader[1], amiddle[0], Integer
-                .parseInt(amiddle[1]), send);
+        return new RequestPacket(aheader[0], Integer
+                .parseInt(aheader[1]), smiddle, send);
     }
 
     /**
-     * @param hostId
      * @param rulename
-     * @param filename
      * @param mode
+     * @param filename
      * @param fileInformation
      */
-    public RequestPacket(String hostId, String rulename, String filename,
-            int mode, String fileInformation) {
-        this.hostId = hostId;
+    public RequestPacket(String rulename, int mode,
+            String filename,
+            String fileInformation) {
         this.rulename = rulename;
-        this.filename = filename;
         this.mode = mode;
+        this.filename = filename;
         this.fileInformation = fileInformation;
     }
 
@@ -103,11 +104,11 @@ public class RequestPacket extends AbstractLocalPacket {
      */
     @Override
     public void createHeader() throws OpenR66ProtocolPacketException {
-        if (hostId == null || rulename == null) {
+        if (rulename == null || mode <= 0) {
             throw new OpenR66ProtocolPacketException("Not enough data");
         }
-        header = ChannelBuffers.wrappedBuffer(hostId.getBytes(), " "
-                .getBytes(), rulename.getBytes());
+        header = ChannelBuffers.wrappedBuffer(rulename.getBytes(), " "
+                .getBytes(), Integer.toString(mode).getBytes());
     }
 
     /*
@@ -118,11 +119,10 @@ public class RequestPacket extends AbstractLocalPacket {
      */
     @Override
     public void createMiddle() throws OpenR66ProtocolPacketException {
-        if (filename == null || mode <= 0) {
+        if (filename == null) {
             throw new OpenR66ProtocolPacketException("Not enough data");
         }
-        middle = ChannelBuffers.wrappedBuffer(filename.getBytes(), " "
-                .getBytes(), Integer.toString(mode).getBytes());
+        middle = ChannelBuffers.wrappedBuffer(filename.getBytes());
     }
 
     @Override
@@ -137,15 +137,8 @@ public class RequestPacket extends AbstractLocalPacket {
      */
     @Override
     public String toString() {
-        return "RequestPacket: " + hostId + ":" + rulename + " : " + filename +
-                " : " + mode + " : " + fileInformation;
-    }
-
-    /**
-     * @return the hostId
-     */
-    public String getHostId() {
-        return hostId;
+        return "RequestPacket: " + rulename + " : " + mode + " : " + filename +
+                " : " + fileInformation;
     }
 
     /**

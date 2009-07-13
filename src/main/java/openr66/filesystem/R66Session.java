@@ -24,6 +24,7 @@ import goldengate.common.file.SessionInterface;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 import openr66.authentication.R66Auth;
 import openr66.protocol.config.Configuration;
+import openr66.protocol.localhandler.packet.RequestPacket;
 
 /**
  * @author frederic bregier
@@ -40,6 +41,11 @@ public class R66Session implements SessionInterface {
      * Current Restart information
      */
     private R66Restart restart = null;
+
+    /**
+     * Current request action
+     */
+    private RequestPacket request = null;
 
     /**
      */
@@ -64,6 +70,9 @@ public class R66Session implements SessionInterface {
         if (auth != null) {
             auth.clear();
         }
+        // FIXME see if something else has to be done
+        this.request = null; // ???
+
         isReady = false;
     }
 
@@ -142,4 +151,19 @@ public class R66Session implements SessionInterface {
     public void setReady(boolean isReady) {
         this.isReady = isReady;
     }
+
+    /**
+     * @return the request
+     */
+    public RequestPacket getRequest() {
+        return request;
+    }
+
+    /**
+     * @param request the request to set
+     */
+    public void setRequest(RequestPacket request) {
+        this.request = request;
+    }
+
 }
