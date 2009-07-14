@@ -4,6 +4,11 @@
 	<serverpasswd>src/main/config/serveradminkey.txt</serverpasswd>
 	<serverport>6666</serverport>
 	<serverhome>d:/GG/R66</serverhome>
+	<in>in</in>
+	<out>out</out>
+	<arch>arch</arch>
+	<work>work</work>
+	<conf>conf</conf>
 	<serverthread>8</serverthread>
 	<clientthread>80</clientthread>
 	<sessionlimit2>102400</sessionlimit2>

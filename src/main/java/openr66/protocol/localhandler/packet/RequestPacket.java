@@ -3,6 +3,7 @@
  */
 package openr66.protocol.localhandler.packet;
 
+import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -11,21 +12,32 @@ import org.jboss.netty.buffer.ChannelBuffers;
 /**
  * Request class
  *
- * header = "rulename mode" middle = "filename" end = "fileInformation"
+ * header = "rulename mode" middle = way+"filename blocksize rank specialId" end = "fileInformation"
  *
  * @author frederic bregier
  */
 public class RequestPacket extends AbstractLocalPacket {
+    public static final int UNKNOWNMODE = 0;
     public static final int SENDMODE = 1;
     public static final int RECVMODE = 2;
     public static final int SENDMD5MODE = 3;
     public static final int RECVMD5MODE = 4;
+
+    private static final byte REQVALIDATE = 0;
+    private static final byte REQANSWERVALIDATE = 1;
 
     private final String rulename;
 
     private final int mode;
 
     private final String filename;
+
+    private final int blocksize;
+    private final int rank;
+
+    private final long specialId;
+
+    private byte way;
 
     private final String fileInformation;
 
@@ -43,15 +55,16 @@ public class RequestPacket extends AbstractLocalPacket {
         if (headerLength - 1 <= 0) {
             throw new OpenR66ProtocolPacketException("Not enough data");
         }
-        if (middleLength <= 0) {
+        if (middleLength <= 1) {
             throw new OpenR66ProtocolPacketException("Not enough data");
         }
         final byte[] bheader = new byte[headerLength - 1];
-        final byte[] bmiddle = new byte[middleLength];
+        final byte[] bmiddle = new byte[middleLength-1];
         final byte[] bend = new byte[endLength];
         if (headerLength - 1 > 0) {
             buf.readBytes(bheader);
         }
+        byte valid = buf.readByte();
         if (middleLength > 0) {
             buf.readBytes(bmiddle);
         }
@@ -65,23 +78,59 @@ public class RequestPacket extends AbstractLocalPacket {
         if (aheader.length != 2) {
             throw new OpenR66ProtocolPacketException("Not enough data");
         }
+        final String[] amiddle = smiddle.split(" ");
+        if (amiddle.length != 4) {
+            throw new OpenR66ProtocolPacketException("Not enough data");
+        }
+        int blocksize = Integer.parseInt(amiddle[1]);
+        if (blocksize < 100) {
+            blocksize = Configuration.configuration.BLOCKSIZE;
+        }
+        int rank = Integer.parseInt(amiddle[2]);
+        long specialId = Long.parseLong(amiddle[3]);
         return new RequestPacket(aheader[0], Integer
-                .parseInt(aheader[1]), smiddle, send);
+                .parseInt(aheader[1]), amiddle[0], blocksize, rank, specialId, valid, send);
     }
 
     /**
      * @param rulename
      * @param mode
      * @param filename
+     * @param blocksize
+     * @param rank
+     * @param specialId
+     * @param valid
      * @param fileInformation
      */
-    public RequestPacket(String rulename, int mode,
-            String filename,
+    private RequestPacket(String rulename, int mode,
+            String filename, int blocksize, int rank, long specialId, byte valid,
             String fileInformation) {
         this.rulename = rulename;
         this.mode = mode;
         this.filename = filename;
+        if (blocksize <= 100) {
+            this.blocksize = Configuration.configuration.BLOCKSIZE;
+        } else {
+            this.blocksize = blocksize;
+        }
+        this.rank = rank;
+        this.specialId = specialId;
+        this.way = valid;
         this.fileInformation = fileInformation;
+    }
+    /**
+     * @param rulename
+     * @param mode
+     * @param filename
+     * @param blocksize
+     * @param rank
+     * @param specialId
+     * @param fileInformation
+     */
+    public RequestPacket(String rulename, int mode,
+            String filename, int blocksize, int rank, long specialId,
+            String fileInformation) {
+        this(rulename, mode, filename, blocksize, rank, specialId, REQVALIDATE, fileInformation);
     }
 
     /*
@@ -122,7 +171,12 @@ public class RequestPacket extends AbstractLocalPacket {
         if (filename == null) {
             throw new OpenR66ProtocolPacketException("Not enough data");
         }
-        middle = ChannelBuffers.wrappedBuffer(filename.getBytes());
+        byte [] away = new byte[1];
+        away[0] = way;
+        middle = ChannelBuffers.wrappedBuffer(away,filename.getBytes(), " "
+                .getBytes(), Integer.toString(blocksize).getBytes(), " "
+                .getBytes(), Integer.toString(rank).getBytes(), " "
+                .getBytes(), Long.toString(specialId).getBytes());
     }
 
     @Override
@@ -138,7 +192,7 @@ public class RequestPacket extends AbstractLocalPacket {
     @Override
     public String toString() {
         return "RequestPacket: " + rulename + " : " + mode + " : " + filename +
-                " : " + fileInformation;
+                " : " + fileInformation+" : "+blocksize+" : "+rank+" : "+way;
     }
 
     /**
@@ -169,4 +223,37 @@ public class RequestPacket extends AbstractLocalPacket {
         return fileInformation;
     }
 
+    /**
+     * @return the blocksize
+     */
+    public int getBlocksize() {
+        return blocksize;
+    }
+
+    /**
+     * @return the rank
+     */
+    public int getRank() {
+        return rank;
+    }
+
+    /**
+     * @return the specialId
+     */
+    public long getSpecialId() {
+        return specialId;
+    }
+    /**
+     * @return True if this packet is to be validated
+     */
+    public boolean isToValidate() {
+        return way == REQVALIDATE;
+    }
+
+    /**
+     * Validate the request
+     */
+    public void validate() {
+        way = REQANSWERVALIDATE;
+    }
 }

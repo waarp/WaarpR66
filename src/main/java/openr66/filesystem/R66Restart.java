@@ -51,9 +51,16 @@ public class R66Restart extends FilesystemBasedRestartImpl {
             throw new Reply502Exception(
                     "Marker must be length in byte as a position");
         }
+        return restartMarker(newposition);
+    }
+    /**
+     * Same as restartMarker with String
+     * @param newposition
+     * @return True if OK
+     */
+    public boolean restartMarker(long newposition) {
         position = newposition;
         setSet(true);
         return true;
     }
-
 }

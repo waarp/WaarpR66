@@ -216,4 +216,8 @@ public class R66Auth extends FilesystemBasedAuthImpl {
         return Configuration.configuration.fileBasedConfiguration
             .getSimpleAuth(Configuration.configuration.HOST_ID).key;
     }
+
+    public String toString() {
+        return "Auth: "+(currentAuth != null ? currentAuth.toString() : "no Internal Auth");
+    }
 }

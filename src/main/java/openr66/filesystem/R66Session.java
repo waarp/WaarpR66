@@ -20,20 +20,31 @@
  */
 package openr66.filesystem;
 
+import goldengate.common.command.exception.CommandAbstractException;
 import goldengate.common.file.SessionInterface;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 import openr66.authentication.R66Auth;
 import openr66.protocol.config.Configuration;
+import openr66.protocol.exception.OpenR66ProtocolSystemException;
+import openr66.protocol.exception.OpenR66RunnerErrorException;
+import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.RequestPacket;
+import openr66.task.TaskRunner;
 
 /**
  * @author frederic bregier
  *
  */
 public class R66Session implements SessionInterface {
+    private int blockSize = Configuration.configuration.BLOCKSIZE;
+
+    private LocalChannelReference localChannelReference;
+
     private final R66Auth auth;
 
     private final R66Dir dir;
+
+    private R66File file;
 
     private volatile boolean isReady = false;
 
@@ -46,7 +57,10 @@ public class R66Session implements SessionInterface {
      * Current request action
      */
     private RequestPacket request = null;
-
+    /**
+     * TaskRunner
+     */
+    private TaskRunner runner = null;
     /**
      */
     public R66Session() {
@@ -70,9 +84,16 @@ public class R66Session implements SessionInterface {
         if (auth != null) {
             auth.clear();
         }
+        if (runner != null) {
+            runner.clear();
+        }
+        if (file != null) {
+            try {
+                file.clear();
+            } catch (CommandAbstractException e) {
+            }
+        }
         // FIXME see if something else has to be done
-        this.request = null; // ???
-
         isReady = false;
     }
 
@@ -93,7 +114,14 @@ public class R66Session implements SessionInterface {
      */
     @Override
     public int getBlockSize() {
-        return Configuration.configuration.BLOCKSIZE;
+        return blockSize;
+    }
+
+    /**
+     * @param blocksize the blocksize to set
+     */
+    public void setBlockSize(int blocksize) {
+        this.blockSize = blocksize;
     }
 
     /*
@@ -138,7 +166,7 @@ public class R66Session implements SessionInterface {
     }
 
     /**
-     * @return True if the Channel is ready to accept command
+     * @return True if the Channel is ready to accept transfer
      */
     public boolean isReady() {
         return isReady;
@@ -166,4 +194,167 @@ public class R66Session implements SessionInterface {
         this.request = request;
     }
 
+    /**
+     * @return the runner
+     */
+    public TaskRunner getRunner() {
+        return runner;
+    }
+
+    /**
+     * @param localChannelReference the localChannelReference to set
+     */
+    public void setLocalChannelReference(LocalChannelReference localChannelReference) {
+        this.localChannelReference = localChannelReference;
+    }
+
+    /**
+     * @return the localChannelReference
+     */
+    public LocalChannelReference getLocalChannelReference() {
+        return localChannelReference;
+    }
+
+    /**
+     * Set the runner, start from the PreTask if necessary, and prepare the file
+     * @param runner the runner to set
+     * @param isRetrieve True if this runner is for retrieve (send) from this local server point of view
+     * @throws OpenR66RunnerErrorException
+     */
+    public void setRunner(TaskRunner runner) throws OpenR66RunnerErrorException {
+        this.runner = runner;
+        if (this.runner.isRetrieve()) {
+            // Change dir
+            try {
+                this.dir.changeDirectory(this.runner.getRule().sendPath);
+            } catch (CommandAbstractException e) {
+                throw new OpenR66RunnerErrorException(e);
+            }
+        } else {
+            // Change dir
+            try {
+                this.dir.changeDirectory(this.runner.getRule().workPath);
+            } catch (CommandAbstractException e) {
+                throw new OpenR66RunnerErrorException(e);
+            }
+        }
+        if (request.getRank() > 0) {
+            runner.setTransferTask(request.getRank());
+            restart.restartMarker(request.getBlocksize()*request.getRank());
+        } else {
+            this.runner.setPreTask(0);
+            this.runner.run();
+        }
+        // Now create the associated file
+        if (this.runner.isRetrieve()) {
+            // File should already exist
+            try {
+                this.file = (R66File) this.dir.setFile(request.getFilename(), false);
+                if (! this.file.canRead()) {
+                    throw new OpenR66RunnerErrorException("File cannot be read");
+                }
+            } catch (CommandAbstractException e) {
+                throw new OpenR66RunnerErrorException(e);
+            }
+        } else {
+            // File should not exist except if restart
+            if (request.getRank() > 0) {
+                // Filename should be get back from runner load from database
+                try {
+                    this.file = (R66File) this.dir.setFile(this.runner.getFilename(), true);
+                    if (! this.file.canWrite()) {
+                        throw new OpenR66RunnerErrorException("File cannot be write");
+                    }
+                } catch (CommandAbstractException e) {
+                    throw new OpenR66RunnerErrorException(e);
+                }
+            } else {
+                // New filename and store it
+                try {
+                    this.file = (R66File) this.dir.setUniqueFile();
+                    this.runner.setFilename(this.file.getBasename());
+                } catch (CommandAbstractException e) {
+                    throw new OpenR66RunnerErrorException(e);
+                }
+            }
+        }
+        try {
+            this.file.restartMarker(restart);
+        } catch (CommandAbstractException e) {
+            throw new OpenR66RunnerErrorException(e);
+        }
+        this.runner.saveStatus();
+    }
+
+    public void setFinalizeTransfer(boolean status, Object finalValue) throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException {
+        try {
+            this.file.closeFile();
+        } catch (CommandAbstractException e1) {
+            this.localChannelReference.validateAction(false, e1);
+            throw new OpenR66RunnerErrorException(e1);
+        }
+        this.runner.finishTransferTask(status);
+        this.runner.saveStatus();
+        if (status) {
+            this.runner.setPostTask(0);
+            try {
+                this.runner.run();
+            } catch (OpenR66RunnerErrorException e1) {
+                this.localChannelReference.validateAction(false, e1);
+                throw e1;
+            }
+            this.runner.saveStatus();
+            if (this.runner.isRetrieve()) {
+                // Nothing to do
+            } else {
+                if (! this.runner.isFileMoved()) {
+                    String finalpath = this.file.getBasename();
+                    int pos = finalpath.lastIndexOf(".stou");
+                    if (pos > 0) {
+                        finalpath = finalpath.substring(0, pos);
+                    }
+                    // FIXME Change dir useful ?
+                    try {
+                        this.dir.changeDirectory(this.runner.getRule().recvPath);
+                    } catch (CommandAbstractException e) {
+                        this.localChannelReference.validateAction(false, e);
+                        throw new OpenR66RunnerErrorException(e);
+                    }
+                    try {
+                        this.file.renameTo(this.runner.getRule().setRecvPath(finalpath));
+                    } catch (OpenR66ProtocolSystemException e) {
+                        this.localChannelReference.validateAction(false, e);
+                        throw e;
+                    } catch (CommandAbstractException e) {
+                        this.localChannelReference.validateAction(false, e);
+                        throw new OpenR66RunnerErrorException(e);
+                    }
+                }
+            }
+        } else {
+            //error
+            this.runner.setErrorTask(0);
+            try {
+                this.runner.run();
+            } catch (OpenR66RunnerErrorException e1) {
+                this.localChannelReference.validateAction(false, finalValue);
+                throw e1;
+            }
+        }
+        this.localChannelReference.validateAction(status, finalValue);
+    }
+    /**
+     * @return the file
+     */
+    public R66File getFile() {
+        return file;
+    }
+
+    public String toString() {
+        return "Session: "+(auth != null ? auth.toString() : "no Auth")+" "+
+        (dir != null ? dir.toString() : "no Dir")+" "+
+        (file != null? file.toString() : "no File")+" "+
+        (request != null ? request.toString() : "no Request")+" "+
+        (runner != null ? runner.toString() : "no Runner");
+    }
 }

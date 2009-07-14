@@ -83,7 +83,10 @@ public class Configuration {
      * Time elapse for WRITE OR CLOSE WAIT elaps in ms
      */
     public static final long WAITFORNETOP = 1000;
-
+    /**
+     * Extension of file during transfer
+     */
+    public static final String EXT_R66 = ".r66";
     /**
      * FileParameter
      */
@@ -149,6 +152,31 @@ public class Configuration {
      */
     // FIXME TODO
     public String baseDirectory;
+    /**
+     * In path (receive)
+     */
+    public String inPath = null;
+
+    /**
+     * Out path (send, copy, pending)
+     */
+    public String outPath = null;
+
+    /**
+     * Archive path
+     */
+    public String archivePath = null;
+
+    /**
+     * Working path
+     */
+    public String workingPath = null;
+
+    /**
+     * Config path
+     */
+    public String configPath = null;
+
 
     /**
      * True if the service is going to shutdown

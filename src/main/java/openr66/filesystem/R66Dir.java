@@ -20,7 +20,11 @@
  */
 package openr66.filesystem;
 
+import java.io.File;
+import java.io.IOException;
+
 import goldengate.common.command.exception.CommandAbstractException;
+import goldengate.common.command.exception.Reply550Exception;
 import goldengate.common.file.filesystembased.FilesystemBasedDirImpl;
 import goldengate.common.file.filesystembased.FilesystemBasedOptsMLSxImpl;
 
@@ -49,4 +53,25 @@ public class R66Dir extends FilesystemBasedDirImpl {
         return new R66File((R66Session) getSession(), this, path, append);
     }
 
+    /**
+     * Same as setUnique() except that File will be prefixed by filename
+     * @param filename
+     * @return
+     * @throws CommandAbstractException
+     */
+    public R66File setUnique(String filename) throws CommandAbstractException {
+        checkIdentify();
+        File file = null;
+        try {
+            file = File.createTempFile(filename,
+                    ".stou", getFileFromPath(currentDir));
+        } catch (IOException e) {
+            throw new Reply550Exception("Cannot create unique file");
+        }
+        String currentFile = getRelativePath(file);
+        return newFile(normalizePath(currentFile), false);
+    }
+    public String toString() {
+        return "Dir: "+this.currentDir;
+    }
 }

@@ -18,6 +18,7 @@ package openr66.protocol.localhandler;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.protocol.config.Configuration;
+import openr66.protocol.networkhandler.NetworkServerHandler;
 import openr66.protocol.utils.R66Future;
 
 import org.jboss.netty.channel.Channel;
@@ -39,6 +40,8 @@ public class LocalChannelReference {
 
     private final Channel networkChannel;
 
+    private final NetworkServerHandler networkServerHandler;
+
     private final Integer localId;
 
     private Integer remoteId;
@@ -51,6 +54,8 @@ public class LocalChannelReference {
             Integer remoteId) {
         this.localChannel = localChannel;
         this.networkChannel = networkChannel;
+        this.networkServerHandler =
+            (NetworkServerHandler) this.networkChannel.getPipeline().getLast();
         localId = this.localChannel.getId();
         this.remoteId = remoteId;
     }
@@ -81,6 +86,13 @@ public class LocalChannelReference {
      */
     public Integer getRemoteId() {
         return remoteId;
+    }
+
+    /**
+     * @return the networkServerHandler
+     */
+    public NetworkServerHandler getNetworkServerHandler() {
+        return networkServerHandler;
     }
 
     /**
@@ -132,6 +144,19 @@ public class LocalChannelReference {
         return futureValidate;
     }
 
+    public void validateAction(boolean status, Object finalValue) {
+        if (!futureAction.isDone()) {
+            if (status) {
+                // FIXME finalize necessary objects
+                futureAction.setResult(finalValue);
+                futureAction.setSuccess();
+            } else {
+                // FIXME finalize necessary objects
+                futureAction.setResult(finalValue);
+                futureAction.cancel();
+            }
+        }
+    }
     @Override
     public String toString() {
         return "LCR: L: " + localId + " R: " + remoteId;

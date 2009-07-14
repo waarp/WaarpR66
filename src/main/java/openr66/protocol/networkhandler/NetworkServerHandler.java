@@ -39,6 +39,8 @@ public class NetworkServerHandler extends SimpleChannelHandler {
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(NetworkServerHandler.class);
 
+    private volatile boolean isWriteReady = true;
+
     /*
      * (non-Javadoc)
      *
@@ -176,6 +178,27 @@ public class NetworkServerHandler extends SimpleChannelHandler {
         }
     }
 
+    /**
+     * To enable continues of Retrieve operation (prevent OOM)
+     *
+     * @see org.jboss.netty.channel.SimpleChannelHandler#channelInterestChanged(org.jboss.netty.channel.ChannelHandlerContext,
+     *      org.jboss.netty.channel.ChannelStateEvent)
+     */
+    @Override
+    public void channelInterestChanged(ChannelHandlerContext arg0,
+            ChannelStateEvent arg1) {
+        int op = arg1.getChannel().getInterestOps();
+        if (op == Channel.OP_NONE || op == Channel.OP_READ) {
+            this.isWriteReady = true;
+        }
+    }
+    public void setWriteNotReady() {
+        this.isWriteReady = false;
+    }
+    public boolean isWriteReady() {
+        return this.isWriteReady;
+
+    }
     private void writeError(Channel channel, Integer remoteId, Integer localId,
             AbstractLocalPacket error) {
         NetworkPacket networkPacket = null;

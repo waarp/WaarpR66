@@ -108,7 +108,7 @@ public class TestTransfer implements Runnable {
         }
         // FIXME data transfer
         RequestPacket request = new RequestPacket(this.rulename,RequestPacket.SENDMODE,
-                this.filename, "mon information");
+                this.filename, Configuration.configuration.BLOCKSIZE, 0, 0, "mon information");
         NetworkPacket networkPacket;
         try {
             networkPacket = new NetworkPacket(localChannelReference
