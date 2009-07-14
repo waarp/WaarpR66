@@ -10,6 +10,7 @@ import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
 import openr66.protocol.exception.OpenR66ProtocolException;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
+import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolShutdownException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.packet.AbstractLocalPacket;
@@ -138,6 +139,10 @@ public class LocalClientHandler extends SimpleChannelHandler {
                     Channels.close(e.getChannel());
                     return;
                 } else if (exception instanceof OpenR66ProtocolBusinessNoWriteBackException) {
+                    logger.error("Will close channel", exception);
+                    Channels.close(e.getChannel());
+                    return;
+                } else if (exception instanceof OpenR66ProtocolNoConnectionException) {
                     logger.error("Will close channel", exception);
                     Channels.close(e.getChannel());
                     return;

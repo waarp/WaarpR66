@@ -20,28 +20,13 @@
  */
 package openr66.task;
 
-import openr66.filesystem.R66Session;
-import openr66.protocol.exception.OpenR66RunnerErrorException;
+public enum TaskType {
+    TEST;
 
-/**
- * @author Frederic Bregier
- *
- */
-public class TaskFactory {
-
-    private static TaskType getEnumFromName(String name) {
-        return TaskType.valueOf(name);
-    }
-
-    public static AbstractTask getTaskFromId(String name, String argRule, R66Session session)
-    throws OpenR66RunnerErrorException {
-        TaskType type = getEnumFromName(name);
-        switch (type) {
-            case TEST:
-                return new TestTask(argRule, session.getRequest().getFileInformation(), session);
-            default:
-                throw new OpenR66RunnerErrorException(
-                        "Unvalid Task: " + type.name);
-        }
+    public int type;
+    public String name;
+    private TaskType() {
+        this.type = this.ordinal();
+        this.name = this.name();
     }
 }

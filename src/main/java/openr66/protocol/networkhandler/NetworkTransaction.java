@@ -6,6 +6,7 @@ package openr66.protocol.networkhandler;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
+import java.net.ConnectException;
 import java.net.SocketAddress;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -17,6 +18,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import openr66.authentication.R66Auth;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
+import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolRemoteShutdownException;
@@ -88,7 +90,7 @@ public class NetworkTransaction {
     }
 
     public LocalChannelReference createConnection(SocketAddress socketAddress)
-            throws OpenR66ProtocolNetworkException, OpenR66ProtocolRemoteShutdownException {
+            throws OpenR66ProtocolNetworkException, OpenR66ProtocolRemoteShutdownException, OpenR66ProtocolNoConnectionException {
         lock.lock();
         try {
             Channel channel = createNewConnection(socketAddress);
@@ -101,7 +103,7 @@ public class NetworkTransaction {
     }
 
     private Channel createNewConnection(SocketAddress socketServerAddress)
-            throws OpenR66ProtocolNetworkException, OpenR66ProtocolRemoteShutdownException {
+            throws OpenR66ProtocolNetworkException, OpenR66ProtocolRemoteShutdownException, OpenR66ProtocolNoConnectionException {
         if (! isAddressValid(socketServerAddress)) {
             throw new OpenR66ProtocolRemoteShutdownException(
                 "Cannot connect to remote server since it is shutting down");
@@ -127,6 +129,12 @@ public class NetworkTransaction {
                     networkChannel.channel = channel;
                 }
                 return channel;
+            } else {
+                if (channelFuture.getCause() instanceof ConnectException) {
+                    logger.error("KO CONNECT:"+channelFuture.getCause().getMessage());
+                    throw new OpenR66ProtocolNoConnectionException(
+                            "Cannot connect to remote server", channelFuture.getCause());
+                }
             }
             try {
                 Thread.sleep(Configuration.RETRYINMS);

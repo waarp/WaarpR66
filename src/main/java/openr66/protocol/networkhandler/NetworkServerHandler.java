@@ -9,6 +9,7 @@ import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
 import openr66.protocol.exception.OpenR66ProtocolException;
+import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolRemoteShutdownException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
@@ -164,6 +165,10 @@ public class NetworkServerHandler extends SimpleChannelHandler {
             if (exception instanceof OpenR66ProtocolBusinessNoWriteBackException) {
                 logger.error("Will close NETWORK channel", exception);
                 ChannelUtils.close(e.getChannel());
+                return;
+            } else if (exception instanceof OpenR66ProtocolNoConnectionException) {
+                logger.error("Connection impossible with NETWORK channel", exception);
+                Channels.close(e.getChannel());
                 return;
             }
             final ConnectionErrorPacket errorPacket = new ConnectionErrorPacket(

@@ -40,7 +40,7 @@ public class TestTask extends AbstractTask {
      * @param session
      */
     public TestTask(String argRule, String argTransfer, R66Session session) {
-        super(TaskFactory.TaskType.TESTTASK, argRule, argTransfer, session);
+        super(TaskType.TEST, argRule, argTransfer, session);
     }
 
     /* (non-Javadoc)

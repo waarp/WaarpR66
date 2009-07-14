@@ -24,11 +24,11 @@ import goldengate.common.command.NextCommandReply;
 import goldengate.common.command.exception.Reply421Exception;
 import goldengate.common.command.exception.Reply502Exception;
 import goldengate.common.command.exception.Reply530Exception;
-import goldengate.common.file.DirInterface;
 import goldengate.common.file.filesystembased.FilesystemBasedAuthImpl;
 
 import java.io.File;
 
+import openr66.filesystem.R66Dir;
 import openr66.filesystem.R66Session;
 import openr66.protocol.config.Configuration;
 
@@ -150,7 +150,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
     private void setRootFromAuth() throws Reply421Exception {
         rootFromAuth = setBusinessRootFromAuth();
         if (rootFromAuth == null) {
-            rootFromAuth = DirInterface.SEPARATOR + user;
+            rootFromAuth = R66Dir.SEPARATOR;
         }
     }
 
@@ -163,7 +163,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
     @Override
     protected String setBusinessRootFromAuth() throws Reply421Exception {
         String path = null;
-        path = DirInterface.SEPARATOR + user;
+        path = R66Dir.SEPARATOR;
         String fullpath = getAbsolutePath(path);
         File file = new File(fullpath);
         if (!file.isDirectory()) {

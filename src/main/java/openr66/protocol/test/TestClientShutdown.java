@@ -26,6 +26,7 @@ import openr66.protocol.config.Configuration;
 import openr66.protocol.config.R66FileBasedConfiguration;
 import openr66.protocol.exception.OpenR66ProtocolException;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
+import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolRemoteShutdownException;
 import openr66.protocol.localhandler.LocalChannelReference;
@@ -86,6 +87,11 @@ public class TestClientShutdown {
             } catch (OpenR66ProtocolRemoteShutdownException e1) {
                 lastException = e1;
                 localChannelReference = null;
+                break;
+            } catch (OpenR66ProtocolNoConnectionException e1) {
+                lastException = e1;
+                localChannelReference = null;
+                break;
             }
         }
         if (localChannelReference == null) {

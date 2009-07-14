@@ -30,6 +30,7 @@ import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 
 import openr66.filesystem.R66Rule;
+import openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.utils.FileUtils;
 import goldengate.common.logging.GgInternalLogger;
@@ -85,6 +86,7 @@ public class R66RuleFileBasedConfiguration {
         for (int i = 0; i < files.length; i++) {
             R66Rule rule = getFromFile(files[i]);
             rule.insert();
+            logger.warn(rule.toString());
         }
     }
     /**
@@ -92,17 +94,17 @@ public class R66RuleFileBasedConfiguration {
      * @param document
      * @param path
      * @return The value associated with the path
-     * @throws OpenR66ProtocolSystemException
+     * @throws OpenR66ProtocolNoDataException
      */
-    private static String getValue(Document document, String path) throws OpenR66ProtocolSystemException {
-        Node node = document.selectSingleNode(IDRULE);
+    private static String getValue(Document document, String path) throws OpenR66ProtocolNoDataException {
+        Node node = document.selectSingleNode(path);
         if (node == null) {
             logger.error("Unable to find in Rule file: "+path);
-            throw new OpenR66ProtocolSystemException("Unable to find in the XML Rule file: "+path);
+            throw new OpenR66ProtocolNoDataException("Unable to find in the XML Rule file: "+path);
         }
         String result = node.getText();
         if (result == null || result.length() == 0) {
-            throw new OpenR66ProtocolSystemException("Unable to find in the XML Rule file: "+path);
+            throw new OpenR66ProtocolNoDataException("Unable to find in the XML Rule file: "+path);
         }
         return result;
     }
@@ -151,6 +153,7 @@ public class R66RuleFileBasedConfiguration {
      * @param file
      * @return the newly created R66Rule from XML File
      * @throws OpenR66ProtocolSystemException
+     * @throws OpenR66ProtocolNoDataException
      */
     @SuppressWarnings("unchecked")
     private static R66Rule getFromFile(File file) throws OpenR66ProtocolSystemException {
@@ -168,29 +171,34 @@ public class R66RuleFileBasedConfiguration {
             throw new OpenR66ProtocolSystemException("Unable to read the XML Rule file");
         }
         Node nodebase = null;
-        String idrule = getValue(document, IDRULE);
+        String idrule;
+        try {
+            idrule = getValue(document, IDRULE);
+        } catch (OpenR66ProtocolNoDataException e1) {
+            throw new OpenR66ProtocolSystemException(e1);
+        }
         String recvpath;
         try {
             recvpath = getValue(document, RECVPATH);
-        } catch (OpenR66ProtocolSystemException e) {
+        } catch (OpenR66ProtocolNoDataException e) {
             recvpath = Configuration.configuration.inPath;
         }
         String sendpath;
         try {
             sendpath = getValue(document, SENDPATH);
-        } catch (OpenR66ProtocolSystemException e) {
+        } catch (OpenR66ProtocolNoDataException e) {
             sendpath = Configuration.configuration.outPath;
         }
         String archivepath;
         try {
             archivepath = getValue(document, ARCHIVEPATH);
-        } catch (OpenR66ProtocolSystemException e) {
+        } catch (OpenR66ProtocolNoDataException e) {
             archivepath = Configuration.configuration.archivePath;
         }
         String workpath;
         try {
             workpath = getValue(document, WORKPATH);
-        } catch (OpenR66ProtocolSystemException e) {
+        } catch (OpenR66ProtocolNoDataException e) {
             workpath = Configuration.configuration.workingPath;
         }
 

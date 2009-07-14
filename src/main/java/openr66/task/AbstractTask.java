@@ -31,7 +31,7 @@ public abstract class AbstractTask implements Runnable {
     /**
      * Type of operation
      */
-    final TaskFactory.TaskType type;
+    final TaskType type;
     /**
      * Argument from Rule
      */
@@ -54,7 +54,7 @@ public abstract class AbstractTask implements Runnable {
      * @param arg
      * @param session
      */
-    AbstractTask(TaskFactory.TaskType type, String argRule, String argTransfer, R66Session session) {
+    AbstractTask(TaskType type, String argRule, String argTransfer, R66Session session) {
         this.type = type;
         this.argRule = argRule;
         this.argTransfer = argTransfer;

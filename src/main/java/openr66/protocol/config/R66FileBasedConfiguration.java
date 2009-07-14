@@ -180,22 +180,22 @@ public class R66FileBasedConfiguration {
      *
      * @param document
      * @param fromXML
-     * @return the new subpath as a File
+     * @return the new subpath
      * @throws OpenR66ProtocolSystemException
      */
-    private File getSubPath(Document document, String fromXML) throws OpenR66ProtocolSystemException {
+    private String getSubPath(Document document, String fromXML) throws OpenR66ProtocolSystemException {
         Node node = document.selectSingleNode(fromXML);
         if (node == null) {
             logger.error("Unable to find CONFIG Path in Config file");
             throw new OpenR66ProtocolSystemException("Unable to find a Path in Config file: "+fromXML);
         }
         String path = node.getText();
-        String newpath = FileUtils.consolidatePath(Configuration.configuration.baseDirectory, path);
+        String newpath = Configuration.configuration.baseDirectory+R66Dir.SEPARATOR+path;
         File file = new File(newpath);
         if (!file.isDirectory()) {
             FileUtils.createDir(file);
         }
-        return file;
+        return path;
     }
     /**
      * Initiate the configuration from the xml file
@@ -271,68 +271,50 @@ public class R66FileBasedConfiguration {
             logger.error("Unable to set Home in Config file: " + filename);
             return false;
         }
+        File dirConfig;
         try {
-            file = getSubPath(document, XML_CONFIGPATH);
-            Configuration.configuration.configPath = R66Dir.normalizePath(file
-                    .getCanonicalPath());
+            Configuration.configuration.configPath =
+                R66Dir.normalizePath(getSubPath(document, XML_CONFIGPATH));
+            dirConfig = new File(Configuration.configuration.baseDirectory,
+                    Configuration.configuration.configPath);
         } catch (OpenR66ProtocolSystemException e2) {
             logger.error("Unable to set Config in Config file: " + filename, e2);
             return false;
-        } catch (IOException e1) {
-            logger.error("Unable to set Config in Config file: " + filename, e1);
+        }
+        try {
+            Configuration.configuration.inPath =
+                R66Dir.normalizePath(getSubPath(document, XML_INPATH));
+        } catch (OpenR66ProtocolSystemException e2) {
+            logger.error("Unable to set In in Config file: " + filename, e2);
+            return false;
+        }
+        try {
+            Configuration.configuration.outPath =
+                R66Dir.normalizePath(getSubPath(document, XML_OUTPATH));
+        } catch (OpenR66ProtocolSystemException e2) {
+            logger.error("Unable to set Out in Config file: " + filename, e2);
+            return false;
+        }
+        try {
+            Configuration.configuration.workingPath =
+                R66Dir.normalizePath(getSubPath(document, XML_WORKINGPATH));
+        } catch (OpenR66ProtocolSystemException e2) {
+            logger.error("Unable to set Working in Config file: " + filename, e2);
+            return false;
+        }
+        try {
+            Configuration.configuration.archivePath =
+                R66Dir.normalizePath(getSubPath(document, XML_ARCHIVEPATH));
+        } catch (OpenR66ProtocolSystemException e2) {
+            logger.error("Unable to set Archive in Config file: " + filename, e2);
             return false;
         }
         // Get the rules
         try {
-            R66RuleFileBasedConfiguration.importRules(file);
+            R66RuleFileBasedConfiguration.importRules(dirConfig);
         } catch (OpenR66ProtocolSystemException e3) {
             logger.error("Unable to load Rules from Config dir: " +
                     Configuration.configuration.configPath, e3);
-            return false;
-        }
-
-        try {
-            file = getSubPath(document, XML_INPATH);
-            Configuration.configuration.inPath = R66Dir.normalizePath(file
-                    .getCanonicalPath());
-        } catch (OpenR66ProtocolSystemException e2) {
-            logger.error("Unable to set In in Config file: " + filename, e2);
-            return false;
-        } catch (IOException e1) {
-            logger.error("Unable to set In in Config file: " + filename, e1);
-            return false;
-        }
-        try {
-            file = getSubPath(document, XML_OUTPATH);
-            Configuration.configuration.outPath = R66Dir.normalizePath(file
-                    .getCanonicalPath());
-        } catch (OpenR66ProtocolSystemException e2) {
-            logger.error("Unable to set Out in Config file: " + filename, e2);
-            return false;
-        } catch (IOException e1) {
-            logger.error("Unable to set Out in Config file: " + filename, e1);
-            return false;
-        }
-        try {
-            file = getSubPath(document, XML_WORKINGPATH);
-            Configuration.configuration.workingPath = R66Dir.normalizePath(file
-                    .getCanonicalPath());
-        } catch (OpenR66ProtocolSystemException e2) {
-            logger.error("Unable to set Working in Config file: " + filename, e2);
-            return false;
-        } catch (IOException e1) {
-            logger.error("Unable to set Working in Config file: " + filename, e1);
-            return false;
-        }
-        try {
-            file = getSubPath(document, XML_ARCHIVEPATH);
-            Configuration.configuration.archivePath = R66Dir.normalizePath(file
-                    .getCanonicalPath());
-        } catch (OpenR66ProtocolSystemException e2) {
-            logger.error("Unable to set Archive in Config file: " + filename, e2);
-            return false;
-        } catch (IOException e1) {
-            logger.error("Unable to set Archive in Config file: " + filename, e1);
             return false;
         }
 

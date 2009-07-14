@@ -11,42 +11,42 @@
 	<pretasks>
 		<tasks>
 			<task>
-				<type></type>
-				<path></path>
-				<rank></rank>
+				<type>TEST</type>
+				<path>mon info</path>
+				<rank>0</rank>
 			</task>
 			<task>
-				<type></type>
-				<path></path>
-				<rank></rank>
+				<type>TEST</type>
+				<path>une autre info</path>
+				<rank>1</rank>
 			</task>
 		</tasks>
 	</pretasks>
 	<posttasks>
 		<tasks>
 			<task>
-				<type></type>
-				<path></path>
-				<rank></rank>
+				<type>TEST</type>
+				<path>post 1</path>
+				<rank>0</rank>
 			</task>
 			<task>
-				<type></type>
-				<path></path>
-				<rank></rank>
+				<type>TEST</type>
+				<path>post 2</path>
+				<rank>1</rank>
 			</task>
 		</tasks>
 	</posttasks>
 	<errortasks>
 		<tasks>
 			<task>
-				<type></type>
-				<path></path>
-				<rank></rank>
+				<type>TEST</type>
+				<path>erreur 1</path>
+				<rank>0</rank>
 			</task>
 			<task>
-				<type></type>
-				<path></path>
-				<rank></rank>
+				<type>TEST</type>
+				<path>erreur 2</path>
+				<rank>1</rank>
 			</task>
 		</tasks>
 	</errortasks>

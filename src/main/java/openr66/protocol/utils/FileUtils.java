@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 
 import openr66.filesystem.R66Dir;
+import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 
 /**
@@ -52,9 +53,10 @@ public class FileUtils {
         // First check if the path is relative or absolute
         String extDir = null;
         if (path.charAt(0) == R66Dir.SEPARATORCHAR) {
-            extDir = path;
+            extDir = Configuration.configuration.baseDirectory+R66Dir.SEPARATOR+path;
         } else {
-            extDir = base + R66Dir.SEPARATOR + path;
+            extDir = Configuration.configuration.baseDirectory+R66Dir.SEPARATOR+
+                base + R66Dir.SEPARATOR + path;
         }
         return extDir;
     }

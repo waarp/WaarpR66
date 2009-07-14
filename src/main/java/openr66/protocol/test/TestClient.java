@@ -24,6 +24,7 @@ import java.net.SocketAddress;
 
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
+import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolRemoteShutdownException;
 import openr66.protocol.localhandler.LocalChannelReference;
@@ -74,6 +75,10 @@ public class TestClient {
                     return;
                 } catch (OpenR66ProtocolRemoteShutdownException e1) {
                     logger.error("Cannot connect", e1);
+                    networkTransaction.closeAll();
+                    return;
+                } catch (OpenR66ProtocolNoConnectionException e) {
+                    logger.error("Cannot connect", e);
                     networkTransaction.closeAll();
                     return;
                 }

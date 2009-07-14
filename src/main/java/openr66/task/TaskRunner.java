@@ -20,6 +20,8 @@
  */
 package openr66.task;
 
+import goldengate.common.logging.GgInternalLogger;
+import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.filesystem.R66Rule;
 import openr66.filesystem.R66Session;
 import openr66.protocol.exception.OpenR66RunnerEndTasksException;
@@ -31,6 +33,12 @@ import openr66.protocol.utils.R66Future;
  *
  */
 public class TaskRunner {
+    /**
+     * Internal Logger
+     */
+    private static final GgInternalLogger logger = GgInternalLoggerFactory
+            .getLogger(TaskRunner.class);
+
     private static final int NOTASK = -1;
     private static final int PRETASK = 0;
     private static final int POSTTASK = 1;
@@ -142,7 +150,7 @@ public class TaskRunner {
     }
 
     private R66Future runNextTask(String [][] tasks) throws OpenR66RunnerEndTasksException, OpenR66RunnerErrorException {
-        if (tasks.length < this.step) {
+        if (tasks.length <= this.step) {
             throw new OpenR66RunnerEndTasksException();
         }
         String name = tasks[this.step][0];
@@ -178,6 +186,7 @@ public class TaskRunner {
                 throw new OpenR66RunnerErrorException("Runner is error: "+future.getCause().getMessage(),
                         future.getCause());
             }
+            this.step++;
         }
     }
     public boolean ready() {
@@ -218,6 +227,7 @@ public class TaskRunner {
         // FIXME should save status to DB
         // FIXME need a specialID that could be reused over time
         // save: rulename, globalstep, setp, rank, status, specialId, filename, isRetrieve
+        logger.warn(this.toString());
     }
     public void clear() {
 

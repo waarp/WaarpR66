@@ -17,6 +17,7 @@ import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
 import openr66.protocol.exception.OpenR66ProtocolException;
+import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import openr66.protocol.exception.OpenR66ProtocolNotAuthenticatedException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
@@ -237,6 +238,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 setFinalize(false, null);
             }
             if (exception instanceof OpenR66ProtocolBusinessNoWriteBackException) {
+                logger.error("Will close channel", exception);
+                Channels.close(e.getChannel());
+                return;
+            } else if (exception instanceof OpenR66ProtocolNoConnectionException) {
                 logger.error("Will close channel", exception);
                 Channels.close(e.getChannel());
                 return;

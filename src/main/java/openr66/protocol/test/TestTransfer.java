@@ -33,6 +33,7 @@ import openr66.protocol.config.Configuration;
 import openr66.protocol.config.R66FileBasedConfiguration;
 import openr66.protocol.exception.OpenR66ProtocolException;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
+import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolRemoteShutdownException;
 import openr66.protocol.localhandler.LocalChannelReference;
@@ -93,6 +94,10 @@ public class TestTransfer implements Runnable {
                 lastException = e1;
                 localChannelReference = null;
             } catch (OpenR66ProtocolRemoteShutdownException e1) {
+                lastException = e1;
+                localChannelReference = null;
+                break;
+            } catch (OpenR66ProtocolNoConnectionException e1) {
                 lastException = e1;
                 localChannelReference = null;
                 break;
@@ -165,7 +170,7 @@ public class TestTransfer implements Runnable {
                 Configuration.configuration.SERVER_PORT);
 
         ExecutorService executorService = Executors.newCachedThreadPool();
-        int nb = 100;
+        int nb = 1;
 
         R66Future[] arrayFuture = new R66Future[nb];
         logger.warn("Start");
@@ -189,7 +194,8 @@ public class TestTransfer implements Runnable {
         }
         long time2 = System.currentTimeMillis();
         logger.error("Success: " + success + " Error: " + error + " NB/s: " +
-                success * TestPacket.pingpong * 1000 / (time2 - time1));
+                success * TestPacket.pingpong * 1000 / (time2 - time1)+ " "+
+                (arrayFuture[0].getResult() != null ? arrayFuture[0].getResult().getClass().getName() : "no data"));
         networkTransaction.closeAll();
         executorService.shutdown();
     }

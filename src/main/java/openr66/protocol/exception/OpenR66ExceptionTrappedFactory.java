@@ -39,7 +39,7 @@ public class OpenR66ExceptionTrappedFactory {
             final ConnectException e2 = (ConnectException) e1;
             logger.warn("Connection impossible since {} with Channel {}", e2
                     .getMessage(), channel);
-            return new OpenR66ProtocolBusinessNoWriteBackException("Connection impossible",
+            return new OpenR66ProtocolNoConnectionException("Connection impossible",
                     e2);
         } else if (e1 instanceof ChannelException) {
             final ChannelException e2 = (ChannelException) e1;
