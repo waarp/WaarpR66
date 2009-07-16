@@ -78,8 +78,8 @@ public class DataPacket extends AbstractLocalPacket {
      */
     @Override
     public void createHeader() throws OpenR66ProtocolPacketException {
-        header = ChannelBuffers.wrappedBuffer(Integer.toString(
-                packetRank).getBytes());
+        header = ChannelBuffers.buffer(4);
+        header.writeInt(packetRank);
     }
 
     /*

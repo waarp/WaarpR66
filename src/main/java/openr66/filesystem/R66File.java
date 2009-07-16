@@ -29,22 +29,24 @@ import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
 
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.exception.OpenR66RunnerErrorException;
 import openr66.protocol.localhandler.LocalChannelReference;
-import openr66.protocol.localhandler.packet.DataPacket;
 import openr66.protocol.networkhandler.NetworkServerHandler;
-import openr66.protocol.networkhandler.packet.NetworkPacket;
+import openr66.protocol.utils.ChannelUtils;
 import openr66.task.TaskRunner;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.Channels;
 
 /**
  * @author frederic bregier
@@ -57,6 +59,7 @@ public class R66File extends FilesystemBasedFileImpl {
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(R66File.class);
 
+    private boolean isExternal = false;
     /**
      * @param session
      * @param dir
@@ -69,23 +72,6 @@ public class R66File extends FilesystemBasedFileImpl {
         super(session, dir, path, append);
     }
 
-    private ChannelFuture writeBack(LocalChannelReference localChannelReference,
-            TaskRunner runner, Channel networkChannel, DataBlock block)
-            throws OpenR66ProtocolPacketException {
-        // FIXME if MD5
-        ChannelBuffer md5 = ChannelBuffers.EMPTY_BUFFER;
-        DataPacket data = new DataPacket(runner.getRank(), block.getBlock().copy(), md5);
-        NetworkPacket networkPacket;
-        try {
-            networkPacket = new NetworkPacket(localChannelReference
-                    .getLocalId(), localChannelReference.getRemoteId(), data);
-        } catch (OpenR66ProtocolPacketException e) {
-            logger.error("Cannot construct message from " + data.toString(),
-                    e);
-            throw e;
-        }
-        return Channels.write(networkChannel, networkPacket);
-    }
     /*
      * (non-Javadoc)
      *
@@ -127,7 +113,7 @@ public class R66File extends FilesystemBasedFileImpl {
 
             ChannelFuture future = null;
             while (block != null && !block.isEOF()) {
-                future = writeBack(localChannelReference, runner, networkChannel, block);
+                future = ChannelUtils.writeBack(localChannelReference, runner, networkChannel, block);
                 runner.incrementRank();
                 // Test if channel is writable in order to prevent OOM
                 if (networkChannel.isWritable()) {
@@ -164,7 +150,7 @@ public class R66File extends FilesystemBasedFileImpl {
             }
             // Last block
             if (block != null) {
-                future = writeBack(localChannelReference, runner, networkChannel, block);
+                future = ChannelUtils.writeBack(localChannelReference, runner, networkChannel, block);
                 runner.incrementRank();
             }
             // Wait for last write
@@ -189,6 +175,9 @@ public class R66File extends FilesystemBasedFileImpl {
      *         operation
      */
     public File getTrueFile() {
+        if (isExternal) {
+            return new File(currentFile);
+        }
         try {
             return getFileFromPath(getFile());
         } catch (CommandAbstractException e) {
@@ -204,6 +193,252 @@ public class R66File extends FilesystemBasedFileImpl {
     @Override
     public R66Session getSession() {
         return (R66Session) this.session;
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.file.filesystembased.FilesystemBasedFileImpl#canRead()
+     */
+    @Override
+    public boolean canRead() throws CommandAbstractException {
+        if (isExternal) {
+            File file = new File(this.currentFile);
+            return file.canRead();
+        }
+        return super.canRead();
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.file.filesystembased.FilesystemBasedFileImpl#canWrite()
+     */
+    @Override
+    public boolean canWrite() throws CommandAbstractException {
+        if (isExternal) {
+            File file = new File(this.currentFile);
+            if (file.exists()) {
+                return file.canWrite();
+            }
+            return file.getParentFile().canWrite();
+        }
+        return super.canWrite();
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.file.filesystembased.FilesystemBasedFileImpl#delete()
+     */
+    @Override
+    public boolean delete() throws CommandAbstractException {
+        if (isExternal) {
+            File file = new File(this.currentFile);
+            checkIdentify();
+            if (!isReady) {
+                return false;
+            }
+            if (!file.exists()) {
+                return true;
+            }
+            closeFile();
+            return file.delete();
+        }
+        return super.delete();
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.file.filesystembased.FilesystemBasedFileImpl#exists()
+     */
+    @Override
+    public boolean exists() throws CommandAbstractException {
+        if (isExternal) {
+            File file = new File(this.currentFile);
+            return file.exists();
+        }
+        return super.exists();
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.file.filesystembased.FilesystemBasedFileImpl#getFileChannel(boolean)
+     */
+    @Override
+    protected FileChannel getFileChannel(boolean isOut) {
+        if (! isExternal) {
+            return super.getFileChannel(isOut);
+        }
+        if (!isReady) {
+            return null;
+        }
+        File trueFile = getTrueFile();
+        FileChannel fileChannel;
+        try {
+            if (isOut) {
+                if (getPosition() == 0) {
+                    FileOutputStream fileOutputStream = new FileOutputStream(
+                            trueFile);
+                    fileChannel = fileOutputStream.getChannel();
+                } else {
+                    RandomAccessFile randomAccessFile = new RandomAccessFile(
+                            trueFile, "rw");
+                    fileChannel = randomAccessFile.getChannel();
+                    fileChannel = fileChannel.position(getPosition());
+                }
+            } else {
+                if (!trueFile.exists()) {
+                    return null;
+                }
+                FileInputStream fileInputStream = new FileInputStream(trueFile);
+                fileChannel = fileInputStream.getChannel();
+                if (getPosition() != 0) {
+                    fileChannel = fileChannel.position(getPosition());
+                }
+            }
+        } catch (FileNotFoundException e) {
+            logger.error("FileInterface not found in getFileChannel:", e);
+            return null;
+        } catch (IOException e) {
+            logger.error("Change position in getFileChannel:", e);
+            return null;
+        }
+        return fileChannel;
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.file.filesystembased.FilesystemBasedFileImpl#isDirectory()
+     */
+    @Override
+    public boolean isDirectory() throws CommandAbstractException {
+        if (isExternal) {
+            File dir = new File(this.currentFile);
+            return dir.isDirectory();
+        }
+        return super.isDirectory();
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.file.filesystembased.FilesystemBasedFileImpl#isFile()
+     */
+    @Override
+    public boolean isFile() throws CommandAbstractException {
+        if (isExternal) {
+            File file = new File(this.currentFile);
+            return file.isFile();
+        }
+        return super.isFile();
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.file.filesystembased.FilesystemBasedFileImpl#length()
+     */
+    @Override
+    public long length() throws CommandAbstractException {
+        if (isExternal) {
+            File file = new File(this.currentFile);
+            return file.length();
+        }
+        return super.length();
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.file.filesystembased.FilesystemBasedFileImpl#renameTo(java.lang.String)
+     */
+    @Override
+    public boolean renameTo(String path) throws CommandAbstractException {
+        if (! isExternal) {
+            return super.renameTo(path);
+        }
+        checkIdentify();
+        if (!isReady) {
+            return false;
+        }
+        File file = getTrueFile();
+        if (file.canRead()) {
+            // logger.debug("Rename file {} to {}", file, path);
+            File newFile = getFileFromPath(path);
+            if (newFile.getParentFile().canWrite()) {
+                if (!file.renameTo(newFile)) {
+                    // logger.debug("file cannot be just renamed, to be moved: {}",
+                    // file);
+                    FileOutputStream fileOutputStream;
+                    try {
+                        fileOutputStream = new FileOutputStream(newFile);
+                    } catch (FileNotFoundException e) {
+                        logger
+                                .warn("Cannot find file: " + newFile.getName(),
+                                        e);
+                        return false;
+                    }
+                    FileChannel fileChannelOut = fileOutputStream.getChannel();
+                    if (get(fileChannelOut)) {
+                        delete();
+                    } else {
+                        logger.warn("Cannot write file: {}", newFile);
+                        return false;
+                    }
+                }
+                currentFile = getRelativePath(newFile);
+                isExternal = false;
+                isReady = true;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Move the current file to the path as destination
+     * @param path
+     * @param external if True, the path is outside authentication control
+     * @return True if the operation is done
+     * @throws CommandAbstractException
+     */
+    public boolean renameTo(String path, boolean external) throws CommandAbstractException {
+        if (! external) {
+            return renameTo(path);
+        }
+        checkIdentify();
+        if (!isReady) {
+            return false;
+        }
+        File file = getTrueFile();
+        if (file.canRead()) {
+            // logger.debug("Rename file {} to {}", file, path);
+            File newFile = new File(path);
+            if (newFile.getParentFile().canWrite()) {
+                if (!file.renameTo(newFile)) {
+                    // logger.debug("file cannot be just renamed, to be moved: {}",
+                    // file);
+                    FileOutputStream fileOutputStream;
+                    try {
+                        fileOutputStream = new FileOutputStream(newFile);
+                    } catch (FileNotFoundException e) {
+                        logger
+                                .warn("Cannot find file: " + newFile.getName(),
+                                        e);
+                        return false;
+                    }
+                    FileChannel fileChannelOut = fileOutputStream.getChannel();
+                    if (get(fileChannelOut)) {
+                        delete();
+                    } else {
+                        logger.warn("Cannot write file: {}", newFile);
+                        return false;
+                    }
+                }
+                currentFile = R66Dir.normalizePath(newFile.getAbsolutePath());
+                isExternal = true;
+                isReady = true;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.file.filesystembased.FilesystemBasedFileImpl#closeFile()
+     */
+    @Override
+    public boolean closeFile() throws CommandAbstractException {
+        boolean status = super.closeFile();
+        // FORCE re-open file
+        isReady = true;
+        return status;
     }
 
     public String toString() {

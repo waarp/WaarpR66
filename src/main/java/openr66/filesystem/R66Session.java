@@ -23,6 +23,8 @@ package openr66.filesystem;
 import goldengate.common.command.exception.CommandAbstractException;
 import goldengate.common.file.SessionInterface;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
+import goldengate.common.logging.GgInternalLogger;
+import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.authentication.R66Auth;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
@@ -36,6 +38,12 @@ import openr66.task.TaskRunner;
  *
  */
 public class R66Session implements SessionInterface {
+    /**
+     * Internal Logger
+     */
+    private static final GgInternalLogger logger = GgInternalLoggerFactory
+            .getLogger(R66Session.class);
+
     private int blockSize = Configuration.configuration.BLOCKSIZE;
 
     private LocalChannelReference localChannelReference;
@@ -246,10 +254,11 @@ public class R66Session implements SessionInterface {
             this.runner.run();
         }
         // Now create the associated file
+        this.runner.setFilename(request.getFilename());
         if (this.runner.isRetrieve()) {
             // File should already exist
             try {
-                this.file = (R66File) this.dir.setFile(request.getFilename(), false);
+                this.file = (R66File) this.dir.setFile(this.runner.getFilename(), false);
                 if (! this.file.canRead()) {
                     throw new OpenR66RunnerErrorException("File cannot be read");
                 }
@@ -271,8 +280,11 @@ public class R66Session implements SessionInterface {
             } else {
                 // New filename and store it
                 try {
-                    this.file = (R66File) this.dir.setUniqueFile();
-                    this.runner.setFilename(this.file.getBasename());
+                    this.file = (R66File) this.dir.setUniqueFile(this.runner.getFilename());
+                    if (! this.file.canWrite()) {
+                        throw new OpenR66RunnerErrorException("File cannot be write");
+                    }
+                    this.runner.setFilename(this.file.getFile());
                 } catch (CommandAbstractException e) {
                     throw new OpenR66RunnerErrorException(e);
                 }
@@ -308,11 +320,7 @@ public class R66Session implements SessionInterface {
                 // Nothing to do
             } else {
                 if (! this.runner.isFileMoved()) {
-                    String finalpath = this.file.getBasename();
-                    int pos = finalpath.lastIndexOf(".stou");
-                    if (pos > 0) {
-                        finalpath = finalpath.substring(0, pos);
-                    }
+                    String finalpath = this.dir.getFinalUniqueFilename(this.file);
                     // FIXME Change dir useful ?
                     try {
                         this.dir.changeDirectory(this.runner.getRule().recvPath);
@@ -320,6 +328,7 @@ public class R66Session implements SessionInterface {
                         this.localChannelReference.validateAction(false, e);
                         throw new OpenR66RunnerErrorException(e);
                     }
+                    logger.info("Will move file "+finalpath);
                     try {
                         this.file.renameTo(this.runner.getRule().setRecvPath(finalpath));
                     } catch (OpenR66ProtocolSystemException e) {
@@ -329,17 +338,27 @@ public class R66Session implements SessionInterface {
                         this.localChannelReference.validateAction(false, e);
                         throw new OpenR66RunnerErrorException(e);
                     }
+                    logger.info("File finally moved: "+this.file.toString());
+                    try {
+                        this.runner.setFilename(this.file.getFile());
+                    } catch (CommandAbstractException e) {
+                    }
                 }
             }
+            this.runner.setAllDone();
+            this.runner.saveStatus();
+            logger.warn("Transfer done on "+this.file);
         } else {
             //error
             this.runner.setErrorTask(0);
+            logger.warn("Transfer KO on "+this.file);
             try {
                 this.runner.run();
             } catch (OpenR66RunnerErrorException e1) {
                 this.localChannelReference.validateAction(false, finalValue);
                 throw e1;
             }
+            this.runner.saveStatus();
         }
         this.localChannelReference.validateAction(status, finalValue);
     }

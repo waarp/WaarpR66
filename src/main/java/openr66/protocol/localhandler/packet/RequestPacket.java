@@ -35,7 +35,7 @@ public class RequestPacket extends AbstractLocalPacket {
     private final int blocksize;
     private final int rank;
 
-    private final long specialId;
+    private long specialId;
 
     private byte way;
 
@@ -65,7 +65,7 @@ public class RequestPacket extends AbstractLocalPacket {
             buf.readBytes(bheader);
         }
         byte valid = buf.readByte();
-        if (middleLength > 0) {
+        if (middleLength > 1) {
             buf.readBytes(bmiddle);
         }
         if (endLength > 0) {
@@ -238,6 +238,13 @@ public class RequestPacket extends AbstractLocalPacket {
     }
 
     /**
+     * @param specialId the specialId to set
+     */
+    public void setSpecialId(long specialId) {
+        this.specialId = specialId;
+    }
+
+    /**
      * @return the specialId
      */
     public long getSpecialId() {
@@ -255,5 +262,6 @@ public class RequestPacket extends AbstractLocalPacket {
      */
     public void validate() {
         way = REQANSWERVALIDATE;
+        middle = null;
     }
 }

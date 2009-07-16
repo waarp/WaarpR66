@@ -104,7 +104,7 @@ public class TestTransfer implements Runnable {
             }
         }
         if (localChannelReference == null) {
-            logger.error("Cannot connect: "+lastException.getMessage());
+            logger.error("Cannot connect",lastException);
             future.setResult(null);
             future.setFailure(lastException);
             return;
@@ -112,8 +112,10 @@ public class TestTransfer implements Runnable {
             logger.warn("Connection retry since ",lastException);
         }
         // FIXME data transfer
+        int block = 300;
+        //int block = Configuration.configuration.BLOCKSIZE;
         RequestPacket request = new RequestPacket(this.rulename,RequestPacket.SENDMODE,
-                this.filename, Configuration.configuration.BLOCKSIZE, 0, 0, "mon information");
+                this.filename, block, 0, 0, "mon information");
         NetworkPacket networkPacket;
         try {
             networkPacket = new NetworkPacket(localChannelReference
@@ -170,7 +172,7 @@ public class TestTransfer implements Runnable {
                 Configuration.configuration.SERVER_PORT);
 
         ExecutorService executorService = Executors.newCachedThreadPool();
-        int nb = 1;
+        int nb = 150;
 
         R66Future[] arrayFuture = new R66Future[nb];
         logger.warn("Start");

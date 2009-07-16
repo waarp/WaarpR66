@@ -44,6 +44,7 @@ public class TaskRunner {
     private static final int POSTTASK = 1;
     private static final int ERRORTASK = 2;
     private static final int TRANSFERTASK = 3;
+    private static final int ALLDONETASK = 4;
 
     public static enum TaskStatus {
         UNKNOWN,
@@ -81,7 +82,7 @@ public class TaskRunner {
         this.status = TaskStatus.UNKNOWN;
         this.specialId = id;
         // FIXME load from database
-        this.isRetrieve = false;// XXX FIXME TODO WARNING FALSE!!!
+        this.isRetrieve = true;// XXX FIXME TODO WARNING FALSE!!!
     }
     /**
      * @return the filename
@@ -147,6 +148,11 @@ public class TaskRunner {
         this.globalstep = ERRORTASK;
         this.step = step;
         this.status = TaskStatus.RUNNING;
+    }
+    public void setAllDone() {
+        this.globalstep = ALLDONETASK;
+        this.step = 0;
+        this.status = TaskStatus.OK;
     }
 
     private R66Future runNextTask(String [][] tasks) throws OpenR66RunnerEndTasksException, OpenR66RunnerErrorException {
@@ -227,12 +233,12 @@ public class TaskRunner {
         // FIXME should save status to DB
         // FIXME need a specialID that could be reused over time
         // save: rulename, globalstep, setp, rank, status, specialId, filename, isRetrieve
-        logger.warn(this.toString());
+        logger.info(GgInternalLogger.getRankMethodAndLine(3)+" "+this.toString());
     }
     public void clear() {
 
     }
     public String toString() {
-        return "Run: "+(rule != null ? rule.toString() : "no Rule")+" step: "+globalstep+":"+step+":"+status;
+        return "Run: "+(rule != null ? rule.toString() : "no Rule")+" on "+filename+" step: "+globalstep+":"+step+":"+status+":"+rank+" SpecialId: "+specialId+" isRetr: "+isRetrieve+" isMoved: "+isFileMoved;
     }
 }

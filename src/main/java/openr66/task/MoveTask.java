@@ -20,27 +20,29 @@
  */
 package openr66.task;
 
+import goldengate.common.command.exception.CommandAbstractException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.filesystem.R66Session;
+import openr66.protocol.exception.OpenR66ProtocolSystemException;
 
 /**
  * @author Frederic Bregier
  *
  */
-public class TestTask extends AbstractTask {
+public class MoveTask extends AbstractTask {
     /**
      * Internal Logger
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
-            .getLogger(TestTask.class);
+            .getLogger(MoveTask.class);
     /**
      * @param argRule
      * @param argTransfer
      * @param session
      */
-    public TestTask(String argRule, String argTransfer, R66Session session) {
-        super(TaskType.TEST, argRule, argTransfer, session);
+    public MoveTask(String argRule, String argTransfer, R66Session session) {
+        super(TaskType.MOVE, argRule, argTransfer, session);
     }
 
     /* (non-Javadoc)
@@ -48,8 +50,23 @@ public class TestTask extends AbstractTask {
      */
     @Override
     public void run() {
-        logger.info("Test with "+this.argRule+":"+this.argTransfer+" and "+this.session);
-        this.futureCompletion.setSuccess();
+        logger.warn("Move with "+this.argRule+":"+this.argTransfer+" and "+this.session);
+        boolean success = false;
+        try {
+            success =
+                this.session.getFile().renameTo(
+                        this.argRule+
+                        this.session.getDir().getFinalUniqueFilename(this.session.getFile()), true);
+        } catch (CommandAbstractException e) {
+            this.futureCompletion.setFailure(new OpenR66ProtocolSystemException(e));
+            return;
+        }
+        this.session.getRunner().setFileMoved(success);
+        if (success) {
+            this.futureCompletion.setSuccess();
+        } else {
+            this.futureCompletion.setFailure(new OpenR66ProtocolSystemException("Cannot move file"));
+        }
     }
 
 }

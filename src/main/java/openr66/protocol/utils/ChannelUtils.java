@@ -15,6 +15,7 @@
  */
 package openr66.protocol.utils;
 
+import goldengate.common.file.DataBlock;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
@@ -22,9 +23,17 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 import openr66.protocol.config.Configuration;
+import openr66.protocol.exception.OpenR66ProtocolPacketException;
+import openr66.protocol.localhandler.LocalChannelReference;
+import openr66.protocol.localhandler.packet.DataPacket;
+import openr66.protocol.networkhandler.packet.NetworkPacket;
+import openr66.task.TaskRunner;
 
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFactory;
+import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.group.ChannelGroupFuture;
 import org.jboss.netty.channel.group.ChannelGroupFutureListener;
@@ -155,6 +164,23 @@ public class ChannelUtils implements Runnable {
         Channels.close(channel);
     }
 
+    public static ChannelFuture writeBack(LocalChannelReference localChannelReference,
+            TaskRunner runner, Channel networkChannel, DataBlock block)
+            throws OpenR66ProtocolPacketException {
+        // FIXME if MD5
+        ChannelBuffer md5 = ChannelBuffers.EMPTY_BUFFER;
+        DataPacket data = new DataPacket(runner.getRank(), block.getBlock().copy(), md5);
+        NetworkPacket networkPacket;
+        try {
+            networkPacket = new NetworkPacket(localChannelReference
+                    .getLocalId(), localChannelReference.getRemoteId(), data);
+        } catch (OpenR66ProtocolPacketException e) {
+            logger.error("Cannot construct message from " + data.toString(),
+                    e);
+            throw e;
+        }
+        return Channels.write(networkChannel, networkPacket);
+    }
     /**
      * Exit global ChannelFactory
      */

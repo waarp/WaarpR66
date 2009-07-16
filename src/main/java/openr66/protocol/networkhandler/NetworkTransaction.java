@@ -186,7 +186,7 @@ public class NetworkTransaction {
         if (future.isCancelled()) {
             logger.info("Will close NETWORK channel since Future cancelled: "+future.toString());
             throw new OpenR66ProtocolNetworkException(
-                    "Cannot validate connection");
+                    "Cannot validate connection: "+future.getResult(), future.getCause());
         }
     }
 

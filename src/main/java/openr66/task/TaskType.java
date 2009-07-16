@@ -21,7 +21,8 @@
 package openr66.task;
 
 public enum TaskType {
-    TEST;
+    TEST,
+    MOVE;
 
     public int type;
     public String name;

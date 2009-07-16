@@ -56,20 +56,34 @@ public class R66Dir extends FilesystemBasedDirImpl {
     /**
      * Same as setUnique() except that File will be prefixed by filename
      * @param filename
-     * @return
+     * @return the R66File with a unique filename and a temporary extension
      * @throws CommandAbstractException
      */
-    public R66File setUnique(String filename) throws CommandAbstractException {
+    public synchronized R66File setUniqueFile(String filename) throws CommandAbstractException {
         checkIdentify();
         File file = null;
+        String prename = System.currentTimeMillis()+"_";
         try {
-            file = File.createTempFile(filename,
-                    ".stou", getFileFromPath(currentDir));
+            file = File.createTempFile(prename,
+                    "_"+filename+".stou", getFileFromPath(currentDir));
         } catch (IOException e) {
             throw new Reply550Exception("Cannot create unique file");
         }
         String currentFile = getRelativePath(file);
         return newFile(normalizePath(currentFile), false);
+    }
+    /**
+     *
+     * @param file
+     * @return the final unique basename without the temporary extension
+     */
+    public String getFinalUniqueFilename(R66File file) {
+        String finalpath = file.getBasename();
+        int pos = finalpath.lastIndexOf(".stou");
+        if (pos > 0) {
+            finalpath = finalpath.substring(0, pos);
+        }
+        return finalpath;
     }
     public String toString() {
         return "Dir: "+this.currentDir;

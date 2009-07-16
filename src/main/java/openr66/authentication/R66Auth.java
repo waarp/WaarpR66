@@ -163,7 +163,6 @@ public class R66Auth extends FilesystemBasedAuthImpl {
     @Override
     protected String setBusinessRootFromAuth() throws Reply421Exception {
         String path = null;
-        path = R66Dir.SEPARATOR;
         String fullpath = getAbsolutePath(path);
         File file = new File(fullpath);
         if (!file.isDirectory()) {
@@ -206,7 +205,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
         if (newPath == null) {
             return false;
         }
-        return newPath.startsWith(getBusinessPath());
+        return true;
     }
     /**
      *

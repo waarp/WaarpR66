@@ -9,7 +9,10 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+import openr66.filesystem.R66Session;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
@@ -72,6 +75,8 @@ public class LocalTransaction {
 
     private final ChannelGroup localChannelGroup = new DefaultChannelGroup(
             "LocalChannels");
+
+    private final ExecutorService retrieveExecutor = Executors.newCachedThreadPool();
 
     public LocalTransaction() {
         serverBootstrap.setPipelineFactory(new LocalServerPipelineFactory());
@@ -141,6 +146,12 @@ public class LocalTransaction {
         return localChannelHashMap.get(id);
     }
 
+    public void runRetrieve(R66Session session, Channel channel) {
+        RetrieveRunner retrieveRunner =
+            new RetrieveRunner(session, channel);
+        retrieveExecutor.execute(retrieveRunner);
+    }
+
     public void closeLocalChannelsFromNetworkChannel(Channel networkChannel) {
         Collection<LocalChannelReference> collection = localChannelHashMap
                 .values();
@@ -183,6 +194,7 @@ public class LocalTransaction {
         channelClientFactory.releaseExternalResources();
         serverBootstrap.releaseExternalResources();
         channelServerFactory.releaseExternalResources();
+        retrieveExecutor.shutdownNow();
     }
 
 }

@@ -189,8 +189,13 @@ public class R66FileBasedConfiguration {
             logger.error("Unable to find CONFIG Path in Config file");
             throw new OpenR66ProtocolSystemException("Unable to find a Path in Config file: "+fromXML);
         }
+
         String path = node.getText();
-        String newpath = Configuration.configuration.baseDirectory+R66Dir.SEPARATOR+path;
+        if (path == null || path.length() == 0) {
+            throw new OpenR66ProtocolSystemException("Unable to find a correct Path in Config file: "+fromXML);
+        }
+        path = R66Dir.SEPARATOR+path;
+        String newpath = Configuration.configuration.baseDirectory+path;
         File file = new File(newpath);
         if (!file.isDirectory()) {
             FileUtils.createDir(file);

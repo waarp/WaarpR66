@@ -29,6 +29,7 @@ import org.dom4j.DocumentException;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 
+import openr66.filesystem.R66Dir;
 import openr66.filesystem.R66Rule;
 import openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
@@ -179,25 +180,25 @@ public class R66RuleFileBasedConfiguration {
         }
         String recvpath;
         try {
-            recvpath = getValue(document, RECVPATH);
+            recvpath = R66Dir.SEPARATOR+getValue(document, RECVPATH);
         } catch (OpenR66ProtocolNoDataException e) {
             recvpath = Configuration.configuration.inPath;
         }
         String sendpath;
         try {
-            sendpath = getValue(document, SENDPATH);
+            sendpath = R66Dir.SEPARATOR+getValue(document, SENDPATH);
         } catch (OpenR66ProtocolNoDataException e) {
             sendpath = Configuration.configuration.outPath;
         }
         String archivepath;
         try {
-            archivepath = getValue(document, ARCHIVEPATH);
+            archivepath = R66Dir.SEPARATOR+getValue(document, ARCHIVEPATH);
         } catch (OpenR66ProtocolNoDataException e) {
             archivepath = Configuration.configuration.archivePath;
         }
         String workpath;
         try {
-            workpath = getValue(document, WORKPATH);
+            workpath = R66Dir.SEPARATOR+getValue(document, WORKPATH);
         } catch (OpenR66ProtocolNoDataException e) {
             workpath = Configuration.configuration.workingPath;
         }

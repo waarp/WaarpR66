@@ -383,7 +383,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         session.setRequest(packet);
         session.setBlockSize(packet.getBlocksize());
         TaskRunner runner;
-        if (packet.getRank() > 0) {
+        if (packet.getSpecialId() > 0) {
             // Reload
             runner = new TaskRunner(session, rule, packet.getSpecialId());
         } else {
@@ -393,6 +393,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 isRetrieve = (!isRetrieve);
             }
             runner = new TaskRunner(session, rule, isRetrieve);
+            packet.setSpecialId(runner.getSpecialId());
         }
         // FIXME should be load from database or from remote status and/or saved to database
         try {
@@ -414,7 +415,26 @@ public class LocalServerHandler extends SimpleChannelHandler {
         }
         // FIXME if retrieve => start the retrieve operation
         if (runner.isRetrieve()) {
-            session.getFile().trueRetrieve();
+            Configuration.configuration.getLocalTransaction().runRetrieve(session, channel);
+/*            try {
+                session.getFile().retrieveBlocking();
+            } catch (OpenR66RunnerErrorException e) {
+                this.localChannelReference.validateAction(false, e);
+                ErrorPacket error = new ErrorPacket("Transfer in error",
+                        e.toString(),
+                        ErrorPacket.FORWARDCLOSECODE);
+                writeBack(error, true);
+                ChannelUtils.close(channel);
+                return;
+            } catch (OpenR66ProtocolSystemException e) {
+                this.localChannelReference.validateAction(false, e);
+                ErrorPacket error = new ErrorPacket("Transfer in error",
+                        e.toString(),
+                        ErrorPacket.FORWARDCLOSECODE);
+                writeBack(error, true);
+                ChannelUtils.close(channel);
+                return;
+            }
             this.localChannelReference.getFutureAction().awaitUninterruptibly();
             if (this.localChannelReference.getFutureAction().isSuccess()) {
                 // send a validation
@@ -431,7 +451,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 writeBack(error, true);
                 ChannelUtils.close(channel);
                 return;
-            }
+            }*/
         }
     }
 

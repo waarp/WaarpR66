@@ -174,5 +174,6 @@ public class AuthentPacket extends AbstractLocalPacket {
      */
     public void validate() {
         way = ANSWERVALIDATE;
+        end = null;
     }
 }
