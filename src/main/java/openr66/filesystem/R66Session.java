@@ -95,12 +95,7 @@ public class R66Session implements SessionInterface {
         if (runner != null) {
             runner.clear();
         }
-        if (file != null) {
-            try {
-                file.clear();
-            } catch (CommandAbstractException e) {
-            }
-        }
+        // No clean of file since it can be used after channel is closed
         // FIXME see if something else has to be done
         isReady = false;
     }
@@ -254,11 +249,10 @@ public class R66Session implements SessionInterface {
             this.runner.run();
         }
         // Now create the associated file
-        this.runner.setFilename(request.getFilename());
         if (this.runner.isRetrieve()) {
             // File should already exist
             try {
-                this.file = (R66File) this.dir.setFile(this.runner.getFilename(), false);
+                this.file = (R66File) this.dir.setFile(request.getFilename(), false);
                 if (! this.file.canRead()) {
                     throw new OpenR66RunnerErrorException("File cannot be read");
                 }
@@ -270,7 +264,7 @@ public class R66Session implements SessionInterface {
             if (request.getRank() > 0) {
                 // Filename should be get back from runner load from database
                 try {
-                    this.file = (R66File) this.dir.setFile(this.runner.getFilename(), true);
+                    this.file = (R66File) this.dir.setFile(request.getFilename(), true);
                     if (! this.file.canWrite()) {
                         throw new OpenR66RunnerErrorException("File cannot be write");
                     }
@@ -280,15 +274,19 @@ public class R66Session implements SessionInterface {
             } else {
                 // New filename and store it
                 try {
-                    this.file = (R66File) this.dir.setUniqueFile(this.runner.getFilename());
+                    this.file = (R66File) this.dir.setUniqueFile(request.getFilename());
                     if (! this.file.canWrite()) {
                         throw new OpenR66RunnerErrorException("File cannot be write");
                     }
-                    this.runner.setFilename(this.file.getFile());
                 } catch (CommandAbstractException e) {
                     throw new OpenR66RunnerErrorException(e);
                 }
             }
+        }
+        try {
+            this.runner.setFilename(this.file.getFile());
+        } catch (CommandAbstractException e) {
+            throw new OpenR66RunnerErrorException(e);
         }
         try {
             this.file.restartMarker(restart);
@@ -305,7 +303,7 @@ public class R66Session implements SessionInterface {
             this.localChannelReference.validateAction(false, e1);
             throw new OpenR66RunnerErrorException(e1);
         }
-        this.runner.finishTransferTask(status);
+        int rank = this.runner.finishTransferTask(status);
         this.runner.saveStatus();
         if (status) {
             this.runner.setPostTask(0);
@@ -347,7 +345,7 @@ public class R66Session implements SessionInterface {
             }
             this.runner.setAllDone();
             this.runner.saveStatus();
-            logger.warn("Transfer done on "+this.file);
+            logger.info("Transfer done on "+this.file+" at rank "+rank);
         } else {
             //error
             this.runner.setErrorTask(0);

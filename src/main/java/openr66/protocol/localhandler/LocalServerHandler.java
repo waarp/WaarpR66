@@ -10,6 +10,7 @@ import goldengate.common.file.DataBlock;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
+import openr66.filesystem.R66File;
 import openr66.filesystem.R66Rule;
 import openr66.filesystem.R66Session;
 import openr66.protocol.config.Configuration;
@@ -311,41 +312,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
         }
     }
 
-    private void data(Channel channel, DataPacket packet)
-            throws OpenR66ProtocolNotAuthenticatedException, OpenR66ProtocolBusinessException, OpenR66ProtocolPacketException {
-        // FIXME do something
-        if (!session.isAuthenticated()) {
-            throw new OpenR66ProtocolNotAuthenticatedException(
-                    "Not authenticated");
-        }
-        if (! session.isReady()) {
-            throw new OpenR66ProtocolBusinessException(
-            "No request prepared");
-        }
-        if (session.getRunner().isRetrieve()) {
-            throw new OpenR66ProtocolBusinessException(
-            "Not in receive mode but receive a packet");
-        }
-        DataBlock dataBlock = new DataBlock();
-        // FIXME if MD5 check MD5
-        dataBlock.setBlock(packet.getData());
-        try {
-            session.getFile().writeDataBlock(dataBlock);
-        } catch (FileTransferException e) {
-            try {
-                this.session.setFinalizeTransfer(false, e);
-            } catch (OpenR66RunnerErrorException e1) {
-            } catch (OpenR66ProtocolSystemException e1) {
-            }
-            ErrorPacket error = new ErrorPacket("Transfer in error",
-                    this.localChannelReference.getFutureAction().getResult().toString(),
-                    ErrorPacket.FORWARDCLOSECODE);
-            writeBack(error, true);
-            ChannelUtils.close(channel);
-            return;
-        }
-    }
-
     private void connectionError(Channel channel, ConnectionErrorPacket packet) {
         // FIXME do something according to the error
         logger.error(channel.getId() + ": " + packet.toString());
@@ -410,48 +376,57 @@ public class LocalServerHandler extends SimpleChannelHandler {
         session.setReady(true);
         // inform back
         if (packet.isToValidate()) {
+            if (runner.isRetrieve()) {
+                // In case Wildcard was used
+                logger.warn("New filename: "+runner.getFilename());
+                packet.setFilename(R66File.getBasename(runner.getFilename()));
+            }
             packet.validate();
             writeBack(packet, true);
         }
         // FIXME if retrieve => start the retrieve operation
         if (runner.isRetrieve()) {
-            Configuration.configuration.getLocalTransaction().runRetrieve(session, channel);
-/*            try {
-                session.getFile().retrieveBlocking();
-            } catch (OpenR66RunnerErrorException e) {
-                this.localChannelReference.validateAction(false, e);
-                ErrorPacket error = new ErrorPacket("Transfer in error",
-                        e.toString(),
-                        ErrorPacket.FORWARDCLOSECODE);
-                writeBack(error, true);
-                ChannelUtils.close(channel);
-                return;
-            } catch (OpenR66ProtocolSystemException e) {
-                this.localChannelReference.validateAction(false, e);
-                ErrorPacket error = new ErrorPacket("Transfer in error",
-                        e.toString(),
-                        ErrorPacket.FORWARDCLOSECODE);
-                writeBack(error, true);
-                ChannelUtils.close(channel);
-                return;
+            NetworkTransaction.runRetrieve(session, channel);
+        }
+    }
+
+    private void data(Channel channel, DataPacket packet)
+            throws OpenR66ProtocolNotAuthenticatedException, OpenR66ProtocolBusinessException, OpenR66ProtocolPacketException {
+        // FIXME do something
+        if (!session.isAuthenticated()) {
+            throw new OpenR66ProtocolNotAuthenticatedException(
+                    "Not authenticated");
+        }
+        if (! session.isReady()) {
+            throw new OpenR66ProtocolBusinessException(
+            "No request prepared");
+        }
+        if (session.getRunner().isRetrieve()) {
+            throw new OpenR66ProtocolBusinessException(
+            "Not in receive mode but receive a packet");
+        }
+        if (packet.getPacketRank() != this.session.getRunner().getRank()) {
+            logger.warn("Bad rank: "+packet.getPacketRank()+" : "+
+                    this.session.getRunner().getRank());
+        }
+        DataBlock dataBlock = new DataBlock();
+        // FIXME if MD5 check MD5
+        dataBlock.setBlock(packet.getData());
+        try {
+            session.getFile().writeDataBlock(dataBlock);
+            this.session.getRunner().incrementRank();
+        } catch (FileTransferException e) {
+            try {
+                this.session.setFinalizeTransfer(false, e);
+            } catch (OpenR66RunnerErrorException e1) {
+            } catch (OpenR66ProtocolSystemException e1) {
             }
-            this.localChannelReference.getFutureAction().awaitUninterruptibly();
-            if (this.localChannelReference.getFutureAction().isSuccess()) {
-                // send a validation
-                ValidPacket validPacket = new ValidPacket("File transmitted",
-                        Integer.toString(runner.getRank()),
-                        LocalPacketFactory.REQUESTPACKET);
-                writeBack(validPacket, true);
-                ChannelUtils.close(channel);
-                return;
-            } else {
-                ErrorPacket error = new ErrorPacket("Transfer in error",
-                        this.localChannelReference.getFutureAction().getResult().toString(),
-                        ErrorPacket.FORWARDCLOSECODE);
-                writeBack(error, true);
-                ChannelUtils.close(channel);
-                return;
-            }*/
+            ErrorPacket error = new ErrorPacket("Transfer in error",
+                    this.localChannelReference.getFutureAction().getResult().toString(),
+                    ErrorPacket.FORWARDCLOSECODE);
+            writeBack(error, true);
+            ChannelUtils.close(channel);
+            return;
         }
     }
 
@@ -486,7 +461,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         }
         switch (packet.getTypeValid()) {
             case LocalPacketFactory.REQUESTPACKET:
-                logger.warn("Valid Request " +
+                logger.info("Valid Request " +
                         localChannelReference.toString()+" "+packet.toString());
                 //int rank = Integer.parseInt(packet.getSmiddle());
                 this.session.setFinalizeTransfer(true, this.session.getFile());

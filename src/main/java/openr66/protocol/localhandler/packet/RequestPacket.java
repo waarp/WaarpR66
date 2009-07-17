@@ -30,7 +30,7 @@ public class RequestPacket extends AbstractLocalPacket {
 
     private final int mode;
 
-    private final String filename;
+    private String filename;
 
     private final int blocksize;
     private final int rank;
@@ -264,4 +264,12 @@ public class RequestPacket extends AbstractLocalPacket {
         way = REQANSWERVALIDATE;
         middle = null;
     }
+
+    /**
+     * @param filename the filename to set
+     */
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
+
 }

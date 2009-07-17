@@ -16,6 +16,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantLock;
 
 import openr66.authentication.R66Auth;
+import openr66.filesystem.R66Session;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
@@ -24,6 +25,7 @@ import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolRemoteShutdownException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.LocalChannelReference;
+import openr66.protocol.localhandler.RetrieveRunner;
 import openr66.protocol.localhandler.packet.AuthentPacket;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
 import openr66.protocol.utils.ChannelUtils;
@@ -53,15 +55,19 @@ public class NetworkTransaction {
     /**
      * Hashmap for Currently Shutdown remote host
      */
-    private static ConcurrentHashMap<Integer, NetworkChannel> networkChannelShutdownOnSocketAddressConcurrentHashMap = new ConcurrentHashMap<Integer, NetworkChannel>();
+    private static final ConcurrentHashMap<Integer, NetworkChannel> networkChannelShutdownOnSocketAddressConcurrentHashMap = new ConcurrentHashMap<Integer, NetworkChannel>();
     /**
      * Hashmap for currently active remote host
      */
-    private static ConcurrentHashMap<Integer, NetworkChannel> networkChannelOnSocketAddressConcurrentHashMap = new ConcurrentHashMap<Integer, NetworkChannel>();
+    private static final ConcurrentHashMap<Integer, NetworkChannel> networkChannelOnSocketAddressConcurrentHashMap = new ConcurrentHashMap<Integer, NetworkChannel>();
     /**
      * Lock for NetworkChannel operations
      */
-    private static ReentrantLock lock = new ReentrantLock();
+    private static final ReentrantLock lock = new ReentrantLock();
+    /**
+     * ExecutorService for RetrieveOperation
+     */
+    private static final ExecutorService retrieveExecutor = Executors.newCachedThreadPool();
 
     /**
      * ExecutorService Server Boss
@@ -190,8 +196,18 @@ public class NetworkTransaction {
         }
     }
 
+    public static void runRetrieve(R66Session session, Channel channel) {
+        RetrieveRunner retrieveRunner =
+            new RetrieveRunner(session, channel);
+        retrieveExecutor.execute(retrieveRunner);
+    }
+
+    public static void closeRetrieveExecutors() {
+        retrieveExecutor.shutdownNow();
+    }
     public void closeAll() {
         logger.warn("close All Network Channels");
+        closeRetrieveExecutors();
         networkChannelGroup.close().awaitUninterruptibly();
         clientBootstrap.releaseExternalResources();
         channelClientFactory.releaseExternalResources();

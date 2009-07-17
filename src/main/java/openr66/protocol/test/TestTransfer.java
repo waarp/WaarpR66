@@ -20,6 +20,7 @@
  */
 package openr66.protocol.test;
 
+import goldengate.common.command.exception.CommandAbstractException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
@@ -29,6 +30,7 @@ import java.net.SocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import openr66.filesystem.R66File;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.config.R66FileBasedConfiguration;
 import openr66.protocol.exception.OpenR66ProtocolException;
@@ -38,7 +40,6 @@ import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolRemoteShutdownException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.RequestPacket;
-import openr66.protocol.localhandler.packet.TestPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
 import openr66.protocol.utils.R66Future;
@@ -112,10 +113,10 @@ public class TestTransfer implements Runnable {
             logger.warn("Connection retry since ",lastException);
         }
         // FIXME data transfer
-        int block = 300;
-        //int block = Configuration.configuration.BLOCKSIZE;
-        RequestPacket request = new RequestPacket(this.rulename,RequestPacket.SENDMODE,
-                this.filename, block, 0, 0, "mon information");
+        //int block = 4096;
+        int block = Configuration.configuration.BLOCKSIZE;
+        RequestPacket request = new RequestPacket(this.rulename,RequestPacket.RECVMODE,
+                this.filename, block, 0, 0, "MONTEST test.xml");
         NetworkPacket networkPacket;
         try {
             networkPacket = new NetworkPacket(localChannelReference
@@ -172,7 +173,7 @@ public class TestTransfer implements Runnable {
                 Configuration.configuration.SERVER_PORT);
 
         ExecutorService executorService = Executors.newCachedThreadPool();
-        int nb = 150;
+        int nb = 1;
 
         R66Future[] arrayFuture = new R66Future[nb];
         logger.warn("Start");
@@ -195,11 +196,24 @@ public class TestTransfer implements Runnable {
             }
         }
         long time2 = System.currentTimeMillis();
-        logger.error("Success: " + success + " Error: " + error + " NB/s: " +
-                success * TestPacket.pingpong * 1000 / (time2 - time1)+ " "+
-                (arrayFuture[0].getResult() != null ? arrayFuture[0].getResult().getClass().getName() : "no data"));
-        networkTransaction.closeAll();
+        long length = 0;
+        logger.warn("Final file: "+
+                (arrayFuture[0].getResult() instanceof R66File ?
+                        ((R66File)arrayFuture[0].getResult()).toString() : "no file"));
+        try {
+            length = (arrayFuture[0].getResult() instanceof R66File ?
+                    ((R66File)arrayFuture[0].getResult()).length() : 0L);
+        } catch (CommandAbstractException e) {
+        }
+        long delay = (time2 - time1);
+        float nbs = success*1000;
+        nbs /= delay;
+        float mbs = nbs*((float)length)/((float) 1024);
+        logger.error("Success: " + success + " Error: " + error +
+                " delay: "+ delay+" NB/s: " +
+                nbs + " KB/s: "+mbs);
         executorService.shutdown();
+        networkTransaction.closeAll();
     }
 
 }

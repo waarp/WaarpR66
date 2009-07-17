@@ -67,7 +67,7 @@ public class R66Dir extends FilesystemBasedDirImpl {
             file = File.createTempFile(prename,
                     "_"+filename+".stou", getFileFromPath(currentDir));
         } catch (IOException e) {
-            throw new Reply550Exception("Cannot create unique file");
+            throw new Reply550Exception("Cannot create unique file from "+filename);
         }
         String currentFile = getRelativePath(file);
         return newFile(normalizePath(currentFile), false);

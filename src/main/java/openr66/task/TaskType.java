@@ -22,7 +22,10 @@ package openr66.task;
 
 public enum TaskType {
     TEST,
-    MOVE;
+    MOVE,
+    MOVERENAME,
+    COPY,
+    COPYRENAME;
 
     public int type;
     public String name;

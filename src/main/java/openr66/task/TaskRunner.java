@@ -82,7 +82,7 @@ public class TaskRunner {
         this.status = TaskStatus.UNKNOWN;
         this.specialId = id;
         // FIXME load from database
-        this.isRetrieve = true;// XXX FIXME TODO WARNING FALSE!!!
+        this.isRetrieve = false;// XXX FIXME TODO WARNING FALSE!!!
     }
     /**
      * @return the filename
@@ -132,12 +132,13 @@ public class TaskRunner {
         this.rank = rank;
         this.status = TaskStatus.RUNNING;
     }
-    public void finishTransferTask(boolean status) {
+    public int finishTransferTask(boolean status) {
         if (status) {
             this.status = TaskStatus.OK;
         } else {
             this.status = TaskStatus.ERROR;
         }
+        return this.rank;
     }
     public void setPostTask(int step) {
         this.globalstep = POSTTASK;

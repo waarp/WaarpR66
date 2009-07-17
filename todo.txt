@@ -1,1 +1,6 @@
-- After one pass of connection to local channel, when the network is down, no more connection can be done???
+- MOVE avec options dans rulepath : "CHAINE de caracteres" qui se verront appliquer :
+	- TRUEFILENAME -> current filename (retrieve)
+	- DATE -> AAAAMMJJ
+	- HOUR -> HHMMSS
+	- puis %s qui sera remplace par les arguments du transfer (transfer information)
+

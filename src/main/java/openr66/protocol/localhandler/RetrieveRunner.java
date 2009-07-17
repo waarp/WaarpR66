@@ -62,6 +62,7 @@ public class RetrieveRunner implements Runnable {
      */
     @Override
     public void run() {
+        Thread.currentThread().setName("RetrieveRunner: "+this.channel.getId());
         try {
             this.session.getFile().retrieveBlocking();
         } catch (OpenR66RunnerErrorException e) {
@@ -70,10 +71,11 @@ public class RetrieveRunner implements Runnable {
                     e.toString(),
                     ErrorPacket.FORWARDCLOSECODE);
             try {
-                writeBack(error, true);
+                writeBack(error);
             } catch (OpenR66ProtocolPacketException e1) {
             }
             ChannelUtils.close(channel);
+            logger.warn("End Retrieve in Error");
             return;
         } catch (OpenR66ProtocolSystemException e) {
             this.localChannelReference.validateAction(false, e);
@@ -81,12 +83,14 @@ public class RetrieveRunner implements Runnable {
                     e.toString(),
                     ErrorPacket.FORWARDCLOSECODE);
             try {
-                writeBack(error, true);
+                writeBack(error);
             } catch (OpenR66ProtocolPacketException e1) {
             }
             ChannelUtils.close(channel);
+            logger.warn("End Retrieve in Error");
             return;
         }
+        logger.info("Await future action to be done");
         this.localChannelReference.getFutureAction().awaitUninterruptibly();
         if (this.localChannelReference.getFutureAction().isSuccess()) {
             // send a validation
@@ -94,7 +98,7 @@ public class RetrieveRunner implements Runnable {
                     Integer.toString(this.session.getRunner().getRank()),
                     LocalPacketFactory.REQUESTPACKET);
             try {
-                writeBack(validPacket, true);
+                writeBack(validPacket);
             } catch (OpenR66ProtocolPacketException e) {
             }
             ChannelUtils.close(channel);
@@ -104,15 +108,16 @@ public class RetrieveRunner implements Runnable {
                     this.localChannelReference.getFutureAction().getResult().toString(),
                     ErrorPacket.FORWARDCLOSECODE);
             try {
-                writeBack(error, true);
+                writeBack(error);
             } catch (OpenR66ProtocolPacketException e) {
             }
             ChannelUtils.close(channel);
+            logger.warn("End Retrieve in Error");
             return;
         }
     }
 
-    private void writeBack(AbstractLocalPacket packet, boolean await)
+    private void writeBack(AbstractLocalPacket packet)
     throws OpenR66ProtocolPacketException {
         NetworkPacket networkPacket;
         try {
@@ -123,13 +128,8 @@ public class RetrieveRunner implements Runnable {
                     e);
             throw e;
         }
-        if (await) {
-            Channels.write(localChannelReference.getNetworkChannel(),
-                    networkPacket).awaitUninterruptibly();
-        } else {
-            Channels.write(localChannelReference.getNetworkChannel(),
-                    networkPacket);
-        }
+        Channels.write(localChannelReference.getNetworkChannel(),
+                networkPacket).awaitUninterruptibly();
     }
 
 }

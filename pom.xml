@@ -80,6 +80,13 @@
       <version>1.1.111</version>
     </dependency>
     <dependency>
+    	<groupId>commons-io</groupId>
+    	<artifactId>commons-io</artifactId>
+    	<version>1.4</version>
+      <scope>compile</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
     	<groupId>GG-Common</groupId>
     	<artifactId>GG-Common</artifactId>
     	<version>0.9.4</version>
@@ -202,10 +209,10 @@
 	            -link http://www.slf4j.org/apidocs/
 	            -link http://commons.apache.org/logging/commons-logging-1.1.1/apidocs/
 	            -link http://logging.apache.org/log4j/1.2/apidocs/
-	
+
 				-group "OpenR66 Protocol package" "openr66.protocol*"
 				-group "OpenR66 Business package" "openr66.business*"
-	
+
 	            -sourceclasspath ${basedir}/target/classes
 	          </additionalparam>
 	          <encoding>UTF-8</encoding>

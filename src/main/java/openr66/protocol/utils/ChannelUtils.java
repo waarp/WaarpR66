@@ -26,6 +26,7 @@ import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.DataPacket;
+import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
 import openr66.task.TaskRunner;
 
@@ -179,7 +180,9 @@ public class ChannelUtils implements Runnable {
                     e);
             throw e;
         }
-        return Channels.write(networkChannel, networkPacket);
+        ChannelFuture future = Channels.write(networkChannel, networkPacket);
+        runner.incrementRank();
+        return future;
     }
     /**
      * Exit global ChannelFactory
@@ -194,6 +197,7 @@ public class ChannelUtils implements Runnable {
             Thread.sleep(delay);
         } catch (final InterruptedException e) {
         }
+        NetworkTransaction.closeRetrieveExecutors();
         Configuration.configuration.getGlobalTrafficShapingHandler()
                 .releaseExternalResources();
         logger.warn("Exit Shutdown Command");

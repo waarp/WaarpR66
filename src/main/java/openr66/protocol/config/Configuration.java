@@ -293,7 +293,7 @@ public class Configuration {
                 CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory,
                 500, TimeUnit.MILLISECONDS);
         localPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
-                CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory,
+                CLIENT_THREAD*100, maxGlobalMemory / 10, maxGlobalMemory,
                 500, TimeUnit.MILLISECONDS);
         configured = true;
     }

@@ -187,8 +187,8 @@ public class TestTransaction implements Runnable {
         long time2 = System.currentTimeMillis();
         logger.error("Success: " + success + " Error: " + error + " NB/s: " +
                 success * TestPacket.pingpong * 1000 / (time2 - time1));
-        networkTransaction.closeAll();
         executorService.shutdown();
+        networkTransaction.closeAll();
     }
 
 }

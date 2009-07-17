@@ -114,7 +114,6 @@ public class R66File extends FilesystemBasedFileImpl {
             ChannelFuture future = null;
             while (block != null && !block.isEOF()) {
                 future = ChannelUtils.writeBack(localChannelReference, runner, networkChannel, block);
-                runner.incrementRank();
                 // Test if channel is writable in order to prevent OOM
                 if (networkChannel.isWritable()) {
                     try {
@@ -132,7 +131,7 @@ public class R66File extends FilesystemBasedFileImpl {
                         try {
                             Thread.sleep(Configuration.RETRYINMS);
                         } catch (InterruptedException e) {
-                            // Wait for last write
+                            // Exception while waiting
                             future.awaitUninterruptibly();
                             this.getSession().setFinalizeTransfer(false, e);
                             return;
@@ -151,7 +150,6 @@ public class R66File extends FilesystemBasedFileImpl {
             // Last block
             if (block != null) {
                 future = ChannelUtils.writeBack(localChannelReference, runner, networkChannel, block);
-                runner.incrementRank();
             }
             // Wait for last write
             if (future != null) {
@@ -186,10 +184,12 @@ public class R66File extends FilesystemBasedFileImpl {
     }
 
     public String getBasename() {
-        File file = new File(this.currentFile);
+        return getBasename(this.currentFile);
+    }
+    public static String getBasename(String path) {
+        File file = new File(path);
         return file.getName();
     }
-
     @Override
     public R66Session getSession() {
         return (R66Session) this.session;
@@ -430,6 +430,18 @@ public class R66File extends FilesystemBasedFileImpl {
         return false;
     }
 
+    /**
+     * Replace the current file with the new filename after closing the previous one.
+     * @param filename
+     * @param isExternal
+     * @throws CommandAbstractException
+     */
+    public void replaceFilename(String filename, boolean isExternal) throws CommandAbstractException {
+        this.closeFile();
+        this.currentFile = filename;
+        this.isExternal = isExternal;
+        this.isReady = true;
+    }
     /* (non-Javadoc)
      * @see goldengate.common.file.filesystembased.FilesystemBasedFileImpl#closeFile()
      */
