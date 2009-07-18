@@ -21,14 +21,10 @@
 package openr66.task;
 
 import java.io.File;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.filesystem.R66Session;
-import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.utils.FileUtils;
 
@@ -42,13 +38,6 @@ public class CopyRenameTask extends AbstractTask {
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(CopyRenameTask.class);
-
-    private static final String TRUEFILENAME = "#TRUEFILENAME#";
-    private static final String ORIGINALFILENAME = "#ORIGINALFILENAME#";
-    private static final String DATE = "#DATE#";
-    private static final String HOUR = "#HOUR#";
-    private static final String REMOTEHOST = "#REMOTEHOST#";
-    private static final String LOCALHOST = "#LOCALHOST#";
 
     /**
      * @param argRule
@@ -72,17 +61,7 @@ public class CopyRenameTask extends AbstractTask {
         - puis %s qui sera remplace par les arguments du transfer (transfer information)
          */
         String finalname = this.argRule;
-        finalname = finalname.replaceFirst(TRUEFILENAME, this.session.getDir().getFinalUniqueFilename(this.session.getFile()));
-        finalname = finalname.replaceFirst(ORIGINALFILENAME, this.session.getRequest().getFilename());
-        DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
-        Date date = new Date();
-        finalname = finalname.replaceFirst(DATE, dateFormat.format(date));
-        dateFormat= new SimpleDateFormat("HHMMss");
-        finalname = finalname.replaceFirst(HOUR, dateFormat.format(date));
-        finalname = finalname.replaceFirst(REMOTEHOST, this.session.getAuth().getUser());
-        finalname = finalname.replaceFirst(LOCALHOST, Configuration.configuration.HOST_ID);
-        String []args = this.argTransfer.split(" ");
-        finalname = String.format(finalname, (Object [])args);
+        finalname = this.getReplacedValue(finalname, this.argTransfer.split(" "));
         logger.warn("Copy and Rename to "+finalname+" with "+this.argRule+":"+this.argTransfer+" and "+this.session);
         File from = this.session.getFile().getTrueFile();
         File to = new File(finalname);

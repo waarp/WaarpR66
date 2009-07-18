@@ -25,7 +25,9 @@ public enum TaskType {
     MOVE,
     MOVERENAME,
     COPY,
-    COPYRENAME;
+    COPYRENAME,
+    EXEC,
+    EXECRENAME;
 
     public int type;
     public String name;

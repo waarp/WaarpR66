@@ -173,7 +173,7 @@ public class TestTransfer implements Runnable {
                 Configuration.configuration.SERVER_PORT);
 
         ExecutorService executorService = Executors.newCachedThreadPool();
-        int nb = 1;
+        int nb = 10;
 
         R66Future[] arrayFuture = new R66Future[nb];
         logger.warn("Start");

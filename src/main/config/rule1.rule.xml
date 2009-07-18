@@ -25,13 +25,13 @@
 	<posttasks>
 		<tasks>
 			<task>
-				<type>TEST</type>
-				<path>post 1</path>
+				<type>EXECRENAME</type>
+				<path>D:/GG/R66/conf/montest.bat #TRUEFULLPATH# D:\GG\FTP\fredo\a\#TRANSFERID#_#ORIGINALFILENAME# #TRUEFILENAME# #ORIGINALFILENAME# #DATE# #HOUR# #REMOTEHOST# #LOCALHOST# #TRANSFERID# #RANKTRANSFER# #BLOCKSIZE#</path>
 				<rank>0</rank>
 			</task>
 			<task>
-				<type>TEST</type>
-				<path>post 2</path>
+				<type>COPYRENAME</type>
+				<path>D:/GG/FTP/fredo/a/#DATE#_#HOUR#_#REMOTEHOST#_#LOCALHOST#_#ORIGINALFILENAME#_#TRUEFILENAME#_%s_%s</path>
 				<rank>1</rank>
 			</task>
 		</tasks>
@@ -46,7 +46,7 @@
 			<task>
 				<type>TEST</type>
 				<path>erreur 2</path>
-				<rank>1</rank>
+                <rank>1</rank>
 			</task>
 		</tasks>
 	</errortasks>

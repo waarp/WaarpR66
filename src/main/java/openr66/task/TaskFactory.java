@@ -47,6 +47,10 @@ public class TaskFactory {
                 return new CopyTask(argRule, session.getRequest().getFileInformation(), session);
             case COPYRENAME:
                 return new CopyRenameTask(argRule, session.getRequest().getFileInformation(), session);
+            case EXEC:
+                return new ExecTask(argRule, session.getRequest().getFileInformation(), session);
+            case EXECRENAME:
+                return new ExecRenameTask(argRule, session.getRequest().getFileInformation(), session);
             default:
                 throw new OpenR66RunnerErrorException(
                         "Unvalid Task: " + type.name);

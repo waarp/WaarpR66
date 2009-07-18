@@ -20,7 +20,12 @@
  */
 package openr66.task;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import openr66.filesystem.R66Session;
+import openr66.protocol.config.Configuration;
 import openr66.protocol.utils.R66Future;
 
 /**
@@ -28,6 +33,47 @@ import openr66.protocol.utils.R66Future;
  *
  */
 public abstract class AbstractTask implements Runnable {
+    /**
+     * Current full path of current filename
+     */
+    public static final String TRUEFULLPATH = "#TRUEFULLPATH#";
+    /**
+     * Current filename (change in retrieval part)
+     */
+    public static final String TRUEFILENAME = "#TRUEFILENAME#";
+    /**
+     * Original filename (before changing in retrieval part)
+     */
+    public static final String ORIGINALFILENAME = "#ORIGINALFILENAME#";
+    /**
+     * Date in yyyyMMdd format
+     */
+    public static final String DATE = "#DATE#";
+    /**
+     * Hour in HHmmss format
+     */
+    public static final String HOUR = "#HOUR#";
+    /**
+     * Remote host id (if not the initiator of the call)
+     */
+    public static final String REMOTEHOST = "#REMOTEHOST#";
+    /**
+     * Local host id
+     */
+    public static final String LOCALHOST = "#LOCALHOST#";
+    /**
+     * Transfer id
+     */
+    public static final String TRANSFERID = "#TRANSFERID#";
+    /**
+     * Current or final rank of block
+     */
+    public static final String RANKTRANSFER = "#RANKTRANSFER#";
+    /**
+     * Block size used
+     */
+    public static final String BLOCKSIZE = "#BLOCKSIZE#";
+
     /**
      * Type of operation
      */
@@ -80,4 +126,29 @@ public abstract class AbstractTask implements Runnable {
        return this.futureCompletion;
    }
 
+   /**
+    *
+    * @param arg as the Format string where
+    *   FIXED items will be replaced by context values and
+    *   next using argFormat as format second argument
+    * @param argFormat as format second argument
+    * @return The string with replaced values from context and second argument
+    */
+   protected String getReplacedValue(String arg, Object []argFormat) {
+       String finalname = arg.replace(TRUEFULLPATH, this.session.getFile().getTrueFile().getAbsolutePath());
+       finalname = finalname.replace(TRUEFILENAME, this.session.getDir().getFinalUniqueFilename(this.session.getFile()));
+       finalname = finalname.replace(ORIGINALFILENAME, this.session.getRequest().getFilename());
+       DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+       Date date = new Date();
+       finalname = finalname.replace(DATE, dateFormat.format(date));
+       dateFormat= new SimpleDateFormat("HHmmss");
+       finalname = finalname.replace(HOUR, dateFormat.format(date));
+       finalname = finalname.replace(REMOTEHOST, this.session.getAuth().getUser());
+       finalname = finalname.replace(LOCALHOST, Configuration.configuration.HOST_ID);
+       finalname = finalname.replace(TRANSFERID, Long.toString(this.session.getRunner().getSpecialId()));
+       finalname = finalname.replace(RANKTRANSFER, Integer.toString(this.session.getRunner().getRank()));
+       finalname = finalname.replace(BLOCKSIZE, Integer.toString(this.session.getBlockSize()));
+       finalname = String.format(finalname, argFormat);
+       return finalname;
+   }
 }
