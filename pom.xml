@@ -4,12 +4,62 @@
   <artifactId>OpenR66</artifactId>
   <name>GoldenGate OpenR66</name>
   <version>0.5.1-SNAPSHOT</version>
-  <description>OpenR66 is a File Transfer Monitor to be used in real production to transfer files between servers.</description>
+  <description>
+  OpenR66 is a File Transfer Monitor to be used in real production to transfer files between servers.
+  It allows to start/restart a transfer, check the remote MD5, check status, make pre or post
+  actions on transfer, ... It includes Bandwidth limitation and will support SSL channel.
+  When multiple transfers occurs between two hosts, they use the same network channel and
+  multiplex their other transfers on this channel.
+  </description>
+  <url>http://openr66.free.fr/GoldenGateR66</url>
   <scm>
   	<connection>scm:svn:http://goldengate.svn.sourceforge.net/svnroot/goldengate/GoldenGateR66/trunk</connection>
   	<developerConnection>scm:svn:https://goldengate.svn.sourceforge.net/svnroot/goldengate/GoldenGateR66/trunk</developerConnection>
   	<url>http://goldengate.svn.sourceforge.net/svnroot/goldengate/GoldenGateR66/trunk</url>
   </scm>
+  <organization>
+  	<name>Frederic Bregier</name>
+  	<url>http://frederic.bregier.free.fr</url>
+  </organization>
+  <developers>
+  	<developer>
+  		<name>Frederic Bregier</name>
+  		<id>openlsd</id>
+  		<roles>
+  			<role>Project Manager</role>
+  			<role>Architect</role>
+		</roles>
+  		<email>fredbregier@free.fr</email>
+  	</developer>
+  	<developer>
+  		<name>Frederic Bregier</name>
+  		<id>fredbregier</id>
+  		<roles>
+  			<role>Developer</role>
+		</roles>
+  		<email>fredbregier@free.fr</email>
+  	</developer>
+  </developers>
+  <issueManagement>
+  	<system>Sourceforge</system>
+  	<url>http://sourceforge.net/tracker/?group_id=254228/</url>
+  </issueManagement>
+  <mailingLists>
+  	<mailingList>
+  		<name>GoldenGate Devel mailing list (Prefered)</name>
+  		<subscribe>https://lists.sourceforge.net/lists/listinfo/goldengate-devel</subscribe>
+  		<post>goldengate-devel@lists.sourceforge.net</post>
+  		<archive>http://sourceforge.net/mailarchive/forum.php?forum_name=goldengate-devel</archive>
+  	</mailingList>
+  	<mailingList>
+  		<name>GoldenGate Help Forum</name>
+  		<archive>http://sourceforge.net/forum/forum.php?forum_id=921630</archive>
+  	</mailingList>
+  	<mailingList>
+  		<name>GoldenGate Open Discussion Forum</name>
+  		<archive>http://sourceforge.net/forum/forum.php?forum_id=921629</archive>
+  	</mailingList>
+  </mailingLists>
   <licenses>
   	<license>
   		<name>LGPL 3.0</name>
@@ -73,11 +123,13 @@
     	<version>5</version>
     	<scope>system</scope>
     	<systemPath>D:/NEWJARS/ojdbc5.jar</systemPath>
+	    <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
       <version>1.1.111</version>
+      <optional>true</optional>
     </dependency>
     <dependency>
     	<groupId>commons-io</groupId>
@@ -206,17 +258,13 @@
 	          <windowtitle>${project.name} ${project.version} API Reference</windowtitle>
 	          <additionalparam>
 	            -link http://java.sun.com/javase/6/docs/api/
-	            -link http://code.google.com/apis/protocolbuffers/docs/reference/java/
-	            -link http://java.sun.com/products/servlet/2.5/docs/servlet-2_5-mr2/
-	            -link http://www.osgi.org/javadoc/r4v41/
-	            -link http://google-guice.googlecode.com/svn/trunk/javadoc/
-	            -link http://static.springframework.org/spring/docs/2.5.x/api/
-	            -link http://www.slf4j.org/apidocs/
-	            -link http://commons.apache.org/logging/commons-logging-1.1.1/apidocs/
-	            -link http://logging.apache.org/log4j/1.2/apidocs/
+	            -link http://jboss.org/file-access/default/members/netty/freezone/api/3.1/
 
 				-group "OpenR66 Protocol package" "openr66.protocol*"
 				-group "OpenR66 Business package" "openr66.business*"
+				-group "OpenR66 Task package" "openr66.task*"
+				-group "OpenR66 Filesystem package" "openr66.filesystem*"
+				-group "OpenR66 Authentication package" "openr66.authentication*"
 
 	            -sourceclasspath ${basedir}/target/classes
 	          </additionalparam>
@@ -252,8 +300,11 @@
            <report>index</report>
            <report>summary</report>
            <report>dependencies</report>
+           <report>mailing-list</report>
+           <report>issue-tracking</report>
            <report>dependency-convergence</report>
            <report>dependency-management</report>
+           <report>project-team</report>
            <report>scm</report>
            <report>license</report>
           </reports>

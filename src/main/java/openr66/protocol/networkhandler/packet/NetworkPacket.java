@@ -53,7 +53,7 @@ public class NetworkPacket {
     /**
      * @param localId
      * @param remoteId
-     * @param buffer
+     * @param packet
      * @throws OpenR66ProtocolPacketException
      */
     public NetworkPacket(int localId, int remoteId, AbstractLocalPacket packet) throws OpenR66ProtocolPacketException {

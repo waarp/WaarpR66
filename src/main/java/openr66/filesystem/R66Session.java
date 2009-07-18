@@ -59,7 +59,7 @@ public class R66Session implements SessionInterface {
     /**
      * Current Restart information
      */
-    private R66Restart restart = null;
+    private final R66Restart restart;
 
     /**
      * Current request action
@@ -221,7 +221,6 @@ public class R66Session implements SessionInterface {
     /**
      * Set the runner, start from the PreTask if necessary, and prepare the file
      * @param runner the runner to set
-     * @param isRetrieve True if this runner is for retrieve (send) from this local server point of view
      * @throws OpenR66RunnerErrorException
      */
     public void setRunner(TaskRunner runner) throws OpenR66RunnerErrorException {

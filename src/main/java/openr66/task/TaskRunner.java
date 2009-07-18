@@ -60,7 +60,7 @@ public class TaskRunner {
     private TaskStatus status;
 
     // FIXME need a special ID
-    private long specialId;
+    private final long specialId;
     private final boolean isRetrieve;
     private String filename;
 
@@ -72,6 +72,7 @@ public class TaskRunner {
         this.status = TaskStatus.UNKNOWN;
         long newId = this.session.getLocalChannelReference().getRemoteId();
         newId = newId << 32;
+        //FIXME need a way to check if it does not already exist
         this.specialId = newId + this.session.getLocalChannelReference().getLocalId();
         this.isRetrieve = isRetrieve;
     }

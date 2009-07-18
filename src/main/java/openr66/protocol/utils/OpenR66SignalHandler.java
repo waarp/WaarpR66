@@ -64,7 +64,6 @@ public class OpenR66SignalHandler implements SignalHandler {
      * shutdown.
      *
      * @param immediate
-     * @param configuration
      */
     public static void terminate(boolean immediate) {
         if (immediate) {

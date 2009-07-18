@@ -24,11 +24,11 @@ public class ErrorPacket extends AbstractLocalPacket {
 
     public static final int FORWARDCLOSECODE = 3;
 
-    private String sheader = null;
+    private final String sheader;
 
-    private String smiddle = null;
+    private final String smiddle;
 
-    private int code = IGNORECODE;
+    private final int code;
 
     /**
      * @param headerLength

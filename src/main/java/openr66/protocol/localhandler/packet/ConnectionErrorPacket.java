@@ -17,9 +17,9 @@ import org.jboss.netty.buffer.ChannelBuffers;
  */
 public class ConnectionErrorPacket extends AbstractLocalPacket {
 
-    private String sheader = null;
+    private final String sheader;
 
-    private String smiddle = null;
+    private final String smiddle;
 
     /**
      * @param headerLength

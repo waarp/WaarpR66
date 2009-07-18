@@ -16,9 +16,9 @@ import org.jboss.netty.buffer.ChannelBuffers;
  * @author frederic bregier
  */
 public class ValidPacket extends AbstractLocalPacket {
-    private String sheader = null;
+    private final String sheader;
 
-    private String smiddle = null;
+    private final String smiddle;
 
     private final byte send;
 

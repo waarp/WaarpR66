@@ -16,7 +16,7 @@ import org.jboss.netty.buffer.ChannelBuffers;
  * @author frederic bregier
  */
 public class ShutdownPacket extends AbstractLocalPacket {
-    private byte[] key = null;
+    private final byte[] key;
 
     /**
      * @param headerLength

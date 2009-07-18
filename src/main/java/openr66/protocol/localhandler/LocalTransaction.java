@@ -145,7 +145,7 @@ public class LocalTransaction {
         Collection<LocalChannelReference> collection = localChannelHashMap
                 .values();
         Iterator<LocalChannelReference> iterator = collection.iterator();
-        for (; iterator.hasNext();) {
+        while (iterator.hasNext()) {
             LocalChannelReference localChannelReference = iterator.next();
             if (localChannelReference.getNetworkChannel().compareTo(
                     networkChannel) == 0) {
@@ -166,7 +166,7 @@ public class LocalTransaction {
             buffer = packet.getLocalPacket();
         } catch (OpenR66ProtocolPacketException e1) {
         }
-        for (; iterator.hasNext();) {
+        while (iterator.hasNext()) {
             LocalChannelReference localChannelReference = iterator.next();
             logger.info("Inform Shutdown "+localChannelReference.toString());
             NetworkPacket message = new NetworkPacket(localChannelReference.getLocalId(),

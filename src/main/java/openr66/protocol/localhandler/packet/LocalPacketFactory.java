@@ -55,48 +55,39 @@ public class LocalPacketFactory {
             throws OpenR66ProtocolPacketException {
         final byte packetType = buf.readByte();
         switch (packetType) {
-            case AUTHENTPACKET: {
+            case AUTHENTPACKET:
                 return AuthentPacket.createFromBuffer(headerLength,
                         middleLength, endLength, buf);
-            }
-            case STARTUPPACKET: {
+            case STARTUPPACKET:
                 return StartupPacket.createFromBuffer(headerLength,
                         middleLength, endLength, buf);
-            }
-            case DATAPACKET: {
+            case DATAPACKET:
                 return DataPacket.createFromBuffer(headerLength, middleLength,
                         endLength, buf);
-            }
-            case VALIDPACKET: {
+            case VALIDPACKET:
                 return ValidPacket.createFromBuffer(headerLength, middleLength,
                         endLength, buf);
-            }
-            case ERRORPACKET: {
+            case ERRORPACKET:
                 return ErrorPacket.createFromBuffer(headerLength, middleLength,
                         endLength, buf);
-            }
-            case CONNECTERRORPACKET: {
+            case CONNECTERRORPACKET:
                 return ConnectionErrorPacket.createFromBuffer(headerLength,
                         middleLength, endLength, buf);
-            }
-            case REQUESTPACKET: {
+            case REQUESTPACKET:
                 return RequestPacket.createFromBuffer(headerLength,
                         middleLength, endLength, buf);
-            }
-            case SHUTDOWNPACKET: {
+            case SHUTDOWNPACKET:
                 return ShutdownPacket.createFromBuffer(headerLength,
                         middleLength, endLength, buf);
-            }
             case STATUSPACKET:
             case CANCELPACKET:
             case CONFIGSENDPACKET:
             case CONFIGRECVPACKET:
                 throw new OpenR66ProtocolPacketException(
                         "Unimplemented Packet Type received: " + packetType);
-            case TESTPACKET: {
+            case TESTPACKET:
                 return TestPacket.createFromBuffer(headerLength, middleLength,
                         endLength, buf);
-            }
             default:
                 throw new OpenR66ProtocolPacketException(
                         "Unvalid Packet Type received: " + packetType);

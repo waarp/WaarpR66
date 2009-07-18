@@ -381,7 +381,7 @@ public class NetworkTransaction {
        /**
         * href to remove
         */
-       private int href;
+       private final int href;
        /**
         * Constructor from type
         *

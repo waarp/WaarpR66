@@ -193,7 +193,6 @@ public class FileUtils {
             return false;
         }
         if (directory.isDirectory()) {
-            directory = null;
             return true;
         }
         return directory.mkdirs();
@@ -223,11 +222,9 @@ public class FileUtils {
             return true;
         }
         if (!directory.exists()) {
-            directory = null;
             return true;
         }
         if (!directory.isDirectory()) {
-            directory = null;
             return false;
         }
         return directory.delete();
@@ -259,18 +256,15 @@ public class FileUtils {
         }
         boolean retour = true;
         if (!directory.exists()) {
-            directory = null;
             return true;
         }
         if (!directory.isDirectory()) {
-            directory = null;
             return false;
         }
         File[] list = directory.listFiles();
         if ((list == null) || (list.length == 0)) {
             list = null;
             retour = directory.delete();
-            directory = null;
             return retour;
         }
         int len = list.length;
@@ -287,7 +281,6 @@ public class FileUtils {
         if (retour) {
             retour = directory.delete();
         }
-        directory = null;
         return retour;
     }
 

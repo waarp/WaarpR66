@@ -165,7 +165,7 @@ public class R66RuleFileBasedConfiguration {
             document = new SAXReader().read(file);
         } catch (DocumentException e) {
             logger.error("Unable to read the XML Rule file: " + file.getName(), e);
-            throw new OpenR66ProtocolSystemException("Unable to read the XML Rule file");
+            throw new OpenR66ProtocolSystemException("Unable to read the XML Rule file",e);
         }
         if (document == null) {
             logger.error("Unable to read the XML Rule file: " + file.getName());
