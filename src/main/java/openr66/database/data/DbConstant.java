@@ -20,6 +20,8 @@
  */
 package openr66.database.data;
 
+import openr66.database.R66DbAdmin;
+
 /**
  * @author Frederic Bregier
  *
@@ -27,4 +29,6 @@ package openr66.database.data;
 public class DbConstant {
 
     public static long ILLEGALVALUE = Long.MIN_VALUE;
+
+    public static R66DbAdmin admin = null;
 }

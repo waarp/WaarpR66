@@ -105,6 +105,7 @@ public class ExecTask extends AbstractTask {
         pumpStreamHandler.stop();
         if (defaultExecutor.isFailure(status) && watchdog.killedProcess()) {
             // kill by the watchdoc (time out)
+            logger.error("Exec is in Time Out");
             status = -1;
         }
         if (status == 0) {

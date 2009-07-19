@@ -26,10 +26,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
-import java.util.ArrayList;
 
 import openr66.database.R66DbPreparedStatement;
 import openr66.database.R66DbSession;
+import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 
@@ -39,157 +39,173 @@ import openr66.database.exception.OpenR66DatabaseSqlError;
  */
 public abstract class AbstractDbData {
 
-    protected abstract void select();
+    public abstract void select() throws OpenR66DatabaseException;
 
-    protected abstract void insert();
+    public abstract void insert() throws OpenR66DatabaseException;
 
-    protected abstract void update();
+    public abstract void update() throws OpenR66DatabaseException;
 
-    protected abstract void delete();
+    public abstract void delete() throws OpenR66DatabaseException;
 
-    protected abstract String getXML();
-
-    protected void setValues(R66DbPreparedStatement preparedStatement,
-            ArrayList<DbValue> values) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
-        PreparedStatement ps = preparedStatement.getPreparedStatement();
-        for (int i = 1; i <= values.size(); i++) {
-            DbValue value = values.get(i);
-            try {
-                switch (value.type) {
-                    case Types.VARCHAR:
-                        if (value.value == null) {
-                            ps.setNull(i, Types.VARCHAR);
-                            break;
-                        }
-                        ps.setString(i, (String) value.value);
+    private void setTrueValue(PreparedStatement ps, DbValue value, int rank)
+    throws OpenR66DatabaseSqlError {
+        try {
+            switch (value.type) {
+                case Types.VARCHAR:
+                    if (value.value == null) {
+                        ps.setNull(rank, Types.VARCHAR);
                         break;
-                    case Types.BIT:
-                        if (value.value == null) {
-                            ps.setNull(i, Types.BIT);
-                            break;
-                        }
-                        ps.setBoolean(i, (Boolean) value.value);
+                    }
+                    ps.setString(rank, (String) value.value);
+                    break;
+                case Types.BIT:
+                    if (value.value == null) {
+                        ps.setNull(rank, Types.BIT);
                         break;
-                    case Types.TINYINT:
-                        if (value.value == null) {
-                            ps.setNull(i, Types.TINYINT);
-                            break;
-                        }
-                        ps.setByte(i, (Byte) value.value);
+                    }
+                    ps.setBoolean(rank, (Boolean) value.value);
+                    break;
+                case Types.TINYINT:
+                    if (value.value == null) {
+                        ps.setNull(rank, Types.TINYINT);
                         break;
-                    case Types.SMALLINT:
-                        if (value.value == null) {
-                            ps.setNull(i, Types.SMALLINT);
-                            break;
-                        }
-                        ps.setShort(i, (Short) value.value);
+                    }
+                    ps.setByte(rank, (Byte) value.value);
+                    break;
+                case Types.SMALLINT:
+                    if (value.value == null) {
+                        ps.setNull(rank, Types.SMALLINT);
                         break;
-                    case Types.INTEGER:
-                        if (value.value == null) {
-                            ps.setNull(i, Types.INTEGER);
-                            break;
-                        }
-                        ps.setInt(i, (Integer) value.value);
+                    }
+                    ps.setShort(rank, (Short) value.value);
+                    break;
+                case Types.INTEGER:
+                    if (value.value == null) {
+                        ps.setNull(rank, Types.INTEGER);
                         break;
-                    case Types.BIGINT:
-                        if (value.value == null) {
-                            ps.setNull(i, Types.BIGINT);
-                            break;
-                        }
-                        ps.setLong(i, (Long) value.value);
+                    }
+                    ps.setInt(rank, (Integer) value.value);
+                    break;
+                case Types.BIGINT:
+                    if (value.value == null) {
+                        ps.setNull(rank, Types.BIGINT);
                         break;
-                    case Types.REAL:
-                        if (value.value == null) {
-                            ps.setNull(i, Types.REAL);
-                            break;
-                        }
-                        ps.setFloat(i, (Float) value.value);
+                    }
+                    ps.setLong(rank, (Long) value.value);
+                    break;
+                case Types.REAL:
+                    if (value.value == null) {
+                        ps.setNull(rank, Types.REAL);
                         break;
-                    case Types.DOUBLE:
-                        if (value.value == null) {
-                            ps.setNull(i, Types.DOUBLE);
-                            break;
-                        }
-                        ps.setDouble(i, (Double) value.value);
+                    }
+                    ps.setFloat(rank, (Float) value.value);
+                    break;
+                case Types.DOUBLE:
+                    if (value.value == null) {
+                        ps.setNull(rank, Types.DOUBLE);
                         break;
-                    case Types.VARBINARY:
-                        if (value.value == null) {
-                            ps.setNull(i, Types.VARBINARY);
-                            break;
-                        }
-                        ps.setBytes(i, (byte[]) value.value);
+                    }
+                    ps.setDouble(rank, (Double) value.value);
+                    break;
+                case Types.VARBINARY:
+                    if (value.value == null) {
+                        ps.setNull(rank, Types.VARBINARY);
                         break;
-                    case Types.DATE:
-                        if (value.value == null) {
-                            ps.setNull(i, Types.DATE);
-                            break;
-                        }
-                        ps.setDate(i, (Date) value.value);
+                    }
+                    ps.setBytes(rank, (byte[]) value.value);
+                    break;
+                case Types.DATE:
+                    if (value.value == null) {
+                        ps.setNull(rank, Types.DATE);
                         break;
-                    case Types.TIMESTAMP:
-                        if (value.value == null) {
-                            ps.setNull(i, Types.TIMESTAMP);
-                            break;
-                        }
-                        ps.setTimestamp(i, (Timestamp) value.value);
+                    }
+                    ps.setDate(rank, (Date) value.value);
+                    break;
+                case Types.TIMESTAMP:
+                    if (value.value == null) {
+                        ps.setNull(rank, Types.TIMESTAMP);
                         break;
-                    default:
-                        throw new OpenR66DatabaseSqlError("Type not supported: "+value.type+" at "+i);
-                }
-            } catch (SQLException e) {
-                R66DbSession.error(e);
-                throw new OpenR66DatabaseSqlError("Setting values in error: "+value.type+" at "+i, e);
+                    }
+                    ps.setTimestamp(rank, (Timestamp) value.value);
+                    break;
+                default:
+                    throw new OpenR66DatabaseSqlError("Type not supported: "+value.type+" at "+rank);
             }
+        } catch (SQLException e) {
+            R66DbSession.error(e);
+            throw new OpenR66DatabaseSqlError("Setting values in error: "+value.type+" at "+rank, e);
+        }
+    }
+    protected void setValue(R66DbPreparedStatement preparedStatement,
+            DbValue value) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+        PreparedStatement ps = preparedStatement.getPreparedStatement();
+        this.setTrueValue(ps, value, 1);
+    }
+    protected void setValues(R66DbPreparedStatement preparedStatement,
+            DbValue[] values) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+        PreparedStatement ps = preparedStatement.getPreparedStatement();
+        for (int i = 0; i < values.length; i++) {
+            DbValue value = values[i];
+            this.setTrueValue(ps, value, i+1);
         }
     }
 
-    protected void getValues(R66DbPreparedStatement preparedStatement,
-            ArrayList<DbValue> values) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
-        ResultSet rs = preparedStatement.getResultSet();
-        for (int i = 1; i <= values.size(); i++) {
-            DbValue value = values.get(i);
-            try {
-                switch (value.type) {
-                    case Types.VARCHAR:
-                        value.value = rs.getString(i);
-                        break;
-                    case Types.BIT:
-                        value.value = rs.getBoolean(i);
-                        break;
-                    case Types.TINYINT:
-                        value.value = rs.getByte(i);
-                        break;
-                    case Types.SMALLINT:
-                        value.value = rs.getShort(i);
-                        break;
-                    case Types.INTEGER:
-                        value.value = rs.getInt(i);
-                        break;
-                    case Types.BIGINT:
-                        value.value = rs.getLong(i);
-                        break;
-                    case Types.REAL:
-                        value.value = rs.getFloat(i);
-                        break;
-                    case Types.DOUBLE:
-                        value.value = rs.getDouble(i);
-                        break;
-                    case Types.VARBINARY:
-                        value.value = rs.getBytes(i);
-                        break;
-                    case Types.DATE:
-                        value.value = rs.getDate(i);
-                        break;
-                    case Types.TIMESTAMP:
-                        value.value = rs.getTimestamp(i);
-                        break;
-                    default:
-                        throw new OpenR66DatabaseSqlError("Type not supported: "+value.type+" at "+i);
-                }
-            } catch (SQLException e) {
-                R66DbSession.error(e);
-                throw new OpenR66DatabaseSqlError("Getting values in error: "+value.type+" at "+i, e);
+    protected void getTrueValue(ResultSet rs,
+            DbValue value) throws OpenR66DatabaseSqlError {
+        try {
+            switch (value.type) {
+                case Types.VARCHAR:
+                    value.value = rs.getString(value.column);
+                    break;
+                case Types.BIT:
+                    value.value = rs.getBoolean(value.column);
+                    break;
+                case Types.TINYINT:
+                    value.value = rs.getByte(value.column);
+                    break;
+                case Types.SMALLINT:
+                    value.value = rs.getShort(value.column);
+                    break;
+                case Types.INTEGER:
+                    value.value = rs.getInt(value.column);
+                    break;
+                case Types.BIGINT:
+                    value.value = rs.getLong(value.column);
+                    break;
+                case Types.REAL:
+                    value.value = rs.getFloat(value.column);
+                    break;
+                case Types.DOUBLE:
+                    value.value = rs.getDouble(value.column);
+                    break;
+                case Types.VARBINARY:
+                    value.value = rs.getBytes(value.column);
+                    break;
+                case Types.DATE:
+                    value.value = rs.getDate(value.column);
+                    break;
+                case Types.TIMESTAMP:
+                    value.value = rs.getTimestamp(value.column);
+                    break;
+                default:
+                    throw new OpenR66DatabaseSqlError("Type not supported: "+value.type+" for "+value.column);
             }
+        } catch (SQLException e) {
+            R66DbSession.error(e);
+            throw new OpenR66DatabaseSqlError("Getting values in error: "+value.type+" for "+value.column, e);
+        }
+    }
+    protected void getValue(R66DbPreparedStatement preparedStatement,
+            DbValue value) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+        ResultSet rs = preparedStatement.getResultSet();
+        this.getTrueValue(rs, value);
+    }
+    protected void getValues(R66DbPreparedStatement preparedStatement,
+            DbValue[] values) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+        ResultSet rs = preparedStatement.getResultSet();
+        for (int i = 0; i < values.length; i++) {
+            DbValue value = values[i];
+            this.getTrueValue(rs, value);
         }
     }
 }

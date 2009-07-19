@@ -111,8 +111,7 @@ public class R66Rule {
     public String[][] postTasksArray = null;
 
     /**
-     * The associated Error Tasks (with passed code 0=pretask, 1=file,
-     * 2=posttask)
+     * The associated Error Tasks
      */
     public String errorTasks = null;
 

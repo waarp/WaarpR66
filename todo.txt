@@ -5,6 +5,6 @@
 	;MODE=Oracle
 - table:
   - hosts: hostid, hostkey, adminrole
-  - rule: idrule, hostids, recvpath, sendpath, archivepath, workpath, pretasks, posttasks, errortasks
+  - rules: idrule, hostids, recvpath, sendpath, archivepath, workpath, pretasks, posttasks, errortasks
   - runner: specialid, globalstep, step, rank, stepstatus, retrievemode, filename, ismoved, idrule
 

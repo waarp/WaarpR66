@@ -127,6 +127,7 @@ public class R66DbPreparedStatement {
         } catch (SQLException e) {
             logger.error("SQL Exception createPreparedStatement:" +
                     requestarg, e);
+            realClose();
             preparedStatement = null;
             isReady = false;
             throw new OpenR66DatabaseSqlError("SQL Exception createPreparedStatement: " +
@@ -153,6 +154,7 @@ public class R66DbPreparedStatement {
         } catch (SQLException e) {
             logger.error("SQL Exception executeQuery:" +
                     request, e);
+            close();
             rs = null;
             throw new OpenR66DatabaseSqlError("SQL Exception executeQuery: " +
                     request, e);
