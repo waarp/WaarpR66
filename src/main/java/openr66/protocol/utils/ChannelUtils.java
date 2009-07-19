@@ -165,25 +165,27 @@ public class ChannelUtils implements Runnable {
         Channels.close(channel);
     }
 
-    public static ChannelFuture writeBack(LocalChannelReference localChannelReference,
-            TaskRunner runner, Channel networkChannel, DataBlock block)
+    public static ChannelFuture writeBack(
+            LocalChannelReference localChannelReference, TaskRunner runner,
+            Channel networkChannel, DataBlock block)
             throws OpenR66ProtocolPacketException {
         // FIXME if MD5
         ChannelBuffer md5 = ChannelBuffers.EMPTY_BUFFER;
-        DataPacket data = new DataPacket(runner.getRank(), block.getBlock().copy(), md5);
+        DataPacket data = new DataPacket(runner.getRank(), block.getBlock()
+                .copy(), md5);
         NetworkPacket networkPacket;
         try {
             networkPacket = new NetworkPacket(localChannelReference
                     .getLocalId(), localChannelReference.getRemoteId(), data);
         } catch (OpenR66ProtocolPacketException e) {
-            logger.error("Cannot construct message from " + data.toString(),
-                    e);
+            logger.error("Cannot construct message from " + data.toString(), e);
             throw e;
         }
         ChannelFuture future = Channels.write(networkChannel, networkPacket);
         runner.incrementRank();
         return future;
     }
+
     /**
      * Exit global ChannelFactory
      */
@@ -191,7 +193,8 @@ public class ChannelUtils implements Runnable {
         Configuration.configuration.isShutdown = true;
         final long delay = Configuration.configuration.TIMEOUTCON;
         // Inform others that shutdown
-        Configuration.configuration.getLocalTransaction().shutdownLocalChannels();
+        Configuration.configuration.getLocalTransaction()
+                .shutdownLocalChannels();
         logger.warn("Exit: Give a delay of " + delay + " ms");
         try {
             Thread.sleep(delay);

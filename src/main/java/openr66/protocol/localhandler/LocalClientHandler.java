@@ -66,7 +66,8 @@ public class LocalClientHandler extends SimpleChannelHandler {
     @Override
     public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
-        logger.info("Local Client Channel Connected: " +
+        logger
+                .info("Local Client Channel Connected: " +
                         e.getChannel().getId());
     }
 
@@ -124,8 +125,9 @@ public class LocalClientHandler extends SimpleChannelHandler {
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
             throws Exception {
         // FIXME informs network of the problem
-        logger.info("Local Client Channel Exception: " +
-                e.getChannel().getId(), e.getCause());
+        logger.info(
+                "Local Client Channel Exception: " + e.getChannel().getId(), e
+                        .getCause());
         if (localChannelReference == null) {
             initLocalClientHandler(e.getChannel());
         }
@@ -148,7 +150,8 @@ public class LocalClientHandler extends SimpleChannelHandler {
                     return;
                 }
                 if (!localChannelReference.getFutureAction().isDone()) {
-                    localChannelReference.getFutureAction().setFailure(exception);
+                    localChannelReference.getFutureAction().setFailure(
+                            exception);
                 }
                 final ErrorPacket errorPacket = new ErrorPacket(exception
                         .getMessage(), null, ErrorPacket.FORWARDCLOSECODE);

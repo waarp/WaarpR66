@@ -1,7 +1,9 @@
 /**
  *
  */
-package openr66.protocol.exception;
+package openr66.task.exception;
+
+import openr66.protocol.exception.OpenR66ProtocolException;
 
 /**
  * Runner exception

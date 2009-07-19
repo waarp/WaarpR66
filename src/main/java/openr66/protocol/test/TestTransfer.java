@@ -70,8 +70,8 @@ public class TestTransfer implements Runnable {
     final private String rulename;
 
     public TestTransfer(NetworkTransaction networkTransaction,
-            R66Future future, SocketAddress socketAddress,
-            String filename, String rulename) {
+            R66Future future, SocketAddress socketAddress, String filename,
+            String rulename) {
         if (logger == null) {
             logger = GgInternalLoggerFactory.getLogger(TestTransfer.class);
         }
@@ -85,8 +85,7 @@ public class TestTransfer implements Runnable {
     public void run() {
         LocalChannelReference localChannelReference = null;
         OpenR66ProtocolException lastException = null;
-        for (int i = 0; i < Configuration.RETRYNB; i++)
-        {
+        for (int i = 0; i < Configuration.RETRYNB; i ++) {
             try {
                 localChannelReference = networkTransaction
                         .createConnection(socketAddress);
@@ -105,41 +104,44 @@ public class TestTransfer implements Runnable {
             }
         }
         if (localChannelReference == null) {
-            logger.error("Cannot connect",lastException);
+            logger.error("Cannot connect", lastException);
             future.setResult(null);
             future.setFailure(lastException);
             return;
         } else if (lastException != null) {
-            logger.warn("Connection retry since ",lastException);
+            logger.warn("Connection retry since ", lastException);
         }
         // FIXME data transfer
-        //int block = 4096;
+        // int block = 4096;
         int block = Configuration.configuration.BLOCKSIZE;
-        RequestPacket request = new RequestPacket(this.rulename,RequestPacket.RECVMODE,
-                this.filename, block, 0, 0, "MONTEST test.xml");
+        RequestPacket request = new RequestPacket(rulename,
+                RequestPacket.RECVMODE, filename, block, 0, 0,
+                "MONTEST test.xml");
         NetworkPacket networkPacket;
         try {
             networkPacket = new NetworkPacket(localChannelReference
-                    .getLocalId(), localChannelReference.getRemoteId(),
-                    request);
+                    .getLocalId(), localChannelReference.getRemoteId(), request);
         } catch (OpenR66ProtocolPacketException e) {
             future.setResult(null);
             future.setFailure(e);
             Channels.close(localChannelReference.getLocalChannel());
             return;
         }
-        Channels.write(localChannelReference.getNetworkChannel(),
-                networkPacket);
-        // FIXME ne pas fermer la connection locale ni distante, instancier la connection locale
-        // avec la request, enchainer sur validation de request sur la transmission
+        Channels
+                .write(localChannelReference.getNetworkChannel(), networkPacket);
+        // FIXME ne pas fermer la connection locale ni distante, instancier la
+        // connection locale
+        // avec la request, enchainer sur validation de request sur la
+        // transmission
         localChannelReference.getFutureAction().awaitUninterruptibly();
         if (localChannelReference.getFutureAction().isSuccess()) {
-            future
-                    .setResult(localChannelReference.getFutureAction().getResult());
+            future.setResult(localChannelReference.getFutureAction()
+                    .getResult());
             future.setSuccess();
         } else {
             future.setResult(null);
-            Throwable throwable = localChannelReference.getFutureAction().getCause();
+            Throwable throwable = localChannelReference.getFutureAction()
+                    .getCause();
             if (throwable == null) {
                 future.cancel();
             } else {
@@ -155,13 +157,15 @@ public class TestTransfer implements Runnable {
             logger = GgInternalLoggerFactory.getLogger(TestTransfer.class);
         }
         if (args.length < 3) {
-            logger.error("Needs at least the configuration file, the file to transfer, the rule as arguments");
+            logger
+                    .error("Needs at least the configuration file, the file to transfer, the rule as arguments");
             return;
         }
-        Configuration.configuration.fileBasedConfiguration =
-            new R66FileBasedConfiguration();
-        if (! Configuration.configuration.fileBasedConfiguration.setConfigurationFromXml(args[0])) {
-            logger.error("Needs a correct configuration file as first argument");
+        Configuration.configuration.fileBasedConfiguration = new R66FileBasedConfiguration();
+        if (!Configuration.configuration.fileBasedConfiguration
+                .setConfigurationFromXml(args[0])) {
+            logger
+                    .error("Needs a correct configuration file as first argument");
             return;
         }
         String localFilename = args[1];
@@ -173,16 +177,15 @@ public class TestTransfer implements Runnable {
                 Configuration.configuration.SERVER_PORT);
 
         ExecutorService executorService = Executors.newCachedThreadPool();
-        int nb = 10;
+        int nb = 50;
 
         R66Future[] arrayFuture = new R66Future[nb];
         logger.warn("Start");
         long time1 = System.currentTimeMillis();
         for (int i = 0; i < nb; i ++) {
             arrayFuture[i] = new R66Future(true);
-            TestTransfer transaction = new TestTransfer(
-                    networkTransaction, arrayFuture[i], socketServerAddress,
-                    localFilename, rule);
+            TestTransfer transaction = new TestTransfer(networkTransaction,
+                    arrayFuture[i], socketServerAddress, localFilename, rule);
             executorService.execute(transaction);
         }
         int success = 0;
@@ -197,21 +200,23 @@ public class TestTransfer implements Runnable {
         }
         long time2 = System.currentTimeMillis();
         long length = 0;
-        logger.warn("Final file: "+
-                (arrayFuture[0].getResult() instanceof R66File ?
-                        ((R66File)arrayFuture[0].getResult()).toString() : "no file"));
+        logger
+                .warn("Final file: " +
+                        (arrayFuture[0].getResult() instanceof R66File? ((R66File) arrayFuture[0]
+                                .getResult()).toString()
+                                : "no file"));
         try {
-            length = (arrayFuture[0].getResult() instanceof R66File ?
-                    ((R66File)arrayFuture[0].getResult()).length() : 0L);
+            length = arrayFuture[0].getResult() instanceof R66File? ((R66File) arrayFuture[0]
+                    .getResult()).length()
+                    : 0L;
         } catch (CommandAbstractException e) {
         }
-        long delay = (time2 - time1);
-        float nbs = success*1000;
+        long delay = time2 - time1;
+        float nbs = success * 1000;
         nbs /= delay;
-        float mbs = nbs*((float)length)/((float) 1024);
-        logger.error("Success: " + success + " Error: " + error +
-                " delay: "+ delay+" NB/s: " +
-                nbs + " KB/s: "+mbs);
+        float mbs = nbs * length / 1024;
+        logger.error("Success: " + success + " Error: " + error + " delay: " +
+                delay + " NB/s: " + nbs + " KB/s: " + mbs);
         executorService.shutdown();
         networkTransaction.closeAll();
     }

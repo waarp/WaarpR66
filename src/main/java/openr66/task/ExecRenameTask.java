@@ -20,6 +20,10 @@
  */
 package openr66.task;
 
+import goldengate.common.command.exception.CommandAbstractException;
+import goldengate.common.logging.GgInternalLogger;
+import goldengate.common.logging.GgInternalLoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -27,15 +31,14 @@ import java.io.InputStreamReader;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 
+import openr66.filesystem.R66Session;
+import openr66.protocol.config.Configuration;
+
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteException;
+import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.PumpStreamHandler;
-
-import goldengate.common.command.exception.CommandAbstractException;
-import goldengate.common.logging.GgInternalLogger;
-import goldengate.common.logging.GgInternalLoggerFactory;
-import openr66.filesystem.R66Session;
 
 /**
  * @author Frederic Bregier
@@ -66,7 +69,7 @@ public class ExecRenameTask extends AbstractTask {
          *
          */
         public LastLineReader(PipedInputStream inputStream) {
-            this.reader = new BufferedReader(new InputStreamReader(inputStream));
+            reader = new BufferedReader(new InputStreamReader(inputStream));
         }
 
         /*
@@ -103,20 +106,22 @@ public class ExecRenameTask extends AbstractTask {
     @Override
     public void run() {
         /*
-         * First apply all replacements and format to argRule from context and argTransfer.
-         * Will call exec (from first element of resulting string) with arguments as the following value from the replacements.
-         * Return 0 if OK, else 1 for a warning else as an error.
-         * The last line of stdout will be the new name given to the R66File in case of status 0.
-         * The previous file should be deleted by the script or will be deleted in case of status 0.
-         * If the status is 1, no change is made to the file.
-         *
+         * First apply all replacements and format to argRule from context and
+         * argTransfer. Will call exec (from first element of resulting string)
+         * with arguments as the following value from the replacements. Return 0
+         * if OK, else 1 for a warning else as an error. The last line of stdout
+         * will be the new name given to the R66File in case of status 0. The
+         * previous file should be deleted by the script or will be deleted in
+         * case of status 0. If the status is 1, no change is made to the file.
          */
-        logger.info("ExecRename with "+this.argRule+":"+this.argTransfer+" and "+this.session);
-        String finalname = this.argRule;
-        finalname = this.getReplacedValue(finalname, this.argTransfer.split(" "));
-        String []args = finalname.split(" ");
+        logger.info("ExecRename with " + argRule + ":" + argTransfer +
+                " and " + session);
+        String finalname = argRule;
+        finalname = getReplacedValue(finalname, argTransfer
+                .split(" "));
+        String[] args = finalname.split(" ");
         CommandLine commandLine = new CommandLine(args[0]);
-        for (int i = 1; i < args.length; i++) {
+        for (int i = 1; i < args.length; i ++) {
             commandLine.addArgument(args[i]);
         }
         DefaultExecutor defaultExecutor = new DefaultExecutor();
@@ -129,31 +134,38 @@ public class ExecRenameTask extends AbstractTask {
                 inputStream.close();
             } catch (IOException e) {
             }
-            logger.error("Exception: "+e1.getMessage()+" Exec in error with "+commandLine.toString(),e1);
-            this.futureCompletion.setFailure(e1);
+            logger.error("Exception: " + e1.getMessage() +
+                    " Exec in error with " + commandLine.toString(), e1);
+            futureCompletion.setFailure(e1);
             return;
         }
-        PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(outputStream,null);
+        PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(
+                outputStream, null);
         defaultExecutor.setStreamHandler(pumpStreamHandler);
-        int []correctValues= {0,1};
+        int[] correctValues = {
+                0, 1 };
         defaultExecutor.setExitValues(correctValues);
+        ExecuteWatchdog watchdog = new ExecuteWatchdog(Configuration.configuration.TIMEOUTCON);
+        defaultExecutor.setWatchdog(watchdog);
         LastLineReader lastLineReader = new LastLineReader(inputStream);
         Thread thread = new Thread(lastLineReader);
         thread.setDaemon(false);
-        thread.setName("ExecRename"+this.session.getRunner().getSpecialId());
+        thread.setName("ExecRename" + session.getRunner().getSpecialId());
         thread.start();
         int status = -1;
         try {
             status = defaultExecutor.execute(commandLine);
         } catch (ExecuteException e) {
             pumpStreamHandler.stop();
-            logger.error("Exception: "+e.getMessage()+" Exec in error with "+commandLine.toString(),e);
-            this.futureCompletion.setFailure(e);
+            logger.error("Exception: " + e.getMessage() +
+                    " Exec in error with " + commandLine.toString(), e);
+            futureCompletion.setFailure(e);
             return;
         } catch (IOException e) {
             pumpStreamHandler.stop();
-            logger.error("Exception: "+e.getMessage()+" Exec in error with "+commandLine.toString(),e);
-            this.futureCompletion.setFailure(e);
+            logger.error("Exception: " + e.getMessage() +
+                    " Exec in error with " + commandLine.toString(), e);
+            futureCompletion.setFailure(e);
             return;
         }
         try {
@@ -161,26 +173,37 @@ public class ExecRenameTask extends AbstractTask {
             outputStream.close();
         } catch (IOException e) {
         }
+        pumpStreamHandler.stop();
         try {
-            thread.join();
+            thread.join(Configuration.configuration.TIMEOUTCON);
         } catch (InterruptedException e) {
         }
-        pumpStreamHandler.stop();
-        String newname = lastLineReader.lastLine;
+        String newname = null;
+        if (defaultExecutor.isFailure(status) && watchdog.killedProcess()) {
+            // kill by the watchdoc (time out)
+            status = -1;
+            newname = "TimeOut";
+        } else {
+            newname = lastLineReader.lastLine;
+            if (status == 0 && (newname == null || newname.length() == 0)) {
+                status = 1;
+            }
+        }
         if (status == 0) {
             if (newname.indexOf(' ') > 0) {
-                logger.warn("Exec returns a multiple string in final line: "+newname);
+                logger.warn("Exec returns a multiple string in final line: " +
+                        newname);
                 args = newname.split(" ");
-                newname = args[args.length-1];
+                newname = args[args.length - 1];
             }
             // now test if the previous file was deleted (should be)
             File file = new File(newname);
             if (file.exists()) {
                 try {
-                    if (this.session.getFile().isFile()) {
+                    if (session.getFile().isFile()) {
                         // not deleted, so do it now
                         try {
-                            this.session.getFile().delete();
+                            session.getFile().delete();
                         } catch (CommandAbstractException e) {
                             logger.warn("Original File cannot be deleted", e);
                         }
@@ -190,19 +213,23 @@ public class ExecRenameTask extends AbstractTask {
             }
             // now replace the file with the new one
             try {
-                this.session.getFile().replaceFilename(newname, true);
+                session.getFile().replaceFilename(newname, true);
             } catch (CommandAbstractException e) {
-                logger.warn("Exec in warning with "+commandLine.toString(), e);
+                logger
+                        .warn("Exec in warning with " + commandLine.toString(),
+                                e);
             }
-            this.futureCompletion.setSuccess();
-            logger.warn("Exec OK with "+commandLine.toString()+" returns "+newname);
+            futureCompletion.setSuccess();
+            logger.warn("Exec OK with " + commandLine.toString() + " returns " +
+                    newname);
         } else if (status == 1) {
-            logger.warn("Exec in warning with "+commandLine.toString()+" returns "+newname);
-            this.futureCompletion.setSuccess();
+            logger.warn("Exec in warning with " + commandLine.toString() +
+                    " returns " + newname);
+            futureCompletion.setSuccess();
         } else {
-            logger.error("Status: "+status+" Exec in error with "+commandLine.toString()
-                    +" returns "+newname);
-            this.futureCompletion.cancel();
+            logger.error("Status: " + status + " Exec in error with " +
+                    commandLine.toString() + " returns " + newname);
+            futureCompletion.cancel();
         }
     }
 }

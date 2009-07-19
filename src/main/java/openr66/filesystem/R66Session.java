@@ -28,10 +28,10 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.authentication.R66Auth;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
-import openr66.protocol.exception.OpenR66RunnerErrorException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.task.TaskRunner;
+import openr66.task.exception.OpenR66RunnerErrorException;
 
 /**
  * @author frederic bregier
@@ -65,10 +65,12 @@ public class R66Session implements SessionInterface {
      * Current request action
      */
     private RequestPacket request = null;
+
     /**
      * TaskRunner
      */
     private TaskRunner runner = null;
+
     /**
      */
     public R66Session() {
@@ -85,6 +87,14 @@ public class R66Session implements SessionInterface {
      */
     @Override
     public void clear() {
+        // First check if a transfer was on going
+        if (this.runner != null && this.runner.isFinished()) {
+            try {
+                this.setFinalizeTransfer(false, "Close before ending");
+            } catch (OpenR66RunnerErrorException e) {
+            } catch (OpenR66ProtocolSystemException e) {
+            }
+        }
         // TODO Auto-generated method stub
         if (dir != null) {
             dir.clear();
@@ -121,10 +131,11 @@ public class R66Session implements SessionInterface {
     }
 
     /**
-     * @param blocksize the blocksize to set
+     * @param blocksize
+     *            the blocksize to set
      */
     public void setBlockSize(int blocksize) {
-        this.blockSize = blocksize;
+        blockSize = blocksize;
     }
 
     /*
@@ -191,7 +202,8 @@ public class R66Session implements SessionInterface {
     }
 
     /**
-     * @param request the request to set
+     * @param request
+     *            the request to set
      */
     public void setRequest(RequestPacket request) {
         this.request = request;
@@ -205,9 +217,11 @@ public class R66Session implements SessionInterface {
     }
 
     /**
-     * @param localChannelReference the localChannelReference to set
+     * @param localChannelReference
+     *            the localChannelReference to set
      */
-    public void setLocalChannelReference(LocalChannelReference localChannelReference) {
+    public void setLocalChannelReference(
+            LocalChannelReference localChannelReference) {
         this.localChannelReference = localChannelReference;
     }
 
@@ -220,7 +234,9 @@ public class R66Session implements SessionInterface {
 
     /**
      * Set the runner, start from the PreTask if necessary, and prepare the file
-     * @param runner the runner to set
+     *
+     * @param runner
+     *            the runner to set
      * @throws OpenR66RunnerErrorException
      */
     public void setRunner(TaskRunner runner) throws OpenR66RunnerErrorException {
@@ -228,31 +244,33 @@ public class R66Session implements SessionInterface {
         if (this.runner.isRetrieve()) {
             // Change dir
             try {
-                this.dir.changeDirectory(this.runner.getRule().sendPath);
+                dir.changeDirectory(this.runner.getRule().sendPath);
             } catch (CommandAbstractException e) {
                 throw new OpenR66RunnerErrorException(e);
             }
         } else {
             // Change dir
             try {
-                this.dir.changeDirectory(this.runner.getRule().workPath);
+                dir.changeDirectory(this.runner.getRule().workPath);
             } catch (CommandAbstractException e) {
                 throw new OpenR66RunnerErrorException(e);
             }
         }
         if (request.getRank() > 0) {
             runner.setTransferTask(request.getRank());
-            restart.restartMarker(request.getBlocksize()*request.getRank());
+            restart.restartMarker(request.getBlocksize() * request.getRank());
         } else {
             this.runner.setPreTask(0);
+            runner.saveStatus();
             this.runner.run();
         }
         // Now create the associated file
         if (this.runner.isRetrieve()) {
             // File should already exist
             try {
-                this.file = (R66File) this.dir.setFile(request.getFilename(), false);
-                if (! this.file.canRead()) {
+                file = (R66File) dir.setFile(request.getFilename(),
+                        false);
+                if (!file.canRead()) {
                     throw new OpenR66RunnerErrorException("File cannot be read");
                 }
             } catch (CommandAbstractException e) {
@@ -263,9 +281,11 @@ public class R66Session implements SessionInterface {
             if (request.getRank() > 0) {
                 // Filename should be get back from runner load from database
                 try {
-                    this.file = (R66File) this.dir.setFile(request.getFilename(), true);
-                    if (! this.file.canWrite()) {
-                        throw new OpenR66RunnerErrorException("File cannot be write");
+                    file = (R66File) dir.setFile(request
+                            .getFilename(), true);
+                    if (!file.canWrite()) {
+                        throw new OpenR66RunnerErrorException(
+                                "File cannot be write");
                     }
                 } catch (CommandAbstractException e) {
                     throw new OpenR66RunnerErrorException(e);
@@ -273,9 +293,11 @@ public class R66Session implements SessionInterface {
             } else {
                 // New filename and store it
                 try {
-                    this.file = (R66File) this.dir.setUniqueFile(request.getFilename());
-                    if (! this.file.canWrite()) {
-                        throw new OpenR66RunnerErrorException("File cannot be write");
+                    file = dir.setUniqueFile(request
+                            .getFilename());
+                    if (!file.canWrite()) {
+                        throw new OpenR66RunnerErrorException(
+                                "File cannot be write");
                     }
                 } catch (CommandAbstractException e) {
                     throw new OpenR66RunnerErrorException(e);
@@ -283,82 +305,81 @@ public class R66Session implements SessionInterface {
             }
         }
         try {
-            this.runner.setFilename(this.file.getFile());
+            this.runner.setFilename(file.getFile());
         } catch (CommandAbstractException e) {
             throw new OpenR66RunnerErrorException(e);
         }
         try {
-            this.file.restartMarker(restart);
+            file.restartMarker(restart);
         } catch (CommandAbstractException e) {
             throw new OpenR66RunnerErrorException(e);
         }
         this.runner.saveStatus();
     }
 
-    public void setFinalizeTransfer(boolean status, Object finalValue) throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException {
+    public void setFinalizeTransfer(boolean status, Object finalValue)
+            throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException {
+        int rank = runner.finishTransferTask(status);
+        runner.saveStatus();
         try {
-            this.file.closeFile();
+            file.closeFile();
         } catch (CommandAbstractException e1) {
-            this.localChannelReference.validateAction(false, e1);
+            localChannelReference.validateAction(false, e1);
             throw new OpenR66RunnerErrorException(e1);
         }
-        int rank = this.runner.finishTransferTask(status);
-        this.runner.saveStatus();
         if (status) {
-            this.runner.setPostTask(0);
+            runner.setPostTask(0);
+            runner.saveStatus();
             try {
-                this.runner.run();
+                runner.run();
             } catch (OpenR66RunnerErrorException e1) {
-                this.localChannelReference.validateAction(false, e1);
+                localChannelReference.validateAction(false, e1);
                 throw e1;
             }
-            this.runner.saveStatus();
-            if (this.runner.isRetrieve()) {
+            runner.saveStatus();
+            if (runner.isRetrieve()) {
                 // Nothing to do
             } else {
-                if (! this.runner.isFileMoved()) {
-                    String finalpath = this.dir.getFinalUniqueFilename(this.file);
-                    // FIXME Change dir useful ?
+                if (!runner.isFileMoved()) {
+                    String finalpath = dir
+                            .getFinalUniqueFilename(file);
+                    logger.info("Will move file " + finalpath);
                     try {
-                        this.dir.changeDirectory(this.runner.getRule().recvPath);
-                    } catch (CommandAbstractException e) {
-                        this.localChannelReference.validateAction(false, e);
-                        throw new OpenR66RunnerErrorException(e);
-                    }
-                    logger.info("Will move file "+finalpath);
-                    try {
-                        this.file.renameTo(this.runner.getRule().setRecvPath(finalpath));
+                        file.renameTo(runner.getRule().setRecvPath(
+                                finalpath));
                     } catch (OpenR66ProtocolSystemException e) {
-                        this.localChannelReference.validateAction(false, e);
+                        localChannelReference.validateAction(false, e);
                         throw e;
                     } catch (CommandAbstractException e) {
-                        this.localChannelReference.validateAction(false, e);
+                        localChannelReference.validateAction(false, e);
                         throw new OpenR66RunnerErrorException(e);
                     }
-                    logger.info("File finally moved: "+this.file.toString());
+                    logger.info("File finally moved: " + file.toString());
                     try {
-                        this.runner.setFilename(this.file.getFile());
+                        runner.setFilename(file.getFile());
                     } catch (CommandAbstractException e) {
                     }
                 }
             }
-            this.runner.setAllDone();
-            this.runner.saveStatus();
-            logger.info("Transfer done on "+this.file+" at rank "+rank);
+            runner.setAllDone();
+            runner.saveStatus();
+            logger.info("Transfer done on " + file + " at rank " + rank);
         } else {
-            //error
-            this.runner.setErrorTask(0);
-            logger.warn("Transfer KO on "+this.file);
+            // error
+            runner.setErrorTask(0);
+            runner.saveStatus();
+            logger.warn("Transfer KO on " + file);
             try {
-                this.runner.run();
+                runner.run();
             } catch (OpenR66RunnerErrorException e1) {
-                this.localChannelReference.validateAction(false, finalValue);
+                localChannelReference.validateAction(false, finalValue);
                 throw e1;
             }
-            this.runner.saveStatus();
+            runner.saveStatus();
         }
-        this.localChannelReference.validateAction(status, finalValue);
+        localChannelReference.validateAction(status, finalValue);
     }
+
     /**
      * @return the file
      */
@@ -366,11 +387,12 @@ public class R66Session implements SessionInterface {
         return file;
     }
 
+    @Override
     public String toString() {
-        return "Session: "+(auth != null ? auth.toString() : "no Auth")+" "+
-        (dir != null ? dir.toString() : "no Dir")+" "+
-        (file != null? file.toString() : "no File")+" "+
-        (request != null ? request.toString() : "no Request")+" "+
-        (runner != null ? runner.toString() : "no Runner");
+        return "Session: " + (auth != null? auth.toString() : "no Auth") + " " +
+                (dir != null? dir.toString() : "no Dir") + " " +
+                (file != null? file.toString() : "no File") + " " +
+                (request != null? request.toString() : "no Request") + " " +
+                (runner != null? runner.toString() : "no Runner");
     }
 }

@@ -39,8 +39,8 @@ public class OpenR66ExceptionTrappedFactory {
             final ConnectException e2 = (ConnectException) e1;
             logger.warn("Connection impossible since {} with Channel {}", e2
                     .getMessage(), channel);
-            return new OpenR66ProtocolNoConnectionException("Connection impossible",
-                    e2);
+            return new OpenR66ProtocolNoConnectionException(
+                    "Connection impossible", e2);
         } else if (e1 instanceof ChannelException) {
             final ChannelException e2 = (ChannelException) e1;
             logger
@@ -65,7 +65,7 @@ public class OpenR66ExceptionTrappedFactory {
             return e2;
         } else if (e1 instanceof OpenR66ProtocolShutdownException) {
             final OpenR66ProtocolShutdownException e2 = (OpenR66ProtocolShutdownException) e1;
-            logger.info("Command Shutdown"+ e2.getMessage());
+            logger.info("Command Shutdown" + e2.getMessage());
             return e2;
         } else if (e1 instanceof OpenR66ProtocolException) {
             final OpenR66ProtocolException e2 = (OpenR66ProtocolException) e1;

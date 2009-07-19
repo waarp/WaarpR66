@@ -1,22 +1,22 @@
 /**
- * Copyright 2009, Frederic Bregier, and individual contributors
- * by the @author tags. See the COPYRIGHT.txt in the distribution for a
- * full listing of individual contributors.
+ * Copyright 2009, Frederic Bregier, and individual contributors by the @author
+ * tags. See the COPYRIGHT.txt in the distribution for a full listing of
+ * individual contributors.
  *
- * This is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 3.0 of
- * the License, or (at your option) any later version.
+ * This is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
  *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
+ * This software is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this software; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF
+ * site: http://www.fsf.org.
  */
 package openr66.task;
 
@@ -24,9 +24,9 @@ import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.filesystem.R66Rule;
 import openr66.filesystem.R66Session;
-import openr66.protocol.exception.OpenR66RunnerEndTasksException;
-import openr66.protocol.exception.OpenR66RunnerErrorException;
 import openr66.protocol.utils.R66Future;
+import openr66.task.exception.OpenR66RunnerEndTasksException;
+import openr66.task.exception.OpenR66RunnerErrorException;
 
 /**
  * @author Frederic Bregier
@@ -39,29 +39,39 @@ public class TaskRunner {
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(TaskRunner.class);
 
-    private static final int NOTASK = -1;
-    private static final int PRETASK = 0;
-    private static final int POSTTASK = 1;
-    private static final int ERRORTASK = 2;
-    private static final int TRANSFERTASK = 3;
-    private static final int ALLDONETASK = 4;
+    public static final int NOTASK = -1;
+
+    public static final int PRETASK = 0;
+
+    public static final int POSTTASK = 1;
+
+    public static final int ERRORTASK = 2;
+
+    public static final int TRANSFERTASK = 3;
+
+    public static final int ALLDONETASK = 4;
 
     public static enum TaskStatus {
-        UNKNOWN,
-        RUNNING,
-        OK,
-        ERROR;
+        UNKNOWN, RUNNING, OK, ERROR;
     }
+
     private final R66Rule rule;
+
     private final R66Session session;
+
     private int globalstep = NOTASK;
+
     private int step = NOTASK;
+
     private int rank = 0;
+
     private TaskStatus status;
 
     // FIXME need a special ID
     private final long specialId;
+
     private final boolean isRetrieve;
+
     private String filename;
 
     private boolean isFileMoved = false;
@@ -69,22 +79,24 @@ public class TaskRunner {
     public TaskRunner(R66Session session, R66Rule rule, boolean isRetrieve) {
         this.session = session;
         this.rule = rule;
-        this.status = TaskStatus.UNKNOWN;
+        status = TaskStatus.UNKNOWN;
         long newId = this.session.getLocalChannelReference().getRemoteId();
         newId = newId << 32;
-        //FIXME need a way to check if it does not already exist
-        this.specialId = newId + this.session.getLocalChannelReference().getLocalId();
+        // FIXME need a way to check if it does not already exist
+        specialId = newId +
+                this.session.getLocalChannelReference().getLocalId();
         this.isRetrieve = isRetrieve;
     }
 
     public TaskRunner(R66Session session, R66Rule rule, long id) {
         this.session = session;
         this.rule = rule;
-        this.status = TaskStatus.UNKNOWN;
-        this.specialId = id;
+        status = TaskStatus.UNKNOWN;
+        specialId = id;
         // FIXME load from database
-        this.isRetrieve = false;// XXX FIXME TODO WARNING FALSE!!!
+        isRetrieve = false;// XXX FIXME TODO WARNING FALSE!!!
     }
+
     /**
      * @return the filename
      */
@@ -93,7 +105,8 @@ public class TaskRunner {
     }
 
     /**
-     * @param filename the filename to set
+     * @param filename
+     *            the filename to set
      */
     public void setFilename(String filename) {
         this.filename = filename;
@@ -121,54 +134,66 @@ public class TaskRunner {
     }
 
     public boolean isRetrieve() {
-        return this.isRetrieve;
+        return isRetrieve;
     }
+
     public void setPreTask(int step) {
-        this.globalstep = PRETASK;
+        globalstep = PRETASK;
         this.step = step;
-        this.status = TaskStatus.RUNNING;
+        status = TaskStatus.RUNNING;
     }
+
     public void setTransferTask(int rank) {
-        this.globalstep = TRANSFERTASK;
+        globalstep = TRANSFERTASK;
         this.rank = rank;
-        this.status = TaskStatus.RUNNING;
+        status = TaskStatus.RUNNING;
     }
+
     public int finishTransferTask(boolean status) {
         if (status) {
             this.status = TaskStatus.OK;
         } else {
             this.status = TaskStatus.ERROR;
         }
-        return this.rank;
-    }
-    public void setPostTask(int step) {
-        this.globalstep = POSTTASK;
-        this.step = step;
-        this.status = TaskStatus.RUNNING;
-    }
-    public void setErrorTask(int step) {
-        this.globalstep = ERRORTASK;
-        this.step = step;
-        this.status = TaskStatus.RUNNING;
-    }
-    public void setAllDone() {
-        this.globalstep = ALLDONETASK;
-        this.step = 0;
-        this.status = TaskStatus.OK;
+        return rank;
     }
 
-    private R66Future runNextTask(String [][] tasks) throws OpenR66RunnerEndTasksException, OpenR66RunnerErrorException {
-        if (tasks.length <= this.step) {
+    public void setPostTask(int step) {
+        globalstep = POSTTASK;
+        this.step = step;
+        status = TaskStatus.RUNNING;
+    }
+
+    public void setErrorTask(int step) {
+        globalstep = ERRORTASK;
+        this.step = step;
+        status = TaskStatus.RUNNING;
+    }
+
+    public void setAllDone() {
+        globalstep = ALLDONETASK;
+        step = 0;
+        status = TaskStatus.OK;
+    }
+
+    private R66Future runNextTask(String[][] tasks)
+            throws OpenR66RunnerEndTasksException, OpenR66RunnerErrorException {
+        if (tasks == null) {
+            throw new OpenR66RunnerEndTasksException("No tasks!");
+        }
+        if (tasks.length <= step) {
             throw new OpenR66RunnerEndTasksException();
         }
-        String name = tasks[this.step][0];
-        String arg = tasks[this.step][1];
+        String name = tasks[step][0];
+        String arg = tasks[step][1];
         AbstractTask task = TaskFactory.getTaskFromId(name, arg, session);
         task.run();
         task.futureCompletion.awaitUninterruptibly();
         return task.futureCompletion;
     }
-    private R66Future runNext() throws OpenR66RunnerEndTasksException, OpenR66RunnerErrorException {
+
+    private R66Future runNext() throws OpenR66RunnerEndTasksException,
+            OpenR66RunnerErrorException {
         switch (globalstep) {
             case PRETASK:
                 return runNextTask(rule.preTasksArray);
@@ -180,38 +205,47 @@ public class TaskRunner {
                 throw new OpenR66RunnerErrorException("Global Step unknown");
         }
     }
+
     public void run() throws OpenR66RunnerErrorException {
         R66Future future;
+        if (this.status != TaskStatus.RUNNING) {
+            throw new OpenR66RunnerErrorException("Current global step not ready to run");
+        }
         while (true) {
             try {
                 future = runNext();
             } catch (OpenR66RunnerEndTasksException e) {
-                this.status = TaskStatus.OK;
+                status = TaskStatus.OK;
                 return;
             }
             if (future.isCancelled()) {
-                this.status = TaskStatus.ERROR;
-                throw new OpenR66RunnerErrorException("Runner is error: "+future.getCause().getMessage(),
-                        future.getCause());
+                status = TaskStatus.ERROR;
+                throw new OpenR66RunnerErrorException("Runner is error: " +
+                        future.getCause().getMessage(), future.getCause());
             }
-            this.step++;
+            step ++;
         }
     }
+
     public boolean ready() {
-        return (globalstep != NOTASK);
+        return globalstep != NOTASK;
     }
 
+    public boolean isFinished() {
+        return (globalstep != ALLDONETASK) || (globalstep == ERRORTASK && status == TaskStatus.OK);
+    }
     /**
      * @return the rank
      */
     public int getRank() {
         return rank;
     }
+
     /**
      * Increment the rank
      */
     public void incrementRank() {
-        rank++;
+        rank ++;
     }
 
     /**
@@ -222,7 +256,8 @@ public class TaskRunner {
     }
 
     /**
-     * @param isFileMoved the isFileMoved to set
+     * @param isFileMoved
+     *            the isFileMoved to set
      */
     public void setFileMoved(boolean isFileMoved) {
         this.isFileMoved = isFileMoved;
@@ -234,13 +269,21 @@ public class TaskRunner {
     public void saveStatus() {
         // FIXME should save status to DB
         // FIXME need a specialID that could be reused over time
-        // save: rulename, globalstep, setp, rank, status, specialId, filename, isRetrieve
-        logger.info(GgInternalLogger.getRankMethodAndLine(3)+" "+this.toString());
+        // save: rulename, globalstep, setp, rank, status, specialId, filename,
+        // isRetrieve
+        logger.info(GgInternalLogger.getRankMethodAndLine(3) + " " +
+                toString());
     }
+
     public void clear() {
 
     }
+
+    @Override
     public String toString() {
-        return "Run: "+(rule != null ? rule.toString() : "no Rule")+" on "+filename+" step: "+globalstep+":"+step+":"+status+":"+rank+" SpecialId: "+specialId+" isRetr: "+isRetrieve+" isMoved: "+isFileMoved;
+        return "Run: " + (rule != null? rule.toString() : "no Rule") + " on " +
+                filename + " step: " + globalstep + ":" + step + ":" + status +
+                ":" + rank + " SpecialId: " + specialId + " isRetr: " +
+                isRetrieve + " isMoved: " + isFileMoved;
     }
 }

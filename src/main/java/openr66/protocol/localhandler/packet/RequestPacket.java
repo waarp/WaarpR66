@@ -12,18 +12,24 @@ import org.jboss.netty.buffer.ChannelBuffers;
 /**
  * Request class
  *
- * header = "rulename mode" middle = way+"filename blocksize rank specialId" end = "fileInformation"
+ * header = "rulename mode" middle = way+"filename blocksize rank specialId" end
+ * = "fileInformation"
  *
  * @author frederic bregier
  */
 public class RequestPacket extends AbstractLocalPacket {
     public static final int UNKNOWNMODE = 0;
+
     public static final int SENDMODE = 1;
+
     public static final int RECVMODE = 2;
+
     public static final int SENDMD5MODE = 3;
+
     public static final int RECVMD5MODE = 4;
 
     private static final byte REQVALIDATE = 0;
+
     private static final byte REQANSWERVALIDATE = 1;
 
     private final String rulename;
@@ -33,6 +39,7 @@ public class RequestPacket extends AbstractLocalPacket {
     private String filename;
 
     private final int blocksize;
+
     private final int rank;
 
     private long specialId;
@@ -59,7 +66,7 @@ public class RequestPacket extends AbstractLocalPacket {
             throw new OpenR66ProtocolPacketException("Not enough data");
         }
         final byte[] bheader = new byte[headerLength - 1];
-        final byte[] bmiddle = new byte[middleLength-1];
+        final byte[] bmiddle = new byte[middleLength - 1];
         final byte[] bend = new byte[endLength];
         if (headerLength - 1 > 0) {
             buf.readBytes(bheader);
@@ -88,8 +95,8 @@ public class RequestPacket extends AbstractLocalPacket {
         }
         int rank = Integer.parseInt(amiddle[2]);
         long specialId = Long.parseLong(amiddle[3]);
-        return new RequestPacket(aheader[0], Integer
-                .parseInt(aheader[1]), amiddle[0], blocksize, rank, specialId, valid, send);
+        return new RequestPacket(aheader[0], Integer.parseInt(aheader[1]),
+                amiddle[0], blocksize, rank, specialId, valid, send);
     }
 
     /**
@@ -102,8 +109,8 @@ public class RequestPacket extends AbstractLocalPacket {
      * @param valid
      * @param fileInformation
      */
-    private RequestPacket(String rulename, int mode,
-            String filename, int blocksize, int rank, long specialId, byte valid,
+    private RequestPacket(String rulename, int mode, String filename,
+            int blocksize, int rank, long specialId, byte valid,
             String fileInformation) {
         this.rulename = rulename;
         this.mode = mode;
@@ -115,9 +122,10 @@ public class RequestPacket extends AbstractLocalPacket {
         }
         this.rank = rank;
         this.specialId = specialId;
-        this.way = valid;
+        way = valid;
         this.fileInformation = fileInformation;
     }
+
     /**
      * @param rulename
      * @param mode
@@ -127,10 +135,10 @@ public class RequestPacket extends AbstractLocalPacket {
      * @param specialId
      * @param fileInformation
      */
-    public RequestPacket(String rulename, int mode,
-            String filename, int blocksize, int rank, long specialId,
-            String fileInformation) {
-        this(rulename, mode, filename, blocksize, rank, specialId, REQVALIDATE, fileInformation);
+    public RequestPacket(String rulename, int mode, String filename,
+            int blocksize, int rank, long specialId, String fileInformation) {
+        this(rulename, mode, filename, blocksize, rank, specialId, REQVALIDATE,
+                fileInformation);
     }
 
     /*
@@ -171,12 +179,12 @@ public class RequestPacket extends AbstractLocalPacket {
         if (filename == null) {
             throw new OpenR66ProtocolPacketException("Not enough data");
         }
-        byte [] away = new byte[1];
+        byte[] away = new byte[1];
         away[0] = way;
-        middle = ChannelBuffers.wrappedBuffer(away,filename.getBytes(), " "
+        middle = ChannelBuffers.wrappedBuffer(away, filename.getBytes(), " "
                 .getBytes(), Integer.toString(blocksize).getBytes(), " "
-                .getBytes(), Integer.toString(rank).getBytes(), " "
-                .getBytes(), Long.toString(specialId).getBytes());
+                .getBytes(), Integer.toString(rank).getBytes(), " ".getBytes(),
+                Long.toString(specialId).getBytes());
     }
 
     @Override
@@ -192,7 +200,8 @@ public class RequestPacket extends AbstractLocalPacket {
     @Override
     public String toString() {
         return "RequestPacket: " + rulename + " : " + mode + " : " + filename +
-                " : " + fileInformation+" : "+blocksize+" : "+rank+" : "+way;
+                " : " + fileInformation + " : " + blocksize + " : " + rank +
+                " : " + way;
     }
 
     /**
@@ -238,7 +247,8 @@ public class RequestPacket extends AbstractLocalPacket {
     }
 
     /**
-     * @param specialId the specialId to set
+     * @param specialId
+     *            the specialId to set
      */
     public void setSpecialId(long specialId) {
         this.specialId = specialId;
@@ -250,6 +260,7 @@ public class RequestPacket extends AbstractLocalPacket {
     public long getSpecialId() {
         return specialId;
     }
+
     /**
      * @return True if this packet is to be validated
      */
@@ -266,7 +277,8 @@ public class RequestPacket extends AbstractLocalPacket {
     }
 
     /**
-     * @param filename the filename to set
+     * @param filename
+     *            the filename to set
      */
     public void setFilename(String filename) {
         this.filename = filename;

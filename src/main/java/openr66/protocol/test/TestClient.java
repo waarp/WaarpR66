@@ -83,8 +83,7 @@ public class TestClient {
                     return;
                 }
                 networkPacket = new NetworkPacket(localChannelReference
-                        .getLocalId(), ChannelUtils.NOCHANNEL,
-                        packet);
+                        .getLocalId(), ChannelUtils.NOCHANNEL, packet);
                 Channels.write(localChannelReference.getNetworkChannel(),
                         networkPacket);
             }

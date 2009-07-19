@@ -24,11 +24,11 @@ import goldengate.common.command.NextCommandReply;
 import goldengate.common.command.exception.Reply421Exception;
 import goldengate.common.command.exception.Reply502Exception;
 import goldengate.common.command.exception.Reply530Exception;
+import goldengate.common.file.DirInterface;
 import goldengate.common.file.filesystembased.FilesystemBasedAuthImpl;
 
 import java.io.File;
 
-import openr66.filesystem.R66Dir;
 import openr66.filesystem.R66Session;
 import openr66.protocol.config.Configuration;
 
@@ -150,7 +150,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
     private void setRootFromAuth() throws Reply421Exception {
         rootFromAuth = setBusinessRootFromAuth();
         if (rootFromAuth == null) {
-            rootFromAuth = R66Dir.SEPARATOR;
+            rootFromAuth = DirInterface.SEPARATOR;
         }
     }
 
@@ -207,16 +207,20 @@ public class R66Auth extends FilesystemBasedAuthImpl {
         }
         return true;
     }
+
     /**
      *
      * @return the Key of the Hosting server
      */
     public static byte[] getServerAuth() {
         return Configuration.configuration.fileBasedConfiguration
-            .getSimpleAuth(Configuration.configuration.HOST_ID).key;
+                .getSimpleAuth(Configuration.configuration.HOST_ID).key;
     }
 
+    @Override
     public String toString() {
-        return "Auth: "+(currentAuth != null ? currentAuth.toString() : "no Internal Auth");
+        return "Auth: " +
+                (currentAuth != null? currentAuth.toString()
+                        : "no Internal Auth");
     }
 }

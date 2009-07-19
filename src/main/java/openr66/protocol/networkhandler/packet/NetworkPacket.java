@@ -50,17 +50,19 @@ public class NetworkPacket {
         this.code = code;
         this.buffer = buffer;
     }
+
     /**
      * @param localId
      * @param remoteId
      * @param packet
      * @throws OpenR66ProtocolPacketException
      */
-    public NetworkPacket(int localId, int remoteId, AbstractLocalPacket packet) throws OpenR66ProtocolPacketException {
+    public NetworkPacket(int localId, int remoteId, AbstractLocalPacket packet)
+            throws OpenR66ProtocolPacketException {
         this.remoteId = remoteId;
         this.localId = localId;
-        this.code = packet.getType();
-        this.buffer = packet.getLocalPacket();
+        code = packet.getType();
+        buffer = packet.getLocalPacket();
     }
 
     /**

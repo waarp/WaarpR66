@@ -18,8 +18,11 @@ package openr66.protocol.utils;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import openr66.protocol.config.Configuration;
 
@@ -44,6 +47,12 @@ public class OpenR66SignalHandler implements SignalHandler {
      * Set if the Handler is initialized
      */
     private static boolean initialized = false;
+
+    /**
+     * List all Connection to enable the close call on them
+     */
+    private static ConcurrentLinkedQueue<Connection> listConnection =
+        new ConcurrentLinkedQueue<Connection>();
 
     /**
      * Previous Handler
@@ -132,10 +141,24 @@ public class OpenR66SignalHandler implements SignalHandler {
         timer.schedule(timerTask, Configuration.configuration.TIMEOUTCON * 2);
         if (shutdown) {
             ChannelUtils.exit();
+            Connection con = listConnection.poll();
+            while (con != null) {
+                    try {
+                            con.close();
+                    } catch (SQLException e) {}
+                    con = listConnection.poll();
+            }
             // shouldn't be System.exit(2);
         } else {
             shutdown = true;
             ChannelUtils.exit();
+            Connection con = listConnection.poll();
+            while (con != null) {
+                    try {
+                            con.close();
+                    } catch (SQLException e) {}
+                    con = listConnection.poll();
+            }
         }
     }
 
@@ -179,4 +202,19 @@ public class OpenR66SignalHandler implements SignalHandler {
         System.exit(signal.getNumber());
     }
 
+    /**
+     * Add a Connection into the list
+     *
+     * @param conn
+     */
+    public static void addConnection(Connection conn) {
+            listConnection.add(conn);
+    }
+    /**
+     * Remove a Connection from the list
+     * @param conn
+     */
+    public static void removeConnection(Connection conn) {
+            listConnection.remove(conn);
+    }
 }

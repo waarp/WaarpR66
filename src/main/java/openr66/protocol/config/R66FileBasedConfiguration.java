@@ -22,6 +22,8 @@ package openr66.protocol.config;
 
 import goldengate.common.digest.FilesystemBasedDigest;
 import goldengate.common.digest.MD5;
+import goldengate.common.file.DirInterface;
+import goldengate.common.file.filesystembased.FilesystemBasedDirImpl;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 import goldengate.common.file.filesystembased.specific.FilesystemBasedDirJdkAbstract;
 import goldengate.common.logging.GgInternalLogger;
@@ -35,7 +37,6 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import openr66.authentication.R66SimpleAuth;
-import openr66.filesystem.R66Dir;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.utils.FileUtils;
 
@@ -60,6 +61,7 @@ public class R66FileBasedConfiguration {
      * SERVER HOSTID
      */
     private static final String XML_SERVER_HOSTID = "/config/hostid";
+
     /**
      * SERVER PASSWORD (shutdown)
      */
@@ -74,22 +76,27 @@ public class R66FileBasedConfiguration {
      * Base Directory
      */
     private static final String XML_SERVER_HOME = "/config/serverhome";
+
     /**
      * IN Directory
      */
     private static final String XML_INPATH = "/config/in";
+
     /**
      * OUT Directory
      */
     private static final String XML_OUTPATH = "/config/out";
+
     /**
      * ARCHIVE Directory
      */
     private static final String XML_ARCHIVEPATH = "/config/arch";
+
     /**
      * WORKING Directory
      */
     private static final String XML_WORKINGPATH = "/config/work";
+
     /**
      * CONFIG Directory
      */
@@ -99,6 +106,7 @@ public class R66FileBasedConfiguration {
      * Default number of threads in pool for Server.
      */
     private static final String XML_SERVER_THREAD = "/config/serverthread";
+
     /**
      * Default number of threads in pool for Client (truly concurrent).
      */
@@ -183,25 +191,29 @@ public class R66FileBasedConfiguration {
      * @return the new subpath
      * @throws OpenR66ProtocolSystemException
      */
-    private String getSubPath(Document document, String fromXML) throws OpenR66ProtocolSystemException {
+    private String getSubPath(Document document, String fromXML)
+            throws OpenR66ProtocolSystemException {
         Node node = document.selectSingleNode(fromXML);
         if (node == null) {
             logger.error("Unable to find CONFIG Path in Config file");
-            throw new OpenR66ProtocolSystemException("Unable to find a Path in Config file: "+fromXML);
+            throw new OpenR66ProtocolSystemException(
+                    "Unable to find a Path in Config file: " + fromXML);
         }
 
         String path = node.getText();
         if (path == null || path.length() == 0) {
-            throw new OpenR66ProtocolSystemException("Unable to find a correct Path in Config file: "+fromXML);
+            throw new OpenR66ProtocolSystemException(
+                    "Unable to find a correct Path in Config file: " + fromXML);
         }
-        path = R66Dir.SEPARATOR+path;
-        String newpath = Configuration.configuration.baseDirectory+path;
+        path = DirInterface.SEPARATOR + path;
+        String newpath = Configuration.configuration.baseDirectory + path;
         File file = new File(newpath);
         if (!file.isDirectory()) {
             FileUtils.createDir(file);
         }
         return path;
     }
+
     /**
      * Initiate the configuration from the xml file
      *
@@ -237,18 +249,22 @@ public class R66FileBasedConfiguration {
         String passwd = node.getText();
         // FIXME load from a file and store as a key
         File key = new File(passwd);
-        if (! key.canRead()) {
-            logger.error("Unable to Load Server Password in Config file from: " + passwd);
+        if (!key.canRead()) {
+            logger
+                    .error("Unable to Load Server Password in Config file from: " +
+                            passwd);
             return false;
         }
-        byte [] byteKeys = new byte[(int)key.length()];
+        byte[] byteKeys = new byte[(int) key.length()];
         FileInputStream inputStream;
         try {
             inputStream = new FileInputStream(key);
             inputStream.read(byteKeys);
             inputStream.close();
         } catch (IOException e2) {
-            logger.error("Unable to Load Server Password in Config file from: " + passwd, e2);
+            logger.error(
+                    "Unable to Load Server Password in Config file from: " +
+                            passwd, e2);
             return false;
         }
         Configuration.configuration.setSERVERKEY(byteKeys);
@@ -270,48 +286,52 @@ public class R66FileBasedConfiguration {
             return false;
         }
         try {
-            Configuration.configuration.baseDirectory = R66Dir.normalizePath(file
-                    .getCanonicalPath());
+            Configuration.configuration.baseDirectory = FilesystemBasedDirImpl
+                    .normalizePath(file.getCanonicalPath());
         } catch (IOException e1) {
             logger.error("Unable to set Home in Config file: " + filename);
             return false;
         }
         File dirConfig;
         try {
-            Configuration.configuration.configPath =
-                R66Dir.normalizePath(getSubPath(document, XML_CONFIGPATH));
+            Configuration.configuration.configPath = FilesystemBasedDirImpl
+                    .normalizePath(getSubPath(document, XML_CONFIGPATH));
             dirConfig = new File(Configuration.configuration.baseDirectory,
                     Configuration.configuration.configPath);
         } catch (OpenR66ProtocolSystemException e2) {
-            logger.error("Unable to set Config in Config file: " + filename, e2);
+            logger
+                    .error("Unable to set Config in Config file: " + filename,
+                            e2);
             return false;
         }
         try {
-            Configuration.configuration.inPath =
-                R66Dir.normalizePath(getSubPath(document, XML_INPATH));
+            Configuration.configuration.inPath = FilesystemBasedDirImpl
+                    .normalizePath(getSubPath(document, XML_INPATH));
         } catch (OpenR66ProtocolSystemException e2) {
             logger.error("Unable to set In in Config file: " + filename, e2);
             return false;
         }
         try {
-            Configuration.configuration.outPath =
-                R66Dir.normalizePath(getSubPath(document, XML_OUTPATH));
+            Configuration.configuration.outPath = FilesystemBasedDirImpl
+                    .normalizePath(getSubPath(document, XML_OUTPATH));
         } catch (OpenR66ProtocolSystemException e2) {
             logger.error("Unable to set Out in Config file: " + filename, e2);
             return false;
         }
         try {
-            Configuration.configuration.workingPath =
-                R66Dir.normalizePath(getSubPath(document, XML_WORKINGPATH));
+            Configuration.configuration.workingPath = FilesystemBasedDirImpl
+                    .normalizePath(getSubPath(document, XML_WORKINGPATH));
         } catch (OpenR66ProtocolSystemException e2) {
-            logger.error("Unable to set Working in Config file: " + filename, e2);
+            logger.error("Unable to set Working in Config file: " + filename,
+                    e2);
             return false;
         }
         try {
-            Configuration.configuration.archivePath =
-                R66Dir.normalizePath(getSubPath(document, XML_ARCHIVEPATH));
+            Configuration.configuration.archivePath = FilesystemBasedDirImpl
+                    .normalizePath(getSubPath(document, XML_ARCHIVEPATH));
         } catch (OpenR66ProtocolSystemException e2) {
-            logger.error("Unable to set Archive in Config file: " + filename, e2);
+            logger.error("Unable to set Archive in Config file: " + filename,
+                    e2);
             return false;
         }
         // Get the rules
@@ -325,13 +345,13 @@ public class R66FileBasedConfiguration {
 
         node = document.selectSingleNode(XML_SERVER_THREAD);
         if (node != null) {
-            Configuration.configuration.SERVER_THREAD =
-                Integer.parseInt(node.getText());
+            Configuration.configuration.SERVER_THREAD = Integer.parseInt(node
+                    .getText());
         }
         node = document.selectSingleNode(XML_CLIENT_THREAD);
         if (node != null) {
-            Configuration.configuration.CLIENT_THREAD =
-                Integer.parseInt(node.getText());
+            Configuration.configuration.CLIENT_THREAD = Integer.parseInt(node
+                    .getText());
         }
         node = document.selectSingleNode(XML_LIMITGLOBAL);
         if (node != null) {
@@ -358,7 +378,8 @@ public class R66FileBasedConfiguration {
         Configuration.configuration.delayLimit = AbstractTrafficShapingHandler.DEFAULT_CHECK_INTERVAL;
         node = document.selectSingleNode(XML_TIMEOUTCON);
         if (node != null) {
-            Configuration.configuration.TIMEOUTCON = Integer.parseInt(node.getText());
+            Configuration.configuration.TIMEOUTCON = Integer.parseInt(node
+                    .getText());
         }
         node = document.selectSingleNode(XML_DELETEONABORT);
         if (node != null) {
@@ -395,7 +416,8 @@ public class R66FileBasedConfiguration {
         }
         node = document.selectSingleNode(XML_BLOCKSIZE);
         if (node != null) {
-            Configuration.configuration.BLOCKSIZE = Integer.parseInt(node.getText());
+            Configuration.configuration.BLOCKSIZE = Integer.parseInt(node
+                    .getText());
         }
         // We use Apache Commons IO
         FilesystemBasedDirJdkAbstract.ueApacheCommonsIo = true;
@@ -435,8 +457,8 @@ public class R66FileBasedConfiguration {
             String skey = node.getText();
             // FIXME load key from file
             key = new File(skey);
-            if (! key.canRead()) {
-                logger.warn("Cannot read key for hostId "+refHostId);
+            if (!key.canRead()) {
+                logger.warn("Cannot read key for hostId " + refHostId);
                 continue;
             }
             byteKeys = new byte[(int) key.length()];
@@ -445,7 +467,7 @@ public class R66FileBasedConfiguration {
                 inputStream.read(byteKeys);
                 inputStream.close();
             } catch (IOException e) {
-                logger.warn("Cannot read key for hostId "+refHostId, e);
+                logger.warn("Cannot read key for hostId " + refHostId, e);
                 try {
                     inputStream.close();
                 } catch (IOException e1) {
@@ -460,7 +482,7 @@ public class R66FileBasedConfiguration {
             R66SimpleAuth auth = new R66SimpleAuth(refHostId, byteKeys);
             auth.setAdmin(isAdmin);
             authentications.put(refHostId, auth);
-            logger.warn("Add "+refHostId+" "+auth.toString());
+            logger.warn("Add " + refHostId + " " + auth.toString());
         }
         document = null;
         return true;

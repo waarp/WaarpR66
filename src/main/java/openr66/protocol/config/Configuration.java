@@ -79,14 +79,17 @@ public class Configuration {
      * Default size for buffers (NIO)
      */
     public static final int BUFFERSIZEDEFAULT = 0x10000; // 64K
+
     /**
      * Time elapse for WRITE OR CLOSE WAIT elaps in ms
      */
     public static final long WAITFORNETOP = 1000;
+
     /**
      * Extension of file during transfer
      */
     public static final String EXT_R66 = ".r66";
+
     /**
      * FileParameter
      */
@@ -97,21 +100,24 @@ public class Configuration {
      * Actual Host ID
      */
     public String HOST_ID;
+
     /**
      * Server Administration Key
      */
     private byte[] SERVERADMINKEY = null;
+
     /**
-     * Default number of threads in pool for Server (true network listeners). Server will
-     * change this value on startup if not set.
-     * The value should be closed to the number of CPU.
+     * Default number of threads in pool for Server (true network listeners).
+     * Server will change this value on startup if not set. The value should be
+     * closed to the number of CPU.
      */
     public int SERVER_THREAD = 8;
+
     /**
-     * Default number of threads in pool for Client. The value is for
-     * true client for Executor in the Pipeline for Business logic.
-     * The value does not indicate a limit of concurrent clients, but
-     * a limit on truly packet concurrent actions.
+     * Default number of threads in pool for Client. The value is for true
+     * client for Executor in the Pipeline for Business logic. The value does
+     * not indicate a limit of concurrent clients, but a limit on truly packet
+     * concurrent actions.
      */
     public int CLIENT_THREAD = 80;
 
@@ -135,7 +141,6 @@ public class Configuration {
      */
     public int TIMEOUTCON = 30000;
 
-
     /**
      * Size by default of block size for receive/sending files. Should be a
      * multiple of 8192 (maximum = 2^30K due to block limitation to 4 bytes)
@@ -152,6 +157,7 @@ public class Configuration {
      */
     // FIXME TODO
     public String baseDirectory;
+
     /**
      * In path (receive)
      */
@@ -176,7 +182,6 @@ public class Configuration {
      * Config path
      */
     public String configPath = null;
-
 
     /**
      * True if the service is going to shutdown
@@ -290,10 +295,10 @@ public class Configuration {
         logger.warn("SERVER THREAD: " + SERVER_THREAD);
         logger.warn("CLIENT THREAD: " + CLIENT_THREAD);
         serverPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
-                CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory,
-                500, TimeUnit.MILLISECONDS);
+                CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory, 500,
+                TimeUnit.MILLISECONDS);
         localPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
-                CLIENT_THREAD*100, maxGlobalMemory / 10, maxGlobalMemory,
+                CLIENT_THREAD * 100, maxGlobalMemory / 10, maxGlobalMemory,
                 500, TimeUnit.MILLISECONDS);
         configured = true;
     }
@@ -357,7 +362,7 @@ public class Configuration {
     public void computeNbThreads() {
         final int nb = Runtime.getRuntime().availableProcessors() * 2 + 1;
         if (SERVER_THREAD < nb) {
-            logger.warn("Change default number of threads to "+nb);
+            logger.warn("Change default number of threads to " + nb);
             SERVER_THREAD = nb;
         }
     }
@@ -440,8 +445,10 @@ public class Configuration {
         }
         return Arrays.equals(SERVERADMINKEY, newkey);
     }
+
     /**
-     * @param serverkey the SERVERADMINKEY to set
+     * @param serverkey
+     *            the SERVERADMINKEY to set
      */
     public void setSERVERKEY(byte[] serverkey) {
         SERVERADMINKEY = serverkey;

@@ -1,6 +1,10 @@
-- MOVE avec options dans rulepath : "CHAINE de caracteres" qui se verront appliquer :
-	- TRUEFILENAME -> current filename (retrieve)
-	- DATE -> AAAAMMJJ
-	- HOUR -> HHMMSS
-	- puis %s qui sera remplace par les arguments du transfer (transfer information)
+- db : load at startup, export to XML files, import from XML files
+  H2: "jdbc:h2:/data/test;AUTO_SERVER=TRUE"
+  	;USER=sa;PASSWORD=123
+	;IFEXISTS=TRUE ??
+	;MODE=Oracle
+- table:
+  - hosts: hostid, hostkey, adminrole
+  - rule: idrule, hostids, recvpath, sendpath, archivepath, workpath, pretasks, posttasks, errortasks
+  - runner: specialid, globalstep, step, rank, stepstatus, retrievemode, filename, ismoved, idrule
 

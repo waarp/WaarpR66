@@ -42,13 +42,15 @@ public class TestServer {
         final GgInternalLogger logger = GgInternalLoggerFactory
                 .getLogger(TestServer.class);
         if (args.length < 1) {
-            logger.error("Needs at least the configuration file as first argument");
+            logger
+                    .error("Needs at least the configuration file as first argument");
             return;
         }
-        Configuration.configuration.fileBasedConfiguration =
-            new R66FileBasedConfiguration();
-        if (! Configuration.configuration.fileBasedConfiguration.setConfigurationFromXml(args[0])) {
-            logger.error("Needs a correct configuration file as first argument");
+        Configuration.configuration.fileBasedConfiguration = new R66FileBasedConfiguration();
+        if (!Configuration.configuration.fileBasedConfiguration
+                .setConfigurationFromXml(args[0])) {
+            logger
+                    .error("Needs a correct configuration file as first argument");
             return;
         }
         Configuration.configuration.serverStartup();

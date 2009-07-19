@@ -8,8 +8,8 @@ package openr66.protocol.exception;
  *
  * @author frederic bregier
  */
-public class OpenR66ProtocolNoConnectionException extends OpenR66ProtocolException {
-
+public class OpenR66ProtocolNoConnectionException extends
+        OpenR66ProtocolException {
 
     /**
      *

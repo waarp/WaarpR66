@@ -1,26 +1,27 @@
 /**
- * Copyright 2009, Frederic Bregier, and individual contributors
- * by the @author tags. See the COPYRIGHT.txt in the distribution for a
- * full listing of individual contributors.
+ * Copyright 2009, Frederic Bregier, and individual contributors by the @author
+ * tags. See the COPYRIGHT.txt in the distribution for a full listing of
+ * individual contributors.
  *
- * This is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 3.0 of
- * the License, or (at your option) any later version.
+ * This is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
  *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
+ * This software is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this software; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF
+ * site: http://www.fsf.org.
  */
 package openr66.protocol.utils;
 
 import goldengate.common.digest.MD5;
+import goldengate.common.file.DirInterface;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,7 +31,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 
-import openr66.filesystem.R66Dir;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 
@@ -41,22 +41,29 @@ import openr66.protocol.exception.OpenR66ProtocolSystemException;
 public class FileUtils {
     /**
      *
-     * @param base in absolute
-     * @param path path in absolute or relative
-     * @return a new String for a file from the base and the path (according to relative or absolute path)
+     * @param base
+     *            in absolute
+     * @param path
+     *            path in absolute or relative
+     * @return a new String for a file from the base and the path (according to
+     *         relative or absolute path)
      * @throws OpenR66ProtocolSystemException
      */
-    public static String consolidatePath(String base, String path) throws OpenR66ProtocolSystemException {
-        if (base == null || base.length() == 0 || path == null || path.length() == 0) {
-            throw new OpenR66ProtocolSystemException("base and path must not be empty");
+    public static String consolidatePath(String base, String path)
+            throws OpenR66ProtocolSystemException {
+        if (base == null || base.length() == 0 || path == null ||
+                path.length() == 0) {
+            throw new OpenR66ProtocolSystemException(
+                    "base and path must not be empty");
         }
         // First check if the path is relative or absolute
         String extDir = null;
-        if (path.charAt(0) == R66Dir.SEPARATORCHAR) {
-            extDir = Configuration.configuration.baseDirectory+R66Dir.SEPARATOR+path;
+        if (path.charAt(0) == DirInterface.SEPARATORCHAR) {
+            extDir = Configuration.configuration.baseDirectory +
+                    DirInterface.SEPARATOR + path;
         } else {
-            extDir = Configuration.configuration.baseDirectory+R66Dir.SEPARATOR+
-                base + R66Dir.SEPARATOR + path;
+            extDir = Configuration.configuration.baseDirectory +
+                    DirInterface.SEPARATOR + base + DirInterface.SEPARATOR + path;
         }
         return extDir;
     }
@@ -72,8 +79,9 @@ public class FileUtils {
      *            True if the copy is in append
      * @throws OpenR66ProtocolSystemException
      */
-    public static void copy(File from, File to, boolean move, boolean append) throws OpenR66ProtocolSystemException {
-        if ((from == null) || (to == null)) {
+    public static void copy(File from, File to, boolean move, boolean append)
+            throws OpenR66ProtocolSystemException {
+        if (from == null || to == null) {
             throw new OpenR66ProtocolSystemException(
                     "Source or Destination is null");
         }
@@ -84,7 +92,8 @@ public class FileUtils {
             }
             FileChannel fileChannelIn = getFileChannel(from, false, false);
             if (fileChannelIn == null) {
-                throw new OpenR66ProtocolSystemException("Cannot read source file");
+                throw new OpenR66ProtocolSystemException(
+                        "Cannot read source file");
                 // return false;
             }
             FileChannel fileChannelOut = getFileChannel(to, true, append);
@@ -93,7 +102,8 @@ public class FileUtils {
                     fileChannelIn.close();
                 } catch (IOException e) {
                 }
-                throw new OpenR66ProtocolSystemException("Cannot write destination file");
+                throw new OpenR66ProtocolSystemException(
+                        "Cannot write destination file");
             }
             if (write(fileChannelIn, fileChannelOut) > 0) {
                 if (move) {
@@ -104,7 +114,8 @@ public class FileUtils {
             }
             throw new OpenR66ProtocolSystemException("Cannot copy");
         }
-        throw new OpenR66ProtocolSystemException("Cannot access to parent dir of destination");
+        throw new OpenR66ProtocolSystemException(
+                "Cannot access to parent dir of destination");
     }
 
     /**
@@ -120,7 +131,7 @@ public class FileUtils {
      */
     public static File[] copy(File[] from, File directoryTo, boolean move)
             throws OpenR66ProtocolSystemException {
-        if ((from == null) || (directoryTo == null)) {
+        if (from == null || directoryTo == null) {
             return null;
         }
         File[] to = null;
@@ -149,7 +160,7 @@ public class FileUtils {
      */
     public static File copyToDir(File from, File directoryTo, boolean move)
             throws OpenR66ProtocolSystemException {
-        if ((from == null) || (directoryTo == null)) {
+        if (from == null || directoryTo == null) {
             throw new OpenR66ProtocolSystemException(
                     "Source or Destination is null");
         }
@@ -160,7 +171,8 @@ public class FileUtils {
             }
             FileChannel fileChannelIn = getFileChannel(from, false, false);
             if (fileChannelIn == null) {
-                throw new OpenR66ProtocolSystemException("Cannot read source file");
+                throw new OpenR66ProtocolSystemException(
+                        "Cannot read source file");
             }
             FileChannel fileChannelOut = getFileChannel(to, true, false);
             if (fileChannelOut == null) {
@@ -168,7 +180,8 @@ public class FileUtils {
                     fileChannelIn.close();
                 } catch (IOException e) {
                 }
-                throw new OpenR66ProtocolSystemException("Cannot write destination file");
+                throw new OpenR66ProtocolSystemException(
+                        "Cannot write destination file");
             }
             if (write(fileChannelIn, fileChannelOut) > 0) {
                 if (move) {
@@ -177,9 +190,11 @@ public class FileUtils {
                 }
                 return to;
             }
-            throw new OpenR66ProtocolSystemException("Cannot write destination file");
+            throw new OpenR66ProtocolSystemException(
+                    "Cannot write destination file");
         }
-        throw new OpenR66ProtocolSystemException("Cannot access to parent dir of destination");
+        throw new OpenR66ProtocolSystemException(
+                "Cannot access to parent dir of destination");
     }
 
     /**
@@ -262,7 +277,7 @@ public class FileUtils {
             return false;
         }
         File[] list = directory.listFiles();
-        if ((list == null) || (list.length == 0)) {
+        if (list == null || list.length == 0) {
             list = null;
             retour = directory.delete();
             return retour;
@@ -300,7 +315,7 @@ public class FileUtils {
             return true;
         }
         File[] list = dir.listFiles();
-        if ((list == null) || (list.length == 0)) {
+        if (list == null || list.length == 0) {
             list = null;
             return dir.delete();
         }
@@ -340,15 +355,16 @@ public class FileUtils {
 
     /**
      * Returns the FileChannel in Out mode (if isOut is True) or in In mode (if
-     * isOut is False) associated with the file. In out mode, it can be in append mode.
+     * isOut is False) associated with the file. In out mode, it can be in
+     * append mode.
      *
      * @param isOut
      * @param append
      * @return the FileChannel (OUT or IN)
      * @throws OpenR66ProtocolSystemException
      */
-    private static FileChannel getFileChannel(File file, boolean isOut, boolean append)
-            throws OpenR66ProtocolSystemException {
+    private static FileChannel getFileChannel(File file, boolean isOut,
+            boolean append) throws OpenR66ProtocolSystemException {
         FileChannel fileChannel = null;
         try {
             if (isOut) {
@@ -356,14 +372,17 @@ public class FileUtils {
                         .getPath(), append);
                 fileChannel = fileOutputStream.getChannel();
                 if (append) {
-                    // Bug in JVM since it does not respect the API (position should be set as length)
+                    // Bug in JVM since it does not respect the API (position
+                    // should be set as length)
                     try {
                         fileChannel.position(file.length());
-                    } catch (IOException e) {}
+                    } catch (IOException e) {
+                    }
                 }
             } else {
                 if (!file.exists()) {
-                    throw new OpenR66ProtocolSystemException("File does not exist");
+                    throw new OpenR66ProtocolSystemException(
+                            "File does not exist");
                 }
                 FileInputStream fileInputStream = new FileInputStream(file
                         .getPath());
@@ -382,11 +401,12 @@ public class FileUtils {
      * @return the list of files (as an array)
      */
     public static File[] getFiles(File directory) {
-        if ((directory == null) || (!directory.isDirectory())) {
+        if (directory == null || !directory.isDirectory()) {
             return null;
         }
         return directory.listFiles();
     }
+
     /**
      * Get the list of files from a given directory and a filter
      *
@@ -395,7 +415,7 @@ public class FileUtils {
      * @return the list of files (as an array)
      */
     public static File[] getFiles(File directory, FilenameFilter filter) {
-        if ((directory == null) || (!directory.isDirectory())) {
+        if (directory == null || !directory.isDirectory()) {
             return null;
         }
         return directory.listFiles(filter);
@@ -450,24 +470,26 @@ public class FileUtils {
         try {
             long position = fileChannelOut.position();
             size = fileChannelIn.size();
-            transfert = fileChannelOut.transferFrom(fileChannelIn, position, size);
+            transfert = fileChannelOut.transferFrom(fileChannelIn, position,
+                    size);
         } catch (IOException e) {
             try {
                 fileChannelOut.close();
                 fileChannelIn.close();
             } catch (IOException e1) {
             }
-            throw new OpenR66ProtocolSystemException("An error during copy occurs", e);
+            throw new OpenR66ProtocolSystemException(
+                    "An error during copy occurs", e);
         }
         try {
             fileChannelOut.close();
             fileChannelIn.close();
         } catch (IOException e) {// Close error can be ignored
         }
-        boolean retour = (size == transfert);
+        boolean retour = size == transfert;
         if (!retour) {
-            throw new OpenR66ProtocolSystemException("Copy is not complete: " + transfert +
-                    " bytes instead of " + size + " original bytes");
+            throw new OpenR66ProtocolSystemException("Copy is not complete: " +
+                    transfert + " bytes instead of " + size + " original bytes");
         }
         return size;
     }

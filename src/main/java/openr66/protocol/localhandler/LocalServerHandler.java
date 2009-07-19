@@ -9,7 +9,6 @@ import goldengate.common.exception.FileTransferException;
 import goldengate.common.file.DataBlock;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
-
 import openr66.filesystem.R66File;
 import openr66.filesystem.R66Rule;
 import openr66.filesystem.R66Session;
@@ -24,7 +23,6 @@ import openr66.protocol.exception.OpenR66ProtocolNotAuthenticatedException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolShutdownException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
-import openr66.protocol.exception.OpenR66RunnerErrorException;
 import openr66.protocol.localhandler.packet.AbstractLocalPacket;
 import openr66.protocol.localhandler.packet.AuthentPacket;
 import openr66.protocol.localhandler.packet.ConnectionErrorPacket;
@@ -40,6 +38,7 @@ import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
 import openr66.protocol.utils.ChannelUtils;
 import openr66.task.TaskRunner;
+import openr66.task.exception.OpenR66RunnerErrorException;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -79,13 +78,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
      */
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) {
-        logger
-                .info("Local Server Channel Closed: " +
-                        status +
-                        " " +
-                        (localChannelReference != null? localChannelReference
-                                .toString()
-                                : "no LocalChannelReference"));
+        logger.info("Local Server Channel Closed: " +
+                status +
+                " " +
+                (localChannelReference != null? localChannelReference
+                        .toString() : "no LocalChannelReference"));
         // FIXME clean session objects like files
         if (localChannelReference != null &&
                 !localChannelReference.getFutureAction().isDone()) {
@@ -98,9 +95,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
             NetworkTransaction.removeNetworkChannel(localChannelReference
                     .getNetworkChannel());
         } else {
-            logger.error(
-               "Local Server Channel Closed but no LocalChannelReference: " +
-               e.getChannel().getId());
+            logger
+                    .error("Local Server Channel Closed but no LocalChannelReference: " +
+                            e.getChannel().getId());
         }
         session.clear();
     }
@@ -158,7 +155,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     authent(e.getChannel(), (AuthentPacket) packet);
                     break;
                 }
-                // Already done case LocalPacketFactory.STARTUPPACKET:
+                    // Already done case LocalPacketFactory.STARTUPPACKET:
                 case LocalPacketFactory.DATAPACKET: {
                     data(e.getChannel(), (DataPacket) packet);
                     break;
@@ -172,7 +169,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     break;
                 }
                 case LocalPacketFactory.CONNECTERRORPACKET: {
-                    connectionError(e.getChannel(), (ConnectionErrorPacket) packet);
+                    connectionError(e.getChannel(),
+                            (ConnectionErrorPacket) packet);
                     break;
                 }
                 case LocalPacketFactory.REQUESTPACKET: {
@@ -187,11 +185,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 case LocalPacketFactory.CANCELPACKET:
                 case LocalPacketFactory.CONFIGSENDPACKET:
                 case LocalPacketFactory.CONFIGRECVPACKET: {
-                    logger.error("Unimplemented Mesg: " + packet.getClass().getName());
+                    logger.error("Unimplemented Mesg: " +
+                            packet.getClass().getName());
                     setFinalize(false, null);
                     final ErrorPacket errorPacket = new ErrorPacket(
-                            "Unkown Mesg: " + packet.getClass().getName(), null,
-                            ErrorPacket.FORWARDCLOSECODE);
+                            "Unkown Mesg: " + packet.getClass().getName(),
+                            null, ErrorPacket.FORWARDCLOSECODE);
                     writeBack(errorPacket, true);
                     ChannelUtils.close(e.getChannel());
                     break;
@@ -201,11 +200,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     break;
                 }
                 default: {
-                    logger.error("Unknown Mesg: " + packet.getClass().getName());
+                    logger
+                            .error("Unknown Mesg: " +
+                                    packet.getClass().getName());
                     setFinalize(false, null);
                     final ErrorPacket errorPacket = new ErrorPacket(
-                            "Unkown Mesg: " + packet.getClass().getName(), null,
-                            ErrorPacket.FORWARDCLOSECODE);
+                            "Unkown Mesg: " + packet.getClass().getName(),
+                            null, ErrorPacket.FORWARDCLOSECODE);
                     writeBack(errorPacket, true);
                     ChannelUtils.close(e.getChannel());
                 }
@@ -228,12 +229,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 .getExceptionFromTrappedException(e.getChannel(), e);
         if (exception != null) {
             if (exception instanceof OpenR66ProtocolShutdownException) {
-                logger.warn("Shutdown order received and going from: "+
+                logger.warn("Shutdown order received and going from: " +
                         session.getAuth().getUser());
                 setFinalize(true, null);
                 // XXX dont'close
                 new Thread(new ChannelUtils()).start();
-                // set global shutdown info and before close, send a valid shutdown to all
+                // set global shutdown info and before close, send a valid
+                // shutdown to all
                 return;
             } else {
                 setFinalize(false, null);
@@ -284,8 +286,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
     private void authent(Channel channel, AuthentPacket packet)
             throws OpenR66ProtocolPacketException {
         try {
-            session.getAuth().connection(packet.getHostId(),
-                    packet.getKey());
+            session.getAuth().connection(packet.getHostId(), packet.getKey());
         } catch (Reply530Exception e1) {
             logger.error("Cannot connect: " + packet.getHostId(), e1);
             setFinalize(false, e1);
@@ -327,7 +328,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
     }
 
     private void request(Channel channel, RequestPacket packet)
-            throws OpenR66ProtocolNotAuthenticatedException, OpenR66ProtocolNoDataException, OpenR66ProtocolPacketException {
+            throws OpenR66ProtocolNotAuthenticatedException,
+            OpenR66ProtocolNoDataException, OpenR66ProtocolPacketException {
         // FIXME do something
         if (!session.isAuthenticated()) {
             throw new OpenR66ProtocolNotAuthenticatedException(
@@ -337,13 +339,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
         try {
             rule = R66Rule.getHash(packet.getRulename());
         } catch (OpenR66ProtocolNoDataException e) {
-            logger.error("Rule is unknown: "+packet.getRulename(), e);
+            logger.error("Rule is unknown: " + packet.getRulename(), e);
             throw e;
         }
         if (packet.isToValidate()) {
-            if (! rule.checkHostAllow(session.getAuth().getUser())) {
+            if (!rule.checkHostAllow(session.getAuth().getUser())) {
                 throw new OpenR66ProtocolNotAuthenticatedException(
-                "Rule is not allowed for the remote host");
+                        "Rule is not allowed for the remote host");
             }
         }
         session.setRequest(packet);
@@ -353,22 +355,23 @@ public class LocalServerHandler extends SimpleChannelHandler {
             // Reload
             runner = new TaskRunner(session, rule, packet.getSpecialId());
         } else {
-            boolean isRetrieve = (packet.getMode() == RequestPacket.RECVMD5MODE) ||
-                (packet.getMode() == RequestPacket.RECVMODE);
-            if (! packet.isToValidate()) {
-                isRetrieve = (!isRetrieve);
+            boolean isRetrieve = packet.getMode() == RequestPacket.RECVMD5MODE ||
+                    packet.getMode() == RequestPacket.RECVMODE;
+            if (!packet.isToValidate()) {
+                isRetrieve = !isRetrieve;
             }
             runner = new TaskRunner(session, rule, isRetrieve);
             packet.setSpecialId(runner.getSpecialId());
         }
-        // FIXME should be load from database or from remote status and/or saved to database
+        // FIXME should be load from database or from remote status and/or saved
+        // to database
         try {
             session.setRunner(runner);
         } catch (OpenR66RunnerErrorException e) {
             logger.error("PresTask in error", e);
             setFinalize(false, e);
-            ErrorPacket error = new ErrorPacket("PreTask in error", e.getMessage(),
-                    ErrorPacket.FORWARDCLOSECODE);
+            ErrorPacket error = new ErrorPacket("PreTask in error", e
+                    .getMessage(), ErrorPacket.FORWARDCLOSECODE);
             writeBack(error, true);
             ChannelUtils.close(channel);
             return;
@@ -378,7 +381,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         if (packet.isToValidate()) {
             if (runner.isRetrieve()) {
                 // In case Wildcard was used
-                logger.warn("New filename: "+runner.getFilename());
+                logger.warn("New filename: " + runner.getFilename());
                 packet.setFilename(R66File.getBasename(runner.getFilename()));
             }
             packet.validate();
@@ -391,39 +394,39 @@ public class LocalServerHandler extends SimpleChannelHandler {
     }
 
     private void data(Channel channel, DataPacket packet)
-            throws OpenR66ProtocolNotAuthenticatedException, OpenR66ProtocolBusinessException, OpenR66ProtocolPacketException {
+            throws OpenR66ProtocolNotAuthenticatedException,
+            OpenR66ProtocolBusinessException, OpenR66ProtocolPacketException {
         // FIXME do something
         if (!session.isAuthenticated()) {
             throw new OpenR66ProtocolNotAuthenticatedException(
                     "Not authenticated");
         }
-        if (! session.isReady()) {
-            throw new OpenR66ProtocolBusinessException(
-            "No request prepared");
+        if (!session.isReady()) {
+            throw new OpenR66ProtocolBusinessException("No request prepared");
         }
         if (session.getRunner().isRetrieve()) {
             throw new OpenR66ProtocolBusinessException(
-            "Not in receive mode but receive a packet");
+                    "Not in receive mode but receive a packet");
         }
-        if (packet.getPacketRank() != this.session.getRunner().getRank()) {
-            logger.warn("Bad rank: "+packet.getPacketRank()+" : "+
-                    this.session.getRunner().getRank());
+        if (packet.getPacketRank() != session.getRunner().getRank()) {
+            logger.warn("Bad rank: " + packet.getPacketRank() + " : " +
+                    session.getRunner().getRank());
         }
         DataBlock dataBlock = new DataBlock();
         // FIXME if MD5 check MD5
         dataBlock.setBlock(packet.getData());
         try {
             session.getFile().writeDataBlock(dataBlock);
-            this.session.getRunner().incrementRank();
+            session.getRunner().incrementRank();
         } catch (FileTransferException e) {
             try {
-                this.session.setFinalizeTransfer(false, e);
+                session.setFinalizeTransfer(false, e);
             } catch (OpenR66RunnerErrorException e1) {
             } catch (OpenR66ProtocolSystemException e1) {
             }
             ErrorPacket error = new ErrorPacket("Transfer in error",
-                    this.localChannelReference.getFutureAction().getResult().toString(),
-                    ErrorPacket.FORWARDCLOSECODE);
+                    localChannelReference.getFutureAction().getResult()
+                            .toString(), ErrorPacket.FORWARDCLOSECODE);
             writeBack(error, true);
             ChannelUtils.close(channel);
             return;
@@ -453,24 +456,29 @@ public class LocalServerHandler extends SimpleChannelHandler {
     }
 
     private void valid(Channel channel, ValidPacket packet)
-            throws OpenR66ProtocolNotAuthenticatedException, OpenR66RunnerErrorException, OpenR66ProtocolSystemException {
+            throws OpenR66ProtocolNotAuthenticatedException,
+            OpenR66RunnerErrorException, OpenR66ProtocolSystemException {
         // FIXME do something
-        if ((packet.getTypeValid() != LocalPacketFactory.SHUTDOWNPACKET) && (!session.isAuthenticated())) {
+        if (packet.getTypeValid() != LocalPacketFactory.SHUTDOWNPACKET &&
+                !session.isAuthenticated()) {
             throw new OpenR66ProtocolNotAuthenticatedException(
                     "Not authenticated");
         }
         switch (packet.getTypeValid()) {
             case LocalPacketFactory.REQUESTPACKET:
                 logger.info("Valid Request " +
-                        localChannelReference.toString()+" "+packet.toString());
-                //int rank = Integer.parseInt(packet.getSmiddle());
-                this.session.setFinalizeTransfer(true, this.session.getFile());
+                        localChannelReference.toString() + " " +
+                        packet.toString());
+                // int rank = Integer.parseInt(packet.getSmiddle());
+                session.setFinalizeTransfer(true, session.getFile());
                 Channels.close(channel);
                 break;
             case LocalPacketFactory.SHUTDOWNPACKET:
                 logger.warn("Shutdown received so Will close channel" +
                         localChannelReference.toString());
-                NetworkTransaction.shuttingdownNetworkChannel(localChannelReference.getNetworkChannel());
+                NetworkTransaction
+                        .shuttingdownNetworkChannel(localChannelReference
+                                .getNetworkChannel());
                 setFinalize(false, packet);
                 Channels.close(channel);
                 break;
@@ -481,7 +489,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 Channels.close(channel);
                 break;
             default:
-                logger.warn("Validation is ignored: "+packet.getTypeValid());
+                logger.warn("Validation is ignored: " + packet.getTypeValid());
         }
     }
 
@@ -494,7 +502,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     "Not authenticated");
         }
         if (session.getAuth().isAdmin() &&
-               Configuration.configuration.isKeyValid(packet.getKey())) {
+                Configuration.configuration.isKeyValid(packet.getKey())) {
             throw new OpenR66ProtocolShutdownException("Shutdown Type received");
         }
         logger.error("Invalid Shutdown command");

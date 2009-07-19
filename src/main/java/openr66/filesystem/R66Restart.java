@@ -53,8 +53,10 @@ public class R66Restart extends FilesystemBasedRestartImpl {
         }
         return restartMarker(newposition);
     }
+
     /**
      * Same as restartMarker with String
+     *
      * @param newposition
      * @return True if OK
      */

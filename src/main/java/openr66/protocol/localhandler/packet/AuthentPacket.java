@@ -139,7 +139,7 @@ public class AuthentPacket extends AbstractLocalPacket {
      */
     @Override
     public String toString() {
-        return "AuthentPacket: " + hostId+" "+localId + " " + way;
+        return "AuthentPacket: " + hostId + " " + localId + " " + way;
     }
 
     /**
@@ -155,6 +155,7 @@ public class AuthentPacket extends AbstractLocalPacket {
     public byte[] getKey() {
         return key;
     }
+
     /**
      * @return the localId
      */

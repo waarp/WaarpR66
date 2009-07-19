@@ -20,13 +20,13 @@
  */
 package openr66.filesystem;
 
-import java.io.File;
-import java.io.IOException;
-
 import goldengate.common.command.exception.CommandAbstractException;
 import goldengate.common.command.exception.Reply550Exception;
 import goldengate.common.file.filesystembased.FilesystemBasedDirImpl;
 import goldengate.common.file.filesystembased.FilesystemBasedOptsMLSxImpl;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
  * @author frederic bregier
@@ -55,23 +55,27 @@ public class R66Dir extends FilesystemBasedDirImpl {
 
     /**
      * Same as setUnique() except that File will be prefixed by filename
+     *
      * @param filename
      * @return the R66File with a unique filename and a temporary extension
      * @throws CommandAbstractException
      */
-    public synchronized R66File setUniqueFile(String filename) throws CommandAbstractException {
+    public synchronized R66File setUniqueFile(String filename)
+            throws CommandAbstractException {
         checkIdentify();
         File file = null;
-        String prename = System.currentTimeMillis()+"_";
+        String prename = System.currentTimeMillis() + "_";
         try {
-            file = File.createTempFile(prename,
-                    "_"+filename+".stou", getFileFromPath(currentDir));
+            file = File.createTempFile(prename, "_" + filename + ".stou",
+                    getFileFromPath(currentDir));
         } catch (IOException e) {
-            throw new Reply550Exception("Cannot create unique file from "+filename);
+            throw new Reply550Exception("Cannot create unique file from " +
+                    filename);
         }
         String currentFile = getRelativePath(file);
         return newFile(normalizePath(currentFile), false);
     }
+
     /**
      *
      * @param file
@@ -85,7 +89,9 @@ public class R66Dir extends FilesystemBasedDirImpl {
         }
         return finalpath;
     }
+
+    @Override
     public String toString() {
-        return "Dir: "+this.currentDir;
+        return "Dir: " + currentDir;
     }
 }

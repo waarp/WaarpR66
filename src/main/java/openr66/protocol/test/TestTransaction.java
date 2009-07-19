@@ -79,8 +79,7 @@ public class TestTransaction implements Runnable {
     public void run() {
         LocalChannelReference localChannelReference = null;
         OpenR66ProtocolException lastException = null;
-        for (int i = 0; i < Configuration.RETRYNB; i++)
-        {
+        for (int i = 0; i < Configuration.RETRYNB; i ++) {
             try {
                 localChannelReference = networkTransaction
                         .createConnection(socketAddress);
@@ -99,12 +98,12 @@ public class TestTransaction implements Runnable {
             }
         }
         if (localChannelReference == null) {
-            logger.error("Cannot connect: "+lastException.getMessage());
+            logger.error("Cannot connect: " + lastException.getMessage());
             future.setResult(null);
             future.setFailure(lastException);
             return;
         } else if (lastException != null) {
-            logger.warn("Connection retry since ",lastException);
+            logger.warn("Connection retry since ", lastException);
         }
         NetworkPacket networkPacket;
         try {
@@ -117,16 +116,17 @@ public class TestTransaction implements Runnable {
             Channels.close(localChannelReference.getLocalChannel());
             return;
         }
-        Channels.write(localChannelReference.getNetworkChannel(),
-                networkPacket);
+        Channels
+                .write(localChannelReference.getNetworkChannel(), networkPacket);
         localChannelReference.getFutureAction().awaitUninterruptibly();
         if (localChannelReference.getFutureAction().isSuccess()) {
-            future
-                    .setResult(localChannelReference.getFutureAction().getResult());
+            future.setResult(localChannelReference.getFutureAction()
+                    .getResult());
             future.setSuccess();
         } else {
             future.setResult(null);
-            Throwable throwable = localChannelReference.getFutureAction().getCause();
+            Throwable throwable = localChannelReference.getFutureAction()
+                    .getCause();
             if (throwable == null) {
                 future.cancel();
             } else {
@@ -142,13 +142,15 @@ public class TestTransaction implements Runnable {
             logger = GgInternalLoggerFactory.getLogger(TestTransaction.class);
         }
         if (args.length < 1) {
-            logger.error("Needs at least the configuration file as first argument");
+            logger
+                    .error("Needs at least the configuration file as first argument");
             return;
         }
-        Configuration.configuration.fileBasedConfiguration =
-            new R66FileBasedConfiguration();
-        if (! Configuration.configuration.fileBasedConfiguration.setConfigurationFromXml(args[0])) {
-            logger.error("Needs a correct configuration file as first argument");
+        Configuration.configuration.fileBasedConfiguration = new R66FileBasedConfiguration();
+        if (!Configuration.configuration.fileBasedConfiguration
+                .setConfigurationFromXml(args[0])) {
+            logger
+                    .error("Needs a correct configuration file as first argument");
             return;
         }
         Configuration.configuration.pipelineInit();

@@ -51,7 +51,8 @@ public class LocalTransaction {
             LocalChannelReference localChannelReference = localChannelHashMap
                     .remove(future.getChannel().getId());
             if (localChannelReference != null) {
-                localChannelReference.validateConnection(false, "While closing Local Channel");
+                localChannelReference.validateConnection(false,
+                        "While closing Local Channel");
             }
         }
     };
@@ -168,10 +169,10 @@ public class LocalTransaction {
         }
         while (iterator.hasNext()) {
             LocalChannelReference localChannelReference = iterator.next();
-            logger.info("Inform Shutdown "+localChannelReference.toString());
-            NetworkPacket message = new NetworkPacket(localChannelReference.getLocalId(),
-                        localChannelReference.getRemoteId(),
-                        packet.getType(),buffer.duplicate());
+            logger.info("Inform Shutdown " + localChannelReference.toString());
+            NetworkPacket message = new NetworkPacket(localChannelReference
+                    .getLocalId(), localChannelReference.getRemoteId(), packet
+                    .getType(), buffer.duplicate());
             Channels.write(localChannelReference.getNetworkChannel(), message);
         }
     }

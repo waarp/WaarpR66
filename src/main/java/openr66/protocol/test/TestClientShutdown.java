@@ -57,13 +57,15 @@ public class TestClientShutdown {
         final GgInternalLogger logger = GgInternalLoggerFactory
                 .getLogger(TestClientShutdown.class);
         if (args.length < 1) {
-            logger.error("Needs at least the configuration file as first argument");
+            logger
+                    .error("Needs at least the configuration file as first argument");
             return;
         }
-        Configuration.configuration.fileBasedConfiguration =
-            new R66FileBasedConfiguration();
-        if (! Configuration.configuration.fileBasedConfiguration.setConfigurationFromXml(args[0])) {
-            logger.error("Needs a correct configuration file as first argument");
+        Configuration.configuration.fileBasedConfiguration = new R66FileBasedConfiguration();
+        if (!Configuration.configuration.fileBasedConfiguration
+                .setConfigurationFromXml(args[0])) {
+            logger
+                    .error("Needs a correct configuration file as first argument");
             return;
         }
         Configuration.configuration.pipelineInit();
@@ -75,8 +77,7 @@ public class TestClientShutdown {
                 Configuration.configuration.SERVER_PORT);
         LocalChannelReference localChannelReference = null;
         OpenR66ProtocolException lastException = null;
-        for (int i = 0; i < Configuration.RETRYNB; i++)
-        {
+        for (int i = 0; i < Configuration.RETRYNB; i ++) {
             try {
                 localChannelReference = networkTransaction
                         .createConnection(socketServerAddress);
@@ -99,24 +100,25 @@ public class TestClientShutdown {
             networkTransaction.closeAll();
             return;
         } else if (lastException != null) {
-            logger.warn("Connection retry since ",lastException);
+            logger.warn("Connection retry since ", lastException);
         }
         final NetworkPacket networkPacket = new NetworkPacket(
-                localChannelReference
-                .getLocalId(), localChannelReference.getRemoteId(), packet);
+                localChannelReference.getLocalId(), localChannelReference
+                        .getRemoteId(), packet);
         logger.warn("START");
-        Channels.write(localChannelReference.getNetworkChannel(),
-                networkPacket);
+        Channels
+                .write(localChannelReference.getNetworkChannel(), networkPacket);
         localChannelReference.getFutureAction().awaitUninterruptibly();
         if (localChannelReference.getFutureAction().isSuccess()) {
             logger.warn("Shutdown OK");
         } else {
-            if ((localChannelReference.getFutureAction().getResult() instanceof ValidPacket) &&
-                (((ValidPacket) localChannelReference.getFutureAction().getResult()).getTypeValid()
-                        == LocalPacketFactory.SHUTDOWNPACKET)) {
-                    logger.warn("Shutdown command OK");
+            if (localChannelReference.getFutureAction().getResult() instanceof ValidPacket &&
+                    ((ValidPacket) localChannelReference.getFutureAction()
+                            .getResult()).getTypeValid() == LocalPacketFactory.SHUTDOWNPACKET) {
+                logger.warn("Shutdown command OK");
             } else {
-                logger.warn("Cannot Shutdown", localChannelReference.getFutureAction().getCause());
+                logger.warn("Cannot Shutdown", localChannelReference
+                        .getFutureAction().getCause());
             }
         }
         networkTransaction.closeAll();

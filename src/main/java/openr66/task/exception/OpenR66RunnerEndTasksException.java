@@ -1,7 +1,7 @@
 /**
  *
  */
-package openr66.protocol.exception;
+package openr66.task.exception;
 
 /**
  * Runner exception in end of tasks status

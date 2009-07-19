@@ -24,6 +24,7 @@ import goldengate.common.command.exception.CommandAbstractException;
 import goldengate.common.exception.FileEndOfTransferException;
 import goldengate.common.exception.FileTransferException;
 import goldengate.common.file.DataBlock;
+import goldengate.common.file.filesystembased.FilesystemBasedDirImpl;
 import goldengate.common.file.filesystembased.FilesystemBasedFileImpl;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
@@ -39,11 +40,11 @@ import java.nio.channels.FileChannel;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
-import openr66.protocol.exception.OpenR66RunnerErrorException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.networkhandler.NetworkServerHandler;
 import openr66.protocol.utils.ChannelUtils;
 import openr66.task.TaskRunner;
+import openr66.task.exception.OpenR66RunnerErrorException;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
@@ -60,6 +61,7 @@ public class R66File extends FilesystemBasedFileImpl {
             .getLogger(R66File.class);
 
     private boolean isExternal = false;
+
     /**
      * @param session
      * @param dir
@@ -80,7 +82,9 @@ public class R66File extends FilesystemBasedFileImpl {
     @Override
     public void trueRetrieve() {
     }
-    public void retrieveBlocking() throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException {
+
+    public void retrieveBlocking() throws OpenR66RunnerErrorException,
+            OpenR66ProtocolSystemException {
         try {
             if (!isReady) {
                 return;
@@ -92,28 +96,28 @@ public class R66File extends FilesystemBasedFileImpl {
                 // Last block (in fact, previous block was the last one,
                 // but it could be aligned with the block size so not
                 // detected)
-                this.getSession().setFinalizeTransfer(true, this);
+                getSession().setFinalizeTransfer(true, this);
                 return;
             }
             if (block == null) {
                 // Last block (in fact, previous block was the last one,
                 // but it could be aligned with the block size so not
                 // detected)
-                this.getSession().setFinalizeTransfer(true, this);
+                getSession().setFinalizeTransfer(true, this);
                 return;
             }
             // While not last block
-            LocalChannelReference localChannelReference =
-                this.getSession().getLocalChannelReference();
-            Channel networkChannel =
-                localChannelReference.getNetworkChannel();
-            NetworkServerHandler serverHandler =
-                localChannelReference.getNetworkServerHandler();
-            TaskRunner runner = this.getSession().getRunner();
+            LocalChannelReference localChannelReference = getSession()
+                    .getLocalChannelReference();
+            Channel networkChannel = localChannelReference.getNetworkChannel();
+            NetworkServerHandler serverHandler = localChannelReference
+                    .getNetworkServerHandler();
+            TaskRunner runner = getSession().getRunner();
 
             ChannelFuture future = null;
             while (block != null && !block.isEOF()) {
-                future = ChannelUtils.writeBack(localChannelReference, runner, networkChannel, block);
+                future = ChannelUtils.writeBack(localChannelReference, runner,
+                        networkChannel, block);
                 // Test if channel is writable in order to prevent OOM
                 if (networkChannel.isWritable()) {
                     try {
@@ -121,7 +125,7 @@ public class R66File extends FilesystemBasedFileImpl {
                     } catch (FileEndOfTransferException e) {
                         // Wait for last write
                         future.awaitUninterruptibly();
-                        this.getSession().setFinalizeTransfer(true, this);
+                        getSession().setFinalizeTransfer(true, this);
                         return;
                     }
                 } else {
@@ -133,7 +137,7 @@ public class R66File extends FilesystemBasedFileImpl {
                         } catch (InterruptedException e) {
                             // Exception while waiting
                             future.awaitUninterruptibly();
-                            this.getSession().setFinalizeTransfer(false, e);
+                            getSession().setFinalizeTransfer(false, e);
                             return;
                         }
                     }
@@ -142,27 +146,28 @@ public class R66File extends FilesystemBasedFileImpl {
                     } catch (FileEndOfTransferException e) {
                         // Wait for last write
                         future.awaitUninterruptibly();
-                        this.getSession().setFinalizeTransfer(true, this);
+                        getSession().setFinalizeTransfer(true, this);
                         return;
                     }
                 }
             }
             // Last block
             if (block != null) {
-                future = ChannelUtils.writeBack(localChannelReference, runner, networkChannel, block);
+                future = ChannelUtils.writeBack(localChannelReference, runner,
+                        networkChannel, block);
             }
             // Wait for last write
             if (future != null) {
                 future.awaitUninterruptibly();
-                this.getSession().setFinalizeTransfer(true, this);
+                getSession().setFinalizeTransfer(true, this);
                 return;
             }
         } catch (FileTransferException e) {
             // An error occurs!
-            this.getSession().setFinalizeTransfer(false, e);
+            getSession().setFinalizeTransfer(false, e);
         } catch (OpenR66ProtocolPacketException e) {
             // An error occurs!
-            this.getSession().setFinalizeTransfer(false, e);
+            getSession().setFinalizeTransfer(false, e);
         }
     }
 
@@ -184,36 +189,44 @@ public class R66File extends FilesystemBasedFileImpl {
     }
 
     public String getBasename() {
-        return getBasename(this.currentFile);
+        return getBasename(currentFile);
     }
+
     public static String getBasename(String path) {
         File file = new File(path);
         return file.getName();
     }
+
     @Override
     public R66Session getSession() {
-        return (R66Session) this.session;
+        return (R66Session) session;
     }
 
-    /* (non-Javadoc)
-     * @see goldengate.common.file.filesystembased.FilesystemBasedFileImpl#canRead()
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * goldengate.common.file.filesystembased.FilesystemBasedFileImpl#canRead()
      */
     @Override
     public boolean canRead() throws CommandAbstractException {
         if (isExternal) {
-            File file = new File(this.currentFile);
+            File file = new File(currentFile);
             return file.canRead();
         }
         return super.canRead();
     }
 
-    /* (non-Javadoc)
-     * @see goldengate.common.file.filesystembased.FilesystemBasedFileImpl#canWrite()
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * goldengate.common.file.filesystembased.FilesystemBasedFileImpl#canWrite()
      */
     @Override
     public boolean canWrite() throws CommandAbstractException {
         if (isExternal) {
-            File file = new File(this.currentFile);
+            File file = new File(currentFile);
             if (file.exists()) {
                 return file.canWrite();
             }
@@ -222,13 +235,16 @@ public class R66File extends FilesystemBasedFileImpl {
         return super.canWrite();
     }
 
-    /* (non-Javadoc)
-     * @see goldengate.common.file.filesystembased.FilesystemBasedFileImpl#delete()
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * goldengate.common.file.filesystembased.FilesystemBasedFileImpl#delete()
      */
     @Override
     public boolean delete() throws CommandAbstractException {
         if (isExternal) {
-            File file = new File(this.currentFile);
+            File file = new File(currentFile);
             checkIdentify();
             if (!isReady) {
                 return false;
@@ -242,24 +258,31 @@ public class R66File extends FilesystemBasedFileImpl {
         return super.delete();
     }
 
-    /* (non-Javadoc)
-     * @see goldengate.common.file.filesystembased.FilesystemBasedFileImpl#exists()
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * goldengate.common.file.filesystembased.FilesystemBasedFileImpl#exists()
      */
     @Override
     public boolean exists() throws CommandAbstractException {
         if (isExternal) {
-            File file = new File(this.currentFile);
+            File file = new File(currentFile);
             return file.exists();
         }
         return super.exists();
     }
 
-    /* (non-Javadoc)
-     * @see goldengate.common.file.filesystembased.FilesystemBasedFileImpl#getFileChannel(boolean)
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * goldengate.common.file.filesystembased.FilesystemBasedFileImpl#getFileChannel
+     * (boolean)
      */
     @Override
     protected FileChannel getFileChannel(boolean isOut) {
-        if (! isExternal) {
+        if (!isExternal) {
             return super.getFileChannel(isOut);
         }
         if (!isReady) {
@@ -299,48 +322,62 @@ public class R66File extends FilesystemBasedFileImpl {
         return fileChannel;
     }
 
-    /* (non-Javadoc)
-     * @see goldengate.common.file.filesystembased.FilesystemBasedFileImpl#isDirectory()
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * goldengate.common.file.filesystembased.FilesystemBasedFileImpl#isDirectory
+     * ()
      */
     @Override
     public boolean isDirectory() throws CommandAbstractException {
         if (isExternal) {
-            File dir = new File(this.currentFile);
+            File dir = new File(currentFile);
             return dir.isDirectory();
         }
         return super.isDirectory();
     }
 
-    /* (non-Javadoc)
-     * @see goldengate.common.file.filesystembased.FilesystemBasedFileImpl#isFile()
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * goldengate.common.file.filesystembased.FilesystemBasedFileImpl#isFile()
      */
     @Override
     public boolean isFile() throws CommandAbstractException {
         if (isExternal) {
-            File file = new File(this.currentFile);
+            File file = new File(currentFile);
             return file.isFile();
         }
         return super.isFile();
     }
 
-    /* (non-Javadoc)
-     * @see goldengate.common.file.filesystembased.FilesystemBasedFileImpl#length()
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * goldengate.common.file.filesystembased.FilesystemBasedFileImpl#length()
      */
     @Override
     public long length() throws CommandAbstractException {
         if (isExternal) {
-            File file = new File(this.currentFile);
+            File file = new File(currentFile);
             return file.length();
         }
         return super.length();
     }
 
-    /* (non-Javadoc)
-     * @see goldengate.common.file.filesystembased.FilesystemBasedFileImpl#renameTo(java.lang.String)
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * goldengate.common.file.filesystembased.FilesystemBasedFileImpl#renameTo
+     * (java.lang.String)
      */
     @Override
     public boolean renameTo(String path) throws CommandAbstractException {
-        if (! isExternal) {
+        if (!isExternal) {
             return super.renameTo(path);
         }
         checkIdentify();
@@ -383,13 +420,16 @@ public class R66File extends FilesystemBasedFileImpl {
 
     /**
      * Move the current file to the path as destination
+     *
      * @param path
-     * @param external if True, the path is outside authentication control
+     * @param external
+     *            if True, the path is outside authentication control
      * @return True if the operation is done
      * @throws CommandAbstractException
      */
-    public boolean renameTo(String path, boolean external) throws CommandAbstractException {
-        if (! external) {
+    public boolean renameTo(String path, boolean external)
+            throws CommandAbstractException {
+        if (!external) {
             return renameTo(path);
         }
         checkIdentify();
@@ -421,7 +461,7 @@ public class R66File extends FilesystemBasedFileImpl {
                         return false;
                     }
                 }
-                currentFile = R66Dir.normalizePath(newFile.getAbsolutePath());
+                currentFile = FilesystemBasedDirImpl.normalizePath(newFile.getAbsolutePath());
                 isExternal = true;
                 isReady = true;
                 return true;
@@ -431,19 +471,27 @@ public class R66File extends FilesystemBasedFileImpl {
     }
 
     /**
-     * Replace the current file with the new filename after closing the previous one.
+     * Replace the current file with the new filename after closing the previous
+     * one.
+     *
      * @param filename
      * @param isExternal
      * @throws CommandAbstractException
      */
-    public void replaceFilename(String filename, boolean isExternal) throws CommandAbstractException {
-        this.closeFile();
-        this.currentFile = filename;
+    public void replaceFilename(String filename, boolean isExternal)
+            throws CommandAbstractException {
+        closeFile();
+        currentFile = filename;
         this.isExternal = isExternal;
-        this.isReady = true;
+        isReady = true;
     }
-    /* (non-Javadoc)
-     * @see goldengate.common.file.filesystembased.FilesystemBasedFileImpl#closeFile()
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * goldengate.common.file.filesystembased.FilesystemBasedFileImpl#closeFile
+     * ()
      */
     @Override
     public boolean closeFile() throws CommandAbstractException {
@@ -453,7 +501,9 @@ public class R66File extends FilesystemBasedFileImpl {
         return status;
     }
 
+    @Override
     public String toString() {
-        return "File: "+this.currentFile+" Ready "+this.isReady+" "+this.getPosition();
+        return "File: " + currentFile + " Ready " + isReady + " " +
+                getPosition();
     }
 }

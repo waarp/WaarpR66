@@ -52,22 +52,27 @@ public class NetworkTransaction {
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(NetworkTransaction.class);
+
     /**
      * Hashmap for Currently Shutdown remote host
      */
     private static final ConcurrentHashMap<Integer, NetworkChannel> networkChannelShutdownOnSocketAddressConcurrentHashMap = new ConcurrentHashMap<Integer, NetworkChannel>();
+
     /**
      * Hashmap for currently active remote host
      */
     private static final ConcurrentHashMap<Integer, NetworkChannel> networkChannelOnSocketAddressConcurrentHashMap = new ConcurrentHashMap<Integer, NetworkChannel>();
+
     /**
      * Lock for NetworkChannel operations
      */
     private static final ReentrantLock lock = new ReentrantLock();
+
     /**
      * ExecutorService for RetrieveOperation
      */
-    private static final ExecutorService retrieveExecutor = Executors.newCachedThreadPool();
+    private static final ExecutorService retrieveExecutor = Executors
+            .newCachedThreadPool();
 
     /**
      * ExecutorService Server Boss
@@ -82,7 +87,8 @@ public class NetworkTransaction {
             .newCachedThreadPool();
 
     private final ChannelFactory channelClientFactory = new NioClientSocketChannelFactory(
-            execServerBoss, execServerWorker, Configuration.configuration.SERVER_THREAD);
+            execServerBoss, execServerWorker,
+            Configuration.configuration.SERVER_THREAD);
 
     private final ClientBootstrap clientBootstrap = new ClientBootstrap(
             channelClientFactory);
@@ -96,7 +102,9 @@ public class NetworkTransaction {
     }
 
     public LocalChannelReference createConnection(SocketAddress socketAddress)
-            throws OpenR66ProtocolNetworkException, OpenR66ProtocolRemoteShutdownException, OpenR66ProtocolNoConnectionException {
+            throws OpenR66ProtocolNetworkException,
+            OpenR66ProtocolRemoteShutdownException,
+            OpenR66ProtocolNoConnectionException {
         lock.lock();
         try {
             Channel channel = createNewConnection(socketAddress);
@@ -109,10 +117,12 @@ public class NetworkTransaction {
     }
 
     private Channel createNewConnection(SocketAddress socketServerAddress)
-            throws OpenR66ProtocolNetworkException, OpenR66ProtocolRemoteShutdownException, OpenR66ProtocolNoConnectionException {
-        if (! isAddressValid(socketServerAddress)) {
+            throws OpenR66ProtocolNetworkException,
+            OpenR66ProtocolRemoteShutdownException,
+            OpenR66ProtocolNoConnectionException {
+        if (!isAddressValid(socketServerAddress)) {
             throw new OpenR66ProtocolRemoteShutdownException(
-                "Cannot connect to remote server since it is shutting down");
+                    "Cannot connect to remote server since it is shutting down");
         }
         NetworkChannel networkChannel;
         try {
@@ -137,9 +147,11 @@ public class NetworkTransaction {
                 return channel;
             } else {
                 if (channelFuture.getCause() instanceof ConnectException) {
-                    logger.error("KO CONNECT:"+channelFuture.getCause().getMessage());
+                    logger.error("KO CONNECT:" +
+                            channelFuture.getCause().getMessage());
                     throw new OpenR66ProtocolNoConnectionException(
-                            "Cannot connect to remote server", channelFuture.getCause());
+                            "Cannot connect to remote server", channelFuture
+                                    .getCause());
                 }
             }
             try {
@@ -154,8 +166,9 @@ public class NetworkTransaction {
     }
 
     private LocalChannelReference createNewClient(Channel channel)
-            throws OpenR66ProtocolNetworkException, OpenR66ProtocolRemoteShutdownException {
-        //FIXME WARNING
+            throws OpenR66ProtocolNetworkException,
+            OpenR66ProtocolRemoteShutdownException {
+        // FIXME WARNING
         if (!channel.isConnected()) {
             throw new OpenR66ProtocolNetworkException(
                     "Network channel no more connected");
@@ -175,9 +188,10 @@ public class NetworkTransaction {
 
     private void sendValidationConnection(
             LocalChannelReference localChannelReference)
-            throws OpenR66ProtocolNetworkException, OpenR66ProtocolRemoteShutdownException {
-        AuthentPacket authent = new AuthentPacket(Configuration.configuration.HOST_ID,
-                R66Auth.getServerAuth(),
+            throws OpenR66ProtocolNetworkException,
+            OpenR66ProtocolRemoteShutdownException {
+        AuthentPacket authent = new AuthentPacket(
+                Configuration.configuration.HOST_ID, R66Auth.getServerAuth(),
                 localChannelReference.getLocalId());
         NetworkPacket packet;
         try {
@@ -190,21 +204,23 @@ public class NetworkTransaction {
                 .awaitUninterruptibly();
         R66Future future = localChannelReference.getFutureValidateConnection();
         if (future.isCancelled()) {
-            logger.info("Will close NETWORK channel since Future cancelled: "+future.toString());
+            logger.info("Will close NETWORK channel since Future cancelled: " +
+                    future.toString());
             throw new OpenR66ProtocolNetworkException(
-                    "Cannot validate connection: "+future.getResult(), future.getCause());
+                    "Cannot validate connection: " + future.getResult(), future
+                            .getCause());
         }
     }
 
     public static void runRetrieve(R66Session session, Channel channel) {
-        RetrieveRunner retrieveRunner =
-            new RetrieveRunner(session, channel);
+        RetrieveRunner retrieveRunner = new RetrieveRunner(session, channel);
         retrieveExecutor.execute(retrieveRunner);
     }
 
     public static void closeRetrieveExecutors() {
         retrieveExecutor.shutdownNow();
     }
+
     public void closeAll() {
         logger.warn("close All Network Channels");
         closeRetrieveExecutors();
@@ -213,11 +229,13 @@ public class NetworkTransaction {
         channelClientFactory.releaseExternalResources();
     }
 
-    public static void addNetworkChannel(Channel channel) throws OpenR66ProtocolRemoteShutdownException {
+    public static void addNetworkChannel(Channel channel)
+            throws OpenR66ProtocolRemoteShutdownException {
         lock.lock();
         try {
-            if (! isAddressValid(channel.getRemoteAddress())) {
-                throw new OpenR66ProtocolRemoteShutdownException("Channel is already in shutdown");
+            if (!isAddressValid(channel.getRemoteAddress())) {
+                throw new OpenR66ProtocolRemoteShutdownException(
+                        "Channel is already in shutdown");
             }
             putRemoteChannel(channel);
         } finally {
@@ -226,42 +244,44 @@ public class NetworkTransaction {
     }
 
     public static void shuttingdownNetworkChannel(Channel channel) {
-        /*lock.lock();
-        try {*/
-            SocketAddress address = channel.getRemoteAddress();
-            if (address != null){
-                NetworkChannel networkChannel = networkChannelShutdownOnSocketAddressConcurrentHashMap
+        /*
+         * lock.lock(); try {
+         */
+        SocketAddress address = channel.getRemoteAddress();
+        if (address != null) {
+            NetworkChannel networkChannel = networkChannelShutdownOnSocketAddressConcurrentHashMap
                     .get(address.hashCode());
-                if (networkChannel != null) {
-                    // already done
-                    logger.info("Already set as shutdown");
-                    return;
-                }
-                networkChannel = networkChannelOnSocketAddressConcurrentHashMap
-                    .get(address.hashCode());
-                if (networkChannel != null) {
-                    logger.info("Set as shutdown");
-                } else {
-                    logger.info("Newly Set as shutdown");
-                    networkChannel = new NetworkChannel(channel);
-                }
-                networkChannel.isShuttingDown = true;
-                networkChannelShutdownOnSocketAddressConcurrentHashMap.put(address.hashCode(),
-                    networkChannel);
-                logger.info("Add NC to shutdown hashmap");
-                Timer timer = new Timer(true);
-                final R66TimerTask timerTask = new R66TimerTask(address.hashCode());
-                timer.schedule(timerTask, Configuration.configuration.TIMEOUTCON * 2);
+            if (networkChannel != null) {
+                // already done
+                logger.info("Already set as shutdown");
+                return;
             }
-        /*} finally {
-            lock.unlock();
-        }*/
+            networkChannel = networkChannelOnSocketAddressConcurrentHashMap
+                    .get(address.hashCode());
+            if (networkChannel != null) {
+                logger.info("Set as shutdown");
+            } else {
+                logger.info("Newly Set as shutdown");
+                networkChannel = new NetworkChannel(channel);
+            }
+            networkChannel.isShuttingDown = true;
+            networkChannelShutdownOnSocketAddressConcurrentHashMap.put(address
+                    .hashCode(), networkChannel);
+            logger.info("Add NC to shutdown hashmap");
+            Timer timer = new Timer(true);
+            final R66TimerTask timerTask = new R66TimerTask(address.hashCode());
+            timer.schedule(timerTask,
+                    Configuration.configuration.TIMEOUTCON * 2);
+        }
+        /*
+         * } finally { lock.unlock(); }
+         */
     }
 
     public static boolean isShuttingdownNetworkChannel(Channel channel) {
         lock.lock();
         try {
-            return (! isAddressValid(channel.getRemoteAddress()));
+            return !isAddressValid(channel.getRemoteAddress());
         } finally {
             lock.unlock();
         }
@@ -271,14 +291,15 @@ public class NetworkTransaction {
         lock.lock();
         try {
             SocketAddress address = channel.getRemoteAddress();
-            if (address != null){
+            if (address != null) {
                 NetworkChannel networkChannel = networkChannelOnSocketAddressConcurrentHashMap
-                    .get(address.hashCode());
+                        .get(address.hashCode());
                 if (networkChannel != null) {
-                    if ((networkChannel.count--) <= 0) {
+                    if (networkChannel.count -- <= 0) {
                         networkChannelOnSocketAddressConcurrentHashMap
                                 .remove(address.hashCode());
-                        logger.warn("Will close NETWORK channel Close network channel");
+                        logger
+                                .warn("Will close NETWORK channel Close network channel");
                         Channels.close(channel).awaitUninterruptibly();
                         return 0;
                     }
@@ -300,7 +321,7 @@ public class NetworkTransaction {
 
     public static int getNbLocalChannel(Channel channel) {
         SocketAddress address = channel.getRemoteAddress();
-        if (address != null){
+        if (address != null) {
             NetworkChannel networkChannel = networkChannelOnSocketAddressConcurrentHashMap
                     .get(address.hashCode());
             if (networkChannel != null) {
@@ -311,90 +332,98 @@ public class NetworkTransaction {
     }
 
     /**
-    *
-    * @param address
-    * @return True if this socket Address is currently valid for connection
-    */
-   private static boolean isAddressValid(SocketAddress address) {
-       if (OpenR66SignalHandler.isInShutdown()) {
-           logger.info("IS IN SHUTDOWN");
-           return false;
-       }
-       if (address == null) {
-           logger.info("ADDRESS IS NULL");
-           return false;
-       }
-       try {
-           NetworkChannel networkChannel = getRemoteChannel(address);
-           logger.info("IS IN SHUTDOWN: "+networkChannel.isShuttingDown);
-           return (! networkChannel.isShuttingDown);
-       } catch (OpenR66ProtocolRemoteShutdownException e) {
-           logger.info("ALREADY IN SHUTDOWN");
-           return false;
-       } catch (OpenR66ProtocolNoDataException e) {
-           logger.info("NOT FOUND SO NO SHUTDOWN");
-           return true;
-       }
-   }
+     *
+     * @param address
+     * @return True if this socket Address is currently valid for connection
+     */
+    private static boolean isAddressValid(SocketAddress address) {
+        if (OpenR66SignalHandler.isInShutdown()) {
+            logger.info("IS IN SHUTDOWN");
+            return false;
+        }
+        if (address == null) {
+            logger.info("ADDRESS IS NULL");
+            return false;
+        }
+        try {
+            NetworkChannel networkChannel = getRemoteChannel(address);
+            logger.info("IS IN SHUTDOWN: " + networkChannel.isShuttingDown);
+            return !networkChannel.isShuttingDown;
+        } catch (OpenR66ProtocolRemoteShutdownException e) {
+            logger.info("ALREADY IN SHUTDOWN");
+            return false;
+        } catch (OpenR66ProtocolNoDataException e) {
+            logger.info("NOT FOUND SO NO SHUTDOWN");
+            return true;
+        }
+    }
 
-   public static NetworkChannel getRemoteChannel(SocketAddress address) throws OpenR66ProtocolRemoteShutdownException, OpenR66ProtocolNoDataException {
-       if (address == null) {
-           throw new OpenR66ProtocolRemoteShutdownException("Remote Host already in shutdown");
-       }
-       NetworkChannel nc = networkChannelShutdownOnSocketAddressConcurrentHashMap
-           .get(address.hashCode());
-       if (nc != null) {
-           throw new OpenR66ProtocolRemoteShutdownException("Remote Host already in shutdown");
-       }
-       nc = networkChannelOnSocketAddressConcurrentHashMap
-           .get(address.hashCode());
-       if (nc == null) {
-           throw new OpenR66ProtocolNoDataException("Channel not found");
-       }
-       return nc;
-   }
+    public static NetworkChannel getRemoteChannel(SocketAddress address)
+            throws OpenR66ProtocolRemoteShutdownException,
+            OpenR66ProtocolNoDataException {
+        if (address == null) {
+            throw new OpenR66ProtocolRemoteShutdownException(
+                    "Remote Host already in shutdown");
+        }
+        NetworkChannel nc = networkChannelShutdownOnSocketAddressConcurrentHashMap
+                .get(address.hashCode());
+        if (nc != null) {
+            throw new OpenR66ProtocolRemoteShutdownException(
+                    "Remote Host already in shutdown");
+        }
+        nc = networkChannelOnSocketAddressConcurrentHashMap.get(address
+                .hashCode());
+        if (nc == null) {
+            throw new OpenR66ProtocolNoDataException("Channel not found");
+        }
+        return nc;
+    }
 
-   public static void putRemoteChannel(Channel channel) throws OpenR66ProtocolRemoteShutdownException {
-       SocketAddress address = channel.getRemoteAddress();
-       if (address != null){
-           NetworkChannel networkChannel;
-           try {
-               networkChannel = getRemoteChannel(address);
-               networkChannel.count++;
-               logger.info("NC active: " + networkChannel.toString());
-           } catch (OpenR66ProtocolRemoteShutdownException e) {
-               throw e;
-           } catch (OpenR66ProtocolNoDataException e) {
-               networkChannel = new NetworkChannel(channel);
-               networkChannelOnSocketAddressConcurrentHashMap.put(
-                       address.hashCode(), networkChannel);
-           }
-       }
-   }
+    public static void putRemoteChannel(Channel channel)
+            throws OpenR66ProtocolRemoteShutdownException {
+        SocketAddress address = channel.getRemoteAddress();
+        if (address != null) {
+            NetworkChannel networkChannel;
+            try {
+                networkChannel = getRemoteChannel(address);
+                networkChannel.count ++;
+                logger.info("NC active: " + networkChannel.toString());
+            } catch (OpenR66ProtocolRemoteShutdownException e) {
+                throw e;
+            } catch (OpenR66ProtocolNoDataException e) {
+                networkChannel = new NetworkChannel(channel);
+                networkChannelOnSocketAddressConcurrentHashMap.put(address
+                        .hashCode(), networkChannel);
+            }
+        }
+    }
 
-   /**
-    * Remover of Shutdown Remote Host
-    * @author Frederic Bregier
-    *
-    */
-   private static class R66TimerTask extends TimerTask {
-       /**
-        * href to remove
-        */
-       private final int href;
-       /**
-        * Constructor from type
-        *
-        * @param href
-        */
-       public R66TimerTask(int href) {
-           super();
-           this.href = href;
-       }
-       @Override
-       public void run() {
-           logger.warn("Remove NC from shutdown hashmap");
-           networkChannelShutdownOnSocketAddressConcurrentHashMap.remove(href);
-       }
-   }
+    /**
+     * Remover of Shutdown Remote Host
+     *
+     * @author Frederic Bregier
+     *
+     */
+    private static class R66TimerTask extends TimerTask {
+        /**
+         * href to remove
+         */
+        private final int href;
+
+        /**
+         * Constructor from type
+         *
+         * @param href
+         */
+        public R66TimerTask(int href) {
+            super();
+            this.href = href;
+        }
+
+        @Override
+        public void run() {
+            logger.warn("Remove NC from shutdown hashmap");
+            networkChannelShutdownOnSocketAddressConcurrentHashMap.remove(href);
+        }
+    }
 }

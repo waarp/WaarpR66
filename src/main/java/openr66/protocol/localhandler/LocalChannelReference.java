@@ -54,8 +54,8 @@ public class LocalChannelReference {
             Integer remoteId) {
         this.localChannel = localChannel;
         this.networkChannel = networkChannel;
-        this.networkServerHandler =
-            (NetworkServerHandler) this.networkChannel.getPipeline().getLast();
+        networkServerHandler = (NetworkServerHandler) this.networkChannel
+                .getPipeline().getLast();
         localId = this.localChannel.getId();
         this.remoteId = remoteId;
     }
@@ -137,7 +137,7 @@ public class LocalChannelReference {
      */
     public R66Future getFutureValidateConnection() {
         if (!futureValidate
-                .awaitUninterruptibly(Configuration.WAITFORNETOP*2)) {
+                .awaitUninterruptibly(Configuration.WAITFORNETOP * 2)) {
             validateConnection(false, "Out of time");
             return futureValidate;
         }
@@ -157,6 +157,7 @@ public class LocalChannelReference {
             }
         }
     }
+
     @Override
     public String toString() {
         return "LCR: L: " + localId + " R: " + remoteId;
