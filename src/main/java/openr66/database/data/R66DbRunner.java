@@ -20,14 +20,22 @@
  */
 package openr66.database.data;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.sql.Types;
+import java.util.ArrayList;
 
+import openr66.database.DbConstant;
 import openr66.database.R66DbPreparedStatement;
+import openr66.database.R66DbSession;
 import openr66.database.exception.OpenR66DatabaseException;
+import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.filesystem.R66Rule;
 import openr66.filesystem.R66Session;
+import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.task.TaskRunner;
 import openr66.task.TaskRunner.TaskStatus;
 
@@ -36,10 +44,23 @@ import openr66.task.TaskRunner.TaskStatus;
  *
  */
 public class R66DbRunner extends AbstractDbData {
-    private static enum Columns {
-        globalstep, step, rank, stepstatus, retrievemode, filename, ismoved, idrule, start, stop, specialid;
+    public static enum Columns {
+        globalstep, step, rank, stepstatus, retrievemode, filename, ismoved, idrule,
+        blocksize, originalname, fileinfo, mode,
+        start, stop,
+        updatedinfo,
+        specialid;
     }
-    private static String table = " runner ";
+    public static int [] dbTypes = {
+        Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.BIT,
+        Types.VARCHAR, Types.BIT, Types.VARCHAR,
+        Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
+        Types.TIMESTAMP, Types.TIMESTAMP,
+        Types.INTEGER, Types.VARCHAR
+    };
+    public static String table = " runner ";
+    public static String tableseq = " cptrunner ";
+    public DbValue sequence = new DbValue(Long.MIN_VALUE,"runSeq");
 
 
     private int globalstep;
@@ -61,16 +82,29 @@ public class R66DbRunner extends AbstractDbData {
 
     private String ruleId;
 
+    private int blocksize;
+
+    private String originalFilename;
+
+    private String fileInformation;
+
+    private int mode;
+
     private Timestamp start;
 
     private Timestamp stop;
+
+    private int updatedInfo;
 
     private boolean isSaved = false;
 
     // ALL TABLE SHOULD IMPLEMENT THIS
     private DbValue primaryKey = new DbValue(specialId, Columns.specialid.name());
     private DbValue[] otherFields = {
-      // globalstep, step, rank, stepstatus, retrievemode, filename, ismoved, idrule, start, stop
+      // globalstep, step, rank, stepstatus, retrievemode, filename, ismoved, idrule,
+      // blocksize, originalname, fileinfo, mode,
+      // start, stop
+      // updatedinfo
       new DbValue(globalstep, Columns.globalstep.name()),
       new DbValue(step, Columns.step.name()),
       new DbValue(rank, Columns.rank.name()),
@@ -79,28 +113,41 @@ public class R66DbRunner extends AbstractDbData {
       new DbValue(filename, Columns.filename.name()),
       new DbValue(isFileMoved, Columns.ismoved.name()),
       new DbValue(ruleId, Columns.idrule.name()),
+      new DbValue(blocksize, Columns.blocksize.name()),
+      new DbValue(originalFilename, Columns.originalname.name()),
+      new DbValue(fileInformation, Columns.fileinfo.name()),
+      new DbValue(mode, Columns.mode.name()),
       new DbValue(start, Columns.start.name()),
-      new DbValue(stop, Columns.stop.name())
+      new DbValue(stop, Columns.stop.name()),
+      new DbValue(updatedInfo, Columns.updatedinfo.name())
     };
     private DbValue[] allFields = {
       otherFields[0], otherFields[1], otherFields[2], otherFields[3],
       otherFields[4], otherFields[5], otherFields[6], otherFields[7], otherFields[8],
-      otherFields[9], primaryKey
+      otherFields[9], otherFields[10], otherFields[11], otherFields[12], otherFields[13],
+      otherFields[14],
+      primaryKey
     };
     private static final String selectAllFields =
         Columns.globalstep.name()+","+Columns.step.name()+
         ","+Columns.rank.name()+","+Columns.stepstatus.name()+","+Columns.retrievemode.name()+
         ","+Columns.filename.name()+","+Columns.ismoved.name()+","+Columns.idrule.name()+
-        ","+Columns.start.name()+","+Columns.stop.name()+","+Columns.specialid.name();
+        ","+Columns.blocksize.name()+","+Columns.originalname.name()+","+Columns.fileinfo.name()+
+        ","+Columns.mode.name()+
+        ","+Columns.start.name()+","+Columns.stop.name()+
+        ","+Columns.updatedinfo.name()+
+        ","+Columns.specialid.name();
     private static final String updateAllFields =
         Columns.globalstep.name()+"=?,"+Columns.step.name()+
         "=?,"+Columns.rank.name()+"=?,"+Columns.stepstatus.name()+"=?,"+Columns.retrievemode.name()+
         "=?,"+Columns.filename.name()+"=?,"+Columns.ismoved.name()+"=?,"+Columns.idrule.name()+
-        "=?,"+Columns.start.name()+"=?,"+Columns.stop.name()+"=?";
-    private static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?) ";
-    private static String tableseq = "cptrunner";
-    private DbValue sequence = new DbValue(Long.MIN_VALUE,"runSeq");
+        "=?,"+Columns.blocksize.name()+"=?,"+Columns.originalname.name()+"=?,"+Columns.fileinfo.name()+
+        "=?,"+Columns.mode.name()+
+        "=?,"+Columns.start.name()+"=?,"+Columns.stop.name()+"=?,"+Columns.updatedinfo.name()+"=?";
+    private static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
+
     /**
+     *
      * @param specialId
      * @param globalstep
      * @param step
@@ -109,10 +156,17 @@ public class R66DbRunner extends AbstractDbData {
      * @param isRetrieve
      * @param filename
      * @param isFileMoved
+     * @param idRule
+     * @param blocksize
+     * @param originalName
+     * @param fileInfo
+     * @param mode
+     * @param updatedInfo
      */
     public R66DbRunner(long specialId, int globalstep, int step, int rank, TaskStatus status,
             boolean isRetrieve, String filename,
-            boolean isFileMoved, String idRule) {
+            boolean isFileMoved, String idRule,
+            int blocksize, String originalName, String fileInfo, int mode, int updatedInfo) {
         this.specialId = specialId;
         this.globalstep = globalstep;
         this.step = step;
@@ -123,11 +177,17 @@ public class R66DbRunner extends AbstractDbData {
         this.isFileMoved = isFileMoved;
         this.ruleId = idRule;
         this.start = new Timestamp(System.currentTimeMillis());
+        this.blocksize = blocksize;
+        this.originalFilename = originalName;
+        this.fileInformation = fileInfo;
+        this.mode = mode;
+        this.updatedInfo = updatedInfo;
         this.setToArray();
         this.isSaved = false;
     }
 
-    private void setToArray() {
+    @Override
+    protected void setToArray() {
         allFields[Columns.specialid.ordinal()].setValue(this.specialId);
         allFields[Columns.globalstep.ordinal()].setValue(this.globalstep);
         allFields[Columns.step.ordinal()].setValue(this.step);
@@ -137,11 +197,17 @@ public class R66DbRunner extends AbstractDbData {
         allFields[Columns.filename.ordinal()].setValue(this.filename);
         allFields[Columns.ismoved.ordinal()].setValue(this.isFileMoved);
         allFields[Columns.idrule.ordinal()].setValue(this.ruleId);
+        allFields[Columns.blocksize.ordinal()].setValue(this.blocksize);
+        allFields[Columns.originalname.ordinal()].setValue(this.originalFilename);
+        allFields[Columns.fileinfo.ordinal()].setValue(this.fileInformation);
+        allFields[Columns.mode.ordinal()].setValue(this.mode);
         allFields[Columns.start.ordinal()].setValue(this.start);
         this.stop = new Timestamp(System.currentTimeMillis());
         allFields[Columns.stop.ordinal()].setValue(this.stop);
+        allFields[Columns.updatedinfo.ordinal()].setValue(this.updatedInfo);
     }
-    private void setFromArray() throws OpenR66DatabaseSqlError {
+    @Override
+    protected void setFromArray() throws OpenR66DatabaseSqlError {
         this.specialId = (Long) allFields[Columns.specialid.ordinal()].getValue();
         this.globalstep = (Integer) allFields[Columns.globalstep.ordinal()].getValue();
         this.step = (Integer) allFields[Columns.step.ordinal()].getValue();
@@ -151,8 +217,13 @@ public class R66DbRunner extends AbstractDbData {
         this.filename = (String) allFields[Columns.filename.ordinal()].getValue();
         this.isFileMoved = (Boolean) allFields[Columns.ismoved.ordinal()].getValue();
         this.ruleId = (String) allFields[Columns.idrule.ordinal()].getValue();
+        this.blocksize = (Integer) allFields[Columns.blocksize.ordinal()].getValue();
+        this.originalFilename = (String) allFields[Columns.originalname.ordinal()].getValue();
+        this.fileInformation = (String) allFields[Columns.fileinfo.ordinal()].getValue();
+        this.mode = (Integer) allFields[Columns.mode.ordinal()].getValue();
         this.start = (Timestamp) allFields[Columns.start.ordinal()].getValue();
         this.stop = (Timestamp) allFields[Columns.stop.ordinal()].getValue();
+        this.updatedInfo = (Integer) allFields[Columns.updatedinfo.ordinal()].getValue();
     }
     /**
      * @param specialId
@@ -295,6 +366,18 @@ public class R66DbRunner extends AbstractDbData {
         }
     }
 
+    /* (non-Javadoc)
+     * @see openr66.database.data.AbstractDbData#changeUpdatedInfo(int)
+     */
+    @Override
+    public void changeUpdatedInfo(int status) {
+        if (this.updatedInfo != status) {
+            this.updatedInfo = status;
+            allFields[Columns.updatedinfo.ordinal()].setValue(this.updatedInfo);
+            this.isSaved = false;
+        }
+    }
+
     /**
      * @param globalstep the globalstep to set
      */
@@ -364,5 +447,73 @@ public class R66DbRunner extends AbstractDbData {
     public TaskRunner getTaskRunner(R66Session session, R66Rule rule) {
         // FIXME
         return new TaskRunner(session, rule, this.specialId);
+    }
+    public RequestPacket getRequest() {
+        // FIXME
+        return new RequestPacket(this.ruleId,this.mode,this.originalFilename,this.blocksize,this.rank,
+                this.specialId,this.fileInformation);
+    }
+
+    /**
+     *
+     * @param status the status to match or UNKNOWN for all
+     * @return All index (specialId) that match the status
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66DatabaseSqlError
+     * @throws OpenR66DatabaseNoDataException
+     */
+    public static ArrayList<Integer> getAllRunner(int status) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError, OpenR66DatabaseNoDataException {
+        R66DbPreparedStatement preparedStatement =
+            new R66DbPreparedStatement(DbConstant.admin.session);
+        R66DbRunner runner = null;
+        try {
+            runner = new R66DbRunner(DbConstant.ILLEGALVALUE);
+        } catch (OpenR66DatabaseException e) {
+            // ignore
+        }
+        try {
+            if (status == UNKNOWN) {
+                preparedStatement.createPrepareStatement("SELECT COUNT("+runner.primaryKey+") FROM "+
+                        table);
+            } else {
+                preparedStatement.createPrepareStatement("SELECT COUNT("+runner.primaryKey+") FROM "+
+                        table+" WHERE "+Columns.updatedinfo.name()+" = ?");
+                runner.allFields[Columns.updatedinfo.ordinal()].setValue(status);
+                runner.setValue(preparedStatement, runner.allFields[Columns.updatedinfo.ordinal()]);
+            }
+            preparedStatement.executeQuery();
+            int count = 0;
+            if (preparedStatement.getNext()) {
+                ResultSet rs = preparedStatement.getResultSet();
+                try {
+                    count = rs.getInt(1);
+                } catch (SQLException e) {
+                    R66DbSession.error(e);
+                    throw new OpenR66DatabaseSqlError("Getting values in error: Integer for Count", e);
+                }
+            } else {
+                throw new OpenR66DatabaseNoDataException("No row found");
+            }
+            preparedStatement.realClose();
+            ArrayList<Integer> result = new ArrayList<Integer>(count);
+            if (status == UNKNOWN) {
+                preparedStatement.createPrepareStatement("SELECT "+runner.primaryKey+" FROM "+
+                        table);
+            } else {
+                preparedStatement.createPrepareStatement("SELECT "+runner.primaryKey+" FROM "+
+                        table+" WHERE "+Columns.updatedinfo.name()+" = ?");
+                runner.allFields[Columns.updatedinfo.ordinal()].setValue(status);
+                runner.setValue(preparedStatement, runner.allFields[Columns.updatedinfo.ordinal()]);
+            }
+            preparedStatement.executeQuery();
+            while (preparedStatement.getNext()) {
+                runner.getValue(preparedStatement, runner.primaryKey);
+                Integer newval = new Integer((Integer) runner.primaryKey.value);
+                result.add(newval);
+            }
+            return result;
+        } finally {
+            preparedStatement.realClose();
+        }
     }
 }

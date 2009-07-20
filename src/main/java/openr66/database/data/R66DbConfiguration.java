@@ -22,35 +22,40 @@ package openr66.database.data;
 
 import java.sql.Types;
 
-import openr66.authentication.R66SimpleAuth;
 import openr66.database.DbConstant;
 import openr66.database.R66DbPreparedStatement;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
+import openr66.protocol.config.Configuration;
 
 /**
  * @author Frederic Bregier
  *
  */
-public class R66DbAuthent extends AbstractDbData  {
+public class R66DbConfiguration extends AbstractDbData  {
     public static enum Columns {
-        hostkey, adminrole,
-        updatedinfo,
-        hostid
+        readgloballimit, writegloballimit, readsessionlimit, writesessionlimit, delaylimit,
+        updatedinfo, hostid
     }
     public static int [] dbTypes = {
-        Types.VARBINARY, Types.BIT,
+        Types.BIGINT, Types.BIGINT, Types.BIGINT, Types.BIGINT, Types.BIGINT,
         Types.INTEGER, Types.VARCHAR
     };
-    public static String table = " hosts ";
+    public static String table = " configuration ";
 
 
     private String hostid;
 
-    private byte[] hostkey;
+    private long readgloballimit;
 
-    private boolean adminrole;
+    private long writegloballimit;
+
+    private long readsessionlimit;
+
+    private long writesessionlimit;
+
+    private long delayllimit;
 
     private int updatedInfo;
 
@@ -59,48 +64,65 @@ public class R66DbAuthent extends AbstractDbData  {
     // ALL TABLE SHOULD IMPLEMENT THIS
     private DbValue primaryKey = new DbValue(hostid, Columns.hostid.name());
     private DbValue[] otherFields = {
-      new DbValue(hostkey, Columns.hostkey.name()),
-      new DbValue(adminrole, Columns.adminrole.name()),
+      new DbValue(readgloballimit, Columns.readgloballimit.name()),
+      new DbValue(writegloballimit, Columns.writegloballimit.name()),
+      new DbValue(readsessionlimit, Columns.readsessionlimit.name()),
+      new DbValue(writesessionlimit, Columns.writesessionlimit.name()),
+      new DbValue(delayllimit, Columns.delaylimit.name()),
       new DbValue(updatedInfo, Columns.updatedinfo.name())
     };
     private DbValue[] allFields = {
-      otherFields[0], otherFields[1], otherFields[2], primaryKey
+      otherFields[0], otherFields[1], otherFields[2],
+      otherFields[3], otherFields[4], otherFields[5], primaryKey
     };
     private static final String selectAllFields =
-        Columns.hostkey.name()+","+Columns.adminrole.name()+
-        ","+Columns.updatedinfo.name()+
+        Columns.readgloballimit.name()+","+Columns.writegloballimit.name()+
+        ","+Columns.readsessionlimit.name()+","+Columns.writesessionlimit.name()+
+        ","+Columns.delaylimit.name()+","+Columns.updatedinfo.name()+
         ","+Columns.hostid.name();
     private static final String updateAllFields =
-        Columns.hostkey.name()+"=?,"+Columns.adminrole.name()+
-        "=?,"+Columns.updatedinfo.name()+"=?";
-    private static final String insertAllValues = " (?,?,?,?) ";
+        Columns.readgloballimit.name()+"=?,"+Columns.writegloballimit.name()+
+        "=?,"+Columns.readsessionlimit.name()+"=?,"+Columns.writesessionlimit.name()+
+        "=?,"+Columns.delaylimit.name()+"=?,"+Columns.updatedinfo.name()+"=?";
+    private static final String insertAllValues = " (?,?,?,?,?,?,?) ";
 
     @Override
     protected void setToArray() {
         allFields[Columns.hostid.ordinal()].setValue(this.hostid);
-        allFields[Columns.hostkey.ordinal()].setValue(this.hostkey);
-        allFields[Columns.adminrole.ordinal()].setValue(this.adminrole);
+        allFields[Columns.readgloballimit.ordinal()].setValue(this.readgloballimit);
+        allFields[Columns.writegloballimit.ordinal()].setValue(this.writegloballimit);
+        allFields[Columns.readsessionlimit.ordinal()].setValue(this.readsessionlimit);
+        allFields[Columns.writesessionlimit.ordinal()].setValue(this.writesessionlimit);
+        allFields[Columns.delaylimit.ordinal()].setValue(this.delayllimit);
         allFields[Columns.updatedinfo.ordinal()].setValue(this.updatedInfo);
     }
     @Override
     protected void setFromArray() throws OpenR66DatabaseSqlError {
         this.hostid = (String) allFields[Columns.hostid.ordinal()].getValue();
-        this.hostkey = (byte[]) allFields[Columns.hostkey.ordinal()].getValue();
-        this.adminrole = (Boolean) allFields[Columns.adminrole.ordinal()].getValue();
+        this.readgloballimit = (Long) allFields[Columns.readgloballimit.ordinal()].getValue();
+        this.writegloballimit = (Long) allFields[Columns.writegloballimit.ordinal()].getValue();
+        this.readsessionlimit = (Long) allFields[Columns.readsessionlimit.ordinal()].getValue();
+        this.writesessionlimit = (Long) allFields[Columns.writesessionlimit.ordinal()].getValue();
+        this.delayllimit = (Long) allFields[Columns.delaylimit.ordinal()].getValue();
         this.updatedInfo = (Integer) allFields[Columns.updatedinfo.ordinal()].getValue();
     }
-
-
     /**
+     *
      * @param hostid
-     * @param hostkey
-     * @param adminrole
+     * @param rg Read Global Limit
+     * @param wg Write Global Limit
+     * @param rs Read Session Limit
+     * @param ws Write Session Limit
+     * @param del Delay Limit
      * @param updatedInfo
      */
-    public R66DbAuthent(String hostid, byte[] hostkey, boolean adminrole, int updatedInfo) {
+    public R66DbConfiguration(String hostid, long rg, long wg, long rs, long ws, long del, int updatedInfo) {
         this.hostid = hostid;
-        this.hostkey = hostkey;
-        this.adminrole = adminrole;
+        this.readgloballimit = rg;
+        this.writegloballimit = wg;
+        this.readsessionlimit = rs;
+        this.writesessionlimit = ws;
+        this.delayllimit = del;
         this.updatedInfo = updatedInfo;
         this.setToArray();
         this.isSaved = false;
@@ -111,7 +133,7 @@ public class R66DbAuthent extends AbstractDbData  {
      * @param hostid
      * @throws OpenR66DatabaseException
      */
-    public R66DbAuthent(String hostid) throws OpenR66DatabaseException {
+    public R66DbConfiguration(String hostid) throws OpenR66DatabaseException {
         this.hostid = hostid;
         // load from DB
         select();
@@ -227,9 +249,8 @@ public class R66DbAuthent extends AbstractDbData  {
         }
     }
 
-    public R66SimpleAuth getR66SimpleAuth() {
-        R66SimpleAuth auth = new R66SimpleAuth(this.hostid, this.hostkey);
-        auth.setAdmin(this.adminrole);
-        return auth;
+    public void updateConfiguration() {
+        Configuration.configuration.changeNetworkLimit(writegloballimit, readgloballimit,
+                writesessionlimit, readsessionlimit);
     }
 }

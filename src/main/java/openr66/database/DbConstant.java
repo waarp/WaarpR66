@@ -18,9 +18,8 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package openr66.database.data;
+package openr66.database;
 
-import openr66.database.R66DbAdmin;
 
 /**
  * @author Frederic Bregier
@@ -28,7 +27,7 @@ import openr66.database.R66DbAdmin;
  */
 public class DbConstant {
 
-    public static long ILLEGALVALUE = Long.MIN_VALUE;
+    public static final long ILLEGALVALUE = Long.MIN_VALUE;
 
     public static R66DbAdmin admin = null;
 }

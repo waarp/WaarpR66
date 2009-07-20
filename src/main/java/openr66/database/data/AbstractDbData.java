@@ -38,6 +38,10 @@ import openr66.database.exception.OpenR66DatabaseSqlError;
  *
  */
 public abstract class AbstractDbData {
+    public static final int UNKNOWN = -1;
+    public static final int NOTUPDATED = 0;
+    public static final int UPDATED = 1;
+    public static final int TORUN = 2;
 
     public abstract void select() throws OpenR66DatabaseException;
 
@@ -46,6 +50,12 @@ public abstract class AbstractDbData {
     public abstract void update() throws OpenR66DatabaseException;
 
     public abstract void delete() throws OpenR66DatabaseException;
+
+    public abstract void changeUpdatedInfo(int status);
+
+    protected abstract void setToArray();
+
+    protected abstract void setFromArray() throws OpenR66DatabaseSqlError;
 
     private void setTrueValue(PreparedStatement ps, DbValue value, int rank)
     throws OpenR66DatabaseSqlError {

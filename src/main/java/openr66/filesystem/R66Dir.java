@@ -28,6 +28,8 @@ import goldengate.common.file.filesystembased.FilesystemBasedOptsMLSxImpl;
 import java.io.File;
 import java.io.IOException;
 
+import openr66.protocol.config.Configuration;
+
 /**
  * @author frederic bregier
  *
@@ -66,7 +68,7 @@ public class R66Dir extends FilesystemBasedDirImpl {
         File file = null;
         String prename = System.currentTimeMillis() + "_";
         try {
-            file = File.createTempFile(prename, "_" + filename + ".stou",
+            file = File.createTempFile(prename, "_" + filename + Configuration.EXT_R66,
                     getFileFromPath(currentDir));
         } catch (IOException e) {
             throw new Reply550Exception("Cannot create unique file from " +
@@ -83,7 +85,7 @@ public class R66Dir extends FilesystemBasedDirImpl {
      */
     public String getFinalUniqueFilename(R66File file) {
         String finalpath = file.getBasename();
-        int pos = finalpath.lastIndexOf(".stou");
+        int pos = finalpath.lastIndexOf(Configuration.EXT_R66);
         if (pos > 0) {
             finalpath = finalpath.substring(0, pos);
         }

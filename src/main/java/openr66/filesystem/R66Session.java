@@ -395,4 +395,12 @@ public class R66Session implements SessionInterface {
                 (request != null? request.toString() : "no Request") + " " +
                 (runner != null? runner.toString() : "no Runner");
     }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.file.SessionInterface#getUniqueExtension()
+     */
+    @Override
+    public String getUniqueExtension() {
+        return Configuration.EXT_R66;
+    }
 }
