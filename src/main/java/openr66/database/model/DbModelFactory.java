@@ -21,6 +21,8 @@
 package openr66.database.model;
 
 import openr66.database.DbConstant;
+import openr66.database.DbAdmin;
+import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 
 /**
  * @author Frederic Bregier
@@ -29,7 +31,9 @@ import openr66.database.DbConstant;
 public class DbModelFactory {
     public static AbstractDbModel dbModel;
 
-    public static void initialize() {
+    public static void initialize(String dbdriver,
+            String dbserver, String dbuser, String dbpasswd, boolean write) throws OpenR66DatabaseNoConnectionError {
+        DbConstant.admin = new DbAdmin(dbdriver, dbserver, dbuser, dbpasswd, write);
         switch (DbConstant.admin.typeDriver) {
             case H2:
                 dbModel = new DbModelH2();

@@ -471,10 +471,10 @@ public class R66File extends FilesystemBasedFileImpl {
     }
 
     /**
-     * Replace the current file with the new filename after closing the previous
+     * Replace the current file with the new FILENAME after closing the previous
      * one.
      *
-     * @param filename
+     * @param FILENAME
      * @param isExternal
      * @throws CommandAbstractException
      */

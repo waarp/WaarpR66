@@ -354,9 +354,9 @@ public class FileUtils {
     }
 
     /**
-     * Returns the FileChannel in Out mode (if isOut is True) or in In mode (if
-     * isOut is False) associated with the file. In out mode, it can be in
-     * append mode.
+     * Returns the FileChannel in Out MODE (if isOut is True) or in In MODE (if
+     * isOut is False) associated with the file. In out MODE, it can be in
+     * append MODE.
      *
      * @param isOut
      * @param append

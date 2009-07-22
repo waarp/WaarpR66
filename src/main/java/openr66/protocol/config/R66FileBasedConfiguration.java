@@ -37,9 +37,8 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import openr66.authentication.R66SimpleAuth;
-import openr66.database.DbConstant;
-import openr66.database.R66DbAdmin;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
+import openr66.database.model.DbModelFactory;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.utils.FileUtils;
 
@@ -63,7 +62,7 @@ public class R66FileBasedConfiguration {
     /**
      * SERVER HOSTID
      */
-    private static final String XML_SERVER_HOSTID = "/config/hostid";
+    private static final String XML_SERVER_HOSTID = "/config/HOSTID";
 
     /**
      * SERVER PASSWORD (shutdown)
@@ -155,7 +154,7 @@ public class R66FileBasedConfiguration {
      * Size by default of block size for receive/sending files. Should be a
      * multiple of 8192 (maximum = 64K due to block limitation to 2 bytes)
      */
-    private static final String XML_BLOCKSIZE = "/config/blocksize";
+    private static final String XML_BLOCKSIZE = "/config/BLOCKSIZE";
     /**
      * Database Driver as of oracle, mysql, postgresql, h2
      */
@@ -188,7 +187,7 @@ public class R66FileBasedConfiguration {
     /**
      * Authentication Fields
      */
-    private static final String XML_AUTHENTIFICATION_HOSTID = "hostid";
+    private static final String XML_AUTHENTIFICATION_HOSTID = "HOSTID";
 
     /**
      * Authentication Fields
@@ -238,7 +237,7 @@ public class R66FileBasedConfiguration {
     /**
      * Initiate the configuration from the xml file
      *
-     * @param filename
+     * @param FILENAME
      * @return True if OK
      */
     @SuppressWarnings("unchecked")
@@ -471,7 +470,7 @@ public class R66FileBasedConfiguration {
             return false;
         }
         try {
-            DbConstant.admin = new R66DbAdmin(dbdriver, dbserver, dbuser, dbpasswd, true);
+            DbModelFactory.initialize(dbdriver, dbserver, dbuser, dbpasswd, true);
         } catch (OpenR66DatabaseNoConnectionError e2) {
             logger.error("Unable to Connect to DB", e2);
             return false;

@@ -54,4 +54,20 @@ public class DbModelMysql extends AbstractDbModel {
     public void createTables() {
 
     }
+    /* (non-Javadoc)
+     * @see openr66.database.model.AbstractDbModel#nextSequence()
+     */
+    @Override
+    public long nextSequence() {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+    /* (non-Javadoc)
+     * @see openr66.database.model.AbstractDbModel#resetSequence()
+     */
+    @Override
+    public void resetSequence() {
+        // TODO Auto-generated method stub
+
+    }
 }

@@ -89,7 +89,7 @@ public class NetworkServerHandler extends SimpleChannelHandler {
         logger.info("Network Channel Recv: " + e.getChannel().getId() + " " +
                 packet.toString());
         if (packet.getCode() == LocalPacketFactory.CONNECTERRORPACKET) {
-            // Special code to stop here
+            // Special code to STOP here
             if (packet.getLocalId() == ChannelUtils.NOCHANNEL) {
                 // No way to know what is wrong: close all connections with
                 // remote host

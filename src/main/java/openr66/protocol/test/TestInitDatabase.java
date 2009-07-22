@@ -20,8 +20,12 @@
  */
 package openr66.protocol.test;
 
+import goldengate.common.logging.GgSlf4JLoggerFactory;
+
+import org.jboss.netty.logging.InternalLoggerFactory;
+
+import ch.qos.logback.classic.Level;
 import openr66.database.DbConstant;
-import openr66.database.R66DbAdmin;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.database.model.DbModelFactory;
@@ -36,31 +40,42 @@ public class TestInitDatabase {
      * @param args
      */
     public static void main(String[] args) {
+        InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
+                Level.WARN));
+        if (args.length < 4) {
+            System.err.println("Need databaseMode connectionString User Passwd");
+            return;
+        }
         /*
          * H2: "jdbc:h2:/data/test;AUTO_SERVER=TRUE"
         ;USER=sa;PASSWORD=123
         ;IFEXISTS=TRUE ??
         ;MODE=Oracle
          */
-        String connection = "jdbc:h2:D:/GG/R66/data/config;MODE=Oracle;AUTO_SERVER=TRUE";
+        String connection = //"jdbc:h2:D:/GG/R66/data/openr66;MODE=Oracle;AUTO_SERVER=TRUE";
+            args[1];
         try {
             try {
-                DbConstant.admin = new R66DbAdmin("h2",
-                        connection, "openr66", "openr66", true);
+                DbModelFactory.initialize(args[0],
+                        connection, args[2], args[3], true);
             } catch (OpenR66DatabaseNoConnectionError e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
                 return;
             }
-            if (args.length == 0) {
+            if (args.length == 4) {
                 // Init database
                 initdb();
+                System.out.println("End");
             } else {
                 // Do something with database
+                System.out.println("Do smthg");
             }
         } finally {
             try {
-                DbConstant.admin.close();
+                if (DbConstant.admin != null) {
+                    DbConstant.admin.close();
+                }
             } catch (OpenR66DatabaseSqlError e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -70,7 +85,6 @@ public class TestInitDatabase {
 
     public static void initdb() {
         // Create tables: configuration, hosts, rules, runner, cptrunner
-        DbModelFactory.initialize();
         DbModelFactory.dbModel.createTables();
     }
 }

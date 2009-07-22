@@ -19,12 +19,12 @@ import openr66.database.exception.OpenR66DatabaseSqlError;
  * @author Frederic Bregier LGPL
  *
  */
-public class R66DbPreparedStatement {
+public class DbPreparedStatement {
     /**
      * Internal Logger
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
-            .getLogger(R66DbPreparedStatement.class);
+            .getLogger(DbPreparedStatement.class);
 
     /**
      * Internal PreparedStatement
@@ -49,15 +49,15 @@ public class R66DbPreparedStatement {
     /**
      * The associated DB session
      */
-    private R66DbSession ls = null;
+    private DbSession ls = null;
 
     /**
-     * Create a R66DbPreparedStatement from R66DbSession object
+     * Create a DbPreparedStatement from DbSession object
      *
      * @param ls
      * @throws OpenR66DatabaseNoConnectionError
      */
-    public R66DbPreparedStatement(R66DbSession ls) throws OpenR66DatabaseNoConnectionError {
+    public DbPreparedStatement(DbSession ls) throws OpenR66DatabaseNoConnectionError {
         if (ls == null) {
             logger.error("SQL Exception PreparedStatement no session");
             throw new OpenR66DatabaseNoConnectionError("PreparedStatement no session");
@@ -69,14 +69,14 @@ public class R66DbPreparedStatement {
     }
 
     /**
-     * Create a R66DbPreparedStatement from R66DbSession object and a request
+     * Create a DbPreparedStatement from DbSession object and a request
      *
      * @param ls
      * @param request
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
      */
-    public R66DbPreparedStatement(R66DbSession ls, String request) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+    public DbPreparedStatement(DbSession ls, String request) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
         if (ls == null) {
             logger.error("SQL Exception PreparedStatement no session");
             throw new OpenR66DatabaseNoConnectionError("PreparedStatement no session");

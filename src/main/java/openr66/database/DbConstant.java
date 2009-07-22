@@ -29,5 +29,5 @@ public class DbConstant {
 
     public static final long ILLEGALVALUE = Long.MIN_VALUE;
 
-    public static R66DbAdmin admin = null;
+    public static DbAdmin admin = null;
 }

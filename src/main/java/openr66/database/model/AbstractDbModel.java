@@ -29,4 +29,13 @@ public abstract class AbstractDbModel {
      * Create all necessary tables into the database
      */
     public abstract void createTables();
+    /**
+     * Reset the sequence for Runner SpecialIds
+     */
+    public abstract void resetSequence();
+    /**
+     *
+     * @return The next unique specialId
+     */
+    public abstract long nextSequence();
 }

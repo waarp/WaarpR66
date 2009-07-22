@@ -49,23 +49,23 @@ public class R66RuleFileBasedConfiguration {
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(R66RuleFileBasedConfiguration.class);
 
-    private static final String IDRULE = "/rule/idrule";
+    private static final String IDRULE = "/rule/IDRULE";
 
-    private static final String HOSTIDS_HOSTID = "/rule/hostids/hostid";
+    private static final String HOSTIDS_HOSTID = "/rule/HOSTIDS/HOSTID";
 
-    private static final String RECVPATH = "/rule/recvpath";
+    private static final String RECVPATH = "/rule/RECVPATH";
 
-    private static final String SENDPATH = "/rule/sendpath";
+    private static final String SENDPATH = "/rule/SENDPATH";
 
-    private static final String ARCHIVEPATH = "/rule/archivepath";
+    private static final String ARCHIVEPATH = "/rule/ARCHIVEPATH";
 
-    private static final String WORKPATH = "/rule/workpath";
+    private static final String WORKPATH = "/rule/WORKPATH";
 
-    private static final String PRETASKS = "/rule/pretasks";
+    private static final String PRETASKS = "/rule/PRETASKS";
 
-    private static final String POSTTASKS = "/rule/posttasks";
+    private static final String POSTTASKS = "/rule/POSTTASKS";
 
-    private static final String ERRORTASKS = "/rule/errortasks";
+    private static final String ERRORTASKS = "/rule/ERRORTASKS";
 
     private static final String TASK = "tasks/task";
 

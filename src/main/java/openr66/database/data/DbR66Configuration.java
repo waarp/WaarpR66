@@ -23,7 +23,7 @@ package openr66.database.data;
 import java.sql.Types;
 
 import openr66.database.DbConstant;
-import openr66.database.R66DbPreparedStatement;
+import openr66.database.DbPreparedStatement;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
@@ -33,16 +33,16 @@ import openr66.protocol.config.Configuration;
  * @author Frederic Bregier
  *
  */
-public class R66DbConfiguration extends AbstractDbData  {
+public class DbR66Configuration extends AbstractDbData  {
     public static enum Columns {
-        readgloballimit, writegloballimit, readsessionlimit, writesessionlimit, delaylimit,
-        updatedinfo, hostid
+        READGLOBALLIMIT, WRITEGLOBALLIMIT, READSESSIONLIMIT, WRITESESSIONLIMIT, DELAYLIMIT,
+        UPDATEDINFO, HOSTID
     }
     public static int [] dbTypes = {
         Types.BIGINT, Types.BIGINT, Types.BIGINT, Types.BIGINT, Types.BIGINT,
         Types.INTEGER, Types.VARCHAR
     };
-    public static String table = " configuration ";
+    public static String table = " CONFIGURATION ";
 
 
     private String hostid;
@@ -62,53 +62,53 @@ public class R66DbConfiguration extends AbstractDbData  {
     private boolean isSaved = false;
 
     // ALL TABLE SHOULD IMPLEMENT THIS
-    private DbValue primaryKey = new DbValue(hostid, Columns.hostid.name());
+    private DbValue primaryKey = new DbValue(hostid, Columns.HOSTID.name());
     private DbValue[] otherFields = {
-      new DbValue(readgloballimit, Columns.readgloballimit.name()),
-      new DbValue(writegloballimit, Columns.writegloballimit.name()),
-      new DbValue(readsessionlimit, Columns.readsessionlimit.name()),
-      new DbValue(writesessionlimit, Columns.writesessionlimit.name()),
-      new DbValue(delayllimit, Columns.delaylimit.name()),
-      new DbValue(updatedInfo, Columns.updatedinfo.name())
+      new DbValue(readgloballimit, Columns.READGLOBALLIMIT.name()),
+      new DbValue(writegloballimit, Columns.WRITEGLOBALLIMIT.name()),
+      new DbValue(readsessionlimit, Columns.READSESSIONLIMIT.name()),
+      new DbValue(writesessionlimit, Columns.WRITESESSIONLIMIT.name()),
+      new DbValue(delayllimit, Columns.DELAYLIMIT.name()),
+      new DbValue(updatedInfo, Columns.UPDATEDINFO.name())
     };
     private DbValue[] allFields = {
       otherFields[0], otherFields[1], otherFields[2],
       otherFields[3], otherFields[4], otherFields[5], primaryKey
     };
     private static final String selectAllFields =
-        Columns.readgloballimit.name()+","+Columns.writegloballimit.name()+
-        ","+Columns.readsessionlimit.name()+","+Columns.writesessionlimit.name()+
-        ","+Columns.delaylimit.name()+","+Columns.updatedinfo.name()+
-        ","+Columns.hostid.name();
+        Columns.READGLOBALLIMIT.name()+","+Columns.WRITEGLOBALLIMIT.name()+
+        ","+Columns.READSESSIONLIMIT.name()+","+Columns.WRITESESSIONLIMIT.name()+
+        ","+Columns.DELAYLIMIT.name()+","+Columns.UPDATEDINFO.name()+
+        ","+Columns.HOSTID.name();
     private static final String updateAllFields =
-        Columns.readgloballimit.name()+"=?,"+Columns.writegloballimit.name()+
-        "=?,"+Columns.readsessionlimit.name()+"=?,"+Columns.writesessionlimit.name()+
-        "=?,"+Columns.delaylimit.name()+"=?,"+Columns.updatedinfo.name()+"=?";
+        Columns.READGLOBALLIMIT.name()+"=?,"+Columns.WRITEGLOBALLIMIT.name()+
+        "=?,"+Columns.READSESSIONLIMIT.name()+"=?,"+Columns.WRITESESSIONLIMIT.name()+
+        "=?,"+Columns.DELAYLIMIT.name()+"=?,"+Columns.UPDATEDINFO.name()+"=?";
     private static final String insertAllValues = " (?,?,?,?,?,?,?) ";
 
     @Override
     protected void setToArray() {
-        allFields[Columns.hostid.ordinal()].setValue(this.hostid);
-        allFields[Columns.readgloballimit.ordinal()].setValue(this.readgloballimit);
-        allFields[Columns.writegloballimit.ordinal()].setValue(this.writegloballimit);
-        allFields[Columns.readsessionlimit.ordinal()].setValue(this.readsessionlimit);
-        allFields[Columns.writesessionlimit.ordinal()].setValue(this.writesessionlimit);
-        allFields[Columns.delaylimit.ordinal()].setValue(this.delayllimit);
-        allFields[Columns.updatedinfo.ordinal()].setValue(this.updatedInfo);
+        allFields[Columns.HOSTID.ordinal()].setValue(this.hostid);
+        allFields[Columns.READGLOBALLIMIT.ordinal()].setValue(this.readgloballimit);
+        allFields[Columns.WRITEGLOBALLIMIT.ordinal()].setValue(this.writegloballimit);
+        allFields[Columns.READSESSIONLIMIT.ordinal()].setValue(this.readsessionlimit);
+        allFields[Columns.WRITESESSIONLIMIT.ordinal()].setValue(this.writesessionlimit);
+        allFields[Columns.DELAYLIMIT.ordinal()].setValue(this.delayllimit);
+        allFields[Columns.UPDATEDINFO.ordinal()].setValue(this.updatedInfo);
     }
     @Override
     protected void setFromArray() throws OpenR66DatabaseSqlError {
-        this.hostid = (String) allFields[Columns.hostid.ordinal()].getValue();
-        this.readgloballimit = (Long) allFields[Columns.readgloballimit.ordinal()].getValue();
-        this.writegloballimit = (Long) allFields[Columns.writegloballimit.ordinal()].getValue();
-        this.readsessionlimit = (Long) allFields[Columns.readsessionlimit.ordinal()].getValue();
-        this.writesessionlimit = (Long) allFields[Columns.writesessionlimit.ordinal()].getValue();
-        this.delayllimit = (Long) allFields[Columns.delaylimit.ordinal()].getValue();
-        this.updatedInfo = (Integer) allFields[Columns.updatedinfo.ordinal()].getValue();
+        this.hostid = (String) allFields[Columns.HOSTID.ordinal()].getValue();
+        this.readgloballimit = (Long) allFields[Columns.READGLOBALLIMIT.ordinal()].getValue();
+        this.writegloballimit = (Long) allFields[Columns.WRITEGLOBALLIMIT.ordinal()].getValue();
+        this.readsessionlimit = (Long) allFields[Columns.READSESSIONLIMIT.ordinal()].getValue();
+        this.writesessionlimit = (Long) allFields[Columns.WRITESESSIONLIMIT.ordinal()].getValue();
+        this.delayllimit = (Long) allFields[Columns.DELAYLIMIT.ordinal()].getValue();
+        this.updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()].getValue();
     }
     /**
      *
-     * @param hostid
+     * @param HOSTID
      * @param rg Read Global Limit
      * @param wg Write Global Limit
      * @param rs Read Session Limit
@@ -116,7 +116,7 @@ public class R66DbConfiguration extends AbstractDbData  {
      * @param del Delay Limit
      * @param updatedInfo
      */
-    public R66DbConfiguration(String hostid, long rg, long wg, long rs, long ws, long del, int updatedInfo) {
+    public DbR66Configuration(String hostid, long rg, long wg, long rs, long ws, long del, int updatedInfo) {
         this.hostid = hostid;
         this.readgloballimit = rg;
         this.writegloballimit = wg;
@@ -130,10 +130,10 @@ public class R66DbConfiguration extends AbstractDbData  {
 
 
     /**
-     * @param hostid
+     * @param HOSTID
      * @throws OpenR66DatabaseException
      */
-    public R66DbConfiguration(String hostid) throws OpenR66DatabaseException {
+    public DbR66Configuration(String hostid) throws OpenR66DatabaseException {
         this.hostid = hostid;
         // load from DB
         select();
@@ -144,11 +144,11 @@ public class R66DbConfiguration extends AbstractDbData  {
      */
     @Override
     public void delete() throws OpenR66DatabaseException {
-        R66DbPreparedStatement preparedStatement =
-            new R66DbPreparedStatement(DbConstant.admin.session);
+        DbPreparedStatement preparedStatement =
+            new DbPreparedStatement(DbConstant.admin.session);
         try {
             preparedStatement.createPrepareStatement("DELETE FROM "+
-                    table+" WHERE "+Columns.hostid.name()+" = ?");
+                    table+" WHERE "+Columns.HOSTID.name()+" = ?");
             primaryKey.setValue(hostid);
             this.setValue(preparedStatement, primaryKey);
             int count = preparedStatement.executeUpdate();
@@ -170,8 +170,8 @@ public class R66DbConfiguration extends AbstractDbData  {
         if (this.isSaved) {
             return;
         }
-        R66DbPreparedStatement preparedStatement =
-            new R66DbPreparedStatement(DbConstant.admin.session);
+        DbPreparedStatement preparedStatement =
+            new DbPreparedStatement(DbConstant.admin.session);
         try {
             preparedStatement.createPrepareStatement("INSERT INTO "+table+" ("+selectAllFields+
                     ") VALUES "+insertAllValues);
@@ -192,11 +192,11 @@ public class R66DbConfiguration extends AbstractDbData  {
      */
     @Override
     public void select() throws OpenR66DatabaseException {
-        R66DbPreparedStatement preparedStatement =
-            new R66DbPreparedStatement(DbConstant.admin.session);
+        DbPreparedStatement preparedStatement =
+            new DbPreparedStatement(DbConstant.admin.session);
         try {
             preparedStatement.createPrepareStatement("SELECT "+selectAllFields+" FROM "+
-                    table+" WHERE "+Columns.hostid.name()+" = ?");
+                    table+" WHERE "+Columns.HOSTID.name()+" = ?");
             primaryKey.setValue(hostid);
             this.setValue(preparedStatement, primaryKey);
             preparedStatement.executeQuery();
@@ -220,11 +220,11 @@ public class R66DbConfiguration extends AbstractDbData  {
         if (this.isSaved) {
             return;
         }
-        R66DbPreparedStatement preparedStatement =
-            new R66DbPreparedStatement(DbConstant.admin.session);
+        DbPreparedStatement preparedStatement =
+            new DbPreparedStatement(DbConstant.admin.session);
         try {
             preparedStatement.createPrepareStatement("UPDATE "+table+" SET "+updateAllFields+
-                    " WHERE "+Columns.hostid.name()+" = ?");
+                    " WHERE "+Columns.HOSTID.name()+" = ?");
             this.setValues(preparedStatement, allFields);
             int count = preparedStatement.executeUpdate();
             preparedStatement.realClose();
@@ -244,7 +244,7 @@ public class R66DbConfiguration extends AbstractDbData  {
     public void changeUpdatedInfo(int status) {
         if (this.updatedInfo != status) {
             this.updatedInfo = status;
-            allFields[Columns.updatedinfo.ordinal()].setValue(this.updatedInfo);
+            allFields[Columns.UPDATEDINFO.ordinal()].setValue(this.updatedInfo);
             this.isSaved = false;
         }
     }

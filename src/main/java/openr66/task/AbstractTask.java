@@ -34,17 +34,17 @@ import openr66.protocol.utils.R66Future;
  */
 public abstract class AbstractTask implements Runnable {
     /**
-     * Current full path of current filename
+     * Current full path of current FILENAME
      */
     public static final String TRUEFULLPATH = "#TRUEFULLPATH#";
 
     /**
-     * Current filename (change in retrieval part)
+     * Current FILENAME (change in retrieval part)
      */
     public static final String TRUEFILENAME = "#TRUEFILENAME#";
 
     /**
-     * Original filename (before changing in retrieval part)
+     * Original FILENAME (before changing in retrieval part)
      */
     public static final String ORIGINALFILENAME = "#ORIGINALFILENAME#";
 
@@ -74,7 +74,7 @@ public abstract class AbstractTask implements Runnable {
     public static final String TRANSFERID = "#TRANSFERID#";
 
     /**
-     * Current or final rank of block
+     * Current or final RANK of block
      */
     public static final String RANKTRANSFER = "#RANKTRANSFER#";
 

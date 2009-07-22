@@ -66,7 +66,7 @@ public class ExecTask extends AbstractTask {
          * argTransfer. Will call exec (from first element of resulting string)
          * with arguments as the following value from the replacements. Return 0
          * if OK, else 1 for a warning else as an error No change should be done
-         * in the filename
+         * in the FILENAME
          */
         logger.info("Exec with " + argRule + ":" + argTransfer +
                 " and " + session);

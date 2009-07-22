@@ -23,7 +23,7 @@ package openr66.database.data;
 import java.sql.Types;
 
 import openr66.database.DbConstant;
-import openr66.database.R66DbPreparedStatement;
+import openr66.database.DbPreparedStatement;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
@@ -34,18 +34,18 @@ import openr66.filesystem.R66Rule;
  * @author Frederic Bregier
  *
  */
-public class R66DbRule extends AbstractDbData {
+public class DbR66Rule extends AbstractDbData {
     public static enum Columns {
-        hostids, recvpath, sendpath, archivepath, workpath, pretasks, posttasks, errortasks,
-        updatedinfo,
-        idrule
+        HOSTIDS, RECVPATH, SENDPATH, ARCHIVEPATH, WORKPATH, PRETASKS, POSTTASKS, ERRORTASKS,
+        UPDATEDINFO,
+        IDRULE
     }
     public static int [] dbTypes = {
         Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
         Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
         Types.INTEGER, Types.VARCHAR
     };
-    public static String table = " rules ";
+    public static String table = " RULES ";
 
 
     /**
@@ -96,18 +96,18 @@ public class R66DbRule extends AbstractDbData {
     private boolean isSaved = false;
 
     // ALL TABLE SHOULD IMPLEMENT THIS
-    private DbValue primaryKey = new DbValue(idRule, Columns.idrule.name());
+    private DbValue primaryKey = new DbValue(idRule, Columns.IDRULE.name());
     private DbValue[] otherFields = {
-      // hostids, recvpath, sendpath, archivepath, workpath, pretasks, posttasks, errortasks
-      new DbValue(ids, Columns.hostids.name()),
-      new DbValue(recvPath, Columns.recvpath.name()),
-      new DbValue(sendPath, Columns.sendpath.name()),
-      new DbValue(archivePath, Columns.archivepath.name()),
-      new DbValue(workPath, Columns.workpath.name()),
-      new DbValue(preTasks, Columns.pretasks.name()),
-      new DbValue(postTasks, Columns.posttasks.name()),
-      new DbValue(errorTasks, Columns.errortasks.name()),
-      new DbValue(updatedInfo, Columns.updatedinfo.name())
+      // HOSTIDS, RECVPATH, SENDPATH, ARCHIVEPATH, WORKPATH, PRETASKS, POSTTASKS, ERRORTASKS
+      new DbValue(ids, Columns.HOSTIDS.name()),
+      new DbValue(recvPath, Columns.RECVPATH.name()),
+      new DbValue(sendPath, Columns.SENDPATH.name()),
+      new DbValue(archivePath, Columns.ARCHIVEPATH.name()),
+      new DbValue(workPath, Columns.WORKPATH.name()),
+      new DbValue(preTasks, Columns.PRETASKS.name()),
+      new DbValue(postTasks, Columns.POSTTASKS.name()),
+      new DbValue(errorTasks, Columns.ERRORTASKS.name()),
+      new DbValue(updatedInfo, Columns.UPDATEDINFO.name())
     };
     private DbValue[] allFields = {
       otherFields[0], otherFields[1], otherFields[2], otherFields[3],
@@ -115,43 +115,43 @@ public class R66DbRule extends AbstractDbData {
       primaryKey
     };
     private static final String selectAllFields =
-        Columns.hostids.name()+","+Columns.recvpath.name()+
-        ","+Columns.sendpath.name()+","+Columns.archivepath.name()+","+Columns.workpath.name()+
-        ","+Columns.pretasks.name()+","+Columns.posttasks.name()+","+Columns.errortasks.name()+
-        ","+Columns.updatedinfo.name()+
-        ","+Columns.idrule.name();
+        Columns.HOSTIDS.name()+","+Columns.RECVPATH.name()+
+        ","+Columns.SENDPATH.name()+","+Columns.ARCHIVEPATH.name()+","+Columns.WORKPATH.name()+
+        ","+Columns.PRETASKS.name()+","+Columns.POSTTASKS.name()+","+Columns.ERRORTASKS.name()+
+        ","+Columns.UPDATEDINFO.name()+
+        ","+Columns.IDRULE.name();
     private static final String updateAllFields =
-        Columns.hostids.name()+"=?,"+Columns.recvpath.name()+
-        "=?,"+Columns.sendpath.name()+"=?,"+Columns.archivepath.name()+"=?,"+Columns.workpath.name()+
-        "=?,"+Columns.pretasks.name()+"=?,"+Columns.posttasks.name()+"=?,"+Columns.errortasks.name()+
-        "=?,"+Columns.updatedinfo.name()+"=?";
+        Columns.HOSTIDS.name()+"=?,"+Columns.RECVPATH.name()+
+        "=?,"+Columns.SENDPATH.name()+"=?,"+Columns.ARCHIVEPATH.name()+"=?,"+Columns.WORKPATH.name()+
+        "=?,"+Columns.PRETASKS.name()+"=?,"+Columns.POSTTASKS.name()+"=?,"+Columns.ERRORTASKS.name()+
+        "=?,"+Columns.UPDATEDINFO.name()+"=?";
     private static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?) ";
 
     @Override
     protected void setToArray() {
-        allFields[Columns.idrule.ordinal()].setValue(this.idRule);
-        allFields[Columns.hostids.ordinal()].setValue(this.ids);
-        allFields[Columns.recvpath.ordinal()].setValue(this.recvPath);
-        allFields[Columns.sendpath.ordinal()].setValue(this.sendPath);
-        allFields[Columns.archivepath.ordinal()].setValue(this.archivePath);
-        allFields[Columns.workpath.ordinal()].setValue(this.workPath);
-        allFields[Columns.pretasks.ordinal()].setValue(this.preTasks);
-        allFields[Columns.posttasks.ordinal()].setValue(this.postTasks);
-        allFields[Columns.errortasks.ordinal()].setValue(this.errorTasks);
-        allFields[Columns.updatedinfo.ordinal()].setValue(this.updatedInfo);
+        allFields[Columns.IDRULE.ordinal()].setValue(this.idRule);
+        allFields[Columns.HOSTIDS.ordinal()].setValue(this.ids);
+        allFields[Columns.RECVPATH.ordinal()].setValue(this.recvPath);
+        allFields[Columns.SENDPATH.ordinal()].setValue(this.sendPath);
+        allFields[Columns.ARCHIVEPATH.ordinal()].setValue(this.archivePath);
+        allFields[Columns.WORKPATH.ordinal()].setValue(this.workPath);
+        allFields[Columns.PRETASKS.ordinal()].setValue(this.preTasks);
+        allFields[Columns.POSTTASKS.ordinal()].setValue(this.postTasks);
+        allFields[Columns.ERRORTASKS.ordinal()].setValue(this.errorTasks);
+        allFields[Columns.UPDATEDINFO.ordinal()].setValue(this.updatedInfo);
     }
     @Override
     protected void setFromArray() throws OpenR66DatabaseSqlError {
-        this.idRule = (String) allFields[Columns.idrule.ordinal()].getValue();
-        this.ids = (String) allFields[Columns.hostids.ordinal()].getValue();
-        this.recvPath = (String) allFields[Columns.recvpath.ordinal()].getValue();
-        this.sendPath = (String) allFields[Columns.sendpath.ordinal()].getValue();
-        this.archivePath = (String) allFields[Columns.archivepath.ordinal()].getValue();
-        this.workPath = (String) allFields[Columns.workpath.ordinal()].getValue();
-        this.preTasks = (String) allFields[Columns.pretasks.ordinal()].getValue();
-        this.postTasks = (String) allFields[Columns.posttasks.ordinal()].getValue();
-        this.errorTasks = (String) allFields[Columns.errortasks.ordinal()].getValue();
-        this.updatedInfo = (Integer) allFields[Columns.updatedinfo.ordinal()].getValue();
+        this.idRule = (String) allFields[Columns.IDRULE.ordinal()].getValue();
+        this.ids = (String) allFields[Columns.HOSTIDS.ordinal()].getValue();
+        this.recvPath = (String) allFields[Columns.RECVPATH.ordinal()].getValue();
+        this.sendPath = (String) allFields[Columns.SENDPATH.ordinal()].getValue();
+        this.archivePath = (String) allFields[Columns.ARCHIVEPATH.ordinal()].getValue();
+        this.workPath = (String) allFields[Columns.WORKPATH.ordinal()].getValue();
+        this.preTasks = (String) allFields[Columns.PRETASKS.ordinal()].getValue();
+        this.postTasks = (String) allFields[Columns.POSTTASKS.ordinal()].getValue();
+        this.errorTasks = (String) allFields[Columns.ERRORTASKS.ordinal()].getValue();
+        this.updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()].getValue();
     }
 
 
@@ -167,7 +167,7 @@ public class R66DbRule extends AbstractDbData {
      * @param errorTasks
      * @param updatedInfo
      */
-    public R66DbRule(String idRule, String ids, String recvPath,
+    public DbR66Rule(String idRule, String ids, String recvPath,
             String sendPath, String archivePath, String workPath,
             String preTasks, String postTasks, String errorTasks,
             int updatedInfo) {
@@ -189,7 +189,7 @@ public class R66DbRule extends AbstractDbData {
      * @param idRule
      * @throws OpenR66DatabaseException
      */
-    public R66DbRule(String idRule) throws OpenR66DatabaseException {
+    public DbR66Rule(String idRule) throws OpenR66DatabaseException {
         this.idRule = idRule;
         // load from DB
         select();
@@ -199,11 +199,11 @@ public class R66DbRule extends AbstractDbData {
      */
     @Override
     public void delete() throws OpenR66DatabaseException {
-        R66DbPreparedStatement preparedStatement =
-            new R66DbPreparedStatement(DbConstant.admin.session);
+        DbPreparedStatement preparedStatement =
+            new DbPreparedStatement(DbConstant.admin.session);
         try {
             preparedStatement.createPrepareStatement("DELETE FROM "+
-                    table+" WHERE "+Columns.idrule.name()+" = ?");
+                    table+" WHERE "+Columns.IDRULE.name()+" = ?");
             primaryKey.setValue(idRule);
             this.setValue(preparedStatement, primaryKey);
             int count = preparedStatement.executeUpdate();
@@ -225,8 +225,8 @@ public class R66DbRule extends AbstractDbData {
         if (this.isSaved) {
             return;
         }
-        R66DbPreparedStatement preparedStatement =
-            new R66DbPreparedStatement(DbConstant.admin.session);
+        DbPreparedStatement preparedStatement =
+            new DbPreparedStatement(DbConstant.admin.session);
         try {
             preparedStatement.createPrepareStatement("INSERT INTO "+table+" ("+selectAllFields+
                     ") VALUES "+insertAllValues);
@@ -247,11 +247,11 @@ public class R66DbRule extends AbstractDbData {
      */
     @Override
     public void select() throws OpenR66DatabaseException {
-        R66DbPreparedStatement preparedStatement =
-            new R66DbPreparedStatement(DbConstant.admin.session);
+        DbPreparedStatement preparedStatement =
+            new DbPreparedStatement(DbConstant.admin.session);
         try {
             preparedStatement.createPrepareStatement("SELECT "+selectAllFields+" FROM "+
-                    table+" WHERE "+Columns.idrule.name()+" = ?");
+                    table+" WHERE "+Columns.IDRULE.name()+" = ?");
             primaryKey.setValue(idRule);
             this.setValue(preparedStatement, primaryKey);
             preparedStatement.executeQuery();
@@ -275,11 +275,11 @@ public class R66DbRule extends AbstractDbData {
         if (this.isSaved) {
             return;
         }
-        R66DbPreparedStatement preparedStatement =
-            new R66DbPreparedStatement(DbConstant.admin.session);
+        DbPreparedStatement preparedStatement =
+            new DbPreparedStatement(DbConstant.admin.session);
         try {
             preparedStatement.createPrepareStatement("UPDATE "+table+" SET "+updateAllFields+
-                    " WHERE "+Columns.idrule.name()+" = ?");
+                    " WHERE "+Columns.IDRULE.name()+" = ?");
             this.setValues(preparedStatement, allFields);
             int count = preparedStatement.executeUpdate();
             preparedStatement.realClose();
@@ -299,7 +299,7 @@ public class R66DbRule extends AbstractDbData {
     public void changeUpdatedInfo(int status) {
         if (this.updatedInfo != status) {
             this.updatedInfo = status;
-            allFields[Columns.updatedinfo.ordinal()].setValue(this.updatedInfo);
+            allFields[Columns.UPDATEDINFO.ordinal()].setValue(this.updatedInfo);
             this.isSaved = false;
         }
     }

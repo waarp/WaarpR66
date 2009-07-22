@@ -20,12 +20,12 @@ import openr66.protocol.config.Configuration;
  * @author Frederic Bregier LGPL
  *
  */
-public class R66DbAdmin {
+public class DbAdmin {
     /**
      * Internal Logger
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
-            .getLogger(R66DbAdmin.class);
+            .getLogger(DbAdmin.class);
 
     public static enum DatabaseType {
         Oracle, MySQL, PostGreSQL, H2;
@@ -70,7 +70,7 @@ public class R66DbAdmin {
     /**
      * session is the Session object for all type of requests
      */
-    public R66DbSession session = null;
+    public DbSession session = null;
 
     /**
      * Info on JDBC Class is already loaded or not
@@ -118,7 +118,7 @@ public class R66DbAdmin {
     public void validConnection() throws OpenR66DatabaseNoConnectionError {
         if (typeDriver == DatabaseType.Oracle ||
                 typeDriver == DatabaseType.MySQL) {
-            R66DbRequest request = new R66DbRequest(session);
+            DbRequest request = new DbRequest(session);
             try {
                 request.select("select 1 from dual");
                 if (!request.getNext()) {
@@ -133,7 +133,7 @@ public class R66DbAdmin {
             }
             request.close();
         } else {
-            R66DbRequest request = new R66DbRequest(session);
+            DbRequest request = new DbRequest(session);
             try {
                 request.select("select 1");
                 if (!request.getNext()) {
@@ -156,11 +156,11 @@ public class R66DbAdmin {
      * one specific Legacy could be done.
      *
      * A this time, only one driver is possible! If a new driver is needed, then
-     * we need to create a new R66DbSession object. Be aware that
-     * R66DbSession.initialize should be call only once for each driver,
-     * whatever the number of R66DbSession objects that could be created (=>
+     * we need to create a new DbSession object. Be aware that
+     * DbSession.initialize should be call only once for each driver,
+     * whatever the number of DbSession objects that could be created (=>
      * need a hashtable for specific driver when created). Also, don't know if
-     * two drivers at the same time (two different R66DbSession) is allowed by
+     * two drivers at the same time (two different DbSession) is allowed by
      * JDBC.
      *
      * @param driver
@@ -169,7 +169,7 @@ public class R66DbAdmin {
      * @param passwd
      * @throws OpenR66DatabaseNoConnectionError
      */
-    public R66DbAdmin(String driver, String server, String user, String passwd) throws OpenR66DatabaseNoConnectionError {
+    public DbAdmin(String driver, String server, String user, String passwd) throws OpenR66DatabaseNoConnectionError {
         this.server = server;
         this.user = user;
         this.passwd = passwd;
@@ -187,9 +187,9 @@ public class R66DbAdmin {
                     driver);
         }
         // R66Constants.logger.warn("XXXTYPE:"+R66Constants.typeDriver+":"+driver);
-        R66DbAdmin.initialize(typeDriver);
+        DbAdmin.initialize(typeDriver);
         // "jdbc:h2:~/r66;IFEXISTS=TRUE;IGNORECASE=TRUE";
-        session = new R66DbSession(this.server, this.user, this.passwd, false);
+        session = new DbSession(this.server, this.user, this.passwd, false);
         isReadOnly = false;
         validConnection();
         isConnected = true;
@@ -201,11 +201,11 @@ public class R66DbAdmin {
      * one specific Legacy could be done.
      *
      * A this time, only one driver is possible! If a new driver is needed, then
-     * we need to create a new R66DbSession object. Be aware that
-     * R66DbSession.initialize should be call only once for each driver,
-     * whatever the number of R66DbSession objects that could be created (=>
+     * we need to create a new DbSession object. Be aware that
+     * DbSession.initialize should be call only once for each driver,
+     * whatever the number of DbSession objects that could be created (=>
      * need a hashtable for specific driver when created). Also, don't know if
-     * two drivers at the same time (two different R66DbSession) is allowed by
+     * two drivers at the same time (two different DbSession) is allowed by
      * JDBC.
      *
      * @param driver
@@ -216,7 +216,7 @@ public class R66DbAdmin {
      * @throws OpenR66DatabaseSqlError
      * @throws OpenR66DatabaseNoConnectionError
      */
-    public R66DbAdmin(String driver, String server, String user, String passwd,
+    public DbAdmin(String driver, String server, String user, String passwd,
             boolean write) throws OpenR66DatabaseNoConnectionError {
         this.server = server;
         this.user = user;
@@ -234,11 +234,11 @@ public class R66DbAdmin {
             throw new OpenR66DatabaseNoConnectionError("Cannot find database drive:" +
                     driver);
         }
-        R66DbAdmin.initialize(typeDriver);
+        DbAdmin.initialize(typeDriver);
         if (write) {
             for (int i = 0; i < Configuration.RETRYNB; i ++) {
                 try {
-                    session = new R66DbSession(this.server, this.user, this.passwd,
+                    session = new DbSession(this.server, this.user, this.passwd,
                             false);
                 } catch (OpenR66DatabaseNoConnectionError e) {
                     logger.warn("Attempt of connection in error: "+i);
@@ -251,7 +251,7 @@ public class R66DbAdmin {
         } else {
             for (int i = 0; i < Configuration.RETRYNB; i ++) {
                 try {
-                    session = new R66DbSession(this.server, this.user, this.passwd,
+                    session = new DbSession(this.server, this.user, this.passwd,
                             true);
                 } catch (OpenR66DatabaseNoConnectionError e) {
                     logger.warn("Attempt of connection in error: "+i);
@@ -274,11 +274,11 @@ public class R66DbAdmin {
      * one specific Legacy could be done.
      *
      * A this time, only one driver is possible! If a new driver is needed, then
-     * we need to create a new R66DbSession object. Be aware that
-     * R66DbSession.initialize should be call only once for each driver,
-     * whatever the number of R66DbSession objects that could be created (=>
+     * we need to create a new DbSession object. Be aware that
+     * DbSession.initialize should be call only once for each driver,
+     * whatever the number of DbSession objects that could be created (=>
      * need a hashtable for specific driver when created). Also, don't know if
-     * two drivers at the same time (two different R66DbSession) is allowed by
+     * two drivers at the same time (two different DbSession) is allowed by
      * JDBC.<BR>
      *
      * <B>This version use given connection. typeDriver must be set before !</B>
@@ -287,7 +287,7 @@ public class R66DbAdmin {
      * @param isread
      * @throws OpenR66DatabaseNoConnectionError
      */
-    public R66DbAdmin(Connection conn, boolean isread) throws OpenR66DatabaseNoConnectionError {
+    public DbAdmin(Connection conn, boolean isread) throws OpenR66DatabaseNoConnectionError {
         server = null;
         if (conn == null) {
             session = null;
@@ -295,14 +295,14 @@ public class R66DbAdmin {
             logger.error("Cannot Get a Connection from Datasource");
             throw new OpenR66DatabaseNoConnectionError("Cannot Get a Connection from Datasource");
         }
-        session = new R66DbSession(conn, isread);
+        session = new DbSession(conn, isread);
         isReadOnly = isread;
         isConnected = true;
     }
 
     /**
      * Close the underlying session. Can be call even for connection given from
-     * the constructor R66DbAdmin(Connection, boolean).
+     * the constructor DbAdmin(Connection, boolean).
      * @throws OpenR66DatabaseSqlError
      *
      */

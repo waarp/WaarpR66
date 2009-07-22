@@ -29,3 +29,6 @@ Le fichier de conf pourrait être lui aussi transmis et rechargé (arrêt, relance)
 	- shutdown (sans message)
 doit permettre de relancer un job, de l'arreter, de l'annuler, de programmer un job (exemple
 configuration à recharger ou à transmettre)
+
+
+Voire à charger les données depuis ou vers la base...

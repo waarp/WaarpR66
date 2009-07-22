@@ -20,12 +20,12 @@ import openr66.protocol.exception.OpenR66ProtocolNoDataException;
  * @author Frederic Bregier LGPL
  *
  */
-public class R66DbRequest {
+public class DbRequest {
     /**
      * Internal Logger
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
-            .getLogger(R66DbRequest.class);
+            .getLogger(DbRequest.class);
 
     /**
      * Internal Statement
@@ -40,14 +40,14 @@ public class R66DbRequest {
     /**
      * Internal DB Session
      */
-    private R66DbSession ls = null;
+    private DbSession ls = null;
 
     /**
-     * Create a new request from the R66DbSession
+     * Create a new request from the DbSession
      *
      * @param ls
      */
-    public R66DbRequest(R66DbSession ls) {
+    public DbRequest(DbSession ls) {
         this.ls = ls;
     }
 
@@ -161,7 +161,7 @@ public class R66DbRequest {
             rstmp.close();
             rstmp = null;
         } catch (SQLException e) {
-            R66DbSession.error(e);
+            DbSession.error(e);
             throw new OpenR66ProtocolNoDataException("No data found");
         }
         return result;

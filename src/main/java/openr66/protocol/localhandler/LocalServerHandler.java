@@ -360,7 +360,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             if (!packet.isToValidate()) {
                 isRetrieve = !isRetrieve;
             }
-            runner = new TaskRunner(session, rule, isRetrieve);
+            runner = new TaskRunner(session, rule, isRetrieve, packet);
             packet.setSpecialId(runner.getSpecialId());
         }
         // FIXME should be load from database or from remote status and/or saved
@@ -381,13 +381,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
         if (packet.isToValidate()) {
             if (runner.isRetrieve()) {
                 // In case Wildcard was used
-                logger.warn("New filename: " + runner.getFilename());
+                logger.warn("New FILENAME: " + runner.getFilename());
                 packet.setFilename(R66File.getBasename(runner.getFilename()));
             }
             packet.validate();
             writeBack(packet, true);
         }
-        // FIXME if retrieve => start the retrieve operation
+        // FIXME if retrieve => START the retrieve operation
         if (runner.isRetrieve()) {
             NetworkTransaction.runRetrieve(session, channel);
         }
@@ -406,10 +406,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
         }
         if (session.getRunner().isRetrieve()) {
             throw new OpenR66ProtocolBusinessException(
-                    "Not in receive mode but receive a packet");
+                    "Not in receive MODE but receive a packet");
         }
         if (packet.getPacketRank() != session.getRunner().getRank()) {
-            logger.warn("Bad rank: " + packet.getPacketRank() + " : " +
+            logger.warn("Bad RANK: " + packet.getPacketRank() + " : " +
                     session.getRunner().getRank());
         }
         DataBlock dataBlock = new DataBlock();
@@ -469,7 +469,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 logger.info("Valid Request " +
                         localChannelReference.toString() + " " +
                         packet.toString());
-                // int rank = Integer.parseInt(packet.getSmiddle());
+                // int RANK = Integer.parseInt(packet.getSmiddle());
                 session.setFinalizeTransfer(true, session.getFile());
                 Channels.close(channel);
                 break;

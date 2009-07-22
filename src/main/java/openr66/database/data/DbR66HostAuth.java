@@ -24,7 +24,7 @@ import java.sql.Types;
 
 import openr66.authentication.R66SimpleAuth;
 import openr66.database.DbConstant;
-import openr66.database.R66DbPreparedStatement;
+import openr66.database.DbPreparedStatement;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
@@ -33,17 +33,17 @@ import openr66.database.exception.OpenR66DatabaseSqlError;
  * @author Frederic Bregier
  *
  */
-public class R66DbAuthent extends AbstractDbData  {
+public class DbR66HostAuth extends AbstractDbData  {
     public static enum Columns {
-        hostkey, adminrole,
-        updatedinfo,
-        hostid
+        HOSTKEY, ADMINROLE,
+        UPDATEDINFO,
+        HOSTID
     }
     public static int [] dbTypes = {
         Types.VARBINARY, Types.BIT,
         Types.INTEGER, Types.VARCHAR
     };
-    public static String table = " hosts ";
+    public static String table = " HOSTS ";
 
 
     private String hostid;
@@ -57,47 +57,47 @@ public class R66DbAuthent extends AbstractDbData  {
     private boolean isSaved = false;
 
     // ALL TABLE SHOULD IMPLEMENT THIS
-    private DbValue primaryKey = new DbValue(hostid, Columns.hostid.name());
+    private DbValue primaryKey = new DbValue(hostid, Columns.HOSTID.name());
     private DbValue[] otherFields = {
-      new DbValue(hostkey, Columns.hostkey.name()),
-      new DbValue(adminrole, Columns.adminrole.name()),
-      new DbValue(updatedInfo, Columns.updatedinfo.name())
+      new DbValue(hostkey, Columns.HOSTKEY.name()),
+      new DbValue(adminrole, Columns.ADMINROLE.name()),
+      new DbValue(updatedInfo, Columns.UPDATEDINFO.name())
     };
     private DbValue[] allFields = {
       otherFields[0], otherFields[1], otherFields[2], primaryKey
     };
     private static final String selectAllFields =
-        Columns.hostkey.name()+","+Columns.adminrole.name()+
-        ","+Columns.updatedinfo.name()+
-        ","+Columns.hostid.name();
+        Columns.HOSTKEY.name()+","+Columns.ADMINROLE.name()+
+        ","+Columns.UPDATEDINFO.name()+
+        ","+Columns.HOSTID.name();
     private static final String updateAllFields =
-        Columns.hostkey.name()+"=?,"+Columns.adminrole.name()+
-        "=?,"+Columns.updatedinfo.name()+"=?";
+        Columns.HOSTKEY.name()+"=?,"+Columns.ADMINROLE.name()+
+        "=?,"+Columns.UPDATEDINFO.name()+"=?";
     private static final String insertAllValues = " (?,?,?,?) ";
 
     @Override
     protected void setToArray() {
-        allFields[Columns.hostid.ordinal()].setValue(this.hostid);
-        allFields[Columns.hostkey.ordinal()].setValue(this.hostkey);
-        allFields[Columns.adminrole.ordinal()].setValue(this.adminrole);
-        allFields[Columns.updatedinfo.ordinal()].setValue(this.updatedInfo);
+        allFields[Columns.HOSTID.ordinal()].setValue(this.hostid);
+        allFields[Columns.HOSTKEY.ordinal()].setValue(this.hostkey);
+        allFields[Columns.ADMINROLE.ordinal()].setValue(this.adminrole);
+        allFields[Columns.UPDATEDINFO.ordinal()].setValue(this.updatedInfo);
     }
     @Override
     protected void setFromArray() throws OpenR66DatabaseSqlError {
-        this.hostid = (String) allFields[Columns.hostid.ordinal()].getValue();
-        this.hostkey = (byte[]) allFields[Columns.hostkey.ordinal()].getValue();
-        this.adminrole = (Boolean) allFields[Columns.adminrole.ordinal()].getValue();
-        this.updatedInfo = (Integer) allFields[Columns.updatedinfo.ordinal()].getValue();
+        this.hostid = (String) allFields[Columns.HOSTID.ordinal()].getValue();
+        this.hostkey = (byte[]) allFields[Columns.HOSTKEY.ordinal()].getValue();
+        this.adminrole = (Boolean) allFields[Columns.ADMINROLE.ordinal()].getValue();
+        this.updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()].getValue();
     }
 
 
     /**
-     * @param hostid
-     * @param hostkey
-     * @param adminrole
+     * @param HOSTID
+     * @param HOSTKEY
+     * @param ADMINROLE
      * @param updatedInfo
      */
-    public R66DbAuthent(String hostid, byte[] hostkey, boolean adminrole, int updatedInfo) {
+    public DbR66HostAuth(String hostid, byte[] hostkey, boolean adminrole, int updatedInfo) {
         this.hostid = hostid;
         this.hostkey = hostkey;
         this.adminrole = adminrole;
@@ -108,10 +108,10 @@ public class R66DbAuthent extends AbstractDbData  {
 
 
     /**
-     * @param hostid
+     * @param HOSTID
      * @throws OpenR66DatabaseException
      */
-    public R66DbAuthent(String hostid) throws OpenR66DatabaseException {
+    public DbR66HostAuth(String hostid) throws OpenR66DatabaseException {
         this.hostid = hostid;
         // load from DB
         select();
@@ -122,11 +122,11 @@ public class R66DbAuthent extends AbstractDbData  {
      */
     @Override
     public void delete() throws OpenR66DatabaseException {
-        R66DbPreparedStatement preparedStatement =
-            new R66DbPreparedStatement(DbConstant.admin.session);
+        DbPreparedStatement preparedStatement =
+            new DbPreparedStatement(DbConstant.admin.session);
         try {
             preparedStatement.createPrepareStatement("DELETE FROM "+
-                    table+" WHERE "+Columns.hostid.name()+" = ?");
+                    table+" WHERE "+Columns.HOSTID.name()+" = ?");
             primaryKey.setValue(hostid);
             this.setValue(preparedStatement, primaryKey);
             int count = preparedStatement.executeUpdate();
@@ -148,8 +148,8 @@ public class R66DbAuthent extends AbstractDbData  {
         if (this.isSaved) {
             return;
         }
-        R66DbPreparedStatement preparedStatement =
-            new R66DbPreparedStatement(DbConstant.admin.session);
+        DbPreparedStatement preparedStatement =
+            new DbPreparedStatement(DbConstant.admin.session);
         try {
             preparedStatement.createPrepareStatement("INSERT INTO "+table+" ("+selectAllFields+
                     ") VALUES "+insertAllValues);
@@ -170,11 +170,11 @@ public class R66DbAuthent extends AbstractDbData  {
      */
     @Override
     public void select() throws OpenR66DatabaseException {
-        R66DbPreparedStatement preparedStatement =
-            new R66DbPreparedStatement(DbConstant.admin.session);
+        DbPreparedStatement preparedStatement =
+            new DbPreparedStatement(DbConstant.admin.session);
         try {
             preparedStatement.createPrepareStatement("SELECT "+selectAllFields+" FROM "+
-                    table+" WHERE "+Columns.hostid.name()+" = ?");
+                    table+" WHERE "+Columns.HOSTID.name()+" = ?");
             primaryKey.setValue(hostid);
             this.setValue(preparedStatement, primaryKey);
             preparedStatement.executeQuery();
@@ -198,11 +198,11 @@ public class R66DbAuthent extends AbstractDbData  {
         if (this.isSaved) {
             return;
         }
-        R66DbPreparedStatement preparedStatement =
-            new R66DbPreparedStatement(DbConstant.admin.session);
+        DbPreparedStatement preparedStatement =
+            new DbPreparedStatement(DbConstant.admin.session);
         try {
             preparedStatement.createPrepareStatement("UPDATE "+table+" SET "+updateAllFields+
-                    " WHERE "+Columns.hostid.name()+" = ?");
+                    " WHERE "+Columns.HOSTID.name()+" = ?");
             this.setValues(preparedStatement, allFields);
             int count = preparedStatement.executeUpdate();
             preparedStatement.realClose();
@@ -222,7 +222,7 @@ public class R66DbAuthent extends AbstractDbData  {
     public void changeUpdatedInfo(int status) {
         if (this.updatedInfo != status) {
             this.updatedInfo = status;
-            allFields[Columns.updatedinfo.ordinal()].setValue(this.updatedInfo);
+            allFields[Columns.UPDATEDINFO.ordinal()].setValue(this.updatedInfo);
             this.isSaved = false;
         }
     }

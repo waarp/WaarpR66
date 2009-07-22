@@ -24,12 +24,12 @@ import openr66.protocol.utils.OpenR66SignalHandler;
  * @author Frederic Bregier LGPL
  *
  */
-public class R66DbSession {
+public class DbSession {
     /**
      * Internal Logger
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
-            .getLogger(R66DbSession.class);
+            .getLogger(DbSession.class);
 
     /**
      * The internal connection
@@ -53,7 +53,7 @@ public class R66DbSession {
      * @param isReadOnly
      * @throws OpenR66DatabaseNoConnectionError
      */
-    public R66DbSession(Connection connext, boolean isReadOnly) throws OpenR66DatabaseNoConnectionError {
+    public DbSession(Connection connext, boolean isReadOnly) throws OpenR66DatabaseNoConnectionError {
         if (connext == null) {
             logger.error("Cannot set a null connection");
             throw new OpenR66DatabaseNoConnectionError("Cannot set a null Connection");
@@ -92,10 +92,10 @@ public class R66DbSession {
      * @param isReadOnly
      * @throws OpenR66DatabaseSqlError
      */
-    public R66DbSession(String server, String user, String passwd,
+    public DbSession(String server, String user, String passwd,
             boolean isReadOnly) throws OpenR66DatabaseNoConnectionError {
-        if (!R66DbAdmin.classLoaded) {
-            R66DbAdmin.initialize(null);
+        if (!DbAdmin.classLoaded) {
+            DbAdmin.initialize(null);
         }
         if (server == null) {
             conn = null;

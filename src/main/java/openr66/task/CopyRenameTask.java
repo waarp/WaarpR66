@@ -58,7 +58,7 @@ public class CopyRenameTask extends AbstractTask {
     public void run() {
         /*
          * COPY avec options dans argRule : "CHAINE de caracteres" qui se
-         * verront appliquer : - TRUEFILENAME -> current filename (retrieve) -
+         * verront appliquer : - TRUEFILENAME -> current FILENAME (retrieve) -
          * DATE -> AAAAMMJJ - HOUR -> HHMMSS - puis %s qui sera remplace par les
          * arguments du transfer (transfer information)
          */

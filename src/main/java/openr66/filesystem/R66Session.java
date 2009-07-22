@@ -132,7 +132,7 @@ public class R66Session implements SessionInterface {
 
     /**
      * @param blocksize
-     *            the blocksize to set
+     *            the BLOCKSIZE to set
      */
     public void setBlockSize(int blocksize) {
         blockSize = blocksize;
@@ -233,7 +233,7 @@ public class R66Session implements SessionInterface {
     }
 
     /**
-     * Set the runner, start from the PreTask if necessary, and prepare the file
+     * Set the runner, START from the PreTask if necessary, and prepare the file
      *
      * @param runner
      *            the runner to set
@@ -291,7 +291,7 @@ public class R66Session implements SessionInterface {
                     throw new OpenR66RunnerErrorException(e);
                 }
             } else {
-                // New filename and store it
+                // New FILENAME and store it
                 try {
                     file = dir.setUniqueFile(request
                             .getFilename());
@@ -363,7 +363,7 @@ public class R66Session implements SessionInterface {
             }
             runner.setAllDone();
             runner.saveStatus();
-            logger.info("Transfer done on " + file + " at rank " + rank);
+            logger.info("Transfer done on " + file + " at RANK " + rank);
         } else {
             // error
             runner.setErrorTask(0);

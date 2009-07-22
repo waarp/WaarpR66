@@ -123,27 +123,27 @@ public class R66Rule {
     /**
      * Internal context XML fields
      */
-    public static final String HOSTIDS_HOSTID = "/hostids/hostid";
+    public static final String HOSTIDS_HOSTID = "/HOSTIDS/HOSTID";
 
     /**
      * Internal context XML fields
      */
-    private static final String XMLHOSTIDS = "<hostids>";
+    private static final String XMLHOSTIDS = "<HOSTIDS>";
 
     /**
      * Internal context XML fields
      */
-    private static final String XMLENDHOSTIDS = "</hostids>";
+    private static final String XMLENDHOSTIDS = "</HOSTIDS>";
 
     /**
      * Internal context XML fields
      */
-    private static final String XMLHOSTID = "<hostid>";
+    private static final String XMLHOSTID = "<HOSTID>";
 
     /**
      * Internal context XML fields
      */
-    private static final String XMLENDHOSTID = "</hostid>";
+    private static final String XMLENDHOSTID = "</HOSTID>";
 
     /**
      * Internal context XML fields
@@ -183,7 +183,7 @@ public class R66Rule {
     /**
      * Internal context XML fields
      */
-    public static final String TASK_RANK = "rank";
+    public static final String TASK_RANK = "RANK";
 
     /**
      * Create a Rule from args
@@ -481,10 +481,10 @@ public class R66Rule {
         R66Rule rule = getInternalHash(idrule);
         if (rule == null) {
             /*
-             * R66DbPreparedStatement p_get_id = setPGet(admin, idrule); if
+             * DbPreparedStatement p_get_id = setPGet(admin, IDRULE); if
              * (p_get_id == null) return null; ResultSet resultSet =
              * p_get_id.executeQuery(); if
-             * (R66DbPreparedStatement.getNext(resultSet)) { rule = new
+             * (DbPreparedStatement.getNext(resultSet)) { rule = new
              * R66Rule(); if (rule.get(resultSet)) { setInternalHash(rule); }
              * else { rule = null; } } resultSet = null; p_get_id.realClose();
              */
@@ -503,8 +503,8 @@ public class R66Rule {
     public static boolean del(String idrule) {
         boolean retour = false;
         /*
-         * R66DbPreparedStatement p_del_id = null; p_del_id = setPDel(admin,
-         * idrule); if (p_del_id == null) return false; if
+         * DbPreparedStatement p_del_id = null; p_del_id = setPDel(admin,
+         * IDRULE); if (p_del_id == null) return false; if
          * (p_del_id.executeUpdate() == 1) {
          */
         retour = true;
@@ -523,11 +523,11 @@ public class R66Rule {
     public boolean set() {
         boolean retour = false;
         /*
-         * R66DbPreparedStatement p_get_r66 = setPGet(admin, this.idRule); if
+         * DbPreparedStatement p_get_r66 = setPGet(admin, this.idRule); if
          * (p_get_r66 == null) return false; ResultSet resultSet =
          * p_get_r66.executeQuery(); int nb = 0; if
-         * (R66DbPreparedStatement.getNext(resultSet)) { resultSet = null;
-         * p_get_r66.realClose(); resultSet = null; R66DbPreparedStatement
+         * (DbPreparedStatement.getNext(resultSet)) { resultSet = null;
+         * p_get_r66.realClose(); resultSet = null; DbPreparedStatement
          * p_upd_r66 = setPUpdate(admin, idRule, ids, recvPath, sendPath,
          * archivePath, workPath, preTasks, postTasks, errorTasks); if
          * (p_upd_r66 == null) return false; nb = p_upd_r66.executeUpdate();
@@ -552,7 +552,7 @@ public class R66Rule {
     public boolean insert() {
         boolean retour = false;
         /*
-         * int nb = 0; R66DbPreparedStatement preparedStatement =
+         * int nb = 0; DbPreparedStatement preparedStatement =
          * setPInsert(admin, idRule, ids, recvPath, sendPath, archivePath,
          * workPath, preTasks, postTasks, errorTasks); if (preparedStatement ==
          * null) { return false; } nb = preparedStatement.executeUpdate();
@@ -567,7 +567,7 @@ public class R66Rule {
     }
 
     /**
-     * Get the full path from RecvPath (used only in copy mode)
+     * Get the full path from RecvPath (used only in copy MODE)
      *
      * @param filename
      * @return the full String path

@@ -12,7 +12,7 @@ import org.jboss.netty.buffer.ChannelBuffers;
 /**
  * Request class
  *
- * header = "rulename mode" middle = way+"filename blocksize rank specialId" end
+ * header = "rulename MODE" middle = way+"FILENAME BLOCKSIZE RANK specialId" end
  * = "fileInformation"
  *
  * @author frederic bregier
@@ -101,10 +101,10 @@ public class RequestPacket extends AbstractLocalPacket {
 
     /**
      * @param rulename
-     * @param mode
-     * @param filename
-     * @param blocksize
-     * @param rank
+     * @param MODE
+     * @param FILENAME
+     * @param BLOCKSIZE
+     * @param RANK
      * @param specialId
      * @param valid
      * @param fileInformation
@@ -128,10 +128,10 @@ public class RequestPacket extends AbstractLocalPacket {
 
     /**
      * @param rulename
-     * @param mode
-     * @param filename
-     * @param blocksize
-     * @param rank
+     * @param MODE
+     * @param FILENAME
+     * @param BLOCKSIZE
+     * @param RANK
      * @param specialId
      * @param fileInformation
      */
@@ -212,14 +212,14 @@ public class RequestPacket extends AbstractLocalPacket {
     }
 
     /**
-     * @return the filename
+     * @return the FILENAME
      */
     public String getFilename() {
         return filename;
     }
 
     /**
-     * @return the mode
+     * @return the MODE
      */
     public int getMode() {
         return mode;
@@ -233,14 +233,14 @@ public class RequestPacket extends AbstractLocalPacket {
     }
 
     /**
-     * @return the blocksize
+     * @return the BLOCKSIZE
      */
     public int getBlocksize() {
         return blocksize;
     }
 
     /**
-     * @return the rank
+     * @return the RANK
      */
     public int getRank() {
         return rank;
@@ -277,8 +277,8 @@ public class RequestPacket extends AbstractLocalPacket {
     }
 
     /**
-     * @param filename
-     *            the filename to set
+     * @param FILENAME
+     *            the FILENAME to set
      */
     public void setFilename(String filename) {
         this.filename = filename;

@@ -24,6 +24,7 @@ import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.filesystem.R66Rule;
 import openr66.filesystem.R66Session;
+import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.utils.R66Future;
 import openr66.task.exception.OpenR66RunnerEndTasksException;
 import openr66.task.exception.OpenR66RunnerErrorException;
@@ -76,10 +77,61 @@ public class TaskRunner {
 
     private boolean isFileMoved = false;
 
-    public TaskRunner(R66Session session, R66Rule rule, boolean isRetrieve) {
+    private final int blocksize;
+
+    private String originalFilename;
+
+    private final String fileInformation;
+
+    private final int mode;
+
+
+    /**
+     * @param rule
+     * @param session
+     * @param globalstep
+     * @param step
+     * @param rank
+     * @param status
+     * @param specialId
+     * @param isRetrieve
+     * @param filename
+     * @param isFileMoved
+     * @param blocksize
+     * @param originalFilename
+     * @param fileInformation
+     * @param mode
+     */
+    public TaskRunner(R66Rule rule, R66Session session, int globalstep,
+            int step, int rank, TaskStatus status, long specialId,
+            boolean isRetrieve, String filename, boolean isFileMoved,
+            int blocksize, String originalFilename, String fileInformation,
+            int mode) {
+        this.rule = rule;
+        this.session = session;
+        this.globalstep = globalstep;
+        this.step = step;
+        this.rank = rank;
+        this.status = status;
+        this.specialId = specialId;
+        this.isRetrieve = isRetrieve;
+        this.filename = filename;
+        this.isFileMoved = isFileMoved;
+        this.blocksize = blocksize;
+        this.originalFilename = originalFilename;
+        this.fileInformation = fileInformation;
+        this.mode = mode;
+    }
+
+    public TaskRunner(R66Session session, R66Rule rule, boolean isRetrieve,
+            RequestPacket requestPacket) {
         this.session = session;
         this.rule = rule;
         status = TaskStatus.UNKNOWN;
+        this.blocksize = requestPacket.getBlocksize();
+        this.originalFilename = requestPacket.getFilename();
+        this.fileInformation = requestPacket.getFileInformation();
+        this.mode = requestPacket.getMode();
         long newId = this.session.getLocalChannelReference().getRemoteId();
         newId = newId << 32;
         // FIXME need a way to check if it does not already exist
@@ -94,6 +146,10 @@ public class TaskRunner {
         status = TaskStatus.UNKNOWN;
         specialId = id;
         // FIXME load from database
+        this.blocksize = this.session.getRequest().getBlocksize();
+        this.originalFilename = this.session.getRequest().getFilename();
+        this.fileInformation = this.session.getRequest().getFileInformation();
+        this.mode = this.session.getRequest().getMode();
         isRetrieve = false;// XXX FIXME TODO WARNING FALSE!!!
     }
 
@@ -209,7 +265,7 @@ public class TaskRunner {
     public void run() throws OpenR66RunnerErrorException {
         R66Future future;
         if (this.status != TaskStatus.RUNNING) {
-            throw new OpenR66RunnerErrorException("Current global step not ready to run");
+            throw new OpenR66RunnerErrorException("Current global STEP not ready to run");
         }
         while (true) {
             try {
@@ -264,12 +320,47 @@ public class TaskRunner {
     }
 
     /**
+     * @return the originalFilename
+     */
+    public String getOriginalFilename() {
+        return originalFilename;
+    }
+
+    /**
+     * @param originalFilename the originalFilename to set
+     */
+    public void setOriginalFilename(String originalFilename) {
+        this.originalFilename = originalFilename;
+    }
+
+    /**
+     * @return the blocksize
+     */
+    public int getBlocksize() {
+        return blocksize;
+    }
+
+    /**
+     * @return the fileInformation
+     */
+    public String getFileInformation() {
+        return fileInformation;
+    }
+
+    /**
+     * @return the mode
+     */
+    public int getMode() {
+        return mode;
+    }
+
+    /**
      * This method is to be called each time an operation is happening on Runner
      */
     public void saveStatus() {
         // FIXME should save status to DB
         // FIXME need a specialID that could be reused over time
-        // save: rulename, globalstep, setp, rank, status, specialId, filename,
+        // save: rulename, GLOBALSTEP, setp, RANK, status, specialId, FILENAME,
         // isRetrieve
         logger.info(GgInternalLogger.getRankMethodAndLine(3) + " " +
                 toString());
@@ -282,7 +373,7 @@ public class TaskRunner {
     @Override
     public String toString() {
         return "Run: " + (rule != null? rule.toString() : "no Rule") + " on " +
-                filename + " step: " + globalstep + ":" + step + ":" + status +
+                filename + " STEP: " + globalstep + ":" + step + ":" + status +
                 ":" + rank + " SpecialId: " + specialId + " isRetr: " +
                 isRetrieve + " isMoved: " + isFileMoved;
     }

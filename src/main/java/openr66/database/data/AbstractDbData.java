@@ -27,8 +27,8 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 
-import openr66.database.R66DbPreparedStatement;
-import openr66.database.R66DbSession;
+import openr66.database.DbPreparedStatement;
+import openr66.database.DbSession;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
@@ -142,16 +142,16 @@ public abstract class AbstractDbData {
                     throw new OpenR66DatabaseSqlError("Type not supported: "+value.type+" at "+rank);
             }
         } catch (SQLException e) {
-            R66DbSession.error(e);
+            DbSession.error(e);
             throw new OpenR66DatabaseSqlError("Setting values in error: "+value.type+" at "+rank, e);
         }
     }
-    protected void setValue(R66DbPreparedStatement preparedStatement,
+    protected void setValue(DbPreparedStatement preparedStatement,
             DbValue value) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
         PreparedStatement ps = preparedStatement.getPreparedStatement();
         this.setTrueValue(ps, value, 1);
     }
-    protected void setValues(R66DbPreparedStatement preparedStatement,
+    protected void setValues(DbPreparedStatement preparedStatement,
             DbValue[] values) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
         PreparedStatement ps = preparedStatement.getPreparedStatement();
         for (int i = 0; i < values.length; i++) {
@@ -201,16 +201,16 @@ public abstract class AbstractDbData {
                     throw new OpenR66DatabaseSqlError("Type not supported: "+value.type+" for "+value.column);
             }
         } catch (SQLException e) {
-            R66DbSession.error(e);
+            DbSession.error(e);
             throw new OpenR66DatabaseSqlError("Getting values in error: "+value.type+" for "+value.column, e);
         }
     }
-    protected void getValue(R66DbPreparedStatement preparedStatement,
+    protected void getValue(DbPreparedStatement preparedStatement,
             DbValue value) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
         ResultSet rs = preparedStatement.getResultSet();
         this.getTrueValue(rs, value);
     }
-    protected void getValues(R66DbPreparedStatement preparedStatement,
+    protected void getValues(DbPreparedStatement preparedStatement,
             DbValue[] values) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
         ResultSet rs = preparedStatement.getResultSet();
         for (int i = 0; i < values.length; i++) {
