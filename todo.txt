@@ -29,6 +29,9 @@ Le fichier de conf pourrait être lui aussi transmis et rechargé (arrêt, relance)
 	- shutdown (sans message)
 doit permettre de relancer un job, de l'arreter, de l'annuler, de programmer un job (exemple
 configuration à recharger ou à transmettre)
+- Version light de OpenR66: dès qu'un transfert est OK, vidage de la table runner
 
+PRIMARY KEY RUNNER : specialId+requested (puisque c'est lui qui fixe)
+Changer objet pour Objet+Database
 
 Voire à charger les données depuis ou vers la base...
