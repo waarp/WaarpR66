@@ -26,6 +26,7 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 
+import openr66.context.task.TaskRunner.TaskStatus;
 import openr66.database.DbConstant;
 import openr66.database.DbPreparedStatement;
 import openr66.database.DbSession;
@@ -34,11 +35,7 @@ import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.database.model.DbModelFactory;
-import openr66.filesystem.R66Rule;
-import openr66.filesystem.R66Session;
 import openr66.protocol.localhandler.packet.RequestPacket;
-import openr66.task.TaskRunner;
-import openr66.task.TaskRunner.TaskStatus;
 
 /**
  * @author Frederic Bregier
@@ -47,7 +44,7 @@ import openr66.task.TaskRunner.TaskStatus;
 public class DbTaskRunner extends AbstractDbData {
     public static enum Columns {
         GLOBALSTEP, STEP, RANK, STEPSTATUS, RETRIEVEMODE, FILENAME, ISMOVED, IDRULE,
-        BLOCKSIZE, ORIGINALNAME, FILEINFO, MODE,
+        BLOCKSIZE, ORIGINALNAME, FILEINFO, MODE, REQUESTER, REQUESTED,
         START, STOP,
         UPDATEDINFO,
         SPECIALID;
@@ -55,7 +52,7 @@ public class DbTaskRunner extends AbstractDbData {
     public static int [] dbTypes = {
         Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.BIT,
         Types.VARCHAR, Types.BIT, Types.VARCHAR,
-        Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
+        Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR,
         Types.TIMESTAMP, Types.TIMESTAMP,
         Types.INTEGER, Types.VARCHAR
     };
@@ -68,7 +65,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     private int rank;
 
-    private TaskStatus status;
+    private TaskStatus status = TaskStatus.UNKNOWN;
 
     // FIXME need a special ID
     private long specialId;
@@ -93,6 +90,10 @@ public class DbTaskRunner extends AbstractDbData {
 
     private Timestamp stop;
 
+    private String requesterHostId;
+
+    private String requestedHostId;
+
     private int updatedInfo;
 
     private boolean isSaved = false;
@@ -101,7 +102,7 @@ public class DbTaskRunner extends AbstractDbData {
     private DbValue primaryKey = new DbValue(specialId, Columns.SPECIALID.name());
     private DbValue[] otherFields = {
       // GLOBALSTEP, STEP, RANK, STEPSTATUS, RETRIEVEMODE, FILENAME, ISMOVED, IDRULE,
-      // BLOCKSIZE, ORIGINALNAME, FILEINFO, MODE,
+      // BLOCKSIZE, ORIGINALNAME, FILEINFO, MODE, REQUESTER, REQUESTED
       // START, STOP
       // UPDATEDINFO
       new DbValue(globalstep, Columns.GLOBALSTEP.name()),
@@ -116,6 +117,8 @@ public class DbTaskRunner extends AbstractDbData {
       new DbValue(originalFilename, Columns.ORIGINALNAME.name()),
       new DbValue(fileInformation, Columns.FILEINFO.name()),
       new DbValue(mode, Columns.MODE.name()),
+      new DbValue(requesterHostId, Columns.REQUESTER.name()),
+      new DbValue(requestedHostId, Columns.REQUESTED.name()),
       new DbValue(start, Columns.START.name()),
       new DbValue(stop, Columns.STOP.name()),
       new DbValue(updatedInfo, Columns.UPDATEDINFO.name())
@@ -124,7 +127,7 @@ public class DbTaskRunner extends AbstractDbData {
       otherFields[0], otherFields[1], otherFields[2], otherFields[3],
       otherFields[4], otherFields[5], otherFields[6], otherFields[7], otherFields[8],
       otherFields[9], otherFields[10], otherFields[11], otherFields[12], otherFields[13],
-      otherFields[14],
+      otherFields[14], otherFields[15], otherFields[16],
       primaryKey
     };
     private static final String selectAllFields =
@@ -132,7 +135,7 @@ public class DbTaskRunner extends AbstractDbData {
         ","+Columns.RANK.name()+","+Columns.STEPSTATUS.name()+","+Columns.RETRIEVEMODE.name()+
         ","+Columns.FILENAME.name()+","+Columns.ISMOVED.name()+","+Columns.IDRULE.name()+
         ","+Columns.BLOCKSIZE.name()+","+Columns.ORIGINALNAME.name()+","+Columns.FILEINFO.name()+
-        ","+Columns.MODE.name()+
+        ","+Columns.MODE.name()+","+Columns.REQUESTER.name()+","+Columns.REQUESTED.name()+
         ","+Columns.START.name()+","+Columns.STOP.name()+
         ","+Columns.UPDATEDINFO.name()+
         ","+Columns.SPECIALID.name();
@@ -141,31 +144,33 @@ public class DbTaskRunner extends AbstractDbData {
         "=?,"+Columns.RANK.name()+"=?,"+Columns.STEPSTATUS.name()+"=?,"+Columns.RETRIEVEMODE.name()+
         "=?,"+Columns.FILENAME.name()+"=?,"+Columns.ISMOVED.name()+"=?,"+Columns.IDRULE.name()+
         "=?,"+Columns.BLOCKSIZE.name()+"=?,"+Columns.ORIGINALNAME.name()+"=?,"+Columns.FILEINFO.name()+
-        "=?,"+Columns.MODE.name()+
+        "=?,"+Columns.MODE.name()+"=?,"+Columns.REQUESTER.name()+"=?,"+Columns.REQUESTED.name()+
         "=?,"+Columns.START.name()+"=?,"+Columns.STOP.name()+"=?,"+Columns.UPDATEDINFO.name()+"=?";
-    private static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
+    private static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
 
     /**
      *
      * @param specialId
-     * @param GLOBALSTEP
-     * @param STEP
-     * @param RANK
+     * @param globalstep
+     * @param step
+     * @param rank
      * @param status
      * @param isRetrieve
-     * @param FILENAME
+     * @param filename
      * @param isFileMoved
      * @param idRule
-     * @param BLOCKSIZE
+     * @param blocksize
      * @param originalName
      * @param fileInfo
-     * @param MODE
-     * @param updatedInfo
+     * @param mode
+     * @param requesterHostId
+     * @param requestedHostId
      */
     public DbTaskRunner(long specialId, int globalstep, int step, int rank, TaskStatus status,
             boolean isRetrieve, String filename,
             boolean isFileMoved, String idRule,
-            int blocksize, String originalName, String fileInfo, int mode, int updatedInfo) {
+            int blocksize, String originalName, String fileInfo, int mode,
+            String requesterHostId, String requestedHostId) {
         this.specialId = specialId;
         this.globalstep = globalstep;
         this.step = step;
@@ -180,7 +185,9 @@ public class DbTaskRunner extends AbstractDbData {
         this.originalFilename = originalName;
         this.fileInformation = fileInfo;
         this.mode = mode;
-        this.updatedInfo = updatedInfo;
+        this.requesterHostId = requesterHostId;
+        this.requestedHostId = requestedHostId;
+        this.updatedInfo = UNKNOWN;
         this.setToArray();
         this.isSaved = false;
     }
@@ -200,6 +207,8 @@ public class DbTaskRunner extends AbstractDbData {
         allFields[Columns.ORIGINALNAME.ordinal()].setValue(this.originalFilename);
         allFields[Columns.FILEINFO.ordinal()].setValue(this.fileInformation);
         allFields[Columns.MODE.ordinal()].setValue(this.mode);
+        allFields[Columns.REQUESTER.ordinal()].setValue(this.requesterHostId);
+        allFields[Columns.REQUESTED.ordinal()].setValue(this.requestedHostId);
         allFields[Columns.START.ordinal()].setValue(this.start);
         this.stop = new Timestamp(System.currentTimeMillis());
         allFields[Columns.STOP.ordinal()].setValue(this.stop);
@@ -220,6 +229,8 @@ public class DbTaskRunner extends AbstractDbData {
         this.originalFilename = (String) allFields[Columns.ORIGINALNAME.ordinal()].getValue();
         this.fileInformation = (String) allFields[Columns.FILEINFO.ordinal()].getValue();
         this.mode = (Integer) allFields[Columns.MODE.ordinal()].getValue();
+        this.requesterHostId = (String) allFields[Columns.REQUESTER.ordinal()].getValue();
+        this.requestedHostId = (String) allFields[Columns.REQUESTED.ordinal()].getValue();
         this.start = (Timestamp) allFields[Columns.START.ordinal()].getValue();
         this.stop = (Timestamp) allFields[Columns.STOP.ordinal()].getValue();
         this.updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()].getValue();
@@ -270,6 +281,7 @@ public class DbTaskRunner extends AbstractDbData {
             this.specialId = DbModelFactory.dbModel.nextSequence();
             primaryKey.setValue(this.specialId);
         }
+        this.setToArray();
         DbPreparedStatement preparedStatement =
             new DbPreparedStatement(DbConstant.admin.session);
         try {
@@ -321,6 +333,7 @@ public class DbTaskRunner extends AbstractDbData {
         if (this.isSaved) {
             return;
         }
+        this.setToArray();
         DbPreparedStatement preparedStatement =
             new DbPreparedStatement(DbConstant.admin.session);
         try {
@@ -416,14 +429,126 @@ public class DbTaskRunner extends AbstractDbData {
         }
     }
 
-    public TaskRunner getTaskRunner(R66Session session, R66Rule rule) {
-        // FIXME
-        return new TaskRunner(session, rule, this.specialId);
+    /**
+     * @param originalFilename the originalFilename to set
+     */
+    public void setOriginalFilename(String originalFilename) {
+        if (this.originalFilename != originalFilename) {
+            this.originalFilename = originalFilename;
+            allFields[Columns.ORIGINALNAME.ordinal()].setValue(this.originalFilename);
+            this.isSaved = false;
+        }
     }
+
     public RequestPacket getRequest() {
         // FIXME
         return new RequestPacket(this.ruleId,this.mode,this.originalFilename,this.blocksize,this.rank,
                 this.specialId,this.fileInformation);
+    }
+
+    /**
+     * @return the globalstep
+     */
+    public int getGlobalstep() {
+        return globalstep;
+    }
+
+    /**
+     * @return the step
+     */
+    public int getStep() {
+        return step;
+    }
+
+    /**
+     * @return the rank
+     */
+    public int getRank() {
+        return rank;
+    }
+
+    /**
+     * @return the status
+     */
+    public TaskStatus getStatus() {
+        return status;
+    }
+
+    /**
+     * @return the isRetrieve
+     */
+    public boolean isRetrieve() {
+        return isRetrieve;
+    }
+
+    /**
+     * @return the filename
+     */
+    public String getFilename() {
+        return filename;
+    }
+
+    /**
+     * @return the isFileMoved
+     */
+    public boolean isFileMoved() {
+        return isFileMoved;
+    }
+
+    /**
+     * @return the ruleId
+     */
+    public String getRuleId() {
+        return ruleId;
+    }
+
+    /**
+     * @return the blocksize
+     */
+    public int getBlocksize() {
+        return blocksize;
+    }
+
+    /**
+     * @return the originalFilename
+     */
+    public String getOriginalFilename() {
+        return originalFilename;
+    }
+
+    /**
+     * @return the fileInformation
+     */
+    public String getFileInformation() {
+        return fileInformation;
+    }
+
+    /**
+     * @return the mode
+     */
+    public int getMode() {
+        return mode;
+    }
+
+    /**
+     * @return the specialId
+     */
+    public long getSpecialId() {
+        return specialId;
+    }
+
+    /**
+     * @return the requesterHostId
+     */
+    public String getRequesterHostId() {
+        return requesterHostId;
+    }
+
+    /**
+     * @return the requestedHostId
+     */
+    public String getRequestedHostId() {
+        return requestedHostId;
     }
 
     /**

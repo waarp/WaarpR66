@@ -20,15 +20,18 @@
  */
 package openr66.database.model;
 
+import java.sql.SQLException;
 import java.sql.Types;
 
 import openr66.database.DbConstant;
+import openr66.database.DbPreparedStatement;
 import openr66.database.DbRequest;
 import openr66.database.data.DbR66HostAuth;
 import openr66.database.data.DbR66Configuration;
 import openr66.database.data.DbR66Rule;
 import openr66.database.data.DbTaskRunner;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
+import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 
 /**
@@ -216,9 +219,21 @@ public class DbModelH2 extends AbstractDbModel {
      * @see openr66.database.model.AbstractDbModel#nextSequence()
      */
     @Override
-    public long nextSequence() {
+    public long nextSequence() throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError, OpenR66DatabaseNoDataException {
         String action = "SELECT NEXTVAL('"+DbTaskRunner.fieldseq+"')";
-        System.out.println(action);
-        return 0;
+        DbPreparedStatement preparedStatement =
+            new DbPreparedStatement(DbConstant.admin.session);
+        preparedStatement.createPrepareStatement(action);
+        preparedStatement.executeQuery();
+        if (preparedStatement.getNext()) {
+            long result;
+            try {
+                result = preparedStatement.getResultSet().getLong(1);
+            } catch (SQLException e) {
+                throw new OpenR66DatabaseSqlError(e);
+            }
+            return result;
+        }
+        throw new OpenR66DatabaseNoDataException("No sequence found. Must be initialized first");
     }
 }

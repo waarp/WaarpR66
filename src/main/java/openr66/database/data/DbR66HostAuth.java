@@ -22,7 +22,7 @@ package openr66.database.data;
 
 import java.sql.Types;
 
-import openr66.authentication.R66SimpleAuth;
+import openr66.context.authentication.R66SimpleAuth;
 import openr66.database.DbConstant;
 import openr66.database.DbPreparedStatement;
 import openr66.database.exception.OpenR66DatabaseException;

@@ -60,7 +60,7 @@ public class DbSession {
         }
         conn = connext;
         try {
-            conn.setAutoCommit(false);
+            conn.setAutoCommit(true);
             this.isReadOnly = isReadOnly;
             conn.setReadOnly(this.isReadOnly);
         } catch (SQLException ex) {
@@ -104,7 +104,7 @@ public class DbSession {
         }
         try {
             conn = DriverManager.getConnection(server, user, passwd);
-            conn.setAutoCommit(false);
+            conn.setAutoCommit(true);
             this.isReadOnly = isReadOnly;
             conn.setReadOnly(this.isReadOnly);
             OpenR66SignalHandler.addConnection(conn);

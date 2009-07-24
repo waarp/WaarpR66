@@ -3,14 +3,14 @@
  */
 package openr66.database.exception;
 
-import openr66.protocol.exception.OpenR66ProtocolException;
+import openr66.protocol.exception.OpenR66Exception;
 
 /**
  * Database exception
  *
  * @author frederic bregier
  */
-public class OpenR66DatabaseException extends OpenR66ProtocolException {
+public class OpenR66DatabaseException extends OpenR66Exception {
 
     /**
      *

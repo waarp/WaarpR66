@@ -20,6 +20,10 @@
  */
 package openr66.database.model;
 
+import openr66.database.exception.OpenR66DatabaseNoConnectionError;
+import openr66.database.exception.OpenR66DatabaseNoDataException;
+import openr66.database.exception.OpenR66DatabaseSqlError;
+
 /**
  * @author Frederic Bregier
  *
@@ -37,5 +41,5 @@ public abstract class AbstractDbModel {
      *
      * @return The next unique specialId
      */
-    public abstract long nextSequence();
+    public abstract long nextSequence() throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError, OpenR66DatabaseNoDataException;
 }

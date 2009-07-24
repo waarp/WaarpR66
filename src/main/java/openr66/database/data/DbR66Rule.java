@@ -22,13 +22,13 @@ package openr66.database.data;
 
 import java.sql.Types;
 
+import openr66.context.R66Rule;
 import openr66.database.DbConstant;
 import openr66.database.DbPreparedStatement;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
-import openr66.filesystem.R66Rule;
 
 /**
  * @author Frederic Bregier
