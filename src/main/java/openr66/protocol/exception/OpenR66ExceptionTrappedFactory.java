@@ -29,10 +29,10 @@ public class OpenR66ExceptionTrappedFactory {
     /**
      * @param channel
      * @param e
-     * @return the OpenR66ProtocolException corresponding to the ExceptionEvent,
+     * @return the OpenR66Exception corresponding to the ExceptionEvent,
      *         or null if the exception should be ignored
      */
-    public static OpenR66ProtocolException getExceptionFromTrappedException(
+    public static OpenR66Exception getExceptionFromTrappedException(
             Channel channel, ExceptionEvent e) {
         final Throwable e1 = e.getCause();
         if (e1 instanceof ConnectException) {
@@ -67,8 +67,8 @@ public class OpenR66ExceptionTrappedFactory {
             final OpenR66ProtocolShutdownException e2 = (OpenR66ProtocolShutdownException) e1;
             logger.info("Command Shutdown" + e2.getMessage());
             return e2;
-        } else if (e1 instanceof OpenR66ProtocolException) {
-            final OpenR66ProtocolException e2 = (OpenR66ProtocolException) e1;
+        } else if (e1 instanceof OpenR66Exception) {
+            final OpenR66Exception e2 = (OpenR66Exception) e1;
             logger.warn("Command Error Reply", e2);
             return e2;
         } else if (e1 instanceof BindException) {

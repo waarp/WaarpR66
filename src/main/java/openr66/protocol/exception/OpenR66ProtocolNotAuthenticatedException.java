@@ -9,7 +9,7 @@ package openr66.protocol.exception;
  * @author frederic bregier
  */
 public class OpenR66ProtocolNotAuthenticatedException extends
-        OpenR66ProtocolException {
+        OpenR66Exception {
 
     /**
      *

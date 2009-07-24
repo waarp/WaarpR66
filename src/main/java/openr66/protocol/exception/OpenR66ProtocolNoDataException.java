@@ -24,7 +24,7 @@ package openr66.protocol.exception;
  * @author Frederic Bregier
  *
  */
-public class OpenR66ProtocolNoDataException extends OpenR66ProtocolException {
+public class OpenR66ProtocolNoDataException extends OpenR66Exception {
 
     /**
      *

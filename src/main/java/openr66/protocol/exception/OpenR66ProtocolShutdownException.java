@@ -8,7 +8,7 @@ package openr66.protocol.exception;
  *
  * @author frederic bregier
  */
-public class OpenR66ProtocolShutdownException extends OpenR66ProtocolException {
+public class OpenR66ProtocolShutdownException extends OpenR66Exception {
 
     /**
      *
