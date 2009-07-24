@@ -141,24 +141,12 @@ public class OpenR66SignalHandler implements SignalHandler {
         timer.schedule(timerTask, Configuration.configuration.TIMEOUTCON * 2);
         if (shutdown) {
             ChannelUtils.exit();
-            Connection con = listConnection.poll();
-            while (con != null) {
-                    try {
-                            con.close();
-                    } catch (SQLException e) {}
-                    con = listConnection.poll();
-            }
+            closeAllConnection();
             // shouldn't be System.exit(2);
         } else {
             shutdown = true;
             ChannelUtils.exit();
-            Connection con = listConnection.poll();
-            while (con != null) {
-                    try {
-                            con.close();
-                    } catch (SQLException e) {}
-                    con = listConnection.poll();
-            }
+            closeAllConnection();
         }
     }
 
@@ -216,5 +204,17 @@ public class OpenR66SignalHandler implements SignalHandler {
      */
     public static void removeConnection(Connection conn) {
             listConnection.remove(conn);
+    }
+    /**
+     * Close all database connections
+     */
+    public static void closeAllConnection() {
+        Connection con = listConnection.poll();
+        while (con != null) {
+                try {
+                        con.close();
+                } catch (SQLException e) {}
+                con = listConnection.poll();
+        }
     }
 }

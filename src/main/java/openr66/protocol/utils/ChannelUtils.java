@@ -22,13 +22,14 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
+import openr66.context.task.TaskRunner;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.DataPacket;
+import openr66.protocol.localhandler.packet.ErrorPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
-import openr66.task.TaskRunner;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -165,7 +166,16 @@ public class ChannelUtils implements Runnable {
         Channels.close(channel);
     }
 
-    public static ChannelFuture writeBack(
+    /**
+     *
+     * @param localChannelReference
+     * @param runner
+     * @param networkChannel
+     * @param block
+     * @return
+     * @throws OpenR66ProtocolPacketException
+     */
+    public static ChannelFuture writeBackDataBlock(
             LocalChannelReference localChannelReference, TaskRunner runner,
             Channel networkChannel, DataBlock block)
             throws OpenR66ProtocolPacketException {
