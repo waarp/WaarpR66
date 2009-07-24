@@ -15,8 +15,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantLock;
 
-import openr66.authentication.R66Auth;
-import openr66.filesystem.R66Session;
+import openr66.context.R66Session;
+import openr66.context.authentication.R66Auth;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
@@ -227,6 +227,9 @@ public class NetworkTransaction {
         networkChannelGroup.close().awaitUninterruptibly();
         clientBootstrap.releaseExternalResources();
         channelClientFactory.releaseExternalResources();
+        logger.warn("close All Database Connections");
+        OpenR66SignalHandler.closeAllConnection();
+        logger.warn("close All Network Channels");
     }
 
     public static void addNetworkChannel(Channel channel)

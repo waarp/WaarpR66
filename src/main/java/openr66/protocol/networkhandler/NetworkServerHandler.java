@@ -8,7 +8,7 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
-import openr66.protocol.exception.OpenR66ProtocolException;
+import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolRemoteShutdownException;
@@ -160,7 +160,7 @@ public class NetworkServerHandler extends SimpleChannelHandler {
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
         logger.info("Network Channel Exception: " + e.getChannel().getId(), e
                 .getCause());
-        OpenR66ProtocolException exception = OpenR66ExceptionTrappedFactory
+        OpenR66Exception exception = OpenR66ExceptionTrappedFactory
                 .getExceptionFromTrappedException(e.getChannel(), e);
         if (exception != null) {
             logger.error(
