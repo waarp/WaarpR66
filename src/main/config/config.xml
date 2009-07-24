@@ -22,7 +22,7 @@
 	<fastmd5>D:/NEWJARS/gglib/win32/MD5.dll</fastmd5>
 	<blocksize>65536</blocksize>
 	<dbdriver>h2</dbdriver>
-	<dbserver>jdbc:h2:D:/GG/R66/data/config;IFEXISTS=TRUE;MODE=Oracle;AUTO_SERVER=TRUE</dbserver>
+	<dbserver>jdbc:h2:D:/GG/R66/data/openr66;IFEXISTS=TRUE;MODE=Oracle;AUTO_SERVER=TRUE</dbserver>
 	<dbuser>openr66</dbuser>
 	<dbpasswd>openr66</dbpasswd>
 	<authentfile>src/main/config/authent.xml</authentfile>
