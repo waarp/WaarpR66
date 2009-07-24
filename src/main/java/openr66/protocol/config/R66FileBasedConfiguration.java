@@ -36,7 +36,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import openr66.authentication.R66SimpleAuth;
+import openr66.context.authentication.R66SimpleAuth;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.model.DbModelFactory;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
@@ -62,7 +62,7 @@ public class R66FileBasedConfiguration {
     /**
      * SERVER HOSTID
      */
-    private static final String XML_SERVER_HOSTID = "/config/HOSTID";
+    private static final String XML_SERVER_HOSTID = "/config/hostid";
 
     /**
      * SERVER PASSWORD (shutdown)
@@ -154,7 +154,7 @@ public class R66FileBasedConfiguration {
      * Size by default of block size for receive/sending files. Should be a
      * multiple of 8192 (maximum = 64K due to block limitation to 2 bytes)
      */
-    private static final String XML_BLOCKSIZE = "/config/BLOCKSIZE";
+    private static final String XML_BLOCKSIZE = "/config/blocksize";
     /**
      * Database Driver as of oracle, mysql, postgresql, h2
      */
@@ -187,7 +187,7 @@ public class R66FileBasedConfiguration {
     /**
      * Authentication Fields
      */
-    private static final String XML_AUTHENTIFICATION_HOSTID = "HOSTID";
+    private static final String XML_AUTHENTIFICATION_HOSTID = "hostid";
 
     /**
      * Authentication Fields
@@ -373,6 +373,7 @@ public class R66FileBasedConfiguration {
             Configuration.configuration.CLIENT_THREAD = Integer.parseInt(node
                     .getText());
         }
+        // FIXME should be removed and set from database
         node = document.selectSingleNode(XML_LIMITGLOBAL);
         if (node != null) {
             Configuration.configuration.serverGlobalReadLimit = Long
