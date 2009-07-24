@@ -9,14 +9,18 @@ import goldengate.common.exception.FileTransferException;
 import goldengate.common.file.DataBlock;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
-import openr66.filesystem.R66File;
-import openr66.filesystem.R66Rule;
-import openr66.filesystem.R66Session;
+import openr66.context.R66Rule;
+import openr66.context.R66Session;
+import openr66.context.task.TaskRunner;
+import openr66.context.task.exception.OpenR66RunnerErrorException;
+import openr66.database.DbConstant;
+import openr66.database.exception.OpenR66DatabaseException;
+import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
-import openr66.protocol.exception.OpenR66ProtocolException;
+import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import openr66.protocol.exception.OpenR66ProtocolNotAuthenticatedException;
@@ -37,8 +41,6 @@ import openr66.protocol.localhandler.packet.ValidPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
 import openr66.protocol.utils.ChannelUtils;
-import openr66.task.TaskRunner;
-import openr66.task.exception.OpenR66RunnerErrorException;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -129,7 +131,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
      */
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
-            throws OpenR66ProtocolException {
+            throws OpenR66Exception {
         // FIXME action as requested and answer if necessary
         final AbstractLocalPacket packet = (AbstractLocalPacket) e.getMessage();
         logger.info("Local Server Channel Recv: " + e.getChannel().getId() +
@@ -155,7 +157,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     authent(e.getChannel(), (AuthentPacket) packet);
                     break;
                 }
-                    // Already done case LocalPacketFactory.STARTUPPACKET:
+                // Already done case LocalPacketFactory.STARTUPPACKET:
                 case LocalPacketFactory.DATAPACKET: {
                     data(e.getChannel(), (DataPacket) packet);
                     break;
@@ -225,7 +227,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
         // inform clients
-        OpenR66ProtocolException exception = OpenR66ExceptionTrappedFactory
+        OpenR66Exception exception = OpenR66ExceptionTrappedFactory
                 .getExceptionFromTrappedException(e.getChannel(), e);
         if (exception != null) {
             if (exception instanceof OpenR66ProtocolShutdownException) {
@@ -348,29 +350,74 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         "Rule is not allowed for the remote host");
             }
         }
-        session.setRequest(packet);
         session.setBlockSize(packet.getBlocksize());
         TaskRunner runner;
-        if (packet.getSpecialId() > 0) {
+        if (packet.getSpecialId() != DbConstant.ILLEGALVALUE) {
             // Reload
-            runner = new TaskRunner(session, rule, packet.getSpecialId());
-        } else {
-            boolean isRetrieve = packet.getMode() == RequestPacket.RECVMD5MODE ||
+            try {
+                runner = new TaskRunner(session, rule, packet.getSpecialId());
+            } catch (OpenR66DatabaseNoDataException e) {
+                // Reception of acknowledge request from requested host
+                boolean isRetrieve = packet.getMode() == RequestPacket.RECVMD5MODE ||
                     packet.getMode() == RequestPacket.RECVMODE;
+                if (!packet.isToValidate()) {
+                    isRetrieve = !isRetrieve;
+                }
+                try {
+                    runner = new TaskRunner(session, rule, isRetrieve, packet);
+                } catch (OpenR66DatabaseException e1) {
+                    logger.error("TaskRunner initialisation in error", e1);
+                    setFinalize(false, e1);
+                    ErrorPacket error = new ErrorPacket("TaskRunner initialisation in error", e1
+                            .getMessage(), ErrorPacket.FORWARDCLOSECODE);
+                    writeBack(error, true);
+                    ChannelUtils.close(channel);
+                    return;
+                }
+                packet.setSpecialId(runner.getSpecialId());
+            } catch (OpenR66DatabaseException e) {
+                logger.error("TaskRunner initialisation in error", e);
+                setFinalize(false, e);
+                ErrorPacket error = new ErrorPacket("TaskRunner initialisation in error", e
+                        .getMessage(), ErrorPacket.FORWARDCLOSECODE);
+                writeBack(error, true);
+                ChannelUtils.close(channel);
+                return;
+            }
+        } else {
+            // Very new request
+            boolean isRetrieve = packet.isRetrieve();
             if (!packet.isToValidate()) {
                 isRetrieve = !isRetrieve;
             }
-            runner = new TaskRunner(session, rule, isRetrieve, packet);
+            try {
+                runner = new TaskRunner(session, rule, isRetrieve, packet);
+            } catch (OpenR66DatabaseException e) {
+                logger.error("TaskRunner initialisation in error", e);
+                setFinalize(false, e);
+                ErrorPacket error = new ErrorPacket("TaskRunner initialisation in error", e
+                        .getMessage(), ErrorPacket.FORWARDCLOSECODE);
+                writeBack(error, true);
+                ChannelUtils.close(channel);
+                return;
+            }
             packet.setSpecialId(runner.getSpecialId());
         }
+        // Request can specify a rank different from database
+        runner.setRankAtStartup(packet.getRank());
         // FIXME should be load from database or from remote status and/or saved
         // to database
         try {
             session.setRunner(runner);
         } catch (OpenR66RunnerErrorException e) {
+            try {
+                runner.saveStatus();
+            } catch (OpenR66RunnerErrorException e1) {
+                logger.error("Cannot save Status: "+runner, e1);
+            }
             logger.error("PresTask in error", e);
             setFinalize(false, e);
-            ErrorPacket error = new ErrorPacket("PreTask in error", e
+            ErrorPacket error = new ErrorPacket("PreTask in error ", e
                     .getMessage(), ErrorPacket.FORWARDCLOSECODE);
             writeBack(error, true);
             ChannelUtils.close(channel);
@@ -381,8 +428,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
         if (packet.isToValidate()) {
             if (runner.isRetrieve()) {
                 // In case Wildcard was used
-                logger.warn("New FILENAME: " + runner.getFilename());
-                packet.setFilename(R66File.getBasename(runner.getFilename()));
+                logger.info("New FILENAME: " + runner.getOriginalFilename());
+                packet.setFilename(runner.getOriginalFilename());
             }
             packet.validate();
             writeBack(packet, true);
@@ -469,7 +516,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 logger.info("Valid Request " +
                         localChannelReference.toString() + " " +
                         packet.toString());
-                // int RANK = Integer.parseInt(packet.getSmiddle());
                 session.setFinalizeTransfer(true, session.getFile());
                 Channels.close(channel);
                 break;

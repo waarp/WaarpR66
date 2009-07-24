@@ -8,7 +8,7 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
-import openr66.protocol.exception.OpenR66ProtocolException;
+import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolShutdownException;
@@ -132,7 +132,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
             initLocalClientHandler(e.getChannel());
         }
         if (localChannelReference != null) {
-            OpenR66ProtocolException exception = OpenR66ExceptionTrappedFactory
+            OpenR66Exception exception = OpenR66ExceptionTrappedFactory
                     .getExceptionFromTrappedException(e.getChannel(), e);
             if (exception != null) {
                 if (exception instanceof OpenR66ProtocolShutdownException) {

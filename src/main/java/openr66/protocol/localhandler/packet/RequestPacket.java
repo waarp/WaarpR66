@@ -115,7 +115,7 @@ public class RequestPacket extends AbstractLocalPacket {
         this.rulename = rulename;
         this.mode = mode;
         this.filename = filename;
-        if (blocksize <= 100) {
+        if (blocksize < 100) {
             this.blocksize = Configuration.configuration.BLOCKSIZE;
         } else {
             this.blocksize = blocksize;
@@ -224,7 +224,14 @@ public class RequestPacket extends AbstractLocalPacket {
     public int getMode() {
         return mode;
     }
-
+    /**
+     *
+     * @return True if this packet concerns a Retrieve operation
+     */
+    public boolean isRetrieve() {
+        return (mode == RECVMD5MODE) ||
+            (mode == RECVMODE);
+    }
     /**
      * @return the fileInformation
      */

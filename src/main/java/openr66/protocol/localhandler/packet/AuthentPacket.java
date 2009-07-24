@@ -3,6 +3,8 @@
  */
 package openr66.protocol.localhandler.packet;
 
+import openr66.context.authentication.R66Auth;
+import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -24,9 +26,9 @@ public class AuthentPacket extends AbstractLocalPacket {
 
     private byte way;
 
-    private final String hostId;
+    private String hostId;
 
-    private final byte[] key;
+    private byte[] key;
 
     /**
      * @param headerLength
@@ -175,6 +177,10 @@ public class AuthentPacket extends AbstractLocalPacket {
      */
     public void validate() {
         way = ANSWERVALIDATE;
+        hostId = Configuration.configuration.HOST_ID;
+        key = R66Auth.getServerAuth();
+        header = null;
+        middle = null;
         end = null;
     }
 }
