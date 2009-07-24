@@ -31,7 +31,7 @@ import java.util.concurrent.Executors;
 
 import openr66.protocol.config.Configuration;
 import openr66.protocol.config.R66FileBasedConfiguration;
-import openr66.protocol.exception.OpenR66ProtocolException;
+import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
@@ -78,7 +78,7 @@ public class TestTransaction implements Runnable {
 
     public void run() {
         LocalChannelReference localChannelReference = null;
-        OpenR66ProtocolException lastException = null;
+        OpenR66Exception lastException = null;
         for (int i = 0; i < Configuration.RETRYNB; i ++) {
             try {
                 localChannelReference = networkTransaction

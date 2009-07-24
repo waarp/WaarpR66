@@ -30,10 +30,11 @@ import java.net.SocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import openr66.filesystem.R66File;
+import openr66.context.filesystem.R66File;
+import openr66.database.DbConstant;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.config.R66FileBasedConfiguration;
-import openr66.protocol.exception.OpenR66ProtocolException;
+import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
@@ -84,7 +85,7 @@ public class TestTransfer implements Runnable {
 
     public void run() {
         LocalChannelReference localChannelReference = null;
-        OpenR66ProtocolException lastException = null;
+        OpenR66Exception lastException = null;
         for (int i = 0; i < Configuration.RETRYNB; i ++) {
             try {
                 localChannelReference = networkTransaction
@@ -112,10 +113,10 @@ public class TestTransfer implements Runnable {
             logger.warn("Connection retry since ", lastException);
         }
         // FIXME data transfer
-        // int block = 4096;
-        int block = Configuration.configuration.BLOCKSIZE;
+        int block = 101;
+        //int block = Configuration.configuration.BLOCKSIZE;
         RequestPacket request = new RequestPacket(rulename,
-                RequestPacket.RECVMODE, filename, block, 0, 0,
+                RequestPacket.RECVMODE, filename, block, 0, DbConstant.ILLEGALVALUE,
                 "MONTEST test.xml");
         NetworkPacket networkPacket;
         try {
@@ -177,7 +178,7 @@ public class TestTransfer implements Runnable {
                 Configuration.configuration.SERVER_PORT);
 
         ExecutorService executorService = Executors.newCachedThreadPool();
-        int nb = 50;
+        int nb = 10;
 
         R66Future[] arrayFuture = new R66Future[nb];
         logger.warn("Start");
