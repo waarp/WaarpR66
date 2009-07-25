@@ -33,5 +33,6 @@ configuration à recharger ou à transmettre)
 
 PRIMARY KEY RUNNER : specialId+requested (puisque c'est lui qui fixe)
 Changer objet pour Objet+Database
+Permettre l'extension facilitée des pre et post tasks (un seul fichier à modifier)
 
 Voire à charger les données depuis ou vers la base...
