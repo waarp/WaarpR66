@@ -255,7 +255,7 @@ public class TaskRunner {
         }
         String name = tasks[step][0];
         String arg = tasks[step][1];
-        AbstractTask task = TaskFactory.getTaskFromId(name, arg, session);
+        AbstractTask task = TaskType.getTaskFromId(name, arg, session);
         task.run();
         task.futureCompletion.awaitUninterruptibly();
         return task.futureCompletion;

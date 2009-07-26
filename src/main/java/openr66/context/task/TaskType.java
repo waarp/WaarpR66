@@ -20,6 +20,17 @@
  */
 package openr66.context.task;
 
+import openr66.context.R66Session;
+import openr66.context.task.exception.OpenR66RunnerErrorException;
+
+/**
+ * This enum class references all available tasks.
+ *
+ * If a new task type is to be created, this is the place where it should be referenced.
+ *
+ * @author Frederic Bregier
+ *
+ */
 public enum TaskType {
     TEST, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECRENAME;
 
@@ -30,5 +41,62 @@ public enum TaskType {
     private TaskType() {
         type = ordinal();
         name = name();
+    }
+    /**
+     *
+     * @param argRule
+     * @param session
+     * @param type
+     * @return the corresponding AbstractTask
+     * @throws OpenR66RunnerErrorException
+     */
+    public static AbstractTask getTaskFromId(String argRule,
+            R66Session session, TaskType type) throws OpenR66RunnerErrorException {
+        switch (type) {
+            case TEST:
+                return new TestTask(argRule, session.getRunner()
+                        .getFileInformation(), session);
+            case MOVE:
+                return new MoveTask(argRule, session.getRunner()
+                        .getFileInformation(), session);
+            case MOVERENAME:
+                return new MoveRenameTask(argRule, session.getRunner()
+                        .getFileInformation(), session);
+            case COPY:
+                return new CopyTask(argRule, session.getRunner()
+                        .getFileInformation(), session);
+            case COPYRENAME:
+                return new CopyRenameTask(argRule, session.getRunner()
+                        .getFileInformation(), session);
+            case EXEC:
+                return new ExecTask(argRule, session.getRunner()
+                        .getFileInformation(), session);
+            case EXECRENAME:
+                return new ExecRenameTask(argRule, session.getRunner()
+                        .getFileInformation(), session);
+            default:
+                throw new OpenR66RunnerErrorException("Unvalid Task: " +
+                        type.name);
+        }
+    }
+    /**
+     *
+     * @param name
+     * @param argRule
+     * @param session
+     * @return the corresponding AbstractTask
+     * @throws OpenR66RunnerErrorException
+     */
+    public static AbstractTask getTaskFromId(String name, String argRule,
+            R66Session session) throws OpenR66RunnerErrorException {
+        TaskType type;
+        try {
+            type = valueOf(name);
+        } catch (NullPointerException e) {
+            System.err.println("name: "+name);
+            throw new OpenR66RunnerErrorException("Unvalid Task: " +
+                    name);
+        }
+        return getTaskFromId(argRule, session, type);
     }
 }
