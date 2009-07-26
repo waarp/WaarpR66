@@ -30,8 +30,9 @@ import java.net.SocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import openr66.context.filesystem.R66File;
+import openr66.context.R66Result;
 import openr66.database.DbConstant;
+import openr66.database.data.DbTaskRunner.TaskStatus;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.config.R66FileBasedConfiguration;
 import openr66.protocol.exception.OpenR66Exception;
@@ -106,7 +107,9 @@ public class TestTransfer implements Runnable {
         }
         if (localChannelReference == null) {
             logger.error("Cannot connect", lastException);
-            future.setResult(null);
+            future.setResult(new R66Result(
+                    lastException,
+                    null));
             future.setFailure(lastException);
             return;
         } else if (lastException != null) {
@@ -123,7 +126,9 @@ public class TestTransfer implements Runnable {
             networkPacket = new NetworkPacket(localChannelReference
                     .getLocalId(), localChannelReference.getRemoteId(), request);
         } catch (OpenR66ProtocolPacketException e) {
-            future.setResult(null);
+            future.setResult(new R66Result(
+                    e,
+                    null));
             future.setFailure(e);
             Channels.close(localChannelReference.getLocalChannel());
             return;
@@ -140,7 +145,8 @@ public class TestTransfer implements Runnable {
                     .getResult());
             future.setSuccess();
         } else {
-            future.setResult(null);
+            future.setResult(localChannelReference.getFutureAction()
+                    .getResult());
             Throwable throwable = localChannelReference.getFutureAction()
                     .getCause();
             if (throwable == null) {
@@ -178,7 +184,7 @@ public class TestTransfer implements Runnable {
                 Configuration.configuration.SERVER_PORT);
 
         ExecutorService executorService = Executors.newCachedThreadPool();
-        int nb = 10;
+        int nb = 100;
 
         R66Future[] arrayFuture = new R66Future[nb];
         logger.warn("Start");
@@ -191,24 +197,33 @@ public class TestTransfer implements Runnable {
         }
         int success = 0;
         int error = 0;
+        int warn= 0;
         for (int i = 0; i < nb; i ++) {
             arrayFuture[i].awaitUninterruptibly();
+            R66Result result = (R66Result) arrayFuture[i].getResult();
             if (arrayFuture[i].isSuccess()) {
-                success ++;
+                if (result.runner.getStatus() == TaskStatus.WARNING) {
+                    warn++;
+                } else {
+                    success ++;
+                }
             } else {
-                error ++;
+                if (result.runner.getStatus() == TaskStatus.WARNING) {
+                    warn++;
+                } else {
+                    error ++;
+                }
             }
         }
         long time2 = System.currentTimeMillis();
         long length = 0;
+        R66Result result = (R66Result) arrayFuture[0].getResult();
         logger
                 .warn("Final file: " +
-                        (arrayFuture[0].getResult() instanceof R66File? ((R66File) arrayFuture[0]
-                                .getResult()).toString()
+                        (result.file != null ? result.file.toString()
                                 : "no file"));
         try {
-            length = arrayFuture[0].getResult() instanceof R66File? ((R66File) arrayFuture[0]
-                    .getResult()).length()
+            length = result.file != null ? result.file.length()
                     : 0L;
         } catch (CommandAbstractException e) {
         }
@@ -216,7 +231,7 @@ public class TestTransfer implements Runnable {
         float nbs = success * 1000;
         nbs /= delay;
         float mbs = nbs * length / 1024;
-        logger.error("Success: " + success + " Error: " + error + " delay: " +
+        logger.error("Success: " + success + " Warning: "+warn+" Error: " + error + " delay: " +
                 delay + " NB/s: " + nbs + " KB/s: " + mbs);
         executorService.shutdown();
         networkTransaction.closeAll();

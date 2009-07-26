@@ -9,11 +9,12 @@ import goldengate.common.exception.FileTransferException;
 import goldengate.common.file.DataBlock;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+import openr66.context.R66Result;
 import openr66.context.R66Rule;
 import openr66.context.R66Session;
-import openr66.context.task.TaskRunner;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.DbConstant;
+import openr66.database.data.DbTaskRunner;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.protocol.config.Configuration;
@@ -91,7 +92,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
             if (!status) {
                 logger.error("Finalize BUT SHOULD NOT");
             }
-            setFinalize(status, null);
+            setFinalize(status, new R66Result(
+                    new OpenR66ProtocolSystemException("Finalize at close time"),
+                    session));
         }
         if (localChannelReference != null) {
             NetworkTransaction.removeNetworkChannel(localChannelReference
@@ -142,7 +145,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
             if (localChannelReference == null) {
                 logger.error("No LocalChannelReference at " +
                         packet.getClass().getName());
-                setFinalize(false, null);
+                setFinalize(false, new R66Result(
+                        new OpenR66ProtocolSystemException("No LocalChannelReference"),
+                        session));
                 final ErrorPacket errorPacket = new ErrorPacket(
                         "No LocalChannelReference at " +
                                 packet.getClass().getName(), null,
@@ -189,9 +194,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 case LocalPacketFactory.CONFIGRECVPACKET: {
                     logger.error("Unimplemented Mesg: " +
                             packet.getClass().getName());
-                    setFinalize(false, null);
+                    setFinalize(false, new R66Result(
+                            new OpenR66ProtocolSystemException("Not implemented"),
+                            session));
                     final ErrorPacket errorPacket = new ErrorPacket(
-                            "Unkown Mesg: " + packet.getClass().getName(),
+                            "Unimplemented Mesg: " + packet.getClass().getName(),
                             null, ErrorPacket.FORWARDCLOSECODE);
                     writeBack(errorPacket, true);
                     ChannelUtils.close(e.getChannel());
@@ -205,7 +212,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     logger
                             .error("Unknown Mesg: " +
                                     packet.getClass().getName());
-                    setFinalize(false, null);
+                    setFinalize(false, new R66Result(
+                            new OpenR66ProtocolSystemException("Unknown Message"),
+                            session));
                     final ErrorPacket errorPacket = new ErrorPacket(
                             "Unkown Mesg: " + packet.getClass().getName(),
                             null, ErrorPacket.FORWARDCLOSECODE);
@@ -233,14 +242,18 @@ public class LocalServerHandler extends SimpleChannelHandler {
             if (exception instanceof OpenR66ProtocolShutdownException) {
                 logger.warn("Shutdown order received and going from: " +
                         session.getAuth().getUser());
-                setFinalize(true, null);
+                setFinalize(true, new R66Result(
+                        exception,
+                        session));
                 // XXX dont'close
                 new Thread(new ChannelUtils()).start();
                 // set global shutdown info and before close, send a valid
                 // shutdown to all
                 return;
             } else {
-                setFinalize(false, null);
+                setFinalize(false, new R66Result(
+                        exception,
+                        session));
             }
             if (exception instanceof OpenR66ProtocolBusinessNoWriteBackException) {
                 logger.error("Will close channel", exception);
@@ -272,7 +285,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 .getLocalTransaction().getFromId(packet.getLocalId());
         if (localChannelReference == null) {
             logger.error("Cannot startup");
-            setFinalize(false, null);
+            setFinalize(false, new R66Result(
+                    new OpenR66ProtocolSystemException("Cannot startup connection"),
+                    session));
             ErrorPacket error = new ErrorPacket("Cannot startup connection",
                     null, ErrorPacket.FORWARDCLOSECODE);
             Channels.write(channel, error).awaitUninterruptibly();
@@ -291,7 +306,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
             session.getAuth().connection(packet.getHostId(), packet.getKey());
         } catch (Reply530Exception e1) {
             logger.error("Cannot connect: " + packet.getHostId(), e1);
-            setFinalize(false, e1);
+            setFinalize(false,
+                    new R66Result(new OpenR66ProtocolSystemException("Connection not allowed", e1),
+                            session));
             ErrorPacket error = new ErrorPacket("Connection not allowed", null,
                     ErrorPacket.FORWARDCLOSECODE);
             writeBack(error, true);
@@ -300,7 +317,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
             return;
         } catch (Reply421Exception e1) {
             logger.error("Service unavailable: " + packet.getHostId(), e1);
-            setFinalize(false, e1);
+            setFinalize(false,
+                    new R66Result(new OpenR66ProtocolSystemException("Service unavailable", e1),
+                            session));
             ErrorPacket error = new ErrorPacket("Service unavailable", null,
                     ErrorPacket.FORWARDCLOSECODE);
             writeBack(error, true);
@@ -318,7 +337,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
     private void connectionError(Channel channel, ConnectionErrorPacket packet) {
         // FIXME do something according to the error
         logger.error(channel.getId() + ": " + packet.toString());
-        setFinalize(false, null);
+        setFinalize(false, new R66Result(
+                new OpenR66ProtocolSystemException(packet.getSheader()),
+                session));
         Channels.close(channel);
     }
 
@@ -351,11 +372,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
             }
         }
         session.setBlockSize(packet.getBlocksize());
-        TaskRunner runner;
+        DbTaskRunner runner;
         if (packet.getSpecialId() != DbConstant.ILLEGALVALUE) {
             // Reload
             try {
-                runner = new TaskRunner(session, rule, packet.getSpecialId());
+                runner = new DbTaskRunner(session, rule, packet.getSpecialId());
             } catch (OpenR66DatabaseNoDataException e) {
                 // Reception of acknowledge request from requested host
                 boolean isRetrieve = packet.getMode() == RequestPacket.RECVMD5MODE ||
@@ -364,10 +385,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     isRetrieve = !isRetrieve;
                 }
                 try {
-                    runner = new TaskRunner(session, rule, isRetrieve, packet);
+                    runner = new DbTaskRunner(session, rule, isRetrieve, packet);
                 } catch (OpenR66DatabaseException e1) {
                     logger.error("TaskRunner initialisation in error", e1);
-                    setFinalize(false, e1);
+                    setFinalize(false,
+                        new R66Result(
+                           new OpenR66ProtocolSystemException("TaskRunner initialisation in error", e1),
+                           session));
                     ErrorPacket error = new ErrorPacket("TaskRunner initialisation in error", e1
                             .getMessage(), ErrorPacket.FORWARDCLOSECODE);
                     writeBack(error, true);
@@ -377,7 +401,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 packet.setSpecialId(runner.getSpecialId());
             } catch (OpenR66DatabaseException e) {
                 logger.error("TaskRunner initialisation in error", e);
-                setFinalize(false, e);
+                setFinalize(false,
+                        new R66Result(
+                                e,
+                                session));
                 ErrorPacket error = new ErrorPacket("TaskRunner initialisation in error", e
                         .getMessage(), ErrorPacket.FORWARDCLOSECODE);
                 writeBack(error, true);
@@ -391,10 +418,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 isRetrieve = !isRetrieve;
             }
             try {
-                runner = new TaskRunner(session, rule, isRetrieve, packet);
+                runner = new DbTaskRunner(session, rule, isRetrieve, packet);
             } catch (OpenR66DatabaseException e) {
                 logger.error("TaskRunner initialisation in error", e);
-                setFinalize(false, e);
+                setFinalize(false, new R66Result(
+                        e,
+                        session));
                 ErrorPacket error = new ErrorPacket("TaskRunner initialisation in error", e
                         .getMessage(), ErrorPacket.FORWARDCLOSECODE);
                 writeBack(error, true);
@@ -416,7 +445,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 logger.error("Cannot save Status: "+runner, e1);
             }
             logger.error("PresTask in error", e);
-            setFinalize(false, e);
+            setFinalize(false, new R66Result(
+                    e,
+                    session));
             ErrorPacket error = new ErrorPacket("PreTask in error ", e
                     .getMessage(), ErrorPacket.FORWARDCLOSECODE);
             writeBack(error, true);
@@ -467,7 +498,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
             session.getRunner().incrementRank();
         } catch (FileTransferException e) {
             try {
-                session.setFinalizeTransfer(false, e);
+                session.setFinalizeTransfer(false,
+                        new R66Result(
+                                new OpenR66ProtocolSystemException(e),
+                                session));
             } catch (OpenR66RunnerErrorException e1) {
             } catch (OpenR66ProtocolSystemException e1) {
             }
@@ -494,7 +528,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
             logger.info(packet.toString());
             ValidPacket validPacket = new ValidPacket(packet.toString(), null,
                     LocalPacketFactory.TESTPACKET);
-            setFinalize(true, validPacket);
+            R66Result result = new R66Result(session);
+            result.other = validPacket;
+            setFinalize(true, result);
             writeBack(validPacket, true);
             Channels.close(channel);
         } else {
@@ -516,7 +552,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 logger.info("Valid Request " +
                         localChannelReference.toString() + " " +
                         packet.toString());
-                session.setFinalizeTransfer(true, session.getFile());
+                session.setFinalizeTransfer(true, new R66Result(
+                        session));
                 Channels.close(channel);
                 break;
             case LocalPacketFactory.SHUTDOWNPACKET:
@@ -525,13 +562,17 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 NetworkTransaction
                         .shuttingdownNetworkChannel(localChannelReference
                                 .getNetworkChannel());
-                setFinalize(false, packet);
+                R66Result result = new R66Result(new OpenR66ProtocolShutdownException(), session);
+                result.other = packet;
+                setFinalize(false, result);
                 Channels.close(channel);
                 break;
             case LocalPacketFactory.TESTPACKET:
                 logger.warn("Valid TEST so Will close channel" +
                         localChannelReference.toString());
-                setFinalize(true, packet);
+                R66Result resulttest = new R66Result(session);
+                resulttest.other = packet;
+                setFinalize(true, resulttest);
                 Channels.close(channel);
                 break;
             default:
@@ -555,7 +596,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         throw new OpenR66ProtocolBusinessException("Invalid Shutdown comand");
     }
 
-    public void setFinalize(boolean status, Object finalValue) {
+    public void setFinalize(boolean status, R66Result finalValue) {
         this.status = status;
         if (localChannelReference != null) {
             localChannelReference.validateAction(status, finalValue);

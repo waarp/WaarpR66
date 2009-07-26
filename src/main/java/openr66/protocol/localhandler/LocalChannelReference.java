@@ -17,6 +17,7 @@ package openr66.protocol.localhandler;
 
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+import openr66.context.R66Result;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.networkhandler.NetworkServerHandler;
 import openr66.protocol.utils.R66Future;
@@ -144,7 +145,7 @@ public class LocalChannelReference {
         return futureValidate;
     }
 
-    public void validateAction(boolean status, Object finalValue) {
+    public void validateAction(boolean status, R66Result finalValue) {
         if (!futureAction.isDone()) {
             if (status) {
                 // FIXME finalize necessary objects
@@ -153,7 +154,11 @@ public class LocalChannelReference {
             } else {
                 // FIXME finalize necessary objects
                 futureAction.setResult(finalValue);
-                futureAction.cancel();
+                if (finalValue.exception != null) {
+                    futureAction.setFailure(finalValue.exception);
+                } else {
+                    futureAction.cancel();
+                }
             }
         }
     }

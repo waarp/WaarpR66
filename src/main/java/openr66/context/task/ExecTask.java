@@ -26,7 +26,6 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import java.io.IOException;
 
 import openr66.context.R66Session;
-import openr66.protocol.config.Configuration;
 
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
@@ -47,11 +46,12 @@ public class ExecTask extends AbstractTask {
 
     /**
      * @param argRule
+     * @param delay
      * @param argTransfer
      * @param session
      */
-    public ExecTask(String argRule, String argTransfer, R66Session session) {
-        super(TaskType.EXEC, argRule, argTransfer, session);
+    public ExecTask(String argRule, int delay, String argTransfer, R66Session session) {
+        super(TaskType.EXEC, delay, argRule, argTransfer, session);
     }
 
     /*
@@ -84,8 +84,11 @@ public class ExecTask extends AbstractTask {
         int[] correctValues = {
                 0, 1 };
         defaultExecutor.setExitValues(correctValues);
-        ExecuteWatchdog watchdog = new ExecuteWatchdog(Configuration.configuration.TIMEOUTCON);
-        defaultExecutor.setWatchdog(watchdog);
+        ExecuteWatchdog watchdog = null;
+        if (this.delay > 0) {
+            watchdog = new ExecuteWatchdog(this.delay);
+            defaultExecutor.setWatchdog(watchdog);
+        }
         int status = -1;
         try {
             status = defaultExecutor.execute(commandLine);
@@ -103,7 +106,7 @@ public class ExecTask extends AbstractTask {
             return;
         }
         pumpStreamHandler.stop();
-        if (defaultExecutor.isFailure(status) && watchdog.killedProcess()) {
+        if (defaultExecutor.isFailure(status) && watchdog != null && watchdog.killedProcess()) {
             // kill by the watchdoc (time out)
             logger.error("Exec is in Time Out");
             status = -1;

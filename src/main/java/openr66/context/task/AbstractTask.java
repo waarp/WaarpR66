@@ -94,6 +94,11 @@ public abstract class AbstractTask implements Runnable {
     final String argRule;
 
     /**
+     * Delay from Rule
+     */
+    final int delay;
+
+    /**
      * Argument from Transfer
      */
     final String argTransfer;
@@ -112,12 +117,14 @@ public abstract class AbstractTask implements Runnable {
      * Constructor
      *
      * @param type
+     * @param delay
      * @param arg
      * @param session
      */
-    AbstractTask(TaskType type, String argRule, String argTransfer,
+    AbstractTask(TaskType type, int delay, String argRule, String argTransfer,
             R66Session session) {
         this.type = type;
+        this.delay = delay;
         this.argRule = argRule;
         this.argTransfer = argTransfer;
         this.session = session;

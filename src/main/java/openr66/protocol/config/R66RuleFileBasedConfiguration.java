@@ -146,13 +146,14 @@ public class R66RuleFileBasedConfiguration {
                     .info("Unable to find the tasks for Rule, setting to the default");
             return null;
         }
-        String[][] taskArray = new String[listNode.size()][2];
+        String[][] taskArray = new String[listNode.size()][3];
         for (int i = 0; i < listNode.size(); i ++) {
             taskArray[i][0] = null;
             taskArray[i][1] = null;
+            taskArray[i][2] = null;
         }
         for (Node noderoot: listNode) {
-            Node nodetype = null, nodepath = null, noderank = null;
+            Node nodetype = null, nodepath = null, noderank = null, nodedelay = null;
             noderank = noderoot.selectSingleNode(R66Rule.TASK_RANK);
             if (noderank == null) {
                 continue;
@@ -166,8 +167,16 @@ public class R66RuleFileBasedConfiguration {
             if (nodepath == null) {
                 continue;
             }
+            nodedelay = noderoot.selectSingleNode(R66Rule.TASK_DELAY);
+            String delay;
+            if (nodedelay == null) {
+                delay = Integer.toString(Configuration.configuration.TIMEOUTCON);
+            } else {
+                delay = nodedelay.getText();
+            }
             taskArray[rank][0] = nodetype.getText();
             taskArray[rank][1] = nodepath.getText();
+            taskArray[rank][2] = delay;
         }
         listNode.clear();
         listNode = null;

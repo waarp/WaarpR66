@@ -45,34 +45,35 @@ public enum TaskType {
     /**
      *
      * @param argRule
+     * @param delay
      * @param session
      * @param type
      * @return the corresponding AbstractTask
      * @throws OpenR66RunnerErrorException
      */
-    public static AbstractTask getTaskFromId(String argRule,
+    public static AbstractTask getTaskFromId(String argRule, int delay,
             R66Session session, TaskType type) throws OpenR66RunnerErrorException {
         switch (type) {
             case TEST:
-                return new TestTask(argRule, session.getRunner()
+                return new TestTask(argRule, delay, session.getRunner()
                         .getFileInformation(), session);
             case MOVE:
-                return new MoveTask(argRule, session.getRunner()
+                return new MoveTask(argRule, delay, session.getRunner()
                         .getFileInformation(), session);
             case MOVERENAME:
-                return new MoveRenameTask(argRule, session.getRunner()
+                return new MoveRenameTask(argRule, delay, session.getRunner()
                         .getFileInformation(), session);
             case COPY:
-                return new CopyTask(argRule, session.getRunner()
+                return new CopyTask(argRule, delay, session.getRunner()
                         .getFileInformation(), session);
             case COPYRENAME:
-                return new CopyRenameTask(argRule, session.getRunner()
+                return new CopyRenameTask(argRule, delay, session.getRunner()
                         .getFileInformation(), session);
             case EXEC:
-                return new ExecTask(argRule, session.getRunner()
+                return new ExecTask(argRule, delay, session.getRunner()
                         .getFileInformation(), session);
             case EXECRENAME:
-                return new ExecRenameTask(argRule, session.getRunner()
+                return new ExecRenameTask(argRule, delay, session.getRunner()
                         .getFileInformation(), session);
             default:
                 throw new OpenR66RunnerErrorException("Unvalid Task: " +
@@ -83,11 +84,12 @@ public enum TaskType {
      *
      * @param name
      * @param argRule
+     * @param delay
      * @param session
      * @return the corresponding AbstractTask
      * @throws OpenR66RunnerErrorException
      */
-    public static AbstractTask getTaskFromId(String name, String argRule,
+    public static AbstractTask getTaskFromId(String name, String argRule, int delay,
             R66Session session) throws OpenR66RunnerErrorException {
         TaskType type;
         try {
@@ -97,6 +99,6 @@ public enum TaskType {
             throw new OpenR66RunnerErrorException("Unvalid Task: " +
                     name);
         }
-        return getTaskFromId(argRule, session, type);
+        return getTaskFromId(argRule, delay, session, type);
     }
 }

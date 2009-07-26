@@ -42,11 +42,12 @@ public class CopyTask extends AbstractTask {
 
     /**
      * @param argRule
+     * @param delay
      * @param argTransfer
      * @param session
      */
-    public CopyTask(String argRule, String argTransfer, R66Session session) {
-        super(TaskType.COPY, argRule, argTransfer, session);
+    public CopyTask(String argRule, int delay, String argTransfer, R66Session session) {
+        super(TaskType.COPY, delay, argRule, argTransfer, session);
     }
 
     /*

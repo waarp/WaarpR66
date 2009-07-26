@@ -227,9 +227,7 @@ public class NetworkTransaction {
         networkChannelGroup.close().awaitUninterruptibly();
         clientBootstrap.releaseExternalResources();
         channelClientFactory.releaseExternalResources();
-        logger.warn("close All Database Connections");
         OpenR66SignalHandler.closeAllConnection();
-        logger.warn("close All Network Channels");
     }
 
     public static void addNetworkChannel(Channel channel)

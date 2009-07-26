@@ -37,11 +37,12 @@ public class TestTask extends AbstractTask {
 
     /**
      * @param argRule
+     * @param delay
      * @param argTransfer
      * @param session
      */
-    public TestTask(String argRule, String argTransfer, R66Session session) {
-        super(TaskType.TEST, argRule, argTransfer, session);
+    public TestTask(String argRule, int delay, String argTransfer, R66Session session) {
+        super(TaskType.TEST, delay, argRule, argTransfer, session);
     }
 
     /*

@@ -29,10 +29,9 @@ import openr66.context.authentication.R66Auth;
 import openr66.context.filesystem.R66Dir;
 import openr66.context.filesystem.R66File;
 import openr66.context.filesystem.R66Restart;
-import openr66.context.task.TaskRunner;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
+import openr66.database.data.DbTaskRunner;
 import openr66.protocol.config.Configuration;
-import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.LocalChannelReference;
 
@@ -65,9 +64,9 @@ public class R66Session implements SessionInterface {
     private final R66Restart restart;
 
     /**
-     * TaskRunner
+     * DbTaskRunner
      */
-    private TaskRunner runner = null;
+    private DbTaskRunner runner = null;
 
     /**
      */
@@ -87,8 +86,10 @@ public class R66Session implements SessionInterface {
     public void clear() {
         // First check if a transfer was on going
         if (this.runner != null && (!this.runner.isFinished())) {
+            R66Result result = new R66Result(new OpenR66RunnerErrorException("Close before ending"),
+                    this);
             try {
-                this.setFinalizeTransfer(false, "Close before ending");
+                this.setFinalizeTransfer(false, result);
             } catch (OpenR66RunnerErrorException e) {
             } catch (OpenR66ProtocolSystemException e) {
             }
@@ -195,7 +196,7 @@ public class R66Session implements SessionInterface {
     /**
      * @return the runner
      */
-    public TaskRunner getRunner() {
+    public DbTaskRunner getRunner() {
         return runner;
     }
 
@@ -222,7 +223,7 @@ public class R66Session implements SessionInterface {
      *            the runner to set
      * @throws OpenR66RunnerErrorException
      */
-    public void setRunner(TaskRunner runner) throws OpenR66RunnerErrorException {
+    public void setRunner(DbTaskRunner runner) throws OpenR66RunnerErrorException {
         this.runner = runner;
         if (this.runner.isRetrieve()) {
             // Change dir
@@ -305,7 +306,7 @@ public class R66Session implements SessionInterface {
         logger.info("Final init: "+this.runner.toString());
     }
 
-    public void setFinalizeTransfer(boolean status, Object finalValue)
+    public void setFinalizeTransfer(boolean status, R66Result finalValue)
             throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException {
         if (runner.isFinished()) {
             logger.warn("Transfer already done but "+status+" on " + file,
@@ -318,23 +319,25 @@ public class R66Session implements SessionInterface {
         if (! runner.ready()) {
             // Pre task in error (or even before)
             OpenR66RunnerErrorException runnerErrorException;
-            if ((! status) && (finalValue instanceof OpenR66Exception)) {
+            if ((! status) && (finalValue.exception != null)) {
                 runnerErrorException =
                     new OpenR66RunnerErrorException("Pre task in error (or even before)",
-                            (OpenR66Exception) finalValue);
+                            finalValue.exception);
             } else {
                 runnerErrorException =
                     new OpenR66RunnerErrorException("Pre task in error (or even before)");
             }
+            finalValue.exception = runnerErrorException;
             logger.warn("Pre task in error (or even before)", runnerErrorException);
-            localChannelReference.validateAction(false, runnerErrorException);
+            localChannelReference.validateAction(false, finalValue);
             throw runnerErrorException;
         }
         try {
             file.closeFile();
         } catch (CommandAbstractException e1) {
-            localChannelReference.validateAction(false, e1);
-            throw new OpenR66RunnerErrorException(e1);
+            R66Result result = new R66Result(new OpenR66RunnerErrorException(e1), this);
+            localChannelReference.validateAction(false, result);
+            throw (OpenR66RunnerErrorException) result.exception;
         }
         if (status) {
             runner.setPostTask(0);
@@ -342,7 +345,8 @@ public class R66Session implements SessionInterface {
             try {
                 runner.run();
             } catch (OpenR66RunnerErrorException e1) {
-                localChannelReference.validateAction(false, e1);
+                R66Result result = new R66Result(e1, this);
+                localChannelReference.validateAction(false, result);
                 throw e1;
             }
             runner.saveStatus();
@@ -357,11 +361,13 @@ public class R66Session implements SessionInterface {
                         file.renameTo(runner.getRule().setRecvPath(
                                 finalpath));
                     } catch (OpenR66ProtocolSystemException e) {
-                        localChannelReference.validateAction(false, e);
+                        R66Result result = new R66Result(e, this);
+                        localChannelReference.validateAction(false, result);
                         throw e;
                     } catch (CommandAbstractException e) {
-                        localChannelReference.validateAction(false, e);
-                        throw new OpenR66RunnerErrorException(e);
+                        R66Result result = new R66Result(new OpenR66RunnerErrorException(e), this);
+                        localChannelReference.validateAction(false, result);
+                        throw (OpenR66RunnerErrorException) result.exception;
                     }
                     logger.info("File finally moved: " + file.toString());
                     try {
@@ -377,8 +383,8 @@ public class R66Session implements SessionInterface {
             // error
             runner.setErrorTask(0);
             runner.saveStatus();
-            if (finalValue instanceof OpenR66Exception) {
-                logger.warn("Transfer KO on " + file, (OpenR66Exception) finalValue);
+            if (finalValue.exception != null) {
+                logger.warn("Transfer KO on " + file, finalValue.exception);
             } else {
                 logger.warn("Transfer KO on " + file,
                         new OpenR66RunnerErrorException(finalValue.toString()));

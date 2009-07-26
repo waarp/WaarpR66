@@ -37,9 +37,10 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 
+import openr66.context.R66Result;
 import openr66.context.R66Session;
-import openr66.context.task.TaskRunner;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
+import openr66.database.data.DbTaskRunner;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
@@ -97,14 +98,14 @@ public class R66File extends FilesystemBasedFileImpl {
                 // Last block (in fact, previous block was the last one,
                 // but it could be aligned with the block size so not
                 // detected)
-                getSession().setFinalizeTransfer(true, this);
+                getSession().setFinalizeTransfer(true, new R66Result(this.getSession()));
                 return;
             }
             if (block == null) {
                 // Last block (in fact, previous block was the last one,
                 // but it could be aligned with the block size so not
                 // detected)
-                getSession().setFinalizeTransfer(true, this);
+                getSession().setFinalizeTransfer(true, new R66Result(this.getSession()));
                 return;
             }
             // While not last block
@@ -113,7 +114,7 @@ public class R66File extends FilesystemBasedFileImpl {
             Channel networkChannel = localChannelReference.getNetworkChannel();
             NetworkServerHandler serverHandler = localChannelReference
                     .getNetworkServerHandler();
-            TaskRunner runner = getSession().getRunner();
+            DbTaskRunner runner = getSession().getRunner();
 
             ChannelFuture future = null;
             while (block != null && !block.isEOF()) {
@@ -126,7 +127,7 @@ public class R66File extends FilesystemBasedFileImpl {
                     } catch (FileEndOfTransferException e) {
                         // Wait for last write
                         future.awaitUninterruptibly();
-                        getSession().setFinalizeTransfer(true, this);
+                        getSession().setFinalizeTransfer(true, new R66Result(this.getSession()));
                         return;
                     }
                 } else {
@@ -138,7 +139,9 @@ public class R66File extends FilesystemBasedFileImpl {
                         } catch (InterruptedException e) {
                             // Exception while waiting
                             future.awaitUninterruptibly();
-                            getSession().setFinalizeTransfer(false, e);
+                            getSession().setFinalizeTransfer(false,
+                                    new R66Result(new OpenR66ProtocolSystemException(e),
+                                            this.getSession()));
                             return;
                         }
                     }
@@ -147,7 +150,7 @@ public class R66File extends FilesystemBasedFileImpl {
                     } catch (FileEndOfTransferException e) {
                         // Wait for last write
                         future.awaitUninterruptibly();
-                        getSession().setFinalizeTransfer(true, this);
+                        getSession().setFinalizeTransfer(true, new R66Result(this.getSession()));
                         return;
                     }
                 }
@@ -161,14 +164,16 @@ public class R66File extends FilesystemBasedFileImpl {
             if (future != null) {
                 future.awaitUninterruptibly();
             }
-            getSession().setFinalizeTransfer(true, this);
+            getSession().setFinalizeTransfer(true, new R66Result(this.getSession()));
             return;
         } catch (FileTransferException e) {
             // An error occurs!
-            getSession().setFinalizeTransfer(false, e);
+            getSession().setFinalizeTransfer(false,
+                    new R66Result(new OpenR66ProtocolSystemException(e), this.getSession()));
         } catch (OpenR66ProtocolPacketException e) {
             // An error occurs!
-            getSession().setFinalizeTransfer(false, e);
+            getSession().setFinalizeTransfer(false,
+                    new R66Result(e, this.getSession()));
         }
     }
 

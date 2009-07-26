@@ -22,6 +22,7 @@ import goldengate.common.logging.GgSlf4JLoggerFactory;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
+import openr66.context.R66Result;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.config.R66FileBasedConfiguration;
 import openr66.protocol.exception.OpenR66Exception;
@@ -112,9 +113,11 @@ public class TestClientShutdown {
         if (localChannelReference.getFutureAction().isSuccess()) {
             logger.warn("Shutdown OK");
         } else {
-            if (localChannelReference.getFutureAction().getResult() instanceof ValidPacket &&
-                    ((ValidPacket) localChannelReference.getFutureAction()
-                            .getResult()).getTypeValid() == LocalPacketFactory.SHUTDOWNPACKET) {
+            R66Result result = (R66Result)
+                localChannelReference.getFutureAction().getResult();
+            if (result.other instanceof ValidPacket &&
+                    ((ValidPacket) result.other)
+                    .getTypeValid() == LocalPacketFactory.SHUTDOWNPACKET) {
                 logger.warn("Shutdown command OK");
             } else {
                 logger.warn("Cannot Shutdown", localChannelReference

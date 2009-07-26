@@ -32,6 +32,7 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 
 import openr66.context.R66Session;
+import openr66.database.data.DbTaskRunner.TaskStatus;
 import openr66.protocol.config.Configuration;
 
 import org.apache.commons.exec.CommandLine;
@@ -53,11 +54,12 @@ public class ExecRenameTask extends AbstractTask {
 
     /**
      * @param argRule
+     * @param delay
      * @param argTransfer
      * @param session
      */
-    public ExecRenameTask(String argRule, String argTransfer, R66Session session) {
-        super(TaskType.EXECRENAME, argRule, argTransfer, session);
+    public ExecRenameTask(String argRule, int delay, String argTransfer, R66Session session) {
+        super(TaskType.EXECRENAME, delay, argRule, argTransfer, session);
     }
 
     private class LastLineReader implements Runnable {
@@ -145,8 +147,11 @@ public class ExecRenameTask extends AbstractTask {
         int[] correctValues = {
                 0, 1 };
         defaultExecutor.setExitValues(correctValues);
-        ExecuteWatchdog watchdog = new ExecuteWatchdog(Configuration.configuration.TIMEOUTCON);
-        defaultExecutor.setWatchdog(watchdog);
+        ExecuteWatchdog watchdog = null;
+        if (this.delay > 0) {
+            watchdog = new ExecuteWatchdog(this.delay);
+            defaultExecutor.setWatchdog(watchdog);
+        }
         LastLineReader lastLineReader = new LastLineReader(inputStream);
         Thread thread = new Thread(lastLineReader);
         thread.setDaemon(false);
@@ -175,11 +180,15 @@ public class ExecRenameTask extends AbstractTask {
         }
         pumpStreamHandler.stop();
         try {
-            thread.join(Configuration.configuration.TIMEOUTCON);
+            if (this.delay > 0) {
+                thread.join(this.delay);
+            } else {
+                thread.join(Configuration.configuration.TIMEOUTCON);
+            }
         } catch (InterruptedException e) {
         }
         String newname = null;
-        if (defaultExecutor.isFailure(status) && watchdog.killedProcess()) {
+        if (defaultExecutor.isFailure(status) && watchdog != null && watchdog.killedProcess()) {
             // kill by the watchdoc (time out)
             status = -1;
             newname = "TimeOut";
@@ -225,6 +234,7 @@ public class ExecRenameTask extends AbstractTask {
         } else if (status == 1) {
             logger.warn("Exec in warning with " + commandLine.toString() +
                     " returns " + newname);
+            this.session.getRunner().setExecutionStatus(TaskStatus.WARNING);
             futureCompletion.setSuccess();
         } else {
             logger.error("Status: " + status + " Exec in error with " +

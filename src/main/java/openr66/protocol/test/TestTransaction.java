@@ -124,7 +124,8 @@ public class TestTransaction implements Runnable {
                     .getResult());
             future.setSuccess();
         } else {
-            future.setResult(null);
+            future.setResult(localChannelReference.getFutureAction()
+                    .getResult());
             Throwable throwable = localChannelReference.getFutureAction()
                     .getCause();
             if (throwable == null) {

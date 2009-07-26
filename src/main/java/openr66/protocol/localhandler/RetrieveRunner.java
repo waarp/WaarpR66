@@ -22,6 +22,7 @@ package openr66.protocol.localhandler;
 
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+import openr66.context.R66Result;
 import openr66.context.R66Session;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
@@ -71,7 +72,8 @@ public class RetrieveRunner implements Runnable {
         try {
             session.getFile().retrieveBlocking();
         } catch (OpenR66RunnerErrorException e) {
-            localChannelReference.validateAction(false, e);
+            R66Result result = new R66Result(e, session);
+            localChannelReference.validateAction(false, result);
             logger.error("Transfer in error", e);
             ErrorPacket error = new ErrorPacket("Transfer in error", e
                     .toString(), ErrorPacket.FORWARDCLOSECODE);
@@ -83,7 +85,8 @@ public class RetrieveRunner implements Runnable {
             logger.warn("End Retrieve in Error");
             return;
         } catch (OpenR66ProtocolSystemException e) {
-            localChannelReference.validateAction(false, e);
+            R66Result result = new R66Result(e, session);
+            localChannelReference.validateAction(false, result);
             logger.error("Transfer in error", e);
             ErrorPacket error = new ErrorPacket("Transfer in error", e
                     .toString(), ErrorPacket.FORWARDCLOSECODE);

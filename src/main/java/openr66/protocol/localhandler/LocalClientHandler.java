@@ -5,6 +5,7 @@ package openr66.protocol.localhandler;
 
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+import openr66.context.R66Result;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
@@ -150,8 +151,8 @@ public class LocalClientHandler extends SimpleChannelHandler {
                     return;
                 }
                 if (!localChannelReference.getFutureAction().isDone()) {
-                    localChannelReference.getFutureAction().setFailure(
-                            exception);
+                    localChannelReference.validateAction(false,
+                            new R66Result(exception, null));
                 }
                 final ErrorPacket errorPacket = new ErrorPacket(exception
                         .getMessage(), null, ErrorPacket.FORWARDCLOSECODE);

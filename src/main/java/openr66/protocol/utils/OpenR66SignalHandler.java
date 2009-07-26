@@ -20,6 +20,7 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -113,6 +114,9 @@ public class OpenR66SignalHandler implements SignalHandler {
             this.type = type;
         }
 
+        private void printStackTrace(Thread thread, StackTraceElement[] stacks) {
+            logger.warn(thread.toString()+" : {}", stacks);
+        }
         /*
          * (non-Javadoc)
          *
@@ -123,6 +127,10 @@ public class OpenR66SignalHandler implements SignalHandler {
             switch (type) {
                 case TIMER_EXIT:
                     logger.error("System will force EXIT");
+                    Map<Thread, StackTraceElement[]> map = Thread.getAllStackTraces();
+                    for (Thread thread : map.keySet()) {
+                        printStackTrace(thread, map.get(thread));
+                    }
                     System.exit(1);
                     break;
                 default:
@@ -211,10 +219,10 @@ public class OpenR66SignalHandler implements SignalHandler {
     public static void closeAllConnection() {
         Connection con = listConnection.poll();
         while (con != null) {
-                try {
-                        con.close();
-                } catch (SQLException e) {}
-                con = listConnection.poll();
+            try {
+                con.close();
+            } catch (SQLException e) {}
+            con = listConnection.poll();
         }
     }
 }

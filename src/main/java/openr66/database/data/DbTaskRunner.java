@@ -20,13 +20,21 @@
  */
 package openr66.database.data;
 
+import goldengate.common.logging.GgInternalLogger;
+import goldengate.common.logging.GgInternalLoggerFactory;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 
-import openr66.context.task.TaskRunner.TaskStatus;
+import openr66.context.R66Rule;
+import openr66.context.R66Session;
+import openr66.context.task.AbstractTask;
+import openr66.context.task.TaskType;
+import openr66.context.task.exception.OpenR66RunnerEndTasksException;
+import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.DbConstant;
 import openr66.database.DbPreparedStatement;
 import openr66.database.DbSession;
@@ -35,13 +43,21 @@ import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.database.model.DbModelFactory;
+import openr66.protocol.config.Configuration;
 import openr66.protocol.localhandler.packet.RequestPacket;
+import openr66.protocol.utils.R66Future;
 
 /**
  * @author Frederic Bregier
  *
  */
 public class DbTaskRunner extends AbstractDbData {
+    /**
+     * Internal Logger
+     */
+    private static final GgInternalLogger logger = GgInternalLoggerFactory
+            .getLogger(DbTaskRunner.class);
+
     public static enum Columns {
         GLOBALSTEP, STEP, RANK, STEPSTATUS, RETRIEVEMODE, FILENAME, ISMOVED, IDRULE,
         BLOCKSIZE, ORIGINALNAME, FILEINFO, MODE, REQUESTER, REQUESTED,
@@ -59,43 +75,62 @@ public class DbTaskRunner extends AbstractDbData {
     public static String table = " RUNNER ";
     public static String fieldseq = "RUNSEQ";
 
-    private int globalstep;
+    /**
+     * GlobalStep Value
+     */
+    public static final int NOTASK = -1;
+    /**
+     * GlobalStep Value
+     */
+    public static final int PRETASK = 0;
+    /**
+     * GlobalStep Value
+     */
+    public static final int POSTTASK = 1;
+    /**
+     * GlobalStep Value
+     */
+    public static final int ERRORTASK = 2;
+    /**
+     * GlobalStep Value
+     */
+    public static final int TRANSFERTASK = 3;
+    /**
+     * GlobalStep Value
+     */
+    public static final int ALLDONETASK = 4;
+    /**
+     * GlobalStep Status
+     * @author Frederic Bregier
+     *
+     */
+    public static enum TaskStatus {
+        UNKNOWN, RUNNING, OK, WARNING, ERROR;
+    }
 
-    private int step;
-
-    private int rank;
-
+    // Values
+    private final R66Rule rule;
+    private final R66Session session;
+    private int globalstep = NOTASK;
+    private int step = NOTASK;
+    private int rank = 0;
     private TaskStatus status = TaskStatus.UNKNOWN;
-
-    // FIXME need a special ID
     private long specialId;
-
     private boolean isRetrieve;
-
     private String filename;
-
     private boolean isFileMoved = false;
-
     private String ruleId;
-
     private int blocksize;
-
     private String originalFilename;
-
     private String fileInformation;
-
     private int mode;
-
-    private Timestamp start;
-
-    private Timestamp stop;
-
     private String requesterHostId;
-
     private String requestedHostId;
 
-    private int updatedInfo;
+    private Timestamp start;
+    private Timestamp stop;
 
+    private int updatedInfo;
     private boolean isSaved = false;
 
     // ALL TABLE SHOULD IMPLEMENT THIS
@@ -148,48 +183,45 @@ public class DbTaskRunner extends AbstractDbData {
         "=?,"+Columns.START.name()+"=?,"+Columns.STOP.name()+"=?,"+Columns.UPDATEDINFO.name()+"=?";
     private static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
 
-    /**
-     *
-     * @param specialId
-     * @param globalstep
-     * @param step
-     * @param rank
-     * @param status
-     * @param isRetrieve
-     * @param filename
-     * @param isFileMoved
-     * @param idRule
-     * @param blocksize
-     * @param originalName
-     * @param fileInfo
-     * @param mode
-     * @param requesterHostId
-     * @param requestedHostId
-     */
-    public DbTaskRunner(long specialId, int globalstep, int step, int rank, TaskStatus status,
-            boolean isRetrieve, String filename,
-            boolean isFileMoved, String idRule,
-            int blocksize, String originalName, String fileInfo, int mode,
-            String requesterHostId, String requestedHostId) {
-        this.specialId = specialId;
-        this.globalstep = globalstep;
-        this.step = step;
-        this.rank = rank;
-        this.status = status;
+
+    public DbTaskRunner(R66Session session, R66Rule rule, boolean isRetrieve,
+            RequestPacket requestPacket) throws OpenR66DatabaseException {
+        this.session = session;
+        this.rule = rule;
+        this.ruleId = this.rule.idRule;
+        this.rank = requestPacket.getRank();
+        this.status = TaskStatus.UNKNOWN;
         this.isRetrieve = isRetrieve;
-        this.filename = filename;
-        this.isFileMoved = isFileMoved;
-        this.ruleId = idRule;
+        this.filename = requestPacket.getFilename();
+        this.blocksize = requestPacket.getBlocksize();
+        this.originalFilename = requestPacket.getFilename();
+        this.fileInformation = requestPacket.getFileInformation();
+        this.mode = requestPacket.getMode();
+        if (requestPacket.isToValidate()) {
+            this.requesterHostId = session.getAuth().getUser();
+            this.requestedHostId = Configuration.configuration.HOST_ID;
+        } else {
+            this.requestedHostId = session.getAuth().getUser();
+            this.requesterHostId = Configuration.configuration.HOST_ID;
+        }
+
         this.start = new Timestamp(System.currentTimeMillis());
-        this.blocksize = blocksize;
-        this.originalFilename = originalName;
-        this.fileInformation = fileInfo;
-        this.mode = mode;
-        this.requesterHostId = requesterHostId;
-        this.requestedHostId = requestedHostId;
         this.updatedInfo = UNKNOWN;
         this.setToArray();
         this.isSaved = false;
+        specialId = requestPacket.getSpecialId();
+        this.insert();
+    }
+
+    public DbTaskRunner(R66Session session, R66Rule rule, long id) throws OpenR66DatabaseException {
+        this.session = session;
+        this.rule = rule;
+        specialId = id;
+
+        this.select();
+        if (! this.ruleId.equals(rule.idRule)) {
+            throw new OpenR66DatabaseNoDataException("Rule does not correspond");
+        }
     }
 
     @Override
@@ -236,15 +268,12 @@ public class DbTaskRunner extends AbstractDbData {
         this.updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()].getValue();
     }
     /**
-     * @param specialId
-     * @throws OpenR66DatabaseException
+     * Empty private constructor
      */
-    public DbTaskRunner(long specialId) throws OpenR66DatabaseException {
-        this.specialId = specialId;
-        // load from DB
-        select();
+    private DbTaskRunner() {
+        session = null;
+        rule = null;
     }
-
     /* (non-Javadoc)
      * @see openr66.database.data.AbstractDbData#delete()
      */
@@ -364,45 +393,13 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * @param GLOBALSTEP the GLOBALSTEP to set
-     */
-    public void setGlobalstep(int globalstep) {
-        if (this.globalstep != globalstep) {
-            this.globalstep = globalstep;
-            allFields[Columns.GLOBALSTEP.ordinal()].setValue(this.globalstep);
-            this.isSaved = false;
-        }
-    }
-
-    /**
-     * @param STEP the STEP to set
-     */
-    public void setStep(int step) {
-        if (this.step != step) {
-            this.step = step;
-            allFields[Columns.STEP.ordinal()].setValue(this.step);
-            this.isSaved = false;
-        }
-    }
-
-    /**
+     * To set the rank at startup of the request if the request specify a specific rank
      * @param RANK the RANK to set
      */
-    public void setRank(int rank) {
+    public void setRankAtStartup(int rank) {
         if (this.rank != rank) {
             this.rank = rank;
             allFields[Columns.RANK.ordinal()].setValue(this.rank);
-            this.isSaved = false;
-        }
-    }
-
-    /**
-     * @param status the status to set
-     */
-    public void setStatus(TaskStatus status) {
-        if (this.status != status) {
-            this.status = status;
-            allFields[Columns.STEPSTATUS.ordinal()].setValue(this.status.ordinal());
             this.isSaved = false;
         }
     }
@@ -447,26 +444,20 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * @return the globalstep
-     */
-    public int getGlobalstep() {
-        return globalstep;
-    }
-
-    /**
-     * @return the step
-     */
-    public int getStep() {
-        return step;
-    }
-
-    /**
      * @return the rank
      */
     public int getRank() {
         return rank;
     }
-
+    /**
+     * Change the status from Task Execution
+     * @param status
+     */
+    public void setExecutionStatus(TaskStatus status) {
+        this.status = status;
+        allFields[Columns.STEPSTATUS.ordinal()].setValue(this.status.ordinal());
+        this.isSaved = false;
+    }
     /**
      * @return the status
      */
@@ -482,24 +473,10 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * @return the filename
-     */
-    public String getFilename() {
-        return filename;
-    }
-
-    /**
      * @return the isFileMoved
      */
     public boolean isFileMoved() {
         return isFileMoved;
-    }
-
-    /**
-     * @return the ruleId
-     */
-    public String getRuleId() {
-        return ruleId;
     }
 
     /**
@@ -524,13 +501,6 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * @return the mode
-     */
-    public int getMode() {
-        return mode;
-    }
-
-    /**
      * @return the specialId
      */
     public long getSpecialId() {
@@ -538,19 +508,187 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * @return the requesterHostId
+     * @return the rule
      */
-    public String getRequesterHostId() {
-        return requesterHostId;
+    public R66Rule getRule() {
+        return rule;
     }
 
+    public boolean ready() {
+        return globalstep > PRETASK;
+    }
+
+    public boolean isFinished() {
+        return (globalstep == ALLDONETASK) || (globalstep == ERRORTASK && status == TaskStatus.OK);
+    }
+
+    public void setPreTask(int step) {
+        globalstep = PRETASK;
+        allFields[Columns.GLOBALSTEP.ordinal()].setValue(this.globalstep);
+        this.step = step;
+        allFields[Columns.STEP.ordinal()].setValue(this.step);
+        status = TaskStatus.RUNNING;
+        allFields[Columns.STEPSTATUS.ordinal()].setValue(this.status.ordinal());
+        this.isSaved = false;
+    }
+
+    public void setTransferTask(int rank) {
+        globalstep = TRANSFERTASK;
+        allFields[Columns.GLOBALSTEP.ordinal()].setValue(this.globalstep);
+        this.rank = rank;
+        allFields[Columns.RANK.ordinal()].setValue(this.rank);
+        status = TaskStatus.RUNNING;
+        allFields[Columns.STEPSTATUS.ordinal()].setValue(this.status.ordinal());
+        this.isSaved = false;
+    }
+
+    public int finishTransferTask(boolean status) {
+        if (status) {
+            this.status = TaskStatus.OK;
+        } else {
+            this.status = TaskStatus.ERROR;
+        }
+        allFields[Columns.STEPSTATUS.ordinal()].setValue(this.status.ordinal());
+        this.isSaved = false;
+        return rank;
+    }
+
+    public void setPostTask(int step) {
+        globalstep = POSTTASK;
+        allFields[Columns.GLOBALSTEP.ordinal()].setValue(this.globalstep);
+        this.step = step;
+        allFields[Columns.STEP.ordinal()].setValue(this.step);
+        status = TaskStatus.RUNNING;
+        allFields[Columns.STEPSTATUS.ordinal()].setValue(this.status.ordinal());
+        this.isSaved = false;
+    }
+
+    public void setErrorTask(int step) {
+        globalstep = ERRORTASK;
+        allFields[Columns.GLOBALSTEP.ordinal()].setValue(this.globalstep);
+        this.step = step;
+        allFields[Columns.STEP.ordinal()].setValue(this.step);
+        status = TaskStatus.RUNNING;
+        allFields[Columns.STEPSTATUS.ordinal()].setValue(this.status.ordinal());
+        this.isSaved = false;
+    }
+
+    public void setAllDone() {
+        globalstep = ALLDONETASK;
+        allFields[Columns.GLOBALSTEP.ordinal()].setValue(this.globalstep);
+        step = 0;
+        allFields[Columns.STEP.ordinal()].setValue(this.step);
+        //FIXME set by POST status = TaskStatus.OK;
+        allFields[Columns.STEPSTATUS.ordinal()].setValue(this.status.ordinal());
+        this.isSaved = false;
+    }
+
+    private R66Future runNextTask(String[][] tasks)
+            throws OpenR66RunnerEndTasksException, OpenR66RunnerErrorException {
+        if (tasks == null) {
+            throw new OpenR66RunnerEndTasksException("No tasks!");
+        }
+        if (tasks.length <= step) {
+            throw new OpenR66RunnerEndTasksException();
+        }
+        String name = tasks[step][0];
+        String arg = tasks[step][1];
+        int delay = Integer.parseInt(tasks[step][2]);
+        AbstractTask task = TaskType.getTaskFromId(name, arg, delay, session);
+        task.run();
+        task.getFutureCompletion().awaitUninterruptibly();
+        return task.getFutureCompletion();
+    }
+
+    private R66Future runNext() throws OpenR66RunnerEndTasksException,
+            OpenR66RunnerErrorException {
+        switch (globalstep) {
+            case PRETASK:
+                return runNextTask(rule.preTasksArray);
+            case POSTTASK:
+                return runNextTask(rule.postTasksArray);
+            case ERRORTASK:
+                return runNextTask(rule.errorTasksArray);
+            default:
+                throw new OpenR66RunnerErrorException("Global Step unknown");
+        }
+    }
+
+    public void run() throws OpenR66RunnerErrorException {
+        R66Future future;
+        if (this.status != TaskStatus.RUNNING) {
+            throw new OpenR66RunnerErrorException("Current global STEP not ready to run");
+        }
+        while (true) {
+            try {
+                future = runNext();
+            } catch (OpenR66RunnerEndTasksException e) {
+                if (status == TaskStatus.RUNNING) {
+                    status = TaskStatus.OK;
+                }
+                allFields[Columns.STEP.ordinal()].setValue(this.step);
+                allFields[Columns.STEPSTATUS.ordinal()].setValue(this.status.ordinal());
+                this.isSaved = false;
+                return;
+            } catch (OpenR66RunnerErrorException e) {
+                status = TaskStatus.ERROR;
+                allFields[Columns.STEP.ordinal()].setValue(this.step);
+                allFields[Columns.STEPSTATUS.ordinal()].setValue(this.status.ordinal());
+                this.isSaved = false;
+                throw new OpenR66RunnerErrorException("Runner is in error: " +
+                        e.getMessage(), e);
+            }
+            if (future.isCancelled()) {
+                status = TaskStatus.ERROR;
+                allFields[Columns.STEP.ordinal()].setValue(this.step);
+                allFields[Columns.STEPSTATUS.ordinal()].setValue(this.status.ordinal());
+                this.isSaved = false;
+                throw new OpenR66RunnerErrorException("Runner is error: " +
+                        future.getCause().getMessage(), future.getCause());
+            }
+            step ++;
+        }
+    }
     /**
-     * @return the requestedHostId
+     * Increment the rank
      */
-    public String getRequestedHostId() {
-        return requestedHostId;
+    public void incrementRank() {
+        rank ++;
+        allFields[Columns.RANK.ordinal()].setValue(this.rank);
+        this.isSaved = false;
+        if ((rank % 10) == 0) {
+            // Save each 10 blocks
+            try {
+                this.update();
+            } catch (OpenR66DatabaseException e) {
+                logger.warn("Cannot update Runner", e);
+            }
+        }
+    }
+    /**
+     * This method is to be called each time an operation is happening on Runner
+     * @throws OpenR66RunnerErrorException
+     */
+    public void saveStatus() throws OpenR66RunnerErrorException {
+        logger.info(GgInternalLogger.getRankMethodAndLine(3) + " " +
+                toString());
+        try {
+            this.update();
+        } catch (OpenR66DatabaseException e) {
+            throw new OpenR66RunnerErrorException(e);
+        }
     }
 
+    public void clear() {
+
+    }
+    @Override
+    public String toString() {
+        return "Run: " + (rule != null? rule.toString() : "no Rule") + " on " +
+                filename + " STEP: " + globalstep + ":" + step + ":" + status +
+                ":" + rank + " SpecialId: " + specialId + " isRetr: " +
+                isRetrieve + " isMoved: " + isFileMoved;
+    }
     /**
      *
      * @param status the status to match or UNKNOWN for all
@@ -563,11 +701,7 @@ public class DbTaskRunner extends AbstractDbData {
         DbPreparedStatement preparedStatement =
             new DbPreparedStatement(DbConstant.admin.session);
         DbTaskRunner runner = null;
-        try {
-            runner = new DbTaskRunner(DbConstant.ILLEGALVALUE);
-        } catch (OpenR66DatabaseException e) {
-            // ignore
-        }
+        runner = new DbTaskRunner();
         try {
             if (status == UNKNOWN) {
                 preparedStatement.createPrepareStatement("SELECT COUNT("+runner.primaryKey+") FROM "+

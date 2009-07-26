@@ -22,7 +22,7 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
-import openr66.context.task.TaskRunner;
+import openr66.database.data.DbTaskRunner;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.localhandler.LocalChannelReference;
@@ -175,7 +175,7 @@ public class ChannelUtils implements Runnable {
      * @throws OpenR66ProtocolPacketException
      */
     public static ChannelFuture writeBackDataBlock(
-            LocalChannelReference localChannelReference, TaskRunner runner,
+            LocalChannelReference localChannelReference, DbTaskRunner runner,
             Channel networkChannel, DataBlock block)
             throws OpenR66ProtocolPacketException {
         // FIXME if MD5

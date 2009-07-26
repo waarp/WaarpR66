@@ -42,11 +42,12 @@ public class CopyRenameTask extends AbstractTask {
 
     /**
      * @param argRule
+     * @param delay
      * @param argTransfer
      * @param session
      */
-    public CopyRenameTask(String argRule, String argTransfer, R66Session session) {
-        super(TaskType.COPYRENAME, argRule, argTransfer, session);
+    public CopyRenameTask(String argRule, int delay, String argTransfer, R66Session session) {
+        super(TaskType.COPYRENAME, delay, argRule, argTransfer, session);
     }
 
     /*
