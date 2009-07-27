@@ -113,7 +113,7 @@ public class ExecTask extends AbstractTask {
         }
         if (status == 0) {
             futureCompletion.setSuccess();
-            logger.warn("Exec OK with " + commandLine.toString());
+            logger.info("Exec OK with " + commandLine.toString());
         } else if (status == 1) {
             logger.warn("Exec in warning with " + commandLine.toString());
             futureCompletion.setSuccess();

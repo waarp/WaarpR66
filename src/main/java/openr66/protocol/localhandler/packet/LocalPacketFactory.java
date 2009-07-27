@@ -51,6 +51,8 @@ public class LocalPacketFactory {
 
     public static final byte TESTPACKET = 13;
 
+    public static final byte ENDTRANSFERPACKET = 14;
+
     /**
      * This method create a Packet from the ChannelBuffer.
      *
@@ -99,6 +101,9 @@ public class LocalPacketFactory {
                         "Unimplemented Packet Type received: " + packetType);
             case TESTPACKET:
                 return TestPacket.createFromBuffer(headerLength, middleLength,
+                        endLength, buf);
+            case ENDTRANSFERPACKET:
+                return EndTransferPacket.createFromBuffer(headerLength, middleLength,
                         endLength, buf);
             default:
                 throw new OpenR66ProtocolPacketException(

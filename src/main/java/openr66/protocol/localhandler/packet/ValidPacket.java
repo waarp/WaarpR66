@@ -18,7 +18,7 @@ import org.jboss.netty.buffer.ChannelBuffers;
 public class ValidPacket extends AbstractLocalPacket {
     private final String sheader;
 
-    private final String smiddle;
+    private String smiddle;
 
     private final byte send;
 
@@ -120,7 +120,14 @@ public class ValidPacket extends AbstractLocalPacket {
     public String getSmiddle() {
         return smiddle;
     }
-
+    /**
+     *
+     * @param smiddle
+     */
+    public void setSmiddle(String smiddle) {
+        this.smiddle = smiddle;
+        this.middle = null;
+    }
     /**
      * @return the type
      */

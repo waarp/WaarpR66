@@ -105,13 +105,6 @@ public class LocalChannelReference {
     }
 
     /**
-     * @return the futureAction
-     */
-    public R66Future getFutureAction() {
-        return futureAction;
-    }
-
-    /**
      * Validate or Invalidate the connection
      *
      * @param validate
@@ -145,6 +138,13 @@ public class LocalChannelReference {
         return futureValidate;
     }
 
+    /**
+     * @return the futureAction
+     */
+    public R66Future getFutureAction() {
+        return futureAction;
+    }
+
     public void validateAction(boolean status, R66Result finalValue) {
         if (!futureAction.isDone()) {
             if (status) {
@@ -159,6 +159,10 @@ public class LocalChannelReference {
                 } else {
                     futureAction.cancel();
                 }
+            }
+        } else {
+            if (!((R66Result) futureAction.getResult()).isAnswered) {
+                ((R66Result) futureAction.getResult()).isAnswered = finalValue.isAnswered;
             }
         }
     }

@@ -27,6 +27,9 @@ import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.DataPacket;
+import openr66.protocol.localhandler.packet.EndTransferPacket;
+import openr66.protocol.localhandler.packet.LocalPacketFactory;
+import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
 
@@ -180,6 +183,10 @@ public class ChannelUtils implements Runnable {
             throws OpenR66ProtocolPacketException {
         // FIXME if MD5
         ChannelBuffer md5 = ChannelBuffers.EMPTY_BUFFER;
+        if (runner.getMode() == RequestPacket.RECVMD5MODE ||
+                runner.getMode() == RequestPacket.SENDMD5MODE) {
+            md5 = FileUtils.getHash(block.getBlock());
+        }
         DataPacket data = new DataPacket(runner.getRank(), block.getBlock()
                 .copy(), md5);
         NetworkPacket networkPacket;
@@ -194,7 +201,31 @@ public class ChannelUtils implements Runnable {
         runner.incrementRank();
         return future;
     }
-
+    /**
+    *
+    * @param localChannelReference
+    * @param runner
+    * @param networkChannel
+    * @param block
+    * @return
+    * @throws OpenR66ProtocolPacketException
+    */
+   public static ChannelFuture writeValidEndTransfer(
+           LocalChannelReference localChannelReference, DbTaskRunner runner,
+           Channel networkChannel)
+           throws OpenR66ProtocolPacketException {
+       EndTransferPacket packet = new EndTransferPacket(LocalPacketFactory.REQUESTPACKET);
+       NetworkPacket networkPacket;
+       try {
+           networkPacket = new NetworkPacket(localChannelReference
+                   .getLocalId(), localChannelReference.getRemoteId(), packet);
+       } catch (OpenR66ProtocolPacketException e) {
+           logger.error("Cannot construct message from " + packet.toString(), e);
+           throw e;
+       }
+       ChannelFuture future = Channels.write(networkChannel, networkPacket);
+       return future;
+   }
     /**
      * Exit global ChannelFactory
      */

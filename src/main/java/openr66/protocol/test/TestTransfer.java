@@ -109,17 +109,17 @@ public class TestTransfer implements Runnable {
             logger.error("Cannot connect", lastException);
             future.setResult(new R66Result(
                     lastException,
-                    null));
+                    null, true));
             future.setFailure(lastException);
             return;
         } else if (lastException != null) {
             logger.warn("Connection retry since ", lastException);
         }
         // FIXME data transfer
-        int block = 101;
-        //int block = Configuration.configuration.BLOCKSIZE;
+        //int block = 101;
+        int block = Configuration.configuration.BLOCKSIZE;
         RequestPacket request = new RequestPacket(rulename,
-                RequestPacket.RECVMODE, filename, block, 0, DbConstant.ILLEGALVALUE,
+                RequestPacket.SENDMD5MODE, filename, block, 0, DbConstant.ILLEGALVALUE,
                 "MONTEST test.xml");
         NetworkPacket networkPacket;
         try {
@@ -128,7 +128,7 @@ public class TestTransfer implements Runnable {
         } catch (OpenR66ProtocolPacketException e) {
             future.setResult(new R66Result(
                     e,
-                    null));
+                    null, true));
             future.setFailure(e);
             Channels.close(localChannelReference.getLocalChannel());
             return;

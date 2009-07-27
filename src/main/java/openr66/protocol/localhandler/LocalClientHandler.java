@@ -152,7 +152,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
                 }
                 if (!localChannelReference.getFutureAction().isDone()) {
                     localChannelReference.validateAction(false,
-                            new R66Result(exception, null));
+                            new R66Result(exception, null, true));
                 }
                 final ErrorPacket errorPacket = new ErrorPacket(exception
                         .getMessage(), null, ErrorPacket.FORWARDCLOSECODE);

@@ -32,31 +32,37 @@ public class R66Result {
     public OpenR66Exception exception = null;
     public R66File file = null;
     public DbTaskRunner runner = null;
+    public boolean isAnswered = false;
     public Object other = null;
     /**
      * @param exception
      * @param session
+     * @param isAnswered
      */
-    public R66Result(OpenR66Exception exception, R66Session session) {
+    public R66Result(OpenR66Exception exception, R66Session session, boolean isAnswered) {
         this.exception = exception;
         if (session != null) {
             this.file = session.getFile();
             this.runner = session.getRunner();
         }
+        this.isAnswered = isAnswered;
     }
     /**
      * @param session
+     * @param isAnswered
      */
-    public R66Result(R66Session session) {
+    public R66Result(R66Session session, boolean isAnswered) {
         if (session != null) {
             this.file = session.getFile();
             this.runner = session.getRunner();
         }
+        this.isAnswered = isAnswered;
     }
     @Override
     public String toString() {
         return (exception != null ? "Exception: "+exception.toString() : "") +
             (file != null ? file.toString() : " no file") +
-            (runner != null ? runner.toString() : " no runner");
+            (runner != null ? runner.toString() : " no runner")+
+            " isAnswered: "+isAnswered;
     }
 }

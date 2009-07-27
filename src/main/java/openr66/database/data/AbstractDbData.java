@@ -141,6 +141,8 @@ public abstract class AbstractDbData {
                 default:
                     throw new OpenR66DatabaseSqlError("Type not supported: "+value.type+" at "+rank);
             }
+        } catch (ClassCastException e) {
+            throw new OpenR66DatabaseSqlError("Setting values casting error: "+value.type+" at "+rank, e);
         } catch (SQLException e) {
             DbSession.error(e);
             throw new OpenR66DatabaseSqlError("Setting values in error: "+value.type+" at "+rank, e);

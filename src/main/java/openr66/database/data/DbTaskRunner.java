@@ -60,17 +60,18 @@ public class DbTaskRunner extends AbstractDbData {
 
     public static enum Columns {
         GLOBALSTEP, STEP, RANK, STEPSTATUS, RETRIEVEMODE, FILENAME, ISMOVED, IDRULE,
-        BLOCKSIZE, ORIGINALNAME, FILEINFO, MODE, REQUESTER, REQUESTED,
+        BLOCKSIZE, ORIGINALNAME, FILEINFO, MODE, REQUESTER,
         START, STOP,
         UPDATEDINFO,
-        SPECIALID;
+        REQUESTED, SPECIALID;
     }
     public static int [] dbTypes = {
         Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.BIT,
         Types.VARCHAR, Types.BIT, Types.VARCHAR,
-        Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR,
+        Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.VARCHAR,
         Types.TIMESTAMP, Types.TIMESTAMP,
-        Types.INTEGER, Types.VARCHAR
+        Types.INTEGER,
+        Types.VARCHAR, Types.BIGINT
     };
     public static String table = " RUNNER ";
     public static String fieldseq = "RUNSEQ";
@@ -134,7 +135,10 @@ public class DbTaskRunner extends AbstractDbData {
     private boolean isSaved = false;
 
     // ALL TABLE SHOULD IMPLEMENT THIS
-    private DbValue primaryKey = new DbValue(specialId, Columns.SPECIALID.name());
+    private DbValue primaryKey[] = {
+            new DbValue(requestedHostId, Columns.REQUESTED.name()),
+            new DbValue(specialId, Columns.SPECIALID.name())
+    };
     private DbValue[] otherFields = {
       // GLOBALSTEP, STEP, RANK, STEPSTATUS, RETRIEVEMODE, FILENAME, ISMOVED, IDRULE,
       // BLOCKSIZE, ORIGINALNAME, FILEINFO, MODE, REQUESTER, REQUESTED
@@ -153,7 +157,6 @@ public class DbTaskRunner extends AbstractDbData {
       new DbValue(fileInformation, Columns.FILEINFO.name()),
       new DbValue(mode, Columns.MODE.name()),
       new DbValue(requesterHostId, Columns.REQUESTER.name()),
-      new DbValue(requestedHostId, Columns.REQUESTED.name()),
       new DbValue(start, Columns.START.name()),
       new DbValue(stop, Columns.STOP.name()),
       new DbValue(updatedInfo, Columns.UPDATEDINFO.name())
@@ -162,25 +165,26 @@ public class DbTaskRunner extends AbstractDbData {
       otherFields[0], otherFields[1], otherFields[2], otherFields[3],
       otherFields[4], otherFields[5], otherFields[6], otherFields[7], otherFields[8],
       otherFields[9], otherFields[10], otherFields[11], otherFields[12], otherFields[13],
-      otherFields[14], otherFields[15], otherFields[16],
-      primaryKey
+      otherFields[14], otherFields[15],
+      primaryKey[0], primaryKey[1]
     };
     private static final String selectAllFields =
         Columns.GLOBALSTEP.name()+","+Columns.STEP.name()+
         ","+Columns.RANK.name()+","+Columns.STEPSTATUS.name()+","+Columns.RETRIEVEMODE.name()+
         ","+Columns.FILENAME.name()+","+Columns.ISMOVED.name()+","+Columns.IDRULE.name()+
         ","+Columns.BLOCKSIZE.name()+","+Columns.ORIGINALNAME.name()+","+Columns.FILEINFO.name()+
-        ","+Columns.MODE.name()+","+Columns.REQUESTER.name()+","+Columns.REQUESTED.name()+
+        ","+Columns.MODE.name()+","+Columns.REQUESTER.name()+
         ","+Columns.START.name()+","+Columns.STOP.name()+
         ","+Columns.UPDATEDINFO.name()+
-        ","+Columns.SPECIALID.name();
+        ","+Columns.REQUESTED.name()+","+Columns.SPECIALID.name();
     private static final String updateAllFields =
         Columns.GLOBALSTEP.name()+"=?,"+Columns.STEP.name()+
         "=?,"+Columns.RANK.name()+"=?,"+Columns.STEPSTATUS.name()+"=?,"+Columns.RETRIEVEMODE.name()+
         "=?,"+Columns.FILENAME.name()+"=?,"+Columns.ISMOVED.name()+"=?,"+Columns.IDRULE.name()+
         "=?,"+Columns.BLOCKSIZE.name()+"=?,"+Columns.ORIGINALNAME.name()+"=?,"+Columns.FILEINFO.name()+
-        "=?,"+Columns.MODE.name()+"=?,"+Columns.REQUESTER.name()+"=?,"+Columns.REQUESTED.name()+
-        "=?,"+Columns.START.name()+"=?,"+Columns.STOP.name()+"=?,"+Columns.UPDATEDINFO.name()+"=?";
+        "=?,"+Columns.MODE.name()+"=?,"+Columns.REQUESTER.name()+
+        "=?,"+Columns.START.name()+"=?,"+Columns.STOP.name()+
+        "=?,"+Columns.UPDATEDINFO.name()+"=?";
     private static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
 
 
@@ -213,10 +217,13 @@ public class DbTaskRunner extends AbstractDbData {
         this.insert();
     }
 
-    public DbTaskRunner(R66Session session, R66Rule rule, long id) throws OpenR66DatabaseException {
+    public DbTaskRunner(R66Session session, R66Rule rule, long id, String requested) throws OpenR66DatabaseException {
         this.session = session;
         this.rule = rule;
+
         specialId = id;
+        // retrieving a task should be made from the requester, but the caller is responsible of this
+        requestedHostId = requested;
 
         this.select();
         if (! this.ruleId.equals(rule.idRule)) {
@@ -226,7 +233,6 @@ public class DbTaskRunner extends AbstractDbData {
 
     @Override
     protected void setToArray() {
-        allFields[Columns.SPECIALID.ordinal()].setValue(this.specialId);
         allFields[Columns.GLOBALSTEP.ordinal()].setValue(this.globalstep);
         allFields[Columns.STEP.ordinal()].setValue(this.step);
         allFields[Columns.RANK.ordinal()].setValue(this.rank);
@@ -240,15 +246,15 @@ public class DbTaskRunner extends AbstractDbData {
         allFields[Columns.FILEINFO.ordinal()].setValue(this.fileInformation);
         allFields[Columns.MODE.ordinal()].setValue(this.mode);
         allFields[Columns.REQUESTER.ordinal()].setValue(this.requesterHostId);
-        allFields[Columns.REQUESTED.ordinal()].setValue(this.requestedHostId);
         allFields[Columns.START.ordinal()].setValue(this.start);
         this.stop = new Timestamp(System.currentTimeMillis());
         allFields[Columns.STOP.ordinal()].setValue(this.stop);
         allFields[Columns.UPDATEDINFO.ordinal()].setValue(this.updatedInfo);
+        allFields[Columns.REQUESTED.ordinal()].setValue(this.requestedHostId);
+        allFields[Columns.SPECIALID.ordinal()].setValue(this.specialId);
     }
     @Override
     protected void setFromArray() throws OpenR66DatabaseSqlError {
-        this.specialId = (Long) allFields[Columns.SPECIALID.ordinal()].getValue();
         this.globalstep = (Integer) allFields[Columns.GLOBALSTEP.ordinal()].getValue();
         this.step = (Integer) allFields[Columns.STEP.ordinal()].getValue();
         this.rank = (Integer) allFields[Columns.RANK.ordinal()].getValue();
@@ -262,10 +268,11 @@ public class DbTaskRunner extends AbstractDbData {
         this.fileInformation = (String) allFields[Columns.FILEINFO.ordinal()].getValue();
         this.mode = (Integer) allFields[Columns.MODE.ordinal()].getValue();
         this.requesterHostId = (String) allFields[Columns.REQUESTER.ordinal()].getValue();
-        this.requestedHostId = (String) allFields[Columns.REQUESTED.ordinal()].getValue();
         this.start = (Timestamp) allFields[Columns.START.ordinal()].getValue();
         this.stop = (Timestamp) allFields[Columns.STOP.ordinal()].getValue();
         this.updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()].getValue();
+        this.requestedHostId = (String) allFields[Columns.REQUESTED.ordinal()].getValue();
+        this.specialId = (Long) allFields[Columns.SPECIALID.ordinal()].getValue();
     }
     /**
      * Empty private constructor
@@ -283,9 +290,11 @@ public class DbTaskRunner extends AbstractDbData {
             new DbPreparedStatement(DbConstant.admin.session);
         try {
             preparedStatement.createPrepareStatement("DELETE FROM "+
-                    table+" WHERE "+Columns.SPECIALID.name()+" = ?");
-            primaryKey.setValue(specialId);
-            this.setValue(preparedStatement, primaryKey);
+                    table+" WHERE "+Columns.REQUESTED.name()+" = ? AND "+
+                    Columns.SPECIALID.name()+" = ? ");
+            primaryKey[0].setValue(this.requestedHostId);
+            primaryKey[1].setValue(specialId);
+            this.setValues(preparedStatement, primaryKey);
             int count = preparedStatement.executeUpdate();
             preparedStatement.realClose();
             if (count <= 0) {
@@ -308,7 +317,8 @@ public class DbTaskRunner extends AbstractDbData {
         // First need to find a new id if id is not ok
         if (this.specialId == DbConstant.ILLEGALVALUE) {
             this.specialId = DbModelFactory.dbModel.nextSequence();
-            primaryKey.setValue(this.specialId);
+            primaryKey[0].setValue(this.requestedHostId);
+            primaryKey[1].setValue(this.specialId);
         }
         this.setToArray();
         DbPreparedStatement preparedStatement =
@@ -337,10 +347,12 @@ public class DbTaskRunner extends AbstractDbData {
         DbPreparedStatement preparedStatement =
             new DbPreparedStatement(DbConstant.admin.session);
         preparedStatement.createPrepareStatement("SELECT "+selectAllFields+" FROM "+
-                table+" WHERE "+Columns.SPECIALID.name()+" = ?");
+                table+" WHERE "+Columns.REQUESTED.name()+" = ? AND "+
+                Columns.SPECIALID.name()+" = ? ");
         try {
-            primaryKey.setValue(specialId);
-            this.setValue(preparedStatement, primaryKey);
+            primaryKey[0].setValue(this.requestedHostId);
+            primaryKey[1].setValue(this.specialId);
+            this.setValues(preparedStatement, primaryKey);
             preparedStatement.executeQuery();
             if (preparedStatement.getNext()) {
                 this.getValues(preparedStatement, allFields);
@@ -367,7 +379,8 @@ public class DbTaskRunner extends AbstractDbData {
             new DbPreparedStatement(DbConstant.admin.session);
         try {
             preparedStatement.createPrepareStatement("UPDATE "+table+" SET "+updateAllFields+
-                    " WHERE "+Columns.SPECIALID.name()+" = ?");
+                    " WHERE "+Columns.REQUESTED.name()+" = ? AND "+
+                    Columns.SPECIALID.name()+" = ? ");
             this.setValues(preparedStatement, allFields);
             int count = preparedStatement.executeUpdate();
             preparedStatement.realClose();
@@ -512,6 +525,13 @@ public class DbTaskRunner extends AbstractDbData {
      */
     public R66Rule getRule() {
         return rule;
+    }
+
+    /**
+     * @return the mode
+     */
+    public int getMode() {
+        return mode;
     }
 
     public boolean ready() {
@@ -691,24 +711,33 @@ public class DbTaskRunner extends AbstractDbData {
     }
     /**
      *
+     * @author Frederic Bregier
+     *
+     */
+    public static class TransferId {
+        public long specialId;
+        public String requestedHost;
+    }
+    /**
+     *
      * @param status the status to match or UNKNOWN for all
      * @return All index (specialId) that match the status
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
      * @throws OpenR66DatabaseNoDataException
      */
-    public static ArrayList<Integer> getAllRunner(int status) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError, OpenR66DatabaseNoDataException {
+    public static ArrayList<TransferId> getAllRunner(int status) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError, OpenR66DatabaseNoDataException {
         DbPreparedStatement preparedStatement =
             new DbPreparedStatement(DbConstant.admin.session);
         DbTaskRunner runner = null;
         runner = new DbTaskRunner();
         try {
             if (status == UNKNOWN) {
-                preparedStatement.createPrepareStatement("SELECT COUNT("+runner.primaryKey+") FROM "+
-                        table);
+                preparedStatement.createPrepareStatement("SELECT COUNT("+Columns.SPECIALID.name()+
+                        ") FROM "+table);
             } else {
-                preparedStatement.createPrepareStatement("SELECT COUNT("+runner.primaryKey+") FROM "+
-                        table+" WHERE "+Columns.UPDATEDINFO.name()+" = ?");
+                preparedStatement.createPrepareStatement("SELECT COUNT("+Columns.SPECIALID.name()+
+                        ") FROM "+table+" WHERE "+Columns.UPDATEDINFO.name()+" = ?");
                 runner.allFields[Columns.UPDATEDINFO.ordinal()].setValue(status);
                 runner.setValue(preparedStatement, runner.allFields[Columns.UPDATEDINFO.ordinal()]);
             }
@@ -726,21 +755,25 @@ public class DbTaskRunner extends AbstractDbData {
                 throw new OpenR66DatabaseNoDataException("No row found");
             }
             preparedStatement.realClose();
-            ArrayList<Integer> result = new ArrayList<Integer>(count);
+            ArrayList<TransferId> result = new ArrayList<TransferId>(count);
             if (status == UNKNOWN) {
-                preparedStatement.createPrepareStatement("SELECT "+runner.primaryKey+" FROM "+
-                        table);
+                preparedStatement.createPrepareStatement("SELECT "+Columns.REQUESTED.name()+
+                        ","+Columns.SPECIALID.name()+
+                        " FROM "+table);
             } else {
-                preparedStatement.createPrepareStatement("SELECT "+runner.primaryKey+" FROM "+
-                        table+" WHERE "+Columns.UPDATEDINFO.name()+" = ?");
+                preparedStatement.createPrepareStatement("SELECT "+Columns.REQUESTED.name()+
+                        ","+Columns.SPECIALID.name()+
+                        " FROM "+table+" WHERE "+Columns.UPDATEDINFO.name()+" = ?");
                 runner.allFields[Columns.UPDATEDINFO.ordinal()].setValue(status);
                 runner.setValue(preparedStatement, runner.allFields[Columns.UPDATEDINFO.ordinal()]);
             }
             preparedStatement.executeQuery();
             while (preparedStatement.getNext()) {
-                runner.getValue(preparedStatement, runner.primaryKey);
-                Integer newval = new Integer((Integer) runner.primaryKey.value);
-                result.add(newval);
+                runner.getValues(preparedStatement, runner.primaryKey);
+                TransferId id = new TransferId();
+                id.requestedHost = (String) runner.primaryKey[0].value;
+                id.specialId = (Long) runner.primaryKey[1].value;
+                result.add(id);
             }
             return result;
         } finally {

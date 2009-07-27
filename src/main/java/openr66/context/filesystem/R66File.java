@@ -92,29 +92,31 @@ public class R66File extends FilesystemBasedFileImpl {
                 return;
             }
             DataBlock block = null;
+            LocalChannelReference localChannelReference = getSession()
+                .getLocalChannelReference();
+            Channel networkChannel = localChannelReference.getNetworkChannel();
+            NetworkServerHandler serverHandler = localChannelReference
+                .getNetworkServerHandler();
+            DbTaskRunner runner = getSession().getRunner();
             try {
                 block = readDataBlock();
             } catch (FileEndOfTransferException e) {
                 // Last block (in fact, previous block was the last one,
                 // but it could be aligned with the block size so not
                 // detected)
-                getSession().setFinalizeTransfer(true, new R66Result(this.getSession()));
+                ChannelUtils.writeValidEndTransfer(localChannelReference, runner, networkChannel);
+                //getSession().setFinalizeTransfer(true, new R66Result(this.getSession(), false));
                 return;
             }
             if (block == null) {
                 // Last block (in fact, previous block was the last one,
                 // but it could be aligned with the block size so not
                 // detected)
-                getSession().setFinalizeTransfer(true, new R66Result(this.getSession()));
+                ChannelUtils.writeValidEndTransfer(localChannelReference, runner, networkChannel);
+                //getSession().setFinalizeTransfer(true, new R66Result(this.getSession(), false));
                 return;
             }
             // While not last block
-            LocalChannelReference localChannelReference = getSession()
-                    .getLocalChannelReference();
-            Channel networkChannel = localChannelReference.getNetworkChannel();
-            NetworkServerHandler serverHandler = localChannelReference
-                    .getNetworkServerHandler();
-            DbTaskRunner runner = getSession().getRunner();
 
             ChannelFuture future = null;
             while (block != null && !block.isEOF()) {
@@ -127,7 +129,9 @@ public class R66File extends FilesystemBasedFileImpl {
                     } catch (FileEndOfTransferException e) {
                         // Wait for last write
                         future.awaitUninterruptibly();
-                        getSession().setFinalizeTransfer(true, new R66Result(this.getSession()));
+                        ChannelUtils.writeValidEndTransfer(localChannelReference, runner,
+                                networkChannel);
+                        //getSession().setFinalizeTransfer(true, new R66Result(this.getSession(), false));
                         return;
                     }
                 } else {
@@ -141,7 +145,7 @@ public class R66File extends FilesystemBasedFileImpl {
                             future.awaitUninterruptibly();
                             getSession().setFinalizeTransfer(false,
                                     new R66Result(new OpenR66ProtocolSystemException(e),
-                                            this.getSession()));
+                                            this.getSession(), false));
                             return;
                         }
                     }
@@ -150,7 +154,9 @@ public class R66File extends FilesystemBasedFileImpl {
                     } catch (FileEndOfTransferException e) {
                         // Wait for last write
                         future.awaitUninterruptibly();
-                        getSession().setFinalizeTransfer(true, new R66Result(this.getSession()));
+                        ChannelUtils.writeValidEndTransfer(localChannelReference, runner,
+                                networkChannel);
+                        //getSession().setFinalizeTransfer(true, new R66Result(this.getSession(), false));
                         return;
                     }
                 }
@@ -164,16 +170,17 @@ public class R66File extends FilesystemBasedFileImpl {
             if (future != null) {
                 future.awaitUninterruptibly();
             }
-            getSession().setFinalizeTransfer(true, new R66Result(this.getSession()));
+            ChannelUtils.writeValidEndTransfer(localChannelReference, runner, networkChannel);
+            //getSession().setFinalizeTransfer(true, new R66Result(this.getSession(), false));
             return;
         } catch (FileTransferException e) {
             // An error occurs!
             getSession().setFinalizeTransfer(false,
-                    new R66Result(new OpenR66ProtocolSystemException(e), this.getSession()));
+                    new R66Result(new OpenR66ProtocolSystemException(e), this.getSession(), false));
         } catch (OpenR66ProtocolPacketException e) {
             // An error occurs!
             getSession().setFinalizeTransfer(false,
-                    new R66Result(e, this.getSession()));
+                    new R66Result(e, this.getSession(), false));
         }
     }
 

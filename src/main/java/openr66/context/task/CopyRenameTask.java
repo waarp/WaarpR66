@@ -66,13 +66,15 @@ public class CopyRenameTask extends AbstractTask {
         String finalname = argRule;
         finalname = getReplacedValue(finalname, argTransfer
                 .split(" "));
-        logger.warn("Copy and Rename to " + finalname + " with " +
+        logger.info("Copy and Rename to " + finalname + " with " +
                 argRule + ":" + argTransfer + " and " + session);
         File from = session.getFile().getTrueFile();
         File to = new File(finalname);
         try {
             FileUtils.copy(from, to, false, false);
         } catch (OpenR66ProtocolSystemException e1) {
+            logger.error("Copy and Rename to " + finalname + " with " +
+                    argRule + ":" + argTransfer + " and " + session, e1);
             futureCompletion
                     .setFailure(new OpenR66ProtocolSystemException(e1));
             return;

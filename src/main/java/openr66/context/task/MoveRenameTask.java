@@ -64,11 +64,13 @@ public class MoveRenameTask extends AbstractTask {
         String finalname = argRule;
         finalname = getReplacedValue(finalname, argTransfer
                 .split(" "));
-        logger.warn("Move and Rename to " + finalname + " with " +
+        logger.info("Move and Rename to " + finalname + " with " +
                 argRule + ":" + argTransfer + " and " + session);
         try {
             success = session.getFile().renameTo(finalname, true);
         } catch (CommandAbstractException e) {
+            logger.error("Move and Rename to " + finalname + " with " +
+                    argRule + ":" + argTransfer + " and " + session, e);
             futureCompletion
                     .setFailure(new OpenR66ProtocolSystemException(e));
             return;
@@ -77,6 +79,8 @@ public class MoveRenameTask extends AbstractTask {
         if (success) {
             futureCompletion.setSuccess();
         } else {
+            logger.error("Cannot Move and Rename to " + finalname + " with " +
+                    argRule + ":" + argTransfer + " and " + session);
             futureCompletion
                     .setFailure(new OpenR66ProtocolSystemException(
                             "Cannot move file"));

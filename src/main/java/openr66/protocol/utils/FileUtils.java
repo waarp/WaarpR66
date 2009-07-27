@@ -31,6 +31,9 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
+
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 
@@ -436,7 +439,17 @@ public class FileUtils {
             throw new OpenR66ProtocolSystemException(e);
         }
     }
-
+    /**
+     *
+     * @param buffer
+     * @return the hash from the given Buffer
+     */
+    public static ChannelBuffer getHash(ChannelBuffer buffer) {
+        MD5 md5 = new MD5();
+        md5.Update(buffer);
+        byte[] newkey = md5.Final();
+        return ChannelBuffers.wrappedBuffer(newkey);
+    }
     /**
      * Write one fileChannel to another one. Close the fileChannels
      *

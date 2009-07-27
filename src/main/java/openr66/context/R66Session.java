@@ -87,7 +87,7 @@ public class R66Session implements SessionInterface {
         // First check if a transfer was on going
         if (this.runner != null && (!this.runner.isFinished())) {
             R66Result result = new R66Result(new OpenR66RunnerErrorException("Close before ending"),
-                    this);
+                    this, true);// True since called from closed
             try {
                 this.setFinalizeTransfer(false, result);
             } catch (OpenR66RunnerErrorException e) {
@@ -335,7 +335,10 @@ public class R66Session implements SessionInterface {
         try {
             file.closeFile();
         } catch (CommandAbstractException e1) {
-            R66Result result = new R66Result(new OpenR66RunnerErrorException(e1), this);
+            R66Result result = finalValue;
+            if (status) {
+                result = new R66Result(new OpenR66RunnerErrorException(e1), this, false);
+            }
             localChannelReference.validateAction(false, result);
             throw (OpenR66RunnerErrorException) result.exception;
         }
@@ -345,7 +348,10 @@ public class R66Session implements SessionInterface {
             try {
                 runner.run();
             } catch (OpenR66RunnerErrorException e1) {
-                R66Result result = new R66Result(e1, this);
+                R66Result result = finalValue;
+                if (status) {
+                    result = new R66Result(e1, this, false);
+                }
                 localChannelReference.validateAction(false, result);
                 throw e1;
             }
@@ -361,11 +367,17 @@ public class R66Session implements SessionInterface {
                         file.renameTo(runner.getRule().setRecvPath(
                                 finalpath));
                     } catch (OpenR66ProtocolSystemException e) {
-                        R66Result result = new R66Result(e, this);
+                        R66Result result = finalValue;
+                        if (status) {
+                            result = new R66Result(e, this, false);
+                        }
                         localChannelReference.validateAction(false, result);
                         throw e;
                     } catch (CommandAbstractException e) {
-                        R66Result result = new R66Result(new OpenR66RunnerErrorException(e), this);
+                        R66Result result = finalValue;
+                        if (status) {
+                            result = new R66Result(new OpenR66RunnerErrorException(e), this, false);
+                        }
                         localChannelReference.validateAction(false, result);
                         throw (OpenR66RunnerErrorException) result.exception;
                     }

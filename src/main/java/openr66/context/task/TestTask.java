@@ -52,8 +52,10 @@ public class TestTask extends AbstractTask {
      */
     @Override
     public void run() {
-        logger.info("Test with " + argRule + ":" + argTransfer +
-                " and " + session);
+        if (this.delay > 0) {
+            logger.warn("Test with " + argRule + ":" + argTransfer +
+                    " and " + session);
+        }
         futureCompletion.setSuccess();
     }
 

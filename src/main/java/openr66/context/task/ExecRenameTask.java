@@ -24,10 +24,8 @@ import goldengate.common.command.exception.CommandAbstractException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 
@@ -60,44 +58,6 @@ public class ExecRenameTask extends AbstractTask {
      */
     public ExecRenameTask(String argRule, int delay, String argTransfer, R66Session session) {
         super(TaskType.EXECRENAME, delay, argRule, argTransfer, session);
-    }
-
-    private class LastLineReader implements Runnable {
-        private final BufferedReader reader;
-
-        public String lastLine = null;
-
-        /**
-         *
-         */
-        public LastLineReader(PipedInputStream inputStream) {
-            reader = new BufferedReader(new InputStreamReader(inputStream));
-        }
-
-        /*
-         * (non-Javadoc)
-         *
-         * @see java.lang.Runnable#run()
-         */
-        @Override
-        public void run() {
-            String line;
-            try {
-                while ((line = reader.readLine()) != null) {
-                    line = line.trim();
-                    if (line.length() > 0) {
-                        lastLine = line;
-                    }
-                }
-            } catch (IOException e) {
-                lastLine = null;
-            }
-            try {
-                reader.close();
-            } catch (IOException e) {
-            }
-        }
-
     }
 
     /*
@@ -161,12 +121,30 @@ public class ExecRenameTask extends AbstractTask {
         try {
             status = defaultExecutor.execute(commandLine);
         } catch (ExecuteException e) {
+            try {
+                outputStream.close();
+            } catch (IOException e1) {
+            }
+            thread.interrupt();
+            try {
+                inputStream.close();
+            } catch (IOException e1) {
+            }
             pumpStreamHandler.stop();
             logger.error("Exception: " + e.getMessage() +
                     " Exec in error with " + commandLine.toString(), e);
             futureCompletion.setFailure(e);
             return;
         } catch (IOException e) {
+            try {
+                outputStream.close();
+            } catch (IOException e1) {
+            }
+            thread.interrupt();
+            try {
+                inputStream.close();
+            } catch (IOException e1) {
+            }
             pumpStreamHandler.stop();
             logger.error("Exception: " + e.getMessage() +
                     " Exec in error with " + commandLine.toString(), e);
@@ -175,6 +153,9 @@ public class ExecRenameTask extends AbstractTask {
         }
         try {
             outputStream.flush();
+        } catch (IOException e) {
+        }
+        try {
             outputStream.close();
         } catch (IOException e) {
         }
@@ -186,6 +167,10 @@ public class ExecRenameTask extends AbstractTask {
                 thread.join(Configuration.configuration.TIMEOUTCON);
             }
         } catch (InterruptedException e) {
+        }
+        try {
+            inputStream.close();
+        } catch (IOException e1) {
         }
         String newname = null;
         if (defaultExecutor.isFailure(status) && watchdog != null && watchdog.killedProcess()) {
@@ -229,7 +214,7 @@ public class ExecRenameTask extends AbstractTask {
                                 e);
             }
             futureCompletion.setSuccess();
-            logger.warn("Exec OK with " + commandLine.toString() + " returns " +
+            logger.info("Exec OK with " + commandLine.toString() + " returns " +
                     newname);
         } else if (status == 1) {
             logger.warn("Exec in warning with " + commandLine.toString() +

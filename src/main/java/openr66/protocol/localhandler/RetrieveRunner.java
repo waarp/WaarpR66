@@ -72,7 +72,7 @@ public class RetrieveRunner implements Runnable {
         try {
             session.getFile().retrieveBlocking();
         } catch (OpenR66RunnerErrorException e) {
-            R66Result result = new R66Result(e, session);
+            R66Result result = new R66Result(e, session, true);
             localChannelReference.validateAction(false, result);
             logger.error("Transfer in error", e);
             ErrorPacket error = new ErrorPacket("Transfer in error", e
@@ -85,7 +85,7 @@ public class RetrieveRunner implements Runnable {
             logger.warn("End Retrieve in Error");
             return;
         } catch (OpenR66ProtocolSystemException e) {
-            R66Result result = new R66Result(e, session);
+            R66Result result = new R66Result(e, session, true);
             localChannelReference.validateAction(false, result);
             logger.error("Transfer in error", e);
             ErrorPacket error = new ErrorPacket("Transfer in error", e
@@ -98,8 +98,9 @@ public class RetrieveRunner implements Runnable {
             logger.warn("End Retrieve in Error");
             return;
         }
-        logger.info("Await future action to be done");
         localChannelReference.getFutureAction().awaitUninterruptibly();
+        logger.info("Await future action done: "+
+                localChannelReference.getFutureAction().isSuccess());
         if (localChannelReference.getFutureAction().isSuccess()) {
             // send a validation
             ValidPacket validPacket = new ValidPacket("File transmitted",
@@ -112,12 +113,14 @@ public class RetrieveRunner implements Runnable {
             ChannelUtils.close(channel);
             return;
         } else {
-            ErrorPacket error = new ErrorPacket("Transfer in error",
-                    localChannelReference.getFutureAction().getResult()
-                            .toString(), ErrorPacket.FORWARDCLOSECODE);
-            try {
-                writeBack(error);
-            } catch (OpenR66ProtocolPacketException e) {
+            if (!((R66Result) localChannelReference.getFutureAction().getResult()).isAnswered) {
+                ErrorPacket error = new ErrorPacket("Transfer in error",
+                        localChannelReference.getFutureAction().getResult()
+                                .toString(), ErrorPacket.FORWARDCLOSECODE);
+                try {
+                    writeBack(error);
+                } catch (OpenR66ProtocolPacketException e) {
+                }
             }
             ChannelUtils.close(channel);
             logger.warn("End Retrieve in Error");

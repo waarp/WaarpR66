@@ -3,7 +3,9 @@
  */
 package openr66.protocol.localhandler.packet;
 
+import goldengate.common.digest.MD5;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
+import openr66.protocol.utils.FileUtils;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -109,15 +111,6 @@ public class DataPacket extends AbstractLocalPacket {
     }
 
     /**
-     * Update the key associated to the data
-     *
-     * @param key1
-     */
-    public void updateKey(ChannelBuffer key1) {
-        key = key1 == null? ChannelBuffers.EMPTY_BUFFER : key1;
-    }
-
-    /**
      * @return the packetRank
      */
     public int getPacketRank() {
@@ -144,5 +137,15 @@ public class DataPacket extends AbstractLocalPacket {
     public ChannelBuffer getKey() {
         return key;
     }
-
+    /**
+     *
+     * @return True if the MD5 key is valid (or no key is set)
+     */
+    public boolean isKeyValid() {
+        if (this.key == null || this.key == ChannelBuffers.EMPTY_BUFFER) {
+            return true;
+        }
+        ChannelBuffer newbufkey = FileUtils.getHash(this.data);
+        return (ChannelBuffers.equals(key, newbufkey));
+    }
 }

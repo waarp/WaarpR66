@@ -171,14 +171,14 @@ public class DbModelH2 extends AbstractDbModel {
         // runner
         action = createTableH2+DbTaskRunner.table+"(";
         DbTaskRunner.Columns []acolumns = DbTaskRunner.Columns.values();
-        for (int i = 0; i < acolumns.length-1; i++) {
+        for (int i = 0; i < acolumns.length; i++) {
             action += acolumns[i].name()+
                 DBType.getType(DbTaskRunner.dbTypes[i])+
                 notNull+", ";
         }
-        action += acolumns[acolumns.length-1].name()+
-            DBType.getType(DbTaskRunner.dbTypes[acolumns.length-1])+
-            primaryKey+")";
+        // Two columns for primary key
+        action += " CONSTRAINT runner_pk "+primaryKey+"("+acolumns[acolumns.length-2].name()+","+
+            acolumns[acolumns.length-1].name()+"))";
         System.out.println(action);
         try {
             request.query(action);

@@ -61,15 +61,15 @@ public class OpenR66ExceptionTrappedFactory {
                     "Connection closed before end", e1);
         } else if (e1 instanceof OpenR66ProtocolBusinessNoWriteBackException) {
             final OpenR66ProtocolBusinessNoWriteBackException e2 = (OpenR66ProtocolBusinessNoWriteBackException) e1;
-            logger.error("Command Error Reply", e2);
+            logger.error("Command Error Reply: {}", e2.getMessage());
             return e2;
         } else if (e1 instanceof OpenR66ProtocolShutdownException) {
             final OpenR66ProtocolShutdownException e2 = (OpenR66ProtocolShutdownException) e1;
-            logger.info("Command Shutdown" + e2.getMessage());
+            logger.info("Command Shutdown {}", e2.getMessage());
             return e2;
         } else if (e1 instanceof OpenR66Exception) {
             final OpenR66Exception e2 = (OpenR66Exception) e1;
-            logger.warn("Command Error Reply", e2);
+            logger.warn("Command Error Reply: {}", e2.getMessage());
             return e2;
         } else if (e1 instanceof BindException) {
             final BindException e2 = (BindException) e1;
