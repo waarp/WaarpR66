@@ -80,7 +80,7 @@ public class DbAdmin {
     /**
      * Load the correct jdbc driver (default com.mysql.jdbc.Driver)
      *
-     * @param driver
+     * @param typeDriver
      * @throws OpenR66DatabaseNoConnectionError
      */
     public static void initialize(DatabaseType typeDriver) throws OpenR66DatabaseNoConnectionError {
@@ -129,7 +129,7 @@ public class DbAdmin {
             } catch (OpenR66DatabaseSqlError e) {
                 isConnected = false;
                 logger.error("Cannot connect to Database!");
-                throw new OpenR66DatabaseNoConnectionError("Cannot connect to database");
+                throw new OpenR66DatabaseNoConnectionError("Cannot connect to database", e);
             }
             request.close();
         } else {
@@ -144,7 +144,7 @@ public class DbAdmin {
             } catch (OpenR66DatabaseSqlError e) {
                 isConnected = false;
                 logger.error("Cannot connect to Database!");
-                throw new OpenR66DatabaseNoConnectionError("Cannot connect to database");
+                throw new OpenR66DatabaseNoConnectionError("Cannot connect to database", e);
             }
             request.close();
         }

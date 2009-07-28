@@ -135,11 +135,11 @@ public class DbTaskRunner extends AbstractDbData {
     private boolean isSaved = false;
 
     // ALL TABLE SHOULD IMPLEMENT THIS
-    private DbValue primaryKey[] = {
+    private final DbValue primaryKey[] = {
             new DbValue(requestedHostId, Columns.REQUESTED.name()),
             new DbValue(specialId, Columns.SPECIALID.name())
     };
-    private DbValue[] otherFields = {
+    private final DbValue[] otherFields = {
       // GLOBALSTEP, GLOBALLASTSTEP, STEP, RANK, STEPSTATUS, RETRIEVEMODE, FILENAME, ISMOVED, IDRULE,
       // BLOCKSIZE, ORIGINALNAME, FILEINFO, MODE, REQUESTER, REQUESTED
       // START, STOP
@@ -162,7 +162,7 @@ public class DbTaskRunner extends AbstractDbData {
       new DbValue(stop, Columns.STOP.name()),
       new DbValue(updatedInfo, Columns.UPDATEDINFO.name())
     };
-    private DbValue[] allFields = {
+    private final DbValue[] allFields = {
       otherFields[0], otherFields[1], otherFields[2], otherFields[3],
       otherFields[4], otherFields[5], otherFields[6], otherFields[7], otherFields[8],
       otherFields[9], otherFields[10], otherFields[11], otherFields[12], otherFields[13],
@@ -322,7 +322,6 @@ public class DbTaskRunner extends AbstractDbData {
             primaryKey[1].setValue(specialId);
             this.setValues(preparedStatement, primaryKey);
             int count = preparedStatement.executeUpdate();
-            preparedStatement.realClose();
             if (count <= 0) {
                 throw new OpenR66DatabaseNoDataException("No row found");
             }
@@ -355,7 +354,6 @@ public class DbTaskRunner extends AbstractDbData {
                     insertAllValues);
             this.setValues(preparedStatement, allFields);
             int count = preparedStatement.executeUpdate();
-            preparedStatement.realClose();
             if (count <= 0) {
                 throw new OpenR66DatabaseNoDataException("No row found");
             }
@@ -409,7 +407,6 @@ public class DbTaskRunner extends AbstractDbData {
                     Columns.SPECIALID.name()+" = ? ");
             this.setValues(preparedStatement, allFields);
             int count = preparedStatement.executeUpdate();
-            preparedStatement.realClose();
             if (count <= 0) {
                 throw new OpenR66DatabaseNoDataException("No row found");
             }
@@ -433,7 +430,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * To set the rank at startup of the request if the request specify a specific rank
-     * @param RANK the RANK to set
+     * @param rank the rank to set
      */
     public void setRankAtStartup(int rank) {
         if (this.rank != rank) {
@@ -444,7 +441,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * @param FILENAME the FILENAME to set
+     * @param filename the filename to set
      */
     public void setFilename(String filename) {
         if (this.filename != filename) {

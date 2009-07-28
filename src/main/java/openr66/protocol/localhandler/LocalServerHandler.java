@@ -589,7 +589,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 // Now can send validation
                 packet.validate();
                 try {
-                    writeBack(packet, false);
+                    writeBack(packet, true);
                 } catch (OpenR66ProtocolPacketException e) {
                     // ignore
                 }

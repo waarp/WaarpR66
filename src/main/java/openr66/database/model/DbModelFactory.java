@@ -47,6 +47,9 @@ public class DbModelFactory {
             case MySQL:
                 dbModel = new DbModelMysql();
                 break;
+            default:
+                throw new OpenR66DatabaseNoConnectionError("TypeDriver unknown: "+
+                        DbConstant.admin.typeDriver);
         }
     }
 }

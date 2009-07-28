@@ -93,6 +93,7 @@ public class DbModelH2 extends AbstractDbModel {
             return null;
         }
     }
+
     @Override
     public void createTables() {
         // Create tables: configuration, hosts, rules, runner, cptrunner
@@ -216,6 +217,7 @@ public class DbModelH2 extends AbstractDbModel {
     public void resetSequence() {
         String action = "ALTER SEQUENCE "+DbTaskRunner.fieldseq+
             " RESTART WITH "+(DbConstant.ILLEGALVALUE+1);
+        // FIXME
         System.out.println(action);
     }
     /* (non-Javadoc)
@@ -227,16 +229,20 @@ public class DbModelH2 extends AbstractDbModel {
         DbPreparedStatement preparedStatement =
             new DbPreparedStatement(DbConstant.admin.session);
         preparedStatement.createPrepareStatement(action);
-        preparedStatement.executeQuery();
-        if (preparedStatement.getNext()) {
-            long result;
-            try {
-                result = preparedStatement.getResultSet().getLong(1);
-            } catch (SQLException e) {
-                throw new OpenR66DatabaseSqlError(e);
+        try {
+            preparedStatement.executeQuery();
+            if (preparedStatement.getNext()) {
+                long result;
+                try {
+                    result = preparedStatement.getResultSet().getLong(1);
+                } catch (SQLException e) {
+                    throw new OpenR66DatabaseSqlError(e);
+                }
+                return result;
             }
-            return result;
+            throw new OpenR66DatabaseNoDataException("No sequence found. Must be initialized first");
+        } finally {
+            preparedStatement.realClose();
         }
-        throw new OpenR66DatabaseNoDataException("No sequence found. Must be initialized first");
     }
 }

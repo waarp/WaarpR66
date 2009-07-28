@@ -210,8 +210,8 @@ public class DbR66Rule extends AbstractDbData {
     private boolean isSaved = false;
 
     // ALL TABLE SHOULD IMPLEMENT THIS
-    private DbValue primaryKey = new DbValue(idRule, Columns.IDRULE.name());
-    private DbValue[] otherFields = {
+    private final DbValue primaryKey = new DbValue(idRule, Columns.IDRULE.name());
+    private final DbValue[] otherFields = {
       // HOSTIDS, MODE, RECVPATH, SENDPATH, ARCHIVEPATH, WORKPATH, PRETASKS, POSTTASKS, ERRORTASKS
       new DbValue(ids, Columns.HOSTIDS.name(), true),
       new DbValue(mode, Columns.MODE.name()),
@@ -224,7 +224,7 @@ public class DbR66Rule extends AbstractDbData {
       new DbValue(errorTasks, Columns.ERRORTASKS.name(), true),
       new DbValue(updatedInfo, Columns.UPDATEDINFO.name())
     };
-    private DbValue[] allFields = {
+    private final DbValue[] allFields = {
       otherFields[0], otherFields[1], otherFields[2], otherFields[3], otherFields[4],
       otherFields[5], otherFields[6], otherFields[7], otherFields[8], otherFields[9],
       primaryKey
@@ -367,7 +367,6 @@ public class DbR66Rule extends AbstractDbData {
             primaryKey.setValue(idRule);
             this.setValue(preparedStatement, primaryKey);
             int count = preparedStatement.executeUpdate();
-            preparedStatement.realClose();
             if (count <= 0) {
                 throw new OpenR66DatabaseNoDataException("No row found");
             }
@@ -392,7 +391,6 @@ public class DbR66Rule extends AbstractDbData {
                     ") VALUES "+insertAllValues);
             this.setValues(preparedStatement, allFields);
             int count = preparedStatement.executeUpdate();
-            preparedStatement.realClose();
             if (count <= 0) {
                 throw new OpenR66DatabaseNoDataException("No row found");
             }
@@ -454,7 +452,6 @@ public class DbR66Rule extends AbstractDbData {
                     " WHERE "+Columns.IDRULE.name()+" = ?");
             this.setValues(preparedStatement, allFields);
             int count = preparedStatement.executeUpdate();
-            preparedStatement.realClose();
             if (count <= 0) {
                 throw new OpenR66DatabaseNoDataException("No row found");
             }

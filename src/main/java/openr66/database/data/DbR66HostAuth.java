@@ -57,13 +57,13 @@ public class DbR66HostAuth extends AbstractDbData  {
     private boolean isSaved = false;
 
     // ALL TABLE SHOULD IMPLEMENT THIS
-    private DbValue primaryKey = new DbValue(hostid, Columns.HOSTID.name());
-    private DbValue[] otherFields = {
+    private final DbValue primaryKey = new DbValue(hostid, Columns.HOSTID.name());
+    private final DbValue[] otherFields = {
       new DbValue(hostkey, Columns.HOSTKEY.name()),
       new DbValue(adminrole, Columns.ADMINROLE.name()),
       new DbValue(updatedInfo, Columns.UPDATEDINFO.name())
     };
-    private DbValue[] allFields = {
+    private final DbValue[] allFields = {
       otherFields[0], otherFields[1], otherFields[2], primaryKey
     };
     private static final String selectAllFields =
@@ -92,9 +92,9 @@ public class DbR66HostAuth extends AbstractDbData  {
 
 
     /**
-     * @param HOSTID
-     * @param HOSTKEY
-     * @param ADMINROLE
+     * @param hostid
+     * @param hostkey
+     * @param adminrole
      * @param updatedInfo
      */
     public DbR66HostAuth(String hostid, byte[] hostkey, boolean adminrole, int updatedInfo) {
@@ -108,7 +108,7 @@ public class DbR66HostAuth extends AbstractDbData  {
 
 
     /**
-     * @param HOSTID
+     * @param hostid
      * @throws OpenR66DatabaseException
      */
     public DbR66HostAuth(String hostid) throws OpenR66DatabaseException {
@@ -130,7 +130,6 @@ public class DbR66HostAuth extends AbstractDbData  {
             primaryKey.setValue(hostid);
             this.setValue(preparedStatement, primaryKey);
             int count = preparedStatement.executeUpdate();
-            preparedStatement.realClose();
             if (count <= 0) {
                 throw new OpenR66DatabaseNoDataException("No row found");
             }
@@ -155,7 +154,6 @@ public class DbR66HostAuth extends AbstractDbData  {
                     ") VALUES "+insertAllValues);
             this.setValues(preparedStatement, allFields);
             int count = preparedStatement.executeUpdate();
-            preparedStatement.realClose();
             if (count <= 0) {
                 throw new OpenR66DatabaseNoDataException("No row found");
             }
@@ -205,7 +203,6 @@ public class DbR66HostAuth extends AbstractDbData  {
                     " WHERE "+Columns.HOSTID.name()+" = ?");
             this.setValues(preparedStatement, allFields);
             int count = preparedStatement.executeUpdate();
-            preparedStatement.realClose();
             if (count <= 0) {
                 throw new OpenR66DatabaseNoDataException("No row found");
             }

@@ -237,7 +237,7 @@ public class R66FileBasedConfiguration {
     /**
      * Initiate the configuration from the xml file
      *
-     * @param FILENAME
+     * @param filename
      * @return True if OK
      */
     @SuppressWarnings("unchecked")
@@ -312,12 +312,9 @@ public class R66FileBasedConfiguration {
             logger.error("Unable to set Home in Config file: " + filename);
             return false;
         }
-        File dirConfig;
         try {
             Configuration.configuration.configPath = FilesystemBasedDirImpl
                     .normalizePath(getSubPath(document, XML_CONFIGPATH));
-            dirConfig = new File(Configuration.configuration.baseDirectory,
-                    Configuration.configuration.configPath);
         } catch (OpenR66ProtocolSystemException e2) {
             logger
                     .error("Unable to set Config in Config file: " + filename,
@@ -354,16 +351,6 @@ public class R66FileBasedConfiguration {
                     e2);
             return false;
         }
-        // Get the rules
-        // FIXME remove the load of rules from database
-        /*try {
-            R66RuleFileBasedConfiguration.importRules(dirConfig);
-        } catch (OpenR66ProtocolSystemException e3) {
-            logger.error("Unable to load Rules from Config dir: " +
-                    Configuration.configuration.configPath, e3);
-            return false;
-        }*/
-
         node = document.selectSingleNode(XML_SERVER_THREAD);
         if (node != null) {
             Configuration.configuration.SERVER_THREAD = Integer.parseInt(node

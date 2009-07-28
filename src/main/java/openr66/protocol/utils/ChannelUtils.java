@@ -174,7 +174,7 @@ public class ChannelUtils implements Runnable {
      * @param runner
      * @param networkChannel
      * @param block
-     * @return
+     * @return the ChannelFuture of this write operation
      * @throws OpenR66ProtocolPacketException
      */
     public static ChannelFuture writeBackDataBlock(
@@ -202,15 +202,13 @@ public class ChannelUtils implements Runnable {
         return future;
     }
     /**
-    *
+    * Write the ValidEndTransfer
     * @param localChannelReference
     * @param runner
     * @param networkChannel
-    * @param block
-    * @return
     * @throws OpenR66ProtocolPacketException
     */
-   public static ChannelFuture writeValidEndTransfer(
+   public static void writeValidEndTransfer(
            LocalChannelReference localChannelReference, DbTaskRunner runner,
            Channel networkChannel)
            throws OpenR66ProtocolPacketException {
@@ -223,8 +221,7 @@ public class ChannelUtils implements Runnable {
            logger.error("Cannot construct message from " + packet.toString(), e);
            throw e;
        }
-       ChannelFuture future = Channels.write(networkChannel, networkPacket);
-       return future;
+       Channels.write(networkChannel, networkPacket);
    }
     /**
      * Exit global ChannelFactory

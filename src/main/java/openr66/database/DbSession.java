@@ -113,7 +113,7 @@ public class DbSession {
             logger.error("Cannot create Connection");
             error(ex);
             conn = null;
-            throw new OpenR66DatabaseNoConnectionError("Cannot create Connection");
+            throw new OpenR66DatabaseNoConnectionError("Cannot create Connection", ex);
         }
     }
 

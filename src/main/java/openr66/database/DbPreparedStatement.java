@@ -49,7 +49,7 @@ public class DbPreparedStatement {
     /**
      * The associated DB session
      */
-    private DbSession ls = null;
+    private final DbSession ls;
 
     /**
      * Create a DbPreparedStatement from DbSession object

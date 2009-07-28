@@ -101,10 +101,10 @@ public class RequestPacket extends AbstractLocalPacket {
 
     /**
      * @param rulename
-     * @param MODE
-     * @param FILENAME
-     * @param BLOCKSIZE
-     * @param RANK
+     * @param mode
+     * @param filename
+     * @param blocksize
+     * @param rank
      * @param specialId
      * @param valid
      * @param fileInformation
@@ -128,10 +128,10 @@ public class RequestPacket extends AbstractLocalPacket {
 
     /**
      * @param rulename
-     * @param MODE
-     * @param FILENAME
-     * @param BLOCKSIZE
-     * @param RANK
+     * @param mode
+     * @param filename
+     * @param blocksize
+     * @param rank
      * @param specialId
      * @param fileInformation
      */
@@ -212,14 +212,14 @@ public class RequestPacket extends AbstractLocalPacket {
     }
 
     /**
-     * @return the FILENAME
+     * @return the filename
      */
     public String getFilename() {
         return filename;
     }
 
     /**
-     * @return the MODE
+     * @return the mode
      */
     public int getMode() {
         return mode;
@@ -240,14 +240,14 @@ public class RequestPacket extends AbstractLocalPacket {
     }
 
     /**
-     * @return the BLOCKSIZE
+     * @return the blocksize
      */
     public int getBlocksize() {
         return blocksize;
     }
 
     /**
-     * @return the RANK
+     * @return the rank
      */
     public int getRank() {
         return rank;
@@ -284,8 +284,8 @@ public class RequestPacket extends AbstractLocalPacket {
     }
 
     /**
-     * @param FILENAME
-     *            the FILENAME to set
+     * @param filename
+     *            the filename to set
      */
     public void setFilename(String filename) {
         this.filename = filename;

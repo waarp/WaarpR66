@@ -40,7 +40,7 @@ public class DbRequest {
     /**
      * Internal DB Session
      */
-    private DbSession ls = null;
+    private final DbSession ls;
 
     /**
      * Create a new request from the DbSession
@@ -162,7 +162,7 @@ public class DbRequest {
             rstmp = null;
         } catch (SQLException e) {
             DbSession.error(e);
-            throw new OpenR66ProtocolNoDataException("No data found");
+            throw new OpenR66ProtocolNoDataException("No data found", e);
         }
         return result;
     }

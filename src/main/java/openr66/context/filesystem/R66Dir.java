@@ -57,10 +57,10 @@ public class R66Dir extends FilesystemBasedDirImpl {
     }
 
     /**
-     * Same as setUnique() except that File will be prefixed by FILENAME
+     * Same as setUnique() except that File will be prefixed by filename
      *
-     * @param FILENAME
-     * @return the R66File with a unique FILENAME and a temporary extension
+     * @param filename
+     * @return the R66File with a unique filename and a temporary extension
      * @throws CommandAbstractException
      */
     public synchronized R66File setUniqueFile(String filename)
