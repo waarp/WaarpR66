@@ -29,7 +29,6 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 
-import openr66.context.R66Rule;
 import openr66.context.R66Session;
 import openr66.context.task.AbstractTask;
 import openr66.context.task.TaskType;
@@ -59,14 +58,14 @@ public class DbTaskRunner extends AbstractDbData {
             .getLogger(DbTaskRunner.class);
 
     public static enum Columns {
-        GLOBALSTEP, STEP, RANK, STEPSTATUS, RETRIEVEMODE, FILENAME, ISMOVED, IDRULE,
+        GLOBALSTEP, GLOBALLASTSTEP, STEP, RANK, STEPSTATUS, RETRIEVEMODE, FILENAME, ISMOVED, IDRULE,
         BLOCKSIZE, ORIGINALNAME, FILEINFO, MODE, REQUESTER,
         START, STOP,
         UPDATEDINFO,
         REQUESTED, SPECIALID;
     }
     public static int [] dbTypes = {
-        Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.BIT,
+        Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.BIT,
         Types.VARCHAR, Types.BIT, Types.VARCHAR,
         Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.VARCHAR,
         Types.TIMESTAMP, Types.TIMESTAMP,
@@ -110,9 +109,10 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     // Values
-    private final R66Rule rule;
+    private final DbR66Rule rule;
     private final R66Session session;
     private int globalstep = NOTASK;
+    private int globallaststep = NOTASK;
     private int step = NOTASK;
     private int rank = 0;
     private TaskStatus status = TaskStatus.UNKNOWN;
@@ -140,11 +140,12 @@ public class DbTaskRunner extends AbstractDbData {
             new DbValue(specialId, Columns.SPECIALID.name())
     };
     private DbValue[] otherFields = {
-      // GLOBALSTEP, STEP, RANK, STEPSTATUS, RETRIEVEMODE, FILENAME, ISMOVED, IDRULE,
+      // GLOBALSTEP, GLOBALLASTSTEP, STEP, RANK, STEPSTATUS, RETRIEVEMODE, FILENAME, ISMOVED, IDRULE,
       // BLOCKSIZE, ORIGINALNAME, FILEINFO, MODE, REQUESTER, REQUESTED
       // START, STOP
       // UPDATEDINFO
       new DbValue(globalstep, Columns.GLOBALSTEP.name()),
+      new DbValue(globallaststep, Columns.GLOBALLASTSTEP.name()),
       new DbValue(step, Columns.STEP.name()),
       new DbValue(rank, Columns.RANK.name()),
       new DbValue(status.ordinal(), Columns.STEPSTATUS.name()),
@@ -165,11 +166,11 @@ public class DbTaskRunner extends AbstractDbData {
       otherFields[0], otherFields[1], otherFields[2], otherFields[3],
       otherFields[4], otherFields[5], otherFields[6], otherFields[7], otherFields[8],
       otherFields[9], otherFields[10], otherFields[11], otherFields[12], otherFields[13],
-      otherFields[14], otherFields[15],
+      otherFields[14], otherFields[15], otherFields[16],
       primaryKey[0], primaryKey[1]
     };
     private static final String selectAllFields =
-        Columns.GLOBALSTEP.name()+","+Columns.STEP.name()+
+        Columns.GLOBALSTEP.name()+","+Columns.GLOBALLASTSTEP.name()+","+Columns.STEP.name()+
         ","+Columns.RANK.name()+","+Columns.STEPSTATUS.name()+","+Columns.RETRIEVEMODE.name()+
         ","+Columns.FILENAME.name()+","+Columns.ISMOVED.name()+","+Columns.IDRULE.name()+
         ","+Columns.BLOCKSIZE.name()+","+Columns.ORIGINALNAME.name()+","+Columns.FILEINFO.name()+
@@ -178,17 +179,45 @@ public class DbTaskRunner extends AbstractDbData {
         ","+Columns.UPDATEDINFO.name()+
         ","+Columns.REQUESTED.name()+","+Columns.SPECIALID.name();
     private static final String updateAllFields =
-        Columns.GLOBALSTEP.name()+"=?,"+Columns.STEP.name()+
+        Columns.GLOBALSTEP.name()+"=?,"+Columns.GLOBALLASTSTEP.name()+"=?,"+Columns.STEP.name()+
         "=?,"+Columns.RANK.name()+"=?,"+Columns.STEPSTATUS.name()+"=?,"+Columns.RETRIEVEMODE.name()+
         "=?,"+Columns.FILENAME.name()+"=?,"+Columns.ISMOVED.name()+"=?,"+Columns.IDRULE.name()+
         "=?,"+Columns.BLOCKSIZE.name()+"=?,"+Columns.ORIGINALNAME.name()+"=?,"+Columns.FILEINFO.name()+
         "=?,"+Columns.MODE.name()+"=?,"+Columns.REQUESTER.name()+
         "=?,"+Columns.START.name()+"=?,"+Columns.STOP.name()+
         "=?,"+Columns.UPDATEDINFO.name()+"=?";
-    private static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
+    private static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
 
+    /**
+     *
+     * @param session
+     * @param requestPacket
+     * @return The associated requested Host Id
+     */
+    public static String getRequested(R66Session session, RequestPacket requestPacket) {
+        if (requestPacket.isToValidate()) {
+            // the request is initiated and sent by the requester
+            return Configuration.configuration.HOST_ID;
+        } else {
+            // the request is sent after acknowledge by the requested
+            return session.getAuth().getUser();
+        }
+    }
+    /**
+     *
+     * @param session
+     * @param requestPacket
+     * @return The associated requester Host Id
+     */
+    public static String getRequester(R66Session session, RequestPacket requestPacket) {
+        if (requestPacket.isToValidate()) {
+            return session.getAuth().getUser();
+        } else {
+            return Configuration.configuration.HOST_ID;
+        }
+    }
 
-    public DbTaskRunner(R66Session session, R66Rule rule, boolean isRetrieve,
+    public DbTaskRunner(R66Session session, DbR66Rule rule, boolean isRetrieve,
             RequestPacket requestPacket) throws OpenR66DatabaseException {
         this.session = session;
         this.rule = rule;
@@ -201,13 +230,8 @@ public class DbTaskRunner extends AbstractDbData {
         this.originalFilename = requestPacket.getFilename();
         this.fileInformation = requestPacket.getFileInformation();
         this.mode = requestPacket.getMode();
-        if (requestPacket.isToValidate()) {
-            this.requesterHostId = session.getAuth().getUser();
-            this.requestedHostId = Configuration.configuration.HOST_ID;
-        } else {
-            this.requestedHostId = session.getAuth().getUser();
-            this.requesterHostId = Configuration.configuration.HOST_ID;
-        }
+        this.requesterHostId = getRequester(session, requestPacket);
+        this.requestedHostId = getRequested(session, requestPacket);
 
         this.start = new Timestamp(System.currentTimeMillis());
         this.updatedInfo = UNKNOWN;
@@ -217,7 +241,7 @@ public class DbTaskRunner extends AbstractDbData {
         this.insert();
     }
 
-    public DbTaskRunner(R66Session session, R66Rule rule, long id, String requested) throws OpenR66DatabaseException {
+    public DbTaskRunner(R66Session session, DbR66Rule rule, long id, String requested) throws OpenR66DatabaseException {
         this.session = session;
         this.rule = rule;
 
@@ -234,6 +258,7 @@ public class DbTaskRunner extends AbstractDbData {
     @Override
     protected void setToArray() {
         allFields[Columns.GLOBALSTEP.ordinal()].setValue(this.globalstep);
+        allFields[Columns.GLOBALLASTSTEP.ordinal()].setValue(this.globallaststep);
         allFields[Columns.STEP.ordinal()].setValue(this.step);
         allFields[Columns.RANK.ordinal()].setValue(this.rank);
         allFields[Columns.STEPSTATUS.ordinal()].setValue(this.status.ordinal());
@@ -256,6 +281,7 @@ public class DbTaskRunner extends AbstractDbData {
     @Override
     protected void setFromArray() throws OpenR66DatabaseSqlError {
         this.globalstep = (Integer) allFields[Columns.GLOBALSTEP.ordinal()].getValue();
+        this.globallaststep = (Integer) allFields[Columns.GLOBALLASTSTEP.ordinal()].getValue();
         this.step = (Integer) allFields[Columns.STEP.ordinal()].getValue();
         this.rank = (Integer) allFields[Columns.RANK.ordinal()].getValue();
         this.status = TaskStatus.values()[((Integer) allFields[Columns.STEPSTATUS.ordinal()].getValue())];
@@ -463,6 +489,13 @@ public class DbTaskRunner extends AbstractDbData {
         return rank;
     }
     /**
+     *
+     * @return True if the runner is currently in transfer
+     */
+    public boolean isInTransfer() {
+        return (this.globalstep == TRANSFERTASK);
+    }
+    /**
      * Change the status from Task Execution
      * @param status
      */
@@ -523,7 +556,7 @@ public class DbTaskRunner extends AbstractDbData {
     /**
      * @return the rule
      */
-    public R66Rule getRule() {
+    public DbR66Rule getRule() {
         return rule;
     }
 
@@ -534,6 +567,12 @@ public class DbTaskRunner extends AbstractDbData {
         return mode;
     }
 
+    /**
+     * @return the globallaststep
+     */
+    public int getGloballaststep() {
+        return globallaststep;
+    }
     public boolean ready() {
         return globalstep > PRETASK;
     }
@@ -544,7 +583,9 @@ public class DbTaskRunner extends AbstractDbData {
 
     public void setPreTask(int step) {
         globalstep = PRETASK;
+        globallaststep = PRETASK;
         allFields[Columns.GLOBALSTEP.ordinal()].setValue(this.globalstep);
+        allFields[Columns.GLOBALLASTSTEP.ordinal()].setValue(this.globallaststep);
         this.step = step;
         allFields[Columns.STEP.ordinal()].setValue(this.step);
         status = TaskStatus.RUNNING;
@@ -554,7 +595,9 @@ public class DbTaskRunner extends AbstractDbData {
 
     public void setTransferTask(int rank) {
         globalstep = TRANSFERTASK;
+        globallaststep = TRANSFERTASK;
         allFields[Columns.GLOBALSTEP.ordinal()].setValue(this.globalstep);
+        allFields[Columns.GLOBALLASTSTEP.ordinal()].setValue(this.globallaststep);
         this.rank = rank;
         allFields[Columns.RANK.ordinal()].setValue(this.rank);
         status = TaskStatus.RUNNING;
@@ -575,7 +618,9 @@ public class DbTaskRunner extends AbstractDbData {
 
     public void setPostTask(int step) {
         globalstep = POSTTASK;
+        globallaststep = POSTTASK;
         allFields[Columns.GLOBALSTEP.ordinal()].setValue(this.globalstep);
+        allFields[Columns.GLOBALLASTSTEP.ordinal()].setValue(this.globallaststep);
         this.step = step;
         allFields[Columns.STEP.ordinal()].setValue(this.step);
         status = TaskStatus.RUNNING;
@@ -595,7 +640,9 @@ public class DbTaskRunner extends AbstractDbData {
 
     public void setAllDone() {
         globalstep = ALLDONETASK;
+        globallaststep = ALLDONETASK;
         allFields[Columns.GLOBALSTEP.ordinal()].setValue(this.globalstep);
+        allFields[Columns.GLOBALLASTSTEP.ordinal()].setValue(this.globallaststep);
         step = 0;
         allFields[Columns.STEP.ordinal()].setValue(this.step);
         //FIXME set by POST status = TaskStatus.OK;

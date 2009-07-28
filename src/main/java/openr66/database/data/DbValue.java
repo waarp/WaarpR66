@@ -39,6 +39,10 @@ public class DbValue {
         this.value = value;
         this.type = Types.VARCHAR;
     }
+    public DbValue(String value, boolean LONG) {
+        this.value = value;
+        this.type = Types.LONGVARCHAR;
+    }
     public DbValue(boolean value) {
         this.value = (Boolean) value;
         this.type = Types.BIT;
@@ -86,6 +90,11 @@ public class DbValue {
     public DbValue(String value, String name) {
         this.value = value;
         this.type = Types.VARCHAR;
+        this.column = name;
+    }
+    public DbValue(String value, String name, boolean LONG) {
+        this.value = value;
+        this.type = Types.LONGVARCHAR;
         this.column = name;
     }
     public DbValue(boolean value, String name) {
@@ -184,6 +193,7 @@ public class DbValue {
     public Object getValue() throws OpenR66DatabaseSqlError {
         switch (this.type) {
             case Types.VARCHAR:
+            case Types.LONGVARCHAR:
             case Types.BIT:
             case Types.TINYINT:
             case Types.SMALLINT:

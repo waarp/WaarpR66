@@ -20,32 +20,124 @@
  */
 package openr66.database.data;
 
-import java.sql.Types;
+import goldengate.common.logging.GgInternalLogger;
+import goldengate.common.logging.GgInternalLoggerFactory;
 
-import openr66.context.R66Rule;
+import java.io.File;
+import java.io.StringReader;
+import java.sql.Types;
+import java.util.List;
+
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.Node;
+import org.dom4j.io.SAXReader;
+
+import openr66.context.filesystem.R66Dir;
 import openr66.database.DbConstant;
 import openr66.database.DbPreparedStatement;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
+import openr66.protocol.config.Configuration;
+import openr66.protocol.exception.OpenR66ProtocolSystemException;
+import openr66.protocol.localhandler.packet.RequestPacket;
+import openr66.protocol.utils.FileUtils;
 
 /**
  * @author Frederic Bregier
  *
  */
 public class DbR66Rule extends AbstractDbData {
+    /**
+     * Internal Logger
+     */
+    private static final GgInternalLogger logger = GgInternalLoggerFactory
+            .getLogger(DbR66Rule.class);
+
     public static enum Columns {
-        HOSTIDS, RECVPATH, SENDPATH, ARCHIVEPATH, WORKPATH, PRETASKS, POSTTASKS, ERRORTASKS,
+        HOSTIDS, MODE, RECVPATH, SENDPATH, ARCHIVEPATH, WORKPATH, PRETASKS, POSTTASKS, ERRORTASKS,
         UPDATEDINFO,
         IDRULE
     }
     public static int [] dbTypes = {
-        Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
-        Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
+        Types.LONGVARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
+        Types.LONGVARCHAR, Types.LONGVARCHAR, Types.LONGVARCHAR,
         Types.INTEGER, Types.VARCHAR
     };
     public static String table = " RULES ";
+
+
+    /**
+     * Internal context XML fields
+     */
+    public static final String HOSTIDS_HOSTID = "/hostids/hostid";
+
+    /**
+     * Internal context XML fields
+     */
+    private static final String XMLHOSTIDS = "<hostids>";
+
+    /**
+     * Internal context XML fields
+     */
+    private static final String XMLENDHOSTIDS = "</hostids>";
+
+    /**
+     * Internal context XML fields
+     */
+    private static final String XMLHOSTID = "<hostid>";
+
+    /**
+     * Internal context XML fields
+     */
+    private static final String XMLENDHOSTID = "</hostid>";
+
+    /**
+     * Internal context XML fields
+     */
+    public static final String TASKS_ROOT = "/tasks/task";
+
+    /**
+     * Internal context XML fields
+     */
+    private static final String XMLTASKS = "<tasks>";
+
+    /**
+     * Internal context XML fields
+     */
+    private static final String XMLENDTASKS = "</tasks>";
+
+    /**
+     * Internal context XML fields
+     */
+    private static final String XMLTASK = "<task>";
+
+    /**
+     * Internal context XML fields
+     */
+    private static final String XMLENDTASK = "</task>";
+
+    /**
+     * Internal context XML fields
+     */
+    public static final String TASK_TYPE = "type";
+
+    /**
+     * Internal context XML fields
+     */
+    public static final String TASK_PATH = "path";
+
+    /**
+     * Internal context XML fields
+     */
+    public static final String TASK_DELAY = "delay";
+
+    /**
+     * Internal context XML fields
+     */
+    public static final String TASK_RANK = "rank";
 
 
     /**
@@ -57,6 +149,10 @@ public class DbR66Rule extends AbstractDbData {
      * The Name addresses (serverIds)
      */
     public String ids = null;
+    /**
+     * Supported Mode for this rule (SENDMODE => SENDMD5MODE, RECVMODE => RECVMD5MODE)
+     */
+    public int mode;
 
     /**
      * The associated Recv Path
@@ -91,6 +187,24 @@ public class DbR66Rule extends AbstractDbData {
      */
     public String errorTasks = null;
 
+    /**
+     * The Ids as an array
+     */
+    public String[] idsArray = null;
+    /**
+     * The associated Pre Tasks as an array
+     */
+    public String[][] preTasksArray = null;
+    /**
+     * The associated Post Tasks as an array
+     */
+    public String[][] postTasksArray = null;
+    /**
+     * The associated Error Tasks as an array
+     */
+    public String[][] errorTasksArray = null;
+
+
     private int updatedInfo;
 
     private boolean isSaved = false;
@@ -98,39 +212,40 @@ public class DbR66Rule extends AbstractDbData {
     // ALL TABLE SHOULD IMPLEMENT THIS
     private DbValue primaryKey = new DbValue(idRule, Columns.IDRULE.name());
     private DbValue[] otherFields = {
-      // HOSTIDS, RECVPATH, SENDPATH, ARCHIVEPATH, WORKPATH, PRETASKS, POSTTASKS, ERRORTASKS
-      new DbValue(ids, Columns.HOSTIDS.name()),
+      // HOSTIDS, MODE, RECVPATH, SENDPATH, ARCHIVEPATH, WORKPATH, PRETASKS, POSTTASKS, ERRORTASKS
+      new DbValue(ids, Columns.HOSTIDS.name(), true),
+      new DbValue(mode, Columns.MODE.name()),
       new DbValue(recvPath, Columns.RECVPATH.name()),
       new DbValue(sendPath, Columns.SENDPATH.name()),
       new DbValue(archivePath, Columns.ARCHIVEPATH.name()),
       new DbValue(workPath, Columns.WORKPATH.name()),
-      new DbValue(preTasks, Columns.PRETASKS.name()),
-      new DbValue(postTasks, Columns.POSTTASKS.name()),
-      new DbValue(errorTasks, Columns.ERRORTASKS.name()),
+      new DbValue(preTasks, Columns.PRETASKS.name(), true),
+      new DbValue(postTasks, Columns.POSTTASKS.name(), true),
+      new DbValue(errorTasks, Columns.ERRORTASKS.name(), true),
       new DbValue(updatedInfo, Columns.UPDATEDINFO.name())
     };
     private DbValue[] allFields = {
-      otherFields[0], otherFields[1], otherFields[2], otherFields[3],
-      otherFields[4], otherFields[5], otherFields[6], otherFields[7], otherFields[8],
+      otherFields[0], otherFields[1], otherFields[2], otherFields[3], otherFields[4],
+      otherFields[5], otherFields[6], otherFields[7], otherFields[8], otherFields[9],
       primaryKey
     };
     private static final String selectAllFields =
-        Columns.HOSTIDS.name()+","+Columns.RECVPATH.name()+
+        Columns.HOSTIDS.name()+","+Columns.MODE.name()+","+Columns.RECVPATH.name()+
         ","+Columns.SENDPATH.name()+","+Columns.ARCHIVEPATH.name()+","+Columns.WORKPATH.name()+
         ","+Columns.PRETASKS.name()+","+Columns.POSTTASKS.name()+","+Columns.ERRORTASKS.name()+
         ","+Columns.UPDATEDINFO.name()+
         ","+Columns.IDRULE.name();
     private static final String updateAllFields =
-        Columns.HOSTIDS.name()+"=?,"+Columns.RECVPATH.name()+
+        Columns.HOSTIDS.name()+"=?,"+Columns.MODE.name()+"=?,"+Columns.RECVPATH.name()+
         "=?,"+Columns.SENDPATH.name()+"=?,"+Columns.ARCHIVEPATH.name()+"=?,"+Columns.WORKPATH.name()+
         "=?,"+Columns.PRETASKS.name()+"=?,"+Columns.POSTTASKS.name()+"=?,"+Columns.ERRORTASKS.name()+
         "=?,"+Columns.UPDATEDINFO.name()+"=?";
-    private static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?) ";
+    private static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?) ";
 
     @Override
     protected void setToArray() {
-        allFields[Columns.IDRULE.ordinal()].setValue(this.idRule);
         allFields[Columns.HOSTIDS.ordinal()].setValue(this.ids);
+        allFields[Columns.MODE.ordinal()].setValue(this.mode);
         allFields[Columns.RECVPATH.ordinal()].setValue(this.recvPath);
         allFields[Columns.SENDPATH.ordinal()].setValue(this.sendPath);
         allFields[Columns.ARCHIVEPATH.ordinal()].setValue(this.archivePath);
@@ -139,11 +254,12 @@ public class DbR66Rule extends AbstractDbData {
         allFields[Columns.POSTTASKS.ordinal()].setValue(this.postTasks);
         allFields[Columns.ERRORTASKS.ordinal()].setValue(this.errorTasks);
         allFields[Columns.UPDATEDINFO.ordinal()].setValue(this.updatedInfo);
+        allFields[Columns.IDRULE.ordinal()].setValue(this.idRule);
     }
     @Override
     protected void setFromArray() throws OpenR66DatabaseSqlError {
-        this.idRule = (String) allFields[Columns.IDRULE.ordinal()].getValue();
         this.ids = (String) allFields[Columns.HOSTIDS.ordinal()].getValue();
+        this.mode = (Integer) allFields[Columns.MODE.ordinal()].getValue();
         this.recvPath = (String) allFields[Columns.RECVPATH.ordinal()].getValue();
         this.sendPath = (String) allFields[Columns.SENDPATH.ordinal()].getValue();
         this.archivePath = (String) allFields[Columns.ARCHIVEPATH.ordinal()].getValue();
@@ -152,12 +268,14 @@ public class DbR66Rule extends AbstractDbData {
         this.postTasks = (String) allFields[Columns.POSTTASKS.ordinal()].getValue();
         this.errorTasks = (String) allFields[Columns.ERRORTASKS.ordinal()].getValue();
         this.updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()].getValue();
+        this.idRule = (String) allFields[Columns.IDRULE.ordinal()].getValue();
     }
 
 
     /**
      * @param idRule
      * @param ids
+     * @param mode
      * @param recvPath
      * @param sendPath
      * @param archivePath
@@ -167,12 +285,13 @@ public class DbR66Rule extends AbstractDbData {
      * @param errorTasks
      * @param updatedInfo
      */
-    public DbR66Rule(String idRule, String ids, String recvPath,
+    public DbR66Rule(String idRule, String ids, int mode, String recvPath,
             String sendPath, String archivePath, String workPath,
             String preTasks, String postTasks, String errorTasks,
             int updatedInfo) {
         this.idRule = idRule;
         this.ids = ids;
+        this.mode = mode;
         this.recvPath = recvPath;
         this.sendPath = sendPath;
         this.archivePath = archivePath;
@@ -181,6 +300,10 @@ public class DbR66Rule extends AbstractDbData {
         this.postTasks = postTasks;
         this.errorTasks = errorTasks;
         this.updatedInfo = updatedInfo;
+        getIdsRule(this.ids);
+        preTasksArray = getTasksRule(this.preTasks);
+        postTasksArray = getTasksRule(this.postTasks);
+        errorTasksArray = getTasksRule(this.errorTasks);
         this.setToArray();
         this.isSaved = false;
     }
@@ -193,7 +316,44 @@ public class DbR66Rule extends AbstractDbData {
         this.idRule = idRule;
         // load from DB
         select();
+        getIdsRule(this.ids);
+        preTasksArray = getTasksRule(this.preTasks);
+        postTasksArray = getTasksRule(this.postTasks);
+        errorTasksArray = getTasksRule(this.errorTasks);
     }
+    /**
+     * Constructor used from XML file
+     * @param idrule
+     * @param idsArrayRef
+     * @param recvpath
+     * @param sendpath
+     * @param archivepath
+     * @param workpath
+     * @param pretasksArray
+     * @param posttasksArray
+     * @param errortasksArray
+     */
+    public DbR66Rule(String idrule, String[] idsArrayRef, int mode, String recvpath,
+            String sendpath, String archivepath, String workpath,
+            String[][] pretasksArray, String[][] posttasksArray,
+            String[][] errortasksArray) {
+        idRule = idrule;
+        idsArray = idsArrayRef;
+        this.mode = mode;
+        recvPath = recvpath;
+        sendPath = sendpath;
+        archivePath = archivepath;
+        workPath = workpath;
+        preTasksArray = pretasksArray;
+        postTasksArray = posttasksArray;
+        ids = setIdsRule(idsArrayRef);
+        preTasks = setTasksRule(pretasksArray);
+        postTasks = setTasksRule(posttasksArray);
+        errorTasks = setTasksRule(errortasksArray);
+        this.setToArray();
+        this.isSaved = false;
+    }
+
     /* (non-Javadoc)
      * @see openr66.database.data.AbstractDbData#delete()
      */
@@ -258,6 +418,18 @@ public class DbR66Rule extends AbstractDbData {
             if (preparedStatement.getNext()) {
                 this.getValues(preparedStatement, allFields);
                 this.setFromArray();
+                if (this.recvPath == null) {
+                    this.recvPath = Configuration.configuration.inPath;
+                }
+                if (this.sendPath == null) {
+                    this.sendPath = Configuration.configuration.outPath;
+                }
+                if (this.archivePath == null) {
+                    this.archivePath = Configuration.configuration.archivePath;
+                }
+                if (this.workPath == null) {
+                    this.workPath = Configuration.configuration.workingPath;
+                }
                 this.isSaved = true;
             } else {
                 throw new OpenR66DatabaseNoDataException("No row found");
@@ -304,8 +476,275 @@ public class DbR66Rule extends AbstractDbData {
         }
     }
 
-    public R66Rule getR66Rule() {
-        return new R66Rule(this.idRule, this.ids, this.recvPath, this.sendPath,
-                this.archivePath, this.workPath, this.preTasks, this.postTasks, this.errorTasks);
+
+    /**
+     * Get Ids from String. If it is not ok, then it sets the default values and
+     * return False, else returns True.
+     *
+     * @param idsref
+     * @return True if ok, else False (default values).
+     */
+    @SuppressWarnings("unchecked")
+    private boolean getIdsRule(String idsref) {
+        if (idsref == null) {
+            logger.info("No ids so setting to the default!");
+            ids = null;
+            idsArray = null;
+            return false;
+        }
+        ids = idsref;
+        StringReader reader = new StringReader(idsref);
+        Document document = null;
+        try {
+            document = new SAXReader().read(reader);
+        } catch (DocumentException e) {
+            logger.warn("Unable to read the ids for Rule: " + idsref, e);
+            logger.info("No ids so setting to the default!");
+            ids = null;
+            idsArray = null;
+            reader.close();
+            return false;
+        }
+        List<Node> listNode = document.selectNodes(HOSTIDS_HOSTID);
+        if (listNode == null) {
+            logger
+                    .info("Unable to find the id for Rule, setting to the default");
+            ids = null;
+            idsArray = null;
+            reader.close();
+            return false;
+        }
+        idsArray = new String[listNode.size()];
+        int i = 0;
+        for (Node nodeid: listNode) {
+            idsArray[i] = nodeid.getText();
+            i ++;
+        }
+        listNode.clear();
+        listNode = null;
+        reader.close();
+        return true;
+    }
+
+    /**
+     * Get Tasks from String. If it is not ok, then it sets the default values
+     * and return new array of Tasks or null if in error.
+     *
+     * @param tasks
+     * @return Array of tasks or null if in error.
+     */
+    @SuppressWarnings("unchecked")
+    private String[][] getTasksRule(String tasks) {
+        if (tasks == null) {
+            logger.info("No tasks so setting to the default!");
+            return null;
+        }
+        StringReader reader = new StringReader(tasks);
+        Document document = null;
+        try {
+            document = new SAXReader().read(reader);
+        } catch (DocumentException e) {
+            logger.warn("Unable to read the tasks for Rule: " + tasks, e);
+            logger.info("No tasks so setting to the default!");
+            reader.close();
+            return null;
+        }
+        List<Node> listNode = document.selectNodes(TASKS_ROOT);
+        if (listNode == null) {
+            logger
+                    .info("Unable to find the tasks for Rule, setting to the default");
+            reader.close();
+            return null;
+        }
+        String[][] taskArray = new String[listNode.size()][3];
+        for (int i = 0; i < listNode.size(); i ++) {
+            taskArray[i][0] = null;
+            taskArray[i][1] = null;
+            taskArray[i][2] = null;
+        }
+        for (Node noderoot: listNode) {
+            Node nodetype = null, nodepath = null, noderank = null, nodedelay = null;
+            noderank = noderoot.selectSingleNode(TASK_RANK);
+            if (noderank == null) {
+                continue;
+            }
+            int rank = Integer.parseInt(noderank.getText());
+            nodetype = noderoot.selectSingleNode(TASK_TYPE);
+            if (nodetype == null) {
+                continue;
+            }
+            nodepath = noderoot.selectSingleNode(TASK_PATH);
+            if (nodepath == null) {
+                continue;
+            }
+            nodedelay = noderoot.selectSingleNode(TASK_DELAY);
+            String delay;
+            if (nodedelay == null) {
+                delay = Integer.toString(Configuration.configuration.TIMEOUTCON);
+            } else {
+                delay = nodedelay.getText();
+            }
+            taskArray[rank][0] = nodetype.getText();
+            taskArray[rank][1] = nodepath.getText();
+            taskArray[rank][2] = delay;
+        }
+        listNode.clear();
+        listNode = null;
+        reader.close();
+        return taskArray;
+    }
+
+    /**
+     * Initialized a ids String from args
+     *
+     * @param idsArray
+     * @return the new ids string
+     */
+    private static String setIdsRule(String[] idsArray) {
+        String ids = null;
+        if (idsArray != null) {
+            ids = XMLHOSTIDS;
+            for (String element: idsArray) {
+                ids += XMLHOSTID + element + XMLENDHOSTID;
+            }
+            ids += XMLENDHOSTIDS;
+        }
+        return ids;
+    }
+
+    /**
+     * Initialized a tasks String from args
+     *
+     * @param tasksArray
+     * @return the new tasks string
+     */
+    private static String setTasksRule(String[][] tasksArray) {
+        String tasks = null;
+        if (tasksArray != null) {
+            tasks = XMLTASKS;
+            for (int i = 0; i < tasksArray.length; i ++) {
+                tasks += XMLTASK + "<" + TASK_RANK + ">" + i + "</" +
+                        TASK_RANK + "><" + TASK_TYPE + ">" + tasksArray[i][0] +
+                        "</" + TASK_TYPE + "><" + TASK_PATH + ">" +
+                        tasksArray[i][1] + "</" + TASK_PATH + "><" +
+                        TASK_DELAY + ">" +
+                        tasksArray[i][2] + "</" + TASK_DELAY + ">" +
+                        XMLENDTASK;
+            }
+            tasks += XMLENDTASKS;
+        }
+        return tasks;
+    }
+
+    /**
+     * Get the full path from RecvPath (used only in copy MODE)
+     *
+     * @param filename
+     * @return the full String path
+     * @throws OpenR66ProtocolSystemException
+     */
+    public String setRecvPath(String filename)
+            throws OpenR66ProtocolSystemException {
+        if (recvPath != null) {
+            return recvPath + R66Dir.SEPARATOR + filename;
+        }
+        return FileUtils.consolidatePath(Configuration.configuration.inPath,
+                filename);
+    }
+
+    /**
+     * Get the full path from sendPath
+     *
+     * @param filename
+     * @return the full String path
+     * @throws OpenR66ProtocolSystemException
+     */
+    public String setSendPath(String filename)
+            throws OpenR66ProtocolSystemException {
+        if (sendPath != null) {
+            File file = new File(filename);
+            String basename = file.getName();
+            return sendPath + R66Dir.SEPARATOR + basename;
+        }
+        return FileUtils.consolidatePath(Configuration.configuration.outPath,
+                filename);
+    }
+
+    /**
+     * Get the full path from archivePath
+     *
+     * @param filename
+     * @return the full String path
+     * @throws OpenR66ProtocolSystemException
+     */
+    public String setArchivePath(String filename)
+            throws OpenR66ProtocolSystemException {
+        if (archivePath != null) {
+            return archivePath + R66Dir.SEPARATOR + filename;
+        }
+        return FileUtils.consolidatePath(
+                Configuration.configuration.archivePath, filename);
+    }
+
+    /**
+     * Get the full path from workPath
+     *
+     * @param filename
+     * @return the full String path
+     * @throws OpenR66ProtocolSystemException
+     */
+    public String setWorkingPath(String filename)
+            throws OpenR66ProtocolSystemException {
+        if (workPath != null) {
+            return workPath + R66Dir.SEPARATOR + filename +
+                    Configuration.EXT_R66;
+        }
+        return FileUtils.consolidatePath(
+                Configuration.configuration.workingPath, filename);
+    }
+
+    /**
+     * Check if the given hostTo is in the allowed list
+     *
+     * @param hostId
+     * @return True if allow, else False
+     */
+    public boolean checkHostAllow(String hostId) {
+        if (idsArray == null) {
+            return true; // always true in this case
+        }
+        for (String element: idsArray) {
+            if (element.equalsIgnoreCase(hostId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    /**
+     *
+     * @return True if this rule is adapted for SENDMODE
+     */
+    public boolean isSendMode() {
+        return (this.mode == RequestPacket.SENDMODE || this.mode == RequestPacket.SENDMD5MODE);
+    }
+    /**
+     *
+     * @return True if this rule is adapted for RECVMODE
+     */
+    public boolean isRecvMode() {
+        return (this.mode == RequestPacket.RECVMODE || this.mode == RequestPacket.RECVMD5MODE);
+    }
+    /**
+     * Object to String
+     *
+     * @return the string that displays this object
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return "Rule Name:" + idRule + " IDS:" + ids + " MODE: " + mode + " RECV:" + recvPath +
+                " SEND:" + sendPath + " ARCHIVE:" + archivePath + " WORK:" +
+                workPath + " PRET:" + preTasks + " POST:" + postTasks +
+                " ERROR:" + errorTasks;
     }
 }

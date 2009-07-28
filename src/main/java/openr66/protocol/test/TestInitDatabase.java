@@ -20,15 +20,20 @@
  */
 package openr66.protocol.test;
 
+import java.io.File;
+
 import goldengate.common.logging.GgSlf4JLoggerFactory;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
 
 import ch.qos.logback.classic.Level;
 import openr66.database.DbConstant;
+import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.database.model.DbModelFactory;
+import openr66.protocol.config.R66RuleFileBasedConfiguration;
+import openr66.protocol.exception.OpenR66ProtocolSystemException;
 
 /**
  * @author Frederic Bregier
@@ -68,8 +73,17 @@ public class TestInitDatabase {
                 initdb();
                 System.out.println("End");
             } else {
-                // Do something with database
-                System.out.println("Do smthg");
+                // Init database
+                initdb();
+                System.out.println("End creation");
+                // load Rules
+                File dirConfig = new File(args[4]);
+                if (dirConfig.isDirectory()) {
+                    loadRules(dirConfig);
+                } else {
+                    System.err.println("Dir is not a directory: "+args[4]);
+                }
+                System.out.println("Load done");
             }
         } finally {
             try {
@@ -86,5 +100,15 @@ public class TestInitDatabase {
     public static void initdb() {
         // Create tables: configuration, hosts, rules, runner, cptrunner
         DbModelFactory.dbModel.createTables();
+    }
+
+    public static void loadRules(File dirConfig) {
+        try {
+            R66RuleFileBasedConfiguration.importRules(dirConfig);
+        } catch (OpenR66ProtocolSystemException e3) {
+            e3.printStackTrace();
+        } catch (OpenR66DatabaseException e) {
+            e.printStackTrace();
+        }
     }
 }

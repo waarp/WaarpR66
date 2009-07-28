@@ -68,6 +68,13 @@ public abstract class AbstractDbData {
                     }
                     ps.setString(rank, (String) value.value);
                     break;
+                case Types.LONGVARCHAR:
+                    if (value.value == null) {
+                        ps.setNull(rank, Types.LONGVARCHAR);
+                        break;
+                    }
+                    ps.setString(rank, (String) value.value);
+                    break;
                 case Types.BIT:
                     if (value.value == null) {
                         ps.setNull(rank, Types.BIT);
@@ -162,11 +169,14 @@ public abstract class AbstractDbData {
         }
     }
 
-    protected void getTrueValue(ResultSet rs,
+    private void getTrueValue(ResultSet rs,
             DbValue value) throws OpenR66DatabaseSqlError {
         try {
             switch (value.type) {
                 case Types.VARCHAR:
+                    value.value = rs.getString(value.column);
+                    break;
+                case Types.LONGVARCHAR:
                     value.value = rs.getString(value.column);
                     break;
                 case Types.BIT:

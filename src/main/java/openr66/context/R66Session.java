@@ -207,6 +207,7 @@ public class R66Session implements SessionInterface {
     public void setLocalChannelReference(
             LocalChannelReference localChannelReference) {
         this.localChannelReference = localChannelReference;
+        this.localChannelReference.setSession(this);
     }
 
     /**

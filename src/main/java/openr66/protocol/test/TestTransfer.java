@@ -119,7 +119,7 @@ public class TestTransfer implements Runnable {
         //int block = 101;
         int block = Configuration.configuration.BLOCKSIZE;
         RequestPacket request = new RequestPacket(rulename,
-                RequestPacket.SENDMD5MODE, filename, block, 0, DbConstant.ILLEGALVALUE,
+                RequestPacket.RECVMODE, filename, block, 0, DbConstant.ILLEGALVALUE,
                 "MONTEST test.xml");
         NetworkPacket networkPacket;
         try {
@@ -184,7 +184,7 @@ public class TestTransfer implements Runnable {
                 Configuration.configuration.SERVER_PORT);
 
         ExecutorService executorService = Executors.newCachedThreadPool();
-        int nb = 100;
+        int nb = 50;
 
         R66Future[] arrayFuture = new R66Future[nb];
         logger.warn("Start");
@@ -208,7 +208,7 @@ public class TestTransfer implements Runnable {
                     success ++;
                 }
             } else {
-                if (result.runner.getStatus() == TaskStatus.WARNING) {
+                if (result.runner != null && result.runner.getStatus() == TaskStatus.WARNING) {
                     warn++;
                 } else {
                     error ++;

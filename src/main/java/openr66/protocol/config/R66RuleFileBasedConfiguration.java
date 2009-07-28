@@ -20,7 +20,6 @@
  */
 package openr66.protocol.config;
 
-import goldengate.common.file.DirInterface;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
@@ -28,7 +27,9 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.util.List;
 
-import openr66.context.R66Rule;
+import openr66.context.filesystem.R66Dir;
+import openr66.database.data.DbR66Rule;
+import openr66.database.exception.OpenR66DatabaseException;
 import openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.utils.FileUtils;
@@ -52,6 +53,8 @@ public class R66RuleFileBasedConfiguration {
     private static final String IDRULE = "/rule/idrule";
 
     private static final String HOSTIDS_HOSTID = "/rule/hostids/hostid";
+
+    private static final String MODE = "/rule/mode";
 
     private static final String RECVPATH = "/rule/recvpath";
 
@@ -97,15 +100,16 @@ public class R66RuleFileBasedConfiguration {
      *
      * @param configDirectory
      * @throws OpenR66ProtocolSystemException
+     * @throws OpenR66DatabaseException
      */
     public static void importRules(File configDirectory)
-            throws OpenR66ProtocolSystemException {
+            throws OpenR66ProtocolSystemException, OpenR66DatabaseException {
         File[] files = FileUtils.getFiles(configDirectory,
                 new ExtensionFilter());
         for (File file: files) {
-            R66Rule rule = getFromFile(file);
-            rule.insert();
+            DbR66Rule rule = getFromFile(file);
             logger.warn(rule.toString());
+            rule.insert();
         }
     }
 
@@ -154,20 +158,20 @@ public class R66RuleFileBasedConfiguration {
         }
         for (Node noderoot: listNode) {
             Node nodetype = null, nodepath = null, noderank = null, nodedelay = null;
-            noderank = noderoot.selectSingleNode(R66Rule.TASK_RANK);
+            noderank = noderoot.selectSingleNode(DbR66Rule.TASK_RANK);
             if (noderank == null) {
                 continue;
             }
             int rank = Integer.parseInt(noderank.getText());
-            nodetype = noderoot.selectSingleNode(R66Rule.TASK_TYPE);
+            nodetype = noderoot.selectSingleNode(DbR66Rule.TASK_TYPE);
             if (nodetype == null) {
                 continue;
             }
-            nodepath = noderoot.selectSingleNode(R66Rule.TASK_PATH);
+            nodepath = noderoot.selectSingleNode(DbR66Rule.TASK_PATH);
             if (nodepath == null) {
                 continue;
             }
-            nodedelay = noderoot.selectSingleNode(R66Rule.TASK_DELAY);
+            nodedelay = noderoot.selectSingleNode(DbR66Rule.TASK_DELAY);
             String delay;
             if (nodedelay == null) {
                 delay = Integer.toString(Configuration.configuration.TIMEOUTCON);
@@ -191,9 +195,9 @@ public class R66RuleFileBasedConfiguration {
      * @throws OpenR66ProtocolNoDataException
      */
     @SuppressWarnings("unchecked")
-    private static R66Rule getFromFile(File file)
+    private static DbR66Rule getFromFile(File file)
             throws OpenR66ProtocolSystemException {
-        R66Rule newRule = null;
+        DbR66Rule newRule = null;
         Document document = null;
         // Open config file
         try {
@@ -216,27 +220,34 @@ public class R66RuleFileBasedConfiguration {
         } catch (OpenR66ProtocolNoDataException e1) {
             throw new OpenR66ProtocolSystemException(e1);
         }
+        String smode;
+        try {
+            smode = getValue(document, MODE);
+        } catch (OpenR66ProtocolNoDataException e1) {
+            throw new OpenR66ProtocolSystemException(e1);
+        }
+        int mode = Integer.parseInt(smode);
         String recvpath;
         try {
-            recvpath = DirInterface.SEPARATOR + getValue(document, RECVPATH);
+            recvpath = R66Dir.SEPARATOR + getValue(document, RECVPATH);
         } catch (OpenR66ProtocolNoDataException e) {
             recvpath = Configuration.configuration.inPath;
         }
         String sendpath;
         try {
-            sendpath = DirInterface.SEPARATOR + getValue(document, SENDPATH);
+            sendpath = R66Dir.SEPARATOR + getValue(document, SENDPATH);
         } catch (OpenR66ProtocolNoDataException e) {
             sendpath = Configuration.configuration.outPath;
         }
         String archivepath;
         try {
-            archivepath = DirInterface.SEPARATOR + getValue(document, ARCHIVEPATH);
+            archivepath = R66Dir.SEPARATOR + getValue(document, ARCHIVEPATH);
         } catch (OpenR66ProtocolNoDataException e) {
             archivepath = Configuration.configuration.archivePath;
         }
         String workpath;
         try {
-            workpath = DirInterface.SEPARATOR + getValue(document, WORKPATH);
+            workpath = R66Dir.SEPARATOR + getValue(document, WORKPATH);
         } catch (OpenR66ProtocolNoDataException e) {
             workpath = Configuration.configuration.workingPath;
         }
@@ -264,7 +275,7 @@ public class R66RuleFileBasedConfiguration {
         nodebase = document.selectSingleNode(ERRORTASKS);
         String[][] errortasks = getTasks(nodebase, TASK);
 
-        newRule = new R66Rule(idrule, idsArray, recvpath, sendpath,
+        newRule = new DbR66Rule(idrule, idsArray, mode, recvpath, sendpath,
                 archivepath, workpath, pretasks, posttasks, errortasks);
         return newRule;
     }

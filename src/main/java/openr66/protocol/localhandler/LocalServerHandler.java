@@ -10,10 +10,10 @@ import goldengate.common.file.DataBlock;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.context.R66Result;
-import openr66.context.R66Rule;
 import openr66.context.R66Session;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.DbConstant;
+import openr66.database.data.DbR66Rule;
 import openr66.database.data.DbTaskRunner;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
@@ -361,8 +361,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
         logger.error(channel.getId() + ": " + packet.toString());
         OpenR66ProtocolBusinessNoWriteBackException exception =
             new OpenR66ProtocolBusinessNoWriteBackException(packet.toString());
-        session.setFinalizeTransfer(false, new R66Result(exception,
-                session, true));
+        if (session.getRunner() != null) {
+            session.setFinalizeTransfer(false, new R66Result(exception,
+                    session, true));
+        } else {
+            setFinalize(false, new R66Result(exception,
+                    session, true));
+        }
         throw exception;
     }
 
@@ -374,12 +379,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
             throw new OpenR66ProtocolNotAuthenticatedException(
                     "Not authenticated");
         }
-        R66Rule rule;
+        DbR66Rule rule;
         try {
-            rule = R66Rule.getHash(packet.getRulename());
-        } catch (OpenR66ProtocolNoDataException e) {
+            rule = new DbR66Rule(packet.getRulename());
+            // FIXME R66Rule.getHash(packet.getRulename());
+        } catch (OpenR66DatabaseException e) {
             logger.error("Rule is unknown: " + packet.getRulename(), e);
-            throw e;
+            throw new OpenR66ProtocolNoDataException(e);
         }
         if (packet.isToValidate()) {
             if (!rule.checkHostAllow(session.getAuth().getUser())) {
@@ -391,14 +397,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         DbTaskRunner runner;
         if (packet.getSpecialId() != DbConstant.ILLEGALVALUE) {
             // Reload
-            String requested;
-            if (packet.isToValidate()) {
-                // the request is initiated by the requester
-                requested = session.getAuth().getUser();
-            } else {
-                // the request is initiated by the requested (should not be)
-                requested = Configuration.configuration.HOST_ID;
-            }
+            String requested = DbTaskRunner.getRequested(session, packet);
             try {
                 runner = new DbTaskRunner(session, rule, packet.getSpecialId(),
                         requested);
@@ -587,18 +586,19 @@ public class LocalServerHandler extends SimpleChannelHandler {
         // Check end of transfer
         if (packet.isToValidate()) {
             if (! localChannelReference.getFutureAction().isDone()) {
-                // Still to finish
+                // Now can send validation
                 packet.validate();
                 try {
                     writeBack(packet, false);
                 } catch (OpenR66ProtocolPacketException e) {
-                    // Even if an error occurs here, this is ok
-                    session.setFinalizeTransfer(true, new R66Result(
-                            session, true));
-                    Channels.close(channel);
+                    // ignore
                 }
+                // Finish with post Operation
+                session.setFinalizeTransfer(true, new R66Result(
+                        session, false));
             } else {
                 // in error due to a previous status (like bad MD5)
+                logger.error("Error since end of transfer signaled but already done");
                 Channels.close(channel);
             }
         } else {
@@ -622,8 +622,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         localChannelReference.toString() + " " +
                         packet.toString());
                 // end of request
-                session.setFinalizeTransfer(true, new R66Result(
-                        session, true));
+                /*session.setFinalizeTransfer(true, new R66Result(
+                        session, true));*/
                 Channels.close(channel);
                 break;
             case LocalPacketFactory.SHUTDOWNPACKET:
@@ -634,7 +634,21 @@ public class LocalServerHandler extends SimpleChannelHandler {
                                 .getNetworkChannel());
                 R66Result result = new R66Result(new OpenR66ProtocolShutdownException(), session, true);
                 result.other = packet;
-                setFinalize(false, result);
+                if (session.getRunner() != null && session.getRunner().isInTransfer()) {
+                    String srank = packet.getSmiddle();
+                    if (srank != null && srank.length() > 0) {
+                        // Save last rank from remote point of view
+                        try {
+                            int rank = Integer.parseInt(srank);
+                            session.getRunner().setRankAtStartup(rank);
+                        } catch (NumberFormatException e) {
+                            // ignore
+                        }
+                    }
+                    session.setFinalizeTransfer(false, result);
+                } else {
+                    setFinalize(false, result);
+                }
                 Channels.close(channel);
                 break;
             case LocalPacketFactory.TESTPACKET:
@@ -666,7 +680,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         throw new OpenR66ProtocolBusinessException("Invalid Shutdown comand");
     }
 
-    public void setFinalize(boolean status, R66Result finalValue) {
+    private void setFinalize(boolean status, R66Result finalValue) {
         this.status = status;
         if (localChannelReference != null) {
             localChannelReference.validateAction(status, finalValue);

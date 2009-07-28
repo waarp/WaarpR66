@@ -41,6 +41,7 @@ import openr66.database.exception.OpenR66DatabaseSqlError;
 public class DbModelH2 extends AbstractDbModel {
     private static enum DBType {
         VARCHAR(Types.VARCHAR, " VARCHAR(254) "),
+        LONGVARCHAR(Types.LONGVARCHAR, " LONGVARCHAR "),
         BIT(Types.BIT, " BOOLEAN "),
         TINYINT(Types.TINYINT, " TINYINT "),
         SMALLINT(Types.SMALLINT, " SMALLINT "),
@@ -66,6 +67,8 @@ public class DbModelH2 extends AbstractDbModel {
             switch (sqltype) {
                 case Types.VARCHAR:
                     return VARCHAR.constructor;
+                case Types.LONGVARCHAR:
+                    return LONGVARCHAR.constructor;
                 case Types.BIT:
                     return BIT.constructor;
                 case Types.TINYINT:

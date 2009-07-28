@@ -355,13 +355,14 @@ public class R66FileBasedConfiguration {
             return false;
         }
         // Get the rules
-        try {
+        // FIXME remove the load of rules from database
+        /*try {
             R66RuleFileBasedConfiguration.importRules(dirConfig);
         } catch (OpenR66ProtocolSystemException e3) {
             logger.error("Unable to load Rules from Config dir: " +
                     Configuration.configuration.configPath, e3);
             return false;
-        }
+        }*/
 
         node = document.selectSingleNode(XML_SERVER_THREAD);
         if (node != null) {

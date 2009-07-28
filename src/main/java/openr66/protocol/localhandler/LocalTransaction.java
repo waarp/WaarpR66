@@ -10,6 +10,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
+import openr66.context.task.exception.OpenR66RunnerErrorException;
+import openr66.database.data.DbTaskRunner;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
@@ -163,16 +165,35 @@ public class LocalTransaction {
         ValidPacket packet = new ValidPacket("Shutdown forced", null,
                 LocalPacketFactory.SHUTDOWNPACKET);
         ChannelBuffer buffer = null;
-        try {
-            buffer = packet.getLocalPacket();
-        } catch (OpenR66ProtocolPacketException e1) {
-        }
         while (iterator.hasNext()) {
             LocalChannelReference localChannelReference = iterator.next();
             logger.info("Inform Shutdown " + localChannelReference.toString());
+            packet.setSmiddle(null);
+            // If a transfer is running, save the current rank and inform remote host
+            if (localChannelReference.getSession() != null) {
+                DbTaskRunner runner = localChannelReference.getSession().getRunner();
+                if (runner != null) {
+                    if (runner.isInTransfer()) {
+                        int rank = localChannelReference.getSession().getRunner().getRank();
+                        packet.setSmiddle(
+                                Integer.toString(rank));
+                        if (runner.isRetrieve()) {
+                            // Save File status
+                            try {
+                                runner.saveStatus();
+                            } catch (OpenR66RunnerErrorException e) {
+                            }
+                        }
+                    }
+                }
+            }
+            try {
+                buffer = packet.getLocalPacket();
+            } catch (OpenR66ProtocolPacketException e1) {
+            }
             NetworkPacket message = new NetworkPacket(localChannelReference
                     .getLocalId(), localChannelReference.getRemoteId(), packet
-                    .getType(), buffer.duplicate());
+                    .getType(), buffer);
             Channels.write(localChannelReference.getNetworkChannel(), message);
         }
     }

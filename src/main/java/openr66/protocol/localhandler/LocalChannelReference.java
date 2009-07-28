@@ -18,6 +18,7 @@ package openr66.protocol.localhandler;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.context.R66Result;
+import openr66.context.R66Session;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.networkhandler.NetworkServerHandler;
 import openr66.protocol.utils.R66Future;
@@ -50,6 +51,8 @@ public class LocalChannelReference {
     private final R66Future futureAction = new R66Future(true);
 
     private final R66Future futureValidate = new R66Future(true);
+
+    private R66Session session;
 
     public LocalChannelReference(Channel localChannel, Channel networkChannel,
             Integer remoteId) {
@@ -102,6 +105,20 @@ public class LocalChannelReference {
      */
     public void setRemoteId(Integer remoteId) {
         this.remoteId = remoteId;
+    }
+
+    /**
+     * @return the session
+     */
+    public R66Session getSession() {
+        return session;
+    }
+
+    /**
+     * @param session the session to set
+     */
+    public void setSession(R66Session session) {
+        this.session = session;
     }
 
     /**

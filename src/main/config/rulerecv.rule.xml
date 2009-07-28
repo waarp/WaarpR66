@@ -1,9 +1,10 @@
 <rule>
-	<idrule>rule1</idrule>
+	<idrule>rule2</idrule>
 	<hostids>
 		<hostid>hosta</hostid>
 		<hostid>hostb</hostid>
 	</hostids>
+	<mode>2</mode>
 	<recvpath></recvpath>
 	<sendpath></sendpath>
 	<archivepath></archivepath>

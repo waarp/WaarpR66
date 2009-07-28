@@ -245,9 +245,6 @@ public class NetworkTransaction {
     }
 
     public static void shuttingdownNetworkChannel(Channel channel) {
-        /*
-         * lock.lock(); try {
-         */
         SocketAddress address = channel.getRemoteAddress();
         if (address != null) {
             NetworkChannel networkChannel = networkChannelShutdownOnSocketAddressConcurrentHashMap
@@ -274,9 +271,6 @@ public class NetworkTransaction {
             timer.schedule(timerTask,
                     Configuration.configuration.TIMEOUTCON * 2);
         }
-        /*
-         * } finally { lock.unlock(); }
-         */
     }
 
     public static boolean isShuttingdownNetworkChannel(Channel channel) {
