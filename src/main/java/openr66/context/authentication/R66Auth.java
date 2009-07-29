@@ -2,17 +2,17 @@
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author
  * tags. See the COPYRIGHT.txt in the distribution for a full listing of
  * individual contributors.
- *
+ * 
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation; either version 3.0 of the License, or (at your option)
  * any later version.
- *
+ * 
  * This software is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- *
+ * 
  * You should have received a copy of the GNU Lesser General Public License
  * along with this software; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF
@@ -34,7 +34,7 @@ import openr66.protocol.config.Configuration;
 
 /**
  * @author frederic bregier
- *
+ * 
  */
 public class R66Auth extends FilesystemBasedAuthImpl {
     /**
@@ -51,7 +51,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see
      * goldengate.common.file.filesystembased.FilesystemBasedAuthImpl#businessClean
      * ()
@@ -63,7 +63,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @seegoldengate.common.file.filesystembased.FilesystemBasedAuthImpl#
      * getBaseDirectory()
      */
@@ -74,7 +74,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @seegoldengate.common.file.filesystembased.FilesystemBasedAuthImpl#
      * setBusinessAccount(java.lang.String)
      */
@@ -86,7 +86,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @seegoldengate.common.file.filesystembased.FilesystemBasedAuthImpl#
      * setBusinessPassword(java.lang.String)
      */
@@ -97,7 +97,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
     }
 
     /**
-     *
+     * 
      * @param hostId
      * @param arg0
      * @return True if the connection is OK (authentication is OK)
@@ -131,7 +131,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
     }
 
     /**
-     *
+     * 
      * @param key
      * @return True if the key is valid for the current user
      */
@@ -143,7 +143,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
      * Set the root relative Path from current status of Authentication (should
      * be the highest level for the current authentication). If
      * setBusinessRootFromAuth returns null, by default set /user.
-     *
+     * 
      * @exception Reply421Exception
      *                if the business root is not available
      */
@@ -156,7 +156,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @seegoldengate.common.file.filesystembased.FilesystemBasedAuthImpl#
      * setBusinessRootFromAuth()
      */
@@ -173,7 +173,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @seegoldengate.common.file.filesystembased.FilesystemBasedAuthImpl#
      * setBusinessUser(java.lang.String)
      */
@@ -185,7 +185,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see goldengate.common.file.AuthInterface#isAdmin()
      */
     @Override
@@ -195,7 +195,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see
      * goldengate.common.file.AuthInterface#isBusinessPathValid(java.lang.String
      * )
@@ -209,7 +209,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
     }
 
     /**
-     *
+     * 
      * @return the Key of the Hosting server
      */
     public static byte[] getServerAuth() {

@@ -5,7 +5,7 @@ package openr66.context.task.exception;
 
 /**
  * Runner exception in error status
- *
+ * 
  * @author frederic bregier
  */
 public class OpenR66RunnerErrorException extends OpenR66RunnerException {

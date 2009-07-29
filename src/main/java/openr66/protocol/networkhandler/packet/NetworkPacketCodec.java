@@ -29,7 +29,7 @@ import org.jboss.netty.handler.codec.frame.FrameDecoder;
 
 /**
  * Packet Decoder
- *
+ * 
  * @author Frederic Bregier
  */
 public class NetworkPacketCodec extends FrameDecoder implements
@@ -37,7 +37,7 @@ public class NetworkPacketCodec extends FrameDecoder implements
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see
      * org.jboss.netty.handler.codec.frame.FrameDecoder#decode(org.jboss.netty
      * .channel.ChannelHandlerContext, org.jboss.netty.channel.Channel,

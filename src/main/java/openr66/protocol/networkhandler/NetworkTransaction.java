@@ -100,7 +100,14 @@ public class NetworkTransaction {
         logger.warn("THREAD: " + Configuration.configuration.SERVER_THREAD);
         clientBootstrap.setPipelineFactory(new NetworkServerPipelineFactory());
     }
-
+    /**
+     * Create a connection to the specified socketAddress
+     * @param socketAddress
+     * @return the LocalChannelReference
+     * @throws OpenR66ProtocolNetworkException
+     * @throws OpenR66ProtocolRemoteShutdownException
+     * @throws OpenR66ProtocolNoConnectionException
+     */
     public LocalChannelReference createConnection(SocketAddress socketAddress)
             throws OpenR66ProtocolNetworkException,
             OpenR66ProtocolRemoteShutdownException,
@@ -115,7 +122,14 @@ public class NetworkTransaction {
             lock.unlock();
         }
     }
-
+    /**
+     *
+     * @param socketServerAddress
+     * @return the new channel
+     * @throws OpenR66ProtocolNetworkException
+     * @throws OpenR66ProtocolRemoteShutdownException
+     * @throws OpenR66ProtocolNoConnectionException
+     */
     private Channel createNewConnection(SocketAddress socketServerAddress)
             throws OpenR66ProtocolNetworkException,
             OpenR66ProtocolRemoteShutdownException,
@@ -164,7 +178,13 @@ public class NetworkTransaction {
         throw new OpenR66ProtocolNetworkException(
                 "Cannot connect to remote server", channelFuture.getCause());
     }
-
+    /**
+     *
+     * @param channel
+     * @return the LocalChannelReference
+     * @throws OpenR66ProtocolNetworkException
+     * @throws OpenR66ProtocolRemoteShutdownException
+     */
     private LocalChannelReference createNewClient(Channel channel)
             throws OpenR66ProtocolNetworkException,
             OpenR66ProtocolRemoteShutdownException {
@@ -185,7 +205,12 @@ public class NetworkTransaction {
         NetworkTransaction.addNetworkChannel(channel);
         return localChannelReference;
     }
-
+    /**
+     * Send a validation of connection with Authentication
+     * @param localChannelReference
+     * @throws OpenR66ProtocolNetworkException
+     * @throws OpenR66ProtocolRemoteShutdownException
+     */
     private void sendValidationConnection(
             LocalChannelReference localChannelReference)
             throws OpenR66ProtocolNetworkException,
@@ -211,16 +236,24 @@ public class NetworkTransaction {
                             .getCause());
         }
     }
-
+    /**
+     * Start retrieve operation
+     * @param session
+     * @param channel
+     */
     public static void runRetrieve(R66Session session, Channel channel) {
         RetrieveRunner retrieveRunner = new RetrieveRunner(session, channel);
         retrieveExecutor.execute(retrieveRunner);
     }
-
+    /**
+     * Stop all Retrieve Executors
+     */
     public static void closeRetrieveExecutors() {
         retrieveExecutor.shutdownNow();
     }
-
+    /**
+     * Close all Network Ttransaction
+     */
     public void closeAll() {
         logger.warn("close All Network Channels");
         closeRetrieveExecutors();
@@ -229,7 +262,11 @@ public class NetworkTransaction {
         channelClientFactory.releaseExternalResources();
         OpenR66SignalHandler.closeAllConnection();
     }
-
+    /**
+     *
+     * @param channel
+     * @throws OpenR66ProtocolRemoteShutdownException
+     */
     public static void addNetworkChannel(Channel channel)
             throws OpenR66ProtocolRemoteShutdownException {
         lock.lock();
@@ -243,7 +280,10 @@ public class NetworkTransaction {
             lock.unlock();
         }
     }
-
+    /**
+     *
+     * @param channel
+     */
     public static void shuttingdownNetworkChannel(Channel channel) {
         SocketAddress address = channel.getRemoteAddress();
         if (address != null) {
@@ -272,7 +312,11 @@ public class NetworkTransaction {
                     Configuration.configuration.TIMEOUTCON * 2);
         }
     }
-
+    /**
+     *
+     * @param channel
+     * @return True if this channel is currently in shutdown
+     */
     public static boolean isShuttingdownNetworkChannel(Channel channel) {
         lock.lock();
         try {
@@ -281,7 +325,11 @@ public class NetworkTransaction {
             lock.unlock();
         }
     }
-
+    /**
+     *
+     * @param channel
+     * @return the number of local channel still connected to this channel
+     */
     public static int removeNetworkChannel(Channel channel) {
         lock.lock();
         try {
@@ -313,7 +361,11 @@ public class NetworkTransaction {
             lock.unlock();
         }
     }
-
+    /**
+     *
+     * @param channel
+     * @return the number of local channel associated with this channel
+     */
     public static int getNbLocalChannel(Channel channel) {
         SocketAddress address = channel.getRemoteAddress();
         if (address != null) {
@@ -352,7 +404,13 @@ public class NetworkTransaction {
             return true;
         }
     }
-
+    /**
+     *
+     * @param address
+     * @return NetworkChannel
+     * @throws OpenR66ProtocolRemoteShutdownException
+     * @throws OpenR66ProtocolNoDataException
+     */
     public static NetworkChannel getRemoteChannel(SocketAddress address)
             throws OpenR66ProtocolRemoteShutdownException,
             OpenR66ProtocolNoDataException {
@@ -373,7 +431,11 @@ public class NetworkTransaction {
         }
         return nc;
     }
-
+    /**
+     *
+     * @param channel
+     * @throws OpenR66ProtocolRemoteShutdownException
+     */
     public static void putRemoteChannel(Channel channel)
             throws OpenR66ProtocolRemoteShutdownException {
         SocketAddress address = channel.getRemoteAddress();

@@ -15,9 +15,9 @@ import openr66.database.exception.OpenR66DatabaseSqlError;
 
 /**
  * Class to handle PrepareStatement
- *
+ * 
  * @author Frederic Bregier LGPL
- *
+ * 
  */
 public class DbPreparedStatement {
     /**
@@ -53,14 +53,16 @@ public class DbPreparedStatement {
 
     /**
      * Create a DbPreparedStatement from DbSession object
-     *
+     * 
      * @param ls
      * @throws OpenR66DatabaseNoConnectionError
      */
-    public DbPreparedStatement(DbSession ls) throws OpenR66DatabaseNoConnectionError {
+    public DbPreparedStatement(DbSession ls)
+            throws OpenR66DatabaseNoConnectionError {
         if (ls == null) {
             logger.error("SQL Exception PreparedStatement no session");
-            throw new OpenR66DatabaseNoConnectionError("PreparedStatement no session");
+            throw new OpenR66DatabaseNoConnectionError(
+                    "PreparedStatement no session");
         }
         this.ls = ls;
         rs = null;
@@ -70,16 +72,18 @@ public class DbPreparedStatement {
 
     /**
      * Create a DbPreparedStatement from DbSession object and a request
-     *
+     * 
      * @param ls
      * @param request
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
      */
-    public DbPreparedStatement(DbSession ls, String request) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+    public DbPreparedStatement(DbSession ls, String request)
+            throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
         if (ls == null) {
             logger.error("SQL Exception PreparedStatement no session");
-            throw new OpenR66DatabaseNoConnectionError("PreparedStatement no session");
+            throw new OpenR66DatabaseNoConnectionError(
+                    "PreparedStatement no session");
         }
         this.ls = ls;
         rs = null;
@@ -87,32 +91,35 @@ public class DbPreparedStatement {
         preparedStatement = null;
         if (request == null) {
             logger.error("SQL Exception PreparedStatement no request");
-            throw new OpenR66DatabaseNoConnectionError("PreparedStatement no request");
+            throw new OpenR66DatabaseNoConnectionError(
+                    "PreparedStatement no request");
         }
         try {
             preparedStatement = this.ls.conn.prepareStatement(request);
             this.request = request;
             isReady = true;
         } catch (SQLException e) {
-            logger.error("SQL Exception PreparedStatement: " +
-                    request, e);
+            logger.error("SQL Exception PreparedStatement: " + request, e);
             preparedStatement = null;
             isReady = false;
-            throw new OpenR66DatabaseSqlError("SQL Exception PreparedStatement", e);
+            throw new OpenR66DatabaseSqlError(
+                    "SQL Exception PreparedStatement", e);
         }
     }
 
     /**
      * Create a preparedStatement from request
-     *
+     * 
      * @param requestarg
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
      */
-    public void createPrepareStatement(String requestarg) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+    public void createPrepareStatement(String requestarg)
+            throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
         if (requestarg == null) {
             logger.error("createPreparedStatement no request");
-            throw new OpenR66DatabaseNoConnectionError("PreparedStatement no request");
+            throw new OpenR66DatabaseNoConnectionError(
+                    "PreparedStatement no request");
         }
         if (preparedStatement != null) {
             realClose();
@@ -125,26 +132,29 @@ public class DbPreparedStatement {
             request = requestarg;
             isReady = true;
         } catch (SQLException e) {
-            logger.error("SQL Exception createPreparedStatement:" +
-                    requestarg, e);
+            logger.error("SQL Exception createPreparedStatement:" + requestarg,
+                    e);
             realClose();
             preparedStatement = null;
             isReady = false;
-            throw new OpenR66DatabaseSqlError("SQL Exception createPreparedStatement: " +
-                    requestarg, e);
+            throw new OpenR66DatabaseSqlError(
+                    "SQL Exception createPreparedStatement: " + requestarg, e);
         }
     }
 
     /**
      * Execute a Select preparedStatement
+     * 
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
-     *
+     * 
      */
-    public void executeQuery() throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+    public void executeQuery() throws OpenR66DatabaseNoConnectionError,
+            OpenR66DatabaseSqlError {
         if (preparedStatement == null) {
             logger.error("executeQuery no request");
-            throw new OpenR66DatabaseNoConnectionError("executeQuery no request");
+            throw new OpenR66DatabaseNoConnectionError(
+                    "executeQuery no request");
         }
         if (rs != null) {
             close();
@@ -152,8 +162,7 @@ public class DbPreparedStatement {
         try {
             rs = preparedStatement.executeQuery();
         } catch (SQLException e) {
-            logger.error("SQL Exception executeQuery:" +
-                    request, e);
+            logger.error("SQL Exception executeQuery:" + request, e);
             close();
             rs = null;
             throw new OpenR66DatabaseSqlError("SQL Exception executeQuery: " +
@@ -163,15 +172,17 @@ public class DbPreparedStatement {
 
     /**
      * Execute the Update/Insert/Delete preparedStatement
-     *
+     * 
      * @return the number of row
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
      */
-    public int executeUpdate() throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+    public int executeUpdate() throws OpenR66DatabaseNoConnectionError,
+            OpenR66DatabaseSqlError {
         if (preparedStatement == null) {
             logger.error("executeUpdate no request");
-            throw new OpenR66DatabaseNoConnectionError("executeUpdate no request");
+            throw new OpenR66DatabaseNoConnectionError(
+                    "executeUpdate no request");
         }
         if (rs != null) {
             close();
@@ -180,8 +191,7 @@ public class DbPreparedStatement {
         try {
             retour = preparedStatement.executeUpdate();
         } catch (SQLException e) {
-            logger.error("SQL Exception executeUpdate:" +
-                    request, e);
+            logger.error("SQL Exception executeUpdate:" + request, e);
             throw new OpenR66DatabaseSqlError("SQL Exception executeUpdate: " +
                     request, e);
         }
@@ -190,7 +200,7 @@ public class DbPreparedStatement {
 
     /**
      * Close the resultSet if any
-     *
+     * 
      */
     public void close() {
         if (rs != null) {
@@ -204,7 +214,7 @@ public class DbPreparedStatement {
 
     /**
      * Really close the preparedStatement and the resultSet if any
-     *
+     * 
      */
     public void realClose() {
         close();
@@ -220,15 +230,17 @@ public class DbPreparedStatement {
 
     /**
      * Move the cursor to the next result
-     *
+     * 
      * @return True if there is a next result, else False
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
      */
-    public boolean getNext() throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+    public boolean getNext() throws OpenR66DatabaseNoConnectionError,
+            OpenR66DatabaseSqlError {
         if (rs == null) {
             logger.error("SQL ResultSet is Null into getNext");
-            throw new OpenR66DatabaseNoConnectionError("SQL ResultSet is Null into getNext");
+            throw new OpenR66DatabaseNoConnectionError(
+                    "SQL ResultSet is Null into getNext");
         }
         try {
             return rs.next();
@@ -240,26 +252,30 @@ public class DbPreparedStatement {
     }
 
     /**
-    *
-    * @return The resultSet (can be used in conjunction of getNext())
-    * @throws OpenR66DatabaseNoConnectionError
-    */
-   public ResultSet getResultSet() throws OpenR66DatabaseNoConnectionError {
-       if (rs == null) {
-           throw new OpenR66DatabaseNoConnectionError("SQL ResultSet is Null into getResultSet");
-       }
-       return rs;
-   }
+     * 
+     * @return The resultSet (can be used in conjunction of getNext())
+     * @throws OpenR66DatabaseNoConnectionError
+     */
+    public ResultSet getResultSet() throws OpenR66DatabaseNoConnectionError {
+        if (rs == null) {
+            throw new OpenR66DatabaseNoConnectionError(
+                    "SQL ResultSet is Null into getResultSet");
+        }
+        return rs;
+    }
 
-   /**
-    *
-    * @return The preparedStatement (should be used in conjunction of createPreparedStatement)
-    * @throws OpenR66DatabaseNoConnectionError
-    */
-   public PreparedStatement getPreparedStatement() throws OpenR66DatabaseNoConnectionError {
-       if (preparedStatement == null) {
-           throw new OpenR66DatabaseNoConnectionError("SQL PreparedStatement is Null into getPreparedStatement");
-       }
-       return preparedStatement;
-   }
+    /**
+     * 
+     * @return The preparedStatement (should be used in conjunction of
+     *         createPreparedStatement)
+     * @throws OpenR66DatabaseNoConnectionError
+     */
+    public PreparedStatement getPreparedStatement()
+            throws OpenR66DatabaseNoConnectionError {
+        if (preparedStatement == null) {
+            throw new OpenR66DatabaseNoConnectionError(
+                    "SQL PreparedStatement is Null into getPreparedStatement");
+        }
+        return preparedStatement;
+    }
 }

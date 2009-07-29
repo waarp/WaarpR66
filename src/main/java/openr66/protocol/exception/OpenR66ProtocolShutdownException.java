@@ -5,7 +5,7 @@ package openr66.protocol.exception;
 
 /**
  * Protocol Exception to enable Shutdown
- *
+ * 
  * @author frederic bregier
  */
 public class OpenR66ProtocolShutdownException extends OpenR66Exception {

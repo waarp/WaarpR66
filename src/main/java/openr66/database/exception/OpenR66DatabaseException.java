@@ -7,7 +7,7 @@ import openr66.protocol.exception.OpenR66Exception;
 
 /**
  * Database exception
- *
+ * 
  * @author frederic bregier
  */
 public class OpenR66DatabaseException extends OpenR66Exception {

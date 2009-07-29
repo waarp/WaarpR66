@@ -20,6 +20,7 @@
  */
 package openr66.protocol.config;
 
+import goldengate.common.file.DirInterface;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
@@ -27,7 +28,6 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.util.List;
 
-import openr66.context.filesystem.R66Dir;
 import openr66.database.data.DbR66Rule;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.protocol.exception.OpenR66ProtocolNoDataException;
@@ -40,6 +40,8 @@ import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 
 /**
+ * Rule File Based Configuration
+ *
  * @author Frederic Bregier
  *
  */
@@ -174,7 +176,8 @@ public class R66RuleFileBasedConfiguration {
             nodedelay = noderoot.selectSingleNode(DbR66Rule.TASK_DELAY);
             String delay;
             if (nodedelay == null) {
-                delay = Integer.toString(Configuration.configuration.TIMEOUTCON);
+                delay = Integer
+                        .toString(Configuration.configuration.TIMEOUTCON);
             } else {
                 delay = nodedelay.getText();
             }
@@ -229,25 +232,26 @@ public class R66RuleFileBasedConfiguration {
         int mode = Integer.parseInt(smode);
         String recvpath;
         try {
-            recvpath = R66Dir.SEPARATOR + getValue(document, RECVPATH);
+            recvpath = DirInterface.SEPARATOR + getValue(document, RECVPATH);
         } catch (OpenR66ProtocolNoDataException e) {
             recvpath = Configuration.configuration.inPath;
         }
         String sendpath;
         try {
-            sendpath = R66Dir.SEPARATOR + getValue(document, SENDPATH);
+            sendpath = DirInterface.SEPARATOR + getValue(document, SENDPATH);
         } catch (OpenR66ProtocolNoDataException e) {
             sendpath = Configuration.configuration.outPath;
         }
         String archivepath;
         try {
-            archivepath = R66Dir.SEPARATOR + getValue(document, ARCHIVEPATH);
+            archivepath = DirInterface.SEPARATOR +
+                    getValue(document, ARCHIVEPATH);
         } catch (OpenR66ProtocolNoDataException e) {
             archivepath = Configuration.configuration.archivePath;
         }
         String workpath;
         try {
-            workpath = R66Dir.SEPARATOR + getValue(document, WORKPATH);
+            workpath = DirInterface.SEPARATOR + getValue(document, WORKPATH);
         } catch (OpenR66ProtocolNoDataException e) {
             workpath = Configuration.configuration.workingPath;
         }

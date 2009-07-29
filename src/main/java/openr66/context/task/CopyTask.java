@@ -30,6 +30,7 @@ import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.utils.FileUtils;
 
 /**
+ * Copy task
  * @author Frederic Bregier
  *
  */
@@ -46,7 +47,8 @@ public class CopyTask extends AbstractTask {
      * @param argTransfer
      * @param session
      */
-    public CopyTask(String argRule, int delay, String argTransfer, R66Session session) {
+    public CopyTask(String argRule, int delay, String argTransfer,
+            R66Session session) {
         super(TaskType.COPY, delay, argRule, argTransfer, session);
     }
 
@@ -57,19 +59,17 @@ public class CopyTask extends AbstractTask {
      */
     @Override
     public void run() {
-        logger.info("Copy with " + argRule + ":" + argTransfer +
-                " and " + session);
+        logger.info("Copy with " + argRule + ":" + argTransfer + " and " +
+                session);
         File from = session.getFile().getTrueFile();
         File to = new File(argRule +
-                session.getDir().getFinalUniqueFilename(
-                        session.getFile()));
+                session.getDir().getFinalUniqueFilename(session.getFile()));
         try {
             FileUtils.copy(from, to, false, false);
         } catch (OpenR66ProtocolSystemException e1) {
-            logger.error("Copy with " + argRule + ":" + argTransfer +
-                    " and " + session, e1);
-            futureCompletion
-                    .setFailure(new OpenR66ProtocolSystemException(e1));
+            logger.error("Copy with " + argRule + ":" + argTransfer + " and " +
+                    session, e1);
+            futureCompletion.setFailure(new OpenR66ProtocolSystemException(e1));
             return;
         }
         futureCompletion.setSuccess();

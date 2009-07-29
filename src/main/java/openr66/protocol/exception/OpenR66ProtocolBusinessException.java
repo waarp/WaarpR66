@@ -5,7 +5,7 @@ package openr66.protocol.exception;
 
 /**
  * Protocol exception on Business part
- *
+ * 
  * @author frederic bregier
  */
 public class OpenR66ProtocolBusinessException extends OpenR66Exception {

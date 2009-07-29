@@ -1,22 +1,22 @@
 /**
- * Copyright 2009, Frederic Bregier, and individual contributors
- * by the @author tags. See the COPYRIGHT.txt in the distribution for a
- * full listing of individual contributors.
+ * Copyright 2009, Frederic Bregier, and individual contributors by the @author
+ * tags. See the COPYRIGHT.txt in the distribution for a full listing of
+ * individual contributors.
  *
- * This is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 3.0 of
- * the License, or (at your option) any later version.
+ * This is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
  *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
+ * This software is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this software; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF
+ * site: http://www.fsf.org.
  */
 package openr66.database.data;
 
@@ -34,31 +34,63 @@ import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 
 /**
+ * Abstract database table implementation
+ *
  * @author Frederic Bregier
  *
  */
 public abstract class AbstractDbData {
-    public static final int UNKNOWN = -1;
-    public static final int NOTUPDATED = 0;
-    public static final int UPDATED = 1;
-    public static final int TORUN = 2;
-
+    /**
+     * UpdatedInfo status
+     * @author Frederic Bregier
+     *
+     */
+    public static enum UpdatedInfo {
+        UNKNOWN, NOTUPDATED, UPDATED, TORUN;
+    }
+    /**
+     * Select object from table
+     * @throws OpenR66DatabaseException
+     */
     public abstract void select() throws OpenR66DatabaseException;
-
+    /**
+     * Insert object into table
+     * @throws OpenR66DatabaseException
+     */
     public abstract void insert() throws OpenR66DatabaseException;
-
+    /**
+     * Update object to table
+     * @throws OpenR66DatabaseException
+     */
     public abstract void update() throws OpenR66DatabaseException;
-
+    /**
+     * Delete object from table
+     * @throws OpenR66DatabaseException
+     */
     public abstract void delete() throws OpenR66DatabaseException;
-
+    /**
+     * Change UpdatedInfo status
+     * @param status
+     */
     public abstract void changeUpdatedInfo(int status);
-
+    /**
+     * Internal function to set to Array used to push data to database
+     */
     protected abstract void setToArray();
-
+    /**
+     * Internal function to retrieve data from Array to pull data from databasre
+     * @throws OpenR66DatabaseSqlError
+     */
     protected abstract void setFromArray() throws OpenR66DatabaseSqlError;
-
+    /**
+     * Set Value into PreparedStatement
+     * @param ps
+     * @param value
+     * @param rank
+     * @throws OpenR66DatabaseSqlError
+     */
     private void setTrueValue(PreparedStatement ps, DbValue value, int rank)
-    throws OpenR66DatabaseSqlError {
+            throws OpenR66DatabaseSqlError {
         try {
             switch (value.type) {
                 case Types.VARCHAR:
@@ -146,31 +178,54 @@ public abstract class AbstractDbData {
                     ps.setTimestamp(rank, (Timestamp) value.value);
                     break;
                 default:
-                    throw new OpenR66DatabaseSqlError("Type not supported: "+value.type+" at "+rank);
+                    throw new OpenR66DatabaseSqlError("Type not supported: " +
+                            value.type + " at " + rank);
             }
         } catch (ClassCastException e) {
-            throw new OpenR66DatabaseSqlError("Setting values casting error: "+value.type+" at "+rank, e);
+            throw new OpenR66DatabaseSqlError("Setting values casting error: " +
+                    value.type + " at " + rank, e);
         } catch (SQLException e) {
             DbSession.error(e);
-            throw new OpenR66DatabaseSqlError("Setting values in error: "+value.type+" at "+rank, e);
+            throw new OpenR66DatabaseSqlError("Setting values in error: " +
+                    value.type + " at " + rank, e);
         }
     }
-    protected void setValue(DbPreparedStatement preparedStatement,
-            DbValue value) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+    /**
+     * Set one value to a DbPreparedStatement
+     * @param preparedStatement
+     * @param value
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66DatabaseSqlError
+     */
+    protected void setValue(DbPreparedStatement preparedStatement, DbValue value)
+            throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
         PreparedStatement ps = preparedStatement.getPreparedStatement();
-        this.setTrueValue(ps, value, 1);
+        setTrueValue(ps, value, 1);
     }
+    /**
+     * Set several values to a DbPreparedStatement
+     * @param preparedStatement
+     * @param values
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66DatabaseSqlError
+     */
     protected void setValues(DbPreparedStatement preparedStatement,
-            DbValue[] values) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+            DbValue[] values) throws OpenR66DatabaseNoConnectionError,
+            OpenR66DatabaseSqlError {
         PreparedStatement ps = preparedStatement.getPreparedStatement();
-        for (int i = 0; i < values.length; i++) {
+        for (int i = 0; i < values.length; i ++) {
             DbValue value = values[i];
-            this.setTrueValue(ps, value, i+1);
+            setTrueValue(ps, value, i + 1);
         }
     }
-
-    private void getTrueValue(ResultSet rs,
-            DbValue value) throws OpenR66DatabaseSqlError {
+    /**
+     * Get one value into DbValue from ResultSet
+     * @param rs
+     * @param value
+     * @throws OpenR66DatabaseSqlError
+     */
+    private void getTrueValue(ResultSet rs, DbValue value)
+            throws OpenR66DatabaseSqlError {
         try {
             switch (value.type) {
                 case Types.VARCHAR:
@@ -210,24 +265,40 @@ public abstract class AbstractDbData {
                     value.value = rs.getTimestamp(value.column);
                     break;
                 default:
-                    throw new OpenR66DatabaseSqlError("Type not supported: "+value.type+" for "+value.column);
+                    throw new OpenR66DatabaseSqlError("Type not supported: " +
+                            value.type + " for " + value.column);
             }
         } catch (SQLException e) {
             DbSession.error(e);
-            throw new OpenR66DatabaseSqlError("Getting values in error: "+value.type+" for "+value.column, e);
+            throw new OpenR66DatabaseSqlError("Getting values in error: " +
+                    value.type + " for " + value.column, e);
         }
     }
-    protected void getValue(DbPreparedStatement preparedStatement,
-            DbValue value) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+    /**
+     * Get one value into DbValue from DbPreparedStatement
+     * @param preparedStatement
+     * @param value
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66DatabaseSqlError
+     */
+    protected void getValue(DbPreparedStatement preparedStatement, DbValue value)
+            throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
         ResultSet rs = preparedStatement.getResultSet();
-        this.getTrueValue(rs, value);
+        getTrueValue(rs, value);
     }
+    /**
+     * Get several values into DbValue from DbPreparedStatement
+     * @param preparedStatement
+     * @param values
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66DatabaseSqlError
+     */
     protected void getValues(DbPreparedStatement preparedStatement,
-            DbValue[] values) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+            DbValue[] values) throws OpenR66DatabaseNoConnectionError,
+            OpenR66DatabaseSqlError {
         ResultSet rs = preparedStatement.getResultSet();
-        for (int i = 0; i < values.length; i++) {
-            DbValue value = values[i];
-            this.getTrueValue(rs, value);
+        for (DbValue value: values) {
+            getTrueValue(rs, value);
         }
     }
 }

@@ -25,6 +25,8 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.context.R66Session;
 
 /**
+ * This class is for testing purpose only (if delay is > 0, will echo some information)
+ *
  * @author Frederic Bregier
  *
  */
@@ -41,7 +43,8 @@ public class TestTask extends AbstractTask {
      * @param argTransfer
      * @param session
      */
-    public TestTask(String argRule, int delay, String argTransfer, R66Session session) {
+    public TestTask(String argRule, int delay, String argTransfer,
+            R66Session session) {
         super(TaskType.TEST, delay, argRule, argTransfer, session);
     }
 
@@ -52,9 +55,9 @@ public class TestTask extends AbstractTask {
      */
     @Override
     public void run() {
-        if (this.delay > 0) {
-            logger.warn("Test with " + argRule + ":" + argTransfer +
-                    " and " + session);
+        if (delay > 0) {
+            logger.warn("Test with " + argRule + ":" + argTransfer + " and " +
+                    session);
         }
         futureCompletion.setSuccess();
     }

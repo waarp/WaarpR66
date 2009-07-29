@@ -5,7 +5,7 @@ package openr66.protocol.exception;
 
 /**
  * Protocol exception due to a network error
- *
+ * 
  * @author frederic bregier
  */
 public class OpenR66ProtocolNetworkException extends OpenR66Exception {

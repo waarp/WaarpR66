@@ -9,7 +9,7 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 
 /**
- * Error Message class for packet
+ * Connection Error Message class for packet
  *
  * 3 strings: sheader,smiddle,send
  *

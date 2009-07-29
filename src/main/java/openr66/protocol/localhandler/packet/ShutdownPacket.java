@@ -9,7 +9,7 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 
 /**
- * Error Message class for packet
+ * Shutdown Message class for packet
  *
  * 1 string: spassword(or key)
  *

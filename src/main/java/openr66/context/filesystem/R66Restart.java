@@ -20,12 +20,14 @@
  */
 package openr66.context.filesystem;
 
-import openr66.context.R66Session;
 import goldengate.common.command.exception.CommandAbstractException;
 import goldengate.common.command.exception.Reply502Exception;
 import goldengate.common.file.filesystembased.FilesystemBasedRestartImpl;
+import openr66.context.R66Session;
 
 /**
+ * Restart implementation
+ *
  * @author frederic bregier
  *
  */

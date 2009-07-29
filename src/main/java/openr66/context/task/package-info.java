@@ -1,5 +1,5 @@
 /**
- * Classes implementing Task code
+ * Classes implementing Tasks for pre, post or error operations
  *
  * @apiviz.landmark
  */

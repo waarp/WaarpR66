@@ -40,6 +40,10 @@ import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.PumpStreamHandler;
 
 /**
+ * Execute an external command and Rename the file (using the new name from the result).
+ *
+ * The move of the file (if any) should be done by the external command itself.
+ *
  * @author Frederic Bregier
  *
  */
@@ -56,7 +60,8 @@ public class ExecRenameTask extends AbstractTask {
      * @param argTransfer
      * @param session
      */
-    public ExecRenameTask(String argRule, int delay, String argTransfer, R66Session session) {
+    public ExecRenameTask(String argRule, int delay, String argTransfer,
+            R66Session session) {
         super(TaskType.EXECRENAME, delay, argRule, argTransfer, session);
     }
 
@@ -76,11 +81,10 @@ public class ExecRenameTask extends AbstractTask {
          * previous file should be deleted by the script or will be deleted in
          * case of status 0. If the status is 1, no change is made to the file.
          */
-        logger.info("ExecRename with " + argRule + ":" + argTransfer +
-                " and " + session);
+        logger.info("ExecRename with " + argRule + ":" + argTransfer + " and " +
+                session);
         String finalname = argRule;
-        finalname = getReplacedValue(finalname, argTransfer
-                .split(" "));
+        finalname = getReplacedValue(finalname, argTransfer.split(" "));
         String[] args = finalname.split(" ");
         CommandLine commandLine = new CommandLine(args[0]);
         for (int i = 1; i < args.length; i ++) {
@@ -108,8 +112,8 @@ public class ExecRenameTask extends AbstractTask {
                 0, 1 };
         defaultExecutor.setExitValues(correctValues);
         ExecuteWatchdog watchdog = null;
-        if (this.delay > 0) {
-            watchdog = new ExecuteWatchdog(this.delay);
+        if (delay > 0) {
+            watchdog = new ExecuteWatchdog(delay);
             defaultExecutor.setWatchdog(watchdog);
         }
         LastLineReader lastLineReader = new LastLineReader(inputStream);
@@ -161,8 +165,8 @@ public class ExecRenameTask extends AbstractTask {
         }
         pumpStreamHandler.stop();
         try {
-            if (this.delay > 0) {
-                thread.join(this.delay);
+            if (delay > 0) {
+                thread.join(delay);
             } else {
                 thread.join(Configuration.configuration.TIMEOUTCON);
             }
@@ -173,7 +177,8 @@ public class ExecRenameTask extends AbstractTask {
         } catch (IOException e1) {
         }
         String newname = null;
-        if (defaultExecutor.isFailure(status) && watchdog != null && watchdog.killedProcess()) {
+        if (defaultExecutor.isFailure(status) && watchdog != null &&
+                watchdog.killedProcess()) {
             // kill by the watchdoc (time out)
             status = -1;
             newname = "TimeOut";
@@ -219,7 +224,7 @@ public class ExecRenameTask extends AbstractTask {
         } else if (status == 1) {
             logger.warn("Exec in warning with " + commandLine.toString() +
                     " returns " + newname);
-            this.session.getRunner().setExecutionStatus(TaskStatus.WARNING);
+            session.getRunner().setExecutionStatus(TaskStatus.WARNING);
             futureCompletion.setSuccess();
         } else {
             logger.error("Status: " + status + " Exec in error with " +

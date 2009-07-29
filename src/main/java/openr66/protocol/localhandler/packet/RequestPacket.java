@@ -11,10 +11,10 @@ import org.jboss.netty.buffer.ChannelBuffers;
 
 /**
  * Request class
- *
+ * 
  * header = "rulename MODE" middle = way+"FILENAME BLOCKSIZE RANK specialId" end
  * = "fileInformation"
- *
+ * 
  * @author frederic bregier
  */
 public class RequestPacket extends AbstractLocalPacket {
@@ -143,7 +143,7 @@ public class RequestPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createEnd()
      */
     @Override
@@ -155,7 +155,7 @@ public class RequestPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see
      * openr66.protocol.localhandler.packet.AbstractLocalPacket#createHeader()
      */
@@ -170,7 +170,7 @@ public class RequestPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see
      * openr66.protocol.localhandler.packet.AbstractLocalPacket#createMiddle()
      */
@@ -194,7 +194,7 @@ public class RequestPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
      */
     @Override
@@ -224,14 +224,15 @@ public class RequestPacket extends AbstractLocalPacket {
     public int getMode() {
         return mode;
     }
+
     /**
-     *
+     * 
      * @return True if this packet concerns a Retrieve operation
      */
     public boolean isRetrieve() {
-        return (mode == RECVMD5MODE) ||
-            (mode == RECVMODE);
+        return mode == RECVMD5MODE || mode == RECVMODE;
     }
+
     /**
      * @return the fileInformation
      */

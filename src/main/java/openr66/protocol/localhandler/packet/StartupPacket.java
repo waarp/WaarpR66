@@ -10,9 +10,9 @@ import org.jboss.netty.buffer.ChannelBuffers;
 
 /**
  * Startup Message class
- *
+ * 
  * 1 localId (Integer): localId
- *
+ * 
  * @author frederic bregier
  */
 public class StartupPacket extends AbstractLocalPacket {
@@ -40,7 +40,7 @@ public class StartupPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createEnd()
      */
     @Override
@@ -50,7 +50,7 @@ public class StartupPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see
      * openr66.protocol.localhandler.packet.AbstractLocalPacket#createHeader()
      */
@@ -62,7 +62,7 @@ public class StartupPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see
      * openr66.protocol.localhandler.packet.AbstractLocalPacket#createMiddle()
      */
@@ -73,7 +73,7 @@ public class StartupPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
      */
     @Override

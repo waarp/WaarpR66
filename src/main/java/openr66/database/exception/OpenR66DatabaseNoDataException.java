@@ -21,6 +21,7 @@
 package openr66.database.exception;
 
 /**
+ * Database no data exception
  * @author Frederic Bregier
  *
  */

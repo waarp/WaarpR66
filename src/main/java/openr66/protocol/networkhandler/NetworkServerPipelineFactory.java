@@ -24,6 +24,7 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.handler.execution.ExecutionHandler;
 
 /**
+ * NetworkServer pipeline
  * @author Frederic Bregier
  */
 public class NetworkServerPipelineFactory implements ChannelPipelineFactory {

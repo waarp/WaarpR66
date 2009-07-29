@@ -7,7 +7,7 @@ import openr66.protocol.exception.OpenR66Exception;
 
 /**
  * Runner exception
- *
+ * 
  * @author frederic bregier
  */
 public class OpenR66RunnerException extends OpenR66Exception {

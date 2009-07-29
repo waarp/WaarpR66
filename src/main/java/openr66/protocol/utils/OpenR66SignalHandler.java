@@ -34,7 +34,7 @@ import sun.misc.SignalHandler;
 
 /**
  * Signal Handler to allow trapping signals.
- *
+ * 
  * @author Frederic Bregier
  */
 @SuppressWarnings("restriction")
@@ -52,8 +52,7 @@ public class OpenR66SignalHandler implements SignalHandler {
     /**
      * List all Connection to enable the close call on them
      */
-    private static ConcurrentLinkedQueue<Connection> listConnection =
-        new ConcurrentLinkedQueue<Connection>();
+    private static ConcurrentLinkedQueue<Connection> listConnection = new ConcurrentLinkedQueue<Connection>();
 
     /**
      * Previous Handler
@@ -62,7 +61,7 @@ public class OpenR66SignalHandler implements SignalHandler {
 
     /**
      * Says if the Process is currently in shutdown
-     *
+     * 
      * @return True if already in shutdown
      */
     public static boolean isInShutdown() {
@@ -72,7 +71,7 @@ public class OpenR66SignalHandler implements SignalHandler {
     /**
      * This function is the top function to be called when the process is to be
      * shutdown.
-     *
+     * 
      * @param immediate
      */
     public static void terminate(boolean immediate) {
@@ -84,7 +83,7 @@ public class OpenR66SignalHandler implements SignalHandler {
 
     /**
      * Finalize resources attached to handlers
-     *
+     * 
      * @author Frederic Bregier
      */
     private static class R66TimerTask extends TimerTask {
@@ -106,7 +105,7 @@ public class OpenR66SignalHandler implements SignalHandler {
 
         /**
          * Constructor from type
-         *
+         * 
          * @param type
          */
         public R66TimerTask(int type) {
@@ -115,11 +114,12 @@ public class OpenR66SignalHandler implements SignalHandler {
         }
 
         private void printStackTrace(Thread thread, StackTraceElement[] stacks) {
-            logger.warn(thread.toString()+" : {}", stacks);
+            logger.warn(thread.toString() + " : {}", stacks);
         }
+
         /*
          * (non-Javadoc)
-         *
+         * 
          * @see java.util.TimerTask#run()
          */
         @Override
@@ -127,8 +127,9 @@ public class OpenR66SignalHandler implements SignalHandler {
             switch (type) {
                 case TIMER_EXIT:
                     logger.error("System will force EXIT");
-                    Map<Thread, StackTraceElement[]> map = Thread.getAllStackTraces();
-                    for (Thread thread : map.keySet()) {
+                    Map<Thread, StackTraceElement[]> map = Thread
+                            .getAllStackTraces();
+                    for (Thread thread: map.keySet()) {
                         printStackTrace(thread, map.get(thread));
                     }
                     System.exit(1);
@@ -183,7 +184,7 @@ public class OpenR66SignalHandler implements SignalHandler {
 
     /**
      * Handle signal
-     *
+     * 
      * @param signal
      */
     public void handle(Signal signal) {
@@ -200,19 +201,22 @@ public class OpenR66SignalHandler implements SignalHandler {
 
     /**
      * Add a Connection into the list
-     *
+     * 
      * @param conn
      */
     public static void addConnection(Connection conn) {
-            listConnection.add(conn);
+        listConnection.add(conn);
     }
+
     /**
      * Remove a Connection from the list
+     * 
      * @param conn
      */
     public static void removeConnection(Connection conn) {
-            listConnection.remove(conn);
+        listConnection.remove(conn);
     }
+
     /**
      * Close all database connections
      */
@@ -221,7 +225,8 @@ public class OpenR66SignalHandler implements SignalHandler {
         while (con != null) {
             try {
                 con.close();
-            } catch (SQLException e) {}
+            } catch (SQLException e) {
+            }
             con = listConnection.poll();
         }
     }

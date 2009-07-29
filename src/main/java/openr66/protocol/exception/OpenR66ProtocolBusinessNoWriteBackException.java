@@ -4,7 +4,7 @@
 package openr66.protocol.exception;
 
 /**
- * Protocol exception on Business part
+ * Protocol exception on Business part without any write back action
  *
  * @author frederic bregier
  */

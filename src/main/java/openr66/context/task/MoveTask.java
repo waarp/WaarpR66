@@ -27,6 +27,8 @@ import openr66.context.R66Session;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 
 /**
+ * Move the file (without renaming it)
+ *
  * @author Frederic Bregier
  *
  */
@@ -43,7 +45,8 @@ public class MoveTask extends AbstractTask {
      * @param argTransfer
      * @param session
      */
-    public MoveTask(String argRule, int delay, String argTransfer, R66Session session) {
+    public MoveTask(String argRule, int delay, String argTransfer,
+            R66Session session) {
         super(TaskType.MOVE, delay, argRule, argTransfer, session);
     }
 
@@ -54,8 +57,8 @@ public class MoveTask extends AbstractTask {
      */
     @Override
     public void run() {
-        logger.info("Move with " + argRule + ":" + argTransfer +
-                " and " + session);
+        logger.info("Move with " + argRule + ":" + argTransfer + " and " +
+                session);
         boolean success = false;
         try {
             success = session.getFile().renameTo(
@@ -63,10 +66,9 @@ public class MoveTask extends AbstractTask {
                             session.getDir().getFinalUniqueFilename(
                                     session.getFile()), true);
         } catch (CommandAbstractException e) {
-            logger.error("Move with " + argRule + ":" + argTransfer +
-                    " and " + session, e);
-            futureCompletion
-                    .setFailure(new OpenR66ProtocolSystemException(e));
+            logger.error("Move with " + argRule + ":" + argTransfer + " and " +
+                    session, e);
+            futureCompletion.setFailure(new OpenR66ProtocolSystemException(e));
             return;
         }
         session.getRunner().setFileMoved(success);
@@ -75,9 +77,8 @@ public class MoveTask extends AbstractTask {
         } else {
             logger.error("Cannot Move with " + argRule + ":" + argTransfer +
                     " and " + session);
-            futureCompletion
-                    .setFailure(new OpenR66ProtocolSystemException(
-                            "Cannot move file"));
+            futureCompletion.setFailure(new OpenR66ProtocolSystemException(
+                    "Cannot move file"));
         }
     }
 

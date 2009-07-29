@@ -21,14 +21,16 @@
 package openr66.protocol.utils;
 
 import goldengate.common.future.GgFuture;
+import openr66.context.R66Result;
 
 /**
+ * Future implementation
  * @author Frederic Bregier
  *
  */
 public class R66Future extends GgFuture {
 
-    private Object result = null;
+    private R66Result result = null;
 
     /**
      *
@@ -46,7 +48,7 @@ public class R66Future extends GgFuture {
     /**
      * @return the result
      */
-    public Object getResult() {
+    public R66Result getResult() {
         return result;
     }
 
@@ -54,19 +56,14 @@ public class R66Future extends GgFuture {
      * @param result
      *            the result to set
      */
-    public void setResult(Object result) {
+    public void setResult(R66Result result) {
         this.result = result;
     }
 
     @Override
     public String toString() {
-        return "Future: " +
-                isDone() +
-                " " +
-                isSuccess() +
-                " " +
-                (getCause() != null? getCause().getMessage()
-                        : "no cause") + " " +
-                (result != null? result.toString() : "no result");
+        return "Future: " + isDone() + " " + isSuccess() + " " +
+                (getCause() != null? getCause().getMessage() : "no cause") +
+                " " + (result != null? result.toString() : "no result");
     }
 }

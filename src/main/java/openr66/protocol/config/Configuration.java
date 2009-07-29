@@ -155,7 +155,6 @@ public class Configuration {
     /**
      * Base Directory
      */
-    // FIXME TODO
     public String baseDirectory;
 
     /**

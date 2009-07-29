@@ -9,7 +9,7 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 
 /**
- * Request class
+ * End of Transfer class
  *
  * header = "request" middle = way end = empty
  *
@@ -81,7 +81,8 @@ public class EndTransferPacket extends AbstractLocalPacket {
      */
     @Override
     public void createHeader() {
-        byte []newbytes = {request};
+        byte[] newbytes = {
+            request };
         header = ChannelBuffers.wrappedBuffer(newbytes);
     }
 
@@ -93,7 +94,8 @@ public class EndTransferPacket extends AbstractLocalPacket {
      */
     @Override
     public void createMiddle() {
-        byte []newbytes = {way};
+        byte[] newbytes = {
+            way };
         middle = ChannelBuffers.wrappedBuffer(newbytes);
     }
 

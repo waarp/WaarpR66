@@ -1,5 +1,5 @@
 /**
- * Classes implementing Session and Rules
+ * Classes implementing Session, Result and ErrorCode
  *
  * @apiviz.landmark
  */

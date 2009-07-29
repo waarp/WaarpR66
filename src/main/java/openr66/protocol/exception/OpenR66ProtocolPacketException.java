@@ -5,7 +5,7 @@ package openr66.protocol.exception;
 
 /**
  * Protocol exception on Packet
- *
+ * 
  * @author frederic bregier
  */
 public class OpenR66ProtocolPacketException extends OpenR66Exception {

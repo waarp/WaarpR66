@@ -23,14 +23,23 @@ package openr66.protocol.networkhandler;
 import org.jboss.netty.channel.Channel;
 
 /**
+ * NetworkChannel object to keep channel open with local channels
+ *
  * @author Frederic Bregier
  *
  */
 public class NetworkChannel {
+    /**
+     * Number of active Local Channel referencing this Network Channel
+     */
     public volatile int count = 1;
-
+    /**
+     * Does this Network Channel is in shutdown
+     */
     public volatile boolean isShuttingDown = false;
-
+    /**
+     * Network Channel
+     */
     public Channel channel;
 
     public NetworkChannel(Channel channel) {

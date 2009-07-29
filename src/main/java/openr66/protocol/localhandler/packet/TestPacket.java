@@ -10,9 +10,9 @@ import org.jboss.netty.buffer.ChannelBuffers;
 
 /**
  * Test class for packet
- *
+ * 
  * 3 strings: sheader,smiddle,send
- *
+ * 
  * @author frederic bregier
  */
 public class TestPacket extends AbstractLocalPacket {
@@ -46,7 +46,7 @@ public class TestPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createEnd()
      */
     @Override
@@ -57,7 +57,7 @@ public class TestPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see
      * openr66.protocol.localhandler.packet.AbstractLocalPacket#createHeader()
      */
@@ -68,7 +68,7 @@ public class TestPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see
      * openr66.protocol.localhandler.packet.AbstractLocalPacket#createMiddle()
      */
@@ -87,7 +87,7 @@ public class TestPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
      */
     @Override

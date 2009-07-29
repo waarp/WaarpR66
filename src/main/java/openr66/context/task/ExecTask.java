@@ -34,6 +34,8 @@ import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.PumpStreamHandler;
 
 /**
+ * Execute an external command
+ *
  * @author Frederic Bregier
  *
  */
@@ -50,7 +52,8 @@ public class ExecTask extends AbstractTask {
      * @param argTransfer
      * @param session
      */
-    public ExecTask(String argRule, int delay, String argTransfer, R66Session session) {
+    public ExecTask(String argRule, int delay, String argTransfer,
+            R66Session session) {
         super(TaskType.EXEC, delay, argRule, argTransfer, session);
     }
 
@@ -68,11 +71,10 @@ public class ExecTask extends AbstractTask {
          * if OK, else 1 for a warning else as an error No change should be done
          * in the FILENAME
          */
-        logger.info("Exec with " + argRule + ":" + argTransfer +
-                " and " + session);
+        logger.info("Exec with " + argRule + ":" + argTransfer + " and " +
+                session);
         String finalname = argRule;
-        finalname = getReplacedValue(finalname, argTransfer
-                .split(" "));
+        finalname = getReplacedValue(finalname, argTransfer.split(" "));
         String[] args = finalname.split(" ");
         CommandLine commandLine = new CommandLine(args[0]);
         for (int i = 1; i < args.length; i ++) {
@@ -85,8 +87,8 @@ public class ExecTask extends AbstractTask {
                 0, 1 };
         defaultExecutor.setExitValues(correctValues);
         ExecuteWatchdog watchdog = null;
-        if (this.delay > 0) {
-            watchdog = new ExecuteWatchdog(this.delay);
+        if (delay > 0) {
+            watchdog = new ExecuteWatchdog(delay);
             defaultExecutor.setWatchdog(watchdog);
         }
         int status = -1;
@@ -106,7 +108,8 @@ public class ExecTask extends AbstractTask {
             return;
         }
         pumpStreamHandler.stop();
-        if (defaultExecutor.isFailure(status) && watchdog != null && watchdog.killedProcess()) {
+        if (defaultExecutor.isFailure(status) && watchdog != null &&
+                watchdog.killedProcess()) {
             // kill by the watchdoc (time out)
             logger.error("Exec is in Time Out");
             status = -1;

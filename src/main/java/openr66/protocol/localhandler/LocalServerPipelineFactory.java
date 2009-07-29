@@ -25,7 +25,7 @@ import org.jboss.netty.handler.execution.ExecutionHandler;
 
 /**
  * Pipeline Factory for Local Server
- *
+ * 
  * @author Frederic Bregier
  */
 public class LocalServerPipelineFactory implements ChannelPipelineFactory {

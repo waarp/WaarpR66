@@ -27,7 +27,7 @@ import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.codec.frame.FrameDecoder;
 
 /**
- * Packet Decoder
+ * Local Packet Decoder
  *
  * @author Frederic Bregier
  */

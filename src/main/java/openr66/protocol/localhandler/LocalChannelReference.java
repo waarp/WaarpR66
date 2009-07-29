@@ -17,9 +17,11 @@ package openr66.protocol.localhandler;
 
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+import openr66.context.R66ErrorCode;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
 import openr66.protocol.config.Configuration;
+import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.networkhandler.NetworkServerHandler;
 import openr66.protocol.utils.R66Future;
 
@@ -38,22 +40,49 @@ public class LocalChannelReference {
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(LocalChannelReference.class);
 
+    /**
+     * Local Channel
+     */
     private final Channel localChannel;
-
+    /**
+     * Network Channel
+     */
     private final Channel networkChannel;
-
+    /**
+     * Network Server Handler
+     */
     private final NetworkServerHandler networkServerHandler;
-
+    /**
+     * Local Id
+     */
     private final Integer localId;
-
+    /**
+     * Remote Id
+     */
     private Integer remoteId;
-
-    private final R66Future futureAction = new R66Future(true);
-
-    private final R66Future futureValidate = new R66Future(true);
-
+    /**
+     * Future on Request
+     */
+    private final R66Future futureRequest = new R66Future(true);
+    /**
+     * Future on Transfer
+     */
+    private final R66Future futureEndTransfer = new R66Future(true);
+    /**
+     * Future on Connection
+     */
+    private final R66Future futureConnection = new R66Future(true);
+    /**
+     * Session
+     */
     private R66Session session;
 
+    /**
+     *
+     * @param localChannel
+     * @param networkChannel
+     * @param remoteId
+     */
     public LocalChannelReference(Channel localChannel, Channel networkChannel,
             Integer remoteId) {
         this.localChannel = localChannel;
@@ -115,7 +144,8 @@ public class LocalChannelReference {
     }
 
     /**
-     * @param session the session to set
+     * @param session
+     *            the session to set
      */
     public void setSession(R66Session session) {
         this.session = session;
@@ -126,60 +156,110 @@ public class LocalChannelReference {
      *
      * @param validate
      */
-    public void validateConnection(boolean validate, Object result) {
-        if (futureValidate.isDone()) {
+    public void validateConnection(boolean validate, R66Result result) {
+        if (futureConnection.isDone()) {
             logger.info("LocalChannelReference already validated: " +
-                    futureValidate.isSuccess());
+                    futureConnection.isSuccess());
             return;
         }
         logger.info("LocalChannelReference validate: " + validate);
         if (validate) {
-            futureValidate.setResult(result);
-            futureValidate.setSuccess();
+            futureConnection.setResult(result);
+            futureConnection.setSuccess();
         } else {
-            futureValidate.setResult(result);
-            futureValidate.cancel();
+            futureConnection.setResult(result);
+            futureConnection.cancel();
         }
     }
 
     /**
      *
-     * @return the futureAction
+     * @return the futureValidateConnection
      */
     public R66Future getFutureValidateConnection() {
-        if (!futureValidate
+        if (!futureConnection
                 .awaitUninterruptibly(Configuration.WAITFORNETOP * 2)) {
-            validateConnection(false, "Out of time");
-            return futureValidate;
+            R66Result result = new R66Result(
+                    new OpenR66ProtocolNoConnectionException("Out of time"),
+                    session, false, R66ErrorCode.ConnectionImpossible);
+            validateConnection(false, result);
+            return futureConnection;
         }
-        return futureValidate;
+        return futureConnection;
     }
 
     /**
-     * @return the futureAction
+     * Invalidate the current request
+     *
+     * @param finalValue
      */
-    public R66Future getFutureAction() {
-        return futureAction;
-    }
-
-    public void validateAction(boolean status, R66Result finalValue) {
-        if (!futureAction.isDone()) {
-            if (status) {
-                // FIXME finalize necessary objects
-                futureAction.setResult(finalValue);
-                futureAction.setSuccess();
+    public void invalidateRequest(R66Result finalValue) {
+        if (!futureEndTransfer.isDone()) {
+            futureEndTransfer.setResult(finalValue);
+            if (finalValue.exception != null) {
+                futureEndTransfer.setFailure(finalValue.exception);
             } else {
-                // FIXME finalize necessary objects
-                futureAction.setResult(finalValue);
-                if (finalValue.exception != null) {
-                    futureAction.setFailure(finalValue.exception);
-                } else {
-                    futureAction.cancel();
-                }
+                futureEndTransfer.cancel();
+            }
+        }
+        if (!futureRequest.isDone()) {
+            futureRequest.setResult(finalValue);
+            if (finalValue.exception != null) {
+                futureRequest.setFailure(finalValue.exception);
+            } else {
+                futureRequest.cancel();
             }
         } else {
-            if (!((R66Result) futureAction.getResult()).isAnswered) {
-                ((R66Result) futureAction.getResult()).isAnswered = finalValue.isAnswered;
+            logger.warn("Already finished: " + futureEndTransfer.getResult());
+        }
+    }
+    /**
+     * Validate the End of a Transfer
+     * @param finalValue
+     */
+    public void validateEndTransfer(R66Result finalValue) {
+        if (!futureEndTransfer.isDone()) {
+            futureEndTransfer.setResult(finalValue);
+            futureEndTransfer.setSuccess();
+        } else {
+            logger.warn("Already validated: " + futureEndTransfer.isSuccess() +
+                    " " + finalValue);
+            if (!futureEndTransfer.getResult().isAnswered) {
+                futureEndTransfer.getResult().isAnswered = finalValue.isAnswered;
+            }
+        }
+    }
+
+    /**
+     * @return the futureEndTransfer
+     */
+    public R66Future getFutureEndTransfer() {
+        return futureEndTransfer;
+    }
+
+    /**
+     * @return the futureRequest
+     */
+    public R66Future getFutureRequest() {
+        return futureRequest;
+    }
+    /**
+     * Validate the current Request
+     * @param finalValue
+     */
+    public void validateRequest(R66Result finalValue) {
+        if (!futureEndTransfer.isDone()) {
+            logger.warn("Will validate EndTransfer");
+            validateEndTransfer(finalValue);
+        }
+        if (!futureRequest.isDone()) {
+            futureRequest.setResult(finalValue);
+            futureRequest.setSuccess();
+        } else {
+            logger.warn("Already validated: " + futureRequest.isSuccess() +
+                    " " + finalValue);
+            if (!futureRequest.getResult().isAnswered) {
+                futureRequest.getResult().isAnswered = finalValue.isAnswered;
             }
         }
     }

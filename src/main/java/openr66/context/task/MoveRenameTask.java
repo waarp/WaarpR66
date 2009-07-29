@@ -27,6 +27,8 @@ import openr66.context.R66Session;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 
 /**
+ * Move and Rename the current file
+ *
  * @author Frederic Bregier
  *
  */
@@ -43,7 +45,8 @@ public class MoveRenameTask extends AbstractTask {
      * @param argTransfer
      * @param session
      */
-    public MoveRenameTask(String argRule, int delay, String argTransfer, R66Session session) {
+    public MoveRenameTask(String argRule, int delay, String argTransfer,
+            R66Session session) {
         super(TaskType.MOVERENAME, delay, argRule, argTransfer, session);
     }
 
@@ -55,24 +58,16 @@ public class MoveRenameTask extends AbstractTask {
     @Override
     public void run() {
         boolean success = false;
-        /*
-         * MOVE avec options dans argRule : "CHAINE de caracteres" qui se
-         * verront appliquer : - TRUEFILENAME -> current FILENAME (retrieve) -
-         * DATE -> AAAAMMJJ - HOUR -> HHMMSS - puis %s qui sera remplace par les
-         * arguments du transfer (transfer information)
-         */
         String finalname = argRule;
-        finalname = getReplacedValue(finalname, argTransfer
-                .split(" "));
-        logger.info("Move and Rename to " + finalname + " with " +
-                argRule + ":" + argTransfer + " and " + session);
+        finalname = getReplacedValue(finalname, argTransfer.split(" "));
+        logger.info("Move and Rename to " + finalname + " with " + argRule +
+                ":" + argTransfer + " and " + session);
         try {
             success = session.getFile().renameTo(finalname, true);
         } catch (CommandAbstractException e) {
             logger.error("Move and Rename to " + finalname + " with " +
                     argRule + ":" + argTransfer + " and " + session, e);
-            futureCompletion
-                    .setFailure(new OpenR66ProtocolSystemException(e));
+            futureCompletion.setFailure(new OpenR66ProtocolSystemException(e));
             return;
         }
         session.getRunner().setFileMoved(success);
@@ -81,9 +76,8 @@ public class MoveRenameTask extends AbstractTask {
         } else {
             logger.error("Cannot Move and Rename to " + finalname + " with " +
                     argRule + ":" + argTransfer + " and " + session);
-            futureCompletion
-                    .setFailure(new OpenR66ProtocolSystemException(
-                            "Cannot move file"));
+            futureCompletion.setFailure(new OpenR66ProtocolSystemException(
+                    "Cannot move file"));
         }
     }
 

@@ -15,7 +15,7 @@ import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.config.Configuration;
 
 /**
- * Class for Admin through Database
+ * Class for access to Database
  *
  * @author Frederic Bregier LGPL
  *
@@ -26,7 +26,11 @@ public class DbAdmin {
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(DbAdmin.class);
-
+    /**
+     * Type of Database supported
+     * @author Frederic Bregier
+     *
+     */
     public static enum DatabaseType {
         Oracle, MySQL, PostGreSQL, H2;
     }
@@ -83,7 +87,8 @@ public class DbAdmin {
      * @param typeDriver
      * @throws OpenR66DatabaseNoConnectionError
      */
-    public static void initialize(DatabaseType typeDriver) throws OpenR66DatabaseNoConnectionError {
+    public static void initialize(DatabaseType typeDriver)
+            throws OpenR66DatabaseNoConnectionError {
         if (classLoaded) {
             return;
         }
@@ -99,20 +104,21 @@ public class DbAdmin {
                 default:
                     logger.error("Cannot load database drive:" +
                             typeDriver.name());
-                    throw new OpenR66DatabaseNoConnectionError("Cannot load database drive:" +
-                            typeDriver.name());
+                    throw new OpenR66DatabaseNoConnectionError(
+                            "Cannot load database drive:" + typeDriver.name());
             }
             classLoaded = true;
         } catch (SQLException e) {
             // SQLException
             logger.error("Cannot register Driver " + typeDriver.name(), e);
-            throw new OpenR66DatabaseNoConnectionError("Cannot load database drive:" +
-                    typeDriver.name(), e);
+            throw new OpenR66DatabaseNoConnectionError(
+                    "Cannot load database drive:" + typeDriver.name(), e);
         }
     }
 
     /**
      * Validate connection
+     *
      * @throws OpenR66DatabaseNoConnectionError
      */
     public void validConnection() throws OpenR66DatabaseNoConnectionError {
@@ -124,12 +130,14 @@ public class DbAdmin {
                 if (!request.getNext()) {
                     isConnected = false;
                     logger.error("Cannot connect to Database!");
-                    throw new OpenR66DatabaseNoConnectionError("Cannot connect to database");
+                    throw new OpenR66DatabaseNoConnectionError(
+                            "Cannot connect to database");
                 }
             } catch (OpenR66DatabaseSqlError e) {
                 isConnected = false;
                 logger.error("Cannot connect to Database!");
-                throw new OpenR66DatabaseNoConnectionError("Cannot connect to database", e);
+                throw new OpenR66DatabaseNoConnectionError(
+                        "Cannot connect to database", e);
             }
             request.close();
         } else {
@@ -139,29 +147,31 @@ public class DbAdmin {
                 if (!request.getNext()) {
                     isConnected = false;
                     logger.error("Cannot connect to Database!");
-                    throw new OpenR66DatabaseNoConnectionError("Cannot connect to database");
+                    throw new OpenR66DatabaseNoConnectionError(
+                            "Cannot connect to database");
                 }
             } catch (OpenR66DatabaseSqlError e) {
                 isConnected = false;
                 logger.error("Cannot connect to Database!");
-                throw new OpenR66DatabaseNoConnectionError("Cannot connect to database", e);
+                throw new OpenR66DatabaseNoConnectionError(
+                        "Cannot connect to database", e);
             }
             request.close();
         }
 
     }
+
     /**
-     * Use a default server for basic connection. Later on, specific connection to
-     * database for the scheme that provides access to the table R66DbIndex for
-     * one specific Legacy could be done.
+     * Use a default server for basic connection. Later on, specific connection
+     * to database for the scheme that provides access to the table R66DbIndex
+     * for one specific Legacy could be done.
      *
      * A this time, only one driver is possible! If a new driver is needed, then
      * we need to create a new DbSession object. Be aware that
-     * DbSession.initialize should be call only once for each driver,
-     * whatever the number of DbSession objects that could be created (=>
-     * need a hashtable for specific driver when created). Also, don't know if
-     * two drivers at the same time (two different DbSession) is allowed by
-     * JDBC.
+     * DbSession.initialize should be call only once for each driver, whatever
+     * the number of DbSession objects that could be created (=> need a
+     * hashtable for specific driver when created). Also, don't know if two
+     * drivers at the same time (two different DbSession) is allowed by JDBC.
      *
      * @param driver
      * @param server
@@ -169,7 +179,8 @@ public class DbAdmin {
      * @param passwd
      * @throws OpenR66DatabaseNoConnectionError
      */
-    public DbAdmin(String driver, String server, String user, String passwd) throws OpenR66DatabaseNoConnectionError {
+    public DbAdmin(String driver, String server, String user, String passwd)
+            throws OpenR66DatabaseNoConnectionError {
         this.server = server;
         this.user = user;
         this.passwd = passwd;
@@ -183,12 +194,10 @@ public class DbAdmin {
             typeDriver = DatabaseType.H2;
         } else {
             logger.error("Cannot find TypeDriver:" + driver);
-            throw new OpenR66DatabaseNoConnectionError("Cannot find database drive:" +
-                    driver);
+            throw new OpenR66DatabaseNoConnectionError(
+                    "Cannot find database drive:" + driver);
         }
-        // R66Constants.logger.warn("XXXTYPE:"+R66Constants.typeDriver+":"+driver);
         DbAdmin.initialize(typeDriver);
-        // "jdbc:h2:~/r66;IFEXISTS=TRUE;IGNORECASE=TRUE";
         session = new DbSession(this.server, this.user, this.passwd, false);
         isReadOnly = false;
         validConnection();
@@ -196,17 +205,16 @@ public class DbAdmin {
     }
 
     /**
-     * Use a default server for basic connection. Later on, specific connection to
-     * database for the scheme that provides access to the table R66DbIndex for
-     * one specific Legacy could be done.
+     * Use a default server for basic connection. Later on, specific connection
+     * to database for the scheme that provides access to the table R66DbIndex
+     * for one specific Legacy could be done.
      *
      * A this time, only one driver is possible! If a new driver is needed, then
      * we need to create a new DbSession object. Be aware that
-     * DbSession.initialize should be call only once for each driver,
-     * whatever the number of DbSession objects that could be created (=>
-     * need a hashtable for specific driver when created). Also, don't know if
-     * two drivers at the same time (two different DbSession) is allowed by
-     * JDBC.
+     * DbSession.initialize should be call only once for each driver, whatever
+     * the number of DbSession objects that could be created (=> need a
+     * hashtable for specific driver when created). Also, don't know if two
+     * drivers at the same time (two different DbSession) is allowed by JDBC.
      *
      * @param driver
      * @param server
@@ -231,17 +239,17 @@ public class DbAdmin {
             typeDriver = DatabaseType.H2;
         } else {
             logger.error("Cannot find TypeDriver:" + driver);
-            throw new OpenR66DatabaseNoConnectionError("Cannot find database drive:" +
-                    driver);
+            throw new OpenR66DatabaseNoConnectionError(
+                    "Cannot find database drive:" + driver);
         }
         DbAdmin.initialize(typeDriver);
         if (write) {
             for (int i = 0; i < Configuration.RETRYNB; i ++) {
                 try {
-                    session = new DbSession(this.server, this.user, this.passwd,
-                            false);
+                    session = new DbSession(this.server, this.user,
+                            this.passwd, false);
                 } catch (OpenR66DatabaseNoConnectionError e) {
-                    logger.warn("Attempt of connection in error: "+i);
+                    logger.warn("Attempt of connection in error: " + i);
                     continue;
                 }
                 isReadOnly = false;
@@ -251,10 +259,10 @@ public class DbAdmin {
         } else {
             for (int i = 0; i < Configuration.RETRYNB; i ++) {
                 try {
-                    session = new DbSession(this.server, this.user, this.passwd,
-                            true);
+                    session = new DbSession(this.server, this.user,
+                            this.passwd, true);
                 } catch (OpenR66DatabaseNoConnectionError e) {
-                    logger.warn("Attempt of connection in error: "+i);
+                    logger.warn("Attempt of connection in error: " + i);
                     continue;
                 }
                 isReadOnly = true;
@@ -269,17 +277,16 @@ public class DbAdmin {
     }
 
     /**
-     * Use a default server for basic connection. Later on, specific connection to
-     * database for the scheme that provides access to the table R66DbIndex for
-     * one specific Legacy could be done.
+     * Use a default server for basic connection. Later on, specific connection
+     * to database for the scheme that provides access to the table R66DbIndex
+     * for one specific Legacy could be done.
      *
      * A this time, only one driver is possible! If a new driver is needed, then
      * we need to create a new DbSession object. Be aware that
-     * DbSession.initialize should be call only once for each driver,
-     * whatever the number of DbSession objects that could be created (=>
-     * need a hashtable for specific driver when created). Also, don't know if
-     * two drivers at the same time (two different DbSession) is allowed by
-     * JDBC.<BR>
+     * DbSession.initialize should be call only once for each driver, whatever
+     * the number of DbSession objects that could be created (=> need a
+     * hashtable for specific driver when created). Also, don't know if two
+     * drivers at the same time (two different DbSession) is allowed by JDBC.<BR>
      *
      * <B>This version use given connection. typeDriver must be set before !</B>
      *
@@ -287,13 +294,15 @@ public class DbAdmin {
      * @param isread
      * @throws OpenR66DatabaseNoConnectionError
      */
-    public DbAdmin(Connection conn, boolean isread) throws OpenR66DatabaseNoConnectionError {
+    public DbAdmin(Connection conn, boolean isread)
+            throws OpenR66DatabaseNoConnectionError {
         server = null;
         if (conn == null) {
             session = null;
             isConnected = false;
             logger.error("Cannot Get a Connection from Datasource");
-            throw new OpenR66DatabaseNoConnectionError("Cannot Get a Connection from Datasource");
+            throw new OpenR66DatabaseNoConnectionError(
+                    "Cannot Get a Connection from Datasource");
         }
         session = new DbSession(conn, isread);
         isReadOnly = isread;
@@ -303,6 +312,7 @@ public class DbAdmin {
     /**
      * Close the underlying session. Can be call even for connection given from
      * the constructor DbAdmin(Connection, boolean).
+     *
      * @throws OpenR66DatabaseSqlError
      *
      */
@@ -316,11 +326,13 @@ public class DbAdmin {
 
     /**
      * Commit on connection
+     *
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
      *
      */
-    public void commit() throws OpenR66DatabaseSqlError, OpenR66DatabaseNoConnectionError {
+    public void commit() throws OpenR66DatabaseSqlError,
+            OpenR66DatabaseNoConnectionError {
         if (session != null) {
             session.commit();
         }

@@ -36,6 +36,8 @@ import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.LocalChannelReference;
 
 /**
+ * The global object session in OpenR66, a session by local channel
+ *
  * @author frederic bregier
  *
  */
@@ -46,16 +48,29 @@ public class R66Session implements SessionInterface {
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(R66Session.class);
 
+    /**
+     * Block size used during file transfer
+     */
     private int blockSize = Configuration.configuration.BLOCKSIZE;
-
+    /**
+     * The local channel reference
+     */
     private LocalChannelReference localChannelReference;
-
+    /**
+     * Authentication
+     */
     private final R66Auth auth;
-
+    /**
+     * Current directory
+     */
     private final R66Dir dir;
-
+    /**
+     * Current file
+     */
     private R66File file;
-
+    /**
+     * Does this session is Ready to server a request
+     */
     private volatile boolean isReady = false;
 
     /**
@@ -85,11 +100,12 @@ public class R66Session implements SessionInterface {
     @Override
     public void clear() {
         // First check if a transfer was on going
-        if (this.runner != null && (!this.runner.isFinished())) {
-            R66Result result = new R66Result(new OpenR66RunnerErrorException("Close before ending"),
-                    this, true);// True since called from closed
+        if (runner != null && !runner.isFinished()) {
+            R66Result result = new R66Result(new OpenR66RunnerErrorException(
+                    "Close before ending"), this, true,
+                    R66ErrorCode.Disconnection);// True since called from closed
             try {
-                this.setFinalizeTransfer(false, result);
+                setFinalizeTransfer(false, result);
             } catch (OpenR66RunnerErrorException e) {
             } catch (OpenR66ProtocolSystemException e) {
             }
@@ -131,7 +147,7 @@ public class R66Session implements SessionInterface {
 
     /**
      * @param blocksize
-     *            the BLOCKSIZE to set
+     *            the blocksize to set
      */
     public void setBlockSize(int blocksize) {
         blockSize = blocksize;
@@ -187,7 +203,7 @@ public class R66Session implements SessionInterface {
 
     /**
      * @param isReady
-     *            the isReady to set
+     *            the isReady for transfer to set
      */
     public void setReady(boolean isReady) {
         this.isReady = isReady;
@@ -224,7 +240,8 @@ public class R66Session implements SessionInterface {
      *            the runner to set
      * @throws OpenR66RunnerErrorException
      */
-    public void setRunner(DbTaskRunner runner) throws OpenR66RunnerErrorException {
+    public void setRunner(DbTaskRunner runner)
+            throws OpenR66RunnerErrorException {
         this.runner = runner;
         if (this.runner.isRetrieve()) {
             // Change dir
@@ -270,7 +287,8 @@ public class R66Session implements SessionInterface {
             if (runner.getRank() > 0) {
                 // Filename should be get back from runner load from database
                 try {
-                    file = (R66File) dir.setFile(this.runner.getOriginalFilename(), true);
+                    file = (R66File) dir.setFile(this.runner
+                            .getOriginalFilename(), true);
                     if (!file.canWrite()) {
                         throw new OpenR66RunnerErrorException(
                                 "File cannot be write");
@@ -280,7 +298,6 @@ public class R66Session implements SessionInterface {
                 }
             } else {
                 // New FILENAME if necessary and store it
-                // FIXME XXX
                 try {
                     file = dir.setUniqueFile(this.runner.getOriginalFilename());
                     if (!file.canWrite()) {
@@ -304,33 +321,49 @@ public class R66Session implements SessionInterface {
             throw new OpenR66RunnerErrorException(e);
         }
         this.runner.saveStatus();
-        logger.info("Final init: "+this.runner.toString());
+        logger.info("Final init: " + this.runner.toString());
     }
-
+    /**
+     * Finalize the transfer step by running the error or post operation according to the status.
+     *
+     * @param status
+     * @param finalValue
+     * @throws OpenR66RunnerErrorException
+     * @throws OpenR66ProtocolSystemException
+     */
     public void setFinalizeTransfer(boolean status, R66Result finalValue)
             throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException {
+        if (runner == null) {
+            if (status) {
+                localChannelReference.validateRequest(finalValue);
+            } else {
+                localChannelReference.invalidateRequest(finalValue);
+            }
+            return;
+        }
         if (runner.isFinished()) {
-            logger.warn("Transfer already done but "+status+" on " + file,
+            logger.warn("Transfer already done but " + status + " on " + file,
                     new OpenR66RunnerErrorException(finalValue.toString()));
             return;
         }
         int rank = runner.finishTransferTask(status);
         runner.saveStatus();
-        logger.info("Transfer "+status+" on " + file);
-        if (! runner.ready()) {
+        logger.info("Transfer " + status + " on " + file);
+        if (!runner.ready()) {
             // Pre task in error (or even before)
             OpenR66RunnerErrorException runnerErrorException;
-            if ((! status) && (finalValue.exception != null)) {
-                runnerErrorException =
-                    new OpenR66RunnerErrorException("Pre task in error (or even before)",
-                            finalValue.exception);
+            if (!status && finalValue.exception != null) {
+                runnerErrorException = new OpenR66RunnerErrorException(
+                        "Pre task in error (or even before)",
+                        finalValue.exception);
             } else {
-                runnerErrorException =
-                    new OpenR66RunnerErrorException("Pre task in error (or even before)");
+                runnerErrorException = new OpenR66RunnerErrorException(
+                        "Pre task in error (or even before)");
             }
             finalValue.exception = runnerErrorException;
-            logger.warn("Pre task in error (or even before)", runnerErrorException);
-            localChannelReference.validateAction(false, finalValue);
+            logger.warn("Pre task in error (or even before)",
+                    runnerErrorException);
+            localChannelReference.invalidateRequest(finalValue);
             throw runnerErrorException;
         }
         try {
@@ -338,9 +371,10 @@ public class R66Session implements SessionInterface {
         } catch (CommandAbstractException e1) {
             R66Result result = finalValue;
             if (status) {
-                result = new R66Result(new OpenR66RunnerErrorException(e1), this, false);
+                result = new R66Result(new OpenR66RunnerErrorException(e1),
+                        this, false, R66ErrorCode.Internal);
             }
-            localChannelReference.validateAction(false, result);
+            localChannelReference.invalidateRequest(result);
             throw (OpenR66RunnerErrorException) result.exception;
         }
         if (status) {
@@ -351,9 +385,10 @@ public class R66Session implements SessionInterface {
             } catch (OpenR66RunnerErrorException e1) {
                 R66Result result = finalValue;
                 if (status) {
-                    result = new R66Result(e1, this, false);
+                    result = new R66Result(e1, this, false,
+                            R66ErrorCode.ExternalOp);
                 }
-                localChannelReference.validateAction(false, result);
+                localChannelReference.invalidateRequest(result);
                 throw e1;
             }
             runner.saveStatus();
@@ -361,25 +396,26 @@ public class R66Session implements SessionInterface {
                 // Nothing to do
             } else {
                 if (!runner.isFileMoved()) {
-                    String finalpath = dir
-                            .getFinalUniqueFilename(file);
+                    String finalpath = dir.getFinalUniqueFilename(file);
                     logger.info("Will move file " + finalpath);
                     try {
-                        file.renameTo(runner.getRule().setRecvPath(
-                                finalpath));
+                        file.renameTo(runner.getRule().setRecvPath(finalpath));
                     } catch (OpenR66ProtocolSystemException e) {
                         R66Result result = finalValue;
                         if (status) {
-                            result = new R66Result(e, this, false);
+                            result = new R66Result(e, this, false,
+                                    R66ErrorCode.FinalOp);
                         }
-                        localChannelReference.validateAction(false, result);
+                        localChannelReference.invalidateRequest(result);
                         throw e;
                     } catch (CommandAbstractException e) {
                         R66Result result = finalValue;
                         if (status) {
-                            result = new R66Result(new OpenR66RunnerErrorException(e), this, false);
+                            result = new R66Result(
+                                    new OpenR66RunnerErrorException(e), this,
+                                    false, R66ErrorCode.FinalOp);
                         }
-                        localChannelReference.validateAction(false, result);
+                        localChannelReference.invalidateRequest(result);
                         throw (OpenR66RunnerErrorException) result.exception;
                     }
                     logger.info("File finally moved: " + file.toString());
@@ -392,6 +428,7 @@ public class R66Session implements SessionInterface {
             runner.setAllDone();
             runner.saveStatus();
             logger.info("Transfer done on " + file + " at RANK " + rank);
+            localChannelReference.validateEndTransfer(finalValue);
         } else {
             // error
             runner.setErrorTask(0);
@@ -405,12 +442,12 @@ public class R66Session implements SessionInterface {
             try {
                 runner.run();
             } catch (OpenR66RunnerErrorException e1) {
-                localChannelReference.validateAction(false, finalValue);
+                localChannelReference.invalidateRequest(finalValue);
                 throw e1;
             }
             runner.saveStatus();
+            localChannelReference.invalidateRequest(finalValue);
         }
-        localChannelReference.validateAction(status, finalValue);
     }
 
     /**
@@ -428,7 +465,9 @@ public class R66Session implements SessionInterface {
                 (runner != null? runner.toString() : "no Runner");
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see goldengate.common.file.SessionInterface#getUniqueExtension()
      */
     @Override

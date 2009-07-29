@@ -10,9 +10,9 @@ import org.jboss.netty.buffer.ChannelBuffers;
 
 /**
  * Validation Message class for packet
- *
+ * 
  * 2 strings and one byte: sheader,smiddle,send
- *
+ * 
  * @author frederic bregier
  */
 public class ValidPacket extends AbstractLocalPacket {
@@ -57,7 +57,7 @@ public class ValidPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createEnd()
      */
     @Override
@@ -68,7 +68,7 @@ public class ValidPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see
      * openr66.protocol.localhandler.packet.AbstractLocalPacket#createHeader()
      */
@@ -81,7 +81,7 @@ public class ValidPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see
      * openr66.protocol.localhandler.packet.AbstractLocalPacket#createMiddle()
      */
@@ -94,7 +94,7 @@ public class ValidPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
      */
     @Override
@@ -120,14 +120,16 @@ public class ValidPacket extends AbstractLocalPacket {
     public String getSmiddle() {
         return smiddle;
     }
+
     /**
-     *
+     * 
      * @param smiddle
      */
     public void setSmiddle(String smiddle) {
         this.smiddle = smiddle;
-        this.middle = null;
+        middle = null;
     }
+
     /**
      * @return the type
      */

@@ -11,7 +11,7 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 
 /**
- * Request class
+ * Request Authentication class
  *
  * header = "hostId" middle = "key bytes" end = localId + way
  *

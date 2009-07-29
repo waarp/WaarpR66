@@ -5,11 +5,10 @@ package openr66.protocol.exception;
 
 /**
  * Protocol Exception when no connection is possible
- *
+ * 
  * @author frederic bregier
  */
-public class OpenR66ProtocolNoConnectionException extends
-        OpenR66Exception {
+public class OpenR66ProtocolNoConnectionException extends OpenR66Exception {
 
     /**
      *

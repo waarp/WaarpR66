@@ -31,13 +31,14 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
-
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
+
 /**
+ * File Utils
  * @author Frederic Bregier
  *
  */
@@ -66,7 +67,8 @@ public class FileUtils {
                     DirInterface.SEPARATOR + path;
         } else {
             extDir = Configuration.configuration.baseDirectory +
-                    DirInterface.SEPARATOR + base + DirInterface.SEPARATOR + path;
+                    DirInterface.SEPARATOR + base + DirInterface.SEPARATOR +
+                    path;
         }
         return extDir;
     }
@@ -439,6 +441,7 @@ public class FileUtils {
             throw new OpenR66ProtocolSystemException(e);
         }
     }
+
     /**
      *
      * @param buffer
@@ -450,6 +453,7 @@ public class FileUtils {
         byte[] newkey = md5.Final();
         return ChannelBuffers.wrappedBuffer(newkey);
     }
+
     /**
      * Write one fileChannel to another one. Close the fileChannels
      *

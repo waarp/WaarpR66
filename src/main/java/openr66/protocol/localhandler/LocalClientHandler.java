@@ -5,11 +5,12 @@ package openr66.protocol.localhandler;
 
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+import openr66.context.R66ErrorCode;
 import openr66.context.R66Result;
 import openr66.protocol.config.Configuration;
+import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
-import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolShutdownException;
@@ -40,6 +41,9 @@ public class LocalClientHandler extends SimpleChannelHandler {
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(LocalClientHandler.class);
 
+    /**
+     * Local Channel Reference
+     */
     private LocalChannelReference localChannelReference = null;
 
     /*
@@ -71,7 +75,12 @@ public class LocalClientHandler extends SimpleChannelHandler {
                 .info("Local Client Channel Connected: " +
                         e.getChannel().getId());
     }
-
+    /**
+     * Initiate the LocalChannelReference
+     * @param channel
+     * @throws InterruptedException
+     * @throws OpenR66ProtocolNetworkException
+     */
     private void initLocalClientHandler(Channel channel)
             throws InterruptedException, OpenR66ProtocolNetworkException {
         int i = 0;
@@ -150,12 +159,13 @@ public class LocalClientHandler extends SimpleChannelHandler {
                     Channels.close(e.getChannel());
                     return;
                 }
-                if (!localChannelReference.getFutureAction().isDone()) {
-                    localChannelReference.validateAction(false,
-                            new R66Result(exception, null, true));
+                if (!localChannelReference.getFutureRequest().isDone()) {
+                    localChannelReference.invalidateRequest(new R66Result(
+                            exception, null, true, R66ErrorCode.Internal));
                 }
                 final ErrorPacket errorPacket = new ErrorPacket(exception
-                        .getMessage(), null, ErrorPacket.FORWARDCLOSECODE);
+                        .getMessage(),
+                        ""+R66ErrorCode.RemoteError.code, ErrorPacket.FORWARDCLOSECODE);
                 final NetworkPacket networkPacket = new NetworkPacket(
                         localChannelReference.getLocalId(),
                         localChannelReference.getRemoteId(), errorPacket);

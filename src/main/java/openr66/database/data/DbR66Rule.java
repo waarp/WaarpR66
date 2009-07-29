@@ -1,25 +1,26 @@
 /**
- * Copyright 2009, Frederic Bregier, and individual contributors
- * by the @author tags. See the COPYRIGHT.txt in the distribution for a
- * full listing of individual contributors.
+ * Copyright 2009, Frederic Bregier, and individual contributors by the @author
+ * tags. See the COPYRIGHT.txt in the distribution for a full listing of
+ * individual contributors.
  *
- * This is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 3.0 of
- * the License, or (at your option) any later version.
+ * This is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
  *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
+ * This software is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this software; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF
+ * site: http://www.fsf.org.
  */
 package openr66.database.data;
 
+import goldengate.common.file.DirInterface;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
@@ -28,12 +29,6 @@ import java.io.StringReader;
 import java.sql.Types;
 import java.util.List;
 
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.Node;
-import org.dom4j.io.SAXReader;
-
-import openr66.context.filesystem.R66Dir;
 import openr66.database.DbConstant;
 import openr66.database.DbPreparedStatement;
 import openr66.database.exception.OpenR66DatabaseException;
@@ -45,7 +40,13 @@ import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.utils.FileUtils;
 
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.Node;
+import org.dom4j.io.SAXReader;
+
 /**
+ * Rule Table object
  * @author Frederic Bregier
  *
  */
@@ -57,17 +58,25 @@ public class DbR66Rule extends AbstractDbData {
             .getLogger(DbR66Rule.class);
 
     public static enum Columns {
-        HOSTIDS, MODE, RECVPATH, SENDPATH, ARCHIVEPATH, WORKPATH, PRETASKS, POSTTASKS, ERRORTASKS,
+        HOSTIDS,
+        MODE,
+        RECVPATH,
+        SENDPATH,
+        ARCHIVEPATH,
+        WORKPATH,
+        PRETASKS,
+        POSTTASKS,
+        ERRORTASKS,
         UPDATEDINFO,
         IDRULE
     }
-    public static int [] dbTypes = {
-        Types.LONGVARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
-        Types.LONGVARCHAR, Types.LONGVARCHAR, Types.LONGVARCHAR,
-        Types.INTEGER, Types.VARCHAR
-    };
-    public static String table = " RULES ";
 
+    public static int[] dbTypes = {
+            Types.LONGVARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR,
+            Types.VARCHAR, Types.VARCHAR, Types.LONGVARCHAR, Types.LONGVARCHAR,
+            Types.LONGVARCHAR, Types.INTEGER, Types.VARCHAR };
+
+    public static String table = " RULES ";
 
     /**
      * Internal context XML fields
@@ -139,7 +148,6 @@ public class DbR66Rule extends AbstractDbData {
      */
     public static final String TASK_RANK = "rank";
 
-
     /**
      * Global Id
      */
@@ -149,8 +157,10 @@ public class DbR66Rule extends AbstractDbData {
      * The Name addresses (serverIds)
      */
     public String ids = null;
+
     /**
-     * Supported Mode for this rule (SENDMODE => SENDMD5MODE, RECVMODE => RECVMD5MODE)
+     * Supported Mode for this rule (SENDMODE => SENDMD5MODE, RECVMODE =>
+     * RECVMD5MODE)
      */
     public int mode;
 
@@ -178,10 +188,12 @@ public class DbR66Rule extends AbstractDbData {
      * The associated Pre Tasks
      */
     public String preTasks = null;
+
     /**
      * The associated Post Tasks
      */
     public String postTasks = null;
+
     /**
      * The associated Error Tasks
      */
@@ -191,86 +203,98 @@ public class DbR66Rule extends AbstractDbData {
      * The Ids as an array
      */
     public String[] idsArray = null;
+
     /**
      * The associated Pre Tasks as an array
      */
     public String[][] preTasksArray = null;
+
     /**
      * The associated Post Tasks as an array
      */
     public String[][] postTasksArray = null;
+
     /**
      * The associated Error Tasks as an array
      */
     public String[][] errorTasksArray = null;
-
 
     private int updatedInfo;
 
     private boolean isSaved = false;
 
     // ALL TABLE SHOULD IMPLEMENT THIS
-    private final DbValue primaryKey = new DbValue(idRule, Columns.IDRULE.name());
+    private final DbValue primaryKey = new DbValue(idRule, Columns.IDRULE
+            .name());
+
     private final DbValue[] otherFields = {
-      // HOSTIDS, MODE, RECVPATH, SENDPATH, ARCHIVEPATH, WORKPATH, PRETASKS, POSTTASKS, ERRORTASKS
-      new DbValue(ids, Columns.HOSTIDS.name(), true),
-      new DbValue(mode, Columns.MODE.name()),
-      new DbValue(recvPath, Columns.RECVPATH.name()),
-      new DbValue(sendPath, Columns.SENDPATH.name()),
-      new DbValue(archivePath, Columns.ARCHIVEPATH.name()),
-      new DbValue(workPath, Columns.WORKPATH.name()),
-      new DbValue(preTasks, Columns.PRETASKS.name(), true),
-      new DbValue(postTasks, Columns.POSTTASKS.name(), true),
-      new DbValue(errorTasks, Columns.ERRORTASKS.name(), true),
-      new DbValue(updatedInfo, Columns.UPDATEDINFO.name())
-    };
+            // HOSTIDS, MODE, RECVPATH, SENDPATH, ARCHIVEPATH, WORKPATH,
+            // PRETASKS, POSTTASKS, ERRORTASKS
+            new DbValue(ids, Columns.HOSTIDS.name(), true),
+            new DbValue(mode, Columns.MODE.name()),
+            new DbValue(recvPath, Columns.RECVPATH.name()),
+            new DbValue(sendPath, Columns.SENDPATH.name()),
+            new DbValue(archivePath, Columns.ARCHIVEPATH.name()),
+            new DbValue(workPath, Columns.WORKPATH.name()),
+            new DbValue(preTasks, Columns.PRETASKS.name(), true),
+            new DbValue(postTasks, Columns.POSTTASKS.name(), true),
+            new DbValue(errorTasks, Columns.ERRORTASKS.name(), true),
+            new DbValue(updatedInfo, Columns.UPDATEDINFO.name()) };
+
     private final DbValue[] allFields = {
-      otherFields[0], otherFields[1], otherFields[2], otherFields[3], otherFields[4],
-      otherFields[5], otherFields[6], otherFields[7], otherFields[8], otherFields[9],
-      primaryKey
-    };
-    private static final String selectAllFields =
-        Columns.HOSTIDS.name()+","+Columns.MODE.name()+","+Columns.RECVPATH.name()+
-        ","+Columns.SENDPATH.name()+","+Columns.ARCHIVEPATH.name()+","+Columns.WORKPATH.name()+
-        ","+Columns.PRETASKS.name()+","+Columns.POSTTASKS.name()+","+Columns.ERRORTASKS.name()+
-        ","+Columns.UPDATEDINFO.name()+
-        ","+Columns.IDRULE.name();
-    private static final String updateAllFields =
-        Columns.HOSTIDS.name()+"=?,"+Columns.MODE.name()+"=?,"+Columns.RECVPATH.name()+
-        "=?,"+Columns.SENDPATH.name()+"=?,"+Columns.ARCHIVEPATH.name()+"=?,"+Columns.WORKPATH.name()+
-        "=?,"+Columns.PRETASKS.name()+"=?,"+Columns.POSTTASKS.name()+"=?,"+Columns.ERRORTASKS.name()+
-        "=?,"+Columns.UPDATEDINFO.name()+"=?";
+            otherFields[0], otherFields[1], otherFields[2], otherFields[3],
+            otherFields[4], otherFields[5], otherFields[6], otherFields[7],
+            otherFields[8], otherFields[9], primaryKey };
+
+    private static final String selectAllFields = Columns.HOSTIDS.name() + "," +
+            Columns.MODE.name() + "," + Columns.RECVPATH.name() + "," +
+            Columns.SENDPATH.name() + "," + Columns.ARCHIVEPATH.name() + "," +
+            Columns.WORKPATH.name() + "," + Columns.PRETASKS.name() + "," +
+            Columns.POSTTASKS.name() + "," + Columns.ERRORTASKS.name() + "," +
+            Columns.UPDATEDINFO.name() + "," + Columns.IDRULE.name();
+
+    private static final String updateAllFields = Columns.HOSTIDS.name() +
+            "=?," + Columns.MODE.name() + "=?," + Columns.RECVPATH.name() +
+            "=?," + Columns.SENDPATH.name() + "=?," +
+            Columns.ARCHIVEPATH.name() + "=?," + Columns.WORKPATH.name() +
+            "=?," + Columns.PRETASKS.name() + "=?," + Columns.POSTTASKS.name() +
+            "=?," + Columns.ERRORTASKS.name() + "=?," +
+            Columns.UPDATEDINFO.name() + "=?";
+
     private static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?) ";
 
     @Override
     protected void setToArray() {
-        allFields[Columns.HOSTIDS.ordinal()].setValue(this.ids);
-        allFields[Columns.MODE.ordinal()].setValue(this.mode);
-        allFields[Columns.RECVPATH.ordinal()].setValue(this.recvPath);
-        allFields[Columns.SENDPATH.ordinal()].setValue(this.sendPath);
-        allFields[Columns.ARCHIVEPATH.ordinal()].setValue(this.archivePath);
-        allFields[Columns.WORKPATH.ordinal()].setValue(this.workPath);
-        allFields[Columns.PRETASKS.ordinal()].setValue(this.preTasks);
-        allFields[Columns.POSTTASKS.ordinal()].setValue(this.postTasks);
-        allFields[Columns.ERRORTASKS.ordinal()].setValue(this.errorTasks);
-        allFields[Columns.UPDATEDINFO.ordinal()].setValue(this.updatedInfo);
-        allFields[Columns.IDRULE.ordinal()].setValue(this.idRule);
-    }
-    @Override
-    protected void setFromArray() throws OpenR66DatabaseSqlError {
-        this.ids = (String) allFields[Columns.HOSTIDS.ordinal()].getValue();
-        this.mode = (Integer) allFields[Columns.MODE.ordinal()].getValue();
-        this.recvPath = (String) allFields[Columns.RECVPATH.ordinal()].getValue();
-        this.sendPath = (String) allFields[Columns.SENDPATH.ordinal()].getValue();
-        this.archivePath = (String) allFields[Columns.ARCHIVEPATH.ordinal()].getValue();
-        this.workPath = (String) allFields[Columns.WORKPATH.ordinal()].getValue();
-        this.preTasks = (String) allFields[Columns.PRETASKS.ordinal()].getValue();
-        this.postTasks = (String) allFields[Columns.POSTTASKS.ordinal()].getValue();
-        this.errorTasks = (String) allFields[Columns.ERRORTASKS.ordinal()].getValue();
-        this.updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()].getValue();
-        this.idRule = (String) allFields[Columns.IDRULE.ordinal()].getValue();
+        allFields[Columns.HOSTIDS.ordinal()].setValue(ids);
+        allFields[Columns.MODE.ordinal()].setValue(mode);
+        allFields[Columns.RECVPATH.ordinal()].setValue(recvPath);
+        allFields[Columns.SENDPATH.ordinal()].setValue(sendPath);
+        allFields[Columns.ARCHIVEPATH.ordinal()].setValue(archivePath);
+        allFields[Columns.WORKPATH.ordinal()].setValue(workPath);
+        allFields[Columns.PRETASKS.ordinal()].setValue(preTasks);
+        allFields[Columns.POSTTASKS.ordinal()].setValue(postTasks);
+        allFields[Columns.ERRORTASKS.ordinal()].setValue(errorTasks);
+        allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
+        allFields[Columns.IDRULE.ordinal()].setValue(idRule);
     }
 
+    @Override
+    protected void setFromArray() throws OpenR66DatabaseSqlError {
+        ids = (String) allFields[Columns.HOSTIDS.ordinal()].getValue();
+        mode = (Integer) allFields[Columns.MODE.ordinal()].getValue();
+        recvPath = (String) allFields[Columns.RECVPATH.ordinal()].getValue();
+        sendPath = (String) allFields[Columns.SENDPATH.ordinal()].getValue();
+        archivePath = (String) allFields[Columns.ARCHIVEPATH.ordinal()]
+                .getValue();
+        workPath = (String) allFields[Columns.WORKPATH.ordinal()].getValue();
+        preTasks = (String) allFields[Columns.PRETASKS.ordinal()].getValue();
+        postTasks = (String) allFields[Columns.POSTTASKS.ordinal()].getValue();
+        errorTasks = (String) allFields[Columns.ERRORTASKS.ordinal()]
+                .getValue();
+        updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()]
+                .getValue();
+        idRule = (String) allFields[Columns.IDRULE.ordinal()].getValue();
+    }
 
     /**
      * @param idRule
@@ -304,8 +328,8 @@ public class DbR66Rule extends AbstractDbData {
         preTasksArray = getTasksRule(this.preTasks);
         postTasksArray = getTasksRule(this.postTasks);
         errorTasksArray = getTasksRule(this.errorTasks);
-        this.setToArray();
-        this.isSaved = false;
+        setToArray();
+        isSaved = false;
     }
 
     /**
@@ -316,13 +340,15 @@ public class DbR66Rule extends AbstractDbData {
         this.idRule = idRule;
         // load from DB
         select();
-        getIdsRule(this.ids);
-        preTasksArray = getTasksRule(this.preTasks);
-        postTasksArray = getTasksRule(this.postTasks);
-        errorTasksArray = getTasksRule(this.errorTasks);
+        getIdsRule(ids);
+        preTasksArray = getTasksRule(preTasks);
+        postTasksArray = getTasksRule(postTasks);
+        errorTasksArray = getTasksRule(errorTasks);
     }
+
     /**
      * Constructor used from XML file
+     *
      * @param idrule
      * @param idsArrayRef
      * @param recvpath
@@ -333,10 +359,10 @@ public class DbR66Rule extends AbstractDbData {
      * @param posttasksArray
      * @param errortasksArray
      */
-    public DbR66Rule(String idrule, String[] idsArrayRef, int mode, String recvpath,
-            String sendpath, String archivepath, String workpath,
-            String[][] pretasksArray, String[][] posttasksArray,
-            String[][] errortasksArray) {
+    public DbR66Rule(String idrule, String[] idsArrayRef, int mode,
+            String recvpath, String sendpath, String archivepath,
+            String workpath, String[][] pretasksArray,
+            String[][] posttasksArray, String[][] errortasksArray) {
         idRule = idrule;
         idsArray = idsArrayRef;
         this.mode = mode;
@@ -350,85 +376,92 @@ public class DbR66Rule extends AbstractDbData {
         preTasks = setTasksRule(pretasksArray);
         postTasks = setTasksRule(posttasksArray);
         errorTasks = setTasksRule(errortasksArray);
-        this.setToArray();
-        this.isSaved = false;
+        setToArray();
+        isSaved = false;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see openr66.database.data.AbstractDbData#delete()
      */
     @Override
     public void delete() throws OpenR66DatabaseException {
-        DbPreparedStatement preparedStatement =
-            new DbPreparedStatement(DbConstant.admin.session);
+        DbPreparedStatement preparedStatement = new DbPreparedStatement(
+                DbConstant.admin.session);
         try {
-            preparedStatement.createPrepareStatement("DELETE FROM "+
-                    table+" WHERE "+Columns.IDRULE.name()+" = ?");
+            preparedStatement.createPrepareStatement("DELETE FROM " + table +
+                    " WHERE " + Columns.IDRULE.name() + " = ?");
             primaryKey.setValue(idRule);
-            this.setValue(preparedStatement, primaryKey);
+            setValue(preparedStatement, primaryKey);
             int count = preparedStatement.executeUpdate();
             if (count <= 0) {
                 throw new OpenR66DatabaseNoDataException("No row found");
             }
-            this.isSaved = false;
+            isSaved = false;
         } finally {
             preparedStatement.realClose();
         }
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see openr66.database.data.AbstractDbData#insert()
      */
     @Override
     public void insert() throws OpenR66DatabaseException {
-        if (this.isSaved) {
+        if (isSaved) {
             return;
         }
-        DbPreparedStatement preparedStatement =
-            new DbPreparedStatement(DbConstant.admin.session);
+        DbPreparedStatement preparedStatement = new DbPreparedStatement(
+                DbConstant.admin.session);
         try {
-            preparedStatement.createPrepareStatement("INSERT INTO "+table+" ("+selectAllFields+
-                    ") VALUES "+insertAllValues);
-            this.setValues(preparedStatement, allFields);
+            preparedStatement.createPrepareStatement("INSERT INTO " + table +
+                    " (" + selectAllFields + ") VALUES " + insertAllValues);
+            setValues(preparedStatement, allFields);
             int count = preparedStatement.executeUpdate();
             if (count <= 0) {
                 throw new OpenR66DatabaseNoDataException("No row found");
             }
-            this.isSaved = true;
+            isSaved = true;
         } finally {
             preparedStatement.realClose();
         }
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see openr66.database.data.AbstractDbData#select()
      */
     @Override
     public void select() throws OpenR66DatabaseException {
-        DbPreparedStatement preparedStatement =
-            new DbPreparedStatement(DbConstant.admin.session);
+        DbPreparedStatement preparedStatement = new DbPreparedStatement(
+                DbConstant.admin.session);
         try {
-            preparedStatement.createPrepareStatement("SELECT "+selectAllFields+" FROM "+
-                    table+" WHERE "+Columns.IDRULE.name()+" = ?");
+            preparedStatement.createPrepareStatement("SELECT " +
+                    selectAllFields + " FROM " + table + " WHERE " +
+                    Columns.IDRULE.name() + " = ?");
             primaryKey.setValue(idRule);
-            this.setValue(preparedStatement, primaryKey);
+            setValue(preparedStatement, primaryKey);
             preparedStatement.executeQuery();
             if (preparedStatement.getNext()) {
-                this.getValues(preparedStatement, allFields);
-                this.setFromArray();
-                if (this.recvPath == null) {
-                    this.recvPath = Configuration.configuration.inPath;
+                getValues(preparedStatement, allFields);
+                setFromArray();
+                if (recvPath == null) {
+                    recvPath = Configuration.configuration.inPath;
                 }
-                if (this.sendPath == null) {
-                    this.sendPath = Configuration.configuration.outPath;
+                if (sendPath == null) {
+                    sendPath = Configuration.configuration.outPath;
                 }
-                if (this.archivePath == null) {
-                    this.archivePath = Configuration.configuration.archivePath;
+                if (archivePath == null) {
+                    archivePath = Configuration.configuration.archivePath;
                 }
-                if (this.workPath == null) {
-                    this.workPath = Configuration.configuration.workingPath;
+                if (workPath == null) {
+                    workPath = Configuration.configuration.workingPath;
                 }
-                this.isSaved = true;
+                isSaved = true;
             } else {
                 throw new OpenR66DatabaseNoDataException("No row found");
             }
@@ -437,42 +470,47 @@ public class DbR66Rule extends AbstractDbData {
         }
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see openr66.database.data.AbstractDbData#update()
      */
     @Override
-    public void update() throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError, OpenR66DatabaseNoDataException {
-        if (this.isSaved) {
+    public void update() throws OpenR66DatabaseNoConnectionError,
+            OpenR66DatabaseSqlError, OpenR66DatabaseNoDataException {
+        if (isSaved) {
             return;
         }
-        DbPreparedStatement preparedStatement =
-            new DbPreparedStatement(DbConstant.admin.session);
+        DbPreparedStatement preparedStatement = new DbPreparedStatement(
+                DbConstant.admin.session);
         try {
-            preparedStatement.createPrepareStatement("UPDATE "+table+" SET "+updateAllFields+
-                    " WHERE "+Columns.IDRULE.name()+" = ?");
-            this.setValues(preparedStatement, allFields);
+            preparedStatement.createPrepareStatement("UPDATE " + table +
+                    " SET " + updateAllFields + " WHERE " +
+                    Columns.IDRULE.name() + " = ?");
+            setValues(preparedStatement, allFields);
             int count = preparedStatement.executeUpdate();
             if (count <= 0) {
                 throw new OpenR66DatabaseNoDataException("No row found");
             }
-            this.isSaved = true;
+            isSaved = true;
         } finally {
             preparedStatement.realClose();
         }
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see openr66.database.data.AbstractDbData#changeUpdatedInfo(int)
      */
     @Override
     public void changeUpdatedInfo(int status) {
-        if (this.updatedInfo != status) {
-            this.updatedInfo = status;
-            allFields[Columns.UPDATEDINFO.ordinal()].setValue(this.updatedInfo);
-            this.isSaved = false;
+        if (updatedInfo != status) {
+            updatedInfo = status;
+            allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
+            isSaved = false;
         }
     }
-
 
     /**
      * Get Ids from String. If it is not ok, then it sets the default values and
@@ -577,7 +615,8 @@ public class DbR66Rule extends AbstractDbData {
             nodedelay = noderoot.selectSingleNode(TASK_DELAY);
             String delay;
             if (nodedelay == null) {
-                delay = Integer.toString(Configuration.configuration.TIMEOUTCON);
+                delay = Integer
+                        .toString(Configuration.configuration.TIMEOUTCON);
             } else {
                 delay = nodedelay.getText();
             }
@@ -624,9 +663,8 @@ public class DbR66Rule extends AbstractDbData {
                         TASK_RANK + "><" + TASK_TYPE + ">" + tasksArray[i][0] +
                         "</" + TASK_TYPE + "><" + TASK_PATH + ">" +
                         tasksArray[i][1] + "</" + TASK_PATH + "><" +
-                        TASK_DELAY + ">" +
-                        tasksArray[i][2] + "</" + TASK_DELAY + ">" +
-                        XMLENDTASK;
+                        TASK_DELAY + ">" + tasksArray[i][2] + "</" +
+                        TASK_DELAY + ">" + XMLENDTASK;
             }
             tasks += XMLENDTASKS;
         }
@@ -643,7 +681,7 @@ public class DbR66Rule extends AbstractDbData {
     public String setRecvPath(String filename)
             throws OpenR66ProtocolSystemException {
         if (recvPath != null) {
-            return recvPath + R66Dir.SEPARATOR + filename;
+            return recvPath + DirInterface.SEPARATOR + filename;
         }
         return FileUtils.consolidatePath(Configuration.configuration.inPath,
                 filename);
@@ -661,7 +699,7 @@ public class DbR66Rule extends AbstractDbData {
         if (sendPath != null) {
             File file = new File(filename);
             String basename = file.getName();
-            return sendPath + R66Dir.SEPARATOR + basename;
+            return sendPath + DirInterface.SEPARATOR + basename;
         }
         return FileUtils.consolidatePath(Configuration.configuration.outPath,
                 filename);
@@ -677,7 +715,7 @@ public class DbR66Rule extends AbstractDbData {
     public String setArchivePath(String filename)
             throws OpenR66ProtocolSystemException {
         if (archivePath != null) {
-            return archivePath + R66Dir.SEPARATOR + filename;
+            return archivePath + DirInterface.SEPARATOR + filename;
         }
         return FileUtils.consolidatePath(
                 Configuration.configuration.archivePath, filename);
@@ -693,7 +731,7 @@ public class DbR66Rule extends AbstractDbData {
     public String setWorkingPath(String filename)
             throws OpenR66ProtocolSystemException {
         if (workPath != null) {
-            return workPath + R66Dir.SEPARATOR + filename +
+            return workPath + DirInterface.SEPARATOR + filename +
                     Configuration.EXT_R66;
         }
         return FileUtils.consolidatePath(
@@ -717,20 +755,25 @@ public class DbR66Rule extends AbstractDbData {
         }
         return false;
     }
+
     /**
      *
      * @return True if this rule is adapted for SENDMODE
      */
     public boolean isSendMode() {
-        return (this.mode == RequestPacket.SENDMODE || this.mode == RequestPacket.SENDMD5MODE);
+        return mode == RequestPacket.SENDMODE ||
+                mode == RequestPacket.SENDMD5MODE;
     }
+
     /**
      *
      * @return True if this rule is adapted for RECVMODE
      */
     public boolean isRecvMode() {
-        return (this.mode == RequestPacket.RECVMODE || this.mode == RequestPacket.RECVMD5MODE);
+        return mode == RequestPacket.RECVMODE ||
+                mode == RequestPacket.RECVMD5MODE;
     }
+
     /**
      * Object to String
      *
@@ -739,9 +782,9 @@ public class DbR66Rule extends AbstractDbData {
      */
     @Override
     public String toString() {
-        return "Rule Name:" + idRule + " IDS:" + ids + " MODE: " + mode + " RECV:" + recvPath +
-                " SEND:" + sendPath + " ARCHIVE:" + archivePath + " WORK:" +
-                workPath + " PRET:" + preTasks + " POST:" + postTasks +
-                " ERROR:" + errorTasks;
+        return "Rule Name:" + idRule + " IDS:" + ids + " MODE: " + mode +
+                " RECV:" + recvPath + " SEND:" + sendPath + " ARCHIVE:" +
+                archivePath + " WORK:" + workPath + " PRET:" + preTasks +
+                " POST:" + postTasks + " ERROR:" + errorTasks;
     }
 }

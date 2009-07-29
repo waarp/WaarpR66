@@ -6,9 +6,9 @@ package openr66.protocol.networkhandler;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.protocol.config.Configuration;
+import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
-import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolRemoteShutdownException;
@@ -30,6 +30,7 @@ import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelHandler;
 
 /**
+ * Network Server Handler
  * @author frederic bregier
  */
 @ChannelPipelineCoverage("one")
@@ -39,7 +40,9 @@ public class NetworkServerHandler extends SimpleChannelHandler {
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(NetworkServerHandler.class);
-
+    /**
+     * Used by retriever to be able to prevent OOME
+     */
     private volatile boolean isWriteReady = true;
 
     /*
@@ -202,16 +205,27 @@ public class NetworkServerHandler extends SimpleChannelHandler {
             isWriteReady = true;
         }
     }
-
+    /**
+     * Channel is not ready
+     */
     public void setWriteNotReady() {
         isWriteReady = false;
     }
-
+    /**
+     * Channel is reday
+     * @return
+     */
     public boolean isWriteReady() {
         return isWriteReady;
 
     }
-
+    /**
+     * Write error back to remote client
+     * @param channel
+     * @param remoteId
+     * @param localId
+     * @param error
+     */
     private void writeError(Channel channel, Integer remoteId, Integer localId,
             AbstractLocalPacket error) {
         NetworkPacket networkPacket = null;

@@ -32,6 +32,8 @@ import openr66.context.R66Session;
 import openr66.protocol.config.Configuration;
 
 /**
+ * Directory representation
+ *
  * @author frederic bregier
  *
  */
@@ -69,8 +71,8 @@ public class R66Dir extends FilesystemBasedDirImpl {
         File file = null;
         String prename = System.currentTimeMillis() + "_";
         try {
-            file = File.createTempFile(prename, "_" + filename + Configuration.EXT_R66,
-                    getFileFromPath(currentDir));
+            file = File.createTempFile(prename, "_" + filename +
+                    Configuration.EXT_R66, getFileFromPath(currentDir));
         } catch (IOException e) {
             throw new Reply550Exception("Cannot create unique file from " +
                     filename);

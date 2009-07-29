@@ -109,19 +109,18 @@ public class TestClientShutdown {
         logger.warn("START");
         Channels
                 .write(localChannelReference.getNetworkChannel(), networkPacket);
-        localChannelReference.getFutureAction().awaitUninterruptibly();
-        if (localChannelReference.getFutureAction().isSuccess()) {
+        localChannelReference.getFutureRequest().awaitUninterruptibly();
+        if (localChannelReference.getFutureRequest().isSuccess()) {
             logger.warn("Shutdown OK");
         } else {
-            R66Result result = (R66Result)
-                localChannelReference.getFutureAction().getResult();
+            R66Result result = localChannelReference.getFutureRequest()
+                    .getResult();
             if (result.other instanceof ValidPacket &&
-                    ((ValidPacket) result.other)
-                    .getTypeValid() == LocalPacketFactory.SHUTDOWNPACKET) {
+                    ((ValidPacket) result.other).getTypeValid() == LocalPacketFactory.SHUTDOWNPACKET) {
                 logger.warn("Shutdown command OK");
             } else {
                 logger.warn("Cannot Shutdown", localChannelReference
-                        .getFutureAction().getCause());
+                        .getFutureRequest().getCause());
             }
         }
         networkTransaction.closeAll();

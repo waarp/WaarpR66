@@ -49,6 +49,7 @@ import org.dom4j.io.SAXReader;
 import org.jboss.netty.handler.traffic.AbstractTrafficShapingHandler;
 
 /**
+ * File Based Configuration
  * @author frederic bregier
  *
  */
@@ -155,10 +156,12 @@ public class R66FileBasedConfiguration {
      * multiple of 8192 (maximum = 64K due to block limitation to 2 bytes)
      */
     private static final String XML_BLOCKSIZE = "/config/blocksize";
+
     /**
      * Database Driver as of oracle, mysql, postgresql, h2
      */
     private static final String XML_DBDRIVER = "/config/dbdriver";
+
     /**
      * Database Server connection string as of
      * jdbc:type://[host:port],[failoverhost:port]
@@ -166,14 +169,17 @@ public class R66FileBasedConfiguration {
      * =propertyValue1][&propertyName2][=propertyValue2]...
      */
     private static final String XML_DBSERVER = "/config/dbserver";
+
     /**
      * Database User
      */
     private static final String XML_DBUSER = "/config/dbuser";
+
     /**
      * Database Password
      */
     private static final String XML_DBPASSWD = "/config/dbpasswd";
+
     /**
      * Authentication
      */
@@ -448,18 +454,22 @@ public class R66FileBasedConfiguration {
         String dbuser = node.getText();
         node = document.selectSingleNode(XML_DBPASSWD);
         if (node == null) {
-            logger.error("Unable to find DBPassword in Config file: " + filename);
+            logger.error("Unable to find DBPassword in Config file: " +
+                    filename);
             return false;
         }
         String dbpasswd = node.getText();
-        if (dbdriver == null || dbserver == null || dbuser == null || dbpasswd == null ||
-                dbdriver.length() == 0 || dbserver.length() == 0||
-                dbuser.length() == 0|| dbpasswd.length() == 0) {
-            logger.error("Unable to find Correct DB data in Config file: " + filename);
+        if (dbdriver == null || dbserver == null || dbuser == null ||
+                dbpasswd == null || dbdriver.length() == 0 ||
+                dbserver.length() == 0 || dbuser.length() == 0 ||
+                dbpasswd.length() == 0) {
+            logger.error("Unable to find Correct DB data in Config file: " +
+                    filename);
             return false;
         }
         try {
-            DbModelFactory.initialize(dbdriver, dbserver, dbuser, dbpasswd, true);
+            DbModelFactory.initialize(dbdriver, dbserver, dbuser, dbpasswd,
+                    true);
         } catch (OpenR66DatabaseNoConnectionError e2) {
             logger.error("Unable to Connect to DB", e2);
             return false;

@@ -26,7 +26,8 @@ import openr66.context.task.exception.OpenR66RunnerErrorException;
 /**
  * This enum class references all available tasks.
  *
- * If a new task type is to be created, this is the place where it should be referenced.
+ * If a new task type is to be created, this is the place where it should be
+ * referenced.
  *
  * @author Frederic Bregier
  *
@@ -42,17 +43,19 @@ public enum TaskType {
         type = ordinal();
         name = name();
     }
+
     /**
      *
+     * @param type
      * @param argRule
      * @param delay
      * @param session
-     * @param type
      * @return the corresponding AbstractTask
      * @throws OpenR66RunnerErrorException
      */
-    public static AbstractTask getTaskFromId(String argRule, int delay,
-            R66Session session, TaskType type) throws OpenR66RunnerErrorException {
+    public static AbstractTask getTaskFromId(TaskType type, String argRule,
+            int delay, R66Session session)
+            throws OpenR66RunnerErrorException {
         switch (type) {
             case TEST:
                 return new TestTask(argRule, delay, session.getRunner()
@@ -80,6 +83,7 @@ public enum TaskType {
                         type.name);
         }
     }
+
     /**
      *
      * @param name
@@ -89,16 +93,15 @@ public enum TaskType {
      * @return the corresponding AbstractTask
      * @throws OpenR66RunnerErrorException
      */
-    public static AbstractTask getTaskFromId(String name, String argRule, int delay,
-            R66Session session) throws OpenR66RunnerErrorException {
+    public static AbstractTask getTaskFromId(String name, String argRule,
+            int delay, R66Session session) throws OpenR66RunnerErrorException {
         TaskType type;
         try {
             type = valueOf(name);
         } catch (NullPointerException e) {
-            System.err.println("name: "+name);
-            throw new OpenR66RunnerErrorException("Unvalid Task: " +
-                    name);
+            System.err.println("name: " + name);
+            throw new OpenR66RunnerErrorException("Unvalid Task: " + name);
         }
-        return getTaskFromId(argRule, delay, session, type);
+        return getTaskFromId(type, argRule, delay, session);
     }
 }

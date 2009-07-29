@@ -21,6 +21,7 @@
 package openr66.protocol.exception;
 
 /**
+ * Protocol exception due to no Data exception
  * @author Frederic Bregier
  *
  */

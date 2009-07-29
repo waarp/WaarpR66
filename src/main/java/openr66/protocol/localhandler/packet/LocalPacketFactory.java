@@ -21,7 +21,7 @@ import org.jboss.netty.buffer.ChannelBuffer;
 
 /**
  * Factory to create Packet according to type from a buffer
- *
+ * 
  * @author Frederic Bregier
  */
 public class LocalPacketFactory {
@@ -55,7 +55,7 @@ public class LocalPacketFactory {
 
     /**
      * This method create a Packet from the ChannelBuffer.
-     *
+     * 
      * @param headerLength
      *            length of the header from the current position of the buffer
      * @param middleLength
@@ -103,8 +103,8 @@ public class LocalPacketFactory {
                 return TestPacket.createFromBuffer(headerLength, middleLength,
                         endLength, buf);
             case ENDTRANSFERPACKET:
-                return EndTransferPacket.createFromBuffer(headerLength, middleLength,
-                        endLength, buf);
+                return EndTransferPacket.createFromBuffer(headerLength,
+                        middleLength, endLength, buf);
             default:
                 throw new OpenR66ProtocolPacketException(
                         "Unvalid Packet Type received: " + packetType);

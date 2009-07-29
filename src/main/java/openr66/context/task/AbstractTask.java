@@ -29,6 +29,8 @@ import openr66.protocol.config.Configuration;
 import openr66.protocol.utils.R66Future;
 
 /**
+ * Abstract implementation of task
+ *
  * @author Frederic Bregier
  *
  */
@@ -94,7 +96,7 @@ public abstract class AbstractTask implements Runnable {
     final String argRule;
 
     /**
-     * Delay from Rule
+     * Delay from Rule (if applicable)
      */
     final int delay;
 
@@ -157,9 +159,10 @@ public abstract class AbstractTask implements Runnable {
      * @param arg
      *            as the Format string where FIXED items will be replaced by
      *            context values and next using argFormat as format second
-     *            argument
+     *            argument; this arg comes from the rule itself
      * @param argFormat
-     *            as format second argument
+     *            as format second argument; this argFormat comes from the transfer
+     *            Information itself
      * @return The string with replaced values from context and second argument
      */
     protected String getReplacedValue(String arg, Object[] argFormat) {
@@ -167,21 +170,20 @@ public abstract class AbstractTask implements Runnable {
                 .getTrueFile().getAbsolutePath());
         finalname = finalname.replace(TRUEFILENAME, session.getDir()
                 .getFinalUniqueFilename(session.getFile()));
-        finalname = finalname.replace(ORIGINALFILENAME, session
-                .getRunner().getOriginalFilename());
+        finalname = finalname.replace(ORIGINALFILENAME, session.getRunner()
+                .getOriginalFilename());
         DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
         Date date = new Date();
         finalname = finalname.replace(DATE, dateFormat.format(date));
         dateFormat = new SimpleDateFormat("HHmmss");
         finalname = finalname.replace(HOUR, dateFormat.format(date));
-        finalname = finalname.replace(REMOTEHOST, session.getAuth()
-                .getUser());
+        finalname = finalname.replace(REMOTEHOST, session.getAuth().getUser());
         finalname = finalname.replace(LOCALHOST,
                 Configuration.configuration.HOST_ID);
         finalname = finalname.replace(TRANSFERID, Long.toString(session
                 .getRunner().getSpecialId()));
-        finalname = finalname.replace(RANKTRANSFER, Integer
-                .toString(session.getRunner().getRank()));
+        finalname = finalname.replace(RANKTRANSFER, Integer.toString(session
+                .getRunner().getRank()));
         finalname = finalname.replace(BLOCKSIZE, Integer.toString(session
                 .getBlockSize()));
         finalname = String.format(finalname, argFormat);

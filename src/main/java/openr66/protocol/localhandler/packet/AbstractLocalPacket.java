@@ -37,18 +37,34 @@ public abstract class AbstractLocalPacket {
         middle = null;
         end = null;
     }
-
+    /**
+     * Prepare the Header buffer
+     * @throws OpenR66ProtocolPacketException
+     */
     public abstract void createHeader() throws OpenR66ProtocolPacketException;
-
+    /**
+     * Prepare the Middle buffer
+     * @throws OpenR66ProtocolPacketException
+     */
     public abstract void createMiddle() throws OpenR66ProtocolPacketException;
-
+    /**
+     * Prepare the End buffer
+     * @throws OpenR66ProtocolPacketException
+     */
     public abstract void createEnd() throws OpenR66ProtocolPacketException;
-
+    /**
+     *
+     * @return the type of Packet
+     */
     public abstract byte getType();
 
     @Override
     public abstract String toString();
-
+    /**
+     *
+     * @return the ChannelBuffer as LocalPacket
+     * @throws OpenR66ProtocolPacketException
+     */
     public ChannelBuffer getLocalPacket() throws OpenR66ProtocolPacketException {
         final ChannelBuffer buf = ChannelBuffers.buffer(4 * 3 + 1);// 3 header
         // lengths+type

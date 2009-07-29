@@ -17,6 +17,8 @@ import org.jboss.netty.channel.ChannelException;
 import org.jboss.netty.channel.ExceptionEvent;
 
 /**
+ * Class that filter exceptions
+ *
  * @author frederic bregier
  */
 public class OpenR66ExceptionTrappedFactory {
@@ -29,8 +31,8 @@ public class OpenR66ExceptionTrappedFactory {
     /**
      * @param channel
      * @param e
-     * @return the OpenR66Exception corresponding to the ExceptionEvent,
-     *         or null if the exception should be ignored
+     * @return the OpenR66Exception corresponding to the ExceptionEvent, or null
+     *         if the exception should be ignored
      */
     public static OpenR66Exception getExceptionFromTrappedException(
             Channel channel, ExceptionEvent e) {

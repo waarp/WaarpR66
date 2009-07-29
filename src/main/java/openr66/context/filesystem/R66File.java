@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 
+import openr66.context.R66ErrorCode;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
@@ -52,6 +53,8 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 
 /**
+ * File representation
+ *
  * @author frederic bregier
  *
  */
@@ -62,6 +65,9 @@ public class R66File extends FilesystemBasedFileImpl {
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(R66File.class);
 
+    /**
+     * Does the current file is external (i.e. out of R66 base directory)
+     */
     private boolean isExternal = false;
 
     /**
@@ -84,44 +90,43 @@ public class R66File extends FilesystemBasedFileImpl {
     @Override
     public void trueRetrieve() {
     }
-
+    /**
+     * Start the retrieve (send to the remote host the local file)
+     *
+     * @throws OpenR66RunnerErrorException
+     * @throws OpenR66ProtocolSystemException
+     */
     public void retrieveBlocking() throws OpenR66RunnerErrorException,
             OpenR66ProtocolSystemException {
+        boolean retrieveDone = false;
+        LocalChannelReference localChannelReference = getSession()
+                .getLocalChannelReference();
+        Channel networkChannel = localChannelReference.getNetworkChannel();
+        DbTaskRunner runner = getSession().getRunner();
         try {
             if (!isReady) {
                 return;
             }
             DataBlock block = null;
-            LocalChannelReference localChannelReference = getSession()
-                .getLocalChannelReference();
-            Channel networkChannel = localChannelReference.getNetworkChannel();
-            NetworkServerHandler serverHandler = localChannelReference
-                .getNetworkServerHandler();
-            DbTaskRunner runner = getSession().getRunner();
             try {
                 block = readDataBlock();
             } catch (FileEndOfTransferException e) {
-                // Last block (in fact, previous block was the last one,
-                // but it could be aligned with the block size so not
-                // detected)
-                ChannelUtils.writeValidEndTransfer(localChannelReference, runner, networkChannel);
-                //getSession().setFinalizeTransfer(true, new R66Result(this.getSession(), false));
+                // Last block (in fact, no data to read)
+                retrieveDone = true;
                 return;
             }
             if (block == null) {
-                // Last block (in fact, previous block was the last one,
-                // but it could be aligned with the block size so not
-                // detected)
-                ChannelUtils.writeValidEndTransfer(localChannelReference, runner, networkChannel);
-                //getSession().setFinalizeTransfer(true, new R66Result(this.getSession(), false));
+                // Last block (in fact, no data to read)
+                retrieveDone = true;
                 return;
             }
+            NetworkServerHandler serverHandler = localChannelReference
+                    .getNetworkServerHandler();
             // While not last block
-
             ChannelFuture future = null;
             while (block != null && !block.isEOF()) {
-                future = ChannelUtils.writeBackDataBlock(localChannelReference, runner,
-                        networkChannel, block);
+                future = ChannelUtils.writeBackDataBlock(localChannelReference,
+                        runner, networkChannel, block);
                 // Test if channel is writable in order to prevent OOM
                 if (networkChannel.isWritable()) {
                     try {
@@ -129,9 +134,7 @@ public class R66File extends FilesystemBasedFileImpl {
                     } catch (FileEndOfTransferException e) {
                         // Wait for last write
                         future.awaitUninterruptibly();
-                        ChannelUtils.writeValidEndTransfer(localChannelReference, runner,
-                                networkChannel);
-                        //getSession().setFinalizeTransfer(true, new R66Result(this.getSession(), false));
+                        retrieveDone = true;
                         return;
                     }
                 } else {
@@ -143,9 +146,12 @@ public class R66File extends FilesystemBasedFileImpl {
                         } catch (InterruptedException e) {
                             // Exception while waiting
                             future.awaitUninterruptibly();
-                            getSession().setFinalizeTransfer(false,
-                                    new R66Result(new OpenR66ProtocolSystemException(e),
-                                            this.getSession(), false));
+                            getSession().setFinalizeTransfer(
+                                    false,
+                                    new R66Result(
+                                            new OpenR66ProtocolSystemException(
+                                                    e), getSession(), false,
+                                            R66ErrorCode.Internal));
                             return;
                         }
                     }
@@ -154,33 +160,48 @@ public class R66File extends FilesystemBasedFileImpl {
                     } catch (FileEndOfTransferException e) {
                         // Wait for last write
                         future.awaitUninterruptibly();
-                        ChannelUtils.writeValidEndTransfer(localChannelReference, runner,
-                                networkChannel);
-                        //getSession().setFinalizeTransfer(true, new R66Result(this.getSession(), false));
+                        retrieveDone = true;
                         return;
                     }
                 }
             }
             // Last block
             if (block != null) {
-                future = ChannelUtils.writeBackDataBlock(localChannelReference, runner,
-                        networkChannel, block);
+                future = ChannelUtils.writeBackDataBlock(localChannelReference,
+                        runner, networkChannel, block);
             }
             // Wait for last write
             if (future != null) {
                 future.awaitUninterruptibly();
             }
-            ChannelUtils.writeValidEndTransfer(localChannelReference, runner, networkChannel);
-            //getSession().setFinalizeTransfer(true, new R66Result(this.getSession(), false));
+            retrieveDone = true;
             return;
         } catch (FileTransferException e) {
             // An error occurs!
-            getSession().setFinalizeTransfer(false,
-                    new R66Result(new OpenR66ProtocolSystemException(e), this.getSession(), false));
+            getSession().setFinalizeTransfer(
+                    false,
+                    new R66Result(new OpenR66ProtocolSystemException(e),
+                            getSession(), false, R66ErrorCode.TransferError));
         } catch (OpenR66ProtocolPacketException e) {
             // An error occurs!
-            getSession().setFinalizeTransfer(false,
-                    new R66Result(e, this.getSession(), false));
+            getSession()
+                    .setFinalizeTransfer(
+                            false,
+                            new R66Result(e, getSession(), false,
+                                    R66ErrorCode.Internal));
+        } finally {
+            if (retrieveDone) {
+                try {
+                    ChannelUtils.writeValidEndTransfer(localChannelReference,
+                            runner, networkChannel);
+                } catch (OpenR66ProtocolPacketException e) {
+                    // An error occurs!
+                    getSession().setFinalizeTransfer(
+                            false,
+                            new R66Result(e, getSession(), false,
+                                    R66ErrorCode.Internal));
+                }
+            }
         }
     }
 
@@ -200,11 +221,18 @@ public class R66File extends FilesystemBasedFileImpl {
             return null;
         }
     }
-
+    /**
+     *
+     * @return the basename of the current file
+     */
     public String getBasename() {
         return getBasename(currentFile);
     }
-
+    /**
+     *
+     * @param path
+     * @return the basename from the given path
+     */
     public static String getBasename(String path) {
         File file = new File(path);
         return file.getName();
@@ -474,7 +502,8 @@ public class R66File extends FilesystemBasedFileImpl {
                         return false;
                     }
                 }
-                currentFile = FilesystemBasedDirImpl.normalizePath(newFile.getAbsolutePath());
+                currentFile = FilesystemBasedDirImpl.normalizePath(newFile
+                        .getAbsolutePath());
                 isExternal = true;
                 isReady = true;
                 return true;

@@ -1,22 +1,22 @@
 /**
- * Copyright 2009, Frederic Bregier, and individual contributors
- * by the @author tags. See the COPYRIGHT.txt in the distribution for a
- * full listing of individual contributors.
+ * Copyright 2009, Frederic Bregier, and individual contributors by the @author
+ * tags. See the COPYRIGHT.txt in the distribution for a full listing of
+ * individual contributors.
  *
- * This is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as
- * published by the Free Software Foundation; either version 3.0 of
- * the License, or (at your option) any later version.
+ * This is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
  *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
+ * This software is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this software; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF
+ * site: http://www.fsf.org.
  */
 package openr66.database.model;
 
@@ -26,8 +26,8 @@ import java.sql.Types;
 import openr66.database.DbConstant;
 import openr66.database.DbPreparedStatement;
 import openr66.database.DbRequest;
-import openr66.database.data.DbR66HostAuth;
 import openr66.database.data.DbR66Configuration;
+import openr66.database.data.DbR66HostAuth;
 import openr66.database.data.DbR66Rule;
 import openr66.database.data.DbTaskRunner;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
@@ -35,31 +35,35 @@ import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 
 /**
+ * H2 Database Model implementation
  * @author Frederic Bregier
  *
  */
 public class DbModelH2 extends AbstractDbModel {
     private static enum DBType {
-        VARCHAR(Types.VARCHAR, " VARCHAR(254) "),
-        LONGVARCHAR(Types.LONGVARCHAR, " LONGVARCHAR "),
-        BIT(Types.BIT, " BOOLEAN "),
-        TINYINT(Types.TINYINT, " TINYINT "),
-        SMALLINT(Types.SMALLINT, " SMALLINT "),
-        INTEGER(Types.INTEGER, " INTEGER "),
-        BIGINT(Types.BIGINT," BIGINT "),
-        REAL(Types.REAL," REAL "),
-        DOUBLE(Types.DOUBLE, " DOUBLE "),
-        VARBINARY(Types.VARBINARY, " BINARY "),
-        DATE(Types.DATE, " DATE "),
-        TIMESTAMP(Types.TIMESTAMP, " TIMESTAMP ");
+        VARCHAR(Types.VARCHAR, " VARCHAR(254) "), LONGVARCHAR(
+                Types.LONGVARCHAR,
+                " LONGVARCHAR "), BIT(Types.BIT, " BOOLEAN "), TINYINT(
+                Types.TINYINT,
+                " TINYINT "), SMALLINT(Types.SMALLINT, " SMALLINT "), INTEGER(
+                Types.INTEGER,
+                " INTEGER "), BIGINT(Types.BIGINT, " BIGINT "), REAL(
+                Types.REAL,
+                " REAL "), DOUBLE(Types.DOUBLE, " DOUBLE "), VARBINARY(
+                Types.VARBINARY,
+                " BINARY "), DATE(Types.DATE, " DATE "), TIMESTAMP(
+                Types.TIMESTAMP,
+                " TIMESTAMP ");
 
         public int type;
+
         public String name;
+
         public String constructor;
 
         private DBType(int type, String constructor) {
             this.type = type;
-            this.name = name();
+            name = name();
             this.constructor = constructor;
         }
 
@@ -97,22 +101,22 @@ public class DbModelH2 extends AbstractDbModel {
     @Override
     public void createTables() {
         // Create tables: configuration, hosts, rules, runner, cptrunner
-        String createTableH2 =
-            "CREATE TABLE IF NOT EXISTS ";
+        String createTableH2 = "CREATE TABLE IF NOT EXISTS ";
         String primaryKey = " PRIMARY KEY ";
         String notNull = " NOT NULL ";
 
         // Configuration
-        String action = createTableH2+DbR66Configuration.table+"(";
-        DbR66Configuration.Columns []ccolumns = DbR66Configuration.Columns.values();
-        for (int i = 0; i < ccolumns.length-1; i++) {
-            action += ccolumns[i].name()+
-                DBType.getType(DbR66Configuration.dbTypes[i])+
-                notNull+", ";
+        String action = createTableH2 + DbR66Configuration.table + "(";
+        DbR66Configuration.Columns[] ccolumns = DbR66Configuration.Columns
+                .values();
+        for (int i = 0; i < ccolumns.length - 1; i ++) {
+            action += ccolumns[i].name() +
+                    DBType.getType(DbR66Configuration.dbTypes[i]) + notNull +
+                    ", ";
         }
-        action += ccolumns[ccolumns.length-1].name()+
-            DBType.getType(DbR66Configuration.dbTypes[ccolumns.length-1])+
-            primaryKey+")";
+        action += ccolumns[ccolumns.length - 1].name() +
+                DBType.getType(DbR66Configuration.dbTypes[ccolumns.length - 1]) +
+                primaryKey + ")";
         System.out.println(action);
         DbRequest request = new DbRequest(DbConstant.admin.session);
         try {
@@ -127,16 +131,15 @@ public class DbModelH2 extends AbstractDbModel {
         request.close();
 
         // hosts
-        action = createTableH2+DbR66HostAuth.table+"(";
-        DbR66HostAuth.Columns []hcolumns = DbR66HostAuth.Columns.values();
-        for (int i = 0; i < hcolumns.length-1; i++) {
-            action += hcolumns[i].name()+
-                DBType.getType(DbR66HostAuth.dbTypes[i])+
-                notNull+", ";
+        action = createTableH2 + DbR66HostAuth.table + "(";
+        DbR66HostAuth.Columns[] hcolumns = DbR66HostAuth.Columns.values();
+        for (int i = 0; i < hcolumns.length - 1; i ++) {
+            action += hcolumns[i].name() +
+                    DBType.getType(DbR66HostAuth.dbTypes[i]) + notNull + ", ";
         }
-        action += hcolumns[hcolumns.length-1].name()+
-            DBType.getType(DbR66HostAuth.dbTypes[hcolumns.length-1])+
-            primaryKey+")";
+        action += hcolumns[hcolumns.length - 1].name() +
+                DBType.getType(DbR66HostAuth.dbTypes[hcolumns.length - 1]) +
+                primaryKey + ")";
         System.out.println(action);
         try {
             request.query(action);
@@ -150,16 +153,15 @@ public class DbModelH2 extends AbstractDbModel {
         request.close();
 
         // rules
-        action = createTableH2+DbR66Rule.table+"(";
-        DbR66Rule.Columns []rcolumns = DbR66Rule.Columns.values();
-        for (int i = 0; i < rcolumns.length-1; i++) {
-            action += rcolumns[i].name()+
-                DBType.getType(DbR66Rule.dbTypes[i])+
-                ", ";
+        action = createTableH2 + DbR66Rule.table + "(";
+        DbR66Rule.Columns[] rcolumns = DbR66Rule.Columns.values();
+        for (int i = 0; i < rcolumns.length - 1; i ++) {
+            action += rcolumns[i].name() +
+                    DBType.getType(DbR66Rule.dbTypes[i]) + ", ";
         }
-        action += rcolumns[rcolumns.length-1].name()+
-            DBType.getType(DbR66Rule.dbTypes[rcolumns.length-1])+
-            primaryKey+")";
+        action += rcolumns[rcolumns.length - 1].name() +
+                DBType.getType(DbR66Rule.dbTypes[rcolumns.length - 1]) +
+                primaryKey + ")";
         System.out.println(action);
         try {
             request.query(action);
@@ -173,16 +175,16 @@ public class DbModelH2 extends AbstractDbModel {
         request.close();
 
         // runner
-        action = createTableH2+DbTaskRunner.table+"(";
-        DbTaskRunner.Columns []acolumns = DbTaskRunner.Columns.values();
-        for (int i = 0; i < acolumns.length; i++) {
-            action += acolumns[i].name()+
-                DBType.getType(DbTaskRunner.dbTypes[i])+
-                notNull+", ";
+        action = createTableH2 + DbTaskRunner.table + "(";
+        DbTaskRunner.Columns[] acolumns = DbTaskRunner.Columns.values();
+        for (int i = 0; i < acolumns.length; i ++) {
+            action += acolumns[i].name() +
+                    DBType.getType(DbTaskRunner.dbTypes[i]) + notNull + ", ";
         }
         // Two columns for primary key
-        action += " CONSTRAINT runner_pk "+primaryKey+"("+acolumns[acolumns.length-2].name()+","+
-            acolumns[acolumns.length-1].name()+"))";
+        action += " CONSTRAINT runner_pk " + primaryKey + "(" +
+                acolumns[acolumns.length - 2].name() + "," +
+                acolumns[acolumns.length - 1].name() + "))";
         System.out.println(action);
         try {
             request.query(action);
@@ -196,8 +198,8 @@ public class DbModelH2 extends AbstractDbModel {
         request.close();
 
         // cptrunner
-        action = "CREATE SEQUENCE IF NOT EXISTS "+DbTaskRunner.fieldseq+
-            " START WITH "+(DbConstant.ILLEGALVALUE+1);
+        action = "CREATE SEQUENCE IF NOT EXISTS " + DbTaskRunner.fieldseq +
+                " START WITH " + (DbConstant.ILLEGALVALUE + 1);
         System.out.println(action);
         try {
             request.query(action);
@@ -210,24 +212,31 @@ public class DbModelH2 extends AbstractDbModel {
         }
         request.close();
     }
-    /* (non-Javadoc)
+
+    /*
+     * (non-Javadoc)
+     *
      * @see openr66.database.model.AbstractDbModel#resetSequence()
      */
     @Override
     public void resetSequence() {
-        String action = "ALTER SEQUENCE "+DbTaskRunner.fieldseq+
-            " RESTART WITH "+(DbConstant.ILLEGALVALUE+1);
-        // FIXME
+        String action = "ALTER SEQUENCE " + DbTaskRunner.fieldseq +
+                " RESTART WITH " + (DbConstant.ILLEGALVALUE + 1);
+        // FIXME To implement
         System.out.println(action);
     }
-    /* (non-Javadoc)
+
+    /*
+     * (non-Javadoc)
+     *
      * @see openr66.database.model.AbstractDbModel#nextSequence()
      */
     @Override
-    public long nextSequence() throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError, OpenR66DatabaseNoDataException {
-        String action = "SELECT NEXTVAL('"+DbTaskRunner.fieldseq+"')";
-        DbPreparedStatement preparedStatement =
-            new DbPreparedStatement(DbConstant.admin.session);
+    public long nextSequence() throws OpenR66DatabaseNoConnectionError,
+            OpenR66DatabaseSqlError, OpenR66DatabaseNoDataException {
+        String action = "SELECT NEXTVAL('" + DbTaskRunner.fieldseq + "')";
+        DbPreparedStatement preparedStatement = new DbPreparedStatement(
+                DbConstant.admin.session);
         preparedStatement.createPrepareStatement(action);
         try {
             preparedStatement.executeQuery();
@@ -240,7 +249,8 @@ public class DbModelH2 extends AbstractDbModel {
                 }
                 return result;
             }
-            throw new OpenR66DatabaseNoDataException("No sequence found. Must be initialized first");
+            throw new OpenR66DatabaseNoDataException(
+                    "No sequence found. Must be initialized first");
         } finally {
             preparedStatement.realClose();
         }

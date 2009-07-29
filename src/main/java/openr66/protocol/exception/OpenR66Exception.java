@@ -5,7 +5,7 @@ package openr66.protocol.exception;
 
 /**
  * Mother class of All OpenR66 Exceptions
- *
+ * 
  * @author frederic bregier
  */
 @SuppressWarnings("serial")

@@ -30,6 +30,8 @@ import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.utils.FileUtils;
 
 /**
+ * Copy and Rename task
+ *
  * @author Frederic Bregier
  *
  */
@@ -46,7 +48,8 @@ public class CopyRenameTask extends AbstractTask {
      * @param argTransfer
      * @param session
      */
-    public CopyRenameTask(String argRule, int delay, String argTransfer, R66Session session) {
+    public CopyRenameTask(String argRule, int delay, String argTransfer,
+            R66Session session) {
         super(TaskType.COPYRENAME, delay, argRule, argTransfer, session);
     }
 
@@ -57,17 +60,10 @@ public class CopyRenameTask extends AbstractTask {
      */
     @Override
     public void run() {
-        /*
-         * COPY avec options dans argRule : "CHAINE de caracteres" qui se
-         * verront appliquer : - TRUEFILENAME -> current FILENAME (retrieve) -
-         * DATE -> AAAAMMJJ - HOUR -> HHMMSS - puis %s qui sera remplace par les
-         * arguments du transfer (transfer information)
-         */
         String finalname = argRule;
-        finalname = getReplacedValue(finalname, argTransfer
-                .split(" "));
-        logger.info("Copy and Rename to " + finalname + " with " +
-                argRule + ":" + argTransfer + " and " + session);
+        finalname = getReplacedValue(finalname, argTransfer.split(" "));
+        logger.info("Copy and Rename to " + finalname + " with " + argRule +
+                ":" + argTransfer + " and " + session);
         File from = session.getFile().getTrueFile();
         File to = new File(finalname);
         try {
@@ -75,8 +71,7 @@ public class CopyRenameTask extends AbstractTask {
         } catch (OpenR66ProtocolSystemException e1) {
             logger.error("Copy and Rename to " + finalname + " with " +
                     argRule + ":" + argTransfer + " and " + session, e1);
-            futureCompletion
-                    .setFailure(new OpenR66ProtocolSystemException(e1));
+            futureCompletion.setFailure(new OpenR66ProtocolSystemException(e1));
             return;
         }
         futureCompletion.setSuccess();

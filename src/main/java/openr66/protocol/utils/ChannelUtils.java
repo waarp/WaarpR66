@@ -44,6 +44,7 @@ import org.jboss.netty.channel.group.ChannelGroupFutureListener;
 import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
 
 /**
+ * Channel Utils
  * @author Frederic Bregier
  */
 public class ChannelUtils implements Runnable {
@@ -181,7 +182,6 @@ public class ChannelUtils implements Runnable {
             LocalChannelReference localChannelReference, DbTaskRunner runner,
             Channel networkChannel, DataBlock block)
             throws OpenR66ProtocolPacketException {
-        // FIXME if MD5
         ChannelBuffer md5 = ChannelBuffers.EMPTY_BUFFER;
         if (runner.getMode() == RequestPacket.RECVMD5MODE ||
                 runner.getMode() == RequestPacket.SENDMD5MODE) {
@@ -201,28 +201,32 @@ public class ChannelUtils implements Runnable {
         runner.incrementRank();
         return future;
     }
+
     /**
-    * Write the ValidEndTransfer
-    * @param localChannelReference
-    * @param runner
-    * @param networkChannel
-    * @throws OpenR66ProtocolPacketException
-    */
-   public static void writeValidEndTransfer(
-           LocalChannelReference localChannelReference, DbTaskRunner runner,
-           Channel networkChannel)
-           throws OpenR66ProtocolPacketException {
-       EndTransferPacket packet = new EndTransferPacket(LocalPacketFactory.REQUESTPACKET);
-       NetworkPacket networkPacket;
-       try {
-           networkPacket = new NetworkPacket(localChannelReference
-                   .getLocalId(), localChannelReference.getRemoteId(), packet);
-       } catch (OpenR66ProtocolPacketException e) {
-           logger.error("Cannot construct message from " + packet.toString(), e);
-           throw e;
-       }
-       Channels.write(networkChannel, networkPacket);
-   }
+     * Write the ValidEndTransfer
+     *
+     * @param localChannelReference
+     * @param runner
+     * @param networkChannel
+     * @throws OpenR66ProtocolPacketException
+     */
+    public static void writeValidEndTransfer(
+            LocalChannelReference localChannelReference, DbTaskRunner runner,
+            Channel networkChannel) throws OpenR66ProtocolPacketException {
+        EndTransferPacket packet = new EndTransferPacket(
+                LocalPacketFactory.REQUESTPACKET);
+        NetworkPacket networkPacket;
+        try {
+            networkPacket = new NetworkPacket(localChannelReference
+                    .getLocalId(), localChannelReference.getRemoteId(), packet);
+        } catch (OpenR66ProtocolPacketException e) {
+            logger.error("Cannot construct message from " + packet.toString(),
+                    e);
+            throw e;
+        }
+        Channels.write(networkChannel, networkPacket);
+    }
+
     /**
      * Exit global ChannelFactory
      */
