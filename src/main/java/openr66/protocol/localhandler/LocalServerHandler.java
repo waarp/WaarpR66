@@ -596,6 +596,14 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 // Finish with post Operation
                 session.setFinalizeTransfer(true, new R66Result(
                         session, false));
+                // FIXME introduce another future ?
+                /*
+                 * il faudrait que le processus soit :
+                 * retrieve end -> send endtransfer
+                 *      -> recv endtransfer -> post op -> send back endtransfer2
+                 * -> recv endtransfer2 -> post op -> send valid request + finish (actuel future)
+                 *      -> recv valid request -> finish (actuel future)
+                 */
             } else {
                 // in error due to a previous status (like bad MD5)
                 logger.error("Error since end of transfer signaled but already done");
