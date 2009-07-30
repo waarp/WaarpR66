@@ -26,6 +26,7 @@ import openr66.database.data.DbTaskRunner;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.localhandler.LocalChannelReference;
+import openr66.protocol.localhandler.packet.AbstractLocalPacket;
 import openr66.protocol.localhandler.packet.DataPacket;
 import openr66.protocol.localhandler.packet.EndTransferPacket;
 import openr66.protocol.localhandler.packet.LocalPacketFactory;
@@ -173,14 +174,12 @@ public class ChannelUtils implements Runnable {
      *
      * @param localChannelReference
      * @param runner
-     * @param networkChannel
      * @param block
      * @return the ChannelFuture of this write operation
      * @throws OpenR66ProtocolPacketException
      */
     public static ChannelFuture writeBackDataBlock(
-            LocalChannelReference localChannelReference, DbTaskRunner runner,
-            Channel networkChannel, DataBlock block)
+            LocalChannelReference localChannelReference, DbTaskRunner runner, DataBlock block)
             throws OpenR66ProtocolPacketException {
         ChannelBuffer md5 = ChannelBuffers.EMPTY_BUFFER;
         if (runner.getMode() == RequestPacket.RECVMD5MODE ||
@@ -189,15 +188,7 @@ public class ChannelUtils implements Runnable {
         }
         DataPacket data = new DataPacket(runner.getRank(), block.getBlock()
                 .copy(), md5);
-        NetworkPacket networkPacket;
-        try {
-            networkPacket = new NetworkPacket(localChannelReference
-                    .getLocalId(), localChannelReference.getRemoteId(), data);
-        } catch (OpenR66ProtocolPacketException e) {
-            logger.error("Cannot construct message from " + data.toString(), e);
-            throw e;
-        }
-        ChannelFuture future = Channels.write(networkChannel, networkPacket);
+        ChannelFuture future = writeAbstractLocalPacket(localChannelReference, data);
         runner.incrementRank();
         return future;
     }
@@ -207,14 +198,25 @@ public class ChannelUtils implements Runnable {
      *
      * @param localChannelReference
      * @param runner
-     * @param networkChannel
      * @throws OpenR66ProtocolPacketException
      */
     public static void writeValidEndTransfer(
-            LocalChannelReference localChannelReference, DbTaskRunner runner,
-            Channel networkChannel) throws OpenR66ProtocolPacketException {
+            LocalChannelReference localChannelReference, DbTaskRunner runner)
+    throws OpenR66ProtocolPacketException {
         EndTransferPacket packet = new EndTransferPacket(
                 LocalPacketFactory.REQUESTPACKET);
+        writeAbstractLocalPacket(localChannelReference, packet);
+    }
+    /**
+     * Write an AbstractLocalPacket to the network Channel
+     * @param localChannelReference
+     * @param packet
+     * @return the ChannelFuture on write operation
+     * @throws OpenR66ProtocolPacketException
+     */
+    public static ChannelFuture writeAbstractLocalPacket(
+            LocalChannelReference localChannelReference, AbstractLocalPacket packet)
+    throws OpenR66ProtocolPacketException {
         NetworkPacket networkPacket;
         try {
             networkPacket = new NetworkPacket(localChannelReference
@@ -224,7 +226,7 @@ public class ChannelUtils implements Runnable {
                     e);
             throw e;
         }
-        Channels.write(networkChannel, networkPacket);
+        return Channels.write(localChannelReference.getNetworkChannel(), networkPacket);
     }
 
     /**

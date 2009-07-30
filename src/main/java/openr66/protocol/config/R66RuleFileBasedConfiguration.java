@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.util.List;
 
+import openr66.database.DbConstant;
 import openr66.database.data.DbR66Rule;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.protocol.exception.OpenR66ProtocolNoDataException;
@@ -279,7 +280,7 @@ public class R66RuleFileBasedConfiguration {
         nodebase = document.selectSingleNode(ERRORTASKS);
         String[][] errortasks = getTasks(nodebase, TASK);
 
-        newRule = new DbR66Rule(idrule, idsArray, mode, recvpath, sendpath,
+        newRule = new DbR66Rule(DbConstant.admin.session, idrule, idsArray, mode, recvpath, sendpath,
                 archivepath, workpath, pretasks, posttasks, errortasks);
         return newRule;
     }

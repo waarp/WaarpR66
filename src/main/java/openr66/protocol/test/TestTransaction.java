@@ -2,17 +2,17 @@
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author
  * tags. See the COPYRIGHT.txt in the distribution for a full listing of
  * individual contributors.
- * 
+ *
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation; either version 3.0 of the License, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this software; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF
@@ -39,7 +39,7 @@ import openr66.protocol.exception.OpenR66ProtocolRemoteShutdownException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.TestPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
-import openr66.protocol.networkhandler.packet.NetworkPacket;
+import openr66.protocol.utils.ChannelUtils;
 import openr66.protocol.utils.R66Future;
 
 import org.jboss.netty.channel.Channels;
@@ -49,7 +49,7 @@ import ch.qos.logback.classic.Level;
 
 /**
  * @author Frederic Bregier
- * 
+ *
  */
 public class TestTransaction implements Runnable {
     /**
@@ -105,19 +105,14 @@ public class TestTransaction implements Runnable {
         } else if (lastException != null) {
             logger.warn("Connection retry since ", lastException);
         }
-        NetworkPacket networkPacket;
         try {
-            networkPacket = new NetworkPacket(localChannelReference
-                    .getLocalId(), localChannelReference.getRemoteId(),
-                    testPacket);
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, testPacket);
         } catch (OpenR66ProtocolPacketException e) {
             future.setResult(null);
             future.setFailure(e);
             Channels.close(localChannelReference.getLocalChannel());
             return;
         }
-        Channels
-                .write(localChannelReference.getNetworkChannel(), networkPacket);
         localChannelReference.getFutureRequest().awaitUninterruptibly();
         if (localChannelReference.getFutureRequest().isSuccess()) {
             future.setResult(localChannelReference.getFutureRequest()

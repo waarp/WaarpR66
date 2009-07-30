@@ -49,6 +49,17 @@ public abstract class AbstractDbData {
         UNKNOWN, NOTUPDATED, UPDATED, TORUN;
     }
     /**
+     * The DbSession to use
+     */
+    protected final DbSession dbSession;
+    /**
+     * Abstract constructor to set the DbSession to use
+     * @param dbSession
+     */
+    public AbstractDbData(DbSession dbSession) {
+        this.dbSession = dbSession;
+    }
+    /**
      * Select object from table
      * @throws OpenR66DatabaseException
      */

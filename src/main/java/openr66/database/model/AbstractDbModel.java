@@ -20,6 +20,7 @@
  */
 package openr66.database.model;
 
+import openr66.database.DbSession;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
@@ -45,10 +46,10 @@ public abstract class AbstractDbModel {
     public abstract void resetSequence();
 
     /**
-     *
+     * @param dbSession
      * @return The next unique specialId
      */
-    public abstract long nextSequence()
+    public abstract long nextSequence(DbSession dbSession)
             throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError,
             OpenR66DatabaseNoDataException;
 }

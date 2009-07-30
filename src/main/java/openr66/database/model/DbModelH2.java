@@ -26,6 +26,7 @@ import java.sql.Types;
 import openr66.database.DbConstant;
 import openr66.database.DbPreparedStatement;
 import openr66.database.DbRequest;
+import openr66.database.DbSession;
 import openr66.database.data.DbR66Configuration;
 import openr66.database.data.DbR66HostAuth;
 import openr66.database.data.DbR66Rule;
@@ -41,19 +42,19 @@ import openr66.database.exception.OpenR66DatabaseSqlError;
  */
 public class DbModelH2 extends AbstractDbModel {
     private static enum DBType {
-        VARCHAR(Types.VARCHAR, " VARCHAR(254) "), LONGVARCHAR(
-                Types.LONGVARCHAR,
-                " LONGVARCHAR "), BIT(Types.BIT, " BOOLEAN "), TINYINT(
-                Types.TINYINT,
-                " TINYINT "), SMALLINT(Types.SMALLINT, " SMALLINT "), INTEGER(
-                Types.INTEGER,
-                " INTEGER "), BIGINT(Types.BIGINT, " BIGINT "), REAL(
-                Types.REAL,
-                " REAL "), DOUBLE(Types.DOUBLE, " DOUBLE "), VARBINARY(
-                Types.VARBINARY,
-                " BINARY "), DATE(Types.DATE, " DATE "), TIMESTAMP(
-                Types.TIMESTAMP,
-                " TIMESTAMP ");
+        CHAR(Types.CHAR, " CHAR(3) "),
+        VARCHAR(Types.VARCHAR, " VARCHAR(254) "),
+        LONGVARCHAR(Types.LONGVARCHAR, " LONGVARCHAR "),
+        BIT(Types.BIT, " BOOLEAN "),
+        TINYINT(Types.TINYINT, " TINYINT "),
+        SMALLINT(Types.SMALLINT, " SMALLINT "),
+        INTEGER(Types.INTEGER, " INTEGER "),
+        BIGINT(Types.BIGINT, " BIGINT "),
+        REAL(Types.REAL, " REAL "),
+        DOUBLE(Types.DOUBLE, " DOUBLE "),
+        VARBINARY(Types.VARBINARY, " BINARY "),
+        DATE(Types.DATE, " DATE "),
+        TIMESTAMP(Types.TIMESTAMP, " TIMESTAMP ");
 
         public int type;
 
@@ -69,6 +70,8 @@ public class DbModelH2 extends AbstractDbModel {
 
         public static String getType(int sqltype) {
             switch (sqltype) {
+                case Types.CHAR:
+                    return CHAR.constructor;
                 case Types.VARCHAR:
                     return VARCHAR.constructor;
                 case Types.LONGVARCHAR:
@@ -222,7 +225,17 @@ public class DbModelH2 extends AbstractDbModel {
     public void resetSequence() {
         String action = "ALTER SEQUENCE " + DbTaskRunner.fieldseq +
                 " RESTART WITH " + (DbConstant.ILLEGALVALUE + 1);
-        // FIXME To implement
+        DbRequest request = new DbRequest(DbConstant.admin.session);
+        try {
+            request.query(action);
+        } catch (OpenR66DatabaseNoConnectionError e) {
+            e.printStackTrace();
+            return;
+        } catch (OpenR66DatabaseSqlError e) {
+            e.printStackTrace();
+            return;
+        }
+        request.close();
         System.out.println(action);
     }
 
@@ -232,11 +245,11 @@ public class DbModelH2 extends AbstractDbModel {
      * @see openr66.database.model.AbstractDbModel#nextSequence()
      */
     @Override
-    public long nextSequence() throws OpenR66DatabaseNoConnectionError,
+    public long nextSequence(DbSession dbSession) throws OpenR66DatabaseNoConnectionError,
             OpenR66DatabaseSqlError, OpenR66DatabaseNoDataException {
         String action = "SELECT NEXTVAL('" + DbTaskRunner.fieldseq + "')";
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                DbConstant.admin.session);
+                dbSession);
         preparedStatement.createPrepareStatement(action);
         try {
             preparedStatement.executeQuery();

@@ -22,6 +22,7 @@ package openr66.context;
 
 /**
  * This enum class keeps all code that will be returned into the result
+ * and store (char representation) into the runner.
  *
  * @author Frederic Bregier
  *
@@ -30,27 +31,27 @@ public enum R66ErrorCode {
     /**
      * Code stands for initialization ok (internal connection, authentication)
      */
-    InitOk("Initialization step", 'X'),
+    InitOk("Initialization step", 'i'),
     /**
      * Code stands for pre processing ok
      */
     PreProcessingOk(
             "PreProcessing step",
-            '0'),
+            'B'),
     /**
      * Code stands for transfer OK
      */
-    TransferOk("Transfer step", '3'),
+    TransferOk("Transfer step", 'X'),
     /**
      * Code stands for post processing ok
      */
     PostProcessingOk(
             "PostProcessing step",
-            '1'),
+            'P'),
     /**
      * Code stands for All action are completed ok
      */
-    CompleteOk("Operation completed", '4'),
+    CompleteOk("Operation completed", 'O'),
     /**
      * Code stands for connection is impossible (remote or local reason)
      */
@@ -108,9 +109,17 @@ public enum R66ErrorCode {
             "Internal Error",
             'I'),
     /**
+     * Warning in execution
+     */
+    Warning("Warning during pre or post execution", 'W'),
+    /**
      * Code stands for unknown type of error
      */
-    Unknown("Unknown type of error", '-');
+    Unknown("Unknown type of error", '-'),
+    /**
+     * Code stands for unknown type of error
+     */
+    Running("Current step in running", 'z');
 
     /**
      * Literal for this code
@@ -119,28 +128,32 @@ public enum R66ErrorCode {
     /**
      * Code could be used to switch case operations
      */
-    public int code;
+    public char code;
 
     private R66ErrorCode(String mesg, char code) {
         this.mesg = mesg;
         this.code = code;
+    }
+
+    public String getCode() {
+        return String.valueOf(code);
     }
     /**
      *
      * @param code
      * @return the R66ErrorCode according to the code
      */
-    public static R66ErrorCode getFromCode(int code) {
+    public static R66ErrorCode getFromCode(char code) {
         switch (code) {
-            case 'X':
+            case 'i':
                 return InitOk;
-            case '0':
+            case 'B':
                 return PreProcessingOk;
-            case '1':
+            case 'P':
                 return PostProcessingOk;
-            case '3':
+            case 'X':
                 return TransferOk;
-            case '4':
+            case 'O':
                 return CompleteOk;
             case 'C':
                 return ConnectionImpossible;
@@ -164,6 +177,12 @@ public enum R66ErrorCode {
                 return RemoteError;
             case 'I':
                 return Internal;
+            case 'W':
+                return Warning;
+            case '-':
+                return Unknown;
+            case 'z':
+                return Running;
             default:
                 return Unknown;
 

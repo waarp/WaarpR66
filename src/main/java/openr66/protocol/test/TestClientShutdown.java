@@ -35,9 +35,8 @@ import openr66.protocol.localhandler.packet.LocalPacketFactory;
 import openr66.protocol.localhandler.packet.ShutdownPacket;
 import openr66.protocol.localhandler.packet.ValidPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
-import openr66.protocol.networkhandler.packet.NetworkPacket;
+import openr66.protocol.utils.ChannelUtils;
 
-import org.jboss.netty.channel.Channels;
 import org.jboss.netty.logging.InternalLoggerFactory;
 
 import ch.qos.logback.classic.Level;
@@ -103,12 +102,8 @@ public class TestClientShutdown {
         } else if (lastException != null) {
             logger.warn("Connection retry since ", lastException);
         }
-        final NetworkPacket networkPacket = new NetworkPacket(
-                localChannelReference.getLocalId(), localChannelReference
-                        .getRemoteId(), packet);
-        logger.warn("START");
-        Channels
-                .write(localChannelReference.getNetworkChannel(), networkPacket);
+        logger.warn("Start");
+        ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet);
         localChannelReference.getFutureRequest().awaitUninterruptibly();
         if (localChannelReference.getFutureRequest().isSuccess()) {
             logger.warn("Shutdown OK");

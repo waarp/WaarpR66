@@ -346,6 +346,9 @@ public class R66Session implements SessionInterface {
                     new OpenR66RunnerErrorException(finalValue.toString()));
             return;
         }
+        if (! status) {
+            runner.setExecutionStatus(finalValue.code);
+        }
         int rank = runner.finishTransferTask(status);
         runner.saveStatus();
         logger.info("Transfer " + status + " on " + file);
@@ -431,6 +434,7 @@ public class R66Session implements SessionInterface {
             localChannelReference.validateEndTransfer(finalValue);
         } else {
             // error
+            R66ErrorCode runnerStatus = runner.getStatus();
             runner.setErrorTask(0);
             runner.saveStatus();
             if (finalValue.exception != null) {
@@ -442,9 +446,12 @@ public class R66Session implements SessionInterface {
             try {
                 runner.run();
             } catch (OpenR66RunnerErrorException e1) {
+                runner.setExecutionStatus(runnerStatus);
+                runner.saveStatus();
                 localChannelReference.invalidateRequest(finalValue);
                 throw e1;
             }
+            runner.setExecutionStatus(runnerStatus);
             runner.saveStatus();
             localChannelReference.invalidateRequest(finalValue);
         }

@@ -28,15 +28,12 @@ import openr66.context.R66Session;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
-import openr66.protocol.localhandler.packet.AbstractLocalPacket;
 import openr66.protocol.localhandler.packet.ErrorPacket;
 import openr66.protocol.localhandler.packet.LocalPacketFactory;
 import openr66.protocol.localhandler.packet.ValidPacket;
-import openr66.protocol.networkhandler.packet.NetworkPacket;
 import openr66.protocol.utils.ChannelUtils;
 
 import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.Channels;
 
 /**
  * Retrieve transfer runner
@@ -78,9 +75,9 @@ public class RetrieveRunner implements Runnable {
             localChannelReference.invalidateRequest(result);
             logger.error("Transfer in error", e);
             ErrorPacket error = new ErrorPacket("Transfer in error",
-                    ""+R66ErrorCode.TransferError.code, ErrorPacket.FORWARDCLOSECODE);
+                    R66ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
             try {
-                writeBack(error);
+                ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
             } catch (OpenR66ProtocolPacketException e1) {
             }
             ChannelUtils.close(channel);
@@ -92,9 +89,9 @@ public class RetrieveRunner implements Runnable {
             localChannelReference.invalidateRequest(result);
             logger.error("Transfer in error", e);
             ErrorPacket error = new ErrorPacket("Transfer in error",
-                    ""+R66ErrorCode.TransferError.code, ErrorPacket.FORWARDCLOSECODE);
+                    R66ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
             try {
-                writeBack(error);
+                ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
             } catch (OpenR66ProtocolPacketException e1) {
             }
             ChannelUtils.close(channel);
@@ -110,7 +107,7 @@ public class RetrieveRunner implements Runnable {
                     Integer.toString(session.getRunner().getRank()),
                     LocalPacketFactory.REQUESTPACKET);
             try {
-                writeBack(validPacket);
+                ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket).awaitUninterruptibly();
             } catch (OpenR66ProtocolPacketException e) {
             }
             localChannelReference.validateRequest(localChannelReference
@@ -120,9 +117,9 @@ public class RetrieveRunner implements Runnable {
         } else {
             if (!localChannelReference.getFutureEndTransfer().getResult().isAnswered) {
                 ErrorPacket error = new ErrorPacket("Transfer in error",
-                        ""+R66ErrorCode.TransferError.code, ErrorPacket.FORWARDCLOSECODE);
+                        R66ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
                 try {
-                    writeBack(error);
+                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
                 } catch (OpenR66ProtocolPacketException e) {
                 }
             }
@@ -131,25 +128,4 @@ public class RetrieveRunner implements Runnable {
             return;
         }
     }
-    /**
-     * Write Back the data to the network
-     * @param packet
-     * @throws OpenR66ProtocolPacketException
-     */
-    private void writeBack(AbstractLocalPacket packet)
-            throws OpenR66ProtocolPacketException {
-        NetworkPacket networkPacket;
-        try {
-            networkPacket = new NetworkPacket(localChannelReference
-                    .getLocalId(), localChannelReference.getRemoteId(), packet);
-        } catch (OpenR66ProtocolPacketException e) {
-            logger.error("Cannot construct message from " + packet.toString(),
-                    e);
-            throw e;
-        }
-        Channels
-                .write(localChannelReference.getNetworkChannel(), networkPacket)
-                .awaitUninterruptibly();
-    }
-
 }

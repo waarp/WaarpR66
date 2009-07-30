@@ -20,6 +20,8 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.context.R66ErrorCode;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
+import openr66.database.DbConstant;
+import openr66.database.DbSession;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.networkhandler.NetworkServerHandler;
@@ -127,7 +129,16 @@ public class LocalChannelReference {
     public NetworkServerHandler getNetworkServerHandler() {
         return networkServerHandler;
     }
-
+    /**
+     *
+     * @return the actual dbSession
+     */
+    public DbSession getDbSession() {
+        if (networkServerHandler != null) {
+            return networkServerHandler.getDbSession();
+        }
+        return DbConstant.admin.session;
+    }
     /**
      * @param remoteId
      *            the remoteId to set

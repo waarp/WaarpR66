@@ -30,10 +30,8 @@ import openr66.protocol.exception.OpenR66ProtocolRemoteShutdownException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.TestPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
-import openr66.protocol.networkhandler.packet.NetworkPacket;
 import openr66.protocol.utils.ChannelUtils;
 
-import org.jboss.netty.channel.Channels;
 import org.jboss.netty.logging.InternalLoggerFactory;
 
 import ch.qos.logback.classic.Level;
@@ -60,7 +58,7 @@ public class TestClient {
                 Configuration.configuration.SERVER_PORT);
         final TestPacket packet = new TestPacket("header test", "middle test",
                 0);
-        NetworkPacket networkPacket;
+        /*NetworkPacket networkPacket;*/
 
         logger.warn("START");
         for (int i = 0; i < 10; i ++) {
@@ -82,10 +80,11 @@ public class TestClient {
                     networkTransaction.closeAll();
                     return;
                 }
-                networkPacket = new NetworkPacket(localChannelReference
+                ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet);
+                /*networkPacket = new NetworkPacket(localChannelReference
                         .getLocalId(), ChannelUtils.NOCHANNEL, packet);
                 Channels.write(localChannelReference.getNetworkChannel(),
-                        networkPacket);
+                        networkPacket);*/
             }
         }
         try {

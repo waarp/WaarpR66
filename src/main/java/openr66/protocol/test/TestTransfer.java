@@ -2,17 +2,17 @@
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author
  * tags. See the COPYRIGHT.txt in the distribution for a full listing of
  * individual contributors.
- * 
+ *
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation; either version 3.0 of the License, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this software; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF
@@ -33,7 +33,6 @@ import java.util.concurrent.Executors;
 import openr66.context.R66ErrorCode;
 import openr66.context.R66Result;
 import openr66.database.DbConstant;
-import openr66.database.data.DbTaskRunner.TaskStatus;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.config.R66FileBasedConfiguration;
 import openr66.protocol.exception.OpenR66Exception;
@@ -44,7 +43,7 @@ import openr66.protocol.exception.OpenR66ProtocolRemoteShutdownException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
-import openr66.protocol.networkhandler.packet.NetworkPacket;
+import openr66.protocol.utils.ChannelUtils;
 import openr66.protocol.utils.R66Future;
 
 import org.jboss.netty.channel.Channels;
@@ -54,7 +53,7 @@ import ch.qos.logback.classic.Level;
 
 /**
  * @author Frederic Bregier
- * 
+ *
  */
 public class TestTransfer implements Runnable {
     /**
@@ -119,12 +118,10 @@ public class TestTransfer implements Runnable {
         // int block = 101;
         int block = Configuration.configuration.BLOCKSIZE;
         RequestPacket request = new RequestPacket(rulename,
-                RequestPacket.SENDMODE, filename, block, 0,
+                RequestPacket.SENDMD5MODE, filename, block, 0,
                 DbConstant.ILLEGALVALUE, "MONTEST test.xml");
-        NetworkPacket networkPacket;
         try {
-            networkPacket = new NetworkPacket(localChannelReference
-                    .getLocalId(), localChannelReference.getRemoteId(), request);
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, request);
         } catch (OpenR66ProtocolPacketException e) {
             future
                     .setResult(new R66Result(e, null, true,
@@ -133,12 +130,6 @@ public class TestTransfer implements Runnable {
             Channels.close(localChannelReference.getLocalChannel());
             return;
         }
-        Channels
-                .write(localChannelReference.getNetworkChannel(), networkPacket);
-        // FIXME ne pas fermer la connection locale ni distante, instancier la
-        // connection locale
-        // avec la request, enchainer sur validation de request sur la
-        // transmission
         localChannelReference.getFutureRequest().awaitUninterruptibly();
         if (localChannelReference.getFutureRequest().isSuccess()) {
             future.setResult(localChannelReference.getFutureRequest()
@@ -184,7 +175,7 @@ public class TestTransfer implements Runnable {
                 Configuration.configuration.SERVER_PORT);
 
         ExecutorService executorService = Executors.newCachedThreadPool();
-        int nb = 10;
+        int nb = 1;
 
         R66Future[] arrayFuture = new R66Future[nb];
         logger.warn("Start");
@@ -202,14 +193,14 @@ public class TestTransfer implements Runnable {
             arrayFuture[i].awaitUninterruptibly();
             R66Result result = arrayFuture[i].getResult();
             if (arrayFuture[i].isSuccess()) {
-                if (result.runner.getStatus() == TaskStatus.WARNING) {
+                if (result.runner.getStatus() == R66ErrorCode.Warning) {
                     warn ++;
                 } else {
                     success ++;
                 }
             } else {
                 if (result.runner != null &&
-                        result.runner.getStatus() == TaskStatus.WARNING) {
+                        result.runner.getStatus() == R66ErrorCode.Warning) {
                     warn ++;
                 } else {
                     error ++;

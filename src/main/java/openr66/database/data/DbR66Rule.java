@@ -29,8 +29,8 @@ import java.io.StringReader;
 import java.sql.Types;
 import java.util.List;
 
-import openr66.database.DbConstant;
 import openr66.database.DbPreparedStatement;
+import openr66.database.DbSession;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
@@ -297,6 +297,7 @@ public class DbR66Rule extends AbstractDbData {
     }
 
     /**
+     * @param dbSession
      * @param idRule
      * @param ids
      * @param mode
@@ -309,10 +310,11 @@ public class DbR66Rule extends AbstractDbData {
      * @param errorTasks
      * @param updatedInfo
      */
-    public DbR66Rule(String idRule, String ids, int mode, String recvPath,
+    public DbR66Rule(DbSession dbSession, String idRule, String ids, int mode, String recvPath,
             String sendPath, String archivePath, String workPath,
             String preTasks, String postTasks, String errorTasks,
             int updatedInfo) {
+        super(dbSession);
         this.idRule = idRule;
         this.ids = ids;
         this.mode = mode;
@@ -333,10 +335,12 @@ public class DbR66Rule extends AbstractDbData {
     }
 
     /**
+     * @param dbSession
      * @param idRule
      * @throws OpenR66DatabaseException
      */
-    public DbR66Rule(String idRule) throws OpenR66DatabaseException {
+    public DbR66Rule(DbSession dbSession, String idRule) throws OpenR66DatabaseException {
+        super(dbSession);
         this.idRule = idRule;
         // load from DB
         select();
@@ -349,6 +353,7 @@ public class DbR66Rule extends AbstractDbData {
     /**
      * Constructor used from XML file
      *
+     * @param dbSession
      * @param idrule
      * @param idsArrayRef
      * @param recvpath
@@ -359,10 +364,11 @@ public class DbR66Rule extends AbstractDbData {
      * @param posttasksArray
      * @param errortasksArray
      */
-    public DbR66Rule(String idrule, String[] idsArrayRef, int mode,
+    public DbR66Rule(DbSession dbSession, String idrule, String[] idsArrayRef, int mode,
             String recvpath, String sendpath, String archivepath,
             String workpath, String[][] pretasksArray,
             String[][] posttasksArray, String[][] errortasksArray) {
+        super(dbSession);
         idRule = idrule;
         idsArray = idsArrayRef;
         this.mode = mode;
@@ -388,10 +394,10 @@ public class DbR66Rule extends AbstractDbData {
     @Override
     public void delete() throws OpenR66DatabaseException {
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                DbConstant.admin.session);
+                dbSession);
         try {
             preparedStatement.createPrepareStatement("DELETE FROM " + table +
-                    " WHERE " + Columns.IDRULE.name() + " = ?");
+                    " WHERE " + primaryKey.column + " = ?");
             primaryKey.setValue(idRule);
             setValue(preparedStatement, primaryKey);
             int count = preparedStatement.executeUpdate();
@@ -415,7 +421,7 @@ public class DbR66Rule extends AbstractDbData {
             return;
         }
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                DbConstant.admin.session);
+                dbSession);
         try {
             preparedStatement.createPrepareStatement("INSERT INTO " + table +
                     " (" + selectAllFields + ") VALUES " + insertAllValues);
@@ -438,11 +444,11 @@ public class DbR66Rule extends AbstractDbData {
     @Override
     public void select() throws OpenR66DatabaseException {
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                DbConstant.admin.session);
+                dbSession);
         try {
             preparedStatement.createPrepareStatement("SELECT " +
                     selectAllFields + " FROM " + table + " WHERE " +
-                    Columns.IDRULE.name() + " = ?");
+                    primaryKey.column + " = ?");
             primaryKey.setValue(idRule);
             setValue(preparedStatement, primaryKey);
             preparedStatement.executeQuery();
@@ -482,11 +488,11 @@ public class DbR66Rule extends AbstractDbData {
             return;
         }
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                DbConstant.admin.session);
+                dbSession);
         try {
             preparedStatement.createPrepareStatement("UPDATE " + table +
                     " SET " + updateAllFields + " WHERE " +
-                    Columns.IDRULE.name() + " = ?");
+                    primaryKey.column + " = ?");
             setValues(preparedStatement, allFields);
             int count = preparedStatement.executeUpdate();
             if (count <= 0) {

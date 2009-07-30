@@ -23,8 +23,8 @@ package openr66.database.data;
 import java.sql.Types;
 
 import openr66.context.authentication.R66SimpleAuth;
-import openr66.database.DbConstant;
 import openr66.database.DbPreparedStatement;
+import openr66.database.DbSession;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
@@ -95,13 +95,15 @@ public class DbR66HostAuth extends AbstractDbData {
     }
 
     /**
+     * @param dbSession
      * @param hostid
      * @param hostkey
      * @param adminrole
      * @param updatedInfo
      */
-    public DbR66HostAuth(String hostid, byte[] hostkey, boolean adminrole,
+    public DbR66HostAuth(DbSession dbSession, String hostid, byte[] hostkey, boolean adminrole,
             int updatedInfo) {
+        super(dbSession);
         this.hostid = hostid;
         this.hostkey = hostkey;
         this.adminrole = adminrole;
@@ -111,10 +113,12 @@ public class DbR66HostAuth extends AbstractDbData {
     }
 
     /**
+     * @param dbSession
      * @param hostid
      * @throws OpenR66DatabaseException
      */
-    public DbR66HostAuth(String hostid) throws OpenR66DatabaseException {
+    public DbR66HostAuth(DbSession dbSession, String hostid) throws OpenR66DatabaseException {
+        super(dbSession);
         this.hostid = hostid;
         // load from DB
         select();
@@ -128,10 +132,10 @@ public class DbR66HostAuth extends AbstractDbData {
     @Override
     public void delete() throws OpenR66DatabaseException {
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                DbConstant.admin.session);
+                dbSession);
         try {
             preparedStatement.createPrepareStatement("DELETE FROM " + table +
-                    " WHERE " + Columns.HOSTID.name() + " = ?");
+                    " WHERE " + primaryKey.column + " = ?");
             primaryKey.setValue(hostid);
             setValue(preparedStatement, primaryKey);
             int count = preparedStatement.executeUpdate();
@@ -155,7 +159,7 @@ public class DbR66HostAuth extends AbstractDbData {
             return;
         }
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                DbConstant.admin.session);
+                dbSession);
         try {
             preparedStatement.createPrepareStatement("INSERT INTO " + table +
                     " (" + selectAllFields + ") VALUES " + insertAllValues);
@@ -178,11 +182,11 @@ public class DbR66HostAuth extends AbstractDbData {
     @Override
     public void select() throws OpenR66DatabaseException {
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                DbConstant.admin.session);
+                dbSession);
         try {
             preparedStatement.createPrepareStatement("SELECT " +
                     selectAllFields + " FROM " + table + " WHERE " +
-                    Columns.HOSTID.name() + " = ?");
+                    primaryKey.column + " = ?");
             primaryKey.setValue(hostid);
             setValue(preparedStatement, primaryKey);
             preparedStatement.executeQuery();
@@ -209,11 +213,11 @@ public class DbR66HostAuth extends AbstractDbData {
             return;
         }
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                DbConstant.admin.session);
+                dbSession);
         try {
             preparedStatement.createPrepareStatement("UPDATE " + table +
                     " SET " + updateAllFields + " WHERE " +
-                    Columns.HOSTID.name() + " = ?");
+                    primaryKey.column + " = ?");
             setValues(preparedStatement, allFields);
             int count = preparedStatement.executeUpdate();
             if (count <= 0) {

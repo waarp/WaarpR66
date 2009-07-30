@@ -18,7 +18,6 @@ import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.packet.AbstractLocalPacket;
 import openr66.protocol.localhandler.packet.ErrorPacket;
 import openr66.protocol.localhandler.packet.LocalPacketFactory;
-import openr66.protocol.networkhandler.packet.NetworkPacket;
 import openr66.protocol.utils.ChannelUtils;
 
 import org.jboss.netty.channel.Channel;
@@ -165,12 +164,9 @@ public class LocalClientHandler extends SimpleChannelHandler {
                 }
                 final ErrorPacket errorPacket = new ErrorPacket(exception
                         .getMessage(),
-                        ""+R66ErrorCode.RemoteError.code, ErrorPacket.FORWARDCLOSECODE);
-                final NetworkPacket networkPacket = new NetworkPacket(
-                        localChannelReference.getLocalId(),
-                        localChannelReference.getRemoteId(), errorPacket);
-                Channels.write(localChannelReference.getNetworkChannel(),
-                        networkPacket).awaitUninterruptibly();
+                        R66ErrorCode.RemoteError.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                ChannelUtils.writeAbstractLocalPacket(localChannelReference, errorPacket)
+                    .awaitUninterruptibly();
             } else {
                 // Nothing to do
                 return;

@@ -49,7 +49,6 @@ import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.networkhandler.NetworkServerHandler;
 import openr66.protocol.utils.ChannelUtils;
 
-import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 
 /**
@@ -101,7 +100,6 @@ public class R66File extends FilesystemBasedFileImpl {
         boolean retrieveDone = false;
         LocalChannelReference localChannelReference = getSession()
                 .getLocalChannelReference();
-        Channel networkChannel = localChannelReference.getNetworkChannel();
         DbTaskRunner runner = getSession().getRunner();
         try {
             if (!isReady) {
@@ -126,9 +124,9 @@ public class R66File extends FilesystemBasedFileImpl {
             ChannelFuture future = null;
             while (block != null && !block.isEOF()) {
                 future = ChannelUtils.writeBackDataBlock(localChannelReference,
-                        runner, networkChannel, block);
+                        runner, block);
                 // Test if channel is writable in order to prevent OOM
-                if (networkChannel.isWritable()) {
+                if (serverHandler.isWritable()) {
                     try {
                         block = readDataBlock();
                     } catch (FileEndOfTransferException e) {
@@ -138,7 +136,6 @@ public class R66File extends FilesystemBasedFileImpl {
                         return;
                     }
                 } else {
-                    serverHandler.setWriteNotReady();
                     // Wait for the next InterestChanged
                     while (serverHandler.isWriteReady()) {
                         try {
@@ -168,7 +165,7 @@ public class R66File extends FilesystemBasedFileImpl {
             // Last block
             if (block != null) {
                 future = ChannelUtils.writeBackDataBlock(localChannelReference,
-                        runner, networkChannel, block);
+                        runner, block);
             }
             // Wait for last write
             if (future != null) {
@@ -193,7 +190,7 @@ public class R66File extends FilesystemBasedFileImpl {
             if (retrieveDone) {
                 try {
                     ChannelUtils.writeValidEndTransfer(localChannelReference,
-                            runner, networkChannel);
+                            runner);
                 } catch (OpenR66ProtocolPacketException e) {
                     // An error occurs!
                     getSession().setFinalizeTransfer(

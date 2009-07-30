@@ -20,9 +20,9 @@ import openr66.protocol.utils.OpenR66SignalHandler;
 
 /**
  * Class to handle session with the SGBD of R66
- * 
+ *
  * @author Frederic Bregier LGPL
- * 
+ *
  */
 public class DbSession {
     /**
@@ -44,11 +44,11 @@ public class DbSession {
     /**
      * Create a session and connect the current object to the connect object
      * given as parameter.
-     * 
-     * The database access use no auto commit.
-     * 
+     *
+     * The database access use auto commit.
+     *
      * If the initialize is not call before, call it with the default value.
-     * 
+     *
      * @param connext
      * @param isReadOnly
      * @throws OpenR66DatabaseNoConnectionError
@@ -81,14 +81,14 @@ public class DbSession {
      * jdbc:type://[host:port],[failoverhost:port]
      * .../[database][?propertyName1][
      * =propertyValue1][&propertyName2][=propertyValue2]...
-     * 
+     *
      * By default (if server = null) :
      * "jdbc:mysql://localhost/r66 user=r66 password=r66"
-     * 
-     * The database access use no auto commit.
-     * 
+     *
+     * The database access use auto commit.
+     *
      * If the initialize is not call before, call it with the default value.
-     * 
+     *
      * @param server
      * @param user
      * @param passwd
@@ -98,7 +98,7 @@ public class DbSession {
     public DbSession(String server, String user, String passwd,
             boolean isReadOnly) throws OpenR66DatabaseNoConnectionError {
         if (!DbAdmin.classLoaded) {
-            DbAdmin.initialize(null);
+            throw new OpenR66DatabaseNoConnectionError("DbAdmin not initialzed");
         }
         if (server == null) {
             conn = null;
@@ -123,8 +123,41 @@ public class DbSession {
     }
 
     /**
+     * Create a session and connect the current object to the server using the
+     * DbAdmin object.
+     * The database access use auto commit.
+     *
+     * If the initialize is not call before, call it with the default value.
+     *
+     * @param admin
+     * @param isReadOnly
+     * @throws OpenR66DatabaseSqlError
+     */
+    public DbSession(DbAdmin admin,
+            boolean isReadOnly) throws OpenR66DatabaseNoConnectionError {
+        if (!DbAdmin.classLoaded) {
+            throw new OpenR66DatabaseNoConnectionError("DbAdmin not initialzed");
+        }
+        try {
+            conn = DriverManager.getConnection(admin.getServer(),
+                    admin.getUser(), admin.getPasswd());
+            conn.setAutoCommit(true);
+            this.isReadOnly = isReadOnly;
+            conn.setReadOnly(this.isReadOnly);
+            OpenR66SignalHandler.addConnection(conn);
+        } catch (SQLException ex) {
+            // handle any errors
+            logger.error("Cannot create Connection");
+            error(ex);
+            conn = null;
+            throw new OpenR66DatabaseNoConnectionError(
+                    "Cannot create Connection", ex);
+        }
+    }
+
+    /**
      * Print the error from SQLException
-     * 
+     *
      * @param ex
      */
     public static void error(SQLException ex) {
@@ -136,9 +169,9 @@ public class DbSession {
 
     /**
      * Close the connection
-     * 
+     *
      * @throws OpenR66DatabaseSqlError
-     * 
+     *
      */
     public void disconnect() throws OpenR66DatabaseSqlError {
         if (conn == null) {
@@ -157,7 +190,7 @@ public class DbSession {
 
     /**
      * Commit everything
-     * 
+     *
      * @throws OpenR66DatabaseSqlError
      * @throws OpenR66DatabaseNoConnectionError
      */
@@ -179,7 +212,7 @@ public class DbSession {
 
     /**
      * Rollback from the savepoint or the last set if null
-     * 
+     *
      * @param savepoint
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
@@ -206,7 +239,7 @@ public class DbSession {
 
     /**
      * Make a savepoint
-     * 
+     *
      * @return the new savepoint
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
@@ -229,7 +262,7 @@ public class DbSession {
 
     /**
      * Release the savepoint
-     * 
+     *
      * @param savepoint
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError

@@ -5,6 +5,10 @@ package openr66.protocol.networkhandler;
 
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+import openr66.database.DbConstant;
+import openr66.database.DbSession;
+import openr66.database.exception.OpenR66DatabaseNoConnectionError;
+import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
@@ -44,7 +48,19 @@ public class NetworkServerHandler extends SimpleChannelHandler {
      * Used by retriever to be able to prevent OOME
      */
     private volatile boolean isWriteReady = true;
-
+    /**
+     * The underlying Network Channel
+     */
+    private Channel networkChannel;
+    /**
+     * The Database connection attached to this NetworkChannel
+     * shared among all associated LocalChannels
+     */
+    private DbSession dbSession;
+    /**
+     * Does this dbSession is private and so should be closed
+     */
+    private boolean isPrivateDbSession = false;
     /*
      * (non-Javadoc)
      *
@@ -63,6 +79,12 @@ public class NetworkServerHandler extends SimpleChannelHandler {
             Configuration.configuration.getLocalTransaction()
                     .closeLocalChannelsFromNetworkChannel(e.getChannel());
         }
+        if (this.isPrivateDbSession && dbSession != null) {
+            try {
+                dbSession.disconnect();
+            } catch (OpenR66DatabaseSqlError e1) {
+            }
+        }
     }
 
     /*
@@ -75,6 +97,15 @@ public class NetworkServerHandler extends SimpleChannelHandler {
      */
     @Override
     public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) {
+        this.networkChannel = e.getChannel();
+        try {
+            this.dbSession = new DbSession(DbConstant.admin, false);
+            this.isPrivateDbSession = true;
+        } catch (OpenR66DatabaseNoConnectionError e1) {
+            // Cannot connect so use default connection
+            logger.warn("Use default database connection");
+            this.dbSession = DbConstant.admin.session;
+        }
         logger.info("Network Channel Connected: " + e.getChannel().getId());
     }
 
@@ -206,10 +237,14 @@ public class NetworkServerHandler extends SimpleChannelHandler {
         }
     }
     /**
-     * Channel is not ready
+     *
+     * @return True if the networkChannel is writable
      */
-    public void setWriteNotReady() {
-        isWriteReady = false;
+    public boolean isWritable() {
+        if (!networkChannel.isWritable()) {
+            isWriteReady = false;
+        }
+        return isWriteReady;
     }
     /**
      * Channel is reday
@@ -235,4 +270,12 @@ public class NetworkServerHandler extends SimpleChannelHandler {
         }
         Channels.write(channel, networkPacket).awaitUninterruptibly();
     }
+
+    /**
+     * @return the dbSession
+     */
+    public DbSession getDbSession() {
+        return dbSession;
+    }
+
 }

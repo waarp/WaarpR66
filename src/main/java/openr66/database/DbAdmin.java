@@ -325,7 +325,7 @@ public class DbAdmin {
     }
 
     /**
-     * Commit on connection
+     * Commit on connection (since in autocommit, should not be used)
      *
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
@@ -337,4 +337,26 @@ public class DbAdmin {
             session.commit();
         }
     }
+
+    /**
+     * @return the server
+     */
+    public String getServer() {
+        return server;
+    }
+
+    /**
+     * @return the user
+     */
+    public String getUser() {
+        return user;
+    }
+
+    /**
+     * @return the passwd
+     */
+    public String getPasswd() {
+        return passwd;
+    }
+
 }

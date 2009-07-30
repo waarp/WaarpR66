@@ -27,7 +27,6 @@ import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.RetrieveRunner;
 import openr66.protocol.localhandler.packet.AuthentPacket;
-import openr66.protocol.networkhandler.packet.NetworkPacket;
 import openr66.protocol.utils.ChannelUtils;
 import openr66.protocol.utils.OpenR66SignalHandler;
 import openr66.protocol.utils.R66Future;
@@ -218,15 +217,12 @@ public class NetworkTransaction {
         AuthentPacket authent = new AuthentPacket(
                 Configuration.configuration.HOST_ID, R66Auth.getServerAuth(),
                 localChannelReference.getLocalId());
-        NetworkPacket packet;
         try {
-            packet = new NetworkPacket(localChannelReference.getLocalId(),
-                    localChannelReference.getRemoteId(), authent);
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, authent)
+            .awaitUninterruptibly();
         } catch (OpenR66ProtocolPacketException e) {
             throw new OpenR66ProtocolNetworkException("Bad packet", e);
         }
-        Channels.write(localChannelReference.getNetworkChannel(), packet)
-                .awaitUninterruptibly();
         R66Future future = localChannelReference.getFutureValidateConnection();
         if (future.isCancelled()) {
             logger.info("Will close NETWORK channel since Future cancelled: " +

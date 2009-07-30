@@ -22,6 +22,8 @@ package openr66.database.model;
 
 import java.sql.Types;
 
+import openr66.database.DbSession;
+
 /**
  * MySQL Database Model implementation
  * @author Frederic Bregier
@@ -65,7 +67,7 @@ public class DbModelMysql extends AbstractDbModel {
      * @see openr66.database.model.AbstractDbModel#nextSequence()
      */
     @Override
-    public long nextSequence() {
+    public long nextSequence(DbSession dbSession) {
         // TODO Auto-generated method stub
         return 0;
     }
