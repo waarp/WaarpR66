@@ -26,6 +26,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import openr66.database.data.DbR66HostAuth;
 import openr66.protocol.localhandler.LocalTransaction;
 import openr66.protocol.networkhandler.NetworkServerPipelineFactory;
 import openr66.protocol.utils.OpenR66SignalHandler;
@@ -105,6 +106,10 @@ public class Configuration {
      * Server Administration Key
      */
     private byte[] SERVERADMINKEY = null;
+    /**
+     * Server Actual Authentication
+     */
+    public DbR66HostAuth HOST_AUTH;
 
     /**
      * Default number of threads in pool for Server (true network listeners).

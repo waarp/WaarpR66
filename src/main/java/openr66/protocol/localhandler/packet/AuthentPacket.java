@@ -3,7 +3,6 @@
  */
 package openr66.protocol.localhandler.packet;
 
-import openr66.context.authentication.R66Auth;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 
@@ -178,7 +177,7 @@ public class AuthentPacket extends AbstractLocalPacket {
     public void validate() {
         way = ANSWERVALIDATE;
         hostId = Configuration.configuration.HOST_ID;
-        key = R66Auth.getServerAuth();
+        key = Configuration.configuration.HOST_AUTH.getHostkey();
         header = null;
         middle = null;
         end = null;

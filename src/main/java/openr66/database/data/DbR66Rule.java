@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.StringReader;
 import java.sql.Types;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 import openr66.database.DbPreparedStatement;
 import openr66.database.DbSession;
@@ -77,6 +78,12 @@ public class DbR66Rule extends AbstractDbData {
             Types.LONGVARCHAR, Types.INTEGER, Types.VARCHAR };
 
     public static String table = " RULES ";
+
+    /**
+     * HashTable in case of lack of database
+     */
+    private static final ConcurrentHashMap<String, DbR66Rule> dbR66RuleHashMap =
+        new ConcurrentHashMap<String, DbR66Rule>();
 
     /**
      * Internal context XML fields
@@ -219,7 +226,7 @@ public class DbR66Rule extends AbstractDbData {
      */
     public String[][] errorTasksArray = null;
 
-    private int updatedInfo;
+    private int updatedInfo = UpdatedInfo.UNKNOWN.ordinal();
 
     private boolean isSaved = false;
 
@@ -308,12 +315,10 @@ public class DbR66Rule extends AbstractDbData {
      * @param preTasks
      * @param postTasks
      * @param errorTasks
-     * @param updatedInfo
      */
     public DbR66Rule(DbSession dbSession, String idRule, String ids, int mode, String recvPath,
             String sendPath, String archivePath, String workPath,
-            String preTasks, String postTasks, String errorTasks,
-            int updatedInfo) {
+            String preTasks, String postTasks, String errorTasks) {
         super(dbSession);
         this.idRule = idRule;
         this.ids = ids;
@@ -325,7 +330,6 @@ public class DbR66Rule extends AbstractDbData {
         this.preTasks = preTasks;
         this.postTasks = postTasks;
         this.errorTasks = errorTasks;
-        this.updatedInfo = updatedInfo;
         getIdsRule(this.ids);
         preTasksArray = getTasksRule(this.preTasks);
         postTasksArray = getTasksRule(this.postTasks);
@@ -393,6 +397,11 @@ public class DbR66Rule extends AbstractDbData {
      */
     @Override
     public void delete() throws OpenR66DatabaseException {
+        if (dbSession == null) {
+            dbR66RuleHashMap.remove(this.idRule);
+            isSaved = false;
+            return;
+        }
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
                 dbSession);
         try {
@@ -420,6 +429,11 @@ public class DbR66Rule extends AbstractDbData {
         if (isSaved) {
             return;
         }
+        if (dbSession == null) {
+            dbR66RuleHashMap.put(this.idRule, this);
+            isSaved = true;
+            return;
+        }
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
                 dbSession);
         try {
@@ -436,6 +450,33 @@ public class DbR66Rule extends AbstractDbData {
         }
     }
 
+    /* (non-Javadoc)
+     * @see openr66.database.data.AbstractDbData#exist()
+     */
+    @Override
+    public boolean exist() throws OpenR66DatabaseException {
+        if (dbSession == null) {
+            return dbR66RuleHashMap.containsKey(idRule);
+        }
+        DbPreparedStatement preparedStatement = new DbPreparedStatement(
+                dbSession);
+        try {
+            preparedStatement.createPrepareStatement("SELECT " +
+                    primaryKey.column + " FROM " + table + " WHERE " +
+                    primaryKey.column + " = ?");
+            primaryKey.setValue(idRule);
+            setValue(preparedStatement, primaryKey);
+            preparedStatement.executeQuery();
+            if (preparedStatement.getNext()) {
+                return true;
+            } else {
+                return false;
+            }
+        } finally {
+            preparedStatement.realClose();
+        }
+    }
+
     /*
      * (non-Javadoc)
      *
@@ -443,6 +484,32 @@ public class DbR66Rule extends AbstractDbData {
      */
     @Override
     public void select() throws OpenR66DatabaseException {
+        if (dbSession == null) {
+            DbR66Rule rule = dbR66RuleHashMap.get(this.idRule);
+            if (rule == null) {
+                throw new OpenR66DatabaseNoDataException("No row found");
+            } else {
+                // copy info
+                for (int i = 0; i < allFields.length; i++){
+                    allFields[i].value = rule.allFields[i].value;
+                }
+                setFromArray();
+                if (recvPath == null) {
+                    recvPath = Configuration.configuration.inPath;
+                }
+                if (sendPath == null) {
+                    sendPath = Configuration.configuration.outPath;
+                }
+                if (archivePath == null) {
+                    archivePath = Configuration.configuration.archivePath;
+                }
+                if (workPath == null) {
+                    workPath = Configuration.configuration.workingPath;
+                }
+                isSaved = true;
+                return;
+            }
+        }
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
                 dbSession);
         try {
@@ -485,6 +552,11 @@ public class DbR66Rule extends AbstractDbData {
     public void update() throws OpenR66DatabaseNoConnectionError,
             OpenR66DatabaseSqlError, OpenR66DatabaseNoDataException {
         if (isSaved) {
+            return;
+        }
+        if (dbSession == null) {
+            dbR66RuleHashMap.put(this.idRule, this);
+            isSaved = true;
             return;
         }
         DbPreparedStatement preparedStatement = new DbPreparedStatement(

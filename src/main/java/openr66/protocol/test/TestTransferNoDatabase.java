@@ -55,7 +55,7 @@ import ch.qos.logback.classic.Level;
  * @author Frederic Bregier
  *
  */
-public class TestTransfer implements Runnable {
+public class TestTransferNoDatabase implements Runnable {
     /**
      * Internal Logger
      */
@@ -71,11 +71,11 @@ public class TestTransfer implements Runnable {
 
     final private String rulename;
 
-    public TestTransfer(NetworkTransaction networkTransaction,
+    public TestTransferNoDatabase(NetworkTransaction networkTransaction,
             R66Future future, SocketAddress socketAddress, String filename,
             String rulename) {
         if (logger == null) {
-            logger = GgInternalLoggerFactory.getLogger(TestTransfer.class);
+            logger = GgInternalLoggerFactory.getLogger(TestTransferNoDatabase.class);
         }
         this.networkTransaction = networkTransaction;
         this.future = future;
@@ -152,7 +152,7 @@ public class TestTransfer implements Runnable {
         InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
                 Level.WARN));
         if (logger == null) {
-            logger = GgInternalLoggerFactory.getLogger(TestTransfer.class);
+            logger = GgInternalLoggerFactory.getLogger(TestTransferNoDatabase.class);
         }
         if (args.length < 3) {
             logger
@@ -182,7 +182,7 @@ public class TestTransfer implements Runnable {
         long time1 = System.currentTimeMillis();
         for (int i = 0; i < nb; i ++) {
             arrayFuture[i] = new R66Future(true);
-            TestTransfer transaction = new TestTransfer(networkTransaction,
+            TestTransferNoDatabase transaction = new TestTransferNoDatabase(networkTransaction,
                     arrayFuture[i], socketServerAddress, localFilename, rule);
             executorService.execute(transaction);
         }

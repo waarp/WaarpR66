@@ -381,7 +381,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
     private void authent(Channel channel, AuthentPacket packet)
             throws OpenR66ProtocolPacketException {
         try {
-            session.getAuth().connection(packet.getHostId(), packet.getKey());
+            session.getAuth().connection(localChannelReference.getDbSession(),
+                    packet.getHostId(), packet.getKey());
         } catch (Reply530Exception e1) {
             logger.error("Cannot connect: " + packet.getHostId(), e1);
             R66Result result = new R66Result(

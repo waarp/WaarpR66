@@ -106,33 +106,22 @@ public class DbTaskRunner extends AbstractDbData {
     /**
      * GlobalStep Value
      */
-    public static final int POSTTASK = 1;
+    public static final int TRANSFERTASK = 1;
 
     /**
      * GlobalStep Value
      */
-    public static final int ERRORTASK = 2;
+    public static final int POSTTASK = 2;
 
     /**
      * GlobalStep Value
      */
-    public static final int TRANSFERTASK = 3;
+    public static final int ALLDONETASK = 3;
 
     /**
      * GlobalStep Value
      */
-    public static final int ALLDONETASK = 4;
-
-    /**
-     * GlobalStep Status
-     *
-     * @author Frederic Bregier
-     *
-     */
-    // FIXME to delete
-    public static enum TaskStatusX {
-        UNKNOWN, RUNNING, OK, WARNING, ERROR;
-    }
+    public static final int ERRORTASK = 4;
 
     // Values
     private final DbR66Rule rule;
@@ -175,7 +164,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     private Timestamp stop;
 
-    private int updatedInfo;
+    private int updatedInfo = UpdatedInfo.UNKNOWN.ordinal();
 
     private boolean isSaved = false;
 
@@ -297,7 +286,6 @@ public class DbTaskRunner extends AbstractDbData {
         requestedHostId = getRequested(session, requestPacket);
 
         start = new Timestamp(System.currentTimeMillis());
-        updatedInfo = UpdatedInfo.UNKNOWN.ordinal();
         setToArray();
         isSaved = false;
         specialId = requestPacket.getSpecialId();
@@ -402,6 +390,9 @@ public class DbTaskRunner extends AbstractDbData {
      */
     @Override
     public void delete() throws OpenR66DatabaseException {
+        if (dbSession == null) {
+            return;
+        }
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
                 dbSession);
         try {
@@ -431,6 +422,14 @@ public class DbTaskRunner extends AbstractDbData {
         if (isSaved) {
             return;
         }
+        if (dbSession == null) {
+            if (specialId == DbConstant.ILLEGALVALUE) {
+                throw new OpenR66DatabaseNoDataException(
+                        "New SpecialId is not possible with No Database Model");
+            }
+            isSaved = true;
+            return;
+        }
         // First need to find a new id if id is not ok
         if (specialId == DbConstant.ILLEGALVALUE) {
             specialId = DbModelFactory.dbModel.nextSequence(dbSession);
@@ -454,6 +453,34 @@ public class DbTaskRunner extends AbstractDbData {
         }
     }
 
+    /* (non-Javadoc)
+     * @see openr66.database.data.AbstractDbData#exist()
+     */
+    @Override
+    public boolean exist() throws OpenR66DatabaseException {
+        if (dbSession == null) {
+            return false;
+        }
+        DbPreparedStatement preparedStatement = new DbPreparedStatement(
+                dbSession);
+        try {
+            preparedStatement.createPrepareStatement("SELECT " +
+                    primaryKey[0].column + " FROM " + table + " WHERE " +
+                    primaryKey[0].column +
+                    " = ? AND " + primaryKey[1].column + " = ? ");
+            primaryKey[0].setValue(requestedHostId);
+            primaryKey[1].setValue(specialId);
+            setValues(preparedStatement, primaryKey);
+            preparedStatement.executeQuery();
+            if (preparedStatement.getNext()) {
+                return true;
+            } else {
+                return false;
+            }
+        } finally {
+            preparedStatement.realClose();
+        }
+    }
     /*
      * (non-Javadoc)
      *
@@ -461,6 +488,9 @@ public class DbTaskRunner extends AbstractDbData {
      */
     @Override
     public void select() throws OpenR66DatabaseException {
+        if (dbSession == null) {
+            throw new OpenR66DatabaseNoDataException("No row found");
+        }
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
                 dbSession);
         preparedStatement.createPrepareStatement("SELECT " + selectAllFields +
@@ -491,6 +521,10 @@ public class DbTaskRunner extends AbstractDbData {
     @Override
     public void update() throws OpenR66DatabaseException {
         if (isSaved) {
+            return;
+        }
+        if (dbSession == null) {
+            isSaved = true;
             return;
         }
         setToArray();
@@ -691,8 +725,8 @@ public class DbTaskRunner extends AbstractDbData {
      * @return True if this runner is finished, either in success or in error
      */
     public boolean isFinished() {
-        return globalstep == ALLDONETASK || globalstep == ERRORTASK &&
-                status != R66ErrorCode.Running;
+        return globalstep == ALLDONETASK || (globalstep == ERRORTASK &&
+                status != R66ErrorCode.Running);
     }
     /**
      * Set Pre Task step
@@ -959,6 +993,9 @@ public class DbTaskRunner extends AbstractDbData {
     public static ArrayList<TransferId> getAllRunner(DbSession dbSession, int status)
             throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError,
             OpenR66DatabaseNoDataException {
+        if (dbSession == null) {
+            return new ArrayList<TransferId>(0);
+        }
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
                 dbSession);
         DbTaskRunner runner = null;

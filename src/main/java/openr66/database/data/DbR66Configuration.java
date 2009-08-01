@@ -21,6 +21,7 @@
 package openr66.database.data;
 
 import java.sql.Types;
+import java.util.concurrent.ConcurrentHashMap;
 
 import openr66.database.DbPreparedStatement;
 import openr66.database.DbSession;
@@ -52,6 +53,12 @@ public class DbR66Configuration extends AbstractDbData {
 
     public static String table = " CONFIGURATION ";
 
+    /**
+     * HashTable in case of lack of database
+     */
+    private static final ConcurrentHashMap<String, DbR66Configuration> dbR66ConfigurationHashMap =
+        new ConcurrentHashMap<String, DbR66Configuration>();
+
     private String hostid;
 
     private long readgloballimit;
@@ -64,7 +71,7 @@ public class DbR66Configuration extends AbstractDbData {
 
     private long delayllimit;
 
-    private int updatedInfo;
+    private int updatedInfo = UpdatedInfo.UNKNOWN.ordinal();
 
     private boolean isSaved = false;
 
@@ -155,10 +162,9 @@ public class DbR66Configuration extends AbstractDbData {
      *            Write Session Limit
      * @param del
      *            Delay Limit
-     * @param updatedInfo
      */
     public DbR66Configuration(DbSession dbSession, String hostid, long rg, long wg, long rs,
-            long ws, long del, int updatedInfo) {
+            long ws, long del) {
         super(dbSession);
         this.hostid = hostid;
         readgloballimit = rg;
@@ -166,7 +172,6 @@ public class DbR66Configuration extends AbstractDbData {
         readsessionlimit = rs;
         writesessionlimit = ws;
         delayllimit = del;
-        this.updatedInfo = updatedInfo;
         setToArray();
         isSaved = false;
     }
@@ -190,6 +195,11 @@ public class DbR66Configuration extends AbstractDbData {
      */
     @Override
     public void delete() throws OpenR66DatabaseException {
+        if (dbSession == null) {
+            dbR66ConfigurationHashMap.remove(this.hostid);
+            isSaved = false;
+            return;
+        }
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
                 dbSession);
         try {
@@ -217,6 +227,11 @@ public class DbR66Configuration extends AbstractDbData {
         if (isSaved) {
             return;
         }
+        if (dbSession == null) {
+            dbR66ConfigurationHashMap.put(this.hostid, this);
+            isSaved = true;
+            return;
+        }
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
                 dbSession);
         try {
@@ -233,6 +248,32 @@ public class DbR66Configuration extends AbstractDbData {
         }
     }
 
+    /* (non-Javadoc)
+     * @see openr66.database.data.AbstractDbData#exist()
+     */
+    @Override
+    public boolean exist() throws OpenR66DatabaseException {
+        if (dbSession == null) {
+            return dbR66ConfigurationHashMap.containsKey(hostid);
+        }
+        DbPreparedStatement preparedStatement = new DbPreparedStatement(
+                dbSession);
+        try {
+            preparedStatement.createPrepareStatement("SELECT " +
+                    primaryKey.column + " FROM " + table + " WHERE " +
+                    primaryKey.column + " = ?");
+            primaryKey.setValue(hostid);
+            setValue(preparedStatement, primaryKey);
+            preparedStatement.executeQuery();
+            if (preparedStatement.getNext()) {
+                return true;
+            } else {
+                return false;
+            }
+        } finally {
+            preparedStatement.realClose();
+        }
+    }
     /*
      * (non-Javadoc)
      *
@@ -240,6 +281,20 @@ public class DbR66Configuration extends AbstractDbData {
      */
     @Override
     public void select() throws OpenR66DatabaseException {
+        if (dbSession == null) {
+            DbR66Configuration conf = dbR66ConfigurationHashMap.get(this.hostid);
+            if (conf == null) {
+                throw new OpenR66DatabaseNoDataException("No row found");
+            } else {
+                // copy info
+                for (int i = 0; i < allFields.length; i++){
+                    allFields[i].value = conf.allFields[i].value;
+                }
+                setFromArray();
+                isSaved = true;
+                return;
+            }
+        }
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
                 dbSession);
         try {
@@ -269,6 +324,11 @@ public class DbR66Configuration extends AbstractDbData {
     @Override
     public void update() throws OpenR66DatabaseException {
         if (isSaved) {
+            return;
+        }
+        if (dbSession == null) {
+            dbR66ConfigurationHashMap.put(this.hostid, this);
+            isSaved = true;
             return;
         }
         DbPreparedStatement preparedStatement = new DbPreparedStatement(

@@ -138,8 +138,9 @@ public class DbAdmin {
                 logger.error("Cannot connect to Database!");
                 throw new OpenR66DatabaseNoConnectionError(
                         "Cannot connect to database", e);
+            } finally {
+                request.close();
             }
-            request.close();
         } else {
             DbRequest request = new DbRequest(session);
             try {
@@ -155,10 +156,11 @@ public class DbAdmin {
                 logger.error("Cannot connect to Database!");
                 throw new OpenR66DatabaseNoConnectionError(
                         "Cannot connect to database", e);
+            } finally {
+                request.close();
             }
-            request.close();
         }
-
+        isConnected = true;
     }
 
     /**
@@ -201,7 +203,6 @@ public class DbAdmin {
         session = new DbSession(this.server, this.user, this.passwd, false);
         isReadOnly = false;
         validConnection();
-        isConnected = true;
     }
 
     /**
@@ -308,7 +309,14 @@ public class DbAdmin {
         isReadOnly = isread;
         isConnected = true;
     }
-
+    /**
+     * Empty constructor for no Database support (very thin client)
+     */
+    public DbAdmin() {
+        // not true but to enable pseudo database functions
+        classLoaded = true;
+        isConnected = false;
+    }
     /**
      * Close the underlying session. Can be call even for connection given from
      * the constructor DbAdmin(Connection, boolean).

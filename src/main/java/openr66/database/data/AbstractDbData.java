@@ -60,6 +60,12 @@ public abstract class AbstractDbData {
         this.dbSession = dbSession;
     }
     /**
+     * Test the existence of the current object
+     * @return True if the object exists
+     * @throws OpenR66DatabaseException
+     */
+    public abstract boolean exist() throws OpenR66DatabaseException;
+    /**
      * Select object from table
      * @throws OpenR66DatabaseException
      */

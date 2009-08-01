@@ -111,8 +111,17 @@ public class R66RuleFileBasedConfiguration {
                 new ExtensionFilter());
         for (File file: files) {
             DbR66Rule rule = getFromFile(file);
-            logger.warn(rule.toString());
-            rule.insert();
+            logger.debug(rule.toString());
+            if (DbConstant.admin != null && DbConstant.admin.session != null) {
+                if (rule.exist()) {
+                    rule.update();
+                } else {
+                    rule.insert();
+                }
+            } else {
+                // put in hashtable
+                rule.insert();
+            }
         }
     }
 

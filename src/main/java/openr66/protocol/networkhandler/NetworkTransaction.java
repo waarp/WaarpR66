@@ -16,7 +16,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantLock;
 
 import openr66.context.R66Session;
-import openr66.context.authentication.R66Auth;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
@@ -215,7 +214,8 @@ public class NetworkTransaction {
             throws OpenR66ProtocolNetworkException,
             OpenR66ProtocolRemoteShutdownException {
         AuthentPacket authent = new AuthentPacket(
-                Configuration.configuration.HOST_ID, R66Auth.getServerAuth(),
+                Configuration.configuration.HOST_ID,
+                Configuration.configuration.HOST_AUTH.getHostkey(),
                 localChannelReference.getLocalId());
         try {
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, authent)

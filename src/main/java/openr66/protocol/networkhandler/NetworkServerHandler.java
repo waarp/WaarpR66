@@ -99,7 +99,9 @@ public class NetworkServerHandler extends SimpleChannelHandler {
     public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) {
         this.networkChannel = e.getChannel();
         try {
-            this.dbSession = new DbSession(DbConstant.admin, false);
+            if (DbConstant.admin.isConnected) {
+                this.dbSession = new DbSession(DbConstant.admin, false);
+            }
             this.isPrivateDbSession = true;
         } catch (OpenR66DatabaseNoConnectionError e1) {
             // Cannot connect so use default connection

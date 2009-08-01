@@ -21,8 +21,9 @@
 package openr66.database.data;
 
 import java.sql.Types;
+import java.util.Arrays;
+import java.util.concurrent.ConcurrentHashMap;
 
-import openr66.context.authentication.R66SimpleAuth;
 import openr66.database.DbPreparedStatement;
 import openr66.database.DbSession;
 import openr66.database.exception.OpenR66DatabaseException;
@@ -45,13 +46,19 @@ public class DbR66HostAuth extends AbstractDbData {
 
     public static String table = " HOSTS ";
 
+    /**
+     * HashTable in case of lack of database
+     */
+    private static final ConcurrentHashMap<String, DbR66HostAuth> dbR66HostAuthHashMap =
+        new ConcurrentHashMap<String, DbR66HostAuth>();
+
     private String hostid;
 
     private byte[] hostkey;
 
     private boolean adminrole;
 
-    private int updatedInfo;
+    private int updatedInfo = UpdatedInfo.UNKNOWN.ordinal();
 
     private boolean isSaved = false;
 
@@ -99,15 +106,12 @@ public class DbR66HostAuth extends AbstractDbData {
      * @param hostid
      * @param hostkey
      * @param adminrole
-     * @param updatedInfo
      */
-    public DbR66HostAuth(DbSession dbSession, String hostid, byte[] hostkey, boolean adminrole,
-            int updatedInfo) {
+    public DbR66HostAuth(DbSession dbSession, String hostid, byte[] hostkey, boolean adminrole) {
         super(dbSession);
         this.hostid = hostid;
         this.hostkey = hostkey;
         this.adminrole = adminrole;
-        this.updatedInfo = updatedInfo;
         setToArray();
         isSaved = false;
     }
@@ -131,6 +135,11 @@ public class DbR66HostAuth extends AbstractDbData {
      */
     @Override
     public void delete() throws OpenR66DatabaseException {
+        if (dbSession == null) {
+            dbR66HostAuthHashMap.remove(this.hostid);
+            isSaved = false;
+            return;
+        }
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
                 dbSession);
         try {
@@ -158,6 +167,11 @@ public class DbR66HostAuth extends AbstractDbData {
         if (isSaved) {
             return;
         }
+        if (dbSession == null) {
+            dbR66HostAuthHashMap.put(this.hostid, this);
+            isSaved = true;
+            return;
+        }
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
                 dbSession);
         try {
@@ -174,6 +188,32 @@ public class DbR66HostAuth extends AbstractDbData {
         }
     }
 
+    /* (non-Javadoc)
+     * @see openr66.database.data.AbstractDbData#exist()
+     */
+    @Override
+    public boolean exist() throws OpenR66DatabaseException {
+        if (dbSession == null) {
+            return dbR66HostAuthHashMap.containsKey(hostid);
+        }
+        DbPreparedStatement preparedStatement = new DbPreparedStatement(
+                dbSession);
+        try {
+            preparedStatement.createPrepareStatement("SELECT " +
+                    primaryKey.column + " FROM " + table + " WHERE " +
+                    primaryKey.column + " = ?");
+            primaryKey.setValue(hostid);
+            setValue(preparedStatement, primaryKey);
+            preparedStatement.executeQuery();
+            if (preparedStatement.getNext()) {
+                return true;
+            } else {
+                return false;
+            }
+        } finally {
+            preparedStatement.realClose();
+        }
+    }
     /*
      * (non-Javadoc)
      *
@@ -181,6 +221,20 @@ public class DbR66HostAuth extends AbstractDbData {
      */
     @Override
     public void select() throws OpenR66DatabaseException {
+        if (dbSession == null) {
+            DbR66HostAuth host = dbR66HostAuthHashMap.get(this.hostid);
+            if (host == null) {
+                throw new OpenR66DatabaseNoDataException("No row found");
+            } else {
+                // copy info
+                for (int i = 0; i < allFields.length; i++){
+                    allFields[i].value = host.allFields[i].value;
+                }
+                setFromArray();
+                isSaved = true;
+                return;
+            }
+        }
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
                 dbSession);
         try {
@@ -210,6 +264,11 @@ public class DbR66HostAuth extends AbstractDbData {
     @Override
     public void update() throws OpenR66DatabaseException {
         if (isSaved) {
+            return;
+        }
+        if (dbSession == null) {
+            dbR66HostAuthHashMap.put(this.hostid, this);
+            isSaved = true;
             return;
         }
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
@@ -243,9 +302,38 @@ public class DbR66HostAuth extends AbstractDbData {
         }
     }
 
-    public R66SimpleAuth getR66SimpleAuth() {
-        R66SimpleAuth auth = new R66SimpleAuth(hostid, hostkey);
-        auth.setAdmin(adminrole);
-        return auth;
+    /**
+     * Is the given key a valid one
+     *
+     * @param newkey
+     * @return True if the key is valid (or any key is valid)
+     */
+    public boolean isKeyValid(byte[] newkey) {
+        // FIXME is it valid to not have a key ?
+        if (this.hostkey == null) {
+            return true;
+        }
+        if (newkey == null) {
+            return false;
+        }
+        return Arrays.equals(this.hostkey, newkey);
+    }
+
+    /**
+     * @return the hostkey
+     */
+    public byte[] getHostkey() {
+        return hostkey;
+    }
+
+    /**
+     * @return the adminrole
+     */
+    public boolean isAdminrole() {
+        return adminrole;
+    }
+    @Override
+    public String toString() {
+        return "HostAuth: " + hostid + " " + adminrole +" "+(hostkey!=null?hostkey.length:0);
     }
 }

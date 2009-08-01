@@ -34,9 +34,12 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
-import openr66.context.authentication.R66SimpleAuth;
+import openr66.context.authentication.R66Auth;
+import openr66.database.DbAdmin;
+import openr66.database.DbConstant;
+import openr66.database.data.DbR66HostAuth;
+import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.model.DbModelFactory;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
@@ -206,11 +209,6 @@ public class R66FileBasedConfiguration {
     private static final String XML_AUTHENTIFICATION_ADMIN = "admin";
 
     /**
-     * All authentications
-     */
-    private final ConcurrentHashMap<String, R66SimpleAuth> authentications = new ConcurrentHashMap<String, R66SimpleAuth>();
-
-    /**
      *
      * @param document
      * @param fromXML
@@ -246,7 +244,6 @@ public class R66FileBasedConfiguration {
      * @param filename
      * @return True if OK
      */
-    @SuppressWarnings("unchecked")
     public boolean setConfigurationFromXml(String filename) {
         Document document = null;
         // Open config file
@@ -260,7 +257,7 @@ public class R66FileBasedConfiguration {
             logger.error("Unable to read the XML Config file: " + filename);
             return false;
         }
-        Node nodebase, node = null;
+        Node node = null;
         node = document.selectSingleNode(XML_SERVER_HOSTID);
         if (node == null) {
             logger.error("Unable to find Host ID in Config file: " + filename);
@@ -437,68 +434,117 @@ public class R66FileBasedConfiguration {
         node = document.selectSingleNode(XML_DBDRIVER);
         if (node == null) {
             logger.error("Unable to find DBDriver in Config file: " + filename);
-            return false;
+            //return false;
+            DbConstant.admin = new DbAdmin(); //no database support
+            // load Rules from files
+            File dirConfig = new File(Configuration.configuration.baseDirectory+
+                    Configuration.configuration.configPath);
+            if (dirConfig.isDirectory()) {
+                try {
+                    R66RuleFileBasedConfiguration.importRules(dirConfig);
+                } catch (OpenR66ProtocolSystemException e) {
+                    logger.error("Cannot load Rules", e);
+                    return false;
+                } catch (OpenR66DatabaseException e) {
+                    logger.error("Cannot load Rules", e);
+                    return false;
+                }
+            } else {
+                logger.error("Config Directory is not a directory: " +
+                        Configuration.configuration.baseDirectory+
+                        Configuration.configuration.configPath);
+                return false;
+            }
+        } else {
+            String dbdriver = node.getText();
+            node = document.selectSingleNode(XML_DBSERVER);
+            if (node == null) {
+                logger.error("Unable to find DBServer in Config file: " + filename);
+                return false;
+            }
+            String dbserver = node.getText();
+            node = document.selectSingleNode(XML_DBUSER);
+            if (node == null) {
+                logger.error("Unable to find DBUser in Config file: " + filename);
+                return false;
+            }
+            String dbuser = node.getText();
+            node = document.selectSingleNode(XML_DBPASSWD);
+            if (node == null) {
+                logger.error("Unable to find DBPassword in Config file: " +
+                        filename);
+                return false;
+            }
+            String dbpasswd = node.getText();
+            if (dbdriver == null || dbserver == null || dbuser == null ||
+                    dbpasswd == null || dbdriver.length() == 0 ||
+                    dbserver.length() == 0 || dbuser.length() == 0 ||
+                    dbpasswd.length() == 0) {
+                logger.error("Unable to find Correct DB data in Config file: " +
+                        filename);
+                return false;
+            }
+            try {
+                DbModelFactory.initialize(dbdriver, dbserver, dbuser, dbpasswd,
+                        true);
+            } catch (OpenR66DatabaseNoConnectionError e2) {
+                logger.error("Unable to Connect to DB", e2);
+                return false;
+            }
         }
-        String dbdriver = node.getText();
-        node = document.selectSingleNode(XML_DBSERVER);
-        if (node == null) {
-            logger.error("Unable to find DBServer in Config file: " + filename);
-            return false;
-        }
-        String dbserver = node.getText();
-        node = document.selectSingleNode(XML_DBUSER);
-        if (node == null) {
-            logger.error("Unable to find DBUser in Config file: " + filename);
-            return false;
-        }
-        String dbuser = node.getText();
-        node = document.selectSingleNode(XML_DBPASSWD);
-        if (node == null) {
-            logger.error("Unable to find DBPassword in Config file: " +
-                    filename);
-            return false;
-        }
-        String dbpasswd = node.getText();
-        if (dbdriver == null || dbserver == null || dbuser == null ||
-                dbpasswd == null || dbdriver.length() == 0 ||
-                dbserver.length() == 0 || dbuser.length() == 0 ||
-                dbpasswd.length() == 0) {
-            logger.error("Unable to find Correct DB data in Config file: " +
-                    filename);
-            return false;
-        }
-        try {
-            DbModelFactory.initialize(dbdriver, dbserver, dbuser, dbpasswd,
-                    true);
-        } catch (OpenR66DatabaseNoConnectionError e2) {
-            logger.error("Unable to Connect to DB", e2);
-            return false;
-        }
-
         // We use Apache Commons IO
         FilesystemBasedDirJdkAbstract.ueApacheCommonsIo = true;
-        node = document.selectSingleNode(XML_AUTHENTIFICATION_FILE);
-        if (node == null) {
-            logger.error("Unable to find Authentication file in Config file: " +
-                    filename);
+
+        if (! DbConstant.admin.isConnected) {
+            // if no database, must load authentication from file
+            node = document.selectSingleNode(XML_AUTHENTIFICATION_FILE);
+            if (node == null) {
+                logger.warn("Unable to find Authentication file in Config file: " +
+                        filename);
+                return false;
+            } else {
+                String fileauthent = node.getText();
+                document = null;
+                if (! loadAuthentication(fileauthent)) {
+                    return false;
+                }
+            }
+        }
+        Configuration.configuration.HOST_AUTH =
+            R66Auth.getServerAuth(DbConstant.admin.session,
+                    Configuration.configuration.HOST_ID);
+        if (Configuration.configuration.HOST_AUTH == null) {
+            logger.warn("Cannot find Authentication for current host");
             return false;
         }
-        String fileauthent = node.getText();
-        document = null;
+        return true;
+    }
+    /**
+     * Load Authentication from File
+     * @param filename
+     * @return True if OK
+     */
+    @SuppressWarnings("unchecked")
+    public static boolean loadAuthentication(String filename) {
+        Document document = null;
         try {
-            document = new SAXReader().read(fileauthent);
+            document = new SAXReader().read(filename);
         } catch (DocumentException e) {
             logger.error("Unable to read the XML Authentication file: " +
-                    fileauthent, e);
+                    filename, e);
             return false;
         }
         if (document == null) {
             logger.error("Unable to read the XML Authentication file: " +
-                    fileauthent);
+                    filename);
             return false;
         }
         List<Node> list = document.selectNodes(XML_AUTHENTIFICATION_BASED);
         Iterator<Node> iterator = list.iterator();
+        Node nodebase, node;
+        File key;
+        byte[] byteKeys;
+        FileInputStream inputStream = null;
         while (iterator.hasNext()) {
             nodebase = iterator.next();
             node = nodebase.selectSingleNode(XML_AUTHENTIFICATION_HOSTID);
@@ -525,7 +571,8 @@ public class R66FileBasedConfiguration {
             } catch (IOException e) {
                 logger.warn("Cannot read key for hostId " + refHostId, e);
                 try {
-                    inputStream.close();
+                    if (inputStream != null)
+                        inputStream.close();
                 } catch (IOException e1) {
                 }
                 continue;
@@ -535,20 +582,21 @@ public class R66FileBasedConfiguration {
             if (node != null) {
                 isAdmin = node.getText().equals("1")? true : false;
             }
-            R66SimpleAuth auth = new R66SimpleAuth(refHostId, byteKeys);
-            auth.setAdmin(isAdmin);
-            authentications.put(refHostId, auth);
-            logger.warn("Add " + refHostId + " " + auth.toString());
+            DbR66HostAuth auth = new DbR66HostAuth(DbConstant.admin.session,
+                    refHostId, byteKeys, isAdmin);
+            try {
+                if (auth.exist()) {
+                    auth.update();
+                } else {
+                    auth.insert();
+                }
+            } catch (OpenR66DatabaseException e) {
+                logger.warn("Cannot create Authentication for hostId " + refHostId);
+                continue;
+            }
+            logger.info("Add " + refHostId + " " + auth.toString());
         }
         document = null;
         return true;
-    }
-
-    /**
-     * @param user
-     * @return the SimpleAuth if any for this user
-     */
-    public R66SimpleAuth getSimpleAuth(String user) {
-        return authentications.get(user);
     }
 }

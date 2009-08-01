@@ -2,17 +2,17 @@
  * Copyright 2009, Frederic Bregier, and individual contributors by the @author
  * tags. See the COPYRIGHT.txt in the distribution for a full listing of
  * individual contributors.
- * 
+ *
  * This is free software; you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation; either version 3.0 of the License, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this software; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF
@@ -29,6 +29,7 @@ import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.database.model.DbModelFactory;
+import openr66.protocol.config.R66FileBasedConfiguration;
 import openr66.protocol.config.R66RuleFileBasedConfiguration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 
@@ -38,7 +39,7 @@ import ch.qos.logback.classic.Level;
 
 /**
  * @author Frederic Bregier
- * 
+ *
  */
 public class TestInitDatabase {
 
@@ -83,6 +84,9 @@ public class TestInitDatabase {
                 } else {
                     System.err.println("Dir is not a directory: " + args[4]);
                 }
+                if (args.length > 5) {
+                    loadHostAuth(args[5]);
+                }
                 System.out.println("Load done");
             }
         } finally {
@@ -110,5 +114,8 @@ public class TestInitDatabase {
         } catch (OpenR66DatabaseException e) {
             e.printStackTrace();
         }
+    }
+    public static void loadHostAuth(String filename) {
+        R66FileBasedConfiguration.loadAuthentication(filename);
     }
 }

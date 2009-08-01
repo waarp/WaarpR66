@@ -25,5 +25,4 @@
 	<dbserver>jdbc:h2:D:/GG/R66/data/openr66b;IFEXISTS=TRUE;MODE=Oracle;AUTO_SERVER=TRUE</dbserver>
 	<dbuser>openr66</dbuser>
 	<dbpasswd>openr66</dbpasswd>
-	<authentfile>src/main/config/authent.xml</authentfile>
 </config>
