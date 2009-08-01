@@ -40,8 +40,11 @@ import openr66.protocol.utils.FileUtils;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
+import org.dom4j.tree.DefaultElement;
 
 /**
  * Rule File Based Configuration
@@ -56,25 +59,40 @@ public class R66RuleFileBasedConfiguration {
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(R66RuleFileBasedConfiguration.class);
 
-    private static final String IDRULE = "/rule/idrule";
+    private static final String ROOT = "rule";
+    private static final String XIDRULE = "idrule";
+    private static final String XHOSTIDS = "hostids";
+    private static final String XHOSTID = "hostid";
+    private static final String XMODE = "mode";
+    private static final String XRECVPATH = "recvpath";
+    private static final String XSENDPATH = "sendpath";
+    private static final String XARCHIVEPATH = "archivepath";
+    private static final String XWORKPATH = "workpath";
+    private static final String XPRETASKS = "pretasks";
+    private static final String XPOSTTASKS = "posttasks";
+    private static final String XERRORTASKS = "errortasks";
+    private static final String XTASKS = "tasks";
+    private static final String XTASK = "task";
 
-    private static final String HOSTIDS_HOSTID = "/rule/hostids/hostid";
+    private static final String IDRULE = "/"+ROOT+"/"+XIDRULE;
 
-    private static final String MODE = "/rule/mode";
+    private static final String HOSTIDS_HOSTID = "/"+ROOT+"/"+XHOSTIDS+"/"+XHOSTID;
 
-    private static final String RECVPATH = "/rule/recvpath";
+    private static final String MODE = "/"+ROOT+"/"+XMODE;
 
-    private static final String SENDPATH = "/rule/sendpath";
+    private static final String RECVPATH = "/"+ROOT+"/"+XRECVPATH;
 
-    private static final String ARCHIVEPATH = "/rule/archivepath";
+    private static final String SENDPATH = "/"+ROOT+"/"+XSENDPATH;
 
-    private static final String WORKPATH = "/rule/workpath";
+    private static final String ARCHIVEPATH = "/"+ROOT+"/"+XARCHIVEPATH;
 
-    private static final String PRETASKS = "/rule/pretasks";
+    private static final String WORKPATH = "/"+ROOT+"/"+XWORKPATH;
 
-    private static final String POSTTASKS = "/rule/posttasks";
+    private static final String PRETASKS = "/"+ROOT+"/"+XPRETASKS;
 
-    private static final String ERRORTASKS = "/rule/errortasks";
+    private static final String POSTTASKS = "/"+ROOT+"/"+XPOSTTASKS;
+
+    private static final String ERRORTASKS = "/"+ROOT+"/"+XERRORTASKS;
 
     private static final String TASK = "tasks/task";
 
@@ -299,5 +317,79 @@ public class R66RuleFileBasedConfiguration {
             newRule.insert();
         }
         return newRule;
+    }
+    /**
+     * Construct a new Element with value
+     * @param name
+     * @param value
+     * @return the new Element
+     */
+    private static Element newElement(String name, String value) {
+        Element node = new DefaultElement(name);
+        node.addText(value);
+        return node;
+    }
+    /**
+     * Write the rule to a file from filename
+     * @param filename
+     * @param rule
+     * @throws OpenR66ProtocolSystemException
+     */
+    public static void writeXML(String filename, DbR66Rule rule) throws OpenR66ProtocolSystemException {
+        Document document = DocumentHelper.createDocument();
+        Element root = document.addElement(ROOT);
+        root.add(newElement(XIDRULE, rule.idRule));
+        Element hosts = new DefaultElement(XHOSTIDS);
+        for (String host: rule.idsArray) {
+            hosts.add(newElement(XHOSTID, host));
+        }
+        root.add(hosts);
+        root.add(newElement(XMODE, Integer.toString(rule.mode)));
+        root.add(newElement(XRECVPATH, rule.recvPath.substring(1)));
+        root.add(newElement(XSENDPATH, rule.sendPath.substring(1)));
+        root.add(newElement(XARCHIVEPATH, rule.archivePath.substring(1)));
+        root.add(newElement(XWORKPATH, rule.workPath.substring(1)));
+        Element tasks = new DefaultElement(XPRETASKS);
+        Element roottasks = new DefaultElement(XTASKS);
+        int rank = 0;
+        String [][] array = rule.preTasksArray;
+        for (rank = 0; rank < array.length; rank++) {
+            Element task = new DefaultElement(XTASK);
+            task.add(newElement(DbR66Rule.TASK_RANK, Integer.toString(rank)));
+            task.add(newElement(DbR66Rule.TASK_TYPE, array[rank][0]));
+            task.add(newElement(DbR66Rule.TASK_PATH, array[rank][1]));
+            task.add(newElement(DbR66Rule.TASK_DELAY, array[rank][2]));
+            roottasks.add(task);
+        }
+        tasks.add(roottasks);
+        root.add(tasks);
+        tasks = new DefaultElement(XPOSTTASKS);
+        roottasks = new DefaultElement(XTASKS);
+        array = rule.postTasksArray;
+        for (rank = 0; rank < array.length; rank++) {
+            Element task = new DefaultElement(XTASK);
+            task.add(newElement(DbR66Rule.TASK_RANK, Integer.toString(rank)));
+            task.add(newElement(DbR66Rule.TASK_TYPE, array[rank][0]));
+            task.add(newElement(DbR66Rule.TASK_PATH, array[rank][1]));
+            task.add(newElement(DbR66Rule.TASK_DELAY, array[rank][2]));
+            roottasks.add(task);
+        }
+        tasks.add(roottasks);
+        root.add(tasks);
+        tasks = new DefaultElement(XERRORTASKS);
+        roottasks = new DefaultElement(XTASKS);
+        array = rule.errorTasksArray;
+        for (rank = 0; rank < array.length; rank++) {
+            Element task = new DefaultElement(XTASK);
+            task.add(newElement(DbR66Rule.TASK_RANK, Integer.toString(rank)));
+            task.add(newElement(DbR66Rule.TASK_TYPE, array[rank][0]));
+            task.add(newElement(DbR66Rule.TASK_PATH, array[rank][1]));
+            task.add(newElement(DbR66Rule.TASK_DELAY, array[rank][2]));
+            roottasks.add(task);
+        }
+        tasks.add(roottasks);
+        root.add(tasks);
+
+        FileUtils.writeXML(filename, null, document);
     }
 }

@@ -255,4 +255,34 @@ public class DbValue {
                 throw new OpenR66DatabaseSqlError("Type unknown: " + type);
         }
     }
+
+    public String getValueAsString() throws OpenR66DatabaseSqlError {
+        switch (type) {
+            case Types.VARCHAR:
+            case Types.LONGVARCHAR:
+                return (String) value;
+            case Types.BIT:
+                return ((Boolean) value).toString();
+            case Types.TINYINT:
+                return ((Byte) value).toString();
+            case Types.SMALLINT:
+                return ((Short) value).toString();
+            case Types.INTEGER:
+                return ((Integer) value).toString();
+            case Types.BIGINT:
+                return ((Long) value).toString();
+            case Types.REAL:
+                return ((Float) value).toString();
+            case Types.DOUBLE:
+                return ((Double) value).toString();
+            case Types.VARBINARY:
+                return new String((byte[]) value);
+            case Types.DATE:
+                return ((Date) value).toString();
+            case Types.TIMESTAMP:
+                return ((Timestamp) value).toString();
+            default:
+                throw new OpenR66DatabaseSqlError("Type unknown: " + type);
+        }
+    }
 }

@@ -29,6 +29,9 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 
+import org.dom4j.Element;
+import org.dom4j.tree.DefaultElement;
+
 import openr66.context.R66ErrorCode;
 import openr66.context.R66Session;
 import openr66.context.task.AbstractTask;
@@ -1051,5 +1054,31 @@ public class DbTaskRunner extends AbstractDbData {
         } finally {
             preparedStatement.realClose();
         }
+    }
+    /**
+     * Construct a new Element with value
+     * @param name
+     * @param value
+     * @return the new Element
+     */
+    private static Element newElement(String name, String value) {
+        Element node = new DefaultElement(name);
+        if (value != null) {
+            node.addText(value);
+        }
+        return node;
+    }
+    /**
+     *
+     * @param runner
+     * @return The Element representing the given Runner
+     * @throws OpenR66DatabaseSqlError
+     */
+    public static Element getElementFromRunner(DbTaskRunner runner) throws OpenR66DatabaseSqlError {
+        Element root = new DefaultElement("runner");
+        for (DbValue value: runner.allFields) {
+            root.add(newElement(value.column.toLowerCase(), value.getValueAsString()));
+        }
+        return root;
     }
 }
