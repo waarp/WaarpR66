@@ -29,9 +29,9 @@ import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.database.model.DbModelFactory;
-import openr66.protocol.config.R66AuthenticationFileBasedConfiguration;
-import openr66.protocol.config.R66FileBasedConfiguration;
-import openr66.protocol.config.R66RuleFileBasedConfiguration;
+import openr66.protocol.config.AuthenticationFileBasedConfiguration;
+import openr66.protocol.config.FileBasedConfiguration;
+import openr66.protocol.config.RuleFileBasedConfiguration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 
 import org.dom4j.Document;
@@ -115,7 +115,7 @@ public class TestInitDatabase {
 
     public static void loadRules(File dirConfig) {
         try {
-            R66RuleFileBasedConfiguration.importRules(dirConfig);
+            RuleFileBasedConfiguration.importRules(dirConfig);
         } catch (OpenR66ProtocolSystemException e3) {
             e3.printStackTrace();
         } catch (OpenR66DatabaseException e) {
@@ -123,7 +123,7 @@ public class TestInitDatabase {
         }
     }
     public static void loadHostAuth(String filename) {
-        R66AuthenticationFileBasedConfiguration.loadAuthentication(filename);
+        AuthenticationFileBasedConfiguration.loadAuthentication(filename);
     }
     public static void loadConfiguration(String filename) {
         Document document = null;
@@ -134,6 +134,6 @@ public class TestInitDatabase {
             e.printStackTrace();
             return;
         }
-        R66FileBasedConfiguration.loadLimit(document);
+        FileBasedConfiguration.loadLimit(document);
     }
 }

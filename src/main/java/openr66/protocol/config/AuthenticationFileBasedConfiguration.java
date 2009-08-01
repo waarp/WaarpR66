@@ -30,7 +30,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import openr66.database.DbConstant;
-import openr66.database.data.DbR66HostAuth;
+import openr66.database.data.DbHostAuth;
 import openr66.database.exception.OpenR66DatabaseException;
 
 import org.dom4j.Document;
@@ -44,12 +44,12 @@ import org.dom4j.io.SAXReader;
  * @author Frederic Bregier
  *
  */
-public class R66AuthenticationFileBasedConfiguration {
+public class AuthenticationFileBasedConfiguration {
     /**
      * Internal Logger
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
-            .getLogger(R66AuthenticationFileBasedConfiguration.class);
+            .getLogger(AuthenticationFileBasedConfiguration.class);
 
     /**
      * Authentication Fields
@@ -135,7 +135,7 @@ public class R66AuthenticationFileBasedConfiguration {
             if (node != null) {
                 isAdmin = node.getText().equals("1")? true : false;
             }
-            DbR66HostAuth auth = new DbR66HostAuth(DbConstant.admin.session,
+            DbHostAuth auth = new DbHostAuth(DbConstant.admin.session,
                     refHostId, byteKeys, isAdmin);
             try {
                 if (auth.exist()) {

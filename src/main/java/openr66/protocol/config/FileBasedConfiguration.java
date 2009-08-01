@@ -36,7 +36,7 @@ import java.io.IOException;
 import openr66.context.authentication.R66Auth;
 import openr66.database.DbAdmin;
 import openr66.database.DbConstant;
-import openr66.database.data.DbR66Configuration;
+import openr66.database.data.DbConfiguration;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.model.DbModelFactory;
@@ -54,12 +54,12 @@ import org.jboss.netty.handler.traffic.AbstractTrafficShapingHandler;
  * @author frederic bregier
  *
  */
-public class R66FileBasedConfiguration {
+public class FileBasedConfiguration {
     /**
      * Internal Logger
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
-            .getLogger(R66FileBasedConfiguration.class);
+            .getLogger(FileBasedConfiguration.class);
 
     /**
      * SERVER HOSTID
@@ -400,7 +400,7 @@ public class R66FileBasedConfiguration {
                     Configuration.configuration.configPath);
             if (dirConfig.isDirectory()) {
                 try {
-                    R66RuleFileBasedConfiguration.importRules(dirConfig);
+                    RuleFileBasedConfiguration.importRules(dirConfig);
                 } catch (OpenR66ProtocolSystemException e) {
                     logger.error("Cannot load Rules", e);
                     return false;
@@ -454,7 +454,7 @@ public class R66FileBasedConfiguration {
             }
             // load from database the limit to apply
             try {
-                DbR66Configuration configuration = new DbR66Configuration(DbConstant.admin.session,
+                DbConfiguration configuration = new DbConfiguration(DbConstant.admin.session,
                         Configuration.configuration.HOST_ID);
                 configuration.updateConfiguration();
             } catch (OpenR66DatabaseException e) {
@@ -475,7 +475,7 @@ public class R66FileBasedConfiguration {
             } else {
                 String fileauthent = node.getText();
                 document = null;
-                if (! R66AuthenticationFileBasedConfiguration.loadAuthentication(fileauthent)) {
+                if (! AuthenticationFileBasedConfiguration.loadAuthentication(fileauthent)) {
                     return false;
                 }
             }
@@ -538,7 +538,7 @@ public class R66FileBasedConfiguration {
             }
             Configuration.configuration.HOST_ID = node.getText();
         }
-        DbR66Configuration configuration = new DbR66Configuration(DbConstant.admin.session,
+        DbConfiguration configuration = new DbConfiguration(DbConstant.admin.session,
                 Configuration.configuration.HOST_ID,
                 Configuration.configuration.serverGlobalReadLimit,
                 Configuration.configuration.serverGlobalWriteLimit,

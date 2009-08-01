@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import org.dom4j.Element;
 import org.dom4j.tree.DefaultElement;
 
-import openr66.context.R66ErrorCode;
+import openr66.context.ErrorCode;
 import openr66.context.R66Session;
 import openr66.context.task.AbstractTask;
 import openr66.context.task.TaskType;
@@ -127,7 +127,7 @@ public class DbTaskRunner extends AbstractDbData {
     public static final int ERRORTASK = 4;
 
     // Values
-    private final DbR66Rule rule;
+    private final DbRule rule;
 
     private final R66Session session;
 
@@ -139,7 +139,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     private int rank = 0;
 
-    private R66ErrorCode status = R66ErrorCode.Unknown;
+    private ErrorCode status = ErrorCode.Unknown;
 
     private long specialId;
 
@@ -271,14 +271,14 @@ public class DbTaskRunner extends AbstractDbData {
      * @param requestPacket
      * @throws OpenR66DatabaseException
      */
-    public DbTaskRunner(DbSession dbSession, R66Session session, DbR66Rule rule,
+    public DbTaskRunner(DbSession dbSession, R66Session session, DbRule rule,
             boolean isRetrieve, RequestPacket requestPacket) throws OpenR66DatabaseException {
         super(dbSession);
         this.session = session;
         this.rule = rule;
         ruleId = this.rule.idRule;
         rank = requestPacket.getRank();
-        status = R66ErrorCode.Unknown;
+        status = ErrorCode.Unknown;
         this.isRetrieve = isRetrieve;
         filename = requestPacket.getFilename();
         blocksize = requestPacket.getBlocksize();
@@ -303,7 +303,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @param requested
      * @throws OpenR66DatabaseException
      */
-    public DbTaskRunner(DbSession dbSession, R66Session session, DbR66Rule rule, long id,
+    public DbTaskRunner(DbSession dbSession, R66Session session, DbRule rule, long id,
             String requested) throws OpenR66DatabaseException {
         super(dbSession);
         this.session = session;
@@ -352,7 +352,7 @@ public class DbTaskRunner extends AbstractDbData {
                 .getValue();
         step = (Integer) allFields[Columns.STEP.ordinal()].getValue();
         rank = (Integer) allFields[Columns.RANK.ordinal()].getValue();
-        status = R66ErrorCode.getFromCode((Character) allFields[Columns.STEPSTATUS
+        status = ErrorCode.getFromCode((Character) allFields[Columns.STEPSTATUS
                 .ordinal()].getValue());
         isRetrieve = (Boolean) allFields[Columns.RETRIEVEMODE.ordinal()]
                 .getValue();
@@ -637,7 +637,7 @@ public class DbTaskRunner extends AbstractDbData {
      *
      * @param status
      */
-    public void setExecutionStatus(R66ErrorCode status) {
+    public void setExecutionStatus(ErrorCode status) {
         this.status = status;
         allFields[Columns.STEPSTATUS.ordinal()].setValue(this.status.getCode());
         isSaved = false;
@@ -646,7 +646,7 @@ public class DbTaskRunner extends AbstractDbData {
     /**
      * @return the status
      */
-    public R66ErrorCode getStatus() {
+    public ErrorCode getStatus() {
         return status;
     }
 
@@ -695,7 +695,7 @@ public class DbTaskRunner extends AbstractDbData {
     /**
      * @return the rule
      */
-    public DbR66Rule getRule() {
+    public DbRule getRule() {
         return rule;
     }
 
@@ -725,7 +725,7 @@ public class DbTaskRunner extends AbstractDbData {
      */
     public boolean isFinished() {
         return globalstep == ALLDONETASK || (globalstep == ERRORTASK &&
-                status != R66ErrorCode.Running);
+                status != ErrorCode.Running);
     }
     /**
      * Set Pre Task step
@@ -738,7 +738,7 @@ public class DbTaskRunner extends AbstractDbData {
         allFields[Columns.GLOBALLASTSTEP.ordinal()].setValue(globallaststep);
         this.step = step;
         allFields[Columns.STEP.ordinal()].setValue(this.step);
-        status = R66ErrorCode.Running;
+        status = ErrorCode.Running;
         allFields[Columns.STEPSTATUS.ordinal()].setValue(status.getCode());
         isSaved = false;
     }
@@ -753,7 +753,7 @@ public class DbTaskRunner extends AbstractDbData {
         allFields[Columns.GLOBALLASTSTEP.ordinal()].setValue(globallaststep);
         this.rank = rank;
         allFields[Columns.RANK.ordinal()].setValue(this.rank);
-        status = R66ErrorCode.Running;
+        status = ErrorCode.Running;
         allFields[Columns.STEPSTATUS.ordinal()].setValue(status.getCode());
         isSaved = false;
     }
@@ -764,14 +764,14 @@ public class DbTaskRunner extends AbstractDbData {
      */
     public int finishTransferTask(boolean status) {
         if (status) {
-            this.status = R66ErrorCode.TransferOk;
+            this.status = ErrorCode.TransferOk;
         } else {
-            if (this.status == R66ErrorCode.InitOk ||
-                    this.status == R66ErrorCode.PostProcessingOk ||
-                    this.status == R66ErrorCode.PreProcessingOk ||
-                    this.status == R66ErrorCode.Running ||
-                    this.status == R66ErrorCode.TransferOk) {
-                this.status = R66ErrorCode.TransferError;
+            if (this.status == ErrorCode.InitOk ||
+                    this.status == ErrorCode.PostProcessingOk ||
+                    this.status == ErrorCode.PreProcessingOk ||
+                    this.status == ErrorCode.Running ||
+                    this.status == ErrorCode.TransferOk) {
+                this.status = ErrorCode.TransferError;
             }
         }
         allFields[Columns.STEPSTATUS.ordinal()].setValue(this.status.getCode());
@@ -789,7 +789,7 @@ public class DbTaskRunner extends AbstractDbData {
         allFields[Columns.GLOBALLASTSTEP.ordinal()].setValue(globallaststep);
         this.step = step;
         allFields[Columns.STEP.ordinal()].setValue(this.step);
-        status = R66ErrorCode.Running;
+        status = ErrorCode.Running;
         allFields[Columns.STEPSTATUS.ordinal()].setValue(status.getCode());
         isSaved = false;
     }
@@ -802,7 +802,7 @@ public class DbTaskRunner extends AbstractDbData {
         allFields[Columns.GLOBALSTEP.ordinal()].setValue(globalstep);
         this.step = step;
         allFields[Columns.STEP.ordinal()].setValue(this.step);
-        status = R66ErrorCode.Running;
+        status = ErrorCode.Running;
         allFields[Columns.STEPSTATUS.ordinal()].setValue(status.getCode());
         isSaved = false;
     }
@@ -816,8 +816,8 @@ public class DbTaskRunner extends AbstractDbData {
         allFields[Columns.GLOBALLASTSTEP.ordinal()].setValue(globallaststep);
         step = 0;
         allFields[Columns.STEP.ordinal()].setValue(step);
-        if (status == R66ErrorCode.PostProcessingOk) {
-            status = R66ErrorCode.CompleteOk;
+        if (status == ErrorCode.PostProcessingOk) {
+            status = ErrorCode.CompleteOk;
         }
         allFields[Columns.STEPSTATUS.ordinal()].setValue(status.getCode());
         isSaved = false;
@@ -859,8 +859,8 @@ public class DbTaskRunner extends AbstractDbData {
                 try {
                     return runNextTask(rule.preTasksArray);
                 } catch (OpenR66RunnerEndTasksException e) {
-                    if (status == R66ErrorCode.Running) {
-                        status = R66ErrorCode.PreProcessingOk;
+                    if (status == ErrorCode.Running) {
+                        status = ErrorCode.PreProcessingOk;
                     }
                     throw e;
                 }
@@ -868,8 +868,8 @@ public class DbTaskRunner extends AbstractDbData {
                 try {
                     return runNextTask(rule.postTasksArray);
                 } catch (OpenR66RunnerEndTasksException e) {
-                    if (status == R66ErrorCode.Running) {
-                        status = R66ErrorCode.PostProcessingOk;
+                    if (status == ErrorCode.Running) {
+                        status = ErrorCode.PostProcessingOk;
                     }
                     throw e;
                 }
@@ -889,7 +889,7 @@ public class DbTaskRunner extends AbstractDbData {
      */
     public void run() throws OpenR66RunnerErrorException {
         R66Future future;
-        if (status != R66ErrorCode.Running) {
+        if (status != ErrorCode.Running) {
             throw new OpenR66RunnerErrorException(
                     "Current global STEP not ready to run");
         }
@@ -902,7 +902,7 @@ public class DbTaskRunner extends AbstractDbData {
                 isSaved = false;
                 return;
             } catch (OpenR66RunnerErrorException e) {
-                status = R66ErrorCode.ExternalOp;
+                status = ErrorCode.ExternalOp;
                 allFields[Columns.STEP.ordinal()].setValue(step);
                 allFields[Columns.STEPSTATUS.ordinal()].setValue(status.getCode());
                 isSaved = false;

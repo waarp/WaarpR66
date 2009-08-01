@@ -5,7 +5,7 @@ package openr66.protocol.localhandler;
 
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
-import openr66.context.R66ErrorCode;
+import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66Exception;
@@ -160,11 +160,11 @@ public class LocalClientHandler extends SimpleChannelHandler {
                 }
                 if (!localChannelReference.getFutureRequest().isDone()) {
                     localChannelReference.invalidateRequest(new R66Result(
-                            exception, null, true, R66ErrorCode.Internal));
+                            exception, null, true, ErrorCode.Internal));
                 }
                 final ErrorPacket errorPacket = new ErrorPacket(exception
                         .getMessage(),
-                        R66ErrorCode.RemoteError.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                        ErrorCode.RemoteError.getCode(), ErrorPacket.FORWARDCLOSECODE);
                 ChannelUtils.writeAbstractLocalPacket(localChannelReference, errorPacket)
                     .awaitUninterruptibly();
             } else {

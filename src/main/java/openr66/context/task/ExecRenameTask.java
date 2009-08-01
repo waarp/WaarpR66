@@ -29,7 +29,7 @@ import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 
-import openr66.context.R66ErrorCode;
+import openr66.context.ErrorCode;
 import openr66.context.R66Session;
 import openr66.protocol.config.Configuration;
 
@@ -224,7 +224,7 @@ public class ExecRenameTask extends AbstractTask {
         } else if (status == 1) {
             logger.warn("Exec in warning with " + commandLine.toString() +
                     " returns " + newname);
-            session.getRunner().setExecutionStatus(R66ErrorCode.Warning);
+            session.getRunner().setExecutionStatus(ErrorCode.Warning);
             futureCompletion.setSuccess();
         } else {
             logger.error("Status: " + status + " Exec in error with " +

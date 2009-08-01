@@ -21,6 +21,7 @@
 package openr66.database.data;
 
 import java.sql.Types;
+import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 
 import openr66.database.DbPreparedStatement;
@@ -28,48 +29,34 @@ import openr66.database.DbSession;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
-import openr66.protocol.config.Configuration;
 
 /**
- * Configuration Table object
+ * Host Authentication Table object
  *
  * @author Frederic Bregier
  *
  */
-public class DbR66Configuration extends AbstractDbData {
+public class DbHostAuth extends AbstractDbData {
     public static enum Columns {
-        READGLOBALLIMIT,
-        WRITEGLOBALLIMIT,
-        READSESSIONLIMIT,
-        WRITESESSIONLIMIT,
-        DELAYLIMIT,
-        UPDATEDINFO,
-        HOSTID
+        HOSTKEY, ADMINROLE, UPDATEDINFO, HOSTID
     }
 
     public static int[] dbTypes = {
-            Types.BIGINT, Types.BIGINT, Types.BIGINT, Types.BIGINT,
-            Types.BIGINT, Types.INTEGER, Types.VARCHAR };
+            Types.VARBINARY, Types.BIT, Types.INTEGER, Types.VARCHAR };
 
-    public static String table = " CONFIGURATION ";
+    public static String table = " HOSTS ";
 
     /**
      * HashTable in case of lack of database
      */
-    private static final ConcurrentHashMap<String, DbR66Configuration> dbR66ConfigurationHashMap =
-        new ConcurrentHashMap<String, DbR66Configuration>();
+    private static final ConcurrentHashMap<String, DbHostAuth> dbR66HostAuthHashMap =
+        new ConcurrentHashMap<String, DbHostAuth>();
 
     private String hostid;
 
-    private long readgloballimit;
+    private byte[] hostkey;
 
-    private long writegloballimit;
-
-    private long readsessionlimit;
-
-    private long writesessionlimit;
-
-    private long delayllimit;
+    private boolean adminrole;
 
     private int updatedInfo = UpdatedInfo.UNKNOWN.ordinal();
 
@@ -80,71 +67,36 @@ public class DbR66Configuration extends AbstractDbData {
             .name());
 
     private final DbValue[] otherFields = {
-            new DbValue(readgloballimit, Columns.READGLOBALLIMIT.name()),
-            new DbValue(writegloballimit, Columns.WRITEGLOBALLIMIT.name()),
-            new DbValue(readsessionlimit, Columns.READSESSIONLIMIT.name()),
-            new DbValue(writesessionlimit, Columns.WRITESESSIONLIMIT.name()),
-            new DbValue(delayllimit, Columns.DELAYLIMIT.name()),
+            new DbValue(hostkey, Columns.HOSTKEY.name()),
+            new DbValue(adminrole, Columns.ADMINROLE.name()),
             new DbValue(updatedInfo, Columns.UPDATEDINFO.name()) };
 
     private final DbValue[] allFields = {
-            otherFields[0], otherFields[1], otherFields[2], otherFields[3],
-            otherFields[4], otherFields[5], primaryKey };
+            otherFields[0], otherFields[1], otherFields[2], primaryKey };
 
-    private static final String selectAllFields = Columns.READGLOBALLIMIT
-            .name() +
-            "," +
-            Columns.WRITEGLOBALLIMIT.name() +
-            "," +
-            Columns.READSESSIONLIMIT.name() +
-            "," +
-            Columns.WRITESESSIONLIMIT.name() +
-            "," +
-            Columns.DELAYLIMIT.name() +
-            "," + Columns.UPDATEDINFO.name() + "," + Columns.HOSTID.name();
+    private static final String selectAllFields = Columns.HOSTKEY.name() + "," +
+            Columns.ADMINROLE.name() + "," + Columns.UPDATEDINFO.name() + "," +
+            Columns.HOSTID.name();
 
-    private static final String updateAllFields = Columns.READGLOBALLIMIT
-            .name() +
-            "=?," +
-            Columns.WRITEGLOBALLIMIT.name() +
-            "=?," +
-            Columns.READSESSIONLIMIT.name() +
-            "=?," +
-            Columns.WRITESESSIONLIMIT.name() +
-            "=?," +
-            Columns.DELAYLIMIT.name() +
-            "=?," +
-            Columns.UPDATEDINFO.name() +
-            "=?";
+    private static final String updateAllFields = Columns.HOSTKEY.name() +
+            "=?," + Columns.ADMINROLE.name() + "=?," +
+            Columns.UPDATEDINFO.name() + "=?";
 
-    private static final String insertAllValues = " (?,?,?,?,?,?,?) ";
+    private static final String insertAllValues = " (?,?,?,?) ";
 
     @Override
     protected void setToArray() {
         allFields[Columns.HOSTID.ordinal()].setValue(hostid);
-        allFields[Columns.READGLOBALLIMIT.ordinal()].setValue(readgloballimit);
-        allFields[Columns.WRITEGLOBALLIMIT.ordinal()]
-                .setValue(writegloballimit);
-        allFields[Columns.READSESSIONLIMIT.ordinal()]
-                .setValue(readsessionlimit);
-        allFields[Columns.WRITESESSIONLIMIT.ordinal()]
-                .setValue(writesessionlimit);
-        allFields[Columns.DELAYLIMIT.ordinal()].setValue(delayllimit);
+        allFields[Columns.HOSTKEY.ordinal()].setValue(hostkey);
+        allFields[Columns.ADMINROLE.ordinal()].setValue(adminrole);
         allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
     }
 
     @Override
     protected void setFromArray() throws OpenR66DatabaseSqlError {
         hostid = (String) allFields[Columns.HOSTID.ordinal()].getValue();
-        readgloballimit = (Long) allFields[Columns.READGLOBALLIMIT.ordinal()]
-                .getValue();
-        writegloballimit = (Long) allFields[Columns.WRITEGLOBALLIMIT.ordinal()]
-                .getValue();
-        readsessionlimit = (Long) allFields[Columns.READSESSIONLIMIT.ordinal()]
-                .getValue();
-        writesessionlimit = (Long) allFields[Columns.WRITESESSIONLIMIT
-                .ordinal()].getValue();
-        delayllimit = (Long) allFields[Columns.DELAYLIMIT.ordinal()].getValue();
+        hostkey = (byte[]) allFields[Columns.HOSTKEY.ordinal()].getValue();
+        adminrole = (Boolean) allFields[Columns.ADMINROLE.ordinal()].getValue();
         updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()]
                 .getValue();
     }
@@ -152,26 +104,14 @@ public class DbR66Configuration extends AbstractDbData {
     /**
      * @param dbSession
      * @param hostid
-     * @param rg
-     *            Read Global Limit
-     * @param wg
-     *            Write Global Limit
-     * @param rs
-     *            Read Session Limit
-     * @param ws
-     *            Write Session Limit
-     * @param del
-     *            Delay Limit
+     * @param hostkey
+     * @param adminrole
      */
-    public DbR66Configuration(DbSession dbSession, String hostid, long rg, long wg, long rs,
-            long ws, long del) {
+    public DbHostAuth(DbSession dbSession, String hostid, byte[] hostkey, boolean adminrole) {
         super(dbSession);
         this.hostid = hostid;
-        readgloballimit = rg;
-        writegloballimit = wg;
-        readsessionlimit = rs;
-        writesessionlimit = ws;
-        delayllimit = del;
+        this.hostkey = hostkey;
+        this.adminrole = adminrole;
         setToArray();
         isSaved = false;
     }
@@ -181,7 +121,7 @@ public class DbR66Configuration extends AbstractDbData {
      * @param hostid
      * @throws OpenR66DatabaseException
      */
-    public DbR66Configuration(DbSession dbSession, String hostid) throws OpenR66DatabaseException {
+    public DbHostAuth(DbSession dbSession, String hostid) throws OpenR66DatabaseException {
         super(dbSession);
         this.hostid = hostid;
         // load from DB
@@ -196,7 +136,7 @@ public class DbR66Configuration extends AbstractDbData {
     @Override
     public void delete() throws OpenR66DatabaseException {
         if (dbSession == null) {
-            dbR66ConfigurationHashMap.remove(this.hostid);
+            dbR66HostAuthHashMap.remove(this.hostid);
             isSaved = false;
             return;
         }
@@ -228,7 +168,7 @@ public class DbR66Configuration extends AbstractDbData {
             return;
         }
         if (dbSession == null) {
-            dbR66ConfigurationHashMap.put(this.hostid, this);
+            dbR66HostAuthHashMap.put(this.hostid, this);
             isSaved = true;
             return;
         }
@@ -254,7 +194,7 @@ public class DbR66Configuration extends AbstractDbData {
     @Override
     public boolean exist() throws OpenR66DatabaseException {
         if (dbSession == null) {
-            return dbR66ConfigurationHashMap.containsKey(hostid);
+            return dbR66HostAuthHashMap.containsKey(hostid);
         }
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
                 dbSession);
@@ -278,13 +218,13 @@ public class DbR66Configuration extends AbstractDbData {
     @Override
     public void select() throws OpenR66DatabaseException {
         if (dbSession == null) {
-            DbR66Configuration conf = dbR66ConfigurationHashMap.get(this.hostid);
-            if (conf == null) {
+            DbHostAuth host = dbR66HostAuthHashMap.get(this.hostid);
+            if (host == null) {
                 throw new OpenR66DatabaseNoDataException("No row found");
             } else {
                 // copy info
                 for (int i = 0; i < allFields.length; i++){
-                    allFields[i].value = conf.allFields[i].value;
+                    allFields[i].value = host.allFields[i].value;
                 }
                 setFromArray();
                 isSaved = true;
@@ -323,7 +263,7 @@ public class DbR66Configuration extends AbstractDbData {
             return;
         }
         if (dbSession == null) {
-            dbR66ConfigurationHashMap.put(this.hostid, this);
+            dbR66HostAuthHashMap.put(this.hostid, this);
             isSaved = true;
             return;
         }
@@ -357,11 +297,39 @@ public class DbR66Configuration extends AbstractDbData {
             isSaved = false;
         }
     }
+
     /**
-     * Update configuration according to new value of limits
+     * Is the given key a valid one
+     *
+     * @param newkey
+     * @return True if the key is valid (or any key is valid)
      */
-    public void updateConfiguration() {
-        Configuration.configuration.changeNetworkLimit(writegloballimit,
-                readgloballimit, writesessionlimit, readsessionlimit, delayllimit);
+    public boolean isKeyValid(byte[] newkey) {
+        // FIXME is it valid to not have a key ?
+        if (this.hostkey == null) {
+            return true;
+        }
+        if (newkey == null) {
+            return false;
+        }
+        return Arrays.equals(this.hostkey, newkey);
+    }
+
+    /**
+     * @return the hostkey
+     */
+    public byte[] getHostkey() {
+        return hostkey;
+    }
+
+    /**
+     * @return the adminrole
+     */
+    public boolean isAdminrole() {
+        return adminrole;
+    }
+    @Override
+    public String toString() {
+        return "HostAuth: " + hostid + " " + adminrole +" "+(hostkey!=null?hostkey.length:0);
     }
 }

@@ -17,7 +17,7 @@ package openr66.protocol.localhandler;
 
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
-import openr66.context.R66ErrorCode;
+import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
 import openr66.database.DbConstant;
@@ -192,7 +192,7 @@ public class LocalChannelReference {
                 .awaitUninterruptibly(Configuration.WAITFORNETOP * 2)) {
             R66Result result = new R66Result(
                     new OpenR66ProtocolNoConnectionException("Out of time"),
-                    session, false, R66ErrorCode.ConnectionImpossible);
+                    session, false, ErrorCode.ConnectionImpossible);
             validateConnection(false, result);
             return futureConnection;
         }

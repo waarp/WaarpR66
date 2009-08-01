@@ -103,7 +103,7 @@ public class R66Session implements SessionInterface {
         if (runner != null && !runner.isFinished()) {
             R66Result result = new R66Result(new OpenR66RunnerErrorException(
                     "Close before ending"), this, true,
-                    R66ErrorCode.Disconnection);// True since called from closed
+                    ErrorCode.Disconnection);// True since called from closed
             try {
                 setFinalizeTransfer(false, result);
             } catch (OpenR66RunnerErrorException e) {
@@ -375,7 +375,7 @@ public class R66Session implements SessionInterface {
             R66Result result = finalValue;
             if (status) {
                 result = new R66Result(new OpenR66RunnerErrorException(e1),
-                        this, false, R66ErrorCode.Internal);
+                        this, false, ErrorCode.Internal);
             }
             localChannelReference.invalidateRequest(result);
             throw (OpenR66RunnerErrorException) result.exception;
@@ -389,7 +389,7 @@ public class R66Session implements SessionInterface {
                 R66Result result = finalValue;
                 if (status) {
                     result = new R66Result(e1, this, false,
-                            R66ErrorCode.ExternalOp);
+                            ErrorCode.ExternalOp);
                 }
                 localChannelReference.invalidateRequest(result);
                 throw e1;
@@ -407,7 +407,7 @@ public class R66Session implements SessionInterface {
                         R66Result result = finalValue;
                         if (status) {
                             result = new R66Result(e, this, false,
-                                    R66ErrorCode.FinalOp);
+                                    ErrorCode.FinalOp);
                         }
                         localChannelReference.invalidateRequest(result);
                         throw e;
@@ -416,7 +416,7 @@ public class R66Session implements SessionInterface {
                         if (status) {
                             result = new R66Result(
                                     new OpenR66RunnerErrorException(e), this,
-                                    false, R66ErrorCode.FinalOp);
+                                    false, ErrorCode.FinalOp);
                         }
                         localChannelReference.invalidateRequest(result);
                         throw (OpenR66RunnerErrorException) result.exception;
@@ -434,7 +434,7 @@ public class R66Session implements SessionInterface {
             localChannelReference.validateEndTransfer(finalValue);
         } else {
             // error
-            R66ErrorCode runnerStatus = runner.getStatus();
+            ErrorCode runnerStatus = runner.getStatus();
             runner.setErrorTask(0);
             runner.saveStatus();
             if (finalValue.exception != null) {

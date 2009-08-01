@@ -30,11 +30,11 @@ import java.net.SocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import openr66.context.R66ErrorCode;
+import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.database.DbConstant;
 import openr66.protocol.config.Configuration;
-import openr66.protocol.config.R66FileBasedConfiguration;
+import openr66.protocol.config.FileBasedConfiguration;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
@@ -108,7 +108,7 @@ public class TestTransfer implements Runnable {
         if (localChannelReference == null) {
             logger.error("Cannot connect", lastException);
             future.setResult(new R66Result(lastException, null, true,
-                    R66ErrorCode.ConnectionImpossible));
+                    ErrorCode.ConnectionImpossible));
             future.setFailure(lastException);
             return;
         } else if (lastException != null) {
@@ -125,7 +125,7 @@ public class TestTransfer implements Runnable {
         } catch (OpenR66ProtocolPacketException e) {
             future
                     .setResult(new R66Result(e, null, true,
-                            R66ErrorCode.Internal));
+                            ErrorCode.Internal));
             future.setFailure(e);
             Channels.close(localChannelReference.getLocalChannel());
             return;
@@ -159,7 +159,7 @@ public class TestTransfer implements Runnable {
                     .error("Needs at least the configuration file, the file to transfer, the rule as arguments");
             return;
         }
-        Configuration.configuration.fileBasedConfiguration = new R66FileBasedConfiguration();
+        Configuration.configuration.fileBasedConfiguration = new FileBasedConfiguration();
         if (!Configuration.configuration.fileBasedConfiguration
                 .setConfigurationFromXml(args[0])) {
             logger
@@ -193,14 +193,14 @@ public class TestTransfer implements Runnable {
             arrayFuture[i].awaitUninterruptibly();
             R66Result result = arrayFuture[i].getResult();
             if (arrayFuture[i].isSuccess()) {
-                if (result.runner.getStatus() == R66ErrorCode.Warning) {
+                if (result.runner.getStatus() == ErrorCode.Warning) {
                     warn ++;
                 } else {
                     success ++;
                 }
             } else {
                 if (result.runner != null &&
-                        result.runner.getStatus() == R66ErrorCode.Warning) {
+                        result.runner.getStatus() == ErrorCode.Warning) {
                     warn ++;
                 } else {
                     error ++;

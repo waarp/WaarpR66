@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
-import openr66.context.R66ErrorCode;
+import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.data.DbTaskRunner;
@@ -62,7 +62,7 @@ public class LocalTransaction {
                 R66Result result = new R66Result(
                         new OpenR66ProtocolSystemException(
                                 "While closing Local Channel"), null, false,
-                        R66ErrorCode.ConnectionImpossible);
+                        ErrorCode.ConnectionImpossible);
                 localChannelReference.validateConnection(false, result);
             }
         }

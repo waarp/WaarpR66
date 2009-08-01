@@ -22,7 +22,7 @@ package openr66.protocol.localhandler;
 
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
-import openr66.context.R66ErrorCode;
+import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
@@ -71,11 +71,11 @@ public class RetrieveRunner implements Runnable {
             session.getFile().retrieveBlocking();
         } catch (OpenR66RunnerErrorException e) {
             R66Result result = new R66Result(e, session, true,
-                    R66ErrorCode.TransferError);
+                    ErrorCode.TransferError);
             localChannelReference.invalidateRequest(result);
             logger.error("Transfer in error", e);
             ErrorPacket error = new ErrorPacket("Transfer in error",
-                    R66ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                    ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
             try {
                 ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
             } catch (OpenR66ProtocolPacketException e1) {
@@ -85,11 +85,11 @@ public class RetrieveRunner implements Runnable {
             return;
         } catch (OpenR66ProtocolSystemException e) {
             R66Result result = new R66Result(e, session, true,
-                    R66ErrorCode.TransferError);
+                    ErrorCode.TransferError);
             localChannelReference.invalidateRequest(result);
             logger.error("Transfer in error", e);
             ErrorPacket error = new ErrorPacket("Transfer in error",
-                    R66ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                    ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
             try {
                 ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
             } catch (OpenR66ProtocolPacketException e1) {
@@ -117,7 +117,7 @@ public class RetrieveRunner implements Runnable {
         } else {
             if (!localChannelReference.getFutureEndTransfer().getResult().isAnswered) {
                 ErrorPacket error = new ErrorPacket("Transfer in error",
-                        R66ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                        ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
                 try {
                     ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
                 } catch (OpenR66ProtocolPacketException e) {

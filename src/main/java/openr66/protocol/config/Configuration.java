@@ -26,7 +26,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import openr66.database.data.DbR66HostAuth;
+import openr66.database.data.DbHostAuth;
 import openr66.protocol.localhandler.LocalTransaction;
 import openr66.protocol.networkhandler.NetworkServerPipelineFactory;
 import openr66.protocol.utils.OpenR66SignalHandler;
@@ -109,7 +109,7 @@ public class Configuration {
     /**
      * Server Actual Authentication
      */
-    public DbR66HostAuth HOST_AUTH;
+    public DbHostAuth HOST_AUTH;
 
     /**
      * Default number of threads in pool for Server (true network listeners).
@@ -277,9 +277,9 @@ public class Configuration {
     private LocalTransaction localTransaction;
 
     /**
-     * R66FileBasedConfiguration
+     * FileBasedConfiguration
      */
-    public R66FileBasedConfiguration fileBasedConfiguration;
+    public FileBasedConfiguration fileBasedConfiguration;
 
     private volatile boolean configured = false;
 

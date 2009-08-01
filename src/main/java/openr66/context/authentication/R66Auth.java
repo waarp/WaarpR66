@@ -33,7 +33,7 @@ import java.io.File;
 
 import openr66.context.R66Session;
 import openr66.database.DbSession;
-import openr66.database.data.DbR66HostAuth;
+import openr66.database.data.DbHostAuth;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.protocol.config.Configuration;
 
@@ -51,7 +51,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
     /**
      * Current authentication
      */
-    private DbR66HostAuth currentAuth = null;
+    private DbHostAuth currentAuth = null;
     /**
      * @param session
      */
@@ -118,7 +118,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
      */
     public boolean connection(DbSession dbSession, String hostId, byte[] arg0)
             throws Reply530Exception, Reply421Exception {
-        DbR66HostAuth auth = R66Auth
+        DbHostAuth auth = R66Auth
                 .getServerAuth(dbSession, hostId);
         if (auth == null) {
             setIsIdentified(false);
@@ -226,10 +226,10 @@ public class R66Auth extends FilesystemBasedAuthImpl {
      * @param server
      * @return the SimpleAuth if any for this user
      */
-    public static DbR66HostAuth getServerAuth(DbSession dbSession, String server) {
-        DbR66HostAuth auth = null;
+    public static DbHostAuth getServerAuth(DbSession dbSession, String server) {
+        DbHostAuth auth = null;
         try {
-            auth = new DbR66HostAuth(dbSession, server);
+            auth = new DbHostAuth(dbSession, server);
         } catch (OpenR66DatabaseException e) {
             logger.warn("Cannot find the authentication");
             return null;

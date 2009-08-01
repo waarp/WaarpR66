@@ -27,7 +27,7 @@ package openr66.context;
  * @author Frederic Bregier
  *
  */
-public enum R66ErrorCode {
+public enum ErrorCode {
     /**
      * Code stands for initialization ok (internal connection, authentication)
      */
@@ -130,7 +130,7 @@ public enum R66ErrorCode {
      */
     public char code;
 
-    private R66ErrorCode(String mesg, char code) {
+    private ErrorCode(String mesg, char code) {
         this.mesg = mesg;
         this.code = code;
     }
@@ -141,9 +141,9 @@ public enum R66ErrorCode {
     /**
      *
      * @param code
-     * @return the R66ErrorCode according to the code
+     * @return the ErrorCode according to the code
      */
-    public static R66ErrorCode getFromCode(char code) {
+    public static ErrorCode getFromCode(char code) {
         switch (code) {
             case 'i':
                 return InitOk;

@@ -37,7 +37,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 
-import openr66.context.R66ErrorCode;
+import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
@@ -148,7 +148,7 @@ public class R66File extends FilesystemBasedFileImpl {
                                     new R66Result(
                                             new OpenR66ProtocolSystemException(
                                                     e), getSession(), false,
-                                            R66ErrorCode.Internal));
+                                            ErrorCode.Internal));
                             return;
                         }
                     }
@@ -178,14 +178,14 @@ public class R66File extends FilesystemBasedFileImpl {
             getSession().setFinalizeTransfer(
                     false,
                     new R66Result(new OpenR66ProtocolSystemException(e),
-                            getSession(), false, R66ErrorCode.TransferError));
+                            getSession(), false, ErrorCode.TransferError));
         } catch (OpenR66ProtocolPacketException e) {
             // An error occurs!
             getSession()
                     .setFinalizeTransfer(
                             false,
                             new R66Result(e, getSession(), false,
-                                    R66ErrorCode.Internal));
+                                    ErrorCode.Internal));
         } finally {
             if (retrieveDone) {
                 try {
@@ -196,7 +196,7 @@ public class R66File extends FilesystemBasedFileImpl {
                     getSession().setFinalizeTransfer(
                             false,
                             new R66Result(e, getSession(), false,
-                                    R66ErrorCode.Internal));
+                                    ErrorCode.Internal));
                 }
             }
         }

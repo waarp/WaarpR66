@@ -50,7 +50,7 @@ public class R66Result {
     /**
      * The code (error or not)
      */
-    public R66ErrorCode code;
+    public ErrorCode code;
     /**
      * Any other object for special operations (test or shutdown for instance)
      */
@@ -62,7 +62,7 @@ public class R66Result {
      * @param isAnswered
      */
     public R66Result(OpenR66Exception exception, R66Session session,
-            boolean isAnswered, R66ErrorCode code) {
+            boolean isAnswered, ErrorCode code) {
         this.exception = exception;
         if (session != null) {
             file = session.getFile();
@@ -76,7 +76,7 @@ public class R66Result {
      * @param session
      * @param isAnswered
      */
-    public R66Result(R66Session session, boolean isAnswered, R66ErrorCode code) {
+    public R66Result(R66Session session, boolean isAnswered, ErrorCode code) {
         if (session != null) {
             file = session.getFile();
             runner = session.getRunner();

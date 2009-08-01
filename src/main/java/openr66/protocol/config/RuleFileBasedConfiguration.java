@@ -29,7 +29,7 @@ import java.io.FilenameFilter;
 import java.util.List;
 
 import openr66.database.DbConstant;
-import openr66.database.data.DbR66Rule;
+import openr66.database.data.DbRule;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
@@ -52,12 +52,12 @@ import org.dom4j.tree.DefaultElement;
  * @author Frederic Bregier
  *
  */
-public class R66RuleFileBasedConfiguration {
+public class RuleFileBasedConfiguration {
     /**
      * Internal Logger
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
-            .getLogger(R66RuleFileBasedConfiguration.class);
+            .getLogger(RuleFileBasedConfiguration.class);
 
     private static final String ROOT = "rule";
     private static final String XIDRULE = "idrule";
@@ -131,7 +131,7 @@ public class R66RuleFileBasedConfiguration {
         File[] files = FileUtils.getFiles(configDirectory,
                 new ExtensionFilter());
         for (File file: files) {
-            DbR66Rule rule = getFromFile(file);
+            DbRule rule = getFromFile(file);
             logger.debug(rule.toString());
         }
     }
@@ -181,20 +181,20 @@ public class R66RuleFileBasedConfiguration {
         }
         for (Node noderoot: listNode) {
             Node nodetype = null, nodepath = null, noderank = null, nodedelay = null;
-            noderank = noderoot.selectSingleNode(DbR66Rule.TASK_RANK);
+            noderank = noderoot.selectSingleNode(DbRule.TASK_RANK);
             if (noderank == null) {
                 continue;
             }
             int rank = Integer.parseInt(noderank.getText());
-            nodetype = noderoot.selectSingleNode(DbR66Rule.TASK_TYPE);
+            nodetype = noderoot.selectSingleNode(DbRule.TASK_TYPE);
             if (nodetype == null) {
                 continue;
             }
-            nodepath = noderoot.selectSingleNode(DbR66Rule.TASK_PATH);
+            nodepath = noderoot.selectSingleNode(DbRule.TASK_PATH);
             if (nodepath == null) {
                 continue;
             }
-            nodedelay = noderoot.selectSingleNode(DbR66Rule.TASK_DELAY);
+            nodedelay = noderoot.selectSingleNode(DbRule.TASK_DELAY);
             String delay;
             if (nodedelay == null) {
                 delay = Integer
@@ -223,9 +223,9 @@ public class R66RuleFileBasedConfiguration {
      * @throws OpenR66ProtocolNoDataException
      */
     @SuppressWarnings("unchecked")
-    public static DbR66Rule getFromFile(File file)
+    public static DbRule getFromFile(File file)
             throws OpenR66ProtocolSystemException, OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError, OpenR66DatabaseNoDataException, OpenR66DatabaseException {
-        DbR66Rule newRule = null;
+        DbRule newRule = null;
         Document document = null;
         // Open config file
         try {
@@ -304,7 +304,7 @@ public class R66RuleFileBasedConfiguration {
         nodebase = document.selectSingleNode(ERRORTASKS);
         String[][] errortasks = getTasks(nodebase, TASK);
 
-        newRule = new DbR66Rule(DbConstant.admin.session, idrule, idsArray, mode, recvpath, sendpath,
+        newRule = new DbRule(DbConstant.admin.session, idrule, idsArray, mode, recvpath, sendpath,
                 archivepath, workpath, pretasks, posttasks, errortasks);
         if (DbConstant.admin != null && DbConstant.admin.session != null) {
             if (newRule.exist()) {
@@ -335,7 +335,7 @@ public class R66RuleFileBasedConfiguration {
      * @param rule
      * @throws OpenR66ProtocolSystemException
      */
-    public static void writeXML(String filename, DbR66Rule rule) throws OpenR66ProtocolSystemException {
+    public static void writeXML(String filename, DbRule rule) throws OpenR66ProtocolSystemException {
         Document document = DocumentHelper.createDocument();
         Element root = document.addElement(ROOT);
         root.add(newElement(XIDRULE, rule.idRule));
@@ -355,10 +355,10 @@ public class R66RuleFileBasedConfiguration {
         String [][] array = rule.preTasksArray;
         for (rank = 0; rank < array.length; rank++) {
             Element task = new DefaultElement(XTASK);
-            task.add(newElement(DbR66Rule.TASK_RANK, Integer.toString(rank)));
-            task.add(newElement(DbR66Rule.TASK_TYPE, array[rank][0]));
-            task.add(newElement(DbR66Rule.TASK_PATH, array[rank][1]));
-            task.add(newElement(DbR66Rule.TASK_DELAY, array[rank][2]));
+            task.add(newElement(DbRule.TASK_RANK, Integer.toString(rank)));
+            task.add(newElement(DbRule.TASK_TYPE, array[rank][0]));
+            task.add(newElement(DbRule.TASK_PATH, array[rank][1]));
+            task.add(newElement(DbRule.TASK_DELAY, array[rank][2]));
             roottasks.add(task);
         }
         tasks.add(roottasks);
@@ -368,10 +368,10 @@ public class R66RuleFileBasedConfiguration {
         array = rule.postTasksArray;
         for (rank = 0; rank < array.length; rank++) {
             Element task = new DefaultElement(XTASK);
-            task.add(newElement(DbR66Rule.TASK_RANK, Integer.toString(rank)));
-            task.add(newElement(DbR66Rule.TASK_TYPE, array[rank][0]));
-            task.add(newElement(DbR66Rule.TASK_PATH, array[rank][1]));
-            task.add(newElement(DbR66Rule.TASK_DELAY, array[rank][2]));
+            task.add(newElement(DbRule.TASK_RANK, Integer.toString(rank)));
+            task.add(newElement(DbRule.TASK_TYPE, array[rank][0]));
+            task.add(newElement(DbRule.TASK_PATH, array[rank][1]));
+            task.add(newElement(DbRule.TASK_DELAY, array[rank][2]));
             roottasks.add(task);
         }
         tasks.add(roottasks);
@@ -381,10 +381,10 @@ public class R66RuleFileBasedConfiguration {
         array = rule.errorTasksArray;
         for (rank = 0; rank < array.length; rank++) {
             Element task = new DefaultElement(XTASK);
-            task.add(newElement(DbR66Rule.TASK_RANK, Integer.toString(rank)));
-            task.add(newElement(DbR66Rule.TASK_TYPE, array[rank][0]));
-            task.add(newElement(DbR66Rule.TASK_PATH, array[rank][1]));
-            task.add(newElement(DbR66Rule.TASK_DELAY, array[rank][2]));
+            task.add(newElement(DbRule.TASK_RANK, Integer.toString(rank)));
+            task.add(newElement(DbRule.TASK_TYPE, array[rank][0]));
+            task.add(newElement(DbRule.TASK_PATH, array[rank][1]));
+            task.add(newElement(DbRule.TASK_DELAY, array[rank][2]));
             roottasks.add(task);
         }
         tasks.add(roottasks);

@@ -30,7 +30,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import openr66.protocol.config.Configuration;
-import openr66.protocol.config.R66FileBasedConfiguration;
+import openr66.protocol.config.FileBasedConfiguration;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
@@ -142,7 +142,7 @@ public class TestTransaction implements Runnable {
                     .error("Needs at least the configuration file as first argument");
             return;
         }
-        Configuration.configuration.fileBasedConfiguration = new R66FileBasedConfiguration();
+        Configuration.configuration.fileBasedConfiguration = new FileBasedConfiguration();
         if (!Configuration.configuration.fileBasedConfiguration
                 .setConfigurationFromXml(args[0])) {
             logger

@@ -51,12 +51,12 @@ import org.dom4j.io.SAXReader;
  * @author Frederic Bregier
  *
  */
-public class DbR66Rule extends AbstractDbData {
+public class DbRule extends AbstractDbData {
     /**
      * Internal Logger
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
-            .getLogger(DbR66Rule.class);
+            .getLogger(DbRule.class);
 
     public static enum Columns {
         HOSTIDS,
@@ -82,8 +82,8 @@ public class DbR66Rule extends AbstractDbData {
     /**
      * HashTable in case of lack of database
      */
-    private static final ConcurrentHashMap<String, DbR66Rule> dbR66RuleHashMap =
-        new ConcurrentHashMap<String, DbR66Rule>();
+    private static final ConcurrentHashMap<String, DbRule> dbR66RuleHashMap =
+        new ConcurrentHashMap<String, DbRule>();
 
     /**
      * Internal context XML fields
@@ -316,7 +316,7 @@ public class DbR66Rule extends AbstractDbData {
      * @param postTasks
      * @param errorTasks
      */
-    public DbR66Rule(DbSession dbSession, String idRule, String ids, int mode, String recvPath,
+    public DbRule(DbSession dbSession, String idRule, String ids, int mode, String recvPath,
             String sendPath, String archivePath, String workPath,
             String preTasks, String postTasks, String errorTasks) {
         super(dbSession);
@@ -343,7 +343,7 @@ public class DbR66Rule extends AbstractDbData {
      * @param idRule
      * @throws OpenR66DatabaseException
      */
-    public DbR66Rule(DbSession dbSession, String idRule) throws OpenR66DatabaseException {
+    public DbRule(DbSession dbSession, String idRule) throws OpenR66DatabaseException {
         super(dbSession);
         this.idRule = idRule;
         // load from DB
@@ -368,7 +368,7 @@ public class DbR66Rule extends AbstractDbData {
      * @param posttasksArray
      * @param errortasksArray
      */
-    public DbR66Rule(DbSession dbSession, String idrule, String[] idsArrayRef, int mode,
+    public DbRule(DbSession dbSession, String idrule, String[] idsArrayRef, int mode,
             String recvpath, String sendpath, String archivepath,
             String workpath, String[][] pretasksArray,
             String[][] posttasksArray, String[][] errortasksArray) {
@@ -481,7 +481,7 @@ public class DbR66Rule extends AbstractDbData {
     @Override
     public void select() throws OpenR66DatabaseException {
         if (dbSession == null) {
-            DbR66Rule rule = dbR66RuleHashMap.get(this.idRule);
+            DbRule rule = dbR66RuleHashMap.get(this.idRule);
             if (rule == null) {
                 throw new OpenR66DatabaseNoDataException("No row found");
             } else {

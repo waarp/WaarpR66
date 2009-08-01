@@ -27,9 +27,9 @@ import openr66.database.DbConstant;
 import openr66.database.DbPreparedStatement;
 import openr66.database.DbRequest;
 import openr66.database.DbSession;
-import openr66.database.data.DbR66Configuration;
-import openr66.database.data.DbR66HostAuth;
-import openr66.database.data.DbR66Rule;
+import openr66.database.data.DbConfiguration;
+import openr66.database.data.DbHostAuth;
+import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
@@ -110,16 +110,16 @@ public class DbModelH2 extends AbstractDbModel {
         String notNull = " NOT NULL ";
 
         // Configuration
-        String action = createTableH2 + DbR66Configuration.table + "(";
-        DbR66Configuration.Columns[] ccolumns = DbR66Configuration.Columns
+        String action = createTableH2 + DbConfiguration.table + "(";
+        DbConfiguration.Columns[] ccolumns = DbConfiguration.Columns
                 .values();
         for (int i = 0; i < ccolumns.length - 1; i ++) {
             action += ccolumns[i].name() +
-                    DBType.getType(DbR66Configuration.dbTypes[i]) + notNull +
+                    DBType.getType(DbConfiguration.dbTypes[i]) + notNull +
                     ", ";
         }
         action += ccolumns[ccolumns.length - 1].name() +
-                DBType.getType(DbR66Configuration.dbTypes[ccolumns.length - 1]) +
+                DBType.getType(DbConfiguration.dbTypes[ccolumns.length - 1]) +
                 primaryKey + ")";
         System.out.println(action);
         DbRequest request = new DbRequest(DbConstant.admin.session);
@@ -135,14 +135,14 @@ public class DbModelH2 extends AbstractDbModel {
         request.close();
 
         // hosts
-        action = createTableH2 + DbR66HostAuth.table + "(";
-        DbR66HostAuth.Columns[] hcolumns = DbR66HostAuth.Columns.values();
+        action = createTableH2 + DbHostAuth.table + "(";
+        DbHostAuth.Columns[] hcolumns = DbHostAuth.Columns.values();
         for (int i = 0; i < hcolumns.length - 1; i ++) {
             action += hcolumns[i].name() +
-                    DBType.getType(DbR66HostAuth.dbTypes[i]) + notNull + ", ";
+                    DBType.getType(DbHostAuth.dbTypes[i]) + notNull + ", ";
         }
         action += hcolumns[hcolumns.length - 1].name() +
-                DBType.getType(DbR66HostAuth.dbTypes[hcolumns.length - 1]) +
+                DBType.getType(DbHostAuth.dbTypes[hcolumns.length - 1]) +
                 primaryKey + ")";
         System.out.println(action);
         try {
@@ -157,14 +157,14 @@ public class DbModelH2 extends AbstractDbModel {
         request.close();
 
         // rules
-        action = createTableH2 + DbR66Rule.table + "(";
-        DbR66Rule.Columns[] rcolumns = DbR66Rule.Columns.values();
+        action = createTableH2 + DbRule.table + "(";
+        DbRule.Columns[] rcolumns = DbRule.Columns.values();
         for (int i = 0; i < rcolumns.length - 1; i ++) {
             action += rcolumns[i].name() +
-                    DBType.getType(DbR66Rule.dbTypes[i]) + ", ";
+                    DBType.getType(DbRule.dbTypes[i]) + ", ";
         }
         action += rcolumns[rcolumns.length - 1].name() +
-                DBType.getType(DbR66Rule.dbTypes[rcolumns.length - 1]) +
+                DBType.getType(DbRule.dbTypes[rcolumns.length - 1]) +
                 primaryKey + ")";
         System.out.println(action);
         try {
