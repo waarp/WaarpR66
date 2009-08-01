@@ -29,6 +29,7 @@ import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.database.model.DbModelFactory;
+import openr66.protocol.config.R66AuthenticationFileBasedConfiguration;
 import openr66.protocol.config.R66FileBasedConfiguration;
 import openr66.protocol.config.R66RuleFileBasedConfiguration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
@@ -122,7 +123,7 @@ public class TestInitDatabase {
         }
     }
     public static void loadHostAuth(String filename) {
-        R66FileBasedConfiguration.loadAuthentication(filename);
+        R66AuthenticationFileBasedConfiguration.loadAuthentication(filename);
     }
     public static void loadConfiguration(String filename) {
         Document document = null;

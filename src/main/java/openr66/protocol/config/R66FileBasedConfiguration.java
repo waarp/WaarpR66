@@ -32,14 +32,11 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
 
 import openr66.context.authentication.R66Auth;
 import openr66.database.DbAdmin;
 import openr66.database.DbConstant;
 import openr66.database.data.DbR66Configuration;
-import openr66.database.data.DbR66HostAuth;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.model.DbModelFactory;
@@ -192,26 +189,6 @@ public class R66FileBasedConfiguration {
      * Authentication
      */
     private static final String XML_AUTHENTIFICATION_FILE = "/config/authentfile";
-
-    /**
-     * Authentication Fields
-     */
-    private static final String XML_AUTHENTIFICATION_BASED = "/authent/entry";
-
-    /**
-     * Authentication Fields
-     */
-    private static final String XML_AUTHENTIFICATION_HOSTID = "hostid";
-
-    /**
-     * Authentication Fields
-     */
-    private static final String XML_AUTHENTIFICATION_KEYFILE = "keyfile";
-
-    /**
-     * Authentication Fields
-     */
-    private static final String XML_AUTHENTIFICATION_ADMIN = "admin";
 
     /**
      *
@@ -498,7 +475,7 @@ public class R66FileBasedConfiguration {
             } else {
                 String fileauthent = node.getText();
                 document = null;
-                if (! loadAuthentication(fileauthent)) {
+                if (! R66AuthenticationFileBasedConfiguration.loadAuthentication(fileauthent)) {
                     return false;
                 }
             }
@@ -510,86 +487,6 @@ public class R66FileBasedConfiguration {
             logger.warn("Cannot find Authentication for current host");
             return false;
         }
-        return true;
-    }
-    /**
-     * Load Authentication from File
-     * @param filename
-     * @return True if OK
-     */
-    @SuppressWarnings("unchecked")
-    public static boolean loadAuthentication(String filename) {
-        Document document = null;
-        try {
-            document = new SAXReader().read(filename);
-        } catch (DocumentException e) {
-            logger.error("Unable to read the XML Authentication file: " +
-                    filename, e);
-            return false;
-        }
-        if (document == null) {
-            logger.error("Unable to read the XML Authentication file: " +
-                    filename);
-            return false;
-        }
-        List<Node> list = document.selectNodes(XML_AUTHENTIFICATION_BASED);
-        Iterator<Node> iterator = list.iterator();
-        Node nodebase, node;
-        File key;
-        byte[] byteKeys;
-        FileInputStream inputStream = null;
-        while (iterator.hasNext()) {
-            nodebase = iterator.next();
-            node = nodebase.selectSingleNode(XML_AUTHENTIFICATION_HOSTID);
-            if (node == null) {
-                continue;
-            }
-            String refHostId = node.getText();
-            node = nodebase.selectSingleNode(XML_AUTHENTIFICATION_KEYFILE);
-            if (node == null) {
-                continue;
-            }
-            String skey = node.getText();
-            // FIXME load key from file
-            key = new File(skey);
-            if (!key.canRead()) {
-                logger.warn("Cannot read key for hostId " + refHostId);
-                continue;
-            }
-            byteKeys = new byte[(int) key.length()];
-            try {
-                inputStream = new FileInputStream(key);
-                inputStream.read(byteKeys);
-                inputStream.close();
-            } catch (IOException e) {
-                logger.warn("Cannot read key for hostId " + refHostId, e);
-                try {
-                    if (inputStream != null)
-                        inputStream.close();
-                } catch (IOException e1) {
-                }
-                continue;
-            }
-            node = nodebase.selectSingleNode(XML_AUTHENTIFICATION_ADMIN);
-            boolean isAdmin = false;
-            if (node != null) {
-                isAdmin = node.getText().equals("1")? true : false;
-            }
-            DbR66HostAuth auth = new DbR66HostAuth(DbConstant.admin.session,
-                    refHostId, byteKeys, isAdmin);
-            try {
-                if (auth.exist()) {
-                    auth.update();
-                } else {
-                    auth.insert();
-                }
-            } catch (OpenR66DatabaseException e) {
-                logger.warn("Cannot create Authentication for hostId " + refHostId);
-                continue;
-            }
-            logger.info("Add " + refHostId + " " + auth.toString());
-        }
-        document = null;
         return true;
     }
     /**

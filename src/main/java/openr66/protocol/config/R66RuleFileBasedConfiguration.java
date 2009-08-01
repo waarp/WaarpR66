@@ -31,6 +31,9 @@ import java.util.List;
 import openr66.database.DbConstant;
 import openr66.database.data.DbR66Rule;
 import openr66.database.exception.OpenR66DatabaseException;
+import openr66.database.exception.OpenR66DatabaseNoConnectionError;
+import openr66.database.exception.OpenR66DatabaseNoDataException;
+import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.utils.FileUtils;
@@ -112,16 +115,6 @@ public class R66RuleFileBasedConfiguration {
         for (File file: files) {
             DbR66Rule rule = getFromFile(file);
             logger.debug(rule.toString());
-            if (DbConstant.admin != null && DbConstant.admin.session != null) {
-                if (rule.exist()) {
-                    rule.update();
-                } else {
-                    rule.insert();
-                }
-            } else {
-                // put in hashtable
-                rule.insert();
-            }
         }
     }
 
@@ -201,15 +194,19 @@ public class R66RuleFileBasedConfiguration {
     }
 
     /**
-     *
+     * Load and update a Rule from a file
      * @param file
      * @return the newly created R66Rule from XML File
      * @throws OpenR66ProtocolSystemException
+     * @throws OpenR66DatabaseException
+     * @throws OpenR66DatabaseNoDataException
+     * @throws OpenR66DatabaseSqlError
+     * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66ProtocolNoDataException
      */
     @SuppressWarnings("unchecked")
-    private static DbR66Rule getFromFile(File file)
-            throws OpenR66ProtocolSystemException {
+    public static DbR66Rule getFromFile(File file)
+            throws OpenR66ProtocolSystemException, OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError, OpenR66DatabaseNoDataException, OpenR66DatabaseException {
         DbR66Rule newRule = null;
         Document document = null;
         // Open config file
@@ -291,6 +288,16 @@ public class R66RuleFileBasedConfiguration {
 
         newRule = new DbR66Rule(DbConstant.admin.session, idrule, idsArray, mode, recvpath, sendpath,
                 archivepath, workpath, pretasks, posttasks, errortasks);
+        if (DbConstant.admin != null && DbConstant.admin.session != null) {
+            if (newRule.exist()) {
+                newRule.update();
+            } else {
+                newRule.insert();
+            }
+        } else {
+            // put in hashtable
+            newRule.insert();
+        }
         return newRule;
     }
 }

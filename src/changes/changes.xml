@@ -17,7 +17,7 @@
 			<action dev="Frederic Bregier" type="add">Transfer implementation</action>
 			<action dev="Frederic Bregier" type="fix">Fix some bugs</action>
 		</release>
-		<release version="0.5.1" date="2009-07-18" description="First release">
+		<release version="0.5.1" date="2009-06-18" description="First release">
 			<action dev="Frederic Bregier" type="add">First public version</action>
 		</release>
 	</body>
