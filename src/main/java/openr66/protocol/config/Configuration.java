@@ -26,7 +26,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import openr66.commander.InternalRunner;
 import openr66.database.data.DbHostAuth;
+import openr66.database.exception.OpenR66DatabaseNoConnectionError;
+import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.localhandler.LocalTransaction;
 import openr66.protocol.networkhandler.NetworkServerPipelineFactory;
 import openr66.protocol.utils.OpenR66SignalHandler;
@@ -280,6 +283,14 @@ public class Configuration {
      * FileBasedConfiguration
      */
     public FileBasedConfiguration fileBasedConfiguration;
+    /**
+     * InternalRunner
+     */
+    private InternalRunner internalRunner;
+    /**
+     * Delay in ms between two steps of Commander
+     */
+    public long delayCommander = 10000;
 
     private volatile boolean configured = false;
 
@@ -309,8 +320,10 @@ public class Configuration {
 
     /**
      * Startup the server
+     * @throws OpenR66DatabaseSqlError
+     * @throws OpenR66DatabaseNoConnectionError
      */
-    public void serverStartup() {
+    public void serverStartup() throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
         pipelineInit();
         // Global Server
         serverChannelGroup = new DefaultChannelGroup("OpenR66");
@@ -334,8 +347,30 @@ public class Configuration {
         globalTrafficShapingHandler = new GlobalTrafficShapingHandler(
                 objectSizeEstimator, execTrafficCounter,
                 serverGlobalWriteLimit, serverGlobalReadLimit, delayLimit);
-    }
 
+        // Now start the InternalRunner
+        internalRunner = new InternalRunner();
+    }
+    /**
+     * Prepare the server to stop
+     *
+     * To be called early before other stuff will be closed
+     */
+    public void prepareServerStop() {
+        if (internalRunner != null) {
+            internalRunner.prepareStopInternalRunner();
+        }
+    }
+    /**
+     * Stops the server
+     *
+     * To be called after all other stuff are closed (channels, connections)
+     */
+    public void serverStop() {
+        if (internalRunner != null) {
+            internalRunner.stopInternalRunner();
+        }
+    }
     /**
      * Reset the global monitor for bandwidth limitation and change future
      * channel monitors

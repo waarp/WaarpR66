@@ -24,9 +24,11 @@ import java.sql.Types;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 
+import openr66.database.DbConstant;
 import openr66.database.DbPreparedStatement;
 import openr66.database.DbSession;
 import openr66.database.exception.OpenR66DatabaseException;
+import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 
@@ -283,7 +285,26 @@ public class DbHostAuth extends AbstractDbData {
             preparedStatement.realClose();
         }
     }
-
+    /**
+     * Private constructor for Commander only
+     */
+    private DbHostAuth() {
+        super(DbConstant.admin.session);
+    }
+    /**
+     * For Commander getting updated information
+     * @param preparedStatement
+     * @return the next updated DbHostAuth
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66DatabaseSqlError
+     */
+    public static DbHostAuth getUpdated(DbPreparedStatement preparedStatement) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+        DbHostAuth dbHostAuth = new DbHostAuth();
+        dbHostAuth.getValues(preparedStatement, dbHostAuth.allFields);
+        dbHostAuth.setFromArray();
+        dbHostAuth.isSaved = true;
+        return dbHostAuth;
+    }
     /*
      * (non-Javadoc)
      *

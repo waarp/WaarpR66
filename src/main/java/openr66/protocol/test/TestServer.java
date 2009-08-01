@@ -18,9 +18,11 @@ package openr66.protocol.test;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
+import openr66.database.exception.OpenR66DatabaseException;
 import openr66.protocol.config.Configuration;
 import openr66.protocol.config.FileBasedConfiguration;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
+import openr66.protocol.utils.OpenR66SignalHandler;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
 
@@ -53,7 +55,13 @@ public class TestServer {
                     .error("Needs a correct configuration file as first argument");
             return;
         }
-        Configuration.configuration.serverStartup();
+        try {
+            Configuration.configuration.serverStartup();
+        } catch (OpenR66DatabaseException e) {
+            logger
+                .error("Startup of server is in error");
+            OpenR66SignalHandler.terminate(true);
+        }
     }
 
 }

@@ -30,6 +30,7 @@ import java.sql.Types;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import openr66.database.DbConstant;
 import openr66.database.DbPreparedStatement;
 import openr66.database.DbSession;
 import openr66.database.exception.OpenR66DatabaseException;
@@ -570,6 +571,26 @@ public class DbRule extends AbstractDbData {
         } finally {
             preparedStatement.realClose();
         }
+    }
+    /**
+     * Private constructor for Commander only
+     */
+    private DbRule() {
+        super(DbConstant.admin.session);
+    }
+    /**
+     * For Commander getting updated information
+     * @param preparedStatement
+     * @return the next updated DbRule
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66DatabaseSqlError
+     */
+    public static DbRule getUpdated(DbPreparedStatement preparedStatement) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+        DbRule dbRule = new DbRule();
+        dbRule.getValues(preparedStatement, dbRule.allFields);
+        dbRule.setFromArray();
+        dbRule.isSaved = true;
+        return dbRule;
     }
 
     /*

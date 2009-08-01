@@ -23,11 +23,8 @@ package openr66.database.data;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
-import java.util.ArrayList;
 
 import org.dom4j.Element;
 import org.dom4j.tree.DefaultElement;
@@ -376,16 +373,6 @@ public class DbTaskRunner extends AbstractDbData {
         specialId = (Long) allFields[Columns.SPECIALID.ordinal()].getValue();
     }
 
-    /**
-     * @param dbSession
-     * Empty private constructor
-     */
-    private DbTaskRunner(DbSession dbSession) {
-        super(dbSession);
-        session = null;
-        rule = null;
-    }
-
     /*
      * (non-Javadoc)
      *
@@ -544,7 +531,28 @@ public class DbTaskRunner extends AbstractDbData {
             preparedStatement.realClose();
         }
     }
-
+    /**
+     * Private constructor for Commander only
+     */
+    private DbTaskRunner() {
+        super(DbConstant.admin.session);
+        session = null;
+        rule = null;
+    }
+    /**
+     * For Commander getting updated information
+     * @param preparedStatement
+     * @return the next updated DbTaskRunner
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66DatabaseSqlError
+     */
+    public static DbTaskRunner getUpdated(DbPreparedStatement preparedStatement) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+        DbTaskRunner dbTaskRunner = new DbTaskRunner();
+        dbTaskRunner.getValues(preparedStatement, dbTaskRunner.allFields);
+        dbTaskRunner.setFromArray();
+        dbTaskRunner.isSaved = true;
+        return dbTaskRunner;
+    }
     /*
      * (non-Javadoc)
      *
@@ -980,81 +988,6 @@ public class DbTaskRunner extends AbstractDbData {
         public String requestedHost;
     }
 
-    /**
-     * @param dbSession
-     * @param status
-     *            the status to match or UNKNOWN for all
-     * @return All index (specialId,requestedHost) that match the status
-     * @throws OpenR66DatabaseNoConnectionError
-     * @throws OpenR66DatabaseSqlError
-     * @throws OpenR66DatabaseNoDataException
-     */
-    public static ArrayList<TransferId> getAllRunner(DbSession dbSession, int status)
-            throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError,
-            OpenR66DatabaseNoDataException {
-        if (dbSession == null) {
-            return new ArrayList<TransferId>(0);
-        }
-        DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                dbSession);
-        DbTaskRunner runner = null;
-        runner = new DbTaskRunner(dbSession);
-        try {
-            if (status == UpdatedInfo.UNKNOWN.ordinal()) {
-                preparedStatement.createPrepareStatement("SELECT COUNT(" +
-                        runner.primaryKey[0].column + ") FROM " + table);
-            } else {
-                preparedStatement.createPrepareStatement("SELECT COUNT(" +
-                        runner.primaryKey[0].column + ") FROM " + table +
-                        " WHERE " + Columns.UPDATEDINFO.name() + " = ?");
-                runner.allFields[Columns.UPDATEDINFO.ordinal()]
-                        .setValue(status);
-                runner.setValue(preparedStatement,
-                        runner.allFields[Columns.UPDATEDINFO.ordinal()]);
-            }
-            preparedStatement.executeQuery();
-            int count = 0;
-            if (preparedStatement.getNext()) {
-                ResultSet rs = preparedStatement.getResultSet();
-                try {
-                    count = rs.getInt(1);
-                } catch (SQLException e) {
-                    DbSession.error(e);
-                    throw new OpenR66DatabaseSqlError(
-                            "Getting values in error: Integer for Count", e);
-                }
-            } else {
-                throw new OpenR66DatabaseNoDataException("No row found");
-            }
-            preparedStatement.realClose();
-            ArrayList<TransferId> result = new ArrayList<TransferId>(count);
-            if (status == UpdatedInfo.UNKNOWN.ordinal()) {
-                preparedStatement.createPrepareStatement("SELECT " +
-                        runner.primaryKey[0].column + "," +
-                        runner.primaryKey[1].column + " FROM " + table);
-            } else {
-                preparedStatement.createPrepareStatement("SELECT " +
-                        runner.primaryKey[0].column + "," +
-                        runner.primaryKey[1].column + " FROM " + table +
-                        " WHERE " + Columns.UPDATEDINFO.name() + " = ?");
-                runner.allFields[Columns.UPDATEDINFO.ordinal()]
-                        .setValue(status);
-                runner.setValue(preparedStatement,
-                        runner.allFields[Columns.UPDATEDINFO.ordinal()]);
-            }
-            preparedStatement.executeQuery();
-            while (preparedStatement.getNext()) {
-                runner.getValues(preparedStatement, runner.primaryKey);
-                TransferId id = new TransferId();
-                id.requestedHost = (String) runner.primaryKey[0].value;
-                id.specialId = (Long) runner.primaryKey[1].value;
-                result.add(id);
-            }
-            return result;
-        } finally {
-            preparedStatement.realClose();
-        }
-    }
     /**
      * Construct a new Element with value
      * @param name

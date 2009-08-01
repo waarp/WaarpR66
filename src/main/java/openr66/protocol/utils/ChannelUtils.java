@@ -234,6 +234,7 @@ public class ChannelUtils implements Runnable {
      */
     public static void exit() {
         Configuration.configuration.isShutdown = true;
+        Configuration.configuration.prepareServerStop();
         final long delay = Configuration.configuration.TIMEOUTCON;
         // Inform others that shutdown
         Configuration.configuration.getLocalTransaction()
@@ -250,6 +251,8 @@ public class ChannelUtils implements Runnable {
         terminateCommandChannels();
         logger.warn("Exit Shutdown Local");
         Configuration.configuration.getLocalTransaction().closeAll();
+        OpenR66SignalHandler.closeAllConnection();
+        Configuration.configuration.serverStop();
         logger.warn("Exit end of Shutdown");
     }
 

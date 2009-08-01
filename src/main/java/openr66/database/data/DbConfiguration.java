@@ -23,9 +23,11 @@ package openr66.database.data;
 import java.sql.Types;
 import java.util.concurrent.ConcurrentHashMap;
 
+import openr66.database.DbConstant;
 import openr66.database.DbPreparedStatement;
 import openr66.database.DbSession;
 import openr66.database.exception.OpenR66DatabaseException;
+import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.config.Configuration;
@@ -311,7 +313,6 @@ public class DbConfiguration extends AbstractDbData {
             preparedStatement.realClose();
         }
     }
-
     /*
      * (non-Javadoc)
      *
@@ -343,7 +344,26 @@ public class DbConfiguration extends AbstractDbData {
             preparedStatement.realClose();
         }
     }
-
+    /**
+     * Private constructor for Commander only
+     */
+    private DbConfiguration() {
+        super(DbConstant.admin.session);
+    }
+    /**
+     * For Commander getting updated information
+     * @param preparedStatement
+     * @return the next updated Configuration
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66DatabaseSqlError
+     */
+    public static DbConfiguration getUpdated(DbPreparedStatement preparedStatement) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+        DbConfiguration dbConfiguration = new DbConfiguration();
+        dbConfiguration.getValues(preparedStatement, dbConfiguration.allFields);
+        dbConfiguration.setFromArray();
+        dbConfiguration.isSaved = true;
+        return dbConfiguration;
+    }
     /*
      * (non-Javadoc)
      *
@@ -363,5 +383,12 @@ public class DbConfiguration extends AbstractDbData {
     public void updateConfiguration() {
         Configuration.configuration.changeNetworkLimit(writegloballimit,
                 readgloballimit, writesessionlimit, readsessionlimit, delayllimit);
+    }
+    /**
+     *
+     * @return True if this Configuration refers to the current host
+     */
+    public boolean isOwnConfiguration() {
+        return this.hostid.equals(Configuration.configuration.HOST_ID);
     }
 }

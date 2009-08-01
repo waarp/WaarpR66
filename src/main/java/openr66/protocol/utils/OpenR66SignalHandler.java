@@ -34,7 +34,7 @@ import sun.misc.SignalHandler;
 
 /**
  * Signal Handler to allow trapping signals.
- * 
+ *
  * @author Frederic Bregier
  */
 @SuppressWarnings("restriction")
@@ -61,7 +61,7 @@ public class OpenR66SignalHandler implements SignalHandler {
 
     /**
      * Says if the Process is currently in shutdown
-     * 
+     *
      * @return True if already in shutdown
      */
     public static boolean isInShutdown() {
@@ -71,7 +71,7 @@ public class OpenR66SignalHandler implements SignalHandler {
     /**
      * This function is the top function to be called when the process is to be
      * shutdown.
-     * 
+     *
      * @param immediate
      */
     public static void terminate(boolean immediate) {
@@ -83,7 +83,7 @@ public class OpenR66SignalHandler implements SignalHandler {
 
     /**
      * Finalize resources attached to handlers
-     * 
+     *
      * @author Frederic Bregier
      */
     private static class R66TimerTask extends TimerTask {
@@ -105,7 +105,7 @@ public class OpenR66SignalHandler implements SignalHandler {
 
         /**
          * Constructor from type
-         * 
+         *
          * @param type
          */
         public R66TimerTask(int type) {
@@ -119,7 +119,7 @@ public class OpenR66SignalHandler implements SignalHandler {
 
         /*
          * (non-Javadoc)
-         * 
+         *
          * @see java.util.TimerTask#run()
          */
         @Override
@@ -150,12 +150,10 @@ public class OpenR66SignalHandler implements SignalHandler {
         timer.schedule(timerTask, Configuration.configuration.TIMEOUTCON * 2);
         if (shutdown) {
             ChannelUtils.exit();
-            closeAllConnection();
             // shouldn't be System.exit(2);
         } else {
             shutdown = true;
             ChannelUtils.exit();
-            closeAllConnection();
         }
     }
 
@@ -184,7 +182,7 @@ public class OpenR66SignalHandler implements SignalHandler {
 
     /**
      * Handle signal
-     * 
+     *
      * @param signal
      */
     public void handle(Signal signal) {
@@ -201,7 +199,7 @@ public class OpenR66SignalHandler implements SignalHandler {
 
     /**
      * Add a Connection into the list
-     * 
+     *
      * @param conn
      */
     public static void addConnection(Connection conn) {
@@ -210,7 +208,7 @@ public class OpenR66SignalHandler implements SignalHandler {
 
     /**
      * Remove a Connection from the list
-     * 
+     *
      * @param conn
      */
     public static void removeConnection(Connection conn) {
