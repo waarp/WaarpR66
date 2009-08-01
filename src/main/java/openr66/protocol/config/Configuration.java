@@ -344,9 +344,10 @@ public class Configuration {
      * @param readGlobalLimit
      * @param writeSessionLimit
      * @param readSessionLimit
+     * @param delayLimit
      */
     public void changeNetworkLimit(long writeGlobalLimit, long readGlobalLimit,
-            long writeSessionLimit, long readSessionLimit) {
+            long writeSessionLimit, long readSessionLimit, long delayLimit) {
         long newWriteLimit = writeGlobalLimit > 1024? writeGlobalLimit
                 : serverGlobalWriteLimit;
         if (writeGlobalLimit <= 0) {
@@ -357,7 +358,10 @@ public class Configuration {
         if (readGlobalLimit <= 0) {
             newReadLimit = 0;
         }
-        globalTrafficShapingHandler.configure(newWriteLimit, newReadLimit);
+        this.delayLimit = delayLimit;
+        if (globalTrafficShapingHandler != null) {
+            globalTrafficShapingHandler.configure(newWriteLimit, newReadLimit, delayLimit);
+        }
         newWriteLimit = writeSessionLimit > 1024? writeSessionLimit
                 : serverChannelWriteLimit;
         if (writeSessionLimit <= 0) {

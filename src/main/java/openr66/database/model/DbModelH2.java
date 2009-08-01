@@ -96,8 +96,9 @@ public class DbModelH2 extends AbstractDbModel {
                     return DATE.constructor;
                 case Types.TIMESTAMP:
                     return TIMESTAMP.constructor;
+                default:
+                    return null;
             }
-            return null;
         }
     }
 

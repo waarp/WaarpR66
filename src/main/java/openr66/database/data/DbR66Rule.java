@@ -467,11 +467,7 @@ public class DbR66Rule extends AbstractDbData {
             primaryKey.setValue(idRule);
             setValue(preparedStatement, primaryKey);
             preparedStatement.executeQuery();
-            if (preparedStatement.getNext()) {
-                return true;
-            } else {
-                return false;
-            }
+            return preparedStatement.getNext();
         } finally {
             preparedStatement.realClose();
         }

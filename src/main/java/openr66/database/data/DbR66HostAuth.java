@@ -205,11 +205,7 @@ public class DbR66HostAuth extends AbstractDbData {
             primaryKey.setValue(hostid);
             setValue(preparedStatement, primaryKey);
             preparedStatement.executeQuery();
-            if (preparedStatement.getNext()) {
-                return true;
-            } else {
-                return false;
-            }
+            return preparedStatement.getNext();
         } finally {
             preparedStatement.realClose();
         }

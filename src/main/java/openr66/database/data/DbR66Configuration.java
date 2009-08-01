@@ -265,11 +265,7 @@ public class DbR66Configuration extends AbstractDbData {
             primaryKey.setValue(hostid);
             setValue(preparedStatement, primaryKey);
             preparedStatement.executeQuery();
-            if (preparedStatement.getNext()) {
-                return true;
-            } else {
-                return false;
-            }
+            return preparedStatement.getNext();
         } finally {
             preparedStatement.realClose();
         }
@@ -366,6 +362,6 @@ public class DbR66Configuration extends AbstractDbData {
      */
     public void updateConfiguration() {
         Configuration.configuration.changeNetworkLimit(writegloballimit,
-                readgloballimit, writesessionlimit, readsessionlimit);
+                readgloballimit, writesessionlimit, readsessionlimit, delayllimit);
     }
 }

@@ -15,6 +15,7 @@
 	<globallimit2>1024000</globallimit2>
 	<sessionlimit>0</sessionlimit>
 	<globallimit>0</globallimit>
+	<delaylimit>0</delaylimit>
 	<timeoutcon>10000</timeoutcon>
 	<deleteonabort>0</deleteonabort>
 	<usenio>0</usenio>

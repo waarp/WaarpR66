@@ -33,6 +33,9 @@ import openr66.protocol.config.R66FileBasedConfiguration;
 import openr66.protocol.config.R66RuleFileBasedConfiguration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.io.SAXReader;
 import org.jboss.netty.logging.InternalLoggerFactory;
 
 import ch.qos.logback.classic.Level;
@@ -86,6 +89,9 @@ public class TestInitDatabase {
                 }
                 if (args.length > 5) {
                     loadHostAuth(args[5]);
+                    if (args.length > 6) {
+                        loadConfiguration(args[6]);
+                    }
                 }
                 System.out.println("Load done");
             }
@@ -117,5 +123,16 @@ public class TestInitDatabase {
     }
     public static void loadHostAuth(String filename) {
         R66FileBasedConfiguration.loadAuthentication(filename);
+    }
+    public static void loadConfiguration(String filename) {
+        Document document = null;
+        // Open config file
+        try {
+            document = new SAXReader().read(filename);
+        } catch (DocumentException e) {
+            e.printStackTrace();
+            return;
+        }
+        R66FileBasedConfiguration.loadLimit(document);
     }
 }

@@ -38,6 +38,7 @@ import java.util.List;
 import openr66.context.authentication.R66Auth;
 import openr66.database.DbAdmin;
 import openr66.database.DbConstant;
+import openr66.database.data.DbR66Configuration;
 import openr66.database.data.DbR66HostAuth;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
@@ -127,6 +128,10 @@ public class R66FileBasedConfiguration {
      * Limit global
      */
     private static final String XML_LIMITGLOBAL = "/config/globallimit";
+    /**
+     * Delay between two checks for Limit
+     */
+    private static final String XML_LIMITDELAY = "/config/delaylimit";
 
     /**
      * Nb of milliseconds after connection is in timeout
@@ -364,35 +369,6 @@ public class R66FileBasedConfiguration {
             Configuration.configuration.CLIENT_THREAD = Integer.parseInt(node
                     .getText());
         }
-        // FIXME should be removed and set from database
-        node = document.selectSingleNode(XML_LIMITGLOBAL);
-        if (node != null) {
-            Configuration.configuration.serverGlobalReadLimit = Long
-                    .parseLong(node.getText());
-            if (Configuration.configuration.serverGlobalReadLimit <= 0) {
-                Configuration.configuration.serverGlobalReadLimit = 0;
-            }
-            Configuration.configuration.serverGlobalWriteLimit = Configuration.configuration.serverGlobalReadLimit;
-            logger.warn("Global Limit: {}",
-                    Configuration.configuration.serverGlobalReadLimit);
-        }
-        node = document.selectSingleNode(XML_LIMITSESSION);
-        if (node != null) {
-            Configuration.configuration.serverChannelReadLimit = Long
-                    .parseLong(node.getText());
-            if (Configuration.configuration.serverChannelReadLimit <= 0) {
-                Configuration.configuration.serverChannelReadLimit = 0;
-            }
-            Configuration.configuration.serverChannelWriteLimit = Configuration.configuration.serverChannelReadLimit;
-            logger.warn("SessionInterface Limit: {}",
-                    Configuration.configuration.serverChannelReadLimit);
-        }
-        Configuration.configuration.delayLimit = AbstractTrafficShapingHandler.DEFAULT_CHECK_INTERVAL;
-        node = document.selectSingleNode(XML_TIMEOUTCON);
-        if (node != null) {
-            Configuration.configuration.TIMEOUTCON = Integer.parseInt(node
-                    .getText());
-        }
         node = document.selectSingleNode(XML_DELETEONABORT);
         if (node != null) {
             Configuration.getFileParameter().deleteOnAbort = Integer
@@ -431,6 +407,12 @@ public class R66FileBasedConfiguration {
             Configuration.configuration.BLOCKSIZE = Integer.parseInt(node
                     .getText());
         }
+        node = document.selectSingleNode(XML_TIMEOUTCON);
+        if (node != null) {
+            Configuration.configuration.TIMEOUTCON = Integer.parseInt(node
+                    .getText());
+        }
+
         node = document.selectSingleNode(XML_DBDRIVER);
         if (node == null) {
             logger.error("Unable to find DBDriver in Config file: " + filename);
@@ -455,6 +437,8 @@ public class R66FileBasedConfiguration {
                         Configuration.configuration.configPath);
                 return false;
             }
+            // load if possible the limit to apply
+            loadLimit(document);
         } else {
             String dbdriver = node.getText();
             node = document.selectSingleNode(XML_DBSERVER);
@@ -491,6 +475,15 @@ public class R66FileBasedConfiguration {
                 logger.error("Unable to Connect to DB", e2);
                 return false;
             }
+            // load from database the limit to apply
+            try {
+                DbR66Configuration configuration = new DbR66Configuration(DbConstant.admin.session,
+                        Configuration.configuration.HOST_ID);
+                configuration.updateConfiguration();
+            } catch (OpenR66DatabaseException e) {
+                logger.warn("Cannot load configuration from database", e);
+            }
+
         }
         // We use Apache Commons IO
         FilesystemBasedDirJdkAbstract.ueApacheCommonsIo = true;
@@ -597,6 +590,68 @@ public class R66FileBasedConfiguration {
             logger.info("Add " + refHostId + " " + auth.toString());
         }
         document = null;
+        return true;
+    }
+    /**
+     *
+     * @param document
+     * @return True if the load of the limit is ok
+     */
+    public static boolean loadLimit(Document document) {
+        // FIXME should be removed and set from database
+        Node node = document.selectSingleNode(XML_LIMITGLOBAL);
+        if (node != null) {
+            Configuration.configuration.serverGlobalReadLimit = Long
+                    .parseLong(node.getText());
+            if (Configuration.configuration.serverGlobalReadLimit <= 0) {
+                Configuration.configuration.serverGlobalReadLimit = 0;
+            }
+            Configuration.configuration.serverGlobalWriteLimit = Configuration.configuration.serverGlobalReadLimit;
+            logger.warn("Global Limit: {}",
+                    Configuration.configuration.serverGlobalReadLimit);
+        }
+        node = document.selectSingleNode(XML_LIMITSESSION);
+        if (node != null) {
+            Configuration.configuration.serverChannelReadLimit = Long
+                    .parseLong(node.getText());
+            if (Configuration.configuration.serverChannelReadLimit <= 0) {
+                Configuration.configuration.serverChannelReadLimit = 0;
+            }
+            Configuration.configuration.serverChannelWriteLimit = Configuration.configuration.serverChannelReadLimit;
+            logger.warn("SessionInterface Limit: {}",
+                    Configuration.configuration.serverChannelReadLimit);
+        }
+        Configuration.configuration.delayLimit = AbstractTrafficShapingHandler.DEFAULT_CHECK_INTERVAL;
+        node = document.selectSingleNode(XML_LIMITDELAY);
+        if (node != null) {
+            Configuration.configuration.delayLimit = Long
+                    .parseLong(node.getText());
+            if (Configuration.configuration.delayLimit <= 0) {
+                Configuration.configuration.delayLimit = 0;
+            }
+            logger.warn("Delay Limit: {}",
+                    Configuration.configuration.delayLimit);
+        }
+        if (DbConstant.admin.isConnected) {
+            // Init part, must load HOST_ID
+            node = document.selectSingleNode(XML_SERVER_HOSTID);
+            if (node == null) {
+                logger.error("Unable to find Host ID in Config file");
+                return false;
+            }
+            Configuration.configuration.HOST_ID = node.getText();
+        }
+        DbR66Configuration configuration = new DbR66Configuration(DbConstant.admin.session,
+                Configuration.configuration.HOST_ID,
+                Configuration.configuration.serverGlobalReadLimit,
+                Configuration.configuration.serverGlobalWriteLimit,
+                Configuration.configuration.serverChannelReadLimit,
+                Configuration.configuration.serverChannelWriteLimit,
+                Configuration.configuration.delayLimit);
+        try {
+            configuration.insert();
+        } catch (OpenR66DatabaseException e) {
+        }
         return true;
     }
 }

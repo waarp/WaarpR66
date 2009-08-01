@@ -472,11 +472,7 @@ public class DbTaskRunner extends AbstractDbData {
             primaryKey[1].setValue(specialId);
             setValues(preparedStatement, primaryKey);
             preparedStatement.executeQuery();
-            if (preparedStatement.getNext()) {
-                return true;
-            } else {
-                return false;
-            }
+            return preparedStatement.getNext();
         } finally {
             preparedStatement.realClose();
         }

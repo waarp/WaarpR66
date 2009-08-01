@@ -250,7 +250,7 @@ public class NetworkServerHandler extends SimpleChannelHandler {
     }
     /**
      * Channel is reday
-     * @return
+     * @return True if the networkChannel is writable again
      */
     public boolean isWriteReady() {
         return isWriteReady;
