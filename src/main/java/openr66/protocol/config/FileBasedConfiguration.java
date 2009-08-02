@@ -129,6 +129,14 @@ public class FileBasedConfiguration {
      * Delay between two checks for Limit
      */
     private static final String XML_LIMITDELAY = "/config/delaylimit";
+    /**
+     * Limit of number of active Runner from Commander
+     */
+    private static final String XML_LIMITRUNNING = "/config/runlimit";
+    /**
+     * Delay between two checks for Commander
+     */
+    private static final String XML_DELAYCOMMANDER = "/config/delaycommand";
 
     /**
      * Nb of milliseconds after connection is in timeout
@@ -528,6 +536,26 @@ public class FileBasedConfiguration {
             }
             logger.info("Delay Limit: {}",
                     Configuration.configuration.delayLimit);
+        }
+        node = document.selectSingleNode(XML_LIMITRUNNING);
+        if (node != null) {
+            Configuration.configuration.RUNNER_THREAD = Integer
+                    .parseInt(node.getText());
+            if (Configuration.configuration.RUNNER_THREAD < 10) {
+                Configuration.configuration.RUNNER_THREAD = 10;
+            }
+            logger.info("Limit of Runner: {}",
+                    Configuration.configuration.RUNNER_THREAD);
+        }
+        node = document.selectSingleNode(XML_DELAYCOMMANDER);
+        if (node != null) {
+            Configuration.configuration.delayCommander = Long
+                    .parseLong(node.getText());
+            if (Configuration.configuration.delayCommander <= 100) {
+                Configuration.configuration.delayCommander = 100;
+            }
+            logger.info("Delay Commander: {}",
+                    Configuration.configuration.delayCommander);
         }
         if (DbConstant.admin.isConnected) {
             // Init part, must load HOST_ID

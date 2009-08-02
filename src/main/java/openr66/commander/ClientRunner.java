@@ -109,7 +109,7 @@ public class ClientRunner implements Runnable {
         } catch (OpenR66ProtocolPacketException e) {
             // propose to redo
             logger.warn("Cannot transfer request to "+host.toString());
-            this.changeUpdatedInfo(UpdatedInfo.UPDATED);
+            this.changeUpdatedInfo(UpdatedInfo.UNKNOWN);
             Channels.close(localChannelReference.getLocalChannel());
             localChannelReference = null;
             host = null;

@@ -128,10 +128,6 @@ public class Configuration {
      * concurrent actions.
      */
     public int CLIENT_THREAD = 80;
-    /**
-     * Maximum number of concurrent active transfer by submission.
-     */
-    public int RUNNER_THREAD = 10000;
 
     /**
      * Default session limit 64Mbit, so up to 8 full simultaneous clients
@@ -291,6 +287,10 @@ public class Configuration {
      * InternalRunner
      */
     private InternalRunner internalRunner;
+    /**
+     * Maximum number of concurrent active transfer by submission.
+     */
+    public int RUNNER_THREAD = 10000;
     /**
      * Delay in ms between two steps of Commander
      */
