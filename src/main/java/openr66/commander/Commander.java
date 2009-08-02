@@ -66,40 +66,28 @@ public class Commander implements Runnable {
             preparedStatementRunner = new DbPreparedStatement(
                     DbConstant.admin.session);
 
-            DbConfiguration.Columns [] columnsConf = DbConfiguration.Columns.values();
-            String request = "SELECT " +columnsConf[0].name();
-            for (int i = 1; i < columnsConf.length; i++) {
-                request += ","+columnsConf[i].name();
-            }
+            String request = "SELECT " +DbConfiguration.selectAllFields;
             request += " FROM "+DbConfiguration.table+
-                " WHERE UPDATEDINFO = "+AbstractDbData.UpdatedInfo.UPDATED.ordinal();
+                " WHERE "+DbConfiguration.Columns.UPDATEDINFO.name()+" = "+
+                AbstractDbData.UpdatedInfo.UPDATED.ordinal();
             preparedStatementConfig.createPrepareStatement(request);
 
-            DbHostAuth.Columns [] columnsHost = DbHostAuth.Columns.values();
-            request = "SELECT " +columnsHost[0].name();
-            for (int i = 1; i < columnsHost.length; i++) {
-                request += ","+columnsHost[i].name();
-            }
+            request = "SELECT " +DbHostAuth.selectAllFields;
             request += " FROM "+DbHostAuth.table+
-                " WHERE UPDATEDINFO = "+AbstractDbData.UpdatedInfo.UPDATED.ordinal();
+                " WHERE "+DbConfiguration.Columns.UPDATEDINFO.name()+" = "+
+                AbstractDbData.UpdatedInfo.UPDATED.ordinal();
             preparedStatementHost.createPrepareStatement(request);
 
-            DbRule.Columns [] columnsRule = DbRule.Columns.values();
-            request = "SELECT " +columnsRule[0].name();
-            for (int i = 1; i < columnsRule.length; i++) {
-                request += ","+columnsRule[i].name();
-            }
+            request = "SELECT " +DbRule.selectAllFields;
             request += " FROM "+DbRule.table+
-                " WHERE UPDATEDINFO = "+AbstractDbData.UpdatedInfo.UPDATED.ordinal();
+                " WHERE "+DbConfiguration.Columns.UPDATEDINFO.name()+" = "+
+                AbstractDbData.UpdatedInfo.UPDATED.ordinal();
             preparedStatementRule.createPrepareStatement(request);
 
-            DbTaskRunner.Columns [] columnsRunner = DbTaskRunner.Columns.values();
-            request = "SELECT " +columnsRunner[0].name();
-            for (int i = 1; i < columnsRunner.length; i++) {
-                request += ","+columnsRunner[i].name();
-            }
+            request = "SELECT " +DbTaskRunner.selectAllFields;
             request += " FROM "+DbTaskRunner.table+
-                " WHERE UPDATEDINFO = "+AbstractDbData.UpdatedInfo.UPDATED.ordinal();
+                " WHERE "+DbConfiguration.Columns.UPDATEDINFO.name()+" = "+
+                AbstractDbData.UpdatedInfo.UPDATED.ordinal();
             preparedStatementRunner.createPrepareStatement(request);
             internalRunner = runner;
         } finally {
@@ -126,7 +114,7 @@ public class Commander implements Runnable {
     @Override
     public void run() {
         Thread.currentThread().setName("OpenR66Commander");
-        logger.warn("start config");
+        logger.info("start config");
         // each time it is runned, it parses all database for updates
         // First check Configuration
         try {
@@ -137,8 +125,9 @@ public class Commander implements Runnable {
                 if (configuration.isOwnConfiguration()) {
                     configuration.updateConfiguration();
                 }
-                configuration.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED.ordinal());
+                configuration.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
                 configuration.update();
+                configuration = null;
             }
             preparedStatementConfig.close();
         } catch (OpenR66DatabaseNoConnectionError e) {
@@ -150,18 +139,20 @@ public class Commander implements Runnable {
         } catch (OpenR66DatabaseException e) {
             logger.error("Cannot execute Commander", e);
             return;
+        } finally {
+            preparedStatementConfig.close();
         }
-        logger.warn("start host");
+        logger.info("start host");
         // Check HostAuthent
         try {
             preparedStatementHost.executeQuery();
             while (preparedStatementHost.getNext()) {
                 DbHostAuth hostAuth = DbHostAuth.getUpdated(preparedStatementHost);
                 // Nothing to do except validate
-                hostAuth.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED.ordinal());
+                hostAuth.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
                 hostAuth.update();
+                hostAuth = null;
             }
-            preparedStatementHost.close();
         } catch (OpenR66DatabaseNoConnectionError e) {
             logger.error("Cannot execute Commander", e);
             return;
@@ -171,18 +162,20 @@ public class Commander implements Runnable {
         } catch (OpenR66DatabaseException e) {
             logger.error("Cannot execute Commander", e);
             return;
+        } finally {
+            preparedStatementHost.close();
         }
-        logger.warn("start rule");
+        logger.info("start rule");
         // Check Rules
         try {
             preparedStatementRule.executeQuery();
             while (preparedStatementRule.getNext()) {
                 DbRule rule = DbRule.getUpdated(preparedStatementRule);
                 // Nothing to do except validate
-                rule.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED.ordinal());
+                rule.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
                 rule.update();
+                rule = null;
             }
-            preparedStatementRule.close();
         } catch (OpenR66DatabaseNoConnectionError e) {
             logger.error("Cannot execute Commander", e);
             return;
@@ -192,17 +185,20 @@ public class Commander implements Runnable {
         } catch (OpenR66DatabaseNoDataException e) {
             logger.error("Cannot execute Commander", e);
             return;
+        } finally {
+            preparedStatementRule.close();
         }
-        logger.warn("start runner");
+        logger.info("start runner");
         // Check TaskRunner
         try {
             preparedStatementRunner.executeQuery();
             while (preparedStatementRunner.getNext()) {
                 DbTaskRunner taskRunner = DbTaskRunner.getUpdated(preparedStatementRunner);
+                logger.info("get a task: "+taskRunner.toString());
                 // Launch if possible this task
                 internalRunner.submitTaskRunner(taskRunner);
+                taskRunner = null;
             }
-            preparedStatementRunner.close();
         } catch (OpenR66DatabaseNoConnectionError e) {
             logger.error("Cannot execute Commander", e);
             return;
@@ -212,8 +208,10 @@ public class Commander implements Runnable {
         } catch (OpenR66DatabaseException e) {
             logger.error("Cannot execute Commander", e);
             return;
+        } finally {
+            preparedStatementRunner.close();
         }
-        logger.warn("end commander");
+        logger.info("end commander");
     }
 
 }

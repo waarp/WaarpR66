@@ -143,8 +143,9 @@ public enum ErrorCode {
      * @param code
      * @return the ErrorCode according to the code
      */
-    public static ErrorCode getFromCode(char code) {
-        switch (code) {
+    public static ErrorCode getFromCode(String code) {
+        // FIXME if code could longer than 1 char, make an efficient function to retrieve the status
+        switch (code.charAt(0)) {
             case 'i':
                 return InitOk;
             case 'B':

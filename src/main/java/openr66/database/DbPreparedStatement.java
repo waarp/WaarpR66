@@ -15,9 +15,9 @@ import openr66.database.exception.OpenR66DatabaseSqlError;
 
 /**
  * Class to handle PrepareStatement
- * 
+ *
  * @author Frederic Bregier LGPL
- * 
+ *
  */
 public class DbPreparedStatement {
     /**
@@ -53,7 +53,7 @@ public class DbPreparedStatement {
 
     /**
      * Create a DbPreparedStatement from DbSession object
-     * 
+     *
      * @param ls
      * @throws OpenR66DatabaseNoConnectionError
      */
@@ -72,7 +72,7 @@ public class DbPreparedStatement {
 
     /**
      * Create a DbPreparedStatement from DbSession object and a request
-     * 
+     *
      * @param ls
      * @param request
      * @throws OpenR66DatabaseNoConnectionError
@@ -109,7 +109,7 @@ public class DbPreparedStatement {
 
     /**
      * Create a preparedStatement from request
-     * 
+     *
      * @param requestarg
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
@@ -144,10 +144,10 @@ public class DbPreparedStatement {
 
     /**
      * Execute a Select preparedStatement
-     * 
+     *
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
-     * 
+     *
      */
     public void executeQuery() throws OpenR66DatabaseNoConnectionError,
             OpenR66DatabaseSqlError {
@@ -172,7 +172,7 @@ public class DbPreparedStatement {
 
     /**
      * Execute the Update/Insert/Delete preparedStatement
-     * 
+     *
      * @return the number of row
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
@@ -200,7 +200,7 @@ public class DbPreparedStatement {
 
     /**
      * Close the resultSet if any
-     * 
+     *
      */
     public void close() {
         if (rs != null) {
@@ -214,7 +214,7 @@ public class DbPreparedStatement {
 
     /**
      * Really close the preparedStatement and the resultSet if any
-     * 
+     *
      */
     public void realClose() {
         close();
@@ -230,7 +230,7 @@ public class DbPreparedStatement {
 
     /**
      * Move the cursor to the next result
-     * 
+     *
      * @return True if there is a next result, else False
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
@@ -252,7 +252,7 @@ public class DbPreparedStatement {
     }
 
     /**
-     * 
+     *
      * @return The resultSet (can be used in conjunction of getNext())
      * @throws OpenR66DatabaseNoConnectionError
      */
@@ -265,7 +265,7 @@ public class DbPreparedStatement {
     }
 
     /**
-     * 
+     *
      * @return The preparedStatement (should be used in conjunction of
      *         createPreparedStatement)
      * @throws OpenR66DatabaseNoConnectionError
@@ -278,4 +278,12 @@ public class DbPreparedStatement {
         }
         return preparedStatement;
     }
+
+    /**
+     * @return the dbSession
+     */
+    public DbSession getDbSession() {
+        return ls;
+    }
+
 }

@@ -17,6 +17,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import openr66.context.R66Session;
 import openr66.protocol.config.Configuration;
+import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolNoDataException;
@@ -97,6 +98,40 @@ public class NetworkTransaction {
     public NetworkTransaction() {
         logger.warn("THREAD: " + Configuration.configuration.SERVER_THREAD);
         clientBootstrap.setPipelineFactory(new NetworkServerPipelineFactory());
+    }
+
+    /**
+     * Create a connection to the specified socketAddress with multiple retries
+     * @param socketAddress
+     * @return the LocalChannelReference
+     */
+    public LocalChannelReference createConnectionWithRetry(SocketAddress socketAddress) {
+        LocalChannelReference localChannelReference = null;
+        OpenR66Exception lastException = null;
+        for (int i = 0; i < Configuration.RETRYNB; i ++) {
+            try {
+                localChannelReference =
+                        createConnection(socketAddress);
+                break;
+            } catch (OpenR66ProtocolNetworkException e1) {
+                lastException = e1;
+                localChannelReference = null;
+            } catch (OpenR66ProtocolRemoteShutdownException e1) {
+                lastException = e1;
+                localChannelReference = null;
+                break;
+            } catch (OpenR66ProtocolNoConnectionException e1) {
+                lastException = e1;
+                localChannelReference = null;
+                break;
+            }
+        }
+        if (localChannelReference == null) {
+            logger.error("Cannot connect", lastException);
+        } else if (lastException != null) {
+            logger.warn("Connection retry since ", lastException);
+        }
+        return localChannelReference;
     }
     /**
      * Create a connection to the specified socketAddress
@@ -334,11 +369,12 @@ public class NetworkTransaction {
                 NetworkChannel networkChannel = networkChannelOnSocketAddressConcurrentHashMap
                         .get(address.hashCode());
                 if (networkChannel != null) {
-                    if (networkChannel.count -- <= 0) {
+                    networkChannel.count--;
+                    if (networkChannel.count <= 0) {
                         networkChannelOnSocketAddressConcurrentHashMap
                                 .remove(address.hashCode());
                         logger
-                                .warn("Will close NETWORK channel Close network channel");
+                                .info("Will close NETWORK channel Close network channel");
                         Channels.close(channel).awaitUninterruptibly();
                         return 0;
                     }
@@ -407,7 +443,7 @@ public class NetworkTransaction {
      * @throws OpenR66ProtocolRemoteShutdownException
      * @throws OpenR66ProtocolNoDataException
      */
-    public static NetworkChannel getRemoteChannel(SocketAddress address)
+    private static NetworkChannel getRemoteChannel(SocketAddress address)
             throws OpenR66ProtocolRemoteShutdownException,
             OpenR66ProtocolNoDataException {
         if (address == null) {
@@ -432,7 +468,7 @@ public class NetworkTransaction {
      * @param channel
      * @throws OpenR66ProtocolRemoteShutdownException
      */
-    public static void putRemoteChannel(Channel channel)
+    private static void putRemoteChannel(Channel channel)
             throws OpenR66ProtocolRemoteShutdownException {
         SocketAddress address = channel.getRemoteAddress();
         if (address != null) {
@@ -445,6 +481,7 @@ public class NetworkTransaction {
                 throw e;
             } catch (OpenR66ProtocolNoDataException e) {
                 networkChannel = new NetworkChannel(channel);
+                logger.info("NC new active: " + networkChannel.toString());
                 networkChannelOnSocketAddressConcurrentHashMap.put(address
                         .hashCode(), networkChannel);
             }

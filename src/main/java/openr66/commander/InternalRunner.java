@@ -20,18 +20,20 @@
  */
 package openr66.commander;
 
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import openr66.database.data.AbstractDbData;
 import openr66.database.data.DbTaskRunner;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.config.Configuration;
+import openr66.protocol.networkhandler.NetworkTransaction;
 
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
@@ -52,29 +54,37 @@ public class InternalRunner {
     private final ScheduledExecutorService scheduledExecutorService;
     private final ScheduledFuture<?> scheduledFuture;
     private volatile boolean isRunning = true;
-    private final ExecutorService executorService;
+    private final ThreadPoolExecutor threadPoolExecutor;
+    private final BlockingQueue<Runnable> workQueue;
+    private final NetworkTransaction networkTransaction;
 
     public InternalRunner() throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
         Commander commander = new Commander(this);
         scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
         isRunning = true;
-        executorService = Executors.newCachedThreadPool();
+        workQueue = new ArrayBlockingQueue<Runnable>(10);
+        threadPoolExecutor = new ThreadPoolExecutor(10, Configuration.configuration.RUNNER_THREAD,
+                1000, TimeUnit.MILLISECONDS, workQueue);
         scheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(commander,
                 Configuration.configuration.delayCommander,
                 Configuration.configuration.delayCommander, TimeUnit.MILLISECONDS);
+        networkTransaction = new NetworkTransaction();
     }
 
     public void submitTaskRunner(DbTaskRunner taskRunner) throws OpenR66DatabaseException {
         if (isRunning) {
-            logger.warn("Will run "+taskRunner.toString());
-            taskRunner.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED.ordinal());
-            taskRunner.update();
+            logger.info("Will run "+taskRunner.toString());
+            ClientRunner runner = new ClientRunner(networkTransaction, taskRunner);
             // FIXME create the client, connect and run
+            threadPoolExecutor.execute(runner);
+            runner = null;
         }
     }
     public void prepareStopInternalRunner() {
         isRunning = false;
         scheduledFuture.cancel(false);
+        scheduledExecutorService.shutdown();
+        threadPoolExecutor.shutdown();
     }
     /**
      * This should be called when the server is shutting down, after stopping active requests
@@ -85,6 +95,7 @@ public class InternalRunner {
         logger.warn("Stopping Commander and Runner Tasks");
         scheduledFuture.cancel(false);
         scheduledExecutorService.shutdownNow();
-        executorService.shutdownNow();
+        threadPoolExecutor.shutdownNow();
+        networkTransaction.closeAll();
     }
 }

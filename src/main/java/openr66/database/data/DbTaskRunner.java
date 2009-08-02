@@ -20,6 +20,7 @@
  */
 package openr66.database.data;
 
+import goldengate.common.command.exception.CommandAbstractException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
@@ -204,7 +205,7 @@ public class DbTaskRunner extends AbstractDbData {
             otherFields[12], otherFields[13], otherFields[14], otherFields[15],
             otherFields[16], primaryKey[0], primaryKey[1] };
 
-    private static final String selectAllFields = Columns.GLOBALSTEP.name() +
+    public static final String selectAllFields = Columns.GLOBALSTEP.name() +
             "," + Columns.GLOBALLASTSTEP.name() + "," + Columns.STEP.name() +
             "," + Columns.RANK.name() + "," + Columns.STEPSTATUS.name() + "," +
             Columns.RETRIEVEMODE.name() + "," + Columns.FILENAME.name() + "," +
@@ -259,8 +260,43 @@ public class DbTaskRunner extends AbstractDbData {
             return Configuration.configuration.HOST_ID;
         }
     }
+
     /**
-     *
+     * Constructor for submission (no transfer session)
+     * @param dbSession
+     * @param rule
+     * @param isRetrieve
+     * @param requestPacket
+     * @param requested
+     * @throws OpenR66DatabaseException
+     */
+   public DbTaskRunner(DbSession dbSession, DbRule rule,
+           boolean isRetrieve, RequestPacket requestPacket, String requested) throws OpenR66DatabaseException {
+       super(dbSession);
+       this.session = null;
+       this.rule = rule;
+       ruleId = this.rule.idRule;
+       rank = requestPacket.getRank();
+       status = ErrorCode.Unknown;
+       this.isRetrieve = isRetrieve;
+       filename = requestPacket.getFilename();
+       blocksize = requestPacket.getBlocksize();
+       originalFilename = requestPacket.getFilename();
+       fileInformation = requestPacket.getFileInformation();
+       mode = requestPacket.getMode();
+       //itself
+       requesterHostId = Configuration.configuration.HOST_ID;
+       //given one
+       requestedHostId = requested;
+
+       start = new Timestamp(System.currentTimeMillis());
+       setToArray();
+       isSaved = false;
+       specialId = requestPacket.getSpecialId();
+       insert();
+   }
+    /**
+     * Constructor from a request with invalid Special Id
      * @param dbSession
      * @param session
      * @param rule
@@ -292,7 +328,7 @@ public class DbTaskRunner extends AbstractDbData {
         insert();
     }
     /**
-     *
+     * Constructor from a request with a valid Special Id
      * @param dbSession
      * @param session
      * @param rule
@@ -349,7 +385,7 @@ public class DbTaskRunner extends AbstractDbData {
                 .getValue();
         step = (Integer) allFields[Columns.STEP.ordinal()].getValue();
         rank = (Integer) allFields[Columns.RANK.ordinal()].getValue();
-        status = ErrorCode.getFromCode((Character) allFields[Columns.STEPSTATUS
+        status = ErrorCode.getFromCode((String) allFields[Columns.STEPSTATUS
                 .ordinal()].getValue());
         isRetrieve = (Boolean) allFields[Columns.RETRIEVEMODE.ordinal()]
                 .getValue();
@@ -533,9 +569,10 @@ public class DbTaskRunner extends AbstractDbData {
     }
     /**
      * Private constructor for Commander only
+     * @param session
      */
-    private DbTaskRunner() {
-        super(DbConstant.admin.session);
+    private DbTaskRunner(DbSession dBsession) {
+        super(dBsession);
         session = null;
         rule = null;
     }
@@ -547,7 +584,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @throws OpenR66DatabaseSqlError
      */
     public static DbTaskRunner getUpdated(DbPreparedStatement preparedStatement) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
-        DbTaskRunner dbTaskRunner = new DbTaskRunner();
+        DbTaskRunner dbTaskRunner = new DbTaskRunner(preparedStatement.getDbSession());
         dbTaskRunner.getValues(preparedStatement, dbTaskRunner.allFields);
         dbTaskRunner.setFromArray();
         dbTaskRunner.isSaved = true;
@@ -556,12 +593,12 @@ public class DbTaskRunner extends AbstractDbData {
     /*
      * (non-Javadoc)
      *
-     * @see openr66.database.data.AbstractDbData#changeUpdatedInfo(int)
+     * @see openr66.database.data.AbstractDbData#changeUpdatedInfo(UpdatedInfo)
      */
     @Override
-    public void changeUpdatedInfo(int status) {
-        if (updatedInfo != status) {
-            updatedInfo = status;
+    public void changeUpdatedInfo(UpdatedInfo info) {
+        if (updatedInfo != info.ordinal()) {
+            updatedInfo = info.ordinal();
             allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
             isSaved = false;
         }
@@ -619,12 +656,6 @@ public class DbTaskRunner extends AbstractDbData {
         }
     }
 
-    public RequestPacket getRequest() {
-        // FIXME
-        return new RequestPacket(ruleId, mode, originalFilename, blocksize,
-                rank, specialId, fileInformation);
-    }
-
     /**
      * @return the rank
      */
@@ -680,6 +711,13 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
+     * @return the filename
+     */
+    public String getFilename() {
+        return filename;
+    }
+
+    /**
      * @return the originalFilename
      */
     public String getOriginalFilename() {
@@ -705,6 +743,13 @@ public class DbTaskRunner extends AbstractDbData {
      */
     public DbRule getRule() {
         return rule;
+    }
+
+    /**
+     * @return the ruleId
+     */
+    public String getRuleId() {
+        return ruleId;
     }
 
     /**
@@ -967,7 +1012,18 @@ public class DbTaskRunner extends AbstractDbData {
     public void clear() {
 
     }
-
+    /**
+     * Delete the temporary empty file (retrieved file at rank 0)
+     */
+    public void deleteTempFile() {
+        if ((! isRetrieve()) && getRank() == 0) {
+            try {
+                session.getFile().delete();
+            } catch (CommandAbstractException e1) {
+                logger.warn("Cannot delete temporary empty file", e1);
+            }
+        }
+    }
     @Override
     public String toString() {
         return "Run: " + (rule != null? rule.toString() : "no Rule") + " on " +
@@ -975,17 +1031,25 @@ public class DbTaskRunner extends AbstractDbData {
                 ":" + rank + " SpecialId: " + specialId + " isRetr: " +
                 isRetrieve + " isMoved: " + isFileMoved;
     }
-
     /**
-     * TransferId to retrieve list of runners according to a status
      *
-     * @author Frederic Bregier
-     *
+     * @return the requested HostId
+     * @throws OpenR66RunnerErrorException if the current host is the requested host (to prevent
+     * request to itself)
      */
-    public static class TransferId {
-        public long specialId;
-
-        public String requestedHost;
+    public String getRequested() throws OpenR66RunnerErrorException {
+        if (this.requestedHostId.equals(Configuration.configuration.HOST_ID)) {
+            throw new OpenR66RunnerErrorException("Current host is the requested");
+        }
+        return this.requestedHostId;
+    }
+    /**
+     *
+     * @return the associated request
+     */
+    public RequestPacket getRequest() {
+        return new RequestPacket(ruleId, mode, originalFilename, blocksize,
+                rank, specialId, fileInformation);
     }
 
     /**
@@ -1010,6 +1074,9 @@ public class DbTaskRunner extends AbstractDbData {
     public static Element getElementFromRunner(DbTaskRunner runner) throws OpenR66DatabaseSqlError {
         Element root = new DefaultElement("runner");
         for (DbValue value: runner.allFields) {
+            if (value.column.equals(Columns.UPDATEDINFO.name())) {
+                continue;
+            }
             root.add(newElement(value.column.toLowerCase(), value.getValueAsString()));
         }
         return root;

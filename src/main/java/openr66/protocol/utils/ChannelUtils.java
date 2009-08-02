@@ -182,8 +182,7 @@ public class ChannelUtils implements Runnable {
             LocalChannelReference localChannelReference, DbTaskRunner runner, DataBlock block)
             throws OpenR66ProtocolPacketException {
         ChannelBuffer md5 = ChannelBuffers.EMPTY_BUFFER;
-        if (runner.getMode() == RequestPacket.RECVMD5MODE ||
-                runner.getMode() == RequestPacket.SENDMD5MODE) {
+        if (RequestPacket.isMD5Mode(runner.getMode())) {
             md5 = FileUtils.getHash(block.getBlock());
         }
         DataPacket data = new DataPacket(runner.getRank(), block.getBlock()

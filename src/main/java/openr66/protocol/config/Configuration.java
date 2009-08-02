@@ -128,6 +128,10 @@ public class Configuration {
      * concurrent actions.
      */
     public int CLIENT_THREAD = 80;
+    /**
+     * Maximum number of concurrent active transfer by submission.
+     */
+    public int RUNNER_THREAD = 10000;
 
     /**
      * Default session limit 64Mbit, so up to 8 full simultaneous clients
@@ -290,7 +294,7 @@ public class Configuration {
     /**
      * Delay in ms between two steps of Commander
      */
-    public long delayCommander = 10000;
+    public long delayCommander = 5000;
 
     private volatile boolean configured = false;
 
@@ -300,6 +304,9 @@ public class Configuration {
         computeNbThreads();
     }
 
+    /**
+     * Configure the pipeline for client (to be called ony once)
+     */
     public void pipelineInit() {
         if (configured) {
             return;

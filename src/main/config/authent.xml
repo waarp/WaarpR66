@@ -1,15 +1,40 @@
 <authent>
 	<entry>
 		<hostid>hosta</hostid>
+		<address>127.0.0.1</address>
+		<port>6666</port>
+		<isssl>0</isssl>
 		<keyfile>D:/GG/R66/conf/serverHosta.txt</keyfile>
 		<admin>1</admin>
 	</entry>
 	<entry>
 		<hostid>hostb</hostid>
+		<address>127.0.0.1</address>
+		<port>6668</port>
+		<isssl>0</isssl>
+		<keyfile>D:/GG/R66/conf/serverHostb.txt</keyfile>
+		<admin>1</admin>
+	</entry>
+	<entry>
+		<hostid>hostas</hostid>
+		<address>127.0.0.1</address>
+		<port>6667</port>
+		<isssl>1</isssl>
+		<keyfile>D:/GG/R66/conf/serverHosta.txt</keyfile>
+		<admin>1</admin>
+	</entry>
+	<entry>
+		<hostid>hostbs</hostid>
+		<address>127.0.0.1</address>
+		<port>6669</port>
+		<isssl>1</isssl>
 		<keyfile>D:/GG/R66/conf/serverHostb.txt</keyfile>
 	</entry>
 	<entry>
 		<hostid>test</hostid>
+		<address>127.0.0.1</address>
+		<port>6670</port>
+		<isssl>0</isssl>
 		<keyfile>D:/GG/R66/conf/serverHosttest.txt</keyfile>
 	</entry>
 </authent>

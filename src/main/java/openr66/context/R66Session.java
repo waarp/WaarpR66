@@ -288,7 +288,7 @@ public class R66Session implements SessionInterface {
                 // Filename should be get back from runner load from database
                 try {
                     file = (R66File) dir.setFile(this.runner
-                            .getOriginalFilename(), true);
+                            .getFilename(), true);
                     if (!file.canWrite()) {
                         throw new OpenR66RunnerErrorException(
                                 "File cannot be write");
@@ -313,11 +313,13 @@ public class R66Session implements SessionInterface {
         try {
             this.runner.setFilename(file.getFile());
         } catch (CommandAbstractException e) {
+            this.runner.deleteTempFile();
             throw new OpenR66RunnerErrorException(e);
         }
         try {
             file.restartMarker(restart);
         } catch (CommandAbstractException e) {
+            this.runner.deleteTempFile();
             throw new OpenR66RunnerErrorException(e);
         }
         this.runner.saveStatus();
@@ -347,6 +349,7 @@ public class R66Session implements SessionInterface {
             return;
         }
         if (! status) {
+            this.runner.deleteTempFile();
             runner.setExecutionStatus(finalValue.code);
         }
         int rank = runner.finishTransferTask(status);

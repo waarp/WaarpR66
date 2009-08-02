@@ -71,6 +71,18 @@ public class AuthenticationFileBasedConfiguration {
      */
     private static final String XML_AUTHENTIFICATION_ADMIN = "admin";
 
+    /**
+     * Authentication Fields
+     */
+    private static final String XML_AUTHENTIFICATION_ADDRESS = "address";
+    /**
+     * Authentication Fields
+     */
+    private static final String XML_AUTHENTIFICATION_PORT = "port";
+    /**
+     * Authentication Fields
+     */
+    private static final String XML_AUTHENTIFICATION_ISSSL = "isssl";
 
     /**
      * Load Authentication from File
@@ -134,9 +146,30 @@ public class AuthenticationFileBasedConfiguration {
             boolean isAdmin = false;
             if (node != null) {
                 isAdmin = node.getText().equals("1")? true : false;
+                if (! isAdmin) {
+                    isAdmin = node.getText().equalsIgnoreCase("true")? true : false;
+                }
+            }
+            node = nodebase.selectSingleNode(XML_AUTHENTIFICATION_ADDRESS);
+            if (node == null) {
+                continue;
+            }
+            String address = node.getText();
+            node = nodebase.selectSingleNode(XML_AUTHENTIFICATION_PORT);
+            if (node == null) {
+                continue;
+            }
+            int port = Integer.parseInt(node.getText());
+            node = nodebase.selectSingleNode(XML_AUTHENTIFICATION_ISSSL);
+            boolean isSsl = false;
+            if (node != null) {
+                isSsl = node.getText().equals("1")? true : false;
+                if (! isSsl) {
+                    isSsl = node.getText().equalsIgnoreCase("true")? true : false;
+                }
             }
             DbHostAuth auth = new DbHostAuth(DbConstant.admin.session,
-                    refHostId, byteKeys, isAdmin);
+                    refHostId, address, port, isSsl, byteKeys, isAdmin);
             try {
                 if (auth.exist()) {
                     auth.update();

@@ -46,7 +46,7 @@ public abstract class AbstractDbData {
      *
      */
     public static enum UpdatedInfo {
-        UNKNOWN, NOTUPDATED, UPDATED, TORUN;
+        UNKNOWN, NOTUPDATED, UPDATED, TORUN, DONE;
     }
     /**
      * The DbSession to use
@@ -89,7 +89,7 @@ public abstract class AbstractDbData {
      * Change UpdatedInfo status
      * @param status
      */
-    public abstract void changeUpdatedInfo(int status);
+    public abstract void changeUpdatedInfo(UpdatedInfo info);
     /**
      * Internal function to set to Array used to push data to database
      */

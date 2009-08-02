@@ -27,18 +27,24 @@
 	</pretasks>
 	<posttasks>
 		<tasks>
+			<task>
+				<type>TEST</type>
+				<path>petittest</path>
+				<delay>0</delay>
+				<rank>0</rank>
+			</task>
 			<taskno>
 				<type>EXECRENAME</type>
 				<path>D:/GG/R66/conf/montest.bat #TRUEFULLPATH# D:\GG\FTP\fredo\a\#TRANSFERID#_#ORIGINALFILENAME# #TRUEFILENAME# #ORIGINALFILENAME# #DATE# #HOUR# #REMOTEHOST# #LOCALHOST# #TRANSFERID# #RANKTRANSFER# #BLOCKSIZE#</path>
 				<delay>20000</delay>
 				<rank>0</rank>
 			</taskno>
-			<task>
+			<taskno>
 				<type>COPYRENAME</type>
 				<path>D:/GG/FTP/fredo/a/#DATE#_#HOUR#_#TRANSFERID#_#REMOTEHOST#_#LOCALHOST#_#ORIGINALFILENAME#_#TRUEFILENAME#_%s_%s</path>
 				<delay>0</delay>
 				<rank>0</rank>
-			</task>
+			</taskno>
 		</tasks>
 	</posttasks>
 	<errortasks>

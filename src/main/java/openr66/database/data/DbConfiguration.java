@@ -93,7 +93,7 @@ public class DbConfiguration extends AbstractDbData {
             otherFields[0], otherFields[1], otherFields[2], otherFields[3],
             otherFields[4], otherFields[5], primaryKey };
 
-    private static final String selectAllFields = Columns.READGLOBALLIMIT
+    public static final String selectAllFields = Columns.READGLOBALLIMIT
             .name() +
             "," +
             Columns.WRITEGLOBALLIMIT.name() +
@@ -367,12 +367,12 @@ public class DbConfiguration extends AbstractDbData {
     /*
      * (non-Javadoc)
      *
-     * @see openr66.database.data.AbstractDbData#changeUpdatedInfo(int)
+     * @see openr66.database.data.AbstractDbData#changeUpdatedInfo(UpdatedInfo)
      */
     @Override
-    public void changeUpdatedInfo(int status) {
-        if (updatedInfo != status) {
-            updatedInfo = status;
+    public void changeUpdatedInfo(UpdatedInfo info) {
+        if (updatedInfo != info.ordinal()) {
+            updatedInfo = info.ordinal();
             allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
             isSaved = false;
         }

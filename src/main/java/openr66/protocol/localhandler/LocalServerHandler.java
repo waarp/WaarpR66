@@ -451,8 +451,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 packet.toString());
         ErrorCode rcode = ErrorCode.RemoteError;
         if (packet.getSmiddle() != null) {
-            char code = packet.getSmiddle().charAt(0);
-            rcode = ErrorCode.getFromCode(code);
+            rcode = ErrorCode.getFromCode(packet.getSmiddle());
         }
         session.setFinalizeTransfer(false, new R66Result(exception, session,
                 true, rcode));
@@ -497,9 +496,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         session, rule, packet.getSpecialId(),
                         requested);
             } catch (OpenR66DatabaseNoDataException e) {
-                // Reception of acknowledge request from requested host
-                boolean isRetrieve = packet.getMode() == RequestPacket.RECVMD5MODE ||
-                        packet.getMode() == RequestPacket.RECVMODE;
+                // Should exist but not, so Reception of acknowledge request from requested host
+                boolean isRetrieve = RequestPacket.isRecvMode(packet.getMode());
                 if (!packet.isToValidate()) {
                     isRetrieve = !isRetrieve;
                 }
@@ -520,6 +518,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     ChannelUtils.close(channel);
                     return;
                 }
+                // Change the SpecialID! => could generate an error ? FIXME
                 packet.setSpecialId(runner.getSpecialId());
             } catch (OpenR66DatabaseException e) {
                 logger.error("TaskRunner initialisation in error", e);
@@ -619,8 +618,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         }
         DataBlock dataBlock = new DataBlock();
         // if MD5 check MD5
-        if (session.getRunner().getMode() == RequestPacket.RECVMD5MODE ||
-                session.getRunner().getMode() == RequestPacket.SENDMD5MODE) {
+        if (RequestPacket.isMD5Mode(session.getRunner().getMode())) {
             if (!packet.isKeyValid()) {
                 // Wrong packet
                 try {

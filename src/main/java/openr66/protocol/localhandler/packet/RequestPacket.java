@@ -11,10 +11,10 @@ import org.jboss.netty.buffer.ChannelBuffers;
 
 /**
  * Request class
- * 
+ *
  * header = "rulename MODE" middle = way+"FILENAME BLOCKSIZE RANK specialId" end
  * = "fileInformation"
- * 
+ *
  * @author frederic bregier
  */
 public class RequestPacket extends AbstractLocalPacket {
@@ -48,6 +48,30 @@ public class RequestPacket extends AbstractLocalPacket {
 
     private final String fileInformation;
 
+    /**
+     *
+     * @param mode
+     * @return the same mode (RECV or SEND) in MD5 version
+     */
+    public static int getModeMD5(int mode) {
+        return mode+2;
+    }
+    /**
+     *
+     * @param mode
+     * @return true if this mode is a RECV(MD5) mode
+     */
+    public static boolean isRecvMode(int mode) {
+        return (mode == RECVMODE || mode == RECVMD5MODE);
+    }
+    /**
+     *
+     * @param mode
+     * @return true if this mode is a MD5 mode
+     */
+    public static boolean isMD5Mode(int mode) {
+        return (mode == RECVMD5MODE || mode == SENDMD5MODE);
+    }
     /**
      * @param headerLength
      * @param middleLength
@@ -143,7 +167,7 @@ public class RequestPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createEnd()
      */
     @Override
@@ -155,7 +179,7 @@ public class RequestPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * openr66.protocol.localhandler.packet.AbstractLocalPacket#createHeader()
      */
@@ -170,7 +194,7 @@ public class RequestPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * openr66.protocol.localhandler.packet.AbstractLocalPacket#createMiddle()
      */
@@ -194,7 +218,7 @@ public class RequestPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
      */
     @Override
@@ -226,11 +250,11 @@ public class RequestPacket extends AbstractLocalPacket {
     }
 
     /**
-     * 
+     *
      * @return True if this packet concerns a Retrieve operation
      */
     public boolean isRetrieve() {
-        return mode == RECVMD5MODE || mode == RECVMODE;
+        return isRecvMode(mode);
     }
 
     /**

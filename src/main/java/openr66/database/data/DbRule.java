@@ -254,7 +254,7 @@ public class DbRule extends AbstractDbData {
             otherFields[4], otherFields[5], otherFields[6], otherFields[7],
             otherFields[8], otherFields[9], primaryKey };
 
-    private static final String selectAllFields = Columns.HOSTIDS.name() + "," +
+    public static final String selectAllFields = Columns.HOSTIDS.name() + "," +
             Columns.MODE.name() + "," + Columns.RECVPATH.name() + "," +
             Columns.SENDPATH.name() + "," + Columns.ARCHIVEPATH.name() + "," +
             Columns.WORKPATH.name() + "," + Columns.PRETASKS.name() + "," +
@@ -596,12 +596,12 @@ public class DbRule extends AbstractDbData {
     /*
      * (non-Javadoc)
      *
-     * @see openr66.database.data.AbstractDbData#changeUpdatedInfo(int)
+     * @see openr66.database.data.AbstractDbData#changeUpdatedInfo(UpdatedInfo)
      */
     @Override
-    public void changeUpdatedInfo(int status) {
-        if (updatedInfo != status) {
-            updatedInfo = status;
+    public void changeUpdatedInfo(UpdatedInfo info) {
+        if (updatedInfo != info.ordinal()) {
+            updatedInfo = info.ordinal();
             allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
             isSaved = false;
         }
@@ -856,8 +856,7 @@ public class DbRule extends AbstractDbData {
      * @return True if this rule is adapted for SENDMODE
      */
     public boolean isSendMode() {
-        return mode == RequestPacket.SENDMODE ||
-                mode == RequestPacket.SENDMD5MODE;
+        return (!RequestPacket.isRecvMode(mode));
     }
 
     /**
@@ -865,8 +864,7 @@ public class DbRule extends AbstractDbData {
      * @return True if this rule is adapted for RECVMODE
      */
     public boolean isRecvMode() {
-        return mode == RequestPacket.RECVMODE ||
-                mode == RequestPacket.RECVMD5MODE;
+        return RequestPacket.isRecvMode(mode);
     }
 
     /**

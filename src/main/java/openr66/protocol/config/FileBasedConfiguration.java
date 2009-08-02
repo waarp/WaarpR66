@@ -504,7 +504,7 @@ public class FileBasedConfiguration {
                 Configuration.configuration.serverGlobalReadLimit = 0;
             }
             Configuration.configuration.serverGlobalWriteLimit = Configuration.configuration.serverGlobalReadLimit;
-            logger.warn("Global Limit: {}",
+            logger.info("Global Limit: {}",
                     Configuration.configuration.serverGlobalReadLimit);
         }
         node = document.selectSingleNode(XML_LIMITSESSION);
@@ -515,7 +515,7 @@ public class FileBasedConfiguration {
                 Configuration.configuration.serverChannelReadLimit = 0;
             }
             Configuration.configuration.serverChannelWriteLimit = Configuration.configuration.serverChannelReadLimit;
-            logger.warn("SessionInterface Limit: {}",
+            logger.info("SessionInterface Limit: {}",
                     Configuration.configuration.serverChannelReadLimit);
         }
         Configuration.configuration.delayLimit = AbstractTrafficShapingHandler.DEFAULT_CHECK_INTERVAL;
@@ -526,7 +526,7 @@ public class FileBasedConfiguration {
             if (Configuration.configuration.delayLimit <= 0) {
                 Configuration.configuration.delayLimit = 0;
             }
-            logger.warn("Delay Limit: {}",
+            logger.info("Delay Limit: {}",
                     Configuration.configuration.delayLimit);
         }
         if (DbConstant.admin.isConnected) {
@@ -546,7 +546,11 @@ public class FileBasedConfiguration {
                 Configuration.configuration.serverChannelWriteLimit,
                 Configuration.configuration.delayLimit);
         try {
-            configuration.insert();
+            if (configuration.exist()) {
+                configuration.update();
+            } else {
+                configuration.insert();
+            }
         } catch (OpenR66DatabaseException e) {
         }
         return true;

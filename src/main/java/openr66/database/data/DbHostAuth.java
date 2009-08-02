@@ -20,6 +20,8 @@
  */
 package openr66.database.data;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,11 +42,12 @@ import openr66.database.exception.OpenR66DatabaseSqlError;
  */
 public class DbHostAuth extends AbstractDbData {
     public static enum Columns {
-        HOSTKEY, ADMINROLE, UPDATEDINFO, HOSTID
+        ADDRESS, PORT, SSL, HOSTKEY, ADMINROLE, UPDATEDINFO, HOSTID
     }
 
     public static int[] dbTypes = {
-            Types.VARBINARY, Types.BIT, Types.INTEGER, Types.VARCHAR };
+        Types.VARCHAR, Types.INTEGER, Types.BIT,
+        Types.VARBINARY, Types.BIT, Types.INTEGER, Types.VARCHAR };
 
     public static String table = " HOSTS ";
 
@@ -55,6 +58,12 @@ public class DbHostAuth extends AbstractDbData {
         new ConcurrentHashMap<String, DbHostAuth>();
 
     private String hostid;
+
+    private String address;
+
+    private int port;
+
+    private boolean isSsl;
 
     private byte[] hostkey;
 
@@ -69,49 +78,70 @@ public class DbHostAuth extends AbstractDbData {
             .name());
 
     private final DbValue[] otherFields = {
+            new DbValue(address, Columns.ADDRESS.name()),
+            new DbValue(port, Columns.PORT.name()),
+            new DbValue(isSsl, Columns.SSL.name()),
             new DbValue(hostkey, Columns.HOSTKEY.name()),
             new DbValue(adminrole, Columns.ADMINROLE.name()),
             new DbValue(updatedInfo, Columns.UPDATEDINFO.name()) };
 
     private final DbValue[] allFields = {
-            otherFields[0], otherFields[1], otherFields[2], primaryKey };
+            otherFields[0], otherFields[1], otherFields[2],
+            otherFields[3], otherFields[4], otherFields[5], primaryKey };
 
-    private static final String selectAllFields = Columns.HOSTKEY.name() + "," +
+    public static final String selectAllFields = Columns.ADDRESS.name() + "," +
+            Columns.PORT.name() + "," +Columns.SSL.name() + "," +
+            Columns.HOSTKEY.name() + "," +
             Columns.ADMINROLE.name() + "," + Columns.UPDATEDINFO.name() + "," +
             Columns.HOSTID.name();
 
-    private static final String updateAllFields = Columns.HOSTKEY.name() +
+    private static final String updateAllFields =
+        Columns.ADDRESS.name() + "=?," +Columns.PORT.name() +
+        "=?," +Columns.SSL.name() + "=?," + Columns.HOSTKEY.name() +
             "=?," + Columns.ADMINROLE.name() + "=?," +
             Columns.UPDATEDINFO.name() + "=?";
 
-    private static final String insertAllValues = " (?,?,?,?) ";
+    private static final String insertAllValues = " (?,?,?,?,?,?,?) ";
 
     @Override
     protected void setToArray() {
-        allFields[Columns.HOSTID.ordinal()].setValue(hostid);
+        allFields[Columns.ADDRESS.ordinal()].setValue(address);
+        allFields[Columns.PORT.ordinal()].setValue(port);
+        allFields[Columns.SSL.ordinal()].setValue(isSsl);
         allFields[Columns.HOSTKEY.ordinal()].setValue(hostkey);
         allFields[Columns.ADMINROLE.ordinal()].setValue(adminrole);
         allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
+        allFields[Columns.HOSTID.ordinal()].setValue(hostid);
     }
 
     @Override
     protected void setFromArray() throws OpenR66DatabaseSqlError {
-        hostid = (String) allFields[Columns.HOSTID.ordinal()].getValue();
+        address = (String) allFields[Columns.ADDRESS.ordinal()].getValue();
+        port = (Integer) allFields[Columns.PORT.ordinal()].getValue();
+        isSsl = (Boolean) allFields[Columns.SSL.ordinal()].getValue();
         hostkey = (byte[]) allFields[Columns.HOSTKEY.ordinal()].getValue();
         adminrole = (Boolean) allFields[Columns.ADMINROLE.ordinal()].getValue();
         updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()]
                 .getValue();
+        hostid = (String) allFields[Columns.HOSTID.ordinal()].getValue();
     }
 
     /**
      * @param dbSession
      * @param hostid
+     * @param address
+     * @param port
+     * @param isSSL
      * @param hostkey
      * @param adminrole
      */
-    public DbHostAuth(DbSession dbSession, String hostid, byte[] hostkey, boolean adminrole) {
+    public DbHostAuth(DbSession dbSession, String hostid, String address, int port,
+            boolean isSSL, byte[] hostkey, boolean adminrole) {
         super(dbSession);
         this.hostid = hostid;
+        this.address = address;
+        this.port = port;
+        this.isSsl = isSSL;
         this.hostkey = hostkey;
         this.adminrole = adminrole;
         setToArray();
@@ -308,12 +338,12 @@ public class DbHostAuth extends AbstractDbData {
     /*
      * (non-Javadoc)
      *
-     * @see openr66.database.data.AbstractDbData#changeUpdatedInfo(int)
+     * @see openr66.database.data.AbstractDbData#changeUpdatedInfo(UpdatedInfo)
      */
     @Override
-    public void changeUpdatedInfo(int status) {
-        if (updatedInfo != status) {
-            updatedInfo = status;
+    public void changeUpdatedInfo(UpdatedInfo info) {
+        if (updatedInfo != info.ordinal()) {
+            updatedInfo = info.ordinal();
             allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
             isSaved = false;
         }
@@ -349,8 +379,23 @@ public class DbHostAuth extends AbstractDbData {
     public boolean isAdminrole() {
         return adminrole;
     }
+    /**
+     *
+     * @return the SocketAddress from the address and port
+     */
+    public SocketAddress getSocketAddress() {
+        return new InetSocketAddress(this.address, this.port);
+    }
+    /**
+     *
+     * @return True if this Host ref is with SSL support
+     */
+    public boolean isSsl() {
+        return this.isSsl;
+    }
     @Override
     public String toString() {
-        return "HostAuth: " + hostid + " " + adminrole +" "+(hostkey!=null?hostkey.length:0);
+        return "HostAuth: " + hostid + " address: " +address+":"+port+" isSSL: "+isSsl+
+        " admin: "+ adminrole +" "+(hostkey!=null?hostkey.length:0);
     }
 }
