@@ -29,8 +29,8 @@ import java.net.SocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import openr66.configuration.FileBasedConfiguration;
 import openr66.protocol.config.Configuration;
-import openr66.protocol.config.FileBasedConfiguration;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
@@ -142,8 +142,8 @@ public class TestTransaction implements Runnable {
                     .error("Needs at least the configuration file as first argument");
             return;
         }
-        Configuration.configuration.fileBasedConfiguration = new FileBasedConfiguration();
-        if (!Configuration.configuration.fileBasedConfiguration
+        FileBasedConfiguration fileBasedConfiguration = new FileBasedConfiguration();
+        if (! fileBasedConfiguration
                 .setConfigurationFromXml(args[0])) {
             logger
                     .error("Needs a correct configuration file as first argument");

@@ -27,6 +27,8 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import java.sql.Timestamp;
 import java.sql.Types;
 
+import org.dom4j.Document;
+import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.dom4j.tree.DefaultElement;
 
@@ -45,7 +47,9 @@ import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.database.model.DbModelFactory;
 import openr66.protocol.config.Configuration;
+import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.packet.RequestPacket;
+import openr66.protocol.utils.FileUtils;
 import openr66.protocol.utils.R66Future;
 
 /**
@@ -577,13 +581,13 @@ public class DbTaskRunner extends AbstractDbData {
         rule = null;
     }
     /**
-     * For Commander getting updated information
+     * For instance from Commander when getting updated information
      * @param preparedStatement
      * @return the next updated DbTaskRunner
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
      */
-    public static DbTaskRunner getUpdated(DbPreparedStatement preparedStatement) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+    public static DbTaskRunner getFromStatement(DbPreparedStatement preparedStatement) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
         DbTaskRunner dbTaskRunner = new DbTaskRunner(preparedStatement.getDbSession());
         dbTaskRunner.getValues(preparedStatement, dbTaskRunner.allFields);
         dbTaskRunner.setFromArray();
@@ -1071,7 +1075,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @return The Element representing the given Runner
      * @throws OpenR66DatabaseSqlError
      */
-    public static Element getElementFromRunner(DbTaskRunner runner) throws OpenR66DatabaseSqlError {
+    private static Element getElementFromRunner(DbTaskRunner runner) throws OpenR66DatabaseSqlError {
         Element root = new DefaultElement("runner");
         for (DbValue value: runner.allFields) {
             if (value.column.equals(Columns.UPDATEDINFO.name())) {
@@ -1080,5 +1084,40 @@ public class DbTaskRunner extends AbstractDbData {
             root.add(newElement(value.column.toLowerCase(), value.getValueAsString()));
         }
         return root;
+    }
+    /**
+     * Write all TaskRunners to an XML file
+     * @param filename
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66DatabaseSqlError
+     */
+    public static void writeXML(String filename) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+        Document document = DocumentHelper.createDocument();
+        Element root = document.addElement("taskrunners");
+        String request = "SELECT " +DbTaskRunner.selectAllFields+" FROM "+DbTaskRunner.table;
+        DbPreparedStatement preparedStatement = null;
+        try {
+            preparedStatement = new DbPreparedStatement(DbConstant.admin.session);
+            preparedStatement.createPrepareStatement(request);
+            preparedStatement.executeQuery();
+            Element node;
+            while (preparedStatement.getNext()) {
+                DbTaskRunner runner = DbTaskRunner.getFromStatement(preparedStatement);
+                node = DbTaskRunner.getElementFromRunner(runner);
+                root.add(node);
+            }
+        } finally {
+            if (preparedStatement != null) {
+                preparedStatement.realClose();
+            }
+        }
+        if (root != null) {
+            try {
+                FileUtils.writeXML(filename, null, document);
+            } catch (OpenR66ProtocolSystemException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
     }
 }

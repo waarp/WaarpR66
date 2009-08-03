@@ -18,7 +18,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF
  * site: http://www.fsf.org.
  */
-package openr66.protocol.test;
+package openr66.server;
 
 import goldengate.common.logging.GgSlf4JLoggerFactory;
 
@@ -42,13 +42,15 @@ import org.jboss.netty.logging.InternalLoggerFactory;
 import ch.qos.logback.classic.Level;
 
 /**
+ * Utility class to initiate the database for a server
+ *
  * @author Frederic Bregier
  *
  */
-public class TestInitDatabase {
+public class ServerInitDatabase {
 
     /**
-     * @param args
+     * @param args databaseMode connectionString User Passwd [rules_directory host_authent limit_configuration]
      */
     public static void main(String[] args) {
         InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
@@ -58,29 +60,19 @@ public class TestInitDatabase {
                     .println("Need databaseMode connectionString User Passwd");
             return;
         }
-        /*
-         * H2: "jdbc:h2:/data/test;AUTO_SERVER=TRUE" ;USER=sa;PASSWORD=123
-         * ;IFEXISTS=TRUE ?? ;MODE=Oracle
-         */
-        String connection = // "jdbc:h2:D:/GG/R66/data/openr66;MODE=Oracle;AUTO_SERVER=TRUE";
-        args[1];
         try {
             try {
-                DbModelFactory.initialize(args[0], connection, args[2],
+                DbModelFactory.initialize(args[0], args[1], args[2],
                         args[3], true);
             } catch (OpenR66DatabaseNoConnectionError e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
                 return;
             }
-            if (args.length == 4) {
-                // Init database
-                initdb();
-                System.out.println("End");
-            } else {
-                // Init database
-                initdb();
-                System.out.println("End creation");
+            // Init database
+            initdb();
+            System.out.println("End creation");
+            if (args.length > 4) {
                 // load Rules
                 File dirConfig = new File(args[4]);
                 if (dirConfig.isDirectory()) {
@@ -88,11 +80,13 @@ public class TestInitDatabase {
                 } else {
                     System.err.println("Dir is not a directory: " + args[4]);
                 }
+                // Load Host Authentications
                 if (args.length > 5) {
                     loadHostAuth(args[5]);
-                    if (args.length > 6) {
-                        loadConfiguration(args[6]);
-                    }
+                }
+                // Load configuration
+                if (args.length > 6) {
+                    loadConfiguration(args[6]);
                 }
                 System.out.println("Load done");
             }

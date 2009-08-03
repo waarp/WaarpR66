@@ -18,7 +18,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF
  * site: http://www.fsf.org.
  */
-package openr66.protocol.config;
+package openr66.configuration;
 
 import goldengate.common.file.DirInterface;
 import goldengate.common.logging.GgInternalLogger;
@@ -29,11 +29,13 @@ import java.io.FilenameFilter;
 import java.util.List;
 
 import openr66.database.DbConstant;
+import openr66.database.DbPreparedStatement;
 import openr66.database.data.DbRule;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
+import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.utils.FileUtils;
@@ -99,7 +101,7 @@ public class RuleFileBasedConfiguration {
     /**
      * Extension of rule files
      */
-    private static final String EXT_RULE = ".rule.xml";
+    public static final String EXT_RULE = ".rule.xml";
 
     /**
      *
@@ -335,7 +337,7 @@ public class RuleFileBasedConfiguration {
      * @param rule
      * @throws OpenR66ProtocolSystemException
      */
-    public static void writeXML(String filename, DbRule rule) throws OpenR66ProtocolSystemException {
+    private static void writeXML(String filename, DbRule rule) throws OpenR66ProtocolSystemException {
         Document document = DocumentHelper.createDocument();
         Element root = document.addElement(ROOT);
         root.add(newElement(XIDRULE, rule.idRule));
@@ -345,10 +347,18 @@ public class RuleFileBasedConfiguration {
         }
         root.add(hosts);
         root.add(newElement(XMODE, Integer.toString(rule.mode)));
-        root.add(newElement(XRECVPATH, rule.recvPath.substring(1)));
-        root.add(newElement(XSENDPATH, rule.sendPath.substring(1)));
-        root.add(newElement(XARCHIVEPATH, rule.archivePath.substring(1)));
-        root.add(newElement(XWORKPATH, rule.workPath.substring(1)));
+        if (rule.recvPath != null) {
+            root.add(newElement(XRECVPATH, rule.recvPath.substring(1)));
+        }
+        if (rule.sendPath != null) {
+            root.add(newElement(XSENDPATH, rule.sendPath.substring(1)));
+        }
+        if (rule.archivePath != null) {
+            root.add(newElement(XARCHIVEPATH, rule.archivePath.substring(1)));
+        }
+        if (rule.workPath != null) {
+            root.add(newElement(XWORKPATH, rule.workPath.substring(1)));
+        }
         Element tasks = new DefaultElement(XPRETASKS);
         Element roottasks = new DefaultElement(XTASKS);
         int rank = 0;
@@ -391,5 +401,36 @@ public class RuleFileBasedConfiguration {
         root.add(tasks);
 
         FileUtils.writeXML(filename, null, document);
+    }
+    /**
+     * Write to directory files prefixed by hostname all Rules from database
+     * @param directory
+     * @param hostname
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66DatabaseSqlError
+     * @throws OpenR66ProtocolSystemException
+     */
+    public static void writeXml(String directory, String hostname) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError, OpenR66ProtocolSystemException {
+        File dir = new File(directory);
+        if (! dir.isDirectory()) {
+            dir.mkdirs();
+        }
+        String request = "SELECT " +DbRule.selectAllFields+" FROM "+DbRule.table;
+        DbPreparedStatement preparedStatement = null;
+        try {
+            preparedStatement = new DbPreparedStatement(DbConstant.admin.session);
+            preparedStatement.createPrepareStatement(request);
+            preparedStatement.executeQuery();
+            while (preparedStatement.getNext()) {
+                DbRule rule = DbRule.getFromStatement(preparedStatement);
+                String filename = dir.getAbsolutePath()+File.separator+hostname+"_"+rule.idRule+
+                    RuleFileBasedConfiguration.EXT_RULE;
+                RuleFileBasedConfiguration.writeXML(filename, rule);
+            }
+        } finally {
+            if (preparedStatement != null) {
+                preparedStatement.realClose();
+            }
+        }
     }
 }

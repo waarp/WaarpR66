@@ -13,7 +13,7 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF site:
  * http://www.fsf.org.
  */
-package openr66.protocol.test;
+package openr66.server;
 
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
@@ -42,9 +42,11 @@ import org.jboss.netty.logging.InternalLoggerFactory;
 import ch.qos.logback.classic.Level;
 
 /**
+ * Local client to shutdown the server
+ *
  * @author Frederic Bregier
  */
-public class TestClientShutdown {
+public class ServerShutdown {
 
     /**
      * @param args
@@ -55,7 +57,7 @@ public class TestClientShutdown {
         InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
                 Level.WARN));
         final GgInternalLogger logger = GgInternalLoggerFactory
-                .getLogger(TestClientShutdown.class);
+                .getLogger(ServerShutdown.class);
         if (args.length < 1) {
             logger
                     .error("Needs at least the configuration file as first argument");

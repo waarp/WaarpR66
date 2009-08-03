@@ -18,16 +18,15 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF
  * site: http://www.fsf.org.
  */
-package openr66.protocol.test;
+package openr66.client;
 
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import openr66.configuration.FileBasedConfiguration;
+import openr66.context.ErrorCode;
+import openr66.context.R66Result;
 import openr66.database.DbConstant;
 import openr66.database.data.AbstractDbData;
 import openr66.database.data.DbRule;
@@ -42,10 +41,12 @@ import org.jboss.netty.logging.InternalLoggerFactory;
 import ch.qos.logback.classic.Level;
 
 /**
+ * Client to submit a transfer
+ *
  * @author Frederic Bregier
  *
  */
-public class TestSubmitTransfer implements Runnable {
+public class SubmitTransfer implements Runnable {
     /**
      * Internal Logger
      */
@@ -61,27 +62,26 @@ public class TestSubmitTransfer implements Runnable {
 
     final private String remoteHost;
 
-    public TestSubmitTransfer(R66Future future, String remoteHost,
-            String filename, String rulename, boolean isMD5) {
+    final private int blocksize;
+
+    public SubmitTransfer(R66Future future, String remoteHost,
+            String filename, String rulename, boolean isMD5, int blocksize) {
         if (logger == null) {
-            logger = GgInternalLoggerFactory.getLogger(TestSubmitTransfer.class);
+            logger = GgInternalLoggerFactory.getLogger(SubmitTransfer.class);
         }
         this.remoteHost = remoteHost;
         this.future = future;
         this.filename = filename;
         this.rulename = rulename;
         this.isMD5 = isMD5;
+        this.blocksize = blocksize;
     }
 
     public void run() {
-        // FIXME data transfer
-        // int block = 101;
-        int block = Configuration.configuration.BLOCKSIZE;
         DbRule rule;
         try {
             rule = new DbRule(DbConstant.admin.session, rulename);
         } catch (OpenR66DatabaseException e) {
-            // TODO Auto-generated catch block
             logger.error("Cannot get Rule: "+rulename, e);
             future.setFailure(e);
             return;
@@ -91,7 +91,7 @@ public class TestSubmitTransfer implements Runnable {
             mode = RequestPacket.getModeMD5(mode);
         }
         RequestPacket request = new RequestPacket(rulename,
-                mode, filename, block, 0,
+                mode, filename, blocksize, 0,
                 DbConstant.ILLEGALVALUE, "MONTEST test.xml");
         // Not isRecv since it is the requester, so send => isRetrieve is true
         boolean isRetrieve = ! RequestPacket.isRecvMode(request.getMode());
@@ -112,14 +112,23 @@ public class TestSubmitTransfer implements Runnable {
             future.setFailure(e);
             return;
         }
+        R66Result result = new R66Result(null,false,ErrorCode.InitOk);
+        result.other = taskRunner;
+        future.setResult(result);
         future.setSuccess();
     }
-
+    /**
+     *
+     * @param args
+     *          configuration file, the remoteHost Id, the file to transfer,
+     *          the rule as arguments and optionally isMD5=1 for true or 0 for false(default)
+     *          and the blocksize if different than default
+     */
     public static void main(String[] args) {
         InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
                 Level.WARN));
         if (logger == null) {
-            logger = GgInternalLoggerFactory.getLogger(TestSubmitTransfer.class);
+            logger = GgInternalLoggerFactory.getLogger(SubmitTransfer.class);
         }
         if (args.length < 4) {
             logger
@@ -143,30 +152,21 @@ public class TestSubmitTransfer implements Runnable {
                 isMD5 = true;
             }
         }
-        ExecutorService executorService = Executors.newCachedThreadPool();
-        int nb = 2;
-        R66Future[] arrayFuture = new R66Future[nb];
-
-        logger.warn("Start");
-        for (int i = 0; i < nb; i ++) {
-            arrayFuture[i] = new R66Future(true);
-            TestSubmitTransfer transaction = new TestSubmitTransfer(arrayFuture[i],
-                    rhost, localFilename, rule, isMD5);
-            //executorService.execute(transaction);
-            transaction.run();
+        int block = Configuration.configuration.BLOCKSIZE;
+        if (args.length > 5) {
+            block = Integer.parseInt(args[5]);
         }
-        int success = 0;
-        int error = 0;
-        for (int i = 0; i < nb; i ++) {
-            arrayFuture[i].awaitUninterruptibly();
-            if (arrayFuture[i].isSuccess()) {
-                success ++;
-            } else {
-                error ++;
-            }
+        R66Future future = new R66Future(true);
+        SubmitTransfer transaction = new SubmitTransfer(future,
+                rhost, localFilename, rule, isMD5, block);
+        transaction.run();
+        future.awaitUninterruptibly();
+        if (future.isSuccess()) {
+            logger.error("Prepare transfer in Success with Id: " +
+                    ((DbTaskRunner) future.getResult().other).getSpecialId());
+        } else {
+            logger.error("Prepare transfer in Error", future.getCause());
         }
-        executorService.shutdown();
-        logger.error("Prepare transfer Success: " + success + " Error: " + error);
     }
 
 }

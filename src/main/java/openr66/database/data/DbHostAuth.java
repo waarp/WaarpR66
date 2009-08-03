@@ -322,13 +322,13 @@ public class DbHostAuth extends AbstractDbData {
         super(DbConstant.admin.session);
     }
     /**
-     * For Commander getting updated information
+     * For instance from Commander when getting updated information
      * @param preparedStatement
      * @return the next updated DbHostAuth
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
      */
-    public static DbHostAuth getUpdated(DbPreparedStatement preparedStatement) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+    public static DbHostAuth getFromStatement(DbPreparedStatement preparedStatement) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
         DbHostAuth dbHostAuth = new DbHostAuth();
         dbHostAuth.getValues(preparedStatement, dbHostAuth.allFields);
         dbHostAuth.setFromArray();
@@ -393,6 +393,28 @@ public class DbHostAuth extends AbstractDbData {
     public boolean isSsl() {
         return this.isSsl;
     }
+
+    /**
+     * @return the hostid
+     */
+    public String getHostid() {
+        return hostid;
+    }
+
+    /**
+     * @return the address
+     */
+    public String getAddress() {
+        return address;
+    }
+
+    /**
+     * @return the port
+     */
+    public int getPort() {
+        return port;
+    }
+
     @Override
     public String toString() {
         return "HostAuth: " + hostid + " address: " +address+":"+port+" isSSL: "+isSsl+

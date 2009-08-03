@@ -302,6 +302,10 @@ public class DbRule extends AbstractDbData {
         updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()]
                 .getValue();
         idRule = (String) allFields[Columns.IDRULE.ordinal()].getValue();
+        getIdsRule(ids);
+        preTasksArray = getTasksRule(preTasks);
+        postTasksArray = getTasksRule(postTasks);
+        errorTasksArray = getTasksRule(errorTasks);
     }
 
     /**
@@ -579,13 +583,13 @@ public class DbRule extends AbstractDbData {
         super(DbConstant.admin.session);
     }
     /**
-     * For Commander getting updated information
+     * For instance from Commander when getting updated information
      * @param preparedStatement
      * @return the next updated DbRule
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
      */
-    public static DbRule getUpdated(DbPreparedStatement preparedStatement) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+    public static DbRule getFromStatement(DbPreparedStatement preparedStatement) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
         DbRule dbRule = new DbRule();
         dbRule.getValues(preparedStatement, dbRule.allFields);
         dbRule.setFromArray();

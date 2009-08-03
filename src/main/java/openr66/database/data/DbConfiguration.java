@@ -351,13 +351,13 @@ public class DbConfiguration extends AbstractDbData {
         super(DbConstant.admin.session);
     }
     /**
-     * For Commander getting updated information
+     * For instance from Commander when getting updated information
      * @param preparedStatement
      * @return the next updated Configuration
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
      */
-    public static DbConfiguration getUpdated(DbPreparedStatement preparedStatement) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+    public static DbConfiguration getFromStatement(DbPreparedStatement preparedStatement) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
         DbConfiguration dbConfiguration = new DbConfiguration();
         dbConfiguration.getValues(preparedStatement, dbConfiguration.allFields);
         dbConfiguration.setFromArray();

@@ -18,7 +18,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF
  * site: http://www.fsf.org.
  */
-package openr66.protocol.config;
+package openr66.configuration;
 
 import goldengate.common.digest.FilesystemBasedDigest;
 import goldengate.common.digest.MD5;
@@ -40,6 +40,7 @@ import openr66.database.data.DbConfiguration;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.model.DbModelFactory;
+import openr66.protocol.config.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.utils.FileUtils;
 

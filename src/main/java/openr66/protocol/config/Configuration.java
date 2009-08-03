@@ -278,11 +278,6 @@ public class Configuration {
      * LocalTransaction
      */
     private LocalTransaction localTransaction;
-
-    /**
-     * FileBasedConfiguration
-     */
-    public FileBasedConfiguration fileBasedConfiguration;
     /**
      * InternalRunner
      */

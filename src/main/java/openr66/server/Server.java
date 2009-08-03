@@ -13,7 +13,7 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF site:
  * http://www.fsf.org.
  */
-package openr66.protocol.test;
+package openr66.server;
 
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
@@ -29,12 +29,14 @@ import org.jboss.netty.logging.InternalLoggerFactory;
 import ch.qos.logback.classic.Level;
 
 /**
+ * Server startup main class
+ *
  * @author Frederic Bregier
  */
-public class TestServer {
+public class Server {
 
     /**
-     * @param args
+     * @param args as first argument the configuration file
      * @throws OpenR66ProtocolPacketException
      */
     public static void main(String[] args)
@@ -42,7 +44,7 @@ public class TestServer {
         InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
                 Level.WARN));
         final GgInternalLogger logger = GgInternalLoggerFactory
-                .getLogger(TestServer.class);
+                .getLogger(Server.class);
         if (args.length < 1) {
             logger
                     .error("Needs at least the configuration file as first argument");

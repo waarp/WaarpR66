@@ -121,7 +121,7 @@ public class Commander implements Runnable {
             preparedStatementConfig.executeQuery();
             while (preparedStatementConfig.getNext()) {
                 // should be only one...
-                DbConfiguration configuration = DbConfiguration.getUpdated(preparedStatementConfig);
+                DbConfiguration configuration = DbConfiguration.getFromStatement(preparedStatementConfig);
                 if (configuration.isOwnConfiguration()) {
                     configuration.updateConfiguration();
                 }
@@ -147,7 +147,7 @@ public class Commander implements Runnable {
         try {
             preparedStatementHost.executeQuery();
             while (preparedStatementHost.getNext()) {
-                DbHostAuth hostAuth = DbHostAuth.getUpdated(preparedStatementHost);
+                DbHostAuth hostAuth = DbHostAuth.getFromStatement(preparedStatementHost);
                 // Nothing to do except validate
                 hostAuth.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
                 hostAuth.update();
@@ -170,7 +170,7 @@ public class Commander implements Runnable {
         try {
             preparedStatementRule.executeQuery();
             while (preparedStatementRule.getNext()) {
-                DbRule rule = DbRule.getUpdated(preparedStatementRule);
+                DbRule rule = DbRule.getFromStatement(preparedStatementRule);
                 // Nothing to do except validate
                 rule.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
                 rule.update();
@@ -193,7 +193,7 @@ public class Commander implements Runnable {
         try {
             preparedStatementRunner.executeQuery();
             while (preparedStatementRunner.getNext()) {
-                DbTaskRunner taskRunner = DbTaskRunner.getUpdated(preparedStatementRunner);
+                DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatementRunner);
                 logger.info("get a task: "+taskRunner.toString());
                 // Launch if possible this task
                 internalRunner.submitTaskRunner(taskRunner);
