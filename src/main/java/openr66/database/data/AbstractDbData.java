@@ -87,7 +87,7 @@ public abstract class AbstractDbData {
     public abstract void delete() throws OpenR66DatabaseException;
     /**
      * Change UpdatedInfo status
-     * @param status
+     * @param info
      */
     public abstract void changeUpdatedInfo(UpdatedInfo info);
     /**

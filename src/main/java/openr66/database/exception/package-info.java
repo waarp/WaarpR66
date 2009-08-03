@@ -1,7 +1,7 @@
 /**
  * Classes implementing Database Exceptions
- * 
- * @apiviz.landmark
+ *
+ * @apiviz.exclude
  */
 package openr66.database.exception;
 

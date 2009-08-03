@@ -1,7 +1,7 @@
 /**
  * Classes implementing Test only
- * 
- * @apiviz.landmark
+ *
+ * @apiviz.exclude
  */
 package openr66.protocol.test;
 

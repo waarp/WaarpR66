@@ -328,6 +328,7 @@
 				-group "OpenR66 Client package" "openr66.client*"
 				-group "OpenR66 Protocol package" "openr66.protocol*"
 				-group "OpenR66 Database package" "openr66.database*"
+				-group "OpenR66 Configuration file based loaders package" "openr66.configuration*"
 				-group "OpenR66 Context package" "openr66.context*"
 				-group "OpenR66 Commander package" "openr66.commander*"
 

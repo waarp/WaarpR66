@@ -1,7 +1,7 @@
 /**
  * Classes implementing Exceptions
- * 
- * @apiviz.landmark
+ *
+ * @apiviz.exclude
  */
 package openr66.protocol.exception;
 
