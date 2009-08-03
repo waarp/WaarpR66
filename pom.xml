@@ -324,12 +324,12 @@
 	            -link http://java.sun.com/javase/6/docs/api/
 	            -link http://jboss.org/file-access/default/members/netty/freezone/api/3.1/
 
+				-group "OpenR66 Server package" "openr66.server*"
+				-group "OpenR66 Client package" "openr66.client*"
 				-group "OpenR66 Protocol package" "openr66.protocol*"
-				-group "OpenR66 Business package" "openr66.business*"
-				-group "OpenR66 Task package" "openr66.task*"
-				-group "OpenR66 Filesystem package" "openr66.filesystem*"
-				-group "OpenR66 Authentication package" "openr66.authentication*"
 				-group "OpenR66 Database package" "openr66.database*"
+				-group "OpenR66 Context package" "openr66.context*"
+				-group "OpenR66 Commander package" "openr66.commander*"
 
 	            -sourceclasspath ${basedir}/target/classes
 	          </additionalparam>
