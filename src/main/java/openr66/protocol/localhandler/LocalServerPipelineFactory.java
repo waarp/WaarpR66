@@ -15,7 +15,7 @@
  */
 package openr66.protocol.localhandler;
 
-import openr66.protocol.config.Configuration;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.localhandler.packet.LocalPacketCodec;
 
 import org.jboss.netty.channel.ChannelPipeline;

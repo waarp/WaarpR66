@@ -31,7 +31,7 @@ import openr66.context.filesystem.R66File;
 import openr66.context.filesystem.R66Restart;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.data.DbTaskRunner;
-import openr66.protocol.config.Configuration;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.LocalChannelReference;
 
@@ -298,13 +298,17 @@ public class R66Session implements SessionInterface {
                 }
             } else {
                 // New FILENAME if necessary and store it
+                file = null;
                 try {
-                    file = dir.setUniqueFile(this.runner.getOriginalFilename());
+                    file = dir.setUniqueFile(this.runner.getSpecialId(),
+                            this.runner.getOriginalFilename());
                     if (!file.canWrite()) {
+                        this.runner.deleteTempFile();
                         throw new OpenR66RunnerErrorException(
                                 "File cannot be write");
                     }
                 } catch (CommandAbstractException e) {
+                    this.runner.deleteTempFile();
                     throw new OpenR66RunnerErrorException(e);
                 }
             }

@@ -35,7 +35,7 @@ import openr66.context.R66Session;
 import openr66.database.DbSession;
 import openr66.database.data.DbHostAuth;
 import openr66.database.exception.OpenR66DatabaseException;
-import openr66.protocol.config.Configuration;
+import openr66.protocol.configuration.Configuration;
 
 /**
  * @author frederic bregier

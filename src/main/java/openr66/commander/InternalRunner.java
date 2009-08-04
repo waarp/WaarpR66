@@ -32,7 +32,7 @@ import openr66.database.data.DbTaskRunner;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
-import openr66.protocol.config.Configuration;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.networkhandler.NetworkTransaction;
 
 import goldengate.common.logging.GgInternalLogger;

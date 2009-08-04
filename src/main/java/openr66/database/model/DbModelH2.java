@@ -187,6 +187,7 @@ public class DbModelH2 extends AbstractDbModel {
         }
         // Two columns for primary key
         action += " CONSTRAINT runner_pk " + primaryKey + "(" +
+                acolumns[acolumns.length - 3].name() + "," +
                 acolumns[acolumns.length - 2].name() + "," +
                 acolumns[acolumns.length - 1].name() + "))";
         System.out.println(action);
@@ -246,27 +247,57 @@ public class DbModelH2 extends AbstractDbModel {
      * @see openr66.database.model.AbstractDbModel#nextSequence()
      */
     @Override
-    public long nextSequence(DbSession dbSession) throws OpenR66DatabaseNoConnectionError,
+    public long nextSequence(DbSession dbSession)
+        throws OpenR66DatabaseNoConnectionError,
             OpenR66DatabaseSqlError, OpenR66DatabaseNoDataException {
+        long result = DbConstant.ILLEGALVALUE;
         String action = "SELECT NEXTVAL('" + DbTaskRunner.fieldseq + "')";
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
                 dbSession);
+        /*DbPreparedStatement existPreparedStatement = new DbPreparedStatement(
+                dbSession);
+        DbValue primaryKey[] = {
+                new DbValue(requester, Columns.REQUESTER.name()),
+                new DbValue(requested, Columns.REQUESTED.name()),
+                new DbValue(result, Columns.SPECIALID.name()) };
+        existPreparedStatement.createPrepareStatement("SELECT " +
+                primaryKey[2].column + " FROM " +
+                DbTaskRunner.table + " WHERE " +
+                primaryKey[0].column + " = ? AND " +
+                primaryKey[1].column + " = ? AND " +
+                primaryKey[2].column + " = ? ");*/
         preparedStatement.createPrepareStatement(action);
         try {
-            preparedStatement.executeQuery();
-            if (preparedStatement.getNext()) {
-                long result;
-                try {
-                    result = preparedStatement.getResultSet().getLong(1);
-                } catch (SQLException e) {
-                    throw new OpenR66DatabaseSqlError(e);
+            /*for (int tries = 0; tries < 100000; tries++) {*/
+                // Limit the search
+                preparedStatement.executeQuery();
+                if (preparedStatement.getNext()) {
+                    try {
+                        result = preparedStatement.getResultSet().getLong(1);
+                    } catch (SQLException e) {
+                        throw new OpenR66DatabaseSqlError(e);
+                    }
+                    /*primaryKey[2].setValue(result);
+                    PreparedStatement ps = existPreparedStatement.getPreparedStatement();
+                    for (int i = 0; i < primaryKey.length; i ++) {
+                        DbValue value = primaryKey[i];
+                        AbstractDbData.setTrueValue(ps, value, i + 1);
+                    }
+                    existPreparedStatement.executeQuery();
+                    if (existPreparedStatement.getNext()) {
+                        continue;
+                    }*/
+                    return result;
+                } else {
+                    throw new OpenR66DatabaseNoDataException(
+                            "No sequence found. Must be initialized first");
                 }
-                return result;
-            }
+            /*}
             throw new OpenR66DatabaseNoDataException(
-                    "No sequence found. Must be initialized first");
+                "No correct value found");*/
         } finally {
             preparedStatement.realClose();
+            /*existPreparedStatement.realClose();*/
         }
     }
 }

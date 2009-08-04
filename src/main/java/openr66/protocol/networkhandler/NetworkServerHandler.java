@@ -9,7 +9,7 @@ import openr66.database.DbConstant;
 import openr66.database.DbSession;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
-import openr66.protocol.config.Configuration;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;

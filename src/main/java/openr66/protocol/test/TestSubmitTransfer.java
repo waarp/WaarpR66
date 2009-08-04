@@ -33,7 +33,7 @@ import openr66.database.data.AbstractDbData;
 import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
 import openr66.database.exception.OpenR66DatabaseException;
-import openr66.protocol.config.Configuration;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.utils.R66Future;
 

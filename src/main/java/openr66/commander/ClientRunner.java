@@ -27,7 +27,6 @@ import java.net.SocketAddress;
 
 import org.jboss.netty.channel.Channels;
 
-import openr66.context.R66Result;
 import openr66.context.authentication.R66Auth;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.DbConstant;
@@ -36,6 +35,7 @@ import openr66.database.data.DbHostAuth;
 import openr66.database.data.DbTaskRunner;
 import openr66.database.data.AbstractDbData.UpdatedInfo;
 import openr66.database.exception.OpenR66DatabaseException;
+import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.RequestPacket;
@@ -68,6 +68,30 @@ public class ClientRunner implements Runnable {
      */
     @Override
     public void run() {
+        R66Future transfer;
+        try {
+            transfer = this.runTransfer();
+        } catch (OpenR66RunnerErrorException e) {
+            logger.error("Runner Error", e);
+            return;
+        } catch (OpenR66ProtocolNoConnectionException e) {
+            logger.error("No connection Error", e);
+            return;
+        } catch (OpenR66ProtocolPacketException e) {
+            logger.error("Protocol Error", e);
+            return;
+        }
+        logger.warn("Result: "+transfer.isSuccess()+" "+transfer.getResult().toString());
+        transfer = null;
+    }
+    /**
+     *
+     * @return The R66Future of the transfer operation
+     * @throws OpenR66RunnerErrorException
+     * @throws OpenR66ProtocolNoConnectionException
+     * @throws OpenR66ProtocolPacketException
+     */
+    public R66Future runTransfer() throws OpenR66RunnerErrorException, OpenR66ProtocolNoConnectionException, OpenR66ProtocolPacketException {
         this.changeUpdatedInfo(UpdatedInfo.TORUN);
         long id = taskRunner.getSpecialId();
         String tid;
@@ -87,7 +111,7 @@ public class ClientRunner implements Runnable {
             // Don't have to restart a task for itself (or should use requester)
             logger.warn("Requested host cannot initiate itself the request", e1);
             this.changeUpdatedInfo(UpdatedInfo.UNKNOWN);
-            return;
+            throw e1;
         }
         SocketAddress socketAddress = host.getSocketAddress();
 
@@ -99,7 +123,7 @@ public class ClientRunner implements Runnable {
             logger.warn("Cannot connect to "+host.toString());
             this.changeUpdatedInfo(UpdatedInfo.UPDATED);
             host = null;
-            return;
+            throw new OpenR66ProtocolNoConnectionException("Cannot connect to server");
         }
 
         RequestPacket request = taskRunner.getRequest();
@@ -114,7 +138,7 @@ public class ClientRunner implements Runnable {
             localChannelReference = null;
             host = null;
             request = null;
-            return;
+            throw e;
         }
         logger.info("Wait for request to "+host.toString());
         request = null;
@@ -124,7 +148,6 @@ public class ClientRunner implements Runnable {
         logger.info("Request done with "+(transfer.isSuccess()?"success":"error"));
 
         // FIXME TODO Auto-generated method stub
-        R66Result result = transfer.getResult();
         Channels.close(localChannelReference.getLocalChannel());
         localChannelReference = null;
         // now reload TaskRunner if it still exists (light client can forget it)
@@ -133,12 +156,10 @@ public class ClientRunner implements Runnable {
                 taskRunner.select();
                 this.changeUpdatedInfo(UpdatedInfo.DONE);
             } catch (OpenR66DatabaseException e) {
-                logger.warn("Not a problem but cannot find at the end the task", e);
+                logger.info("Not a problem but cannot find at the end the task");
             }
         }
-        logger.warn("Result: "+transfer.isSuccess()+" "+result.toString());
-        transfer = null;
-        result = null;
+        return transfer;
     }
     /**
      *

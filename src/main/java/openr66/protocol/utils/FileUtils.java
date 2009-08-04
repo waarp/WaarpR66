@@ -32,7 +32,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 
-import openr66.protocol.config.Configuration;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 
 import org.dom4j.Document;

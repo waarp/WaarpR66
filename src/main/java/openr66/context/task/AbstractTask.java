@@ -25,7 +25,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import openr66.context.R66Session;
-import openr66.protocol.config.Configuration;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.utils.R66Future;
 
 /**

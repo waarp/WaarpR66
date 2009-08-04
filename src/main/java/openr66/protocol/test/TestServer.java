@@ -20,7 +20,7 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
 import openr66.configuration.FileBasedConfiguration;
 import openr66.database.exception.OpenR66DatabaseException;
-import openr66.protocol.config.Configuration;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.utils.OpenR66SignalHandler;
 

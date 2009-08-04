@@ -30,7 +30,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import openr66.configuration.FileBasedConfiguration;
-import openr66.protocol.config.Configuration;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;

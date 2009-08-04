@@ -16,7 +16,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantLock;
 
 import openr66.context.R66Session;
-import openr66.protocol.config.Configuration;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
@@ -96,7 +96,7 @@ public class NetworkTransaction {
             "NetworkChannels");
 
     public NetworkTransaction() {
-        logger.warn("THREAD: " + Configuration.configuration.SERVER_THREAD);
+        logger.info("THREAD: " + Configuration.configuration.SERVER_THREAD);
         clientBootstrap.setPipelineFactory(new NetworkServerPipelineFactory());
     }
 
@@ -286,7 +286,7 @@ public class NetworkTransaction {
      * Close all Network Ttransaction
      */
     public void closeAll() {
-        logger.warn("close All Network Channels");
+        logger.info("close All Network Channels");
         closeRetrieveExecutors();
         networkChannelGroup.close().awaitUninterruptibly();
         clientBootstrap.releaseExternalResources();

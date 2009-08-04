@@ -7,7 +7,7 @@ import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
-import openr66.protocol.config.Configuration;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;

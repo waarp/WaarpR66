@@ -29,7 +29,7 @@ import java.io.File;
 import java.io.IOException;
 
 import openr66.context.R66Session;
-import openr66.protocol.config.Configuration;
+import openr66.protocol.configuration.Configuration;
 
 /**
  * Directory representation
@@ -59,17 +59,18 @@ public class R66Dir extends FilesystemBasedDirImpl {
     }
 
     /**
-     * Same as setUnique() except that File will be prefixed by filename
+     * Same as setUnique() except that File will be prefixed by id and postfixed by filename
      *
+     * @param prefix
      * @param filename
      * @return the R66File with a unique filename and a temporary extension
      * @throws CommandAbstractException
      */
-    public synchronized R66File setUniqueFile(String filename)
+    public synchronized R66File setUniqueFile(long prefix, String filename)
             throws CommandAbstractException {
         checkIdentify();
         File file = null;
-        String prename = System.currentTimeMillis() + "_";
+        String prename = prefix + "_";
         try {
             file = File.createTempFile(prename, "_" + filename +
                     Configuration.EXT_R66, getFileFromPath(currentDir));

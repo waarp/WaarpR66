@@ -106,7 +106,7 @@ public abstract class AbstractDbData {
      * @param rank
      * @throws OpenR66DatabaseSqlError
      */
-    private void setTrueValue(PreparedStatement ps, DbValue value, int rank)
+    static public void setTrueValue(PreparedStatement ps, DbValue value, int rank)
             throws OpenR66DatabaseSqlError {
         try {
             switch (value.type) {
@@ -241,7 +241,7 @@ public abstract class AbstractDbData {
      * @param value
      * @throws OpenR66DatabaseSqlError
      */
-    private void getTrueValue(ResultSet rs, DbValue value)
+    static public void getTrueValue(ResultSet rs, DbValue value)
             throws OpenR66DatabaseSqlError {
         try {
             switch (value.type) {

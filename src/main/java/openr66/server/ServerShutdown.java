@@ -24,7 +24,9 @@ import java.net.SocketAddress;
 
 import openr66.configuration.FileBasedConfiguration;
 import openr66.context.R66Result;
-import openr66.protocol.config.Configuration;
+import openr66.database.DbConstant;
+import openr66.database.exception.OpenR66DatabaseSqlError;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
@@ -42,14 +44,14 @@ import org.jboss.netty.logging.InternalLoggerFactory;
 import ch.qos.logback.classic.Level;
 
 /**
- * Local client to shutdown the server
+ * Local client to shutdown the server (using network)
  *
  * @author Frederic Bregier
  */
 public class ServerShutdown {
 
     /**
-     * @param args
+     * @param args the configuration file as first argument
      * @throws OpenR66ProtocolPacketException
      */
     public static void main(String[] args)
@@ -61,13 +63,20 @@ public class ServerShutdown {
         if (args.length < 1) {
             logger
                     .error("Needs at least the configuration file as first argument");
+            System.exit(1);
             return;
         }
-        FileBasedConfiguration fileBasedConfiguration = new FileBasedConfiguration();
-        if (! fileBasedConfiguration
+        if (! FileBasedConfiguration
                 .setConfigurationFromXml(args[0])) {
             logger
                     .error("Needs a correct configuration file as first argument");
+            try {
+                if (DbConstant.admin != null){
+                    DbConstant.admin.close();
+                }
+            } catch (OpenR66DatabaseSqlError e) {
+            }
+            System.exit(1);
             return;
         }
         Configuration.configuration.pipelineInit();

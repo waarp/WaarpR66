@@ -33,7 +33,7 @@ import openr66.context.task.exception.OpenR66RunnerErrorException;
  *
  */
 public enum TaskType {
-    TEST, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECRENAME;
+    TEST, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECRENAME, LINKRENAME;
 
     public int type;
 
@@ -77,6 +77,9 @@ public enum TaskType {
                         .getFileInformation(), session);
             case EXECRENAME:
                 return new ExecRenameTask(argRule, delay, session.getRunner()
+                        .getFileInformation(), session);
+            case LINKRENAME:
+                return new LinkRenameTask(argRule, delay, session.getRunner()
                         .getFileInformation(), session);
             default:
                 throw new OpenR66RunnerErrorException("Unvalid Task: " +

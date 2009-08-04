@@ -31,7 +31,7 @@ import java.io.PipedOutputStream;
 
 import openr66.context.ErrorCode;
 import openr66.context.R66Session;
-import openr66.protocol.config.Configuration;
+import openr66.protocol.configuration.Configuration;
 
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;

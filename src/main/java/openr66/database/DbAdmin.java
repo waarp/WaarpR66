@@ -12,7 +12,7 @@ import java.sql.SQLException;
 
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
-import openr66.protocol.config.Configuration;
+import openr66.protocol.configuration.Configuration;
 
 /**
  * Class for access to Database

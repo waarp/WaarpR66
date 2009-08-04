@@ -1,8 +1,6 @@
 <config>
 	<comment>Example of config file: change its as your need.</comment>
 	<hostid>hostb</hostid>
-	<serverpasswd>src/main/config/serveradminkey.txt</serverpasswd>
-	<serverport>6666</serverport>
 	<serverhome>d:/GG/R66</serverhome>
 	<in>in</in>
 	<out>out</out>

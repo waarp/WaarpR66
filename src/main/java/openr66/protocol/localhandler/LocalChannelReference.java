@@ -22,7 +22,7 @@ import openr66.context.R66Result;
 import openr66.context.R66Session;
 import openr66.database.DbConstant;
 import openr66.database.DbSession;
-import openr66.protocol.config.Configuration;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.networkhandler.NetworkServerHandler;
 import openr66.protocol.utils.R66Future;

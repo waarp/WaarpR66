@@ -19,7 +19,7 @@ import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
-import openr66.protocol.config.Configuration;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolBusinessException;
@@ -491,10 +491,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
         if (packet.getSpecialId() != DbConstant.ILLEGALVALUE) {
             // Reload
             String requested = DbTaskRunner.getRequested(session, packet);
+            String requester = DbTaskRunner.getRequester(session, packet);
             try {
                 runner = new DbTaskRunner(localChannelReference.getDbSession(),
                         session, rule, packet.getSpecialId(),
-                        requested);
+                        requester, requested);
             } catch (OpenR66DatabaseNoDataException e) {
                 // Should exist but not, so Reception of acknowledge request from requested host
                 boolean isRetrieve = RequestPacket.isRecvMode(packet.getMode());

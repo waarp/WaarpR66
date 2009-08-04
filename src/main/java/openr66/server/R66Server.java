@@ -20,7 +20,7 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
 import openr66.configuration.FileBasedConfiguration;
 import openr66.database.exception.OpenR66DatabaseException;
-import openr66.protocol.config.Configuration;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.utils.OpenR66SignalHandler;
 
@@ -29,11 +29,11 @@ import org.jboss.netty.logging.InternalLoggerFactory;
 import ch.qos.logback.classic.Level;
 
 /**
- * Server startup main class
+ * R66Server startup main class
  *
  * @author Frederic Bregier
  */
-public class Server {
+public class R66Server {
 
     /**
      * @param args as first argument the configuration file
@@ -44,14 +44,13 @@ public class Server {
         InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
                 Level.WARN));
         final GgInternalLogger logger = GgInternalLoggerFactory
-                .getLogger(Server.class);
+                .getLogger(R66Server.class);
         if (args.length < 1) {
             logger
                     .error("Needs at least the configuration file as first argument");
             return;
         }
-        FileBasedConfiguration fileBasedConfiguration = new FileBasedConfiguration();
-        if (! fileBasedConfiguration
+        if (! FileBasedConfiguration
                 .setConfigurationFromXml(args[0])) {
             logger
                     .error("Needs a correct configuration file as first argument");
@@ -64,6 +63,7 @@ public class Server {
                 .error("Startup of server is in error");
             OpenR66SignalHandler.terminate(true);
         }
+        logger.warn("Server OpenR66 starts for "+Configuration.configuration.HOST_ID);
     }
 
 }

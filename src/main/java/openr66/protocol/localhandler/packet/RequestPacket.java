@@ -3,7 +3,7 @@
  */
 package openr66.protocol.localhandler.packet;
 
-import openr66.protocol.config.Configuration;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 
 import org.jboss.netty.buffer.ChannelBuffer;

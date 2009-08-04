@@ -22,7 +22,7 @@ import goldengate.common.logging.GgSlf4JLoggerFactory;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
-import openr66.protocol.config.Configuration;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;

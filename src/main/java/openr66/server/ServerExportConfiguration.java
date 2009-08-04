@@ -27,14 +27,18 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
 
 import openr66.configuration.AuthenticationFileBasedConfiguration;
+import openr66.configuration.FileBasedConfiguration;
 import openr66.configuration.RuleFileBasedConfiguration;
 import openr66.database.DbConstant;
 import openr66.database.data.DbTaskRunner;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
-import openr66.database.model.DbModelFactory;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.io.SAXReader;
 import org.jboss.netty.logging.InternalLoggerFactory;
 
 import ch.qos.logback.classic.Level;
@@ -53,7 +57,7 @@ public class ServerExportConfiguration {
 
     /**
      *
-     * @param args as databaseMode connectionString User Passwd directory_to_export Hostname
+     * @param args as configuration file and the directory where to export
      */
     public static void main(String[] args) {
         InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
@@ -61,23 +65,37 @@ public class ServerExportConfiguration {
         if (logger == null) {
             logger = GgInternalLoggerFactory.getLogger(ServerExportConfiguration.class);
         }
-        if (args.length < 6) {
+        if (args.length < 2) {
             System.err
-                    .println("Need databaseMode connectionString User Passwd and the directory where to export and Hostname");
-            return;
+                    .println("Need configuration file and the directory where to export");
+            System.exit(1);
         }
         try {
+            Document document = null;
+            String filename = args[0];
+            // Open config file
             try {
-                DbModelFactory.initialize(args[0], args[1], args[2],
-                        args[3], true);
-            } catch (OpenR66DatabaseNoConnectionError e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-                return;
+                document = new SAXReader().read(filename);
+            } catch (DocumentException e) {
+                logger.error("Unable to read the XML Config file: " + filename, e);
+                System.exit(1);
             }
-            String directory = args[4];
-            String hostname = args[5];
-            logger.warn("Start");
+            if (document == null) {
+                logger.error("Unable to read the XML Config file: " + filename);
+                System.exit(1);
+            }
+            if (! FileBasedConfiguration.loadCommon(document)) {
+                logger.error("Unable to find Host ID in Config file: " + filename);
+                System.exit(1);
+            }
+            if (! FileBasedConfiguration.loadDatabase(document)) {
+                logger
+                .error("Needs a correct configuration file as first argument");
+                System.exit(1);
+            }
+            String directory = args[1];
+            String hostname = Configuration.configuration.HOST_ID;
+            logger.warn("Start of Export");
             File dir = new File(directory);
             if (! dir.isDirectory()) {
                 dir.mkdirs();
@@ -87,22 +105,47 @@ public class ServerExportConfiguration {
             } catch (OpenR66DatabaseNoConnectionError e1) {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
+                try {
+                    DbConstant.admin.close();
+                } catch (OpenR66DatabaseSqlError e) {
+                }
+                System.exit(2);
             } catch (OpenR66DatabaseSqlError e1) {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
+                try {
+                    DbConstant.admin.close();
+                } catch (OpenR66DatabaseSqlError e) {
+                }
+                System.exit(2);
             } catch (OpenR66ProtocolSystemException e1) {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
+                try {
+                    DbConstant.admin.close();
+                } catch (OpenR66DatabaseSqlError e) {
+                }
+                System.exit(2);
             }
-            String filename = dir.getAbsolutePath()+File.separator+hostname+"_Runners.run.xml";
+            filename = dir.getAbsolutePath()+File.separator+hostname+"_Runners.run.xml";
             try {
                 DbTaskRunner.writeXML(filename);
             } catch (OpenR66DatabaseNoConnectionError e1) {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
+                try {
+                    DbConstant.admin.close();
+                } catch (OpenR66DatabaseSqlError e) {
+                }
+                System.exit(2);
             } catch (OpenR66DatabaseSqlError e1) {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
+                try {
+                    DbConstant.admin.close();
+                } catch (OpenR66DatabaseSqlError e) {
+                }
+                System.exit(2);
             }
             filename = dir.getAbsolutePath()+File.separator+hostname+"_Authentications.xml";
             try {
@@ -110,22 +153,35 @@ public class ServerExportConfiguration {
             } catch (OpenR66DatabaseNoConnectionError e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
+                try {
+                    DbConstant.admin.close();
+                } catch (OpenR66DatabaseSqlError e1) {
+                }
+                System.exit(2);
             } catch (OpenR66DatabaseSqlError e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
+                try {
+                    DbConstant.admin.close();
+                } catch (OpenR66DatabaseSqlError e1) {
+                }
+                System.exit(2);
             } catch (OpenR66ProtocolSystemException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
+                try {
+                    DbConstant.admin.close();
+                } catch (OpenR66DatabaseSqlError e1) {
+                }
+                System.exit(2);
             }
-            logger.error("End");
+            logger.warn("End of Export");
         } finally {
             try {
                 if (DbConstant.admin != null) {
                     DbConstant.admin.close();
                 }
             } catch (OpenR66DatabaseSqlError e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
             }
         }
     }

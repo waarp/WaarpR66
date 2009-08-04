@@ -20,16 +20,18 @@
  */
 package openr66.server;
 
+import goldengate.common.logging.GgInternalLogger;
+import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
 
 import java.io.File;
 
+import openr66.client.SubmitTransfer;
 import openr66.configuration.AuthenticationFileBasedConfiguration;
 import openr66.configuration.FileBasedConfiguration;
 import openr66.configuration.RuleFileBasedConfiguration;
 import openr66.database.DbConstant;
 import openr66.database.exception.OpenR66DatabaseException;
-import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.database.model.DbModelFactory;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
@@ -50,43 +52,56 @@ import ch.qos.logback.classic.Level;
 public class ServerInitDatabase {
 
     /**
-     * @param args databaseMode connectionString User Passwd [rules_directory host_authent limit_configuration]
+     * @param args
+     *          as config_database file
+     *          [rules_directory host_authent limit_configuration]
      */
     public static void main(String[] args) {
         InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
                 Level.WARN));
-        if (args.length < 4) {
+        if (args.length < 1) {
             System.err
-                    .println("Need databaseMode connectionString User Passwd");
+                    .println("Need at least config_database file " +
+                    		"and optionaly rules_directory host_authent_file " +
+                    		"limit_configuration_file");
             return;
         }
+        GgInternalLogger logger = GgInternalLoggerFactory.getLogger(SubmitTransfer.class);
         try {
+            Document document = null;
+            // Open config file
             try {
-                DbModelFactory.initialize(args[0], args[1], args[2],
-                        args[3], true);
-            } catch (OpenR66DatabaseNoConnectionError e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                document = new SAXReader().read(args[0]);
+            } catch (DocumentException e) {
+                logger.error("Unable to read the XML Config file: " + args[0], e);
+                return;
+            }
+            if (document == null) {
+                logger.error("Unable to read the XML Config file: " + args[0]);
+                return;
+            }
+            if (!FileBasedConfiguration.loadDatabase(document)) {
+                logger.error("Cannot start database");
                 return;
             }
             // Init database
             initdb();
             System.out.println("End creation");
-            if (args.length > 4) {
+            if (args.length > 1) {
                 // load Rules
-                File dirConfig = new File(args[4]);
+                File dirConfig = new File(args[1]);
                 if (dirConfig.isDirectory()) {
                     loadRules(dirConfig);
                 } else {
                     System.err.println("Dir is not a directory: " + args[4]);
                 }
                 // Load Host Authentications
-                if (args.length > 5) {
-                    loadHostAuth(args[5]);
+                if (args.length > 2) {
+                    loadHostAuth(args[2]);
                 }
                 // Load configuration
-                if (args.length > 6) {
-                    loadConfiguration(args[6]);
+                if (args.length > 3) {
+                    loadConfiguration(args[3]);
                 }
                 System.out.println("Load done");
             }

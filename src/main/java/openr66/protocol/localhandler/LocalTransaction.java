@@ -14,7 +14,7 @@ import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.data.DbTaskRunner;
-import openr66.protocol.config.Configuration;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.packet.LocalPacketFactory;

@@ -25,7 +25,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import openr66.protocol.config.Configuration;
+import openr66.protocol.configuration.Configuration;
 
 import org.jboss.netty.util.internal.SystemPropertyUtil;
 

@@ -40,7 +40,7 @@ import openr66.database.data.DbConfiguration;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.model.DbModelFactory;
-import openr66.protocol.config.Configuration;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.utils.FileUtils;
 
@@ -206,7 +206,7 @@ public class FileBasedConfiguration {
      * @return the new subpath
      * @throws OpenR66ProtocolSystemException
      */
-    private String getSubPath(Document document, String fromXML)
+    private static String getSubPath(Document document, String fromXML)
             throws OpenR66ProtocolSystemException {
         Node node = document.selectSingleNode(fromXML);
         if (node == null) {
@@ -230,12 +230,12 @@ public class FileBasedConfiguration {
     }
 
     /**
-     * Initiate the configuration from the xml file
+     * Initiate the configuration from the xml file for server
      *
      * @param filename
      * @return True if OK
      */
-    public boolean setConfigurationFromXml(String filename) {
+    public static boolean setConfigurationFromXml(String filename) {
         Document document = null;
         // Open config file
         try {
@@ -248,13 +248,17 @@ public class FileBasedConfiguration {
             logger.error("Unable to read the XML Config file: " + filename);
             return false;
         }
-        Node node = null;
-        node = document.selectSingleNode(XML_SERVER_HOSTID);
-        if (node == null) {
+        if (! loadCommon(document)) {
             logger.error("Unable to find Host ID in Config file: " + filename);
             return false;
         }
-        Configuration.configuration.HOST_ID = node.getText();
+        Node node = null;
+        node = document.selectSingleNode(XML_SERVER_PORT);
+        int port = 6666;
+        if (node != null) {
+            port = Integer.parseInt(node.getText());
+        }
+        Configuration.configuration.SERVER_PORT = port;
         node = document.selectSingleNode(XML_SERVER_PASSWD);
         if (node == null) {
             logger.error("Unable to find Password in Config file: " + filename);
@@ -282,28 +286,121 @@ public class FileBasedConfiguration {
             return false;
         }
         Configuration.configuration.setSERVERKEY(byteKeys);
-        node = document.selectSingleNode(XML_SERVER_PORT);
-        int port = 21;
-        if (node != null) {
-            port = Integer.parseInt(node.getText());
+
+        if (!loadDatabase(document)) {
+            return false;
         }
-        Configuration.configuration.SERVER_PORT = port;
+        if (!loadFromDatabase(document)) {
+            return false;
+        }
+        if (! DbConstant.admin.isConnected) {
+            // if no database, must load authentication from file
+            node = document.selectSingleNode(XML_AUTHENTIFICATION_FILE);
+            if (node == null) {
+                logger.warn("Unable to find Authentication file in Config file: " +
+                        filename);
+                return false;
+            } else {
+                String fileauthent = node.getText();
+                document = null;
+                if (! AuthenticationFileBasedConfiguration.loadAuthentication(fileauthent)) {
+                    return false;
+                }
+            }
+        }
+        Configuration.configuration.HOST_AUTH =
+            R66Auth.getServerAuth(DbConstant.admin.session,
+                    Configuration.configuration.HOST_ID);
+        if (Configuration.configuration.HOST_AUTH == null) {
+            logger.warn("Cannot find Authentication for current host");
+            return false;
+        }
+        return true;
+    }
+    /**
+     * Initiate the configuration from the xml file for database client
+     *
+     * @param filename
+     * @return True if OK
+     */
+    public static boolean setClientConfigurationFromXml(String filename) {
+        Document document = null;
+        // Open config file
+        try {
+            document = new SAXReader().read(filename);
+        } catch (DocumentException e) {
+            logger.error("Unable to read the XML Config file: " + filename, e);
+            return false;
+        }
+        if (document == null) {
+            logger.error("Unable to read the XML Config file: " + filename);
+            return false;
+        }
+        if (! loadCommon(document)) {
+            logger.error("Unable to find Host ID in Config file: " + filename);
+            return false;
+        }
+        Node node = null;
+        if (! loadDatabase(document)) {
+            return false;
+        }
+        if (!loadFromDatabase(document)) {
+            return false;
+        }
+
+        if (! DbConstant.admin.isConnected) {
+            // if no database, must load authentication from file
+            node = document.selectSingleNode(XML_AUTHENTIFICATION_FILE);
+            if (node == null) {
+                logger.warn("Unable to find Authentication file in Config file: " +
+                        filename);
+                return false;
+            } else {
+                String fileauthent = node.getText();
+                document = null;
+                if (! AuthenticationFileBasedConfiguration.loadAuthentication(fileauthent)) {
+                    return false;
+                }
+            }
+        }
+        Configuration.configuration.HOST_AUTH =
+            R66Auth.getServerAuth(DbConstant.admin.session,
+                    Configuration.configuration.HOST_ID);
+        if (Configuration.configuration.HOST_AUTH == null) {
+            logger.warn("Cannot find Authentication for current host");
+            return false;
+        }
+        return true;
+    }
+    /**
+     * Load common configuration from XML document
+     * @param document
+     * @return True if OK
+     */
+    public static boolean loadCommon(Document document) {
+        Node node = null;
+        node = document.selectSingleNode(XML_SERVER_HOSTID);
+        if (node == null) {
+            logger.error("Unable to find Host ID in Config file");
+            return false;
+        }
+        Configuration.configuration.HOST_ID = node.getText();
         node = document.selectSingleNode(XML_SERVER_HOME);
         if (node == null) {
-            logger.error("Unable to find Home in Config file: " + filename);
+            logger.error("Unable to find Home in Config file");
             return false;
         }
         String path = node.getText();
         File file = new File(path);
         if (!file.isDirectory()) {
-            logger.error("Home is not a directory in Config file: " + filename);
+            logger.error("Home is not a directory in Config file");
             return false;
         }
         try {
             Configuration.configuration.baseDirectory = FilesystemBasedDirImpl
                     .normalizePath(file.getCanonicalPath());
         } catch (IOException e1) {
-            logger.error("Unable to set Home in Config file: " + filename);
+            logger.error("Unable to set Home in Config file");
             return false;
         }
         try {
@@ -311,38 +408,35 @@ public class FileBasedConfiguration {
                     .normalizePath(getSubPath(document, XML_CONFIGPATH));
         } catch (OpenR66ProtocolSystemException e2) {
             logger
-                    .error("Unable to set Config in Config file: " + filename,
-                            e2);
+                    .error("Unable to set Config in Config file");
             return false;
         }
         try {
             Configuration.configuration.inPath = FilesystemBasedDirImpl
                     .normalizePath(getSubPath(document, XML_INPATH));
         } catch (OpenR66ProtocolSystemException e2) {
-            logger.error("Unable to set In in Config file: " + filename, e2);
+            logger.error("Unable to set In in Config file");
             return false;
         }
         try {
             Configuration.configuration.outPath = FilesystemBasedDirImpl
                     .normalizePath(getSubPath(document, XML_OUTPATH));
         } catch (OpenR66ProtocolSystemException e2) {
-            logger.error("Unable to set Out in Config file: " + filename, e2);
+            logger.error("Unable to set Out in Config file");
             return false;
         }
         try {
             Configuration.configuration.workingPath = FilesystemBasedDirImpl
                     .normalizePath(getSubPath(document, XML_WORKINGPATH));
         } catch (OpenR66ProtocolSystemException e2) {
-            logger.error("Unable to set Working in Config file: " + filename,
-                    e2);
+            logger.error("Unable to set Working in Config file");
             return false;
         }
         try {
             Configuration.configuration.archivePath = FilesystemBasedDirImpl
                     .normalizePath(getSubPath(document, XML_ARCHIVEPATH));
         } catch (OpenR66ProtocolSystemException e2) {
-            logger.error("Unable to set Archive in Config file: " + filename,
-                    e2);
+            logger.error("Unable to set Archive in Config file");
             return false;
         }
         node = document.selectSingleNode(XML_SERVER_THREAD);
@@ -398,51 +492,80 @@ public class FileBasedConfiguration {
             Configuration.configuration.TIMEOUTCON = Integer.parseInt(node
                     .getText());
         }
-
-        node = document.selectSingleNode(XML_DBDRIVER);
-        if (node == null) {
-            logger.error("Unable to find DBDriver in Config file: " + filename);
-            //return false;
-            DbConstant.admin = new DbAdmin(); //no database support
-            // load Rules from files
-            File dirConfig = new File(Configuration.configuration.baseDirectory+
-                    Configuration.configuration.configPath);
-            if (dirConfig.isDirectory()) {
-                try {
-                    RuleFileBasedConfiguration.importRules(dirConfig);
-                } catch (OpenR66ProtocolSystemException e) {
-                    logger.error("Cannot load Rules", e);
-                    return false;
-                } catch (OpenR66DatabaseException e) {
-                    logger.error("Cannot load Rules", e);
+        // We use Apache Commons IO
+        FilesystemBasedDirJdkAbstract.ueApacheCommonsIo = true;
+        return true;
+    }
+    /**
+     * Load data from database or from files if not connected
+     * @param document
+     * @return True if OK
+     */
+    private static boolean loadFromDatabase(Document document) {
+        if (DbConstant.admin.isConnected) {
+            // load from database the limit to apply
+            try {
+                DbConfiguration configuration = new DbConfiguration(DbConstant.admin.session,
+                        Configuration.configuration.HOST_ID);
+                configuration.updateConfiguration();
+            } catch (OpenR66DatabaseException e) {
+                logger.warn("Cannot load configuration from database", e);
+            }
+        } else {
+            if (Configuration.configuration.baseDirectory != null &&
+                    Configuration.configuration.configPath != null) {
+                // load Rules from files
+                File dirConfig = new File(Configuration.configuration.baseDirectory+
+                        Configuration.configuration.configPath);
+                if (dirConfig.isDirectory()) {
+                    try {
+                        RuleFileBasedConfiguration.importRules(dirConfig);
+                    } catch (OpenR66ProtocolSystemException e) {
+                        logger.error("Cannot load Rules", e);
+                        return false;
+                    } catch (OpenR66DatabaseException e) {
+                        logger.error("Cannot load Rules", e);
+                        return false;
+                    }
+                } else {
+                    logger.error("Config Directory is not a directory: " +
+                            Configuration.configuration.baseDirectory+
+                            Configuration.configuration.configPath);
                     return false;
                 }
-            } else {
-                logger.error("Config Directory is not a directory: " +
-                        Configuration.configuration.baseDirectory+
-                        Configuration.configuration.configPath);
-                return false;
             }
             // load if possible the limit to apply
             loadLimit(document);
+        }
+        return true;
+    }
+    /**
+     * Load database parameter
+     * @param document
+     * @return True if OK
+     */
+    public static boolean loadDatabase(Document document) {
+        Node node = document.selectSingleNode(XML_DBDRIVER);
+        if (node == null) {
+            logger.error("Unable to find DBDriver in Config file");
+            DbConstant.admin = new DbAdmin(); //no database support
         } else {
             String dbdriver = node.getText();
             node = document.selectSingleNode(XML_DBSERVER);
             if (node == null) {
-                logger.error("Unable to find DBServer in Config file: " + filename);
+                logger.error("Unable to find DBServer in Config file");
                 return false;
             }
             String dbserver = node.getText();
             node = document.selectSingleNode(XML_DBUSER);
             if (node == null) {
-                logger.error("Unable to find DBUser in Config file: " + filename);
+                logger.error("Unable to find DBUser in Config file");
                 return false;
             }
             String dbuser = node.getText();
             node = document.selectSingleNode(XML_DBPASSWD);
             if (node == null) {
-                logger.error("Unable to find DBPassword in Config file: " +
-                        filename);
+                logger.error("Unable to find DBPassword in Config file");
                 return false;
             }
             String dbpasswd = node.getText();
@@ -450,8 +573,7 @@ public class FileBasedConfiguration {
                     dbpasswd == null || dbdriver.length() == 0 ||
                     dbserver.length() == 0 || dbuser.length() == 0 ||
                     dbpasswd.length() == 0) {
-                logger.error("Unable to find Correct DB data in Config file: " +
-                        filename);
+                logger.error("Unable to find Correct DB data in Config file");
                 return false;
             }
             try {
@@ -461,40 +583,6 @@ public class FileBasedConfiguration {
                 logger.error("Unable to Connect to DB", e2);
                 return false;
             }
-            // load from database the limit to apply
-            try {
-                DbConfiguration configuration = new DbConfiguration(DbConstant.admin.session,
-                        Configuration.configuration.HOST_ID);
-                configuration.updateConfiguration();
-            } catch (OpenR66DatabaseException e) {
-                logger.warn("Cannot load configuration from database", e);
-            }
-
-        }
-        // We use Apache Commons IO
-        FilesystemBasedDirJdkAbstract.ueApacheCommonsIo = true;
-
-        if (! DbConstant.admin.isConnected) {
-            // if no database, must load authentication from file
-            node = document.selectSingleNode(XML_AUTHENTIFICATION_FILE);
-            if (node == null) {
-                logger.warn("Unable to find Authentication file in Config file: " +
-                        filename);
-                return false;
-            } else {
-                String fileauthent = node.getText();
-                document = null;
-                if (! AuthenticationFileBasedConfiguration.loadAuthentication(fileauthent)) {
-                    return false;
-                }
-            }
-        }
-        Configuration.configuration.HOST_AUTH =
-            R66Auth.getServerAuth(DbConstant.admin.session,
-                    Configuration.configuration.HOST_ID);
-        if (Configuration.configuration.HOST_AUTH == null) {
-            logger.warn("Cannot find Authentication for current host");
-            return false;
         }
         return true;
     }

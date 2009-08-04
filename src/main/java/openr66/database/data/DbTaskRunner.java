@@ -26,6 +26,7 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.Random;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
@@ -34,6 +35,7 @@ import org.dom4j.tree.DefaultElement;
 
 import openr66.context.ErrorCode;
 import openr66.context.R66Session;
+import openr66.context.filesystem.R66File;
 import openr66.context.task.AbstractTask;
 import openr66.context.task.TaskType;
 import openr66.context.task.exception.OpenR66RunnerEndTasksException;
@@ -46,7 +48,7 @@ import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.database.model.DbModelFactory;
-import openr66.protocol.config.Configuration;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.utils.FileUtils;
@@ -79,10 +81,10 @@ public class DbTaskRunner extends AbstractDbData {
         ORIGINALNAME,
         FILEINFO,
         MODE,
-        REQUESTER,
         START,
         STOP,
         UPDATEDINFO,
+        REQUESTER,
         REQUESTED,
         SPECIALID;
     }
@@ -91,8 +93,8 @@ public class DbTaskRunner extends AbstractDbData {
             Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.INTEGER,
             Types.CHAR, Types.BIT, Types.VARCHAR, Types.BIT, Types.VARCHAR,
             Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
-            Types.VARCHAR, Types.TIMESTAMP, Types.TIMESTAMP, Types.INTEGER,
-            Types.VARCHAR, Types.BIGINT };
+            Types.TIMESTAMP, Types.TIMESTAMP, Types.INTEGER,
+            Types.VARCHAR, Types.VARCHAR, Types.BIGINT };
 
     public static String table = " RUNNER ";
 
@@ -175,13 +177,14 @@ public class DbTaskRunner extends AbstractDbData {
 
     // ALL TABLE SHOULD IMPLEMENT THIS
     private final DbValue primaryKey[] = {
+            new DbValue(requesterHostId, Columns.REQUESTER.name()),
             new DbValue(requestedHostId, Columns.REQUESTED.name()),
             new DbValue(specialId, Columns.SPECIALID.name()) };
 
     private final DbValue[] otherFields = {
             // GLOBALSTEP, GLOBALLASTSTEP, STEP, RANK, STEPSTATUS, RETRIEVEMODE,
             // FILENAME, ISMOVED, IDRULE,
-            // BLOCKSIZE, ORIGINALNAME, FILEINFO, MODE, REQUESTER, REQUESTED
+            // BLOCKSIZE, ORIGINALNAME, FILEINFO, MODE,
             // START, STOP
             // UPDATEDINFO
             new DbValue(globalstep, Columns.GLOBALSTEP.name()),
@@ -197,7 +200,6 @@ public class DbTaskRunner extends AbstractDbData {
             new DbValue(originalFilename, Columns.ORIGINALNAME.name()),
             new DbValue(fileInformation, Columns.FILEINFO.name()),
             new DbValue(mode, Columns.MODE.name()),
-            new DbValue(requesterHostId, Columns.REQUESTER.name()),
             new DbValue(start, Columns.START.name()),
             new DbValue(stop, Columns.STOP.name()),
             new DbValue(updatedInfo, Columns.UPDATEDINFO.name()) };
@@ -207,7 +209,7 @@ public class DbTaskRunner extends AbstractDbData {
             otherFields[4], otherFields[5], otherFields[6], otherFields[7],
             otherFields[8], otherFields[9], otherFields[10], otherFields[11],
             otherFields[12], otherFields[13], otherFields[14], otherFields[15],
-            otherFields[16], primaryKey[0], primaryKey[1] };
+            primaryKey[0], primaryKey[1], primaryKey[2] };
 
     public static final String selectAllFields = Columns.GLOBALSTEP.name() +
             "," + Columns.GLOBALLASTSTEP.name() + "," + Columns.STEP.name() +
@@ -216,9 +218,10 @@ public class DbTaskRunner extends AbstractDbData {
             Columns.ISMOVED.name() + "," + Columns.IDRULE.name() + "," +
             Columns.BLOCKSIZE.name() + "," + Columns.ORIGINALNAME.name() + "," +
             Columns.FILEINFO.name() + "," + Columns.MODE.name() + "," +
-            Columns.REQUESTER.name() + "," + Columns.START.name() + "," +
-            Columns.STOP.name() + "," + Columns.UPDATEDINFO.name() + "," +
-            Columns.REQUESTED.name() + "," + Columns.SPECIALID.name();
+            Columns.START.name() + "," + Columns.STOP.name() + "," +
+            Columns.UPDATEDINFO.name() + "," +
+            Columns.REQUESTER.name() + "," + Columns.REQUESTED.name() + "," +
+            Columns.SPECIALID.name();
 
     private static final String updateAllFields = Columns.GLOBALSTEP.name() +
             "=?," + Columns.GLOBALLASTSTEP.name() + "=?," +
@@ -228,8 +231,8 @@ public class DbTaskRunner extends AbstractDbData {
             "=?," + Columns.IDRULE.name() + "=?," + Columns.BLOCKSIZE.name() +
             "=?," + Columns.ORIGINALNAME.name() + "=?," +
             Columns.FILEINFO.name() + "=?," + Columns.MODE.name() + "=?," +
-            Columns.REQUESTER.name() + "=?," + Columns.START.name() + "=?," +
-            Columns.STOP.name() + "=?," + Columns.UPDATEDINFO.name() + "=?";
+            Columns.START.name() + "=?," + Columns.STOP.name() + "=?," +
+            Columns.UPDATEDINFO.name() + "=?";
 
     private static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
 
@@ -337,11 +340,12 @@ public class DbTaskRunner extends AbstractDbData {
      * @param session
      * @param rule
      * @param id
+     * @param requester
      * @param requested
      * @throws OpenR66DatabaseException
      */
     public DbTaskRunner(DbSession dbSession, R66Session session, DbRule rule, long id,
-            String requested) throws OpenR66DatabaseException {
+            String requester, String requested) throws OpenR66DatabaseException {
         super(dbSession);
         this.session = session;
         this.rule = rule;
@@ -350,6 +354,7 @@ public class DbTaskRunner extends AbstractDbData {
         // retrieving a task should be made from the requester, but the caller
         // is responsible of this
         requestedHostId = requested;
+        requesterHostId = requester;
 
         select();
         if (!ruleId.equals(rule.idRule)) {
@@ -372,11 +377,11 @@ public class DbTaskRunner extends AbstractDbData {
         allFields[Columns.ORIGINALNAME.ordinal()].setValue(originalFilename);
         allFields[Columns.FILEINFO.ordinal()].setValue(fileInformation);
         allFields[Columns.MODE.ordinal()].setValue(mode);
-        allFields[Columns.REQUESTER.ordinal()].setValue(requesterHostId);
         allFields[Columns.START.ordinal()].setValue(start);
         stop = new Timestamp(System.currentTimeMillis());
         allFields[Columns.STOP.ordinal()].setValue(stop);
         allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
+        allFields[Columns.REQUESTER.ordinal()].setValue(requesterHostId);
         allFields[Columns.REQUESTED.ordinal()].setValue(requestedHostId);
         allFields[Columns.SPECIALID.ordinal()].setValue(specialId);
     }
@@ -402,12 +407,12 @@ public class DbTaskRunner extends AbstractDbData {
         fileInformation = (String) allFields[Columns.FILEINFO.ordinal()]
                 .getValue();
         mode = (Integer) allFields[Columns.MODE.ordinal()].getValue();
-        requesterHostId = (String) allFields[Columns.REQUESTER.ordinal()]
-                .getValue();
         start = (Timestamp) allFields[Columns.START.ordinal()].getValue();
         stop = (Timestamp) allFields[Columns.STOP.ordinal()].getValue();
         updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()]
                 .getValue();
+        requesterHostId = (String) allFields[Columns.REQUESTER.ordinal()]
+                                             .getValue();
         requestedHostId = (String) allFields[Columns.REQUESTED.ordinal()]
                 .getValue();
         specialId = (Long) allFields[Columns.SPECIALID.ordinal()].getValue();
@@ -428,9 +433,11 @@ public class DbTaskRunner extends AbstractDbData {
         try {
             preparedStatement.createPrepareStatement("DELETE FROM " + table +
                     " WHERE " + primaryKey[0].column + " = ? AND " +
-                    primaryKey[1].column + " = ? ");
-            primaryKey[0].setValue(requestedHostId);
-            primaryKey[1].setValue(specialId);
+                    primaryKey[1].column + " = ? AND " +
+                    primaryKey[2].column + " = ? ");
+            primaryKey[0].setValue(requesterHostId);
+            primaryKey[1].setValue(requestedHostId);
+            primaryKey[2].setValue(specialId);
             setValues(preparedStatement, primaryKey);
             int count = preparedStatement.executeUpdate();
             if (count <= 0) {
@@ -454,8 +461,9 @@ public class DbTaskRunner extends AbstractDbData {
         }
         if (dbSession == null) {
             if (specialId == DbConstant.ILLEGALVALUE) {
-                throw new OpenR66DatabaseNoDataException(
-                        "New SpecialId is not possible with No Database Model");
+                logger.info("New SpecialId is not possible with No Database Model");
+                Random random = new Random();
+                specialId = random.nextLong();
             }
             isSaved = true;
             return;
@@ -463,8 +471,9 @@ public class DbTaskRunner extends AbstractDbData {
         // First need to find a new id if id is not ok
         if (specialId == DbConstant.ILLEGALVALUE) {
             specialId = DbModelFactory.dbModel.nextSequence(dbSession);
-            primaryKey[0].setValue(requestedHostId);
-            primaryKey[1].setValue(specialId);
+            primaryKey[0].setValue(requesterHostId);
+            primaryKey[1].setValue(requestedHostId);
+            primaryKey[2].setValue(specialId);
         }
         setToArray();
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
@@ -496,10 +505,12 @@ public class DbTaskRunner extends AbstractDbData {
         try {
             preparedStatement.createPrepareStatement("SELECT " +
                     primaryKey[0].column + " FROM " + table + " WHERE " +
-                    primaryKey[0].column +
-                    " = ? AND " + primaryKey[1].column + " = ? ");
-            primaryKey[0].setValue(requestedHostId);
-            primaryKey[1].setValue(specialId);
+                    primaryKey[0].column + " = ? AND " +
+                    primaryKey[1].column + " = ? AND " +
+                    primaryKey[2].column + " = ? ");
+            primaryKey[0].setValue(requesterHostId);
+            primaryKey[1].setValue(requestedHostId);
+            primaryKey[2].setValue(specialId);
             setValues(preparedStatement, primaryKey);
             preparedStatement.executeQuery();
             return preparedStatement.getNext();
@@ -520,11 +531,13 @@ public class DbTaskRunner extends AbstractDbData {
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
                 dbSession);
         preparedStatement.createPrepareStatement("SELECT " + selectAllFields +
-                " FROM " + table + " WHERE " + primaryKey[0].column +
-                " = ? AND " + primaryKey[1].column + " = ? ");
+                " FROM " + table + " WHERE " + primaryKey[0].column + " = ? AND " +
+                primaryKey[1].column + " = ? AND " +
+                primaryKey[2].column + " = ? ");
         try {
-            primaryKey[0].setValue(requestedHostId);
-            primaryKey[1].setValue(specialId);
+            primaryKey[0].setValue(requesterHostId);
+            primaryKey[1].setValue(requestedHostId);
+            primaryKey[2].setValue(specialId);
             setValues(preparedStatement, primaryKey);
             preparedStatement.executeQuery();
             if (preparedStatement.getNext()) {
@@ -560,7 +573,8 @@ public class DbTaskRunner extends AbstractDbData {
             preparedStatement.createPrepareStatement("UPDATE " + table +
                     " SET " + updateAllFields + " WHERE " +
                     primaryKey[0].column + " = ? AND " +
-                    primaryKey[1].column + " = ? ");
+                    primaryKey[1].column + " = ? AND " +
+                    primaryKey[2].column + " = ? ");
             setValues(preparedStatement, allFields);
             int count = preparedStatement.executeUpdate();
             if (count <= 0) {
@@ -1022,7 +1036,10 @@ public class DbTaskRunner extends AbstractDbData {
     public void deleteTempFile() {
         if ((! isRetrieve()) && getRank() == 0) {
             try {
-                session.getFile().delete();
+                R66File file = session.getFile();
+                if (file != null) {
+                    file.delete();
+                }
             } catch (CommandAbstractException e1) {
                 logger.warn("Cannot delete temporary empty file", e1);
             }

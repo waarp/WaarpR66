@@ -34,7 +34,7 @@ import openr66.configuration.FileBasedConfiguration;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.database.DbConstant;
-import openr66.protocol.config.Configuration;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;

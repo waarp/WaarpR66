@@ -1,8 +1,6 @@
 <config>
 	<comment>Example of config file: change its as your need.</comment>
 	<hostid>hostb</hostid>
-	<serverpasswd>src/main/config/serveradminkey.txt</serverpasswd>
-	<serverport>6666</serverport>
 	<serverhome>d:/GG/R66</serverhome>
 	<in>in</in>
 	<out>out</out>
@@ -11,16 +9,16 @@
 	<conf>conf</conf>
 	<serverthread>8</serverthread>
 	<clientthread>80</clientthread>
-	<sessionlimit2>102400</sessionlimit2>
-	<globallimit2>1024000</globallimit2>
-	<sessionlimit>0</sessionlimit>
-	<globallimit>0</globallimit>
-	<delaylimit>0</delaylimit>
 	<timeoutcon>10000</timeoutcon>
 	<deleteonabort>0</deleteonabort>
 	<usenio>0</usenio>
 	<usefastmd5>1</usefastmd5>
 	<fastmd5>D:/NEWJARS/gglib/win32/MD5.dll</fastmd5>
 	<blocksize>65536</blocksize>
+	<sessionlimit2>102400</sessionlimit2>
+	<globallimit2>1024000</globallimit2>
+	<sessionlimit>0</sessionlimit>
+	<globallimit>0</globallimit>
+	<delaylimit>0</delaylimit>
 	<authentfile>d:/GG/R66/conf/authent.xml</authentfile>
 </config>

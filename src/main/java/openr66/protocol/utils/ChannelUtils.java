@@ -23,7 +23,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 import openr66.database.data.DbTaskRunner;
-import openr66.protocol.config.Configuration;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.AbstractLocalPacket;
