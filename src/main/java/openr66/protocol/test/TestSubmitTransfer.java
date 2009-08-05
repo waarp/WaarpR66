@@ -121,9 +121,9 @@ public class TestSubmitTransfer implements Runnable {
         if (logger == null) {
             logger = GgInternalLoggerFactory.getLogger(TestSubmitTransfer.class);
         }
-        if (args.length < 4) {
+        if (args.length < 5) {
             logger
-                    .error("Needs at least the configuration file, the remoteHost Id, the file to transfer, the rule as arguments and optionally isMD5=1 for true or 0 for false(default)");
+                    .error("Needs at least the configuration file, the remoteHost Id, the file to transfer, the rule as arguments, number and optionally isMD5=1 for true or 0 for false(default)");
             return;
         }
         if (! FileBasedConfiguration
@@ -135,15 +135,15 @@ public class TestSubmitTransfer implements Runnable {
         String rhost = args[1];
         String localFilename = args[2];
         String rule = args[3];
+        int nb = Integer.parseInt(args[4]);
 
         boolean isMD5 = false;
-        if (args.length > 4) {
-            if (args[4].equals("1")) {
+        if (args.length > 5) {
+            if (args[5].equals("1")) {
                 isMD5 = true;
             }
         }
         ExecutorService executorService = Executors.newCachedThreadPool();
-        int nb = 2;
         R66Future[] arrayFuture = new R66Future[nb];
 
         logger.warn("Start");

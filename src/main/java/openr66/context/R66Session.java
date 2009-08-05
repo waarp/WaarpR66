@@ -403,9 +403,10 @@ public class R66Session implements SessionInterface {
             }
             runner.saveStatus();
             if (runner.isRetrieve()) {
-                // Nothing to do
+                // Nothing to do since it is the original file
             } else {
                 if (!runner.isFileMoved()) {
+                    // Result file was not moved so move it
                     String finalpath = dir.getFinalUniqueFilename(file);
                     logger.info("Will move file " + finalpath);
                     try {

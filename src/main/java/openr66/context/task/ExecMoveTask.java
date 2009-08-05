@@ -47,12 +47,12 @@ import org.apache.commons.exec.PumpStreamHandler;
  * @author Frederic Bregier
  *
  */
-public class ExecRenameTask extends AbstractTask {
+public class ExecMoveTask extends AbstractTask {
     /**
      * Internal Logger
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
-            .getLogger(ExecRenameTask.class);
+            .getLogger(ExecMoveTask.class);
 
     /**
      * @param argRule
@@ -60,9 +60,9 @@ public class ExecRenameTask extends AbstractTask {
      * @param argTransfer
      * @param session
      */
-    public ExecRenameTask(String argRule, int delay, String argTransfer,
+    public ExecMoveTask(String argRule, int delay, String argTransfer,
             R66Session session) {
-        super(TaskType.EXECRENAME, delay, argRule, argTransfer, session);
+        super(TaskType.EXECMOVE, delay, argRule, argTransfer, session);
     }
 
     /*
@@ -197,18 +197,19 @@ public class ExecRenameTask extends AbstractTask {
             }
             // now test if the previous file was deleted (should be)
             File file = new File(newname);
-            if (file.exists()) {
-                try {
-                    if (session.getFile().isFile()) {
-                        // not deleted, so do it now
-                        try {
-                            session.getFile().delete();
-                        } catch (CommandAbstractException e) {
-                            logger.warn("Original File cannot be deleted", e);
-                        }
+            if (! file.exists()) {
+                logger.warn("New file does not exist at the end of the exec: "+newname);
+            }
+            try {
+                if (session.getFile().isFile()) {
+                    // not deleted, so do it now
+                    try {
+                        session.getFile().delete();
+                    } catch (CommandAbstractException e) {
+                        logger.warn("Original File cannot be deleted", e);
                     }
-                } catch (CommandAbstractException e) {
                 }
+            } catch (CommandAbstractException e) {
             }
             // now replace the file with the new one
             try {
@@ -218,6 +219,7 @@ public class ExecRenameTask extends AbstractTask {
                         .warn("Exec in warning with " + commandLine.toString(),
                                 e);
             }
+            session.getRunner().setFileMoved(true);
             futureCompletion.setSuccess();
             logger.info("Exec OK with " + commandLine.toString() + " returns " +
                     newname);

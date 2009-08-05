@@ -45,6 +45,20 @@ import ch.qos.logback.classic.Level;
  *
  */
 public class TestTransferNoDb extends DirectTransfer {
+    static int nb = 100;
+    /**
+     * This method could be overridden in each implementation for special argument
+     * @param args
+     * @param rank
+     * @return the new index or 0 or less if an error occurs
+     */
+    protected static int getSpecialParams(String []args, int rank) {
+        if (args[rank].equalsIgnoreCase("-nb")) {
+            rank++;
+            nb = Integer.parseInt(args[rank]);
+        }
+        return rank;
+    }
 
     public TestTransferNoDb(R66Future future, String remoteHost,
             String filename, String rulename, String fileinfo, boolean isMD5, int blocksize,
@@ -74,7 +88,6 @@ public class TestTransferNoDb extends DirectTransfer {
         NetworkTransaction networkTransaction = new NetworkTransaction();
         try {
             ExecutorService executorService = Executors.newCachedThreadPool();
-            int nb = 100;
 
             R66Future[] arrayFuture = new R66Future[nb];
             logger.warn("Start");

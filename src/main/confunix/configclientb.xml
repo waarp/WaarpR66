@@ -1,0 +1,22 @@
+<config>
+	<comment>Example of config file: change its as your need.</comment>
+	<hostid>hostb</hostid>
+	<serverhome>/appli/GGFTP/R66</serverhome>
+	<in>in</in>
+	<out>out</out>
+	<arch>arch</arch>
+	<work>work</work>
+	<conf>conf</conf>
+	<serverthread>49</serverthread>
+	<clientthread>800</clientthread>
+	<timeoutcon>10000</timeoutcon>
+	<deleteonabort>0</deleteonabort>
+	<usenio>0</usenio>
+	<usefastmd5>1</usefastmd5>
+	<fastmd5>/appli/GGFTP/lib/MD5.so</fastmd5>
+	<blocksize>65536</blocksize>
+	<dbdriver>h2</dbdriver>
+	<dbserver>jdbc:h2:/appli/GGFTP/R66/data/openr66b;IFEXISTS=TRUE;MODE=Oracle;AUTO_SERVER=TRUE</dbserver>
+	<dbuser>openr66</dbuser>
+	<dbpasswd>openr66</dbpasswd>
+</config>

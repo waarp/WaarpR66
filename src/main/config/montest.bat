@@ -7,20 +7,21 @@ set ORIGNAME=%4
 set /A INDEX=1
 :loop
 IF (%1)==() GOTO CLEANUP
-echo arg %INDEX% %1 >> D:\GG\R66\conf\log.txt
+REM echo arg %INDEX% %1 >> D:\GG\R66\conf\log.txt
 shift
 set /A INDEX=INDEX+1
 goto loop
 :CLEANUP
 
-echo test on "%FINALNAME%" "%ORIGNAME%" >> D:\GG\R66\conf\log.txt
+REM echo test on "%FINALNAME%" "%ORIGNAME%" >> D:\GG\R66\conf\log.txt
 if "%FINALNAME%"=="%ORIGNAME%" goto ok
 
-echo copy %FILEIN% %FILEOUT% >> D:\GG\R66\conf\log.txt
+REM echo copy %FILEIN% %FILEOUT% >> D:\GG\R66\conf\log.txt
 copy %FILEIN% %FILEOUT%
 set MYERROR=%ERRORLEVEL%
 IF %MYERROR% NEQ 0 goto ko
 
+REM echo end of copy %FILEIN% %FILEOUT% >> D:\GG\R66\conf\log.txt
 echo %FILEOUT%
 exit /B 0
 
@@ -30,6 +31,6 @@ echo file copy in error
 exit /B %MYERROR%
 
 :ok
-echo no file copy since source >> D:\GG\R66\conf\log.txt
+REM echo no file copy since source >> D:\GG\R66\conf\log.txt
 echo no file copy since source
 exit /B 1
