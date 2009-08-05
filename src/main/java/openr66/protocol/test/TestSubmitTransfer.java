@@ -126,9 +126,8 @@ public class TestSubmitTransfer implements Runnable {
                     .error("Needs at least the configuration file, the remoteHost Id, the file to transfer, the rule as arguments and optionally isMD5=1 for true or 0 for false(default)");
             return;
         }
-        FileBasedConfiguration fileBasedConfiguration = new FileBasedConfiguration();
-        if (! fileBasedConfiguration
-                .setConfigurationFromXml(args[0])) {
+        if (! FileBasedConfiguration
+                .setClientConfigurationFromXml(args[0])) {
             logger
                     .error("Needs a correct configuration file as first argument");
             return;

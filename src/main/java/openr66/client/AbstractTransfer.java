@@ -35,21 +35,21 @@ public abstract class AbstractTransfer implements Runnable {
     /**
      * Internal Logger
      */
-    static GgInternalLogger logger;
+    static protected GgInternalLogger logger;
 
-    final R66Future future;
+    protected final R66Future future;
 
-    final String filename;
+    protected final String filename;
 
-    final String rulename;
+    protected final String rulename;
 
-    final String fileinfo;
+    protected final String fileinfo;
 
-    final boolean isMD5;
+    protected final boolean isMD5;
 
-    final String remoteHost;
+    protected final String remoteHost;
 
-    final int blocksize;
+    protected final int blocksize;
 
 
     /**
@@ -77,12 +77,12 @@ public abstract class AbstractTransfer implements Runnable {
         this.blocksize = blocksize;
     }
 
-    static String rhost = null;
-    static String localFilename = null;
-    static String rule = null;
-    static String fileInfo = null;
-    static boolean ismd5 = false;
-    static int block = 0x10000; // 64K as default
+    static protected String rhost = null;
+    static protected String localFilename = null;
+    static protected String rule = null;
+    static protected String fileInfo = null;
+    static protected boolean ismd5 = false;
+    static protected int block = 0x10000; // 64K as default
     /**
      * This method could be overridden in each implementation for special argument
      * @param args

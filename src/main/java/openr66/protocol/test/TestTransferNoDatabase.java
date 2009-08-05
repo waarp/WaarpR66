@@ -159,9 +159,8 @@ public class TestTransferNoDatabase implements Runnable {
                     .error("Needs at least the configuration file, the file to transfer, the rule as arguments");
             return;
         }
-        FileBasedConfiguration fileBasedConfiguration = new FileBasedConfiguration();
-        if (! fileBasedConfiguration
-                .setConfigurationFromXml(args[0])) {
+        if (! FileBasedConfiguration
+                .setClientConfigurationFromXml(args[0])) {
             logger
                     .error("Needs a correct configuration file as first argument");
             return;
@@ -185,6 +184,10 @@ public class TestTransferNoDatabase implements Runnable {
             TestTransferNoDatabase transaction = new TestTransferNoDatabase(networkTransaction,
                     arrayFuture[i], socketServerAddress, localFilename, rule);
             executorService.execute(transaction);
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException e) {
+            }
         }
         int success = 0;
         int error = 0;

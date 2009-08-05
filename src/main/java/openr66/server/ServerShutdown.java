@@ -113,7 +113,6 @@ public class ServerShutdown {
         } else if (lastException != null) {
             logger.warn("Connection retry since ", lastException);
         }
-        logger.warn("Start");
         ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet);
         localChannelReference.getFutureRequest().awaitUninterruptibly();
         if (localChannelReference.getFutureRequest().isSuccess()) {

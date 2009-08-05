@@ -126,6 +126,10 @@ public class ClientRunner implements Runnable {
             throw new OpenR66ProtocolNoConnectionException("Cannot connect to server");
         }
 
+        if (taskRunner.getRank() > 0) {
+            // start from one rank before
+            taskRunner.setRankAtStartup(taskRunner.getRank()-1);
+        }
         RequestPacket request = taskRunner.getRequest();
         logger.info("Will send request "+request.toString());
         try {

@@ -26,7 +26,6 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 
 import java.sql.Timestamp;
 import java.sql.Types;
-import java.util.Random;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
@@ -357,8 +356,10 @@ public class DbTaskRunner extends AbstractDbData {
         requesterHostId = requester;
 
         select();
-        if (!ruleId.equals(rule.idRule)) {
-            throw new OpenR66DatabaseNoDataException("Rule does not correspond");
+        if (rule != null) {
+            if (!ruleId.equals(rule.idRule)) {
+                throw new OpenR66DatabaseNoDataException("Rule does not correspond");
+            }
         }
     }
 
@@ -462,8 +463,7 @@ public class DbTaskRunner extends AbstractDbData {
         if (dbSession == null) {
             if (specialId == DbConstant.ILLEGALVALUE) {
                 logger.info("New SpecialId is not possible with No Database Model");
-                Random random = new Random();
-                specialId = random.nextLong();
+                specialId = System.currentTimeMillis();
             }
             isSaved = true;
             return;
@@ -1047,7 +1047,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
     @Override
     public String toString() {
-        return "Run: " + (rule != null? rule.toString() : "no Rule") + " on " +
+        return "Run: " + (rule != null? rule.toString() : ruleId) + " on " +
                 filename + " STEP: " + globalstep + ":" + step + ":" + status.mesg +
                 ":" + rank + " SpecialId: " + specialId + " isRetr: " +
                 isRetrieve + " isMoved: " + isFileMoved;

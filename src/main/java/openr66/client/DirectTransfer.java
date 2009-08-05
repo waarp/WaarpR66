@@ -51,8 +51,8 @@ import ch.qos.logback.classic.Level;
  *
  */
 public class DirectTransfer extends AbstractTransfer {
-    final NetworkTransaction networkTransaction;
-    static boolean nolog = false;
+    protected final NetworkTransaction networkTransaction;
+    static protected boolean nolog = false;
 
     protected static int getSpecialParams(String []args, int rank) {
         if (args[rank].equalsIgnoreCase("-nolog")) {
@@ -151,7 +151,7 @@ public class DirectTransfer extends AbstractTransfer {
         InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
                 Level.WARN));
         if (logger == null) {
-            logger = GgInternalLoggerFactory.getLogger(SubmitTransfer.class);
+            logger = GgInternalLoggerFactory.getLogger(DirectTransfer.class);
         }
         if (! getParams(args)) {
             logger.error("Wrong initialization");

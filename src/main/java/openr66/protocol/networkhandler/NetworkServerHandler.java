@@ -72,7 +72,7 @@ public class NetworkServerHandler extends SimpleChannelHandler {
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) {
         if (NetworkTransaction.getNbLocalChannel(e.getChannel()) > 0) {
-            logger.warn("Network Channel Closed: " + e.getChannel().getId() +
+            logger.info("Network Channel Closed: " + e.getChannel().getId() +
                     " LocalChannels Left: " +
                     NetworkTransaction.getNbLocalChannel(e.getChannel()));
             // close if necessary the local channel
