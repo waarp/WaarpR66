@@ -47,17 +47,21 @@ import ch.qos.logback.classic.Level;
 public class TestTransferNoDb extends DirectTransfer {
     static int nb = 100;
     /**
-     * This method could be overridden in each implementation for special argument
      * @param args
      * @param rank
-     * @return the new index or 0 or less if an error occurs
+     * @return True if OK
      */
-    protected static int getSpecialParams(String []args, int rank) {
-        if (args[rank].equalsIgnoreCase("-nb")) {
-            rank++;
-            nb = Integer.parseInt(args[rank]);
+    protected static boolean getSpecialParams(String []args, int rank) {
+        for (int i = rank; i<args.length; i++) {
+            if (args[i].equalsIgnoreCase("-nb")) {
+                i++;
+                nb = Integer.parseInt(args[i]);
+            } else if (args[i].equalsIgnoreCase("-md5")) {
+            } else if (args[i].startsWith("-")) {
+                i++;// jump one
+            }
         }
-        return rank;
+        return true;
     }
 
     public TestTransferNoDb(R66Future future, String remoteHost,
@@ -83,6 +87,7 @@ public class TestTransferNoDb extends DirectTransfer {
             }
             System.exit(1);
         }
+        getSpecialParams(args, 1);
 
         Configuration.configuration.pipelineInit();
         NetworkTransaction networkTransaction = new NetworkTransaction();

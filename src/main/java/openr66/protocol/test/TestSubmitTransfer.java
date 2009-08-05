@@ -20,21 +20,15 @@
  */
 package openr66.protocol.test;
 
-import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import openr66.configuration.FileBasedConfiguration;
+import openr66.client.SubmitTransfer;
 import openr66.database.DbConstant;
-import openr66.database.data.AbstractDbData;
-import openr66.database.data.DbRule;
-import openr66.database.data.DbTaskRunner;
-import openr66.database.exception.OpenR66DatabaseException;
-import openr66.protocol.configuration.Configuration;
-import openr66.protocol.localhandler.packet.RequestPacket;
+import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.utils.R66Future;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
@@ -45,104 +39,49 @@ import ch.qos.logback.classic.Level;
  * @author Frederic Bregier
  *
  */
-public class TestSubmitTransfer implements Runnable {
+public class TestSubmitTransfer extends SubmitTransfer {
+    static int nb = 100;
     /**
-     * Internal Logger
+     * @param args
+     * @param rank
+     * @return True if OK
      */
-    private static GgInternalLogger logger;
-
-    final private R66Future future;
-
-    final private String filename;
-
-    final private String rulename;
-
-    final private boolean isMD5;
-
-    final private String remoteHost;
-
-    public TestSubmitTransfer(R66Future future, String remoteHost,
-            String filename, String rulename, boolean isMD5) {
-        if (logger == null) {
-            logger = GgInternalLoggerFactory.getLogger(TestSubmitTransfer.class);
+    protected static boolean getSpecialParams(String []args, int rank) {
+        for (int i = rank; i<args.length; i++) {
+            if (args[i].equalsIgnoreCase("-nb")) {
+                i++;
+                nb = Integer.parseInt(args[i]);
+            } else if (args[i].equalsIgnoreCase("-md5")) {
+            } else if (args[i].startsWith("-")) {
+                i++;// jump one
+            }
         }
-        this.remoteHost = remoteHost;
-        this.future = future;
-        this.filename = filename;
-        this.rulename = rulename;
-        this.isMD5 = isMD5;
+        return true;
     }
 
-    public void run() {
-        // FIXME data transfer
-        // int block = 101;
-        int block = Configuration.configuration.BLOCKSIZE;
-        DbRule rule;
-        try {
-            rule = new DbRule(DbConstant.admin.session, rulename);
-        } catch (OpenR66DatabaseException e) {
-            // TODO Auto-generated catch block
-            logger.error("Cannot get Rule: "+rulename, e);
-            future.setFailure(e);
-            return;
-        }
-        int mode = rule.mode;
-        if (isMD5) {
-            mode = RequestPacket.getModeMD5(mode);
-        }
-        RequestPacket request = new RequestPacket(rulename,
-                mode, filename, block, 0,
-                DbConstant.ILLEGALVALUE, "MONTEST test.xml");
-        // Not isRecv since it is the requester, so send => isRetrieve is true
-        boolean isRetrieve = ! RequestPacket.isRecvMode(request.getMode());
-        DbTaskRunner taskRunner;
-        try {
-            taskRunner =
-                new DbTaskRunner(DbConstant.admin.session,rule,isRetrieve,request,remoteHost);
-        } catch (OpenR66DatabaseException e) {
-            logger.error("Cannot get task", e);
-            future.setFailure(e);
-            return;
-        }
-        taskRunner.changeUpdatedInfo(AbstractDbData.UpdatedInfo.UPDATED);
-        try {
-            taskRunner.update();
-        } catch (OpenR66DatabaseException e) {
-            logger.error("Cannot prepare task", e);
-            future.setFailure(e);
-            return;
-        }
-        future.setSuccess();
+    public TestSubmitTransfer(R66Future future, String remoteHost,
+            String filename, String rulename, String fileinfo, boolean isMD5, int blocksize) {
+        super(future, remoteHost, filename, rulename, fileinfo, isMD5, blocksize);
     }
 
     public static void main(String[] args) {
         InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
                 Level.WARN));
         if (logger == null) {
-            logger = GgInternalLoggerFactory.getLogger(TestSubmitTransfer.class);
+            logger = GgInternalLoggerFactory.getLogger(SubmitTransfer.class);
         }
-        if (args.length < 5) {
-            logger
-                    .error("Needs at least the configuration file, the remoteHost Id, the file to transfer, the rule as arguments, number and optionally isMD5=1 for true or 0 for false(default)");
-            return;
-        }
-        if (! FileBasedConfiguration
-                .setClientConfigurationFromXml(args[0])) {
-            logger
-                    .error("Needs a correct configuration file as first argument");
-            return;
-        }
-        String rhost = args[1];
-        String localFilename = args[2];
-        String rule = args[3];
-        int nb = Integer.parseInt(args[4]);
-
-        boolean isMD5 = false;
-        if (args.length > 5) {
-            if (args[5].equals("1")) {
-                isMD5 = true;
+        if (! getParams(args)) {
+            logger.error("Wrong initialization");
+            if (DbConstant.admin != null && DbConstant.admin.isConnected) {
+                try {
+                    DbConstant.admin.close();
+                } catch (OpenR66DatabaseSqlError e) {
+                }
             }
+            System.exit(1);
         }
+        getSpecialParams(args, 1);
+
         ExecutorService executorService = Executors.newCachedThreadPool();
         R66Future[] arrayFuture = new R66Future[nb];
 
@@ -150,7 +89,7 @@ public class TestSubmitTransfer implements Runnable {
         for (int i = 0; i < nb; i ++) {
             arrayFuture[i] = new R66Future(true);
             TestSubmitTransfer transaction = new TestSubmitTransfer(arrayFuture[i],
-                    rhost, localFilename, rule, isMD5);
+                    rhost, localFilename, rule, fileInfo, ismd5, block);
             //executorService.execute(transaction);
             transaction.run();
         }

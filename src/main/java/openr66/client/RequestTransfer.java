@@ -29,7 +29,6 @@ import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
 import openr66.configuration.FileBasedConfiguration;
-import openr66.context.filesystem.R66File;
 import openr66.database.DbConstant;
 import openr66.database.data.DbTaskRunner;
 import openr66.database.exception.OpenR66DatabaseException;

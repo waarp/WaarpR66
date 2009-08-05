@@ -52,15 +52,6 @@ import ch.qos.logback.classic.Level;
  */
 public class DirectTransfer extends AbstractTransfer {
     protected final NetworkTransaction networkTransaction;
-    static protected boolean nolog = false;
-
-    protected static int getSpecialParams(String []args, int rank) {
-        if (args[rank].equalsIgnoreCase("-nolog")) {
-            nolog = true;
-            rank++;
-        }
-        return rank;
-    }
 
     public DirectTransfer(R66Future future, String remoteHost,
             String filename, String rulename, String fileinfo, boolean isMD5, int blocksize,

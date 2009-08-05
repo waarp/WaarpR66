@@ -83,15 +83,8 @@ public abstract class AbstractTransfer implements Runnable {
     static protected String fileInfo = null;
     static protected boolean ismd5 = false;
     static protected int block = 0x10000; // 64K as default
-    /**
-     * This method could be overridden in each implementation for special argument
-     * @param args
-     * @param rank
-     * @return the new index or 0 or less if an error occurs
-     */
-    protected static int getSpecialParams(String []args, int rank) {
-        return rank;
-    }
+    static protected boolean nolog = false;
+
     /**
      * Parse the parameter and set current values
      * @param args
@@ -110,7 +103,6 @@ public abstract class AbstractTransfer implements Runnable {
                     .error("Needs a correct configuration file as first argument");
             return false;
         }
-        int value;
         for (int i = 1; i < args.length; i++) {
             if (args[i].equalsIgnoreCase("-to")) {
                 i++;
@@ -133,13 +125,9 @@ public abstract class AbstractTransfer implements Runnable {
                     logger.error("Block size is too small: "+block);
                     return false;
                 }
-            } else {
-                value = getSpecialParams(args, i);
-                if (value > 0) {
-                    i = value;
-                } else {
-                    return false;
-                }
+            } else if (args[i].equalsIgnoreCase("-nolog")) {
+                nolog = true;
+                i++;
             }
         }
         if (rhost != null && rule != null && localFilename != null) {

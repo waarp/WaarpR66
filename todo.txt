@@ -3,22 +3,6 @@
   	;USER=sa;PASSWORD=123
 	;IFEXISTS=TRUE ??
 	;MODE=Oracle
-- table:
-  - hosts: hostid, hostkey, adminrole
-  - rules: idrule, hostids, recvpath, sendpath, archivepath, workpath, pretasks, posttasks, errortasks
-  - runner: specialid, globalstep, step, rank, stepstatus, retrievemode, filename, ismoved, idrule
-ajouter a runner info de request (blocksize, fileInformation, origfilename, mode)
-  - configuration: readgloballimit, writegloballimit, readsessionlimit, writesessionlimit, delaylimit, hostid
-ajouter a tous un champ: updatedinfo qui true => relecture puis set false
-=> runner: getAll
-=> runner uniquement au démarrage, rules et hosts ne seront plus dans hashtablemais accéder
-directement depuis table (éviter de changer de règles ou d'identification pendant un transfert)
-crée une copie pour chaque usage (newRule, newHost, ...)
-=> en cas de shutdown => svg des runner en cours
-=> permet de mettre à jour la conf dynamiquement
-Conf générale : fichier xml qui doit être rechargé si modif (arrêt puis relance)
-Voir si des paramètres pourraient être dynamiques dans table (si oui, une procédure de lecteur à
-intervalle régulier doit exister)
 Le fichier de conf pourrait être lui aussi transmis et rechargé (arrêt, relance)
 - les clients locaux soumettent des ordres via la table runner (et dans certains cas hosts et rule)
 - si des stats sont nécessaires: runner mis à jour par interval (tous les 10 packets par ex)
@@ -31,11 +15,6 @@ doit permettre de relancer un job, de l'arreter, de l'annuler, de programmer un 
 configuration à recharger ou à transmettre)
 - Version light de OpenR66: dès qu'un transfert est OK, vidage de la table runner
 
-PRIMARY KEY RUNNER : specialId+requested (puisque c'est lui qui fixe)
-Changer objet pour Objet+Database
-Permettre l'extension facilitée des pre et post tasks (un seul fichier à modifier)
-
-Voire à charger les données depuis ou vers la base...
 
 benchmark: 100 fichiers en parallèle de 1174036 o = 32/s => 286 Mbits (idem avec ou sans MD5)
 benchmark: 1000 submission en parallèle idem = 59/s => 527 Mbits
