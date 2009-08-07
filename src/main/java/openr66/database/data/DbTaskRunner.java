@@ -269,7 +269,9 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * Constructor for submission (no transfer session)
+     * Constructor for submission (no transfer session), from database it is created, so with a new
+     * specialId if necessary
+     *
      * @param dbSession
      * @param rule
      * @param isRetrieve
@@ -303,7 +305,7 @@ public class DbTaskRunner extends AbstractDbData {
        create();
    }
     /**
-     * Constructor from a request with invalid Special Id
+     * Constructor from a request with a valid Special Id
      * @param dbSession
      * @param session
      * @param rule
