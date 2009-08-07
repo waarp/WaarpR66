@@ -26,6 +26,8 @@ import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
+import openr66.database.data.DbTaskRunner;
+import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.packet.ErrorPacket;
@@ -68,33 +70,24 @@ public class RetrieveRunner implements Runnable {
     public void run() {
         Thread.currentThread().setName("RetrieveRunner: " + channel.getId());
         try {
+            if (session.getRunner().getGloballaststep() == DbTaskRunner.POSTTASK) {
+                // restart from PostTask global step so just end now
+                try {
+                    ChannelUtils.writeValidEndTransfer(localChannelReference,
+                            session.getRunner());
+                } catch (OpenR66ProtocolPacketException e) {
+                    transferInError(e);
+                    logger.warn("End Retrieve in Error");
+                    return;
+                }
+            }
             session.getFile().retrieveBlocking();
         } catch (OpenR66RunnerErrorException e) {
-            R66Result result = new R66Result(e, session, true,
-                    ErrorCode.TransferError);
-            localChannelReference.invalidateRequest(result);
-            logger.error("Transfer in error", e);
-            ErrorPacket error = new ErrorPacket("Transfer in error",
-                    ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
-            try {
-                ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
-            } catch (OpenR66ProtocolPacketException e1) {
-            }
-            ChannelUtils.close(channel);
+            transferInError(e);
             logger.warn("End Retrieve in Error");
             return;
         } catch (OpenR66ProtocolSystemException e) {
-            R66Result result = new R66Result(e, session, true,
-                    ErrorCode.TransferError);
-            localChannelReference.invalidateRequest(result);
-            logger.error("Transfer in error", e);
-            ErrorPacket error = new ErrorPacket("Transfer in error",
-                    ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
-            try {
-                ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
-            } catch (OpenR66ProtocolPacketException e1) {
-            }
-            ChannelUtils.close(channel);
+            transferInError(e);
             logger.warn("End Retrieve in Error");
             return;
         }
@@ -127,5 +120,19 @@ public class RetrieveRunner implements Runnable {
             logger.warn("End Retrieve in Error");
             return;
         }
+    }
+    private void transferInError(OpenR66Exception e) {
+        R66Result result = new R66Result(e, session, true,
+                ErrorCode.TransferError);
+        localChannelReference.invalidateRequest(result);
+        logger.error("Transfer in error", e);
+        ErrorPacket error = new ErrorPacket("Transfer in error",
+                ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
+        try {
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
+        } catch (OpenR66ProtocolPacketException e1) {
+        }
+        ChannelUtils.close(channel);
+        return;
     }
 }

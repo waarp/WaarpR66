@@ -143,7 +143,7 @@ public class NetworkServerHandler extends SimpleChannelHandler {
             try {
                 localChannelReference = Configuration.configuration
                         .getLocalTransaction().createNewClient(e.getChannel(),
-                                packet.getRemoteId());
+                                packet.getRemoteId(), null);
                 NetworkTransaction.addNetworkChannel(e.getChannel());
                 logger.info("Create LocalChannel: " +
                         localChannelReference.getLocalId());

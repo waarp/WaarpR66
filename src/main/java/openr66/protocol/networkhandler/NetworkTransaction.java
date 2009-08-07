@@ -103,15 +103,17 @@ public class NetworkTransaction {
     /**
      * Create a connection to the specified socketAddress with multiple retries
      * @param socketAddress
+     * @param futureRequest
      * @return the LocalChannelReference
      */
-    public LocalChannelReference createConnectionWithRetry(SocketAddress socketAddress) {
+    public LocalChannelReference createConnectionWithRetry(SocketAddress socketAddress,
+            R66Future futureRequest) {
         LocalChannelReference localChannelReference = null;
         OpenR66Exception lastException = null;
         for (int i = 0; i < Configuration.RETRYNB; i ++) {
             try {
                 localChannelReference =
-                        createConnection(socketAddress);
+                        createConnection(socketAddress, futureRequest);
                 break;
             } catch (OpenR66ProtocolNetworkException e1) {
                 lastException = e1;
@@ -136,19 +138,21 @@ public class NetworkTransaction {
     /**
      * Create a connection to the specified socketAddress
      * @param socketAddress
+     * @param futureRequest
      * @return the LocalChannelReference
      * @throws OpenR66ProtocolNetworkException
      * @throws OpenR66ProtocolRemoteShutdownException
      * @throws OpenR66ProtocolNoConnectionException
      */
-    public LocalChannelReference createConnection(SocketAddress socketAddress)
+    public LocalChannelReference createConnection(SocketAddress socketAddress,
+            R66Future futureRequest)
             throws OpenR66ProtocolNetworkException,
             OpenR66ProtocolRemoteShutdownException,
             OpenR66ProtocolNoConnectionException {
         lock.lock();
         try {
             Channel channel = createNewConnection(socketAddress);
-            LocalChannelReference localChannelReference = createNewClient(channel);
+            LocalChannelReference localChannelReference = createNewClient(channel, futureRequest);
             sendValidationConnection(localChannelReference);
             return localChannelReference;
         } finally {
@@ -211,14 +215,15 @@ public class NetworkTransaction {
         throw new OpenR66ProtocolNetworkException(
                 "Cannot connect to remote server", channelFuture.getCause());
     }
-    /**
+   /**
      *
      * @param channel
+     * @param futureRequest
      * @return the LocalChannelReference
      * @throws OpenR66ProtocolNetworkException
      * @throws OpenR66ProtocolRemoteShutdownException
      */
-    private LocalChannelReference createNewClient(Channel channel)
+    private LocalChannelReference createNewClient(Channel channel, R66Future futureRequest)
             throws OpenR66ProtocolNetworkException,
             OpenR66ProtocolRemoteShutdownException {
         // FIXME WARNING
@@ -229,8 +234,8 @@ public class NetworkTransaction {
         LocalChannelReference localChannelReference = null;
         try {
             localChannelReference = Configuration.configuration
-                    .getLocalTransaction().createNewClient(channel,
-                            ChannelUtils.NOCHANNEL);
+                .getLocalTransaction().createNewClient(channel,
+                ChannelUtils.NOCHANNEL, futureRequest);
         } catch (OpenR66ProtocolSystemException e) {
             throw new OpenR66ProtocolNetworkException(
                     "Cannot connect to local channel", e);
@@ -291,6 +296,10 @@ public class NetworkTransaction {
         networkChannelGroup.close().awaitUninterruptibly();
         clientBootstrap.releaseExternalResources();
         channelClientFactory.releaseExternalResources();
+        try {
+            Thread.sleep(Configuration.WAITFORNETOP);
+        } catch (InterruptedException e) {
+        }
         OpenR66SignalHandler.closeAllConnection();
     }
     /**

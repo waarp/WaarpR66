@@ -43,7 +43,7 @@ public abstract class AbstractDbModel {
     /**
      * Reset the sequence for Runner SpecialIds
      */
-    public abstract void resetSequence();
+    public abstract void resetSequence(long newvalue);
 
     /**
      * @param dbSession

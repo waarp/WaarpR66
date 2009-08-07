@@ -22,8 +22,10 @@ import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
+import openr66.protocol.exception.OpenR66ProtocolBusinessCancelException;
 import openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
+import openr66.protocol.exception.OpenR66ProtocolBusinessStopException;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolNoDataException;
@@ -215,7 +217,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     shutdown(e.getChannel(), (ShutdownPacket) packet);
                     break;
                 }
-                case LocalPacketFactory.STATUSPACKET:
+                case LocalPacketFactory.STOPPACKET:
                 case LocalPacketFactory.CANCELPACKET:
                 case LocalPacketFactory.CONFIGSENDPACKET:
                 case LocalPacketFactory.CONFIGRECVPACKET: {
@@ -302,6 +304,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 }
                 if (exception instanceof OpenR66ProtocolNoConnectionException) {
                     code = ErrorCode.ConnectionImpossible;
+                } else if (exception instanceof OpenR66ProtocolBusinessCancelException) {
+                    code = ErrorCode.CanceledTransfer;
+                } else if (exception instanceof OpenR66ProtocolBusinessStopException) {
+                    code = ErrorCode.StoppedTransfer;
                 } else if (exception instanceof OpenR66RunnerException) {
                     code = ErrorCode.ExternalOp;
                 } else if (exception instanceof OpenR66ProtocolNotAuthenticatedException) {
@@ -429,26 +435,34 @@ public class LocalServerHandler extends SimpleChannelHandler {
         logger.error(channel.getId() + ": " + packet.toString());
         localChannelReference.invalidateRequest(new R66Result(
                 new OpenR66ProtocolSystemException(packet.getSheader()),
-                session, true, ErrorCode.ConnectionImpossible)); // True
-                                                                    // since
-                                                                    // closing
+                session, true, ErrorCode.ConnectionImpossible));
+        // True since closing
         Channels.close(channel);
     }
     /**
      * Receive a remote error
      * @param channel
      * @param packet
-     * @throws OpenR66ProtocolBusinessNoWriteBackException
      * @throws OpenR66RunnerErrorException
      * @throws OpenR66ProtocolSystemException
+     * @throws OpenR66ProtocolBusinessException
      */
     private void error(Channel channel, ErrorPacket packet)
-            throws OpenR66ProtocolBusinessNoWriteBackException,
-            OpenR66RunnerErrorException, OpenR66ProtocolSystemException {
+            throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException, OpenR66ProtocolBusinessException {
         // FIXME do something according to the error
         logger.error(channel.getId() + ": " + packet.toString());
-        OpenR66ProtocolBusinessNoWriteBackException exception = new OpenR66ProtocolBusinessNoWriteBackException(
-                packet.toString());
+        ErrorCode code = ErrorCode.getFromCode(packet.getSmiddle());
+        OpenR66ProtocolBusinessException exception;
+        if (code.code == ErrorCode.CanceledTransfer.code) {
+            exception =
+                new OpenR66ProtocolBusinessCancelException(packet.getSheader());
+        } else if (code.code == ErrorCode.StoppedTransfer.code) {
+            exception =
+                new OpenR66ProtocolBusinessStopException(packet.getSheader());
+        } else {
+            exception =
+                new OpenR66ProtocolBusinessNoWriteBackException(packet.toString());
+        }
         ErrorCode rcode = ErrorCode.RemoteError;
         if (packet.getSmiddle() != null) {
             rcode = ErrorCode.getFromCode(packet.getSmiddle());
@@ -456,6 +470,20 @@ public class LocalServerHandler extends SimpleChannelHandler {
         session.setFinalizeTransfer(false, new R66Result(exception, session,
                 true, rcode));
         throw exception;
+    }
+
+    private void endInitRequestInError(Channel channel, OpenR66Exception e1) throws OpenR66ProtocolPacketException {
+        logger.error("TaskRunner initialisation in error", e1);
+        localChannelReference.invalidateRequest(new R66Result(
+                new OpenR66ProtocolSystemException(
+                        "TaskRunner initialisation in error", e1),
+                session, true, ErrorCode.Internal));
+        ErrorPacket error = new ErrorPacket(
+                "TaskRunner initialisation in error: "+e1
+                        .getMessage(),
+                        ErrorCode.RemoteError.getCode(), ErrorPacket.FORWARDCLOSECODE);
+        ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
+        ChannelUtils.close(channel);
     }
     /**
      * Receive a request
@@ -489,52 +517,67 @@ public class LocalServerHandler extends SimpleChannelHandler {
         session.setBlockSize(packet.getBlocksize());
         DbTaskRunner runner;
         if (packet.getSpecialId() != DbConstant.ILLEGALVALUE) {
-            // Reload
+            // Reload or create
             String requested = DbTaskRunner.getRequested(session, packet);
             String requester = DbTaskRunner.getRequester(session, packet);
-            try {
-                runner = new DbTaskRunner(localChannelReference.getDbSession(),
-                        session, rule, packet.getSpecialId(),
-                        requester, requested);
-            } catch (OpenR66DatabaseNoDataException e) {
-                // Should exist but not, so Reception of acknowledge request from requested host
-                boolean isRetrieve = RequestPacket.isRecvMode(packet.getMode());
-                if (!packet.isToValidate()) {
-                    isRetrieve = !isRetrieve;
-                }
+            if (packet.isToValidate()) {
+                // Id could be a creation or a reload
+                // Try reload
                 try {
                     runner = new DbTaskRunner(localChannelReference.getDbSession(),
-                            session, rule, isRetrieve, packet);
-                } catch (OpenR66DatabaseException e1) {
-                    logger.error("TaskRunner initialisation in error", e1);
-                    localChannelReference.invalidateRequest(new R66Result(
-                            new OpenR66ProtocolSystemException(
-                                    "TaskRunner initialisation in error", e1),
-                            session, true, ErrorCode.Internal));
-                    ErrorPacket error = new ErrorPacket(
-                            "TaskRunner initialisation in error: "+e1
-                                    .getMessage(),
-                                    ErrorCode.RemoteError.getCode(), ErrorPacket.FORWARDCLOSECODE);
-                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
-                    ChannelUtils.close(channel);
+                            session, rule, packet.getSpecialId(),
+                            requester, requested);
+                    if (runner.isFinished()) {
+                        // truly an error
+                        endInitRequestInError(channel,
+                            new OpenR66RunnerErrorException(
+                               "The TransferId is associated with a Transfer already finished: "+
+                               packet.getSpecialId()));
+                        return;
+                    }
+                } catch (OpenR66DatabaseNoDataException e) {
+                    // Reception of request from requester host
+                    boolean isRetrieve = RequestPacket.isRecvMode(packet.getMode());
+                    try {
+                        runner = new DbTaskRunner(localChannelReference.getDbSession(),
+                                session, rule, isRetrieve, packet);
+                    } catch (OpenR66DatabaseException e1) {
+                        endInitRequestInError(channel, e);
+                        return;
+                    }
+                } catch (OpenR66DatabaseException e) {
+                    endInitRequestInError(channel, e);
                     return;
                 }
                 // Change the SpecialID! => could generate an error ? FIXME
                 packet.setSpecialId(runner.getSpecialId());
-            } catch (OpenR66DatabaseException e) {
-                logger.error("TaskRunner initialisation in error", e);
-                localChannelReference.invalidateRequest(new R66Result(e,
-                        session, true, ErrorCode.Internal));
-                ErrorPacket error = new ErrorPacket(
-                        "TaskRunner initialisation in error: "+e.getMessage(),
-                        ErrorCode.RemoteError.getCode(),
-                        ErrorPacket.FORWARDCLOSECODE);
-                ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
-                ChannelUtils.close(channel);
-                return;
+            } else {
+                // Id should be a reload
+                try {
+                    runner = new DbTaskRunner(localChannelReference.getDbSession(),
+                            session, rule, packet.getSpecialId(),
+                            requester, requested);
+                } catch (OpenR66DatabaseException e) {
+                    if (localChannelReference.getDbSession() == null) {
+                        //Special case of no database client
+                        boolean isRetrieve = (!RequestPacket.isRecvMode(packet.getMode()));
+                        try {
+                            runner = new DbTaskRunner(localChannelReference.getDbSession(),
+                                    session, rule, isRetrieve, packet);
+                        } catch (OpenR66DatabaseException e1) {
+                            endInitRequestInError(channel, e1);
+                            return;
+                        }
+                    } else {
+                        endInitRequestInError(channel, e);
+                        return;
+                    }
+                }
             }
         } else {
             // Very new request
+            // FIXME should not be the case (the requester should always set the id)
+            logger.error("SHOULD not BE THE CASE");
             boolean isRetrieve = packet.isRetrieve();
             if (!packet.isToValidate()) {
                 isRetrieve = !isRetrieve;
@@ -543,15 +586,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 runner = new DbTaskRunner(localChannelReference.getDbSession(),
                         session, rule, isRetrieve, packet);
             } catch (OpenR66DatabaseException e) {
-                logger.error("TaskRunner initialisation in error", e);
-                localChannelReference.invalidateRequest(new R66Result(e,
-                        session, true, ErrorCode.Internal));
-                ErrorPacket error = new ErrorPacket(
-                        "TaskRunner initialisation in error: "+ e.getMessage(),
-                        ErrorCode.RemoteError.getCode(),
-                        ErrorPacket.FORWARDCLOSECODE);
-                ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
-                ChannelUtils.close(channel);
+                endInitRequestInError(channel, e);
                 return;
             }
             packet.setSpecialId(runner.getSpecialId());
@@ -576,6 +611,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             return;
         }
         session.setReady(true);
+        Configuration.configuration.getLocalTransaction().setFromId(runner, localChannelReference);
         // inform back
         if (packet.isToValidate()) {
             if (runner.isRetrieve()) {
@@ -741,7 +777,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     "Not authenticated");
         }
         switch (packet.getTypeValid()) {
-            case LocalPacketFactory.REQUESTPACKET:
+            case LocalPacketFactory.REQUESTPACKET: {
                 logger.info("Valid Request " +
                         localChannelReference.toString() + " " +
                         packet.toString());
@@ -750,7 +786,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         .getFutureEndTransfer().getResult());
                 Channels.close(channel);
                 break;
-            case LocalPacketFactory.SHUTDOWNPACKET:
+            }
+            case LocalPacketFactory.SHUTDOWNPACKET: {
                 logger.warn("Shutdown received so Will close channel" +
                         localChannelReference.toString());
                 NetworkTransaction
@@ -779,7 +816,85 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 }
                 Channels.close(channel);
                 break;
-            case LocalPacketFactory.TESTPACKET:
+            }
+            case LocalPacketFactory.STOPPACKET: {
+                // header = ?; middle = requested+blank+requester+blank+specialId
+                LocalChannelReference lcr =
+                    Configuration.configuration.getLocalTransaction().
+                    getFromRequest(packet.getSmiddle());
+                // stop the current transfer
+                R66Result resulttest;
+                if (lcr != null) {
+                    ErrorPacket error = new ErrorPacket("Transfer Stopped",
+                            ErrorCode.StoppedTransfer.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                    try {
+                        ChannelUtils.writeAbstractLocalPacket(lcr, error).awaitUninterruptibly();
+                    } catch (OpenR66ProtocolPacketException e) {
+                    }
+                    ChannelUtils.close(lcr.getLocalChannel());
+                    resulttest = new R66Result(session, true,
+                            ErrorCode.CompleteOk);
+                } else {
+                    // Transfer is not running
+                    resulttest = new R66Result(session, true,
+                            ErrorCode.TransferOk);
+                }
+                // inform back the requester
+                ValidPacket valid = new ValidPacket(packet.getSmiddle(), resulttest.code.getCode(),
+                        LocalPacketFactory.REQUESTUSERPACKET);
+                resulttest.other = packet;
+                localChannelReference.validateRequest(resulttest);
+                try {
+                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, valid).awaitUninterruptibly();
+                } catch (OpenR66ProtocolPacketException e) {
+                }
+                Channels.close(channel);
+                break;
+            }
+            case LocalPacketFactory.CANCELPACKET: {
+                // header = ?; middle = requested+blank+requester+blank+specialId
+                LocalChannelReference lcr =
+                    Configuration.configuration.getLocalTransaction().
+                    getFromRequest(packet.getSmiddle());
+                // stop the current transfer
+                R66Result resulttest;
+                if (lcr != null) {
+                    ErrorPacket error = new ErrorPacket("Transfer Canceled",
+                            ErrorCode.CanceledTransfer.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                    try {
+                        ChannelUtils.writeAbstractLocalPacket(lcr, error).awaitUninterruptibly();
+                    } catch (OpenR66ProtocolPacketException e) {
+                    }
+                    ChannelUtils.close(lcr.getLocalChannel());
+                    resulttest = new R66Result(session, true,
+                            ErrorCode.CompleteOk);
+                } else {
+                    // Transfer is not running
+                    resulttest = new R66Result(session, true,
+                            ErrorCode.TransferOk);
+                }
+                // inform back the requester
+                ValidPacket valid = new ValidPacket(packet.getSmiddle(), resulttest.code.getCode(),
+                        LocalPacketFactory.REQUESTUSERPACKET);
+                resulttest.other = packet;
+                localChannelReference.validateRequest(resulttest);
+                try {
+                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, valid).awaitUninterruptibly();
+                } catch (OpenR66ProtocolPacketException e) {
+                }
+                Channels.close(channel);
+                break;
+            }
+            case LocalPacketFactory.REQUESTUSERPACKET: {
+                // Validate user request
+                R66Result resulttest = new R66Result(session, true,
+                        ErrorCode.getFromCode(packet.getSmiddle()));
+                resulttest.other = packet;
+                localChannelReference.validateRequest(resulttest);
+                Channels.close(channel);
+                break;
+            }
+            case LocalPacketFactory.TESTPACKET: {
                 logger.warn("Valid TEST so Will close channel" +
                         localChannelReference.toString());
                 R66Result resulttest = new R66Result(session, true,
@@ -788,6 +903,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 localChannelReference.validateRequest(resulttest);
                 Channels.close(channel);
                 break;
+            }
             default:
                 logger.warn("Validation is ignored: " + packet.getTypeValid());
         }

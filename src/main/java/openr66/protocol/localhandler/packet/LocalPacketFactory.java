@@ -21,7 +21,7 @@ import org.jboss.netty.buffer.ChannelBuffer;
 
 /**
  * Factory to create Packet according to type from a buffer
- * 
+ *
  * @author Frederic Bregier
  */
 public class LocalPacketFactory {
@@ -41,7 +41,7 @@ public class LocalPacketFactory {
 
     public static final byte SHUTDOWNPACKET = 8;
 
-    public static final byte STATUSPACKET = 9;
+    public static final byte STOPPACKET = 9;
 
     public static final byte CANCELPACKET = 10;
 
@@ -53,9 +53,11 @@ public class LocalPacketFactory {
 
     public static final byte ENDTRANSFERPACKET = 14;
 
+    public static final byte REQUESTUSERPACKET = 15;
+
     /**
      * This method create a Packet from the ChannelBuffer.
-     * 
+     *
      * @param headerLength
      *            length of the header from the current position of the buffer
      * @param middleLength
@@ -93,8 +95,9 @@ public class LocalPacketFactory {
             case SHUTDOWNPACKET:
                 return ShutdownPacket.createFromBuffer(headerLength,
                         middleLength, endLength, buf);
-            case STATUSPACKET:
+            case STOPPACKET:
             case CANCELPACKET:
+            case REQUESTUSERPACKET:
             case CONFIGSENDPACKET:
             case CONFIGRECVPACKET:
                 throw new OpenR66ProtocolPacketException(

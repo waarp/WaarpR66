@@ -356,7 +356,7 @@ public class DbHostAuth extends AbstractDbData {
      * @return True if the key is valid (or any key is valid)
      */
     public boolean isKeyValid(byte[] newkey) {
-        // FIXME is it valid to not have a key ?
+        // It is valid to not have a key
         if (this.hostkey == null) {
             return true;
         }

@@ -58,10 +58,13 @@ public class ClientRunner implements Runnable {
 
     private final NetworkTransaction networkTransaction;
     private final DbTaskRunner taskRunner;
+    private final R66Future futureRequest;
 
-    public ClientRunner(NetworkTransaction networkTransaction, DbTaskRunner taskRunner) {
+    public ClientRunner(NetworkTransaction networkTransaction, DbTaskRunner taskRunner,
+            R66Future futureRequest) {
         this.networkTransaction = networkTransaction;
         this.taskRunner = taskRunner;
+        this.futureRequest = futureRequest;
     }
     /* (non-Javadoc)
      * @see java.lang.Runnable#run()
@@ -116,7 +119,7 @@ public class ClientRunner implements Runnable {
         SocketAddress socketAddress = host.getSocketAddress();
 
         LocalChannelReference localChannelReference = networkTransaction
-            .createConnectionWithRetry(socketAddress);
+            .createConnectionWithRetry(socketAddress, futureRequest);
         socketAddress = null;
         if (localChannelReference == null) {
             // propose to redo

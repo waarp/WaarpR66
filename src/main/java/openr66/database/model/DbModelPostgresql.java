@@ -78,7 +78,7 @@ public class DbModelPostgresql extends AbstractDbModel {
      * @see openr66.database.model.AbstractDbModel#resetSequence()
      */
     @Override
-    public void resetSequence() {
+    public void resetSequence(long newvalue) {
         // TODO Auto-generated method stub
 
     }

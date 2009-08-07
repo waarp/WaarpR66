@@ -24,6 +24,7 @@ import goldengate.common.command.exception.CommandAbstractException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 
@@ -299,7 +300,7 @@ public class DbTaskRunner extends AbstractDbData {
        setToArray();
        isSaved = false;
        specialId = requestPacket.getSpecialId();
-       insert();
+       create();
    }
     /**
      * Constructor from a request with invalid Special Id
@@ -471,6 +472,7 @@ public class DbTaskRunner extends AbstractDbData {
         // First need to find a new id if id is not ok
         if (specialId == DbConstant.ILLEGALVALUE) {
             specialId = DbModelFactory.dbModel.nextSequence(dbSession);
+            logger.info("Try Insert create a new Id from sequence: "+specialId);
             primaryKey[0].setValue(requesterHostId);
             primaryKey[1].setValue(requestedHostId);
             primaryKey[2].setValue(specialId);
@@ -481,10 +483,88 @@ public class DbTaskRunner extends AbstractDbData {
         try {
             preparedStatement.createPrepareStatement("INSERT INTO " + table +
                     " (" + selectAllFields + ") VALUES " + insertAllValues);
+            logger.info("Try Insert: "+specialId);
             setValues(preparedStatement, allFields);
             int count = preparedStatement.executeUpdate();
             if (count <= 0) {
                 throw new OpenR66DatabaseNoDataException("No row found");
+            }
+            isSaved = true;
+        } finally {
+            preparedStatement.realClose();
+        }
+    }
+
+    /**
+     * As insert but with the ability to change the SpecialId
+     * @throws OpenR66DatabaseException
+     */
+    public void create() throws OpenR66DatabaseException {
+        if (isSaved) {
+            return;
+        }
+        if (dbSession == null) {
+            if (specialId == DbConstant.ILLEGALVALUE) {
+                logger.info("New SpecialId is not possible with No Database Model");
+                specialId = System.currentTimeMillis();
+            }
+            isSaved = true;
+            return;
+        }
+        // First need to find a new id if id is not ok
+        if (specialId == DbConstant.ILLEGALVALUE) {
+            specialId = DbModelFactory.dbModel.nextSequence(dbSession);
+            logger.info("Try Insert create a new Id from sequence: "+specialId);
+            primaryKey[0].setValue(requesterHostId);
+            primaryKey[1].setValue(requestedHostId);
+            primaryKey[2].setValue(specialId);
+        }
+        setToArray();
+        DbPreparedStatement preparedStatement = new DbPreparedStatement(
+                dbSession);
+        try {
+            preparedStatement.createPrepareStatement("INSERT INTO " + table +
+                    " (" + selectAllFields + ") VALUES " + insertAllValues);
+            logger.info("Try Insert: "+specialId);
+            setValues(preparedStatement, allFields);
+            try {
+                int count = preparedStatement.executeUpdate();
+                if (count <= 0) {
+                    throw new OpenR66DatabaseNoDataException("No row found");
+                }
+            } catch (OpenR66DatabaseSqlError e) {
+                logger.info("Problem while inserting",e);
+                DbPreparedStatement find = new DbPreparedStatement(dbSession);
+                find.createPrepareStatement("SELECT MAX("+primaryKey[2].column+
+                        ") FROM "+table+" WHERE "+
+                        primaryKey[0].column + " = ? AND " +
+                        primaryKey[1].column + " = ? AND " +
+                        primaryKey[2].column + " >= ? ");
+                primaryKey[0].setValue(requesterHostId);
+                primaryKey[1].setValue(requestedHostId);
+                primaryKey[2].setValue(specialId);
+                setValues(find, primaryKey);
+                find.executeQuery();
+                if (find.getNext()) {
+                    long result;
+                    try {
+                        result = find.getResultSet().getLong(1);
+                    } catch (SQLException e1) {
+                        throw new OpenR66DatabaseSqlError(e1);
+                    }
+                    specialId = result+1;
+                    DbModelFactory.dbModel.resetSequence(specialId+1);
+                    setToArray();
+                    preparedStatement.close();
+                    logger.info("Try Insert: "+specialId);
+                    setValues(preparedStatement, allFields);
+                    int count = preparedStatement.executeUpdate();
+                    if (count <= 0) {
+                        throw new OpenR66DatabaseNoDataException("No row found");
+                    }
+                } else {
+                    throw new OpenR66DatabaseNoDataException("No row found");
+                }
             }
             isSaved = true;
         } finally {
@@ -545,7 +625,10 @@ public class DbTaskRunner extends AbstractDbData {
                 setFromArray();
                 isSaved = true;
             } else {
-                throw new OpenR66DatabaseNoDataException("No row found");
+                throw new OpenR66DatabaseNoDataException("No row found: "+
+                        primaryKey[0].getValueAsString()+":"+
+                        primaryKey[1].getValueAsString()+":"+
+                        primaryKey[2].getValueAsString());
             }
         } finally {
             preparedStatement.realClose();
@@ -1064,6 +1147,13 @@ public class DbTaskRunner extends AbstractDbData {
         }
         return this.requestedHostId;
     }
+    /**
+    *
+    * @return the requester HostId
+    */
+   public String getRequester() {
+       return this.requesterHostId;
+   }
     /**
      *
      * @return the associated request

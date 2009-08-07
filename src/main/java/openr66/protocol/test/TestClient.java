@@ -66,7 +66,7 @@ public class TestClient {
             for (int j = 1; j <= 100; j ++) {
                 try {
                     localChannelReference = networkTransaction
-                            .createConnection(socketServerAddress);
+                            .createConnection(socketServerAddress, null);
                 } catch (OpenR66ProtocolNetworkException e) {
                     logger.error("Cannot connect", e);
                     networkTransaction.closeAll();

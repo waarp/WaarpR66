@@ -61,6 +61,14 @@ public class OpenR66ExceptionTrappedFactory {
             logger.warn("Connection closed before end");
             return new OpenR66ProtocolBusinessNoWriteBackException(
                     "Connection closed before end", e1);
+        } else if (e1 instanceof OpenR66ProtocolBusinessCancelException) {
+            final OpenR66ProtocolBusinessCancelException e2 = (OpenR66ProtocolBusinessCancelException) e1;
+            logger.error("Request is canceled: {}", e2.getMessage());
+            return e2;
+        } else if (e1 instanceof OpenR66ProtocolBusinessStopException) {
+            final OpenR66ProtocolBusinessStopException e2 = (OpenR66ProtocolBusinessStopException) e1;
+            logger.error("Request is stopped: {}", e2.getMessage());
+            return e2;
         } else if (e1 instanceof OpenR66ProtocolBusinessNoWriteBackException) {
             final OpenR66ProtocolBusinessNoWriteBackException e2 = (OpenR66ProtocolBusinessNoWriteBackException) e1;
             logger.error("Command Error Reply: {}", e2.getMessage());

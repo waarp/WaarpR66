@@ -65,7 +65,7 @@ public class LocalChannelReference {
     /**
      * Future on Request
      */
-    private final R66Future futureRequest = new R66Future(true);
+    private final R66Future futureRequest;
     /**
      * Future on Transfer
      */
@@ -80,22 +80,28 @@ public class LocalChannelReference {
     private R66Session session;
 
     /**
-     *
-     * @param localChannel
-     * @param networkChannel
-     * @param remoteId
-     */
-    public LocalChannelReference(Channel localChannel, Channel networkChannel,
-            Integer remoteId) {
-        this.localChannel = localChannel;
-        this.networkChannel = networkChannel;
-        networkServerHandler = (NetworkServerHandler) this.networkChannel
-                .getPipeline().getLast();
-        localId = this.localChannel.getId();
-        this.remoteId = remoteId;
-    }
+    *
+    * @param localChannel
+    * @param networkChannel
+    * @param remoteId
+    * @param futureRequest
+    */
+   public LocalChannelReference(Channel localChannel, Channel networkChannel,
+           Integer remoteId, R66Future futureRequest) {
+       this.localChannel = localChannel;
+       this.networkChannel = networkChannel;
+       networkServerHandler = (NetworkServerHandler) this.networkChannel
+               .getPipeline().getLast();
+       localId = this.localChannel.getId();
+       this.remoteId = remoteId;
+       if (futureRequest == null) {
+           this.futureRequest = new R66Future(true);
+       } else {
+           this.futureRequest = futureRequest;
+       }
+   }
 
-    /**
+   /**
      * @return the localChannel
      */
     public Channel getLocalChannel() {

@@ -20,8 +20,9 @@
  */
 package openr66.client;
 
-import java.io.File;
+import java.net.SocketAddress;
 
+import org.jboss.netty.channel.Channels;
 import org.jboss.netty.logging.InternalLoggerFactory;
 
 import ch.qos.logback.classic.Level;
@@ -29,11 +30,24 @@ import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
 import openr66.configuration.FileBasedConfiguration;
+import openr66.context.ErrorCode;
+import openr66.context.R66Result;
+import openr66.context.authentication.R66Auth;
+import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.DbConstant;
+import openr66.database.data.DbHostAuth;
 import openr66.database.data.DbTaskRunner;
+import openr66.database.data.AbstractDbData.UpdatedInfo;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.configuration.Configuration;
+import openr66.protocol.exception.OpenR66ProtocolPacketException;
+import openr66.protocol.localhandler.LocalChannelReference;
+import openr66.protocol.localhandler.packet.LocalPacketFactory;
+import openr66.protocol.localhandler.packet.ValidPacket;
+import openr66.protocol.networkhandler.NetworkTransaction;
+import openr66.protocol.utils.ChannelUtils;
+import openr66.protocol.utils.R66Future;
 
 /**
  * Class to request information or request cancellation or restart
@@ -41,17 +55,27 @@ import openr66.protocol.configuration.Configuration;
  * @author Frederic Bregier
  *
  */
-public class RequestTransfer {
+public class RequestTransfer implements Runnable {
     /**
      * Internal Logger
      */
     static GgInternalLogger logger;
 
-    static long specialId;
-    static String requested = null;
-    static boolean cancel = false;
-    static boolean stop = false;
-    static boolean restart = false;
+    protected final NetworkTransaction networkTransaction;
+    final R66Future future;
+    final long specialId;
+    String requested = null;
+    String requester = null;
+    boolean cancel = false;
+    boolean stop = false;
+    boolean restart = false;
+
+    static long sspecialId;
+    static String srequested = null;
+    static String srequester = null;
+    static boolean scancel = false;
+    static boolean sstop = false;
+    static boolean srestart = false;
 
     /**
      * Parse the parameter and set current values
@@ -74,28 +98,175 @@ public class RequestTransfer {
         for (int i = 1; i < args.length; i++) {
             if (args[i].equalsIgnoreCase("-id")) {
                 i++;
-                specialId = Long.parseLong(args[i]);
+                sspecialId = Long.parseLong(args[i]);
             } else if (args[i].equalsIgnoreCase("-to")) {
                 i++;
-                requested = args[i];
+                srequested = args[i];
+                srequester = Configuration.configuration.HOST_ID;
+            } else if (args[i].equalsIgnoreCase("-from")) {
+                i++;
+                srequester = args[i];
+                srequested = Configuration.configuration.HOST_ID;
             } else if (args[i].equalsIgnoreCase("-cancel")) {
-                cancel = true;
+                scancel = true;
             } else if (args[i].equalsIgnoreCase("-stop")) {
-                stop = true;
+                sstop = true;
             } else if (args[i].equalsIgnoreCase("-restart")) {
-                restart = true;
+                srestart = true;
             }
         }
-        if ((cancel && restart) || (cancel && stop)) {
-            logger.error("Cannot cancel and restart/stop at the same time");
+        if ((scancel && srestart) || (scancel && sstop) || (srestart && sstop)) {
+            logger.error("Cannot cancel or restart or stop at the same time");
             return false;
         }
-        if (specialId == DbConstant.ILLEGALVALUE || requested == null) {
-            logger.error("TransferId and Requested HostId must be set");
+        if (sspecialId == DbConstant.ILLEGALVALUE || srequested == null) {
+            logger.error("TransferId and Requested/Requester HostId must be set");
             return false;
         }
 
         return true;
+    }
+
+
+    /**
+     * @param future
+     * @param specialId
+     * @param requested
+     * @param requester
+     * @param cancel
+     * @param stop
+     * @param restart
+     * @param networkTransaction
+     */
+    public RequestTransfer(R66Future future, long specialId, String requested, String requester,
+            boolean cancel, boolean stop, boolean restart,
+            NetworkTransaction networkTransaction) {
+        this.future = future;
+        this.specialId = specialId;
+        this.requested = requested;
+        this.requester = requester;
+        this.cancel = cancel;
+        this.stop = stop;
+        this.restart = restart;
+        this.networkTransaction = networkTransaction;
+    }
+
+
+    public void run() {
+        DbTaskRunner runner = null;
+        try {
+            runner = new DbTaskRunner(DbConstant.admin.session,null,null,
+                    specialId,requester,requested);
+        } catch (OpenR66DatabaseException e) {
+            logger.error("Cannot find the transfer", e);
+            future.setResult(new R66Result(e, null, true,
+                    ErrorCode.Internal));
+            future.setFailure(e);
+            return;
+        }
+        if (cancel || stop || restart) {
+            if (cancel) {
+                // Cancel the task and delete any file if in retrieve
+                if (runner.isFinished()) {
+                    // nothing to do since already finished
+                    logger.warn("Transfer already finished: "+runner.toString());
+                    future.setResult(new R66Result(null,true,ErrorCode.TransferOk));
+                    future.setSuccess();
+                } else {
+                    // Send a request of cancel
+                    sendRequest(LocalPacketFactory.CANCELPACKET);
+                }
+            } else if (stop) {
+                // Just stop the task
+                // Send a request
+                sendRequest(LocalPacketFactory.STOPPACKET);
+            } else if (restart) {
+                // Restart if already stopped
+                if (runner.getStatus() == ErrorCode.StoppedTransfer) {
+                    // restart
+                    switch (runner.getGloballaststep()) {
+                        case DbTaskRunner.PRETASK:
+                            // restart
+                            runner.setPreTask(0);
+                            runner.setExecutionStatus(ErrorCode.InitOk);
+                            break;
+                        case DbTaskRunner.TRANSFERTASK:
+                            // continue
+                            runner.setTransferTask(runner.getRank());
+                            runner.setExecutionStatus(ErrorCode.PreProcessingOk);
+                            break;
+                        case DbTaskRunner.POSTTASK:
+                            // restart
+                            runner.setPostTask(0);
+                            runner.setExecutionStatus(ErrorCode.TransferOk);
+                            break;
+                    }
+                    runner.changeUpdatedInfo(UpdatedInfo.UPDATED);
+                    try {
+                        runner.saveStatus();
+                    } catch (OpenR66RunnerErrorException e) {
+                        future.setResult(new R66Result(e,null,true,ErrorCode.Internal));
+                        future.cancel();
+                    }
+                    future.setResult(new R66Result(null,true,runner.getStatus()));
+                    future.setSuccess();
+                } else {
+                    // Not in stopped status
+                    future.setResult(new R66Result(null,true,runner.getStatus()));
+                    future.cancel();
+                }
+            }
+        } else {
+            // Only request
+            logger.warn("Transfer: "+runner.toString());
+            future.setResult(new R66Result(null,true,runner.getStatus()));
+            future.setSuccess();
+        }
+    }
+    private void sendRequest(byte code) {
+        DbHostAuth host;
+        host = R66Auth.getServerAuth(DbConstant.admin.session,
+                    this.requested);
+        SocketAddress socketAddress = host.getSocketAddress();
+
+        LocalChannelReference localChannelReference = networkTransaction
+            .createConnectionWithRetry(socketAddress,future);
+        socketAddress = null;
+        if (localChannelReference == null) {
+            logger.warn("Cannot connect to "+host.toString());
+            host = null;
+            logger.error("Cannot Connect");
+            future.setResult(new R66Result(null, true,
+                    ErrorCode.ConnectionImpossible));
+            future.cancel();
+            return;
+       }
+        ValidPacket packet = new ValidPacket("Request on Transfer",
+                this.requested+" "+this.requester+" "+this.specialId,
+                code);
+        try {
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet);
+        } catch (OpenR66ProtocolPacketException e) {
+            logger.warn("Cannot transfer request to "+host.toString());
+            Channels.close(localChannelReference.getLocalChannel());
+            localChannelReference = null;
+            host = null;
+            packet = null;
+            logger.error("Bad Protocol", e);
+            future.setResult(new R66Result(e, null, true,
+                    ErrorCode.TransferError));
+            future.setFailure(e);
+            return;
+        }
+        logger.info("Wait for request to "+host.toString());
+        packet = null;
+        host = null;
+        future.awaitUninterruptibly();
+        logger.info("Request done with "+(future.isSuccess()?"success":"error"));
+
+        // FIXME TODO Auto-generated method stub
+        Channels.close(localChannelReference.getLocalChannel());
+        localChannelReference = null;
     }
     /**
      * @param args
@@ -117,47 +288,24 @@ public class RequestTransfer {
             System.exit(1);
         }
         try {
-            DbTaskRunner runner = null;
-            try {
-                runner = new DbTaskRunner(DbConstant.admin.session,null,null,
-                        specialId,Configuration.configuration.HOST_ID,requested);
-            } catch (OpenR66DatabaseException e) {
-                logger.error("Cannot find the transfer", e);
-                return;
-            }
-            if (cancel || stop || restart) {
-                if (cancel) {
-                    // Cancel the task and delete any file if in retrieve
-                    if (runner.isFinished()) {
-                        if (runner.isRetrieve()) {
-                            String filename = Configuration.configuration.baseDirectory+
-                                runner.getFilename();
-                            File file = new File(filename);
-                            if (file.exists()) {
-                                file.delete();
-                            }
-                        }
-                        try {
-                            runner.delete();
-                        } catch (OpenR66DatabaseException e) {
-                            logger.error("Cannot delete the transfer", e);
-                            return;
-                        }
-                    } else {
-                        // First stop it
-                        // Send a request
-                    }
-                } else if (stop) {
-                    // Just stop the task
-                    // Send a request
-                } else {
-                    // Restart if already stopped
-
-                }
+            Configuration.configuration.pipelineInit();
+            NetworkTransaction networkTransaction = new NetworkTransaction();
+            R66Future result = new R66Future(true);
+            RequestTransfer requestTransfer =
+                new RequestTransfer(result, sspecialId, srequested, srequester,
+                        scancel, sstop, srestart,
+                        networkTransaction);
+            requestTransfer.run();
+            result.awaitUninterruptibly();
+            // FIXME use result
+            if (result.isSuccess()) {
+                logger.warn("Success: " +
+                        result.getResult().toString());
             } else {
-                // Only request
-                logger.warn("Transfer: "+runner.toString());
+                logger.error("Error: " +
+                        result.getResult().toString());
             }
+
         } finally {
             if (DbConstant.admin != null) {
                 try {

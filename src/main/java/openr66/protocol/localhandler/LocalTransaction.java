@@ -21,6 +21,7 @@ import openr66.protocol.localhandler.packet.LocalPacketFactory;
 import openr66.protocol.localhandler.packet.StartupPacket;
 import openr66.protocol.localhandler.packet.ValidPacket;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
+import openr66.protocol.utils.R66Future;
 
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.bootstrap.ServerBootstrap;
@@ -48,9 +49,14 @@ public class LocalTransaction {
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(LocalTransaction.class);
     /**
-     * HashMap of LocalChannelReference
+     * HashMap of LocalChannelReference using LocalChannelId
      */
     final ConcurrentHashMap<Integer, LocalChannelReference> localChannelHashMap = new ConcurrentHashMap<Integer, LocalChannelReference>();
+    /**
+     * HashMap of LocalChannelReference using requested_requester_specialId
+     */
+    final ConcurrentHashMap<String, LocalChannelReference> localChannelHashMapExternal =
+        new ConcurrentHashMap<String, LocalChannelReference>();
     /**
      * Remover from HashMap
      */
@@ -64,6 +70,19 @@ public class LocalTransaction {
                                 "While closing Local Channel"), null, false,
                         ErrorCode.ConnectionImpossible);
                 localChannelReference.validateConnection(false, result);
+                if (localChannelReference.getSession() != null) {
+                    DbTaskRunner runner = localChannelReference.getSession().getRunner();
+                    if (runner != null) {
+                        String requested;
+                        try {
+                            requested = runner.getRequested();
+                        } catch (OpenR66RunnerErrorException e) {
+                            requested = Configuration.configuration.HOST_ID;
+                        }
+                        String key = requested+" "+runner.getRequester()+" "+runner.getSpecialId();
+                        localChannelHashMapExternal.remove(key);
+                    }
+                }
             }
         }
     };
@@ -118,11 +137,12 @@ public class LocalTransaction {
      * Create a new Client
      * @param networkChannel
      * @param remoteId
+     * @param futureRequest
      * @return the LocalChannelReference
      * @throws OpenR66ProtocolSystemException
      */
     public LocalChannelReference createNewClient(Channel networkChannel,
-            Integer remoteId) throws OpenR66ProtocolSystemException {
+            Integer remoteId, R66Future futureRequest) throws OpenR66ProtocolSystemException {
         ChannelFuture channelFuture = null;
         logger.info("Status LocalChannelServer: " +
                 serverChannel.getClass().getName() + " " +
@@ -135,7 +155,7 @@ public class LocalTransaction {
                 final Channel channel = channelFuture.getChannel();
                 localChannelGroup.add(channel);
                 final LocalChannelReference localChannelReference = new LocalChannelReference(
-                        channel, networkChannel, remoteId);
+                            channel, networkChannel, remoteId, futureRequest);
                 logger.info("Create LocalChannel entry: " +
                         localChannelReference);
                 localChannelHashMap.put(channel.getId(), localChannelReference);
@@ -170,6 +190,29 @@ public class LocalTransaction {
     public LocalChannelReference getFromId(Integer id) {
         return localChannelHashMap.get(id);
     }
+    /**
+    *
+    * @param DbTaskRunner runner
+    * @param lcr
+    */
+   public void setFromId(DbTaskRunner runner, LocalChannelReference lcr) {
+       String requested;
+       try {
+           requested = runner.getRequested();
+       } catch (OpenR66RunnerErrorException e) {
+           requested = Configuration.configuration.HOST_ID;
+       }
+       String key = requested+" "+runner.getRequester()+" "+runner.getSpecialId();
+       localChannelHashMapExternal.put(key, lcr);
+   }
+   /**
+   *
+   * @param key as "requested requester specialId"
+   * @return  the LocalChannelReference
+   */
+  public LocalChannelReference getFromRequest(String key) {
+      return localChannelHashMapExternal.get(key);
+  }
     /**
      * Close all Local Channels from the NetworkChannel
      * @param networkChannel

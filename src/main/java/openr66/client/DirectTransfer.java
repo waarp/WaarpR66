@@ -96,10 +96,9 @@ public class DirectTransfer extends AbstractTransfer {
             future.setFailure(e);
             return;
         }
-        ClientRunner runner = new ClientRunner(networkTransaction, taskRunner);
-        R66Future futureRunner = null;
+        ClientRunner runner = new ClientRunner(networkTransaction, taskRunner, future);
         try {
-            futureRunner = runner.runTransfer();
+            runner.runTransfer();
         } catch (OpenR66RunnerErrorException e) {
             logger.error("Cannot Transfer", e);
             future.setResult(new R66Result(e, null, true,
@@ -118,23 +117,6 @@ public class DirectTransfer extends AbstractTransfer {
                     ErrorCode.TransferError));
             future.setFailure(e);
             return;
-        }
-        futureRunner.awaitUninterruptibly();
-
-        if (futureRunner.isSuccess()) {
-            future.setResult(futureRunner
-                    .getResult());
-            future.setSuccess();
-        } else {
-            future.setResult(futureRunner
-                    .getResult());
-            Throwable throwable = futureRunner
-                    .getCause();
-            if (throwable == null) {
-                future.cancel();
-            } else {
-                future.setFailure(throwable);
-            }
         }
     }
 

@@ -109,6 +109,14 @@ public enum ErrorCode {
             "Internal Error",
             'I'),
     /**
+     * Code stands for a request of stopping transfer
+     */
+    StoppedTransfer("Stopped Transfer", 'H'),
+    /**
+     * Code stands for a request of canceling transfer
+     */
+    CanceledTransfer("Canceled Transfer", 'Q'),
+    /**
      * Warning in execution
      */
     Warning("Warning during pre or post execution", 'W'),
@@ -178,6 +186,10 @@ public enum ErrorCode {
                 return RemoteError;
             case 'I':
                 return Internal;
+            case 'H':
+                return StoppedTransfer;
+            case 'Q':
+                return CanceledTransfer;
             case 'W':
                 return Warning;
             case '-':

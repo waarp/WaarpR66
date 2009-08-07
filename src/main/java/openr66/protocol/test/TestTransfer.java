@@ -90,7 +90,7 @@ public class TestTransfer implements Runnable {
         for (int i = 0; i < Configuration.RETRYNB; i ++) {
             try {
                 localChannelReference = networkTransaction
-                        .createConnection(socketAddress);
+                        .createConnection(socketAddress, future);
                 break;
             } catch (OpenR66ProtocolNetworkException e1) {
                 lastException = e1;
@@ -130,7 +130,7 @@ public class TestTransfer implements Runnable {
             Channels.close(localChannelReference.getLocalChannel());
             return;
         }
-        localChannelReference.getFutureRequest().awaitUninterruptibly();
+        /*localChannelReference.getFutureRequest().awaitUninterruptibly();
         if (localChannelReference.getFutureRequest().isSuccess()) {
             future.setResult(localChannelReference.getFutureRequest()
                     .getResult());
@@ -145,7 +145,7 @@ public class TestTransfer implements Runnable {
             } else {
                 future.setFailure(throwable);
             }
-        }
+        }*/
     }
 
     public static void main(String[] args) {

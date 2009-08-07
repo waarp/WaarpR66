@@ -261,7 +261,9 @@ public class R66Session implements SessionInterface {
         if (runner.getRank() > 0) {
             runner.setTransferTask(runner.getRank());
             restart.restartMarker(runner.getBlocksize() * runner.getRank());
-        } else {
+        }
+        if (runner.getGloballaststep() == DbTaskRunner.NOTASK ||
+                runner.getGloballaststep() == DbTaskRunner.PRETASK) {
             this.runner.setPreTask(0);
             runner.saveStatus();
             this.runner.run();
@@ -320,11 +322,13 @@ public class R66Session implements SessionInterface {
             this.runner.deleteTempFile();
             throw new OpenR66RunnerErrorException(e);
         }
-        try {
-            file.restartMarker(restart);
-        } catch (CommandAbstractException e) {
-            this.runner.deleteTempFile();
-            throw new OpenR66RunnerErrorException(e);
+        if (runner.getGloballaststep() == DbTaskRunner.TRANSFERTASK) {
+            try {
+                file.restartMarker(restart);
+            } catch (CommandAbstractException e) {
+                this.runner.deleteTempFile();
+                throw new OpenR66RunnerErrorException(e);
+            }
         }
         this.runner.saveStatus();
         logger.info("Final init: " + this.runner.toString());
@@ -348,7 +352,7 @@ public class R66Session implements SessionInterface {
             return;
         }
         if (runner.isFinished()) {
-            logger.warn("Transfer already done but " + status + " on " + file,
+            logger.warn("Transfer already done but " + status + " on " + file+runner.toString(),
                     new OpenR66RunnerErrorException(finalValue.toString()));
             return;
         }
@@ -441,24 +445,35 @@ public class R66Session implements SessionInterface {
             logger.info("Transfer done on " + file + " at RANK " + rank);
             localChannelReference.validateEndTransfer(finalValue);
         } else {
-            // error
+            // error or not ?
             ErrorCode runnerStatus = runner.getStatus();
-            runner.setErrorTask(0);
-            runner.saveStatus();
             if (finalValue.exception != null) {
                 logger.warn("Transfer KO on " + file, finalValue.exception);
             } else {
                 logger.warn("Transfer KO on " + file,
                         new OpenR66RunnerErrorException(finalValue.toString()));
             }
-            try {
-                runner.run();
-            } catch (OpenR66RunnerErrorException e1) {
-                runner.setExecutionStatus(runnerStatus);
+            if (runnerStatus == ErrorCode.CanceledTransfer) {
+                // delete file, reset runner
+                runner.setRankAtStartup(0);
+                runner.deleteTempFile();
+                runner.setPreTask(0);
+            } else if (runnerStatus == ErrorCode.StoppedTransfer) {
+                // just save runner and stop
+            } else {
+                // real error
+                runner.setErrorTask(0);
                 runner.saveStatus();
-                localChannelReference.invalidateRequest(finalValue);
-                throw e1;
+                try {
+                    runner.run();
+                } catch (OpenR66RunnerErrorException e1) {
+                    runner.setExecutionStatus(runnerStatus);
+                    runner.saveStatus();
+                    localChannelReference.invalidateRequest(finalValue);
+                    throw e1;
+                }
             }
+            // re set the original status
             runner.setExecutionStatus(runnerStatus);
             runner.saveStatus();
             localChannelReference.invalidateRequest(finalValue);

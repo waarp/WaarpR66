@@ -9,7 +9,7 @@ package openr66.protocol.exception;
  * @author frederic bregier
  */
 public class OpenR66ProtocolBusinessNoWriteBackException extends
-        OpenR66Exception {
+        OpenR66ProtocolBusinessException {
 
     /**
      *

@@ -144,11 +144,13 @@ public class AuthenticationFileBasedConfiguration {
             if (node == null) {
                 node = nodebase.selectSingleNode(XML_AUTHENTIFICATION_KEY);
                 if (node == null) {
-                    continue;
+                    // Allow empty key
+                    byteKeys = null;
+                } else {
+                    String skey = node.getText();
+                    // FIXME key is coded with Base64 algorithm
+                    byteKeys = Base64.decodeBase64(skey.getBytes());
                 }
-                String skey = node.getText();
-                // FIXME key is coded with Base64 algorithm
-                byteKeys = Base64.decodeBase64(skey.getBytes());
             } else {
                 String skey = node.getText();
                 // FIXME load key from file

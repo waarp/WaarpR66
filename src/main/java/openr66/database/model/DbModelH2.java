@@ -224,9 +224,9 @@ public class DbModelH2 extends AbstractDbModel {
      * @see openr66.database.model.AbstractDbModel#resetSequence()
      */
     @Override
-    public void resetSequence() {
+    public void resetSequence(long newvalue) {
         String action = "ALTER SEQUENCE " + DbTaskRunner.fieldseq +
-                " RESTART WITH " + (DbConstant.ILLEGALVALUE + 1);
+                " RESTART WITH " + newvalue;
         DbRequest request = new DbRequest(DbConstant.admin.session);
         try {
             request.query(action);
@@ -254,50 +254,23 @@ public class DbModelH2 extends AbstractDbModel {
         String action = "SELECT NEXTVAL('" + DbTaskRunner.fieldseq + "')";
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
                 dbSession);
-        /*DbPreparedStatement existPreparedStatement = new DbPreparedStatement(
-                dbSession);
-        DbValue primaryKey[] = {
-                new DbValue(requester, Columns.REQUESTER.name()),
-                new DbValue(requested, Columns.REQUESTED.name()),
-                new DbValue(result, Columns.SPECIALID.name()) };
-        existPreparedStatement.createPrepareStatement("SELECT " +
-                primaryKey[2].column + " FROM " +
-                DbTaskRunner.table + " WHERE " +
-                primaryKey[0].column + " = ? AND " +
-                primaryKey[1].column + " = ? AND " +
-                primaryKey[2].column + " = ? ");*/
         preparedStatement.createPrepareStatement(action);
         try {
-            /*for (int tries = 0; tries < 100000; tries++) {*/
-                // Limit the search
-                preparedStatement.executeQuery();
-                if (preparedStatement.getNext()) {
-                    try {
-                        result = preparedStatement.getResultSet().getLong(1);
-                    } catch (SQLException e) {
-                        throw new OpenR66DatabaseSqlError(e);
-                    }
-                    /*primaryKey[2].setValue(result);
-                    PreparedStatement ps = existPreparedStatement.getPreparedStatement();
-                    for (int i = 0; i < primaryKey.length; i ++) {
-                        DbValue value = primaryKey[i];
-                        AbstractDbData.setTrueValue(ps, value, i + 1);
-                    }
-                    existPreparedStatement.executeQuery();
-                    if (existPreparedStatement.getNext()) {
-                        continue;
-                    }*/
-                    return result;
-                } else {
-                    throw new OpenR66DatabaseNoDataException(
-                            "No sequence found. Must be initialized first");
+            // Limit the search
+            preparedStatement.executeQuery();
+            if (preparedStatement.getNext()) {
+                try {
+                    result = preparedStatement.getResultSet().getLong(1);
+                } catch (SQLException e) {
+                    throw new OpenR66DatabaseSqlError(e);
                 }
-            /*}
-            throw new OpenR66DatabaseNoDataException(
-                "No correct value found");*/
+                return result;
+            } else {
+                throw new OpenR66DatabaseNoDataException(
+                        "No sequence found. Must be initialized first");
+            }
         } finally {
             preparedStatement.realClose();
-            /*existPreparedStatement.realClose();*/
         }
     }
 }

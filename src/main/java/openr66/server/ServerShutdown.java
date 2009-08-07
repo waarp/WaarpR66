@@ -91,7 +91,7 @@ public class ServerShutdown {
         for (int i = 0; i < Configuration.RETRYNB; i ++) {
             try {
                 localChannelReference = networkTransaction
-                        .createConnection(socketServerAddress);
+                        .createConnection(socketServerAddress,null);
                 break;
             } catch (OpenR66ProtocolNetworkException e1) {
                 lastException = e1;
