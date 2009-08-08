@@ -196,13 +196,7 @@ public class LocalTransaction {
     * @param lcr
     */
    public void setFromId(DbTaskRunner runner, LocalChannelReference lcr) {
-       String requested;
-       try {
-           requested = runner.getRequested();
-       } catch (OpenR66RunnerErrorException e) {
-           requested = Configuration.configuration.HOST_ID;
-       }
-       String key = requested+" "+runner.getRequester()+" "+runner.getSpecialId();
+       String key = runner.getKey();
        localChannelHashMapExternal.put(key, lcr);
    }
    /**

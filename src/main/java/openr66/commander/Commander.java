@@ -54,8 +54,15 @@ public class Commander implements Runnable {
     private DbPreparedStatement preparedStatementRule = null;
     private DbPreparedStatement preparedStatementRunner = null;
 
+    /**
+     * Prepare requests that will be executed from time to time
+     * @param runner
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66DatabaseSqlError
+     */
     public Commander(InternalRunner runner)
         throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+        DbPreparedStatement initial = new DbPreparedStatement(DbConstant.admin.session);
         try {
             preparedStatementConfig = new DbPreparedStatement(
                     DbConstant.admin.session);
@@ -74,21 +81,39 @@ public class Commander implements Runnable {
 
             request = "SELECT " +DbHostAuth.selectAllFields;
             request += " FROM "+DbHostAuth.table+
-                " WHERE "+DbConfiguration.Columns.UPDATEDINFO.name()+" = "+
+                " WHERE "+DbHostAuth.Columns.UPDATEDINFO.name()+" = "+
                 AbstractDbData.UpdatedInfo.UPDATED.ordinal();
             preparedStatementHost.createPrepareStatement(request);
 
             request = "SELECT " +DbRule.selectAllFields;
             request += " FROM "+DbRule.table+
-                " WHERE "+DbConfiguration.Columns.UPDATEDINFO.name()+" = "+
+                " WHERE "+DbRule.Columns.UPDATEDINFO.name()+" = "+
                 AbstractDbData.UpdatedInfo.UPDATED.ordinal();
             preparedStatementRule.createPrepareStatement(request);
 
             request = "SELECT " +DbTaskRunner.selectAllFields;
             request += " FROM "+DbTaskRunner.table+
-                " WHERE "+DbConfiguration.Columns.UPDATEDINFO.name()+" = "+
+                " WHERE "+DbTaskRunner.Columns.UPDATEDINFO.name()+" = "+
                 AbstractDbData.UpdatedInfo.UPDATED.ordinal();
             preparedStatementRunner.createPrepareStatement(request);
+            // Change TORUN to UPDATED since they should ready
+            request = "UPDATE "+DbTaskRunner.table+" SET " +
+                DbTaskRunner.Columns.UPDATEDINFO.name()+ "="+
+                AbstractDbData.UpdatedInfo.UPDATED.ordinal();
+            request += " WHERE "+DbTaskRunner.Columns.UPDATEDINFO.name()+" = "+
+                AbstractDbData.UpdatedInfo.TORUN.ordinal();
+            initial.createPrepareStatement(request);
+            try {
+                initial.executeUpdate();
+            } catch (OpenR66DatabaseNoConnectionError e) {
+                logger.error("Cannot execute Commander", e);
+                return;
+            } catch (OpenR66DatabaseSqlError e) {
+                logger.error("Cannot execute Commander", e);
+                return;
+            } finally {
+                initial.close();
+            }
             internalRunner = runner;
         } finally {
             if (internalRunner == null) {

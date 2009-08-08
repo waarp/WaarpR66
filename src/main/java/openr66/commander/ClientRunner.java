@@ -24,6 +24,7 @@ import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
 import java.net.SocketAddress;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.jboss.netty.channel.Channels;
 
@@ -35,6 +36,7 @@ import openr66.database.data.DbHostAuth;
 import openr66.database.data.DbTaskRunner;
 import openr66.database.data.AbstractDbData.UpdatedInfo;
 import openr66.database.exception.OpenR66DatabaseException;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.localhandler.LocalChannelReference;
@@ -55,6 +57,9 @@ public class ClientRunner implements Runnable {
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(ClientRunner.class);
+
+    private static final ConcurrentHashMap<String, Integer> taskRunnerRetryHashMap
+         = new ConcurrentHashMap<String, Integer>();
 
     private final NetworkTransaction networkTransaction;
     private final DbTaskRunner taskRunner;
@@ -89,6 +94,29 @@ public class ClientRunner implements Runnable {
     }
     /**
      *
+     * @param runner
+     * @param limit
+     * @return True if the task was run less than limit, else False
+     */
+    private boolean incrementTaskRunerTry(DbTaskRunner runner, int limit) {
+        String key = runner.getKey();
+        Integer tries = taskRunnerRetryHashMap.get(key);
+        if (tries == null) {
+            tries = new Integer(1);
+        } else {
+            tries = tries+1;
+        }
+        if (limit <= tries) {
+            taskRunnerRetryHashMap.remove(key);
+            return false;
+        } else {
+            taskRunnerRetryHashMap.put(key, tries);
+            return true;
+        }
+    }
+
+    /**
+     * True transfer run (can be called directly to enable exception outside any executors)
      * @return The R66Future of the transfer operation
      * @throws OpenR66RunnerErrorException
      * @throws OpenR66ProtocolNoConnectionException
@@ -124,7 +152,12 @@ public class ClientRunner implements Runnable {
         if (localChannelReference == null) {
             // propose to redo
             logger.warn("Cannot connect to "+host.toString());
-            this.changeUpdatedInfo(UpdatedInfo.UPDATED);
+            // See if reprogramming is ok (not too many tries)
+            if (incrementTaskRunerTry(taskRunner, Configuration.RETRYNB)) {
+                this.changeUpdatedInfo(UpdatedInfo.UPDATED);
+            } else {
+                this.changeUpdatedInfo(UpdatedInfo.TORUN);
+            }
             host = null;
             throw new OpenR66ProtocolNoConnectionException("Cannot connect to server");
         }
@@ -140,7 +173,7 @@ public class ClientRunner implements Runnable {
         } catch (OpenR66ProtocolPacketException e) {
             // propose to redo
             logger.warn("Cannot transfer request to "+host.toString());
-            this.changeUpdatedInfo(UpdatedInfo.UNKNOWN);
+            this.changeUpdatedInfo(UpdatedInfo.INERROR);
             Channels.close(localChannelReference.getLocalChannel());
             localChannelReference = null;
             host = null;
@@ -165,11 +198,18 @@ public class ClientRunner implements Runnable {
             } catch (OpenR66DatabaseException e) {
                 logger.info("Not a problem but cannot find at the end the task");
             }
+        } else {
+            try {
+                taskRunner.select();
+                this.changeUpdatedInfo(UpdatedInfo.INERROR);
+            } catch (OpenR66DatabaseException e) {
+                logger.info("Not a problem but cannot find at the end the task");
+            }
         }
         return transfer;
     }
     /**
-     *
+     * Change the UpdatedInfo of the current runner
      * @param info
      */
     public void changeUpdatedInfo(AbstractDbData.UpdatedInfo info) {

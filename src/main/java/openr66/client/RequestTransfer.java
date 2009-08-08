@@ -158,7 +158,7 @@ public class RequestTransfer implements Runnable {
             runner = new DbTaskRunner(DbConstant.admin.session,null,null,
                     specialId,requester,requested);
         } catch (OpenR66DatabaseException e) {
-            logger.error("Cannot find the transfer", e);
+            logger.error("Cannot find the transfer");
             future.setResult(new R66Result(e, null, true,
                     ErrorCode.Internal));
             future.setFailure(e);
@@ -175,11 +175,13 @@ public class RequestTransfer implements Runnable {
                 } else {
                     // Send a request of cancel
                     sendRequest(LocalPacketFactory.CANCELPACKET);
+                    logger.warn("Transfer: "+runner.toString());
                 }
             } else if (stop) {
                 // Just stop the task
                 // Send a request
                 sendRequest(LocalPacketFactory.STOPPACKET);
+                logger.warn("Transfer: "+runner.toString());
             } else if (restart) {
                 // Restart if already stopped
                 if (runner.getStatus() == ErrorCode.StoppedTransfer) {
@@ -215,6 +217,7 @@ public class RequestTransfer implements Runnable {
                     future.setResult(new R66Result(null,true,runner.getStatus()));
                     future.cancel();
                 }
+                logger.warn("Transfer: "+runner.toString());
             }
         } else {
             // Only request

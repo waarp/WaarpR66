@@ -1133,9 +1133,12 @@ public class DbTaskRunner extends AbstractDbData {
     @Override
     public String toString() {
         return "Run: " + (rule != null? rule.toString() : ruleId) + " on " +
-                filename + " STEP: " + globalstep + ":" + step + ":" + status.mesg +
+                filename + " STEP: " + globalstep +"("+globallaststep+ "):" + step + ":" +
+                status.mesg +
                 ":" + rank + " SpecialId: " + specialId + " isRetr: " +
-                isRetrieve + " isMoved: " + isFileMoved;
+                isRetrieve + " isMoved: " + isFileMoved+" Mode: "+mode+
+                " Requester: "+requesterHostId+" Requested: "+requestedHostId+
+                " Start: "+start+" Stop: "+stop+" "+UpdatedInfo.values()[updatedInfo];
     }
     /**
      *
@@ -1164,7 +1167,13 @@ public class DbTaskRunner extends AbstractDbData {
         return new RequestPacket(ruleId, mode, originalFilename, blocksize,
                 rank, specialId, fileInformation);
     }
-
+    /**
+     * Used internally
+     * @return a Key representing the primary key as a unique string
+     */
+    public String getKey() {
+        return requestedHostId+" "+requesterHostId+" "+specialId;
+    }
     /**
      * Construct a new Element with value
      * @param name

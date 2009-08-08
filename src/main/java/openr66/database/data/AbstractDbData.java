@@ -46,7 +46,7 @@ public abstract class AbstractDbData {
      *
      */
     public static enum UpdatedInfo {
-        UNKNOWN, NOTUPDATED, UPDATED, TORUN, DONE;
+        UNKNOWN, NOTUPDATED, UPDATED, INERROR, TORUN, DONE;
     }
     /**
      * The DbSession to use

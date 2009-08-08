@@ -58,6 +58,11 @@ public class InternalRunner {
     private final BlockingQueue<Runnable> workQueue;
     private final NetworkTransaction networkTransaction;
 
+    /**
+     * Create the structure to enable submission by database
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66DatabaseSqlError
+     */
     public InternalRunner() throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
         Commander commander = new Commander(this);
         scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
@@ -70,7 +75,11 @@ public class InternalRunner {
                 Configuration.configuration.delayCommander, TimeUnit.MILLISECONDS);
         networkTransaction = new NetworkTransaction();
     }
-
+    /**
+     * Submit a task
+     * @param taskRunner
+     * @throws OpenR66DatabaseException
+     */
     public void submitTaskRunner(DbTaskRunner taskRunner) throws OpenR66DatabaseException {
         if (isRunning) {
             logger.info("Will run "+taskRunner.toString());
@@ -80,6 +89,9 @@ public class InternalRunner {
             runner = null;
         }
     }
+    /**
+     * First step while shutting down the service
+     */
     public void prepareStopInternalRunner() {
         isRunning = false;
         scheduledFuture.cancel(false);
