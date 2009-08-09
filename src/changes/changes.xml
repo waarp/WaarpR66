@@ -5,6 +5,10 @@
 		<author email="fredbregier@free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+		<release version="0.5.5" date="2009-08-09" description="First public version">
+			<action dev="Frederic Bregier" type="add">Add request submission and thin clients</action>
+			<action dev="Frederic Bregier" type="fix">Fix some bugs</action>
+		</release>
 		<release version="0.5.4" date="2009-08-01" description="Database and no Database support">
 			<action dev="Frederic Bregier" type="add">Database support continue and no database support start</action>
 			<action dev="Frederic Bregier" type="fix">Fix some bugs</action>

@@ -141,8 +141,13 @@ public class ClientRunner implements Runnable {
         } catch (OpenR66RunnerErrorException e1) {
             // Don't have to restart a task for itself (or should use requester)
             logger.warn("Requested host cannot initiate itself the request", e1);
-            this.changeUpdatedInfo(UpdatedInfo.UNKNOWN);
+            this.changeUpdatedInfo(UpdatedInfo.INERROR);
             throw e1;
+        }
+        if (host == null) {
+            logger.warn("Requested host cannot be found: "+taskRunner.getRequested());
+            this.changeUpdatedInfo(UpdatedInfo.INERROR);
+            throw new OpenR66RunnerErrorException("Requested host cannot be found");
         }
         SocketAddress socketAddress = host.getSocketAddress();
 
@@ -151,11 +156,13 @@ public class ClientRunner implements Runnable {
         socketAddress = null;
         if (localChannelReference == null) {
             // propose to redo
-            logger.warn("Cannot connect to "+host.toString());
             // See if reprogramming is ok (not too many tries)
             if (incrementTaskRunerTry(taskRunner, Configuration.RETRYNB)) {
+                logger.warn("Will retry since Cannot connect to "+host.toString());
                 this.changeUpdatedInfo(UpdatedInfo.UPDATED);
             } else {
+                logger.warn("Will not retry since limit of connection attemtps is reached for "+
+                        host.toString());
                 this.changeUpdatedInfo(UpdatedInfo.TORUN);
             }
             host = null;
