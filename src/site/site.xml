@@ -12,7 +12,7 @@
     </links>
   	<menu name="GoldenGate OpenR66">
   		<item name="Overview of GoldenGate OpenR66" href="index.html"/>
-  		<item name="Main page of GoldenGate OpenR66" href="../GoldenGateFTP.html"/>
+  		<item name="Main page of GoldenGate OpenR66" href="../OpenR66.html"/>
   		<item name="GoldenGate Main Project" href="../"/>
   	</menu>
     <menu ref="reports"/>
