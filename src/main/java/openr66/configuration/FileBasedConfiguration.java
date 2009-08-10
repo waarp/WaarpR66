@@ -78,6 +78,11 @@ public class FileBasedConfiguration {
     private static final String XML_SERVER_PORT = "/config/serverport";
 
     /**
+     * SERVER SSL PORT
+     */
+    private static final String XML_SERVER_SSLPORT = "/config/serversslport";
+
+    /**
      * Base Directory
      */
     private static final String XML_SERVER_HOME = "/config/serverhome";
@@ -259,6 +264,12 @@ public class FileBasedConfiguration {
             port = Integer.parseInt(node.getText());
         }
         Configuration.configuration.SERVER_PORT = port;
+        node = document.selectSingleNode(XML_SERVER_SSLPORT);
+        int sslport = 6667;
+        if (node != null) {
+            sslport = Integer.parseInt(node.getText());
+        }
+        Configuration.configuration.SERVER_SSLPORT = sslport;
         node = document.selectSingleNode(XML_SERVER_PASSWD);
         if (node == null) {
             logger.error("Unable to find Password in Config file: " + filename);

@@ -97,7 +97,8 @@ public class Configuration {
     /**
      * FileParameter
      */
-    private static final FilesystemBasedFileParameterImpl fileParameter = new FilesystemBasedFileParameterImpl();
+    private static final FilesystemBasedFileParameterImpl fileParameter =
+        new FilesystemBasedFileParameterImpl();
 
     // Global Dynamic values
     /**
@@ -143,6 +144,11 @@ public class Configuration {
      * Default server port
      */
     public int SERVER_PORT = 6666;
+
+    /**
+     * Default SSL server port
+     */
+    public int SERVER_SSLPORT = 6667;
 
     /**
      * Nb of milliseconds after connection is in timeout
@@ -436,6 +442,13 @@ public class Configuration {
     }
 
     /**
+     * @return the globalTrafficShapingHandler
+     */
+    public GlobalTrafficShapingHandler getGlobalTrafficShapingHandler() {
+        return globalTrafficShapingHandler;
+    }
+
+    /**
      * @return the serverChannelGroup
      */
     public ChannelGroup getServerChannelGroup() {
@@ -461,13 +474,6 @@ public class Configuration {
      */
     public OrderedMemoryAwareThreadPoolExecutor getLocalPipelineExecutor() {
         return localPipelineExecutor;
-    }
-
-    /**
-     * @return the globalTrafficShapingHandler
-     */
-    public GlobalTrafficShapingHandler getGlobalTrafficShapingHandler() {
-        return globalTrafficShapingHandler;
     }
 
     /**

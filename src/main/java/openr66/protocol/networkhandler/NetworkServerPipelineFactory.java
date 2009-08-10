@@ -22,6 +22,7 @@ import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.handler.execution.ExecutionHandler;
+import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
 
 /**
  * NetworkServer pipeline
@@ -33,6 +34,13 @@ public class NetworkServerPipelineFactory implements ChannelPipelineFactory {
     public ChannelPipeline getPipeline() throws Exception {
         final ChannelPipeline pipeline = Channels.pipeline();
         pipeline.addLast("codec", new NetworkPacketCodec());
+        GlobalTrafficShapingHandler handler =
+            Configuration.configuration.getGlobalTrafficShapingHandler();
+        if (handler != null) {
+            pipeline.addLast("LIMIT", handler);
+            pipeline.addLast("LIMITCHANNEL", Configuration.configuration
+                    .newChannelTrafficShapingHandler());
+        }
         pipeline.addLast("pipelineExecutor", new ExecutionHandler(
                 Configuration.configuration.getServerPipelineExecutor()));
         pipeline.addLast("handler", new NetworkServerHandler());
