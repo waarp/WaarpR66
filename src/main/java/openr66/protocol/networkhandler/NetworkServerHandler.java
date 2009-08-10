@@ -13,6 +13,7 @@ import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
+import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolRemoteShutdownException;
@@ -96,7 +97,7 @@ public class NetworkServerHandler extends SimpleChannelHandler {
      * org.jboss.netty.channel.ChannelStateEvent)
      */
     @Override
-    public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) {
+    public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) throws OpenR66ProtocolNetworkException {
         this.networkChannel = e.getChannel();
         try {
             if (DbConstant.admin.isConnected) {
