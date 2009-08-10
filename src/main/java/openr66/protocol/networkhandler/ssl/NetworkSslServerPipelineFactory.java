@@ -51,7 +51,7 @@ public class NetworkSslServerPipelineFactory implements ChannelPipelineFactory {
     }
 
     @Override
-    public ChannelPipeline getPipeline() throws Exception {
+    public ChannelPipeline getPipeline() {
         final ChannelPipeline pipeline = Channels.pipeline();
         // Add SSL handler first to encrypt and decrypt everything.
         // You will need something more complicated to identify both

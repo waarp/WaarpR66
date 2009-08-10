@@ -42,6 +42,7 @@ import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.model.DbModelFactory;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
+import openr66.protocol.networkhandler.ssl.SecureKeyStore;
 import openr66.protocol.utils.FileUtils;
 
 import org.dom4j.Document;
@@ -81,7 +82,14 @@ public class FileBasedConfiguration {
      * SERVER SSL PORT
      */
     private static final String XML_SERVER_SSLPORT = "/config/serversslport";
-
+    /**
+     * SERVER SSL KEY PATH
+     */
+    private static final String XML_PATH_KEYPATH = "/config/keypath";
+    /**
+     * SERVER SSL KEY PASS
+     */
+    private static final String XML_PATH_KEYPASS = "/config/keypass";
     /**
      * Base Directory
      */
@@ -270,6 +278,7 @@ public class FileBasedConfiguration {
             sslport = Integer.parseInt(node.getText());
         }
         Configuration.configuration.SERVER_SSLPORT = sslport;
+
         node = document.selectSingleNode(XML_SERVER_PASSWD);
         if (node == null) {
             logger.error("Unable to find Password in Config file: " + filename);
@@ -503,6 +512,33 @@ public class FileBasedConfiguration {
             Configuration.configuration.TIMEOUTCON = Integer.parseInt(node
                     .getText());
         }
+
+        // Key
+        node = document.selectSingleNode(XML_PATH_KEYPATH);
+        if (node == null) {
+                logger.warn("Unable to find Key Path");
+        } else {
+                String keypath = node.getText();
+                if ((keypath == null) || (keypath.length() == 0)) {
+                        logger.warn("Bad Key Path");
+                        return false;
+                }
+                node = document.selectSingleNode(XML_PATH_KEYPASS);
+                if (node == null) {
+                        logger.warn("Unable to find Key Passwd");
+                        return false;
+                }
+                String keypass = node.getText();
+                if ((keypass == null) || (keypass.length() == 0)) {
+                        logger.warn("Bad Key Passwd");
+                        return false;
+                }
+                if (! SecureKeyStore.initSecureKeyStore(keypath, keypass)) {
+                        logger.warn("Bad Key");
+                        return false;
+                }
+        }
+
         // We use Apache Commons IO
         FilesystemBasedDirJdkAbstract.ueApacheCommonsIo = true;
         return true;

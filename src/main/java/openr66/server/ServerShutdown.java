@@ -85,13 +85,13 @@ public class ServerShutdown {
                 Configuration.configuration.getSERVERADMINKEY());
         final NetworkTransaction networkTransaction = new NetworkTransaction();
         final SocketAddress socketServerAddress = new InetSocketAddress(
-                Configuration.configuration.SERVER_PORT);
+                Configuration.configuration.SERVER_SSLPORT);
         LocalChannelReference localChannelReference = null;
         OpenR66Exception lastException = null;
         for (int i = 0; i < Configuration.RETRYNB; i ++) {
             try {
                 localChannelReference = networkTransaction
-                        .createConnection(socketServerAddress,null);
+                        .createConnection(socketServerAddress,true, null);
                 break;
             } catch (OpenR66ProtocolNetworkException e1) {
                 lastException = e1;

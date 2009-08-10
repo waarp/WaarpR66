@@ -150,9 +150,10 @@ public class ClientRunner implements Runnable {
             throw new OpenR66RunnerErrorException("Requested host cannot be found");
         }
         SocketAddress socketAddress = host.getSocketAddress();
+        boolean isSSL = host.isSsl();
 
         LocalChannelReference localChannelReference = networkTransaction
-            .createConnectionWithRetry(socketAddress, futureRequest);
+            .createConnectionWithRetry(socketAddress, isSSL, futureRequest);
         socketAddress = null;
         if (localChannelReference == null) {
             // propose to redo

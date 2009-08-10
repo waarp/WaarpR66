@@ -234,9 +234,10 @@ public class RequestTransfer implements Runnable {
         host = R66Auth.getServerAuth(DbConstant.admin.session,
                     this.requested);
         SocketAddress socketAddress = host.getSocketAddress();
+        boolean isSSL = host.isSsl();
 
         LocalChannelReference localChannelReference = networkTransaction
-            .createConnectionWithRetry(socketAddress,future);
+            .createConnectionWithRetry(socketAddress,isSSL,future);
         socketAddress = null;
         if (localChannelReference == null) {
             logger.warn("Cannot connect to "+host.toString());

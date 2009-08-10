@@ -20,6 +20,9 @@
  */
 package openr66.protocol.networkhandler.ssl;
 
+import goldengate.common.logging.GgInternalLogger;
+import goldengate.common.logging.GgInternalLoggerFactory;
+
 import java.security.KeyStore;
 import java.security.Security;
 
@@ -36,7 +39,11 @@ import javax.net.ssl.SSLContext;
  *
  */
 public class SecureSslContextFactory {
-
+    /**
+     * Internal Logger
+     */
+    private static final GgInternalLogger logger = GgInternalLoggerFactory
+            .getLogger(SecureSslContextFactory.class);
     /**
 	 *
 	 */
@@ -79,6 +86,8 @@ public class SecureSslContextFactory {
             serverContext.init(kmfs.getKeyManagers(), SecureTrustManagerFactory
                     .getTrustManagers(), null);
         } catch (Exception e) {
+            logger.error("Failed to initialize the server-side SSLContext",
+                    e);
             throw new Error("Failed to initialize the server-side SSLContext",
                     e);
         }
@@ -103,6 +112,8 @@ public class SecureSslContextFactory {
             clientContext.init(kmfc.getKeyManagers(), SecureTrustManagerFactory
                     .getTrustManagers(), null);
         } catch (Exception e) {
+            logger.error("Failed to initialize the client-side SSLContext",
+                    e);
             throw new Error("Failed to initialize the client-side SSLContext",
                     e);
         }

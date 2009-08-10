@@ -3,6 +3,9 @@
 	<hostid>hostb</hostid>
 	<serverpasswd>src/main/config/serveradminkey.txt</serverpasswd>
 	<serverport>6668</serverport>
+	<serversslport>6669</serversslport>
+	<keypath>certs/openr66.pem</keypath>
+	<keypass>openr66</keypass>
 	<serverhome>d:/GG/R66</serverhome>
 	<in>in</in>
 	<out>out</out>

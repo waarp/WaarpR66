@@ -32,6 +32,7 @@ import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.localhandler.LocalTransaction;
 import openr66.protocol.networkhandler.NetworkServerPipelineFactory;
+import openr66.protocol.networkhandler.ssl.NetworkSslServerPipelineFactory;
 import openr66.protocol.utils.OpenR66SignalHandler;
 
 import org.jboss.netty.bootstrap.ServerBootstrap;
@@ -265,6 +266,11 @@ public class Configuration {
     private ServerBootstrap serverBootstrap = null;
 
     /**
+     * Bootstrap for SSL server
+     */
+    private ServerBootstrap serverSslBootstrap = null;
+
+    /**
      * ExecutorService for TrafficCounter
      */
     private final ExecutorService execTrafficCounter = Executors
@@ -349,6 +355,19 @@ public class Configuration {
 
         serverChannelGroup.add(serverBootstrap.bind(new InetSocketAddress(
                 SERVER_PORT)));
+
+        serverSslBootstrap = new ServerBootstrap(serverChannelFactory);
+        serverSslBootstrap.setPipelineFactory(new NetworkSslServerPipelineFactory(false));
+        serverSslBootstrap.setOption("child.tcpNoDelay", true);
+        serverSslBootstrap.setOption("child.keepAlive", true);
+        serverSslBootstrap.setOption("child.reuseAddress", true);
+        serverSslBootstrap.setOption("child.connectTimeoutMillis", TIMEOUTCON);
+        serverSslBootstrap.setOption("tcpNoDelay", true);
+        serverSslBootstrap.setOption("reuseAddress", true);
+        serverSslBootstrap.setOption("connectTimeoutMillis", TIMEOUTCON);
+
+        serverChannelGroup.add(serverSslBootstrap.bind(new InetSocketAddress(
+                SERVER_SSLPORT)));
 
         // Factory for TrafficShapingHandler
         objectSizeEstimator = new DataBlockSizeEstimator();

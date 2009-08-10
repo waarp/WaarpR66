@@ -90,7 +90,7 @@ public class TestTransferNoDatabase implements Runnable {
         for (int i = 0; i < Configuration.RETRYNB; i ++) {
             try {
                 localChannelReference = networkTransaction
-                        .createConnection(socketAddress, future);
+                        .createConnection(socketAddress, false, future);
                 break;
             } catch (OpenR66ProtocolNetworkException e1) {
                 lastException = e1;
@@ -130,22 +130,6 @@ public class TestTransferNoDatabase implements Runnable {
             Channels.close(localChannelReference.getLocalChannel());
             return;
         }
-        /*localChannelReference.getFutureRequest().awaitUninterruptibly();
-        if (localChannelReference.getFutureRequest().isSuccess()) {
-            future.setResult(localChannelReference.getFutureRequest()
-                    .getResult());
-            future.setSuccess();
-        } else {
-            future.setResult(localChannelReference.getFutureRequest()
-                    .getResult());
-            Throwable throwable = localChannelReference.getFutureRequest()
-                    .getCause();
-            if (throwable == null) {
-                future.cancel();
-            } else {
-                future.setFailure(throwable);
-            }
-        }*/
     }
 
     public static void main(String[] args) {

@@ -90,9 +90,10 @@ public class LogTransfer implements Runnable {
         ValidPacket valid = new ValidPacket(lstart, lstop, type);
         DbHostAuth host = Configuration.configuration.HOST_AUTH;
         SocketAddress socketAddress = host.getSocketAddress();
+        boolean isSSL = host.isSsl();
 
         LocalChannelReference localChannelReference = networkTransaction
-            .createConnectionWithRetry(socketAddress, future);
+            .createConnectionWithRetry(socketAddress, isSSL, future);
         socketAddress = null;
         if (localChannelReference == null) {
             host = null;

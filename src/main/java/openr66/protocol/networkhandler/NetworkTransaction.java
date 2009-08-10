@@ -27,6 +27,7 @@ import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.RetrieveRunner;
 import openr66.protocol.localhandler.packet.AuthentPacket;
+import openr66.protocol.networkhandler.ssl.NetworkSslServerPipelineFactory;
 import openr66.protocol.utils.ChannelUtils;
 import openr66.protocol.utils.OpenR66SignalHandler;
 import openr66.protocol.utils.R66Future;
@@ -91,29 +92,32 @@ public class NetworkTransaction {
 
     private final ClientBootstrap clientBootstrap = new ClientBootstrap(
             channelClientFactory);
-
+    private final ClientBootstrap clientSslBootstrap = new ClientBootstrap(
+            channelClientFactory);
     private final ChannelGroup networkChannelGroup = new DefaultChannelGroup(
             "NetworkChannels");
 
     public NetworkTransaction() {
         logger.info("THREAD: " + Configuration.configuration.SERVER_THREAD);
         clientBootstrap.setPipelineFactory(new NetworkServerPipelineFactory());
+        clientSslBootstrap.setPipelineFactory(new NetworkSslServerPipelineFactory(true));
     }
 
     /**
      * Create a connection to the specified socketAddress with multiple retries
      * @param socketAddress
+     * @param isSSL
      * @param futureRequest
      * @return the LocalChannelReference
      */
     public LocalChannelReference createConnectionWithRetry(SocketAddress socketAddress,
-            R66Future futureRequest) {
+            boolean isSSL, R66Future futureRequest) {
         LocalChannelReference localChannelReference = null;
         OpenR66Exception lastException = null;
         for (int i = 0; i < Configuration.RETRYNB; i ++) {
             try {
                 localChannelReference =
-                        createConnection(socketAddress, futureRequest);
+                        createConnection(socketAddress, isSSL, futureRequest);
                 break;
             } catch (OpenR66ProtocolNetworkException e1) {
                 lastException = e1;
@@ -138,20 +142,21 @@ public class NetworkTransaction {
     /**
      * Create a connection to the specified socketAddress
      * @param socketAddress
+     * @param isSSL
      * @param futureRequest
      * @return the LocalChannelReference
      * @throws OpenR66ProtocolNetworkException
      * @throws OpenR66ProtocolRemoteShutdownException
      * @throws OpenR66ProtocolNoConnectionException
      */
-    public LocalChannelReference createConnection(SocketAddress socketAddress,
+    public LocalChannelReference createConnection(SocketAddress socketAddress, boolean isSSL,
             R66Future futureRequest)
             throws OpenR66ProtocolNetworkException,
             OpenR66ProtocolRemoteShutdownException,
             OpenR66ProtocolNoConnectionException {
         lock.lock();
         try {
-            Channel channel = createNewConnection(socketAddress);
+            Channel channel = createNewConnection(socketAddress, isSSL);
             LocalChannelReference localChannelReference = createNewClient(channel, futureRequest);
             sendValidationConnection(localChannelReference);
             return localChannelReference;
@@ -162,12 +167,13 @@ public class NetworkTransaction {
     /**
      *
      * @param socketServerAddress
+     * @param isSSL
      * @return the new channel
      * @throws OpenR66ProtocolNetworkException
      * @throws OpenR66ProtocolRemoteShutdownException
      * @throws OpenR66ProtocolNoConnectionException
      */
-    private Channel createNewConnection(SocketAddress socketServerAddress)
+    private Channel createNewConnection(SocketAddress socketServerAddress, boolean isSSL)
             throws OpenR66ProtocolNetworkException,
             OpenR66ProtocolRemoteShutdownException,
             OpenR66ProtocolNoConnectionException {
@@ -187,7 +193,11 @@ public class NetworkTransaction {
         }
         ChannelFuture channelFuture = null;
         for (int i = 0; i < Configuration.RETRYNB; i ++) {
-            channelFuture = clientBootstrap.connect(socketServerAddress);
+            if (isSSL) {
+                channelFuture = clientSslBootstrap.connect(socketServerAddress);
+            } else {
+                channelFuture = clientBootstrap.connect(socketServerAddress);
+            }
             channelFuture.awaitUninterruptibly();
             if (channelFuture.isSuccess()) {
                 final Channel channel = channelFuture.getChannel();
@@ -226,7 +236,6 @@ public class NetworkTransaction {
     private LocalChannelReference createNewClient(Channel channel, R66Future futureRequest)
             throws OpenR66ProtocolNetworkException,
             OpenR66ProtocolRemoteShutdownException {
-        // FIXME WARNING
         if (!channel.isConnected()) {
             throw new OpenR66ProtocolNetworkException(
                     "Network channel no more connected");
@@ -295,6 +304,7 @@ public class NetworkTransaction {
         closeRetrieveExecutors();
         networkChannelGroup.close().awaitUninterruptibly();
         clientBootstrap.releaseExternalResources();
+        clientSslBootstrap.releaseExternalResources();
         channelClientFactory.releaseExternalResources();
         try {
             Thread.sleep(Configuration.WAITFORNETOP);
