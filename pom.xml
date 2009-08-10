@@ -3,7 +3,7 @@
   <groupId>OpenR66</groupId>
   <artifactId>OpenR66</artifactId>
   <name>GoldenGateOpenR66</name>
-  <version>0.5.6</version>
+  <version>0.5.7</version>
   <description>
   OpenR66 is a File Transfer Monitor to be used in real production to transfer files between servers.
   It allows to start/restart a transfer, check the remote MD5, check status, make pre or post

@@ -153,6 +153,9 @@ public class RequestTransfer implements Runnable {
 
 
     public void run() {
+        if (logger == null) {
+            logger = GgInternalLoggerFactory.getLogger(RequestTransfer.class);
+        }
         DbTaskRunner runner = null;
         try {
             runner = new DbTaskRunner(DbConstant.admin.session,null,null,

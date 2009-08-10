@@ -66,6 +66,9 @@ public class DirectTransfer extends AbstractTransfer {
      * It is the responsibility of the caller to finish all network resources.
      */
     public void run() {
+        if (logger == null) {
+            logger = GgInternalLoggerFactory.getLogger(DirectTransfer.class);
+        }
         DbRule rule;
         try {
             rule = new DbRule(DbConstant.admin.session, rulename);

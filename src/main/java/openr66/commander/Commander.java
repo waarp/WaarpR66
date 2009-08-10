@@ -62,58 +62,18 @@ public class Commander implements Runnable {
      */
     public Commander(InternalRunner runner)
         throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
-        DbPreparedStatement initial = new DbPreparedStatement(DbConstant.admin.session);
         try {
-            preparedStatementConfig = new DbPreparedStatement(
-                    DbConstant.admin.session);
-            preparedStatementHost = new DbPreparedStatement(
-                    DbConstant.admin.session);
-            preparedStatementRule = new DbPreparedStatement(
-                    DbConstant.admin.session);
-            preparedStatementRunner = new DbPreparedStatement(
-                    DbConstant.admin.session);
+            preparedStatementConfig =
+                DbConfiguration.getUpdatedPrepareStament(DbConstant.admin.session);
+            preparedStatementHost =
+                DbHostAuth.getUpdatedPrepareStament(DbConstant.admin.session);
+            preparedStatementRule =
+                DbRule.getUpdatedPrepareStament(DbConstant.admin.session);
+            preparedStatementRunner =
+                DbTaskRunner.getUpdatedPrepareStament(DbConstant.admin.session);
 
-            String request = "SELECT " +DbConfiguration.selectAllFields;
-            request += " FROM "+DbConfiguration.table+
-                " WHERE "+DbConfiguration.Columns.UPDATEDINFO.name()+" = "+
-                AbstractDbData.UpdatedInfo.UPDATED.ordinal();
-            preparedStatementConfig.createPrepareStatement(request);
-
-            request = "SELECT " +DbHostAuth.selectAllFields;
-            request += " FROM "+DbHostAuth.table+
-                " WHERE "+DbHostAuth.Columns.UPDATEDINFO.name()+" = "+
-                AbstractDbData.UpdatedInfo.UPDATED.ordinal();
-            preparedStatementHost.createPrepareStatement(request);
-
-            request = "SELECT " +DbRule.selectAllFields;
-            request += " FROM "+DbRule.table+
-                " WHERE "+DbRule.Columns.UPDATEDINFO.name()+" = "+
-                AbstractDbData.UpdatedInfo.UPDATED.ordinal();
-            preparedStatementRule.createPrepareStatement(request);
-
-            request = "SELECT " +DbTaskRunner.selectAllFields;
-            request += " FROM "+DbTaskRunner.table+
-                " WHERE "+DbTaskRunner.Columns.UPDATEDINFO.name()+" = "+
-                AbstractDbData.UpdatedInfo.UPDATED.ordinal();
-            preparedStatementRunner.createPrepareStatement(request);
             // Change TORUN to UPDATED since they should ready
-            request = "UPDATE "+DbTaskRunner.table+" SET " +
-                DbTaskRunner.Columns.UPDATEDINFO.name()+ "="+
-                AbstractDbData.UpdatedInfo.UPDATED.ordinal();
-            request += " WHERE "+DbTaskRunner.Columns.UPDATEDINFO.name()+" = "+
-                AbstractDbData.UpdatedInfo.TORUN.ordinal();
-            initial.createPrepareStatement(request);
-            try {
-                initial.executeUpdate();
-            } catch (OpenR66DatabaseNoConnectionError e) {
-                logger.error("Cannot execute Commander", e);
-                return;
-            } catch (OpenR66DatabaseSqlError e) {
-                logger.error("Cannot execute Commander", e);
-                return;
-            } finally {
-                initial.close();
-            }
+            DbTaskRunner.changeToRunToUpdated(DbConstant.admin.session);
             internalRunner = runner;
         } finally {
             if (internalRunner == null) {

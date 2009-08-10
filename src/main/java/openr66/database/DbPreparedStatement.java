@@ -165,6 +165,7 @@ public class DbPreparedStatement {
             logger.error("SQL Exception executeQuery:" + request, e);
             close();
             rs = null;
+            this.realClose();
             throw new OpenR66DatabaseSqlError("SQL Exception executeQuery: " +
                     request, e);
         }
@@ -192,6 +193,7 @@ public class DbPreparedStatement {
             retour = preparedStatement.executeUpdate();
         } catch (SQLException e) {
             logger.error("SQL Exception executeUpdate:" + request, e);
+            this.realClose();
             throw new OpenR66DatabaseSqlError("SQL Exception executeUpdate: " +
                     request, e);
         }

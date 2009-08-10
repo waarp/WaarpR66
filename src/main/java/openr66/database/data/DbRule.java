@@ -596,7 +596,19 @@ public class DbRule extends AbstractDbData {
         dbRule.isSaved = true;
         return dbRule;
     }
-
+    /**
+    *
+    * @return the DbPreparedStatement for getting Updated Object
+    * @throws OpenR66DatabaseNoConnectionError
+    * @throws OpenR66DatabaseSqlError
+    */
+   public static DbPreparedStatement getUpdatedPrepareStament(DbSession session) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+       String request = "SELECT " +selectAllFields;
+       request += " FROM "+table+
+           " WHERE "+Columns.UPDATEDINFO.name()+" = "+
+           AbstractDbData.UpdatedInfo.UPDATED.ordinal();
+       return new DbPreparedStatement(session, request);
+   }
     /*
      * (non-Javadoc)
      *

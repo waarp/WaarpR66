@@ -194,7 +194,6 @@ public class ClientRunner implements Runnable {
         transfer.awaitUninterruptibly();
         logger.info("Request done with "+(transfer.isSuccess()?"success":"error"));
 
-        // FIXME TODO Auto-generated method stub
         Channels.close(localChannelReference.getLocalChannel());
         localChannelReference = null;
         // now reload TaskRunner if it still exists (light client can forget it)

@@ -693,6 +693,149 @@ public class DbTaskRunner extends AbstractDbData {
         dbTaskRunner.isSaved = true;
         return dbTaskRunner;
     }
+    /**
+    *
+    * @return the DbPreparedStatement for getting Updated Object
+    * @throws OpenR66DatabaseNoConnectionError
+    * @throws OpenR66DatabaseSqlError
+    */
+   public static DbPreparedStatement getUpdatedPrepareStament(DbSession session) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+       String request = "SELECT " +selectAllFields;
+       request += " FROM "+table+
+           " WHERE "+Columns.UPDATEDINFO.name()+" = "+
+           AbstractDbData.UpdatedInfo.UPDATED.ordinal();
+       return new DbPreparedStatement(session, request);
+   }
+   /**
+   *
+   * @param session
+   * @param start
+   * @param stop
+   * @return the DbPreparedStatement for getting Selected Object, already executed
+   * @throws OpenR66DatabaseNoConnectionError
+   * @throws OpenR66DatabaseSqlError
+   */
+  public static DbPreparedStatement getLogPrepareStament(DbSession session,
+          Timestamp start, Timestamp stop)
+      throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+      DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
+      String request = "SELECT " +selectAllFields+" FROM "+table+ " WHERE ";
+      if (start != null & stop != null) {
+          request += Columns.START.name()+" >= ? AND "+
+              Columns.STOP.name()+" <= ? ORDER BY "+Columns.START.name();
+          preparedStatement.createPrepareStatement(request);
+          try {
+            preparedStatement.getPreparedStatement().setTimestamp(1, start);
+            preparedStatement.getPreparedStatement().setTimestamp(2, stop);
+        } catch (SQLException e) {
+            preparedStatement.realClose();
+            throw new OpenR66DatabaseSqlError(e);
+        }
+      } else if (start != null) {
+          request += Columns.START.name()+" >= ? ORDER BY "+Columns.START.name();
+          preparedStatement.createPrepareStatement(request);
+          try {
+              preparedStatement.getPreparedStatement().setTimestamp(1, start);
+          } catch (SQLException e) {
+              preparedStatement.realClose();
+              throw new OpenR66DatabaseSqlError(e);
+          }
+      } else if (stop != null) {
+          request += Columns.STOP.name()+" <= ? ORDER BY "+Columns.START.name();
+          preparedStatement.createPrepareStatement(request);
+          try {
+              preparedStatement.getPreparedStatement().setTimestamp(1, stop);
+          } catch (SQLException e) {
+              preparedStatement.realClose();
+              throw new OpenR66DatabaseSqlError(e);
+          }
+      } else {
+          request += " ORDER BY "+Columns.START.name();
+          preparedStatement.createPrepareStatement(request);
+      }
+      return preparedStatement;
+  }
+  /**
+  * purge in same interval all runners with globallaststep
+  * as ALLDONETASK or ERRORTASK
+  *
+  * @param session
+  * @param start
+  * @param stop
+  * @return the number of log purged
+  * @throws OpenR66DatabaseNoConnectionError
+  * @throws OpenR66DatabaseSqlError
+  */
+ public static int purgeLogPrepareStament(DbSession session,
+         Timestamp start, Timestamp stop)
+     throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+     DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
+     String request = "DELETE FROM "+table+ " WHERE ("+
+         Columns.GLOBALLASTSTEP+" = "+ALLDONETASK+" OR "+
+         Columns.GLOBALLASTSTEP+" = "+ERRORTASK+") ";
+     if (start != null & stop != null) {
+         request += " AND "+ Columns.START.name()+" >= ? AND "+
+             Columns.STOP.name()+" <= ? ";
+         preparedStatement.createPrepareStatement(request);
+         try {
+           preparedStatement.getPreparedStatement().setTimestamp(1, start);
+           preparedStatement.getPreparedStatement().setTimestamp(2, stop);
+       } catch (SQLException e) {
+           preparedStatement.realClose();
+           throw new OpenR66DatabaseSqlError(e);
+       }
+     } else if (start != null) {
+         request += " AND "+ Columns.START.name()+" >= ? ";
+         preparedStatement.createPrepareStatement(request);
+         try {
+             preparedStatement.getPreparedStatement().setTimestamp(1, start);
+         } catch (SQLException e) {
+             preparedStatement.realClose();
+             throw new OpenR66DatabaseSqlError(e);
+         }
+     } else if (stop != null) {
+         request += " AND "+ Columns.STOP.name()+" <= ? ";
+         preparedStatement.createPrepareStatement(request);
+         try {
+             preparedStatement.getPreparedStatement().setTimestamp(1, stop);
+         } catch (SQLException e) {
+             preparedStatement.realClose();
+             throw new OpenR66DatabaseSqlError(e);
+         }
+     } else {
+         preparedStatement.createPrepareStatement(request);
+     }
+     int nb = preparedStatement.executeUpdate();
+     logger.info("Purge "+nb+" from "+request);
+     preparedStatement.realClose();
+     return nb;
+ }
+   /**
+    * Change TORUN to UPDATED TaskRunner from database
+    * @param session
+    * @throws OpenR66DatabaseNoConnectionError
+    */
+   public static void changeToRunToUpdated(DbSession session) throws OpenR66DatabaseNoConnectionError {
+       // Change TORUN to UPDATED since they should ready
+       String request = "UPDATE "+table+" SET " +
+           Columns.UPDATEDINFO.name()+ "="+
+           AbstractDbData.UpdatedInfo.UPDATED.ordinal();
+       request += " WHERE "+Columns.UPDATEDINFO.name()+" = "+
+           AbstractDbData.UpdatedInfo.TORUN.ordinal();
+       DbPreparedStatement initial = new DbPreparedStatement(session);
+       try {
+           initial.createPrepareStatement(request);
+           initial.executeUpdate();
+       } catch (OpenR66DatabaseNoConnectionError e) {
+           logger.error("Cannot execute Commander", e);
+           return;
+       } catch (OpenR66DatabaseSqlError e) {
+           logger.error("Cannot execute Commander", e);
+           return;
+       } finally {
+           initial.close();
+       }
+   }
     /*
      * (non-Javadoc)
      *
@@ -1204,32 +1347,44 @@ public class DbTaskRunner extends AbstractDbData {
         return root;
     }
     /**
+     * Write the selected TaskRunners from PrepareStatement to a XML tree
+     * @param root root from where will be attached the TaskRunners
+     * @param preparedStatement ready to be executed
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66DatabaseSqlError
+     */
+    public static Document writeXML(DbPreparedStatement preparedStatement) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+        Document document = DocumentHelper.createDocument();
+        Element root = document.addElement("taskrunners");
+        preparedStatement.executeQuery();
+        Element node;
+        while (preparedStatement.getNext()) {
+            DbTaskRunner runner = DbTaskRunner.getFromStatement(preparedStatement);
+            node = DbTaskRunner.getElementFromRunner(runner);
+            root.add(node);
+        }
+        return document;
+    }
+    /**
      * Write all TaskRunners to an XML file
      * @param filename
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
      */
     public static void writeXML(String filename) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
-        Document document = DocumentHelper.createDocument();
-        Element root = document.addElement("taskrunners");
         String request = "SELECT " +DbTaskRunner.selectAllFields+" FROM "+DbTaskRunner.table;
         DbPreparedStatement preparedStatement = null;
+        Document document = null;
         try {
             preparedStatement = new DbPreparedStatement(DbConstant.admin.session);
             preparedStatement.createPrepareStatement(request);
-            preparedStatement.executeQuery();
-            Element node;
-            while (preparedStatement.getNext()) {
-                DbTaskRunner runner = DbTaskRunner.getFromStatement(preparedStatement);
-                node = DbTaskRunner.getElementFromRunner(runner);
-                root.add(node);
-            }
+            document = writeXML(preparedStatement);
         } finally {
             if (preparedStatement != null) {
                 preparedStatement.realClose();
             }
         }
-        if (root != null) {
+        if (document != null) {
             try {
                 FileUtils.writeXML(filename, null, document);
             } catch (OpenR66ProtocolSystemException e) {

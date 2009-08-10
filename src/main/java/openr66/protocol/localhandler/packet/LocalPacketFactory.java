@@ -55,6 +55,10 @@ public class LocalPacketFactory {
 
     public static final byte REQUESTUSERPACKET = 15;
 
+    public static final byte LOGPACKET = 16;
+
+    public static final byte LOGPURGEPACKET = 17;
+
     /**
      * This method create a Packet from the ChannelBuffer.
      *
@@ -100,6 +104,8 @@ public class LocalPacketFactory {
             case REQUESTUSERPACKET:
             case CONFIGSENDPACKET:
             case CONFIGRECVPACKET:
+            case LOGPACKET:
+            case LOGPURGEPACKET:
                 throw new OpenR66ProtocolPacketException(
                         "Unimplemented Packet Type received: " + packetType);
             case TESTPACKET:

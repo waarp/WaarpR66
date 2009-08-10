@@ -53,6 +53,9 @@ public class SubmitTransfer extends AbstractTransfer {
     }
 
     public void run() {
+        if (logger == null) {
+            logger = GgInternalLoggerFactory.getLogger(SubmitTransfer.class);
+        }
         DbRule rule;
         try {
             rule = new DbRule(DbConstant.admin.session, rulename);

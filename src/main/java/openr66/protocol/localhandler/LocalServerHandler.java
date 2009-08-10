@@ -3,6 +3,8 @@
  */
 package openr66.protocol.localhandler;
 
+import java.sql.Timestamp;
+
 import goldengate.common.command.exception.Reply421Exception;
 import goldengate.common.command.exception.Reply530Exception;
 import goldengate.common.exception.FileTransferException;
@@ -12,13 +14,17 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
+import openr66.context.filesystem.R66Dir;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.context.task.exception.OpenR66RunnerException;
 import openr66.database.DbConstant;
+import openr66.database.DbPreparedStatement;
 import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
 import openr66.database.exception.OpenR66DatabaseException;
+import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
+import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
@@ -48,7 +54,9 @@ import openr66.protocol.localhandler.packet.TestPacket;
 import openr66.protocol.localhandler.packet.ValidPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.utils.ChannelUtils;
+import openr66.protocol.utils.FileUtils;
 
+import org.dom4j.Document;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipelineCoverage;
@@ -730,9 +738,14 @@ public class LocalServerHandler extends SimpleChannelHandler {
      * @param packet
      * @throws OpenR66RunnerErrorException
      * @throws OpenR66ProtocolSystemException
+     * @throws OpenR66ProtocolNotAuthenticatedException
      */
     private void endTransfer(Channel channel, EndTransferPacket packet)
-            throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException {
+            throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException, OpenR66ProtocolNotAuthenticatedException {
+        if (!session.isAuthenticated()) {
+            throw new OpenR66ProtocolNotAuthenticatedException(
+                    "Not authenticated");
+        }
         // Check end of transfer
         if (packet.isToValidate()) {
             if (!localChannelReference.getFutureRequest().isDone()) {
@@ -766,10 +779,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
      * @throws OpenR66ProtocolNotAuthenticatedException
      * @throws OpenR66RunnerErrorException
      * @throws OpenR66ProtocolSystemException
+     * @throws OpenR66ProtocolBusinessException
      */
     private void valid(Channel channel, ValidPacket packet)
             throws OpenR66ProtocolNotAuthenticatedException,
-            OpenR66RunnerErrorException, OpenR66ProtocolSystemException {
+            OpenR66RunnerErrorException, OpenR66ProtocolSystemException, OpenR66ProtocolBusinessException {
         // FIXME do something
         if (packet.getTypeValid() != LocalPacketFactory.SHUTDOWNPACKET &&
                 !session.isAuthenticated()) {
@@ -817,41 +831,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 Channels.close(channel);
                 break;
             }
-            case LocalPacketFactory.STOPPACKET: {
-                // header = ?; middle = requested+blank+requester+blank+specialId
-                LocalChannelReference lcr =
-                    Configuration.configuration.getLocalTransaction().
-                    getFromRequest(packet.getSmiddle());
-                // stop the current transfer
-                R66Result resulttest;
-                if (lcr != null) {
-                    ErrorPacket error = new ErrorPacket("Transfer Stopped",
-                            ErrorCode.StoppedTransfer.getCode(), ErrorPacket.FORWARDCLOSECODE);
-                    try {
-                        ChannelUtils.writeAbstractLocalPacket(lcr, error).awaitUninterruptibly();
-                    } catch (OpenR66ProtocolPacketException e) {
-                    }
-                    ChannelUtils.close(lcr.getLocalChannel());
-                    resulttest = new R66Result(session, true,
-                            ErrorCode.CompleteOk);
-                } else {
-                    // Transfer is not running
-                    resulttest = new R66Result(session, true,
-                            ErrorCode.TransferOk);
-                }
-                // inform back the requester
-                ValidPacket valid = new ValidPacket(packet.getSmiddle(), resulttest.code.getCode(),
-                        LocalPacketFactory.REQUESTUSERPACKET);
-                resulttest.other = packet;
-                localChannelReference.validateRequest(resulttest);
-                try {
-                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, valid).awaitUninterruptibly();
-                } catch (OpenR66ProtocolPacketException e) {
-                }
-                Channels.close(channel);
-                break;
-            }
+            case LocalPacketFactory.STOPPACKET:
             case LocalPacketFactory.CANCELPACKET: {
+                // Authentication must be the local server
+                if (!session.getAuth().getUser().equals(Configuration.configuration.HOST_ID)) {
+                    throw new OpenR66ProtocolNotAuthenticatedException(
+                            "Not correctly authenticated");
+                }
                 // header = ?; middle = requested+blank+requester+blank+specialId
                 LocalChannelReference lcr =
                     Configuration.configuration.getLocalTransaction().
@@ -859,8 +845,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 // stop the current transfer
                 R66Result resulttest;
                 if (lcr != null) {
-                    ErrorPacket error = new ErrorPacket("Transfer Canceled",
-                            ErrorCode.CanceledTransfer.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                    ErrorCode code = (packet.getTypeValid() == LocalPacketFactory.STOPPACKET) ?
+                            ErrorCode.StoppedTransfer : ErrorCode.CanceledTransfer;
+                    ErrorPacket error = new ErrorPacket("Transfer Stopped",
+                            code.getCode(), ErrorPacket.FORWARDCLOSECODE);
                     try {
                         ChannelUtils.writeAbstractLocalPacket(lcr, error).awaitUninterruptibly();
                     } catch (OpenR66ProtocolPacketException e) {
@@ -879,7 +867,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 resulttest.other = packet;
                 localChannelReference.validateRequest(resulttest);
                 try {
-                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, valid).awaitUninterruptibly();
+                    ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+                            valid).awaitUninterruptibly();
                 } catch (OpenR66ProtocolPacketException e) {
                 }
                 Channels.close(channel);
@@ -891,6 +880,71 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         ErrorCode.getFromCode(packet.getSmiddle()));
                 resulttest.other = packet;
                 localChannelReference.validateRequest(resulttest);
+                Channels.close(channel);
+                break;
+            }
+            case LocalPacketFactory.LOGPACKET:
+            case LocalPacketFactory.LOGPURGEPACKET: {
+                // should be from the local server or from an authorized hosts
+                if (!session.getAuth().getUser().equals(Configuration.configuration.HOST_ID)) {
+                    throw new OpenR66ProtocolNotAuthenticatedException(
+                            "Not correctly authenticated");
+                }
+                String sstart = packet.getSheader();
+                String sstop = packet.getSmiddle();
+                boolean isPurge = (packet.getTypeValid() == LocalPacketFactory.LOGPURGEPACKET) ?
+                        true : false;
+                Timestamp start = (sstart == null || sstart.length() == 0) ? null :
+                    Timestamp.valueOf(sstart);
+                Timestamp stop = (sstop == null || sstop.length() == 0) ? null :
+                    Timestamp.valueOf(sstop);
+                // create export of log and optionaly purge them from database
+                DbPreparedStatement getValid = null;
+                Document document = null;
+                try {
+                    getValid =
+                        DbTaskRunner.getLogPrepareStament(localChannelReference.getDbSession(),
+                                start, stop);
+                    document = DbTaskRunner.writeXML(getValid);
+                } catch (OpenR66DatabaseNoConnectionError e1) {
+                    throw new OpenR66ProtocolBusinessException(e1);
+                } catch (OpenR66DatabaseSqlError e1) {
+                    throw new OpenR66ProtocolBusinessException(e1);
+                } finally {
+                    if (getValid != null) {
+                        getValid.realClose();
+                    }
+                }
+                String filename = Configuration.configuration.baseDirectory+
+                    Configuration.configuration.archivePath+R66Dir.SEPARATOR+
+                    Configuration.configuration.HOST_ID+"_"+System.currentTimeMillis()+
+                    "_runners.xml";
+                FileUtils.writeXML(filename, null, document);
+                // in case of purge
+                int nb = 0;
+                if (isPurge) {
+                    // purge in same interval all runners with globallaststep
+                    // as ALLDONETASK or ERRORTASK
+                    try {
+                        nb = DbTaskRunner.purgeLogPrepareStament(
+                                localChannelReference.getDbSession(),
+                                start, stop);
+                    } catch (OpenR66DatabaseNoConnectionError e) {
+                        throw new OpenR66ProtocolBusinessException(e);
+                    } catch (OpenR66DatabaseSqlError e) {
+                        throw new OpenR66ProtocolBusinessException(e);
+                    }
+                }
+                R66Result result = new R66Result(session, true, ErrorCode.CompleteOk);
+                // Now answer
+                ValidPacket valid = new ValidPacket(filename+" "+nb, result.code.getCode(),
+                        LocalPacketFactory.REQUESTUSERPACKET);
+                localChannelReference.validateRequest(result);
+                try {
+                    ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+                            valid).awaitUninterruptibly();
+                } catch (OpenR66ProtocolPacketException e) {
+                }
                 Channels.close(channel);
                 break;
             }
