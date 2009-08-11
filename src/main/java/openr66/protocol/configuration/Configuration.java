@@ -15,7 +15,6 @@
  */
 package openr66.protocol.configuration;
 
-import goldengate.common.file.DataBlockSizeEstimator;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
@@ -32,6 +31,7 @@ import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.localhandler.LocalTransaction;
 import openr66.protocol.networkhandler.NetworkServerPipelineFactory;
+import openr66.protocol.networkhandler.packet.NetworkPacketSizeEstimator;
 import openr66.protocol.networkhandler.ssl.NetworkSslServerPipelineFactory;
 import openr66.protocol.utils.OpenR66SignalHandler;
 
@@ -370,7 +370,7 @@ public class Configuration {
                 SERVER_SSLPORT)));
 
         // Factory for TrafficShapingHandler
-        objectSizeEstimator = new DataBlockSizeEstimator();
+        objectSizeEstimator = new NetworkPacketSizeEstimator();
         globalTrafficShapingHandler = new GlobalTrafficShapingHandler(
                 objectSizeEstimator, execTrafficCounter,
                 serverGlobalWriteLimit, serverGlobalReadLimit, delayLimit);
