@@ -1,2 +1,0 @@
-V	110705103531Z		E0325E2610672CD5	unknown	/C=FR/ST=France/O=OpenR66/OU=Testing purpose/CN=OpenR66 2008/emailAddress=openlsd@free.fr
-V	090705104245Z		E0325E2610672CD6	unknown	/C=FR/ST=France/L=Paris/O=OpenR66/OU=Testing purpose/CN=OpenR66 2008/emailAddress=openlsd@free.fr
