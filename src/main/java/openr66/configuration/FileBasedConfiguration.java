@@ -42,7 +42,7 @@ import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.model.DbModelFactory;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
-import openr66.protocol.networkhandler.ssl.SecureKeyStore;
+import openr66.protocol.networkhandler.ssl.R66SecureKeyStore;
 import openr66.protocol.utils.FileUtils;
 
 import org.dom4j.Document;
@@ -90,6 +90,11 @@ public class FileBasedConfiguration {
      * SERVER SSL KEY PASS
      */
     private static final String XML_PATH_KEYPASS = "/config/keypass";
+    /**
+     * SERVER SSL KEY PASS
+     */
+    private static final String XML_PATH_KEYSTOREPASS = "/config/keystorepass";
+
     /**
      * Base Directory
      */
@@ -533,7 +538,17 @@ public class FileBasedConfiguration {
                         logger.warn("Bad Key Passwd");
                         return false;
                 }
-                if (! SecureKeyStore.initSecureKeyStore(keypath, keypass)) {
+                node = document.selectSingleNode(XML_PATH_KEYSTOREPASS);
+                if (node == null) {
+                        logger.warn("Unable to find KeyStore Passwd");
+                        return false;
+                }
+                String keystorepass = node.getText();
+                if ((keystorepass == null) || (keystorepass.length() == 0)) {
+                        logger.warn("Bad KeyStore Passwd");
+                        return false;
+                }
+                if (! R66SecureKeyStore.initSecureKeyStore(keypath, keystorepass, keypass)) {
                         logger.warn("Bad Key");
                         return false;
                 }

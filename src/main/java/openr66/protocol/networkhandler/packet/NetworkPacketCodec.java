@@ -34,7 +34,6 @@ import org.jboss.netty.handler.codec.frame.FrameDecoder;
  */
 public class NetworkPacketCodec extends FrameDecoder implements
         ChannelDownstreamHandler {
-
     /*
      * (non-Javadoc)
      *

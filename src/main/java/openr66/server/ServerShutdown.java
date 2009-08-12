@@ -27,11 +27,7 @@ import openr66.context.R66Result;
 import openr66.database.DbConstant;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.configuration.Configuration;
-import openr66.protocol.exception.OpenR66Exception;
-import openr66.protocol.exception.OpenR66ProtocolNetworkException;
-import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
-import openr66.protocol.exception.OpenR66ProtocolRemoteShutdownException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.LocalPacketFactory;
 import openr66.protocol.localhandler.packet.ShutdownPacket;
@@ -85,33 +81,14 @@ public class ServerShutdown {
                 Configuration.configuration.getSERVERADMINKEY());
         final NetworkTransaction networkTransaction = new NetworkTransaction();
         final SocketAddress socketServerAddress = new InetSocketAddress(
-                Configuration.configuration.SERVER_PORT);
+                Configuration.configuration.SERVER_SSLPORT);
         LocalChannelReference localChannelReference = null;
-        OpenR66Exception lastException = null;
-        for (int i = 0; i < Configuration.RETRYNB; i ++) {
-            try {
-                localChannelReference = networkTransaction
-                        .createConnection(socketServerAddress,false, null);
-                break;
-            } catch (OpenR66ProtocolNetworkException e1) {
-                lastException = e1;
-                localChannelReference = null;
-            } catch (OpenR66ProtocolRemoteShutdownException e1) {
-                lastException = e1;
-                localChannelReference = null;
-                break;
-            } catch (OpenR66ProtocolNoConnectionException e1) {
-                lastException = e1;
-                localChannelReference = null;
-                break;
-            }
-        }
+        localChannelReference = networkTransaction
+            .createConnectionWithRetry(socketServerAddress,true, null);
         if (localChannelReference == null) {
-            logger.error("Cannot connect", lastException);
+            logger.error("Cannot connect");
             networkTransaction.closeAll();
             return;
-        } else if (lastException != null) {
-            logger.warn("Connection retry since ", lastException);
         }
         ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet);
         localChannelReference.getFutureRequest().awaitUninterruptibly();

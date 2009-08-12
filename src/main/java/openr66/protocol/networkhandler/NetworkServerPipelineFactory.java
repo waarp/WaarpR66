@@ -16,12 +16,14 @@
 package openr66.protocol.networkhandler;
 
 import openr66.protocol.configuration.Configuration;
+import openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import openr66.protocol.networkhandler.packet.NetworkPacketCodec;
 
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.handler.execution.ExecutionHandler;
+import org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler;
 import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
 
 /**
@@ -31,15 +33,21 @@ import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
 public class NetworkServerPipelineFactory implements ChannelPipelineFactory {
 
     @Override
-    public ChannelPipeline getPipeline() throws Exception {
+    public ChannelPipeline getPipeline() {
         final ChannelPipeline pipeline = Channels.pipeline();
         pipeline.addLast("codec", new NetworkPacketCodec());
         GlobalTrafficShapingHandler handler =
             Configuration.configuration.getGlobalTrafficShapingHandler();
         if (handler != null) {
             pipeline.addLast("LIMIT", handler);
-            pipeline.addLast("LIMITCHANNEL", Configuration.configuration
-                    .newChannelTrafficShapingHandler());
+            ChannelTrafficShapingHandler trafficChannel = null;
+            try {
+                trafficChannel =
+                    Configuration.configuration
+                    .newChannelTrafficShapingHandler();
+                pipeline.addLast("LIMITCHANNEL", trafficChannel);
+            } catch (OpenR66ProtocolNoDataException e) {
+            }
         }
         pipeline.addLast("pipelineExecutor", new ExecutionHandler(
                 Configuration.configuration.getServerPipelineExecutor()));

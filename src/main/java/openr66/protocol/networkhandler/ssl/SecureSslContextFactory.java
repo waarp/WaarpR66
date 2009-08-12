@@ -23,10 +23,8 @@ package openr66.protocol.networkhandler.ssl;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
-import java.security.KeyStore;
 import java.security.Security;
 
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 
 /**
@@ -35,7 +33,8 @@ import javax.net.ssl.SSLContext;
  * @author The Netty Project (netty@googlegroups.com)
  * @author Trustin Lee (trustin@gmail.com)
  *
- * @version $Rev$, $Date$
+ * @version $Rev$, $Date: 2009-08-10 22:49:26 +0200 (lun., 10 août 2009)
+ *          $
  *
  */
 public class SecureSslContextFactory {
@@ -44,6 +43,7 @@ public class SecureSslContextFactory {
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(SecureSslContextFactory.class);
+
     /**
 	 *
 	 */
@@ -69,51 +69,22 @@ public class SecureSslContextFactory {
         SSLContext serverContext = null;
         SSLContext clientContext = null;
         try {
-            KeyStore ks = KeyStore.getInstance("JKS");
-            if (SecureKeyStore.cert == null) {
-                ks.load(SecureKeyStore.asInputStream(), SecureKeyStore
-                        .getKeyStorePassword());
-            } else {
-                ks.setCertificateEntry("openr66", SecureKeyStore.cert);
-            }
-
-            // Set up key manager factory to use our key store
-            KeyManagerFactory kmfs = KeyManagerFactory.getInstance(algorithm);
-            kmfs.init(ks, SecureKeyStore.getCertificatePassword());
-
             // Initialize the SSLContext to work with our key managers.
             serverContext = SSLContext.getInstance(PROTOCOL);
-            serverContext.init(kmfs.getKeyManagers(), SecureTrustManagerFactory
-                    .getTrustManagers(), null);
+            serverContext.init(R66SecureKeyStore.keyManagerFactory.getKeyManagers(),
+                    SecureTrustManagerFactory.getTrustManagers(), null);
         } catch (Exception e) {
-            logger.error("Failed to initialize the server-side SSLContext",
-                    e);
+            logger.error("Failed to initialize the server-side SSLContext", e);
             throw new Error("Failed to initialize the server-side SSLContext",
                     e);
         }
 
         try {
-            KeyStore ks = KeyStore.getInstance("JKS");
-            if (SecureKeyStore.cert == null) {
-                ks.load(SecureKeyStore.asInputStream(), SecureKeyStore
-                        .getKeyStorePassword());
-            } else {
-                ks.setCertificateEntry("openr66", SecureKeyStore.cert);
-            }
-            // Set up key manager factory to use our key store
-            KeyManagerFactory kmfc = KeyManagerFactory.getInstance(algorithm);
-            kmfc.init(ks, SecureKeyStore.getCertificatePassword());
-
             clientContext = SSLContext.getInstance(PROTOCOL);
-            /*
-             * clientContext.init(null, SecureTrustManagerFactory
-             * .getTrustManagers(), null);
-             */
-            clientContext.init(kmfc.getKeyManagers(), SecureTrustManagerFactory
-                    .getTrustManagers(), null);
+            clientContext.init(R66SecureKeyStore.keyManagerFactory.getKeyManagers(),
+                    SecureTrustManagerFactory.getTrustManagers(), null);
         } catch (Exception e) {
-            logger.error("Failed to initialize the client-side SSLContext",
-                    e);
+            logger.error("Failed to initialize the client-side SSLContext", e);
             throw new Error("Failed to initialize the client-side SSLContext",
                     e);
         }

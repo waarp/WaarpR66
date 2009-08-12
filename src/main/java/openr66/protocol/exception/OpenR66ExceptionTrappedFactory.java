@@ -12,6 +12,8 @@ import java.net.ConnectException;
 import java.nio.channels.CancelledKeyException;
 import java.nio.channels.ClosedChannelException;
 
+import javax.net.ssl.SSLException;
+
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelException;
 import org.jboss.netty.channel.ExceptionEvent;
@@ -95,6 +97,11 @@ public class OpenR66ExceptionTrappedFactory {
             logger.warn("Null pointer Exception", e2);
             return new OpenR66ProtocolSystemException("Null Pointer Exception",
                     e2);
+        } else if (e1 instanceof SSLException) {
+            final SSLException e2 = (SSLException) e1;
+            logger.warn("Connection aborted since SSL Error {} with Channel {}", e2
+                    .getMessage(), channel);
+            return new OpenR66ProtocolBusinessNoWriteBackException("SSL Connection aborted", e2);
         } else if (e1 instanceof IOException) {
             final IOException e2 = (IOException) e1;
             logger.warn("Connection aborted since {} with Channel {}", e2

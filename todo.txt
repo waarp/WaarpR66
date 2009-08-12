@@ -15,9 +15,7 @@ doit permettre de relancer un job, de l'arreter, de l'annuler, de programmer un 
 configuration à recharger ou à transmettre)
 - Version light de OpenR66: dès qu'un transfert est OK, vidage de la table runner
 
-- Pour specialId: ajouter un check numero valide (plus grande valeur), Verifier pourquoi le rang n'est pas monté:
-proposition, si un specialId est imposé par l'extérieur, le getNext se rafraichit (ALTER) a cette valeur
-Mais problème avec client ultra light sans base (pas séquentiel)...
+- ajouter local socketAddress
 
 benchmark: 100 fichiers en parallèle de 1174036 o = 32/s => 286 Mbits (idem avec ou sans MD5)
 benchmark: 1000 submission en parallèle idem = 59/s => 527 Mbits

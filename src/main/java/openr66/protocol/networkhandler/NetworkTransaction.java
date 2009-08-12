@@ -27,6 +27,7 @@ import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.RetrieveRunner;
 import openr66.protocol.localhandler.packet.AuthentPacket;
+import openr66.protocol.networkhandler.ssl.NetworkSslServerHandler;
 import openr66.protocol.networkhandler.ssl.NetworkSslServerPipelineFactory;
 import openr66.protocol.utils.ChannelUtils;
 import openr66.protocol.utils.OpenR66SignalHandler;
@@ -100,7 +101,8 @@ public class NetworkTransaction {
     public NetworkTransaction() {
         logger.info("THREAD: " + Configuration.configuration.SERVER_THREAD);
         clientBootstrap.setPipelineFactory(new NetworkServerPipelineFactory());
-        clientSslBootstrap.setPipelineFactory(new NetworkSslServerPipelineFactory(true));
+        clientSslBootstrap.setPipelineFactory(new NetworkSslServerPipelineFactory(true,
+                execServerWorker));
     }
 
     /**
@@ -164,6 +166,7 @@ public class NetworkTransaction {
             lock.unlock();
         }
     }
+
     /**
      *
      * @param socketServerAddress
@@ -205,6 +208,13 @@ public class NetworkTransaction {
                 if (networkChannel != null) {
                     networkChannel.channel = channel;
                 }
+                if (isSSL) {
+                    if (! NetworkSslServerHandler.isSslConnectedChannel(channel)) {
+                        logger.error("KO CONNECT since open is over");
+                        throw new OpenR66ProtocolNoConnectionException(
+                                "Cannot finish connect to remote server");
+                    }
+                }
                 return channel;
             } else {
                 if (channelFuture.getCause() instanceof ConnectException) {
@@ -213,6 +223,9 @@ public class NetworkTransaction {
                     throw new OpenR66ProtocolNoConnectionException(
                             "Cannot connect to remote server", channelFuture
                                     .getCause());
+                } else {
+                    logger.info("KO CONNECT but retry", channelFuture
+                            .getCause());
                 }
             }
             try {
@@ -266,6 +279,7 @@ public class NetworkTransaction {
                 Configuration.configuration.HOST_ID,
                 Configuration.configuration.HOST_AUTH.getHostkey(),
                 localChannelReference.getLocalId());
+        logger.info("Will send request of connection validation");
         try {
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, authent)
             .awaitUninterruptibly();
@@ -531,7 +545,7 @@ public class NetworkTransaction {
 
         @Override
         public void run() {
-            logger.warn("Remove NC from shutdown hashmap");
+            logger.info("Remove NC from shutdown hashmap");
             networkChannelShutdownOnSocketAddressConcurrentHashMap.remove(href);
         }
     }

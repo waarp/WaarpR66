@@ -29,6 +29,7 @@ import openr66.commander.InternalRunner;
 import openr66.database.data.DbHostAuth;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
+import openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import openr66.protocol.localhandler.LocalTransaction;
 import openr66.protocol.networkhandler.NetworkServerPipelineFactory;
 import openr66.protocol.networkhandler.packet.NetworkPacketSizeEstimator;
@@ -357,7 +358,8 @@ public class Configuration {
                 SERVER_PORT)));
 
         serverSslBootstrap = new ServerBootstrap(serverChannelFactory);
-        serverSslBootstrap.setPipelineFactory(new NetworkSslServerPipelineFactory(false));
+        serverSslBootstrap.setPipelineFactory(new NetworkSslServerPipelineFactory(false,
+                execServerWorker));
         serverSslBootstrap.setOption("child.tcpNoDelay", true);
         serverSslBootstrap.setOption("child.keepAlive", true);
         serverSslBootstrap.setOption("child.reuseAddress", true);
@@ -453,8 +455,13 @@ public class Configuration {
 
     /**
      * @return a new ChannelTrafficShapingHandler
+     * @throws OpenR66ProtocolNoDataException
      */
-    public ChannelTrafficShapingHandler newChannelTrafficShapingHandler() {
+    public ChannelTrafficShapingHandler newChannelTrafficShapingHandler() throws OpenR66ProtocolNoDataException {
+        if (serverChannelReadLimit == 0 && serverChannelWriteLimit == 0 &&
+                delayLimit == 0) {
+            throw new OpenR66ProtocolNoDataException("No limit for channel");
+        }
         return new ChannelTrafficShapingHandler(objectSizeEstimator,
                 execTrafficCounter, serverChannelWriteLimit,
                 serverChannelReadLimit, delayLimit);

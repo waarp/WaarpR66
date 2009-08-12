@@ -4,8 +4,9 @@
 	<serverpasswd>src/main/config/serveradminkey.txt</serverpasswd>
 	<serverport>6666</serverport>
 	<serversslport>6667</serversslport>
-	<keypath>certs/openr66.pem</keypath>
+	<keypath>certs/certs.store</keypath>
 	<keypass>openr66</keypass>
+	<keystorepass>storeopenr66</keystorepass>
 	<serverhome>d:/GG/R66</serverhome>
 	<in>in</in>
 	<out>out</out>

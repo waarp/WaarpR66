@@ -20,9 +20,12 @@
  */
 package openr66.protocol.networkhandler.ssl;
 
+import java.util.concurrent.ExecutorService;
+
 import javax.net.ssl.SSLEngine;
 
 import openr66.protocol.configuration.Configuration;
+import openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import openr66.protocol.networkhandler.packet.NetworkPacketCodec;
 
 import org.jboss.netty.channel.ChannelPipeline;
@@ -30,6 +33,7 @@ import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.handler.execution.ExecutionHandler;
 import org.jboss.netty.handler.ssl.SslHandler;
+import org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler;
 import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
 
 /**
@@ -39,15 +43,17 @@ import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
  */
 public class NetworkSslServerPipelineFactory implements ChannelPipelineFactory {
     private final boolean isClient;
+    private final ExecutorService executorService;
 
     /**
      *
      * @param isClient
      *            True if this Factory is to be used in Client mode
      */
-    public NetworkSslServerPipelineFactory(boolean isClient) {
+    public NetworkSslServerPipelineFactory(boolean isClient, ExecutorService executor) {
         super();
         this.isClient = isClient;
+        this.executorService = executor;
     }
 
     @Override
@@ -57,25 +63,34 @@ public class NetworkSslServerPipelineFactory implements ChannelPipelineFactory {
         // You will need something more complicated to identify both
         // and server in the real world.
         SSLEngine engine;
+        SslHandler sslhandler;
         if (isClient) {
             engine = SecureSslContextFactory.getClientContext()
                     .createSSLEngine();
             engine.setUseClientMode(true);
+            sslhandler = new SslHandler(engine, this.executorService);
         } else {
             engine = SecureSslContextFactory.getServerContext()
                     .createSSLEngine();
             engine.setUseClientMode(false);
             engine.setNeedClientAuth(true);
+            sslhandler = new SslHandler(engine, this.executorService);
         }
-        pipeline.addLast("ssl", new SslHandler(engine));
+        pipeline.addLast("ssl", sslhandler);
 
         pipeline.addLast("codec", new NetworkPacketCodec());
         GlobalTrafficShapingHandler handler = Configuration.configuration
                 .getGlobalTrafficShapingHandler();
         if (handler != null) {
             pipeline.addLast("LIMIT", handler);
-            pipeline.addLast("LIMITCHANNEL", Configuration.configuration
-                    .newChannelTrafficShapingHandler());
+            ChannelTrafficShapingHandler trafficChannel = null;
+            try {
+                trafficChannel =
+                    Configuration.configuration
+                    .newChannelTrafficShapingHandler();
+                pipeline.addLast("LIMITCHANNEL", trafficChannel);
+            } catch (OpenR66ProtocolNoDataException e) {
+            }
         }
         pipeline.addLast("pipelineExecutor", new ExecutionHandler(
                 Configuration.configuration.getServerPipelineExecutor()));

@@ -58,6 +58,7 @@ import openr66.protocol.utils.FileUtils;
 
 import org.dom4j.Document;
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipelineCoverage;
 import org.jboss.netty.channel.ChannelStateEvent;
@@ -394,6 +395,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
      */
     private void authent(Channel channel, AuthentPacket packet)
             throws OpenR66ProtocolPacketException {
+        logger.info("Recv AuthentPacket");
         try {
             session.getAuth().connection(localChannelReference.getDbSession(),
                     packet.getHostId(), packet.getKey());

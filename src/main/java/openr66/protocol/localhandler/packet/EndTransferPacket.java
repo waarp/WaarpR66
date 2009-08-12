@@ -29,7 +29,7 @@ public class EndTransferPacket extends AbstractLocalPacket {
      * @param middleLength
      * @param endLength
      * @param buf
-     * @return the new AuthentPacket from buffer
+     * @return the new EndTransferPacket from buffer
      * @throws OpenR66ProtocolPacketException
      */
     public static EndTransferPacket createFromBuffer(int headerLength,

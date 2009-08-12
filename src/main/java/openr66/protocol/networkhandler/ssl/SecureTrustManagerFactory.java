@@ -57,49 +57,56 @@ public class SecureTrustManagerFactory extends TrustManagerFactorySpi {
 	 */
     private static final TrustManager DUMMY_TRUST_MANAGER = new X509TrustManager() {
         public X509Certificate[] getAcceptedIssuers() {
-            logger.warn("gai");
-            if (SecureKeyStore.cert != null) {
-                X509Certificate[] array = new X509Certificate[1];
-                array[0] = SecureKeyStore.cert;
-                return array;
-            }
-            return new X509Certificate[0];
+            logger.info("gai");
+            return R66SecureKeyStore.x509Array;
         }
 
         public void checkClientTrusted(X509Certificate[] arg0, String arg1)
                 throws CertificateException {
-            // Always trust - it's an example.
-            // You should do something in the real world.
-            logger.warn("cct:" + arg0.length + ":" + arg1);
-            if (arg0[0] != null) {
-                logger.warn("RSA1:" + arg0[0].toString());
+            logger.info("cct:" + arg0.length + ":" + arg1);
+            if (arg0[0] == null) {
+                throw new CertificateException("No Certificate passed");
             }
-
-            arg0[0].checkValidity();
-            Principal issuer = arg0[0].getIssuerDN();
-            BigInteger serial = arg0[0].getSerialNumber();
-            logger.warn("issuer:" +
-                    issuer.toString().equals(SecureKeyStore.issuer));
-            logger.warn("issuer:" + issuer);
-            logger.warn("serial:" + serial.toString());
-            logger.warn("serial:" + serial.equals(SecureKeyStore.serial));
+            for (int i = 0; i < arg0.length; i++) {
+                arg0[i].checkValidity();
+                BigInteger id = arg0[i].getSerialNumber();
+                Principal issuer = arg0[i].getIssuerDN();
+                for (int j = 0; j < R66SecureKeyStore.x509Array.length; j++) {
+                    BigInteger id2 = R66SecureKeyStore.x509Array[j].getSerialNumber();
+                    if (id2.compareTo(id) == 0) {
+                        if (issuer.hashCode() ==
+                            R66SecureKeyStore.x509Array[j].getIssuerDN().hashCode()) {
+                            logger.info("Found");
+                            return;
+                        }
+                    }
+                }
+            }
+            throw new CertificateException("No certificate found");
         }
 
         public void checkServerTrusted(X509Certificate[] arg0, String arg1)
                 throws CertificateException {
-            // Always trust - it's an example.
-            // You should do something in the real world.
-            logger.warn("cst:" + arg0.length + ":" + arg1);
-            if (arg0[0] != null) {
-                logger.warn("RSA1:" + arg0[0].toString());
+            logger.info("cct:" + arg0.length + ":" + arg1);
+            if (arg0[0] == null) {
+                throw new CertificateException("No Certificate passed");
             }
-            arg0[0].checkValidity();
-            Principal issuer = arg0[0].getIssuerDN();
-            BigInteger serial = arg0[0].getSerialNumber();
-            logger.warn("issuer:" +
-                    issuer.toString().equals(SecureKeyStore.issuer));
-            logger.warn("issuer:" + issuer);
-            logger.warn("serial:" + serial.equals(SecureKeyStore.serial));
+            for (int i = 0; i < arg0.length; i++) {
+                arg0[i].checkValidity();
+                BigInteger id = arg0[i].getSerialNumber();
+                Principal issuer = arg0[i].getIssuerDN();
+                for (int j = 0; j < R66SecureKeyStore.x509Array.length; j++) {
+                    BigInteger id2 = R66SecureKeyStore.x509Array[j].getSerialNumber();
+                    if (id2.compareTo(id) == 0) {
+                        if (issuer.hashCode() ==
+                            R66SecureKeyStore.x509Array[j].getIssuerDN().hashCode()) {
+                            logger.info("Found");
+                            return;
+                        }
+                    }
+                }
+            }
+            throw new CertificateException("No certificate found");
         }
     };
 

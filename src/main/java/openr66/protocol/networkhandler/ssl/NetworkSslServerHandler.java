@@ -20,11 +20,19 @@
  */
 package openr66.protocol.networkhandler.ssl;
 
+import java.util.concurrent.ConcurrentHashMap;
+
+import goldengate.common.logging.GgInternalLogger;
+import goldengate.common.logging.GgInternalLoggerFactory;
+
 import javax.net.ssl.SSLException;
 
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.networkhandler.NetworkServerHandler;
+import openr66.protocol.utils.R66Future;
 
+import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -36,7 +44,81 @@ import org.jboss.netty.handler.ssl.SslHandler;
  *
  */
 public class NetworkSslServerHandler extends NetworkServerHandler {
+    /**
+     * Internal Logger
+     */
+    private static final GgInternalLogger logger = GgInternalLoggerFactory
+            .getLogger(NetworkSslServerHandler.class);
+    /**
+     * Waiter for SSL handshake is finished
+     */
+    private static final ConcurrentHashMap<Integer, R66Future> waitForSsl
+        = new ConcurrentHashMap<Integer, R66Future>();
+    /**
+     * Remover from SSL HashMap
+     */
+    private static final ChannelFutureListener remover = new ChannelFutureListener() {
+        public void operationComplete(ChannelFuture future) {
+            logger.info("SSL remover");
+            waitForSsl.remove(future.getChannel().getId());
+        }
+    };
+    /**
+     * Add the Channel as SSL handshake is over
+     * @param channel
+     */
+    public static void addSslConnectedChannel(Channel channel) {
+        R66Future futureSSL = new R66Future(true);
+        waitForSsl.put(channel.getId(),futureSSL);
+        channel.getCloseFuture().addListener(remover);
+    }
+    /**
+     * Set the future of SSL handshake to status
+     * @param channel
+     * @param status
+     */
+    public static void setStatusSslConnectedChannel(Channel channel, boolean status) {
+        R66Future futureSSL = waitForSsl.get(channel.getId());
+        if (status) {
+            logger.info("SSL OK");
+            futureSSL.setSuccess();
+        } else {
+            logger.info("SSL KO");
+            futureSSL.cancel();
+        }
+    }
+    /**
+     *
+     * @param channel
+     * @return True if the SSL handshake is over and OK, else False
+     */
+    public static boolean isSslConnectedChannel(Channel channel) {
+        R66Future futureSSL = waitForSsl.get(channel.getId());
+        if (futureSSL == null) {
+            logger.error("No wait For SSL found");
+            return false;
+        } else {
+            futureSSL.awaitUninterruptibly(Configuration.configuration.TIMEOUTCON);
+            if (futureSSL.isDone()) {
+                logger.info("Wait For SSL: "+futureSSL.isSuccess());
+                return futureSSL.isSuccess();
+            }
+            logger.error("Out of time for wait For SSL");
+            return false;
+        }
+    }
 
+    /* (non-Javadoc)
+     * @see org.jboss.netty.channel.SimpleChannelHandler#channelOpen(org.jboss.netty.channel.ChannelHandlerContext, org.jboss.netty.channel.ChannelStateEvent)
+     */
+    @Override
+    public void channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e)
+            throws Exception {
+        Channel channel = e.getChannel();
+        logger.info("Add channel to ssl");
+        addSslConnectedChannel(channel);
+        super.channelOpen(ctx, e);
+    }
     /*
      * (non-Javadoc)
      *
@@ -48,7 +130,6 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
     @Override
     public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws OpenR66ProtocolNetworkException {
-        super.channelConnected(ctx, e);
         // Get the SslHandler in the current pipeline.
         // We added it in NetworkSslServerPipelineFactory.
         final SslHandler sslHandler = ctx.getPipeline().get(SslHandler.class);
@@ -59,18 +140,26 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
             try {
                 handshakeFuture = sslHandler.handshake(e.getChannel());
             } catch (SSLException e1) {
+                setStatusSslConnectedChannel(e.getChannel(), false);
                 throw new OpenR66ProtocolNetworkException("Bad SSL handshake",
                         e1);
             }
             handshakeFuture.addListener(new ChannelFutureListener() {
                 public void operationComplete(ChannelFuture future)
                         throws Exception {
-                    if (!future.isSuccess()) {
+                    logger.info("Handshake: "+future.isSuccess(),future.getCause());
+                    if (future.isSuccess()) {
+                        setStatusSslConnectedChannel(future.getChannel(), true);
+                    } else {
+                        setStatusSslConnectedChannel(future.getChannel(), false);
                         future.getChannel().close();
                     }
                 }
             });
+        } else {
+            logger.warn("SSL Not found");
         }
+        super.channelConnected(ctx, e);
     }
 
 }
