@@ -117,6 +117,7 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
         Channel channel = e.getChannel();
         logger.info("Add channel to ssl");
         addSslConnectedChannel(channel);
+        isSSL = true;
         super.channelOpen(ctx, e);
     }
     /*

@@ -106,7 +106,11 @@ public class OpenR66ExceptionTrappedFactory {
             final IOException e2 = (IOException) e1;
             logger.warn("Connection aborted since {} with Channel {}", e2
                     .getMessage(), channel);
-            return new OpenR66ProtocolSystemException("Connection aborted", e2);
+            if (channel.isConnected()) {
+                return new OpenR66ProtocolSystemException("Connection aborted", e2);
+            } else {
+                return new OpenR66ProtocolBusinessNoWriteBackException("Connection aborted", e2);
+            }
         } else {
             logger.warn("Unexpected exception from downstream" +
                     " Ref Channel: " + channel.toString(), e1);

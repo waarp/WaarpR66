@@ -58,7 +58,6 @@ import openr66.protocol.utils.FileUtils;
 
 import org.dom4j.Document;
 import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipelineCoverage;
 import org.jboss.netty.channel.ChannelStateEvent;
@@ -308,8 +307,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 return;
             } else {
                 if (localChannelReference.getFutureRequest().isDone()) {
-                    isAnswered = localChannelReference.getFutureRequest()
-                            .getResult().isAnswered;
+                    R66Result result = localChannelReference.getFutureRequest()
+                        .getResult();
+                    if (result != null) {
+                        isAnswered = result.isAnswered;
+                    }
                 }
                 if (exception instanceof OpenR66ProtocolNoConnectionException) {
                     code = ErrorCode.ConnectionImpossible;
@@ -431,7 +433,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         R66Result result = new R66Result(session, true, ErrorCode.InitOk);
         localChannelReference.validateConnection(true, result);
         if (packet.isToValidate()) {
-            packet.validate();
+            packet.validate(session.getAuth().isSsl());
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet);
         }
     }
@@ -836,7 +838,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
             case LocalPacketFactory.STOPPACKET:
             case LocalPacketFactory.CANCELPACKET: {
                 // Authentication must be the local server
-                if (!session.getAuth().getUser().equals(Configuration.configuration.HOST_ID)) {
+                if (!session.getAuth().getUser().equals(
+                        Configuration.configuration.getHostId(session.getAuth().isSsl()))) {
                     throw new OpenR66ProtocolNotAuthenticatedException(
                             "Not correctly authenticated");
                 }
@@ -888,7 +891,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
             case LocalPacketFactory.LOGPACKET:
             case LocalPacketFactory.LOGPURGEPACKET: {
                 // should be from the local server or from an authorized hosts
-                if (!session.getAuth().getUser().equals(Configuration.configuration.HOST_ID)) {
+                // FIXME add other authorized hosts
+                if (!session.getAuth().getUser().equals(
+                        Configuration.configuration.HOST_ID)) {
                     throw new OpenR66ProtocolNotAuthenticatedException(
                             "Not correctly authenticated");
                 }

@@ -74,13 +74,7 @@ public class LocalTransaction {
                 if (localChannelReference.getSession() != null) {
                     DbTaskRunner runner = localChannelReference.getSession().getRunner();
                     if (runner != null) {
-                        String requested;
-                        try {
-                            requested = runner.getRequested();
-                        } catch (OpenR66RunnerErrorException e) {
-                            requested = Configuration.configuration.HOST_ID;
-                        }
-                        String key = requested+" "+runner.getRequester()+" "+runner.getSpecialId();
+                        String key = runner.getKey();
                         localChannelHashMapExternal.remove(key);
                     }
                 }

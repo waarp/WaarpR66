@@ -62,6 +62,10 @@ public class NetworkServerHandler extends SimpleChannelHandler {
      * Does this dbSession is private and so should be closed
      */
     private boolean isPrivateDbSession = false;
+    /**
+     * Does this Handler is for SSL
+     */
+    protected boolean isSSL = false;
     /*
      * (non-Javadoc)
      *
@@ -77,6 +81,11 @@ public class NetworkServerHandler extends SimpleChannelHandler {
                     " LocalChannels Left: " +
                     NetworkTransaction.getNbLocalChannel(e.getChannel()));
             // close if necessary the local channel
+            // give a bit time
+            try {
+                Thread.sleep(Configuration.WAITFORNETOP);
+            } catch (InterruptedException e1) {
+            }
             Configuration.configuration.getLocalTransaction()
                     .closeLocalChannelsFromNetworkChannel(e.getChannel());
         }
@@ -280,5 +289,11 @@ public class NetworkServerHandler extends SimpleChannelHandler {
     public DbSession getDbSession() {
         return dbSession;
     }
-
+    /**
+     *
+     * @return True if this Handler is for SSL
+     */
+    public boolean isSsl() {
+        return isSSL;
+    }
 }

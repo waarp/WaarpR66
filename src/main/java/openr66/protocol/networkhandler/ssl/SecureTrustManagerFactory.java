@@ -65,23 +65,28 @@ public class SecureTrustManagerFactory extends TrustManagerFactorySpi {
                 throws CertificateException {
             logger.info("cct:" + arg0.length + ":" + arg1);
             if (arg0[0] == null) {
+                logger.error("No certificate");
                 throw new CertificateException("No Certificate passed");
             }
             for (int i = 0; i < arg0.length; i++) {
-                arg0[i].checkValidity();
+                try {
+                    arg0[i].checkValidity();
+                } catch (CertificateException e) {
+                    // ignore
+                    continue;
+                }
                 BigInteger id = arg0[i].getSerialNumber();
                 Principal issuer = arg0[i].getIssuerDN();
                 for (int j = 0; j < R66SecureKeyStore.x509Array.length; j++) {
                     BigInteger id2 = R66SecureKeyStore.x509Array[j].getSerialNumber();
-                    if (id2.compareTo(id) == 0) {
-                        if (issuer.hashCode() ==
-                            R66SecureKeyStore.x509Array[j].getIssuerDN().hashCode()) {
-                            logger.info("Found");
-                            return;
-                        }
+                    if ((id2.compareTo(id) == 0) && (issuer.hashCode() ==
+                        R66SecureKeyStore.x509Array[j].getIssuerDN().hashCode())) {
+                        logger.info("Found Key");
+                        return;
                     }
                 }
             }
+            logger.error("No certificate");
             throw new CertificateException("No certificate found");
         }
 
@@ -89,23 +94,28 @@ public class SecureTrustManagerFactory extends TrustManagerFactorySpi {
                 throws CertificateException {
             logger.info("cct:" + arg0.length + ":" + arg1);
             if (arg0[0] == null) {
+                logger.error("No certificate");
                 throw new CertificateException("No Certificate passed");
             }
             for (int i = 0; i < arg0.length; i++) {
-                arg0[i].checkValidity();
+                try {
+                    arg0[i].checkValidity();
+                } catch (CertificateException e) {
+                    // ignore
+                    continue;
+                }
                 BigInteger id = arg0[i].getSerialNumber();
                 Principal issuer = arg0[i].getIssuerDN();
                 for (int j = 0; j < R66SecureKeyStore.x509Array.length; j++) {
                     BigInteger id2 = R66SecureKeyStore.x509Array[j].getSerialNumber();
-                    if (id2.compareTo(id) == 0) {
-                        if (issuer.hashCode() ==
-                            R66SecureKeyStore.x509Array[j].getIssuerDN().hashCode()) {
-                            logger.info("Found");
-                            return;
-                        }
+                    if ((id2.compareTo(id) == 0) && (issuer.hashCode() ==
+                        R66SecureKeyStore.x509Array[j].getIssuerDN().hashCode())) {
+                        logger.info("Found Key");
+                        return;
                     }
                 }
             }
+            logger.error("No certificate");
             throw new CertificateException("No certificate found");
         }
     };

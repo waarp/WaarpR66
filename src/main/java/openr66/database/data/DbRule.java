@@ -856,7 +856,7 @@ public class DbRule extends AbstractDbData {
      * @return True if allow, else False
      */
     public boolean checkHostAllow(String hostId) {
-        if (idsArray == null) {
+        if (idsArray == null || idsArray.length == 0) {
             return true; // always true in this case
         }
         for (String element: idsArray) {

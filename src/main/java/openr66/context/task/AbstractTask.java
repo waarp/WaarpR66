@@ -179,7 +179,7 @@ public abstract class AbstractTask implements Runnable {
         finalname = finalname.replace(HOUR, dateFormat.format(date));
         finalname = finalname.replace(REMOTEHOST, session.getAuth().getUser());
         finalname = finalname.replace(LOCALHOST,
-                Configuration.configuration.HOST_ID);
+                Configuration.configuration.getHostId(session.getAuth().isSsl()));
         finalname = finalname.replace(TRANSFERID, Long.toString(session
                 .getRunner().getSpecialId()));
         finalname = finalname.replace(RANKTRANSFER, Integer.toString(session

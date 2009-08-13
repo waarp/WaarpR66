@@ -134,16 +134,14 @@ public class ClientRunner implements Runnable {
         Thread.currentThread().setName(tid);
         logger.info("Will run "+this.taskRunner.toString());
 
-        DbHostAuth host;
-        try {
-            host = R66Auth.getServerAuth(DbConstant.admin.session,
-                    taskRunner.getRequested());
-        } catch (OpenR66RunnerErrorException e1) {
+        if (taskRunner.isSelfRequested()) {
             // Don't have to restart a task for itself (or should use requester)
-            logger.warn("Requested host cannot initiate itself the request", e1);
+            logger.warn("Requested host cannot initiate itself the request");
             this.changeUpdatedInfo(UpdatedInfo.INERROR);
-            throw e1;
+            throw new OpenR66RunnerErrorException("Requested host cannot initiate itself the request");
         }
+        DbHostAuth host = R66Auth.getServerAuth(DbConstant.admin.session,
+                taskRunner.getRequested());
         if (host == null) {
             logger.warn("Requested host cannot be found: "+taskRunner.getRequested());
             this.changeUpdatedInfo(UpdatedInfo.INERROR);

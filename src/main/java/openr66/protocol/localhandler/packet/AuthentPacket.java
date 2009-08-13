@@ -174,9 +174,9 @@ public class AuthentPacket extends AbstractLocalPacket {
     /**
      * Validate the connection
      */
-    public void validate() {
+    public void validate(boolean isSSL) {
         way = ANSWERVALIDATE;
-        hostId = Configuration.configuration.HOST_ID;
+        hostId = Configuration.configuration.getHostId(isSSL);
         key = Configuration.configuration.HOST_AUTH.getHostkey();
         header = null;
         middle = null;

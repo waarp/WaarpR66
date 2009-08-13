@@ -37,6 +37,7 @@ import openr66.context.authentication.R66Auth;
 import openr66.database.DbAdmin;
 import openr66.database.DbConstant;
 import openr66.database.data.DbConfiguration;
+import openr66.database.data.AbstractDbData.UpdatedInfo;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.model.DbModelFactory;
@@ -67,6 +68,11 @@ public class FileBasedConfiguration {
      * SERVER HOSTID
      */
     private static final String XML_SERVER_HOSTID = "/config/hostid";
+
+    /**
+     * SERVER SSL HOSTID
+     */
+    private static final String XML_SERVER_SSLHOSTID = "/config/sslhostid";
 
     /**
      * SERVER PASSWORD (shutdown)
@@ -410,6 +416,12 @@ public class FileBasedConfiguration {
             return false;
         }
         Configuration.configuration.HOST_ID = node.getText();
+        node = document.selectSingleNode(XML_SERVER_SSLHOSTID);
+        if (node == null) {
+            logger.error("Unable to find Host SSL ID in Config file");
+            return false;
+        }
+        Configuration.configuration.HOST_SSLID = node.getText();
         node = document.selectSingleNode(XML_SERVER_HOME);
         if (node == null) {
             logger.error("Unable to find Home in Config file");
@@ -709,28 +721,24 @@ public class FileBasedConfiguration {
                     Configuration.configuration.delayCommander);
         }
         if (DbConstant.admin.isConnected) {
-            // Init part, must load HOST_ID
             node = document.selectSingleNode(XML_SERVER_HOSTID);
-            if (node == null) {
-                logger.error("Unable to find Host ID in Config file");
-                return false;
-            }
             Configuration.configuration.HOST_ID = node.getText();
-        }
-        DbConfiguration configuration = new DbConfiguration(DbConstant.admin.session,
-                Configuration.configuration.HOST_ID,
-                Configuration.configuration.serverGlobalReadLimit,
-                Configuration.configuration.serverGlobalWriteLimit,
-                Configuration.configuration.serverChannelReadLimit,
-                Configuration.configuration.serverChannelWriteLimit,
-                Configuration.configuration.delayLimit);
-        try {
-            if (configuration.exist()) {
-                configuration.update();
-            } else {
-                configuration.insert();
+            DbConfiguration configuration = new DbConfiguration(DbConstant.admin.session,
+                    Configuration.configuration.HOST_ID,
+                    Configuration.configuration.serverGlobalReadLimit,
+                    Configuration.configuration.serverGlobalWriteLimit,
+                    Configuration.configuration.serverChannelReadLimit,
+                    Configuration.configuration.serverChannelWriteLimit,
+                    Configuration.configuration.delayLimit);
+            configuration.changeUpdatedInfo(UpdatedInfo.UPDATED);
+            try {
+                if (configuration.exist()) {
+                    configuration.update();
+                } else {
+                    configuration.insert();
+                }
+            } catch (OpenR66DatabaseException e) {
             }
-        } catch (OpenR66DatabaseException e) {
         }
         return true;
     }

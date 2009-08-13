@@ -134,13 +134,6 @@ public class R66SecureKeyStore {
                 String alias = enumAlias.nextElement();
                 try {
                 if (keyStore.isKeyEntry(alias)) {
-                    /*PrivateKey privatekey =
-                        (PrivateKey)R66SecureKeyStore.keyStore.getKey(alias,
-                                R66SecureKeyStore.getCertificatePassword());
-                    X509Certificate cert =
-                        (X509Certificate)R66SecureKeyStore.keyStore.getCertificate(alias);
-                    PublicKey publickey =
-                        R66SecureKeyStore.keyStore.getCertificate(alias).getPublicKey();*/
                     X509Certificate cert = (X509Certificate) keyStore.getCertificate(alias);
                     array[i] = cert;
                     logger.warn("New cert: "+alias+" for "+cert.getIssuerDN().toString()+

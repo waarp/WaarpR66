@@ -1,6 +1,7 @@
 <config>
 	<comment>Example of config file: change its as your need.</comment>
 	<hostid>hosta</hostid>
+	<sslhostid>hostas</sslhostid>
 	<serverhome>d:/GG/R66</serverhome>
 	<in>in</in>
 	<out>out</out>

@@ -246,7 +246,8 @@ public class DbTaskRunner extends AbstractDbData {
             RequestPacket requestPacket) {
         if (requestPacket.isToValidate()) {
             // the request is initiated and sent by the requester
-            return Configuration.configuration.HOST_ID;
+            return Configuration.configuration.getHostId(
+                    session.getAuth().isSsl());
         } else {
             // the request is sent after acknowledge by the requested
             return session.getAuth().getUser();
@@ -264,7 +265,8 @@ public class DbTaskRunner extends AbstractDbData {
         if (requestPacket.isToValidate()) {
             return session.getAuth().getUser();
         } else {
-            return Configuration.configuration.HOST_ID;
+            return Configuration.configuration.getHostId(
+                    session.getAuth().isSsl());
         }
     }
 
@@ -293,8 +295,8 @@ public class DbTaskRunner extends AbstractDbData {
        originalFilename = requestPacket.getFilename();
        fileInformation = requestPacket.getFileInformation();
        mode = requestPacket.getMode();
-       //itself
-       requesterHostId = Configuration.configuration.HOST_ID;
+       //itself but according to SSL
+       requesterHostId = Configuration.configuration.getHostId(dbSession,requested);
        //given one
        requestedHostId = requested;
 
@@ -1234,6 +1236,10 @@ public class DbTaskRunner extends AbstractDbData {
             } catch (OpenR66DatabaseException e) {
                 logger.warn("Cannot update Runner", e);
             }
+            if (! isRetrieve) {
+                // flush partial file
+                session.getFile().flush();
+            }
         }
     }
 
@@ -1285,14 +1291,17 @@ public class DbTaskRunner extends AbstractDbData {
     }
     /**
      *
-     * @return the requested HostId
-     * @throws OpenR66RunnerErrorException if the current host is the requested host (to prevent
-     * request to itself)
+     * @return True if the current host is the requested host (to prevent request to itself)
      */
-    public String getRequested() throws OpenR66RunnerErrorException {
-        if (this.requestedHostId.equals(Configuration.configuration.HOST_ID)) {
-            throw new OpenR66RunnerErrorException("Current host is the requested");
-        }
+    public boolean isSelfRequested() {
+        return (this.requestedHostId.equals(Configuration.configuration.HOST_ID)
+                || this.requestedHostId.equals(Configuration.configuration.HOST_SSLID));
+    }
+    /**
+     *
+     * @return the requested HostId
+     */
+    public String getRequested() {
         return this.requestedHostId;
     }
     /**

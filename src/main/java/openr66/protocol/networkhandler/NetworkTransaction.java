@@ -210,7 +210,7 @@ public class NetworkTransaction {
                 }
                 if (isSSL) {
                     if (! NetworkSslServerHandler.isSslConnectedChannel(channel)) {
-                        logger.error("KO CONNECT since open is over");
+                        logger.error("KO CONNECT since SSL handshake is over");
                         throw new OpenR66ProtocolNoConnectionException(
                                 "Cannot finish connect to remote server");
                     }
@@ -276,7 +276,8 @@ public class NetworkTransaction {
             throws OpenR66ProtocolNetworkException,
             OpenR66ProtocolRemoteShutdownException {
         AuthentPacket authent = new AuthentPacket(
-                Configuration.configuration.HOST_ID,
+                Configuration.configuration.getHostId(
+                        localChannelReference.getNetworkServerHandler().isSsl()),
                 Configuration.configuration.HOST_AUTH.getHostkey(),
                 localChannelReference.getLocalId());
         logger.info("Will send request of connection validation");

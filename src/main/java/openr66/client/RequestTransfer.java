@@ -102,11 +102,23 @@ public class RequestTransfer implements Runnable {
             } else if (args[i].equalsIgnoreCase("-to")) {
                 i++;
                 srequested = args[i];
-                srequester = Configuration.configuration.HOST_ID;
+                try {
+                    srequester = Configuration.configuration.getHostId(DbConstant.admin.session,
+                            srequested);
+                } catch (OpenR66DatabaseException e) {
+                    logger.error("Cannot get Host Id",e);
+                    return false;
+                }
             } else if (args[i].equalsIgnoreCase("-from")) {
                 i++;
                 srequester = args[i];
-                srequested = Configuration.configuration.HOST_ID;
+                try {
+                    srequested = Configuration.configuration.getHostId(DbConstant.admin.session,
+                            srequester);
+                } catch (OpenR66DatabaseException e) {
+                    logger.error("Cannot get Host Id",e);
+                    return false;
+                }
             } else if (args[i].equalsIgnoreCase("-cancel")) {
                 scancel = true;
             } else if (args[i].equalsIgnoreCase("-stop")) {
@@ -186,8 +198,8 @@ public class RequestTransfer implements Runnable {
                 sendRequest(LocalPacketFactory.STOPPACKET);
                 logger.warn("Transfer: "+runner.toString());
             } else if (restart) {
-                // Restart if already stopped
-                if (runner.getStatus() == ErrorCode.StoppedTransfer) {
+                // Restart if already stopped and not finished
+                if (runner.getStatus() != ErrorCode.CompleteOk) {
                     // restart
                     switch (runner.getGloballaststep()) {
                         case DbTaskRunner.PRETASK:
@@ -232,7 +244,7 @@ public class RequestTransfer implements Runnable {
     private void sendRequest(byte code) {
         DbHostAuth host;
         host = R66Auth.getServerAuth(DbConstant.admin.session,
-                    this.requested);
+                    this.requester);
         SocketAddress socketAddress = host.getSocketAddress();
         boolean isSSL = host.isSsl();
 

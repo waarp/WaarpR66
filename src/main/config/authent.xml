@@ -29,6 +29,7 @@
 		<port>6669</port>
 		<isssl>1</isssl>
 		<keyfile>D:/GG/R66/conf/serverHostb.txt</keyfile>
+		<admin>1</admin>
 	</entry>
 	<entry>
 		<hostid>test</hostid>

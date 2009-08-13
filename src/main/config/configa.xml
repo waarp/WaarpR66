@@ -1,10 +1,11 @@
 <config>
 	<comment>Example of config file: change its as your need.</comment>
 	<hostid>hosta</hostid>
+	<sslhostid>hostas</sslhostid>
 	<serverpasswd>src/main/config/serveradminkey.txt</serverpasswd>
 	<serverport>6666</serverport>
 	<serversslport>6667</serversslport>
-	<keypath>certs/certs.store</keypath>
+	<keypath>certs/openr66.store</keypath>
 	<keypass>openr66</keypass>
 	<keystorepass>storeopenr66</keystorepass>
 	<serverhome>d:/GG/R66</serverhome>

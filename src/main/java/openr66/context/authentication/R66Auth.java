@@ -198,7 +198,13 @@ public class R66Auth extends FilesystemBasedAuthImpl {
     public boolean isAdmin() {
         return currentAuth.isAdminrole();
     }
-
+    /**
+     *
+     * @return True if the associated host is using SSL
+     */
+    public boolean isSsl() {
+        return currentAuth.isSsl();
+    }
     /*
      * (non-Javadoc)
      *

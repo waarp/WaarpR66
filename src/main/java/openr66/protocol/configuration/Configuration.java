@@ -26,7 +26,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import openr66.commander.InternalRunner;
+import openr66.database.DbSession;
 import openr66.database.data.DbHostAuth;
+import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.exception.OpenR66ProtocolNoDataException;
@@ -107,6 +109,10 @@ public class Configuration {
      * Actual Host ID
      */
     public String HOST_ID;
+    /**
+     * Actual SSL Host ID
+     */
+    public String HOST_SSLID;
 
     /**
      * Server Administration Key
@@ -544,5 +550,27 @@ public class Configuration {
     public void setSERVERKEY(byte[] serverkey) {
         SERVERADMINKEY = serverkey;
     }
-
+    /**
+     *
+     * @param isSSL
+     * @return the HostId according to SSL
+     */
+    public String getHostId(boolean isSSL) {
+        if (isSSL) {
+            return HOST_SSLID;
+        } else {
+            return HOST_ID;
+        }
+    }
+    /**
+     *
+     * @param dbSession
+     * @param remoteHost
+     * @return the HostId according to remoteHost (and its SSL status)
+     * @throws OpenR66DatabaseException
+     */
+    public String getHostId(DbSession dbSession, String remoteHost) throws OpenR66DatabaseException {
+        DbHostAuth hostAuth = new DbHostAuth(dbSession,remoteHost);
+        return Configuration.configuration.getHostId(hostAuth.isSsl());
+    }
 }
