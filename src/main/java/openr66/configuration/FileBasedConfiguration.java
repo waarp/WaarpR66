@@ -89,6 +89,10 @@ public class FileBasedConfiguration {
      */
     private static final String XML_SERVER_SSLPORT = "/config/serversslport";
     /**
+     * SERVER HTTP PORT
+     */
+    private static final String XML_SERVER_HTTPPORT = "/config/serverhttpport";
+    /**
      * SERVER SSL KEY PATH
      */
     private static final String XML_PATH_KEYPATH = "/config/keypath";
@@ -289,6 +293,12 @@ public class FileBasedConfiguration {
             sslport = Integer.parseInt(node.getText());
         }
         Configuration.configuration.SERVER_SSLPORT = sslport;
+        node = document.selectSingleNode(XML_SERVER_HTTPPORT);
+        int httpport = 8066;
+        if (node != null) {
+            httpport = Integer.parseInt(node.getText());
+        }
+        Configuration.configuration.SERVER_HTTPPORT = httpport;
 
         node = document.selectSingleNode(XML_SERVER_PASSWD);
         if (node == null) {

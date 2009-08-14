@@ -125,7 +125,7 @@ public enum ErrorCode {
      */
     Unknown("Unknown type of error", '-'),
     /**
-     * Code stands for unknown type of error
+     * Code stands for running step
      */
     Running("Current step in running", 'z');
 

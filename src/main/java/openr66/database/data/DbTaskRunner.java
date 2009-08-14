@@ -103,43 +103,20 @@ public class DbTaskRunner extends AbstractDbData {
     /**
      * GlobalStep Value
      */
-    public static final int NOTASK = -1;
-
-    /**
-     * GlobalStep Value
-     */
-    public static final int PRETASK = 0;
-
-    /**
-     * GlobalStep Value
-     */
-    public static final int TRANSFERTASK = 1;
-
-    /**
-     * GlobalStep Value
-     */
-    public static final int POSTTASK = 2;
-
-    /**
-     * GlobalStep Value
-     */
-    public static final int ALLDONETASK = 3;
-
-    /**
-     * GlobalStep Value
-     */
-    public static final int ERRORTASK = 4;
+    public static enum TASKSTEP {
+        NOTASK, PRETASK, TRANSFERTASK, POSTTASK, ALLDONETASK, ERRORTASK;
+    }
 
     // Values
     private final DbRule rule;
 
     private final R66Session session;
 
-    private int globalstep = NOTASK;
+    private int globalstep = TASKSTEP.NOTASK.ordinal();
 
-    private int globallaststep = NOTASK;
+    private int globallaststep = TASKSTEP.NOTASK.ordinal();
 
-    private int step = NOTASK;
+    private int step = -1;
 
     private int rank = 0;
 
@@ -696,7 +673,40 @@ public class DbTaskRunner extends AbstractDbData {
         return dbTaskRunner;
     }
     /**
+    * @param session
+    * @param status
+    * @return the DbPreparedStatement for getting Runner according to status
+    * @throws OpenR66DatabaseNoConnectionError
+    * @throws OpenR66DatabaseSqlError
+    */
+   public static DbPreparedStatement getStatusPrepareStament(DbSession session,
+           ErrorCode status) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+       String request = "SELECT " +selectAllFields+" FROM "+table;
+       if (status != null) {
+           request += " WHERE "+Columns.STEPSTATUS.name()+" = '"+status.getCode()+"'";
+       }
+       request += " ORDER BY "+Columns.START.name()+" DESC ";
+       return new DbPreparedStatement(session, request);
+   }
+   /**
+    * @param session
+    * @param globalstep
+    * @return the DbPreparedStatement for getting Runner according to globalstep
+    * @throws OpenR66DatabaseNoConnectionError
+    * @throws OpenR66DatabaseSqlError
+    */
+   public static DbPreparedStatement getStepPrepareStament(DbSession session,
+           TASKSTEP globalstep) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+       String request = "SELECT " +selectAllFields+" FROM "+table;
+       if (globalstep != null) {
+           request += " WHERE "+Columns.GLOBALSTEP.name()+" = "+globalstep.ordinal();
+       }
+       request += " ORDER BY "+Columns.START.name()+" DESC ";
+       return new DbPreparedStatement(session, request);
+   }
+    /**
     *
+    * @param session
     * @return the DbPreparedStatement for getting Updated Object
     * @throws OpenR66DatabaseNoConnectionError
     * @throws OpenR66DatabaseSqlError
@@ -773,8 +783,8 @@ public class DbTaskRunner extends AbstractDbData {
      throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
      DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
      String request = "DELETE FROM "+table+ " WHERE ("+
-         Columns.GLOBALLASTSTEP+" = "+ALLDONETASK+" OR "+
-         Columns.GLOBALLASTSTEP+" = "+ERRORTASK+") ";
+         Columns.GLOBALLASTSTEP+" = "+TASKSTEP.ALLDONETASK.ordinal()+" OR "+
+         Columns.GLOBALLASTSTEP+" = "+TASKSTEP.ERRORTASK.ordinal()+") ";
      if (start != null & stop != null) {
          request += " AND "+ Columns.START.name()+" >= ? AND "+
              Columns.STOP.name()+" <= ? ";
@@ -916,7 +926,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @return True if the runner is currently in transfer
      */
     public boolean isInTransfer() {
-        return globalstep == TRANSFERTASK;
+        return globalstep == TASKSTEP.TRANSFERTASK.ordinal();
     }
 
     /**
@@ -1018,23 +1028,23 @@ public class DbTaskRunner extends AbstractDbData {
      * @return True if this runner is ready for transfer or post operation
      */
     public boolean ready() {
-        return globalstep > PRETASK;
+        return globalstep > TASKSTEP.PRETASK.ordinal();
     }
     /**
      *
      * @return True if this runner is finished, either in success or in error
      */
     public boolean isFinished() {
-        return globalstep == ALLDONETASK || (globalstep == ERRORTASK &&
-                status != ErrorCode.Running);
+        return globalstep == TASKSTEP.ALLDONETASK.ordinal() ||
+        (globalstep == TASKSTEP.ERRORTASK.ordinal() && status != ErrorCode.Running);
     }
     /**
      * Set Pre Task step
      * @param step
      */
     public void setPreTask(int step) {
-        globalstep = PRETASK;
-        globallaststep = PRETASK;
+        globalstep = TASKSTEP.PRETASK.ordinal();
+        globallaststep = TASKSTEP.PRETASK.ordinal();
         allFields[Columns.GLOBALSTEP.ordinal()].setValue(globalstep);
         allFields[Columns.GLOBALLASTSTEP.ordinal()].setValue(globallaststep);
         this.step = step;
@@ -1048,8 +1058,8 @@ public class DbTaskRunner extends AbstractDbData {
      * @param rank
      */
     public void setTransferTask(int rank) {
-        globalstep = TRANSFERTASK;
-        globallaststep = TRANSFERTASK;
+        globalstep = TASKSTEP.TRANSFERTASK.ordinal();
+        globallaststep = TASKSTEP.TRANSFERTASK.ordinal();
         allFields[Columns.GLOBALSTEP.ordinal()].setValue(globalstep);
         allFields[Columns.GLOBALLASTSTEP.ordinal()].setValue(globallaststep);
         this.rank = rank;
@@ -1084,8 +1094,8 @@ public class DbTaskRunner extends AbstractDbData {
      * @param step
      */
     public void setPostTask(int step) {
-        globalstep = POSTTASK;
-        globallaststep = POSTTASK;
+        globalstep = TASKSTEP.POSTTASK.ordinal();
+        globallaststep = TASKSTEP.POSTTASK.ordinal();
         allFields[Columns.GLOBALSTEP.ordinal()].setValue(globalstep);
         allFields[Columns.GLOBALLASTSTEP.ordinal()].setValue(globallaststep);
         this.step = step;
@@ -1099,7 +1109,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @param step
      */
     public void setErrorTask(int step) {
-        globalstep = ERRORTASK;
+        globalstep = TASKSTEP.ERRORTASK.ordinal();
         allFields[Columns.GLOBALSTEP.ordinal()].setValue(globalstep);
         this.step = step;
         allFields[Columns.STEP.ordinal()].setValue(this.step);
@@ -1111,8 +1121,8 @@ public class DbTaskRunner extends AbstractDbData {
      * Set the global step as finished (after post task in success)
      */
     public void setAllDone() {
-        globalstep = ALLDONETASK;
-        globallaststep = ALLDONETASK;
+        globalstep = TASKSTEP.ALLDONETASK.ordinal();
+        globallaststep = TASKSTEP.ALLDONETASK.ordinal();
         allFields[Columns.GLOBALSTEP.ordinal()].setValue(globalstep);
         allFields[Columns.GLOBALLASTSTEP.ordinal()].setValue(globallaststep);
         step = 0;
@@ -1155,7 +1165,7 @@ public class DbTaskRunner extends AbstractDbData {
      */
     private R66Future runNext() throws
             OpenR66RunnerErrorException, OpenR66RunnerEndTasksException {
-        switch (globalstep) {
+        switch (TASKSTEP.values()[globalstep]) {
             case PRETASK:
                 try {
                     return runNextTask(rule.preTasksArray);
@@ -1282,12 +1292,41 @@ public class DbTaskRunner extends AbstractDbData {
     @Override
     public String toString() {
         return "Run: " + (rule != null? rule.toString() : ruleId) + " on " +
-                filename + " STEP: " + globalstep +"("+globallaststep+ "):" + step + ":" +
+                filename + " STEP: " + TASKSTEP.values()[globalstep] +
+                "("+TASKSTEP.values()[globallaststep]+ "):" + step + ":" +
                 status.mesg +
-                ":" + rank + " SpecialId: " + specialId + " isRetr: " +
+                " Transfer Rank: " + rank + " SpecialId: " + specialId + " isRetr: " +
                 isRetrieve + " isMoved: " + isFileMoved+" Mode: "+mode+
                 " Requester: "+requesterHostId+" Requested: "+requestedHostId+
-                " Start: "+start+" Stop: "+stop+" "+UpdatedInfo.values()[updatedInfo];
+                " Start: "+start+" Stop: "+stop+" Info: "+UpdatedInfo.values()[updatedInfo];
+    }
+    /**
+     *
+     * @return the header for a table of runners in Html format
+     */
+    public static String headerHtml() {
+        return "<td>SpecialId</td><td>Rule</td><td>Filename" +
+            "</td><td>Step (LastStep)</td><td>Action</td><td>Status" +
+            "</td><td>Transfer Rank</td><td>isRetrieve</td><td>isMoved" +
+            "</td><td>Mode</td><td>Requester</td><td>Requested"+
+            "</td><td>Start</td><td>Stop</td><td>Bandwidth (Kbits)</td>";
+    }
+    /**
+     *
+     * @return the runner in Html format compatible with the header from headerHtml method
+     */
+    public String toHtml() {
+        return "<td>" + specialId +
+                "</td><td>" + (rule != null? rule.toString() : ruleId) + "</td><td>" +
+                filename + "</td><td>" + TASKSTEP.values()[globalstep] +
+                "("+TASKSTEP.values()[globallaststep]+ ")</td><td>" + step + "</td><td>" +
+                status.mesg +
+                "</td><td>" + rank + "</td><td>" +
+                isRetrieve + "</td><td>" + isFileMoved+"</td><td>"+mode+
+                "</td><td>"+requesterHostId+"</td><td>"+requestedHostId+
+                "</td><td>"+start+"</td><td>"+stop+"</td><td>"+
+                (int)(((double) (rank*blocksize*8))/((double) (stop.getTime()+1-start.getTime())))
+                +"</td>";
     }
     /**
      *

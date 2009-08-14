@@ -26,7 +26,7 @@ import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
-import openr66.database.data.DbTaskRunner;
+import openr66.database.data.DbTaskRunner.TASKSTEP;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
@@ -70,7 +70,7 @@ public class RetrieveRunner implements Runnable {
     public void run() {
         Thread.currentThread().setName("RetrieveRunner: " + channel.getId());
         try {
-            if (session.getRunner().getGloballaststep() == DbTaskRunner.POSTTASK) {
+            if (session.getRunner().getGloballaststep() == TASKSTEP.POSTTASK.ordinal()) {
                 // restart from PostTask global step so just end now
                 try {
                     ChannelUtils.writeValidEndTransfer(localChannelReference,

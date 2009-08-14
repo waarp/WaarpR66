@@ -5,6 +5,7 @@
 	<serverpasswd>src/main/config/serveradminkey.txt</serverpasswd>
 	<serverport>6668</serverport>
 	<serversslport>6669</serversslport>
+	<serverhttpport>8068</serverhttpport>
 	<keypath>certs/openr66.store</keypath>
 	<keypass>openr66</keypass>
 	<keystorepass>storeopenr66</keystorepass>

@@ -32,6 +32,7 @@ import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.exception.OpenR66ProtocolNoDataException;
+import openr66.protocol.http.HttpPipelineFactory;
 import openr66.protocol.localhandler.LocalTransaction;
 import openr66.protocol.networkhandler.NetworkServerPipelineFactory;
 import openr66.protocol.networkhandler.packet.NetworkPacketSizeEstimator;
@@ -159,6 +160,11 @@ public class Configuration {
     public int SERVER_SSLPORT = 6667;
 
     /**
+     * Default HTTP server port
+     */
+    public int SERVER_HTTPPORT = 8066;
+
+    /**
      * Nb of milliseconds after connection is in timeout
      */
     public int TIMEOUTCON = 30000;
@@ -276,6 +282,19 @@ public class Configuration {
      * Bootstrap for SSL server
      */
     private ServerBootstrap serverSslBootstrap = null;
+    /**
+     * Bootstrap for SSL server
+     */
+    private ServerBootstrap httpBootstrap = null;
+    /**
+     * ChannelFactory for HttpServer part
+     */
+    private ChannelFactory httpChannelFactory = null;
+    /**
+     * List of all Http Channels to enable the close call on them using Netty
+     * ChannelGroup
+     */
+    private ChannelGroup httpChannelGroup = null;
 
     /**
      * ExecutorService for TrafficCounter
@@ -348,6 +367,8 @@ public class Configuration {
         pipelineInit();
         // Global Server
         serverChannelGroup = new DefaultChannelGroup("OpenR66");
+        httpChannelGroup = new DefaultChannelGroup("HttpOpenR66");
+
         serverChannelFactory = new NioServerSocketChannelFactory(
                 execServerBoss, execServerWorker, SERVER_THREAD);
         serverBootstrap = new ServerBootstrap(serverChannelFactory);
@@ -385,6 +406,25 @@ public class Configuration {
 
         // Now start the InternalRunner
         internalRunner = new InternalRunner();
+
+        // Now start the HTTP support
+        // Configure the server.
+        httpChannelFactory = new NioServerSocketChannelFactory(
+                Executors.newCachedThreadPool(),
+                Executors.newCachedThreadPool(), SERVER_THREAD);
+        httpBootstrap = new ServerBootstrap(
+                httpChannelFactory);
+        // Set up the event pipeline factory.
+        httpBootstrap.setPipelineFactory(new HttpPipelineFactory());
+        httpBootstrap.setOption("child.tcpNoDelay", true);
+        httpBootstrap.setOption("child.keepAlive", true);
+        httpBootstrap.setOption("child.reuseAddress", true);
+        httpBootstrap.setOption("child.connectTimeoutMillis", TIMEOUTCON);
+        httpBootstrap.setOption("tcpNoDelay", true);
+        httpBootstrap.setOption("reuseAddress", true);
+        httpBootstrap.setOption("connectTimeoutMillis", TIMEOUTCON);
+        // Bind and start to accept incoming connections.
+        httpChannelGroup.add(httpBootstrap.bind(new InetSocketAddress(SERVER_HTTPPORT)));
     }
     /**
      * Prepare the server to stop
@@ -493,7 +533,19 @@ public class Configuration {
     public ChannelFactory getServerChannelFactory() {
         return serverChannelFactory;
     }
+    /**
+     * @return the httpChannelGroup
+     */
+    public ChannelGroup getHttpChannelGroup() {
+        return httpChannelGroup;
+    }
 
+    /**
+     * @return the httpChannelFactory
+     */
+    public ChannelFactory getHttpChannelFactory() {
+        return httpChannelFactory;
+    }
     /**
      * @return the serverPipelineExecutor
      */

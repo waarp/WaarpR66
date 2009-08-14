@@ -124,8 +124,12 @@ public class ChannelUtils implements Runnable {
 
         public void operationComplete(ChannelGroupFuture future)
                 throws Exception {
-            pool.shutdownNow();
-            channelFactory.releaseExternalResources();
+            if (pool != null) {
+                pool.shutdownNow();
+            }
+            if (channelFactory != null) {
+                channelFactory.releaseExternalResources();
+            }
         }
     }
 
@@ -147,7 +151,23 @@ public class ChannelUtils implements Runnable {
                                         .getServerChannelFactory()));
         return result;
     }
-
+    /**
+     * Terminate all registered Http channels
+     *
+     * @return the number of previously registered http network channels
+     */
+    private static int terminateHttpChannels() {
+        final int result = Configuration.configuration.getHttpChannelGroup()
+                .size();
+        logger.info("HttpChannelGroup: " + result);
+        Configuration.configuration.getHttpChannelGroup().close()
+                .addListener(
+                        new R66ChannelGroupFutureListener(
+                                null,
+                                Configuration.configuration
+                                        .getHttpChannelFactory()));
+        return result;
+    }
     /**
      * Return the current number of network connections
      *
@@ -250,6 +270,8 @@ public class ChannelUtils implements Runnable {
         terminateCommandChannels();
         logger.warn("Exit Shutdown Local");
         Configuration.configuration.getLocalTransaction().closeAll();
+        logger.warn("Exit Shutdown Http");
+        terminateHttpChannels();
         OpenR66SignalHandler.closeAllConnection();
         Configuration.configuration.serverStop();
         logger.warn("Exit end of Shutdown");

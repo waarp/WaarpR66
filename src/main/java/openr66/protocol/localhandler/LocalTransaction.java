@@ -204,6 +204,13 @@ public class LocalTransaction {
   public LocalChannelReference getFromRequest(String key) {
       return localChannelHashMapExternal.get(key);
   }
+  /**
+   *
+   * @return the number of active local channels
+   */
+  public int getNumberLocalChannel() {
+      return localChannelHashMap.size();
+  }
     /**
      * Close all Local Channels from the NetworkChannel
      * @param networkChannel

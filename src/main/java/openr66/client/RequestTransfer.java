@@ -38,6 +38,7 @@ import openr66.database.DbConstant;
 import openr66.database.data.DbHostAuth;
 import openr66.database.data.DbTaskRunner;
 import openr66.database.data.AbstractDbData.UpdatedInfo;
+import openr66.database.data.DbTaskRunner.TASKSTEP;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.configuration.Configuration;
@@ -201,18 +202,18 @@ public class RequestTransfer implements Runnable {
                 // Restart if already stopped and not finished
                 if (runner.getStatus() != ErrorCode.CompleteOk) {
                     // restart
-                    switch (runner.getGloballaststep()) {
-                        case DbTaskRunner.PRETASK:
+                    switch (TASKSTEP.values()[runner.getGloballaststep()]) {
+                        case PRETASK:
                             // restart
                             runner.setPreTask(0);
                             runner.setExecutionStatus(ErrorCode.InitOk);
                             break;
-                        case DbTaskRunner.TRANSFERTASK:
+                        case TRANSFERTASK:
                             // continue
                             runner.setTransferTask(runner.getRank());
                             runner.setExecutionStatus(ErrorCode.PreProcessingOk);
                             break;
-                        case DbTaskRunner.POSTTASK:
+                        case POSTTASK:
                             // restart
                             runner.setPostTask(0);
                             runner.setExecutionStatus(ErrorCode.TransferOk);

@@ -214,7 +214,13 @@ public class OpenR66SignalHandler implements SignalHandler {
     public static void removeConnection(Connection conn) {
         listConnection.remove(conn);
     }
-
+    /**
+     *
+     * @return the number of connection (so number of network channels)
+     */
+    public static int getNbConnection() {
+        return listConnection.size()-1;
+    }
     /**
      * Close all database connections
      */

@@ -31,6 +31,7 @@ import openr66.context.filesystem.R66File;
 import openr66.context.filesystem.R66Restart;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.data.DbTaskRunner;
+import openr66.database.data.DbTaskRunner.TASKSTEP;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.LocalChannelReference;
@@ -262,8 +263,8 @@ public class R66Session implements SessionInterface {
             runner.setTransferTask(runner.getRank());
             restart.restartMarker(runner.getBlocksize() * runner.getRank());
         }
-        if (runner.getGloballaststep() == DbTaskRunner.NOTASK ||
-                runner.getGloballaststep() == DbTaskRunner.PRETASK) {
+        if (runner.getGloballaststep() == TASKSTEP.NOTASK.ordinal() ||
+                runner.getGloballaststep() == TASKSTEP.PRETASK.ordinal()) {
             this.runner.setPreTask(0);
             runner.saveStatus();
             this.runner.run();
@@ -322,7 +323,7 @@ public class R66Session implements SessionInterface {
             this.runner.deleteTempFile();
             throw new OpenR66RunnerErrorException(e);
         }
-        if (runner.getGloballaststep() == DbTaskRunner.TRANSFERTASK) {
+        if (runner.getGloballaststep() == TASKSTEP.TRANSFERTASK.ordinal()) {
             try {
                 file.restartMarker(restart);
             } catch (CommandAbstractException e) {

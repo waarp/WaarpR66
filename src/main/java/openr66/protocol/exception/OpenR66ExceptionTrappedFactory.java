@@ -104,7 +104,7 @@ public class OpenR66ExceptionTrappedFactory {
             return new OpenR66ProtocolBusinessNoWriteBackException("SSL Connection aborted", e2);
         } else if (e1 instanceof IOException) {
             final IOException e2 = (IOException) e1;
-            logger.warn("Connection aborted since {} with Channel {}", e2
+            logger.info("Connection aborted since {} with Channel {}", e2
                     .getMessage(), channel);
             if (channel.isConnected()) {
                 return new OpenR66ProtocolSystemException("Connection aborted", e2);
