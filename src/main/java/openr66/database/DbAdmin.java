@@ -33,6 +33,19 @@ public class DbAdmin {
      */
     public static enum DatabaseType {
         Oracle, MySQL, PostGreSQL, H2;
+
+        public static DatabaseType getFromDriver(String driver) {
+            if (driver.contains("oracle")) {
+                return DatabaseType.Oracle;
+            } else if (driver.contains("mysql")) {
+                return DatabaseType.MySQL;
+            } else if (driver.contains("postgresql")) {
+                return DatabaseType.PostGreSQL;
+            } else if (driver.contains("h2")) {
+                return DatabaseType.H2;
+            }
+            return null;
+        }
     }
 
     /**
@@ -100,6 +113,12 @@ public class DbAdmin {
                     break;
                 case H2:
                     DriverManager.registerDriver(new org.h2.Driver());
+                    break;
+                case PostGreSQL:
+                    DriverManager.registerDriver(new org.postgresql.Driver());
+                    break;
+                case MySQL:
+                    DriverManager.registerDriver(new com.mysql.jdbc.Driver());
                     break;
                 default:
                     logger.error("Cannot load database drive:" +
@@ -186,15 +205,8 @@ public class DbAdmin {
         this.server = server;
         this.user = user;
         this.passwd = passwd;
-        if (driver.contains("oracle")) {
-            typeDriver = DatabaseType.Oracle;
-        } else if (driver.contains("mysql")) {
-            typeDriver = DatabaseType.MySQL;
-        } else if (driver.contains("postgresql")) {
-            typeDriver = DatabaseType.PostGreSQL;
-        } else if (driver.contains("h2")) {
-            typeDriver = DatabaseType.H2;
-        } else {
+        typeDriver = DatabaseType.getFromDriver(driver);
+        if (typeDriver == null) {
             logger.error("Cannot find TypeDriver:" + driver);
             throw new OpenR66DatabaseNoConnectionError(
                     "Cannot find database drive:" + driver);
@@ -230,15 +242,8 @@ public class DbAdmin {
         this.server = server;
         this.user = user;
         this.passwd = passwd;
-        if (driver.contains("oracle")) {
-            typeDriver = DatabaseType.Oracle;
-        } else if (driver.contains("mysql")) {
-            typeDriver = DatabaseType.MySQL;
-        } else if (driver.contains("postgresql")) {
-            typeDriver = DatabaseType.PostGreSQL;
-        } else if (driver.contains("h2")) {
-            typeDriver = DatabaseType.H2;
-        } else {
+        typeDriver = DatabaseType.getFromDriver(driver);
+        if (typeDriver == null) {
             logger.error("Cannot find TypeDriver:" + driver);
             throw new OpenR66DatabaseNoConnectionError(
                     "Cannot find database drive:" + driver);
