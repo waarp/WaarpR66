@@ -1422,8 +1422,8 @@ public class DbTaskRunner extends AbstractDbData {
     }
     /**
      * Write the selected TaskRunners from PrepareStatement to a XML tree
-     * @param root root from where will be attached the TaskRunners
      * @param preparedStatement ready to be executed
+     * @return the generated Document
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
      */

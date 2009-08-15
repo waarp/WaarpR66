@@ -189,7 +189,7 @@ public class LocalTransaction {
     }
     /**
     *
-    * @param DbTaskRunner runner
+    * @param runner
     * @param lcr
     */
    public void setFromId(DbTaskRunner runner, LocalChannelReference lcr) {
