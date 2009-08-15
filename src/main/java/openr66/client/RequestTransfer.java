@@ -60,7 +60,7 @@ public class RequestTransfer implements Runnable {
     /**
      * Internal Logger
      */
-    static GgInternalLogger logger;
+    static volatile GgInternalLogger logger;
 
     protected final NetworkTransaction networkTransaction;
     final R66Future future;

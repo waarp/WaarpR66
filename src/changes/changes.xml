@@ -5,9 +5,10 @@
 		<author email="fredbregier@free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
-		<release version="0.5.7" date="2009-08-15" description="Add SSL, limit bandwidth and web information support">
+		<release version="0.5.7" date="2009-08-15" description="Add SSL, limit bandwidth, web information and multiple database support">
 			<action dev="Frederic Bregier" type="add">Add SSL and limit Bandwidth for transfer</action>
 			<action dev="Frederic Bregier" type="add">Add Web support for monitoring status of transfers</action>
+			<action dev="Frederic Bregier" type="add">Add Oracle, MySQL and PostGreSQL supports</action>
 			<action dev="Frederic Bregier" type="fix">Fix some bugs</action>
 		</release>
 		<release version="0.5.6" date="2009-08-09" description="Fix Pom and license">

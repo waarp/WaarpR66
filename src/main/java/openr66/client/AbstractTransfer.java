@@ -35,7 +35,7 @@ public abstract class AbstractTransfer implements Runnable {
     /**
      * Internal Logger
      */
-    static protected GgInternalLogger logger;
+    static protected volatile GgInternalLogger logger;
 
     protected final R66Future future;
 

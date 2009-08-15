@@ -61,7 +61,7 @@ public class LogTransfer implements Runnable {
     /**
      * Internal Logger
      */
-    static protected GgInternalLogger logger;
+    static volatile GgInternalLogger logger;
 
     protected final R66Future future;
     protected final boolean purgeLog;
