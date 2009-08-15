@@ -79,7 +79,7 @@ public class DbAdmin {
     /**
      * Info on JDBC Class is already loaded or not
      */
-    static public boolean classLoaded = false;
+    static public volatile boolean classLoaded = false;
 
     /**
      * Load the correct jdbc driver (default com.mysql.jdbc.Driver)

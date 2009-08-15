@@ -77,8 +77,8 @@ public class NetworkServerHandler extends SimpleChannelHandler {
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) {
         if (NetworkTransaction.getNbLocalChannel(e.getChannel()) > 0) {
-            logger.info("Network Channel Closed: " + e.getChannel().getId() +
-                    " LocalChannels Left: " +
+            logger.info("Network Channel Closed: {} LocalChannels Left: {}",
+                    e.getChannel().getId(),
                     NetworkTransaction.getNbLocalChannel(e.getChannel()));
             // close if necessary the local channel
             // give a bit time
@@ -118,7 +118,7 @@ public class NetworkServerHandler extends SimpleChannelHandler {
             logger.warn("Use default database connection");
             this.dbSession = DbConstant.admin.session;
         }
-        logger.info("Network Channel Connected: " + e.getChannel().getId());
+        logger.debug("Network Channel Connected: [}", e.getChannel().getId());
     }
 
     /*
@@ -132,8 +132,8 @@ public class NetworkServerHandler extends SimpleChannelHandler {
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) {
         final NetworkPacket packet = (NetworkPacket) e.getMessage();
-        logger.info("Network Channel Recv: " + e.getChannel().getId() + " " +
-                packet.toString());
+        logger.debug("Network Channel Recv: {} {}", e.getChannel().getId(),
+                packet);
         if (packet.getCode() == LocalPacketFactory.CONNECTERRORPACKET) {
             // Special code to STOP here
             if (packet.getLocalId() == ChannelUtils.NOCHANNEL) {
@@ -155,7 +155,7 @@ public class NetworkServerHandler extends SimpleChannelHandler {
                         .getLocalTransaction().createNewClient(e.getChannel(),
                                 packet.getRemoteId(), null);
                 NetworkTransaction.addNetworkChannel(e.getChannel());
-                logger.info("Create LocalChannel: " +
+                logger.debug("Create LocalChannel: {}",
                         localChannelReference.getLocalId());
             } catch (OpenR66ProtocolSystemException e1) {
                 logger.error("Cannot create LocalChannel: " + packet, e1);
@@ -173,7 +173,7 @@ public class NetworkServerHandler extends SimpleChannelHandler {
                 localChannelReference = Configuration.configuration
                         .getLocalTransaction().getClient(packet.getRemoteId(),
                                 packet.getLocalId());
-                logger.info("Get LocalChannel: " +
+                logger.debug("Get LocalChannel: {}",
                         localChannelReference.getLocalId());
             } catch (OpenR66ProtocolSystemException e1) {
                 if (NetworkTransaction.isShuttingdownNetworkChannel(e
@@ -204,7 +204,7 @@ public class NetworkServerHandler extends SimpleChannelHandler {
      */
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
-        logger.info("Network Channel Exception: " + e.getChannel().getId(), e
+        logger.info("Network Channel Exception: {}",e.getChannel().getId(), e
                 .getCause());
         OpenR66Exception exception = OpenR66ExceptionTrappedFactory
                 .getExceptionFromTrappedException(e.getChannel(), e);

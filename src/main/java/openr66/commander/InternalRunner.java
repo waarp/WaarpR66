@@ -82,9 +82,9 @@ public class InternalRunner {
      */
     public void submitTaskRunner(DbTaskRunner taskRunner) throws OpenR66DatabaseException {
         if (isRunning) {
-            logger.info("Will run "+taskRunner.toString());
+            logger.debug("Will run {}",taskRunner);
             ClientRunner runner = new ClientRunner(networkTransaction, taskRunner, null);
-            // FIXME create the client, connect and run
+            // create the client, connect and run
             threadPoolExecutor.execute(runner);
             runner = null;
         }

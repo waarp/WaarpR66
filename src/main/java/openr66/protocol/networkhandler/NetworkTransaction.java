@@ -191,7 +191,7 @@ public class NetworkTransaction {
             networkChannel = null;
         }
         if (networkChannel != null) {
-            logger.info("Already Connected: " + networkChannel.toString());
+            logger.info("Already Connected: {}", networkChannel);
             return networkChannel.channel;
         }
         ChannelFuture channelFuture = null;
@@ -289,8 +289,8 @@ public class NetworkTransaction {
         }
         R66Future future = localChannelReference.getFutureValidateConnection();
         if (future.isCancelled()) {
-            logger.info("Will close NETWORK channel since Future cancelled: " +
-                    future.toString());
+            logger.info("Will close NETWORK channel since Future cancelled: {}",
+                    future);
             throw new OpenR66ProtocolNetworkException(
                     "Cannot validate connection: " + future.getResult(), future
                             .getCause());
@@ -356,21 +356,20 @@ public class NetworkTransaction {
                     .get(address.hashCode());
             if (networkChannel != null) {
                 // already done
-                logger.info("Already set as shutdown");
+                logger.debug("Already set as shutdown");
                 return;
             }
             networkChannel = networkChannelOnSocketAddressConcurrentHashMap
                     .get(address.hashCode());
             if (networkChannel != null) {
-                logger.info("Set as shutdown");
+                logger.debug("Set as shutdown");
             } else {
-                logger.info("Newly Set as shutdown");
+                logger.debug("Newly Set as shutdown");
                 networkChannel = new NetworkChannel(channel);
             }
             networkChannel.isShuttingDown = true;
             networkChannelShutdownOnSocketAddressConcurrentHashMap.put(address
                     .hashCode(), networkChannel);
-            logger.info("Add NC to shutdown hashmap");
             Timer timer = new Timer(true);
             final R66TimerTask timerTask = new R66TimerTask(address.hashCode());
             timer.schedule(timerTask,
@@ -412,7 +411,7 @@ public class NetworkTransaction {
                         Channels.close(channel).awaitUninterruptibly();
                         return 0;
                     }
-                    logger.info("NC left: " + networkChannel.toString());
+                    logger.debug("NC left: {}", networkChannel);
                     return networkChannel.count;
                 } else {
                     if (channel.isConnected()) {
@@ -510,12 +509,12 @@ public class NetworkTransaction {
             try {
                 networkChannel = getRemoteChannel(address);
                 networkChannel.count ++;
-                logger.info("NC active: " + networkChannel.toString());
+                logger.debug("NC active: {}", networkChannel);
             } catch (OpenR66ProtocolRemoteShutdownException e) {
                 throw e;
             } catch (OpenR66ProtocolNoDataException e) {
                 networkChannel = new NetworkChannel(channel);
-                logger.info("NC new active: " + networkChannel.toString());
+                logger.debug("NC new active: {}", networkChannel);
                 networkChannelOnSocketAddressConcurrentHashMap.put(address
                         .hashCode(), networkChannel);
             }
@@ -546,7 +545,6 @@ public class NetworkTransaction {
 
         @Override
         public void run() {
-            logger.info("Remove NC from shutdown hashmap");
             networkChannelShutdownOnSocketAddressConcurrentHashMap.remove(href);
         }
     }

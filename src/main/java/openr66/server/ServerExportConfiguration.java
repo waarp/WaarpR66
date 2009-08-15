@@ -103,24 +103,21 @@ public class ServerExportConfiguration {
             try {
                 RuleFileBasedConfiguration.writeXml(directory, hostname);
             } catch (OpenR66DatabaseNoConnectionError e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
+                logger.warn("Error",e1);
                 try {
                     DbConstant.admin.close();
                 } catch (OpenR66DatabaseSqlError e) {
                 }
                 System.exit(2);
             } catch (OpenR66DatabaseSqlError e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
+                logger.warn("Error",e1);
                 try {
                     DbConstant.admin.close();
                 } catch (OpenR66DatabaseSqlError e) {
                 }
                 System.exit(2);
             } catch (OpenR66ProtocolSystemException e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
+                logger.warn("Error",e1);
                 try {
                     DbConstant.admin.close();
                 } catch (OpenR66DatabaseSqlError e) {
@@ -131,16 +128,14 @@ public class ServerExportConfiguration {
             try {
                 DbTaskRunner.writeXML(filename);
             } catch (OpenR66DatabaseNoConnectionError e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
+                logger.warn("Error",e1);
                 try {
                     DbConstant.admin.close();
                 } catch (OpenR66DatabaseSqlError e) {
                 }
                 System.exit(2);
             } catch (OpenR66DatabaseSqlError e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
+                logger.warn("Error",e1);
                 try {
                     DbConstant.admin.close();
                 } catch (OpenR66DatabaseSqlError e) {
@@ -151,24 +146,21 @@ public class ServerExportConfiguration {
             try {
                 AuthenticationFileBasedConfiguration.writeXML(filename);
             } catch (OpenR66DatabaseNoConnectionError e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                logger.warn("Error",e);
                 try {
                     DbConstant.admin.close();
                 } catch (OpenR66DatabaseSqlError e1) {
                 }
                 System.exit(2);
             } catch (OpenR66DatabaseSqlError e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                logger.warn("Error",e);
                 try {
                     DbConstant.admin.close();
                 } catch (OpenR66DatabaseSqlError e1) {
                 }
                 System.exit(2);
             } catch (OpenR66ProtocolSystemException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                logger.warn("Error",e);
                 try {
                     DbConstant.admin.close();
                 } catch (OpenR66DatabaseSqlError e1) {

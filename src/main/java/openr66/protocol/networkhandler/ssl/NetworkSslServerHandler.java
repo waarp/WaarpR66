@@ -59,7 +59,7 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
      */
     private static final ChannelFutureListener remover = new ChannelFutureListener() {
         public void operationComplete(ChannelFuture future) {
-            logger.info("SSL remover");
+            logger.debug("SSL remover");
             waitForSsl.remove(future.getChannel().getId());
         }
     };
@@ -80,10 +80,8 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
     public static void setStatusSslConnectedChannel(Channel channel, boolean status) {
         R66Future futureSSL = waitForSsl.get(channel.getId());
         if (status) {
-            logger.info("SSL OK");
             futureSSL.setSuccess();
         } else {
-            logger.info("SSL KO");
             futureSSL.cancel();
         }
     }
@@ -115,7 +113,7 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
     public void channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
         Channel channel = e.getChannel();
-        logger.info("Add channel to ssl");
+        logger.debug("Add channel to ssl");
         addSslConnectedChannel(channel);
         isSSL = true;
         super.channelOpen(ctx, e);

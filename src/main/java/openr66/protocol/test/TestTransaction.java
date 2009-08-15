@@ -150,10 +150,6 @@ public class TestTransaction implements Runnable {
                     networkTransaction, arrayFuture[i], socketServerAddress,
                     packet);
             executorService.execute(transaction);
-            /*
-             * try { Thread.sleep(10); } catch (InterruptedException e) { //
-             * TODO Auto-generated catch block e.printStackTrace(); }
-             */
         }
         int success = 0;
         int error = 0;

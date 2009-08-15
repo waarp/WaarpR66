@@ -148,12 +148,12 @@ public class AuthenticationFileBasedConfiguration {
                     byteKeys = null;
                 } else {
                     String skey = node.getText();
-                    // FIXME key is coded with Base64 algorithm
+                    // key is coded with Base64 algorithm
                     byteKeys = Base64.decodeBase64(skey.getBytes());
                 }
             } else {
                 String skey = node.getText();
-                // FIXME load key from file
+                // load key from file
                 key = new File(skey);
                 if (!key.canRead()) {
                     logger.warn("Cannot read key for hostId " + refHostId);
@@ -209,10 +209,10 @@ public class AuthenticationFileBasedConfiguration {
                     auth.insert();
                 }
             } catch (OpenR66DatabaseException e) {
-                logger.warn("Cannot create Authentication for hostId " + refHostId);
+                logger.warn("Cannot create Authentication for hostId {}",refHostId);
                 continue;
             }
-            logger.info("Add " + refHostId + " " + auth.toString());
+            logger.debug("Add {} {}",refHostId,auth);
         }
         document = null;
         return true;

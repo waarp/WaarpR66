@@ -175,11 +175,11 @@ public class LocalChannelReference {
      */
     public void validateConnection(boolean validate, R66Result result) {
         if (futureConnection.isDone()) {
-            logger.info("LocalChannelReference already validated: " +
+            logger.debug("LocalChannelReference already validated: " +
                     futureConnection.isSuccess());
             return;
         }
-        logger.info("LocalChannelReference validate: " + validate);
+        logger.debug("LocalChannelReference validate: " + validate);
         if (validate) {
             futureConnection.setResult(result);
             futureConnection.setSuccess();

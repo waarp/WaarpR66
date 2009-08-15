@@ -41,14 +41,14 @@ public class OpenR66ExceptionTrappedFactory {
         final Throwable e1 = e.getCause();
         if (e1 instanceof ConnectException) {
             final ConnectException e2 = (ConnectException) e1;
-            logger.warn("Connection impossible since {} with Channel {}", e2
+            logger.info("Connection impossible since {} with Channel {}", e2
                     .getMessage(), channel);
             return new OpenR66ProtocolNoConnectionException(
                     "Connection impossible", e2);
         } else if (e1 instanceof ChannelException) {
             final ChannelException e2 = (ChannelException) e1;
             logger
-                    .warn(
+                    .info(
                             "Connection (example: timeout) impossible since {} with Channel {}",
                             e2.getMessage(), channel);
             return new OpenR66ProtocolNetworkException(
@@ -56,8 +56,8 @@ public class OpenR66ExceptionTrappedFactory {
         } else if (e1 instanceof CancelledKeyException) {
             final CancelledKeyException e2 = (CancelledKeyException) e1;
             logger.warn("Connection aborted since {}", e2.getMessage());
-            // XXX TODO FIXME is it really what we should do ?
-            // No action
+            // Is it really what we should do ?
+            // Yes, No action
             return null;
         } else if (e1 instanceof ClosedChannelException) {
             logger.warn("Connection closed before end");
@@ -65,11 +65,11 @@ public class OpenR66ExceptionTrappedFactory {
                     "Connection closed before end", e1);
         } else if (e1 instanceof OpenR66ProtocolBusinessCancelException) {
             final OpenR66ProtocolBusinessCancelException e2 = (OpenR66ProtocolBusinessCancelException) e1;
-            logger.error("Request is canceled: {}", e2.getMessage());
+            logger.info("Request is canceled: {}", e2.getMessage());
             return e2;
         } else if (e1 instanceof OpenR66ProtocolBusinessStopException) {
             final OpenR66ProtocolBusinessStopException e2 = (OpenR66ProtocolBusinessStopException) e1;
-            logger.error("Request is stopped: {}", e2.getMessage());
+            logger.info("Request is stopped: {}", e2.getMessage());
             return e2;
         } else if (e1 instanceof OpenR66ProtocolBusinessNoWriteBackException) {
             final OpenR66ProtocolBusinessNoWriteBackException e2 = (OpenR66ProtocolBusinessNoWriteBackException) e1;
@@ -81,20 +81,20 @@ public class OpenR66ExceptionTrappedFactory {
             return e2;
         } else if (e1 instanceof OpenR66Exception) {
             final OpenR66Exception e2 = (OpenR66Exception) e1;
-            logger.warn("Command Error Reply: {}", e2.getMessage());
+            logger.info("Command Error Reply: {}", e2.getMessage());
             return e2;
         } else if (e1 instanceof BindException) {
             final BindException e2 = (BindException) e1;
-            logger.warn("Address already in use {}", e2.getMessage());
+            logger.info("Address already in use {}", e2.getMessage());
             return new OpenR66ProtocolNetworkException(
                     "Address already in use", e2);
         } else if (e1 instanceof ConnectException) {
             final ConnectException e2 = (ConnectException) e1;
-            logger.warn("Timeout occurs {}", e2.getMessage());
+            logger.info("Timeout occurs {}", e2.getMessage());
             return new OpenR66ProtocolNetworkException("Timeout occurs", e2);
         } else if (e1 instanceof NullPointerException) {
             final NullPointerException e2 = (NullPointerException) e1;
-            logger.warn("Null pointer Exception", e2);
+            logger.info("Null pointer Exception", e2);
             return new OpenR66ProtocolSystemException("Null Pointer Exception",
                     e2);
         } else if (e1 instanceof SSLException) {

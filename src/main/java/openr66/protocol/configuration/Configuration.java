@@ -347,7 +347,7 @@ public class Configuration {
         localTransaction = new LocalTransaction();
         InternalLoggerFactory.setDefaultFactory(InternalLoggerFactory
                 .getDefaultFactory());
-        logger.info("SERVER THREAD: " + SERVER_THREAD);
+        logger.info("SERVER THREAD: {}", SERVER_THREAD);
         logger.info("CLIENT THREAD: " + CLIENT_THREAD);
         serverPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
                 CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory, 500,

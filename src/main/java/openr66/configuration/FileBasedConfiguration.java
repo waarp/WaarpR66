@@ -306,7 +306,7 @@ public class FileBasedConfiguration {
             return false;
         }
         String passwd = node.getText();
-        // FIXME load from a file and store as a key
+        // load from a file and store as a key
         File key = new File(passwd);
         if (!key.canRead()) {
             logger
@@ -519,7 +519,7 @@ public class FileBasedConfiguration {
                         logger.info("FastMD5 init lib to null");
                         FilesystemBasedDigest.fastMd5Path = null;
                     } else {
-                        logger.info("FastMD5 init lib to " +
+                        logger.info("FastMD5 init lib to {}",
                                 FilesystemBasedDigest.fastMd5Path);
                         MD5
                                 .initNativeLibrary(FilesystemBasedDigest.fastMd5Path);
@@ -676,7 +676,7 @@ public class FileBasedConfiguration {
      * @return True if the load of the limit is ok
      */
     public static boolean loadLimit(Document document) {
-        // FIXME should be removed and set from database
+        // should be removed and set from database
         Node node = document.selectSingleNode(XML_LIMITGLOBAL);
         if (node != null) {
             Configuration.configuration.serverGlobalReadLimit = Long

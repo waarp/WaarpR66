@@ -61,7 +61,7 @@ public class MoveRenameTask extends AbstractTask {
         String finalname = argRule;
         finalname = getReplacedValue(finalname, argTransfer.split(" "));
         logger.info("Move and Rename to " + finalname + " with " + argRule +
-                ":" + argTransfer + " and " + session);
+                ":" + argTransfer + " and {}", session);
         try {
             success = session.getFile().renameTo(finalname, true);
         } catch (CommandAbstractException e) {

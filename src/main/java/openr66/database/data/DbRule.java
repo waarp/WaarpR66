@@ -633,7 +633,7 @@ public class DbRule extends AbstractDbData {
     @SuppressWarnings("unchecked")
     private boolean getIdsRule(String idsref) {
         if (idsref == null) {
-            logger.info("No ids so setting to the default!");
+            logger.debug("No ids so setting to the default!");
             ids = null;
             idsArray = null;
             return false;
@@ -645,7 +645,7 @@ public class DbRule extends AbstractDbData {
             document = new SAXReader().read(reader);
         } catch (DocumentException e) {
             logger.warn("Unable to read the ids for Rule: " + idsref, e);
-            logger.info("No ids so setting to the default!");
+            logger.debug("No ids so setting to the default!");
             ids = null;
             idsArray = null;
             reader.close();
@@ -682,7 +682,7 @@ public class DbRule extends AbstractDbData {
     @SuppressWarnings("unchecked")
     private String[][] getTasksRule(String tasks) {
         if (tasks == null) {
-            logger.info("No tasks so setting to the default!");
+            logger.debug("No tasks so setting to the default!");
             return null;
         }
         StringReader reader = new StringReader(tasks);
@@ -691,7 +691,7 @@ public class DbRule extends AbstractDbData {
             document = new SAXReader().read(reader);
         } catch (DocumentException e) {
             logger.warn("Unable to read the tasks for Rule: " + tasks, e);
-            logger.info("No tasks so setting to the default!");
+            logger.debug("No tasks so setting to the default!");
             reader.close();
             return null;
         }

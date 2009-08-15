@@ -59,7 +59,7 @@ public class CopyTask extends AbstractTask {
      */
     @Override
     public void run() {
-        logger.info("Copy with " + argRule + ":" + argTransfer + " and " +
+        logger.info("Copy with " + argRule + ":" + argTransfer + " and {}",
                 session);
         File from = session.getFile().getTrueFile();
         File to = new File(argRule +

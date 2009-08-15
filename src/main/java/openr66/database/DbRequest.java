@@ -16,9 +16,9 @@ import openr66.protocol.exception.OpenR66ProtocolNoDataException;
 
 /**
  * Class to handle request
- * 
+ *
  * @author Frederic Bregier LGPL
- * 
+ *
  */
 public class DbRequest {
     /**
@@ -44,7 +44,7 @@ public class DbRequest {
 
     /**
      * Create a new request from the DbSession
-     * 
+     *
      * @param ls
      */
     public DbRequest(DbSession ls) {
@@ -53,7 +53,7 @@ public class DbRequest {
 
     /**
      * Create a statement with some particular options
-     * 
+     *
      * @return the new Statement
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
@@ -76,7 +76,7 @@ public class DbRequest {
     /**
      * Execute a SELECT statement and set of Result. The statement must not be
      * an update/insert/delete. The previous statement and resultSet are closed.
-     * 
+     *
      * @param select
      * @throws OpenR66DatabaseSqlError
      * @throws OpenR66DatabaseNoConnectionError
@@ -97,13 +97,13 @@ public class DbRequest {
             throw new OpenR66DatabaseSqlError(
                     "SQL Exception Request:" + select, e);
         }
-        logger.debug("SELECT:" + select);
+        logger.debug("SELECT: {}", select);
     }
 
     /**
      * Execute a UPDATE/INSERT/DELETE statement and returns the number of row.
      * The previous statement and resultSet are closed.
-     * 
+     *
      * @param query
      * @return the number of row in the query
      * @throws OpenR66DatabaseSqlError
@@ -115,7 +115,7 @@ public class DbRequest {
         stmt = createStatement();
         try {
             int rowcount = stmt.executeUpdate(query);
-            logger.debug("QUERY(" + rowcount + "): " + query);
+            logger.debug("QUERY(" + rowcount + "): {}", query);
             return rowcount;
         } catch (SQLException e) {
             logger.error("SQL Exception Request:" + query, e);
@@ -150,7 +150,7 @@ public class DbRequest {
 
     /**
      * Get the last ID autoincrement from the last request
-     * 
+     *
      * @return the long Id or DbConstant.ILLEGALVALUE (Long.MIN_VALUE) if an
      *         error occurs.
      * @throws OpenR66ProtocolNoDataException
@@ -174,7 +174,7 @@ public class DbRequest {
 
     /**
      * Move the cursor to the next result
-     * 
+     *
      * @return True if there is a next result, else False
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
@@ -195,7 +195,7 @@ public class DbRequest {
     }
 
     /**
-     * 
+     *
      * @return The resultSet (can be used in conjunction of getNext())
      * @throws OpenR66DatabaseNoConnectionError
      */
@@ -209,7 +209,7 @@ public class DbRequest {
 
     /**
      * Test if value is null and create the string for insert/update
-     * 
+     *
      * @param value
      * @return the string as result
      */

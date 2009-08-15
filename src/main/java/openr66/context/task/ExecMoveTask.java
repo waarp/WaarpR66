@@ -81,7 +81,7 @@ public class ExecMoveTask extends AbstractTask {
          * previous file should be deleted by the script or will be deleted in
          * case of status 0. If the status is 1, no change is made to the file.
          */
-        logger.info("ExecRename with " + argRule + ":" + argTransfer + " and " +
+        logger.info("ExecRename with " + argRule + ":" + argTransfer + " and {}",
                 session);
         String finalname = argRule;
         finalname = getReplacedValue(finalname, argTransfer.split(" "));
@@ -221,7 +221,7 @@ public class ExecMoveTask extends AbstractTask {
             }
             session.getRunner().setFileMoved(true);
             futureCompletion.setSuccess();
-            logger.info("Exec OK with " + commandLine.toString() + " returns " +
+            logger.info("Exec OK with {} returns {}", commandLine.toString(),
                     newname);
         } else if (status == 1) {
             logger.warn("Exec in warning with " + commandLine.toString() +

@@ -57,42 +57,16 @@ public class SecureTrustManagerFactory extends TrustManagerFactorySpi {
 	 */
     private static final TrustManager DUMMY_TRUST_MANAGER = new X509TrustManager() {
         public X509Certificate[] getAcceptedIssuers() {
-            logger.info("gai");
             return R66SecureKeyStore.x509Array;
         }
 
         public void checkClientTrusted(X509Certificate[] arg0, String arg1)
                 throws CertificateException {
-            logger.info("cct:" + arg0.length + ":" + arg1);
-            if (arg0[0] == null) {
-                logger.error("No certificate");
-                throw new CertificateException("No Certificate passed");
-            }
-            for (int i = 0; i < arg0.length; i++) {
-                try {
-                    arg0[i].checkValidity();
-                } catch (CertificateException e) {
-                    // ignore
-                    continue;
-                }
-                BigInteger id = arg0[i].getSerialNumber();
-                Principal issuer = arg0[i].getIssuerDN();
-                for (int j = 0; j < R66SecureKeyStore.x509Array.length; j++) {
-                    BigInteger id2 = R66SecureKeyStore.x509Array[j].getSerialNumber();
-                    if ((id2.compareTo(id) == 0) && (issuer.hashCode() ==
-                        R66SecureKeyStore.x509Array[j].getIssuerDN().hashCode())) {
-                        logger.info("Found Key");
-                        return;
-                    }
-                }
-            }
-            logger.error("No certificate");
-            throw new CertificateException("No certificate found");
+            checkServerTrusted(arg0, arg1);
         }
 
         public void checkServerTrusted(X509Certificate[] arg0, String arg1)
                 throws CertificateException {
-            logger.info("cct:" + arg0.length + ":" + arg1);
             if (arg0[0] == null) {
                 logger.error("No certificate");
                 throw new CertificateException("No Certificate passed");
@@ -110,7 +84,7 @@ public class SecureTrustManagerFactory extends TrustManagerFactorySpi {
                     BigInteger id2 = R66SecureKeyStore.x509Array[j].getSerialNumber();
                     if ((id2.compareTo(id) == 0) && (issuer.hashCode() ==
                         R66SecureKeyStore.x509Array[j].getIssuerDN().hashCode())) {
-                        logger.info("Found Key");
+                        logger.debug("Found Key");
                         return;
                     }
                 }

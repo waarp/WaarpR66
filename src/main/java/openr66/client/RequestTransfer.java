@@ -278,13 +278,11 @@ public class RequestTransfer implements Runnable {
             future.setFailure(e);
             return;
         }
-        logger.info("Wait for request to "+host.toString());
         packet = null;
         host = null;
         future.awaitUninterruptibly();
         logger.info("Request done with "+(future.isSuccess()?"success":"error"));
 
-        // FIXME TODO Auto-generated method stub
         Channels.close(localChannelReference.getLocalChannel());
         localChannelReference = null;
     }

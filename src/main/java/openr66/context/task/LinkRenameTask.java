@@ -65,11 +65,9 @@ public class LinkRenameTask extends AbstractTask {
         String finalname = argRule;
         finalname = getReplacedValue(finalname, argTransfer.split(" "));
         logger.info("Move and Rename to " + finalname + " with " + argRule +
-                ":" + argTransfer + " and " + session);
+                ":" + argTransfer + " and {}", session);
         // First try hard link
         // FIXME wait for NIO.2 in JDK7 to have such functions, in the meantime only move...
-        logger.info("Copy and Rename to " + finalname + " with " + argRule +
-                ":" + argTransfer + " and " + session);
         File from = session.getFile().getTrueFile();
         File to = new File(finalname);
         try {

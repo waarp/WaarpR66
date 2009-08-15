@@ -453,7 +453,7 @@ public class DbTaskRunner extends AbstractDbData {
         // First need to find a new id if id is not ok
         if (specialId == DbConstant.ILLEGALVALUE) {
             specialId = DbModelFactory.dbModel.nextSequence(dbSession);
-            logger.info("Try Insert create a new Id from sequence: "+specialId);
+            logger.debug("Try Insert create a new Id from sequence: "+specialId);
             primaryKey[0].setValue(requesterHostId);
             primaryKey[1].setValue(requestedHostId);
             primaryKey[2].setValue(specialId);
@@ -464,7 +464,6 @@ public class DbTaskRunner extends AbstractDbData {
         try {
             preparedStatement.createPrepareStatement("INSERT INTO " + table +
                     " (" + selectAllFields + ") VALUES " + insertAllValues);
-            logger.info("Try Insert: "+specialId);
             setValues(preparedStatement, allFields);
             int count = preparedStatement.executeUpdate();
             if (count <= 0) {
@@ -506,7 +505,6 @@ public class DbTaskRunner extends AbstractDbData {
         try {
             preparedStatement.createPrepareStatement("INSERT INTO " + table +
                     " (" + selectAllFields + ") VALUES " + insertAllValues);
-            logger.info("Try Insert: "+specialId);
             setValues(preparedStatement, allFields);
             try {
                 int count = preparedStatement.executeUpdate();
@@ -537,7 +535,6 @@ public class DbTaskRunner extends AbstractDbData {
                     DbModelFactory.dbModel.resetSequence(specialId+1);
                     setToArray();
                     preparedStatement.close();
-                    logger.info("Try Insert: "+specialId);
                     setValues(preparedStatement, allFields);
                     int count = preparedStatement.executeUpdate();
                     if (count <= 0) {
@@ -834,6 +831,35 @@ public class DbTaskRunner extends AbstractDbData {
            AbstractDbData.UpdatedInfo.UPDATED.ordinal();
        request += " WHERE "+Columns.UPDATEDINFO.name()+" = "+
            AbstractDbData.UpdatedInfo.TORUN.ordinal();
+       DbPreparedStatement initial = new DbPreparedStatement(session);
+       try {
+           initial.createPrepareStatement(request);
+           initial.executeUpdate();
+       } catch (OpenR66DatabaseNoConnectionError e) {
+           logger.error("Cannot execute Commander", e);
+           return;
+       } catch (OpenR66DatabaseSqlError e) {
+           logger.error("Cannot execute Commander", e);
+           return;
+       } finally {
+           initial.close();
+       }
+   }
+   /**
+    * Change TORUN to UPDATED TaskRunner from database
+    * @param session
+    * @throws OpenR66DatabaseNoConnectionError
+    */
+   public static void changeFinishedToDone(DbSession session) throws OpenR66DatabaseNoConnectionError {
+       // Update all UpdatedInfo to DONE where GlobalLastStep = ALLDONETASK and status = CompleteOk
+       String request = "UPDATE "+table+" SET " +
+           Columns.UPDATEDINFO.name()+ "="+
+           AbstractDbData.UpdatedInfo.DONE.ordinal();
+       request += " WHERE "+Columns.UPDATEDINFO.name()+" <> "+
+           AbstractDbData.UpdatedInfo.DONE.ordinal() +" AND "+
+           Columns.UPDATEDINFO.name()+" > 0 AND "+
+           Columns.GLOBALLASTSTEP.name()+" = "+TASKSTEP.ALLDONETASK.ordinal()+
+           " AND "+Columns.STEPSTATUS.name()+" = '"+ErrorCode.CompleteOk.getCode()+"'";
        DbPreparedStatement initial = new DbPreparedStatement(session);
        try {
            initial.createPrepareStatement(request);
@@ -1260,8 +1286,8 @@ public class DbTaskRunner extends AbstractDbData {
      */
     public void saveStatus() throws OpenR66RunnerErrorException {
         logger
-                .info(GgInternalLogger.getRankMethodAndLine(3) + " " +
-                        toString());
+                .debug("{} {} ", GgInternalLogger.getRankMethodAndLine(3),
+                        this);
         try {
             update();
         } catch (OpenR66DatabaseException e) {
@@ -1436,8 +1462,7 @@ public class DbTaskRunner extends AbstractDbData {
             try {
                 FileUtils.writeXML(filename, null, document);
             } catch (OpenR66ProtocolSystemException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                logger.warn("Cannot write XML file",e);
             }
         }
     }

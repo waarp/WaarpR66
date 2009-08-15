@@ -56,7 +56,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
-        logger.info("Local Client Channel Closed: " + e.getChannel().getId());
+        logger.debug("Local Client Channel Closed: {}", e.getChannel().getId());
     }
 
     /*
@@ -118,7 +118,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
                     e.getChannel().getId() + " : " + packet.toString());
             throw new OpenR66ProtocolSystemException("Should not be here");
         }
-        logger.info("LocalClientHandler initialized: " +
+        logger.debug("LocalClientHandler initialized: " +
                 (localChannelReference != null));
     }
 
@@ -133,9 +133,9 @@ public class LocalClientHandler extends SimpleChannelHandler {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
             throws Exception {
-        // FIXME informs network of the problem
-        logger.info(
-                "Local Client Channel Exception: " + e.getChannel().getId(), e
+        // informs network of the problem
+        logger.debug(
+                "Local Client Channel Exception: {}",e.getChannel().getId(), e
                         .getCause());
         if (localChannelReference == null) {
             initLocalClientHandler(e.getChannel());

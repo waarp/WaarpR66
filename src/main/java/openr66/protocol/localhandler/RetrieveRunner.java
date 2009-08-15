@@ -106,7 +106,6 @@ public class RetrieveRunner implements Runnable {
             localChannelReference.validateRequest(localChannelReference
                     .getFutureEndTransfer().getResult());
             ChannelUtils.close(channel);
-            return;
         } else {
             if (!localChannelReference.getFutureEndTransfer().getResult().isAnswered) {
                 ErrorPacket error = new ErrorPacket("Transfer in error",
@@ -118,7 +117,6 @@ public class RetrieveRunner implements Runnable {
             }
             ChannelUtils.close(channel);
             logger.warn("End Retrieve in Error");
-            return;
         }
     }
     private void transferInError(OpenR66Exception e) {
@@ -133,6 +131,5 @@ public class RetrieveRunner implements Runnable {
         } catch (OpenR66ProtocolPacketException e1) {
         }
         ChannelUtils.close(channel);
-        return;
     }
 }

@@ -99,7 +99,6 @@ public class Commander implements Runnable {
     @Override
     public void run() {
         Thread.currentThread().setName("OpenR66Commander");
-        logger.info("start config");
         // each time it is runned, it parses all database for updates
         // First check Configuration
         try {
@@ -127,7 +126,6 @@ public class Commander implements Runnable {
         } finally {
             preparedStatementConfig.close();
         }
-        logger.info("start host");
         // Check HostAuthent
         try {
             preparedStatementHost.executeQuery();
@@ -150,7 +148,6 @@ public class Commander implements Runnable {
         } finally {
             preparedStatementHost.close();
         }
-        logger.info("start rule");
         // Check Rules
         try {
             preparedStatementRule.executeQuery();
@@ -173,13 +170,13 @@ public class Commander implements Runnable {
         } finally {
             preparedStatementRule.close();
         }
-        logger.info("start runner");
+        logger.debug("start runner");
         // Check TaskRunner
         try {
             preparedStatementRunner.executeQuery();
             while (preparedStatementRunner.getNext()) {
                 DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatementRunner);
-                logger.info("get a task: "+taskRunner.toString());
+                logger.info("get a task: {}",taskRunner);
                 // Launch if possible this task
                 internalRunner.submitTaskRunner(taskRunner);
                 taskRunner = null;
@@ -196,7 +193,7 @@ public class Commander implements Runnable {
         } finally {
             preparedStatementRunner.close();
         }
-        logger.info("end commander");
+        logger.debug("end commander");
     }
 
 }

@@ -162,9 +162,8 @@ public class DbSession {
      */
     public static void error(SQLException ex) {
         // handle any errors
-        logger.error("SQLException: " + ex.getMessage());
-        logger.error("SQLState: " + ex.getSQLState());
-        logger.error("VendorError: " + ex.getErrorCode());
+        logger.error("SQLException: " + ex.getMessage()+" SQLState: " + ex.getSQLState()+
+                "VendorError: " + ex.getErrorCode());
     }
 
     /**

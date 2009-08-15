@@ -111,7 +111,6 @@ public class R66Session implements SessionInterface {
             } catch (OpenR66ProtocolSystemException e) {
             }
         }
-        // TODO Auto-generated method stub
         if (dir != null) {
             dir.clear();
         }
@@ -332,7 +331,7 @@ public class R66Session implements SessionInterface {
             }
         }
         this.runner.saveStatus();
-        logger.info("Final init: " + this.runner.toString());
+        logger.info("Final init: {}", this.runner);
     }
     /**
      * Finalize the transfer step by running the error or post operation according to the status.
@@ -363,7 +362,7 @@ public class R66Session implements SessionInterface {
         }
         int rank = runner.finishTransferTask(status);
         runner.saveStatus();
-        logger.info("Transfer " + status + " on " + file);
+        logger.info("Transfer " + status + " on {}", file);
         if (!runner.ready()) {
             // Pre task in error (or even before)
             OpenR66RunnerErrorException runnerErrorException;
@@ -413,7 +412,7 @@ public class R66Session implements SessionInterface {
                 if (!runner.isFileMoved()) {
                     // Result file was not moved so move it
                     String finalpath = dir.getFinalUniqueFilename(file);
-                    logger.info("Will move file " + finalpath);
+                    logger.debug("Will move file {}", finalpath);
                     try {
                         file.renameTo(runner.getRule().setRecvPath(finalpath));
                     } catch (OpenR66ProtocolSystemException e) {
@@ -434,7 +433,7 @@ public class R66Session implements SessionInterface {
                         localChannelReference.invalidateRequest(result);
                         throw (OpenR66RunnerErrorException) result.exception;
                     }
-                    logger.info("File finally moved: " + file.toString());
+                    logger.debug("File finally moved: {}", file);
                     try {
                         runner.setFilename(file.getFile());
                     } catch (CommandAbstractException e) {
@@ -443,7 +442,7 @@ public class R66Session implements SessionInterface {
             }
             runner.setAllDone();
             runner.saveStatus();
-            logger.info("Transfer done on " + file + " at RANK " + rank);
+            logger.info("Transfer done on {} at RANK {}",file, rank);
             localChannelReference.validateEndTransfer(finalValue);
         } else {
             // error or not ?

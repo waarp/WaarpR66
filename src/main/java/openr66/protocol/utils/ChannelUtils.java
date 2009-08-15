@@ -141,7 +141,7 @@ public class ChannelUtils implements Runnable {
     private static int terminateCommandChannels() {
         final int result = Configuration.configuration.getServerChannelGroup()
                 .size();
-        logger.info("ServerChannelGroup: " + result);
+        logger.debug("ServerChannelGroup: " + result);
         Configuration.configuration.getServerChannelGroup().close()
                 .addListener(
                         new R66ChannelGroupFutureListener(
@@ -159,7 +159,7 @@ public class ChannelUtils implements Runnable {
     private static int terminateHttpChannels() {
         final int result = Configuration.configuration.getHttpChannelGroup()
                 .size();
-        logger.info("HttpChannelGroup: " + result);
+        logger.debug("HttpChannelGroup: " + result);
         Configuration.configuration.getHttpChannelGroup().close()
                 .addListener(
                         new R66ChannelGroupFutureListener(

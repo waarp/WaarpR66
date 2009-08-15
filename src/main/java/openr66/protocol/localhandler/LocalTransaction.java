@@ -65,7 +65,7 @@ public class LocalTransaction {
             LocalChannelReference localChannelReference = localChannelHashMap
                     .remove(future.getChannel().getId());
             if (localChannelReference != null) {
-                logger.info("Remove LocalChannel");
+                logger.debug("Remove LocalChannel");
                 R66Result result = new R66Result(
                         new OpenR66ProtocolSystemException(
                                 "While closing Local Channel"), null, false,
@@ -139,8 +139,8 @@ public class LocalTransaction {
     public LocalChannelReference createNewClient(Channel networkChannel,
             Integer remoteId, R66Future futureRequest) throws OpenR66ProtocolSystemException {
         ChannelFuture channelFuture = null;
-        logger.info("Status LocalChannelServer: " +
-                serverChannel.getClass().getName() + " " +
+        logger.debug("Status LocalChannelServer: {} {}",
+                serverChannel.getClass().getName(),
                 serverChannel.getConfig().getConnectTimeoutMillis() + " " +
                 serverChannel.isBound());
         for (int i = 0; i < Configuration.RETRYNB * 2; i ++) {
@@ -151,7 +151,7 @@ public class LocalTransaction {
                 localChannelGroup.add(channel);
                 final LocalChannelReference localChannelReference = new LocalChannelReference(
                             channel, networkChannel, remoteId, futureRequest);
-                logger.info("Create LocalChannel entry: " +i+":"+
+                logger.debug("Create LocalChannel entry: " +i+" {}",
                         localChannelReference);
                 localChannelHashMap.put(channel.getId(), localChannelReference);
                 channel.getCloseFuture().addListener(remover);
@@ -161,7 +161,7 @@ public class LocalTransaction {
                 Channels.write(channel, startup).awaitUninterruptibly();
                 return localChannelReference;
             } else {
-                logger.info("Can't connect to local server "+i);
+                logger.debug("Can't connect to local server "+i);
             }
             try {
                 Thread.sleep(Configuration.RETRYINMS * 2);
@@ -223,7 +223,7 @@ public class LocalTransaction {
             LocalChannelReference localChannelReference = iterator.next();
             if (localChannelReference.getNetworkChannel().compareTo(
                     networkChannel) == 0) {
-                logger.info("Will close local channel");
+                logger.debug("Will close local channel");
                 Channels.close(localChannelReference.getLocalChannel());
             }
         }
@@ -240,7 +240,7 @@ public class LocalTransaction {
         ChannelBuffer buffer = null;
         while (iterator.hasNext()) {
             LocalChannelReference localChannelReference = iterator.next();
-            logger.info("Inform Shutdown " + localChannelReference.toString());
+            logger.info("Inform Shutdown {}", localChannelReference);
             packet.setSmiddle(null);
             // If a transfer is running, save the current rank and inform remote
             // host

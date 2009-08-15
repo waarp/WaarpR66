@@ -424,12 +424,9 @@ public class R66File extends FilesystemBasedFileImpl {
         }
         File file = getTrueFile();
         if (file.canRead()) {
-            // logger.debug("Rename file {} to {}", file, path);
             File newFile = getFileFromPath(path);
             if (newFile.getParentFile().canWrite()) {
                 if (!file.renameTo(newFile)) {
-                    // logger.debug("file cannot be just renamed, to be moved: {}",
-                    // file);
                     FileOutputStream fileOutputStream;
                     try {
                         fileOutputStream = new FileOutputStream(newFile);
@@ -476,12 +473,9 @@ public class R66File extends FilesystemBasedFileImpl {
         }
         File file = getTrueFile();
         if (file.canRead()) {
-            // logger.debug("Rename file {} to {}", file, path);
             File newFile = new File(path);
             if (newFile.getParentFile().canWrite()) {
                 if (!file.renameTo(newFile)) {
-                    // logger.debug("file cannot be just renamed, to be moved: {}",
-                    // file);
                     FileOutputStream fileOutputStream;
                     try {
                         fileOutputStream = new FileOutputStream(newFile);

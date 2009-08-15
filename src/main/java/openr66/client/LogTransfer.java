@@ -33,6 +33,8 @@ import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.database.DbConstant;
 import openr66.database.data.DbHostAuth;
+import openr66.database.data.DbTaskRunner;
+import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
@@ -65,12 +67,15 @@ public class LogTransfer implements Runnable {
     protected final boolean purgeLog;
     protected final Timestamp start;
     protected final Timestamp stop;
+    protected final boolean clean;
     protected final NetworkTransaction networkTransaction;
 
-    public LogTransfer(R66Future future, boolean purgeLog, Timestamp start, Timestamp stop,
+    public LogTransfer(R66Future future, boolean purgeLog, boolean clean,
+            Timestamp start, Timestamp stop,
             NetworkTransaction networkTransaction) {
         this.future = future;
         this.purgeLog = purgeLog;
+        this.clean = clean;
         this.start = start;
         this.stop = stop;
         this.networkTransaction = networkTransaction;
@@ -92,6 +97,16 @@ public class LogTransfer implements Runnable {
         SocketAddress socketAddress = host.getSocketAddress();
         boolean isSSL = host.isSsl();
 
+        // first clean if ask
+        if (clean) {
+            // Update all UpdatedInfo to DONE
+            // where GlobalLastStep = ALLDONETASK and status = CompleteOk
+            try {
+                DbTaskRunner.changeFinishedToDone(DbConstant.admin.session);
+            } catch (OpenR66DatabaseNoConnectionError e) {
+                logger.warn("Clean cannot be done", e);
+            }
+        }
         LocalChannelReference localChannelReference = networkTransaction
             .createConnectionWithRetry(socketAddress, isSSL, future);
         socketAddress = null;
@@ -127,6 +142,7 @@ public class LogTransfer implements Runnable {
     protected static boolean spurgeLog = false;
     protected static Timestamp sstart = null;
     protected static Timestamp sstop = null;
+    protected static boolean sclean = false;
 
     protected static boolean getParams(String [] args) {
         if (args.length < 1) {
@@ -142,6 +158,8 @@ public class LogTransfer implements Runnable {
         for (int i = 1; i < args.length; i++) {
             if (args[i].equalsIgnoreCase("-purge")) {
                 spurgeLog = true;
+            } else if (args[i].equalsIgnoreCase("-clean")) {
+                sclean = true;
             } else if (args[i].equalsIgnoreCase("-start")) {
                 i++;
                 sstart = Timestamp.valueOf(args[i]);
@@ -176,7 +194,7 @@ public class LogTransfer implements Runnable {
         NetworkTransaction networkTransaction = new NetworkTransaction();
         try {
             LogTransfer transaction = new LogTransfer(future,
-                    spurgeLog, sstart, sstop,
+                    spurgeLog, sclean, sstart, sstop,
                     networkTransaction);
             transaction.run();
             future.awaitUninterruptibly();

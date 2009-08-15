@@ -111,8 +111,6 @@ public class ServerInitDatabase {
                     DbConstant.admin.close();
                 }
             } catch (OpenR66DatabaseSqlError e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
             }
         }
     }

@@ -104,9 +104,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) {
         logger.info("Local Server Channel Closed: " +
                 status +
-                " " +
+                " {}",
                 (localChannelReference != null? localChannelReference
-                        .toString() : "no LocalChannelReference"));
+                        : "no LocalChannelReference"));
         // FIXME clean session objects like files
         if (localChannelReference != null &&
                 !localChannelReference.getFutureRequest().isDone()) {
@@ -172,8 +172,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
             throws OpenR66Exception {
         // FIXME action as requested and answer if necessary
         final AbstractLocalPacket packet = (AbstractLocalPacket) e.getMessage();
-        logger.info("Local Server Channel Recv: " + e.getChannel().getId() +
-                " : " + packet.getClass().getSimpleName());
+        logger.debug("Local Server Channel Recv: {} : {}", e.getChannel().getId(),
+                packet.getClass().getSimpleName());
         if (packet.getType() == LocalPacketFactory.STARTUPPACKET) {
             startup(e.getChannel(), (StartupPacket) packet);
         } else {
@@ -300,7 +300,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 } catch (OpenR66ProtocolSystemException e1) {
                     localChannelReference.validateRequest(finalValue);
                 }
-                // XXX dont'close
+                // dont'close, thread will do
                 new Thread(new ChannelUtils()).start();
                 // set global shutdown info and before close, send a valid
                 // shutdown to all
@@ -369,7 +369,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
      */
     private void startup(Channel channel, StartupPacket packet)
             throws OpenR66ProtocolPacketException {
-        logger.info("Recv: " + packet.toString());
+        logger.debug("Recv: {}", packet);
         localChannelReference = Configuration.configuration
                 .getLocalTransaction().getFromId(packet.getLocalId());
         if (localChannelReference == null) {
@@ -387,7 +387,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         }
         session.setLocalChannelReference(localChannelReference);
         Channels.write(channel, packet);
-        logger.info("Get LocalChannel: " + localChannelReference.getLocalId());
+        logger.debug("Get LocalChannel: {}", localChannelReference.getLocalId());
     }
     /**
      * Authentication
@@ -397,7 +397,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
      */
     private void authent(Channel channel, AuthentPacket packet)
             throws OpenR66ProtocolPacketException {
-        logger.info("Recv AuthentPacket");
+        logger.debug("Recv AuthentPacket");
         try {
             session.getAuth().connection(localChannelReference.getDbSession(),
                     packet.getHostId(), packet.getKey());
@@ -508,7 +508,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
     private void request(Channel channel, RequestPacket packet)
             throws OpenR66ProtocolNotAuthenticatedException,
             OpenR66ProtocolNoDataException, OpenR66ProtocolPacketException {
-        // FIXME do something
         if (!session.isAuthenticated()) {
             throw new OpenR66ProtocolNotAuthenticatedException(
                     "Not authenticated");
@@ -628,7 +627,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         if (packet.isToValidate()) {
             if (runner.isRetrieve()) {
                 // In case Wildcard was used
-                logger.info("New FILENAME: " + runner.getOriginalFilename());
+                logger.info("New FILENAME: {}", runner.getOriginalFilename());
                 packet.setFilename(runner.getOriginalFilename());
             }
             packet.validate();
@@ -719,11 +718,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
             throw new OpenR66ProtocolNotAuthenticatedException(
                     "Not authenticated");
         }
-        logger.info(channel.getId() + ": " + packet.toString());
+        logger.debug("{} : {}", channel.getId(), packet);
         // simply write back after+1
         packet.update();
         if (packet.getType() == LocalPacketFactory.VALIDPACKET) {
-            logger.info(packet.toString());
+            logger.debug("{}", packet);
             ValidPacket validPacket = new ValidPacket(packet.toString(), null,
                     LocalPacketFactory.TESTPACKET);
             R66Result result = new R66Result(session, true,
@@ -788,7 +787,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
     private void valid(Channel channel, ValidPacket packet)
             throws OpenR66ProtocolNotAuthenticatedException,
             OpenR66RunnerErrorException, OpenR66ProtocolSystemException, OpenR66ProtocolBusinessException {
-        // FIXME do something
         if (packet.getTypeValid() != LocalPacketFactory.SHUTDOWNPACKET &&
                 !session.isAuthenticated()) {
             throw new OpenR66ProtocolNotAuthenticatedException(
@@ -796,9 +794,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
         }
         switch (packet.getTypeValid()) {
             case LocalPacketFactory.REQUESTPACKET: {
-                logger.info("Valid Request " +
-                        localChannelReference.toString() + " " +
-                        packet.toString());
+                logger.info("Valid Request {} {}",
+                        localChannelReference,
+                        packet);
                 // end of request
                 localChannelReference.validateRequest(localChannelReference
                         .getFutureEndTransfer().getResult());
@@ -890,10 +888,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
             }
             case LocalPacketFactory.LOGPACKET:
             case LocalPacketFactory.LOGPURGEPACKET: {
-                // should be from the local server or from an authorized hosts
-                // FIXME add other authorized hosts
-                if (!session.getAuth().getUser().equals(
-                        Configuration.configuration.HOST_ID)) {
+                // should be from the local server or from an authorized hosts: isAdmin
+                if (!session.getAuth().isAdmin()) {
                     throw new OpenR66ProtocolNotAuthenticatedException(
                             "Not correctly authenticated");
                 }

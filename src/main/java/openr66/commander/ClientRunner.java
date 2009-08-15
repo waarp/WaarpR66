@@ -132,7 +132,7 @@ public class ClientRunner implements Runnable {
             tid = taskRunner.getRuleId()+"_"+taskRunner.getMode()+"_"+id;
         }
         Thread.currentThread().setName(tid);
-        logger.info("Will run "+this.taskRunner.toString());
+        logger.info("Will run {}",this.taskRunner);
 
         if (taskRunner.isSelfRequested()) {
             // Don't have to restart a task for itself (or should use requester)
@@ -173,7 +173,7 @@ public class ClientRunner implements Runnable {
             taskRunner.setRankAtStartup(taskRunner.getRank()-1);
         }
         RequestPacket request = taskRunner.getRequest();
-        logger.info("Will send request "+request.toString());
+        logger.debug("Will send request {} ",request);
         try {
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, request);
         } catch (OpenR66ProtocolPacketException e) {
@@ -186,12 +186,12 @@ public class ClientRunner implements Runnable {
             request = null;
             throw e;
         }
-        logger.info("Wait for request to "+host.toString());
+        logger.debug("Wait for request to {}",host);
         request = null;
         host = null;
         R66Future transfer = localChannelReference.getFutureRequest();
         transfer.awaitUninterruptibly();
-        logger.info("Request done with "+(transfer.isSuccess()?"success":"error"));
+        logger.info("Request done with {}",(transfer.isSuccess()?"success":"error"));
 
         Channels.close(localChannelReference.getLocalChannel());
         localChannelReference = null;

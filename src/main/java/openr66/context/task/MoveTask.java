@@ -57,7 +57,7 @@ public class MoveTask extends AbstractTask {
      */
     @Override
     public void run() {
-        logger.info("Move with " + argRule + ":" + argTransfer + " and " +
+        logger.info("Move with " + argRule + ":" + argTransfer + " and {}",
                 session);
         boolean success = false;
         try {
