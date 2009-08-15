@@ -1,8 +1,0 @@
-SELECT AVG(DATEDIFF('MS',START,STOP)) FROM RUNNER 
-SELECT * FROM RUNNER order by start desc
-jdbc:h2:D:/GG/R66/data/openr66b;IFEXISTS=TRUE;MODE=Oracle;AUTO_SERVER=TRUE
-jdbc:h2:D:/GG/R66/data/openr66;IFEXISTS=TRUE;MODE=Oracle;AUTO_SERVER=TRUE
-
-h2 jdbc:h2:D:/GG/R66/data/openr66;IFEXISTS=TRUE;MODE=Oracle;AUTO_SERVER=TRUE openr66 openr66 D:/GG/R66/export hosta
-
-h2 jdbc:h2:D:/GG/R66/data/openr66;MODE=Oracle;AUTO_SERVER=TRUE openr66 openr66 D:/GG/R66/conf D:/GG/R66/conf/authent.xml D:/GG/R66/conf/limitConfiga.xml

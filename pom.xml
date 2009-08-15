@@ -146,7 +146,7 @@
     <dependency>
     	<groupId>GG-MD5</groupId>
     	<artifactId>GG-MD5</artifactId>
-    	<version>0.9.5</version>
+    	<version>0.9.6</version>
     	<scope>system</scope>
     	<systemPath>D:/NEWJARS/GG-MD5.jar</systemPath>
     </dependency>
@@ -179,7 +179,7 @@
     <dependency>
     	<groupId>GG-Common</groupId>
     	<artifactId>GG-Common</artifactId>
-    	<version>0.9.5</version>
+    	<version>0.9.6</version>
     	<scope>system</scope>
     	<systemPath>D:/NEWJARS/GG-Common.jar</systemPath>
     </dependency>
