@@ -35,6 +35,7 @@ import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
+import openr66.protocol.test.TestRecvThroughClient;
 import openr66.protocol.utils.R66Future;
 
 /**
@@ -65,7 +66,7 @@ import openr66.protocol.utils.R66Future;
  * <tt>     networkTransaction.closeAll();</tt><br>
  * <br>
  * <br>
- * @see TestRecvThroughClient TestRecvThroughClient Class as example of usage
+ * @see TestRecvThroughClient {@link TestRecvThroughClient} Class as example of usage
  *
  * @author Frederic Bregier
  *

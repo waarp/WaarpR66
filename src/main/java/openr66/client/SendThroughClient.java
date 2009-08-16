@@ -96,7 +96,7 @@ import openr66.protocol.utils.R66Future;
  * 8) In case of errors during steps 4 or 5 (and only those), call the following:<br>
  * <tr>     transaction.transferInError(openR66Exception);</tr><br>
  * <br>
- * @see TestSendThroughClient TestSendThroughClient Class as example of usage
+ * @see TestSendThroughClient {@link TestSendThroughClient} Class as example of usage
  *
  * @author Frederic Bregier
  *
@@ -215,7 +215,6 @@ public class SendThroughClient extends AbstractTransfer {
     }
     /**
      * Finalize the request
-     * @param localChannelReference
      */
     public void finalizeRequest() {
         try {
@@ -276,7 +275,6 @@ public class SendThroughClient extends AbstractTransfer {
     }
     /**
      * To be used in case of error after a correct initiate of the request
-     * @param localChannelReference
      * @param e
      */
     public void transferInError(OpenR66Exception e) {
