@@ -625,7 +625,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         Configuration.configuration.getLocalTransaction().setFromId(runner, localChannelReference);
         // inform back
         if (packet.isToValidate()) {
-            if (runner.isRetrieve()) {
+            if (runner.isSender()) {
                 // In case Wildcard was used
                 logger.info("New FILENAME: {}", runner.getOriginalFilename());
                 packet.setFilename(runner.getOriginalFilename());
@@ -634,7 +634,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet).awaitUninterruptibly();
         }
         // if retrieve => START the retrieve operation except if in Send Through mode
-        if (runner.isRetrieve()) {
+        if (runner.isSender()) {
             if (RequestPacket.isSendThroughMode(packet.getMode())) {
                 // it is legal to send data from now
                 logger.info("Now ready to continue with send through");
@@ -664,7 +664,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         if (!session.isReady()) {
             throw new OpenR66ProtocolBusinessException("No request prepared");
         }
-        if (session.getRunner().isRetrieve()) {
+        if (session.getRunner().isSender()) {
             throw new OpenR66ProtocolBusinessException(
                     "Not in receive MODE but receive a packet");
         }
@@ -693,23 +693,28 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 return;
             }
         }
-        dataBlock.setBlock(packet.getData());
-        try {
-            session.getFile().writeDataBlock(dataBlock);
+        if (RequestPacket.isRecvThroughMode(session.getRunner().getMode())) {
+            localChannelReference.getRecvThroughHandler().writeChannelBuffer(packet.getData());
             session.getRunner().incrementRank();
-        } catch (FileTransferException e) {
+        } else {
+            dataBlock.setBlock(packet.getData());
             try {
-                session.setFinalizeTransfer(false, new R66Result(
-                        new OpenR66ProtocolSystemException(e), session, true,
-                        ErrorCode.TransferError));
-            } catch (OpenR66RunnerErrorException e1) {
-            } catch (OpenR66ProtocolSystemException e1) {
+                session.getFile().writeDataBlock(dataBlock);
+                session.getRunner().incrementRank();
+            } catch (FileTransferException e) {
+                try {
+                    session.setFinalizeTransfer(false, new R66Result(
+                            new OpenR66ProtocolSystemException(e), session, true,
+                            ErrorCode.TransferError));
+                } catch (OpenR66RunnerErrorException e1) {
+                } catch (OpenR66ProtocolSystemException e1) {
+                }
+                ErrorPacket error = new ErrorPacket("Transfer in error",
+                        ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
+                ChannelUtils.close(channel);
+                return;
             }
-            ErrorPacket error = new ErrorPacket("Transfer in error",
-                    ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
-            ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
-            ChannelUtils.close(channel);
-            return;
         }
     }
     /**

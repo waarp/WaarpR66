@@ -20,7 +20,7 @@ import org.jboss.netty.buffer.ChannelBuffers;
 public class RequestPacket extends AbstractLocalPacket {
     public static enum TRANSFERMODE {
         UNKNOWNMODE, SENDMODE, RECVMODE, SENDMD5MODE, RECVMD5MODE,
-        SENDTHROUGHMODE, NOMODE, SENDMD5THROUGHMODE;
+        SENDTHROUGHMODE, RECVTHROUGHMODE, SENDMD5THROUGHMODE, RECVMD5THROUGHMODE;
     }
 
     private static final byte REQVALIDATE = 0;
@@ -58,7 +58,9 @@ public class RequestPacket extends AbstractLocalPacket {
      */
     public static boolean isRecvMode(int mode) {
         return (mode == TRANSFERMODE.RECVMODE.ordinal() ||
-                mode == TRANSFERMODE.RECVMD5MODE.ordinal());
+                mode == TRANSFERMODE.RECVMD5MODE.ordinal() ||
+                mode == TRANSFERMODE.RECVTHROUGHMODE.ordinal() ||
+                mode == TRANSFERMODE.RECVMD5THROUGHMODE.ordinal());
     }
     /**
      *
@@ -70,6 +72,15 @@ public class RequestPacket extends AbstractLocalPacket {
                 mode == TRANSFERMODE.SENDMD5THROUGHMODE.ordinal());
     }
     /**
+    *
+    * @param mode
+    * @return True if this mode is a RECV THROUGH (MD5) mode
+    */
+   public static boolean isRecvThroughMode(int mode) {
+       return (mode == TRANSFERMODE.RECVTHROUGHMODE.ordinal() ||
+               mode == TRANSFERMODE.RECVMD5THROUGHMODE.ordinal());
+   }
+    /**
      *
      * @param mode
      * @return true if this mode is a MD5 mode
@@ -77,7 +88,8 @@ public class RequestPacket extends AbstractLocalPacket {
     public static boolean isMD5Mode(int mode) {
         return (mode == TRANSFERMODE.RECVMD5MODE.ordinal() ||
                 mode == TRANSFERMODE.SENDMD5MODE.ordinal() ||
-                mode == TRANSFERMODE.SENDMD5THROUGHMODE.ordinal());
+                mode == TRANSFERMODE.SENDMD5THROUGHMODE.ordinal() ||
+                mode == TRANSFERMODE.RECVMD5THROUGHMODE.ordinal());
     }
     /**
      * @param headerLength

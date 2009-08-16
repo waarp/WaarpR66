@@ -5,7 +5,8 @@
 		<author email="fredbregier at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
-		<release version="0.5.8" date="2009-08-16" description="Add send through support">
+		<release version="0.5.8" date="2009-08-17" description="Add send and recv through support">
+			<action dev="Frederic Bregier" type="add">Add Recv through support</action>
 			<action dev="Frederic Bregier" type="add">Add Send through support</action>
 			<action dev="Frederic Bregier" type="fix">Fix Database support</action>
 		</release>

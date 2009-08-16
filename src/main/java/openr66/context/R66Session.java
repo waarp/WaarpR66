@@ -32,6 +32,7 @@ import openr66.context.filesystem.R66Restart;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.data.DbTaskRunner;
 import openr66.database.data.DbTaskRunner.TASKSTEP;
+import openr66.database.exception.OpenR66DatabaseException;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.LocalChannelReference;
@@ -244,7 +245,7 @@ public class R66Session implements SessionInterface {
     public void setRunner(DbTaskRunner runner)
             throws OpenR66RunnerErrorException {
         this.runner = runner;
-        if (this.runner.isRetrieve()) {
+        if (this.runner.isSender()) {
             // Change dir
             try {
                 dir.changeDirectory(this.runner.getRule().sendPath);
@@ -272,7 +273,7 @@ public class R66Session implements SessionInterface {
             runner.setTransferTask(runner.getRank());
         }
         // Now create the associated file
-        if (this.runner.isRetrieve()) {
+        if (this.runner.isSender()) {
             // File should already exist but can be using special code ('*?')
             try {
                 file = (R66File) dir.setFile(this.runner.getOriginalFilename(),
@@ -295,7 +296,10 @@ public class R66Session implements SessionInterface {
                 try {
                     file = (R66File) dir.setFile(this.runner
                             .getFilename(), true);
-                    if (!file.canWrite()) {
+                    if (RequestPacket.isRecvThroughMode(this.runner.getMode())) {
+                        // no test on file since it does not really exist
+                        logger.info("File is in through mode: {}", file.toString());
+                    } else if (!file.canWrite()) {
                         throw new OpenR66RunnerErrorException(
                                 "File cannot be write");
                     }
@@ -308,7 +312,11 @@ public class R66Session implements SessionInterface {
                 try {
                     file = dir.setUniqueFile(this.runner.getSpecialId(),
                             this.runner.getOriginalFilename());
-                    if (!file.canWrite()) {
+                    if (RequestPacket.isRecvThroughMode(this.runner.getMode())) {
+                        // no test on file since it does not really exist
+                        logger.info("File is in through mode: {}", file.toString());
+                        this.runner.deleteTempFile();
+                    } else if (!file.canWrite()) {
                         this.runner.deleteTempFile();
                         throw new OpenR66RunnerErrorException(
                                 "File cannot be write");
@@ -410,10 +418,11 @@ public class R66Session implements SessionInterface {
                 throw e1;
             }
             runner.saveStatus();
-            if (runner.isRetrieve()) {
+            if (runner.isSender()) {
                 // Nothing to do since it is the original file
             } else {
-                if (!runner.isFileMoved()) {
+                if ((!runner.isFileMoved()) &&
+                        (!RequestPacket.isRecvThroughMode(runner.getMode()))) {
                     // Result file was not moved so move it
                     String finalpath = dir.getFinalUniqueFilename(file);
                     logger.debug("Will move file {}", finalpath);
@@ -475,6 +484,18 @@ public class R66Session implements SessionInterface {
                     runner.saveStatus();
                     localChannelReference.invalidateRequest(finalValue);
                     throw e1;
+                }
+                if (RequestPacket.isRecvThroughMode(runner.getMode()) ||
+                        RequestPacket.isSendThroughMode(runner.getMode())) {
+                    // delete the task since cannot be redone
+                    logger.error("Through Mode so delete: {}", runner);
+                    try {
+                        runner.delete();
+                    } catch (OpenR66DatabaseException e) {
+                    }
+                    runner.setExecutionStatus(runnerStatus);
+                    localChannelReference.invalidateRequest(finalValue);
+                    return;
                 }
             }
             // re set the original status

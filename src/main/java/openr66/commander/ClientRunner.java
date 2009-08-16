@@ -28,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.jboss.netty.channel.Channels;
 
+import openr66.client.RecvThroughHandler;
 import openr66.context.authentication.R66Auth;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.DbConstant;
@@ -64,6 +65,7 @@ public class ClientRunner implements Runnable {
     private final NetworkTransaction networkTransaction;
     private final DbTaskRunner taskRunner;
     private final R66Future futureRequest;
+    private RecvThroughHandler handler = null;
 
     public ClientRunner(NetworkTransaction networkTransaction, DbTaskRunner taskRunner,
             R66Future futureRequest) {
@@ -71,6 +73,7 @@ public class ClientRunner implements Runnable {
         this.taskRunner = taskRunner;
         this.futureRequest = futureRequest;
     }
+
     /* (non-Javadoc)
      * @see java.lang.Runnable#run()
      */
@@ -201,7 +204,9 @@ public class ClientRunner implements Runnable {
             host = null;
             throw new OpenR66ProtocolNoConnectionException("Cannot connect to server");
         }
-
+        if (handler != null) {
+            localChannelReference.setRecvThroughHandler(handler);
+        }
         if (taskRunner.getRank() > 0) {
             // start from one rank before
             taskRunner.setRankAtStartup(taskRunner.getRank()-1);
@@ -235,6 +240,13 @@ public class ClientRunner implements Runnable {
             this.taskRunner.update();
         } catch (OpenR66DatabaseException e) {
         }
+    }
+
+    /**
+     * @param handler the handler to set
+     */
+    public void setRecvThroughHandler(RecvThroughHandler handler) {
+        this.handler = handler;
     }
 
 }

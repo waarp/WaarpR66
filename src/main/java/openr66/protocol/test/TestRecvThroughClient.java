@@ -20,38 +20,44 @@
  */
 package openr66.protocol.test;
 
-import goldengate.common.exception.FileEndOfTransferException;
-import goldengate.common.exception.FileTransferException;
-import goldengate.common.file.DataBlock;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
 
-import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.logging.InternalLoggerFactory;
 
 import ch.qos.logback.classic.Level;
-import openr66.client.SendThroughClient;
+import openr66.client.RecvThroughClient;
+import openr66.client.RecvThroughHandler;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
-import openr66.context.filesystem.R66File;
-import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.DbConstant;
-import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.configuration.Configuration;
-import openr66.protocol.exception.OpenR66ProtocolPacketException;
-import openr66.protocol.exception.OpenR66ProtocolSystemException;
+import openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.utils.R66Future;
 
 /**
- * Test class for Send Through client
+ * Test class for Recv Through client
  *
  * @author Frederic Bregier
  *
  */
-public class TestSendThroughClient extends SendThroughClient {
+public class TestRecvThroughClient extends RecvThroughClient {
+    public static class TestRecvThroughHandler extends RecvThroughHandler {
 
+        /* (non-Javadoc)
+         * @see openr66.client.RecvThroughHandler#writeChannelBuffer(org.jboss.netty.buffer.ChannelBuffer)
+         */
+        @Override
+        public void writeChannelBuffer(ChannelBuffer buffer)
+                throws OpenR66ProtocolBusinessException {
+            byte [] array = this.getByte(buffer);
+            logger.info("Write {}", array.length);
+        }
+
+    }
     /**
      * @param future
      * @param remoteHost
@@ -62,71 +68,14 @@ public class TestSendThroughClient extends SendThroughClient {
      * @param blocksize
      * @param networkTransaction
      */
-    public TestSendThroughClient(R66Future future, String remoteHost,
+    public TestRecvThroughClient(R66Future future, TestRecvThroughHandler handler,
+            String remoteHost,
             String filename, String rulename, String fileinfo, boolean isMD5,
             int blocksize, NetworkTransaction networkTransaction) {
-        super(future, remoteHost, filename, rulename, fileinfo, isMD5, blocksize,
+        super(future, handler, remoteHost, filename, rulename, fileinfo, isMD5, blocksize,
                 networkTransaction);
     }
 
-    public boolean sendFile() {
-        R66File r66file = localChannelReference.getSession().getFile();
-        boolean retrieveDone = false;
-        try {
-            DataBlock block = null;
-            try {
-                block = r66file.readDataBlock();
-            } catch (FileEndOfTransferException e) {
-                // Last block (in fact, no data to read)
-                retrieveDone = true;
-                return retrieveDone;
-            }
-            if (block == null) {
-                // Last block (in fact, no data to read)
-                retrieveDone = true;
-                return retrieveDone;
-            }
-            // While not last block
-            ChannelFuture future = null;
-            while (block != null && !block.isEOF()) {
-                future = this.writeWhenPossible(block);
-                try {
-                    block = r66file.readDataBlock();
-                } catch (FileEndOfTransferException e) {
-                    // Wait for last write
-                    future.awaitUninterruptibly();
-                    retrieveDone = true;
-                    return retrieveDone;
-                }
-            }
-            // Last block
-            if (block != null) {
-                future = this.writeWhenPossible(block);
-            }
-            // Wait for last write
-            if (future != null) {
-                future.awaitUninterruptibly();
-            }
-            retrieveDone = true;
-            return retrieveDone;
-        } catch (FileTransferException e) {
-            // An error occurs!
-            this.transferInError(new OpenR66ProtocolSystemException(e));
-            return retrieveDone;
-        } catch (OpenR66ProtocolPacketException e) {
-            // An error occurs!
-            this.transferInError(e);
-            return retrieveDone;
-        } catch (OpenR66RunnerErrorException e) {
-            // An error occurs!
-            this.transferInError(e);
-            return retrieveDone;
-        } catch (OpenR66ProtocolSystemException e) {
-            // An error occurs!
-            this.transferInError(e);
-            return retrieveDone;
-        }
-    }
     /**
      * @param args
      */
@@ -134,7 +83,7 @@ public class TestSendThroughClient extends SendThroughClient {
         InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
                 Level.WARN));
         if (logger == null) {
-            logger = GgInternalLoggerFactory.getLogger(TestSendThroughClient.class);
+            logger = GgInternalLoggerFactory.getLogger(TestRecvThroughHandler.class);
         }
         if (! getParams(args)) {
             logger.error("Wrong initialization");
@@ -150,17 +99,13 @@ public class TestSendThroughClient extends SendThroughClient {
         NetworkTransaction networkTransaction = new NetworkTransaction();
         try {
             R66Future future = new R66Future(true);
-            TestSendThroughClient transaction = new TestSendThroughClient(future,
+            TestRecvThroughHandler handler = new TestRecvThroughHandler();
+            TestRecvThroughClient transaction = new TestRecvThroughClient(future,
+                    handler,
                     rhost, localFilename, rule, fileInfo, ismd5, block,
                     networkTransaction);
             long time1 = System.currentTimeMillis();
-            if (! transaction.initiateRequest()) {
-                logger.error("Transfer in Error", future.getCause());
-                return;
-            }
-            if (transaction.sendFile()) {
-                transaction.finalizeRequest();
-            }
+            transaction.run();
             future.awaitUninterruptibly();
 
             long time2 = System.currentTimeMillis();
@@ -177,14 +122,6 @@ public class TestSendThroughClient extends SendThroughClient {
                             result.runner.getSpecialId()+" on Final file: " +
                             (result.file != null? result.file.toString() : "no file")
                             +" delay: "+delay);
-                }
-                if (nolog) {
-                    // In case of success, delete the runner
-                    try {
-                        result.runner.delete();
-                    } catch (OpenR66DatabaseException e) {
-                        logger.warn("Cannot apply nolog to "+result.runner.toString(), e);
-                    }
                 }
             } else {
                 if (result == null || result.runner == null) {

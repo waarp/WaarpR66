@@ -56,7 +56,7 @@ public class DirectTransfer extends AbstractTransfer {
     public DirectTransfer(R66Future future, String remoteHost,
             String filename, String rulename, String fileinfo, boolean isMD5, int blocksize,
             NetworkTransaction networkTransaction) {
-        super(SubmitTransfer.class,
+        super(DirectTransfer.class,
                 future, filename, rulename, fileinfo, isMD5, remoteHost, blocksize);
         this.networkTransaction = networkTransaction;
     }

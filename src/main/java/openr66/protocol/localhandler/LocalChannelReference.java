@@ -17,6 +17,7 @@ package openr66.protocol.localhandler;
 
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+import openr66.client.RecvThroughHandler;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
@@ -79,6 +80,10 @@ public class LocalChannelReference {
      * Session
      */
     private R66Session session;
+    /**
+     * RecvThroughHandler
+     */
+    private RecvThroughHandler recvThroughHandler;
 
     /**
     *
@@ -298,5 +303,19 @@ public class LocalChannelReference {
     @Override
     public String toString() {
         return "LCR: L: " + localId + " R: " + remoteId;
+    }
+
+    /**
+     * @return the recvThroughHandler
+     */
+    public RecvThroughHandler getRecvThroughHandler() {
+        return recvThroughHandler;
+    }
+
+    /**
+     * @param recvThroughHandler the recvThroughHandler to set
+     */
+    public void setRecvThroughHandler(RecvThroughHandler recvThroughHandler) {
+        this.recvThroughHandler = recvThroughHandler;
     }
 }

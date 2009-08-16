@@ -251,7 +251,7 @@ public class LocalTransaction {
                     int rank = localChannelReference.getSession().getRunner()
                             .getRank();
                     packet.setSmiddle(Integer.toString(rank));
-                    if (runner.isRetrieve()) {
+                    if (runner.isSender()) {
                         // Save File status
                         try {
                             runner.saveStatus();

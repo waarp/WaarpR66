@@ -26,7 +26,6 @@ import org.jboss.netty.channel.ChannelFuture;
 import goldengate.common.file.DataBlock;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
-import openr66.client.DirectTransfer;
 import openr66.commander.ClientRunner;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
@@ -53,7 +52,9 @@ import openr66.protocol.utils.R66Future;
 /**
  * Class for Send Through client
  *
- * This class does not included file transfer.
+ * This class does not included the real file transfer since it is up to the business project
+ * to implement how to read new data to be sent to the remote host. If an error occurs,
+ * no transfer log is kept.
  *
  * 1) Configuration must have been loaded<br>
  * <br>
@@ -100,8 +101,10 @@ import openr66.protocol.utils.R66Future;
  * @author Frederic Bregier
  *
  */
-public class SendThroughClient extends DirectTransfer {
+public class SendThroughClient extends AbstractTransfer {
+    protected final NetworkTransaction networkTransaction;
     protected LocalChannelReference localChannelReference;
+    protected DbTaskRunner taskRunner = null;
     /**
      * @param future
      * @param remoteHost
@@ -115,8 +118,9 @@ public class SendThroughClient extends DirectTransfer {
     public SendThroughClient(R66Future future, String remoteHost,
             String filename, String rulename, String fileinfo, boolean isMD5,
             int blocksize, NetworkTransaction networkTransaction) {
-        super(future, remoteHost, filename, rulename, fileinfo, isMD5, blocksize,
-                networkTransaction);
+        super(SendThroughClient.class,
+                future, filename, rulename, fileinfo, isMD5, remoteHost, blocksize);
+        this.networkTransaction = networkTransaction;
     }
     /**
      * DO NOT CALL THIS!
@@ -133,7 +137,7 @@ public class SendThroughClient extends DirectTransfer {
      */
     public boolean initiateRequest() {
         if (logger == null) {
-            logger = GgInternalLoggerFactory.getLogger(DirectTransfer.class);
+            logger = GgInternalLoggerFactory.getLogger(SendThroughClient.class);
         }
         DbRule rule;
         try {
@@ -152,52 +156,62 @@ public class SendThroughClient extends DirectTransfer {
         RequestPacket request = new RequestPacket(rulename,
                 mode, filename, blocksize, 0,
                 DbConstant.ILLEGALVALUE, fileinfo);
-        // Not isRecv since it is the requester, so send => isRetrieve is true
-        boolean isRetrieve = true;
-        DbTaskRunner taskRunner;
+        // Not isRecv since it is the requester, so send => isSender is true
+        boolean isSender = true;
         try {
-            taskRunner =
-                new DbTaskRunner(DbConstant.admin.session,rule,isRetrieve,request,remoteHost);
-        } catch (OpenR66DatabaseException e) {
-            logger.error("Cannot get task", e);
-            future.setResult(new R66Result(e, null, true,
-                    ErrorCode.Internal));
-            future.setFailure(e);
-            return false;
+            try {
+                taskRunner =
+                    new DbTaskRunner(DbConstant.admin.session,rule,isSender,request,remoteHost);
+            } catch (OpenR66DatabaseException e) {
+                logger.error("Cannot get task", e);
+                future.setResult(new R66Result(e, null, true,
+                        ErrorCode.Internal));
+                future.setFailure(e);
+                return false;
+            }
+            ClientRunner runner = new ClientRunner(networkTransaction, taskRunner, future);
+            try {
+                localChannelReference = runner.initRequest();
+            } catch (OpenR66RunnerErrorException e) {
+                logger.error("Cannot Transfer", e);
+                future.setResult(new R66Result(e, null, true,
+                        ErrorCode.Internal));
+                future.setFailure(e);
+                return false;
+            } catch (OpenR66ProtocolNoConnectionException e) {
+                logger.error("Cannot Connect", e);
+                future.setResult(new R66Result(e, null, true,
+                        ErrorCode.ConnectionImpossible));
+                future.setFailure(e);
+                return false;
+            } catch (OpenR66ProtocolPacketException e) {
+                logger.error("Bad Protocol", e);
+                future.setResult(new R66Result(e, null, true,
+                        ErrorCode.TransferError));
+                future.setFailure(e);
+                return false;
+            }
+            try {
+                localChannelReference.waitReadyForSendThrough();
+            } catch (OpenR66Exception e) {
+                logger.error("Cannot Transfer", e);
+                future.setResult(new R66Result(e, null, true,
+                        ErrorCode.Internal));
+                future.setFailure(e);
+                return false;
+            }
+            // now start the send from external data
+            return true;
+        } finally {
+            if (taskRunner != null) {
+                if (future.isCancelled()) {
+                    try {
+                        taskRunner.delete();
+                    } catch (OpenR66DatabaseException e) {
+                    }
+                }
+            }
         }
-        ClientRunner runner = new ClientRunner(networkTransaction, taskRunner, future);
-        try {
-            localChannelReference = runner.initRequest();
-        } catch (OpenR66RunnerErrorException e) {
-            logger.error("Cannot Transfer", e);
-            future.setResult(new R66Result(e, null, true,
-                    ErrorCode.Internal));
-            future.setFailure(e);
-            return false;
-        } catch (OpenR66ProtocolNoConnectionException e) {
-            logger.error("Cannot Connect", e);
-            future.setResult(new R66Result(e, null, true,
-                    ErrorCode.ConnectionImpossible));
-            future.setFailure(e);
-            return false;
-        } catch (OpenR66ProtocolPacketException e) {
-            logger.error("Bad Protocol", e);
-            future.setResult(new R66Result(e, null, true,
-                    ErrorCode.TransferError));
-            future.setFailure(e);
-            return false;
-        }
-        try {
-            localChannelReference.waitReadyForSendThrough();
-        } catch (OpenR66Exception e) {
-            logger.error("Cannot Transfer", e);
-            future.setResult(new R66Result(e, null, true,
-                    ErrorCode.Internal));
-            future.setFailure(e);
-            return false;
-        }
-        // now start the send from external data
-        return true;
     }
     /**
      * Finalize the request
@@ -205,48 +219,59 @@ public class SendThroughClient extends DirectTransfer {
      */
     public void finalizeRequest() {
         try {
-            ChannelUtils.writeValidEndTransfer(localChannelReference);
-        } catch (OpenR66ProtocolPacketException e) {
-            // An error occurs!
             try {
-                localChannelReference.getSession().setFinalizeTransfer(
-                        false,
-                        new R66Result(e, localChannelReference.getSession(), false,
-                                ErrorCode.Internal));
-            } catch (OpenR66RunnerErrorException e1) {
-                transferInError(e1);
-                return;
-            } catch (OpenR66ProtocolSystemException e1) {
-                transferInError(e1);
-                return;
-            }
-        }
-        localChannelReference.getFutureEndTransfer().awaitUninterruptibly();
-        logger.info("Await future End Transfer done: " +
-                localChannelReference.getFutureEndTransfer().isSuccess());
-        if (localChannelReference.getFutureEndTransfer().isSuccess()) {
-            // send a validation
-            ValidPacket validPacket = new ValidPacket("File transmitted",
-                    Integer.toString(localChannelReference.getSession().getRunner().getRank()),
-                    LocalPacketFactory.REQUESTPACKET);
-            try {
-                ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket)
-                    .awaitUninterruptibly();
+                ChannelUtils.writeValidEndTransfer(localChannelReference);
             } catch (OpenR66ProtocolPacketException e) {
-            }
-            localChannelReference.validateRequest(localChannelReference
-                    .getFutureEndTransfer().getResult());
-            ChannelUtils.close(localChannelReference.getLocalChannel());
-        } else {
-            if (!localChannelReference.getFutureEndTransfer().getResult().isAnswered) {
-                ErrorPacket error = new ErrorPacket("Transfer in error",
-                        ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                // An error occurs!
                 try {
-                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
-                } catch (OpenR66ProtocolPacketException e) {
+                    localChannelReference.getSession().setFinalizeTransfer(
+                            false,
+                            new R66Result(e, localChannelReference.getSession(), false,
+                                    ErrorCode.Internal));
+                } catch (OpenR66RunnerErrorException e1) {
+                    transferInError(e1);
+                    return;
+                } catch (OpenR66ProtocolSystemException e1) {
+                    transferInError(e1);
+                    return;
                 }
             }
-            ChannelUtils.close(localChannelReference.getLocalChannel());
+            localChannelReference.getFutureEndTransfer().awaitUninterruptibly();
+            logger.info("Await future End Transfer done: " +
+                    localChannelReference.getFutureEndTransfer().isSuccess());
+            if (localChannelReference.getFutureEndTransfer().isSuccess()) {
+                // send a validation
+                ValidPacket validPacket = new ValidPacket("File transmitted",
+                        Integer.toString(localChannelReference.getSession().getRunner().getRank()),
+                        LocalPacketFactory.REQUESTPACKET);
+                try {
+                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket)
+                        .awaitUninterruptibly();
+                } catch (OpenR66ProtocolPacketException e) {
+                }
+                localChannelReference.validateRequest(localChannelReference
+                        .getFutureEndTransfer().getResult());
+                ChannelUtils.close(localChannelReference.getLocalChannel());
+            } else {
+                if (!localChannelReference.getFutureEndTransfer().getResult().isAnswered) {
+                    ErrorPacket error = new ErrorPacket("Transfer in error",
+                            ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                    try {
+                        ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
+                    } catch (OpenR66ProtocolPacketException e) {
+                    }
+                }
+                ChannelUtils.close(localChannelReference.getLocalChannel());
+            }
+        } finally {
+            if (taskRunner != null) {
+                if (future.isCancelled() || nolog) {
+                    try {
+                        taskRunner.delete();
+                    } catch (OpenR66DatabaseException e) {
+                    }
+                }
+            }
         }
     }
     /**

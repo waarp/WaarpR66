@@ -51,6 +51,7 @@ import openr66.database.model.DbModelFactory;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.packet.RequestPacket;
+import openr66.protocol.localhandler.packet.RequestPacket.TRANSFERMODE;
 import openr66.protocol.utils.FileUtils;
 import openr66.protocol.utils.R66Future;
 
@@ -124,7 +125,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     private long specialId;
 
-    private boolean isRetrieve;
+    private boolean isSender;
 
     private String filename;
 
@@ -169,7 +170,7 @@ public class DbTaskRunner extends AbstractDbData {
             new DbValue(step, Columns.STEP.name()),
             new DbValue(rank, Columns.RANK.name()),
             new DbValue(status.getCode(), Columns.STEPSTATUS.name()),
-            new DbValue(isRetrieve, Columns.RETRIEVEMODE.name()),
+            new DbValue(isSender, Columns.RETRIEVEMODE.name()),
             new DbValue(filename, Columns.FILENAME.name()),
             new DbValue(isFileMoved, Columns.ISMOVED.name()),
             new DbValue(ruleId, Columns.IDRULE.name()),
@@ -253,20 +254,20 @@ public class DbTaskRunner extends AbstractDbData {
      *
      * @param dbSession
      * @param rule
-     * @param isRetrieve
+     * @param isSender
      * @param requestPacket
      * @param requested
      * @throws OpenR66DatabaseException
      */
    public DbTaskRunner(DbSession dbSession, DbRule rule,
-           boolean isRetrieve, RequestPacket requestPacket, String requested) throws OpenR66DatabaseException {
+           boolean isSender, RequestPacket requestPacket, String requested) throws OpenR66DatabaseException {
        super(dbSession);
        this.session = null;
        this.rule = rule;
        ruleId = this.rule.idRule;
        rank = requestPacket.getRank();
        status = ErrorCode.Unknown;
-       this.isRetrieve = isRetrieve;
+       this.isSender = isSender;
        filename = requestPacket.getFilename();
        blocksize = requestPacket.getBlocksize();
        originalFilename = requestPacket.getFilename();
@@ -288,19 +289,19 @@ public class DbTaskRunner extends AbstractDbData {
      * @param dbSession
      * @param session
      * @param rule
-     * @param isRetrieve
+     * @param isSender
      * @param requestPacket
      * @throws OpenR66DatabaseException
      */
     public DbTaskRunner(DbSession dbSession, R66Session session, DbRule rule,
-            boolean isRetrieve, RequestPacket requestPacket) throws OpenR66DatabaseException {
+            boolean isSender, RequestPacket requestPacket) throws OpenR66DatabaseException {
         super(dbSession);
         this.session = session;
         this.rule = rule;
         ruleId = this.rule.idRule;
         rank = requestPacket.getRank();
         status = ErrorCode.Unknown;
-        this.isRetrieve = isRetrieve;
+        this.isSender = isSender;
         filename = requestPacket.getFilename();
         blocksize = requestPacket.getBlocksize();
         originalFilename = requestPacket.getFilename();
@@ -352,7 +353,7 @@ public class DbTaskRunner extends AbstractDbData {
         allFields[Columns.STEP.ordinal()].setValue(step);
         allFields[Columns.RANK.ordinal()].setValue(rank);
         allFields[Columns.STEPSTATUS.ordinal()].setValue(status.getCode());
-        allFields[Columns.RETRIEVEMODE.ordinal()].setValue(isRetrieve);
+        allFields[Columns.RETRIEVEMODE.ordinal()].setValue(isSender);
         allFields[Columns.FILENAME.ordinal()].setValue(filename);
         allFields[Columns.ISMOVED.ordinal()].setValue(isFileMoved);
         allFields[Columns.IDRULE.ordinal()].setValue(ruleId);
@@ -379,7 +380,7 @@ public class DbTaskRunner extends AbstractDbData {
         rank = (Integer) allFields[Columns.RANK.ordinal()].getValue();
         status = ErrorCode.getFromCode((String) allFields[Columns.STEPSTATUS
                 .ordinal()].getValue());
-        isRetrieve = (Boolean) allFields[Columns.RETRIEVEMODE.ordinal()]
+        isSender = (Boolean) allFields[Columns.RETRIEVEMODE.ordinal()]
                 .getValue();
         filename = (String) allFields[Columns.FILENAME.ordinal()].getValue();
         isFileMoved = (Boolean) allFields[Columns.ISMOVED.ordinal()].getValue();
@@ -974,10 +975,10 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * @return the isRetrieve
+     * @return the isSender
      */
-    public boolean isRetrieve() {
-        return isRetrieve;
+    public boolean isSender() {
+        return isSender;
     }
 
     /**
@@ -1157,6 +1158,7 @@ public class DbTaskRunner extends AbstractDbData {
             status = ErrorCode.CompleteOk;
         }
         allFields[Columns.STEPSTATUS.ordinal()].setValue(status.getCode());
+        changeUpdatedInfo(UpdatedInfo.DONE);
         isSaved = false;
     }
     /**
@@ -1272,7 +1274,7 @@ public class DbTaskRunner extends AbstractDbData {
             } catch (OpenR66DatabaseException e) {
                 logger.warn("Cannot update Runner", e);
             }
-            if (! isRetrieve) {
+            if (! isSender) {
                 // flush partial file
                 session.getFile().flush();
             }
@@ -1304,7 +1306,7 @@ public class DbTaskRunner extends AbstractDbData {
      * Delete the temporary empty file (retrieved file at rank 0)
      */
     public void deleteTempFile() {
-        if ((! isRetrieve()) && getRank() == 0) {
+        if ((! isSender()) && getRank() == 0) {
             try {
                 R66File file = session.getFile();
                 if (file != null) {
@@ -1322,7 +1324,7 @@ public class DbTaskRunner extends AbstractDbData {
                 "("+TASKSTEP.values()[globallaststep]+ "):" + step + ":" +
                 status.mesg +
                 " Transfer Rank: " + rank + " SpecialId: " + specialId + " isRetr: " +
-                isRetrieve + " isMoved: " + isFileMoved+" Mode: "+mode+
+                isSender + " isMoved: " + isFileMoved+" Mode: "+TRANSFERMODE.values()[mode]+
                 " Requester: "+requesterHostId+" Requested: "+requestedHostId+
                 " Start: "+start+" Stop: "+stop+" Info: "+UpdatedInfo.values()[updatedInfo];
     }
@@ -1333,7 +1335,7 @@ public class DbTaskRunner extends AbstractDbData {
     public static String headerHtml() {
         return "<td>SpecialId</td><td>Rule</td><td>Filename" +
             "</td><td>Step (LastStep)</td><td>Action</td><td>Status" +
-            "</td><td>Transfer Rank</td><td>isRetrieve</td><td>isMoved" +
+            "</td><td>Transfer Rank</td><td>isSender</td><td>isMoved" +
             "</td><td>Mode</td><td>Requester</td><td>Requested"+
             "</td><td>Start</td><td>Stop</td><td>Bandwidth (Kbits)</td>";
     }
@@ -1348,7 +1350,7 @@ public class DbTaskRunner extends AbstractDbData {
                 "("+TASKSTEP.values()[globallaststep]+ ")</td><td>" + step + "</td><td>" +
                 status.mesg +
                 "</td><td>" + rank + "</td><td>" +
-                isRetrieve + "</td><td>" + isFileMoved+"</td><td>"+mode+
+                isSender + "</td><td>" + isFileMoved+"</td><td>"+TRANSFERMODE.values()[mode]+
                 "</td><td>"+requesterHostId+"</td><td>"+requestedHostId+
                 "</td><td>"+start+"</td><td>"+stop+"</td><td>"+
                 (int)(((double) (rank*blocksize*8))/((double) (stop.getTime()+1-start.getTime())))
