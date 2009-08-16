@@ -18,7 +18,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF
  * site: http://www.fsf.org.
  */
-package openr66.client;
+package openr66.server;
 
 import java.net.SocketAddress;
 import java.sql.Timestamp;
@@ -52,12 +52,12 @@ import org.jboss.netty.logging.InternalLoggerFactory;
 import ch.qos.logback.classic.Level;
 
 /**
- * Log Transfer from a local client without database connection
+ * Log Export from a local client without database connection
  *
  * @author Frederic Bregier
  *
  */
-public class LogTransfer implements Runnable {
+public class LogExport implements Runnable {
     /**
      * Internal Logger
      */
@@ -70,7 +70,7 @@ public class LogTransfer implements Runnable {
     protected final boolean clean;
     protected final NetworkTransaction networkTransaction;
 
-    public LogTransfer(R66Future future, boolean purgeLog, boolean clean,
+    public LogExport(R66Future future, boolean purgeLog, boolean clean,
             Timestamp start, Timestamp stop,
             NetworkTransaction networkTransaction) {
         this.future = future;
@@ -87,7 +87,7 @@ public class LogTransfer implements Runnable {
      */
     public void run() {
         if (logger == null) {
-            logger = GgInternalLoggerFactory.getLogger(LogTransfer.class);
+            logger = GgInternalLoggerFactory.getLogger(LogExport.class);
         }
         String lstart = (start != null) ? start.toString() : null;
         String lstop  = (stop != null) ? stop.toString() : null;
@@ -175,7 +175,7 @@ public class LogTransfer implements Runnable {
         InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
                 Level.WARN));
         if (logger == null) {
-            logger = GgInternalLoggerFactory.getLogger(LogTransfer.class);
+            logger = GgInternalLoggerFactory.getLogger(LogExport.class);
         }
         if (! getParams(args)) {
             logger.error("Wrong initialization");
@@ -193,7 +193,7 @@ public class LogTransfer implements Runnable {
         Configuration.configuration.pipelineInit();
         NetworkTransaction networkTransaction = new NetworkTransaction();
         try {
-            LogTransfer transaction = new LogTransfer(future,
+            LogExport transaction = new LogExport(future,
                     spurgeLog, sclean, sstart, sstop,
                     networkTransaction);
             transaction.run();
