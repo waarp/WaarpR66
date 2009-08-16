@@ -193,15 +193,15 @@ public class ChannelUtils implements Runnable {
     /**
      *
      * @param localChannelReference
-     * @param runner
      * @param block
      * @return the ChannelFuture of this write operation
      * @throws OpenR66ProtocolPacketException
      */
     public static ChannelFuture writeBackDataBlock(
-            LocalChannelReference localChannelReference, DbTaskRunner runner, DataBlock block)
+            LocalChannelReference localChannelReference, DataBlock block)
             throws OpenR66ProtocolPacketException {
         ChannelBuffer md5 = ChannelBuffers.EMPTY_BUFFER;
+        DbTaskRunner runner = localChannelReference.getSession().getRunner();
         if (RequestPacket.isMD5Mode(runner.getMode())) {
             md5 = FileUtils.getHash(block.getBlock());
         }
@@ -216,11 +216,10 @@ public class ChannelUtils implements Runnable {
      * Write the ValidEndTransfer
      *
      * @param localChannelReference
-     * @param runner
      * @throws OpenR66ProtocolPacketException
      */
     public static void writeValidEndTransfer(
-            LocalChannelReference localChannelReference, DbTaskRunner runner)
+            LocalChannelReference localChannelReference)
     throws OpenR66ProtocolPacketException {
         EndTransferPacket packet = new EndTransferPacket(
                 LocalPacketFactory.REQUESTPACKET);

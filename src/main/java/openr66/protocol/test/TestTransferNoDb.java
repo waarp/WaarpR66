@@ -41,6 +41,8 @@ import org.jboss.netty.logging.InternalLoggerFactory;
 import ch.qos.logback.classic.Level;
 
 /**
+ * Test class for multiple DirectTransfer
+ *
  * @author Frederic Bregier
  *
  */

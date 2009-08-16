@@ -20,6 +20,7 @@
  */
 package openr66.protocol.localhandler;
 
+import goldengate.common.file.DataBlock;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.context.ErrorCode;
@@ -27,15 +28,19 @@ import openr66.context.R66Result;
 import openr66.context.R66Session;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.data.DbTaskRunner.TASKSTEP;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.packet.ErrorPacket;
 import openr66.protocol.localhandler.packet.LocalPacketFactory;
 import openr66.protocol.localhandler.packet.ValidPacket;
+import openr66.protocol.networkhandler.NetworkServerHandler;
 import openr66.protocol.utils.ChannelUtils;
 
+import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelFuture;
 
 /**
  * Retrieve transfer runner
@@ -55,6 +60,11 @@ public class RetrieveRunner implements Runnable {
 
     private final Channel channel;
 
+    /**
+     *
+     * @param session
+     * @param channel local channel
+     */
     public RetrieveRunner(R66Session session, Channel channel) {
         this.session = session;
         localChannelReference = this.session.getLocalChannelReference();
@@ -73,8 +83,7 @@ public class RetrieveRunner implements Runnable {
             if (session.getRunner().getGloballaststep() == TASKSTEP.POSTTASK.ordinal()) {
                 // restart from PostTask global step so just end now
                 try {
-                    ChannelUtils.writeValidEndTransfer(localChannelReference,
-                            session.getRunner());
+                    ChannelUtils.writeValidEndTransfer(localChannelReference);
                 } catch (OpenR66ProtocolPacketException e) {
                     transferInError(e);
                     logger.warn("End Retrieve in Error");
@@ -131,5 +140,57 @@ public class RetrieveRunner implements Runnable {
         } catch (OpenR66ProtocolPacketException e1) {
         }
         ChannelUtils.close(channel);
+    }
+    /**
+     * Write the next block when the channel is ready to prevent OOM
+     * @param block
+     * @param localChannelReference
+     * @return the ChannelFuture on the write operation
+     * @throws OpenR66ProtocolPacketException
+     * @throws OpenR66RunnerErrorException
+     * @throws OpenR66ProtocolSystemException
+     */
+    public static ChannelFuture writeWhenPossible(
+            DataBlock block, LocalChannelReference localChannelReference)
+        throws OpenR66ProtocolPacketException, OpenR66RunnerErrorException,
+            OpenR66ProtocolSystemException {
+        // Test if channel is writable in order to prevent OOM
+        R66Session session = localChannelReference.getSession();
+        NetworkServerHandler serverHandler = localChannelReference.getNetworkServerHandler();
+        if (serverHandler.isWritable()) {
+            return ChannelUtils.writeBackDataBlock(localChannelReference, block);
+        } else {
+            // Wait for the next InterestChanged
+            while (serverHandler.isWriteReady()) {
+                try {
+                    Thread.sleep(Configuration.RETRYINMS);
+                } catch (InterruptedException e) {
+                    // Exception while waiting
+                    session.setFinalizeTransfer(
+                            false,
+                            new R66Result(
+                                    new OpenR66ProtocolSystemException(
+                                            e), session, false,
+                                    ErrorCode.Internal));
+                    throw new OpenR66RunnerErrorException("Interruption while waiting", e);
+                }
+            }
+            return ChannelUtils.writeBackDataBlock(localChannelReference, block);
+        }
+    }
+    /**
+     * Utility method for send through mode
+     * @param data the data byte, if null it is the last block
+     * @return the DataBlock associated to the data
+     */
+    public static DataBlock transformToDataBlock(byte []data) {
+        DataBlock block = new DataBlock();
+        if (data == null) {
+            // last block
+            block.setEOF(true);
+        } else {
+            block.setBlock(ChannelBuffers.wrappedBuffer(data));
+        }
+        return block;
     }
 }

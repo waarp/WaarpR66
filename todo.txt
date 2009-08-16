@@ -3,17 +3,6 @@
   	;USER=sa;PASSWORD=123
 	;IFEXISTS=TRUE ??
 	;MODE=Oracle
-Le fichier de conf pourrait être lui aussi transmis et rechargé (arrêt, relance)
-- les clients locaux soumettent des ordres via la table runner (et dans certains cas hosts et rule)
-- si des stats sont nécessaires: runner mis à jour par interval (tous les 10 packets par ex)
-- Clients Locaux:
-	- stat: lecture seule
-	- soumission de job: écriture runner (=> lecteur asynchrone server)
-	- administration: changement paramètres (hosts, rule, runner, configuration)
-	- shutdown (sans message)
-doit permettre de relancer un job, de l'arreter, de l'annuler, de programmer un job (exemple
-configuration à recharger ou à transmettre)
-- Version light de OpenR66: dès qu'un transfert est OK, vidage de la table runner
 
 - ajouter local socketAddress
 

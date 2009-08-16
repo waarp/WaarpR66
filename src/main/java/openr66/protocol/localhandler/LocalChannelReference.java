@@ -23,6 +23,7 @@ import openr66.context.R66Session;
 import openr66.database.DbConstant;
 import openr66.database.DbSession;
 import openr66.protocol.configuration.Configuration;
+import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.networkhandler.NetworkServerHandler;
 import openr66.protocol.utils.R66Future;
@@ -69,7 +70,7 @@ public class LocalChannelReference {
     /**
      * Future on Transfer
      */
-    private final R66Future futureEndTransfer = new R66Future(true);
+    private R66Future futureEndTransfer = new R66Future(true);
     /**
      * Future on Connection
      */
@@ -253,7 +254,20 @@ public class LocalChannelReference {
     public R66Future getFutureEndTransfer() {
         return futureEndTransfer;
     }
-
+    /**
+     * Special waiter for Send Through method. It reset the EndTransfer future.
+     * @throws OpenR66Exception
+     */
+    public void waitReadyForSendThrough() throws OpenR66Exception {
+        logger.info("Wait for End of Prepare Transfer");
+        this.futureEndTransfer.awaitUninterruptibly();
+        if (this.futureEndTransfer.isSuccess()) {
+            // reset since transfer will start now
+            this.futureEndTransfer = new R66Future(true);
+        } else {
+            throw this.futureEndTransfer.getResult().exception;
+        }
+    }
     /**
      * @return the futureRequest
      */

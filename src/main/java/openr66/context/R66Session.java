@@ -35,6 +35,7 @@ import openr66.database.data.DbTaskRunner.TASKSTEP;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.LocalChannelReference;
+import openr66.protocol.localhandler.packet.RequestPacket;
 
 /**
  * The global object session in OpenR66, a session by local channel
@@ -276,7 +277,10 @@ public class R66Session implements SessionInterface {
             try {
                 file = (R66File) dir.setFile(this.runner.getOriginalFilename(),
                         false);
-                if (!file.canRead()) {
+                if (RequestPacket.isSendThroughMode(this.runner.getMode())) {
+                    // no test on file since it does not really exist
+                    logger.info("File is in through mode: {}", file.toString());
+                } else if (!file.canRead()) {
                     throw new OpenR66RunnerErrorException("File cannot be read");
                 }
             } catch (CommandAbstractException e) {

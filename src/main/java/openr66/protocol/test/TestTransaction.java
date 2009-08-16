@@ -48,6 +48,7 @@ import org.jboss.netty.logging.InternalLoggerFactory;
 import ch.qos.logback.classic.Level;
 
 /**
+ * Test class for internal ping pong test
  * @author Frederic Bregier
  *
  */

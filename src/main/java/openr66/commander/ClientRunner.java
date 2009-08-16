@@ -123,6 +123,40 @@ public class ClientRunner implements Runnable {
      * @throws OpenR66ProtocolPacketException
      */
     public R66Future runTransfer() throws OpenR66RunnerErrorException, OpenR66ProtocolNoConnectionException, OpenR66ProtocolPacketException {
+        LocalChannelReference localChannelReference = initRequest();
+        R66Future transfer = localChannelReference.getFutureRequest();
+        transfer.awaitUninterruptibly();
+        logger.info("Request done with {}",(transfer.isSuccess()?"success":"error"));
+
+        Channels.close(localChannelReference.getLocalChannel());
+        localChannelReference = null;
+        // now reload TaskRunner if it still exists (light client can forget it)
+        if (transfer.isSuccess()) {
+            try {
+                taskRunner.select();
+                this.changeUpdatedInfo(UpdatedInfo.DONE);
+            } catch (OpenR66DatabaseException e) {
+                logger.info("Not a problem but cannot find at the end the task");
+            }
+        } else {
+            try {
+                taskRunner.select();
+                this.changeUpdatedInfo(UpdatedInfo.INERROR);
+            } catch (OpenR66DatabaseException e) {
+                logger.info("Not a problem but cannot find at the end the task");
+            }
+        }
+        return transfer;
+    }
+    /**
+     * Initialize the request
+     * @return the localChannelReference holding the transfer request
+     * @throws OpenR66ProtocolNoConnectionException
+     * @throws OpenR66RunnerErrorException
+     * @throws OpenR66ProtocolPacketException
+     */
+    public LocalChannelReference initRequest()
+        throws OpenR66ProtocolNoConnectionException, OpenR66RunnerErrorException, OpenR66ProtocolPacketException {
         this.changeUpdatedInfo(UpdatedInfo.TORUN);
         long id = taskRunner.getSpecialId();
         String tid;
@@ -189,29 +223,7 @@ public class ClientRunner implements Runnable {
         logger.debug("Wait for request to {}",host);
         request = null;
         host = null;
-        R66Future transfer = localChannelReference.getFutureRequest();
-        transfer.awaitUninterruptibly();
-        logger.info("Request done with {}",(transfer.isSuccess()?"success":"error"));
-
-        Channels.close(localChannelReference.getLocalChannel());
-        localChannelReference = null;
-        // now reload TaskRunner if it still exists (light client can forget it)
-        if (transfer.isSuccess()) {
-            try {
-                taskRunner.select();
-                this.changeUpdatedInfo(UpdatedInfo.DONE);
-            } catch (OpenR66DatabaseException e) {
-                logger.info("Not a problem but cannot find at the end the task");
-            }
-        } else {
-            try {
-                taskRunner.select();
-                this.changeUpdatedInfo(UpdatedInfo.INERROR);
-            } catch (OpenR66DatabaseException e) {
-                logger.info("Not a problem but cannot find at the end the task");
-            }
-        }
-        return transfer;
+        return localChannelReference;
     }
     /**
      * Change the UpdatedInfo of the current runner

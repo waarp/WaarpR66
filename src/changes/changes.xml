@@ -2,9 +2,13 @@
 <document>
 	<properties>
 		<title>GoldenGate OpenR66</title>
-		<author email="fredbregier@free.fr">Frederic Bregier</author>
+		<author email="fredbregier at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+		<release version="0.5.8" date="2009-08-16" description="Add send through support">
+			<action dev="Frederic Bregier" type="add">Add Send through support</action>
+			<action dev="Frederic Bregier" type="fix">Fix Database support</action>
+		</release>
 		<release version="0.5.7" date="2009-08-15" description="Add SSL, limit bandwidth, web information and multiple database support">
 			<action dev="Frederic Bregier" type="add">Add SSL and limit Bandwidth for transfer</action>
 			<action dev="Frederic Bregier" type="add">Add Web support for monitoring status of transfers</action>

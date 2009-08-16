@@ -633,9 +633,17 @@ public class LocalServerHandler extends SimpleChannelHandler {
             packet.validate();
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet).awaitUninterruptibly();
         }
-        // if retrieve => START the retrieve operation
+        // if retrieve => START the retrieve operation except if in Send Through mode
         if (runner.isRetrieve()) {
-            NetworkTransaction.runRetrieve(session, channel);
+            if (RequestPacket.isSendThroughMode(packet.getMode())) {
+                // it is legal to send data from now
+                logger.info("Now ready to continue with send through");
+                localChannelReference.validateEndTransfer(
+                        new R66Result(session, false, ErrorCode.PreProcessingOk));
+            } else {
+                // Automatically send data now
+                NetworkTransaction.runRetrieve(session, channel);
+            }
         }
     }
     /**

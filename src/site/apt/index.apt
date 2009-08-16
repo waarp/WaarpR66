@@ -2,6 +2,7 @@ GoldenGate OpenR66
 
   The GoldenGate OpenR66 project is a proposal of a file transfer monitor for real production
   environment. It supports send and receive file transfer, multiple simultaneous file transfer,
+  transfer through support (for instance from a web upload routed through OpenR66 to a server),
   multiplexing network connection (only one network socket is used between two servers), pre-
   post- or error- transfer action (several possibilities including execution of external scripts),
   MD5 packet validation (optional), SSL support (optional), bandwidth limitation both at global
