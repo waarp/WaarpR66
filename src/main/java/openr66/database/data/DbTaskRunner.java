@@ -49,6 +49,7 @@ import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.database.model.DbModelFactory;
 import openr66.protocol.configuration.Configuration;
+import openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.localhandler.packet.RequestPacket.TRANSFERMODE;
@@ -224,8 +225,12 @@ public class DbTaskRunner extends AbstractDbData {
             RequestPacket requestPacket) {
         if (requestPacket.isToValidate()) {
             // the request is initiated and sent by the requester
-            return Configuration.configuration.getHostId(
-                    session.getAuth().isSsl());
+            try {
+                return Configuration.configuration.getHostId(
+                        session.getAuth().isSsl());
+            } catch (OpenR66ProtocolNoSslException e) {
+                return Configuration.configuration.HOST_ID;
+            }
         } else {
             // the request is sent after acknowledge by the requested
             return session.getAuth().getUser();
@@ -243,8 +248,12 @@ public class DbTaskRunner extends AbstractDbData {
         if (requestPacket.isToValidate()) {
             return session.getAuth().getUser();
         } else {
-            return Configuration.configuration.getHostId(
-                    session.getAuth().isSsl());
+            try {
+                return Configuration.configuration.getHostId(
+                        session.getAuth().isSsl());
+            } catch (OpenR66ProtocolNoSslException e) {
+                return Configuration.configuration.HOST_ID;
+            }
         }
     }
 
@@ -888,7 +897,13 @@ public class DbTaskRunner extends AbstractDbData {
             isSaved = false;
         }
     }
-
+    /**
+     *
+     * @return The current UpdatedInfo value
+     */
+    public UpdatedInfo getUpdatedInfo() {
+        return UpdatedInfo.values()[updatedInfo];
+    }
     /**
      * To set the rank at startup of the request if the request specify a
      * specific rank
@@ -1323,7 +1338,7 @@ public class DbTaskRunner extends AbstractDbData {
                 filename + " STEP: " + TASKSTEP.values()[globalstep] +
                 "("+TASKSTEP.values()[globallaststep]+ "):" + step + ":" +
                 status.mesg +
-                " Transfer Rank: " + rank + " SpecialId: " + specialId + " isRetr: " +
+                " Transfer Rank: " + rank + " SpecialId: " + specialId + " isSender: " +
                 isSender + " isMoved: " + isFileMoved+" Mode: "+TRANSFERMODE.values()[mode]+
                 " Requester: "+requesterHostId+" Requested: "+requestedHostId+
                 " Start: "+start+" Stop: "+stop+" Info: "+UpdatedInfo.values()[updatedInfo];

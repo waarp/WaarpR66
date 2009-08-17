@@ -26,6 +26,7 @@ import java.util.Date;
 
 import openr66.context.R66Session;
 import openr66.protocol.configuration.Configuration;
+import openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import openr66.protocol.utils.R66Future;
 
 /**
@@ -178,8 +179,14 @@ public abstract class AbstractTask implements Runnable {
         dateFormat = new SimpleDateFormat("HHmmss");
         finalname = finalname.replace(HOUR, dateFormat.format(date));
         finalname = finalname.replace(REMOTEHOST, session.getAuth().getUser());
-        finalname = finalname.replace(LOCALHOST,
-                Configuration.configuration.getHostId(session.getAuth().isSsl()));
+        try {
+            finalname = finalname.replace(LOCALHOST,
+                    Configuration.configuration.getHostId(session.getAuth().isSsl()));
+        } catch (OpenR66ProtocolNoSslException e) {
+            // replace by standard name
+            finalname = finalname.replace(LOCALHOST,
+                    Configuration.configuration.HOST_ID);
+        }
         finalname = finalname.replace(TRANSFERID, Long.toString(session
                 .getRunner().getSpecialId()));
         finalname = finalname.replace(RANKTRANSFER, Integer.toString(session

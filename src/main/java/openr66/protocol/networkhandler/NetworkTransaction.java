@@ -21,6 +21,7 @@ import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolNoDataException;
+import openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolRemoteShutdownException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
@@ -101,8 +102,17 @@ public class NetworkTransaction {
     public NetworkTransaction() {
         logger.info("THREAD: " + Configuration.configuration.SERVER_THREAD);
         clientBootstrap.setPipelineFactory(new NetworkServerPipelineFactory());
-        clientSslBootstrap.setPipelineFactory(new NetworkSslServerPipelineFactory(true,
-                execServerWorker));
+        clientBootstrap.setOption("tcpNoDelay", true);
+        clientBootstrap.setOption("reuseAddress", true);
+        clientBootstrap.setOption("connectTimeoutMillis",
+                Configuration.configuration.TIMEOUTCON);
+        if (Configuration.configuration.HOST_SSLID != null) {
+            clientSslBootstrap.setPipelineFactory(new NetworkSslServerPipelineFactory(true,
+                    execServerWorker));
+            clientSslBootstrap.setOption("tcpNoDelay", true);
+            clientSslBootstrap.setOption("reuseAddress", true);
+            clientSslBootstrap.setOption("connectTimeoutMillis", Configuration.configuration.TIMEOUTCON);
+        }
     }
 
     /**
@@ -197,7 +207,11 @@ public class NetworkTransaction {
         ChannelFuture channelFuture = null;
         for (int i = 0; i < Configuration.RETRYNB; i ++) {
             if (isSSL) {
-                channelFuture = clientSslBootstrap.connect(socketServerAddress);
+                if (Configuration.configuration.HOST_SSLID != null) {
+                    channelFuture = clientSslBootstrap.connect(socketServerAddress);
+                } else {
+                    throw new OpenR66ProtocolNoConnectionException("No SSL support");
+                }
             } else {
                 channelFuture = clientBootstrap.connect(socketServerAddress);
             }
@@ -275,11 +289,16 @@ public class NetworkTransaction {
             LocalChannelReference localChannelReference)
             throws OpenR66ProtocolNetworkException,
             OpenR66ProtocolRemoteShutdownException {
-        AuthentPacket authent = new AuthentPacket(
-                Configuration.configuration.getHostId(
-                        localChannelReference.getNetworkServerHandler().isSsl()),
-                Configuration.configuration.HOST_AUTH.getHostkey(),
-                localChannelReference.getLocalId());
+        AuthentPacket authent;
+        try {
+            authent = new AuthentPacket(
+                    Configuration.configuration.getHostId(
+                            localChannelReference.getNetworkServerHandler().isSsl()),
+                    Configuration.configuration.HOST_AUTH.getHostkey(),
+                    localChannelReference.getLocalId());
+        } catch (OpenR66ProtocolNoSslException e1) {
+            throw new OpenR66ProtocolNetworkException(e1);
+        }
         logger.info("Will send request of connection validation");
         try {
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, authent)

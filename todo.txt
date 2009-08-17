@@ -4,8 +4,6 @@
 	;IFEXISTS=TRUE ??
 	;MODE=Oracle
 
-- ajouter local socketAddress
-
 benchmark: 100 fichiers en parallèle de 1174036 o = 32/s => 286 Mbits (idem avec ou sans MD5)
 benchmark: 1000 submission en parallèle idem = 59/s => 527 Mbits
 benchmark: 10*100 fichiers en parallèle idem = 70/s => 627 Mbits

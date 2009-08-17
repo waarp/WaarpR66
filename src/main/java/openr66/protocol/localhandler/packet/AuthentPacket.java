@@ -4,6 +4,7 @@
 package openr66.protocol.localhandler.packet;
 
 import openr66.protocol.configuration.Configuration;
+import openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -176,7 +177,11 @@ public class AuthentPacket extends AbstractLocalPacket {
      */
     public void validate(boolean isSSL) {
         way = ANSWERVALIDATE;
-        hostId = Configuration.configuration.getHostId(isSSL);
+        try {
+            hostId = Configuration.configuration.getHostId(isSSL);
+        } catch (OpenR66ProtocolNoSslException e) {
+            hostId = Configuration.configuration.HOST_ID;
+        }
         key = Configuration.configuration.HOST_AUTH.getHostkey();
         header = null;
         middle = null;

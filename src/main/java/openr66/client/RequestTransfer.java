@@ -185,19 +185,19 @@ public class RequestTransfer implements Runnable {
                 // Cancel the task and delete any file if in retrieve
                 if (runner.isFinished()) {
                     // nothing to do since already finished
+                    setDone(runner);
                     logger.warn("Transfer already finished: "+runner.toString());
                     future.setResult(new R66Result(null,true,ErrorCode.TransferOk));
                     future.setSuccess();
+                    return;
                 } else {
                     // Send a request of cancel
                     sendRequest(LocalPacketFactory.CANCELPACKET);
-                    logger.warn("Transfer: "+runner.toString());
                 }
             } else if (stop) {
                 // Just stop the task
                 // Send a request
                 sendRequest(LocalPacketFactory.STOPPACKET);
-                logger.warn("Transfer: "+runner.toString());
             } else if (restart) {
                 // Restart if already stopped and not finished
                 if (runner.getStatus() != ErrorCode.CompleteOk) {
@@ -225,11 +225,13 @@ public class RequestTransfer implements Runnable {
                     } catch (OpenR66RunnerErrorException e) {
                         future.setResult(new R66Result(e,null,true,ErrorCode.Internal));
                         future.cancel();
+                        return;
                     }
                     future.setResult(new R66Result(null,true,runner.getStatus()));
                     future.setSuccess();
                 } else {
-                    // Not in stopped status
+                    // Already finished so DONE
+                    setDone(runner);
                     future.setResult(new R66Result(null,true,runner.getStatus()));
                     future.cancel();
                 }
@@ -240,6 +242,19 @@ public class RequestTransfer implements Runnable {
             logger.warn("Transfer: "+runner.toString());
             future.setResult(new R66Result(null,true,runner.getStatus()));
             future.setSuccess();
+        }
+    }
+    /**
+     * Set the runner to DONE
+     * @param runner
+     */
+    private void setDone(DbTaskRunner runner) {
+        if (runner.getUpdatedInfo() != UpdatedInfo.DONE) {
+            runner.changeUpdatedInfo(UpdatedInfo.DONE);
+            try {
+                runner.saveStatus();
+            } catch (OpenR66RunnerErrorException e) {
+            }
         }
     }
     private void sendRequest(byte code) {

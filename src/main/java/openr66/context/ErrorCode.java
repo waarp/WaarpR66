@@ -115,7 +115,7 @@ public enum ErrorCode {
     /**
      * Code stands for a request of canceling transfer
      */
-    CanceledTransfer("Canceled Transfer", 'Q'),
+    CanceledTransfer("Canceled Transfer", 'K'),
     /**
      * Warning in execution
      */
@@ -124,6 +124,10 @@ public enum ErrorCode {
      * Code stands for unknown type of error
      */
     Unknown("Unknown type of error", '-'),
+    /**
+     * Code stands for unknown type of error
+     */
+    QueryAlreadyFinished("Restart Query for a transfer already finished", 'Q'),
     /**
      * Code stands for running step
      */
@@ -188,12 +192,14 @@ public enum ErrorCode {
                 return Internal;
             case 'H':
                 return StoppedTransfer;
-            case 'Q':
+            case 'K':
                 return CanceledTransfer;
             case 'W':
                 return Warning;
             case '-':
                 return Unknown;
+            case 'Q':
+                return QueryAlreadyFinished;
             case 'z':
                 return Running;
             default:

@@ -32,6 +32,7 @@ import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.exception.OpenR66ProtocolNoDataException;
+import openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import openr66.protocol.http.HttpPipelineFactory;
 import openr66.protocol.localhandler.LocalTransaction;
 import openr66.protocol.networkhandler.NetworkServerPipelineFactory;
@@ -123,6 +124,10 @@ public class Configuration {
      * Server Actual Authentication
      */
     public DbHostAuth HOST_AUTH;
+    /**
+     * Server Actual SSL Authentication
+     */
+    public DbHostAuth HOST_SSLAUTH;
 
     /**
      * Default number of threads in pool for Server (true network listeners).
@@ -384,19 +389,21 @@ public class Configuration {
         serverChannelGroup.add(serverBootstrap.bind(new InetSocketAddress(
                 SERVER_PORT)));
 
-        serverSslBootstrap = new ServerBootstrap(serverChannelFactory);
-        serverSslBootstrap.setPipelineFactory(new NetworkSslServerPipelineFactory(false,
-                execServerWorker));
-        serverSslBootstrap.setOption("child.tcpNoDelay", true);
-        serverSslBootstrap.setOption("child.keepAlive", true);
-        serverSslBootstrap.setOption("child.reuseAddress", true);
-        serverSslBootstrap.setOption("child.connectTimeoutMillis", TIMEOUTCON);
-        serverSslBootstrap.setOption("tcpNoDelay", true);
-        serverSslBootstrap.setOption("reuseAddress", true);
-        serverSslBootstrap.setOption("connectTimeoutMillis", TIMEOUTCON);
+        if (HOST_SSLID != null) {
+            serverSslBootstrap = new ServerBootstrap(serverChannelFactory);
+            serverSslBootstrap.setPipelineFactory(new NetworkSslServerPipelineFactory(false,
+                    execServerWorker));
+            serverSslBootstrap.setOption("child.tcpNoDelay", true);
+            serverSslBootstrap.setOption("child.keepAlive", true);
+            serverSslBootstrap.setOption("child.reuseAddress", true);
+            serverSslBootstrap.setOption("child.connectTimeoutMillis", TIMEOUTCON);
+            serverSslBootstrap.setOption("tcpNoDelay", true);
+            serverSslBootstrap.setOption("reuseAddress", true);
+            serverSslBootstrap.setOption("connectTimeoutMillis", TIMEOUTCON);
 
-        serverChannelGroup.add(serverSslBootstrap.bind(new InetSocketAddress(
-                SERVER_SSLPORT)));
+            serverChannelGroup.add(serverSslBootstrap.bind(new InetSocketAddress(
+                    SERVER_SSLPORT)));
+        }
 
         // Factory for TrafficShapingHandler
         objectSizeEstimator = new NetworkPacketSizeEstimator();
@@ -606,9 +613,13 @@ public class Configuration {
      *
      * @param isSSL
      * @return the HostId according to SSL
+     * @throws OpenR66ProtocolNoSslException
      */
-    public String getHostId(boolean isSSL) {
+    public String getHostId(boolean isSSL) throws OpenR66ProtocolNoSslException {
         if (isSSL) {
+            if (HOST_SSLID == null) {
+                throw new OpenR66ProtocolNoSslException("No SSL support");
+            }
             return HOST_SSLID;
         } else {
             return HOST_ID;
@@ -623,6 +634,10 @@ public class Configuration {
      */
     public String getHostId(DbSession dbSession, String remoteHost) throws OpenR66DatabaseException {
         DbHostAuth hostAuth = new DbHostAuth(dbSession,remoteHost);
-        return Configuration.configuration.getHostId(hostAuth.isSsl());
+        try {
+            return Configuration.configuration.getHostId(hostAuth.isSsl());
+        } catch (OpenR66ProtocolNoSslException e) {
+            throw new OpenR66DatabaseException(e);
+        }
     }
 }

@@ -35,6 +35,7 @@ import openr66.protocol.exception.OpenR66ProtocolBusinessStopException;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolNoDataException;
+import openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import openr66.protocol.exception.OpenR66ProtocolNotAuthenticatedException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolRemoteShutdownException;
@@ -471,6 +472,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
         } else if (code.code == ErrorCode.StoppedTransfer.code) {
             exception =
                 new OpenR66ProtocolBusinessStopException(packet.getSheader());
+        } else if (code.code == ErrorCode.QueryAlreadyFinished.code) {
+            exception =
+                new OpenR66ProtocolBusinessNoWriteBackException(packet.getSheader());
         } else {
             exception =
                 new OpenR66ProtocolBusinessNoWriteBackException(packet.toString());
@@ -484,18 +488,23 @@ public class LocalServerHandler extends SimpleChannelHandler {
         throw exception;
     }
 
-    private void endInitRequestInError(Channel channel, OpenR66Exception e1) throws OpenR66ProtocolPacketException {
+    private void endInitRequestInError(Channel channel, ErrorCode code,
+            OpenR66Exception e1) throws OpenR66ProtocolPacketException {
         logger.error("TaskRunner initialisation in error", e1);
         localChannelReference.invalidateRequest(new R66Result(
                 new OpenR66ProtocolSystemException(
                         "TaskRunner initialisation in error", e1),
-                session, true, ErrorCode.Internal));
+                session, true, code));
         ErrorPacket error = new ErrorPacket(
                 "TaskRunner initialisation in error: "+e1
                         .getMessage(),
-                        ErrorCode.RemoteError.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                        code.getCode(), ErrorPacket.FORWARDCLOSECODE);
         ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
         ChannelUtils.close(channel);
+    }
+
+    private void endInitRequestInError(Channel channel, OpenR66Exception e1) throws OpenR66ProtocolPacketException {
+        endInitRequestInError(channel, ErrorCode.RemoteError, e1);
     }
     /**
      * Receive a request
@@ -541,6 +550,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     if (runner.isFinished()) {
                         // truly an error
                         endInitRequestInError(channel,
+                                ErrorCode.QueryAlreadyFinished,
                             new OpenR66RunnerErrorException(
                                "The TransferId is associated with a Transfer already finished: "+
                                packet.getSpecialId()));
@@ -849,10 +859,15 @@ public class LocalServerHandler extends SimpleChannelHandler {
             case LocalPacketFactory.STOPPACKET:
             case LocalPacketFactory.CANCELPACKET: {
                 // Authentication must be the local server
-                if (!session.getAuth().getUser().equals(
-                        Configuration.configuration.getHostId(session.getAuth().isSsl()))) {
+                try {
+                    if (!session.getAuth().getUser().equals(
+                            Configuration.configuration.getHostId(session.getAuth().isSsl()))) {
+                        throw new OpenR66ProtocolNotAuthenticatedException(
+                                "Not correctly authenticated");
+                    }
+                } catch (OpenR66ProtocolNoSslException e1) {
                     throw new OpenR66ProtocolNotAuthenticatedException(
-                            "Not correctly authenticated");
+                            "Not correctly authenticated since SSL is not supported", e1);
                 }
                 // header = ?; middle = requested+blank+requester+blank+specialId
                 LocalChannelReference lcr =

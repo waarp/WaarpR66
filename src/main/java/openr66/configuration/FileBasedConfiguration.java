@@ -356,6 +356,15 @@ public class FileBasedConfiguration {
             logger.warn("Cannot find Authentication for current host");
             return false;
         }
+        if (Configuration.configuration.HOST_SSLID != null) {
+            Configuration.configuration.HOST_SSLAUTH =
+                R66Auth.getServerAuth(DbConstant.admin.session,
+                        Configuration.configuration.HOST_SSLID);
+            if (Configuration.configuration.HOST_SSLAUTH == null) {
+                logger.warn("Cannot find SSL Authentication for current host");
+                return false;
+            }
+        }
         return true;
     }
     /**
@@ -411,6 +420,15 @@ public class FileBasedConfiguration {
             logger.warn("Cannot find Authentication for current host");
             return false;
         }
+        if (Configuration.configuration.HOST_SSLID != null) {
+            Configuration.configuration.HOST_SSLAUTH =
+                R66Auth.getServerAuth(DbConstant.admin.session,
+                        Configuration.configuration.HOST_SSLID);
+            if (Configuration.configuration.HOST_SSLAUTH == null) {
+                logger.warn("Cannot find SSL Authentication for current host");
+                return false;
+            }
+        }
         return true;
     }
     /**
@@ -428,10 +446,11 @@ public class FileBasedConfiguration {
         Configuration.configuration.HOST_ID = node.getText();
         node = document.selectSingleNode(XML_SERVER_SSLHOSTID);
         if (node == null) {
-            logger.error("Unable to find Host SSL ID in Config file");
-            return false;
+            logger.warn("Unable to find Host SSL ID in Config file so no SSL support will be used");
+            Configuration.configuration.HOST_SSLID = null;
+        } else {
+            Configuration.configuration.HOST_SSLID = node.getText();
         }
-        Configuration.configuration.HOST_SSLID = node.getText();
         node = document.selectSingleNode(XML_SERVER_HOME);
         if (node == null) {
             logger.error("Unable to find Home in Config file");

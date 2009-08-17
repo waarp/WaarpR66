@@ -29,6 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.jboss.netty.channel.Channels;
 
 import openr66.client.RecvThroughHandler;
+import openr66.context.ErrorCode;
 import openr66.context.authentication.R66Auth;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.DbConstant;
@@ -144,7 +145,11 @@ public class ClientRunner implements Runnable {
         } else {
             try {
                 taskRunner.select();
-                this.changeUpdatedInfo(UpdatedInfo.INERROR);
+                if (transfer.getResult().code == ErrorCode.QueryAlreadyFinished) {
+                    this.changeUpdatedInfo(UpdatedInfo.DONE);
+                } else {
+                    this.changeUpdatedInfo(UpdatedInfo.INERROR);
+                }
             } catch (OpenR66DatabaseException e) {
                 logger.info("Not a problem but cannot find at the end the task");
             }
