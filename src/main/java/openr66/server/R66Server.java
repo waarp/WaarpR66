@@ -47,7 +47,7 @@ public class R66Server {
                 .getLogger(R66Server.class);
         if (args.length < 1) {
             logger
-                    .error("Needs at least the configuration file as first argument");
+                    .error("Needs the configuration file as first argument");
             return;
         }
         if (! FileBasedConfiguration

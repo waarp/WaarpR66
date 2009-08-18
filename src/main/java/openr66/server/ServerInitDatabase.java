@@ -62,7 +62,7 @@ public class ServerInitDatabase {
         if (args.length < 1) {
             System.err
                     .println("Need at least config_database file " +
-                    		"and optionaly rules_directory host_authent_file " +
+                    		"and optionaly (in that order) rules_directory host_authent_file " +
                     		"limit_configuration_file");
             return;
         }

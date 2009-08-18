@@ -87,8 +87,15 @@ public class RequestTransfer implements Runnable {
     protected static boolean getParams(String []args) {
         if (args.length < 3) {
             logger
-                    .error("Needs at least the configuration file, the transfer id and " +
-                    		"the requested hostId");
+                    .error("Needs at least 3 arguments:\n" +
+                            "  the XML client configuration file,\n" +
+                            "  '-id' the transfer Id,\n" +
+                            "  '-to' the requested host Id or '-from' the requester host Id " +
+                            "(localhost will be the opposite),\n" +
+                            "Other options (only one):\n" +
+                            "  '-cancel' to cancel completely the transfer,\n" +
+                            "  '-stop' to stop the transfer (maybe restarted),\n" +
+                            "  '-restart' to restart if possible a transfer");
             return false;
         }
         if (! FileBasedConfiguration

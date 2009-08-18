@@ -93,8 +93,15 @@ public abstract class AbstractTransfer implements Runnable {
     protected static boolean getParams(String []args) {
         if (args.length < 4) {
             logger
-                    .error("Needs at least the configuration file, the remoteHost Id, " +
-                                "the file to transfer, the rule");
+                    .error("Needs at least 4 arguments:\n" +
+                    		"  the XML client configuration file,\n" +
+                    		"  '-to' the remoteHost Id,\n" +
+                                "  '-file' the file to transfer,\n" +
+                                "  '-rule' the rule\n"+
+                                "Other options:\n" +
+                                "  '-info' \"information to send\",\n" +
+                                "  '-md5' to force MD5 by packet control,\n" +
+                                "  '-block' size of packet > 1K (prefered is 64K)");
             return false;
         }
         if (! FileBasedConfiguration

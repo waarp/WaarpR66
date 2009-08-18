@@ -58,7 +58,7 @@ public class ServerShutdown {
                 .getLogger(ServerShutdown.class);
         if (args.length < 1) {
             logger
-                    .error("Needs at least the configuration file as first argument");
+                    .error("Needs the configuration file as first argument");
             System.exit(1);
             return;
         }
