@@ -42,6 +42,7 @@ import openr66.database.data.DbTaskRunner.TASKSTEP;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.configuration.Configuration;
+import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.LocalPacketFactory;
@@ -261,6 +262,17 @@ public class RequestTransfer implements Runnable {
         DbHostAuth host;
         host = R66Auth.getServerAuth(DbConstant.admin.session,
                     this.requester);
+        if (host == null) {
+            logger.warn("Requested host cannot be found: "+this.requester);
+            OpenR66Exception e =
+                new OpenR66RunnerErrorException("Requested host cannot be found");
+            future.setResult(new R66Result(
+                    e,
+                    null, true,
+                    ErrorCode.TransferError));
+            future.setFailure(e);
+            return;
+        }
         SocketAddress socketAddress = host.getSocketAddress();
         boolean isSSL = host.isSsl();
 

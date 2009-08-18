@@ -186,6 +186,7 @@ public class ClientRunner implements Runnable {
                 taskRunner.getRequested());
         if (host == null) {
             logger.warn("Requested host cannot be found: "+taskRunner.getRequested());
+            taskRunner.setExecutionStatus(ErrorCode.NotKnownHost);
             this.changeUpdatedInfo(UpdatedInfo.INERROR);
             throw new OpenR66RunnerErrorException("Requested host cannot be found");
         }
@@ -204,6 +205,7 @@ public class ClientRunner implements Runnable {
             } else {
                 logger.warn("Will not retry since limit of connection attemtps is reached for "+
                         host.toString());
+                taskRunner.setExecutionStatus(ErrorCode.ConnectionImpossible);
                 this.changeUpdatedInfo(UpdatedInfo.TORUN);
             }
             host = null;

@@ -129,6 +129,10 @@ public enum ErrorCode {
      */
     QueryAlreadyFinished("Restart Query for a transfer already finished", 'Q'),
     /**
+     * Code stands for not known host
+     */
+    NotKnownHost("Not known remote host", 'N'),
+    /**
      * Code stands for running step
      */
     Running("Current step in running", 'z');
@@ -200,6 +204,8 @@ public enum ErrorCode {
                 return Unknown;
             case 'Q':
                 return QueryAlreadyFinished;
+            case 'N':
+                return NotKnownHost;
             case 'z':
                 return Running;
             default:
