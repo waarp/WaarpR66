@@ -18,6 +18,7 @@ package openr66.protocol.networkhandler.packet;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.localhandler.packet.AbstractLocalPacket;
 
+import org.jboss.netty.buffer.AggregateChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 
@@ -25,7 +26,7 @@ import org.jboss.netty.buffer.ChannelBuffers;
  * Network Packet A Packet is composed of one global length field, two Id (4
  * bytes x 2) and a buffer. The first Id is the localId on receive operation and
  * the remoteId on send operation. The second Id is the reverse.
- * 
+ *
  * @author Frederic Bregier
  */
 public class NetworkPacket {
@@ -102,7 +103,8 @@ public class NetworkPacket {
         buf.writeInt(remoteId);
         buf.writeInt(localId);
         buf.writeByte(code);
-        return ChannelBuffers.wrappedBuffer(buf, buffer);
+        return AggregateChannelBuffer.wrappedCheckedBuffer(buf, buffer);
+        //FIXME Aggregate ChannelBuffers.wrappedBuffer(buf, buffer);
     }
 
     @Override

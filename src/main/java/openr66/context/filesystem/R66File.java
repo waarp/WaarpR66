@@ -79,14 +79,6 @@ public class R66File extends FilesystemBasedFileImpl {
         super(session, dir, path, append);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see goldengate.common.file.FileInterface#trueRetrieve()
-     */
-    @Override
-    public void trueRetrieve() {
-    }
     /**
      * Start the retrieve (send to the remote host the local file)
      *

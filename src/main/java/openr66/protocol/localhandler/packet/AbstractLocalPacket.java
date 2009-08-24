@@ -5,6 +5,7 @@ package openr66.protocol.localhandler.packet;
 
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 
+import org.jboss.netty.buffer.AggregateChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 
@@ -90,8 +91,9 @@ public abstract class AbstractLocalPacket {
         buf.writeInt(middleLength);
         buf.writeInt(endLength);
         buf.writeByte(getType());
-        final ChannelBuffer channelBuffer = ChannelBuffers.wrappedBuffer(buf,
-                newHeader, newMiddle, newEnd);
+        final ChannelBuffer channelBuffer = AggregateChannelBuffer.wrappedCheckedBuffer(
+            //FIXME Aggregate ChannelBuffers.wrappedBuffer(
+                buf, newHeader, newMiddle, newEnd);
         return channelBuffer;
     }
 }

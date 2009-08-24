@@ -22,7 +22,6 @@ package openr66.context.authentication;
 
 import goldengate.common.command.NextCommandReply;
 import goldengate.common.command.exception.Reply421Exception;
-import goldengate.common.command.exception.Reply502Exception;
 import goldengate.common.command.exception.Reply530Exception;
 import goldengate.common.file.DirInterface;
 import goldengate.common.file.filesystembased.FilesystemBasedAuthImpl;
@@ -80,18 +79,6 @@ public class R66Auth extends FilesystemBasedAuthImpl {
     @Override
     protected String getBaseDirectory() {
         return Configuration.configuration.baseDirectory;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @seegoldengate.common.file.filesystembased.FilesystemBasedAuthImpl#
-     * setBusinessAccount(java.lang.String)
-     */
-    @Override
-    protected NextCommandReply setBusinessAccount(String arg0)
-            throws Reply421Exception, Reply530Exception, Reply502Exception {
-        throw new Reply421Exception("Command not valid");
     }
 
     /*
