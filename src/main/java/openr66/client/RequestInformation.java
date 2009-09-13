@@ -184,16 +184,6 @@ public class RequestInformation implements Runnable {
             return;
         }
         localChannelReference.getFutureRequest().awaitUninterruptibly();
-        if (localChannelReference.getFutureRequest().isSuccess()) {
-            R66Result result = localChannelReference.getFutureRequest()
-                .getResult();
-            ValidPacket info = (ValidPacket) result.other;
-            logger.warn("Result: "+info.getSmiddle()+"\n"+info.getSheader());
-        } else {
-            logger.warn("Error", localChannelReference
-                    .getFutureRequest().getCause());
-        }
-        networkTransaction.closeAll();
     }
 
     /**
@@ -215,9 +205,10 @@ public class RequestInformation implements Runnable {
             }
             System.exit(1);
         }
+        NetworkTransaction networkTransaction = null;
         try {
             Configuration.configuration.pipelineInit();
-            NetworkTransaction networkTransaction = new NetworkTransaction();
+            networkTransaction = new NetworkTransaction();
             R66Future result = new R66Future(true);
             RequestInformation requestInformation =
                 new RequestInformation(result, srequested, srulename,
@@ -227,14 +218,18 @@ public class RequestInformation implements Runnable {
             result.awaitUninterruptibly();
             // FIXME use result
             if (result.isSuccess()) {
-                logger.warn("Success: " +
-                        result.getResult().toString());
+                R66Result r66result = result.getResult();
+                ValidPacket info = (ValidPacket) r66result.other;
+                logger.warn("Result: "+info.getSmiddle()+"\n"+info.getSheader());
             } else {
                 logger.error("Error: " +
                         result.getResult().toString());
             }
 
         } finally {
+            if (networkTransaction != null) {
+                networkTransaction.closeAll();
+            }
             if (DbConstant.admin != null) {
                 try {
                     DbConstant.admin.close();

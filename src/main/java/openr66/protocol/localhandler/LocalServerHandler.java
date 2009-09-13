@@ -859,6 +859,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 R66Result result = new R66Result(session, true,
                         ErrorCode.CompleteOk);
                 result.other = validPacket;
+                localChannelReference.validateEndTransfer(result);
                 localChannelReference.validateRequest(result);
                 ChannelUtils.writeAbstractLocalPacket(localChannelReference,
                         validPacket).awaitUninterruptibly();
@@ -884,6 +885,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 R66Result result = new R66Result(session, true,
                         ErrorCode.CompleteOk);
                 result.other = validPacket;
+                localChannelReference.validateEndTransfer(result);
                 localChannelReference.validateRequest(result);
                 ChannelUtils.writeAbstractLocalPacket(localChannelReference,
                         validPacket).awaitUninterruptibly();
