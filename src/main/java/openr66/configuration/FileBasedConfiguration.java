@@ -25,6 +25,7 @@ import goldengate.common.digest.MD5;
 import goldengate.common.file.DirInterface;
 import goldengate.common.file.filesystembased.FilesystemBasedDirImpl;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
+import goldengate.common.file.filesystembased.specific.FilesystemBasedDirJdk6;
 import goldengate.common.file.filesystembased.specific.FilesystemBasedDirJdkAbstract;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
@@ -34,6 +35,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 
 import openr66.context.authentication.R66Auth;
+import openr66.context.filesystem.R66Dir;
 import openr66.database.DbAdmin;
 import openr66.database.DbConstant;
 import openr66.database.data.DbConfiguration;
@@ -558,6 +560,7 @@ public class FileBasedConfiguration {
             Configuration.configuration.TIMEOUTCON = Integer.parseInt(node
                     .getText());
         }
+        R66Dir.initJdkDependent(new FilesystemBasedDirJdk6());
 
         // Key
         node = document.selectSingleNode(XML_PATH_KEYPATH);

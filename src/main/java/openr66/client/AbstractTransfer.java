@@ -101,7 +101,8 @@ public abstract class AbstractTransfer implements Runnable {
                                 "Other options:\n" +
                                 "  '-info' \"information to send\",\n" +
                                 "  '-md5' to force MD5 by packet control,\n" +
-                                "  '-block' size of packet > 1K (prefered is 64K)");
+                                "  '-block' size of packet > 1K (prefered is 64K),\n" +
+                                "  '-nolog' to not log locally this action");
             return false;
         }
         if (! FileBasedConfiguration

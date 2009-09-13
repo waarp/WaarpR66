@@ -223,6 +223,7 @@
     </dependency>
   </dependencies>
   <properties>
+  	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   	<attach-distribution>false</attach-distribution>
     <filtermodule>**</filtermodule>
   </properties>

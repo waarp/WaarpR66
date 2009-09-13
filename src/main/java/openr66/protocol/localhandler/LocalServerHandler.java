@@ -4,7 +4,9 @@
 package openr66.protocol.localhandler;
 
 import java.sql.Timestamp;
+import java.util.List;
 
+import goldengate.common.command.exception.CommandAbstractException;
 import goldengate.common.command.exception.Reply421Exception;
 import goldengate.common.command.exception.Reply530Exception;
 import goldengate.common.exception.FileTransferException;
@@ -15,6 +17,7 @@ import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
 import openr66.context.filesystem.R66Dir;
+import openr66.context.filesystem.R66File;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.context.task.exception.OpenR66RunnerException;
 import openr66.database.DbConstant;
@@ -47,6 +50,7 @@ import openr66.protocol.localhandler.packet.ConnectionErrorPacket;
 import openr66.protocol.localhandler.packet.DataPacket;
 import openr66.protocol.localhandler.packet.EndTransferPacket;
 import openr66.protocol.localhandler.packet.ErrorPacket;
+import openr66.protocol.localhandler.packet.InformationPacket;
 import openr66.protocol.localhandler.packet.LocalPacketFactory;
 import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.localhandler.packet.ShutdownPacket;
@@ -251,6 +255,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 }
                 case LocalPacketFactory.ENDTRANSFERPACKET: {
                     endTransfer(e.getChannel(), (EndTransferPacket) packet);
+                    break;
+                }
+                case LocalPacketFactory.INFORMATIONPACKET: {
+                    information(e.getChannel(), (InformationPacket) packet);
                     break;
                 }
                 default: {
@@ -767,7 +775,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
      * @throws OpenR66ProtocolNotAuthenticatedException
      */
     private void endTransfer(Channel channel, EndTransferPacket packet)
-            throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException, OpenR66ProtocolNotAuthenticatedException {
+            throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException,
+            OpenR66ProtocolNotAuthenticatedException {
         if (!session.isAuthenticated()) {
             throw new OpenR66ProtocolNotAuthenticatedException(
                     "Not authenticated");
@@ -778,7 +787,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 // Now can send validation
                 packet.validate();
                 try {
-                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet).awaitUninterruptibly();
+                    ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+                            packet).awaitUninterruptibly();
                 } catch (OpenR66ProtocolPacketException e) {
                     // ignore
                 }
@@ -796,6 +806,95 @@ public class LocalServerHandler extends SimpleChannelHandler {
             status = true;
             session.setFinalizeTransfer(true, new R66Result(session, false,
                     ErrorCode.TransferOk));
+        }
+    }
+    /**
+     * Receive a request of information
+     * @param channel
+     * @param packet
+     * @throws CommandAbstractException
+     * @throws OpenR66ProtocolNotAuthenticatedException
+     * @throws OpenR66ProtocolNoDataException
+     * @throws OpenR66ProtocolPacketException
+     */
+    private void information(Channel channel, InformationPacket packet)
+            throws OpenR66ProtocolNotAuthenticatedException,
+            OpenR66ProtocolNoDataException, OpenR66ProtocolPacketException {
+        if (!session.isAuthenticated()) {
+            throw new OpenR66ProtocolNotAuthenticatedException(
+                    "Not authenticated");
+        }
+        byte request = packet.getRequest();
+        DbRule rule;
+        try {
+            rule = new DbRule(localChannelReference.getDbSession(), packet.getRulename());
+        } catch (OpenR66DatabaseException e) {
+            logger.error("Rule is unknown: " + packet.getRulename(), e);
+            throw new OpenR66ProtocolNoDataException(e);
+        }
+        try {
+            if (RequestPacket.isRecvMode(rule.mode)) {
+                session.getDir().changeDirectory(rule.workPath);
+            } else {
+                session.getDir().changeDirectory(rule.sendPath);
+            }
+
+            if (request == InformationPacket.ASKENUM.ASKLIST.ordinal() ||
+                    request == InformationPacket.ASKENUM.ASKMLSLIST.ordinal()) {
+                // ls or mls from current directory
+                List<String> list;
+                if (request == InformationPacket.ASKENUM.ASKLIST.ordinal()) {
+                    list = session.getDir().list(packet.getFilename());
+                } else{
+                    list = session.getDir().listFull(packet.getFilename(), false);
+                }
+
+                StringBuilder builder = new StringBuilder();
+                for (String elt: list) {
+                    builder.append(elt);
+                    builder.append("\n");
+                }
+                ValidPacket validPacket = new ValidPacket(builder.toString(), ""+list.size(),
+                        LocalPacketFactory.INFORMATIONPACKET);
+                R66Result result = new R66Result(session, true,
+                        ErrorCode.CompleteOk);
+                result.other = validPacket;
+                localChannelReference.validateRequest(result);
+                ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+                        validPacket).awaitUninterruptibly();
+                Channels.close(channel);
+            } else {
+                // ls pr mls from current directory and filename
+                R66File file = (R66File) session.getDir().setFile(packet.getFilename(), false);
+                String sresult = null;
+                if (request == InformationPacket.ASKENUM.ASKEXIST.ordinal()) {
+                    sresult = ""+file.exists();
+                } else if (request == InformationPacket.ASKENUM.ASKMLSDETAIL.ordinal()) {
+                    sresult = session.getDir().fileFull(packet.getFilename(), false);
+                } else {
+                    ErrorPacket error = new ErrorPacket("Unknown Request "+request,
+                            ErrorCode.Warning.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).
+                        awaitUninterruptibly();
+                    ChannelUtils.close(channel);
+                    return;
+                }
+                ValidPacket validPacket = new ValidPacket(sresult, "1",
+                        LocalPacketFactory.INFORMATIONPACKET);
+                R66Result result = new R66Result(session, true,
+                        ErrorCode.CompleteOk);
+                result.other = validPacket;
+                localChannelReference.validateRequest(result);
+                ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+                        validPacket).awaitUninterruptibly();
+                Channels.close(channel);
+            }
+        } catch (CommandAbstractException e) {
+            ErrorPacket error = new ErrorPacket("Error while Request "+request+" "+e.getMessage(),
+                    ErrorCode.Internal.getCode(), ErrorPacket.FORWARDCLOSECODE);
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).
+                awaitUninterruptibly();
+            ChannelUtils.close(channel);
         }
     }
     /**
@@ -976,6 +1075,15 @@ public class LocalServerHandler extends SimpleChannelHandler {
                             valid).awaitUninterruptibly();
                 } catch (OpenR66ProtocolPacketException e) {
                 }
+                Channels.close(channel);
+                break;
+            }
+            case LocalPacketFactory.INFORMATIONPACKET: {
+                // Validate user request
+                R66Result resulttest = new R66Result(session, true,
+                        ErrorCode.CompleteOk);
+                resulttest.other = packet;
+                localChannelReference.validateRequest(resulttest);
                 Channels.close(channel);
                 break;
             }

@@ -59,6 +59,8 @@ public class LocalPacketFactory {
 
     public static final byte LOGPURGEPACKET = 17;
 
+    public static final byte INFORMATIONPACKET = 18;
+
     /**
      * This method create a Packet from the ChannelBuffer.
      *
@@ -113,6 +115,9 @@ public class LocalPacketFactory {
                         endLength, buf);
             case ENDTRANSFERPACKET:
                 return EndTransferPacket.createFromBuffer(headerLength,
+                        middleLength, endLength, buf);
+            case INFORMATIONPACKET:
+                return InformationPacket.createFromBuffer(headerLength,
                         middleLength, endLength, buf);
             default:
                 throw new OpenR66ProtocolPacketException(
