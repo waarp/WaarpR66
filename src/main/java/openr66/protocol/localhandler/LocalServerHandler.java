@@ -872,6 +872,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     sresult = ""+file.exists();
                 } else if (request == InformationPacket.ASKENUM.ASKMLSDETAIL.ordinal()) {
                     sresult = session.getDir().fileFull(packet.getFilename(), false);
+                    String [] list = sresult.split("\n");
+                    sresult = list[1];
                 } else {
                     ErrorPacket error = new ErrorPacket("Unknown Request "+request,
                             ErrorCode.Warning.getCode(), ErrorPacket.FORWARDCLOSECODE);

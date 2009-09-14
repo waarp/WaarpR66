@@ -3,7 +3,7 @@
   <groupId>GoldenGate</groupId>
   <artifactId>GoldenGateR66</artifactId>
   <name>GoldenGate OpenR66</name>
-  <version>0.6.0</version>
+  <version>0.6.1</version>
   <description>
   OpenR66 is a File Transfer Monitor to be used in real production to transfer files between servers.
   It allows to start/restart a transfer, check the remote MD5, check status, make pre or post
@@ -157,7 +157,7 @@
     <dependency>
     	<groupId>NettyExtension</groupId>
     	<artifactId>NettyExtension</artifactId>
-    	<version>1.0.0</version>
+    	<version>1.1.0</version>
     	<scope>compile</scope>
     </dependency>
     <dependency>
@@ -169,7 +169,7 @@
         <dependency>
       <groupId>GoldenGate</groupId>
       <artifactId>GoldenGateCommon</artifactId>
-      <version>1.0.0</version>
+      <version>1.0.1</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -201,7 +201,7 @@
     <dependency>
       <groupId>org.jboss.netty</groupId>
       <artifactId>netty</artifactId>
-      <version>3.1.2.GA</version>
+      <version>3.1.3.GA</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
