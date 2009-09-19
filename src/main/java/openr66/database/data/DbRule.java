@@ -66,17 +66,22 @@ public class DbRule extends AbstractDbData {
         SENDPATH,
         ARCHIVEPATH,
         WORKPATH,
-        PRETASKS,
-        POSTTASKS,
-        ERRORTASKS,
+        RPRETASKS,
+        RPOSTTASKS,
+        RERRORTASKS,
+        SPRETASKS,
+        SPOSTTASKS,
+        SERRORTASKS,
         UPDATEDINFO,
         IDRULE
     }
 
     public static int[] dbTypes = {
             Types.LONGVARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR,
-            Types.VARCHAR, Types.VARCHAR, Types.LONGVARCHAR, Types.LONGVARCHAR,
-            Types.LONGVARCHAR, Types.INTEGER, Types.VARCHAR };
+            Types.VARCHAR, Types.VARCHAR,
+            Types.LONGVARCHAR, Types.LONGVARCHAR, Types.LONGVARCHAR,
+            Types.LONGVARCHAR, Types.LONGVARCHAR, Types.LONGVARCHAR,
+            Types.INTEGER, Types.VARCHAR };
 
     public static String table = " RULES ";
 
@@ -193,19 +198,34 @@ public class DbRule extends AbstractDbData {
     public String workPath = null;
 
     /**
-     * The associated Pre Tasks
+     * The associated Pre Tasks for Receiver
      */
-    public String preTasks = null;
+    public String rpreTasks = null;
 
     /**
-     * The associated Post Tasks
+     * The associated Post Tasks for Receiver
      */
-    public String postTasks = null;
+    public String rpostTasks = null;
 
     /**
-     * The associated Error Tasks
+     * The associated Error Tasks for Receiver
      */
-    public String errorTasks = null;
+    public String rerrorTasks = null;
+
+    /**
+     * The associated Pre Tasks for Sender
+     */
+    public String spreTasks = null;
+
+    /**
+     * The associated Post Tasks for Sender
+     */
+    public String spostTasks = null;
+
+    /**
+     * The associated Error Tasks for Sender
+     */
+    public String serrorTasks = null;
 
     /**
      * The Ids as an array
@@ -213,19 +233,34 @@ public class DbRule extends AbstractDbData {
     public String[] idsArray = null;
 
     /**
-     * The associated Pre Tasks as an array
+     * The associated Pre Tasks as an array for Receiver
      */
-    public String[][] preTasksArray = null;
+    public String[][] rpreTasksArray = null;
 
     /**
-     * The associated Post Tasks as an array
+     * The associated Post Tasks as an array for Receiver
      */
-    public String[][] postTasksArray = null;
+    public String[][] rpostTasksArray = null;
 
     /**
-     * The associated Error Tasks as an array
+     * The associated Error Tasks as an array for Receiver
      */
-    public String[][] errorTasksArray = null;
+    public String[][] rerrorTasksArray = null;
+
+    /**
+     * The associated Pre Tasks as an array for Sender
+     */
+    public String[][] spreTasksArray = null;
+
+    /**
+     * The associated Post Tasks as an array for Sender
+     */
+    public String[][] spostTasksArray = null;
+
+    /**
+     * The associated Error Tasks as an array for Sender
+     */
+    public String[][] serrorTasksArray = null;
 
     private int updatedInfo = UpdatedInfo.UNKNOWN.ordinal();
 
@@ -244,32 +279,41 @@ public class DbRule extends AbstractDbData {
             new DbValue(sendPath, Columns.SENDPATH.name()),
             new DbValue(archivePath, Columns.ARCHIVEPATH.name()),
             new DbValue(workPath, Columns.WORKPATH.name()),
-            new DbValue(preTasks, Columns.PRETASKS.name(), true),
-            new DbValue(postTasks, Columns.POSTTASKS.name(), true),
-            new DbValue(errorTasks, Columns.ERRORTASKS.name(), true),
+            new DbValue(rpreTasks, Columns.RPRETASKS.name(), true),
+            new DbValue(rpostTasks, Columns.RPOSTTASKS.name(), true),
+            new DbValue(rerrorTasks, Columns.RERRORTASKS.name(), true),
+            new DbValue(spreTasks, Columns.SPRETASKS.name(), true),
+            new DbValue(spostTasks, Columns.SPOSTTASKS.name(), true),
+            new DbValue(serrorTasks, Columns.SERRORTASKS.name(), true),
             new DbValue(updatedInfo, Columns.UPDATEDINFO.name()) };
 
     private final DbValue[] allFields = {
             otherFields[0], otherFields[1], otherFields[2], otherFields[3],
             otherFields[4], otherFields[5], otherFields[6], otherFields[7],
-            otherFields[8], otherFields[9], primaryKey };
+            otherFields[8], otherFields[9], otherFields[10],
+            otherFields[11], otherFields[12], primaryKey };
 
     public static final String selectAllFields = Columns.HOSTIDS.name() + "," +
             Columns.MODE.name() + "," + Columns.RECVPATH.name() + "," +
             Columns.SENDPATH.name() + "," + Columns.ARCHIVEPATH.name() + "," +
-            Columns.WORKPATH.name() + "," + Columns.PRETASKS.name() + "," +
-            Columns.POSTTASKS.name() + "," + Columns.ERRORTASKS.name() + "," +
+            Columns.WORKPATH.name() + "," +
+            Columns.RPRETASKS.name() + "," +
+            Columns.RPOSTTASKS.name() + "," + Columns.RERRORTASKS.name() + "," +
+            Columns.SPRETASKS.name() + "," +
+            Columns.SPOSTTASKS.name() + "," + Columns.SERRORTASKS.name() + "," +
             Columns.UPDATEDINFO.name() + "," + Columns.IDRULE.name();
 
     private static final String updateAllFields = Columns.HOSTIDS.name() +
             "=?," + Columns.MODE.name() + "=?," + Columns.RECVPATH.name() +
             "=?," + Columns.SENDPATH.name() + "=?," +
             Columns.ARCHIVEPATH.name() + "=?," + Columns.WORKPATH.name() +
-            "=?," + Columns.PRETASKS.name() + "=?," + Columns.POSTTASKS.name() +
-            "=?," + Columns.ERRORTASKS.name() + "=?," +
+            "=?," + Columns.RPRETASKS.name() + "=?," + Columns.RPOSTTASKS.name() +
+            "=?," + Columns.RERRORTASKS.name() + "=?," +
+            Columns.SPRETASKS.name() + "=?," + Columns.SPOSTTASKS.name() +
+            "=?," + Columns.SERRORTASKS.name() + "=?," +
             Columns.UPDATEDINFO.name() + "=?";
 
-    private static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?) ";
+    private static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
 
     @Override
     protected void setToArray() {
@@ -279,9 +323,12 @@ public class DbRule extends AbstractDbData {
         allFields[Columns.SENDPATH.ordinal()].setValue(sendPath);
         allFields[Columns.ARCHIVEPATH.ordinal()].setValue(archivePath);
         allFields[Columns.WORKPATH.ordinal()].setValue(workPath);
-        allFields[Columns.PRETASKS.ordinal()].setValue(preTasks);
-        allFields[Columns.POSTTASKS.ordinal()].setValue(postTasks);
-        allFields[Columns.ERRORTASKS.ordinal()].setValue(errorTasks);
+        allFields[Columns.RPRETASKS.ordinal()].setValue(rpreTasks);
+        allFields[Columns.RPOSTTASKS.ordinal()].setValue(rpostTasks);
+        allFields[Columns.RERRORTASKS.ordinal()].setValue(rerrorTasks);
+        allFields[Columns.SPRETASKS.ordinal()].setValue(spreTasks);
+        allFields[Columns.SPOSTTASKS.ordinal()].setValue(spostTasks);
+        allFields[Columns.SERRORTASKS.ordinal()].setValue(serrorTasks);
         allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
         allFields[Columns.IDRULE.ordinal()].setValue(idRule);
     }
@@ -295,17 +342,24 @@ public class DbRule extends AbstractDbData {
         archivePath = (String) allFields[Columns.ARCHIVEPATH.ordinal()]
                 .getValue();
         workPath = (String) allFields[Columns.WORKPATH.ordinal()].getValue();
-        preTasks = (String) allFields[Columns.PRETASKS.ordinal()].getValue();
-        postTasks = (String) allFields[Columns.POSTTASKS.ordinal()].getValue();
-        errorTasks = (String) allFields[Columns.ERRORTASKS.ordinal()]
+        rpreTasks = (String) allFields[Columns.RPRETASKS.ordinal()].getValue();
+        rpostTasks = (String) allFields[Columns.RPOSTTASKS.ordinal()].getValue();
+        rerrorTasks = (String) allFields[Columns.RERRORTASKS.ordinal()]
+                .getValue();
+        spreTasks = (String) allFields[Columns.SPRETASKS.ordinal()].getValue();
+        spostTasks = (String) allFields[Columns.SPOSTTASKS.ordinal()].getValue();
+        serrorTasks = (String) allFields[Columns.SERRORTASKS.ordinal()]
                 .getValue();
         updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()]
                 .getValue();
         idRule = (String) allFields[Columns.IDRULE.ordinal()].getValue();
         getIdsRule(ids);
-        preTasksArray = getTasksRule(preTasks);
-        postTasksArray = getTasksRule(postTasks);
-        errorTasksArray = getTasksRule(errorTasks);
+        rpreTasksArray = getTasksRule(rpreTasks);
+        rpostTasksArray = getTasksRule(rpostTasks);
+        rerrorTasksArray = getTasksRule(rerrorTasks);
+        spreTasksArray = getTasksRule(spreTasks);
+        spostTasksArray = getTasksRule(spostTasks);
+        serrorTasksArray = getTasksRule(serrorTasks);
     }
 
     /**
@@ -323,7 +377,8 @@ public class DbRule extends AbstractDbData {
      */
     public DbRule(DbSession dbSession, String idRule, String ids, int mode, String recvPath,
             String sendPath, String archivePath, String workPath,
-            String preTasks, String postTasks, String errorTasks) {
+            String rpreTasks, String rpostTasks, String rerrorTasks,
+            String spreTasks, String spostTasks, String serrorTasks) {
         super(dbSession);
         this.idRule = idRule;
         this.ids = ids;
@@ -332,13 +387,19 @@ public class DbRule extends AbstractDbData {
         this.sendPath = sendPath;
         this.archivePath = archivePath;
         this.workPath = workPath;
-        this.preTasks = preTasks;
-        this.postTasks = postTasks;
-        this.errorTasks = errorTasks;
+        this.rpreTasks = rpreTasks;
+        this.rpostTasks = rpostTasks;
+        this.rerrorTasks = rerrorTasks;
+        this.spreTasks = spreTasks;
+        this.spostTasks = spostTasks;
+        this.serrorTasks = serrorTasks;
         getIdsRule(this.ids);
-        preTasksArray = getTasksRule(this.preTasks);
-        postTasksArray = getTasksRule(this.postTasks);
-        errorTasksArray = getTasksRule(this.errorTasks);
+        rpreTasksArray = getTasksRule(this.rpreTasks);
+        rpostTasksArray = getTasksRule(this.rpostTasks);
+        rerrorTasksArray = getTasksRule(this.rerrorTasks);
+        spreTasksArray = getTasksRule(this.spreTasks);
+        spostTasksArray = getTasksRule(this.spostTasks);
+        serrorTasksArray = getTasksRule(this.serrorTasks);
         setToArray();
         isSaved = false;
     }
@@ -354,9 +415,12 @@ public class DbRule extends AbstractDbData {
         // load from DB
         select();
         getIdsRule(ids);
-        preTasksArray = getTasksRule(preTasks);
-        postTasksArray = getTasksRule(postTasks);
-        errorTasksArray = getTasksRule(errorTasks);
+        rpreTasksArray = getTasksRule(this.rpreTasks);
+        rpostTasksArray = getTasksRule(this.rpostTasks);
+        rerrorTasksArray = getTasksRule(this.rerrorTasks);
+        spreTasksArray = getTasksRule(this.spreTasks);
+        spostTasksArray = getTasksRule(this.spostTasks);
+        serrorTasksArray = getTasksRule(this.serrorTasks);
     }
 
     /**
@@ -375,8 +439,9 @@ public class DbRule extends AbstractDbData {
      */
     public DbRule(DbSession dbSession, String idrule, String[] idsArrayRef, int mode,
             String recvpath, String sendpath, String archivepath,
-            String workpath, String[][] pretasksArray,
-            String[][] posttasksArray, String[][] errortasksArray) {
+            String workpath,
+            String[][] rpretasksArray, String[][] rposttasksArray, String[][] rerrortasksArray,
+            String[][] spretasksArray, String[][] sposttasksArray, String[][] serrortasksArray) {
         super(dbSession);
         idRule = idrule;
         idsArray = idsArrayRef;
@@ -385,12 +450,19 @@ public class DbRule extends AbstractDbData {
         sendPath = sendpath;
         archivePath = archivepath;
         workPath = workpath;
-        preTasksArray = pretasksArray;
-        postTasksArray = posttasksArray;
+        rpreTasksArray = rpretasksArray;
+        rpostTasksArray = rposttasksArray;
+        rerrorTasksArray = rerrortasksArray;
+        spreTasksArray = spretasksArray;
+        spostTasksArray = sposttasksArray;
+        serrorTasksArray = serrortasksArray;
         ids = setIdsRule(idsArrayRef);
-        preTasks = setTasksRule(pretasksArray);
-        postTasks = setTasksRule(posttasksArray);
-        errorTasks = setTasksRule(errortasksArray);
+        rpreTasks = setTasksRule(rpretasksArray);
+        rpostTasks = setTasksRule(rposttasksArray);
+        rerrorTasks = setTasksRule(rerrortasksArray);
+        spreTasks = setTasksRule(spretasksArray);
+        spostTasks = setTasksRule(sposttasksArray);
+        serrorTasks = setTasksRule(serrortasksArray);
         setToArray();
         isSaved = false;
     }
@@ -683,7 +755,7 @@ public class DbRule extends AbstractDbData {
     private String[][] getTasksRule(String tasks) {
         if (tasks == null) {
             logger.debug("No tasks so setting to the default!");
-            return null;
+            return new String[0][0];
         }
         StringReader reader = new StringReader(tasks);
         Document document = null;
@@ -693,14 +765,14 @@ public class DbRule extends AbstractDbData {
             logger.warn("Unable to read the tasks for Rule: " + tasks, e);
             logger.debug("No tasks so setting to the default!");
             reader.close();
-            return null;
+            return new String[0][0];
         }
         List<Node> listNode = document.selectNodes(TASKS_ROOT);
         if (listNode == null) {
             logger
                     .info("Unable to find the tasks for Rule, setting to the default");
             reader.close();
-            return null;
+            return new String[0][0];
         }
         String[][] taskArray = new String[listNode.size()][3];
         for (int i = 0; i < listNode.size(); i ++) {
@@ -893,7 +965,8 @@ public class DbRule extends AbstractDbData {
     public String toString() {
         return "Rule Name:" + idRule + " IDS:" + ids + " MODE: " + mode +
                 " RECV:" + recvPath + " SEND:" + sendPath + " ARCHIVE:" +
-                archivePath + " WORK:" + workPath + " PRET:" + preTasks +
-                " POST:" + postTasks + " ERROR:" + errorTasks;
+                archivePath + " WORK:" + workPath +
+                " RPRET:" + rpreTasks + " RPOST:" + rpostTasks + " RERROR:" + rerrorTasks+
+                " SPRET:" + spreTasks + " SPOST:" + spostTasks + " SERROR:" + serrorTasks;
     }
 }

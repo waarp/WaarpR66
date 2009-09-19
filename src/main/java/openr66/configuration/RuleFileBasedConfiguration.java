@@ -70,9 +70,12 @@ public class RuleFileBasedConfiguration {
     private static final String XSENDPATH = "sendpath";
     private static final String XARCHIVEPATH = "archivepath";
     private static final String XWORKPATH = "workpath";
-    private static final String XPRETASKS = "pretasks";
-    private static final String XPOSTTASKS = "posttasks";
-    private static final String XERRORTASKS = "errortasks";
+    private static final String XRPRETASKS = "rpretasks";
+    private static final String XRPOSTTASKS = "rposttasks";
+    private static final String XRERRORTASKS = "rerrortasks";
+    private static final String XSPRETASKS = "spretasks";
+    private static final String XSPOSTTASKS = "sposttasks";
+    private static final String XSERRORTASKS = "serrortasks";
     private static final String XTASKS = "tasks";
     private static final String XTASK = "task";
 
@@ -90,11 +93,17 @@ public class RuleFileBasedConfiguration {
 
     private static final String WORKPATH = "/"+ROOT+"/"+XWORKPATH;
 
-    private static final String PRETASKS = "/"+ROOT+"/"+XPRETASKS;
+    private static final String RPRETASKS = "/"+ROOT+"/"+XRPRETASKS;
 
-    private static final String POSTTASKS = "/"+ROOT+"/"+XPOSTTASKS;
+    private static final String RPOSTTASKS = "/"+ROOT+"/"+XRPOSTTASKS;
 
-    private static final String ERRORTASKS = "/"+ROOT+"/"+XERRORTASKS;
+    private static final String RERRORTASKS = "/"+ROOT+"/"+XRERRORTASKS;
+
+    private static final String SPRETASKS = "/"+ROOT+"/"+XSPRETASKS;
+
+    private static final String SPOSTTASKS = "/"+ROOT+"/"+XSPOSTTASKS;
+
+    private static final String SERRORTASKS = "/"+ROOT+"/"+XSERRORTASKS;
 
     private static final String TASK = "tasks/task";
 
@@ -299,15 +308,46 @@ public class RuleFileBasedConfiguration {
             listNode = null;
         }
 
-        nodebase = document.selectSingleNode(PRETASKS);
-        String[][] pretasks = getTasks(nodebase, TASK);
-        nodebase = document.selectSingleNode(POSTTASKS);
-        String[][] posttasks = getTasks(nodebase, TASK);
-        nodebase = document.selectSingleNode(ERRORTASKS);
-        String[][] errortasks = getTasks(nodebase, TASK);
+        nodebase = document.selectSingleNode(RPRETASKS);
+        String[][] rpretasks = new String[0][0];
+        if (nodebase != null) {
+            rpretasks = getTasks(nodebase, TASK);
+            nodebase = null;
+        }
+        nodebase = document.selectSingleNode(RPOSTTASKS);
+        String[][] rposttasks = new String[0][0];
+        if (nodebase != null) {
+            rposttasks = getTasks(nodebase, TASK);
+            nodebase = null;
+        }
+        nodebase = document.selectSingleNode(RERRORTASKS);
+        String[][] rerrortasks = new String[0][0];
+        if (nodebase != null) {
+            rerrortasks = getTasks(nodebase, TASK);
+            nodebase = null;
+        }
+        nodebase = document.selectSingleNode(SPRETASKS);
+        String[][] spretasks = new String[0][0];
+        if (nodebase != null) {
+            spretasks = getTasks(nodebase, TASK);
+            nodebase = null;
+        }
+        nodebase = document.selectSingleNode(SPOSTTASKS);
+        String[][] sposttasks = new String[0][0];
+        if (nodebase != null) {
+            sposttasks = getTasks(nodebase, TASK);
+            nodebase = null;
+        }
+        nodebase = document.selectSingleNode(SERRORTASKS);
+        String[][] serrortasks = new String[0][0];
+        if (nodebase != null) {
+            serrortasks = getTasks(nodebase, TASK);
+            nodebase = null;
+        }
 
         newRule = new DbRule(DbConstant.admin.session, idrule, idsArray, mode, recvpath, sendpath,
-                archivepath, workpath, pretasks, posttasks, errortasks);
+                archivepath, workpath, rpretasks, rposttasks, rerrortasks,
+                spretasks, sposttasks, serrortasks);
         if (DbConstant.admin != null && DbConstant.admin.session != null) {
             if (newRule.exist()) {
                 newRule.update();
@@ -359,10 +399,10 @@ public class RuleFileBasedConfiguration {
         if (rule.workPath != null) {
             root.add(newElement(XWORKPATH, rule.workPath.substring(1)));
         }
-        Element tasks = new DefaultElement(XPRETASKS);
+        Element tasks = new DefaultElement(XRPRETASKS);
         Element roottasks = new DefaultElement(XTASKS);
         int rank = 0;
-        String [][] array = rule.preTasksArray;
+        String [][] array = rule.rpreTasksArray;
         for (rank = 0; rank < array.length; rank++) {
             Element task = new DefaultElement(XTASK);
             task.add(newElement(DbRule.TASK_RANK, Integer.toString(rank)));
@@ -373,9 +413,9 @@ public class RuleFileBasedConfiguration {
         }
         tasks.add(roottasks);
         root.add(tasks);
-        tasks = new DefaultElement(XPOSTTASKS);
+        tasks = new DefaultElement(XRPOSTTASKS);
         roottasks = new DefaultElement(XTASKS);
-        array = rule.postTasksArray;
+        array = rule.rpostTasksArray;
         for (rank = 0; rank < array.length; rank++) {
             Element task = new DefaultElement(XTASK);
             task.add(newElement(DbRule.TASK_RANK, Integer.toString(rank)));
@@ -386,9 +426,48 @@ public class RuleFileBasedConfiguration {
         }
         tasks.add(roottasks);
         root.add(tasks);
-        tasks = new DefaultElement(XERRORTASKS);
+        tasks = new DefaultElement(XRERRORTASKS);
         roottasks = new DefaultElement(XTASKS);
-        array = rule.errorTasksArray;
+        array = rule.rerrorTasksArray;
+        for (rank = 0; rank < array.length; rank++) {
+            Element task = new DefaultElement(XTASK);
+            task.add(newElement(DbRule.TASK_RANK, Integer.toString(rank)));
+            task.add(newElement(DbRule.TASK_TYPE, array[rank][0]));
+            task.add(newElement(DbRule.TASK_PATH, array[rank][1]));
+            task.add(newElement(DbRule.TASK_DELAY, array[rank][2]));
+            roottasks.add(task);
+        }
+        tasks.add(roottasks);
+        root.add(tasks);
+        tasks = new DefaultElement(XSPRETASKS);
+        roottasks = new DefaultElement(XTASKS);
+        array = rule.spreTasksArray;
+        for (rank = 0; rank < array.length; rank++) {
+            Element task = new DefaultElement(XTASK);
+            task.add(newElement(DbRule.TASK_RANK, Integer.toString(rank)));
+            task.add(newElement(DbRule.TASK_TYPE, array[rank][0]));
+            task.add(newElement(DbRule.TASK_PATH, array[rank][1]));
+            task.add(newElement(DbRule.TASK_DELAY, array[rank][2]));
+            roottasks.add(task);
+        }
+        tasks.add(roottasks);
+        root.add(tasks);
+        tasks = new DefaultElement(XSPOSTTASKS);
+        roottasks = new DefaultElement(XTASKS);
+        array = rule.spostTasksArray;
+        for (rank = 0; rank < array.length; rank++) {
+            Element task = new DefaultElement(XTASK);
+            task.add(newElement(DbRule.TASK_RANK, Integer.toString(rank)));
+            task.add(newElement(DbRule.TASK_TYPE, array[rank][0]));
+            task.add(newElement(DbRule.TASK_PATH, array[rank][1]));
+            task.add(newElement(DbRule.TASK_DELAY, array[rank][2]));
+            roottasks.add(task);
+        }
+        tasks.add(roottasks);
+        root.add(tasks);
+        tasks = new DefaultElement(XSERRORTASKS);
+        roottasks = new DefaultElement(XTASKS);
+        array = rule.serrorTasksArray;
         for (rank = 0; rank < array.length; rank++) {
             Element task = new DefaultElement(XTASK);
             task.add(newElement(DbRule.TASK_RANK, Integer.toString(rank)));

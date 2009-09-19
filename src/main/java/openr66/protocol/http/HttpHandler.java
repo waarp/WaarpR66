@@ -28,8 +28,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import openr66.context.ErrorCode;
+import openr66.context.R66Session;
+import openr66.context.filesystem.R66Dir;
 import openr66.database.DbConstant;
 import openr66.database.DbPreparedStatement;
 import openr66.database.DbSession;
@@ -79,6 +82,13 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(HttpHandler.class);
+
+    public static final R66Session authentHttp = new R66Session();
+    {
+        authentHttp.getAuth().specialHttpAuth();
+    }
+    public static final ConcurrentHashMap<String, R66Dir> usedDir =
+        new ConcurrentHashMap<String, R66Dir>();
 
     private volatile HttpRequest request;
     private final StringBuilder responseContent = new StringBuilder();

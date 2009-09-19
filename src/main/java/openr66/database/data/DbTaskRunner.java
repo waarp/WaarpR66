@@ -35,6 +35,7 @@ import org.dom4j.tree.DefaultElement;
 
 import openr66.context.ErrorCode;
 import openr66.context.R66Session;
+import openr66.context.filesystem.R66Dir;
 import openr66.context.filesystem.R66File;
 import openr66.context.task.AbstractTask;
 import openr66.context.task.TaskType;
@@ -51,6 +52,7 @@ import openr66.database.model.DbModelFactory;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
+import openr66.protocol.http.HttpHandler;
 import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.localhandler.packet.RequestPacket.TRANSFERMODE;
 import openr66.protocol.utils.FileUtils;
@@ -1211,7 +1213,11 @@ public class DbTaskRunner extends AbstractDbData {
         switch (TASKSTEP.values()[globalstep]) {
             case PRETASK:
                 try {
-                    return runNextTask(rule.preTasksArray);
+                    if (this.isSender) {
+                        return runNextTask(rule.spreTasksArray);
+                    } else {
+                        return runNextTask(rule.rpreTasksArray);
+                    }
                 } catch (OpenR66RunnerEndTasksException e) {
                     if (status == ErrorCode.Running) {
                         status = ErrorCode.PreProcessingOk;
@@ -1220,7 +1226,11 @@ public class DbTaskRunner extends AbstractDbData {
                 }
             case POSTTASK:
                 try {
-                    return runNextTask(rule.postTasksArray);
+                    if (this.isSender) {
+                        return runNextTask(rule.spostTasksArray);
+                    } else {
+                        return runNextTask(rule.rpostTasksArray);
+                    }
                 } catch (OpenR66RunnerEndTasksException e) {
                     if (status == ErrorCode.Running) {
                         status = ErrorCode.PostProcessingOk;
@@ -1229,7 +1239,11 @@ public class DbTaskRunner extends AbstractDbData {
                 }
             case ERRORTASK:
                 try {
-                    return runNextTask(rule.errorTasksArray);
+                    if (this.isSender) {
+                        return runNextTask(rule.serrorTasksArray);
+                    } else {
+                        return runNextTask(rule.rerrorTasksArray);
+                    }
                 } catch (OpenR66RunnerEndTasksException e) {
                     throw e;
                 }
@@ -1352,14 +1366,46 @@ public class DbTaskRunner extends AbstractDbData {
             "</td><td>Step (LastStep)</td><td>Action</td><td>Status" +
             "</td><td>Transfer Rank</td><td>isSender</td><td>isMoved" +
             "</td><td>Mode</td><td>Requester</td><td>Requested"+
-            "</td><td>Start</td><td>Stop</td><td>Bandwidth (Kbits)</td>";
+            "</td><td>Start</td><td>Stop</td><td>Bandwidth (Kbits)</td><td>Free Space(MB)</td>";
     }
     /**
      *
      * @return the runner in Html format compatible with the header from headerHtml method
      */
     public String toHtml() {
-        return "<td>" + specialId +
+        long freespace = -1;
+        DbRule rule = null;
+        try {
+            rule = (this.rule != null) ? this.rule : new DbRule(this.dbSession, this.ruleId);
+        } catch (OpenR66DatabaseException e) {
+        }
+        if (rule != null){
+            if (! this.isSender) {
+                try {
+                    String sdir;
+                    if (this.globallaststep == TASKSTEP.ALLDONETASK.ordinal()) {
+                        // all finished
+                        sdir = rule.recvPath;
+                    } else if (this.globallaststep == TASKSTEP.POSTTASK.ordinal()) {
+                        // Post task
+                        sdir = rule.recvPath;
+                    } else {
+                        // are we in sending or receive
+                        sdir = rule.workPath;
+                    }
+                    R66Dir dir;
+                    if (HttpHandler.usedDir.containsKey(sdir)) {
+                        dir = HttpHandler.usedDir.get(sdir);
+                    } else {
+                        dir = new R66Dir(HttpHandler.authentHttp);
+                        dir.changeDirectory(sdir);
+                    }
+                    freespace = dir.getFreeSpace() / 0x100000L;
+                } catch (CommandAbstractException e) {
+                }
+            }
+        }
+       return "<td>" + specialId +
                 "</td><td>" + (rule != null? rule.toString() : ruleId) + "</td><td>" +
                 filename + "</td><td>" + TASKSTEP.values()[globalstep] +
                 "("+TASKSTEP.values()[globallaststep]+ ")</td><td>" + step + "</td><td>" +
@@ -1369,7 +1415,8 @@ public class DbTaskRunner extends AbstractDbData {
                 "</td><td>"+requesterHostId+"</td><td>"+requestedHostId+
                 "</td><td>"+start+"</td><td>"+stop+"</td><td>"+
                 (int)(((double) (rank*blocksize*8))/((double) (stop.getTime()+1-start.getTime())))
-                +"</td>";
+                +"</td>"+
+                "<td>"+freespace+"</td>";
     }
     /**
      *

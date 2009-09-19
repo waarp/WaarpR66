@@ -9,7 +9,7 @@
 	<sendpath></sendpath>
 	<archivepath></archivepath>
 	<workpath></workpath>
-	<pretasks>
+	<rpretasks>
 		<tasks>
 			<task>
 				<type>TEST</type>
@@ -24,8 +24,8 @@
 				<rank>1</rank>
 			</task>
 		</tasks>
-	</pretasks>
-	<posttasks>
+	</rpretasks>
+	<rposttasks>
 		<tasks>
 			<task>
 				<type>TEST</type>
@@ -46,8 +46,8 @@
 				<rank>0</rank>
 			</taskno>
 		</tasks>
-	</posttasks>
-	<errortasks>
+	</rposttasks>
+	<rerrortasks>
 		<tasks>
 			<task>
 				<type>TEST</type>
@@ -56,5 +56,15 @@
 				<rank>0</rank>
 			</task>
 		</tasks>
-	</errortasks>
+	</rerrortasks>
+	<serrortasks>
+		<tasks>
+			<task>
+				<type>TEST</type>
+				<path>erreur</path>
+				<delay>1</delay>
+				<rank>0</rank>
+			</task>
+		</tasks>
+	</serrortasks>
 </rule>

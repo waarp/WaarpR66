@@ -229,4 +229,8 @@ public class R66Auth extends FilesystemBasedAuthImpl {
         }
         return auth;
     }
+
+    public void specialHttpAuth() {
+        this.isIdentified = true;
+    }
 }
