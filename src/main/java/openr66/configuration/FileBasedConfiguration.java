@@ -99,6 +99,11 @@ public class FileBasedConfiguration {
     private static final String XML_SERVER_HTTPPORT = "/config/serverhttpport";
 
     /**
+     * SERVER HTTP PORT
+     */
+    private static final String XML_SERVER_HTTPSPORT = "/config/serverhttpsport";
+
+    /**
      * SERVER SSL KEY PATH ADMIN_
      */
     private static final String XML_PATH_KEYPATH = "/config/keypath";
@@ -325,6 +330,12 @@ public class FileBasedConfiguration {
             httpport = Integer.parseInt(node.getText());
         }
         Configuration.configuration.SERVER_HTTPPORT = httpport;
+        node = document.selectSingleNode(XML_SERVER_HTTPSPORT);
+        int httpsport = 8067;
+        if (node != null) {
+            httpsport = Integer.parseInt(node.getText());
+        }
+        Configuration.configuration.SERVER_HTTPSPORT = httpsport;
 
         node = document.selectSingleNode(XML_SERVER_PASSWD);
         if (node == null) {

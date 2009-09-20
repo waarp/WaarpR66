@@ -171,6 +171,11 @@ public class Configuration {
     public int SERVER_HTTPPORT = 8066;
 
     /**
+     * Default HTTP server port
+     */
+    public int SERVER_HTTPSPORT = 8067;
+
+    /**
      * Nb of milliseconds after connection is in timeout
      */
     public int TIMEOUTCON = 30000;
@@ -452,7 +457,7 @@ public class Configuration {
         httpsBootstrap.setOption("reuseAddress", true);
         httpsBootstrap.setOption("connectTimeoutMillis", TIMEOUTCON);
         // Bind and start to accept incoming connections.
-        httpChannelGroup.add(httpsBootstrap.bind(new InetSocketAddress(443)));
+        httpChannelGroup.add(httpsBootstrap.bind(new InetSocketAddress(SERVER_HTTPSPORT)));
 
     }
     /**
