@@ -18,7 +18,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package openr66.protocol.http;
+package openr66.protocol.http.adminssl;
 
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
@@ -30,9 +30,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.net.ssl.SSLException;
+
 import openr66.context.ErrorCode;
 import openr66.context.R66Session;
-import openr66.context.filesystem.R66Dir;
 import openr66.database.DbConstant;
 import openr66.database.DbPreparedStatement;
 import openr66.database.DbSession;
@@ -45,10 +46,13 @@ import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
+import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.utils.OpenR66SignalHandler;
+import openr66.protocol.utils.R66Future;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
+import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -69,6 +73,7 @@ import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.handler.codec.http.QueryStringDecoder;
+import org.jboss.netty.handler.ssl.SslHandler;
 
 /**
  * Handler for HTTP information support
@@ -76,24 +81,25 @@ import org.jboss.netty.handler.codec.http.QueryStringDecoder;
  *
  */
 @ChannelPipelineCoverage("one")
-public class HttpHandler extends SimpleChannelUpstreamHandler {
+public class HttpSslHandler extends SimpleChannelUpstreamHandler {
     /**
      * Internal Logger
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
-            .getLogger(HttpHandler.class);
+            .getLogger(HttpSslHandler.class);
+    /**
+     * Waiter for SSL handshake is finished
+     */
+    private static final ConcurrentHashMap<Integer, R66Future> waitForSsl
+        = new ConcurrentHashMap<Integer, R66Future>();
 
-    public static final R66Session authentHttp = new R66Session();
-    {
-        authentHttp.getAuth().specialHttpAuth();
-    }
-    public static final ConcurrentHashMap<String, R66Dir> usedDir =
-        new ConcurrentHashMap<String, R66Dir>();
+    private R66Session authentHttp = new R66Session();
 
     private volatile HttpRequest request;
     private final StringBuilder responseContent = new StringBuilder();
     private volatile String uriRequest;
     private static final String sINFO="INFO", sCOMMAND="COMMAND", sNB="NB";
+    private static final String sAUTHENT="AUTHENT", sNAME="NAME", sPASSWORD="PASSWORD";
 
     /**
      * The Database connection attached to this NetworkChannel
@@ -106,41 +112,83 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
     private boolean isPrivateDbSession = false;
 
     /**
+     * Remover from SSL HashMap
+     */
+    private static final ChannelFutureListener remover = new ChannelFutureListener() {
+        public void operationComplete(ChannelFuture future) {
+            logger.debug("SSL remover");
+            waitForSsl.remove(future.getChannel().getId());
+        }
+    };
+    /**
+     * Add the Channel as SSL handshake is over
+     * @param channel
+     */
+    public static void addSslConnectedChannel(Channel channel) {
+        R66Future futureSSL = new R66Future(true);
+        waitForSsl.put(channel.getId(),futureSSL);
+        channel.getCloseFuture().addListener(remover);
+    }
+    /**
+     * Set the future of SSL handshake to status
+     * @param channel
+     * @param status
+     */
+    public static void setStatusSslConnectedChannel(Channel channel, boolean status) {
+        R66Future futureSSL = waitForSsl.get(channel.getId());
+        if (status) {
+            futureSSL.setSuccess();
+        } else {
+            futureSSL.cancel();
+        }
+    }
+    /**
+     *
+     * @param channel
+     * @return True if the SSL handshake is over and OK, else False
+     */
+    public static boolean isSslConnectedChannel(Channel channel) {
+        R66Future futureSSL = waitForSsl.get(channel.getId());
+        if (futureSSL == null) {
+            logger.error("No wait For SSL found");
+            return false;
+        } else {
+            futureSSL.awaitUninterruptibly(Configuration.configuration.TIMEOUTCON);
+            if (futureSSL.isDone()) {
+                logger.info("Wait For SSL: "+futureSSL.isSuccess());
+                return futureSSL.isSuccess();
+            }
+            logger.error("Out of time for wait For SSL");
+            return false;
+        }
+    }
+
+    /* (non-Javadoc)
+     * @see org.jboss.netty.channel.SimpleChannelUpstreamHandler#channelOpen(org.jboss.netty.channel.ChannelHandlerContext, org.jboss.netty.channel.ChannelStateEvent)
+     */
+    @Override
+    public void channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e)
+            throws Exception {
+        Channel channel = e.getChannel();
+        logger.debug("Add channel to ssl");
+        addSslConnectedChannel(channel);
+        super.channelOpen(ctx, e);
+    }
+
+    /**
      * Set header
      */
-    private void startHeader() {
+    private void header() {
         responseContent.append("<html>");
         responseContent.append("<head>");
-        responseContent.append("<title>OpenR66 Web Information Server</title>\r\n");
-    }
-    /**
-     * Set inline header if refresh function is needed (every 10 seconds or so)
-     */
-    private void inlineHeader() {
-        responseContent.append("<noscript><meta http-equiv='refresh' content=11></noscript>");
-        responseContent.append("<script language='JavaScript'><!--\r\n");
-        responseContent.append("var sURL = unescape(window.location.pathname);");
-        responseContent.append("function doLoad(){setTimeout( 'refresh()', 10000 );}");
-        responseContent.append("function refresh(){window.location.href = sURL;}");
-        responseContent.append("//-->\r\n</script>\r\n");
-        responseContent.append("<script language='JavaScript1.1'><!--\r\n");
-        responseContent.append("function refresh(){window.location.replace( sURL );}");
-        responseContent.append("//-->\r\n</script>\r\n");
-        responseContent.append("<script language='JavaScript1.2'><!--\r\n");
-        responseContent.append("function refresh(){window.location.reload( false );}");
-        responseContent.append("//-->\r\n</script>\r\n");
-    }
-    /**
-     * End header
-     */
-    private void endHeader() {
-        responseContent.append("</head>\r\n");
-    }
-    /**
-     * In case refresh function is used
-     */
-    private void replacementBody() {
-        responseContent.append("<body onload='doLoad()'>\r\n");
+        responseContent.append("<title>OpenR66 Web Administration Server: ");
+        if (authentHttp.isAuthenticated()) {
+            responseContent.append(authentHttp.getAuth().getUser());
+        } else {
+            responseContent.append("Not Authenticated");
+        }
+        responseContent.append("</title>\r\n");
+        responseContent.append("</head><body>\r\n");
     }
     /**
      * End Body
@@ -156,9 +204,11 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
         responseContent.append("<table border=\"0\">");
         responseContent.append("<tr>");
         responseContent.append("<td>");
-        responseContent.append("<A href='/'><h1>OpenR66 Page for Information: ");
+        responseContent.append("<A href='/'><h2>OpenR66 Administration Page: ");
+        responseContent.append(authentHttp.getAuth().getUser());
+        responseContent.append(" on ");
         responseContent.append(request.getHeader(HttpHeaders.Names.HOST));
-        responseContent.append("</h1></A>");
+        responseContent.append("</h2></A>");
         responseContent.append("</td>");
         responseContent.append("<td>");
         responseContent.append("</td>");
@@ -186,15 +236,11 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
      * Create Menu
      */
     private void createMenu() {
-        startHeader();
-        endHeader();
-        responseContent.append("<body bgcolor=white><style>td{font-size: 12pt;}</style>");
-
+        header();
+        inlineBody();
         responseContent.append("<table border=\"0\">");
         responseContent.append("<tr>");
         responseContent.append("<td>");
-        responseContent.append("<h1>OpenR66 Page for Information: "+
-                request.getHeader(HttpHeaders.Names.HOST)+"</h1>");
         responseContent.append("You must fill all of the following fields.");
         responseContent.append("</td>");
         responseContent.append("</tr>");
@@ -223,6 +269,70 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
             QueryStringDecoder queryStringDecoder = new QueryStringDecoder(request.getUri());
             uriRequest = queryStringDecoder.getPath();
             char cval = 'z';
+            if (! authentHttp.isAuthenticated()) {
+                Map<String, List<String>> params = null;
+                if (request.getMethod() == HttpMethod.GET) {
+                    params = queryStringDecoder.getParameters();
+                } else if (request.getMethod() == HttpMethod.POST) {
+                    ChannelBuffer content = request.getContent();
+                    if (content.readable()) {
+                        String param = content.toString("UTF-8");
+                        queryStringDecoder = new QueryStringDecoder("/?"+param);
+                    } else {
+                        createMenu();
+                        writeResponse(e.getChannel());
+                        return;
+                    }
+                    params = queryStringDecoder.getParameters();
+                }
+                boolean getMenu = true;
+                String name = null, password = null;
+                if (!params.isEmpty()) {
+                    // if not uri, from get or post
+                    if (getMenu && params.containsKey(sAUTHENT)) {
+                        List<String> values = params.get(sAUTHENT);
+                        if (values != null && params.get(sAUTHENT).get(0).equals("POST")) {
+                            // get values
+                            if (params.containsKey(sNAME)) {
+                                values = params.get(sNAME);
+                                if (values != null) {
+                                    name = values.get(0);
+                                    if (name == null || name.length() == 0) {
+                                        getMenu = true;
+                                    } else {
+                                        getMenu = false;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    // search the nb param
+                    if (params.containsKey(sPASSWORD)) {
+                        List<String> values = params.get(sPASSWORD);
+                        if (values != null) {
+                            password = values.get(0);
+                            if (password == null || password.length() == 0) {
+                                getMenu = true;
+                            } else {
+                                getMenu = false;
+                            }
+                        }
+                    }
+                }
+                if (! getMenu) {
+                    authentHttp.getAuth().connection(dbSession, name, password.getBytes());
+                    if (! authentHttp.isAuthenticated()) {
+                        getMenu = true;
+                    }
+                }
+                if (getMenu) {
+                    createLogon();
+                } else {
+                    createMenu();
+                }
+                writeResponse(e.getChannel());
+                return;
+            }
             // check the URI
             if (uriRequest.equalsIgnoreCase("/active")) {
                 cval = '0';
@@ -244,7 +354,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
                     queryStringDecoder = new QueryStringDecoder("/?"+param);
                 } else {
                     createMenu();
-                    writeResponse(e);
+                    writeResponse(e.getChannel());
                     return;
                 }
                 params = queryStringDecoder.getParameters();
@@ -304,7 +414,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
                         createMenu();
                 }
             }
-            writeResponse(e);
+            writeResponse(e.getChannel());
     }
     /**
      * Add all runners from preparedStatement for type
@@ -344,10 +454,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
      * @param nb
      */
     private void active(ChannelHandlerContext ctx, int nb) {
-        startHeader();
-        inlineHeader();
-        endHeader();
-        replacementBody();
+        header();
         inlineBody();
         DbPreparedStatement preparedStatement;
         try {
@@ -384,10 +491,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
      * @param nb
      */
     private void error(ChannelHandlerContext ctx, int nb) {
-        startHeader();
-        inlineHeader();
-        endHeader();
-        replacementBody();
+        header();
         inlineBody();
         DbPreparedStatement preparedStatement;
         try {
@@ -408,10 +512,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
      * @param nb
      */
     private void done(ChannelHandlerContext ctx, int nb) {
-        startHeader();
-        inlineHeader();
-        endHeader();
-        replacementBody();
+        header();
         inlineBody();
         DbPreparedStatement preparedStatement;
         try {
@@ -432,10 +533,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
      * @param nb
      */
     private void all(ChannelHandlerContext ctx, int nb) {
-        startHeader();
-        inlineHeader();
-        endHeader();
-        replacementBody();
+        header();
         inlineBody();
         DbPreparedStatement preparedStatement;
         try {
@@ -454,7 +552,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
      * Write the response
      * @param e
      */
-    private void writeResponse(MessageEvent e) {
+    private void writeResponse(Channel channel) {
         // Convert the response content to a ChannelBuffer.
         ChannelBuffer buf = ChannelBuffers.copiedBuffer(responseContent.toString(), "UTF-8");
         responseContent.setLength(0);
@@ -493,7 +591,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
         }
 
         // Write the response.
-        ChannelFuture future = e.getChannel().write(response);
+        ChannelFuture future = channel.write(response);
 
         // Close the connection after the write operation is done if necessary.
         if (close) {
@@ -511,8 +609,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
         response.setHeader(
                 HttpHeaders.Names.CONTENT_TYPE, "text/html");
         responseContent.setLength(0);
-        startHeader();
-        endHeader();
+        header();
         responseContent.append("OpenR66 Web Failure: ");
         responseContent.append(status.toString());
         endBody();
@@ -532,7 +629,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
                     // Nothing to do
                     return;
                 }
-                logger.warn("Exception in HttpHandler", exception);
+                logger.warn("Exception in HttpSslHandler", exception);
             }
             if (e.getChannel().isConnected()) {
                 sendError(ctx, HttpResponseStatus.BAD_REQUEST);
@@ -564,6 +661,35 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
     @Override
     public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
+     // Get the SslHandler in the current pipeline.
+        // We added it in NetworkSslServerPipelineFactory.
+        final SslHandler sslHandler = ctx.getPipeline().get(SslHandler.class);
+        if (sslHandler != null) {
+            // Get the SslHandler and begin handshake ASAP.
+            // Get notified when SSL handshake is done.
+            ChannelFuture handshakeFuture;
+            try {
+                handshakeFuture = sslHandler.handshake(e.getChannel());
+            } catch (SSLException e1) {
+                setStatusSslConnectedChannel(e.getChannel(), false);
+                throw new OpenR66ProtocolNetworkException("Bad SSL handshake",
+                        e1);
+            }
+            handshakeFuture.addListener(new ChannelFutureListener() {
+                public void operationComplete(ChannelFuture future)
+                        throws Exception {
+                    logger.info("Handshake: "+future.isSuccess(),future.getCause());
+                    if (future.isSuccess()) {
+                        setStatusSslConnectedChannel(future.getChannel(), true);
+                    } else {
+                        setStatusSslConnectedChannel(future.getChannel(), false);
+                        future.getChannel().close();
+                    }
+                }
+            });
+        } else {
+            logger.warn("SSL Not found");
+        }
         super.channelConnected(ctx, e);
         ChannelGroup group =
             Configuration.configuration.getHttpChannelGroup();
@@ -580,5 +706,33 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
             logger.warn("Use default database connection");
             this.dbSession = DbConstant.admin.session;
         }
+    }
+    /**
+     * Create Logon Menu
+     */
+    private void createLogon() {
+        header();
+        responseContent.append("<table border=\"0\">");
+        responseContent.append("<tr>");
+        responseContent.append("<td>");
+        responseContent.append("<h1>OpenR66 Administration Page: "+
+                request.getHeader(HttpHeaders.Names.HOST)+"</h1>");
+        responseContent.append("You must fill all of the following fields.");
+        responseContent.append("</td>");
+        responseContent.append("</tr>");
+        responseContent.append("</table>\r\n");
+
+        responseContent.append("<CENTER><HR WIDTH=\"75%\" NOSHADE color=\"blue\"></CENTER>");
+        responseContent.append("<FORM ACTION=\""+uriRequest+"\" METHOD=\"POST\">");
+        responseContent.append("<input type=hidden name="+sAUTHENT+" value=\"POST\">");
+        responseContent.append("<table border=\"0\">");
+        responseContent.append("<tr><td>Name: <br> <input type=text name=\""+sNAME+"\" size=25></td></tr>");
+        responseContent.append("<tr><td>Password: <br> <input type=PASSWORD name=\""+sPASSWORD+"\" size=8>");
+        responseContent.append("</td></tr>");
+        responseContent.append("<tr><td><INPUT TYPE=\"submit\" NAME=\"Send\" VALUE=\"Send\"></INPUT></td>");
+        responseContent.append("<td><INPUT TYPE=\"reset\" NAME=\"Clear\" VALUE=\"Clear\" ></INPUT></td></tr>");
+        responseContent.append("</table></FORM>\r\n");
+        responseContent.append("<CENTER><HR WIDTH=\"75%\" NOSHADE color=\"blue\"></CENTER>");
+        endBody();
     }
 }

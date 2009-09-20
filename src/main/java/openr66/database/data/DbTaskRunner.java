@@ -1372,7 +1372,7 @@ public class DbTaskRunner extends AbstractDbData {
      *
      * @return the runner in Html format compatible with the header from headerHtml method
      */
-    public String toHtml() {
+    public String toHtml(R66Session session) {
         long freespace = -1;
         DbRule rule = null;
         try {
@@ -1397,16 +1397,18 @@ public class DbTaskRunner extends AbstractDbData {
                     if (HttpHandler.usedDir.containsKey(sdir)) {
                         dir = HttpHandler.usedDir.get(sdir);
                     } else {
-                        dir = new R66Dir(HttpHandler.authentHttp);
+                        dir = new R66Dir(session);
                         dir.changeDirectory(sdir);
+                        HttpHandler.usedDir.put(sdir, dir);
                     }
                     freespace = dir.getFreeSpace() / 0x100000L;
                 } catch (CommandAbstractException e) {
+                    logger.warn("Error while freespace compute", e);
                 }
             }
         }
        return "<td>" + specialId +
-                "</td><td>" + (rule != null? rule.toString() : ruleId) + "</td><td>" +
+                "</td><td>" + (rule != null? rule.toShortString() : ruleId) + "</td><td>" +
                 filename + "</td><td>" + TASKSTEP.values()[globalstep] +
                 "("+TASKSTEP.values()[globallaststep]+ ")</td><td>" + step + "</td><td>" +
                 status.mesg +

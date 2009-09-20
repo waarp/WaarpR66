@@ -95,17 +95,17 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-access</artifactId>
-      <version>0.9.15</version>
+      <version>0.9.17</version>
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>0.9.15</version>
+      <version>0.9.17</version>
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-core</artifactId>
-      <version>0.9.15</version>
+      <version>0.9.17</version>
     </dependency>
     <dependency>
       <groupId>dom4j</groupId>
@@ -152,7 +152,7 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.5.6</version>
+      <version>1.5.8</version>
     </dependency>
     <dependency>
     	<groupId>NettyExtension</groupId>
@@ -183,7 +183,7 @@
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
-      <version>1.1.116</version>
+      <version>1.1.118</version>
       <optional>true</optional>
     </dependency>
     <dependency>

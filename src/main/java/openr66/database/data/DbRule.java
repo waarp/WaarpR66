@@ -963,10 +963,21 @@ public class DbRule extends AbstractDbData {
      */
     @Override
     public String toString() {
-        return "Rule Name:" + idRule + " IDS:" + ids + " MODE: " + mode +
+        return "Rule Name:" + idRule + " IDS:" + ids + " MODE: " +
+                RequestPacket.TRANSFERMODE.values()[mode].toString() +
                 " RECV:" + recvPath + " SEND:" + sendPath + " ARCHIVE:" +
                 archivePath + " WORK:" + workPath +
                 " RPRET:" + rpreTasks + " RPOST:" + rpostTasks + " RERROR:" + rerrorTasks+
                 " SPRET:" + spreTasks + " SPOST:" + spostTasks + " SERROR:" + serrorTasks;
+    }
+    /**
+     * Object to String
+     *
+     * @return the string that displays this object
+     * @see java.lang.Object#toString()
+     */
+    public String toShortString() {
+        return "Rule Name:" + idRule + " MODE: " +
+            RequestPacket.TRANSFERMODE.values()[mode].toString();
     }
 }

@@ -18,7 +18,7 @@
  * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA, or see the FSF
  * site: http://www.fsf.org.
  */
-package openr66.protocol.networkhandler.ssl;
+package openr66.protocol.http.adminssl;
 
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
@@ -28,7 +28,7 @@ import java.security.Security;
 import javax.net.ssl.SSLContext;
 
 /**
- * SecureSslContextFactory for SSL
+ * HttpSecureSslContextFactory for SSL
  *
  * @author The Netty Project (netty@googlegroups.com)
  * @author Trustin Lee (trustin@gmail.com)
@@ -37,12 +37,12 @@ import javax.net.ssl.SSLContext;
  *          $
  *
  */
-public class SecureSslContextFactory {
+public class HttpSecureSslContextFactory {
     /**
      * Internal Logger
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
-            .getLogger(SecureSslContextFactory.class);
+            .getLogger(HttpSecureSslContextFactory.class);
 
     /**
 	 *
@@ -71,8 +71,8 @@ public class SecureSslContextFactory {
         try {
             // Initialize the SSLContext to work with our key managers.
             serverContext = SSLContext.getInstance(PROTOCOL);
-            serverContext.init(R66SecureKeyStore.keyManagerFactory.getKeyManagers(),
-                    SecureTrustManagerFactory.getTrustManagers(), null);
+            serverContext.init(HttpSecureKeyStore.keyManagerFactory.getKeyManagers(),
+                    HttpSecureTrustManagerFactory.getTrustManagers(), null);
         } catch (Exception e) {
             logger.error("Failed to initialize the server-side SSLContext", e);
             throw new Error("Failed to initialize the server-side SSLContext",
@@ -81,8 +81,8 @@ public class SecureSslContextFactory {
 
         try {
             clientContext = SSLContext.getInstance(PROTOCOL);
-            clientContext.init(R66SecureKeyStore.keyManagerFactory.getKeyManagers(),
-                    SecureTrustManagerFactory.getTrustManagers(), null);
+            clientContext.init(HttpSecureKeyStore.keyManagerFactory.getKeyManagers(),
+                    HttpSecureTrustManagerFactory.getTrustManagers(), null);
         } catch (Exception e) {
             logger.error("Failed to initialize the client-side SSLContext", e);
             throw new Error("Failed to initialize the client-side SSLContext",

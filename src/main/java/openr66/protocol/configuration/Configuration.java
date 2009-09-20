@@ -34,6 +34,7 @@ import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import openr66.protocol.http.HttpPipelineFactory;
+import openr66.protocol.http.adminssl.HttpSslPipelineFactory;
 import openr66.protocol.localhandler.LocalTransaction;
 import openr66.protocol.networkhandler.NetworkServerPipelineFactory;
 import openr66.protocol.networkhandler.packet.NetworkPacketSizeEstimator;
@@ -288,9 +289,13 @@ public class Configuration {
      */
     private ServerBootstrap serverSslBootstrap = null;
     /**
-     * Bootstrap for SSL server
+     * Bootstrap for Http server
      */
     private ServerBootstrap httpBootstrap = null;
+    /**
+     * Bootstrap for Https server
+     */
+    private ServerBootstrap httpsBootstrap = null;
     /**
      * ChannelFactory for HttpServer part
      */
@@ -432,6 +437,23 @@ public class Configuration {
         httpBootstrap.setOption("connectTimeoutMillis", TIMEOUTCON);
         // Bind and start to accept incoming connections.
         httpChannelGroup.add(httpBootstrap.bind(new InetSocketAddress(SERVER_HTTPPORT)));
+
+        // Now start the HTTPS support
+        // Configure the server.
+        httpsBootstrap = new ServerBootstrap(
+                httpChannelFactory);
+        // Set up the event pipeline factory.
+        httpsBootstrap.setPipelineFactory(new HttpSslPipelineFactory());
+        httpsBootstrap.setOption("child.tcpNoDelay", true);
+        httpsBootstrap.setOption("child.keepAlive", true);
+        httpsBootstrap.setOption("child.reuseAddress", true);
+        httpsBootstrap.setOption("child.connectTimeoutMillis", TIMEOUTCON);
+        httpsBootstrap.setOption("tcpNoDelay", true);
+        httpsBootstrap.setOption("reuseAddress", true);
+        httpsBootstrap.setOption("connectTimeoutMillis", TIMEOUTCON);
+        // Bind and start to accept incoming connections.
+        httpChannelGroup.add(httpsBootstrap.bind(new InetSocketAddress(443)));
+
     }
     /**
      * Prepare the server to stop

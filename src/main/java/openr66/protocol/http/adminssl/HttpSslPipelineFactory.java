@@ -18,31 +18,47 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package openr66.protocol.http;
+package openr66.protocol.http.adminssl;
 
 import static org.jboss.netty.channel.Channels.pipeline;
+
+import javax.net.ssl.SSLEngine;
 
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
 import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
+import org.jboss.netty.handler.ssl.SslHandler;
 
 /**
  * Pipeline Factory for HTTP support
  * @author Frederic Bregier
  *
  */
-public class HttpPipelineFactory
+public class HttpSslPipelineFactory
     implements ChannelPipelineFactory {
-        public ChannelPipeline getPipeline() throws Exception {
+
+    public ChannelPipeline getPipeline() throws Exception {
             // Create a default pipeline implementation.
             ChannelPipeline pipeline = pipeline();
+
+         // Add SSL handler first to encrypt and decrypt everything.
+            // You will need something more complicated to identify both
+            // and server in the real world.
+            SSLEngine engine;
+            SslHandler sslhandler;
+            engine = HttpSecureSslContextFactory.getServerContext()
+                .createSSLEngine();
+            engine.setUseClientMode(false);
+            engine.setNeedClientAuth(false);
+            sslhandler = new SslHandler(engine);
+            pipeline.addLast("ssl", sslhandler);
 
             pipeline.addLast("decoder", new HttpRequestDecoder());
             pipeline.addLast("aggregator", new HttpChunkAggregator(1048576));
             pipeline.addLast("encoder", new HttpResponseEncoder());
-            pipeline.addLast("handler", new HttpHandler());
+            pipeline.addLast("handler", new HttpSslHandler());
             return pipeline;
         }
 }

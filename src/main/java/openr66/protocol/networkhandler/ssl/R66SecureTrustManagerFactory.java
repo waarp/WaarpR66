@@ -37,7 +37,7 @@ import javax.net.ssl.TrustManagerFactorySpi;
 import javax.net.ssl.X509TrustManager;
 
 /**
- * SecureTrustManagerFactory for SSL
+ * R66SecureTrustManagerFactory for SSL
  *
  * @author The Netty Project (netty@googlegroups.com)
  * @author Trustin Lee (trustin@gmail.com)
@@ -45,12 +45,12 @@ import javax.net.ssl.X509TrustManager;
  * @version $Rev$, $Date$
  *
  */
-public class SecureTrustManagerFactory extends TrustManagerFactorySpi {
+public class R66SecureTrustManagerFactory extends TrustManagerFactorySpi {
     /**
      * Internal Logger
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
-            .getLogger(SecureTrustManagerFactory.class);
+            .getLogger(R66SecureTrustManagerFactory.class);
 
     /**
 	 *

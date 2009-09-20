@@ -45,6 +45,7 @@ import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.model.DbModelFactory;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
+import openr66.protocol.http.adminssl.HttpSecureKeyStore;
 import openr66.protocol.networkhandler.ssl.R66SecureKeyStore;
 import openr66.protocol.utils.FileUtils;
 
@@ -56,6 +57,7 @@ import org.jboss.netty.handler.traffic.AbstractTrafficShapingHandler;
 
 /**
  * File Based Configuration
+ *
  * @author frederic bregier
  *
  */
@@ -90,22 +92,41 @@ public class FileBasedConfiguration {
      * SERVER SSL PORT
      */
     private static final String XML_SERVER_SSLPORT = "/config/serversslport";
+
     /**
      * SERVER HTTP PORT
      */
     private static final String XML_SERVER_HTTPPORT = "/config/serverhttpport";
+
     /**
-     * SERVER SSL KEY PATH
+     * SERVER SSL KEY PATH ADMIN_
      */
     private static final String XML_PATH_KEYPATH = "/config/keypath";
+
     /**
      * SERVER SSL KEY PASS
      */
     private static final String XML_PATH_KEYPASS = "/config/keypass";
+
     /**
      * SERVER SSL KEY PASS
      */
     private static final String XML_PATH_KEYSTOREPASS = "/config/keystorepass";
+
+    /**
+     * SERVER SSL KEY PATH ADMIN
+     */
+    private static final String XML_PATH_ADMIN_KEYPATH = "/config/admkeypath";
+
+    /**
+     * SERVER SSL KEY PASS ADMIN
+     */
+    private static final String XML_PATH_ADMIN_KEYPASS = "/config/admkeypass";
+
+    /**
+     * SERVER SSL KEY PASS ADMIN
+     */
+    private static final String XML_PATH_ADMIN_KEYSTOREPASS = "/config/admkeystorepass";
 
     /**
      * Base Directory
@@ -156,14 +177,17 @@ public class FileBasedConfiguration {
      * Limit global
      */
     private static final String XML_LIMITGLOBAL = "/config/globallimit";
+
     /**
      * Delay between two checks for Limit
      */
     private static final String XML_LIMITDELAY = "/config/delaylimit";
+
     /**
      * Limit of number of active Runner from Commander
      */
     private static final String XML_LIMITRUNNING = "/config/runlimit";
+
     /**
      * Delay between two checks for Commander
      */
@@ -278,7 +302,7 @@ public class FileBasedConfiguration {
             logger.error("Unable to read the XML Config file: " + filename);
             return false;
         }
-        if (! loadCommon(document)) {
+        if (!loadCommon(document)) {
             logger.error("Unable to find Host ID in Config file: " + filename);
             return false;
         }
@@ -336,32 +360,33 @@ public class FileBasedConfiguration {
         if (!loadFromDatabase(document)) {
             return false;
         }
-        if (! DbConstant.admin.isConnected) {
+        if (!DbConstant.admin.isConnected) {
             // if no database, must load authentication from file
             node = document.selectSingleNode(XML_AUTHENTIFICATION_FILE);
             if (node == null) {
-                logger.warn("Unable to find Authentication file in Config file: " +
-                        filename);
+                logger
+                        .warn("Unable to find Authentication file in Config file: " +
+                                filename);
                 return false;
             } else {
                 String fileauthent = node.getText();
                 document = null;
-                if (! AuthenticationFileBasedConfiguration.loadAuthentication(fileauthent)) {
+                if (!AuthenticationFileBasedConfiguration
+                        .loadAuthentication(fileauthent)) {
                     return false;
                 }
             }
         }
-        Configuration.configuration.HOST_AUTH =
-            R66Auth.getServerAuth(DbConstant.admin.session,
-                    Configuration.configuration.HOST_ID);
+        Configuration.configuration.HOST_AUTH = R66Auth.getServerAuth(
+                DbConstant.admin.session, Configuration.configuration.HOST_ID);
         if (Configuration.configuration.HOST_AUTH == null) {
             logger.warn("Cannot find Authentication for current host");
             return false;
         }
         if (Configuration.configuration.HOST_SSLID != null) {
-            Configuration.configuration.HOST_SSLAUTH =
-                R66Auth.getServerAuth(DbConstant.admin.session,
-                        Configuration.configuration.HOST_SSLID);
+            Configuration.configuration.HOST_SSLAUTH = R66Auth.getServerAuth(
+                    DbConstant.admin.session,
+                    Configuration.configuration.HOST_SSLID);
             if (Configuration.configuration.HOST_SSLAUTH == null) {
                 logger.warn("Cannot find SSL Authentication for current host");
                 return false;
@@ -369,6 +394,7 @@ public class FileBasedConfiguration {
         }
         return true;
     }
+
     /**
      * Initiate the configuration from the xml file for database client
      *
@@ -388,44 +414,45 @@ public class FileBasedConfiguration {
             logger.error("Unable to read the XML Config file: " + filename);
             return false;
         }
-        if (! loadCommon(document)) {
+        if (!loadCommon(document)) {
             logger.error("Unable to find Host ID in Config file: " + filename);
             return false;
         }
         Node node = null;
-        if (! loadDatabase(document)) {
+        if (!loadDatabase(document)) {
             return false;
         }
         if (!loadFromDatabase(document)) {
             return false;
         }
 
-        if (! DbConstant.admin.isConnected) {
+        if (!DbConstant.admin.isConnected) {
             // if no database, must load authentication from file
             node = document.selectSingleNode(XML_AUTHENTIFICATION_FILE);
             if (node == null) {
-                logger.warn("Unable to find Authentication file in Config file: " +
-                        filename);
+                logger
+                        .warn("Unable to find Authentication file in Config file: " +
+                                filename);
                 return false;
             } else {
                 String fileauthent = node.getText();
                 document = null;
-                if (! AuthenticationFileBasedConfiguration.loadAuthentication(fileauthent)) {
+                if (!AuthenticationFileBasedConfiguration
+                        .loadAuthentication(fileauthent)) {
                     return false;
                 }
             }
         }
-        Configuration.configuration.HOST_AUTH =
-            R66Auth.getServerAuth(DbConstant.admin.session,
-                    Configuration.configuration.HOST_ID);
+        Configuration.configuration.HOST_AUTH = R66Auth.getServerAuth(
+                DbConstant.admin.session, Configuration.configuration.HOST_ID);
         if (Configuration.configuration.HOST_AUTH == null) {
             logger.warn("Cannot find Authentication for current host");
             return false;
         }
         if (Configuration.configuration.HOST_SSLID != null) {
-            Configuration.configuration.HOST_SSLAUTH =
-                R66Auth.getServerAuth(DbConstant.admin.session,
-                        Configuration.configuration.HOST_SSLID);
+            Configuration.configuration.HOST_SSLAUTH = R66Auth.getServerAuth(
+                    DbConstant.admin.session,
+                    Configuration.configuration.HOST_SSLID);
             if (Configuration.configuration.HOST_SSLAUTH == null) {
                 logger.warn("Cannot find SSL Authentication for current host");
                 return false;
@@ -433,8 +460,10 @@ public class FileBasedConfiguration {
         }
         return true;
     }
+
     /**
      * Load common configuration from XML document
+     *
      * @param document
      * @return True if OK
      */
@@ -448,7 +477,8 @@ public class FileBasedConfiguration {
         Configuration.configuration.HOST_ID = node.getText();
         node = document.selectSingleNode(XML_SERVER_SSLHOSTID);
         if (node == null) {
-            logger.warn("Unable to find Host SSL ID in Config file so no SSL support will be used");
+            logger
+                    .warn("Unable to find Host SSL ID in Config file so no SSL support will be used");
             Configuration.configuration.HOST_SSLID = null;
         } else {
             Configuration.configuration.HOST_SSLID = node.getText();
@@ -475,8 +505,7 @@ public class FileBasedConfiguration {
             Configuration.configuration.configPath = FilesystemBasedDirImpl
                     .normalizePath(getSubPath(document, XML_CONFIGPATH));
         } catch (OpenR66ProtocolSystemException e2) {
-            logger
-                    .error("Unable to set Config in Config file");
+            logger.error("Unable to set Config in Config file");
             return false;
         }
         try {
@@ -565,45 +594,83 @@ public class FileBasedConfiguration {
         // Key
         node = document.selectSingleNode(XML_PATH_KEYPATH);
         if (node == null) {
-                logger.warn("Unable to find Key Path");
+            logger.warn("Unable to find Key Path");
         } else {
-                String keypath = node.getText();
-                if ((keypath == null) || (keypath.length() == 0)) {
-                        logger.warn("Bad Key Path");
-                        return false;
-                }
-                node = document.selectSingleNode(XML_PATH_KEYPASS);
-                if (node == null) {
-                        logger.warn("Unable to find Key Passwd");
-                        return false;
-                }
-                String keypass = node.getText();
-                if ((keypass == null) || (keypass.length() == 0)) {
-                        logger.warn("Bad Key Passwd");
-                        return false;
-                }
-                node = document.selectSingleNode(XML_PATH_KEYSTOREPASS);
-                if (node == null) {
-                        logger.warn("Unable to find KeyStore Passwd");
-                        return false;
-                }
-                String keystorepass = node.getText();
-                if ((keystorepass == null) || (keystorepass.length() == 0)) {
-                        logger.warn("Bad KeyStore Passwd");
-                        return false;
-                }
-                if (! R66SecureKeyStore.initSecureKeyStore(keypath, keystorepass, keypass)) {
-                        logger.warn("Bad Key");
-                        return false;
-                }
+            String keypath = node.getText();
+            if ((keypath == null) || (keypath.length() == 0)) {
+                logger.warn("Bad Key Path");
+                return false;
+            }
+            node = document.selectSingleNode(XML_PATH_KEYPASS);
+            if (node == null) {
+                logger.warn("Unable to find Key Passwd");
+                return false;
+            }
+            String keypass = node.getText();
+            if ((keypass == null) || (keypass.length() == 0)) {
+                logger.warn("Bad Key Passwd");
+                return false;
+            }
+            node = document.selectSingleNode(XML_PATH_KEYSTOREPASS);
+            if (node == null) {
+                logger.warn("Unable to find KeyStore Passwd");
+                return false;
+            }
+            String keystorepass = node.getText();
+            if ((keystorepass == null) || (keystorepass.length() == 0)) {
+                logger.warn("Bad KeyStore Passwd");
+                return false;
+            }
+            if (!R66SecureKeyStore.initSecureKeyStore(keypath, keystorepass,
+                    keypass)) {
+                logger.warn("Bad Key");
+                return false;
+            }
+        }
+
+        // Key
+        node = document.selectSingleNode(XML_PATH_ADMIN_KEYPATH);
+        if (node != null) {
+            String keypath = node.getText();
+            if ((keypath == null) || (keypath.length() == 0)) {
+                logger.warn("Bad Key Path");
+                return false;
+            }
+            node = document.selectSingleNode(XML_PATH_ADMIN_KEYPASS);
+            if (node == null) {
+                logger.warn("Unable to find Key Passwd");
+                return false;
+            }
+            String keypass = node.getText();
+            if ((keypass == null) || (keypass.length() == 0)) {
+                logger.warn("Bad Key Passwd");
+                return false;
+            }
+            node = document.selectSingleNode(XML_PATH_ADMIN_KEYSTOREPASS);
+            if (node == null) {
+                logger.warn("Unable to find KeyStore Passwd");
+                return false;
+            }
+            String keystorepass = node.getText();
+            if ((keystorepass == null) || (keystorepass.length() == 0)) {
+                logger.warn("Bad KeyStore Passwd");
+                return false;
+            }
+            if (!HttpSecureKeyStore.initSecureKeyStore(keypath, keystorepass,
+                    keypass)) {
+                logger.warn("Bad Key");
+                return false;
+            }
         }
 
         // We use Apache Commons IO
         FilesystemBasedDirJdkAbstract.ueApacheCommonsIo = true;
         return true;
     }
+
     /**
      * Load data from database or from files if not connected
+     *
      * @param document
      * @return True if OK
      */
@@ -611,7 +678,8 @@ public class FileBasedConfiguration {
         if (DbConstant.admin.isConnected) {
             // load from database the limit to apply
             try {
-                DbConfiguration configuration = new DbConfiguration(DbConstant.admin.session,
+                DbConfiguration configuration = new DbConfiguration(
+                        DbConstant.admin.session,
                         Configuration.configuration.HOST_ID);
                 configuration.updateConfiguration();
             } catch (OpenR66DatabaseException e) {
@@ -621,8 +689,9 @@ public class FileBasedConfiguration {
             if (Configuration.configuration.baseDirectory != null &&
                     Configuration.configuration.configPath != null) {
                 // load Rules from files
-                File dirConfig = new File(Configuration.configuration.baseDirectory+
-                        Configuration.configuration.configPath);
+                File dirConfig = new File(
+                        Configuration.configuration.baseDirectory +
+                                Configuration.configuration.configPath);
                 if (dirConfig.isDirectory()) {
                     try {
                         RuleFileBasedConfiguration.importRules(dirConfig);
@@ -635,7 +704,7 @@ public class FileBasedConfiguration {
                     }
                 } else {
                     logger.error("Config Directory is not a directory: " +
-                            Configuration.configuration.baseDirectory+
+                            Configuration.configuration.baseDirectory +
                             Configuration.configuration.configPath);
                     return false;
                 }
@@ -645,8 +714,10 @@ public class FileBasedConfiguration {
         }
         return true;
     }
+
     /**
      * Load database parameter
+     *
      * @param document
      * @return True if OK
      */
@@ -654,7 +725,7 @@ public class FileBasedConfiguration {
         Node node = document.selectSingleNode(XML_DBDRIVER);
         if (node == null) {
             logger.error("Unable to find DBDriver in Config file");
-            DbConstant.admin = new DbAdmin(); //no database support
+            DbConstant.admin = new DbAdmin(); // no database support
         } else {
             String dbdriver = node.getText();
             node = document.selectSingleNode(XML_DBSERVER);
@@ -692,6 +763,7 @@ public class FileBasedConfiguration {
         }
         return true;
     }
+
     /**
      *
      * @param document
@@ -724,8 +796,8 @@ public class FileBasedConfiguration {
         Configuration.configuration.delayLimit = AbstractTrafficShapingHandler.DEFAULT_CHECK_INTERVAL;
         node = document.selectSingleNode(XML_LIMITDELAY);
         if (node != null) {
-            Configuration.configuration.delayLimit = Long
-                    .parseLong(node.getText());
+            Configuration.configuration.delayLimit = Long.parseLong(node
+                    .getText());
             if (Configuration.configuration.delayLimit <= 0) {
                 Configuration.configuration.delayLimit = 0;
             }
@@ -734,8 +806,8 @@ public class FileBasedConfiguration {
         }
         node = document.selectSingleNode(XML_LIMITRUNNING);
         if (node != null) {
-            Configuration.configuration.RUNNER_THREAD = Integer
-                    .parseInt(node.getText());
+            Configuration.configuration.RUNNER_THREAD = Integer.parseInt(node
+                    .getText());
             if (Configuration.configuration.RUNNER_THREAD < 10) {
                 Configuration.configuration.RUNNER_THREAD = 10;
             }
@@ -744,8 +816,8 @@ public class FileBasedConfiguration {
         }
         node = document.selectSingleNode(XML_DELAYCOMMANDER);
         if (node != null) {
-            Configuration.configuration.delayCommander = Long
-                    .parseLong(node.getText());
+            Configuration.configuration.delayCommander = Long.parseLong(node
+                    .getText());
             if (Configuration.configuration.delayCommander <= 100) {
                 Configuration.configuration.delayCommander = 100;
             }
@@ -755,7 +827,8 @@ public class FileBasedConfiguration {
         if (DbConstant.admin.isConnected) {
             node = document.selectSingleNode(XML_SERVER_HOSTID);
             Configuration.configuration.HOST_ID = node.getText();
-            DbConfiguration configuration = new DbConfiguration(DbConstant.admin.session,
+            DbConfiguration configuration = new DbConfiguration(
+                    DbConstant.admin.session,
                     Configuration.configuration.HOST_ID,
                     Configuration.configuration.serverGlobalReadLimit,
                     Configuration.configuration.serverGlobalWriteLimit,

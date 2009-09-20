@@ -65,12 +65,12 @@ public class NetworkSslServerPipelineFactory implements ChannelPipelineFactory {
         SSLEngine engine;
         SslHandler sslhandler;
         if (isClient) {
-            engine = SecureSslContextFactory.getClientContext()
+            engine = R66SecureSslContextFactory.getClientContext()
                     .createSSLEngine();
             engine.setUseClientMode(true);
             sslhandler = new SslHandler(engine, this.executorService);
         } else {
-            engine = SecureSslContextFactory.getServerContext()
+            engine = R66SecureSslContextFactory.getServerContext()
                     .createSSLEngine();
             engine.setUseClientMode(false);
             engine.setNeedClientAuth(true);
