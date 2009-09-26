@@ -26,10 +26,12 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 
 import java.io.File;
 import java.io.StringReader;
+import java.sql.SQLException;
 import java.sql.Types;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import openr66.context.R66Session;
 import openr66.database.DbConstant;
 import openr66.database.DbPreparedStatement;
 import openr66.database.DbSession;
@@ -980,4 +982,73 @@ public class DbRule extends AbstractDbData {
         return "Rule Name:" + idRule + " MODE: " +
             RequestPacket.TRANSFERMODE.values()[mode].toString();
     }
+    public static DbPreparedStatement getFilterPrepareStament(DbSession session,
+            String rule, int mode)
+        throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+        DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
+        String request = "SELECT " +selectAllFields+" FROM "+table;
+        String condition = null;
+        if (rule != null) {
+            condition = " WHERE "+Columns.IDRULE.name()+" LIKE '%"+rule+"%' ";
+        }
+        if (mode >= 0) {
+            if (condition != null) {
+                condition += " AND ";
+            } else {
+                condition = " WHERE ";
+            }
+            condition += Columns.MODE.name()+" = ?";
+        } else {
+            condition = "";
+        }
+        preparedStatement.createPrepareStatement(request+condition+
+                " ORDER BY "+Columns.IDRULE.name());
+        if (mode >= 0) {
+            try {
+                preparedStatement.getPreparedStatement().setInt(1, mode);
+            } catch (SQLException e) {
+                preparedStatement.realClose();
+                throw new OpenR66DatabaseSqlError(e);
+            }
+        }
+        return preparedStatement;
+    }
+    /**
+     * @param session
+     * @param body
+     * @return the runner in Html format specified by body by replacing all instance of fields
+     */
+    public String toSpecializedHtml(R66Session session, String body) {
+        String line = body.replace("XXXRULEXXX", idRule);
+        line = line.replace("XXXIDSXXX", ids == null ? "" : ids);
+        if (mode == RequestPacket.TRANSFERMODE.RECVMODE.ordinal()) {
+            line = line.replace("XXXRECVXXX", "checked");
+        } else if (mode == RequestPacket.TRANSFERMODE.SENDMODE.ordinal()) {
+            line = line.replace("XXXSENDXXX", "checked");
+        } else if (mode == RequestPacket.TRANSFERMODE.RECVMD5MODE.ordinal()) {
+            line = line.replace("XXXRECVMXXX", "checked");
+        } else if (mode == RequestPacket.TRANSFERMODE.SENDMD5MODE.ordinal()) {
+            line = line.replace("XXXSENDMXXX", "checked");
+        } else if (mode == RequestPacket.TRANSFERMODE.RECVTHROUGHMODE.ordinal()) {
+            line = line.replace("XXXRECVTXXX", "checked");
+        } else if (mode == RequestPacket.TRANSFERMODE.SENDTHROUGHMODE.ordinal()) {
+            line = line.replace("XXXSENDTXXX", "checked");
+        } else if (mode == RequestPacket.TRANSFERMODE.RECVMD5THROUGHMODE.ordinal()) {
+            line = line.replace("XXXRECVMTXXX", "checked");
+        } else if (mode == RequestPacket.TRANSFERMODE.SENDMD5THROUGHMODE.ordinal()) {
+            line = line.replace("XXXSENDMTXXX", "checked");
+        }
+        line = line.replace("XXXRPXXX", recvPath == null ? "" : recvPath);
+        line = line.replace("XXXSPXXX", sendPath == null ? "" : sendPath);
+        line = line.replace("XXXAPXXX", archivePath == null ? "" : archivePath);
+        line = line.replace("XXXWPXXX", workPath == null ? "" : workPath);
+        line = line.replace("XXXRPTXXX", rpreTasks == null ? "" : rpreTasks);
+        line = line.replace("XXXRSTXXX", rpostTasks == null ? "" : rpostTasks);
+        line = line.replace("XXXRETXXX", rerrorTasks == null ? "" : rerrorTasks);
+        line = line.replace("XXXSPTXXX", spreTasks == null ? "" : spreTasks);
+        line = line.replace("XXXSSTXXX", spostTasks == null ? "" : spostTasks);
+        line = line.replace("XXXSETXXX", serrorTasks == null ? "" : serrorTasks);
+        return line;
+    }
+
 }

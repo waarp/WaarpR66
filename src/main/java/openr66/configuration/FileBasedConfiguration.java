@@ -79,6 +79,11 @@ public class FileBasedConfiguration {
     private static final String XML_SERVER_SSLHOSTID = "/config/sslhostid";
 
     /**
+     * ADMINISTRATOR SERVER NAME (shutdown)
+     */
+    private static final String XML_SERVER_ADMIN = "/config/serveradmin";
+
+    /**
      * SERVER PASSWORD (shutdown)
      */
     private static final String XML_SERVER_PASSWD = "/config/serverpasswd";
@@ -336,6 +341,13 @@ public class FileBasedConfiguration {
             httpsport = Integer.parseInt(node.getText());
         }
         Configuration.configuration.SERVER_HTTPSPORT = httpsport;
+
+        node = document.selectSingleNode(XML_SERVER_ADMIN);
+        if (node == null) {
+            logger.error("Unable to find Administrator name in Config file: " + filename);
+            return false;
+        }
+        Configuration.configuration.ADMINNAME = node.getText();
 
         node = document.selectSingleNode(XML_SERVER_PASSWD);
         if (node == null) {

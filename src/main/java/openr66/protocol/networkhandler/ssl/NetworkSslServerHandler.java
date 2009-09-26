@@ -67,7 +67,7 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
      * Add the Channel as SSL handshake is over
      * @param channel
      */
-    public static void addSslConnectedChannel(Channel channel) {
+    private static void addSslConnectedChannel(Channel channel) {
         R66Future futureSSL = new R66Future(true);
         waitForSsl.put(channel.getId(),futureSSL);
         channel.getCloseFuture().addListener(remover);
@@ -77,7 +77,7 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
      * @param channel
      * @param status
      */
-    public static void setStatusSslConnectedChannel(Channel channel, boolean status) {
+    private static void setStatusSslConnectedChannel(Channel channel, boolean status) {
         R66Future futureSSL = waitForSsl.get(channel.getId());
         if (status) {
             futureSSL.setSuccess();

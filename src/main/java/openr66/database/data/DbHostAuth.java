@@ -22,10 +22,12 @@ package openr66.database.data;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 
+import openr66.context.R66Session;
 import openr66.database.DbConstant;
 import openr66.database.DbPreparedStatement;
 import openr66.database.DbSession;
@@ -348,6 +350,40 @@ public class DbHostAuth extends AbstractDbData {
            AbstractDbData.UpdatedInfo.UPDATED.ordinal();
        return new DbPreparedStatement(session, request);
    }
+   public static DbPreparedStatement getFilterPrepareStament(DbSession session,
+           String host, String addr, boolean ssl)
+       throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+       DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
+       String request = "SELECT " +selectAllFields+" FROM "+table+" WHERE ";
+       String condition = null;
+       if (host != null) {
+           condition = Columns.HOSTID.name()+" LIKE '%"+host+"%' ";
+       }
+       if (addr != null) {
+           if (condition != null) {
+               condition += " AND ";
+           } else {
+               condition = "";
+           }
+           condition += Columns.ADDRESS.name()+" LIKE '%"+addr+"%' ";
+       }
+       if (condition != null) {
+           condition += " AND ";
+       } else {
+           condition = "";
+       }
+       condition += Columns.SSL.name()+" = ?";
+       preparedStatement.createPrepareStatement(request+condition+
+               " ORDER BY "+Columns.HOSTID.name());
+       try {
+           preparedStatement.getPreparedStatement().setBoolean(1, ssl);
+       } catch (SQLException e) {
+           preparedStatement.realClose();
+           throw new OpenR66DatabaseSqlError(e);
+       }
+       return preparedStatement;
+   }
+
     /*
      * (non-Javadoc)
      *
@@ -432,5 +468,19 @@ public class DbHostAuth extends AbstractDbData {
     public String toString() {
         return "HostAuth: " + hostid + " address: " +address+":"+port+" isSSL: "+isSsl+
         " admin: "+ adminrole +" "+(hostkey!=null?hostkey.length:0);
+    }
+    /**
+     * @param session
+     * @param body
+     * @return the runner in Html format specified by body by replacing all instance of fields
+     */
+    public String toSpecializedHtml(R66Session session, String body) {
+        String line = body.replace("XXXHOSTXXX", hostid);
+        line = line.replace("XXXADDRXXX", address);
+        line = line.replace("XXXPORTXXX", Integer.toString(port));
+        line = line.replace("XXXKEYXXX", new String(hostkey));
+        line = line.replace("XXXSSLXXX", isSsl ? "checked": "");
+        line = line.replace("XXXADMXXX", adminrole ? "checked": "");
+        return line;
     }
 }

@@ -38,7 +38,6 @@ import openr66.database.DbConstant;
 import openr66.database.data.DbHostAuth;
 import openr66.database.data.DbTaskRunner;
 import openr66.database.data.AbstractDbData.UpdatedInfo;
-import openr66.database.data.DbTaskRunner.TASKSTEP;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.configuration.Configuration;
@@ -208,39 +207,11 @@ public class RequestTransfer implements Runnable {
                 sendRequest(LocalPacketFactory.STOPPACKET);
             } else if (restart) {
                 // Restart if already stopped and not finished
-                if (runner.getStatus() != ErrorCode.CompleteOk) {
-                    // restart
-                    switch (TASKSTEP.values()[runner.getGloballaststep()]) {
-                        case PRETASK:
-                            // restart
-                            runner.setPreTask(0);
-                            runner.setExecutionStatus(ErrorCode.InitOk);
-                            break;
-                        case TRANSFERTASK:
-                            // continue
-                            runner.setTransferTask(runner.getRank());
-                            runner.setExecutionStatus(ErrorCode.PreProcessingOk);
-                            break;
-                        case POSTTASK:
-                            // restart
-                            runner.setPostTask(0);
-                            runner.setExecutionStatus(ErrorCode.TransferOk);
-                            break;
-                    }
-                    runner.changeUpdatedInfo(UpdatedInfo.UPDATED);
-                    try {
-                        runner.saveStatus();
-                    } catch (OpenR66RunnerErrorException e) {
-                        future.setResult(new R66Result(e,null,true,ErrorCode.Internal));
-                        future.cancel();
-                        return;
-                    }
+                if (runner.restart()) {
                     future.setResult(new R66Result(null,true,runner.getStatus()));
                     future.setSuccess();
                 } else {
-                    // Already finished so DONE
-                    setDone(runner);
-                    future.setResult(new R66Result(null,true,runner.getStatus()));
+                    future.setResult(new R66Result(null,true,ErrorCode.Internal));
                     future.cancel();
                 }
                 logger.warn("Transfer: "+runner.toString());

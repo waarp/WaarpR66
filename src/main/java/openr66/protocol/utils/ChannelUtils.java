@@ -112,12 +112,14 @@ public class ChannelUtils implements Runnable {
     private static class R66ChannelGroupFutureListener implements
             ChannelGroupFutureListener {
         OrderedMemoryAwareThreadPoolExecutor pool;
-
+        String name;
         ChannelFactory channelFactory;
 
         public R66ChannelGroupFutureListener(
+                String name,
                 OrderedMemoryAwareThreadPoolExecutor pool,
                 ChannelFactory channelFactory) {
+            this.name = name;
             this.pool = pool;
             this.channelFactory = channelFactory;
         }
@@ -130,6 +132,7 @@ public class ChannelUtils implements Runnable {
             if (channelFactory != null) {
                 channelFactory.releaseExternalResources();
             }
+            logger.warn("Done with shutdown "+name);
         }
     }
 
@@ -145,6 +148,7 @@ public class ChannelUtils implements Runnable {
         Configuration.configuration.getServerChannelGroup().close()
                 .addListener(
                         new R66ChannelGroupFutureListener(
+                                "ServerChannelGroup",
                                 Configuration.configuration
                                         .getServerPipelineExecutor(),
                                 Configuration.configuration
@@ -163,9 +167,11 @@ public class ChannelUtils implements Runnable {
         Configuration.configuration.getHttpChannelGroup().close()
                 .addListener(
                         new R66ChannelGroupFutureListener(
+                                "HttpChannelGroup",
                                 null,
                                 Configuration.configuration
                                         .getHttpChannelFactory()));
+        Configuration.configuration.getHttpsChannelFactory().releaseExternalResources();
         return result;
     }
     /**

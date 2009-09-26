@@ -1032,7 +1032,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     Timestamp.valueOf(sstart);
                 Timestamp stop = (sstop == null || sstop.length() == 0) ? null :
                     Timestamp.valueOf(sstop);
-                // create export of log and optionaly purge them from database
+                // create export of log and optionally purge them from database
                 DbPreparedStatement getValid = null;
                 Document document = null;
                 try {

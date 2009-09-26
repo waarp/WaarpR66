@@ -52,6 +52,10 @@ public class R66Auth extends FilesystemBasedAuthImpl {
      */
     private DbHostAuth currentAuth = null;
     /**
+     * is Admin role
+     */
+    private boolean isAdmin = false;
+    /**
      * @param session
      */
     public R66Auth(R66Session session) {
@@ -68,6 +72,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
     @Override
     protected void businessClean() {
         currentAuth = null;
+        isAdmin = false;
     }
 
     /*
@@ -118,6 +123,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
             user = hostId;
             setRootFromAuth();
             getSession().getDir().initAfterIdentification();
+            isAdmin = currentAuth.isAdminrole();
             return true;
         }
         throw new Reply530Exception("Key is not valid for this HostId");
@@ -183,7 +189,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
      */
     @Override
     public boolean isAdmin() {
-        return currentAuth.isAdminrole();
+        return isAdmin;
     }
     /**
      *
@@ -209,7 +215,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 
     @Override
     public String toString() {
-        return "Auth: " +
+        return "Auth: " +isIdentified+":"+
                 (currentAuth != null? currentAuth.toString()
                         : "no Internal Auth");
     }
@@ -224,13 +230,17 @@ public class R66Auth extends FilesystemBasedAuthImpl {
         try {
             auth = new DbHostAuth(dbSession, server);
         } catch (OpenR66DatabaseException e) {
-            logger.warn("Cannot find the authentication");
+            logger.warn("Cannot find the authentication", e);
             return null;
         }
         return auth;
     }
 
-    public void specialHttpAuth() {
+    public void specialHttpAuth(boolean isSSL) {
         this.isIdentified = true;
+        if (isSSL) {
+            this.user = Configuration.configuration.ADMINNAME;
+            this.isAdmin = true;
+        }
     }
 }

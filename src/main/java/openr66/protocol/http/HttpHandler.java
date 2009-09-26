@@ -85,7 +85,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
 
     public static final R66Session authentHttp = new R66Session();
     {
-        authentHttp.getAuth().specialHttpAuth();
+        authentHttp.getAuth().specialHttpAuth(false);
     }
     public static final ConcurrentHashMap<String, R66Dir> usedDir =
         new ConcurrentHashMap<String, R66Dir>();
@@ -326,7 +326,9 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
         int i = 0;
         while (preparedStatement.getNext()) {
             DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatement);
-            responseContent.append("<tr><td>*</td>");
+            responseContent.append("<tr><td>");
+            responseContent.append(taskRunner.isSender()?"S":"R");
+            responseContent.append("</td>");
             responseContent.append(taskRunner.toHtml(authentHttp));
             responseContent.append("</tr>\r\n");
             if (nb > 0) {

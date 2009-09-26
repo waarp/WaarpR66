@@ -23,10 +23,19 @@ package openr66.protocol.http.adminssl;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,11 +43,13 @@ import javax.net.ssl.SSLException;
 
 import openr66.context.ErrorCode;
 import openr66.context.R66Session;
+import openr66.context.filesystem.R66Dir;
 import openr66.database.DbConstant;
 import openr66.database.DbPreparedStatement;
 import openr66.database.DbSession;
+import openr66.database.data.DbHostAuth;
+import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
-import openr66.database.data.DbTaskRunner.TASKSTEP;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
@@ -47,9 +58,18 @@ import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
+import openr66.protocol.exception.OpenR66ProtocolPacketException;
+import openr66.protocol.exception.OpenR66ProtocolSystemException;
+import openr66.protocol.localhandler.LocalChannelReference;
+import openr66.protocol.localhandler.packet.ErrorPacket;
+import openr66.protocol.localhandler.packet.RequestPacket;
+import openr66.protocol.localhandler.packet.RequestPacket.TRANSFERMODE;
+import openr66.protocol.utils.ChannelUtils;
+import openr66.protocol.utils.FileUtils;
 import openr66.protocol.utils.OpenR66SignalHandler;
 import openr66.protocol.utils.R66Future;
 
+import org.dom4j.Document;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -62,17 +82,18 @@ import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.group.ChannelGroup;
-import org.jboss.netty.handler.codec.http.Cookie;
-import org.jboss.netty.handler.codec.http.CookieDecoder;
-import org.jboss.netty.handler.codec.http.CookieEncoder;
-import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpMethod;
-import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpResponse;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.jboss.netty.handler.codec.http.HttpVersion;
-import org.jboss.netty.handler.codec.http.QueryStringDecoder;
+import org.jboss.netty.handler.codec.http2.Cookie;
+import org.jboss.netty.handler.codec.http2.CookieDecoder;
+import org.jboss.netty.handler.codec.http2.CookieEncoder;
+import org.jboss.netty.handler.codec.http2.DefaultCookie;
+import org.jboss.netty.handler.codec.http2.DefaultHttpResponse;
+import org.jboss.netty.handler.codec.http2.HttpHeaders;
+import org.jboss.netty.handler.codec.http2.HttpMethod;
+import org.jboss.netty.handler.codec.http2.HttpRequest;
+import org.jboss.netty.handler.codec.http2.HttpResponse;
+import org.jboss.netty.handler.codec.http2.HttpResponseStatus;
+import org.jboss.netty.handler.codec.http2.HttpVersion;
+import org.jboss.netty.handler.codec.http2.QueryStringDecoder;
 import org.jboss.netty.handler.ssl.SslHandler;
 
 /**
@@ -92,15 +113,35 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
      */
     private static final ConcurrentHashMap<Integer, R66Future> waitForSsl
         = new ConcurrentHashMap<Integer, R66Future>();
-
-    private R66Session authentHttp = new R66Session();
+    /**
+     * Session Management
+     */
+    private static final ConcurrentHashMap<String, R66Session> sessions
+        = new ConcurrentHashMap<String, R66Session>();
+    private volatile R66Session authentHttp = new R66Session();
 
     private volatile HttpRequest request;
+    private volatile boolean newSession = false;
+    private volatile Cookie admin = null;
     private final StringBuilder responseContent = new StringBuilder();
     private volatile String uriRequest;
-    private static final String sINFO="INFO", sCOMMAND="COMMAND", sNB="NB";
-    private static final String sAUTHENT="AUTHENT", sNAME="NAME", sPASSWORD="PASSWORD";
+    private volatile Map<String, List<String>> params;
+    private volatile QueryStringDecoder queryStringDecoder;
+    private volatile boolean forceClose = false;
+    private volatile boolean shutdown = false;
 
+    private static final String R66SESSION = "R66SESSION";
+    private static enum REQUEST {
+        Logon, index,
+        Transfers, Listing, CancelRestart, Export,
+        Hosts, Rules, System;
+    }
+    private static enum REPLACEMENT {
+        XXXHOSTIDXXX, XXXADMINXXX,
+        XXXXSESSIONLIMITXXX, XXXXCHANNELLIMITXXX,
+        XXXLOCALXXX, XXXNETWORKXXX,
+        XXXERRORMESGXXX;
+    }
     /**
      * The Database connection attached to this NetworkChannel
      * shared among all associated LocalChannels
@@ -124,7 +165,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
      * Add the Channel as SSL handshake is over
      * @param channel
      */
-    public static void addSslConnectedChannel(Channel channel) {
+    private static void addSslConnectedChannel(Channel channel) {
         R66Future futureSSL = new R66Future(true);
         waitForSsl.put(channel.getId(),futureSSL);
         channel.getCloseFuture().addListener(remover);
@@ -134,32 +175,12 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
      * @param channel
      * @param status
      */
-    public static void setStatusSslConnectedChannel(Channel channel, boolean status) {
+    private static void setStatusSslConnectedChannel(Channel channel, boolean status) {
         R66Future futureSSL = waitForSsl.get(channel.getId());
         if (status) {
             futureSSL.setSuccess();
         } else {
             futureSSL.cancel();
-        }
-    }
-    /**
-     *
-     * @param channel
-     * @return True if the SSL handshake is over and OK, else False
-     */
-    public static boolean isSslConnectedChannel(Channel channel) {
-        R66Future futureSSL = waitForSsl.get(channel.getId());
-        if (futureSSL == null) {
-            logger.error("No wait For SSL found");
-            return false;
-        } else {
-            futureSSL.awaitUninterruptibly(Configuration.configuration.TIMEOUTCON);
-            if (futureSSL.isDone()) {
-                logger.info("Wait For SSL: "+futureSSL.isSuccess());
-                return futureSSL.isSuccess();
-            }
-            logger.error("Out of time for wait For SSL");
-            return false;
         }
     }
 
@@ -172,381 +193,1370 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         Channel channel = e.getChannel();
         logger.debug("Add channel to ssl");
         addSslConnectedChannel(channel);
+        Configuration.configuration.getHttpChannelGroup().add(channel);
         super.channelOpen(ctx, e);
     }
 
-    /**
-     * Set header
-     */
-    private void header() {
-        responseContent.append("<html>");
-        responseContent.append("<head>");
-        responseContent.append("<title>OpenR66 Web Administration Server: ");
-        if (authentHttp.isAuthenticated()) {
-            responseContent.append(authentHttp.getAuth().getUser());
-        } else {
-            responseContent.append("Not Authenticated");
+    private String readFile(String filename) {
+        File file = new File(filename);
+        char [] chars = new char[(int) file.length()];
+        FileReader fileReader;
+        try {
+            fileReader = new FileReader(file);
+        } catch (FileNotFoundException e) {
+            return null;
         }
-        responseContent.append("</title>\r\n");
-        responseContent.append("</head><body>\r\n");
+        int length;
+        try {
+            length = fileReader.read(chars);
+        } catch (IOException e) {
+            return null;
+        }
+        if (length != file.length()) {
+            // error
+            return null;
+        }
+        return new String(chars);
     }
-    /**
-     * End Body
-     */
-    private void endBody() {
-        responseContent.append("</body>");
-        responseContent.append("</html>");
+    private String readFileHeader(String filename) {
+        String value = readFile(filename);
+        value = value.replace(REPLACEMENT.XXXLOCALXXX.toString(),
+                Integer.toString(
+                        Configuration.configuration.getLocalTransaction().
+                        getNumberLocalChannel()));
+        value = value.replace(REPLACEMENT.XXXNETWORKXXX.toString(),
+                Integer.toString(
+                        OpenR66SignalHandler.getNbConnection()));
+        value = value.replace(REPLACEMENT.XXXHOSTIDXXX.toString(),
+                Configuration.configuration.HOST_ID);
+        if (authentHttp.isAuthenticated()) {
+            return value.replace(REPLACEMENT.XXXADMINXXX.toString(),
+                authentHttp.getAuth().getUser());
+        } else {
+            return value.replace(REPLACEMENT.XXXADMINXXX.toString(),
+                    "Not authenticated");
+        }
     }
-    /**
-     * Front of Body for valid requests
-     */
-    private void inlineBody() {
-        responseContent.append("<table border=\"0\">");
-        responseContent.append("<tr>");
-        responseContent.append("<td>");
-        responseContent.append("<A href='/'><h2>OpenR66 Administration Page: ");
-        responseContent.append(authentHttp.getAuth().getUser());
-        responseContent.append(" on ");
-        responseContent.append(request.getHeader(HttpHeaders.Names.HOST));
-        responseContent.append("</h2></A>");
-        responseContent.append("</td>");
-        responseContent.append("<td>");
-        responseContent.append("</td>");
-        responseContent.append("</tr>\r\n");
-        responseContent.append("<tr>");
-        responseContent.append("<td>"+(new Date()).toString());
-        responseContent.append("</td>");
-        responseContent.append("</tr>\r\n");
-        responseContent.append("<tr>");
-        responseContent.append("<td>");
-        // Add number of connections
-        responseContent.append("Number of local active connections: "+
-                Configuration.configuration.getLocalTransaction().getNumberLocalChannel());
-        responseContent.append("</td>");
-        responseContent.append("<td>");
-        // Add number of connections
-        responseContent.append("Number of network active connections: "+
-                OpenR66SignalHandler.getNbConnection());
-        responseContent.append("</td>");
-        responseContent.append("</tr>");
-        responseContent.append("</table>\r\n");
-        responseContent.append("<CENTER><HR WIDTH=\"75%\" NOSHADE color=\"blue\"></CENTER>");
-    }
-    /**
-     * Create Menu
-     */
-    private void createMenu() {
-        header();
-        inlineBody();
-        responseContent.append("<table border=\"0\">");
-        responseContent.append("<tr>");
-        responseContent.append("<td>");
-        responseContent.append("You must fill all of the following fields.");
-        responseContent.append("</td>");
-        responseContent.append("</tr>");
-        responseContent.append("</table>\r\n");
 
-        responseContent.append("<CENTER><HR WIDTH=\"75%\" NOSHADE color=\"blue\"></CENTER>");
-        responseContent.append("<A HREF='/active'>Active Runners</A><BR>");
-        responseContent.append("<A HREF='/error'>Error Runners</A><BR>");
-        responseContent.append("<A HREF='/done'>Done Runners</A><BR>");
-        responseContent.append("<A HREF='/all'>All Runners</A><BR>");
-        responseContent.append("<FORM ACTION=\""+uriRequest+"\" METHOD=\"GET\">");
-        responseContent.append("<input type=hidden name="+sCOMMAND+" value=\"GET\">");
-        responseContent.append("<table border=\"0\">");
-        responseContent.append("<tr><td>One Choice 0=Active 1=Error 2=Done 3=All: <br> <input type=text name=\""+sINFO+"\" size=1></td></tr>");
-        responseContent.append("<tr><td>Number of runners (0 for all): <br> <input type=text name=\""+sNB+"\" size=5>");
-        responseContent.append("</td></tr>");
-        responseContent.append("<tr><td><INPUT TYPE=\"submit\" NAME=\"Send\" VALUE=\"Send\"></INPUT></td>");
-        responseContent.append("<td><INPUT TYPE=\"reset\" NAME=\"Clear\" VALUE=\"Clear\" ></INPUT></td></tr>");
-        responseContent.append("</table></FORM>\r\n");
-        responseContent.append("<CENTER><HR WIDTH=\"75%\" NOSHADE color=\"blue\"></CENTER>");
-        endBody();
+    private String index() {
+        String index = readFileHeader("src/main/admin/index.html");
+        index = index.replaceAll(REPLACEMENT.XXXHOSTIDXXX.toString(),
+                Configuration.configuration.HOST_ID);
+        return index.replaceAll(REPLACEMENT.XXXADMINXXX.toString(),
+                authentHttp.getAuth().getUser());
     }
-    @Override
-    public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
-            HttpRequest request = this.request = (HttpRequest) e.getMessage();
-            QueryStringDecoder queryStringDecoder = new QueryStringDecoder(request.getUri());
-            uriRequest = queryStringDecoder.getPath();
-            char cval = 'z';
-            if (! authentHttp.isAuthenticated()) {
-                Map<String, List<String>> params = null;
-                if (request.getMethod() == HttpMethod.GET) {
-                    params = queryStringDecoder.getParameters();
-                } else if (request.getMethod() == HttpMethod.POST) {
-                    ChannelBuffer content = request.getContent();
-                    if (content.readable()) {
-                        String param = content.toString("UTF-8");
-                        queryStringDecoder = new QueryStringDecoder("/?"+param);
-                    } else {
-                        createMenu();
-                        writeResponse(e.getChannel());
-                        return;
-                    }
-                    params = queryStringDecoder.getParameters();
+    private String error(String mesg) {
+        String index = readFileHeader("src/main/admin/error.html");
+        return index.replaceAll(REPLACEMENT.XXXERRORMESGXXX.toString(),
+                mesg);
+    }
+    private String Logon() {
+        return readFileHeader("src/main/admin/Logon.html");
+    }
+    private String Transfers() {
+        return readFileHeader("src/main/admin/Transfers.html");
+    }
+
+    private String resetOptionTransfer(String header,
+            String start, String stop, String rule, String req,
+            boolean pending, boolean transfer, boolean error, boolean done, boolean all) {
+        String value = header.replace("XXXSTARTXXX", start);
+        value = value.replace("XXXSTOPXXX", stop);
+        value = value.replace("XXXRULEXXX", rule);
+        value = value.replace("XXXREQXXX", req);
+        value = value.replace("XXXPENDXXX", pending ? "checked":"");
+        value = value.replace("XXXTRANSXXX", transfer ? "checked":"");
+        value = value.replace("XXXERRXXX", error ? "checked":"");
+        value = value.replace("XXXDONEXXX", done ? "checked":"");
+        value = value.replace("XXXALLXXX", all ? "checked":"");
+        return value;
+    }
+    private String Listing() {
+        getParams();
+        if (params == null) {
+            String head = readFileHeader("src/main/admin/Listing_head.html");
+            head = resetOptionTransfer(head, "", "", "", "",
+                    false, false, false, false, true);
+            String end = readFile("src/main/admin/Listing_end.html");
+            return head+end;
+        }
+        String head = readFileHeader("src/main/admin/Listing_head.html");
+        String body0, body, body1;
+        body0 = body1 = body = "";
+        List<String> parms = params.get("ACTION");
+        if (parms != null) {
+            body0 = readFile("src/main/admin/Listing_body0.html");
+            String parm = parms.get(0);
+            if ("Filter".equalsIgnoreCase(parm)) {
+                String start = params.get("start").get(0);
+                String stop = params.get("stop").get(0);
+                String rule = params.get("rule").get(0).trim();
+                if (rule.length() == 0) {
+                    rule = null;
                 }
-                boolean getMenu = true;
-                String name = null, password = null;
-                if (!params.isEmpty()) {
-                    // if not uri, from get or post
-                    if (getMenu && params.containsKey(sAUTHENT)) {
-                        List<String> values = params.get(sAUTHENT);
-                        if (values != null && params.get(sAUTHENT).get(0).equals("POST")) {
-                            // get values
-                            if (params.containsKey(sNAME)) {
-                                values = params.get(sNAME);
-                                if (values != null) {
-                                    name = values.get(0);
-                                    if (name == null || name.length() == 0) {
-                                        getMenu = true;
-                                    } else {
-                                        getMenu = false;
-                                    }
-                                }
-                            }
+                String req = params.get("req").get(0).trim();
+                if (req.length() == 0) {
+                    req = null;
+                }
+                boolean pending, transfer, error, done, all;
+                pending = params.containsKey("pending");
+                transfer = params.containsKey("transfer");
+                error = params.containsKey("error");
+                done = params.containsKey("done");
+                all = params.containsKey("all");
+                if (pending && transfer && error && done) {
+                    all = true;
+                } else if (!(pending || transfer || error || done)) {
+                    all = true;
+                }
+                head = resetOptionTransfer(head, start, stop,
+                        rule == null ? "":rule, req == null ? "":req,
+                        pending, transfer, error, done, all);
+                SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+                Timestamp tstart = null;
+                start = start.replaceAll("/|:|\\.| |-", "");
+                if (start.length() > 0) {
+                    try {
+                        Date dstart = format.parse(start);
+                        tstart = new Timestamp(dstart.getTime());
+                    } catch (ParseException e) {
+                    }
+                }
+                Timestamp tstop = null;
+                stop = stop.replaceAll("/|:|\\.| |-", "");
+                if (stop.length() > 0) {
+                    try {
+                        Date dstop = format.parse(stop);
+                        tstop = new Timestamp(dstop.getTime());
+                    } catch (ParseException e) {
+                    }
+                }
+                body = readFile("src/main/admin/Listing_body.html");
+                DbPreparedStatement preparedStatement;
+                try {
+                    preparedStatement =
+                        DbTaskRunner.getFilterPrepareStament(dbSession,
+                                tstart, tstop, rule, req, pending, transfer, error, done, all);
+                    preparedStatement.executeQuery();
+                    StringBuilder builder = new StringBuilder();
+                    int i = 0;
+                    while (preparedStatement.getNext()) {
+                        i++;
+                        DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatement);
+                        builder.append(taskRunner.toSpecializedHtml(authentHttp, body));
+                        if (i > 200) {
+                            break;
                         }
                     }
-                    // search the nb param
-                    if (params.containsKey(sPASSWORD)) {
-                        List<String> values = params.get(sPASSWORD);
-                        if (values != null) {
-                            password = values.get(0);
-                            if (password == null || password.length() == 0) {
-                                getMenu = true;
-                            } else {
-                                getMenu = false;
-                            }
-                        }
-                    }
+                    preparedStatement.realClose();
+                    body = builder.toString();
+                } catch (OpenR66DatabaseException e) {
+                    logger.warn("OpenR66 Web Error",e);
                 }
-                if (! getMenu) {
-                    authentHttp.getAuth().connection(dbSession, name, password.getBytes());
-                    if (! authentHttp.isAuthenticated()) {
-                        getMenu = true;
-                    }
-                }
-                if (getMenu) {
-                    createLogon();
-                } else {
-                    createMenu();
-                }
-                writeResponse(e.getChannel());
-                return;
-            }
-            // check the URI
-            if (uriRequest.equalsIgnoreCase("/active")) {
-                cval = '0';
-            } else if (uriRequest.equalsIgnoreCase("/error")) {
-                cval = '1';
-            } else if (uriRequest.equalsIgnoreCase("/done")) {
-                cval = '2';
-            } else if (uriRequest.equalsIgnoreCase("/all")) {
-                cval = '3';
-            }
-            // Get the params according to get or post
-            Map<String, List<String>> params = null;
-            if (request.getMethod() == HttpMethod.GET) {
-                params = queryStringDecoder.getParameters();
-            } else if (request.getMethod() == HttpMethod.POST) {
-                ChannelBuffer content = request.getContent();
-                if (content.readable()) {
-                    String param = content.toString("UTF-8");
-                    queryStringDecoder = new QueryStringDecoder("/?"+param);
-                } else {
-                    createMenu();
-                    writeResponse(e.getChannel());
-                    return;
-                }
-                params = queryStringDecoder.getParameters();
-            }
-            int nb = 100;
-            boolean getMenu = (cval == 'z');
-            String value = null;
-            if (!params.isEmpty()) {
-                // if not uri, from get or post
-                if (getMenu && params.containsKey(sCOMMAND)) {
-                    List<String> values = params.get(sCOMMAND);
-                    if (values != null && params.get(sCOMMAND).get(0).equals("GET")) {
-                        // get values
-                        if (params.containsKey(sINFO)) {
-                            values = params.get(sINFO);
-                            if (values != null) {
-                                value = values.get(0);
-                                if (value == null || value.length() == 0) {
-                                    getMenu = true;
-                                } else {
-                                    getMenu = false;
-                                    cval = value.charAt(0);
-                                }
-                            }
-                        }
-                    }
-                }
-                // search the nb param
-                if (params.containsKey(sNB)) {
-                    List<String> values = params.get(sNB);
-                    if (values != null) {
-                        value = values.get(0);
-                        if (value != null && value.length() != 0) {
-                            nb = Integer.parseInt(value);
-                        }
-                    }
-                }
-            }
-            if (getMenu) {
-                createMenu();
             } else {
-                // Use value 0=Active 1=Error 2=Done 3=All
-                switch (cval) {
-                    case '0':
-                        active(ctx, nb);
-                        break;
-                    case '1':
-                        error(ctx, nb);
-                        break;
-                    case '2':
-                        done(ctx, nb);
-                        break;
-                    case '3':
-                        all(ctx, nb);
-                        break;
-                    default:
-                        createMenu();
+                head = resetOptionTransfer(head, "", "", "", "",
+                        false, false, false, false, true);
+            }
+            body1 = readFile("src/main/admin/Listing_body1.html");
+        } else {
+            head = resetOptionTransfer(head, "", "", "", "",
+                    false, false, false, false, true);
+        }
+        String end = readFile("src/main/admin/Listing_end.html");
+        return head+body0+body+body1+end;
+    }
+    private String CancelRestart() {
+        getParams();
+        if (params == null) {
+            String head = readFileHeader("src/main/admin/CancelRestart_head.html");
+            head = resetOptionTransfer(head, "", "", "", "",
+                    false, false, false, false, true);
+            String end = readFile("src/main/admin/CancelRestart_end.html");
+            return head+end;
+        }
+        String head = readFileHeader("src/main/admin/CancelRestart_head.html");
+        String body0, body, body1;
+        body0 = body1 = body = "";
+        List<String> parms = params.get("ACTION");
+        if (parms != null) {
+            body0 = readFile("src/main/admin/CancelRestart_body0.html");
+            String parm = parms.get(0);
+            if ("Filter".equalsIgnoreCase(parm)) {
+                String start = params.get("start").get(0);
+                String stop = params.get("stop").get(0);
+                String rule = params.get("rule").get(0).trim();
+                if (rule.length() == 0) {
+                    rule = null;
+                }
+                String req = params.get("req").get(0).trim();
+                if (req.length() == 0) {
+                    req = null;
+                }
+                boolean pending, transfer, error, done, all;
+                pending = params.containsKey("pending");
+                transfer = params.containsKey("transfer");
+                error = params.containsKey("error");
+                done = params.containsKey("done");
+                all = params.containsKey("all");
+                if (pending && transfer && error && done) {
+                    all = true;
+                } else if (!(pending || transfer || error || done)) {
+                    all = true;
+                }
+                head = resetOptionTransfer(head, start, stop,
+                        rule == null ? "":rule, req == null ? "":req,
+                        pending, transfer, error, done, all);
+                SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+                Timestamp tstart = null;
+                start = start.replaceAll("/|:|\\.| |-", "");
+                if (start.length() > 0) {
+                    try {
+                        Date dstart = format.parse(start);
+                        tstart = new Timestamp(dstart.getTime());
+                    } catch (ParseException e) {
+                    }
+                }
+                Timestamp tstop = null;
+                stop = stop.replaceAll("/|:|\\.| |-", "");
+                if (stop.length() > 0) {
+                    try {
+                        Date dstop = format.parse(stop);
+                        tstop = new Timestamp(dstop.getTime());
+                    } catch (ParseException e) {
+                    }
+                }
+                body = readFile("src/main/admin/CancelRestart_body.html");
+                DbPreparedStatement preparedStatement;
+                try {
+                    preparedStatement =
+                        DbTaskRunner.getFilterPrepareStament(dbSession,
+                                tstart, tstop, rule, req, pending, transfer, error, done, all);
+                    preparedStatement.executeQuery();
+                    StringBuilder builder = new StringBuilder();
+                    int i = 0;
+                    while (preparedStatement.getNext()) {
+                        i++;
+                        DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatement);
+                        builder.append(taskRunner.toSpecializedHtml(authentHttp, body));
+                        if (i > 200) {
+                            break;
+                        }
+                    }
+                    preparedStatement.realClose();
+                    body = builder.toString();
+                } catch (OpenR66DatabaseException e) {
+                    logger.warn("OpenR66 Web Error",e);
+                }
+                body1 = readFile("src/main/admin/CancelRestart_body1.html");
+            } else if ("Cancel".equalsIgnoreCase(parm) || "Stop".equalsIgnoreCase(parm)) {
+                // Cancel or Stop
+                boolean stop = "Stop".equalsIgnoreCase(parm);
+                String specid = params.get("specid").get(0);
+                String reqd = params.get("reqd").get(0);
+                String reqr = params.get("reqr").get(0);
+                LocalChannelReference lcr =
+                    Configuration.configuration.getLocalTransaction().
+                    getFromRequest(reqd+" "+reqr+" "+specid);
+                // stop the current transfer
+                ErrorCode result;
+                if (lcr != null) {
+                    ErrorCode code = (stop) ?
+                            ErrorCode.StoppedTransfer : ErrorCode.CanceledTransfer;
+                    ErrorPacket error = new ErrorPacket("Transfer Stopped",
+                            code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                    try {
+                        ChannelUtils.writeAbstractLocalPacket(lcr, error).awaitUninterruptibly();
+                    } catch (OpenR66ProtocolPacketException e) {
+                    }
+                    ChannelUtils.close(lcr.getLocalChannel());
+                    result = ErrorCode.CompleteOk;
+                } else {
+                    // Transfer is not running
+                    result = ErrorCode.TransferOk;
+                }
+                long lspecid = Long.parseLong(specid);
+                DbTaskRunner taskRunner;
+                try {
+                    taskRunner = new DbTaskRunner(dbSession, authentHttp, null,
+                            lspecid, reqr, reqd);
+                    body = readFile("src/main/admin/CancelRestart_body.html");
+                    body = taskRunner.toSpecializedHtml(authentHttp, body);
+                    String tstart = taskRunner.getStart().toString();
+                    tstart = tstart.substring(0, tstart.length()-4);
+                    String tstop = taskRunner.getStop().toString();
+                    tstop = tstop.substring(0, tstop.length()-4);
+                    head = resetOptionTransfer(head, tstart, tstop,
+                            taskRunner.getRuleId(), taskRunner.getRequested(),
+                            false, false, false, false, true);
+                } catch (OpenR66DatabaseException e) {
+                    body = "";
+                }
+                body1 = readFile("src/main/admin/CancelRestart_body1.html");
+                body1 += "<br><b>"+(result == ErrorCode.CompleteOk ? parm+" transmitted":
+                    parm+" aborted since Transfer is not running")+"</b>";
+            } else if ("Restart".equalsIgnoreCase(parm)) {
+                // Restart
+                String specid = params.get("specid").get(0);
+                String reqd = params.get("reqd").get(0);
+                String reqr = params.get("reqr").get(0);
+                long lspecid = Long.parseLong(specid);
+                DbTaskRunner taskRunner;
+                ErrorCode result;
+                try {
+                    taskRunner = new DbTaskRunner(dbSession, authentHttp, null,
+                            lspecid, reqr, reqd);
+                    if (taskRunner.restart()) {
+                        result = ErrorCode.Running;
+                    } else {
+                        result = ErrorCode.Warning;
+                    }
+                    body = readFile("src/main/admin/CancelRestart_body.html");
+                    body = taskRunner.toSpecializedHtml(authentHttp, body);
+                    String tstart = taskRunner.getStart().toString();
+                    tstart = tstart.substring(0, tstart.length()-4);
+                    String tstop = taskRunner.getStop().toString();
+                    tstop = tstop.substring(0, tstop.length()-4);
+                    head = resetOptionTransfer(head, tstart, tstop,
+                            taskRunner.getRuleId(), taskRunner.getRequested(),
+                            false, false, false, false, true);
+                } catch (OpenR66DatabaseException e) {
+                    body = "";
+                    result = ErrorCode.Warning;
+                }
+                body1 = readFile("src/main/admin/CancelRestart_body1.html");
+                body1 += "<br><b>"+(result == ErrorCode.Running ? "Restart transmitted": "Transfer is not restartable since completely done")+"</b>";
+            } else {
+                head = resetOptionTransfer(head, "", "", "", "",
+                        false, false, false, false, true);
+            }
+        } else {
+            head = resetOptionTransfer(head, "", "", "", "",
+                    false, false, false, false, true);
+        }
+        String end = readFile("src/main/admin/CancelRestart_end.html");
+        return head+body0+body+body1+end;
+    }
+    private String Export() {
+        getParams();
+        if (params == null) {
+            String body = readFileHeader("src/main/admin/Export.html");
+            body = resetOptionTransfer(body, "", "", "", "",
+                    false, false, false, false, true);
+            return body.replace("XXXRESULTXXX", "");
+        }
+        String body = readFileHeader("src/main/admin/Export.html");
+        String start = params.get("start").get(0);
+        String stop = params.get("stop").get(0);
+        String rule = params.get("rule").get(0).trim();
+        if (rule.length() == 0) {
+            rule = null;
+        }
+        String req = params.get("req").get(0).trim();
+        if (req.length() == 0) {
+            req = null;
+        }
+        boolean pending, transfer, error, done, all;
+        pending = params.containsKey("pending");
+        transfer = params.containsKey("transfer");
+        error = params.containsKey("error");
+        done = params.containsKey("done");
+        all = params.containsKey("all");
+        boolean toPurge = params.containsKey("purge");
+        if (pending && transfer && error && done) {
+            all = true;
+        } else if (!(pending || transfer || error || done)) {
+            all = true;
+        }
+        body = resetOptionTransfer(body, start, stop,
+                rule == null ? "":rule, req == null ? "":req,
+                pending, transfer, error, done, all);
+        SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+        Timestamp tstart = null;
+        start = start.replaceAll("/|:|\\.| |-", "");
+        if (start.length() > 0) {
+            try {
+                Date dstart = format.parse(start);
+                tstart = new Timestamp(dstart.getTime());
+            } catch (ParseException e) {
+            }
+        }
+        Timestamp tstop = null;
+        stop = stop.replaceAll("/|:|\\.| |-", "");
+        if (stop.length() > 0) {
+            try {
+                Date dstop = format.parse(stop);
+                tstop = new Timestamp(dstop.getTime());
+            } catch (ParseException e) {
+            }
+        }
+        boolean isexported = true;
+        // create export of log and optionally purge them from database
+        DbPreparedStatement getValid = null;
+        Document document = null;
+        try {
+            getValid =
+                DbTaskRunner.getLogPrepareStament(dbSession,
+                        tstart, tstop);
+            document = DbTaskRunner.writeXML(getValid);
+        } catch (OpenR66DatabaseNoConnectionError e1) {
+            isexported = false;
+        } catch (OpenR66DatabaseSqlError e1) {
+            isexported = false;
+        } finally {
+            if (getValid != null) {
+                getValid.realClose();
+            }
+        }
+        String filename = null;
+        int nb = 0;
+        if (isexported) {
+            filename = Configuration.configuration.baseDirectory+
+                Configuration.configuration.archivePath+R66Dir.SEPARATOR+
+                Configuration.configuration.HOST_ID+"_"+System.currentTimeMillis()+
+                "_runners.xml";
+            try {
+                FileUtils.writeXML(filename, null, document);
+            } catch (OpenR66ProtocolSystemException e1) {
+                toPurge = false;
+                isexported = false;
+            }
+            // in case of purge
+            if (isexported && toPurge) {
+                // purge in same interval all runners with globallaststep
+                // as ALLDONETASK or ERRORTASK
+                try {
+                    nb = DbTaskRunner.purgeLogPrepareStament(
+                            dbSession, tstart, tstop);
+                } catch (OpenR66DatabaseNoConnectionError e) {
+                } catch (OpenR66DatabaseSqlError e) {
                 }
             }
-            writeResponse(e.getChannel());
+        }
+        return body.replace("XXXRESULTXXX", "Export "+(isexported?"successful into "+
+                filename+" with "+nb+" purged records":"in error"));
     }
-    /**
-     * Add all runners from preparedStatement for type
-     * @param preparedStatement
-     * @param type
-     * @param nb
-     * @throws OpenR66DatabaseNoConnectionError
-     * @throws OpenR66DatabaseSqlError
-     */
-    private void addRunners(DbPreparedStatement preparedStatement, String type, int nb)
-        throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
-        preparedStatement.executeQuery();
-        responseContent.append("<style>td{font-size: 8pt;}</style><table border=\"2\">");
-        responseContent.append("<tr><td>");
-        responseContent.append(type);
-        responseContent.append("</td>");
-        responseContent.append(DbTaskRunner.headerHtml());
-        responseContent.append("</tr>\r\n");
-        int i = 0;
-        while (preparedStatement.getNext()) {
-            DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatement);
-            responseContent.append("<tr><td>*</td>");
-            responseContent.append(taskRunner.toHtml(authentHttp));
-            responseContent.append("</tr>\r\n");
-            if (nb > 0) {
+    private String resetOptionHosts(String header,
+            String host, String addr, boolean ssl) {
+        String value = header.replace("XXXFHOSTXXX", host);
+        value = value.replace("XXXFADDRXXX", addr);
+        value = value.replace("XXXFSSLXXX", ssl ? "checked":"");
+        return value;
+    }
+    private String Hosts() {
+        getParams();
+        String head = readFileHeader("src/main/admin/Hosts_head.html");
+        String end = readFile("src/main/admin/Hosts_end.html");
+        if (params == null) {
+            head = resetOptionHosts(head, "", "", false);
+            return head+end;
+        }
+        String body0, body, body1;
+        body0 = body1 = body = "";
+        List<String> parms = params.get("ACTION");
+        if (parms != null) {
+            body0 = readFile("src/main/admin/Hosts_body0.html");
+            String parm = parms.get(0);
+            if ("Create".equalsIgnoreCase(parm)) {
+                String host = params.get("host").get(0).trim();
+                if (host.length() == 0) {
+                    host = null;
+                }
+                String addr = params.get("address").get(0).trim();
+                if (addr.length() == 0) {
+                    addr = null;
+                }
+                String port = params.get("port").get(0).trim();
+                if (port.length() == 0) {
+                    port = null;
+                }
+                String key = params.get("hostkey").get(0);
+                if (key.length() == 0) {
+                    key = null;
+                }
+                boolean ssl, admin;
+                ssl = params.containsKey("ssl");
+                admin = params.containsKey("admin");
+                if (host == null || addr == null || port == null || key == null) {
+                    body0 = body1 = body = "";
+                    body = "<p><center><b>Not enough data to create a Host</b></center></p>";
+                    head = resetOptionHosts(head, "", "", false);
+                    return head+body0+body+body1+end;
+                }
+                head = resetOptionHosts(head, host, addr, ssl);
+                int iport = Integer.parseInt(port);
+                DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
+                        ssl, key.getBytes(), admin);
+                try {
+                    dbhost.insert();
+                } catch (OpenR66DatabaseException e) {
+                    body0 = body1 = body = "";
+                    body = "<p><center><b>Cannot create a Host: "+e.getMessage()+"</b></center></p>";
+                    head = resetOptionHosts(head, "", "", false);
+                    return head+body0+body+body1+end;
+                }
+                body = readFile("src/main/admin/Hosts_body.html");
+                body = dbhost.toSpecializedHtml(authentHttp, body);
+            } else if ("Filter".equalsIgnoreCase(parm)) {
+                String host = params.get("host").get(0).trim();
+                if (host.length() == 0) {
+                    host = null;
+                }
+                String addr = params.get("address").get(0).trim();
+                if (addr.length() == 0) {
+                    addr = null;
+                }
+                boolean ssl = params.containsKey("ssl");
+                head = resetOptionHosts(head, host == null ? "":host,
+                        addr == null ? "":addr, ssl);
+                body = readFile("src/main/admin/Hosts_body.html");
+                DbPreparedStatement preparedStatement;
+                try {
+                    preparedStatement =
+                        DbHostAuth.getFilterPrepareStament(dbSession,
+                                host, addr, ssl);
+                    preparedStatement.executeQuery();
+                    StringBuilder builder = new StringBuilder();
+                    int i = 0;
+                    while (preparedStatement.getNext()) {
+                        i++;
+                        DbHostAuth dbhost = DbHostAuth.getFromStatement(preparedStatement);
+                        builder.append(dbhost.toSpecializedHtml(authentHttp, body));
+                        if (i > 200) {
+                            break;
+                        }
+                    }
+                    preparedStatement.realClose();
+                    body = builder.toString();
+                } catch (OpenR66DatabaseException e) {
+                    logger.warn("OpenR66 Web Error",e);
+                }
+                body1 = readFile("src/main/admin/Hosts_body1.html");
+            } else if ("Update".equalsIgnoreCase(parm)) {
+                String host = params.get("host").get(0).trim();
+                if (host.length() == 0) {
+                    host = null;
+                }
+                String addr = params.get("address").get(0).trim();
+                if (addr.length() == 0) {
+                    addr = null;
+                }
+                String port = params.get("port").get(0).trim();
+                if (port.length() == 0) {
+                    port = null;
+                }
+                String key = params.get("hostkey").get(0);
+                if (key.length() == 0) {
+                    key = null;
+                }
+                boolean ssl, admin;
+                ssl = params.containsKey("ssl");
+                admin = params.containsKey("admin");
+                if (host == null || addr == null || port == null || key == null) {
+                    body0 = body1 = body = "";
+                    body = "<p><center><b>Not enough data to update a Host</b></center></p>";
+                    head = resetOptionHosts(head, "", "", false);
+                    return head+body0+body+body1+end;
+                }
+                head = resetOptionHosts(head, host, addr, ssl);
+                int iport = Integer.parseInt(port);
+                DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
+                        ssl, key.getBytes(), admin);
+                try {
+                    if (dbhost.exist()) {
+                        dbhost.update();
+                    } else {
+                        dbhost.insert();
+                    }
+                } catch (OpenR66DatabaseException e) {
+                    body0 = body1 = body = "";
+                    body = "<p><center><b>Cannot update a Host: "+e.getMessage()+"</b></center></p>";
+                    head = resetOptionHosts(head, "", "", false);
+                    return head+body0+body+body1+end;
+                }
+                body = readFile("src/main/admin/Hosts_body.html");
+                body = dbhost.toSpecializedHtml(authentHttp, body);
+            } else if ("Delete".equalsIgnoreCase(parm)) {
+                String host = params.get("host").get(0).trim();
+                if (host.length() == 0) {
+                    body0 = body1 = body = "";
+                    body = "<p><center><b>Not enough data to delete a Host</b></center></p>";
+                    head = resetOptionHosts(head, "", "", false);
+                    return head+body0+body+body1+end;
+                }
+                DbHostAuth dbhost;
+                try {
+                    dbhost = new DbHostAuth(dbSession, host);
+                } catch (OpenR66DatabaseException e) {
+                    body0 = body1 = body = "";
+                    body = "<p><center><b>Cannot delete a Host: "+e.getMessage()+"</b></center></p>";
+                    head = resetOptionHosts(head, "", "", false);
+                    return head+body0+body+body1+end;
+                }
+                try {
+                    dbhost.delete();
+                } catch (OpenR66DatabaseException e) {
+                    body0 = body1 = body = "";
+                    body = "<p><center><b>Cannot delete a Host: "+e.getMessage()+"</b></center></p>";
+                    head = resetOptionHosts(head, "", "", false);
+                    return head+body0+body+body1+end;
+                }
+                body0 = body1 = body = "";
+                body = "<p><center><b>Deleted Host: "+host+"</b></center></p>";
+                head = resetOptionHosts(head, "", "", false);
+                return head+body0+body+body1+end;
+            } else {
+                head = resetOptionHosts(head, "", "", false);
+            }
+            body1 = readFile("src/main/admin/Hosts_body1.html");
+        } else {
+            head = resetOptionHosts(head, "", "", false);
+        }
+        return head+body0+body+body1+end;
+    }
+    private void createExport(String body, StringBuilder builder, String rule, int mode, int limit) {
+        DbPreparedStatement preparedStatement;
+        try {
+            preparedStatement =
+                DbRule.getFilterPrepareStament(dbSession,
+                        rule, mode);
+            preparedStatement.executeQuery();
+            int i = 0;
+            while (preparedStatement.getNext()) {
                 i++;
-                if (i >= nb) {
+                DbRule dbrule = DbRule.getFromStatement(preparedStatement);
+                builder.append(dbrule.toSpecializedHtml(authentHttp, body));
+                if (i > limit) {
                     break;
                 }
             }
-        }
-        responseContent.append("</table><br>\r\n");
-    }
-    /**
-     * print all active transfers
-     * @param ctx
-     * @param nb
-     */
-    private void active(ChannelHandlerContext ctx, int nb) {
-        header();
-        inlineBody();
-        DbPreparedStatement preparedStatement;
-        try {
-            preparedStatement =
-                DbTaskRunner.getStatusPrepareStament(dbSession, ErrorCode.InitOk);
-            addRunners(preparedStatement, ErrorCode.InitOk.mesg,nb);
-            preparedStatement.realClose();
-            preparedStatement =
-                DbTaskRunner.getStatusPrepareStament(dbSession, ErrorCode.PreProcessingOk);
-            addRunners(preparedStatement, ErrorCode.PreProcessingOk.mesg, nb);
-            preparedStatement.realClose();
-            preparedStatement =
-                DbTaskRunner.getStatusPrepareStament(dbSession, ErrorCode.TransferOk);
-            addRunners(preparedStatement, ErrorCode.TransferOk.mesg, nb);
-            preparedStatement.realClose();
-            preparedStatement =
-                DbTaskRunner.getStatusPrepareStament(dbSession, ErrorCode.PostProcessingOk);
-            addRunners(preparedStatement, ErrorCode.PostProcessingOk.mesg, nb);
-            preparedStatement.realClose();
-            preparedStatement =
-                DbTaskRunner.getStatusPrepareStament(dbSession, ErrorCode.Running);
-            addRunners(preparedStatement, ErrorCode.Running.mesg, nb);
             preparedStatement.realClose();
         } catch (OpenR66DatabaseException e) {
             logger.warn("OpenR66 Web Error",e);
-            sendError(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE);
-            return;
         }
-        endBody();
     }
-    /**
-     * print all transfers in error
-     * @param ctx
-     * @param nb
-     */
-    private void error(ChannelHandlerContext ctx, int nb) {
-        header();
-        inlineBody();
-        DbPreparedStatement preparedStatement;
-        try {
-            preparedStatement =
-                DbTaskRunner.getStepPrepareStament(dbSession, TASKSTEP.ERRORTASK);
-            addRunners(preparedStatement, TASKSTEP.ERRORTASK.name(), nb);
-            preparedStatement.realClose();
-        } catch (OpenR66DatabaseException e) {
-            logger.warn("OpenR66 Web Error",e);
-            sendError(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE);
-            return;
+    private String resetOptionRules(String header,
+            String rule, RequestPacket.TRANSFERMODE mode, int gmode) {
+        String line = header.replace("XXXRULEXXX", rule);
+        if (mode != null) {
+            switch (mode) {
+            case RECVMODE:
+                line = line.replace("XXXRECVXXX", "checked");
+                break;
+            case SENDMODE:
+                line = line.replace("XXXSENDXXX", "checked");
+                break;
+            case RECVMD5MODE:
+                line = line.replace("XXXRECVMXXX", "checked");
+                break;
+            case SENDMD5MODE:
+                line = line.replace("XXXSENDMXXX", "checked");
+                break;
+            case RECVTHROUGHMODE:
+                line = line.replace("XXXRECVTXXX", "checked");
+                break;
+            case SENDTHROUGHMODE:
+                line = line.replace("XXXSENDTXXX", "checked");
+                break;
+            case RECVMD5THROUGHMODE:
+                line = line.replace("XXXRECVMTXXX", "checked");
+                break;
+            case SENDMD5THROUGHMODE:
+                line = line.replace("XXXSENDMTXXX", "checked");
+                break;
+            }
         }
-        endBody();
+        if (gmode == -1) {// All Recv
+            line = line.replace("XXXARECVXXX", "checked");
+        } else if (gmode == -2) {// All Send
+            line = line.replace("XXXASENDXXX", "checked");
+        } else if (gmode == -3) {// All
+            line = line.replace("XXXALLXXX", "checked");
+        }
+        return line;
     }
-    /**
-     * Print all done transfers
-     * @param ctx
-     * @param nb
-     */
-    private void done(ChannelHandlerContext ctx, int nb) {
-        header();
-        inlineBody();
-        DbPreparedStatement preparedStatement;
-        try {
-            preparedStatement =
-                DbTaskRunner.getStatusPrepareStament(dbSession, ErrorCode.CompleteOk);
-            addRunners(preparedStatement, ErrorCode.CompleteOk.mesg, nb);
-            preparedStatement.realClose();
-        } catch (OpenR66DatabaseException e) {
-            logger.warn("OpenR66 Web Error",e);
-            sendError(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE);
-            return;
+    private String Rules() {
+        getParams();
+        String head = readFileHeader("src/main/admin/Rules_head.html");
+        String end = readFile("src/main/admin/Rules_end.html");
+        if (params == null) {
+            head = resetOptionRules(head, "", null, -3);
+            return head+end;
         }
-        endBody();
+        String body0, body, body1;
+        body0 = body1 = body = "";
+        List<String> parms = params.get("ACTION");
+        if (parms != null) {
+            body0 = readFile("src/main/admin/Rules_body0.html");
+            String parm = parms.get(0);
+            if ("Create".equalsIgnoreCase(parm)) {
+                String rule = params.get("rule").get(0).trim();
+                if (rule.length() == 0) {
+                    rule = null;
+                }
+                String hostids = params.get("hostids").get(0).trim();
+                if (hostids.length() == 0) {
+                    hostids = null;
+                }
+                String recvp = params.get("recvp").get(0).trim();
+                if (recvp.length() == 0) {
+                    recvp = null;
+                }
+                String sendp = params.get("sendp").get(0).trim();
+                if (sendp.length() == 0) {
+                    sendp = null;
+                }
+                String archp = params.get("archp").get(0).trim();
+                if (archp.length() == 0) {
+                    archp = null;
+                }
+                String workp = params.get("workp").get(0).trim();
+                if (workp.length() == 0) {
+                    workp = null;
+                }
+                String rpre = params.get("rpre").get(0).trim();
+                if (rpre.length() == 0) {
+                    rpre = null;
+                }
+                String rpost = params.get("rpost").get(0).trim();
+                if (rpost.length() == 0) {
+                    rpost = null;
+                }
+                String rerr = params.get("rerr").get(0).trim();
+                if (rerr.length() == 0) {
+                    rerr = null;
+                }
+                String spre = params.get("spre").get(0).trim();
+                if (spre.length() == 0) {
+                    spre = null;
+                }
+                String spost = params.get("spost").get(0).trim();
+                if (spost.length() == 0) {
+                    spost = null;
+                }
+                String serr = params.get("serr").get(0).trim();
+                if (serr.length() == 0) {
+                    serr = null;
+                }
+                String mode = params.get("mode").get(0).trim();
+                if (mode.length() == 0) {
+                    mode = null;
+                }
+                if (rule == null || mode == null) {
+                    body0 = body1 = body = "";
+                    body = "<p><center><b>Not enough data to create a Rule</b></center></p>";
+                    head = resetOptionRules(head, "", null, -3);
+                    return head+body0+body+body1+end;
+                }
+                int gmode = 0;
+
+                TRANSFERMODE tmode = null;
+                if (mode.equals("send")) {
+                    tmode = RequestPacket.TRANSFERMODE.SENDMODE;
+                    gmode= -2;
+                } else if (mode.equals("recv")) {
+                    tmode = RequestPacket.TRANSFERMODE.RECVMODE;
+                    gmode= -1;
+                } else if (mode.equals("sendmd5")) {
+                    tmode = RequestPacket.TRANSFERMODE.SENDMD5MODE;
+                    gmode= -2;
+                } else if (mode.equals("recvmd5")) {
+                    tmode = RequestPacket.TRANSFERMODE.RECVMD5MODE;
+                    gmode= -1;
+                } else if (mode.equals("sendth")) {
+                    tmode = RequestPacket.TRANSFERMODE.SENDTHROUGHMODE;
+                    gmode= -2;
+                } else if (mode.equals("recvth")) {
+                    tmode = RequestPacket.TRANSFERMODE.RECVTHROUGHMODE;
+                    gmode= -1;
+                } else if (mode.equals("sendthmd5")) {
+                    tmode = RequestPacket.TRANSFERMODE.SENDMD5THROUGHMODE;
+                    gmode= -2;
+                } else if (mode.equals("recvthmd5")) {
+                    tmode = RequestPacket.TRANSFERMODE.RECVMD5THROUGHMODE;
+                    gmode= -1;
+                }
+                head = resetOptionRules(head, rule, tmode, gmode);
+                DbRule dbrule = new DbRule(dbSession,rule,hostids,tmode.ordinal(),
+                        recvp,sendp,archp,workp,rpre,rpost,rerr,spre,spost,serr);
+                try {
+                    dbrule.insert();
+                } catch (OpenR66DatabaseException e) {
+                    body0 = body1 = body = "";
+                    body = "<p><center><b>Cannot create a Rule: "+e.getMessage()+"</b></center></p>";
+                    head = resetOptionRules(head, "", null, -3);
+                    return head+body0+body+body1+end;
+                }
+                body = readFile("src/main/admin/Rules_body.html");
+                body = dbrule.toSpecializedHtml(authentHttp, body);
+            } else if ("Filter".equalsIgnoreCase(parm)) {
+                String rule = params.get("rule").get(0).trim();
+                if (rule.length() == 0) {
+                    rule = null;
+                }
+                String mode = params.get("mode").get(0).trim();
+                if (mode.length() == 0) {
+                    mode = null;
+                }
+                TRANSFERMODE tmode;
+                int gmode = 0;
+                if (mode.equals("all")) {
+                    gmode = -3;
+                } else if (mode.equals("send")) {
+                    gmode = -2;
+                } else if (mode.equals("recv")) {
+                    gmode = -1;
+                }
+                head = resetOptionRules(head, rule == null ? "":rule,
+                        null, gmode);
+                body = readFile("src/main/admin/Rules_body.html");
+                StringBuilder builder = new StringBuilder();
+                boolean specific = false;
+                if (params.containsKey("send")) {
+                    tmode = RequestPacket.TRANSFERMODE.SENDMODE;
+                    head = resetOptionRules(head, rule == null ? "":rule,
+                            tmode, gmode);
+                    specific = true;
+                    createExport(body, builder, rule,
+                            RequestPacket.TRANSFERMODE.SENDMODE.ordinal(), 50);
+                }
+                if (params.containsKey("recv")) {
+                    tmode = RequestPacket.TRANSFERMODE.RECVMODE;
+                    head = resetOptionRules(head, rule == null ? "":rule,
+                            tmode, gmode);
+                    specific = true;
+                    createExport(body, builder, rule,
+                            RequestPacket.TRANSFERMODE.RECVMODE.ordinal(), 50);
+                }
+                if (params.containsKey("sendmd5")) {
+                    tmode = RequestPacket.TRANSFERMODE.SENDMD5MODE;
+                    head = resetOptionRules(head, rule == null ? "":rule,
+                            tmode, gmode);
+                    specific = true;
+                    createExport(body, builder, rule,
+                            RequestPacket.TRANSFERMODE.SENDMD5MODE.ordinal(), 50);
+                }
+                if (params.containsKey("recvmd5")) {
+                    tmode = RequestPacket.TRANSFERMODE.RECVMD5MODE;
+                    head = resetOptionRules(head, rule == null ? "":rule,
+                            tmode, gmode);
+                    specific = true;
+                    createExport(body, builder, rule,
+                            RequestPacket.TRANSFERMODE.RECVMD5MODE.ordinal(), 50);
+                }
+                if (params.containsKey("sendth")) {
+                    tmode = RequestPacket.TRANSFERMODE.SENDTHROUGHMODE;
+                    head = resetOptionRules(head, rule == null ? "":rule,
+                            tmode, gmode);
+                    specific = true;
+                    createExport(body, builder, rule,
+                            RequestPacket.TRANSFERMODE.SENDTHROUGHMODE.ordinal(), 50);
+                }
+                if (params.containsKey("recvth")) {
+                    tmode = RequestPacket.TRANSFERMODE.RECVTHROUGHMODE;
+                    head = resetOptionRules(head, rule == null ? "":rule,
+                            tmode, gmode);
+                    specific = true;
+                    createExport(body, builder, rule,
+                            RequestPacket.TRANSFERMODE.RECVTHROUGHMODE.ordinal(), 50);
+                }
+                if (params.containsKey("sendthmd5")) {
+                    tmode = RequestPacket.TRANSFERMODE.SENDMD5THROUGHMODE;
+                    head = resetOptionRules(head, rule == null ? "":rule,
+                            tmode, gmode);
+                    specific = true;
+                    createExport(body, builder, rule,
+                            RequestPacket.TRANSFERMODE.SENDMD5THROUGHMODE.ordinal(), 50);
+                }
+                if (params.containsKey("recvthmd5")) {
+                    tmode = RequestPacket.TRANSFERMODE.RECVMD5THROUGHMODE;
+                    head = resetOptionRules(head, rule == null ? "":rule,
+                            tmode, gmode);
+                    specific = true;
+                    createExport(body, builder, rule,
+                            RequestPacket.TRANSFERMODE.RECVMD5THROUGHMODE.ordinal(), 50);
+                }
+                if (!specific) {
+                    if (gmode == -1) {
+                        //recv
+                        createExport(body, builder, rule,
+                                RequestPacket.TRANSFERMODE.RECVMODE.ordinal(), 50);
+                        createExport(body, builder, rule,
+                                RequestPacket.TRANSFERMODE.RECVMD5MODE.ordinal(), 50);
+                        createExport(body, builder, rule,
+                                RequestPacket.TRANSFERMODE.RECVTHROUGHMODE.ordinal(), 50);
+                        createExport(body, builder, rule,
+                                RequestPacket.TRANSFERMODE.RECVMD5THROUGHMODE.ordinal(), 50);
+                    } else if (gmode == -2) {
+                        //send
+                        createExport(body, builder, rule,
+                                RequestPacket.TRANSFERMODE.SENDMODE.ordinal(), 50);
+                        createExport(body, builder, rule,
+                                RequestPacket.TRANSFERMODE.SENDMD5MODE.ordinal(), 50);
+                        createExport(body, builder, rule,
+                                RequestPacket.TRANSFERMODE.SENDTHROUGHMODE.ordinal(), 50);
+                        createExport(body, builder, rule,
+                                RequestPacket.TRANSFERMODE.SENDMD5THROUGHMODE.ordinal(), 50);
+                    } else {
+                        // all
+                        createExport(body, builder, rule,
+                                -1, 200);
+                    }
+                }
+                body = builder.toString();
+                body1 = readFile("src/main/admin/Rules_body1.html");
+            } else if ("Update".equalsIgnoreCase(parm)) {
+                String rule = params.get("rule").get(0).trim();
+                if (rule.length() == 0) {
+                    rule = null;
+                }
+                String hostids = params.get("hostids").get(0).trim();
+                if (hostids.length() == 0) {
+                    hostids = null;
+                }
+                String recvp = params.get("recvp").get(0).trim();
+                if (recvp.length() == 0) {
+                    recvp = null;
+                }
+                String sendp = params.get("sendp").get(0).trim();
+                if (sendp.length() == 0) {
+                    sendp = null;
+                }
+                String archp = params.get("archp").get(0).trim();
+                if (archp.length() == 0) {
+                    archp = null;
+                }
+                String workp = params.get("workp").get(0).trim();
+                if (workp.length() == 0) {
+                    workp = null;
+                }
+                String rpre = params.get("rpre").get(0).trim();
+                if (rpre.length() == 0) {
+                    rpre = null;
+                }
+                String rpost = params.get("rpost").get(0).trim();
+                if (rpost.length() == 0) {
+                    rpost = null;
+                }
+                String rerr = params.get("rerr").get(0).trim();
+                if (rerr.length() == 0) {
+                    rerr = null;
+                }
+                String spre = params.get("spre").get(0).trim();
+                if (spre.length() == 0) {
+                    spre = null;
+                }
+                String spost = params.get("spost").get(0).trim();
+                if (spost.length() == 0) {
+                    spost = null;
+                }
+                String serr = params.get("serr").get(0).trim();
+                if (serr.length() == 0) {
+                    serr = null;
+                }
+                String mode = params.get("mode").get(0).trim();
+                if (mode.length() == 0) {
+                    mode = null;
+                }
+                if (rule == null || mode == null) {
+                    body0 = body1 = body = "";
+                    body = "<p><center><b>Not enough data to update a Rule</b></center></p>";
+                    head = resetOptionRules(head, "", null, -3);
+                    return head+body0+body+body1+end;
+                }
+                int gmode = 0;
+
+                TRANSFERMODE tmode = null;
+                if (mode.equals("send")) {
+                    tmode = RequestPacket.TRANSFERMODE.SENDMODE;
+                    gmode= -2;
+                } else if (mode.equals("recv")) {
+                    tmode = RequestPacket.TRANSFERMODE.RECVMODE;
+                    gmode= -1;
+                } else if (mode.equals("sendmd5")) {
+                    tmode = RequestPacket.TRANSFERMODE.SENDMD5MODE;
+                    gmode= -2;
+                } else if (mode.equals("recvmd5")) {
+                    tmode = RequestPacket.TRANSFERMODE.RECVMD5MODE;
+                    gmode= -1;
+                } else if (mode.equals("sendth")) {
+                    tmode = RequestPacket.TRANSFERMODE.SENDTHROUGHMODE;
+                    gmode= -2;
+                } else if (mode.equals("recvth")) {
+                    tmode = RequestPacket.TRANSFERMODE.RECVTHROUGHMODE;
+                    gmode= -1;
+                } else if (mode.equals("sendthmd5")) {
+                    tmode = RequestPacket.TRANSFERMODE.SENDMD5THROUGHMODE;
+                    gmode= -2;
+                } else if (mode.equals("recvthmd5")) {
+                    tmode = RequestPacket.TRANSFERMODE.RECVMD5THROUGHMODE;
+                    gmode= -1;
+                }
+                head = resetOptionRules(head, rule, tmode, gmode);
+                DbRule dbrule = new DbRule(dbSession,rule,hostids,tmode.ordinal(),
+                        recvp,sendp,archp,workp,rpre,rpost,rerr,spre,spost,serr);
+                try {
+                    if (dbrule.exist()) {
+                        dbrule.update();
+                    } else {
+                        dbrule.insert();
+                    }
+                } catch (OpenR66DatabaseException e) {
+                    body0 = body1 = body = "";
+                    body = "<p><center><b>Cannot create a Rule: "+e.getMessage()+"</b></center></p>";
+                    head = resetOptionRules(head, "", null, -3);
+                    return head+body0+body+body1+end;
+                }
+                body = readFile("src/main/admin/Rules_body.html");
+                body = dbrule.toSpecializedHtml(authentHttp, body);
+            } else if ("Delete".equalsIgnoreCase(parm)) {
+                String rule = params.get("rule").get(0).trim();
+                if (rule.length() == 0) {
+                    body0 = body1 = body = "";
+                    body = "<p><center><b>Not enough data to delete a Rule</b></center></p>";
+                    head = resetOptionRules(head, "", null, -3);
+                    return head+body0+body+body1+end;
+                }
+                DbRule dbrule;
+                try {
+                    dbrule = new DbRule(dbSession,rule);
+                } catch (OpenR66DatabaseException e) {
+                    body0 = body1 = body = "";
+                    body = "<p><center><b>Cannot delete a Rule: "+e.getMessage()+"</b></center></p>";
+                    head = resetOptionRules(head, "", null, -3);
+                    return head+body0+body+body1+end;
+                }
+                try {
+                    dbrule.delete();
+                } catch (OpenR66DatabaseException e) {
+                    body0 = body1 = body = "";
+                    body = "<p><center><b>Cannot delete a Rule: "+e.getMessage()+"</b></center></p>";
+                    head = resetOptionRules(head, "", null, -3);
+                    return head+body0+body+body1+end;
+                }
+                body0 = body1 = body = "";
+                body = "<p><center><b>Deleted Rule: "+rule+"</b></center></p>";
+                head = resetOptionRules(head, "", null, -3);
+                return head+body0+body+body1+end;
+            } else {
+                head = resetOptionRules(head, "", null, -3);
+            }
+            body1 = readFile("src/main/admin/Rules_body1.html");
+        } else {
+            head = resetOptionRules(head, "", null, -3);
+        }
+        return head+body0+body+body1+end;
     }
+
+    private String System() {
+        getParams();
+        if (params == null) {
+            String system = readFileHeader("src/main/admin/System.html");
+            system = system.replaceFirst(REPLACEMENT.XXXXSESSIONLIMITXXX.toString(),
+                    Long.toString(Configuration.configuration.serverChannelWriteLimit));
+            return system.replaceFirst(REPLACEMENT.XXXXCHANNELLIMITXXX.toString(),
+                    Long.toString(Configuration.configuration.serverGlobalWriteLimit));
+        }
+        if (params.containsKey("ACTION")) {
+            List<String> action = params.get("ACTION");
+            for (String act : action) {
+                if (act.equalsIgnoreCase("Disconnect")) {
+                    String logon = Logon();
+                    newSession = true;
+                    clearSession();
+                    forceClose = true;
+                    return logon;
+                } else if (act.equalsIgnoreCase("Shutdown")) {
+                    String error = error("Shutdown in progress");
+                    newSession = true;
+                    clearSession();
+                    forceClose = true;
+                    shutdown = true;
+                    return error;
+                }
+            }
+        }
+        String system = readFileHeader("src/main/admin/System.html");
+        system = system.replace(REPLACEMENT.XXXXSESSIONLIMITXXX.toString(),
+                Long.toString(Configuration.configuration.serverChannelWriteLimit));
+        return system.replace(REPLACEMENT.XXXXCHANNELLIMITXXX.toString(),
+                Long.toString(Configuration.configuration.serverGlobalWriteLimit));
+    }
+
+    private void getParams() {
+        if (request.getMethod() == HttpMethod.GET) {
+            params = null;
+        } else if (request.getMethod() == HttpMethod.POST) {
+            ChannelBuffer content = request.getContent();
+            if (content.readable()) {
+                String param = content.toString("UTF-8");
+                QueryStringDecoder queryStringDecoder2 = new QueryStringDecoder("/?"+param);
+                params = queryStringDecoder2.getParameters();
+            } else {
+                params = null;
+            }
+        }
+    }
+    private void clearSession() {
+        if (admin != null) {
+            R66Session lsession = sessions.remove(admin.getValue());
+            admin = null;
+            if (lsession != null) {
+                lsession.clear();
+            }
+        }
+    }
+    private void checkAuthent(MessageEvent e) {
+        newSession = true;
+        if (request.getMethod() == HttpMethod.GET) {
+            String logon = Logon();
+            responseContent.append(logon);
+            clearSession();
+            writeResponse(e.getChannel());
+            return;
+        } else if (request.getMethod() == HttpMethod.POST) {
+            getParams();
+            if (params == null) {
+                String logon = Logon();
+                responseContent.append(logon);
+                clearSession();
+                writeResponse(e.getChannel());
+                return;
+            }
+        }
+        boolean getMenu = false;
+        if (params.containsKey("Logon")) {
+            String name = null, password = null;
+            List<String> values = null;
+            if (!params.isEmpty()) {
+                // get values
+                if (params.containsKey("name")) {
+                    values = params.get("name");
+                    if (values != null) {
+                        name = values.get(0);
+                        if (name == null || name.length() == 0) {
+                            getMenu = true;
+                        }
+                    }
+                } else {
+                    getMenu = true;
+                }
+                // search the nb param
+                if ((!getMenu) && params.containsKey("passwd")) {
+                    values = params.get("passwd");
+                    if (values != null) {
+                        password = values.get(0);
+                        if (password == null || password.length() == 0) {
+                            getMenu = true;
+                        } else {
+                            getMenu = false;
+                        }
+                    } else {
+                        getMenu = true;
+                    }
+                } else {
+                    getMenu = true;
+                }
+            } else {
+                getMenu = true;
+            }
+            if (! getMenu) {
+                if (name.equals(Configuration.configuration.ADMINNAME) &&
+                        Arrays.equals(password.getBytes(),
+                                Configuration.configuration.getSERVERADMINKEY())) {
+                    authentHttp.getAuth().specialHttpAuth(true);
+                } else {
+                    getMenu = true;
+                }
+                if (! authentHttp.isAuthenticated()) {
+                    logger.debug("Still not authenticated: {}",authentHttp);
+                    getMenu = true;
+                }
+            }
+        } else {
+            getMenu = true;
+        }
+        if (getMenu) {
+            String logon = Logon();
+            responseContent.append(logon);
+            clearSession();
+            writeResponse(e.getChannel());
+        } else {
+            String index = index();
+            responseContent.append(index);
+            clearSession();
+            admin = new DefaultCookie(R66SESSION, Long.toHexString(new Random().nextLong()));
+            sessions.put(admin.getValue(), this.authentHttp);
+            logger.debug("CreateSession: "+uriRequest+":{}",admin);
+            writeResponse(e.getChannel());
+        }
+    }
+
+    @Override
+    public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
+            HttpRequest request = this.request = (HttpRequest) e.getMessage();
+            queryStringDecoder = new QueryStringDecoder(request.getUri());
+            uriRequest = queryStringDecoder.getPath();
+            if (uriRequest.contains("gre/") || uriRequest.contains("img/") ||
+                    uriRequest.contains("res/")) {
+                writeFile(e.getChannel(), "src/main/admin/"+uriRequest);
+                return;
+            }
+            checkSession(e.getChannel());
+            if (! authentHttp.isAuthenticated()) {
+                logger.debug("Not Authent: "+uriRequest+":{}",authentHttp);
+                checkAuthent(e);
+                return;
+            }
+            String find = uriRequest;
+            if (uriRequest.charAt(0) == '/') {
+                find = uriRequest.substring(1);
+            }
+            find = find.substring(0, find.indexOf("."));
+            REQUEST req = REQUEST.index;
+            try {
+                req = REQUEST.valueOf(find);
+            } catch (IllegalArgumentException e1) {
+                req = REQUEST.index;
+                logger.debug("NotFound: "+find+":"+uriRequest);
+            }
+            switch (req) {
+                case CancelRestart:
+                    responseContent.append(CancelRestart());
+                    break;
+                case Export:
+                    responseContent.append(Export());
+                    break;
+                case Hosts:
+                    responseContent.append(Hosts());
+                    break;
+                case index:
+                    responseContent.append(index());
+                    break;
+                case Listing:
+                    responseContent.append(Listing());
+                    break;
+                case Logon:
+                    responseContent.append(index());
+                    break;
+                case Rules:
+                    responseContent.append(Rules());
+                    break;
+                case System:
+                    responseContent.append(System());
+                    break;
+                case Transfers:
+                    responseContent.append(Transfers());
+                    break;
+                default:
+                    responseContent.append(index());
+                    break;
+            }
+            writeResponse(e.getChannel());
+    }
+
     /**
-     * Print all nb last transfers
-     * @param ctx
-     * @param nb
+     * Write a File
+     * @param e
      */
-    private void all(ChannelHandlerContext ctx, int nb) {
-        header();
-        inlineBody();
-        DbPreparedStatement preparedStatement;
+    private void writeFile(Channel channel, String filename) {
+        // Convert the response content to a ChannelBuffer.
+        HttpResponse response;
+        File file = new File(filename);
+        byte [] bytes = new byte[(int) file.length()];
+        FileInputStream fileInputStream;
         try {
-            preparedStatement =
-                DbTaskRunner.getStatusPrepareStament(dbSession, null);// means all
-            addRunners(preparedStatement, "ALL RUNNERS: "+nb, nb);
-            preparedStatement.realClose();
-        } catch (OpenR66DatabaseException e) {
-            logger.warn("OpenR66 Web Error",e);
-            sendError(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE);
+            fileInputStream = new FileInputStream(file);
+        } catch (FileNotFoundException e) {
+            response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
+                    HttpResponseStatus.NOT_FOUND);
+            channel.write(response);
             return;
         }
-        endBody();
+        try {
+            fileInputStream.read(bytes);
+        } catch (IOException e) {
+            response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
+                    HttpResponseStatus.NOT_FOUND);
+            channel.write(response);
+            return;
+        }
+        ChannelBuffer buf = ChannelBuffers.copiedBuffer(bytes);
+        // Build the response object.
+        response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
+                HttpResponseStatus.OK);
+        response.setContent(buf);
+        response.setHeader(HttpHeaders.Names.CONTENT_LENGTH, String.valueOf(buf.readableBytes()));
+        checkSession(channel);
+        handleCookies(response);
+        // Write the response.
+        channel.write(response);
+    }
+    private void checkSession(Channel channel) {
+        String cookieString = request.getHeader(HttpHeaders.Names.COOKIE);
+        if (cookieString != null) {
+            CookieDecoder cookieDecoder = new CookieDecoder();
+            Set<Cookie> cookies = cookieDecoder.decode(cookieString);
+            if(!cookies.isEmpty()) {
+                for (Cookie elt : cookies) {
+                    if (elt.getName().equalsIgnoreCase(R66SESSION)) {
+                        admin = elt;
+                        break;
+                    }
+                }
+            }
+        }
+        if (admin != null) {
+            R66Session session = sessions.get(admin.getValue());
+            if (session != null) {
+                authentHttp = session;
+            }
+            logger.debug("FoundSession: "+uriRequest+":{}",admin);
+        } else {
+            logger.debug("NoSession: "+uriRequest+":{}",admin);
+        }
+    }
+    private void handleCookies(HttpResponse response) {
+        String cookieString = request.getHeader(HttpHeaders.Names.COOKIE);
+        if (cookieString != null) {
+            CookieDecoder cookieDecoder = new CookieDecoder();
+            Set<Cookie> cookies = cookieDecoder.decode(cookieString);
+            if(!cookies.isEmpty()) {
+                // Reset the sessions if necessary.
+                int nb = 0;
+                CookieEncoder cookieEncoder = new CookieEncoder(true);
+                boolean findSession = false;
+                for (Cookie cookie : cookies) {
+                    if (cookie.getName().equalsIgnoreCase(R66SESSION)) {
+                        if (newSession) {
+                            findSession = false;
+                        } else {
+                            findSession = true;
+                            cookieEncoder.addCookie(cookie);
+                            nb++;
+                        }
+                    } else {
+                        cookieEncoder.addCookie(cookie);
+                        nb++;
+                    }
+                }
+                newSession = false;
+                if (! findSession) {
+                    if (admin != null) {
+                        cookieEncoder.addCookie(admin);
+                        nb++;
+                        logger.debug("AddSession: "+uriRequest+":{}",admin);
+                    }
+                }
+                if (nb > 0) {
+                    response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+                }
+            }
+        } else if (admin != null) {
+            CookieEncoder cookieEncoder = new CookieEncoder(true);
+            cookieEncoder.addCookie(admin);
+            logger.debug("AddSession: "+uriRequest+":{}",admin);
+            response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+        }
     }
     /**
      * Write the response
@@ -561,7 +1571,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         boolean close =
             HttpHeaders.Values.CLOSE.equalsIgnoreCase(request.getHeader(HttpHeaders.Names.CONNECTION)) ||
             request.getProtocolVersion().equals(HttpVersion.HTTP_1_0) &&
-            !HttpHeaders.Values.KEEP_ALIVE.equalsIgnoreCase(request.getHeader(HttpHeaders.Names.CONNECTION));
+            !HttpHeaders.Values.KEEP_ALIVE.equalsIgnoreCase(request.getHeader(HttpHeaders.Names.CONNECTION))
+            || forceClose;
 
         // Build the response object.
         HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
@@ -576,26 +1587,19 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             response.setHeader(HttpHeaders.Names.CONTENT_LENGTH, String.valueOf(buf.readableBytes()));
         }
 
-        String cookieString = request.getHeader(HttpHeaders.Names.COOKIE);
-        if (cookieString != null) {
-            CookieDecoder cookieDecoder = new CookieDecoder();
-            Set<Cookie> cookies = cookieDecoder.decode(cookieString);
-            if(!cookies.isEmpty()) {
-                // Reset the cookies if necessary.
-                CookieEncoder cookieEncoder = new CookieEncoder(true);
-                for (Cookie cookie : cookies) {
-                    cookieEncoder.addCookie(cookie);
-                }
-                response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
-            }
-        }
+        handleCookies(response);
 
         // Write the response.
         ChannelFuture future = channel.write(response);
-
+        logger.debug(uriRequest+":"+close+":{}",authentHttp);
         // Close the connection after the write operation is done if necessary.
         if (close) {
             future.addListener(ChannelFutureListener.CLOSE);
+        }
+        if (shutdown) {
+            Thread thread = new Thread(new ChannelUtils());
+            thread.setDaemon(true);
+            thread.start();
         }
     }
     /**
@@ -609,11 +1613,9 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         response.setHeader(
                 HttpHeaders.Names.CONTENT_TYPE, "text/html");
         responseContent.setLength(0);
-        header();
-        responseContent.append("OpenR66 Web Failure: ");
-        responseContent.append(status.toString());
-        endBody();
+        responseContent.append(error(status.toString()));
         response.setContent(ChannelBuffers.copiedBuffer(responseContent.toString(), "UTF-8"));
+        clearSession();
         // Close the connection as soon as the error message is sent.
         ctx.getChannel().write(response).addListener(ChannelFutureListener.CLOSE);
     }
@@ -661,7 +1663,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
     @Override
     public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
-     // Get the SslHandler in the current pipeline.
+        // Get the SslHandler in the current pipeline.
         // We added it in NetworkSslServerPipelineFactory.
         final SslHandler sslHandler = ctx.getPipeline().get(SslHandler.class);
         if (sslHandler != null) {
@@ -706,33 +1708,5 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             logger.warn("Use default database connection");
             this.dbSession = DbConstant.admin.session;
         }
-    }
-    /**
-     * Create Logon Menu
-     */
-    private void createLogon() {
-        header();
-        responseContent.append("<table border=\"0\">");
-        responseContent.append("<tr>");
-        responseContent.append("<td>");
-        responseContent.append("<h1>OpenR66 Administration Page: "+
-                request.getHeader(HttpHeaders.Names.HOST)+"</h1>");
-        responseContent.append("You must fill all of the following fields.");
-        responseContent.append("</td>");
-        responseContent.append("</tr>");
-        responseContent.append("</table>\r\n");
-
-        responseContent.append("<CENTER><HR WIDTH=\"75%\" NOSHADE color=\"blue\"></CENTER>");
-        responseContent.append("<FORM ACTION=\""+uriRequest+"\" METHOD=\"POST\">");
-        responseContent.append("<input type=hidden name="+sAUTHENT+" value=\"POST\">");
-        responseContent.append("<table border=\"0\">");
-        responseContent.append("<tr><td>Name: <br> <input type=text name=\""+sNAME+"\" size=25></td></tr>");
-        responseContent.append("<tr><td>Password: <br> <input type=PASSWORD name=\""+sPASSWORD+"\" size=8>");
-        responseContent.append("</td></tr>");
-        responseContent.append("<tr><td><INPUT TYPE=\"submit\" NAME=\"Send\" VALUE=\"Send\"></INPUT></td>");
-        responseContent.append("<td><INPUT TYPE=\"reset\" NAME=\"Clear\" VALUE=\"Clear\" ></INPUT></td></tr>");
-        responseContent.append("</table></FORM>\r\n");
-        responseContent.append("<CENTER><HR WIDTH=\"75%\" NOSHADE color=\"blue\"></CENTER>");
-        endBody();
     }
 }

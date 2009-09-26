@@ -112,7 +112,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     // Values
-    private final DbRule rule;
+    private DbRule rule;
 
     private final R66Session session;
 
@@ -713,6 +713,120 @@ public class DbTaskRunner extends AbstractDbData {
        request += " ORDER BY "+Columns.START.name()+" DESC ";
        return new DbPreparedStatement(session, request);
    }
+   /**
+   *
+   * @param session
+   * @param start
+   * @param stop
+   * @param rule
+   * @param req
+   * @param pending
+   * @param transfer
+   * @param error
+   * @param done
+   * @param all
+   * @return the DbPreparedStatement for getting Selected Object
+   * @throws OpenR66DatabaseNoConnectionError
+   * @throws OpenR66DatabaseSqlError
+   */
+  public static DbPreparedStatement getFilterPrepareStament(DbSession session,
+          Timestamp start, Timestamp stop, String rule, String req,
+          boolean pending, boolean transfer, boolean error, boolean done, boolean all)
+      throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+      DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
+      String request = "SELECT " +selectAllFields+" FROM "+table;
+      if (start == null && stop == null && rule == null && req == null && all) {
+          // finish
+          request += " ORDER BY "+Columns.START.name();
+          preparedStatement.createPrepareStatement(request);
+          return preparedStatement;
+      }
+      request += " WHERE ";
+      String condition = null;
+      if (start != null & stop != null) {
+          condition = Columns.START.name()+" >= ? AND "+
+              Columns.START.name()+" <= ? ";
+      } else if (start != null) {
+          condition = Columns.START.name()+" >= ? ";
+      } else if (stop != null) {
+          condition = Columns.START.name()+" <= ? ";
+      }
+
+      if (rule != null) {
+          if (condition != null) {
+              condition += " AND ";
+          } else {
+              condition = "";
+          }
+          condition += Columns.IDRULE.name()+" LIKE '%"+rule+"%' ";
+      }
+      if (req != null) {
+          if (condition != null) {
+              condition += " AND ";
+          } else {
+              condition = "";
+          }
+          condition += "( "+Columns.REQUESTED.name()+" LIKE '%"+req+"%' OR "+
+              Columns.REQUESTER.name()+" LIKE '%"+req+"%' )";
+      }
+      if (! all) {
+          if (pending) {
+              if (condition != null) {
+                  condition += " AND ";
+              } else {
+                  condition = "";
+              }
+              condition += Columns.GLOBALSTEP.name()+" = "+TASKSTEP.NOTASK.ordinal();
+          }
+          if (transfer) {
+              if (condition != null) {
+                  condition += " AND ";
+              } else {
+                  condition = "";
+              }
+              condition += "( "+Columns.GLOBALSTEP.name()+" = "+TASKSTEP.PRETASK.ordinal();
+              condition += " OR "+Columns.GLOBALSTEP.name()+" = "+TASKSTEP.TRANSFERTASK.ordinal();
+              condition += " OR "+Columns.GLOBALSTEP.name()+" = "+TASKSTEP.POSTTASK.ordinal()+" )";
+          }
+          if (error) {
+              if (condition != null) {
+                  condition += " AND ";
+              } else {
+                  condition = "";
+              }
+              condition += Columns.GLOBALSTEP.name()+" = "+TASKSTEP.ERRORTASK.ordinal();
+          }
+          if (done) {
+              if (condition != null) {
+                  condition += " AND ";
+              } else {
+                  condition = "";
+              }
+              condition += Columns.GLOBALSTEP.name()+" = "+TASKSTEP.ALLDONETASK.ordinal();
+          }
+      }
+      preparedStatement.createPrepareStatement(request+condition+
+              " ORDER BY "+Columns.START.name());
+      int rank = 1;
+      try {
+          if (start != null & stop != null) {
+              preparedStatement.getPreparedStatement().setTimestamp(rank, start);
+              rank++;
+              preparedStatement.getPreparedStatement().setTimestamp(rank, stop);
+              rank++;
+          } else if (start != null) {
+              preparedStatement.getPreparedStatement().setTimestamp(rank, start);
+              rank++;
+          } else if (stop != null) {
+              preparedStatement.getPreparedStatement().setTimestamp(rank, stop);
+              rank++;
+          }
+      } catch (SQLException e) {
+          preparedStatement.realClose();
+          throw new OpenR66DatabaseSqlError(e);
+      }
+      return preparedStatement;
+  }
     /**
     *
     * @param session
@@ -740,10 +854,10 @@ public class DbTaskRunner extends AbstractDbData {
           Timestamp start, Timestamp stop)
       throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
       DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
-      String request = "SELECT " +selectAllFields+" FROM "+table+ " WHERE ";
+      String request = "SELECT " +selectAllFields+" FROM "+table;
       if (start != null & stop != null) {
-          request += Columns.START.name()+" >= ? AND "+
-              Columns.STOP.name()+" <= ? ORDER BY "+Columns.START.name();
+          request += " WHERE "+Columns.START.name()+" >= ? AND "+
+              Columns.START.name()+" <= ? ORDER BY "+Columns.START.name();
           preparedStatement.createPrepareStatement(request);
           try {
             preparedStatement.getPreparedStatement().setTimestamp(1, start);
@@ -753,7 +867,7 @@ public class DbTaskRunner extends AbstractDbData {
             throw new OpenR66DatabaseSqlError(e);
         }
       } else if (start != null) {
-          request += Columns.START.name()+" >= ? ORDER BY "+Columns.START.name();
+          request += " WHERE "+Columns.START.name()+" >= ? ORDER BY "+Columns.START.name();
           preparedStatement.createPrepareStatement(request);
           try {
               preparedStatement.getPreparedStatement().setTimestamp(1, start);
@@ -762,7 +876,7 @@ public class DbTaskRunner extends AbstractDbData {
               throw new OpenR66DatabaseSqlError(e);
           }
       } else if (stop != null) {
-          request += Columns.STOP.name()+" <= ? ORDER BY "+Columns.START.name();
+          request += " WHERE "+Columns.START.name()+" <= ? ORDER BY "+Columns.START.name();
           preparedStatement.createPrepareStatement(request);
           try {
               preparedStatement.getPreparedStatement().setTimestamp(1, stop);
@@ -884,6 +998,44 @@ public class DbTaskRunner extends AbstractDbData {
            return;
        } finally {
            initial.close();
+       }
+   }
+   public boolean restart() {
+       // Restart if already stopped and not finished
+       if (this.getStatus() != ErrorCode.CompleteOk) {
+           // restart
+           switch (TASKSTEP.values()[this.getGloballaststep()]) {
+               case PRETASK:
+                   // restart
+                   this.setPreTask(0);
+                   this.setExecutionStatus(ErrorCode.InitOk);
+                   break;
+               case TRANSFERTASK:
+                   // continue
+                   this.setTransferTask(this.getRank());
+                   this.setExecutionStatus(ErrorCode.PreProcessingOk);
+                   break;
+               case POSTTASK:
+                   // restart
+                   this.setPostTask(0);
+                   this.setExecutionStatus(ErrorCode.TransferOk);
+                   break;
+           }
+           this.changeUpdatedInfo(UpdatedInfo.UPDATED);
+           try {
+               this.saveStatus();
+           } catch (OpenR66RunnerErrorException e) {
+               return false;
+           }
+           return true;
+       } else {
+           // Already finished so DONE
+           this.changeUpdatedInfo(UpdatedInfo.DONE);
+           try {
+               this.saveStatus();
+           } catch (OpenR66RunnerErrorException e) {
+           }
+           return false;
        }
    }
     /*
@@ -1364,20 +1516,23 @@ public class DbTaskRunner extends AbstractDbData {
     public static String headerHtml() {
         return "<td>SpecialId</td><td>Rule</td><td>Filename" +
             "</td><td>Step (LastStep)</td><td>Action</td><td>Status" +
-            "</td><td>Transfer Rank</td><td>isSender</td><td>isMoved" +
-            "</td><td>Mode</td><td>Requester</td><td>Requested"+
+            "</td><td>Transfer Rank</td><td>isMoved" +
+            "</td><td>Requester</td><td>Requested"+
             "</td><td>Start</td><td>Stop</td><td>Bandwidth (Kbits)</td><td>Free Space(MB)</td>";
     }
     /**
-     *
-     * @return the runner in Html format compatible with the header from headerHtml method
+     * @param session
+     * @return The associated freespace of the current directory
      */
-    public String toHtml(R66Session session) {
+    public long freespace(R66Session session) {
         long freespace = -1;
         DbRule rule = null;
         try {
             rule = (this.rule != null) ? this.rule : new DbRule(this.dbSession, this.ruleId);
         } catch (OpenR66DatabaseException e) {
+        }
+        if (this.rule == null) {
+            this.rule = rule;
         }
         if (rule != null){
             if (! this.isSender) {
@@ -1407,18 +1562,80 @@ public class DbTaskRunner extends AbstractDbData {
                 }
             }
         }
+        return freespace;
+    }
+    private String getHtmlColor() {
+        String color;
+        switch (TASKSTEP.values()[globalstep]) {
+            case NOTASK:
+                color = "Orange";
+                break;
+            case PRETASK:
+                color = "Yellow";
+                break;
+            case TRANSFERTASK:
+                color = "LightGreen";
+                break;
+            case POSTTASK:
+                color = "Turquoise";
+                break;
+            case ERRORTASK:
+                color = "Red";
+                break;
+            case ALLDONETASK:
+                color = "Cyan";
+                break;
+            default:
+                color = "";
+        }
+        return color;
+    }
+    /**
+     * @param session
+     * @return the runner in Html format compatible with the header from headerHtml method
+     */
+    public String toHtml(R66Session session) {
+       long freespace = freespace(session);
+       String color = getHtmlColor();
        return "<td>" + specialId +
                 "</td><td>" + (rule != null? rule.toShortString() : ruleId) + "</td><td>" +
-                filename + "</td><td>" + TASKSTEP.values()[globalstep] +
-                "("+TASKSTEP.values()[globallaststep]+ ")</td><td>" + step + "</td><td>" +
+                filename + "</td><td bgcolor=\""+color+"\">" + TASKSTEP.values()[globalstep] +
+                " ("+TASKSTEP.values()[globallaststep]+ ")</td><td>" + step + "</td><td>" +
                 status.mesg +
                 "</td><td>" + rank + "</td><td>" +
-                isSender + "</td><td>" + isFileMoved+"</td><td>"+TRANSFERMODE.values()[mode]+
-                "</td><td>"+requesterHostId+"</td><td>"+requestedHostId+
+                isFileMoved+"</td><td>"+requesterHostId+"</td><td>"+requestedHostId+
                 "</td><td>"+start+"</td><td>"+stop+"</td><td>"+
                 (int)(((double) (rank*blocksize*8))/((double) (stop.getTime()+1-start.getTime())))
                 +"</td>"+
                 "<td>"+freespace+"</td>";
+    }
+    /**
+     * @param session
+     * @param body
+     * @return the runner in Html format specified by body by replacing all instance of fields
+     */
+    public String toSpecializedHtml(R66Session session, String body) {
+        long freespace = freespace(session);
+        String line = body.replace("XXXSpecIdXXX", Long.toString(specialId));
+        line = line.replace("XXXRulXXX", (rule != null? rule.toShortString() : ruleId));
+        line = line.replace("XXXFileXXX", filename);
+        line = line.replace("XXXStepXXX", TASKSTEP.values()[globalstep] +
+                " ("+TASKSTEP.values()[globallaststep]+ ")");
+        line = line.replace("XXXCOLXXX", getHtmlColor());
+        line = line.replace("XXXActXXX", Integer.toString(step));
+        line = line.replace("XXXStatXXX", status.mesg);
+        line = line.replace("XXXBloXXX", Integer.toString(rank));
+        line = line.replace("XXXisSendXXX", Boolean.toString(isSender));
+        line = line.replace("XXXisMovXXX", Boolean.toString(isFileMoved));
+        line = line.replace("XXXModXXX", TRANSFERMODE.values()[mode].toString());
+        line = line.replace("XXXReqrXXX", requesterHostId);
+        line = line.replace("XXXReqdXXX", requestedHostId);
+        line = line.replace("XXXStarXXX", start.toString());
+        line = line.replace("XXXStopXXX", stop.toString());
+        line = line.replace("XXXBandXXX", Integer.toString(
+                (int)(((double) (rank*blocksize*8))/((double) (stop.getTime()+1-start.getTime())))));
+        line = line.replace("XXXFreeXXX", Long.toString(freespace));
+        return line;
     }
     /**
      *
@@ -1442,6 +1659,21 @@ public class DbTaskRunner extends AbstractDbData {
    public String getRequester() {
        return this.requesterHostId;
    }
+
+    /**
+     * @return the start
+     */
+    public Timestamp getStart() {
+        return start;
+    }
+
+    /**
+     * @return the stop
+     */
+    public Timestamp getStop() {
+        return stop;
+    }
+
     /**
      *
      * @return the associated request

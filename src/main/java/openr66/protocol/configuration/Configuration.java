@@ -118,6 +118,10 @@ public class Configuration {
     public String HOST_SSLID;
 
     /**
+     * Server Administration user name
+     */
+    public String ADMINNAME = null;
+    /**
      * Server Administration Key
      */
     private byte[] SERVERADMINKEY = null;
@@ -306,6 +310,10 @@ public class Configuration {
      */
     private ChannelFactory httpChannelFactory = null;
     /**
+     * ChannelFactory for HttpsServer part
+     */
+    private ChannelFactory httpsChannelFactory = null;
+    /**
      * List of all Http Channels to enable the close call on them using Netty
      * ChannelGroup
      */
@@ -428,7 +436,8 @@ public class Configuration {
         // Configure the server.
         httpChannelFactory = new NioServerSocketChannelFactory(
                 Executors.newCachedThreadPool(),
-                Executors.newCachedThreadPool(), SERVER_THREAD);
+                Executors.newCachedThreadPool(),
+                SERVER_THREAD);
         httpBootstrap = new ServerBootstrap(
                 httpChannelFactory);
         // Set up the event pipeline factory.
@@ -445,8 +454,12 @@ public class Configuration {
 
         // Now start the HTTPS support
         // Configure the server.
+        httpsChannelFactory = new NioServerSocketChannelFactory(
+                Executors.newCachedThreadPool(),
+                Executors.newCachedThreadPool(),
+                SERVER_THREAD);
         httpsBootstrap = new ServerBootstrap(
-                httpChannelFactory);
+                httpsChannelFactory);
         // Set up the event pipeline factory.
         httpsBootstrap.setPipelineFactory(new HttpSslPipelineFactory());
         httpsBootstrap.setOption("child.tcpNoDelay", true);
@@ -502,6 +515,8 @@ public class Configuration {
         if (readGlobalLimit <= 0) {
             newReadLimit = 0;
         }
+        serverGlobalReadLimit = newReadLimit;
+        serverGlobalWriteLimit = newWriteLimit;
         this.delayLimit = delayLimit;
         if (globalTrafficShapingHandler != null) {
             globalTrafficShapingHandler.configure(newWriteLimit, newReadLimit, delayLimit);
@@ -579,6 +594,12 @@ public class Configuration {
      */
     public ChannelFactory getHttpChannelFactory() {
         return httpChannelFactory;
+    }
+    /**
+     * @return the httpsChannelFactory
+     */
+    public ChannelFactory getHttpsChannelFactory() {
+        return httpsChannelFactory;
     }
     /**
      * @return the serverPipelineExecutor
