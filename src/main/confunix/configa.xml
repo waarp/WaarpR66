@@ -2,13 +2,18 @@
 	<comment>Example of config file: change its as your need.</comment>
 	<hostid>hosta</hostid>
 	<sslhostid>hostas</sslhostid>
+	<serveradmin>monadmin</serveradmin>
 	<serverpasswd>/appli/GGFTP/R66/conf/serveradminkey.txt</serverpasswd>
 	<serverport>6666</serverport>
 	<serversslport>6667</serversslport>
 	<serverhttpport>8066</serverhttpport>
+	<serverhttpsport>8067</serverhttpsport>
 	<keypath>certs/openr66.store</keypath>
 	<keypass>openr66</keypass>
 	<keystorepass>storeopenr66</keystorepass>
+	<admkeypath>certs/admin66.store</admkeypath>
+	<admkeypass>admin66</admkeypass>
+	<admkeystorepass>storeadmin66</admkeystorepass>
 	<serverhome>/appli/GGFTP/R66</serverhome>
 	<in>in</in>
 	<out>out</out>

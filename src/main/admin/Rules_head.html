@@ -1,0 +1,172 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Language" content="fr">
+<meta http-equiv="pragma" content="no-cache" />
+<meta http-equiv="imagetoolbar" content="no" />
+<meta http-equiv="Cache-Control" content="no-cache" />
+<meta name="robots" content="noindex,nofollow" />
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252" />
+<meta http-equiv="expires" content="MON, 1 SEP 2003 12:00:00 GMT" />
+<link rel="stylesheet" href="res/OpenR66Admin.css" type="text/css" />
+<style type="text/css">
+a {
+	color:#0000FF;
+	text-decoration:none;
+}
+a:visited {
+	text-decoration:none;
+}
+a:hover {
+	text-decoration:underline;
+}
+a img {
+	border:#000000 0px none;
+}
+</style>
+<title>Rules</title>
+	<script type="text/javascript">
+//<![CDATA[
+	function MHGetRef(str)
+	{
+		if(document.all)
+			return document.all[str];
+		else
+			return document.getElementById(str);
+	}
+
+	function MHSwitchImage(strID, strFileName)
+	{
+		var obj = MHGetRef(strID);
+		if(obj == null || obj + "" == "undefined") return;
+		obj.src = strFileName;
+	}
+//]]>
+	</script>
+</head>
+<body class="normal" style="margin:0px;padding:0px;background-color:#FFFFFF;">
+<table style="border:none;" cellspacing="0" cellpadding="0" width="100%">
+<tbody>
+<tr>
+<td style="vertical-align:top;width:170px;"><img title="OpenR66" style="border-top-style:none; border-bottom:#000000 0px solid; border-right-style:none; border-left-style:none;" height="72" alt="OpenR66" src="gre/gre13.png" width="170" /></td>
+<td style="vertical-align:top;">
+<div style="height:36px;background-color:#EF6D00;text-align:left;"></div>
+<div id="Comp3_MenuHorizontal">
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+	<tr style="background-image:url('gre/gre12.png');background-repeat:repeat-x;background-position: left top;">
+		<td id="MH1_0"><a href="index.html"><img id="MH1_0_img" src="gre/gre1.png" width="54" height="36" alt="Start" style="border:none;display:block;" /></a></td>
+		<td></td><td><img src="gre/gre11.png" height="36" width="1" style="border:none;display:block;" alt="" /></td><td></td>
+		<td id="MH1_1"><a href="Transfers.html"><img id="MH1_1_img" src="gre/gre20.png" width="82" height="36" alt="Transfers" style="border:none;display:block;" /></a></td>
+		<td></td><td><img src="gre/gre11.png" height="36" width="1" style="border:none;display:block;" alt="" /></td><td></td>
+		<td id="MH1_2"><a href="Hosts.html"><img id="MH1_2_img" src="gre/gre28.png" width="56" height="36" alt="Hosts" style="border:none;display:block;" /></a></td>
+		<td></td><td><img src="gre/gre11.png" height="36" width="1" style="border:none;display:block;" alt="" /></td><td></td>
+		<td id="MH1_3"><img id="MH1_3_img" src="gre/gre31.png" width="55" height="36" alt="Rules" style="border:none;display:block;" /></td>
+		<td></td><td><img src="gre/gre11.png" height="36" width="1" style="border:none;display:block;" alt="" /></td><td></td>
+		<td id="MH1_4"><a href="System.html"><img id="MH1_4_img" src="gre/gre32.png" width="62" height="36" alt="System" style="border:none;display:block;" /></a></td>
+		<td></td><td><img src="gre/gre11.png" height="36" width="1" style="border:none;display:block;" alt="" /></td><td></td>
+		<td id="MH1_5"><a href="Logon.html"><img id="MH1_5_img" src="gre/gre34.png" width="58" height="36" alt="Logon" style="border:none;display:block;" /></a></td>
+		<td></td><td><img src="gre/gre11.png" height="36" width="1" style="border:none;display:block;" alt="" /></td><td></td>
+		<td align="center"><B>&nbsp;Local:&nbsp;<br>XXXLOCALXXX</B></td>
+		<td></td><td><img src="gre/gre11.png" height="36" width="1" style="border:none;display:block;" alt="" /></td><td></td>
+		<td align="center"><B>&nbsp;Network:&nbsp;<br>XXXNETWORKXXX</B></td>
+		<td></td><td><img src="gre/gre11.png" height="36" width="1" style="border:none;display:block;" alt="" /></td><td></td>
+		<td align="center"><B>&nbsp;Host:&nbsp;<br>&nbsp;XXXHOSTIDXXX&nbsp;</B></td>
+		<td></td><td><img src="gre/gre11.png" height="36" width="1" style="border:none;display:block;" alt="" /></td><td></td>
+		<td align="center"><B>&nbsp;Authent:&nbsp;<br>&nbsp;XXXADMINXXX&nbsp;</B></td>
+		<td style="width:100%;"><img src="img/space.gif" width="1" height="1" style="border:none;display:block;" alt="" /></td>
+	</tr>
+</table>
+</div>
+<p>&nbsp;</p></td></tr></tbody></table><p>
+
+</p><table style="border:none;height:200px;" cellspacing="10" cellpadding="0" width="100%">
+<tbody>
+<tr>
+<td style="vertical-align:top;width:150px;">
+<p>&nbsp;</p>
+<div id="Comp2_MenuVertical"></div></td>
+<td style="vertical-align:top;">
+<h1 class="h1">Rules</h1>
+<div id="Comp1_sys_doctext"><p>You can edit Rules configuration from here.</p>
+<p>&nbsp;</p>
+  <form method="post" name="CREATE" action="/Rules.html">
+    <table border="1" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="100%" id="AutoNumber2">
+      <tr>
+        <td width="6%" align="center"><b>Rule Id</b></td>
+        <td width="6%" align="center"><b>Mode</b></td>
+        <td width="6%" align="center"><b>Host Ids</b></td>
+        <td width="6%" align="center"><b>RecvPath</b></td>
+        <td width="6%" align="center"><b>SendPath</b></td>
+        <td width="7%" align="center"><b>ArchivePath</b></td>
+        <td width="7%" align="center"><b>WorkPath</b></td>
+      </tr>
+      <tr>
+        <td width="7%">
+        <p align="center"><input type="text" name="rule" size="20"></td>
+        <td width="7%"><input type="radio" value="send" checked name="mode">SEND
+        <input type="radio" name="mode" value="recv">RECV<br>
+        <input type="radio" name="mode" value="sendmd5">SENDMD5
+        <input type="radio" name="mode" value="recvmd5">RECVMD5<br>
+        <input type="radio" value="sendth" name="mode">SENDTHROUGH<br>
+        <input type="radio" name="mode" value="recvth">RECVTHROUGH<br>
+        <input type="radio" name="mode" value="sendthmd5">SENDMD5THROUGH<br>
+        <input type="radio" name="mode" value="recvthmd5">RECVMD5THROUGH</td>
+        <td width="7%"><textarea rows="5" name="hostids" cols="20"><hostids>
+</hostids></textarea></td>
+        <td width="7%">
+        <p align="center"><input type="text" name="recvp" size="20"></td>
+        <td width="8%">
+        <p align="center"><input type="text" name="sendp" size="20"></td>
+        <td width="8%">
+        <p align="center"><input type="text" name="archp" size="20"></td>
+        <td width="8%">
+        <p align="center"><input type="text" name="workp" size="20"></td>
+      </tr>
+      <tr>
+        <td width="7%" align="center"><b>Recv Pre</b></td>
+        <td width="7%" align="center"><b>Recv Post</b></td>
+        <td width="7%" align="center"><b>Recv Error</b></td>
+        <td width="7%" align="center"><b>Send Pre</b></td>
+        <td width="7%" align="center"><b>Send Post</b></td>
+        <td width="7%" align="center"><b>Send Error</b></td>
+        <td width="8%">&nbsp;</td>
+      </tr>
+      <tr>
+        <td width="7%"><textarea rows="8" name="rpre" cols="20"><tasks><task><rank>0</rank><type>TEST</type><path>none</path><delay>0</delay></task>
+</tasks></textarea></td>
+        <td width="7%"><textarea rows="8" name="rpost" cols="20"><tasks><task><rank>0</rank><type>TEST</type><path>none</path><delay>0</delay></task>
+</tasks></textarea></td>
+        <td width="7%"><textarea rows="8" name="rerr" cols="20"><tasks><task><rank>0</rank><type>TEST</type><path>none</path><delay>0</delay></task>
+</tasks></textarea></td>
+        <td width="7%"><textarea rows="8" name="spre" cols="20"><tasks><task><rank>0</rank><type>TEST</type><path>none</path><delay>0</delay></task>
+</tasks></textarea></td>
+        <td width="8%"><textarea rows="8" name="spost" cols="20"><tasks><task><rank>0</rank><type>TEST</type><path>none</path><delay>0</delay></task>
+</tasks></textarea></td>
+        <td width="8%"><textarea rows="8" name="serr" cols="20"><tasks><task><rank>0</rank><type>TEST</type><path>none</path><delay>0</delay></task>
+</tasks></textarea></td>
+        <td width="8%">
+        <p align="center"><input type="submit" value="Create" name="ACTION"></td>
+      </tr>
+    </table>
+  </form>
+  <p>&nbsp;</p>
+    <form method="post" name="FILTER" action="/Rules.html">
+  <p>Filter on Rule Id: <input type="text" name="rule" size="20" value="XXXRULEXXX"></p>
+  <fieldset style="padding: 2">
+  <legend>Filter on Mode: </legend>
+&nbsp;<input type="radio" name="mode" value="all" XXXALLXXX>ALL
+  <input type="radio" name="mode" value="send" XXXASENDXXX>ALL SEND
+  <input type="radio" name="mode" value="recv" XXXARECVXXX>ALL RECV<p>&nbsp;
+  <input type="checkbox" name="send" value="ON" XXXSENDXXX>SEND
+  <input type="checkbox" name="recv" value="ON" XXXRECVXXX>RECV
+  <input type="checkbox" name="sendmd5" value="ON" XXXSENDMXXX>SENDMD5
+  <input type="checkbox" name="recvmd5" value="ON" XXXRECVMXXX>RECVMD5
+  <input type="checkbox" name="sendth" value="ON" XXXSENDTXXX>SENDTHROUGH
+  <input type="checkbox" name="recvth" value="ON" XXXRECVTXXX>RECVTHROUGH
+  <input type="checkbox" name="sendthmd5" value="ON" XXXSENDMTXXX>SENDMD5THROUGH
+  <input type="checkbox" name="recvthmd5" value="ON" XXXRECVMTXXX>RECVMD5THROUGH</p>
+  </fieldset><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <input type="submit" value="Filter" name="ACTION">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <input type="reset" value="Clear" name="ACTION"></p>
+  </form>
+  <p>&nbsp;</p>

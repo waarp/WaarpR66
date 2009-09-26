@@ -2,6 +2,7 @@
 	<comment>Example of config file: change its as your need.</comment>
 	<hostid>hosta</hostid>
 	<sslhostid>hostas</sslhostid>
+	<serveradmin>monadmin</serveradmin>
 	<serverpasswd>src/main/config/serveradminkey.txt</serverpasswd>
 	<serverport>6666</serverport>
 	<serversslport>6667</serversslport>
