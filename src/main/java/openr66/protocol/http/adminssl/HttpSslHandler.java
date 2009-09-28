@@ -237,6 +237,47 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     "Not authenticated");
         }
     }
+    private static SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+    private Timestamp fixDate(String date) {
+        Timestamp tdate = null;
+        date = date.replaceAll("/|:|\\.| |-", "");
+        if (date.length() > 0) {
+            if (date.length() < 15) {
+                int len = date.length();
+                date += "000000000000000".substring(len);
+            }
+            try {
+                Date ddate = format.parse(date);
+                tdate = new Timestamp(ddate.getTime());
+            } catch (ParseException e) {
+                logger.warn("start",e);
+            }
+        }
+        return tdate;
+    }
+    private Timestamp fixDate(String date, Timestamp before) {
+        Timestamp tdate = null;
+        date = date.replaceAll("/|:|\\.| |-", "");
+        if (date.length() > 0) {
+            if (date.length() < 15) {
+                int len = date.length();
+                date += "000000000000000".substring(len);
+            }
+            try {
+                Date ddate = format.parse(date);
+                if (before != null) {
+                    Date bef = new Date(before.getTime());
+                    if (bef.compareTo(ddate) >= 0) {
+                        ddate = new Date(bef.getTime()+1000*3600*24-1);
+                    }
+                }
+                tdate = new Timestamp(ddate.getTime());
+            } catch (ParseException e) {
+                logger.warn("start",e);
+            }
+        }
+        return tdate;
+    }
 
     private String index() {
         String index = readFileHeader("src/main/admin/index.html");
@@ -309,28 +350,17 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 } else if (!(pending || transfer || error || done)) {
                     all = true;
                 }
+                Timestamp tstart = fixDate(start);
+                if (tstart != null) {
+                    start = tstart.toString();
+                }
+                Timestamp tstop = fixDate(stop, tstart);
+                if (tstop != null) {
+                    stop = tstop.toString();
+                }
                 head = resetOptionTransfer(head, start, stop,
                         rule == null ? "":rule, req == null ? "":req,
                         pending, transfer, error, done, all);
-                SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmssSSS");
-                Timestamp tstart = null;
-                start = start.replaceAll("/|:|\\.| |-", "");
-                if (start.length() > 0) {
-                    try {
-                        Date dstart = format.parse(start);
-                        tstart = new Timestamp(dstart.getTime());
-                    } catch (ParseException e) {
-                    }
-                }
-                Timestamp tstop = null;
-                stop = stop.replaceAll("/|:|\\.| |-", "");
-                if (stop.length() > 0) {
-                    try {
-                        Date dstop = format.parse(stop);
-                        tstop = new Timestamp(dstop.getTime());
-                    } catch (ParseException e) {
-                    }
-                }
                 body = readFile("src/main/admin/Listing_body.html");
                 DbPreparedStatement preparedStatement;
                 try {
@@ -403,28 +433,17 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 } else if (!(pending || transfer || error || done)) {
                     all = true;
                 }
+                Timestamp tstart = fixDate(start);
+                if (tstart != null) {
+                    start = tstart.toString();
+                }
+                Timestamp tstop = fixDate(stop, tstart);
+                if (tstop != null) {
+                    stop = tstop.toString();
+                }
                 head = resetOptionTransfer(head, start, stop,
                         rule == null ? "":rule, req == null ? "":req,
                         pending, transfer, error, done, all);
-                SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmssSSS");
-                Timestamp tstart = null;
-                start = start.replaceAll("/|:|\\.| |-", "");
-                if (start.length() > 0) {
-                    try {
-                        Date dstart = format.parse(start);
-                        tstart = new Timestamp(dstart.getTime());
-                    } catch (ParseException e) {
-                    }
-                }
-                Timestamp tstop = null;
-                stop = stop.replaceAll("/|:|\\.| |-", "");
-                if (stop.length() > 0) {
-                    try {
-                        Date dstop = format.parse(stop);
-                        tstop = new Timestamp(dstop.getTime());
-                    } catch (ParseException e) {
-                    }
-                }
                 body = readFile("src/main/admin/CancelRestart_body.html");
                 DbPreparedStatement preparedStatement;
                 try {
@@ -482,9 +501,9 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     body = readFile("src/main/admin/CancelRestart_body.html");
                     body = taskRunner.toSpecializedHtml(authentHttp, body);
                     String tstart = taskRunner.getStart().toString();
-                    tstart = tstart.substring(0, tstart.length()-4);
+                    tstart = tstart.substring(0, tstart.length());
                     String tstop = taskRunner.getStop().toString();
-                    tstop = tstop.substring(0, tstop.length()-4);
+                    tstop = tstop.substring(0, tstop.length());
                     head = resetOptionTransfer(head, tstart, tstop,
                             taskRunner.getRuleId(), taskRunner.getRequested(),
                             false, false, false, false, true);
@@ -513,9 +532,9 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     body = readFile("src/main/admin/CancelRestart_body.html");
                     body = taskRunner.toSpecializedHtml(authentHttp, body);
                     String tstart = taskRunner.getStart().toString();
-                    tstart = tstart.substring(0, tstart.length()-4);
+                    tstart = tstart.substring(0, tstart.length());
                     String tstop = taskRunner.getStop().toString();
-                    tstop = tstop.substring(0, tstop.length()-4);
+                    tstop = tstop.substring(0, tstop.length());
                     head = resetOptionTransfer(head, tstart, tstop,
                             taskRunner.getRuleId(), taskRunner.getRequested(),
                             false, false, false, false, true);
@@ -567,28 +586,17 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         } else if (!(pending || transfer || error || done)) {
             all = true;
         }
+        Timestamp tstart = fixDate(start);
+        if (tstart != null) {
+            start = tstart.toString();
+        }
+        Timestamp tstop = fixDate(stop, tstart);
+        if (tstop != null) {
+            stop = tstop.toString();
+        }
         body = resetOptionTransfer(body, start, stop,
                 rule == null ? "":rule, req == null ? "":req,
                 pending, transfer, error, done, all);
-        SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmssSSS");
-        Timestamp tstart = null;
-        start = start.replaceAll("/|:|\\.| |-", "");
-        if (start.length() > 0) {
-            try {
-                Date dstart = format.parse(start);
-                tstart = new Timestamp(dstart.getTime());
-            } catch (ParseException e) {
-            }
-        }
-        Timestamp tstop = null;
-        stop = stop.replaceAll("/|:|\\.| |-", "");
-        if (stop.length() > 0) {
-            try {
-                Date dstop = format.parse(stop);
-                tstop = new Timestamp(dstop.getTime());
-            } catch (ParseException e) {
-            }
-        }
         boolean isexported = true;
         // create export of log and optionally purge them from database
         DbPreparedStatement getValid = null;
@@ -610,6 +618,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         String filename = null;
         int nb = 0;
         if (isexported) {
+            nb = document.selectNodes("taskrunners/runner").size();
             filename = Configuration.configuration.baseDirectory+
                 Configuration.configuration.archivePath+R66Dir.SEPARATOR+
                 Configuration.configuration.HOST_ID+"_"+System.currentTimeMillis()+
@@ -633,7 +642,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             }
         }
         return body.replace("XXXRESULTXXX", "Export "+(isexported?"successful into "+
-                filename+" with "+nb+" purged records":"in error"));
+                filename+" with "+nb+" records":"in error"));
     }
     private String resetOptionHosts(String header,
             String host, String addr, boolean ssl) {

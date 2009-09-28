@@ -22,6 +22,14 @@ a:hover {
 a img {
 	border:#000000 0px none;
 }
+.cshelp
+{
+    margin: 0em;
+    padding: 0.2em 0em 0.2em 0.2em;
+    background: #cee1ff;
+    color: #000;
+    width: 100%;
+}
 </style>
 <title>Hosts</title>
 	<script type="text/javascript">
@@ -42,6 +50,7 @@ a img {
 	}
 //]]>
 	</script>
+	<script type="text/javascript" src="res/fieldhelp.js"></script>
 </head>
 <body class="normal" style="margin:0px;padding:0px;background-color:#FFFFFF;">
 <table style="border:none;" cellspacing="0" cellpadding="0" width="100%">
@@ -99,14 +108,38 @@ a img {
         <td width="13%" align="center"><b>Admin Role</b></td>
       </tr>
       <tr>
-        <td width="12%" align="center"><input type="text" name="host" size="20"></td>
-        <td width="12%" align="center"><input type="text" name="address" size="20"></td>
-        <td width="12%" align="center"><input type="text" name="port" size="20"></td>
+        <td width="12%" align="center"><input type="text" name="host" size="20">
+        <img id="hosthelp" alt="help for Host field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerhosthelp"><p class="cshelp">
+	The host id that will be used.
+	</p></div></td>
+        <td width="12%" align="center"><input type="text" name="address" size="20">
+    <img id="addrhelp" alt="help for Address field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containeraddrhelp"><p class="cshelp">
+	The IP or DNS name of the host.
+	</p></div></td>
+        <td width="12%" align="center"><input type="text" name="port" size="20">
+        <img id="porthelp" alt="help for Port field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerporthelp"><p class="cshelp">
+	The port to be used.
+	</p></div></td>
         <td width="12%" align="center">
-        <input type="checkbox" name="ssl" value="on"></td>
-        <td width="13%" align="center"><input type="text" name="hostkey" size="20"></td>
+        <input type="checkbox" name="ssl" value="on">
+        <img id="sslhelp" alt="help for SSL field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containersslhelp"><p class="cshelp">
+	If checked, this host will describe a host with SSL support.
+	</p></div></td>
+        <td width="13%" align="center"><input type="text" name="hostkey" size="20">
+        <img id="keyhelp" alt="help for HostKey field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerkeyhelp"><p class="cshelp">
+	The Key to be used when Administration action are taken.
+	</p></div></td>
         <td width="13%" align="center">
-        <input type="checkbox" name="admin" value="on"></td>
+        <input type="checkbox" name="admin" value="on">
+        <img id="admhelp" alt="help for Admin field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containeradmhelp"><p class="cshelp">
+	If checked, this host can be used in local client for administration purpose (using the above key).
+	</p></div></td>
       </tr>
     </table>
     <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -114,10 +147,22 @@ a img {
   </form>
   <p>&nbsp;</p>
   <form method="post" name="FILTER" action="/Hosts.html">
-    <p>
-    Filter on Host Id:&nbsp;&nbsp; <input type="text" name="host" size="20" value="XXXFHOSTXXX"></p>
-    <p>Filter on Address:&nbsp; <input type="text" name="address" size="20" value="XXXFADDRXXX"></p>
-    <p>Filter on SSL:&nbsp; <input type="checkbox" name="ssl" value="on" XXXFSSLXXX>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <input type="submit" value="Filter" name="ACTION">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <input type="reset" value="Clear" name="B2"></p>
+    Filter on Host Id:&nbsp;&nbsp; <input type="text" name="host" size="20" value="XXXFHOSTXXX">
+    <img id="fhosthelp" alt="help for Host ID Filter field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerfhosthelp"><p class="cshelp">
+	Part of the Host Id to used as filter.
+	</p></div><br>
+    Filter on Address:&nbsp; <input type="text" name="address" size="20" value="XXXFADDRXXX">
+	<img id="faddhelp" alt="help for Address Filter field"  class="help" width="16" height="16" src="img/help_small.gif" />
+    <div id="containerfaddhelp"><p class="cshelp">
+	Part of the Address to used as filter.
+	</p></div><br>
+    Filter on SSL:&nbsp; <input type="checkbox" name="ssl" value="on" XXXFSSLXXX>
+    <img id="fsslhelp" alt="help for SSL Filter field"  class="help" width="16" height="16" src="img/help_small.gif" />
+    <div id="containerfsslhelp"><p class="cshelp">
+	If checked, only SSL Hosts will be listed. If not, only not SSL Hosts will be listed.
+	</p></div>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <input type="submit" value="Filter" name="ACTION">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <input type="reset" value="Clear" name="B2">
   </form>
   <p>&nbsp;</p>

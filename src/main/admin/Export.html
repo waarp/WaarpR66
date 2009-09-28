@@ -22,6 +22,14 @@ a:hover {
 a img {
 	border:#000000 0px none;
 }
+.cshelp
+{
+    margin: 0em;
+    padding: 0.2em 0em 0.2em 0.2em;
+    background: #cee1ff;
+    color: #000;
+    width: 100%;
+}
 </style>
 <title>Export</title>
 <script type="text/javascript">
@@ -53,6 +61,7 @@ a img {
 	}
 //]]>
 	</script>
+	<script type="text/javascript" src="res/fieldhelp.js"></script>
 </head>
 <body class="normal" style="margin:0px;padding:0px;background-color:#FFFFFF;">
 <table style="border:none;" cellspacing="0" cellpadding="0" width="100%">
@@ -101,20 +110,40 @@ a img {
 <td style="vertical-align:top;">
 <h1 class="h1">Export</h1>
 <form method="post" name="EXPORT" action="/Export.html">
-<div id="Comp1_sys_doctext"><p>Export Transfers log into an XML File:</p><p>&nbsp;</p><p>
-    From(yyyymmdd-hhmmss): <input type="text" name="start" size="20" value="XXXSTARTXXX"> To(yyyymmdd-hhmmss):
-    <input type="text" name="stop" size="20" value="XXXSTOPXXX">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    Rule:&nbsp; <input type="text" name="rule" size="20" value="XXXRULEXXX"></p>
-    <p>Requested/Requester: <input type="text" name="req" size="20" value="XXXREQXXX">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <input type="checkbox" name="pending" value="ON" XXXPENDXXX>Pending
+<div id="Comp1_sys_doctext"><p>Export Transfers log into an XML File:</p><p>&nbsp;</p>
+    From: <input type="text" name="start" size="20" value="XXXSTARTXXX">
+    <img id="fromhelp" alt="help for From field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerfromhelp"><p class="cshelp">
+	The start date for filtering in format yyyymmdd-hhmmss.SSS with or without :-/ . in it, partial or full (at least yyyymmdd). Example: 2009-09-19 09:54:05.492
+	</p></div>
+	&nbsp;&nbsp;To:&nbsp;
+    <input type="text" name="stop" size="20" value="XXXSTOPXXX">
+    <img id="tohelp" alt="help for To field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containertohelp"><p class="cshelp">
+	The stop date for filtering in format yyyymmdd-hhmmss.SSS with or without :-/ . in it, partial or full (at least yyyymmdd). Example: 2009-09-19 09:54:05.492
+	</p></div>
+    <br>Rule:&nbsp; <input type="text" name="rule" size="20" value="XXXRULEXXX">
+	<img id="rulehelp" alt="help for Rule field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerrulehelp"><p class="cshelp">
+	This field could be part of a rule name.
+	</p></div>
+    Requested/Requester: <input type="text" name="req" size="20" value="XXXREQXXX">
+    <img id="reqhelp" alt="help for Requested/Requester field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerreqhelp"><p class="cshelp">
+	This field could be part of a requester or requested host id.
+	</p></div>
+	<br><input type="checkbox" name="pending" value="ON" XXXPENDXXX>Pending
     <input type="checkbox" name="transfer" value="ON" XXXTRANSXXX>In Transfer
     <input type="checkbox" name="error" value="ON" XXXERRXXX>In Error
     <input type="checkbox" name="done" value="ON" XXXDONEXXX>Done
     <input type="checkbox" name="all" value="ON" XXXALLXXX>All</p>
-    <p></p><p><font color="Red">Warning: <input type="checkbox" name="purge" value="ON"> Purge after export</font>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <input type="submit" value="Send" name="ACTION">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <input type="reset" value="Clear" name="ACTION"></p>
+    <p></p><font color="Red">Warning: <input type="checkbox" name="purge" value="ON"> Purge after export</font>
+    <img id="purgehelp" alt="help for Requested/Requester field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerpurgehelp"><p class="cshelp">
+	If this option is checked, all exported logs from Transfer table will be deleted from the database.
+	</p></div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <input type="submit" value="Export" name="ACTION">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <input type="reset" value="Clear" name="ACTION">
   <p>&nbsp;</p></div></form></td></tr></tbody></table>
 <div style="height:36px;background-color:#EF6D00;text-align:left;">
 <p>&nbsp;<center><B>XXXRESULTXXX</B></center></p></div>

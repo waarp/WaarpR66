@@ -23,6 +23,14 @@ a:hover {
 a img {
 	border:#000000 0px none;
 }
+.cshelp
+{
+    margin: 0em;
+    padding: 0.2em 0em 0.2em 0.2em;
+    background: #cee1ff;
+    color: #000;
+    width: 100%;
+}
 </style>
 <title>Rules</title>
 	<script type="text/javascript">
@@ -43,6 +51,7 @@ a img {
 	}
 //]]>
 	</script>
+	<script type="text/javascript" src="res/fieldhelp.js"></script>
 </head>
 <body class="normal" style="margin:0px;padding:0px;background-color:#FFFFFF;">
 <table style="border:none;" cellspacing="0" cellpadding="0" width="100%">
@@ -110,17 +119,44 @@ a img {
         <input type="radio" value="sendth" name="mode">SENDTHROUGH<br>
         <input type="radio" name="mode" value="recvth">RECVTHROUGH<br>
         <input type="radio" name="mode" value="sendthmd5">SENDMD5THROUGH<br>
-        <input type="radio" name="mode" value="recvthmd5">RECVMD5THROUGH</td>
+        <input type="radio" name="mode" value="recvthmd5">RECVMD5THROUGH
+        <img id="modehelp" alt="help for Mode field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containermodehelp"><p class="cshelp">
+	The Mode used with a transfer with this rule. For instance, if SENDMD5, the transfer will be a send of file
+	from the requester to the requested host where each packet will be checked by a MD5.
+	</p></div></td>
         <td width="7%"><textarea rows="5" name="hostids" cols="20"><hostids>
-</hostids></textarea></td>
+</hostids></textarea><img id="hidshelp" alt="help for HostIds field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerhidshelp"><p class="cshelp">
+	If no Host is written, these rule is allowed for any Host. If some Hosts are specified, only those
+	will be accepted with this rule.<br><br>The format is as:<xmp><hostids>
+ <hostid>hostid1</hostid>
+ <hostid>hostid2</hostid>
+</hostids></xmp></p></div></td>
         <td width="7%">
-        <p align="center"><input type="text" name="recvp" size="20"></td>
+        <p align="center"><input type="text" name="recvp" size="20">
+        <img id="rphelp" alt="help for Recv Path field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerrphelp"><p class="cshelp">
+	If not null, it specifies a sub path of server ROOT for final receive directory.
+	</p></div></td>
         <td width="8%">
-        <p align="center"><input type="text" name="sendp" size="20"></td>
+        <p align="center"><input type="text" name="sendp" size="20">
+        <img id="sphelp" alt="help for Send Path field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containersphelp"><p class="cshelp">
+	If not null, it specifies a sub path of server ROOT for send directory.
+	</p></div></td>
         <td width="8%">
-        <p align="center"><input type="text" name="archp" size="20"></td>
+        <p align="center"><input type="text" name="archp" size="20">
+        <img id="aphelp" alt="help for Archive Path field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containeraphelp"><p class="cshelp">
+	If not null, it specifies a sub path of server ROOT for archive (export) directory.
+	</p></div></td>
         <td width="8%">
-        <p align="center"><input type="text" name="workp" size="20"></td>
+        <p align="center"><input type="text" name="workp" size="20">
+        <img id="wphelp" alt="help for Working Path field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerwphelp"><p class="cshelp">
+	If not null, it specifies a sub path of server ROOT for working (during receive) directory.
+	</p></div></td>
       </tr>
       <tr>
         <td width="7%" align="center"><b>Recv Pre</b></td>
@@ -132,18 +168,102 @@ a img {
         <td width="8%">&nbsp;</td>
       </tr>
       <tr>
-        <td width="7%"><textarea rows="8" name="rpre" cols="20"><tasks><task><rank>0</rank><type>TEST</type><path>none</path><delay>0</delay></task>
-</tasks></textarea></td>
-        <td width="7%"><textarea rows="8" name="rpost" cols="20"><tasks><task><rank>0</rank><type>TEST</type><path>none</path><delay>0</delay></task>
-</tasks></textarea></td>
-        <td width="7%"><textarea rows="8" name="rerr" cols="20"><tasks><task><rank>0</rank><type>TEST</type><path>none</path><delay>0</delay></task>
-</tasks></textarea></td>
-        <td width="7%"><textarea rows="8" name="spre" cols="20"><tasks><task><rank>0</rank><type>TEST</type><path>none</path><delay>0</delay></task>
-</tasks></textarea></td>
-        <td width="8%"><textarea rows="8" name="spost" cols="20"><tasks><task><rank>0</rank><type>TEST</type><path>none</path><delay>0</delay></task>
-</tasks></textarea></td>
-        <td width="8%"><textarea rows="8" name="serr" cols="20"><tasks><task><rank>0</rank><type>TEST</type><path>none</path><delay>0</delay></task>
-</tasks></textarea></td>
+        <td width="7%"><textarea rows="8" name="rpre" cols="20"><tasks></tasks></textarea>
+<img id="rprehelp" alt="help for Recv Pre Actions field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerrprehelp"><p class="cshelp">
+	It specifies all actions to do BEFORE the transfer operation as receiver host(SEND and requested,
+	or RECV and requester).<br><br>The format is as:<xmp><tasks>
+ <task>
+  <rank>n</rank>
+  <type>NAME</type>
+  <path>path</path>
+  <delay>x</delay>
+ </task>
+</tasks></xmp>where<br>-rank is an integer rank from 0 to n where n is the number of tasks<br>
+-type is one of TEST, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, LINKRENAME<br>
+-path is a static argument where some replacement will be done<br>
+-delay is usually the maximum delay of execution<br>
+See the API doc for the specific conditions.</p></div></td>
+        <td width="7%"><textarea rows="8" name="rpost" cols="20"><tasks></tasks></textarea>
+<img id="rposthelp" alt="help for Recv Post Actions field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerrposthelp"><p class="cshelp">
+	It specifies all actions to do AFTER the transfer operation as receiver host(SEND and requested,
+	or RECV and requester).<br><br>The format is as:<xmp><tasks>
+ <task>
+  <rank>n</rank>
+  <type>NAME</type>
+  <path>path</path>
+  <delay>x</delay>
+ </task>
+</tasks></xmp>where<br>-rank is an integer rank from 0 to n where n is the number of tasks<br>
+-type is one of TEST, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, LINKRENAME<br>
+-path is a static argument where some replacement will be done<br>
+-delay is usually the maximum delay of execution<br>
+See the API doc for the specific conditions.</p></div></td>
+        <td width="7%"><textarea rows="8" name="rerr" cols="20"><tasks></tasks></textarea>
+<img id="rerrhelp" alt="help for Recv Error Actions field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerrerrhelp"><p class="cshelp">
+	It specifies all actions to do AFTER AN ERROR OCCURS as receiver host(SEND and requested,
+	or RECV and requester).<br><br>The format is as:<xmp><tasks>
+ <task>
+  <rank>n</rank>
+  <type>NAME</type>
+  <path>path</path>
+  <delay>x</delay>
+ </task>
+</tasks></xmp>where<br>-rank is an integer rank from 0 to n where n is the number of tasks<br>
+-type is one of TEST, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, LINKRENAME<br>
+-path is a static argument where some replacement will be done<br>
+-delay is usually the maximum delay of execution<br>
+See the API doc for the specific conditions.</p></div></td>
+        <td width="7%"><textarea rows="8" name="spre" cols="20"><tasks></tasks></textarea>
+<img id="sprehelp" alt="help for Send Pre Actions field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containersprehelp"><p class="cshelp">
+	It specifies all actions to do BEFORE the transfer operation as sender host(SEND and requester,
+	or RECV and requested).<br><br>The format is as:<xmp><tasks>
+ <task>
+  <rank>n</rank>
+  <type>NAME</type>
+  <path>path</path>
+  <delay>x</delay>
+ </task>
+</tasks></xmp>where<br>-rank is an integer rank from 0 to n where n is the number of tasks<br>
+-type is one of TEST, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, LINKRENAME<br>
+-path is a static argument where some replacement will be done<br>
+-delay is usually the maximum delay of execution<br>
+See the API doc for the specific conditions.</p></div></td>
+        <td width="8%"><textarea rows="8" name="spost" cols="20"><tasks></tasks></textarea>
+<img id="sposthelp" alt="help for Send Post Actions field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containersposthelp"><p class="cshelp">
+	It specifies all actions to do AFTER the transfer operation as sender host(SEND and requester,
+	or RECV and requested).<br><br>The format is as:<xmp><tasks>
+ <task>
+  <rank>n</rank>
+  <type>NAME</type>
+  <path>path</path>
+  <delay>x</delay>
+ </task>
+</tasks></xmp>where<br>-rank is an integer rank from 0 to n where n is the number of tasks<br>
+-type is one of TEST, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, LINKRENAME<br>
+-path is a static argument where some replacement will be done<br>
+-delay is usually the maximum delay of execution<br>
+See the API doc for the specific conditions.</p></div></td>
+        <td width="8%"><textarea rows="8" name="serr" cols="20"><tasks></tasks></textarea>
+<img id="serrhelp" alt="help for Send Error Actions field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerserrhelp"><p class="cshelp">
+	It specifies all actions to do AFTER AN ERROR OCCURS as sender host(SEND and requester,
+	or RECV and requested).<br><br>The format is as:<xmp><tasks>
+ <task>
+  <rank>n</rank>
+  <type>NAME</type>
+  <path>path</path>
+  <delay>x</delay>
+ </task>
+</tasks></xmp>where<br>-rank is an integer rank from 0 to n where n is the number of tasks<br>
+-type is one of TEST, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, LINKRENAME<br>
+-path is a static argument where some replacement will be done<br>
+-delay is usually the maximum delay of execution<br>
+See the API doc for the specific conditions.</p></div></td>
         <td width="8%">
         <p align="center"><input type="submit" value="Create" name="ACTION"></td>
       </tr>
@@ -156,7 +276,13 @@ a img {
   <legend>Filter on Mode: </legend>
 &nbsp;<input type="radio" name="mode" value="all" XXXALLXXX>ALL
   <input type="radio" name="mode" value="send" XXXASENDXXX>ALL SEND
-  <input type="radio" name="mode" value="recv" XXXARECVXXX>ALL RECV<p>&nbsp;
+  <input type="radio" name="mode" value="recv" XXXARECVXXX>ALL RECV
+  <img id="filterhelp" alt="help for Mode Filter field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerfilterhelp"><p class="cshelp">
+	Either you choose "ALL SEND", "ALL RECV" or "ALL" but none of specific (SEND, RECV, ...),
+	or you choose some specifics types of mode (SEND, SENDMD5, ...).
+	</p></div>
+	<p>&nbsp;
   <input type="checkbox" name="send" value="ON" XXXSENDXXX>SEND
   <input type="checkbox" name="recv" value="ON" XXXRECVXXX>RECV
   <input type="checkbox" name="sendmd5" value="ON" XXXSENDMXXX>SENDMD5

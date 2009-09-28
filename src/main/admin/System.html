@@ -22,6 +22,14 @@ a:hover {
 a img {
 	border:#000000 0px none;
 }
+.cshelp
+{
+    margin: 0em;
+    padding: 0.2em 0em 0.2em 0.2em;
+    background: #cee1ff;
+    color: #000;
+    width: 100%;
+}
 </style>
 <title>System</title>
 	<script type="text/javascript">
@@ -42,6 +50,7 @@ a img {
 	}
 //]]>
 	</script>
+	<script type="text/javascript" src="res/fieldhelp.js"></script>
 </head>
 <body class="normal" style="margin:0px;padding:0px;background-color:#FFFFFF;">
 <table style="border:none;" cellspacing="0" cellpadding="0" width="100%">
@@ -89,11 +98,18 @@ a img {
 <div id="Comp1_sys_doctext"><p>You can edit System configuration from here, disconnect from the Administrator or even shutdown the OpenR66 server.</p>
 <p>&nbsp;</p>
   <form method="post" name="SYSTEM" action="/System.html">
-    <p>
     Bandwidth Session Limit (B/s):
-    <input type="text" name="BSESS" size="20" value="XXXXSESSIONLIMITXXX"></p>
-    <p>Bandwidth Global Limit (B/s):&nbsp;&nbsp;
-    <input type="text" name="BGLOB" size="20" value="XXXXCHANNELLIMITXXX"></p>
+    <input type="text" name="BSESS" size="20" value="XXXXSESSIONLIMITXXX">
+    <img id="slhelp" alt="help for Session Limit field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerslhelp"><p class="cshelp">
+	The value (in Byte per second) specifies the limit of bandwidth (in and out) per session. 0 means no limit.
+	</p></div><br>
+    Bandwidth Global Limit (B/s):&nbsp;&nbsp;
+    <input type="text" name="BGLOB" size="20" value="XXXXCHANNELLIMITXXX">
+    <img id="glhelp" alt="help for Global Limit field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerglhelp"><p class="cshelp">
+	The value (in Byte per second) specifies the limit of bandwidth (in and out) globally (cumulated). 0 means no limit.
+	</p></div>
     <p>&nbsp;</p>
     <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <input type="submit" value="Validate" name="ACTION">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -102,16 +118,23 @@ a img {
 <p>&nbsp;</p>
 <p>&nbsp;</p>
   <form method="post" name="SYSTEM" action="/System.html">
-    <p>
     Disconnect from OpenR66 Administrator&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <input type="submit" value="Disconnect" name="ACTION"></p>
+    <input type="submit" value="Disconnect" name="ACTION">
+    <img id="dischelp" alt="help for Disconnection"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerdischelp"><p class="cshelp">
+	You can disconnect from this administrator by clicking on this button.
+	</p></div>
   </form>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
   <form method="post" name="SYSTEM" action="/System.html">
-    <p>
     Shutdown OpenR66 Server&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <input type="submit" value="Shutdown" name="ACTION"></p>
+    <input type="submit" value="Shutdown" name="ACTION">
+    <img id="shutdchelp" alt="help for Shutdown"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containershutdchelp"><p class="cshelp">
+	By clicking on this button will result in the Shutdown process of the full OpenR66 Server (all active transfers
+	will be stopped in pause)..
+	</p></div>
   </form>
 <p>&nbsp;</p></div></td></tr></tbody></table>
 <div style="height:36px;background-color:#EF6D00;text-align:left;">
