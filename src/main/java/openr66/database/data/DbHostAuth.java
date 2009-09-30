@@ -350,6 +350,16 @@ public class DbHostAuth extends AbstractDbData {
            AbstractDbData.UpdatedInfo.UPDATED.ordinal();
        return new DbPreparedStatement(session, request);
    }
+   /**
+    *
+    * @param session
+    * @param host
+    * @param addr
+    * @param ssl
+    * @return the DbPreparedStatement according to the filter
+    * @throws OpenR66DatabaseNoConnectionError
+    * @throws OpenR66DatabaseSqlError
+    */
    public static DbPreparedStatement getFilterPrepareStament(DbSession session,
            String host, String addr, boolean ssl)
        throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {

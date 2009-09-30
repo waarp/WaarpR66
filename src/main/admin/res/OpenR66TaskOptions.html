@@ -1,0 +1,120 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="imagetoolbar" content="no" />
+<meta http-equiv="Content-type" content="text/html; charset=iso-8859-1" />
+<style type="text/css">
+a {
+	color:#8F002B;
+	text-decoration:none;
+}
+a:visited {
+	text-decoration:none;
+}
+a:hover {
+	text-decoration:underline;
+}
+a img {
+	border:#000000 0px none;
+}
+</style>
+<title>GoldenGate - OpenR66-TaskOptions</title>
+
+</head>
+<body class="normal" style="margin:0px;padding:0px;background-color:#FFFFFF;">
+
+<td style="padding-right:5px;padding-left:5px;padding-bottom:5px;vertical-align:top;width:100%;padding-top:5px;">
+<h1 class="h1">&nbsp;OpenR66-TaskOptions</h1>
+<div id="Comp1_sys_doctext"><p><span style="font-size:10pt;">&nbsp;We focus here on the several tasks that are possible to run before a transfer starts (pre action), after a transfer is finished correctly (post action) or after an error occurs (either in pre or post action or during transfer: error action).</span></p>
+<p><span style="font-size:10pt;">&nbsp;Those actions are defined in one rule. Each rule contains 2 parts:</span></p>
+<ol>
+<li><span style="font-size:10pt;">Sender actions: A host is a Sender if it is the requester on a SEND rule or if it is the requested on a RECV rule. </span></li>
+<li><span style="font-size:10pt;">Receiver actions: A host is a Sender if it is the requester on a&nbsp;RECV rule or if it is the requested on a&nbsp;SEND rule.</span></li></ol>
+<p><span style="font-size:10pt;">&nbsp;Each action could be on pre, post or error step, each step can have several actions.</span></p>
+<p><span style="font-size:10pt;">&nbsp;It is defined with a unified form of XML:</span></p>
+<p style="text-align:left;"><span style="font-size:10pt;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;tasks&gt;</span><br>
+<span style="font-size:10pt;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;task&gt;</span><br>
+<span style="font-size:10pt;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;type&gt;NAME&lt;/type&gt;</span><br>
+<span style="font-size:10pt;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;path&gt;path&lt;/path&gt;</span><br>
+<span style="font-size:10pt;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;delay&gt;x&lt;/delay&gt;</span><br>
+<span style="font-size:10pt;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/task&gt;</span><br>
+<span style="font-size:10pt;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;task&gt;</span><br>
+<span style="font-size:10pt;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;type&gt;NAME&lt;/type&gt;</span><br>
+<span style="font-size:10pt;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;path&gt;path&lt;/path&gt;</span><br>
+<span style="font-size:10pt;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;delay&gt;x&lt;/delay&gt;</span><br>
+<span style="font-size:10pt;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/task&gt;</span><br>
+<span style="font-size:10pt;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/tasks&gt;</span></p>
+<ul>
+<li><span style="font-size:10pt;">Type is the type of task to execute (see below the supported types)</span> 
+</li><li><span style="font-size:10pt;">Path is a fixed argument for the task to execute. On this argument, string replacements are done when&nbsp;the following patterns are found:</span><ul>
+<li><span style="font-size:10pt;"><strong>#TRUEFULLPATH#</strong> : Current full path of current FILENAME</span> 
+</li><li><span style="font-size:10pt;"><strong>#TRUEFILENAME#</strong> : Current FILENAME (basename) (change in retrieval part)</span> 
+</li><li><span style="font-size:10pt;"><strong>#ORIGINALFILENAME#</strong> : Original FILENAME (basename) (before changing in retrieval part)</span> 
+</li><li><span style="font-size:10pt;"><strong>#DATE#</strong> : Current Date in yyyyMMdd format</span> 
+</li><li><span style="font-size:10pt;"><strong>#HOUR#</strong> : Current Hour in HHmmss format</span> 
+</li><li><span style="font-size:10pt;"><strong>#REMOTEHOST#</strong> : Remote host id (if not the initiator of the call)</span> 
+</li><li><span style="font-size:10pt;"><strong>#LOCALHOST#</strong> : Local host id</span> 
+</li><li><span style="font-size:10pt;"><strong>#TRANSFERID#</strong> : Transfer id</span> 
+</li><li><span style="font-size:10pt;"><strong>#RANKTRANSFER#</strong> : Current or final RANK of block</span> 
+</li><li><span style="font-size:10pt;"><strong>#BLOCKSIZE#</strong> : Block size used</span></li></ul></li>
+
+<li><span style="font-size:10pt;">Delay is generally the delay (if any) for execution before the execution&nbsp;becomes out of time.</span> 
+</li><li><span style="font-size:10pt;">Additionnaly, a task will use also the argument from the transfer itself (Transfer Information).</span></li></ul>
+<p><span style="font-size:10pt;"><span size="+0"><span style="font-size:10pt;"><span size="+0">&nbsp;Each action is of one of the following items:</span></span></span></span></p>
+<ul>
+<li><span style="font-size:10pt;"><strong>TEST</strong></span></li></ul>
+<blockquote style="margin-right:0px;" dir="ltr">
+<p style="text-align:justify;"><span style="font-size:10pt;">This task logs the informations from the rule and the transfer only if delay is &gt; 0.</span></p></blockquote>
+<ul>
+<li><span style="font-size:10pt;"><strong>MOVE</strong></span></li></ul>
+<blockquote style="margin-right:0px;" dir="ltr">
+<p style="text-align:justify;"><span style="font-size:10pt;">Move the file to the path designed by Path argument without renaming the filename (same basename). </span></p>
+<p style="text-align:justify;"><span style="font-size:10pt;">Delay and Transfer Information are ignored.</span></p>
+<p style="text-align:justify;"><span style="font-size:10pt;">The file is marked as moved.</span></p></blockquote>
+<ul>
+<li><span style="font-size:10pt;"><strong>MOVERENAME</strong></span></li></ul>
+<blockquote style="margin-right:0px;" dir="ltr">
+<p style="text-align:justify;"><span style="font-size:10pt;">Move the file to the path designed by Path and Transfer Information arguments. </span></p>
+<p style="text-align:justify;"><span style="font-size:10pt;">After Path is transformed according to above dynamic replacements, it is then used as a String Format where Transfer Information is used as input (String.format(Path,Info)). </span></p>
+<p style="text-align:justify;"><span style="font-size:10pt;">Delay is ignored.&nbsp;</span></p>
+<p style="text-align:justify;"><span style="font-size:10pt;">The file is marked as moved.</span></p></blockquote>
+<ul>
+<li><span style="font-size:10pt;"><strong>COPY</strong></span></li></ul>
+<blockquote style="margin-right:0px;" dir="ltr">
+<p style="text-align:justify;"><span style="font-size:10pt;">Copy the file to the path designed by Path argument without renaming the filename (same basename). </span></p>
+<p style="text-align:justify;"><span style="font-size:10pt;">Delay and Transfer Information are ignored.</span></p>
+<p style="text-align:justify;"><span style="font-size:10pt;">The file is not marked as moved.</span></p></blockquote>
+<ul>
+<li><span style="font-size:10pt;"><strong>COPYRENAME</strong></span></li></ul>
+<blockquote style="margin-right:0px;" dir="ltr">
+<p style="text-align:justify;"><span style="font-size:10pt;">Copy the file to the path designed by Path and Transfer Information arguments.</span></p>
+<p style="text-align:justify;"><span style="font-size:10pt;">After Path is transformed according to above dynamic replacements, it is then used as a String Format where Transfer Information is used as input (String.format(Path,Info)). </span></p>
+<p style="text-align:justify;"><span style="font-size:10pt;">Delay is ignored.</span></p>
+<p style="text-align:justify;"><span style="font-size:10pt;">The file is not marked as moved.</span></p></blockquote>
+<ul>
+<li><span style="font-size:10pt;"><strong>EXEC</strong></span></li></ul>
+<blockquote style="margin-right:0px;" dir="ltr">
+<p style="text-align:justify;"><span style="font-size:10pt;">Execute an external command given by Path and Transfer Information arguments. </span></p>
+<p style="text-align:justify;"><span style="font-size:10pt;">The Delay is the maximum amount of time in milliseconds before the task should be considered as over time and so in error.</span></p>
+<p style="text-align:justify;"><span style="font-size:10pt;">The command path is obtained from Path transformed according to above dynamic replacements, and after a String Format where Transfer Information is used as input (String.format(Path,Info)).</span></p>
+<p style="text-align:justify;"><span style="font-size:10pt;">The file is not marked as moved.</span></p></blockquote>
+<ul>
+<li><span style="font-size:10pt;"><strong>EXECMOVE</strong></span></li></ul>
+<blockquote style="margin-right:0px;" dir="ltr">
+<p style="text-align:justify;"><span style="font-size:10pt;">Execute an external command given by Path and Transfer Information arguments. </span></p>
+<p style="text-align:justify;"><span style="font-size:10pt;">The Delay is the maximum amount of time in milliseconds before the task should be considered as over time and so in error.</span></p>
+<p style="text-align:justify;"><span style="font-size:10pt;">The command path is obtained from Path transformed according to above dynamic replacements, and after a String Format where Transfer Information is used as input (String.format(Path,Info)).</span></p>
+<p style="text-align:justify;"><span style="font-size:10pt;">The last line returned by the external command is interpreted as the new full file path. The external command is responsible to really move the previous file to the new one. </span></p>
+<p style="text-align:justify;"><span style="font-size:10pt;">The file is marked as moved.</span></p></blockquote>
+<ul>
+<li><span style="font-size:10pt;"><strong>LINKRENAME</strong></span></li></ul>
+<blockquote style="margin-right:0px;" dir="ltr">
+<p style="text-align:justify;"><span style="font-size:10pt;">Create a link of the current file and make the file pointing to it. </span></p>
+<p style="text-align:justify;"><span style="font-size:10pt;">The link first tries to be a hard link, then a soft link, and if it is really not possible (not supported by the filesystem), it does a copy and rename task.</span></p>
+<p style="text-align:justify;"><span style="font-size:10pt;">After Path is transformed according to above dynamic replacements, it is then used as a String Format where Transfer Information is used as input (String.format(Path,Info)). </span></p>
+<p style="text-align:justify;"><span style="font-size:10pt;">Delay is ignored. </span></p>
+<p style="text-align:justify;"><span style="font-size:10pt;">The file is not marked as moved.</span></p></blockquote>
+<p><span style="font-size:10pt;"><span size="+0"><span style="font-size:10pt;"><span size="+0"><span style="color:#3f5fbf; font-size:10pt;"></span></span></span></span></span>&nbsp;</p></div></td></tr></tbody></table>
+</div></div>
+</body>
+</html>

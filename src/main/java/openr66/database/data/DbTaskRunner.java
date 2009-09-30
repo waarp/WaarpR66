@@ -725,7 +725,7 @@ public class DbTaskRunner extends AbstractDbData {
    * @param error
    * @param done
    * @param all
-   * @return the DbPreparedStatement for getting Selected Object
+   * @return the DbPreparedStatement according to the filter
    * @throws OpenR66DatabaseNoConnectionError
    * @throws OpenR66DatabaseSqlError
    */

@@ -159,11 +159,6 @@ public class DbRule extends AbstractDbData {
     public static final String TASK_DELAY = "delay";
 
     /**
-     * Internal context XML fields
-     */
-    public static final String TASK_RANK = "rank";
-
-    /**
      * Global Id
      */
     public String idRule = null;
@@ -373,9 +368,12 @@ public class DbRule extends AbstractDbData {
      * @param sendPath
      * @param archivePath
      * @param workPath
-     * @param preTasks
-     * @param postTasks
-     * @param errorTasks
+     * @param rpreTasks
+     * @param rpostTasks
+     * @param rerrorTasks
+     * @param spreTasks
+     * @param spostTasks
+     * @param serrorTasks
      */
     public DbRule(DbSession dbSession, String idRule, String ids, int mode, String recvPath,
             String sendPath, String archivePath, String workPath,
@@ -402,6 +400,13 @@ public class DbRule extends AbstractDbData {
         spreTasksArray = getTasksRule(this.spreTasks);
         spostTasksArray = getTasksRule(this.spostTasks);
         serrorTasksArray = getTasksRule(this.serrorTasks);
+        // and reverse
+        this.rpreTasks = setTasksRule(rpreTasksArray);
+        this.rpostTasks = setTasksRule(rpostTasksArray);
+        this.rerrorTasks = setTasksRule(rerrorTasksArray);
+        this.spreTasks = setTasksRule(spreTasksArray);
+        this.spostTasks = setTasksRule(spostTasksArray);
+        this.serrorTasks = setTasksRule(serrorTasksArray);
         setToArray();
         isSaved = false;
     }
@@ -435,9 +440,12 @@ public class DbRule extends AbstractDbData {
      * @param sendpath
      * @param archivepath
      * @param workpath
-     * @param pretasksArray
-     * @param posttasksArray
-     * @param errortasksArray
+     * @param rpretasksArray
+     * @param rposttasksArray
+     * @param rerrortasksArray
+     * @param spretasksArray
+     * @param sposttasksArray
+     * @param serrortasksArray
      */
     public DbRule(DbSession dbSession, String idrule, String[] idsArrayRef, int mode,
             String recvpath, String sendpath, String archivepath,
@@ -751,9 +759,8 @@ public class DbRule extends AbstractDbData {
      * and return new array of Tasks or null if in error.
      *
      * @param tasks
-     * @return Array of tasks or null if in error.
+     * @return Array of tasks or empty array if in error.
      */
-    @SuppressWarnings("unchecked")
     private String[][] getTasksRule(String tasks) {
         if (tasks == null) {
             logger.debug("No tasks so setting to the default!");
@@ -769,11 +776,22 @@ public class DbRule extends AbstractDbData {
             reader.close();
             return new String[0][0];
         }
-        List<Node> listNode = document.selectNodes(TASKS_ROOT);
+        String [][] result = getTasksRule(document, TASKS_ROOT);
+        reader.close();
+        return result;
+    }
+    /**
+     * Utility function
+     * @param node
+     * @param path
+     * @return the array of tasks or empty array if in error.
+     */
+    @SuppressWarnings("unchecked")
+    public static String [][] getTasksRule(Node node, String path) {
+        List<Node> listNode = node.selectNodes(TASKS_ROOT);
         if (listNode == null) {
             logger
                     .info("Unable to find the tasks for Rule, setting to the default");
-            reader.close();
             return new String[0][0];
         }
         String[][] taskArray = new String[listNode.size()][3];
@@ -782,13 +800,9 @@ public class DbRule extends AbstractDbData {
             taskArray[i][1] = null;
             taskArray[i][2] = null;
         }
+        int rank = 0;
         for (Node noderoot: listNode) {
-            Node nodetype = null, nodepath = null, noderank = null, nodedelay = null;
-            noderank = noderoot.selectSingleNode(TASK_RANK);
-            if (noderank == null) {
-                continue;
-            }
-            int rank = Integer.parseInt(noderank.getText());
+            Node nodetype = null, nodepath = null, nodedelay = null;
             nodetype = noderoot.selectSingleNode(TASK_TYPE);
             if (nodetype == null) {
                 continue;
@@ -808,10 +822,10 @@ public class DbRule extends AbstractDbData {
             taskArray[rank][0] = nodetype.getText();
             taskArray[rank][1] = nodepath.getText();
             taskArray[rank][2] = delay;
+            rank++;
         }
         listNode.clear();
         listNode = null;
-        reader.close();
         return taskArray;
     }
 
@@ -844,8 +858,7 @@ public class DbRule extends AbstractDbData {
         if (tasksArray != null) {
             tasks = XMLTASKS;
             for (int i = 0; i < tasksArray.length; i ++) {
-                tasks += XMLTASK + "<" + TASK_RANK + ">" + i + "</" +
-                        TASK_RANK + "><" + TASK_TYPE + ">" + tasksArray[i][0] +
+                tasks += XMLTASK + "<" + TASK_TYPE + ">" + tasksArray[i][0] +
                         "</" + TASK_TYPE + "><" + TASK_PATH + ">" +
                         tasksArray[i][1] + "</" + TASK_PATH + "><" +
                         TASK_DELAY + ">" + tasksArray[i][2] + "</" +
@@ -982,6 +995,15 @@ public class DbRule extends AbstractDbData {
         return "Rule Name:" + idRule + " MODE: " +
             RequestPacket.TRANSFERMODE.values()[mode].toString();
     }
+    /**
+     *
+     * @param session
+     * @param rule
+     * @param mode
+     * @return the DbPreparedStatement according to the filter
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66DatabaseSqlError
+     */
     public static DbPreparedStatement getFilterPrepareStament(DbSession session,
             String rule, int mode)
         throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {

@@ -171,58 +171,6 @@ public class RuleFileBasedConfiguration {
     }
 
     /**
-     *
-     * @param rootnode
-     * @param path
-     * @return Null if no tasks or the array of tasks
-     */
-    @SuppressWarnings("unchecked")
-    private static String[][] getTasks(Node rootnode, String path) {
-        List<Node> listNode = rootnode.selectNodes(path);
-        if (listNode == null) {
-            logger
-                    .info("Unable to find the tasks for Rule, setting to the default");
-            return null;
-        }
-        String[][] taskArray = new String[listNode.size()][3];
-        for (int i = 0; i < listNode.size(); i ++) {
-            taskArray[i][0] = null;
-            taskArray[i][1] = null;
-            taskArray[i][2] = null;
-        }
-        for (Node noderoot: listNode) {
-            Node nodetype = null, nodepath = null, noderank = null, nodedelay = null;
-            noderank = noderoot.selectSingleNode(DbRule.TASK_RANK);
-            if (noderank == null) {
-                continue;
-            }
-            int rank = Integer.parseInt(noderank.getText());
-            nodetype = noderoot.selectSingleNode(DbRule.TASK_TYPE);
-            if (nodetype == null) {
-                continue;
-            }
-            nodepath = noderoot.selectSingleNode(DbRule.TASK_PATH);
-            if (nodepath == null) {
-                continue;
-            }
-            nodedelay = noderoot.selectSingleNode(DbRule.TASK_DELAY);
-            String delay;
-            if (nodedelay == null) {
-                delay = Integer
-                        .toString(Configuration.configuration.TIMEOUTCON);
-            } else {
-                delay = nodedelay.getText();
-            }
-            taskArray[rank][0] = nodetype.getText();
-            taskArray[rank][1] = nodepath.getText();
-            taskArray[rank][2] = delay;
-        }
-        listNode.clear();
-        listNode = null;
-        return taskArray;
-    }
-
-    /**
      * Load and update a Rule from a file
      * @param file
      * @return the newly created R66Rule from XML File
@@ -311,37 +259,37 @@ public class RuleFileBasedConfiguration {
         nodebase = document.selectSingleNode(RPRETASKS);
         String[][] rpretasks = new String[0][0];
         if (nodebase != null) {
-            rpretasks = getTasks(nodebase, TASK);
+            rpretasks = DbRule.getTasksRule(nodebase, TASK);
             nodebase = null;
         }
         nodebase = document.selectSingleNode(RPOSTTASKS);
         String[][] rposttasks = new String[0][0];
         if (nodebase != null) {
-            rposttasks = getTasks(nodebase, TASK);
+            rposttasks = DbRule.getTasksRule(nodebase, TASK);
             nodebase = null;
         }
         nodebase = document.selectSingleNode(RERRORTASKS);
         String[][] rerrortasks = new String[0][0];
         if (nodebase != null) {
-            rerrortasks = getTasks(nodebase, TASK);
+            rerrortasks = DbRule.getTasksRule(nodebase, TASK);
             nodebase = null;
         }
         nodebase = document.selectSingleNode(SPRETASKS);
         String[][] spretasks = new String[0][0];
         if (nodebase != null) {
-            spretasks = getTasks(nodebase, TASK);
+            spretasks = DbRule.getTasksRule(nodebase, TASK);
             nodebase = null;
         }
         nodebase = document.selectSingleNode(SPOSTTASKS);
         String[][] sposttasks = new String[0][0];
         if (nodebase != null) {
-            sposttasks = getTasks(nodebase, TASK);
+            sposttasks = DbRule.getTasksRule(nodebase, TASK);
             nodebase = null;
         }
         nodebase = document.selectSingleNode(SERRORTASKS);
         String[][] serrortasks = new String[0][0];
         if (nodebase != null) {
-            serrortasks = getTasks(nodebase, TASK);
+            serrortasks = DbRule.getTasksRule(nodebase, TASK);
             nodebase = null;
         }
 
@@ -405,7 +353,6 @@ public class RuleFileBasedConfiguration {
         String [][] array = rule.rpreTasksArray;
         for (rank = 0; rank < array.length; rank++) {
             Element task = new DefaultElement(XTASK);
-            task.add(newElement(DbRule.TASK_RANK, Integer.toString(rank)));
             task.add(newElement(DbRule.TASK_TYPE, array[rank][0]));
             task.add(newElement(DbRule.TASK_PATH, array[rank][1]));
             task.add(newElement(DbRule.TASK_DELAY, array[rank][2]));
@@ -418,7 +365,6 @@ public class RuleFileBasedConfiguration {
         array = rule.rpostTasksArray;
         for (rank = 0; rank < array.length; rank++) {
             Element task = new DefaultElement(XTASK);
-            task.add(newElement(DbRule.TASK_RANK, Integer.toString(rank)));
             task.add(newElement(DbRule.TASK_TYPE, array[rank][0]));
             task.add(newElement(DbRule.TASK_PATH, array[rank][1]));
             task.add(newElement(DbRule.TASK_DELAY, array[rank][2]));
@@ -431,7 +377,6 @@ public class RuleFileBasedConfiguration {
         array = rule.rerrorTasksArray;
         for (rank = 0; rank < array.length; rank++) {
             Element task = new DefaultElement(XTASK);
-            task.add(newElement(DbRule.TASK_RANK, Integer.toString(rank)));
             task.add(newElement(DbRule.TASK_TYPE, array[rank][0]));
             task.add(newElement(DbRule.TASK_PATH, array[rank][1]));
             task.add(newElement(DbRule.TASK_DELAY, array[rank][2]));
@@ -444,7 +389,6 @@ public class RuleFileBasedConfiguration {
         array = rule.spreTasksArray;
         for (rank = 0; rank < array.length; rank++) {
             Element task = new DefaultElement(XTASK);
-            task.add(newElement(DbRule.TASK_RANK, Integer.toString(rank)));
             task.add(newElement(DbRule.TASK_TYPE, array[rank][0]));
             task.add(newElement(DbRule.TASK_PATH, array[rank][1]));
             task.add(newElement(DbRule.TASK_DELAY, array[rank][2]));
@@ -457,7 +401,6 @@ public class RuleFileBasedConfiguration {
         array = rule.spostTasksArray;
         for (rank = 0; rank < array.length; rank++) {
             Element task = new DefaultElement(XTASK);
-            task.add(newElement(DbRule.TASK_RANK, Integer.toString(rank)));
             task.add(newElement(DbRule.TASK_TYPE, array[rank][0]));
             task.add(newElement(DbRule.TASK_PATH, array[rank][1]));
             task.add(newElement(DbRule.TASK_DELAY, array[rank][2]));
@@ -470,7 +413,6 @@ public class RuleFileBasedConfiguration {
         array = rule.serrorTasksArray;
         for (rank = 0; rank < array.length; rank++) {
             Element task = new DefaultElement(XTASK);
-            task.add(newElement(DbRule.TASK_RANK, Integer.toString(rank)));
             task.add(newElement(DbRule.TASK_TYPE, array[rank][0]));
             task.add(newElement(DbRule.TASK_PATH, array[rank][1]));
             task.add(newElement(DbRule.TASK_DELAY, array[rank][2]));

@@ -897,7 +897,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         if (parms != null) {
             body0 = readFile("src/main/admin/Rules_body0.html");
             String parm = parms.get(0);
-            if ("Create".equalsIgnoreCase(parm)) {
+            if ("Create".equalsIgnoreCase(parm) || "Update".equalsIgnoreCase(parm)) {
                 String rule = params.get("rule").get(0).trim();
                 if (rule.length() == 0) {
                     rule = null;
@@ -952,7 +952,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 }
                 if (rule == null || mode == null) {
                     body0 = body1 = body = "";
-                    body = "<p><center><b>Not enough data to create a Rule</b></center></p>";
+                    body = "<p><center><b>Not enough data to "+parm+" a Rule</b></center></p>";
                     head = resetOptionRules(head, "", null, -3);
                     return head+body0+body+body1+end;
                 }
@@ -988,7 +988,15 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 DbRule dbrule = new DbRule(dbSession,rule,hostids,tmode.ordinal(),
                         recvp,sendp,archp,workp,rpre,rpost,rerr,spre,spost,serr);
                 try {
-                    dbrule.insert();
+                    if ("Create".equalsIgnoreCase(parm)) {
+                        dbrule.insert();
+                    } else {
+                        if (dbrule.exist()) {
+                            dbrule.update();
+                        } else {
+                            dbrule.insert();
+                        }
+                    }
                 } catch (OpenR66DatabaseException e) {
                     body0 = body1 = body = "";
                     body = "<p><center><b>Cannot create a Rule: "+e.getMessage()+"</b></center></p>";
@@ -1113,110 +1121,6 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 }
                 body = builder.toString();
                 body1 = readFile("src/main/admin/Rules_body1.html");
-            } else if ("Update".equalsIgnoreCase(parm)) {
-                String rule = params.get("rule").get(0).trim();
-                if (rule.length() == 0) {
-                    rule = null;
-                }
-                String hostids = params.get("hostids").get(0).trim();
-                if (hostids.length() == 0) {
-                    hostids = null;
-                }
-                String recvp = params.get("recvp").get(0).trim();
-                if (recvp.length() == 0) {
-                    recvp = null;
-                }
-                String sendp = params.get("sendp").get(0).trim();
-                if (sendp.length() == 0) {
-                    sendp = null;
-                }
-                String archp = params.get("archp").get(0).trim();
-                if (archp.length() == 0) {
-                    archp = null;
-                }
-                String workp = params.get("workp").get(0).trim();
-                if (workp.length() == 0) {
-                    workp = null;
-                }
-                String rpre = params.get("rpre").get(0).trim();
-                if (rpre.length() == 0) {
-                    rpre = null;
-                }
-                String rpost = params.get("rpost").get(0).trim();
-                if (rpost.length() == 0) {
-                    rpost = null;
-                }
-                String rerr = params.get("rerr").get(0).trim();
-                if (rerr.length() == 0) {
-                    rerr = null;
-                }
-                String spre = params.get("spre").get(0).trim();
-                if (spre.length() == 0) {
-                    spre = null;
-                }
-                String spost = params.get("spost").get(0).trim();
-                if (spost.length() == 0) {
-                    spost = null;
-                }
-                String serr = params.get("serr").get(0).trim();
-                if (serr.length() == 0) {
-                    serr = null;
-                }
-                String mode = params.get("mode").get(0).trim();
-                if (mode.length() == 0) {
-                    mode = null;
-                }
-                if (rule == null || mode == null) {
-                    body0 = body1 = body = "";
-                    body = "<p><center><b>Not enough data to update a Rule</b></center></p>";
-                    head = resetOptionRules(head, "", null, -3);
-                    return head+body0+body+body1+end;
-                }
-                int gmode = 0;
-
-                TRANSFERMODE tmode = null;
-                if (mode.equals("send")) {
-                    tmode = RequestPacket.TRANSFERMODE.SENDMODE;
-                    gmode= -2;
-                } else if (mode.equals("recv")) {
-                    tmode = RequestPacket.TRANSFERMODE.RECVMODE;
-                    gmode= -1;
-                } else if (mode.equals("sendmd5")) {
-                    tmode = RequestPacket.TRANSFERMODE.SENDMD5MODE;
-                    gmode= -2;
-                } else if (mode.equals("recvmd5")) {
-                    tmode = RequestPacket.TRANSFERMODE.RECVMD5MODE;
-                    gmode= -1;
-                } else if (mode.equals("sendth")) {
-                    tmode = RequestPacket.TRANSFERMODE.SENDTHROUGHMODE;
-                    gmode= -2;
-                } else if (mode.equals("recvth")) {
-                    tmode = RequestPacket.TRANSFERMODE.RECVTHROUGHMODE;
-                    gmode= -1;
-                } else if (mode.equals("sendthmd5")) {
-                    tmode = RequestPacket.TRANSFERMODE.SENDMD5THROUGHMODE;
-                    gmode= -2;
-                } else if (mode.equals("recvthmd5")) {
-                    tmode = RequestPacket.TRANSFERMODE.RECVMD5THROUGHMODE;
-                    gmode= -1;
-                }
-                head = resetOptionRules(head, rule, tmode, gmode);
-                DbRule dbrule = new DbRule(dbSession,rule,hostids,tmode.ordinal(),
-                        recvp,sendp,archp,workp,rpre,rpost,rerr,spre,spost,serr);
-                try {
-                    if (dbrule.exist()) {
-                        dbrule.update();
-                    } else {
-                        dbrule.insert();
-                    }
-                } catch (OpenR66DatabaseException e) {
-                    body0 = body1 = body = "";
-                    body = "<p><center><b>Cannot create a Rule: "+e.getMessage()+"</b></center></p>";
-                    head = resetOptionRules(head, "", null, -3);
-                    return head+body0+body+body1+end;
-                }
-                body = readFile("src/main/admin/Rules_body.html");
-                body = dbrule.toSpecializedHtml(authentHttp, body);
             } else if ("Delete".equalsIgnoreCase(parm)) {
                 String rule = params.get("rule").get(0).trim();
                 if (rule.length() == 0) {
