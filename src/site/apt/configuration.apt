@@ -74,7 +74,7 @@ GoldenGateR66 Server and Clients Configuration
 
     *{{{http://logback.qos.ch/}Logback}}
 
-    *{{Database JDBC support}} for instance for H2, PostGreSQL, Oracle, MySQL
+    *<Database JDBC support> for instance for H2, PostGreSQL, Oracle, MySQL
 
   *Goldengate jars:
 

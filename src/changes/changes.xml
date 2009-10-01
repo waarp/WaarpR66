@@ -5,6 +5,11 @@
 		<author email="fredbregier at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+		<release version="0.6.2" date="2009-10-01" description="Add Administrator in Https">
+			<action dev="Frederic Bregier" type="add">Add Administrator in Https</action>
+			<action dev="Frederic Bregier" type="fix">Fix shutdown</action>
+			<action dev="Frederic Bregier" type="fix">Add different actions according to receiver or sender</action>
+		</release>
 		<release version="0.6.1" date="2009-09-14" description="Add Information request">
 			<action dev="Frederic Bregier" type="add">Add Information Request</action>
 		</release>
