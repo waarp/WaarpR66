@@ -45,20 +45,21 @@ a img {
 <span style="font-size:10pt;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/task&gt;</span><br>
 <span style="font-size:10pt;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/tasks&gt;</span></p>
 <ul>
-<li><span style="font-size:10pt;">Type is the type of task to execute (see below the supported types)</span> 
+<li><span style="font-size:10pt;">Type is the type of task to execute (see below the supported types)</span>
 </li><li><span style="font-size:10pt;">Path is a fixed argument for the task to execute. On this argument, string replacements are done when&nbsp;the following patterns are found:</span><ul>
-<li><span style="font-size:10pt;"><strong>#TRUEFULLPATH#</strong> : Current full path of current FILENAME</span> 
-</li><li><span style="font-size:10pt;"><strong>#TRUEFILENAME#</strong> : Current FILENAME (basename) (change in retrieval part)</span> 
-</li><li><span style="font-size:10pt;"><strong>#ORIGINALFILENAME#</strong> : Original FILENAME (basename) (before changing in retrieval part)</span> 
-</li><li><span style="font-size:10pt;"><strong>#DATE#</strong> : Current Date in yyyyMMdd format</span> 
-</li><li><span style="font-size:10pt;"><strong>#HOUR#</strong> : Current Hour in HHmmss format</span> 
-</li><li><span style="font-size:10pt;"><strong>#REMOTEHOST#</strong> : Remote host id (if not the initiator of the call)</span> 
-</li><li><span style="font-size:10pt;"><strong>#LOCALHOST#</strong> : Local host id</span> 
-</li><li><span style="font-size:10pt;"><strong>#TRANSFERID#</strong> : Transfer id</span> 
-</li><li><span style="font-size:10pt;"><strong>#RANKTRANSFER#</strong> : Current or final RANK of block</span> 
+<li><span style="font-size:10pt;"><strong>#TRUEFULLPATH#</strong> : Current full path of current FILENAME</span>
+</li><li><span style="font-size:10pt;"><strong>#TRUEFILENAME#</strong> : Current FILENAME (basename) (change in retrieval part)</span>
+</li><li><span style="font-size:10pt;"><strong>#ORIGINALFILENAME#</strong> : Original FILENAME (basename) (before changing in retrieval part)</span>
+</li><li><span style="font-size:10pt;"><strong>#RULE#</strong> : Rule used during transfer</span>
+</li><li><span style="font-size:10pt;"><strong>#DATE#</strong> : Current Date in yyyyMMdd format</span>
+</li><li><span style="font-size:10pt;"><strong>#HOUR#</strong> : Current Hour in HHmmss format</span>
+</li><li><span style="font-size:10pt;"><strong>#REMOTEHOST#</strong> : Remote host id (if not the initiator of the call)</span>
+</li><li><span style="font-size:10pt;"><strong>#LOCALHOST#</strong> : Local host id</span>
+</li><li><span style="font-size:10pt;"><strong>#TRANSFERID#</strong> : Transfer id</span>
+</li><li><span style="font-size:10pt;"><strong>#RANKTRANSFER#</strong> : Current or final RANK of block</span>
 </li><li><span style="font-size:10pt;"><strong>#BLOCKSIZE#</strong> : Block size used</span></li></ul></li>
 
-<li><span style="font-size:10pt;">Delay is generally the delay (if any) for execution before the execution&nbsp;becomes out of time.</span> 
+<li><span style="font-size:10pt;">Delay is generally the delay (if any) for execution before the execution&nbsp;becomes out of time.</span>
 </li><li><span style="font-size:10pt;">Additionnaly, a task will use also the argument from the transfer itself (Transfer Information).</span></li></ul>
 <p><span style="font-size:10pt;"><span size="+0"><span style="font-size:10pt;"><span size="+0">&nbsp;Each action is of one of the following items:</span></span></span></span></p>
 <ul>
@@ -114,7 +115,6 @@ a img {
 <p style="text-align:justify;"><span style="font-size:10pt;">After Path is transformed according to above dynamic replacements, it is then used as a String Format where Transfer Information is used as input (String.format(Path,Info)). </span></p>
 <p style="text-align:justify;"><span style="font-size:10pt;">Delay is ignored. </span></p>
 <p style="text-align:justify;"><span style="font-size:10pt;">The file is not marked as moved.</span></p></blockquote>
-<p><span style="font-size:10pt;"><span size="+0"><span style="font-size:10pt;"><span size="+0"><span style="color:#3f5fbf; font-size:10pt;"></span></span></span></span></span>&nbsp;</p></div></td></tr></tbody></table>
-</div></div>
+<p><span style="font-size:10pt;"><span size="+0"><span style="font-size:10pt;"><span size="+0"><span style="color:#3f5fbf; font-size:10pt;"></span></span></span></span></span>&nbsp;</p></div></td>
 </body>
 </html>

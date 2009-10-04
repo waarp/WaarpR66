@@ -39,6 +39,7 @@
  * <li>#TRUEFULLPATH# : Current full path of current FILENAME</li>
  * <li>#TRUEFILENAME# : Current FILENAME (basename) (change in retrieval part)</li>
  * <li>#ORIGINALFILENAME# : Original FILENAME (basename) (before changing in retrieval part)</li>
+ * <li>#RULE# : Rule used during transfer</li>
  * <li>#DATE# : Current Date in yyyyMMdd format</li>
  * <li>#HOUR# : Current Hour in HHmmss format</li>
  * <li>#REMOTEHOST# : Remote host id (if not the initiator of the call)</li>

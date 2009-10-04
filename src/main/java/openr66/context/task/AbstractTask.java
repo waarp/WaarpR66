@@ -52,6 +52,11 @@ public abstract class AbstractTask implements Runnable {
     public static final String ORIGINALFILENAME = "#ORIGINALFILENAME#";
 
     /**
+     * Current full path of current RULE
+     */
+    public static final String RULE = "#RULE#";
+
+    /**
      * Date in yyyyMMdd format
      */
     public static final String DATE = "#DATE#";
@@ -173,6 +178,8 @@ public abstract class AbstractTask implements Runnable {
                 .getFinalUniqueFilename(session.getFile()));
         finalname = finalname.replace(ORIGINALFILENAME, session.getRunner()
                 .getOriginalFilename());
+        finalname = finalname.replace(RULE, session.getRunner()
+                .getRuleId());
         DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
         Date date = new Date();
         finalname = finalname.replace(DATE, dateFormat.format(date));
