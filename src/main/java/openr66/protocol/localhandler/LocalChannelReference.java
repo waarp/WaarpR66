@@ -233,7 +233,7 @@ public class LocalChannelReference {
                 futureRequest.cancel();
             }
         } else {
-            logger.warn("Already finished: " + futureEndTransfer.getResult());
+            logger.info("Could not invalidate since Already finished: " + futureEndTransfer.getResult());
         }
     }
     /**
@@ -245,7 +245,7 @@ public class LocalChannelReference {
             futureEndTransfer.setResult(finalValue);
             futureEndTransfer.setSuccess();
         } else {
-            logger.warn("Already validated: " + futureEndTransfer.isSuccess() +
+            logger.info("Could not validate since Already validated: " + futureEndTransfer.isSuccess() +
                     " " + finalValue);
             if (!futureEndTransfer.getResult().isAnswered) {
                 futureEndTransfer.getResult().isAnswered = finalValue.isAnswered;
@@ -285,14 +285,14 @@ public class LocalChannelReference {
      */
     public void validateRequest(R66Result finalValue) {
         if (!futureEndTransfer.isDone()) {
-            logger.warn("Will validate EndTransfer");
+            logger.info("Will validate EndTransfer");
             validateEndTransfer(finalValue);
         }
         if (!futureRequest.isDone()) {
             futureRequest.setResult(finalValue);
             futureRequest.setSuccess();
         } else {
-            logger.warn("Already validated: " + futureRequest.isSuccess() +
+            logger.info("Already validated: " + futureRequest.isSuccess() +
                     " " + finalValue);
             if (!futureRequest.getResult().isAnswered) {
                 futureRequest.getResult().isAnswered = finalValue.isAnswered;

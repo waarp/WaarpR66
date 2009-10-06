@@ -132,7 +132,7 @@ public class ChannelUtils implements Runnable {
             if (channelFactory != null) {
                 channelFactory.releaseExternalResources();
             }
-            logger.warn("Done with shutdown "+name);
+            logger.info("Done with shutdown "+name);
         }
     }
 
@@ -271,11 +271,11 @@ public class ChannelUtils implements Runnable {
         NetworkTransaction.closeRetrieveExecutors();
         Configuration.configuration.getGlobalTrafficShapingHandler()
                 .releaseExternalResources();
-        logger.warn("Exit Shutdown Command");
+        logger.info("Exit Shutdown Command");
         terminateCommandChannels();
-        logger.warn("Exit Shutdown Local");
+        logger.info("Exit Shutdown Local");
         Configuration.configuration.getLocalTransaction().closeAll();
-        logger.warn("Exit Shutdown Http");
+        logger.info("Exit Shutdown Http");
         terminateHttpChannels();
         OpenR66SignalHandler.closeAllConnection();
         Configuration.configuration.serverStop();

@@ -158,9 +158,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
      */
     @Override
     public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) {
-        logger
-                .info("Local Server Channel Connected: " +
-                        e.getChannel().getId());
         session = new R66Session();
     }
 
@@ -177,8 +174,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
             throws OpenR66Exception {
         // FIXME action as requested and answer if necessary
         final AbstractLocalPacket packet = (AbstractLocalPacket) e.getMessage();
-        logger.debug("Local Server Channel Recv: {} : {}", e.getChannel().getId(),
-                packet.getClass().getSimpleName());
         if (packet.getType() == LocalPacketFactory.STARTUPPACKET) {
             startup(e.getChannel(), (StartupPacket) packet);
         } else {
@@ -378,7 +373,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
      */
     private void startup(Channel channel, StartupPacket packet)
             throws OpenR66ProtocolPacketException {
-        logger.debug("Recv: {}", packet);
         localChannelReference = Configuration.configuration
                 .getLocalTransaction().getFromId(packet.getLocalId());
         if (localChannelReference == null) {
@@ -396,7 +390,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
         }
         session.setLocalChannelReference(localChannelReference);
         Channels.write(channel, packet);
-        logger.debug("Get LocalChannel: {}", localChannelReference.getLocalId());
     }
     /**
      * Authentication
@@ -406,7 +399,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
      */
     private void authent(Channel channel, AuthentPacket packet)
             throws OpenR66ProtocolPacketException {
-        logger.debug("Recv AuthentPacket");
         try {
             session.getAuth().connection(localChannelReference.getDbSession(),
                     packet.getHostId(), packet.getKey());
@@ -470,7 +462,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
      */
     private void error(Channel channel, ErrorPacket packet)
             throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException, OpenR66ProtocolBusinessException {
-        // FIXME do something according to the error
+        // do something according to the error
         logger.error(channel.getId() + ": " + packet.toString());
         ErrorCode code = ErrorCode.getFromCode(packet.getSmiddle());
         OpenR66ProtocolBusinessException exception;
@@ -611,7 +603,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         } else {
             // Very new request
             // FIXME should not be the case (the requester should always set the id)
-            logger.error("SHOULD not BE THE CASE");
+            logger.error("SHOULD NOT BE THE CASE");
             boolean isRetrieve = packet.isRetrieve();
             if (!packet.isToValidate()) {
                 isRetrieve = !isRetrieve;
@@ -754,11 +746,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
             throw new OpenR66ProtocolNotAuthenticatedException(
                     "Not authenticated");
         }
-        logger.debug("{} : {}", channel.getId(), packet);
         // simply write back after+1
         packet.update();
         if (packet.getType() == LocalPacketFactory.VALIDPACKET) {
-            logger.debug("{}", packet);
             ValidPacket validPacket = new ValidPacket(packet.toString(), null,
                     LocalPacketFactory.TESTPACKET);
             R66Result result = new R66Result(session, true,
@@ -766,6 +756,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
             result.other = validPacket;
             localChannelReference.validateRequest(result);
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket).awaitUninterruptibly();
+            logger.warn("Valid TEST MESSAGE: " +packet.toString()+" "+
+                        localChannelReference.toString());
             Channels.close(channel);
         } else {
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet);
@@ -1097,7 +1089,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 break;
             }
             case LocalPacketFactory.TESTPACKET: {
-                logger.warn("Valid TEST so Will close channel" +
+                logger.warn("Valid TEST MESSAGE: " +packet.toString()+" "+
                         localChannelReference.toString());
                 R66Result resulttest = new R66Result(session, true,
                         ErrorCode.CompleteOk);

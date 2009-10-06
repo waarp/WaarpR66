@@ -8,7 +8,7 @@
 	<serversslport>6667</serversslport>
 	<serverhttpport>8066</serverhttpport>
 	<serverhttpsport>8067</serverhttpsport>
-	<httpadmin>src/main/admin/</httpadmin>
+	<httpadmin>D:/NEWSOURCE/GoldenGateR66/src/main/admin/</httpadmin>
 	<keypath>certs/openr66.store</keypath>
 	<keypass>openr66</keypass>
 	<keystorepass>storeopenr66</keystorepass>

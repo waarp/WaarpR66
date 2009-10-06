@@ -87,7 +87,7 @@ public class TestSubmitTransfer extends SubmitTransfer {
         ExecutorService executorService = Executors.newCachedThreadPool();
         R66Future[] arrayFuture = new R66Future[nb];
 
-        logger.warn("Start");
+        logger.warn("Start Test Submit");
         for (int i = 0; i < nb; i ++) {
             arrayFuture[i] = new R66Future(true);
             TestSubmitTransfer transaction = new TestSubmitTransfer(arrayFuture[i],
@@ -106,7 +106,7 @@ public class TestSubmitTransfer extends SubmitTransfer {
             }
         }
         executorService.shutdown();
-        logger.error("Prepare transfer Success: " + success + " Error: " + error);
+        logger.warn("Prepare transfer Success: " + success + " Error: " + error);
     }
 
 }

@@ -379,8 +379,6 @@ public class Configuration {
         localTransaction = new LocalTransaction();
         InternalLoggerFactory.setDefaultFactory(InternalLoggerFactory
                 .getDefaultFactory());
-        logger.info("SERVER THREAD: {}", SERVER_THREAD);
-        logger.info("CLIENT THREAD: " + CLIENT_THREAD);
         serverPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
                 CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory, 500,
                 TimeUnit.MILLISECONDS);
@@ -546,11 +544,14 @@ public class Configuration {
 
     /**
      * Compute number of threads for both client and server from the real number
-     * of available processors (double + 1) if the value is less than 64
-     * threads.
+     * of available processors (double + 1) if the value is less than 32
+     * threads else (available +1).
      */
     public void computeNbThreads() {
-        final int nb = Runtime.getRuntime().availableProcessors() * 2 + 1;
+        int nb = Runtime.getRuntime().availableProcessors() * 2 + 1;
+        if (nb > 32) {
+            nb = Runtime.getRuntime().availableProcessors() + 1;
+        }
         if (SERVER_THREAD < nb) {
             logger.warn("Change default number of threads to " + nb);
             SERVER_THREAD = nb;

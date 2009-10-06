@@ -456,7 +456,7 @@ public class DbTaskRunner extends AbstractDbData {
         }
         if (dbSession == null) {
             if (specialId == DbConstant.ILLEGALVALUE) {
-                logger.info("New SpecialId is not possible with No Database Model");
+                //New SpecialId is not possible with No Database Model
                 specialId = System.currentTimeMillis();
             }
             isSaved = true;
@@ -497,7 +497,7 @@ public class DbTaskRunner extends AbstractDbData {
         }
         if (dbSession == null) {
             if (specialId == DbConstant.ILLEGALVALUE) {
-                logger.info("New SpecialId is not possible with No Database Model");
+                //New SpecialId is not possible with No Database Model
                 specialId = System.currentTimeMillis();
             }
             isSaved = true;
@@ -1249,8 +1249,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @return True if this runner is finished, either in success or in error
      */
     public boolean isFinished() {
-        return globalstep == TASKSTEP.ALLDONETASK.ordinal() ||
-        (globalstep == TASKSTEP.ERRORTASK.ordinal() && status != ErrorCode.Running);
+        return isAllDone() || isInError();
     }
     /**
     *
@@ -1258,6 +1257,13 @@ public class DbTaskRunner extends AbstractDbData {
     */
    public boolean isInError() {
        return (globalstep == TASKSTEP.ERRORTASK.ordinal() && status != ErrorCode.Running);
+   }
+   /**
+    *
+    * @return True if the runner is finished in success
+    */
+   public boolean isAllDone() {
+       return globalstep == TASKSTEP.ALLDONETASK.ordinal();
    }
     /**
      * Set Pre Task step
@@ -1493,9 +1499,6 @@ public class DbTaskRunner extends AbstractDbData {
      * @throws OpenR66RunnerErrorException
      */
     public void saveStatus() throws OpenR66RunnerErrorException {
-        logger
-                .debug("{} {} ", GgInternalLogger.getRankMethodAndLine(3),
-                        this);
         try {
             update();
         } catch (OpenR66DatabaseException e) {

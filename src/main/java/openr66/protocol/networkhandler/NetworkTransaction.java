@@ -100,7 +100,6 @@ public class NetworkTransaction {
             "NetworkChannels");
 
     public NetworkTransaction() {
-        logger.info("THREAD: " + Configuration.configuration.SERVER_THREAD);
         clientBootstrap.setPipelineFactory(new NetworkServerPipelineFactory());
         clientBootstrap.setOption("tcpNoDelay", true);
         clientBootstrap.setOption("reuseAddress", true);
@@ -237,7 +236,7 @@ public class NetworkTransaction {
                 return channel;
             } else {
                 if (channelFuture.getCause() instanceof ConnectException) {
-                    logger.error("KO CONNECT:" +
+                    logger.info("KO CONNECT:" +
                             channelFuture.getCause().getMessage());
                     throw new OpenR66ProtocolNoConnectionException(
                             "Cannot connect to remote server", channelFuture

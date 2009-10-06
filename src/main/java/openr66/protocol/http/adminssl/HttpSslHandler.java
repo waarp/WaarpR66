@@ -1482,7 +1482,6 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             if (session != null) {
                 authentHttp = session;
             }
-            logger.debug("FoundSession: "+uriRequest+":{}",admin);
         } else {
             logger.debug("NoSession: "+uriRequest+":{}",admin);
         }
@@ -1563,7 +1562,6 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 
         // Write the response.
         ChannelFuture future = channel.write(response);
-        logger.debug(uriRequest+":"+close+":{}",authentHttp);
         // Close the connection after the write operation is done if necessary.
         if (close) {
             future.addListener(ChannelFutureListener.CLOSE);

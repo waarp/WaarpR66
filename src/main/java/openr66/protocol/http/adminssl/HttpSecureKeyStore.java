@@ -137,7 +137,7 @@ public class HttpSecureKeyStore {
                 if (keyStore.isKeyEntry(alias)) {
                     X509Certificate cert = (X509Certificate) keyStore.getCertificate(alias);
                     array[i] = cert;
-                    logger.warn("New cert: "+alias+" for "+cert.getIssuerDN().toString()+
+                    logger.info("New cert: "+alias+" for "+cert.getIssuerDN().toString()+
                             " until "+cert.getNotAfter().toString());
                 }
                 } catch (KeyStoreException e) {

@@ -97,7 +97,6 @@ public class DbRequest {
             throw new OpenR66DatabaseSqlError(
                     "SQL Exception Request:" + select, e);
         }
-        logger.debug("SELECT: {}", select);
     }
 
     /**

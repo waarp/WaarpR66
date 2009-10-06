@@ -274,7 +274,7 @@ public class LocalTransaction {
      * Close All Local Channels
      */
     public void closeAll() {
-        logger.warn("close All Local Channels");
+        logger.info("close All Local Channels");
         localChannelGroup.close().awaitUninterruptibly();
         clientBootstrap.releaseExternalResources();
         channelClientFactory.releaseExternalResources();

@@ -132,8 +132,6 @@ public class NetworkServerHandler extends SimpleChannelHandler {
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) {
         final NetworkPacket packet = (NetworkPacket) e.getMessage();
-        logger.debug("Network Channel Recv: {} {}", e.getChannel().getId(),
-                packet);
         if (packet.getCode() == LocalPacketFactory.CONNECTERRORPACKET) {
             // Special code to STOP here
             if (packet.getLocalId() == ChannelUtils.NOCHANNEL) {
@@ -155,8 +153,6 @@ public class NetworkServerHandler extends SimpleChannelHandler {
                         .getLocalTransaction().createNewClient(e.getChannel(),
                                 packet.getRemoteId(), null);
                 NetworkTransaction.addNetworkChannel(e.getChannel());
-                logger.debug("Create LocalChannel: {}",
-                        localChannelReference.getLocalId());
             } catch (OpenR66ProtocolSystemException e1) {
                 logger.error("Cannot create LocalChannel: " + packet, e1);
                 final ConnectionErrorPacket error = new ConnectionErrorPacket(
@@ -173,8 +169,6 @@ public class NetworkServerHandler extends SimpleChannelHandler {
                 localChannelReference = Configuration.configuration
                         .getLocalTransaction().getClient(packet.getRemoteId(),
                                 packet.getLocalId());
-                logger.debug("Get LocalChannel: {}",
-                        localChannelReference.getLocalId());
             } catch (OpenR66ProtocolSystemException e1) {
                 if (NetworkTransaction.isShuttingdownNetworkChannel(e
                         .getChannel())) {

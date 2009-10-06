@@ -715,7 +715,7 @@ public class DbRule extends AbstractDbData {
     @SuppressWarnings("unchecked")
     private boolean getIdsRule(String idsref) {
         if (idsref == null) {
-            logger.debug("No ids so setting to the default!");
+            //No ids so setting to the default!
             ids = null;
             idsArray = null;
             return false;
@@ -727,7 +727,7 @@ public class DbRule extends AbstractDbData {
             document = new SAXReader().read(reader);
         } catch (DocumentException e) {
             logger.warn("Unable to read the ids for Rule: " + idsref, e);
-            logger.debug("No ids so setting to the default!");
+            //No ids so setting to the default!
             ids = null;
             idsArray = null;
             reader.close();
@@ -763,7 +763,7 @@ public class DbRule extends AbstractDbData {
      */
     private String[][] getTasksRule(String tasks) {
         if (tasks == null) {
-            logger.debug("No tasks so setting to the default!");
+            //No tasks so setting to the default!
             return new String[0][0];
         }
         StringReader reader = new StringReader(tasks);
@@ -772,7 +772,7 @@ public class DbRule extends AbstractDbData {
             document = new SAXReader().read(reader);
         } catch (DocumentException e) {
             logger.warn("Unable to read the tasks for Rule: " + tasks, e);
-            logger.debug("No tasks so setting to the default!");
+            //No tasks so setting to the default!
             reader.close();
             return new String[0][0];
         }
@@ -791,8 +791,7 @@ public class DbRule extends AbstractDbData {
         List<Node> listNode = node.selectNodes(path);
         if (listNode == null) {
             logger.warn("NoRule for "+path);
-            logger
-                    .info("Unable to find the tasks for Rule, setting to the default");
+            //Unable to find the tasks for Rule, setting to the default
             return new String[0][0];
         }
         String[][] taskArray = new String[listNode.size()][3];

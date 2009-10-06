@@ -280,7 +280,7 @@ public class R66Session implements SessionInterface {
                         false);
                 if (RequestPacket.isSendThroughMode(this.runner.getMode())) {
                     // no test on file since it does not really exist
-                    logger.info("File is in through mode: {}", file.toString());
+                    logger.info("File is in through mode: {}", file);
                 } else if (!file.canRead()) {
                     throw new OpenR66RunnerErrorException("File cannot be read");
                 }
@@ -298,7 +298,7 @@ public class R66Session implements SessionInterface {
                             .getFilename(), true);
                     if (RequestPacket.isRecvThroughMode(this.runner.getMode())) {
                         // no test on file since it does not really exist
-                        logger.info("File is in through mode: {}", file.toString());
+                        logger.info("File is in through mode: {}", file);
                     } else if (!file.canWrite()) {
                         throw new OpenR66RunnerErrorException(
                                 "File cannot be write");
@@ -314,7 +314,7 @@ public class R66Session implements SessionInterface {
                             this.runner.getOriginalFilename());
                     if (RequestPacket.isRecvThroughMode(this.runner.getMode())) {
                         // no test on file since it does not really exist
-                        logger.info("File is in through mode: {}", file.toString());
+                        logger.info("File is in through mode: {}", file);
                         this.runner.deleteTempFile();
                     } else if (!file.canWrite()) {
                         this.runner.deleteTempFile();

@@ -71,7 +71,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
     public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
         logger
-                .info("Local Client Channel Connected: " +
+                .debug("Local Client Channel Connected: " +
                         e.getChannel().getId());
     }
     /**
@@ -114,7 +114,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
         // only Startup Packet should arrived here !
         final AbstractLocalPacket packet = (AbstractLocalPacket) e.getMessage();
         if (packet.getType() != LocalPacketFactory.STARTUPPACKET) {
-            logger.error("Local Client Channel Recv: " +
+            logger.error("Local Client Channel Recv wrong packet: " +
                     e.getChannel().getId() + " : " + packet.toString());
             throw new OpenR66ProtocolSystemException("Should not be here");
         }

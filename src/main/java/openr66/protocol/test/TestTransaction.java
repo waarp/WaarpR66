@@ -142,7 +142,7 @@ public class TestTransaction implements Runnable {
         int nb = 100;
 
         R66Future[] arrayFuture = new R66Future[nb];
-        logger.warn("Start");
+        logger.warn("Start Test of Transaction");
         long time1 = System.currentTimeMillis();
         for (int i = 0; i < nb; i ++) {
             arrayFuture[i] = new R66Future(true);
@@ -163,7 +163,7 @@ public class TestTransaction implements Runnable {
             }
         }
         long time2 = System.currentTimeMillis();
-        logger.error("Success: " + success + " Error: " + error + " NB/s: " +
+        logger.warn("Success: " + success + " Error: " + error + " NB/s: " +
                 success * TestPacket.pingpong * 1000 / (time2 - time1));
         executorService.shutdown();
         networkTransaction.closeAll();

@@ -104,7 +104,7 @@ public class InternalRunner {
      */
     public void stopInternalRunner() {
         isRunning = false;
-        logger.warn("Stopping Commander and Runner Tasks");
+        logger.info("Stopping Commander and Runner Tasks");
         scheduledFuture.cancel(false);
         scheduledExecutorService.shutdownNow();
         threadPoolExecutor.shutdownNow();

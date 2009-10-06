@@ -54,6 +54,7 @@ public class TestRecvThroughClient extends RecvThroughClient {
         public void writeChannelBuffer(ChannelBuffer buffer)
                 throws OpenR66ProtocolBusinessException {
             byte [] array = this.getByte(buffer);
+            // FIXME one should use the array for its own goal
             logger.info("Write {}", array.length);
         }
 

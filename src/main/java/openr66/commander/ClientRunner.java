@@ -93,7 +93,7 @@ public class ClientRunner implements Runnable {
             logger.error("Protocol Error", e);
             return;
         }
-        logger.warn("Result: "+transfer.isSuccess()+" "+transfer.getResult().toString());
+        logger.warn("TRANSFER RESULT: "+transfer.isSuccess()+" "+transfer.getResult().toString());
         transfer = null;
     }
     /**

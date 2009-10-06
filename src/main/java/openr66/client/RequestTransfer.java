@@ -114,7 +114,7 @@ public class RequestTransfer implements Runnable {
                     srequester = Configuration.configuration.getHostId(DbConstant.admin.session,
                             srequested);
                 } catch (OpenR66DatabaseException e) {
-                    logger.error("Cannot get Host Id",e);
+                    logger.error("Cannot get Host Id: "+srequester,e);
                     return false;
                 }
             } else if (args[i].equalsIgnoreCase("-from")) {
@@ -124,7 +124,7 @@ public class RequestTransfer implements Runnable {
                     srequested = Configuration.configuration.getHostId(DbConstant.admin.session,
                             srequester);
                 } catch (OpenR66DatabaseException e) {
-                    logger.error("Cannot get Host Id",e);
+                    logger.error("Cannot get Host Id: "+srequested,e);
                     return false;
                 }
             } else if (args[i].equalsIgnoreCase("-cancel")) {

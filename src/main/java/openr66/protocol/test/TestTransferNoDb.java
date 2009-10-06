@@ -97,7 +97,7 @@ public class TestTransferNoDb extends DirectTransfer {
             ExecutorService executorService = Executors.newCachedThreadPool();
 
             R66Future[] arrayFuture = new R66Future[nb];
-            logger.warn("Start");
+            logger.warn("Start of Test Transfer");
             long time1 = System.currentTimeMillis();
             for (int i = 0; i < nb; i ++) {
                 arrayFuture[i] = new R66Future(true);
@@ -145,7 +145,7 @@ public class TestTransferNoDb extends DirectTransfer {
             float nbs = success * 1000;
             nbs /= delay;
             float mbs = nbs * length / 1024;
-            logger.error("Success: " + success + " Warning: " + warn + " Error: " +
+            logger.warn("Success: " + success + " Warning: " + warn + " Error: " +
                     error + " delay: " + delay + " NB/s: " + nbs + " KB/s: " + mbs);
             executorService.shutdown();
         } finally {
