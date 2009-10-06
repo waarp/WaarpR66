@@ -81,12 +81,12 @@ public class DbTaskRunner extends AbstractDbData {
         FILENAME,
         ISMOVED,
         IDRULE,
-        BLOCKSIZE,
+        BLOCKSZ,
         ORIGINALNAME,
         FILEINFO,
-        MODE,
-        START,
-        STOP,
+        MODETRANS,
+        STARTTRANS,
+        STOPTRANS,
         UPDATEDINFO,
         REQUESTER,
         REQUESTED,
@@ -165,8 +165,8 @@ public class DbTaskRunner extends AbstractDbData {
     private final DbValue[] otherFields = {
             // GLOBALSTEP, GLOBALLASTSTEP, STEP, RANK, STEPSTATUS, RETRIEVEMODE,
             // FILENAME, ISMOVED, IDRULE,
-            // BLOCKSIZE, ORIGINALNAME, FILEINFO, MODE,
-            // START, STOP
+            // BLOCKSZ, ORIGINALNAME, FILEINFO, MODETRANS,
+            // STARTTRANS, STOPTRANS
             // UPDATEDINFO
             new DbValue(globalstep, Columns.GLOBALSTEP.name()),
             new DbValue(globallaststep, Columns.GLOBALLASTSTEP.name()),
@@ -177,12 +177,12 @@ public class DbTaskRunner extends AbstractDbData {
             new DbValue(filename, Columns.FILENAME.name()),
             new DbValue(isFileMoved, Columns.ISMOVED.name()),
             new DbValue(ruleId, Columns.IDRULE.name()),
-            new DbValue(blocksize, Columns.BLOCKSIZE.name()),
+            new DbValue(blocksize, Columns.BLOCKSZ.name()),
             new DbValue(originalFilename, Columns.ORIGINALNAME.name()),
             new DbValue(fileInformation, Columns.FILEINFO.name()),
-            new DbValue(mode, Columns.MODE.name()),
-            new DbValue(start, Columns.START.name()),
-            new DbValue(stop, Columns.STOP.name()),
+            new DbValue(mode, Columns.MODETRANS.name()),
+            new DbValue(start, Columns.STARTTRANS.name()),
+            new DbValue(stop, Columns.STOPTRANS.name()),
             new DbValue(updatedInfo, Columns.UPDATEDINFO.name()) };
 
     private final DbValue[] allFields = {
@@ -197,9 +197,9 @@ public class DbTaskRunner extends AbstractDbData {
             "," + Columns.RANK.name() + "," + Columns.STEPSTATUS.name() + "," +
             Columns.RETRIEVEMODE.name() + "," + Columns.FILENAME.name() + "," +
             Columns.ISMOVED.name() + "," + Columns.IDRULE.name() + "," +
-            Columns.BLOCKSIZE.name() + "," + Columns.ORIGINALNAME.name() + "," +
-            Columns.FILEINFO.name() + "," + Columns.MODE.name() + "," +
-            Columns.START.name() + "," + Columns.STOP.name() + "," +
+            Columns.BLOCKSZ.name() + "," + Columns.ORIGINALNAME.name() + "," +
+            Columns.FILEINFO.name() + "," + Columns.MODETRANS.name() + "," +
+            Columns.STARTTRANS.name() + "," + Columns.STOPTRANS.name() + "," +
             Columns.UPDATEDINFO.name() + "," +
             Columns.REQUESTER.name() + "," + Columns.REQUESTED.name() + "," +
             Columns.SPECIALID.name();
@@ -209,10 +209,10 @@ public class DbTaskRunner extends AbstractDbData {
             Columns.STEP.name() + "=?," + Columns.RANK.name() + "=?," +
             Columns.STEPSTATUS.name() + "=?," + Columns.RETRIEVEMODE.name() +
             "=?," + Columns.FILENAME.name() + "=?," + Columns.ISMOVED.name() +
-            "=?," + Columns.IDRULE.name() + "=?," + Columns.BLOCKSIZE.name() +
+            "=?," + Columns.IDRULE.name() + "=?," + Columns.BLOCKSZ.name() +
             "=?," + Columns.ORIGINALNAME.name() + "=?," +
-            Columns.FILEINFO.name() + "=?," + Columns.MODE.name() + "=?," +
-            Columns.START.name() + "=?," + Columns.STOP.name() + "=?," +
+            Columns.FILEINFO.name() + "=?," + Columns.MODETRANS.name() + "=?," +
+            Columns.STARTTRANS.name() + "=?," + Columns.STOPTRANS.name() + "=?," +
             Columns.UPDATEDINFO.name() + "=?";
 
     private static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
@@ -368,13 +368,13 @@ public class DbTaskRunner extends AbstractDbData {
         allFields[Columns.FILENAME.ordinal()].setValue(filename);
         allFields[Columns.ISMOVED.ordinal()].setValue(isFileMoved);
         allFields[Columns.IDRULE.ordinal()].setValue(ruleId);
-        allFields[Columns.BLOCKSIZE.ordinal()].setValue(blocksize);
+        allFields[Columns.BLOCKSZ.ordinal()].setValue(blocksize);
         allFields[Columns.ORIGINALNAME.ordinal()].setValue(originalFilename);
         allFields[Columns.FILEINFO.ordinal()].setValue(fileInformation);
-        allFields[Columns.MODE.ordinal()].setValue(mode);
-        allFields[Columns.START.ordinal()].setValue(start);
+        allFields[Columns.MODETRANS.ordinal()].setValue(mode);
+        allFields[Columns.STARTTRANS.ordinal()].setValue(start);
         stop = new Timestamp(System.currentTimeMillis());
-        allFields[Columns.STOP.ordinal()].setValue(stop);
+        allFields[Columns.STOPTRANS.ordinal()].setValue(stop);
         allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
         allFields[Columns.REQUESTER.ordinal()].setValue(requesterHostId);
         allFields[Columns.REQUESTED.ordinal()].setValue(requestedHostId);
@@ -396,14 +396,14 @@ public class DbTaskRunner extends AbstractDbData {
         filename = (String) allFields[Columns.FILENAME.ordinal()].getValue();
         isFileMoved = (Boolean) allFields[Columns.ISMOVED.ordinal()].getValue();
         ruleId = (String) allFields[Columns.IDRULE.ordinal()].getValue();
-        blocksize = (Integer) allFields[Columns.BLOCKSIZE.ordinal()].getValue();
+        blocksize = (Integer) allFields[Columns.BLOCKSZ.ordinal()].getValue();
         originalFilename = (String) allFields[Columns.ORIGINALNAME.ordinal()]
                 .getValue();
         fileInformation = (String) allFields[Columns.FILEINFO.ordinal()]
                 .getValue();
-        mode = (Integer) allFields[Columns.MODE.ordinal()].getValue();
-        start = (Timestamp) allFields[Columns.START.ordinal()].getValue();
-        stop = (Timestamp) allFields[Columns.STOP.ordinal()].getValue();
+        mode = (Integer) allFields[Columns.MODETRANS.ordinal()].getValue();
+        start = (Timestamp) allFields[Columns.STARTTRANS.ordinal()].getValue();
+        stop = (Timestamp) allFields[Columns.STOPTRANS.ordinal()].getValue();
         updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()]
                 .getValue();
         requesterHostId = (String) allFields[Columns.REQUESTER.ordinal()]
@@ -694,7 +694,7 @@ public class DbTaskRunner extends AbstractDbData {
        if (status != null) {
            request += " WHERE "+Columns.STEPSTATUS.name()+" = '"+status.getCode()+"'";
        }
-       request += " ORDER BY "+Columns.START.name()+" DESC ";
+       request += " ORDER BY "+Columns.STARTTRANS.name()+" DESC ";
        return new DbPreparedStatement(session, request);
    }
    /**
@@ -710,7 +710,7 @@ public class DbTaskRunner extends AbstractDbData {
        if (globalstep != null) {
            request += " WHERE "+Columns.GLOBALSTEP.name()+" = "+globalstep.ordinal();
        }
-       request += " ORDER BY "+Columns.START.name()+" DESC ";
+       request += " ORDER BY "+Columns.STARTTRANS.name()+" DESC ";
        return new DbPreparedStatement(session, request);
    }
    /**
@@ -737,19 +737,19 @@ public class DbTaskRunner extends AbstractDbData {
       String request = "SELECT " +selectAllFields+" FROM "+table;
       if (start == null && stop == null && rule == null && req == null && all) {
           // finish
-          request += " ORDER BY "+Columns.START.name();
+          request += " ORDER BY "+Columns.STARTTRANS.name()+" DESC ";
           preparedStatement.createPrepareStatement(request);
           return preparedStatement;
       }
       request += " WHERE ";
       String condition = null;
       if (start != null & stop != null) {
-          condition = Columns.START.name()+" >= ? AND "+
-              Columns.START.name()+" <= ? ";
+          condition = Columns.STARTTRANS.name()+" >= ? AND "+
+              Columns.STARTTRANS.name()+" <= ? ";
       } else if (start != null) {
-          condition = Columns.START.name()+" >= ? ";
+          condition = Columns.STARTTRANS.name()+" >= ? ";
       } else if (stop != null) {
-          condition = Columns.START.name()+" <= ? ";
+          condition = Columns.STARTTRANS.name()+" <= ? ";
       }
 
       if (rule != null) {
@@ -806,7 +806,7 @@ public class DbTaskRunner extends AbstractDbData {
           }
       }
       preparedStatement.createPrepareStatement(request+condition+
-              " ORDER BY "+Columns.START.name());
+              " ORDER BY "+Columns.STARTTRANS.name()+" DESC ");
       int rank = 1;
       try {
           if (start != null & stop != null) {
@@ -856,8 +856,8 @@ public class DbTaskRunner extends AbstractDbData {
       DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
       String request = "SELECT " +selectAllFields+" FROM "+table;
       if (start != null & stop != null) {
-          request += " WHERE "+Columns.START.name()+" >= ? AND "+
-              Columns.START.name()+" <= ? ORDER BY "+Columns.START.name();
+          request += " WHERE "+Columns.STARTTRANS.name()+" >= ? AND "+
+              Columns.STARTTRANS.name()+" <= ? ORDER BY "+Columns.STARTTRANS.name()+" DESC ";
           preparedStatement.createPrepareStatement(request);
           try {
             preparedStatement.getPreparedStatement().setTimestamp(1, start);
@@ -867,7 +867,7 @@ public class DbTaskRunner extends AbstractDbData {
             throw new OpenR66DatabaseSqlError(e);
         }
       } else if (start != null) {
-          request += " WHERE "+Columns.START.name()+" >= ? ORDER BY "+Columns.START.name();
+          request += " WHERE "+Columns.STARTTRANS.name()+" >= ? ORDER BY "+Columns.STARTTRANS.name()+" DESC ";
           preparedStatement.createPrepareStatement(request);
           try {
               preparedStatement.getPreparedStatement().setTimestamp(1, start);
@@ -876,7 +876,7 @@ public class DbTaskRunner extends AbstractDbData {
               throw new OpenR66DatabaseSqlError(e);
           }
       } else if (stop != null) {
-          request += " WHERE "+Columns.START.name()+" <= ? ORDER BY "+Columns.START.name();
+          request += " WHERE "+Columns.STARTTRANS.name()+" <= ? ORDER BY "+Columns.STARTTRANS.name()+" DESC ";
           preparedStatement.createPrepareStatement(request);
           try {
               preparedStatement.getPreparedStatement().setTimestamp(1, stop);
@@ -885,7 +885,7 @@ public class DbTaskRunner extends AbstractDbData {
               throw new OpenR66DatabaseSqlError(e);
           }
       } else {
-          request += " ORDER BY "+Columns.START.name();
+          request += " ORDER BY "+Columns.STARTTRANS.name()+" DESC ";
           preparedStatement.createPrepareStatement(request);
       }
       return preparedStatement;
@@ -909,8 +909,8 @@ public class DbTaskRunner extends AbstractDbData {
          Columns.GLOBALLASTSTEP+" = "+TASKSTEP.ALLDONETASK.ordinal()+" OR "+
          Columns.GLOBALLASTSTEP+" = "+TASKSTEP.ERRORTASK.ordinal()+") ";
      if (start != null & stop != null) {
-         request += " AND "+ Columns.START.name()+" >= ? AND "+
-             Columns.STOP.name()+" <= ? ";
+         request += " AND "+ Columns.STARTTRANS.name()+" >= ? AND "+
+             Columns.STOPTRANS.name()+" <= ? ";
          preparedStatement.createPrepareStatement(request);
          try {
            preparedStatement.getPreparedStatement().setTimestamp(1, start);
@@ -920,7 +920,7 @@ public class DbTaskRunner extends AbstractDbData {
            throw new OpenR66DatabaseSqlError(e);
        }
      } else if (start != null) {
-         request += " AND "+ Columns.START.name()+" >= ? ";
+         request += " AND "+ Columns.STARTTRANS.name()+" >= ? ";
          preparedStatement.createPrepareStatement(request);
          try {
              preparedStatement.getPreparedStatement().setTimestamp(1, start);
@@ -929,7 +929,7 @@ public class DbTaskRunner extends AbstractDbData {
              throw new OpenR66DatabaseSqlError(e);
          }
      } else if (stop != null) {
-         request += " AND "+ Columns.STOP.name()+" <= ? ";
+         request += " AND "+ Columns.STOPTRANS.name()+" <= ? ";
          preparedStatement.createPrepareStatement(request);
          try {
              preparedStatement.getPreparedStatement().setTimestamp(1, stop);
@@ -1000,8 +1000,12 @@ public class DbTaskRunner extends AbstractDbData {
            initial.close();
        }
    }
-   public boolean restart() {
-       // Restart if already stopped and not finished
+   /**
+    * Reset the runner (ready to be run again)
+    * @return True if OK
+    */
+   public boolean reset() {
+    // Reset the status if already stopped and not finished
        if (this.getStatus() != ErrorCode.CompleteOk) {
            // restart
            switch (TASKSTEP.values()[this.getGloballaststep()]) {
@@ -1021,6 +1025,20 @@ public class DbTaskRunner extends AbstractDbData {
                    this.setExecutionStatus(ErrorCode.TransferOk);
                    break;
            }
+           this.changeUpdatedInfo(UpdatedInfo.UNKNOWN);
+           return true;
+       } else {
+           // Already finished
+           return false;
+       }
+   }
+   /**
+    * Make this Runner ready for restart (through Commander)
+    * @return True if OK
+    */
+   public boolean restart() {
+       // Restart if already stopped and not finished
+       if (reset()) {
            this.changeUpdatedInfo(UpdatedInfo.UPDATED);
            try {
                this.saveStatus();
@@ -1234,6 +1252,13 @@ public class DbTaskRunner extends AbstractDbData {
         return globalstep == TASKSTEP.ALLDONETASK.ordinal() ||
         (globalstep == TASKSTEP.ERRORTASK.ordinal() && status != ErrorCode.Running);
     }
+    /**
+    *
+    * @return True if this runner is in error and no more running
+    */
+   public boolean isInError() {
+       return (globalstep == TASKSTEP.ERRORTASK.ordinal() && status != ErrorCode.Running);
+   }
     /**
      * Set Pre Task step
      * @param step
@@ -1508,6 +1533,18 @@ public class DbTaskRunner extends AbstractDbData {
                 isSender + " isMoved: " + isFileMoved+" Mode: "+TRANSFERMODE.values()[mode]+
                 " Requester: "+requesterHostId+" Requested: "+requestedHostId+
                 " Start: "+start+" Stop: "+stop+" Info: "+UpdatedInfo.values()[updatedInfo];
+    }
+    public String toShortString() {
+        return "<RULE>" + ruleId + "</RULE><ID>" + specialId + "</ID><FILE>" +
+                filename + "</FILE>\n<STEP>" + TASKSTEP.values()[globalstep] +
+                "("+TASKSTEP.values()[globallaststep]+ "):" + step + ":" +
+                status.mesg +
+                "</STEP><RANK>" + rank + "</RANK>\n<SENDER>" +
+                isSender + "</SENDER><MOVED>" + isFileMoved+"</MOVED><MODE>"+
+                TRANSFERMODE.values()[mode]+
+                "</MODE><REQR>"+requesterHostId+"</REQR><REQD>"+requestedHostId+
+                "</REQD>\n<START>"+start+"</START><STOP>"+stop+"</STOP><INFO>"+
+                UpdatedInfo.values()[updatedInfo]+"</INFO>";
     }
     /**
      *

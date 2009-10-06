@@ -91,8 +91,10 @@ public class SubmitTransfer extends AbstractTransfer {
             taskRunner.update();
         } catch (OpenR66DatabaseException e) {
             logger.error("Cannot prepare task", e);
-            future.setResult(new R66Result(e, null, true,
-                    ErrorCode.Internal));
+            R66Result result = new R66Result(e, null, true,
+                    ErrorCode.Internal);
+            result.other = taskRunner;
+            future.setResult(result);
             future.setFailure(e);
             return;
         }
@@ -130,11 +132,17 @@ public class SubmitTransfer extends AbstractTransfer {
                 rhost, localFilename, rule, fileInfo, ismd5, block);
         transaction.run();
         future.awaitUninterruptibly();
+        DbTaskRunner runner = ((DbTaskRunner) future.getResult().other);
         if (future.isSuccess()) {
-            logger.warn("Prepare transfer in Success with Id: " +
-                    ((DbTaskRunner) future.getResult().other).getSpecialId());
+            logger.warn("Prepare transfer in Success "+runner.toShortString()+
+                            "<REMOTE>"+rhost+"</REMOTE>");
         } else {
-            logger.error("Prepare transfer in Error", future.getCause());
+            if (runner != null) {
+                logger.error("Prepare transfer in Error "+runner.toShortString()+
+                            "<REMOTE>"+rhost+"</REMOTE>", future.getCause());
+            } else {
+                logger.error("Prepare transfer in Error", future.getCause());
+            }
             try {
                 DbConstant.admin.close();
             } catch (OpenR66DatabaseSqlError e) {

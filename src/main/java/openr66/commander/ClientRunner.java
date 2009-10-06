@@ -201,6 +201,12 @@ public class ClientRunner implements Runnable {
             // See if reprogramming is ok (not too many tries)
             if (incrementTaskRunerTry(taskRunner, Configuration.RETRYNB)) {
                 logger.warn("Will retry since Cannot connect to "+host.toString());
+                this.changeUpdatedInfo(UpdatedInfo.TORUN);
+                // now wait
+                try {
+                    Thread.sleep(Configuration.configuration.delayRetry);
+                } catch (InterruptedException e) {
+                }
                 this.changeUpdatedInfo(UpdatedInfo.UPDATED);
             } else {
                 logger.warn("Will not retry since limit of connection attemtps is reached for "+

@@ -98,17 +98,41 @@ a img {
 <div id="Comp1_sys_doctext"><p>You can edit System configuration from here, disconnect from the Administrator or even shutdown the OpenR66 server.</p>
 <p>&nbsp;</p>
   <form method="post" name="SYSTEM" action="/System.html">
-    Bandwidth Session Limit (B/s):
-    <input type="text" name="BSESS" size="20" value="XXXXSESSIONLIMITXXX">
-    <img id="slhelp" alt="help for Session Limit field"  class="help" width="16" height="16" src="img/help_small.gif" />
-	<div id="containerslhelp"><p class="cshelp">
-	The value (in Byte per second) specifies the limit of bandwidth (in and out) per session. 0 means no limit.
+    Bandwidth Session Read Limit (B/s):
+    <input type="text" name="BSESSR" size="20" value="XXXXSESSIONLIMITRXXX">
+    <img id="slrhelp" alt="help for Session Limit field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerslrhelp"><p class="cshelp">
+	The value (in Byte per second) specifies the limit of read bandwidth (in) per session. 0 means no limit. Must be greater than 1KBs.
 	</p></div><br>
-    Bandwidth Global Limit (B/s):&nbsp;&nbsp;
-    <input type="text" name="BGLOB" size="20" value="XXXXCHANNELLIMITXXX">
-    <img id="glhelp" alt="help for Global Limit field"  class="help" width="16" height="16" src="img/help_small.gif" />
-	<div id="containerglhelp"><p class="cshelp">
-	The value (in Byte per second) specifies the limit of bandwidth (in and out) globally (cumulated). 0 means no limit.
+    Bandwidth Session Write Limit (B/s):
+    <input type="text" name="BSESSW" size="20" value="XXXXSESSIONLIMITWXXX">
+    <img id="slwhelp" alt="help for Session Limit field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerslwhelp"><p class="cshelp">
+	The value (in Byte per second) specifies the limit of write bandwidth (out) per session. 0 means no limit. Must be greater than 1KBs.
+	</p></div><br>
+    Bandwidth Global Read Limit (B/s):&nbsp;&nbsp;
+    <input type="text" name="BGLOBR" size="20" value="XXXXCHANNELLIMITRXXX">
+    <img id="glrhelp" alt="help for Global Limit field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerglrhelp"><p class="cshelp">
+	The value (in Byte per second) specifies the limit of read bandwidth (in) globally (cumulative). 0 means no limit. Must be greater than 1KBs.
+	</p></div><br>
+    Bandwidth Global Write Limit (B/s):&nbsp;&nbsp;
+    <input type="text" name="BGLOBW" size="20" value="XXXXCHANNELLIMITWXXX">
+    <img id="glwhelp" alt="help for Global Limit field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerglwhelp"><p class="cshelp">
+	The value (in Byte per second) specifies the limit of write bandwidth (out) globally (cumulative). 0 means no limit. Must be greater than 1KBs.
+	</p></div><br>
+    Delay for Commander (ms):
+    <input type="text" name="DCOM" size="20" value="XXXXDELAYCOMMDXXX">
+    <img id="dchelp" alt="help for Delay for Commander field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerdchelp"><p class="cshelp">
+	Delay for Commander between two acquires of new requested transfers in ms. Must be greater than 100ms.
+	</p></div><br>
+    Delay for Retry (ms):&nbsp;&nbsp;
+    <input type="text" name="DRET" size="20" value="XXXXDELAYRETRYXXX">
+    <img id="drhelp" alt="help for Delay for Retry field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerdrhelp"><p class="cshelp">
+	Delay for Retry between two retries for a currently active transfer in ms. Must be greater than 1000ms.
 	</p></div>
     <p>&nbsp;</p>
     <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;

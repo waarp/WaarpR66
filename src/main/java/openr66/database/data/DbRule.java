@@ -63,7 +63,7 @@ public class DbRule extends AbstractDbData {
 
     public static enum Columns {
         HOSTIDS,
-        MODE,
+        MODETRANS,
         RECVPATH,
         SENDPATH,
         ARCHIVEPATH,
@@ -268,10 +268,10 @@ public class DbRule extends AbstractDbData {
             .name());
 
     private final DbValue[] otherFields = {
-            // HOSTIDS, MODE, RECVPATH, SENDPATH, ARCHIVEPATH, WORKPATH,
+            // HOSTIDS, MODETRANS, RECVPATH, SENDPATH, ARCHIVEPATH, WORKPATH,
             // PRETASKS, POSTTASKS, ERRORTASKS
             new DbValue(ids, Columns.HOSTIDS.name(), true),
-            new DbValue(mode, Columns.MODE.name()),
+            new DbValue(mode, Columns.MODETRANS.name()),
             new DbValue(recvPath, Columns.RECVPATH.name()),
             new DbValue(sendPath, Columns.SENDPATH.name()),
             new DbValue(archivePath, Columns.ARCHIVEPATH.name()),
@@ -291,7 +291,7 @@ public class DbRule extends AbstractDbData {
             otherFields[11], otherFields[12], primaryKey };
 
     public static final String selectAllFields = Columns.HOSTIDS.name() + "," +
-            Columns.MODE.name() + "," + Columns.RECVPATH.name() + "," +
+            Columns.MODETRANS.name() + "," + Columns.RECVPATH.name() + "," +
             Columns.SENDPATH.name() + "," + Columns.ARCHIVEPATH.name() + "," +
             Columns.WORKPATH.name() + "," +
             Columns.RPRETASKS.name() + "," +
@@ -301,7 +301,7 @@ public class DbRule extends AbstractDbData {
             Columns.UPDATEDINFO.name() + "," + Columns.IDRULE.name();
 
     private static final String updateAllFields = Columns.HOSTIDS.name() +
-            "=?," + Columns.MODE.name() + "=?," + Columns.RECVPATH.name() +
+            "=?," + Columns.MODETRANS.name() + "=?," + Columns.RECVPATH.name() +
             "=?," + Columns.SENDPATH.name() + "=?," +
             Columns.ARCHIVEPATH.name() + "=?," + Columns.WORKPATH.name() +
             "=?," + Columns.RPRETASKS.name() + "=?," + Columns.RPOSTTASKS.name() +
@@ -315,7 +315,7 @@ public class DbRule extends AbstractDbData {
     @Override
     protected void setToArray() {
         allFields[Columns.HOSTIDS.ordinal()].setValue(ids);
-        allFields[Columns.MODE.ordinal()].setValue(mode);
+        allFields[Columns.MODETRANS.ordinal()].setValue(mode);
         allFields[Columns.RECVPATH.ordinal()].setValue(recvPath);
         allFields[Columns.SENDPATH.ordinal()].setValue(sendPath);
         allFields[Columns.ARCHIVEPATH.ordinal()].setValue(archivePath);
@@ -333,7 +333,7 @@ public class DbRule extends AbstractDbData {
     @Override
     protected void setFromArray() throws OpenR66DatabaseSqlError {
         ids = (String) allFields[Columns.HOSTIDS.ordinal()].getValue();
-        mode = (Integer) allFields[Columns.MODE.ordinal()].getValue();
+        mode = (Integer) allFields[Columns.MODETRANS.ordinal()].getValue();
         recvPath = (String) allFields[Columns.RECVPATH.ordinal()].getValue();
         sendPath = (String) allFields[Columns.SENDPATH.ordinal()].getValue();
         archivePath = (String) allFields[Columns.ARCHIVEPATH.ordinal()]
@@ -788,8 +788,9 @@ public class DbRule extends AbstractDbData {
      */
     @SuppressWarnings("unchecked")
     public static String [][] getTasksRule(Node node, String path) {
-        List<Node> listNode = node.selectNodes(TASKS_ROOT);
+        List<Node> listNode = node.selectNodes(path);
         if (listNode == null) {
+            logger.warn("NoRule for "+path);
             logger
                     .info("Unable to find the tasks for Rule, setting to the default");
             return new String[0][0];
@@ -870,7 +871,7 @@ public class DbRule extends AbstractDbData {
     }
 
     /**
-     * Get the full path from RecvPath (used only in copy MODE)
+     * Get the full path from RecvPath (used only in copy MODETRANS)
      *
      * @param filename
      * @return the full String path
@@ -978,7 +979,7 @@ public class DbRule extends AbstractDbData {
      */
     @Override
     public String toString() {
-        return "Rule Name:" + idRule + " IDS:" + ids + " MODE: " +
+        return "Rule Name:" + idRule + " IDS:" + ids + " MODETRANS: " +
                 RequestPacket.TRANSFERMODE.values()[mode].toString() +
                 " RECV:" + recvPath + " SEND:" + sendPath + " ARCHIVE:" +
                 archivePath + " WORK:" + workPath +
@@ -992,7 +993,7 @@ public class DbRule extends AbstractDbData {
      * @see java.lang.Object#toString()
      */
     public String toShortString() {
-        return "Rule Name:" + idRule + " MODE: " +
+        return "Rule Name:" + idRule + " MODETRANS: " +
             RequestPacket.TRANSFERMODE.values()[mode].toString();
     }
     /**
@@ -1019,7 +1020,7 @@ public class DbRule extends AbstractDbData {
             } else {
                 condition = " WHERE ";
             }
-            condition += Columns.MODE.name()+" = ?";
+            condition += Columns.MODETRANS.name()+" = ?";
         } else {
             condition = "";
         }

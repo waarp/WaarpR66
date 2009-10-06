@@ -555,7 +555,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     runner = new DbTaskRunner(localChannelReference.getDbSession(),
                             session, rule, packet.getSpecialId(),
                             requester, requested);
-                    if (runner.isFinished()) {
+                    if (runner.isInError() && runner.restart()) {
+                        // ok
+                    } else if (runner.isFinished()) {
                         // truly an error
                         endInitRequestInError(channel,
                                 ErrorCode.QueryAlreadyFinished,
@@ -586,6 +588,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     runner = new DbTaskRunner(localChannelReference.getDbSession(),
                             session, rule, packet.getSpecialId(),
                             requester, requested);
+                    if (runner.isInError() && runner.restart()) {
+                        // ok
+                    }
                 } catch (OpenR66DatabaseException e) {
                     if (localChannelReference.getDbSession() == null) {
                         //Special case of no database client
@@ -630,7 +635,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             } catch (OpenR66RunnerErrorException e1) {
                 logger.error("Cannot save Status: " + runner, e1);
             }
-            logger.error("PresTask in error", e);
+            logger.error("PreTask in error", e);
             localChannelReference.invalidateRequest(new R66Result(e, session,
                     true, ErrorCode.ExternalOp));
             ErrorPacket error = new ErrorPacket("PreTask in error: "+e

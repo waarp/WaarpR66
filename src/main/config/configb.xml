@@ -8,6 +8,7 @@
 	<serversslport>6669</serversslport>
 	<serverhttpport>8068</serverhttpport>
 	<serverhttpsport>8069</serverhttpsport>
+	<httpadmin>src/main/admin/</httpadmin>
 	<keypath>certs/openr66.store</keypath>
 	<keypass>openr66</keypass>
 	<keystorepass>storeopenr66</keystorepass>

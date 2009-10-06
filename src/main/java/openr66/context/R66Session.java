@@ -364,7 +364,7 @@ public class R66Session implements SessionInterface {
             return;
         }
         if (runner.isFinished()) {
-            logger.warn("Transfer already done but " + status + " on " + file+runner.toString(),
+            logger.warn("Transfer already done but " + status + " on " + file+runner.toShortString(),
                     new OpenR66RunnerErrorException(finalValue.toString()));
             return;
         }
@@ -387,8 +387,8 @@ public class R66Session implements SessionInterface {
                         "Pre task in error (or even before)");
             }
             finalValue.exception = runnerErrorException;
-            logger.warn("Pre task in error (or even before)",
-                    runnerErrorException);
+            logger.warn("Pre task in error (or even before) : "+
+                    runnerErrorException.getMessage());
             localChannelReference.invalidateRequest(finalValue);
             throw runnerErrorException;
         }
@@ -461,10 +461,9 @@ public class R66Session implements SessionInterface {
             // error or not ?
             ErrorCode runnerStatus = runner.getStatus();
             if (finalValue.exception != null) {
-                logger.warn("Transfer KO on " + file, finalValue.exception);
+                logger.warn("Transfer KO on " + file+ " due to "+ finalValue.exception.getMessage());
             } else {
-                logger.warn("Transfer KO on " + file,
-                        new OpenR66RunnerErrorException(finalValue.toString()));
+                logger.warn("Transfer KO on " + file+" due to "+finalValue.toString());
             }
             if (runnerStatus == ErrorCode.CanceledTransfer) {
                 // delete file, reset runner

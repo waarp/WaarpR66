@@ -155,14 +155,14 @@ public class DirectTransfer extends AbstractTransfer {
             R66Result result = future.getResult();
             if (future.isSuccess()) {
                 if (result.runner.getStatus() == ErrorCode.Warning) {
-                    logger.warn("Warning with Id: " +
-                            result.runner.getSpecialId()+" on file: " +
-                            (result.file != null? result.file.toString() : "no file")
+                    logger.warn("Warning for "+result.runner.toShortString()+"<REMOTE>"+rhost+"</REMOTE>"+
+                            " on file: <FILEFINAL>" +
+                            (result.file != null? result.file.toString()+"</FILEFINAL>" : "no file")
                             +" delay: "+delay);
                 } else {
-                    logger.warn("Success with Id: " +
-                            result.runner.getSpecialId()+" on Final file: " +
-                            (result.file != null? result.file.toString() : "no file")
+                    logger.warn("Success for "+result.runner.toShortString()+"<REMOTE>"+rhost+"</REMOTE>"+
+                            " on Final file: <FILEFINAL>" +
+                            (result.file != null? result.file.toString()+"</FILEFINAL>" : "no file")
                             +" delay: "+delay);
                 }
                 if (nolog) {
@@ -170,7 +170,7 @@ public class DirectTransfer extends AbstractTransfer {
                     try {
                         result.runner.delete();
                     } catch (OpenR66DatabaseException e) {
-                        logger.warn("Cannot apply nolog to "+result.runner.toString(), e);
+                        logger.warn("Cannot apply nolog to "+result.runner.toShortString(), e);
                     }
                 }
             } else {
@@ -180,13 +180,13 @@ public class DirectTransfer extends AbstractTransfer {
                     System.exit(1);
                 }
                 if (result.runner.getStatus() == ErrorCode.Warning) {
-                    logger.warn("Transfer in Warning with Id: " +
-                            result.runner.getSpecialId(), future.getCause());
+                    logger.warn("Transfer in Warning "+result.runner.toShortString()+
+                            "<REMOTE>"+rhost+"</REMOTE>", future.getCause());
                     networkTransaction.closeAll();
                     System.exit(result.code.ordinal());
                 } else {
-                    logger.error("Transfer in Error with Id: " +
-                            result.runner.getSpecialId(), future.getCause());
+                    logger.error("Transfer in Error "+result.runner.toShortString()+
+                            "<REMOTE>"+rhost+"</REMOTE>", future.getCause());
                     networkTransaction.closeAll();
                     System.exit(result.code.ordinal());
                 }

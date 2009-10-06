@@ -5,6 +5,15 @@
 		<author email="fredbregier at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+		<release version="0.6.3" date="2009-10-06" description="Fix due to benchmark and qualification">
+			<action dev="Frederic Bregier" type="fix">Fix Administrator</action>
+			<action dev="Frederic Bregier" type="fix">Fix SecureKeyStore(SunX509 vs IBMX509)</action>
+			<action dev="Frederic Bregier" type="fix">Lowering logging</action>
+			<action dev="Frederic Bregier" type="fix">Fix restarted task</action>
+			<action dev="Frederic Bregier" type="fix">Fix Common support</action>
+			<action dev="Frederic Bregier" type="fix">Fix Configuration for some options like delay for Retry</action>
+			<action dev="Frederic Bregier" type="fix">Fix Oracle DB support</action>
+		</release>
 		<release version="0.6.2" date="2009-10-01" description="Add Administrator in Https">
 			<action dev="Frederic Bregier" type="add">Add Administrator in Https</action>
 			<action dev="Frederic Bregier" type="fix">Fix shutdown</action>

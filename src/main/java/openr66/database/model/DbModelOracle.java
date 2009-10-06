@@ -45,7 +45,7 @@ public class DbModelOracle extends AbstractDbModel {
         CHAR(Types.CHAR, " CHAR(3) "),
         VARCHAR(Types.VARCHAR, " VARCHAR2(254) "),
         LONGVARCHAR(Types.LONGVARCHAR, " CLOB "),
-        BIT(Types.BIT, " BOOLEAN "),
+        BIT(Types.BIT, " CHAR(1) "),
         TINYINT(Types.TINYINT, " SMALLINT "),
         SMALLINT(Types.SMALLINT, " SMALLINT "),
         INTEGER(Types.INTEGER, " INTEGER "),
@@ -131,7 +131,6 @@ public class DbModelOracle extends AbstractDbModel {
             e.printStackTrace();
             return;
         } catch (OpenR66DatabaseSqlError e) {
-            e.printStackTrace();
             return;
         }
         request.close();
@@ -154,7 +153,6 @@ public class DbModelOracle extends AbstractDbModel {
             e.printStackTrace();
             return;
         } catch (OpenR66DatabaseSqlError e) {
-            e.printStackTrace();
             return;
         }
         request.close();
@@ -177,7 +175,6 @@ public class DbModelOracle extends AbstractDbModel {
             e.printStackTrace();
             return;
         } catch (OpenR66DatabaseSqlError e) {
-            e.printStackTrace();
             return;
         }
         request.close();
@@ -201,13 +198,13 @@ public class DbModelOracle extends AbstractDbModel {
             e.printStackTrace();
             return;
         } catch (OpenR66DatabaseSqlError e) {
-            e.printStackTrace();
             return;
         }
         request.close();
 
         // cptrunner
         action = "CREATE SEQUENCE " + DbTaskRunner.fieldseq +
+                " MINVALUE " + (DbConstant.ILLEGALVALUE + 1)+
                 " START WITH " + (DbConstant.ILLEGALVALUE + 1);
         System.out.println(action);
         try {
@@ -216,7 +213,6 @@ public class DbModelOracle extends AbstractDbModel {
             e.printStackTrace();
             return;
         } catch (OpenR66DatabaseSqlError e) {
-            e.printStackTrace();
             return;
         }
         request.close();
@@ -229,11 +225,14 @@ public class DbModelOracle extends AbstractDbModel {
      */
     @Override
     public void resetSequence(long newvalue) {
-        String action = "ALTER SEQUENCE " + DbTaskRunner.fieldseq +
-                " MINVALUE " + newvalue;
+        String action = "DROP SEQUENCE " + DbTaskRunner.fieldseq;
+        String action2 = "CREATE SEQUENCE " + DbTaskRunner.fieldseq +
+            " MINVALUE " + (DbConstant.ILLEGALVALUE + 1)+
+            " START WITH " + (newvalue);
         DbRequest request = new DbRequest(DbConstant.admin.session);
         try {
             request.query(action);
+            request.query(action2);
         } catch (OpenR66DatabaseNoConnectionError e) {
             e.printStackTrace();
             return;
@@ -242,6 +241,7 @@ public class DbModelOracle extends AbstractDbModel {
             return;
         }
         request.close();
+
         System.out.println(action);
     }
 
@@ -255,7 +255,7 @@ public class DbModelOracle extends AbstractDbModel {
         throws OpenR66DatabaseNoConnectionError,
             OpenR66DatabaseSqlError, OpenR66DatabaseNoDataException {
         long result = DbConstant.ILLEGALVALUE;
-        String action = "SELECT NEXTVAL " + DbTaskRunner.fieldseq + " FROM DUAL";
+        String action = "SELECT " + DbTaskRunner.fieldseq + ".NEXTVAL FROM DUAL";
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
                 dbSession);
         preparedStatement.createPrepareStatement(action);

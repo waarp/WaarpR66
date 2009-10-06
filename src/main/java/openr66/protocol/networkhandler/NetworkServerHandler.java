@@ -212,21 +212,21 @@ public class NetworkServerHandler extends SimpleChannelHandler {
             if (exception instanceof OpenR66ProtocolBusinessNoWriteBackException) {
                 if (NetworkTransaction.getNbLocalChannel(e.getChannel()) > 0) {
                     logger.error(
-                            "Network Channel Exception: " + e.getChannel().getId(),
-                            exception);
+                            "Network Channel Exception: {} {}", e.getChannel().getId(),
+                            exception.getMessage());
                 }
             } else {
                 logger.error(
-                        "Network Channel Exception: " + e.getChannel().getId(),
-                        exception);
+                        "Network Channel Exception: {} {}", e.getChannel().getId(),
+                        exception.getMessage());
             }
             if (exception instanceof OpenR66ProtocolBusinessNoWriteBackException) {
                 logger.info("Will close NETWORK channel");
                 ChannelUtils.close(e.getChannel());
                 return;
             } else if (exception instanceof OpenR66ProtocolNoConnectionException) {
-                logger.error("Connection impossible with NETWORK channel",
-                        exception);
+                logger.error("Connection impossible with NETWORK channel {}",
+                        exception.getMessage());
                 Channels.close(e.getChannel());
                 return;
             }

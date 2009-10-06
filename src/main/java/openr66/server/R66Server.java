@@ -64,6 +64,7 @@ public class R66Server {
             OpenR66SignalHandler.terminate(true);
         }
         logger.warn("Server OpenR66 starts for "+Configuration.configuration.HOST_ID);
+        System.err.println("Server OpenR66 starts for "+Configuration.configuration.HOST_ID);
     }
 
 }

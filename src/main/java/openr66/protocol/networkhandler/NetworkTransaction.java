@@ -134,6 +134,11 @@ public class NetworkTransaction {
             } catch (OpenR66ProtocolNetworkException e1) {
                 lastException = e1;
                 localChannelReference = null;
+                try {
+                    Thread.sleep(Configuration.WAITFORNETOP);
+                } catch (InterruptedException e) {
+                    break;
+                }
             } catch (OpenR66ProtocolRemoteShutdownException e1) {
                 lastException = e1;
                 localChannelReference = null;
@@ -145,9 +150,9 @@ public class NetworkTransaction {
             }
         }
         if (localChannelReference == null) {
-            logger.error("Cannot connect", lastException);
+            logger.error("Cannot connect {}", lastException.getMessage());
         } else if (lastException != null) {
-            logger.warn("Connection retry since ", lastException);
+            logger.warn("Connection retry since {}", lastException.getMessage());
         }
         return localChannelReference;
     }
@@ -243,7 +248,7 @@ public class NetworkTransaction {
                 }
             }
             try {
-                Thread.sleep(Configuration.RETRYINMS);
+                Thread.sleep(Configuration.WAITFORNETOP);
             } catch (InterruptedException e) {
                 throw new OpenR66ProtocolNetworkException(
                         "Cannot connect to remote server", e);

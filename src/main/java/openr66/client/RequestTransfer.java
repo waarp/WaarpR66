@@ -200,25 +200,28 @@ public class RequestTransfer implements Runnable {
                 } else {
                     // Send a request of cancel
                     sendRequest(LocalPacketFactory.CANCELPACKET);
+                    logger.warn("Transfer cancel requested: "+runner.toString());
                 }
             } else if (stop) {
                 // Just stop the task
                 // Send a request
                 sendRequest(LocalPacketFactory.STOPPACKET);
+                logger.warn("Transfer stop requested: "+runner.toString());
             } else if (restart) {
                 // Restart if already stopped and not finished
                 if (runner.restart()) {
                     future.setResult(new R66Result(null,true,runner.getStatus()));
                     future.setSuccess();
+                    logger.warn("Transfer restart requested: "+runner.toString());
                 } else {
                     future.setResult(new R66Result(null,true,ErrorCode.Internal));
                     future.cancel();
+                    logger.warn("Transfer cannot be restarted: "+runner.toString());
                 }
-                logger.warn("Transfer: "+runner.toString());
             }
         } else {
             // Only request
-            logger.warn("Transfer: "+runner.toString());
+            logger.warn("Transfer information: "+runner.toString());
             future.setResult(new R66Result(null,true,runner.getStatus()));
             future.setSuccess();
         }

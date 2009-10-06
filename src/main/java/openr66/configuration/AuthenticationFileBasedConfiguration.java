@@ -156,7 +156,7 @@ public class AuthenticationFileBasedConfiguration {
                 // load key from file
                 key = new File(skey);
                 if (!key.canRead()) {
-                    logger.warn("Cannot read key for hostId " + refHostId);
+                    logger.warn("Cannot read key for hostId " + refHostId+":"+skey);
                     continue;
                 }
                 byteKeys = new byte[(int) key.length()];

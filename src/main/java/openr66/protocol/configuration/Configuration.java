@@ -226,6 +226,11 @@ public class Configuration {
     public String configPath = null;
 
     /**
+     * Http Admin base
+     */
+    public String httpBasePath = "src/main/admin/";
+
+    /**
      * True if the service is going to shutdown
      */
     public volatile boolean isShutdown = false;
@@ -351,6 +356,10 @@ public class Configuration {
      * Delay in ms between two steps of Commander
      */
     public long delayCommander = 5000;
+    /**
+     * Delay in ms between two retries
+     */
+    public long delayRetry = 30000;
 
     private volatile boolean configured = false;
 
@@ -519,7 +528,7 @@ public class Configuration {
         serverGlobalWriteLimit = newWriteLimit;
         this.delayLimit = delayLimit;
         if (globalTrafficShapingHandler != null) {
-            globalTrafficShapingHandler.configure(newWriteLimit, newReadLimit, delayLimit);
+            globalTrafficShapingHandler.configure(serverGlobalWriteLimit, serverGlobalReadLimit, delayLimit);
         }
         newWriteLimit = writeSessionLimit > 1024? writeSessionLimit
                 : serverChannelWriteLimit;

@@ -82,7 +82,8 @@ public class R66SecureKeyStore {
             return false;
         }
         try {
-            keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+            keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            // "SunX509");
         } catch (NoSuchAlgorithmException e) {
             logger.error("Cannot create KeyManagerFactory Instance", e);
             return false;

@@ -89,7 +89,7 @@ public class R66Result {
     public String toString() {
         return (exception != null? "Exception: " + exception.toString() : "") +
                 (file != null? file.toString() : " no file") +
-                (runner != null? runner.toString() : " no runner") +
+                (runner != null? runner.toShortString() : " no runner") +
                 " isAnswered: " + isAnswered + " Code: " + code.mesg;
     }
 }

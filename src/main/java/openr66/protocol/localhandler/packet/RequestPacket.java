@@ -12,7 +12,7 @@ import org.jboss.netty.buffer.ChannelBuffers;
 /**
  * Request class
  *
- * header = "rulename MODE" middle = way+"FILENAME BLOCKSIZE RANK specialId" end
+ * header = "rulename MODETRANS" middle = way+"FILENAME BLOCKSIZE RANK specialId" end
  * = "fileInformation"
  *
  * @author frederic bregier

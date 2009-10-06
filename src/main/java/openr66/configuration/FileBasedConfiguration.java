@@ -169,6 +169,11 @@ public class FileBasedConfiguration {
     private static final String XML_CONFIGPATH = "/config/conf";
 
     /**
+     * HTTP Admin Directory
+     */
+    private static final String XML_HTTPADMINPATH = "/config/httpadmin";
+
+    /**
      * Default number of threads in pool for Server.
      */
     private static final String XML_SERVER_THREAD = "/config/serverthread";
@@ -202,6 +207,11 @@ public class FileBasedConfiguration {
      * Delay between two checks for Commander
      */
     private static final String XML_DELAYCOMMANDER = "/config/delaycommand";
+
+    /**
+     * Delay between two checks for Commander
+     */
+    private static final String XML_DELAYRETRY = "/config/delayretry";
 
     /**
      * Nb of milliseconds after connection is in timeout
@@ -274,7 +284,7 @@ public class FileBasedConfiguration {
             throws OpenR66ProtocolSystemException {
         Node node = document.selectSingleNode(fromXML);
         if (node == null) {
-            logger.error("Unable to find CONFIG Path in Config file");
+            logger.error("Unable to find a Path in Config file: "+fromXML);
             throw new OpenR66ProtocolSystemException(
                     "Unable to find a Path in Config file: " + fromXML);
         }
@@ -314,6 +324,13 @@ public class FileBasedConfiguration {
         }
         if (!loadCommon(document)) {
             logger.error("Unable to find Host ID in Config file: " + filename);
+            return false;
+        }
+        try {
+            Configuration.configuration.httpBasePath = FilesystemBasedDirImpl
+                    .normalizePath(getSubPath(document, XML_HTTPADMINPATH));
+        } catch (OpenR66ProtocolSystemException e2) {
+            logger.error("Unable to set Http Admin Base in Config file");
             return false;
         }
         Node node = null;
@@ -438,7 +455,7 @@ public class FileBasedConfiguration {
             return false;
         }
         if (!loadCommon(document)) {
-            logger.error("Unable to find Host ID in Config file: " + filename);
+            logger.error("Unable to load commons in Config file: " + filename);
             return false;
         }
         Node node = null;
@@ -846,6 +863,16 @@ public class FileBasedConfiguration {
             }
             logger.info("Delay Commander: {}",
                     Configuration.configuration.delayCommander);
+        }
+        node = document.selectSingleNode(XML_DELAYRETRY);
+        if (node != null) {
+            Configuration.configuration.delayRetry = Long.parseLong(node
+                    .getText());
+            if (Configuration.configuration.delayRetry <= 1000) {
+                Configuration.configuration.delayRetry = 1000;
+            }
+            logger.info("Delay Retry: {}",
+                    Configuration.configuration.delayRetry);
         }
         if (DbConstant.admin.isConnected) {
             node = document.selectSingleNode(XML_SERVER_HOSTID);
