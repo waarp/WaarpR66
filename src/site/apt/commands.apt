@@ -123,6 +123,23 @@ OpenR66-Command
     *'-stop' option: This option specifies the upper limit to select runners from start runner
     time. If not specified, there is no upper limit.
 
+**ChangeBandwidthLimits
+
+  This tool enables to change dynamicaly the bandwidth limitations (only in memory, not in 
+  database). To use it, it should be used locally with the admin account.
+
+  * The First argument is the Client Configuration (eventually without database access).
+
+  * The rest of arguments can be:
+
+    *'-wglob' option: Write Global limitation in Bytes by Second (minimum 1024 so 1KBs).
+
+    *'-rglob' option: Read Global limitation in Bytes by Second (minimum 1024 so 1KBs).
+
+    *'-wsess' option: Write Session limitation in Bytes by Second (minimum 1024 so 1KBs).
+
+    *'-rsess' option: Read Session limitation in Bytes by Second (minimum 1024 so 1KBs).
+
 *Clients:
 
 **SubmitTransfer

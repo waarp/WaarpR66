@@ -1293,6 +1293,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 break;
             }
             case LocalPacketFactory.BANDWIDTHPACKET: {
+                // should be from the local server or from an authorized hosts: isAdmin
+                if (!session.getAuth().isAdmin()) {
+                    throw new OpenR66ProtocolNotAuthenticatedException(
+                            "Not correctly authenticated");
+                }
                 String []splitglobal  = packet.getSheader().split(" ");
                 String []splitsession = packet.getSmiddle().split(" ");
                 long wgl  = Long.parseLong(splitglobal[0]);
