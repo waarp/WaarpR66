@@ -237,7 +237,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 case LocalPacketFactory.STOPPACKET:
                 case LocalPacketFactory.CANCELPACKET:
                 case LocalPacketFactory.CONFIGSENDPACKET:
-                case LocalPacketFactory.CONFIGRECVPACKET: {
+                case LocalPacketFactory.CONFIGRECVPACKET:
+                case LocalPacketFactory.BANDWIDTHPACKET: {
                     logger.error("Unimplemented Mesg: " +
                             packet.getClass().getName());
                     localChannelReference.invalidateRequest(new R66Result(
@@ -1131,11 +1132,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     ErrorPacket error = new ErrorPacket(code.name()+" "+rank,
                             code.getCode(), ErrorPacket.FORWARDCLOSECODE);
                     try {
-                        //ChannelUtils.writeAbstractLocalPacket(lcr, error);
+                        //XXX ChannelUtils.writeAbstractLocalPacket(lcr, error);
                         ChannelUtils.writeAbstractLocalPacketToLocal(lcr, error);
                     } catch (Exception e) {
                     }
-                    //FIXME ChannelUtils.close(lcr.getLocalChannel());
                     resulttest = new R66Result(session, true,
                             ErrorCode.CompleteOk);
                 } else {
@@ -1284,6 +1284,40 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         LocalPacketFactory.REQUESTUSERPACKET);
                 resulttest.other = packet;
                 localChannelReference.validateRequest(resulttest);
+                try {
+                    ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+                            valid).awaitUninterruptibly();
+                } catch (OpenR66ProtocolPacketException e) {
+                }
+                Channels.close(channel);
+                break;
+            }
+            case LocalPacketFactory.BANDWIDTHPACKET: {
+                String []splitglobal  = packet.getSheader().split(" ");
+                String []splitsession = packet.getSmiddle().split(" ");
+                long wgl  = Long.parseLong(splitglobal[0]);
+                long rgl  = Long.parseLong(splitglobal[1]);
+                long wsl  = Long.parseLong(splitsession[0]);
+                long rsl  = Long.parseLong(splitsession[1]);
+                if (wgl < 0) {
+                    wgl = Configuration.configuration.serverGlobalWriteLimit;
+                }
+                if (rgl < 0) {
+                    rgl = Configuration.configuration.serverGlobalReadLimit;
+                }
+                if (wsl < 0) {
+                    wsl = Configuration.configuration.serverChannelWriteLimit;
+                }
+                if (rsl < 0) {
+                    rsl = Configuration.configuration.serverChannelReadLimit;
+                }
+                Configuration.configuration.changeNetworkLimit(wgl, rgl, wsl, rsl,
+                        Configuration.configuration.delayLimit);
+                R66Result result = new R66Result(session, true, ErrorCode.CompleteOk);
+                // Now answer
+                ValidPacket valid = new ValidPacket("Bandwidth changed", result.code.getCode(),
+                        LocalPacketFactory.REQUESTUSERPACKET);
+                localChannelReference.validateRequest(result);
                 try {
                     ChannelUtils.writeAbstractLocalPacket(localChannelReference,
                             valid).awaitUninterruptibly();

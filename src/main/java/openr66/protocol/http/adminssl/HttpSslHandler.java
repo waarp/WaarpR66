@@ -516,11 +516,10 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     ErrorPacket error = new ErrorPacket("Transfer "+parm+" "+rank,
                             code.getCode(), ErrorPacket.FORWARDCLOSECODE);
                     try {
-                        //ChannelUtils.writeAbstractLocalPacket(lcr, error);
+                        //XXX ChannelUtils.writeAbstractLocalPacket(lcr, error);
                         ChannelUtils.writeAbstractLocalPacketToLocal(lcr, error);
                     } catch (Exception e) {
                     }
-                    //ChannelUtils.close(lcr.getLocalChannel());
                     result = ErrorCode.CompleteOk;
                 } else {
                     // Transfer is not running

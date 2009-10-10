@@ -61,6 +61,9 @@ public class LocalPacketFactory {
 
     public static final byte INFORMATIONPACKET = 18;
 
+    public static final byte BANDWIDTHPACKET = 19;
+
+
     /**
      * This method create a Packet from the ChannelBuffer.
      *
@@ -108,6 +111,7 @@ public class LocalPacketFactory {
             case CONFIGRECVPACKET:
             case LOGPACKET:
             case LOGPURGEPACKET:
+            case BANDWIDTHPACKET:
                 throw new OpenR66ProtocolPacketException(
                         "Unimplemented Packet Type received: " + packetType);
             case TESTPACKET:

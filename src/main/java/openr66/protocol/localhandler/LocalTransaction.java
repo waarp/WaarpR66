@@ -253,13 +253,11 @@ public class LocalTransaction {
                                 .getRank();
                         packet.setSmiddle(Integer.toString(rank));
                     }
-                    //FIXME if (runner.isSender()) {
-                        // Save File status
-                        try {
-                            runner.saveStatus();
-                        } catch (OpenR66RunnerErrorException e) {
-                        }
-                    //FIXME }
+                    // Save File status
+                    try {
+                        runner.saveStatus();
+                    } catch (OpenR66RunnerErrorException e) {
+                    }
                 }
             }
             try {
