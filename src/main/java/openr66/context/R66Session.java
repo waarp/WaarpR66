@@ -266,6 +266,14 @@ public class R66Session implements SessionInterface {
         }
         if (runner.getGloballaststep() == TASKSTEP.NOTASK.ordinal() ||
                 runner.getGloballaststep() == TASKSTEP.PRETASK.ordinal()) {
+            try {
+                file = (R66File) dir.setFile(this.runner.getFilename(),
+                    false);
+            } catch (CommandAbstractException e) {
+                // file is not under normal base directory, so is external
+                // File should already exist but can be using special code ('*?')
+                file = new R66File(this, dir, this.runner.getOriginalFilename());
+            }
             this.runner.setPreTask(0);
             runner.saveStatus();
             this.runner.run();
@@ -274,9 +282,8 @@ public class R66Session implements SessionInterface {
         }
         // Now create the associated file
         if (this.runner.isSender()) {
-            // File should already exist but can be using special code ('*?')
             try {
-                file = (R66File) dir.setFile(this.runner.getOriginalFilename(),
+                file = (R66File) dir.setFile(this.runner.getFilename(),
                         false);
                 if (RequestPacket.isSendThroughMode(this.runner.getMode())) {
                     // no test on file since it does not really exist
@@ -287,8 +294,6 @@ public class R66Session implements SessionInterface {
             } catch (CommandAbstractException e) {
                 throw new OpenR66RunnerErrorException(e);
             }
-            // Name could changed so update it before answering back
-            this.runner.setOriginalFilename(file.getBasename());
         } else {
             // File should not exist except if restart
             if (runner.getRank() > 0) {
@@ -471,6 +476,8 @@ public class R66Session implements SessionInterface {
                 runner.deleteTempFile();
                 runner.setPreTask(0);
             } else if (runnerStatus == ErrorCode.StoppedTransfer) {
+                // just save runner and stop
+            } else if (runnerStatus == ErrorCode.Shutdown) {
                 // just save runner and stop
             } else {
                 // real error

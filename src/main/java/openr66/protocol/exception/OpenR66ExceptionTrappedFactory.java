@@ -71,6 +71,11 @@ public class OpenR66ExceptionTrappedFactory {
             final OpenR66ProtocolBusinessStopException e2 = (OpenR66ProtocolBusinessStopException) e1;
             logger.info("Request is stopped: {}", e2.getMessage());
             return e2;
+        } else if (e1 instanceof OpenR66ProtocolBusinessQueryAlreadyFinishedException) {
+            final OpenR66ProtocolBusinessQueryAlreadyFinishedException e2 =
+                (OpenR66ProtocolBusinessQueryAlreadyFinishedException) e1;
+            logger.info("Request is already finished: {}", e2.getMessage());
+            return e2;
         } else if (e1 instanceof OpenR66ProtocolBusinessNoWriteBackException) {
             final OpenR66ProtocolBusinessNoWriteBackException e2 = (OpenR66ProtocolBusinessNoWriteBackException) e1;
             logger.error("Command Error Reply: {}", e2.getMessage());

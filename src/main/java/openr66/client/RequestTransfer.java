@@ -39,7 +39,6 @@ import openr66.database.data.DbHostAuth;
 import openr66.database.data.DbTaskRunner;
 import openr66.database.data.AbstractDbData.UpdatedInfo;
 import openr66.database.exception.OpenR66DatabaseException;
-import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
@@ -199,24 +198,53 @@ public class RequestTransfer implements Runnable {
                     return;
                 } else {
                     // Send a request of cancel
-                    sendRequest(LocalPacketFactory.CANCELPACKET);
-                    logger.warn("Transfer cancel requested: "+runner.toString());
+                    ErrorCode code = sendValid(LocalPacketFactory.CANCELPACKET);
+                    switch (code) {
+                        case CompleteOk:
+                            logger.warn("Transfer cancel requested and done: "+runner.toString());
+                            break;
+                        case TransferOk:
+                            logger.warn("Transfer cancel requested but already finished: "+runner.toString());
+                            break;
+                        default:
+                            logger.warn("Transfer cancel requested but internal error: "+runner.toString());
+                            break;
+                    }
                 }
             } else if (stop) {
                 // Just stop the task
                 // Send a request
-                sendRequest(LocalPacketFactory.STOPPACKET);
-                logger.warn("Transfer stop requested: "+runner.toString());
+                ErrorCode code = sendValid(LocalPacketFactory.STOPPACKET);
+                switch (code) {
+                    case CompleteOk:
+                        logger.warn("Transfer stop requested and done: "+runner.toString());
+                        break;
+                    case TransferOk:
+                        logger.warn("Transfer stop requested but already finished: "+runner.toString());
+                        break;
+                    default:
+                        logger.warn("Transfer stop requested but internal error: "+runner.toString());
+                        break;
+                }
             } else if (restart) {
                 // Restart if already stopped and not finished
-                if (runner.restart()) {
-                    future.setResult(new R66Result(null,true,runner.getStatus()));
-                    future.setSuccess();
-                    logger.warn("Transfer restart requested: "+runner.toString());
-                } else {
-                    future.setResult(new R66Result(null,true,ErrorCode.Internal));
-                    future.cancel();
-                    logger.warn("Transfer cannot be restarted: "+runner.toString());
+                ErrorCode code = sendValid(LocalPacketFactory.VALIDPACKET);
+                switch (code) {
+                    case Running:
+                        logger.warn("Transfer restart requested but already running: "+runner.toString());
+                        break;
+                    case PreProcessingOk:
+                        logger.warn("Transfer restart requested and restarted: "+runner.toString());
+                        break;
+                    case CompleteOk:
+                        logger.warn("Transfer restart requested but already finished: "+runner.toString());
+                        break;
+                    case RemoteError:
+                        logger.warn("Transfer restart requested but remote error: "+runner.toString());
+                        break;
+                    default:
+                        logger.warn("Transfer restart requested but internal error: "+runner.toString());
+                        break;
                 }
             }
         } else {
@@ -239,7 +267,7 @@ public class RequestTransfer implements Runnable {
             }
         }
     }
-    private void sendRequest(byte code) {
+    private ErrorCode sendValid(byte code) {
         DbHostAuth host;
         host = R66Auth.getServerAuth(DbConstant.admin.session,
                     this.requester);
@@ -252,7 +280,7 @@ public class RequestTransfer implements Runnable {
                     null, true,
                     ErrorCode.TransferError));
             future.setFailure(e);
-            return;
+            return ErrorCode.Internal;
         }
         SocketAddress socketAddress = host.getSocketAddress();
         boolean isSSL = host.isSsl();
@@ -261,13 +289,12 @@ public class RequestTransfer implements Runnable {
             .createConnectionWithRetry(socketAddress,isSSL,future);
         socketAddress = null;
         if (localChannelReference == null) {
-            logger.warn("Cannot connect to "+host.toString());
+            logger.error("Cannot connect to "+host.toString());
             host = null;
-            logger.error("Cannot Connect");
             future.setResult(new R66Result(null, true,
                     ErrorCode.ConnectionImpossible));
             future.cancel();
-            return;
+            return ErrorCode.Internal;
        }
         ValidPacket packet = new ValidPacket("Request on Transfer",
                 this.requested+" "+this.requester+" "+this.specialId,
@@ -284,7 +311,7 @@ public class RequestTransfer implements Runnable {
             future.setResult(new R66Result(e, null, true,
                     ErrorCode.TransferError));
             future.setFailure(e);
-            return;
+            return ErrorCode.Internal;
         }
         packet = null;
         host = null;
@@ -293,6 +320,11 @@ public class RequestTransfer implements Runnable {
 
         Channels.close(localChannelReference.getLocalChannel());
         localChannelReference = null;
+        R66Result result = future.getResult();
+        if (result != null) {
+            return result.code;
+        }
+        return ErrorCode.Internal;
     }
     /**
      * @param args
@@ -306,10 +338,7 @@ public class RequestTransfer implements Runnable {
         if (! getParams(args)) {
             logger.error("Wrong initialization");
             if (DbConstant.admin != null && DbConstant.admin.isConnected) {
-                try {
-                    DbConstant.admin.close();
-                } catch (OpenR66DatabaseSqlError e) {
-                }
+                DbConstant.admin.close();
             }
             System.exit(1);
         }
@@ -334,10 +363,7 @@ public class RequestTransfer implements Runnable {
 
         } finally {
             if (DbConstant.admin != null) {
-                try {
-                    DbConstant.admin.close();
-                } catch (OpenR66DatabaseSqlError e) {
-                }
+                DbConstant.admin.close();
             }
         }
     }

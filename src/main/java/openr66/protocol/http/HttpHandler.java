@@ -354,23 +354,23 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
         DbPreparedStatement preparedStatement;
         try {
             preparedStatement =
-                DbTaskRunner.getStatusPrepareStament(dbSession, ErrorCode.InitOk);
+                DbTaskRunner.getStatusPrepareStament(dbSession, ErrorCode.InitOk, nb);
             addRunners(preparedStatement, ErrorCode.InitOk.mesg,nb);
             preparedStatement.realClose();
             preparedStatement =
-                DbTaskRunner.getStatusPrepareStament(dbSession, ErrorCode.PreProcessingOk);
+                DbTaskRunner.getStatusPrepareStament(dbSession, ErrorCode.PreProcessingOk, nb);
             addRunners(preparedStatement, ErrorCode.PreProcessingOk.mesg, nb);
             preparedStatement.realClose();
             preparedStatement =
-                DbTaskRunner.getStatusPrepareStament(dbSession, ErrorCode.TransferOk);
+                DbTaskRunner.getStatusPrepareStament(dbSession, ErrorCode.TransferOk, nb);
             addRunners(preparedStatement, ErrorCode.TransferOk.mesg, nb);
             preparedStatement.realClose();
             preparedStatement =
-                DbTaskRunner.getStatusPrepareStament(dbSession, ErrorCode.PostProcessingOk);
+                DbTaskRunner.getStatusPrepareStament(dbSession, ErrorCode.PostProcessingOk, nb);
             addRunners(preparedStatement, ErrorCode.PostProcessingOk.mesg, nb);
             preparedStatement.realClose();
             preparedStatement =
-                DbTaskRunner.getStatusPrepareStament(dbSession, ErrorCode.Running);
+                DbTaskRunner.getStatusPrepareStament(dbSession, ErrorCode.Running, nb);
             addRunners(preparedStatement, ErrorCode.Running.mesg, nb);
             preparedStatement.realClose();
         } catch (OpenR66DatabaseException e) {
@@ -394,7 +394,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
         DbPreparedStatement preparedStatement;
         try {
             preparedStatement =
-                DbTaskRunner.getStepPrepareStament(dbSession, TASKSTEP.ERRORTASK);
+                DbTaskRunner.getStepPrepareStament(dbSession, TASKSTEP.ERRORTASK, nb);
             addRunners(preparedStatement, TASKSTEP.ERRORTASK.name(), nb);
             preparedStatement.realClose();
         } catch (OpenR66DatabaseException e) {
@@ -418,7 +418,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
         DbPreparedStatement preparedStatement;
         try {
             preparedStatement =
-                DbTaskRunner.getStatusPrepareStament(dbSession, ErrorCode.CompleteOk);
+                DbTaskRunner.getStatusPrepareStament(dbSession, ErrorCode.CompleteOk, nb);
             addRunners(preparedStatement, ErrorCode.CompleteOk.mesg, nb);
             preparedStatement.realClose();
         } catch (OpenR66DatabaseException e) {
@@ -442,7 +442,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
         DbPreparedStatement preparedStatement;
         try {
             preparedStatement =
-                DbTaskRunner.getStatusPrepareStament(dbSession, null);// means all
+                DbTaskRunner.getStatusPrepareStament(dbSession, null, nb);// means all
             addRunners(preparedStatement, "ALL RUNNERS: "+nb, nb);
             preparedStatement.realClose();
         } catch (OpenR66DatabaseException e) {
@@ -553,10 +553,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
             throws Exception {
         super.channelClosed(ctx, e);
         if (this.isPrivateDbSession && dbSession != null) {
-            try {
-                dbSession.disconnect();
-            } catch (OpenR66DatabaseSqlError e1) {
-            }
+            dbSession.disconnect();
         }
     }
 
@@ -575,8 +572,9 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
         try {
             if (DbConstant.admin.isConnected) {
                 this.dbSession = new DbSession(DbConstant.admin, false);
+                this.dbSession.useConnection();
+                this.isPrivateDbSession = true;
             }
-            this.isPrivateDbSession = true;
         } catch (OpenR66DatabaseNoConnectionError e1) {
             // Cannot connect so use default connection
             logger.warn("Use default database connection");

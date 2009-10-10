@@ -688,7 +688,7 @@ public class DbRule extends AbstractDbData {
        String request = "SELECT " +selectAllFields;
        request += " FROM "+table+
            " WHERE "+Columns.UPDATEDINFO.name()+" = "+
-           AbstractDbData.UpdatedInfo.UPDATED.ordinal();
+           AbstractDbData.UpdatedInfo.TOSUBMIT.ordinal();
        return new DbPreparedStatement(session, request);
    }
     /*
@@ -1041,36 +1041,37 @@ public class DbRule extends AbstractDbData {
      * @return the runner in Html format specified by body by replacing all instance of fields
      */
     public String toSpecializedHtml(R66Session session, String body) {
-        String line = body.replace("XXXRULEXXX", idRule);
-        line = line.replace("XXXIDSXXX", ids == null ? "" : ids);
+        StringBuilder builder = new StringBuilder(body);
+        FileUtils.replace(builder, "XXXRULEXXX", idRule);
+        FileUtils.replace(builder, "XXXIDSXXX", ids == null ? "" : ids);
         if (mode == RequestPacket.TRANSFERMODE.RECVMODE.ordinal()) {
-            line = line.replace("XXXRECVXXX", "checked");
+            FileUtils.replace(builder, "XXXRECVXXX", "checked");
         } else if (mode == RequestPacket.TRANSFERMODE.SENDMODE.ordinal()) {
-            line = line.replace("XXXSENDXXX", "checked");
+            FileUtils.replace(builder, "XXXSENDXXX", "checked");
         } else if (mode == RequestPacket.TRANSFERMODE.RECVMD5MODE.ordinal()) {
-            line = line.replace("XXXRECVMXXX", "checked");
+            FileUtils.replace(builder, "XXXRECVMXXX", "checked");
         } else if (mode == RequestPacket.TRANSFERMODE.SENDMD5MODE.ordinal()) {
-            line = line.replace("XXXSENDMXXX", "checked");
+            FileUtils.replace(builder, "XXXSENDMXXX", "checked");
         } else if (mode == RequestPacket.TRANSFERMODE.RECVTHROUGHMODE.ordinal()) {
-            line = line.replace("XXXRECVTXXX", "checked");
+            FileUtils.replace(builder, "XXXRECVTXXX", "checked");
         } else if (mode == RequestPacket.TRANSFERMODE.SENDTHROUGHMODE.ordinal()) {
-            line = line.replace("XXXSENDTXXX", "checked");
+            FileUtils.replace(builder, "XXXSENDTXXX", "checked");
         } else if (mode == RequestPacket.TRANSFERMODE.RECVMD5THROUGHMODE.ordinal()) {
-            line = line.replace("XXXRECVMTXXX", "checked");
+            FileUtils.replace(builder, "XXXRECVMTXXX", "checked");
         } else if (mode == RequestPacket.TRANSFERMODE.SENDMD5THROUGHMODE.ordinal()) {
-            line = line.replace("XXXSENDMTXXX", "checked");
+            FileUtils.replace(builder, "XXXSENDMTXXX", "checked");
         }
-        line = line.replace("XXXRPXXX", recvPath == null ? "" : recvPath);
-        line = line.replace("XXXSPXXX", sendPath == null ? "" : sendPath);
-        line = line.replace("XXXAPXXX", archivePath == null ? "" : archivePath);
-        line = line.replace("XXXWPXXX", workPath == null ? "" : workPath);
-        line = line.replace("XXXRPTXXX", rpreTasks == null ? "" : rpreTasks);
-        line = line.replace("XXXRSTXXX", rpostTasks == null ? "" : rpostTasks);
-        line = line.replace("XXXRETXXX", rerrorTasks == null ? "" : rerrorTasks);
-        line = line.replace("XXXSPTXXX", spreTasks == null ? "" : spreTasks);
-        line = line.replace("XXXSSTXXX", spostTasks == null ? "" : spostTasks);
-        line = line.replace("XXXSETXXX", serrorTasks == null ? "" : serrorTasks);
-        return line;
+        FileUtils.replace(builder, "XXXRPXXX", recvPath == null ? "" : recvPath);
+        FileUtils.replace(builder, "XXXSPXXX", sendPath == null ? "" : sendPath);
+        FileUtils.replace(builder, "XXXAPXXX", archivePath == null ? "" : archivePath);
+        FileUtils.replace(builder, "XXXWPXXX", workPath == null ? "" : workPath);
+        FileUtils.replace(builder, "XXXRPTXXX", rpreTasks == null ? "" : rpreTasks);
+        FileUtils.replace(builder, "XXXRSTXXX", rpostTasks == null ? "" : rpostTasks);
+        FileUtils.replace(builder, "XXXRETXXX", rerrorTasks == null ? "" : rerrorTasks);
+        FileUtils.replace(builder, "XXXSPTXXX", spreTasks == null ? "" : spreTasks);
+        FileUtils.replace(builder, "XXXSSTXXX", spostTasks == null ? "" : spostTasks);
+        FileUtils.replace(builder, "XXXSETXXX", serrorTasks == null ? "" : serrorTasks);
+        return builder.toString();
     }
 
 }

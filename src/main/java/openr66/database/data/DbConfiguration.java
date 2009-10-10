@@ -374,7 +374,7 @@ public class DbConfiguration extends AbstractDbData {
         String request = "SELECT " +selectAllFields;
         request += " FROM "+table+
             " WHERE "+Columns.UPDATEDINFO.name()+" = "+
-            AbstractDbData.UpdatedInfo.UPDATED.ordinal();
+            AbstractDbData.UpdatedInfo.TOSUBMIT.ordinal();
         return new DbPreparedStatement(session, request);
     }
     /*

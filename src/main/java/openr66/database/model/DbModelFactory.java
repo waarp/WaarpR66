@@ -35,7 +35,7 @@ public class DbModelFactory {
     /**
      * Database Model Object
      */
-    public static AbstractDbModel dbModel;
+    public static DbModel dbModel;
     /**
      * Initialize the Database Model according to arguments.
      * @param dbdriver

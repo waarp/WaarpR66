@@ -23,7 +23,7 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentHashMap;
 
 import openr66.protocol.configuration.Configuration;
 
@@ -52,7 +52,7 @@ public class OpenR66SignalHandler implements SignalHandler {
     /**
      * List all Connection to enable the close call on them
      */
-    private static ConcurrentLinkedQueue<Connection> listConnection = new ConcurrentLinkedQueue<Connection>();
+    private static ConcurrentHashMap<Long, Connection> listConnection = new ConcurrentHashMap<Long, Connection>();
 
     /**
      * Previous Handler
@@ -202,8 +202,8 @@ public class OpenR66SignalHandler implements SignalHandler {
      *
      * @param conn
      */
-    public static void addConnection(Connection conn) {
-        listConnection.add(conn);
+    public static void addConnection(long id, Connection conn) {
+        listConnection.put(Long.valueOf(id), conn);
     }
 
     /**
@@ -211,8 +211,8 @@ public class OpenR66SignalHandler implements SignalHandler {
      *
      * @param conn
      */
-    public static void removeConnection(Connection conn) {
-        listConnection.remove(conn);
+    public static void removeConnection(long id, Connection conn) {
+        listConnection.remove(Long.valueOf(id));
     }
     /**
      *
@@ -225,13 +225,12 @@ public class OpenR66SignalHandler implements SignalHandler {
      * Close all database connections
      */
     public static void closeAllConnection() {
-        Connection con = listConnection.poll();
-        while (con != null) {
+        for (Connection con : listConnection.values()) {
             try {
                 con.close();
             } catch (SQLException e) {
             }
-            con = listConnection.poll();
         }
+        listConnection.clear();
     }
 }

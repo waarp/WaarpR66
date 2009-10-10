@@ -31,7 +31,6 @@ import openr66.client.DirectTransfer;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.database.DbConstant;
-import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.utils.R66Future;
@@ -82,10 +81,7 @@ public class TestTransferNoDb extends DirectTransfer {
         if (! getParams(args)) {
             logger.error("Wrong initialization");
             if (DbConstant.admin != null && DbConstant.admin.isConnected) {
-                try {
-                    DbConstant.admin.close();
-                } catch (OpenR66DatabaseSqlError e) {
-                }
+                DbConstant.admin.close();
             }
             System.exit(1);
         }

@@ -60,19 +60,19 @@ public class MoveTask extends AbstractTask {
         logger.info("Move with " + argRule + ":" + argTransfer + " and {}",
                 session);
         boolean success = false;
+        String finalname = argRule +
+            session.getDir().getFinalUniqueFilename(
+                session.getFile());
         try {
-            success = session.getFile().renameTo(
-                    argRule +
-                            session.getDir().getFinalUniqueFilename(
-                                    session.getFile()), true);
+            success = session.getFile().renameTo(finalname, true);
         } catch (CommandAbstractException e) {
             logger.error("Move with " + argRule + ":" + argTransfer + " and " +
                     session, e);
             futureCompletion.setFailure(new OpenR66ProtocolSystemException(e));
             return;
         }
-        session.getRunner().setFileMoved(success);
         if (success) {
+            session.getRunner().setFileMoved(finalname, success);
             futureCompletion.setSuccess();
         } else {
             logger.error("Cannot Move with " + argRule + ":" + argTransfer +

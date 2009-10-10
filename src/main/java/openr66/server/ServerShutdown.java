@@ -25,7 +25,6 @@ import java.net.SocketAddress;
 import openr66.configuration.FileBasedConfiguration;
 import openr66.context.R66Result;
 import openr66.database.DbConstant;
-import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.localhandler.LocalChannelReference;
@@ -66,11 +65,8 @@ public class ServerShutdown {
                 .setConfigurationFromXml(args[0])) {
             logger
                     .error("Needs a correct configuration file as first argument");
-            try {
-                if (DbConstant.admin != null){
-                    DbConstant.admin.close();
-                }
-            } catch (OpenR66DatabaseSqlError e) {
+            if (DbConstant.admin != null){
+                DbConstant.admin.close();
             }
             System.exit(1);
             return;

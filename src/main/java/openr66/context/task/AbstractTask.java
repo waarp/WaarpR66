@@ -27,6 +27,7 @@ import java.util.Date;
 import openr66.context.R66Session;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNoSslException;
+import openr66.protocol.utils.FileUtils;
 import openr66.protocol.utils.R66Future;
 
 /**
@@ -172,35 +173,36 @@ public abstract class AbstractTask implements Runnable {
      * @return The string with replaced values from context and second argument
      */
     protected String getReplacedValue(String arg, Object[] argFormat) {
-        String finalname = arg.replace(TRUEFULLPATH, session.getFile()
+        StringBuilder builder = new StringBuilder(arg);
+        FileUtils.replaceAll(builder, TRUEFULLPATH, session.getFile()
                 .getTrueFile().getAbsolutePath());
-        finalname = finalname.replace(TRUEFILENAME, session.getDir()
+        FileUtils.replaceAll(builder, TRUEFILENAME, session.getDir()
                 .getFinalUniqueFilename(session.getFile()));
-        finalname = finalname.replace(ORIGINALFILENAME, session.getRunner()
+        FileUtils.replaceAll(builder, ORIGINALFILENAME, session.getRunner()
                 .getOriginalFilename());
-        finalname = finalname.replace(RULE, session.getRunner()
+        FileUtils.replaceAll(builder, RULE, session.getRunner()
                 .getRuleId());
         DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
         Date date = new Date();
-        finalname = finalname.replace(DATE, dateFormat.format(date));
+        FileUtils.replaceAll(builder, DATE, dateFormat.format(date));
         dateFormat = new SimpleDateFormat("HHmmss");
-        finalname = finalname.replace(HOUR, dateFormat.format(date));
-        finalname = finalname.replace(REMOTEHOST, session.getAuth().getUser());
+        FileUtils.replaceAll(builder, HOUR, dateFormat.format(date));
+        FileUtils.replaceAll(builder, REMOTEHOST, session.getAuth().getUser());
         try {
-            finalname = finalname.replace(LOCALHOST,
+            FileUtils.replaceAll(builder, LOCALHOST,
                     Configuration.configuration.getHostId(session.getAuth().isSsl()));
         } catch (OpenR66ProtocolNoSslException e) {
             // replace by standard name
-            finalname = finalname.replace(LOCALHOST,
+            FileUtils.replaceAll(builder, LOCALHOST,
                     Configuration.configuration.HOST_ID);
         }
-        finalname = finalname.replace(TRANSFERID, Long.toString(session
+        FileUtils.replaceAll(builder, TRANSFERID, Long.toString(session
                 .getRunner().getSpecialId()));
-        finalname = finalname.replace(RANKTRANSFER, Integer.toString(session
+        FileUtils.replaceAll(builder, RANKTRANSFER, Integer.toString(session
                 .getRunner().getRank()));
-        finalname = finalname.replace(BLOCKSIZE, Integer.toString(session
+        FileUtils.replaceAll(builder, BLOCKSIZE, Integer.toString(session
                 .getBlockSize()));
-        finalname = String.format(finalname, argFormat);
+        String finalname = String.format(builder.toString(), argFormat);
         return finalname;
     }
 }

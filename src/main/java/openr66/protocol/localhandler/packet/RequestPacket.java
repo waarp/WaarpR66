@@ -35,7 +35,7 @@ public class RequestPacket extends AbstractLocalPacket {
 
     private final int blocksize;
 
-    private final int rank;
+    private int rank;
 
     private long specialId;
 
@@ -297,6 +297,12 @@ public class RequestPacket extends AbstractLocalPacket {
         return rank;
     }
 
+    /**
+     * @param rank the rank to set
+     */
+    public void setRank(int rank) {
+        this.rank = rank;
+    }
     /**
      * @param specialId
      *            the specialId to set

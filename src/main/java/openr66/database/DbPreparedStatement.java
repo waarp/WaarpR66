@@ -12,6 +12,7 @@ import java.sql.SQLException;
 
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
+import openr66.database.model.DbModelFactory;
 
 /**
  * Class to handle PrepareStatement
@@ -64,6 +65,7 @@ public class DbPreparedStatement {
             throw new OpenR66DatabaseNoConnectionError(
                     "PreparedStatement no session");
         }
+        DbModelFactory.dbModel.validConnection(ls);
         this.ls = ls;
         rs = null;
         preparedStatement = null;
@@ -85,6 +87,7 @@ public class DbPreparedStatement {
             throw new OpenR66DatabaseNoConnectionError(
                     "PreparedStatement no session");
         }
+        DbModelFactory.dbModel.validConnection(ls);
         this.ls = ls;
         rs = null;
         isReady = false;

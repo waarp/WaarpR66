@@ -8,7 +8,6 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.database.DbConstant;
 import openr66.database.DbSession;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
-import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
@@ -59,10 +58,6 @@ public class NetworkServerHandler extends SimpleChannelHandler {
      */
     private DbSession dbSession;
     /**
-     * Does this dbSession is private and so should be closed
-     */
-    private boolean isPrivateDbSession = false;
-    /**
      * Does this Handler is for SSL
      */
     protected boolean isSSL = false;
@@ -89,12 +84,6 @@ public class NetworkServerHandler extends SimpleChannelHandler {
             Configuration.configuration.getLocalTransaction()
                     .closeLocalChannelsFromNetworkChannel(e.getChannel());
         }
-        if (this.isPrivateDbSession && dbSession != null) {
-            try {
-                dbSession.disconnect();
-            } catch (OpenR66DatabaseSqlError e1) {
-            }
-        }
     }
 
     /*
@@ -112,7 +101,6 @@ public class NetworkServerHandler extends SimpleChannelHandler {
             if (DbConstant.admin.isConnected) {
                 this.dbSession = new DbSession(DbConstant.admin, false);
             }
-            this.isPrivateDbSession = true;
         } catch (OpenR66DatabaseNoConnectionError e1) {
             // Cannot connect so use default connection
             logger.warn("Use default database connection");
@@ -209,20 +197,18 @@ public class NetworkServerHandler extends SimpleChannelHandler {
                             "Network Channel Exception: {} {}", e.getChannel().getId(),
                             exception.getMessage());
                 }
-            } else {
-                logger.error(
-                        "Network Channel Exception: {} {}", e.getChannel().getId(),
-                        exception.getMessage());
-            }
-            if (exception instanceof OpenR66ProtocolBusinessNoWriteBackException) {
                 logger.info("Will close NETWORK channel");
                 ChannelUtils.close(e.getChannel());
                 return;
             } else if (exception instanceof OpenR66ProtocolNoConnectionException) {
-                logger.error("Connection impossible with NETWORK channel {}",
+                logger.info("Connection impossible with NETWORK channel {}",
                         exception.getMessage());
                 Channels.close(e.getChannel());
                 return;
+            } else {
+                logger.error(
+                        "Network Channel Exception: {} {}", e.getChannel().getId(),
+                        exception.getMessage());
             }
             final ConnectionErrorPacket errorPacket = new ConnectionErrorPacket(
                     exception.getMessage(), null);

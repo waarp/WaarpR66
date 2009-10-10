@@ -80,6 +80,18 @@ public class R66File extends FilesystemBasedFileImpl {
     }
 
     /**
+     * This constructor is for External file
+     *
+     * @param session
+     * @param dir
+     * @param path
+     */
+    public R66File(R66Session session, R66Dir dir, String path) {
+        super(session, dir, path);
+        isExternal = true;
+    }
+
+    /**
      * Start the retrieve (send to the remote host the local file)
      *
      * @throws OpenR66RunnerErrorException

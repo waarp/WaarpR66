@@ -32,7 +32,7 @@ import openr66.configuration.FileBasedConfiguration;
 import openr66.configuration.RuleFileBasedConfiguration;
 import openr66.database.DbConstant;
 import openr66.database.exception.OpenR66DatabaseException;
-import openr66.database.exception.OpenR66DatabaseSqlError;
+import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.model.DbModelFactory;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 
@@ -85,7 +85,12 @@ public class ServerInitDatabase {
                 return;
             }
             // Init database
-            initdb();
+            try {
+                initdb();
+            } catch (OpenR66DatabaseNoConnectionError e) {
+                logger.error("Cannot connect to database");
+                return;
+            }
             System.out.println("End creation");
             if (args.length > 1) {
                 // load Rules
@@ -106,16 +111,13 @@ public class ServerInitDatabase {
                 System.out.println("Load done");
             }
         } finally {
-            try {
-                if (DbConstant.admin != null) {
-                    DbConstant.admin.close();
-                }
-            } catch (OpenR66DatabaseSqlError e) {
+            if (DbConstant.admin != null) {
+                DbConstant.admin.close();
             }
         }
     }
 
-    public static void initdb() {
+    public static void initdb() throws OpenR66DatabaseNoConnectionError {
         // Create tables: configuration, hosts, rules, runner, cptrunner
         DbModelFactory.dbModel.createTables();
     }

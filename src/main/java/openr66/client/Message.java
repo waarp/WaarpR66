@@ -32,7 +32,6 @@ import openr66.context.R66Result;
 import openr66.context.authentication.R66Auth;
 import openr66.database.DbConstant;
 import openr66.database.data.DbHostAuth;
-import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.localhandler.LocalChannelReference;
@@ -169,10 +168,7 @@ public class Message implements Runnable {
         if (! getParams(args)) {
             logger.error("Wrong initialization");
             if (DbConstant.admin != null && DbConstant.admin.isConnected) {
-                try {
-                    DbConstant.admin.close();
-                } catch (OpenR66DatabaseSqlError e) {
-                }
+                DbConstant.admin.close();
             }
             System.exit(1);
         }
@@ -200,10 +196,7 @@ public class Message implements Runnable {
                 networkTransaction.closeAll();
             }
             if (DbConstant.admin != null) {
-                try {
-                    DbConstant.admin.close();
-                } catch (OpenR66DatabaseSqlError e) {
-                }
+                DbConstant.admin.close();
             }
         }
     }

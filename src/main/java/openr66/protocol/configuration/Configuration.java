@@ -23,6 +23,7 @@ import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import openr66.commander.InternalRunner;
@@ -36,6 +37,8 @@ import openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import openr66.protocol.http.HttpPipelineFactory;
 import openr66.protocol.http.adminssl.HttpSslPipelineFactory;
 import openr66.protocol.localhandler.LocalTransaction;
+import openr66.protocol.networkhandler.ChannelTrafficHandler;
+import openr66.protocol.networkhandler.GlobalTrafficHandler;
 import openr66.protocol.networkhandler.NetworkServerPipelineFactory;
 import openr66.protocol.networkhandler.packet.NetworkPacketSizeEstimator;
 import openr66.protocol.networkhandler.ssl.NetworkSslServerPipelineFactory;
@@ -266,6 +269,22 @@ public class Configuration {
      */
     private ChannelGroup serverChannelGroup = null;
 
+    private class R66ThreadFactory implements ThreadFactory {
+        private String GlobalName;
+        public R66ThreadFactory(String globalName) {
+            GlobalName = globalName;
+        }
+        /* (non-Javadoc)
+         * @see java.util.concurrent.ThreadFactory#newThread(java.lang.Runnable)
+         */
+        @Override
+        public Thread newThread(Runnable arg0) {
+            Thread thread = new Thread(arg0);
+            thread.setName(GlobalName+thread.getName());
+            return thread;
+        }
+
+    }
     /**
      * ExecutorService Server Boss
      */
@@ -333,7 +352,7 @@ public class Configuration {
     /**
      * Global TrafficCounter (set from global configuration)
      */
-    private volatile GlobalTrafficShapingHandler globalTrafficShapingHandler = null;
+    private volatile GlobalTrafficHandler globalTrafficShapingHandler = null;
 
     /**
      * ObjectSizeEstimator
@@ -381,10 +400,10 @@ public class Configuration {
                 .getDefaultFactory());
         serverPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
                 CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory, 500,
-                TimeUnit.MILLISECONDS);
+                TimeUnit.MILLISECONDS, new R66ThreadFactory("ServerExecutor"));
         localPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
                 CLIENT_THREAD * 100, maxGlobalMemory / 10, maxGlobalMemory,
-                500, TimeUnit.MILLISECONDS);
+                500, TimeUnit.MILLISECONDS, new R66ThreadFactory("LocalExecutor"));
         configured = true;
     }
 
@@ -432,7 +451,7 @@ public class Configuration {
 
         // Factory for TrafficShapingHandler
         objectSizeEstimator = new NetworkPacketSizeEstimator();
-        globalTrafficShapingHandler = new GlobalTrafficShapingHandler(
+        globalTrafficShapingHandler = new GlobalTrafficHandler(
                 objectSizeEstimator, execTrafficCounter,
                 serverGlobalWriteLimit, serverGlobalReadLimit, delayLimit);
 
@@ -553,7 +572,7 @@ public class Configuration {
             nb = Runtime.getRuntime().availableProcessors() + 1;
         }
         if (SERVER_THREAD < nb) {
-            logger.warn("Change default number of threads to " + nb);
+            logger.info("Change default number of threads to " + nb);
             SERVER_THREAD = nb;
         }
     }
@@ -563,11 +582,10 @@ public class Configuration {
      * @throws OpenR66ProtocolNoDataException
      */
     public ChannelTrafficShapingHandler newChannelTrafficShapingHandler() throws OpenR66ProtocolNoDataException {
-        if (serverChannelReadLimit == 0 && serverChannelWriteLimit == 0 &&
-                delayLimit == 0) {
+        if (serverChannelReadLimit == 0 && serverChannelWriteLimit == 0) {
             throw new OpenR66ProtocolNoDataException("No limit for channel");
         }
-        return new ChannelTrafficShapingHandler(objectSizeEstimator,
+        return new ChannelTrafficHandler(objectSizeEstimator,
                 execTrafficCounter, serverChannelWriteLimit,
                 serverChannelReadLimit, delayLimit);
     }

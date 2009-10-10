@@ -26,30 +26,48 @@ import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 
 /**
- * Abstract class implementing Database Model
+ * Interface for Database Model
  *
- * This class implements special functions that needs special implementations according to
+ * This class is an interface for special functions that needs special implementations according to
  * the database model used.
  *
  * @author Frederic Bregier
  *
  */
-public abstract class AbstractDbModel {
+public interface DbModel {
     /**
      * Create all necessary tables into the database
+     * @throws OpenR66DatabaseNoConnectionError
      */
-    public abstract void createTables();
+    public void createTables() throws OpenR66DatabaseNoConnectionError;
 
     /**
      * Reset the sequence for Runner SpecialIds
+     * @throws OpenR66DatabaseNoConnectionError
      */
-    public abstract void resetSequence(long newvalue);
+    public void resetSequence(long newvalue) throws OpenR66DatabaseNoConnectionError;
 
     /**
      * @param dbSession
      * @return The next unique specialId
      */
-    public abstract long nextSequence(DbSession dbSession)
+    public long nextSequence(DbSession dbSession)
             throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError,
             OpenR66DatabaseNoDataException;
+
+    /**
+     * Validate connection
+     * @param dbSession
+     * @throws OpenR66DatabaseNoConnectionError
+     */
+    public void validConnection(DbSession dbSession) throws OpenR66DatabaseNoConnectionError;
+
+    /**
+     * @param allfields string representing the equivalent to "*" in "select *" but more precisely
+     *          as "field1, field2" in "select field1, field2"
+     * @param request
+     * @param limit
+     * @return the new request String which will limit the result to the specified number of rows
+     */
+    public String limitRequest(String allfields, String request, int limit);
 }

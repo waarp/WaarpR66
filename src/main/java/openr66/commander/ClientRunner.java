@@ -30,6 +30,7 @@ import org.jboss.netty.channel.Channels;
 
 import openr66.client.RecvThroughHandler;
 import openr66.context.ErrorCode;
+import openr66.context.R66Result;
 import openr66.context.authentication.R66Auth;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.DbConstant;
@@ -87,13 +88,15 @@ public class ClientRunner implements Runnable {
             logger.error("Runner Error", e);
             return;
         } catch (OpenR66ProtocolNoConnectionException e) {
-            logger.error("No connection Error", e);
+            logger.error("No connection Error {}", e.getMessage());
             return;
         } catch (OpenR66ProtocolPacketException e) {
             logger.error("Protocol Error", e);
             return;
         }
-        logger.warn("TRANSFER RESULT: "+transfer.isSuccess()+" "+transfer.getResult().toString());
+        R66Result result = transfer.getResult();
+        logger.warn("TRANSFER RESULT: "+transfer.isSuccess()+" "+
+                (result != null ? result.toString() : "no result"));
         transfer = null;
     }
     /**
@@ -148,7 +151,14 @@ public class ClientRunner implements Runnable {
                 if (transfer.getResult().code == ErrorCode.QueryAlreadyFinished) {
                     this.changeUpdatedInfo(UpdatedInfo.DONE);
                 } else {
-                    this.changeUpdatedInfo(UpdatedInfo.INERROR);
+                    switch (taskRunner.getUpdatedInfo()) {
+                        case DONE:
+                        case INERROR:
+                        case INTERRUPTED:
+                            break;
+                        default:
+                            this.changeUpdatedInfo(UpdatedInfo.INERROR);
+                    }
                 }
             } catch (OpenR66DatabaseException e) {
                 logger.info("Not a problem but cannot find at the end the task");
@@ -165,7 +175,7 @@ public class ClientRunner implements Runnable {
      */
     public LocalChannelReference initRequest()
         throws OpenR66ProtocolNoConnectionException, OpenR66RunnerErrorException, OpenR66ProtocolPacketException {
-        this.changeUpdatedInfo(UpdatedInfo.TORUN);
+        this.changeUpdatedInfo(UpdatedInfo.RUNNING);
         long id = taskRunner.getSpecialId();
         String tid;
         if (id == DbConstant.ILLEGALVALUE) {
@@ -188,7 +198,8 @@ public class ClientRunner implements Runnable {
             logger.warn("Requested host cannot be found: "+taskRunner.getRequested());
             taskRunner.setExecutionStatus(ErrorCode.NotKnownHost);
             this.changeUpdatedInfo(UpdatedInfo.INERROR);
-            throw new OpenR66RunnerErrorException("Requested host cannot be found");
+            throw new OpenR66RunnerErrorException("Requested host cannot be found "+
+                    taskRunner.getRequested());
         }
         SocketAddress socketAddress = host.getSocketAddress();
         boolean isSSL = host.isSsl();
@@ -199,23 +210,26 @@ public class ClientRunner implements Runnable {
         if (localChannelReference == null) {
             // propose to redo
             // See if reprogramming is ok (not too many tries)
+            String retry;
             if (incrementTaskRunerTry(taskRunner, Configuration.RETRYNB)) {
-                logger.warn("Will retry since Cannot connect to "+host.toString());
-                this.changeUpdatedInfo(UpdatedInfo.TORUN);
+                logger.info("Will retry since Cannot connect to {}", host);
+                retry = " but will retry";
+                this.changeUpdatedInfo(UpdatedInfo.RUNNING);
                 // now wait
                 try {
                     Thread.sleep(Configuration.configuration.delayRetry);
                 } catch (InterruptedException e) {
                 }
-                this.changeUpdatedInfo(UpdatedInfo.UPDATED);
+                this.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
             } else {
-                logger.warn("Will not retry since limit of connection attemtps is reached for "+
-                        host.toString());
+                logger.info("Will not retry since limit of connection attemtps is reached for {}",
+                        host);
+                retry = " and retries limit is reached so stop here";
                 taskRunner.setExecutionStatus(ErrorCode.ConnectionImpossible);
-                this.changeUpdatedInfo(UpdatedInfo.TORUN);
+                this.changeUpdatedInfo(UpdatedInfo.INTERRUPTED);
             }
-            host = null;
-            throw new OpenR66ProtocolNoConnectionException("Cannot connect to server");
+            throw new OpenR66ProtocolNoConnectionException("Cannot connect to server "+
+                    host.toString()+retry);
         }
         if (handler != null) {
             localChannelReference.setRecvThroughHandler(handler);
@@ -231,7 +245,7 @@ public class ClientRunner implements Runnable {
         } catch (OpenR66ProtocolPacketException e) {
             // propose to redo
             logger.warn("Cannot transfer request to "+host.toString());
-            this.changeUpdatedInfo(UpdatedInfo.INERROR);
+            this.changeUpdatedInfo(UpdatedInfo.INTERRUPTED);
             Channels.close(localChannelReference.getLocalChannel());
             localChannelReference = null;
             host = null;

@@ -31,6 +31,7 @@ import openr66.database.data.DbConfiguration;
 import openr66.database.data.DbHostAuth;
 import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
+import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
@@ -40,7 +41,7 @@ import openr66.database.exception.OpenR66DatabaseSqlError;
  * @author Frederic Bregier
  *
  */
-public class DbModelOracle extends AbstractDbModel {
+public class DbModelOracle implements DbModel {
     private static enum DBType {
         CHAR(Types.CHAR, " CHAR(3) "),
         VARCHAR(Types.VARCHAR, " VARCHAR2(254) "),
@@ -103,7 +104,7 @@ public class DbModelOracle extends AbstractDbModel {
     }
 
     @Override
-    public void createTables() {
+    public void createTables() throws OpenR66DatabaseNoConnectionError {
         // Create tables: configuration, hosts, rules, runner, cptrunner
         String createTableH2 = "CREATE TABLE ";
         String constraint = " CONSTRAINT ";
@@ -221,10 +222,10 @@ public class DbModelOracle extends AbstractDbModel {
     /*
      * (non-Javadoc)
      *
-     * @see openr66.database.model.AbstractDbModel#resetSequence()
+     * @see openr66.database.model.DbModel#resetSequence()
      */
     @Override
-    public void resetSequence(long newvalue) {
+    public void resetSequence(long newvalue) throws OpenR66DatabaseNoConnectionError {
         String action = "DROP SEQUENCE " + DbTaskRunner.fieldseq;
         String action2 = "CREATE SEQUENCE " + DbTaskRunner.fieldseq +
             " MINVALUE " + (DbConstant.ILLEGALVALUE + 1)+
@@ -248,7 +249,7 @@ public class DbModelOracle extends AbstractDbModel {
     /*
      * (non-Javadoc)
      *
-     * @see openr66.database.model.AbstractDbModel#nextSequence()
+     * @see openr66.database.model.DbModel#nextSequence()
      */
     @Override
     public long nextSequence(DbSession dbSession)
@@ -276,5 +277,47 @@ public class DbModelOracle extends AbstractDbModel {
         } finally {
             preparedStatement.realClose();
         }
+    }
+
+    /* (non-Javadoc)
+     * @see openr66.database.model.DbModel#validConnection(DbSession)
+     */
+    @Override
+    public void validConnection(DbSession dbSession) throws OpenR66DatabaseNoConnectionError {
+        DbRequest request = new DbRequest(dbSession, true);
+        try {
+            request.select("select 1 from dual");
+            if (!request.getNext()) {
+                throw new OpenR66DatabaseNoConnectionError(
+                        "Cannot connect to database");
+            }
+        } catch (OpenR66DatabaseSqlError e) {
+            try {
+                dbSession.disconnect();
+                DbSession newdbSession = new DbSession(DbConstant.admin, false);
+                dbSession.conn = newdbSession.conn;
+                dbSession.useConnection();
+                request.close();
+                request.select("select 1 from dual");
+                if (!request.getNext()) {
+                    throw new OpenR66DatabaseNoConnectionError(
+                            "Cannot connect to database");
+                }
+                return;
+            } catch (OpenR66DatabaseException e1) {
+            }
+            throw new OpenR66DatabaseNoConnectionError(
+                    "Cannot connect to database", e);
+        } finally {
+            request.close();
+        }
+    }
+
+    /* (non-Javadoc)
+     * @see openr66.database.model.DbModel#limitRequest(java.lang.String, java.lang.String, int)
+     */
+    @Override
+    public String limitRequest(String allfields, String request, int nb) {
+        return "select "+allfields+" from ( "+request+" ) where rownum <= "+nb;
     }
 }

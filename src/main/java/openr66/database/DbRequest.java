@@ -12,6 +12,7 @@ import java.sql.Statement;
 
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
+import openr66.database.model.DbModelFactory;
 import openr66.protocol.exception.OpenR66ProtocolNoDataException;
 
 /**
@@ -46,8 +47,21 @@ public class DbRequest {
      * Create a new request from the DbSession
      *
      * @param ls
+     * @throws OpenR66DatabaseNoConnectionError
      */
-    public DbRequest(DbSession ls) {
+    public DbRequest(DbSession ls) throws OpenR66DatabaseNoConnectionError {
+        DbModelFactory.dbModel.validConnection(ls);
+        this.ls = ls;
+    }
+
+    /**
+     * Create a new request from the DbSession but without validating it
+     *
+     * @param ls
+     * @param ignored ignored param
+     * @throws OpenR66DatabaseNoConnectionError
+     */
+    public DbRequest(DbSession ls, boolean ignored) throws OpenR66DatabaseNoConnectionError {
         this.ls = ls;
     }
 

@@ -42,6 +42,23 @@ public class DbSession {
     public boolean isReadOnly = true;
 
     /**
+     * Internal Id
+     */
+    public long internalId;
+    /**
+     * Number of threads using this connection
+     */
+    private int nbThread = 0;
+
+    static synchronized void setInternalId(DbSession session) {
+        session.internalId = System.currentTimeMillis();
+        try {
+            Thread.sleep(1);
+        } catch (InterruptedException e) {
+        }
+    }
+
+    /**
      * Create a session and connect the current object to the connect object
      * given as parameter.
      *
@@ -65,6 +82,7 @@ public class DbSession {
             conn.setAutoCommit(true);
             this.isReadOnly = isReadOnly;
             conn.setReadOnly(this.isReadOnly);
+            setInternalId(this);
         } catch (SQLException ex) {
             // handle any errors
             logger.error("Cannot set properties on connection!");
@@ -111,7 +129,8 @@ public class DbSession {
             conn.setAutoCommit(true);
             this.isReadOnly = isReadOnly;
             conn.setReadOnly(this.isReadOnly);
-            OpenR66SignalHandler.addConnection(conn);
+            setInternalId(this);
+            OpenR66SignalHandler.addConnection(internalId, conn);
         } catch (SQLException ex) {
             // handle any errors
             logger.error("Cannot create Connection");
@@ -144,7 +163,8 @@ public class DbSession {
             conn.setAutoCommit(true);
             this.isReadOnly = isReadOnly;
             conn.setReadOnly(this.isReadOnly);
-            OpenR66SignalHandler.addConnection(conn);
+            setInternalId(this);
+            OpenR66SignalHandler.addConnection(internalId, conn);
         } catch (SQLException ex) {
             // handle any errors
             logger.error("Cannot create Connection");
@@ -165,26 +185,31 @@ public class DbSession {
         logger.error("SQLException: " + ex.getMessage()+" SQLState: " + ex.getSQLState()+
                 "VendorError: " + ex.getErrorCode());
     }
-
+    /**
+     * To be called when a client will start to use this DbSession (once by client)
+     */
+    public void useConnection() {
+        nbThread ++;
+    }
     /**
      * Close the connection
      *
-     * @throws OpenR66DatabaseSqlError
-     *
      */
-    public void disconnect() throws OpenR66DatabaseSqlError {
+    public void disconnect() {
         if (conn == null) {
             logger.warn("Connection already closed");
             return;
         }
-        try {
-            conn.close();
-        } catch (SQLException e) {
-            logger.warn("Disconnection not OK");
-            error(e);
-            throw new OpenR66DatabaseSqlError("Cannot disconnect", e);
+        nbThread--;
+        if (nbThread <= 0) {
+            OpenR66SignalHandler.removeConnection(internalId, conn);
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                logger.warn("Disconnection not OK");
+                error(e);
+            }
         }
-        OpenR66SignalHandler.removeConnection(conn);
     }
 
     /**

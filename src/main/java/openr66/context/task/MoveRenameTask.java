@@ -70,8 +70,8 @@ public class MoveRenameTask extends AbstractTask {
             futureCompletion.setFailure(new OpenR66ProtocolSystemException(e));
             return;
         }
-        session.getRunner().setFileMoved(success);
         if (success) {
+            session.getRunner().setFileMoved(finalname, success);
             futureCompletion.setSuccess();
         } else {
             logger.error("Cannot Move and Rename to " + finalname + " with " +

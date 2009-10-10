@@ -149,9 +149,9 @@ public class NetworkTransaction {
             }
         }
         if (localChannelReference == null) {
-            logger.error("Cannot connect {}", lastException.getMessage());
+            logger.info("Cannot connect : {}", lastException.getMessage());
         } else if (lastException != null) {
-            logger.warn("Connection retry since {}", lastException.getMessage());
+            logger.info("Connection retried since {}", lastException.getMessage());
         }
         return localChannelReference;
     }

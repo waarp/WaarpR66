@@ -30,7 +30,6 @@ import openr66.database.data.AbstractDbData;
 import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
 import openr66.database.exception.OpenR66DatabaseException;
-import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.utils.R66Future;
 
@@ -86,7 +85,7 @@ public class SubmitTransfer extends AbstractTransfer {
             future.setFailure(e);
             return;
         }
-        taskRunner.changeUpdatedInfo(AbstractDbData.UpdatedInfo.UPDATED);
+        taskRunner.changeUpdatedInfo(AbstractDbData.UpdatedInfo.TOSUBMIT);
         try {
             taskRunner.update();
         } catch (OpenR66DatabaseException e) {
@@ -120,10 +119,7 @@ public class SubmitTransfer extends AbstractTransfer {
         if (! getParams(args)) {
             logger.error("Wrong initialization");
             if (DbConstant.admin != null && DbConstant.admin.isConnected) {
-                try {
-                    DbConstant.admin.close();
-                } catch (OpenR66DatabaseSqlError e) {
-                }
+                DbConstant.admin.close();
             }
             System.exit(1);
         }
@@ -143,16 +139,10 @@ public class SubmitTransfer extends AbstractTransfer {
             } else {
                 logger.error("Prepare transfer in Error", future.getCause());
             }
-            try {
-                DbConstant.admin.close();
-            } catch (OpenR66DatabaseSqlError e) {
-            }
+            DbConstant.admin.close();
             System.exit(future.getResult().code.ordinal());
         }
-        try {
-            DbConstant.admin.close();
-        } catch (OpenR66DatabaseSqlError e) {
-        }
+        DbConstant.admin.close();
     }
 
 }

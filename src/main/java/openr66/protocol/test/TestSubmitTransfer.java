@@ -28,7 +28,6 @@ import java.util.concurrent.Executors;
 
 import openr66.client.SubmitTransfer;
 import openr66.database.DbConstant;
-import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.utils.R66Future;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
@@ -75,10 +74,7 @@ public class TestSubmitTransfer extends SubmitTransfer {
         if (! getParams(args)) {
             logger.error("Wrong initialization");
             if (DbConstant.admin != null && DbConstant.admin.isConnected) {
-                try {
-                    DbConstant.admin.close();
-                } catch (OpenR66DatabaseSqlError e) {
-                }
+                DbConstant.admin.close();
             }
             System.exit(1);
         }

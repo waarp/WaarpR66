@@ -12,6 +12,7 @@ import java.sql.SQLException;
 
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
+import openr66.database.model.DbModelFactory;
 import openr66.protocol.configuration.Configuration;
 
 /**
@@ -141,43 +142,11 @@ public class DbAdmin {
      * @throws OpenR66DatabaseNoConnectionError
      */
     public void validConnection() throws OpenR66DatabaseNoConnectionError {
-        if (typeDriver == DatabaseType.Oracle ||
-                typeDriver == DatabaseType.MySQL) {
-            DbRequest request = new DbRequest(session);
-            try {
-                request.select("select 1 from dual");
-                if (!request.getNext()) {
-                    isConnected = false;
-                    logger.error("Cannot connect to Database!");
-                    throw new OpenR66DatabaseNoConnectionError(
-                            "Cannot connect to database");
-                }
-            } catch (OpenR66DatabaseSqlError e) {
-                isConnected = false;
-                logger.error("Cannot connect to Database!");
-                throw new OpenR66DatabaseNoConnectionError(
-                        "Cannot connect to database", e);
-            } finally {
-                request.close();
-            }
-        } else {
-            DbRequest request = new DbRequest(session);
-            try {
-                request.select("select 1");
-                if (!request.getNext()) {
-                    isConnected = false;
-                    logger.error("Cannot connect to Database!");
-                    throw new OpenR66DatabaseNoConnectionError(
-                            "Cannot connect to database");
-                }
-            } catch (OpenR66DatabaseSqlError e) {
-                isConnected = false;
-                logger.error("Cannot connect to Database!");
-                throw new OpenR66DatabaseNoConnectionError(
-                        "Cannot connect to database", e);
-            } finally {
-                request.close();
-            }
+        try {
+            DbModelFactory.dbModel.validConnection(session);
+        } catch (OpenR66DatabaseNoConnectionError e) {
+            isConnected = false;
+            throw e;
         }
         isConnected = true;
     }
@@ -326,10 +295,8 @@ public class DbAdmin {
      * Close the underlying session. Can be call even for connection given from
      * the constructor DbAdmin(Connection, boolean).
      *
-     * @throws OpenR66DatabaseSqlError
-     *
      */
-    public void close() throws OpenR66DatabaseSqlError {
+    public void close() {
         if (session != null) {
             session.disconnect();
             session = null;

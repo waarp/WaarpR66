@@ -545,4 +545,29 @@ public class FileUtils {
         } catch (IOException e) {
         }
     }
+    /**
+     * Make a replacement of first "find" string by "replace" string into the StringBuilder
+     * @param builder
+     * @param find
+     * @param replace
+     */
+    public static boolean replace(StringBuilder builder, String find, String replace) {
+        int start = builder.indexOf(find);
+        if (start == -1) {
+            return false;
+        }
+        int end = start+find.length();
+        builder.replace(start, end, replace);
+        return true;
+    }
+    /**
+     * Make replacement of all "find" string by "replace" string into the StringBuilder
+     * @param builder
+     * @param find
+     * @param replace
+     */
+    public static void replaceAll(StringBuilder builder, String find, String replace) {
+        while (replace(builder, find, replace)) {
+        }
+    }
 }

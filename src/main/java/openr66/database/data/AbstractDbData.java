@@ -46,7 +46,34 @@ public abstract class AbstractDbData {
      *
      */
     public static enum UpdatedInfo {
-        UNKNOWN, NOTUPDATED, UPDATED, INERROR, TORUN, DONE;
+        /**
+         * Unknown run status
+         */
+        UNKNOWN,
+        /**
+         * Not updated run status
+         */
+        NOTUPDATED,
+        /**
+         * Interrupted status (stop or cancel)
+         */
+        INTERRUPTED,
+        /**
+         * Updated run status meaning ready to be submitted
+         */
+        TOSUBMIT,
+        /**
+         * In error run status
+         */
+        INERROR,
+        /**
+         * Running status
+         */
+        RUNNING,
+        /**
+         * All done run status
+         */
+        DONE;
     }
     /**
      * The DbSession to use

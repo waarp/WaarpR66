@@ -59,7 +59,8 @@ import openr66.protocol.utils.FileUtils;
 import openr66.protocol.utils.R66Future;
 
 /**
- * Task Runner from pre operation to transfer to post operation, except in case of error
+ * Task Runner from pre operation to transfer to post operation, except in case
+ * of error
  *
  * @author Frederic Bregier
  *
@@ -97,8 +98,8 @@ public class DbTaskRunner extends AbstractDbData {
             Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.INTEGER,
             Types.CHAR, Types.BIT, Types.VARCHAR, Types.BIT, Types.VARCHAR,
             Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
-            Types.TIMESTAMP, Types.TIMESTAMP, Types.INTEGER,
-            Types.VARCHAR, Types.VARCHAR, Types.BIGINT };
+            Types.TIMESTAMP, Types.TIMESTAMP, Types.INTEGER, Types.VARCHAR,
+            Types.VARCHAR, Types.BIGINT };
 
     public static String table = " RUNNER ";
 
@@ -116,14 +117,24 @@ public class DbTaskRunner extends AbstractDbData {
 
     private final R66Session session;
 
+    /**
+     * Last step
+     */
     private int globalstep = TASKSTEP.NOTASK.ordinal();
-
+    /**
+     * Last global step (only changes in case of success)
+     */
     private int globallaststep = TASKSTEP.NOTASK.ordinal();
-
+    /**
+     * Step in the current globalstep
+     */
     private int step = -1;
 
     private int rank = 0;
 
+    /**
+     * Last step action status error code
+     */
     private ErrorCode status = ErrorCode.Unknown;
 
     private long specialId;
@@ -151,7 +162,9 @@ public class DbTaskRunner extends AbstractDbData {
     private Timestamp start;
 
     private Timestamp stop;
-
+    /**
+     * The global status for running
+     */
     private int updatedInfo = UpdatedInfo.UNKNOWN.ordinal();
 
     private boolean isSaved = false;
@@ -200,9 +213,8 @@ public class DbTaskRunner extends AbstractDbData {
             Columns.BLOCKSZ.name() + "," + Columns.ORIGINALNAME.name() + "," +
             Columns.FILEINFO.name() + "," + Columns.MODETRANS.name() + "," +
             Columns.STARTTRANS.name() + "," + Columns.STOPTRANS.name() + "," +
-            Columns.UPDATEDINFO.name() + "," +
-            Columns.REQUESTER.name() + "," + Columns.REQUESTED.name() + "," +
-            Columns.SPECIALID.name();
+            Columns.UPDATEDINFO.name() + "," + Columns.REQUESTER.name() + "," +
+            Columns.REQUESTED.name() + "," + Columns.SPECIALID.name();
 
     private static final String updateAllFields = Columns.GLOBALSTEP.name() +
             "=?," + Columns.GLOBALLASTSTEP.name() + "=?," +
@@ -212,8 +224,8 @@ public class DbTaskRunner extends AbstractDbData {
             "=?," + Columns.IDRULE.name() + "=?," + Columns.BLOCKSZ.name() +
             "=?," + Columns.ORIGINALNAME.name() + "=?," +
             Columns.FILEINFO.name() + "=?," + Columns.MODETRANS.name() + "=?," +
-            Columns.STARTTRANS.name() + "=?," + Columns.STOPTRANS.name() + "=?," +
-            Columns.UPDATEDINFO.name() + "=?";
+            Columns.STARTTRANS.name() + "=?," + Columns.STOPTRANS.name() +
+            "=?," + Columns.UPDATEDINFO.name() + "=?";
 
     private static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
 
@@ -228,8 +240,8 @@ public class DbTaskRunner extends AbstractDbData {
         if (requestPacket.isToValidate()) {
             // the request is initiated and sent by the requester
             try {
-                return Configuration.configuration.getHostId(
-                        session.getAuth().isSsl());
+                return Configuration.configuration.getHostId(session.getAuth()
+                        .isSsl());
             } catch (OpenR66ProtocolNoSslException e) {
                 return Configuration.configuration.HOST_ID;
             }
@@ -251,8 +263,8 @@ public class DbTaskRunner extends AbstractDbData {
             return session.getAuth().getUser();
         } else {
             try {
-                return Configuration.configuration.getHostId(
-                        session.getAuth().isSsl());
+                return Configuration.configuration.getHostId(session.getAuth()
+                        .isSsl());
             } catch (OpenR66ProtocolNoSslException e) {
                 return Configuration.configuration.HOST_ID;
             }
@@ -260,8 +272,8 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * Constructor for submission (no transfer session), from database it is created, so with a new
-     * specialId if necessary
+     * Constructor for submission (no transfer session), from database it is
+     * created, so with a new specialId if necessary
      *
      * @param dbSession
      * @param rule
@@ -270,33 +282,37 @@ public class DbTaskRunner extends AbstractDbData {
      * @param requested
      * @throws OpenR66DatabaseException
      */
-   public DbTaskRunner(DbSession dbSession, DbRule rule,
-           boolean isSender, RequestPacket requestPacket, String requested) throws OpenR66DatabaseException {
-       super(dbSession);
-       this.session = null;
-       this.rule = rule;
-       ruleId = this.rule.idRule;
-       rank = requestPacket.getRank();
-       status = ErrorCode.Unknown;
-       this.isSender = isSender;
-       filename = requestPacket.getFilename();
-       blocksize = requestPacket.getBlocksize();
-       originalFilename = requestPacket.getFilename();
-       fileInformation = requestPacket.getFileInformation();
-       mode = requestPacket.getMode();
-       //itself but according to SSL
-       requesterHostId = Configuration.configuration.getHostId(dbSession,requested);
-       //given one
-       requestedHostId = requested;
+    public DbTaskRunner(DbSession dbSession, DbRule rule, boolean isSender,
+            RequestPacket requestPacket, String requested)
+            throws OpenR66DatabaseException {
+        super(dbSession);
+        this.session = null;
+        this.rule = rule;
+        ruleId = this.rule.idRule;
+        rank = requestPacket.getRank();
+        status = ErrorCode.Unknown;
+        this.isSender = isSender;
+        filename = requestPacket.getFilename();
+        blocksize = requestPacket.getBlocksize();
+        originalFilename = requestPacket.getFilename();
+        fileInformation = requestPacket.getFileInformation();
+        mode = requestPacket.getMode();
+        // itself but according to SSL
+        requesterHostId = Configuration.configuration.getHostId(dbSession,
+                requested);
+        // given one
+        requestedHostId = requested;
 
-       start = new Timestamp(System.currentTimeMillis());
-       setToArray();
-       isSaved = false;
-       specialId = requestPacket.getSpecialId();
-       create();
-   }
+        start = new Timestamp(System.currentTimeMillis());
+        setToArray();
+        isSaved = false;
+        specialId = requestPacket.getSpecialId();
+        create();
+    }
+
     /**
      * Constructor from a request with a valid Special Id
+     *
      * @param dbSession
      * @param session
      * @param rule
@@ -305,7 +321,8 @@ public class DbTaskRunner extends AbstractDbData {
      * @throws OpenR66DatabaseException
      */
     public DbTaskRunner(DbSession dbSession, R66Session session, DbRule rule,
-            boolean isSender, RequestPacket requestPacket) throws OpenR66DatabaseException {
+            boolean isSender, RequestPacket requestPacket)
+            throws OpenR66DatabaseException {
         super(dbSession);
         this.session = session;
         this.rule = rule;
@@ -327,8 +344,10 @@ public class DbTaskRunner extends AbstractDbData {
         specialId = requestPacket.getSpecialId();
         insert();
     }
+
     /**
      * Constructor from a request with a valid Special Id
+     *
      * @param dbSession
      * @param session
      * @param rule
@@ -337,8 +356,9 @@ public class DbTaskRunner extends AbstractDbData {
      * @param requested
      * @throws OpenR66DatabaseException
      */
-    public DbTaskRunner(DbSession dbSession, R66Session session, DbRule rule, long id,
-            String requester, String requested) throws OpenR66DatabaseException {
+    public DbTaskRunner(DbSession dbSession, R66Session session, DbRule rule,
+            long id, String requester, String requested)
+            throws OpenR66DatabaseException {
         super(dbSession);
         this.session = session;
         this.rule = rule;
@@ -352,7 +372,8 @@ public class DbTaskRunner extends AbstractDbData {
         select();
         if (rule != null) {
             if (!ruleId.equals(rule.idRule)) {
-                throw new OpenR66DatabaseNoDataException("Rule does not correspond");
+                throw new OpenR66DatabaseNoDataException(
+                        "Rule does not correspond");
             }
         }
     }
@@ -407,7 +428,7 @@ public class DbTaskRunner extends AbstractDbData {
         updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()]
                 .getValue();
         requesterHostId = (String) allFields[Columns.REQUESTER.ordinal()]
-                                             .getValue();
+                .getValue();
         requestedHostId = (String) allFields[Columns.REQUESTED.ordinal()]
                 .getValue();
         specialId = (Long) allFields[Columns.SPECIALID.ordinal()].getValue();
@@ -428,8 +449,8 @@ public class DbTaskRunner extends AbstractDbData {
         try {
             preparedStatement.createPrepareStatement("DELETE FROM " + table +
                     " WHERE " + primaryKey[0].column + " = ? AND " +
-                    primaryKey[1].column + " = ? AND " +
-                    primaryKey[2].column + " = ? ");
+                    primaryKey[1].column + " = ? AND " + primaryKey[2].column +
+                    " = ? ");
             primaryKey[0].setValue(requesterHostId);
             primaryKey[1].setValue(requestedHostId);
             primaryKey[2].setValue(specialId);
@@ -456,7 +477,7 @@ public class DbTaskRunner extends AbstractDbData {
         }
         if (dbSession == null) {
             if (specialId == DbConstant.ILLEGALVALUE) {
-                //New SpecialId is not possible with No Database Model
+                // New SpecialId is not possible with No Database Model
                 specialId = System.currentTimeMillis();
             }
             isSaved = true;
@@ -465,7 +486,8 @@ public class DbTaskRunner extends AbstractDbData {
         // First need to find a new id if id is not ok
         if (specialId == DbConstant.ILLEGALVALUE) {
             specialId = DbModelFactory.dbModel.nextSequence(dbSession);
-            logger.debug("Try Insert create a new Id from sequence: "+specialId);
+            logger.debug("Try Insert create a new Id from sequence: " +
+                    specialId);
             primaryKey[0].setValue(requesterHostId);
             primaryKey[1].setValue(requestedHostId);
             primaryKey[2].setValue(specialId);
@@ -489,6 +511,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * As insert but with the ability to change the SpecialId
+     *
      * @throws OpenR66DatabaseException
      */
     public void create() throws OpenR66DatabaseException {
@@ -497,7 +520,7 @@ public class DbTaskRunner extends AbstractDbData {
         }
         if (dbSession == null) {
             if (specialId == DbConstant.ILLEGALVALUE) {
-                //New SpecialId is not possible with No Database Model
+                // New SpecialId is not possible with No Database Model
                 specialId = System.currentTimeMillis();
             }
             isSaved = true;
@@ -506,7 +529,8 @@ public class DbTaskRunner extends AbstractDbData {
         // First need to find a new id if id is not ok
         if (specialId == DbConstant.ILLEGALVALUE) {
             specialId = DbModelFactory.dbModel.nextSequence(dbSession);
-            logger.info("Try Insert create a new Id from sequence: "+specialId);
+            logger.info("Try Insert create a new Id from sequence: " +
+                    specialId);
             primaryKey[0].setValue(requesterHostId);
             primaryKey[1].setValue(requestedHostId);
             primaryKey[2].setValue(specialId);
@@ -524,10 +548,10 @@ public class DbTaskRunner extends AbstractDbData {
                     throw new OpenR66DatabaseNoDataException("No row found");
                 }
             } catch (OpenR66DatabaseSqlError e) {
-                logger.info("Problem while inserting",e);
+                logger.info("Problem while inserting", e);
                 DbPreparedStatement find = new DbPreparedStatement(dbSession);
-                find.createPrepareStatement("SELECT MAX("+primaryKey[2].column+
-                        ") FROM "+table+" WHERE "+
+                find.createPrepareStatement("SELECT MAX(" +
+                        primaryKey[2].column + ") FROM " + table + " WHERE " +
                         primaryKey[0].column + " = ? AND " +
                         primaryKey[1].column + " = ? AND " +
                         primaryKey[2].column + " >= ? ");
@@ -543,8 +567,8 @@ public class DbTaskRunner extends AbstractDbData {
                     } catch (SQLException e1) {
                         throw new OpenR66DatabaseSqlError(e1);
                     }
-                    specialId = result+1;
-                    DbModelFactory.dbModel.resetSequence(specialId+1);
+                    specialId = result + 1;
+                    DbModelFactory.dbModel.resetSequence(specialId + 1);
                     setToArray();
                     preparedStatement.close();
                     setValues(preparedStatement, allFields);
@@ -562,7 +586,9 @@ public class DbTaskRunner extends AbstractDbData {
         }
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see openr66.database.data.AbstractDbData#exist()
      */
     @Override
@@ -575,9 +601,8 @@ public class DbTaskRunner extends AbstractDbData {
         try {
             preparedStatement.createPrepareStatement("SELECT " +
                     primaryKey[0].column + " FROM " + table + " WHERE " +
-                    primaryKey[0].column + " = ? AND " +
-                    primaryKey[1].column + " = ? AND " +
-                    primaryKey[2].column + " = ? ");
+                    primaryKey[0].column + " = ? AND " + primaryKey[1].column +
+                    " = ? AND " + primaryKey[2].column + " = ? ");
             primaryKey[0].setValue(requesterHostId);
             primaryKey[1].setValue(requestedHostId);
             primaryKey[2].setValue(specialId);
@@ -588,6 +613,7 @@ public class DbTaskRunner extends AbstractDbData {
             preparedStatement.realClose();
         }
     }
+
     /*
      * (non-Javadoc)
      *
@@ -601,8 +627,8 @@ public class DbTaskRunner extends AbstractDbData {
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
                 dbSession);
         preparedStatement.createPrepareStatement("SELECT " + selectAllFields +
-                " FROM " + table + " WHERE " + primaryKey[0].column + " = ? AND " +
-                primaryKey[1].column + " = ? AND " +
+                " FROM " + table + " WHERE " + primaryKey[0].column +
+                " = ? AND " + primaryKey[1].column + " = ? AND " +
                 primaryKey[2].column + " = ? ");
         try {
             primaryKey[0].setValue(requesterHostId);
@@ -615,9 +641,9 @@ public class DbTaskRunner extends AbstractDbData {
                 setFromArray();
                 isSaved = true;
             } else {
-                throw new OpenR66DatabaseNoDataException("No row found: "+
-                        primaryKey[0].getValueAsString()+":"+
-                        primaryKey[1].getValueAsString()+":"+
+                throw new OpenR66DatabaseNoDataException("No row found: " +
+                        primaryKey[0].getValueAsString() + ":" +
+                        primaryKey[1].getValueAsString() + ":" +
                         primaryKey[2].getValueAsString());
             }
         } finally {
@@ -645,9 +671,8 @@ public class DbTaskRunner extends AbstractDbData {
         try {
             preparedStatement.createPrepareStatement("UPDATE " + table +
                     " SET " + updateAllFields + " WHERE " +
-                    primaryKey[0].column + " = ? AND " +
-                    primaryKey[1].column + " = ? AND " +
-                    primaryKey[2].column + " = ? ");
+                    primaryKey[0].column + " = ? AND " + primaryKey[1].column +
+                    " = ? AND " + primaryKey[2].column + " = ? ");
             setValues(preparedStatement, allFields);
             int count = preparedStatement.executeUpdate();
             if (count <= 0) {
@@ -658,8 +683,10 @@ public class DbTaskRunner extends AbstractDbData {
             preparedStatement.realClose();
         }
     }
+
     /**
      * Private constructor for Commander only
+     *
      * @param session
      */
     private DbTaskRunner(DbSession dBsession) {
@@ -667,395 +694,570 @@ public class DbTaskRunner extends AbstractDbData {
         session = null;
         rule = null;
     }
+
     /**
      * For instance from Commander when getting updated information
+     *
      * @param preparedStatement
      * @return the next updated DbTaskRunner
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
      */
-    public static DbTaskRunner getFromStatement(DbPreparedStatement preparedStatement) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
-        DbTaskRunner dbTaskRunner = new DbTaskRunner(preparedStatement.getDbSession());
+    public static DbTaskRunner getFromStatement(
+            DbPreparedStatement preparedStatement)
+            throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+        DbTaskRunner dbTaskRunner = new DbTaskRunner(preparedStatement
+                .getDbSession());
         dbTaskRunner.getValues(preparedStatement, dbTaskRunner.allFields);
         dbTaskRunner.setFromArray();
         dbTaskRunner.isSaved = true;
         return dbTaskRunner;
     }
-    /**
-    * @param session
-    * @param status
-    * @return the DbPreparedStatement for getting Runner according to status
-    * @throws OpenR66DatabaseNoConnectionError
-    * @throws OpenR66DatabaseSqlError
-    */
-   public static DbPreparedStatement getStatusPrepareStament(DbSession session,
-           ErrorCode status) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
-       String request = "SELECT " +selectAllFields+" FROM "+table;
-       if (status != null) {
-           request += " WHERE "+Columns.STEPSTATUS.name()+" = '"+status.getCode()+"'";
-       }
-       request += " ORDER BY "+Columns.STARTTRANS.name()+" DESC ";
-       return new DbPreparedStatement(session, request);
-   }
-   /**
-    * @param session
-    * @param globalstep
-    * @return the DbPreparedStatement for getting Runner according to globalstep
-    * @throws OpenR66DatabaseNoConnectionError
-    * @throws OpenR66DatabaseSqlError
-    */
-   public static DbPreparedStatement getStepPrepareStament(DbSession session,
-           TASKSTEP globalstep) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
-       String request = "SELECT " +selectAllFields+" FROM "+table;
-       if (globalstep != null) {
-           request += " WHERE "+Columns.GLOBALSTEP.name()+" = "+globalstep.ordinal();
-       }
-       request += " ORDER BY "+Columns.STARTTRANS.name()+" DESC ";
-       return new DbPreparedStatement(session, request);
-   }
-   /**
-   *
-   * @param session
-   * @param start
-   * @param stop
-   * @param rule
-   * @param req
-   * @param pending
-   * @param transfer
-   * @param error
-   * @param done
-   * @param all
-   * @return the DbPreparedStatement according to the filter
-   * @throws OpenR66DatabaseNoConnectionError
-   * @throws OpenR66DatabaseSqlError
-   */
-  public static DbPreparedStatement getFilterPrepareStament(DbSession session,
-          Timestamp start, Timestamp stop, String rule, String req,
-          boolean pending, boolean transfer, boolean error, boolean done, boolean all)
-      throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
-      DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
-      String request = "SELECT " +selectAllFields+" FROM "+table;
-      if (start == null && stop == null && rule == null && req == null && all) {
-          // finish
-          request += " ORDER BY "+Columns.STARTTRANS.name()+" DESC ";
-          preparedStatement.createPrepareStatement(request);
-          return preparedStatement;
-      }
-      request += " WHERE ";
-      String condition = null;
-      if (start != null & stop != null) {
-          condition = Columns.STARTTRANS.name()+" >= ? AND "+
-              Columns.STARTTRANS.name()+" <= ? ";
-      } else if (start != null) {
-          condition = Columns.STARTTRANS.name()+" >= ? ";
-      } else if (stop != null) {
-          condition = Columns.STARTTRANS.name()+" <= ? ";
-      }
 
-      if (rule != null) {
-          if (condition != null) {
-              condition += " AND ";
-          } else {
-              condition = "";
-          }
-          condition += Columns.IDRULE.name()+" LIKE '%"+rule+"%' ";
-      }
-      if (req != null) {
-          if (condition != null) {
-              condition += " AND ";
-          } else {
-              condition = "";
-          }
-          condition += "( "+Columns.REQUESTED.name()+" LIKE '%"+req+"%' OR "+
-              Columns.REQUESTER.name()+" LIKE '%"+req+"%' )";
-      }
-      if (! all) {
-          if (pending) {
-              if (condition != null) {
-                  condition += " AND ";
-              } else {
-                  condition = "";
-              }
-              condition += Columns.GLOBALSTEP.name()+" = "+TASKSTEP.NOTASK.ordinal();
-          }
-          if (transfer) {
-              if (condition != null) {
-                  condition += " AND ";
-              } else {
-                  condition = "";
-              }
-              condition += "( "+Columns.GLOBALSTEP.name()+" = "+TASKSTEP.PRETASK.ordinal();
-              condition += " OR "+Columns.GLOBALSTEP.name()+" = "+TASKSTEP.TRANSFERTASK.ordinal();
-              condition += " OR "+Columns.GLOBALSTEP.name()+" = "+TASKSTEP.POSTTASK.ordinal()+" )";
-          }
-          if (error) {
-              if (condition != null) {
-                  condition += " AND ";
-              } else {
-                  condition = "";
-              }
-              condition += Columns.GLOBALSTEP.name()+" = "+TASKSTEP.ERRORTASK.ordinal();
-          }
-          if (done) {
-              if (condition != null) {
-                  condition += " AND ";
-              } else {
-                  condition = "";
-              }
-              condition += Columns.GLOBALSTEP.name()+" = "+TASKSTEP.ALLDONETASK.ordinal();
-          }
-      }
-      preparedStatement.createPrepareStatement(request+condition+
-              " ORDER BY "+Columns.STARTTRANS.name()+" DESC ");
-      int rank = 1;
-      try {
-          if (start != null & stop != null) {
-              preparedStatement.getPreparedStatement().setTimestamp(rank, start);
-              rank++;
-              preparedStatement.getPreparedStatement().setTimestamp(rank, stop);
-              rank++;
-          } else if (start != null) {
-              preparedStatement.getPreparedStatement().setTimestamp(rank, start);
-              rank++;
-          } else if (stop != null) {
-              preparedStatement.getPreparedStatement().setTimestamp(rank, stop);
-              rank++;
-          }
-      } catch (SQLException e) {
-          preparedStatement.realClose();
-          throw new OpenR66DatabaseSqlError(e);
-      }
-      return preparedStatement;
-  }
     /**
-    *
-    * @param session
-    * @return the DbPreparedStatement for getting Updated Object
-    * @throws OpenR66DatabaseNoConnectionError
-    * @throws OpenR66DatabaseSqlError
-    */
-   public static DbPreparedStatement getUpdatedPrepareStament(DbSession session) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
-       String request = "SELECT " +selectAllFields;
-       request += " FROM "+table+
-           " WHERE "+Columns.UPDATEDINFO.name()+" = "+
-           AbstractDbData.UpdatedInfo.UPDATED.ordinal();
-       return new DbPreparedStatement(session, request);
-   }
-   /**
-   *
-   * @param session
-   * @param start
-   * @param stop
-   * @return the DbPreparedStatement for getting Selected Object, already executed
-   * @throws OpenR66DatabaseNoConnectionError
-   * @throws OpenR66DatabaseSqlError
-   */
-  public static DbPreparedStatement getLogPrepareStament(DbSession session,
-          Timestamp start, Timestamp stop)
-      throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
-      DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
-      String request = "SELECT " +selectAllFields+" FROM "+table;
-      if (start != null & stop != null) {
-          request += " WHERE "+Columns.STARTTRANS.name()+" >= ? AND "+
-              Columns.STARTTRANS.name()+" <= ? ORDER BY "+Columns.STARTTRANS.name()+" DESC ";
-          preparedStatement.createPrepareStatement(request);
-          try {
-            preparedStatement.getPreparedStatement().setTimestamp(1, start);
-            preparedStatement.getPreparedStatement().setTimestamp(2, stop);
+     * @param session
+     * @param status
+     * @param limit limit the number of rows
+     * @return the DbPreparedStatement for getting Runner according to status
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66DatabaseSqlError
+     */
+    public static DbPreparedStatement getStatusPrepareStament(
+            DbSession session, ErrorCode status, int limit)
+            throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+        String request = "SELECT " + selectAllFields + " FROM " + table;
+        if (status != null) {
+            request += " WHERE " + Columns.STEPSTATUS.name() + " = '" +
+                    status.getCode() + "'";
+        }
+        request += " ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
+        request = DbModelFactory.dbModel.limitRequest(selectAllFields, request, limit);
+        return new DbPreparedStatement(session, request);
+    }
+
+    /**
+     * @param session
+     * @param globalstep
+     * @param limit limit the number of rows
+     * @return the DbPreparedStatement for getting Runner according to
+     *         globalstep
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66DatabaseSqlError
+     */
+    public static DbPreparedStatement getStepPrepareStament(DbSession session,
+            TASKSTEP globalstep, int limit) throws OpenR66DatabaseNoConnectionError,
+            OpenR66DatabaseSqlError {
+        String request = "SELECT " + selectAllFields + " FROM " + table;
+        if (globalstep != null) {
+            request += " WHERE " + Columns.GLOBALSTEP.name() + " = " +
+                    globalstep.ordinal();
+        }
+        request += " ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
+        request = DbModelFactory.dbModel.limitRequest(selectAllFields, request, limit);
+        return new DbPreparedStatement(session, request);
+    }
+
+    /**
+     *
+     * @param preparedStatement
+     * @param srcrequest
+     * @param limit
+     * @param orderby
+     * @param start
+     * @param stop
+     * @param rule
+     * @param req
+     * @param pending
+     * @param transfer
+     * @param error
+     * @param done
+     * @param all
+     * @return The DbPreparedStatement already prepared according to select or
+     *         delete command
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66DatabaseSqlError
+     */
+    private static DbPreparedStatement getFilterCondition(
+            DbPreparedStatement preparedStatement, String srcrequest, int limit,
+            String orderby, Timestamp start, Timestamp stop, String rule,
+            String req, boolean pending, boolean transfer, boolean error,
+            boolean done, boolean all) throws OpenR66DatabaseNoConnectionError,
+            OpenR66DatabaseSqlError {
+        String request = srcrequest;
+        if (start == null && stop == null && rule == null && req == null && all) {
+            // finish
+            if (limit > 0) {
+                request = DbModelFactory.dbModel.limitRequest(selectAllFields,
+                        request+orderby, limit);
+            } else {
+                request = request+orderby;
+            }
+            preparedStatement.createPrepareStatement(request);
+            return preparedStatement;
+        }
+        request += " WHERE ";
+        String condition = null;
+        if (start != null & stop != null) {
+            condition = Columns.STARTTRANS.name() + " >= ? AND " +
+                    Columns.STARTTRANS.name() + " <= ? ";
+        } else if (start != null) {
+            condition = Columns.STARTTRANS.name() + " >= ? ";
+        } else if (stop != null) {
+            condition = Columns.STARTTRANS.name() + " <= ? ";
+        }
+
+        if (rule != null) {
+            if (condition != null) {
+                condition += " AND ";
+            } else {
+                condition = "";
+            }
+            condition += Columns.IDRULE.name() + " LIKE '%" + rule + "%' ";
+        }
+        if (req != null) {
+            if (condition != null) {
+                condition += " AND ";
+            } else {
+                condition = "";
+            }
+            condition += "( " + Columns.REQUESTED.name() + " LIKE '%" + req +
+                    "%' OR " + Columns.REQUESTER.name() + " LIKE '%" + req +
+                    "%' )";
+        }
+        if (!all) {
+            if (condition != null) {
+                condition += " AND ( ";
+            } else {
+                condition = "( ";
+            }
+            boolean hasone = false;
+            if (pending) {
+                condition += Columns.GLOBALSTEP.name() + " = " +
+                        TASKSTEP.NOTASK.ordinal();
+                hasone = true;
+            }
+            if (transfer) {
+                if (hasone) {
+                    condition += " OR ";
+                }
+                condition += "( " + Columns.GLOBALSTEP.name() + " = " +
+                        TASKSTEP.PRETASK.ordinal();
+                condition += " OR " + Columns.GLOBALSTEP.name() + " = " +
+                        TASKSTEP.TRANSFERTASK.ordinal();
+                condition += " OR " + Columns.GLOBALSTEP.name() + " = " +
+                        TASKSTEP.POSTTASK.ordinal() + " )";
+                hasone = true;
+            }
+            if (error) {
+                if (hasone) {
+                    condition += " OR ";
+                }
+                condition += Columns.GLOBALSTEP.name() + " = " +
+                        TASKSTEP.ERRORTASK.ordinal();
+                hasone = true;
+            }
+            if (done) {
+                if (hasone) {
+                    condition += " OR ";
+                }
+                condition += Columns.GLOBALSTEP.name() + " = " +
+                        TASKSTEP.ALLDONETASK.ordinal();
+            }
+            condition += " )";
+        }
+        if (limit > 0) {
+            request = DbModelFactory.dbModel.limitRequest(selectAllFields,
+                request + condition + orderby, limit);
+        } else {
+            request = request + condition + orderby;
+        }
+        preparedStatement.createPrepareStatement(request);
+        int rank = 1;
+        try {
+            if (start != null & stop != null) {
+                preparedStatement.getPreparedStatement().setTimestamp(rank,
+                        start);
+                rank ++;
+                preparedStatement.getPreparedStatement().setTimestamp(rank,
+                        stop);
+                rank ++;
+            } else if (start != null) {
+                preparedStatement.getPreparedStatement().setTimestamp(rank,
+                        start);
+                rank ++;
+            } else if (stop != null) {
+                preparedStatement.getPreparedStatement().setTimestamp(rank,
+                        stop);
+                rank ++;
+            }
         } catch (SQLException e) {
             preparedStatement.realClose();
             throw new OpenR66DatabaseSqlError(e);
         }
-      } else if (start != null) {
-          request += " WHERE "+Columns.STARTTRANS.name()+" >= ? ORDER BY "+Columns.STARTTRANS.name()+" DESC ";
-          preparedStatement.createPrepareStatement(request);
-          try {
-              preparedStatement.getPreparedStatement().setTimestamp(1, start);
-          } catch (SQLException e) {
-              preparedStatement.realClose();
-              throw new OpenR66DatabaseSqlError(e);
-          }
-      } else if (stop != null) {
-          request += " WHERE "+Columns.STARTTRANS.name()+" <= ? ORDER BY "+Columns.STARTTRANS.name()+" DESC ";
-          preparedStatement.createPrepareStatement(request);
-          try {
-              preparedStatement.getPreparedStatement().setTimestamp(1, stop);
-          } catch (SQLException e) {
-              preparedStatement.realClose();
-              throw new OpenR66DatabaseSqlError(e);
-          }
-      } else {
-          request += " ORDER BY "+Columns.STARTTRANS.name()+" DESC ";
-          preparedStatement.createPrepareStatement(request);
-      }
-      return preparedStatement;
-  }
-  /**
-  * purge in same interval all runners with globallaststep
-  * as ALLDONETASK or ERRORTASK
-  *
-  * @param session
-  * @param start
-  * @param stop
-  * @return the number of log purged
-  * @throws OpenR66DatabaseNoConnectionError
-  * @throws OpenR66DatabaseSqlError
-  */
- public static int purgeLogPrepareStament(DbSession session,
-         Timestamp start, Timestamp stop)
-     throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
-     DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
-     String request = "DELETE FROM "+table+ " WHERE ("+
-         Columns.GLOBALLASTSTEP+" = "+TASKSTEP.ALLDONETASK.ordinal()+" OR "+
-         Columns.GLOBALLASTSTEP+" = "+TASKSTEP.ERRORTASK.ordinal()+") ";
-     if (start != null & stop != null) {
-         request += " AND "+ Columns.STARTTRANS.name()+" >= ? AND "+
-             Columns.STOPTRANS.name()+" <= ? ";
-         preparedStatement.createPrepareStatement(request);
-         try {
-           preparedStatement.getPreparedStatement().setTimestamp(1, start);
-           preparedStatement.getPreparedStatement().setTimestamp(2, stop);
-       } catch (SQLException e) {
-           preparedStatement.realClose();
-           throw new OpenR66DatabaseSqlError(e);
-       }
-     } else if (start != null) {
-         request += " AND "+ Columns.STARTTRANS.name()+" >= ? ";
-         preparedStatement.createPrepareStatement(request);
-         try {
-             preparedStatement.getPreparedStatement().setTimestamp(1, start);
-         } catch (SQLException e) {
-             preparedStatement.realClose();
-             throw new OpenR66DatabaseSqlError(e);
-         }
-     } else if (stop != null) {
-         request += " AND "+ Columns.STOPTRANS.name()+" <= ? ";
-         preparedStatement.createPrepareStatement(request);
-         try {
-             preparedStatement.getPreparedStatement().setTimestamp(1, stop);
-         } catch (SQLException e) {
-             preparedStatement.realClose();
-             throw new OpenR66DatabaseSqlError(e);
-         }
-     } else {
-         preparedStatement.createPrepareStatement(request);
-     }
-     int nb = preparedStatement.executeUpdate();
-     logger.info("Purge "+nb+" from "+request);
-     preparedStatement.realClose();
-     return nb;
- }
-   /**
-    * Change TORUN to UPDATED TaskRunner from database
-    * @param session
-    * @throws OpenR66DatabaseNoConnectionError
-    */
-   public static void changeToRunToUpdated(DbSession session) throws OpenR66DatabaseNoConnectionError {
-       // Change TORUN to UPDATED since they should ready
-       String request = "UPDATE "+table+" SET " +
-           Columns.UPDATEDINFO.name()+ "="+
-           AbstractDbData.UpdatedInfo.UPDATED.ordinal();
-       request += " WHERE "+Columns.UPDATEDINFO.name()+" = "+
-           AbstractDbData.UpdatedInfo.TORUN.ordinal();
-       DbPreparedStatement initial = new DbPreparedStatement(session);
-       try {
-           initial.createPrepareStatement(request);
-           initial.executeUpdate();
-       } catch (OpenR66DatabaseNoConnectionError e) {
-           logger.error("Cannot execute Commander", e);
-           return;
-       } catch (OpenR66DatabaseSqlError e) {
-           logger.error("Cannot execute Commander", e);
-           return;
-       } finally {
-           initial.close();
-       }
-   }
-   /**
-    * Change TORUN to UPDATED TaskRunner from database
-    * @param session
-    * @throws OpenR66DatabaseNoConnectionError
-    */
-   public static void changeFinishedToDone(DbSession session) throws OpenR66DatabaseNoConnectionError {
-       // Update all UpdatedInfo to DONE where GlobalLastStep = ALLDONETASK and status = CompleteOk
-       String request = "UPDATE "+table+" SET " +
-           Columns.UPDATEDINFO.name()+ "="+
-           AbstractDbData.UpdatedInfo.DONE.ordinal();
-       request += " WHERE "+Columns.UPDATEDINFO.name()+" <> "+
-           AbstractDbData.UpdatedInfo.DONE.ordinal() +" AND "+
-           Columns.UPDATEDINFO.name()+" > 0 AND "+
-           Columns.GLOBALLASTSTEP.name()+" = "+TASKSTEP.ALLDONETASK.ordinal()+
-           " AND "+Columns.STEPSTATUS.name()+" = '"+ErrorCode.CompleteOk.getCode()+"'";
-       DbPreparedStatement initial = new DbPreparedStatement(session);
-       try {
-           initial.createPrepareStatement(request);
-           initial.executeUpdate();
-       } catch (OpenR66DatabaseNoConnectionError e) {
-           logger.error("Cannot execute Commander", e);
-           return;
-       } catch (OpenR66DatabaseSqlError e) {
-           logger.error("Cannot execute Commander", e);
-           return;
-       } finally {
-           initial.close();
-       }
-   }
-   /**
-    * Reset the runner (ready to be run again)
-    * @return True if OK
-    */
-   public boolean reset() {
-    // Reset the status if already stopped and not finished
-       if (this.getStatus() != ErrorCode.CompleteOk) {
-           // restart
-           switch (TASKSTEP.values()[this.getGloballaststep()]) {
-               case PRETASK:
-                   // restart
-                   this.setPreTask(0);
-                   this.setExecutionStatus(ErrorCode.InitOk);
-                   break;
-               case TRANSFERTASK:
-                   // continue
-                   this.setTransferTask(this.getRank());
-                   this.setExecutionStatus(ErrorCode.PreProcessingOk);
-                   break;
-               case POSTTASK:
-                   // restart
-                   this.setPostTask(0);
-                   this.setExecutionStatus(ErrorCode.TransferOk);
-                   break;
-           }
-           this.changeUpdatedInfo(UpdatedInfo.UNKNOWN);
-           return true;
-       } else {
-           // Already finished
-           return false;
-       }
-   }
-   /**
-    * Make this Runner ready for restart (through Commander)
-    * @return True if OK
-    */
-   public boolean restart() {
-       // Restart if already stopped and not finished
-       if (reset()) {
-           this.changeUpdatedInfo(UpdatedInfo.UPDATED);
-           try {
-               this.saveStatus();
-           } catch (OpenR66RunnerErrorException e) {
-               return false;
-           }
-           return true;
-       } else {
-           // Already finished so DONE
-           this.changeUpdatedInfo(UpdatedInfo.DONE);
-           try {
-               this.saveStatus();
-           } catch (OpenR66RunnerErrorException e) {
-           }
-           return false;
-       }
-   }
+        return preparedStatement;
+    }
+
+    /**
+     *
+     * @param session
+     * @param limit
+     * @param start
+     * @param stop
+     * @param rule
+     * @param req
+     * @param pending
+     * @param transfer
+     * @param error
+     * @param done
+     * @param all
+     * @return the DbPreparedStatement according to the filter
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66DatabaseSqlError
+     */
+    public static DbPreparedStatement getFilterPrepareStament(
+            DbSession session, int limit, Timestamp start, Timestamp stop, String rule,
+            String req, boolean pending, boolean transfer, boolean error,
+            boolean done, boolean all) throws OpenR66DatabaseNoConnectionError,
+            OpenR66DatabaseSqlError {
+        DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
+        String request = "SELECT " + selectAllFields + " FROM " + table;
+        String orderby = " ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
+        return getFilterCondition(preparedStatement, request, limit, orderby, start, stop, rule,
+                req, pending, transfer, error, done, all);
+    }
+
+    /**
+     *
+     * @param session
+     * @param limit
+     * @return the DbPreparedStatement for getting Updated Object
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66DatabaseSqlError
+     */
+    public static DbPreparedStatement getUpdatedPrepareStament(DbSession session, int limit)
+            throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+        String request = "SELECT " + selectAllFields;
+        request += " FROM " + table + " WHERE " + Columns.UPDATEDINFO.name() +
+                " = " + AbstractDbData.UpdatedInfo.TOSUBMIT.ordinal();
+        if (limit > 0) {
+            request += " AND ROWNUM <= "+limit;
+        }
+        return new DbPreparedStatement(session, request);
+    }
+
+    /**
+     *
+     * @param session
+     * @param start
+     * @param stop
+     * @return the DbPreparedStatement for getting Selected Object, already
+     *         executed
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66DatabaseSqlError
+     */
+    public static DbPreparedStatement getLogPrepareStament(DbSession session,
+            Timestamp start, Timestamp stop)
+            throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+        DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
+        String request = "SELECT " + selectAllFields + " FROM " + table;
+        if (start != null & stop != null) {
+            request += " WHERE " + Columns.STARTTRANS.name() + " >= ? AND " +
+                    Columns.STARTTRANS.name() + " <= ? ORDER BY " +
+                    Columns.STARTTRANS.name() + " DESC ";
+            preparedStatement.createPrepareStatement(request);
+            try {
+                preparedStatement.getPreparedStatement().setTimestamp(1, start);
+                preparedStatement.getPreparedStatement().setTimestamp(2, stop);
+            } catch (SQLException e) {
+                preparedStatement.realClose();
+                throw new OpenR66DatabaseSqlError(e);
+            }
+        } else if (start != null) {
+            request += " WHERE " + Columns.STARTTRANS.name() +
+                    " >= ? ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
+            preparedStatement.createPrepareStatement(request);
+            try {
+                preparedStatement.getPreparedStatement().setTimestamp(1, start);
+            } catch (SQLException e) {
+                preparedStatement.realClose();
+                throw new OpenR66DatabaseSqlError(e);
+            }
+        } else if (stop != null) {
+            request += " WHERE " + Columns.STARTTRANS.name() +
+                    " <= ? ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
+            preparedStatement.createPrepareStatement(request);
+            try {
+                preparedStatement.getPreparedStatement().setTimestamp(1, stop);
+            } catch (SQLException e) {
+                preparedStatement.realClose();
+                throw new OpenR66DatabaseSqlError(e);
+            }
+        } else {
+            request += " ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
+            preparedStatement.createPrepareStatement(request);
+        }
+        return preparedStatement;
+    }
+
+    /**
+     * purge in same interval all runners with globallaststep as ALLDONETASK or
+     * ERRORTASK
+     *
+     * @param session
+     * @param start
+     * @param stop
+     * @return the number of log purged
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66DatabaseSqlError
+     */
+    public static int purgeLogPrepareStament(DbSession session,
+            Timestamp start, Timestamp stop)
+            throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+        DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
+        String request = "DELETE FROM " + table + " WHERE (" +
+                Columns.GLOBALLASTSTEP + " = " +
+                TASKSTEP.ALLDONETASK.ordinal() + " OR " +
+                Columns.GLOBALLASTSTEP + " = " + TASKSTEP.ERRORTASK.ordinal() +
+                ") ";
+        if (start != null & stop != null) {
+            request += " AND " + Columns.STARTTRANS.name() + " >= ? AND " +
+                    Columns.STOPTRANS.name() + " <= ? ";
+            preparedStatement.createPrepareStatement(request);
+            try {
+                preparedStatement.getPreparedStatement().setTimestamp(1, start);
+                preparedStatement.getPreparedStatement().setTimestamp(2, stop);
+            } catch (SQLException e) {
+                preparedStatement.realClose();
+                throw new OpenR66DatabaseSqlError(e);
+            }
+        } else if (start != null) {
+            request += " AND " + Columns.STARTTRANS.name() + " >= ? ";
+            preparedStatement.createPrepareStatement(request);
+            try {
+                preparedStatement.getPreparedStatement().setTimestamp(1, start);
+            } catch (SQLException e) {
+                preparedStatement.realClose();
+                throw new OpenR66DatabaseSqlError(e);
+            }
+        } else if (stop != null) {
+            request += " AND " + Columns.STOPTRANS.name() + " <= ? ";
+            preparedStatement.createPrepareStatement(request);
+            try {
+                preparedStatement.getPreparedStatement().setTimestamp(1, stop);
+            } catch (SQLException e) {
+                preparedStatement.realClose();
+                throw new OpenR66DatabaseSqlError(e);
+            }
+        } else {
+            preparedStatement.createPrepareStatement(request);
+        }
+        int nb = preparedStatement.executeUpdate();
+        logger.info("Purge " + nb + " from " + request);
+        preparedStatement.realClose();
+        return nb;
+    }
+
+    /**
+     *
+     * @param session
+     * @param start
+     * @param stop
+     * @param rule
+     * @param req
+     * @param pending
+     * @param transfer
+     * @param error
+     * @param done
+     * @param all
+     * @return the DbPreparedStatement according to the filter and
+     * ALLDONE, NOTASK or ERROR globallaststep
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66DatabaseSqlError
+     */
+    public static int purgeLogPrepareStament(
+            DbSession session, Timestamp start, Timestamp stop, String rule,
+            String req, boolean pending, boolean transfer, boolean error,
+            boolean done, boolean all) throws OpenR66DatabaseNoConnectionError,
+            OpenR66DatabaseSqlError {
+        DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
+        String request = "DELETE FROM " + table;
+        String orderby;
+        if (start == null && stop == null && rule == null && req == null && all) {
+            orderby = " WHERE (" + Columns.GLOBALLASTSTEP + " = " +
+                TASKSTEP.ALLDONETASK.ordinal() + " OR " +
+                Columns.GLOBALLASTSTEP + " = " +TASKSTEP.NOTASK.ordinal() + " OR " +
+                Columns.GLOBALLASTSTEP + " = " + TASKSTEP.ERRORTASK.ordinal() +
+                ") ";
+        } else {
+            orderby = " AND (" + Columns.GLOBALLASTSTEP + " = " +
+                TASKSTEP.ALLDONETASK.ordinal() + " OR " +
+                Columns.GLOBALLASTSTEP + " = " +TASKSTEP.NOTASK.ordinal() + " OR " +
+                Columns.GLOBALLASTSTEP + " = " + TASKSTEP.ERRORTASK.ordinal() +
+                ") ";
+        }
+        preparedStatement = getFilterCondition(preparedStatement, request, 0,
+                orderby, start, stop, rule,
+                req, pending, transfer, error, done, all);
+        int nb = preparedStatement.executeUpdate();
+        logger.info("Purge " + nb + " from " + request);
+        preparedStatement.realClose();
+        return nb;
+    }
+
+    /**
+     * Change RUNNING, INTERRUPTED to TOSUBMIT TaskRunner from database.
+     * This method is to be used when the commander is starting the very first time,
+     * in order to be ready to rerun tasks that are pending.
+     *
+     * @param session
+     * @throws OpenR66DatabaseNoConnectionError
+     */
+    public static void resetToUpdated(DbSession session)
+            throws OpenR66DatabaseNoConnectionError {
+        // Change RUNNING to TOSUBMIT since they should be ready
+        String request = "UPDATE " + table + " SET " +
+                Columns.UPDATEDINFO.name() + "=" +
+                AbstractDbData.UpdatedInfo.TOSUBMIT.ordinal();
+        request += " WHERE " + Columns.UPDATEDINFO.name() + " = " +
+                AbstractDbData.UpdatedInfo.RUNNING.ordinal() +
+                " OR "+ Columns.UPDATEDINFO.name() + " = " +
+                AbstractDbData.UpdatedInfo.INTERRUPTED.ordinal();
+        DbPreparedStatement initial = new DbPreparedStatement(session);
+        try {
+            initial.createPrepareStatement(request);
+            initial.executeUpdate();
+        } catch (OpenR66DatabaseNoConnectionError e) {
+            logger.error("Cannot execute Commander", e);
+            return;
+        } catch (OpenR66DatabaseSqlError e) {
+            logger.error("Cannot execute Commander", e);
+            return;
+        } finally {
+            initial.close();
+        }
+    }
+
+    /**
+     * Change ComleteOk+ALLDONETASK to Updated = DONE TaskRunner from database.
+     * This method is a clean function to be used for instance before log export or
+     * at the very beginning of the commander.
+     *
+     * @param session
+     * @throws OpenR66DatabaseNoConnectionError
+     */
+    public static void changeFinishedToDone(DbSession session)
+            throws OpenR66DatabaseNoConnectionError {
+        // Update all UpdatedInfo to DONE where GlobalLastStep = ALLDONETASK and
+        // status = CompleteOk
+        String request = "UPDATE " + table + " SET " +
+                Columns.UPDATEDINFO.name() + "=" +
+                AbstractDbData.UpdatedInfo.DONE.ordinal();
+        request += " WHERE " + Columns.UPDATEDINFO.name() + " <> " +
+                AbstractDbData.UpdatedInfo.DONE.ordinal() + " AND " +
+                Columns.UPDATEDINFO.name() + " > 0 AND " +
+                Columns.GLOBALLASTSTEP.name() + " = " +
+                TASKSTEP.ALLDONETASK.ordinal() + " AND " +
+                Columns.STEPSTATUS.name() + " = '" +
+                ErrorCode.CompleteOk.getCode() + "'";
+        DbPreparedStatement initial = new DbPreparedStatement(session);
+        try {
+            initial.createPrepareStatement(request);
+            initial.executeUpdate();
+        } catch (OpenR66DatabaseNoConnectionError e) {
+            logger.error("Cannot execute Commander", e);
+            return;
+        } catch (OpenR66DatabaseSqlError e) {
+            logger.error("Cannot execute Commander", e);
+            return;
+        } finally {
+            initial.close();
+        }
+    }
+
+    /**
+     * Reset the runner (ready to be run again)
+     *
+     * @return True if OK
+     */
+    public boolean reset() {
+        // Reset the status if already stopped and not finished
+        if (this.getStatus() != ErrorCode.CompleteOk) {
+            // restart
+            switch (TASKSTEP.values()[this.getGloballaststep()]) {
+                case PRETASK:
+                    // restart
+                    this.setPreTask(0);
+                    this.setExecutionStatus(ErrorCode.InitOk);
+                    break;
+                case TRANSFERTASK:
+                    // continue
+                    this.setTransferTask(this.getRank());
+                    this.setExecutionStatus(ErrorCode.PreProcessingOk);
+                    break;
+                case POSTTASK:
+                    // restart
+                    this.setPostTask(0);
+                    this.setExecutionStatus(ErrorCode.TransferOk);
+                    break;
+            }
+            this.changeUpdatedInfo(UpdatedInfo.UNKNOWN);
+            return true;
+        } else {
+            // Already finished
+            return false;
+        }
+    }
+
+    /**
+     * Make this Runner ready for restart (through Commander)
+     *
+     * @return True if OK
+     */
+    public boolean restart() {
+        // Restart if already stopped and not finished
+        if (reset()) {
+            this.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
+            try {
+                this.saveStatus();
+            } catch (OpenR66RunnerErrorException e) {
+                return false;
+            }
+            return true;
+        } else {
+            // Already finished so DONE
+            this.changeUpdatedInfo(UpdatedInfo.DONE);
+            try {
+                this.saveStatus();
+            } catch (OpenR66RunnerErrorException e) {
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Stop or Cancel a Runner from database point of view
+     * @param id
+     * @param reqd
+     * @param reqr
+     * @param code
+     * @return True if correctly stopped or canceled
+     */
+    public boolean stopOrCancelRunner(ErrorCode code) {
+        try {
+            if (! isFinished()) {
+                reset();
+                this.changeUpdatedInfo(UpdatedInfo.INTERRUPTED);
+                setExecutionStatus(code);
+                update();
+                logger.warn("StopOrCancel: {} {}",code.mesg,this.toShortString());
+                return true;
+            } else {
+                // none found
+            }
+        } catch (OpenR66DatabaseException e) {
+        }
+        return false;
+    }
     /*
      * (non-Javadoc)
      *
@@ -1069,6 +1271,7 @@ public class DbTaskRunner extends AbstractDbData {
             isSaved = false;
         }
     }
+
     /**
      *
      * @return The current UpdatedInfo value
@@ -1076,6 +1279,7 @@ public class DbTaskRunner extends AbstractDbData {
     public UpdatedInfo getUpdatedInfo() {
         return UpdatedInfo.values()[updatedInfo];
     }
+
     /**
      * To set the rank at startup of the request if the request specify a
      * specific rank
@@ -1096,7 +1300,7 @@ public class DbTaskRunner extends AbstractDbData {
      *            the filename to set
      */
     public void setFilename(String filename) {
-        if (this.filename != filename) {
+        if (!this.filename.equals(filename)) {
             this.filename = filename;
             allFields[Columns.FILENAME.ordinal()].setValue(this.filename);
             isSaved = false;
@@ -1104,15 +1308,18 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
+     * @param newFilename
+     *            the new Filename to set
      * @param isFileMoved
      *            the isFileMoved to set
      */
-    public void setFileMoved(boolean isFileMoved) {
+    public void setFileMoved(String newFilename, boolean isFileMoved) {
         if (this.isFileMoved != isFileMoved) {
             this.isFileMoved = isFileMoved;
             allFields[Columns.ISMOVED.ordinal()].setValue(this.isFileMoved);
             isSaved = false;
         }
+        this.setFilename(newFilename);
     }
 
     /**
@@ -1120,7 +1327,7 @@ public class DbTaskRunner extends AbstractDbData {
      *            the originalFilename to set
      */
     public void setOriginalFilename(String originalFilename) {
-        if (this.originalFilename != originalFilename) {
+        if (!this.originalFilename.equals(originalFilename)) {
             this.originalFilename = originalFilename;
             allFields[Columns.ORIGINALNAME.ordinal()]
                     .setValue(this.originalFilename);
@@ -1133,14 +1340,6 @@ public class DbTaskRunner extends AbstractDbData {
      */
     public int getRank() {
         return rank;
-    }
-
-    /**
-     *
-     * @return True if the runner is currently in transfer
-     */
-    public boolean isInTransfer() {
-        return globalstep == TASKSTEP.TRANSFERTASK.ordinal();
     }
 
     /**
@@ -1237,6 +1436,7 @@ public class DbTaskRunner extends AbstractDbData {
     public int getGloballaststep() {
         return globallaststep;
     }
+
     /**
      *
      * @return True if this runner is ready for transfer or post operation
@@ -1244,6 +1444,15 @@ public class DbTaskRunner extends AbstractDbData {
     public boolean ready() {
         return globalstep > TASKSTEP.PRETASK.ordinal();
     }
+
+    /**
+    *
+    * @return True if the runner is currently in transfer
+    */
+   public boolean isInTransfer() {
+       return globalstep == TASKSTEP.TRANSFERTASK.ordinal();
+   }
+
     /**
      *
      * @return True if this runner is finished, either in success or in error
@@ -1251,22 +1460,26 @@ public class DbTaskRunner extends AbstractDbData {
     public boolean isFinished() {
         return isAllDone() || isInError();
     }
+
     /**
-    *
-    * @return True if this runner is in error and no more running
-    */
-   public boolean isInError() {
-       return (globalstep == TASKSTEP.ERRORTASK.ordinal() && status != ErrorCode.Running);
-   }
-   /**
-    *
-    * @return True if the runner is finished in success
-    */
-   public boolean isAllDone() {
-       return globalstep == TASKSTEP.ALLDONETASK.ordinal();
-   }
+     *
+     * @return True if this runner is in error and no more running
+     */
+    public boolean isInError() {
+        return (globalstep == TASKSTEP.ERRORTASK.ordinal() && status != ErrorCode.Running);
+    }
+
+    /**
+     *
+     * @return True if the runner is finished in success
+     */
+    public boolean isAllDone() {
+        return globalstep == TASKSTEP.ALLDONETASK.ordinal();
+    }
+
     /**
      * Set Pre Task step
+     *
      * @param step
      */
     public void setPreTask(int step) {
@@ -1280,8 +1493,10 @@ public class DbTaskRunner extends AbstractDbData {
         allFields[Columns.STEPSTATUS.ordinal()].setValue(status.getCode());
         isSaved = false;
     }
+
     /**
      * Set Transfer rank
+     *
      * @param rank
      */
     public void setTransferTask(int rank) {
@@ -1295,9 +1510,12 @@ public class DbTaskRunner extends AbstractDbData {
         allFields[Columns.STEPSTATUS.ordinal()].setValue(status.getCode());
         isSaved = false;
     }
+
     /**
      * Set the status of the transfer
-     * @param status True if success
+     *
+     * @param status
+     *            True if success
      * @return the current rank of transfer
      */
     public int finishTransferTask(boolean status) {
@@ -1316,8 +1534,10 @@ public class DbTaskRunner extends AbstractDbData {
         isSaved = false;
         return rank;
     }
+
     /**
      * Set the Post Task step
+     *
      * @param step
      */
     public void setPostTask(int step) {
@@ -1331,8 +1551,10 @@ public class DbTaskRunner extends AbstractDbData {
         allFields[Columns.STEPSTATUS.ordinal()].setValue(status.getCode());
         isSaved = false;
     }
+
     /**
      * Set the Error Task step
+     *
      * @param step
      */
     public void setErrorTask(int step) {
@@ -1344,6 +1566,7 @@ public class DbTaskRunner extends AbstractDbData {
         allFields[Columns.STEPSTATUS.ordinal()].setValue(status.getCode());
         isSaved = false;
     }
+
     /**
      * Set the global step as finished (after post task in success)
      */
@@ -1361,8 +1584,10 @@ public class DbTaskRunner extends AbstractDbData {
         changeUpdatedInfo(UpdatedInfo.DONE);
         isSaved = false;
     }
+
     /**
      * Run the task from the given task information (from rule)
+     *
      * @param tasks
      * @return The future of the operation (in success or not)
      * @throws OpenR66RunnerEndTasksException
@@ -1384,6 +1609,7 @@ public class DbTaskRunner extends AbstractDbData {
         task.getFutureCompletion().awaitUninterruptibly();
         return task.getFutureCompletion();
     }
+
     /**
      *
      * @return the future of the task run
@@ -1391,8 +1617,8 @@ public class DbTaskRunner extends AbstractDbData {
      * @throws OpenR66RunnerErrorException
      * @throws OpenR66RunnerEndTasksException
      */
-    private R66Future runNext() throws
-            OpenR66RunnerErrorException, OpenR66RunnerEndTasksException {
+    private R66Future runNext() throws OpenR66RunnerErrorException,
+            OpenR66RunnerEndTasksException {
         switch (TASKSTEP.values()[globalstep]) {
             case PRETASK:
                 try {
@@ -1434,8 +1660,10 @@ public class DbTaskRunner extends AbstractDbData {
                 throw new OpenR66RunnerErrorException("Global Step unknown");
         }
     }
+
     /**
      * Run all task from current status (globalstep and step)
+     *
      * @throws OpenR66RunnerErrorException
      */
     public void run() throws OpenR66RunnerErrorException {
@@ -1449,13 +1677,15 @@ public class DbTaskRunner extends AbstractDbData {
                 future = runNext();
             } catch (OpenR66RunnerEndTasksException e) {
                 allFields[Columns.STEP.ordinal()].setValue(step);
-                allFields[Columns.STEPSTATUS.ordinal()].setValue(status.getCode());
+                allFields[Columns.STEPSTATUS.ordinal()].setValue(status
+                        .getCode());
                 isSaved = false;
                 return;
             } catch (OpenR66RunnerErrorException e) {
                 status = ErrorCode.ExternalOp;
                 allFields[Columns.STEP.ordinal()].setValue(step);
-                allFields[Columns.STEPSTATUS.ordinal()].setValue(status.getCode());
+                allFields[Columns.STEPSTATUS.ordinal()].setValue(status
+                        .getCode());
                 isSaved = false;
                 throw new OpenR66RunnerErrorException("Runner is in error: " +
                         e.getMessage(), e);
@@ -1463,7 +1693,8 @@ public class DbTaskRunner extends AbstractDbData {
             if (future.isCancelled()) {
                 status = future.getResult().code;
                 allFields[Columns.STEP.ordinal()].setValue(step);
-                allFields[Columns.STEPSTATUS.ordinal()].setValue(status.getCode());
+                allFields[Columns.STEPSTATUS.ordinal()].setValue(status
+                        .getCode());
                 isSaved = false;
                 throw new OpenR66RunnerErrorException("Runner is error: " +
                         future.getCause().getMessage(), future.getCause());
@@ -1486,7 +1717,7 @@ public class DbTaskRunner extends AbstractDbData {
             } catch (OpenR66DatabaseException e) {
                 logger.warn("Cannot update Runner", e);
             }
-            if (! isSender) {
+            if (!isSender) {
                 // flush partial file
                 session.getFile().flush();
             }
@@ -1505,17 +1736,19 @@ public class DbTaskRunner extends AbstractDbData {
             throw new OpenR66RunnerErrorException(e);
         }
     }
+
     /**
      * Clear the runner
      */
     public void clear() {
 
     }
+
     /**
      * Delete the temporary empty file (retrieved file at rank 0)
      */
     public void deleteTempFile() {
-        if ((! isSender()) && getRank() == 0) {
+        if ((!isSender()) && getRank() == 0) {
             try {
                 R66File file = session.getFile();
                 if (file != null) {
@@ -1526,40 +1759,47 @@ public class DbTaskRunner extends AbstractDbData {
             }
         }
     }
+
     @Override
     public String toString() {
         return "Run: " + (rule != null? rule.toString() : ruleId) + " on " +
-                filename + " STEP: " + TASKSTEP.values()[globalstep] +
-                "("+TASKSTEP.values()[globallaststep]+ "):" + step + ":" +
-                status.mesg +
-                " Transfer Rank: " + rank + " SpecialId: " + specialId + " isSender: " +
-                isSender + " isMoved: " + isFileMoved+" Mode: "+TRANSFERMODE.values()[mode]+
-                " Requester: "+requesterHostId+" Requested: "+requestedHostId+
-                " Start: "+start+" Stop: "+stop+" Info: "+UpdatedInfo.values()[updatedInfo];
+                filename + " STEP: " + TASKSTEP.values()[globalstep] + "(" +
+                TASKSTEP.values()[globallaststep] + "):" + step + ":" +
+                status.mesg + " Transfer Rank: " + rank + " SpecialId: " +
+                specialId + " isSender: " + isSender + " isMoved: " +
+                isFileMoved + " Mode: " + TRANSFERMODE.values()[mode] +
+                " Requester: " + requesterHostId + " Requested: " +
+                requestedHostId + " Start: " + start + " Stop: " + stop +
+                " Internal: " + UpdatedInfo.values()[updatedInfo].name()+
+                " Fileinfo: "+fileInformation;
     }
+
     public String toShortString() {
         return "<RULE>" + ruleId + "</RULE><ID>" + specialId + "</ID><FILE>" +
-                filename + "</FILE>\n<STEP>" + TASKSTEP.values()[globalstep] +
-                "("+TASKSTEP.values()[globallaststep]+ "):" + step + ":" +
-                status.mesg +
-                "</STEP><RANK>" + rank + "</RANK>\n<SENDER>" +
-                isSender + "</SENDER><MOVED>" + isFileMoved+"</MOVED><MODE>"+
-                TRANSFERMODE.values()[mode]+
-                "</MODE><REQR>"+requesterHostId+"</REQR><REQD>"+requestedHostId+
-                "</REQD>\n<START>"+start+"</START><STOP>"+stop+"</STOP><INFO>"+
-                UpdatedInfo.values()[updatedInfo]+"</INFO>";
+                filename + "</FILE>\n    <STEP>" + TASKSTEP.values()[globalstep] +
+                "(" + TASKSTEP.values()[globallaststep] + "):" + step + ":" +
+                status.mesg + "</STEP><RANK>" + rank + "</RANK>\n    <SENDER>" +
+                isSender + "</SENDER><MOVED>" + isFileMoved + "</MOVED><MODE>" +
+                TRANSFERMODE.values()[mode] + "</MODE>\n    <REQR>" +
+                requesterHostId + "</REQR><REQD>" + requestedHostId +
+                "</REQD>\n    <START>" + start + "</START><STOP>" + stop +
+                "</STOP>\n    <INTERNAL>" + UpdatedInfo.values()[updatedInfo].name()
+                + "</INTERNAL>\n    <FILEINFO>"+
+                fileInformation+"</FILEINFO>";
     }
+
     /**
      *
      * @return the header for a table of runners in Html format
      */
     public static String headerHtml() {
-        return "<td>SpecialId</td><td>Rule</td><td>Filename" +
-            "</td><td>Step (LastStep)</td><td>Action</td><td>Status" +
-            "</td><td>Transfer Rank</td><td>isMoved" +
-            "</td><td>Requester</td><td>Requested"+
-            "</td><td>Start</td><td>Stop</td><td>Bandwidth (Kbits)</td><td>Free Space(MB)</td>";
+        return "<td>SpecialId</td><td>Rule</td><td>Filename"
+                + "</td><td>Step (LastStep)</td><td>Action</td><td>Status"
+                + "</td><td>Internal</t><td>Transfer Rank</td><td>isMoved"
+                + "</td><td>Requester</td><td>Requested"
+                + "</td><td>Start</td><td>Stop</td><td>Bandwidth (Kbits)</td><td>Free Space(MB)</td>";
     }
+
     /**
      * @param session
      * @return The associated freespace of the current directory
@@ -1568,20 +1808,22 @@ public class DbTaskRunner extends AbstractDbData {
         long freespace = -1;
         DbRule rule = null;
         try {
-            rule = (this.rule != null) ? this.rule : new DbRule(this.dbSession, this.ruleId);
+            rule = (this.rule != null)? this.rule : new DbRule(this.dbSession,
+                    this.ruleId);
         } catch (OpenR66DatabaseException e) {
         }
         if (this.rule == null) {
             this.rule = rule;
         }
-        if (rule != null){
-            if (! this.isSender) {
+        if (rule != null) {
+            if (!this.isSender) {
                 try {
                     String sdir;
                     if (this.globallaststep == TASKSTEP.ALLDONETASK.ordinal()) {
                         // all finished
                         sdir = rule.recvPath;
-                    } else if (this.globallaststep == TASKSTEP.POSTTASK.ordinal()) {
+                    } else if (this.globallaststep == TASKSTEP.POSTTASK
+                            .ordinal()) {
                         // Post task
                         sdir = rule.recvPath;
                     } else {
@@ -1604,6 +1846,7 @@ public class DbTaskRunner extends AbstractDbData {
         }
         return freespace;
     }
+
     private String getHtmlColor() {
         String color;
         switch (TASKSTEP.values()[globalstep]) {
@@ -1630,61 +1873,96 @@ public class DbTaskRunner extends AbstractDbData {
         }
         return color;
     }
+
     /**
      * @param session
-     * @return the runner in Html format compatible with the header from headerHtml method
+     * @return the runner in Html format compatible with the header from
+     *         headerHtml method
      */
     public String toHtml(R66Session session) {
-       long freespace = freespace(session);
-       String color = getHtmlColor();
-       return "<td>" + specialId +
-                "</td><td>" + (rule != null? rule.toShortString() : ruleId) + "</td><td>" +
-                filename + "</td><td bgcolor=\""+color+"\">" + TASKSTEP.values()[globalstep] +
-                " ("+TASKSTEP.values()[globallaststep]+ ")</td><td>" + step + "</td><td>" +
+        long freespace = freespace(session);
+        String color = getHtmlColor();
+        return "<td>" +
+                specialId +
+                "</td><td>" +
+                (rule != null? rule.toShortString() : ruleId) +
+                "</td><td>" +
+                filename +
+                "</td><td bgcolor=\"" +
+                color +
+                "\">" +
+                TASKSTEP.values()[globalstep] +
+                " (" +
+                TASKSTEP.values()[globallaststep] +
+                ")</td><td>" +
+                step +
+                "</td><td>" +
                 status.mesg +
-                "</td><td>" + rank + "</td><td>" +
-                isFileMoved+"</td><td>"+requesterHostId+"</td><td>"+requestedHostId+
-                "</td><td>"+start+"</td><td>"+stop+"</td><td>"+
-                (int)(((double) (rank*blocksize*8))/((double) (stop.getTime()+1-start.getTime())))
-                +"</td>"+
-                "<td>"+freespace+"</td>";
+                "</td><td>" +
+                UpdatedInfo.values()[updatedInfo].name()+
+                "</td><td>" +
+                rank +
+                "</td><td>" +
+                isFileMoved +
+                "</td><td>" +
+                requesterHostId +
+                "</td><td>" +
+                requestedHostId +
+                "</td><td>" +
+                start +
+                "</td><td>" +
+                stop +
+                "</td><td>" +
+                (int) (((double) (rank * blocksize * 8)) / ((double) (stop
+                        .getTime() + 1 - start.getTime()))) + "</td>" + "<td>" +
+                freespace + "</td>";
     }
+
     /**
      * @param session
      * @param body
-     * @return the runner in Html format specified by body by replacing all instance of fields
+     * @return the runner in Html format specified by body by replacing all
+     *         instance of fields
      */
     public String toSpecializedHtml(R66Session session, String body) {
         long freespace = freespace(session);
-        String line = body.replace("XXXSpecIdXXX", Long.toString(specialId));
-        line = line.replace("XXXRulXXX", (rule != null? rule.toShortString() : ruleId));
-        line = line.replace("XXXFileXXX", filename);
-        line = line.replace("XXXStepXXX", TASKSTEP.values()[globalstep] +
-                " ("+TASKSTEP.values()[globallaststep]+ ")");
-        line = line.replace("XXXCOLXXX", getHtmlColor());
-        line = line.replace("XXXActXXX", Integer.toString(step));
-        line = line.replace("XXXStatXXX", status.mesg);
-        line = line.replace("XXXBloXXX", Integer.toString(rank));
-        line = line.replace("XXXisSendXXX", Boolean.toString(isSender));
-        line = line.replace("XXXisMovXXX", Boolean.toString(isFileMoved));
-        line = line.replace("XXXModXXX", TRANSFERMODE.values()[mode].toString());
-        line = line.replace("XXXReqrXXX", requesterHostId);
-        line = line.replace("XXXReqdXXX", requestedHostId);
-        line = line.replace("XXXStarXXX", start.toString());
-        line = line.replace("XXXStopXXX", stop.toString());
-        line = line.replace("XXXBandXXX", Integer.toString(
-                (int)(((double) (rank*blocksize*8))/((double) (stop.getTime()+1-start.getTime())))));
-        line = line.replace("XXXFreeXXX", Long.toString(freespace));
-        return line;
+        StringBuilder builder = new StringBuilder(body);
+        FileUtils.replaceAll(builder, "XXXSpecIdXXX", Long.toString(specialId));
+        FileUtils.replace(builder, "XXXRulXXX", (rule != null? rule.toShortString()
+                : ruleId));
+        FileUtils.replace(builder, "XXXFileXXX", filename);
+        FileUtils.replace(builder, "XXXStepXXX", TASKSTEP.values()[globalstep] + " (" +
+                TASKSTEP.values()[globallaststep] + ")");
+        FileUtils.replace(builder, "XXXCOLXXX", getHtmlColor());
+        FileUtils.replace(builder, "XXXActXXX", Integer.toString(step));
+        FileUtils.replace(builder, "XXXStatXXX", status.mesg);
+        FileUtils.replace(builder, "XXXInternXXX", UpdatedInfo.values()[updatedInfo].name());
+        FileUtils.replace(builder, "XXXBloXXX", Integer.toString(rank));
+        FileUtils.replace(builder, "XXXisSendXXX", Boolean.toString(isSender));
+        FileUtils.replace(builder, "XXXisMovXXX", Boolean.toString(isFileMoved));
+        FileUtils.replace(builder, "XXXModXXX", TRANSFERMODE.values()[mode].toString());
+        FileUtils.replaceAll(builder, "XXXReqrXXX", requesterHostId);
+        FileUtils.replaceAll(builder, "XXXReqdXXX", requestedHostId);
+        FileUtils.replace(builder, "XXXStarXXX", start.toString());
+        FileUtils.replace(builder, "XXXStopXXX", stop.toString());
+        FileUtils.replace(builder, "XXXBandXXX", Integer.toString((int) (((double) (rank *
+                        blocksize * 8)) / ((double) (stop.getTime() + 1 - start
+                        .getTime())))));
+        FileUtils.replace(builder, "XXXFreeXXX", Long.toString(freespace));
+        return builder.toString();
     }
+
     /**
      *
-     * @return True if the current host is the requested host (to prevent request to itself)
+     * @return True if the current host is the requested host (to prevent
+     *         request to itself)
      */
     public boolean isSelfRequested() {
-        return (this.requestedHostId.equals(Configuration.configuration.HOST_ID)
-                || this.requestedHostId.equals(Configuration.configuration.HOST_SSLID));
+        return (this.requestedHostId
+                .equals(Configuration.configuration.HOST_ID) || this.requestedHostId
+                .equals(Configuration.configuration.HOST_SSLID));
     }
+
     /**
      *
      * @return the requested HostId
@@ -1692,13 +1970,14 @@ public class DbTaskRunner extends AbstractDbData {
     public String getRequested() {
         return this.requestedHostId;
     }
+
     /**
-    *
-    * @return the requester HostId
-    */
-   public String getRequester() {
-       return this.requesterHostId;
-   }
+     *
+     * @return the requester HostId
+     */
+    public String getRequester() {
+        return this.requesterHostId;
+    }
 
     /**
      * @return the start
@@ -1722,15 +2001,19 @@ public class DbTaskRunner extends AbstractDbData {
         return new RequestPacket(ruleId, mode, originalFilename, blocksize,
                 rank, specialId, fileInformation);
     }
+
     /**
      * Used internally
+     *
      * @return a Key representing the primary key as a unique string
      */
     public String getKey() {
-        return requestedHostId+" "+requesterHostId+" "+specialId;
+        return requestedHostId + " " + requesterHostId + " " + specialId;
     }
+
     /**
      * Construct a new Element with value
+     *
      * @param name
      * @param value
      * @return the new Element
@@ -1742,53 +2025,66 @@ public class DbTaskRunner extends AbstractDbData {
         }
         return node;
     }
+
     /**
      *
      * @param runner
      * @return The Element representing the given Runner
      * @throws OpenR66DatabaseSqlError
      */
-    private static Element getElementFromRunner(DbTaskRunner runner) throws OpenR66DatabaseSqlError {
+    private static Element getElementFromRunner(DbTaskRunner runner)
+            throws OpenR66DatabaseSqlError {
         Element root = new DefaultElement("runner");
         for (DbValue value: runner.allFields) {
             if (value.column.equals(Columns.UPDATEDINFO.name())) {
                 continue;
             }
-            root.add(newElement(value.column.toLowerCase(), value.getValueAsString()));
+            root.add(newElement(value.column.toLowerCase(), value
+                    .getValueAsString()));
         }
         return root;
     }
+
     /**
      * Write the selected TaskRunners from PrepareStatement to a XML tree
-     * @param preparedStatement ready to be executed
+     *
+     * @param preparedStatement
+     *            ready to be executed
      * @return the generated Document
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
      */
-    public static Document writeXML(DbPreparedStatement preparedStatement) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+    public static Document writeXML(DbPreparedStatement preparedStatement)
+            throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
         Document document = DocumentHelper.createDocument();
         Element root = document.addElement("taskrunners");
         preparedStatement.executeQuery();
         Element node;
         while (preparedStatement.getNext()) {
-            DbTaskRunner runner = DbTaskRunner.getFromStatement(preparedStatement);
+            DbTaskRunner runner = DbTaskRunner
+                    .getFromStatement(preparedStatement);
             node = DbTaskRunner.getElementFromRunner(runner);
             root.add(node);
         }
         return document;
     }
+
     /**
      * Write all TaskRunners to an XML file
+     *
      * @param filename
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
      */
-    public static void writeXML(String filename) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
-        String request = "SELECT " +DbTaskRunner.selectAllFields+" FROM "+DbTaskRunner.table;
+    public static void writeXML(String filename)
+            throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+        String request = "SELECT " + DbTaskRunner.selectAllFields + " FROM " +
+                DbTaskRunner.table;
         DbPreparedStatement preparedStatement = null;
         Document document = null;
         try {
-            preparedStatement = new DbPreparedStatement(DbConstant.admin.session);
+            preparedStatement = new DbPreparedStatement(
+                    DbConstant.admin.session);
             preparedStatement.createPrepareStatement(request);
             document = writeXML(preparedStatement);
         } finally {
@@ -1800,7 +2096,7 @@ public class DbTaskRunner extends AbstractDbData {
             try {
                 FileUtils.writeXML(filename, null, document);
             } catch (OpenR66ProtocolSystemException e) {
-                logger.warn("Cannot write XML file",e);
+                logger.warn("Cannot write XML file", e);
             }
         }
     }

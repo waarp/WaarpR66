@@ -10,9 +10,9 @@ import org.jboss.netty.buffer.ChannelBuffers;
 
 /**
  * Error Message class for packet
- * 
- * 3 strings: sheader,smiddle,send
- * 
+ *
+ * 2 strings+1 error code: sheader,smiddle,code
+ *
  * @author frederic bregier
  */
 public class ErrorPacket extends AbstractLocalPacket {
@@ -69,7 +69,7 @@ public class ErrorPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#createEnd()
      */
     @Override
@@ -80,7 +80,7 @@ public class ErrorPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * openr66.protocol.localhandler.packet.AbstractLocalPacket#createHeader()
      */
@@ -93,7 +93,7 @@ public class ErrorPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * openr66.protocol.localhandler.packet.AbstractLocalPacket#createMiddle()
      */
@@ -106,7 +106,7 @@ public class ErrorPacket extends AbstractLocalPacket {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see openr66.protocol.localhandler.packet.AbstractLocalPacket#toString()
      */
     @Override

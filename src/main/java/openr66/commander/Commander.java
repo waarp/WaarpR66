@@ -48,6 +48,8 @@ public class Commander implements Runnable {
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(Commander.class);
 
+    private static final int LIMITSUBMIT = 100;
+
     private InternalRunner internalRunner = null;
     private DbPreparedStatement preparedStatementConfig = null;
     private DbPreparedStatement preparedStatementHost = null;
@@ -70,10 +72,11 @@ public class Commander implements Runnable {
             preparedStatementRule =
                 DbRule.getUpdatedPrepareStament(DbConstant.admin.session);
             preparedStatementRunner =
-                DbTaskRunner.getUpdatedPrepareStament(DbConstant.admin.session);
-
-            // Change TORUN to UPDATED since they should ready
-            DbTaskRunner.changeToRunToUpdated(DbConstant.admin.session);
+                DbTaskRunner.getUpdatedPrepareStament(DbConstant.admin.session, LIMITSUBMIT);
+            // Clean tasks (CompleteOK and ALLDONE => DONE)
+            DbTaskRunner.changeFinishedToDone(DbConstant.admin.session);
+            // Change RUNNING or INTERRUPTED to TOSUBMIT since they should be ready
+            DbTaskRunner.resetToUpdated(DbConstant.admin.session);
             internalRunner = runner;
         } finally {
             if (internalRunner == null) {

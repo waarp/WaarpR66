@@ -104,24 +104,15 @@ public class ServerExportConfiguration {
                 RuleFileBasedConfiguration.writeXml(directory, hostname);
             } catch (OpenR66DatabaseNoConnectionError e1) {
                 logger.warn("Error",e1);
-                try {
-                    DbConstant.admin.close();
-                } catch (OpenR66DatabaseSqlError e) {
-                }
+                DbConstant.admin.close();
                 System.exit(2);
             } catch (OpenR66DatabaseSqlError e1) {
                 logger.warn("Error",e1);
-                try {
-                    DbConstant.admin.close();
-                } catch (OpenR66DatabaseSqlError e) {
-                }
+                DbConstant.admin.close();
                 System.exit(2);
             } catch (OpenR66ProtocolSystemException e1) {
                 logger.warn("Error",e1);
-                try {
-                    DbConstant.admin.close();
-                } catch (OpenR66DatabaseSqlError e) {
-                }
+                DbConstant.admin.close();
                 System.exit(2);
             }
             filename = dir.getAbsolutePath()+File.separator+hostname+"_Runners.run.xml";
@@ -129,51 +120,33 @@ public class ServerExportConfiguration {
                 DbTaskRunner.writeXML(filename);
             } catch (OpenR66DatabaseNoConnectionError e1) {
                 logger.warn("Error",e1);
-                try {
-                    DbConstant.admin.close();
-                } catch (OpenR66DatabaseSqlError e) {
-                }
+                DbConstant.admin.close();
                 System.exit(2);
             } catch (OpenR66DatabaseSqlError e1) {
                 logger.warn("Error",e1);
-                try {
-                    DbConstant.admin.close();
-                } catch (OpenR66DatabaseSqlError e) {
-                }
-                System.exit(2);
+                DbConstant.admin.close();
+               System.exit(2);
             }
             filename = dir.getAbsolutePath()+File.separator+hostname+"_Authentications.xml";
             try {
                 AuthenticationFileBasedConfiguration.writeXML(filename);
             } catch (OpenR66DatabaseNoConnectionError e) {
                 logger.warn("Error",e);
-                try {
-                    DbConstant.admin.close();
-                } catch (OpenR66DatabaseSqlError e1) {
-                }
+                DbConstant.admin.close();
                 System.exit(2);
             } catch (OpenR66DatabaseSqlError e) {
                 logger.warn("Error",e);
-                try {
-                    DbConstant.admin.close();
-                } catch (OpenR66DatabaseSqlError e1) {
-                }
+                DbConstant.admin.close();
                 System.exit(2);
             } catch (OpenR66ProtocolSystemException e) {
                 logger.warn("Error",e);
-                try {
-                    DbConstant.admin.close();
-                } catch (OpenR66DatabaseSqlError e1) {
-                }
+                DbConstant.admin.close();
                 System.exit(2);
             }
             logger.warn("End of Export");
         } finally {
-            try {
-                if (DbConstant.admin != null) {
-                    DbConstant.admin.close();
-                }
-            } catch (OpenR66DatabaseSqlError e) {
+            if (DbConstant.admin != null) {
+                DbConstant.admin.close();
             }
         }
     }

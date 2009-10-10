@@ -32,7 +32,6 @@ import openr66.database.DbConstant;
 import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
 import openr66.database.exception.OpenR66DatabaseException;
-import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
@@ -132,10 +131,7 @@ public class DirectTransfer extends AbstractTransfer {
         if (! getParams(args)) {
             logger.error("Wrong initialization");
             if (DbConstant.admin != null && DbConstant.admin.isConnected) {
-                try {
-                    DbConstant.admin.close();
-                } catch (OpenR66DatabaseSqlError e) {
-                }
+                DbConstant.admin.close();
             }
             System.exit(1);
         }
@@ -177,7 +173,7 @@ public class DirectTransfer extends AbstractTransfer {
                 if (result == null || result.runner == null) {
                     logger.warn("Transfer in Error with no Id", future.getCause());
                     networkTransaction.closeAll();
-                    System.exit(1);
+                    System.exit(ErrorCode.Unknown.ordinal());
                 }
                 if (result.runner.getStatus() == ErrorCode.Warning) {
                     logger.warn("Transfer in Warning "+result.runner.toShortString()+

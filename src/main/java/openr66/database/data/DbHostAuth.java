@@ -35,6 +35,7 @@ import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
+import openr66.protocol.utils.FileUtils;
 
 /**
  * Host Authentication Table object
@@ -347,7 +348,7 @@ public class DbHostAuth extends AbstractDbData {
        String request = "SELECT " +selectAllFields;
        request += " FROM "+table+
            " WHERE "+Columns.UPDATEDINFO.name()+" = "+
-           AbstractDbData.UpdatedInfo.UPDATED.ordinal();
+           AbstractDbData.UpdatedInfo.TOSUBMIT.ordinal();
        return new DbPreparedStatement(session, request);
    }
    /**
@@ -485,12 +486,13 @@ public class DbHostAuth extends AbstractDbData {
      * @return the runner in Html format specified by body by replacing all instance of fields
      */
     public String toSpecializedHtml(R66Session session, String body) {
-        String line = body.replace("XXXHOSTXXX", hostid);
-        line = line.replace("XXXADDRXXX", address);
-        line = line.replace("XXXPORTXXX", Integer.toString(port));
-        line = line.replace("XXXKEYXXX", new String(hostkey));
-        line = line.replace("XXXSSLXXX", isSsl ? "checked": "");
-        line = line.replace("XXXADMXXX", adminrole ? "checked": "");
-        return line;
+        StringBuilder builder = new StringBuilder(body);
+        FileUtils.replace(builder, "XXXHOSTXXX", hostid);
+        FileUtils.replace(builder, "XXXADDRXXX", address);
+        FileUtils.replace(builder, "XXXPORTXXX", Integer.toString(port));
+        FileUtils.replace(builder, "XXXKEYXXX", new String(hostkey));
+        FileUtils.replace(builder, "XXXSSLXXX", isSsl ? "checked": "");
+        FileUtils.replace(builder, "XXXADMXXX", adminrole ? "checked": "");
+        return builder.toString();
     }
 }

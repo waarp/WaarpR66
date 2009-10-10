@@ -32,6 +32,7 @@ import openr66.database.data.DbConfiguration;
 import openr66.database.data.DbHostAuth;
 import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
+import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
@@ -41,7 +42,7 @@ import openr66.database.exception.OpenR66DatabaseSqlError;
  * @author Frederic Bregier
  *
  */
-public class DbModelMysql extends AbstractDbModel {
+public class DbModelMysql implements DbModel {
     private static enum DBType {
         CHAR(Types.CHAR, " CHAR(3) "),
         VARCHAR(Types.VARCHAR, " VARCHAR(254) "),
@@ -106,7 +107,7 @@ public class DbModelMysql extends AbstractDbModel {
     private final ReentrantLock lock = new ReentrantLock();
 
     @Override
-    public void createTables() {
+    public void createTables() throws OpenR66DatabaseNoConnectionError {
         // Create tables: configuration, hosts, rules, runner, cptrunner
         String createTableH2 = "CREATE TABLE IF NOT EXISTS ";
         String primaryKey = " PRIMARY KEY ";
@@ -256,10 +257,10 @@ public class DbModelMysql extends AbstractDbModel {
     /*
      * (non-Javadoc)
      *
-     * @see openr66.database.model.AbstractDbModel#resetSequence()
+     * @see openr66.database.model.DbModel#resetSequence()
      */
     @Override
-    public void resetSequence(long newvalue) {
+    public void resetSequence(long newvalue) throws OpenR66DatabaseNoConnectionError {
         String action = "UPDATE Sequences SET seq = " + newvalue+
             " WHERE name = '"+ DbTaskRunner.fieldseq + "'";
         DbRequest request = new DbRequest(DbConstant.admin.session);
@@ -279,10 +280,10 @@ public class DbModelMysql extends AbstractDbModel {
     /*
      * (non-Javadoc)
      *
-     * @see openr66.database.model.AbstractDbModel#nextSequence()
+     * @see openr66.database.model.DbModel#nextSequence()
      */
     @Override
-    public long nextSequence(DbSession dbSession)
+    public synchronized long nextSequence(DbSession dbSession)
         throws OpenR66DatabaseNoConnectionError,
             OpenR66DatabaseSqlError, OpenR66DatabaseNoDataException {
         lock.lock();
@@ -323,4 +324,46 @@ public class DbModelMysql extends AbstractDbModel {
             lock.unlock();
         }
     }
+
+    /* (non-Javadoc)
+     * @see openr66.database.model.DbModel#validConnection(DbSession)
+     */
+    @Override
+    public void validConnection(DbSession dbSession) throws OpenR66DatabaseNoConnectionError {
+        DbRequest request = new DbRequest(dbSession, true);
+        try {
+            request.select("select 1 from dual");
+            if (!request.getNext()) {
+                throw new OpenR66DatabaseNoConnectionError(
+                        "Cannot connect to database");
+            }
+        } catch (OpenR66DatabaseSqlError e) {
+            try {
+                dbSession.disconnect();
+                DbSession newdbSession = new DbSession(DbConstant.admin, false);
+                dbSession.conn = newdbSession.conn;
+                dbSession.useConnection();
+                request.close();
+                request.select("select 1 from dual");
+                if (!request.getNext()) {
+                    throw new OpenR66DatabaseNoConnectionError(
+                            "Cannot connect to database");
+                }
+                return;
+            } catch (OpenR66DatabaseException e1) {
+            }
+            throw new OpenR66DatabaseNoConnectionError(
+                    "Cannot connect to database", e);
+        } finally {
+            request.close();
+        }
+    }
+    /* (non-Javadoc)
+     * @see openr66.database.model.DbModel#limitRequest(java.lang.String, java.lang.String, int)
+     */
+    @Override
+    public String limitRequest(String allfields, String request, int nb) {
+        return request+" LIMIT "+nb;
+    }
+
 }

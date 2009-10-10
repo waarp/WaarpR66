@@ -58,7 +58,6 @@ import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
-import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.ErrorPacket;
@@ -118,6 +117,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
      */
     private static final ConcurrentHashMap<String, R66Session> sessions
         = new ConcurrentHashMap<String, R66Session>();
+    private static final ConcurrentHashMap<String, DbSession> dbSessions
+        = new ConcurrentHashMap<String, DbSession>();
     private volatile R66Session authentHttp = new R66Session();
 
     private volatile HttpRequest request;
@@ -144,11 +145,13 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         XXXLOCALXXX, XXXNETWORKXXX,
         XXXERRORMESGXXX;
     }
+    public static final int LIMITROW = 100;
+
     /**
      * The Database connection attached to this NetworkChannel
-     * shared among all associated LocalChannels
+     * shared among all associated LocalChannels in the session
      */
-    private DbSession dbSession;
+    private DbSession dbSession = null;
     /**
      * Does this dbSession is private and so should be closed
      */
@@ -224,22 +227,24 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
     }
     private String readFileHeader(String filename) {
         String value = readFile(filename);
-        value = value.replace(REPLACEMENT.XXXLOCALXXX.toString(),
+        StringBuilder builder = new StringBuilder(value);
+        FileUtils.replace(builder, REPLACEMENT.XXXLOCALXXX.toString(),
                 Integer.toString(
                         Configuration.configuration.getLocalTransaction().
                         getNumberLocalChannel()));
-        value = value.replace(REPLACEMENT.XXXNETWORKXXX.toString(),
+        FileUtils.replace(builder, REPLACEMENT.XXXNETWORKXXX.toString(),
                 Integer.toString(
                         OpenR66SignalHandler.getNbConnection()));
-        value = value.replace(REPLACEMENT.XXXHOSTIDXXX.toString(),
+        FileUtils.replace(builder, REPLACEMENT.XXXHOSTIDXXX.toString(),
                 Configuration.configuration.HOST_ID);
         if (authentHttp.isAuthenticated()) {
-            return value.replace(REPLACEMENT.XXXADMINXXX.toString(),
+            FileUtils.replace(builder, REPLACEMENT.XXXADMINXXX.toString(),
                 authentHttp.getAuth().getUser());
         } else {
-            return value.replace(REPLACEMENT.XXXADMINXXX.toString(),
+            FileUtils.replace(builder, REPLACEMENT.XXXADMINXXX.toString(),
                     "Not authenticated");
         }
+        return builder.toString();
     }
     private static SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmssSSS");
     private Timestamp fixDate(String date) {
@@ -285,10 +290,12 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 
     private String index() {
         String index = readFileHeader(Configuration.configuration.httpBasePath+"index.html");
-        index = index.replaceAll(REPLACEMENT.XXXHOSTIDXXX.toString(),
+        StringBuilder builder = new StringBuilder(index);
+        FileUtils.replaceAll(builder, REPLACEMENT.XXXHOSTIDXXX.toString(),
                 Configuration.configuration.HOST_ID);
-        return index.replaceAll(REPLACEMENT.XXXADMINXXX.toString(),
+        FileUtils.replaceAll(builder, REPLACEMENT.XXXADMINXXX.toString(),
                 authentHttp.getAuth().getUser());
+        return builder.toString();
     }
     private String error(String mesg) {
         String index = readFileHeader(Configuration.configuration.httpBasePath+"error.html");
@@ -305,16 +312,17 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
     private String resetOptionTransfer(String header,
             String start, String stop, String rule, String req,
             boolean pending, boolean transfer, boolean error, boolean done, boolean all) {
-        String value = header.replace("XXXSTARTXXX", start);
-        value = value.replace("XXXSTOPXXX", stop);
-        value = value.replace("XXXRULEXXX", rule);
-        value = value.replace("XXXREQXXX", req);
-        value = value.replace("XXXPENDXXX", pending ? "checked":"");
-        value = value.replace("XXXTRANSXXX", transfer ? "checked":"");
-        value = value.replace("XXXERRXXX", error ? "checked":"");
-        value = value.replace("XXXDONEXXX", done ? "checked":"");
-        value = value.replace("XXXALLXXX", all ? "checked":"");
-        return value;
+        StringBuilder builder = new StringBuilder(header);
+        FileUtils.replace(builder, "XXXSTARTXXX", start);
+        FileUtils.replace(builder, "XXXSTOPXXX", stop);
+        FileUtils.replace(builder, "XXXRULEXXX", rule);
+        FileUtils.replace(builder, "XXXREQXXX", req);
+        FileUtils.replace(builder, "XXXPENDXXX", pending ? "checked":"");
+        FileUtils.replace(builder, "XXXTRANSXXX", transfer ? "checked":"");
+        FileUtils.replace(builder, "XXXERRXXX", error ? "checked":"");
+        FileUtils.replace(builder, "XXXDONEXXX", done ? "checked":"");
+        FileUtils.replace(builder, "XXXALLXXX", all ? "checked":"");
+        return builder.toString();
     }
     private String Listing() {
         getParams();
@@ -369,7 +377,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 DbPreparedStatement preparedStatement;
                 try {
                     preparedStatement =
-                        DbTaskRunner.getFilterPrepareStament(dbSession,
+                        DbTaskRunner.getFilterPrepareStament(dbSession, LIMITROW,
                                 tstart, tstop, rule, req, pending, transfer, error, done, all);
                     preparedStatement.executeQuery();
                     StringBuilder builder = new StringBuilder();
@@ -378,7 +386,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                         i++;
                         DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatement);
                         builder.append(taskRunner.toSpecializedHtml(authentHttp, body));
-                        if (i > 200) {
+                        if (i > LIMITROW) {
                             break;
                         }
                     }
@@ -452,7 +460,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 DbPreparedStatement preparedStatement;
                 try {
                     preparedStatement =
-                        DbTaskRunner.getFilterPrepareStament(dbSession,
+                        DbTaskRunner.getFilterPrepareStament(dbSession, LIMITROW,
                                 tstart, tstop, rule, req, pending, transfer, error, done, all);
                     preparedStatement.executeQuery();
                     StringBuilder builder = new StringBuilder();
@@ -461,7 +469,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                         i++;
                         DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatement);
                         builder.append(taskRunner.toSpecializedHtml(authentHttp, body));
-                        if (i > 200) {
+                        if (i > LIMITROW) {
                             break;
                         }
                     }
@@ -482,26 +490,49 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     getFromRequest(reqd+" "+reqr+" "+specid);
                 // stop the current transfer
                 ErrorCode result;
-                if (lcr != null) {
-                    ErrorCode code = (stop) ?
-                            ErrorCode.StoppedTransfer : ErrorCode.CanceledTransfer;
-                    ErrorPacket error = new ErrorPacket("Transfer Stopped",
-                            code.getCode(), ErrorPacket.FORWARDCLOSECODE);
-                    try {
-                        ChannelUtils.writeAbstractLocalPacket(lcr, error).awaitUninterruptibly();
-                    } catch (OpenR66ProtocolPacketException e) {
-                    }
-                    ChannelUtils.close(lcr.getLocalChannel());
-                    result = ErrorCode.CompleteOk;
-                } else {
-                    // Transfer is not running
-                    result = ErrorCode.TransferOk;
-                }
                 long lspecid = Long.parseLong(specid);
-                DbTaskRunner taskRunner;
+                DbTaskRunner taskRunner = null;
                 try {
                     taskRunner = new DbTaskRunner(dbSession, authentHttp, null,
                             lspecid, reqr, reqd);
+                } catch (OpenR66DatabaseException e) {
+                }
+                if (taskRunner == null) {
+                    body = "";
+                    body1 = readFile(Configuration.configuration.httpBasePath+
+                            "CancelRestart_body1.html");
+                    body1 += "<br><b>"+parm+" aborted since Transfer is not found</b>";
+                    String end = readFile(Configuration.configuration.httpBasePath+
+                            "CancelRestart_end.html");
+                    return head+body0+body+body1+end;
+                }
+                ErrorCode code = (stop) ?
+                        ErrorCode.StoppedTransfer : ErrorCode.CanceledTransfer;
+                if (lcr != null) {
+                    int rank = (stop ? taskRunner.getRank()-1 : 0);
+                    if (rank < 0) {
+                        rank = 0;
+                    }
+                    ErrorPacket error = new ErrorPacket("Transfer "+parm+" "+rank,
+                            code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                    try {
+                        //ChannelUtils.writeAbstractLocalPacket(lcr, error);
+                        ChannelUtils.writeAbstractLocalPacketToLocal(lcr, error);
+                    } catch (Exception e) {
+                    }
+                    //ChannelUtils.close(lcr.getLocalChannel());
+                    result = ErrorCode.CompleteOk;
+                } else {
+                    // Transfer is not running
+                    // But is the database saying the contrary
+                    result = ErrorCode.TransferOk;
+                    if (taskRunner != null) {
+                        if (taskRunner.stopOrCancelRunner(code)) {
+                            result = ErrorCode.CompleteOk;
+                        }
+                    }
+                }
+                if (taskRunner != null) {
                     body = readFile(Configuration.configuration.httpBasePath+"CancelRestart_body.html");
                     body = taskRunner.toSpecializedHtml(authentHttp, body);
                     String tstart = taskRunner.getStart().toString();
@@ -511,7 +542,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     head = resetOptionTransfer(head, tstart, tstop,
                             taskRunner.getRuleId(), taskRunner.getRequested(),
                             false, false, false, false, true);
-                } catch (OpenR66DatabaseException e) {
+                } else {
                     body = "";
                 }
                 body1 = readFile(Configuration.configuration.httpBasePath+"CancelRestart_body1.html");
@@ -524,14 +555,23 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 String reqr = params.get("reqr").get(0);
                 long lspecid = Long.parseLong(specid);
                 DbTaskRunner taskRunner;
-                ErrorCode result;
+                String comment;
                 try {
+                    LocalChannelReference lcr =
+                        Configuration.configuration.getLocalTransaction().
+                        getFromRequest(reqd+" "+reqr+" "+lspecid);
                     taskRunner = new DbTaskRunner(dbSession, authentHttp, null,
                             lspecid, reqr, reqd);
-                    if (taskRunner.restart()) {
-                        result = ErrorCode.Running;
+                    if (lcr != null) {
+                        comment = "Transfer is still running so not restartable";
                     } else {
-                        result = ErrorCode.Warning;
+                        // Transfer is not running
+                        // but maybe need action on database
+                        if (taskRunner.restart()) {
+                            comment = "Transfer is restarted";
+                        } else {
+                            comment = "Transfer is finished so not restartable";
+                        }
                     }
                     body = readFile(Configuration.configuration.httpBasePath+"CancelRestart_body.html");
                     body = taskRunner.toSpecializedHtml(authentHttp, body);
@@ -544,10 +584,10 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                             false, false, false, false, true);
                 } catch (OpenR66DatabaseException e) {
                     body = "";
-                    result = ErrorCode.Warning;
+                    comment = "Internal error";
                 }
                 body1 = readFile(Configuration.configuration.httpBasePath+"CancelRestart_body1.html");
-                body1 += "<br><b>"+(result == ErrorCode.Running ? "Restart transmitted": "Transfer is not restartable since completely done")+"</b>";
+                body1 += "<br><b>"+comment+"</b>";
             } else {
                 head = resetOptionTransfer(head, "", "", "", "",
                         false, false, false, false, true);
@@ -602,13 +642,22 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 rule == null ? "":rule, req == null ? "":req,
                 pending, transfer, error, done, all);
         boolean isexported = true;
+        // clean a bit the database before exporting
+        try {
+            DbTaskRunner.changeFinishedToDone(dbSession);
+        } catch (OpenR66DatabaseNoConnectionError e2) {
+            // should not be
+        }
         // create export of log and optionally purge them from database
         DbPreparedStatement getValid = null;
         Document document = null;
         try {
             getValid =
+                DbTaskRunner.getFilterPrepareStament(dbSession, 0,// 0 means no limit
+                        tstart, tstop, rule, req, pending, transfer, error, done, all);
+            /*getValid =
                 DbTaskRunner.getLogPrepareStament(dbSession,
-                        tstart, tstop);
+                        tstart, tstop);*/
             document = DbTaskRunner.writeXML(getValid);
         } catch (OpenR66DatabaseNoConnectionError e1) {
             isexported = false;
@@ -635,11 +684,14 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             }
             // in case of purge
             if (isexported && toPurge) {
-                // purge in same interval all runners with globallaststep
-                // as ALLDONETASK or ERRORTASK
+                // purge with same filter all runners where globallasttep
+                // is ALLDONE, NOTASK or ERROR
                 try {
-                    nb = DbTaskRunner.purgeLogPrepareStament(
-                            dbSession, tstart, tstop);
+                    nb =
+                        DbTaskRunner.purgeLogPrepareStament(dbSession,
+                                tstart, tstop, rule, req, pending, transfer, error, done, all);
+                    /*nb = DbTaskRunner.purgeLogPrepareStament(
+                            dbSession, tstart, tstop);*/
                 } catch (OpenR66DatabaseNoConnectionError e) {
                 } catch (OpenR66DatabaseSqlError e) {
                 }
@@ -650,10 +702,11 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
     }
     private String resetOptionHosts(String header,
             String host, String addr, boolean ssl) {
-        String value = header.replace("XXXFHOSTXXX", host);
-        value = value.replace("XXXFADDRXXX", addr);
-        value = value.replace("XXXFSSLXXX", ssl ? "checked":"");
-        return value;
+        StringBuilder builder = new StringBuilder(header);
+        FileUtils.replace(builder, "XXXFHOSTXXX", host);
+        FileUtils.replace(builder, "XXXFADDRXXX", addr);
+        FileUtils.replace(builder, "XXXFSSLXXX", ssl ? "checked":"");
+        return builder.toString();
     }
     private String Hosts() {
         getParams();
@@ -734,7 +787,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                         i++;
                         DbHostAuth dbhost = DbHostAuth.getFromStatement(preparedStatement);
                         builder.append(dbhost.toSpecializedHtml(authentHttp, body));
-                        if (i > 200) {
+                        if (i > LIMITROW) {
                             break;
                         }
                     }
@@ -849,43 +902,44 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
     }
     private String resetOptionRules(String header,
             String rule, RequestPacket.TRANSFERMODE mode, int gmode) {
-        String line = header.replace("XXXRULEXXX", rule);
+        StringBuilder builder = new StringBuilder(header);
+        FileUtils.replace(builder, "XXXRULEXXX", rule);
         if (mode != null) {
             switch (mode) {
             case RECVMODE:
-                line = line.replace("XXXRECVXXX", "checked");
+                FileUtils.replace(builder, "XXXRECVXXX", "checked");
                 break;
             case SENDMODE:
-                line = line.replace("XXXSENDXXX", "checked");
+                FileUtils.replace(builder, "XXXSENDXXX", "checked");
                 break;
             case RECVMD5MODE:
-                line = line.replace("XXXRECVMXXX", "checked");
+                FileUtils.replace(builder, "XXXRECVMXXX", "checked");
                 break;
             case SENDMD5MODE:
-                line = line.replace("XXXSENDMXXX", "checked");
+                FileUtils.replace(builder, "XXXSENDMXXX", "checked");
                 break;
             case RECVTHROUGHMODE:
-                line = line.replace("XXXRECVTXXX", "checked");
+                FileUtils.replace(builder, "XXXRECVTXXX", "checked");
                 break;
             case SENDTHROUGHMODE:
-                line = line.replace("XXXSENDTXXX", "checked");
+                FileUtils.replace(builder, "XXXSENDTXXX", "checked");
                 break;
             case RECVMD5THROUGHMODE:
-                line = line.replace("XXXRECVMTXXX", "checked");
+                FileUtils.replace(builder, "XXXRECVMTXXX", "checked");
                 break;
             case SENDMD5THROUGHMODE:
-                line = line.replace("XXXSENDMTXXX", "checked");
+                FileUtils.replace(builder, "XXXSENDMTXXX", "checked");
                 break;
             }
         }
         if (gmode == -1) {// All Recv
-            line = line.replace("XXXARECVXXX", "checked");
+            FileUtils.replace(builder, "XXXARECVXXX", "checked");
         } else if (gmode == -2) {// All Send
-            line = line.replace("XXXASENDXXX", "checked");
+            FileUtils.replace(builder, "XXXASENDXXX", "checked");
         } else if (gmode == -3) {// All
-            line = line.replace("XXXALLXXX", "checked");
+            FileUtils.replace(builder, "XXXALLXXX", "checked");
         }
-        return line;
+        return builder.toString();
     }
     private String Rules() {
         getParams();
@@ -1038,7 +1092,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                             tmode, gmode);
                     specific = true;
                     createExport(body, builder, rule,
-                            RequestPacket.TRANSFERMODE.SENDMODE.ordinal(), 50);
+                            RequestPacket.TRANSFERMODE.SENDMODE.ordinal(), LIMITROW/4);
                 }
                 if (params.containsKey("recv")) {
                     tmode = RequestPacket.TRANSFERMODE.RECVMODE;
@@ -1046,7 +1100,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                             tmode, gmode);
                     specific = true;
                     createExport(body, builder, rule,
-                            RequestPacket.TRANSFERMODE.RECVMODE.ordinal(), 50);
+                            RequestPacket.TRANSFERMODE.RECVMODE.ordinal(), LIMITROW/4);
                 }
                 if (params.containsKey("sendmd5")) {
                     tmode = RequestPacket.TRANSFERMODE.SENDMD5MODE;
@@ -1054,7 +1108,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                             tmode, gmode);
                     specific = true;
                     createExport(body, builder, rule,
-                            RequestPacket.TRANSFERMODE.SENDMD5MODE.ordinal(), 50);
+                            RequestPacket.TRANSFERMODE.SENDMD5MODE.ordinal(), LIMITROW/4);
                 }
                 if (params.containsKey("recvmd5")) {
                     tmode = RequestPacket.TRANSFERMODE.RECVMD5MODE;
@@ -1062,7 +1116,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                             tmode, gmode);
                     specific = true;
                     createExport(body, builder, rule,
-                            RequestPacket.TRANSFERMODE.RECVMD5MODE.ordinal(), 50);
+                            RequestPacket.TRANSFERMODE.RECVMD5MODE.ordinal(), LIMITROW/4);
                 }
                 if (params.containsKey("sendth")) {
                     tmode = RequestPacket.TRANSFERMODE.SENDTHROUGHMODE;
@@ -1070,7 +1124,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                             tmode, gmode);
                     specific = true;
                     createExport(body, builder, rule,
-                            RequestPacket.TRANSFERMODE.SENDTHROUGHMODE.ordinal(), 50);
+                            RequestPacket.TRANSFERMODE.SENDTHROUGHMODE.ordinal(), LIMITROW/4);
                 }
                 if (params.containsKey("recvth")) {
                     tmode = RequestPacket.TRANSFERMODE.RECVTHROUGHMODE;
@@ -1078,7 +1132,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                             tmode, gmode);
                     specific = true;
                     createExport(body, builder, rule,
-                            RequestPacket.TRANSFERMODE.RECVTHROUGHMODE.ordinal(), 50);
+                            RequestPacket.TRANSFERMODE.RECVTHROUGHMODE.ordinal(), LIMITROW/4);
                 }
                 if (params.containsKey("sendthmd5")) {
                     tmode = RequestPacket.TRANSFERMODE.SENDMD5THROUGHMODE;
@@ -1086,7 +1140,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                             tmode, gmode);
                     specific = true;
                     createExport(body, builder, rule,
-                            RequestPacket.TRANSFERMODE.SENDMD5THROUGHMODE.ordinal(), 50);
+                            RequestPacket.TRANSFERMODE.SENDMD5THROUGHMODE.ordinal(), LIMITROW/4);
                 }
                 if (params.containsKey("recvthmd5")) {
                     tmode = RequestPacket.TRANSFERMODE.RECVMD5THROUGHMODE;
@@ -1094,33 +1148,33 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                             tmode, gmode);
                     specific = true;
                     createExport(body, builder, rule,
-                            RequestPacket.TRANSFERMODE.RECVMD5THROUGHMODE.ordinal(), 50);
+                            RequestPacket.TRANSFERMODE.RECVMD5THROUGHMODE.ordinal(), LIMITROW/4);
                 }
                 if (!specific) {
                     if (gmode == -1) {
                         //recv
                         createExport(body, builder, rule,
-                                RequestPacket.TRANSFERMODE.RECVMODE.ordinal(), 50);
+                                RequestPacket.TRANSFERMODE.RECVMODE.ordinal(), LIMITROW/4);
                         createExport(body, builder, rule,
-                                RequestPacket.TRANSFERMODE.RECVMD5MODE.ordinal(), 50);
+                                RequestPacket.TRANSFERMODE.RECVMD5MODE.ordinal(), LIMITROW/4);
                         createExport(body, builder, rule,
-                                RequestPacket.TRANSFERMODE.RECVTHROUGHMODE.ordinal(), 50);
+                                RequestPacket.TRANSFERMODE.RECVTHROUGHMODE.ordinal(), LIMITROW/4);
                         createExport(body, builder, rule,
-                                RequestPacket.TRANSFERMODE.RECVMD5THROUGHMODE.ordinal(), 50);
+                                RequestPacket.TRANSFERMODE.RECVMD5THROUGHMODE.ordinal(), LIMITROW/4);
                     } else if (gmode == -2) {
                         //send
                         createExport(body, builder, rule,
-                                RequestPacket.TRANSFERMODE.SENDMODE.ordinal(), 50);
+                                RequestPacket.TRANSFERMODE.SENDMODE.ordinal(), LIMITROW/4);
                         createExport(body, builder, rule,
-                                RequestPacket.TRANSFERMODE.SENDMD5MODE.ordinal(), 50);
+                                RequestPacket.TRANSFERMODE.SENDMD5MODE.ordinal(), LIMITROW/4);
                         createExport(body, builder, rule,
-                                RequestPacket.TRANSFERMODE.SENDTHROUGHMODE.ordinal(), 50);
+                                RequestPacket.TRANSFERMODE.SENDTHROUGHMODE.ordinal(), LIMITROW/4);
                         createExport(body, builder, rule,
-                                RequestPacket.TRANSFERMODE.SENDMD5THROUGHMODE.ordinal(), 50);
+                                RequestPacket.TRANSFERMODE.SENDMD5THROUGHMODE.ordinal(), LIMITROW/4);
                     } else {
                         // all
                         createExport(body, builder, rule,
-                                -1, 200);
+                                -1, LIMITROW);
                     }
                 }
                 body = builder.toString();
@@ -1168,18 +1222,20 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         getParams();
         if (params == null) {
             String system = readFileHeader(Configuration.configuration.httpBasePath+"System.html");
-            system = system.replaceFirst(REPLACEMENT.XXXXSESSIONLIMITWXXX.toString(),
+            StringBuilder builder = new StringBuilder(system);
+            FileUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITWXXX.toString(),
                     Long.toString(Configuration.configuration.serverChannelWriteLimit));
-            system = system.replaceFirst(REPLACEMENT.XXXXSESSIONLIMITRXXX.toString(),
+            FileUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITRXXX.toString(),
                     Long.toString(Configuration.configuration.serverChannelReadLimit));
-            system = system.replaceFirst(REPLACEMENT.XXXXDELAYCOMMDXXX.toString(),
+            FileUtils.replace(builder, REPLACEMENT.XXXXDELAYCOMMDXXX.toString(),
                     Long.toString(Configuration.configuration.delayCommander));
-            system = system.replaceFirst(REPLACEMENT.XXXXDELAYRETRYXXX.toString(),
+            FileUtils.replace(builder, REPLACEMENT.XXXXDELAYRETRYXXX.toString(),
                     Long.toString(Configuration.configuration.delayRetry));
-            system = system.replaceFirst(REPLACEMENT.XXXXCHANNELLIMITWXXX.toString(),
+            FileUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITWXXX.toString(),
                     Long.toString(Configuration.configuration.serverGlobalWriteLimit));
-            return system.replaceFirst(REPLACEMENT.XXXXCHANNELLIMITRXXX.toString(),
+            FileUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITRXXX.toString(),
                     Long.toString(Configuration.configuration.serverGlobalReadLimit));
+            return builder.toString();
         }
         if (params.containsKey("ACTION")) {
             List<String> action = params.get("ACTION");
@@ -1240,18 +1296,20 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             }
         }
         String system = readFileHeader(Configuration.configuration.httpBasePath+"System.html");
-        system = system.replaceFirst(REPLACEMENT.XXXXSESSIONLIMITWXXX.toString(),
+        StringBuilder builder = new StringBuilder(system);
+        FileUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITWXXX.toString(),
                 Long.toString(Configuration.configuration.serverChannelWriteLimit));
-        system = system.replaceFirst(REPLACEMENT.XXXXSESSIONLIMITRXXX.toString(),
+        FileUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITRXXX.toString(),
                 Long.toString(Configuration.configuration.serverChannelReadLimit));
-        system = system.replaceFirst(REPLACEMENT.XXXXDELAYCOMMDXXX.toString(),
+        FileUtils.replace(builder, REPLACEMENT.XXXXDELAYCOMMDXXX.toString(),
                 Long.toString(Configuration.configuration.delayCommander));
-        system = system.replaceFirst(REPLACEMENT.XXXXDELAYRETRYXXX.toString(),
+        FileUtils.replace(builder, REPLACEMENT.XXXXDELAYRETRYXXX.toString(),
                 Long.toString(Configuration.configuration.delayRetry));
-        system = system.replaceFirst(REPLACEMENT.XXXXCHANNELLIMITWXXX.toString(),
+        FileUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITWXXX.toString(),
                 Long.toString(Configuration.configuration.serverGlobalWriteLimit));
-        return system.replaceFirst(REPLACEMENT.XXXXCHANNELLIMITRXXX.toString(),
+        FileUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITRXXX.toString(),
                 Long.toString(Configuration.configuration.serverGlobalReadLimit));
+        return builder.toString();
     }
 
     private void getParams() {
@@ -1271,9 +1329,13 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
     private void clearSession() {
         if (admin != null) {
             R66Session lsession = sessions.remove(admin.getValue());
+            DbSession ldbsession = dbSessions.remove(admin.getValue());
             admin = null;
             if (lsession != null) {
                 lsession.clear();
+            }
+            if (ldbsession != null) {
+                ldbsession.disconnect();
             }
         }
     }
@@ -1343,6 +1405,20 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     logger.debug("Still not authenticated: {}",authentHttp);
                     getMenu = true;
                 }
+                // load DbSession
+                if (this.dbSession == null) {
+                    try {
+                        if (DbConstant.admin.isConnected) {
+                            this.dbSession = new DbSession(DbConstant.admin, false);
+                            this.dbSession.useConnection();
+                            this.isPrivateDbSession = true;
+                        }
+                    } catch (OpenR66DatabaseNoConnectionError e1) {
+                        // Cannot connect so use default connection
+                        logger.warn("Use default database connection");
+                        this.dbSession = DbConstant.admin.session;
+                    }
+                }
             }
         } else {
             getMenu = true;
@@ -1358,6 +1434,9 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             clearSession();
             admin = new DefaultCookie(R66SESSION, Long.toHexString(new Random().nextLong()));
             sessions.put(admin.getValue(), this.authentHttp);
+            if (this.isPrivateDbSession) {
+                dbSessions.put(admin.getValue(), dbSession);
+            }
             logger.debug("CreateSession: "+uriRequest+":{}",admin);
             writeResponse(e.getChannel());
         }
@@ -1481,6 +1560,10 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             R66Session session = sessions.get(admin.getValue());
             if (session != null) {
                 authentHttp = session;
+            }
+            DbSession dbSession = dbSessions.get(admin.getValue());
+            if (dbSession != null) {
+                this.dbSession = dbSession;
             }
         } else {
             logger.debug("NoSession: "+uriRequest+":{}",admin);
@@ -1619,12 +1702,6 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
         super.channelClosed(ctx, e);
-        if (this.isPrivateDbSession && dbSession != null) {
-            try {
-                dbSession.disconnect();
-            } catch (OpenR66DatabaseSqlError e1) {
-            }
-        }
     }
 
     /* (non-Javadoc)
@@ -1669,16 +1746,6 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             Configuration.configuration.getHttpChannelGroup();
         if (group != null) {
             group.add(e.getChannel());
-        }
-        try {
-            if (DbConstant.admin.isConnected) {
-                this.dbSession = new DbSession(DbConstant.admin, false);
-            }
-            this.isPrivateDbSession = true;
-        } catch (OpenR66DatabaseNoConnectionError e1) {
-            // Cannot connect so use default connection
-            logger.warn("Use default database connection");
-            this.dbSession = DbConstant.admin.session;
         }
     }
 }

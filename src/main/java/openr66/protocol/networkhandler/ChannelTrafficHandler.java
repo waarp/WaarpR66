@@ -18,41 +18,47 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package openr66.protocol.networkhandler.packet;
+package openr66.protocol.networkhandler;
 
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
-import openr66.protocol.configuration.Configuration;
 
+import java.util.concurrent.Executor;
+
+import org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler;
+import org.jboss.netty.handler.traffic.TrafficCounter;
 import org.jboss.netty.util.ObjectSizeEstimator;
 
 /**
- * Network Packet size estimator
- *
  * @author Frederic Bregier
  *
  */
-public class NetworkPacketSizeEstimator implements ObjectSizeEstimator {
+public class ChannelTrafficHandler extends ChannelTrafficShapingHandler {
     /**
      * Internal Logger
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
-            .getLogger(NetworkPacketSizeEstimator.class);
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * org.jboss.netty.handler.execution.ObjectSizeEstimator#estimateSize(java
-     * .lang.Object)
+            .getLogger(ChannelTrafficHandler.class);
+    /**
+     * @param objectSizeEstimator
+     * @param executor
+     * @param writeLimit
+     * @param readLimit
+     * @param checkInterval
      */
-    public int estimateSize(Object o) {
-        if (!(o instanceof NetworkPacket)) {
-            // Type unimplemented
-            logger.warn("Not NetworkPacket: "+o.getClass().getName());
-            return Configuration.configuration.BLOCKSIZE+13;
-        }
-        NetworkPacket packet = (NetworkPacket) o;
-        int size = packet.getBuffer().readableBytes()+13;
-        return size;
+    public ChannelTrafficHandler(ObjectSizeEstimator objectSizeEstimator,
+            Executor executor, long writeLimit, long readLimit,
+            long checkInterval) {
+        super(objectSizeEstimator, executor, writeLimit, readLimit,
+                checkInterval);
     }
+
+    /* (non-Javadoc)
+     * @see org.jboss.netty.handler.traffic.AbstractTrafficShapingHandler#doAccounting(org.jboss.netty.handler.traffic.TrafficCounter)
+     */
+    @Override
+    protected void doAccounting(TrafficCounter counter) {
+        logger.info(this.toString()+"\n   {}", counter);
+    }
+
 }

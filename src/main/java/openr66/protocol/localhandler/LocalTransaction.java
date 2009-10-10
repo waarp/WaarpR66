@@ -248,16 +248,18 @@ public class LocalTransaction {
                 DbTaskRunner runner = localChannelReference.getSession()
                         .getRunner();
                 if (runner != null && runner.isInTransfer()) {
-                    int rank = localChannelReference.getSession().getRunner()
-                            .getRank();
-                    packet.setSmiddle(Integer.toString(rank));
-                    if (runner.isSender()) {
+                    if (! runner.isSender()) {
+                        int rank = localChannelReference.getSession().getRunner()
+                                .getRank();
+                        packet.setSmiddle(Integer.toString(rank));
+                    }
+                    //FIXME if (runner.isSender()) {
                         // Save File status
                         try {
                             runner.saveStatus();
                         } catch (OpenR66RunnerErrorException e) {
                         }
-                    }
+                    //FIXME }
                 }
             }
             try {

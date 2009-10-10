@@ -254,6 +254,18 @@ public class ChannelUtils implements Runnable {
     }
 
     /**
+     * Write an AbstractLocalPacket to the Local Channel
+     * @param localChannelReference
+     * @param packet
+     * @return the ChannelFuture on write operation
+     * @throws OpenR66ProtocolPacketException
+     */
+    public static ChannelFuture writeAbstractLocalPacketToLocal(
+            LocalChannelReference localChannelReference, AbstractLocalPacket packet)
+    throws OpenR66ProtocolPacketException {
+        return Channels.write(localChannelReference.getLocalChannel(), packet);
+    }
+    /**
      * Exit global ChannelFactory
      */
     public static void exit() {

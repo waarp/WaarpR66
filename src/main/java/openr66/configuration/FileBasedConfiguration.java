@@ -634,7 +634,7 @@ public class FileBasedConfiguration {
         // Key
         node = document.selectSingleNode(XML_PATH_KEYPATH);
         if (node == null) {
-            logger.warn("Unable to find Key Path");
+            logger.info("Unable to find Key Path");
         } else {
             String keypath = node.getText();
             if ((keypath == null) || (keypath.length() == 0)) {
@@ -885,7 +885,7 @@ public class FileBasedConfiguration {
                     Configuration.configuration.serverChannelReadLimit,
                     Configuration.configuration.serverChannelWriteLimit,
                     Configuration.configuration.delayLimit);
-            configuration.changeUpdatedInfo(UpdatedInfo.UPDATED);
+            configuration.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
             try {
                 if (configuration.exist()) {
                     configuration.update();
