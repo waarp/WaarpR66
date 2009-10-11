@@ -22,7 +22,6 @@ import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.context.task.exception.OpenR66RunnerException;
 import openr66.database.DbConstant;
 import openr66.database.DbPreparedStatement;
-import openr66.database.DbSession;
 import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
 import openr66.database.exception.OpenR66DatabaseException;
@@ -113,9 +112,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) {
         logger.info("Local Server Channel Closed: " +
                 status +
-                " {}",
+                " {} {}",
                 (localChannelReference != null? localChannelReference
-                        : "no LocalChannelReference"));
+                        : "no LocalChannelReference"), (session.getRunner() != null ?
+                            session.getRunner().toShortString() : "no runner"));
         // FIXME clean session objects like files
         if (localChannelReference != null &&
                 !localChannelReference.getFutureRequest().isDone()) {
@@ -143,13 +143,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
         }
         session.clear();
         if (localChannelReference != null) {
-            DbSession dbSession = localChannelReference.getDbSession();
-            if (dbSession.internalId != DbConstant.admin.session.internalId) {
-                dbSession.disconnect();
+            if (localChannelReference.getDbSession() != null) {
+                localChannelReference.getDbSession().endUseConnection();
             }
             NetworkTransaction.removeNetworkChannel(localChannelReference
                     .getNetworkChannel());
-
         } else {
             logger
                     .error("Local Server Channel Closed but no LocalChannelReference: " +
@@ -440,6 +438,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
      */
     private void authent(Channel channel, AuthentPacket packet)
             throws OpenR66ProtocolPacketException {
+        localChannelReference.getDbSession().useConnection();
         try {
             session.getAuth().connection(localChannelReference.getDbSession(),
                     packet.getHostId(), packet.getKey());
@@ -474,6 +473,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
         }
         R66Result result = new R66Result(session, true, ErrorCode.InitOk);
         localChannelReference.validateConnection(true, result);
+        logger.info("Local Server Channel Validated: " +
+                status +
+                " {} ",
+                (localChannelReference != null? localChannelReference
+                        : "no LocalChannelReference"));
         if (packet.isToValidate()) {
             packet.validate(session.getAuth().isSsl());
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet);
@@ -493,6 +497,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
         // True since closing
         Channels.close(channel);
     }
+    /**
+     * Class to throw an exception when the future is over
+     * @author Frederic Bregier
+     *
+     */
     private class ExceptionChannelFutureListener implements ChannelFutureListener {
         private Exception e;
         public ExceptionChannelFutureListener(Exception e) {
@@ -528,8 +537,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
             DbTaskRunner runner = this.session.getRunner();
             if (runner != null) {
                 runner.setRankAtStartup(rank);
+                runner.stopOrCancelRunner(code);
             }
-            runner.stopOrCancelRunner(code);
             session.setFinalizeTransfer(false, new R66Result(exception, session,
                     true, code));
             // now try to inform other
@@ -550,8 +559,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 if (rank < runner.getRank()) {
                     runner.setRankAtStartup(rank);
                 }
+                runner.stopOrCancelRunner(code);
             }
-            runner.stopOrCancelRunner(code);
             session.setFinalizeTransfer(false, new R66Result(exception, session,
                     true, code));
             // now try to inform other
@@ -562,11 +571,23 @@ public class LocalServerHandler extends SimpleChannelHandler {
             }
             return;
         } else if (code.code == ErrorCode.QueryAlreadyFinished.code) {
+            DbTaskRunner runner = this.session.getRunner();
+            if (runner != null) {
+                runner.setAllDone();
+                runner.setExecutionStatus(code);
+                try {
+                    runner.saveStatus();
+                } catch (OpenR66RunnerErrorException e) {
+                }
+            }
             exception =
                 new OpenR66ProtocolBusinessQueryAlreadyFinishedException(packet.getSheader());
             localChannelReference.invalidateRequest(new R66Result(exception, session,
                     true, code));
             throw exception;
+        } else if (code.code == ErrorCode.BadAuthent.code) {
+            exception =
+                new OpenR66ProtocolNotAuthenticatedException(packet.toString());
         } else {
             exception =
                 new OpenR66ProtocolBusinessNoWriteBackException(packet.toString());
@@ -898,6 +919,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 // Finish with post Operation
                 session.setFinalizeTransfer(true, new R66Result(session, false,
                         ErrorCode.TransferOk));
+                //FIXME Channels.close(channel);
             } else {
                 // in error due to a previous status (like bad MD5)
                 logger
@@ -909,6 +931,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             status = true;
             session.setFinalizeTransfer(true, new R66Result(session, false,
                     ErrorCode.TransferOk));
+            //FIXME Channels.close(channel);
         }
     }
     /**
@@ -1133,6 +1156,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                             code.getCode(), ErrorPacket.FORWARDCLOSECODE);
                     try {
                         //XXX ChannelUtils.writeAbstractLocalPacket(lcr, error);
+                        // inform local instead of remote
                         ChannelUtils.writeAbstractLocalPacketToLocal(lcr, error);
                     } catch (Exception e) {
                     }

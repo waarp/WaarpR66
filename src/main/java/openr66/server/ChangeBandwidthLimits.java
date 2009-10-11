@@ -88,7 +88,7 @@ public class ChangeBandwidthLimits implements Runnable {
         }
         ValidPacket valid = new ValidPacket(writeGlobalLimit+" "+readGlobalLimit,
                 writeSessionLimit+" "+readSessionLimit, LocalPacketFactory.BANDWIDTHPACKET);
-        DbHostAuth host = Configuration.configuration.HOST_AUTH;
+        DbHostAuth host = Configuration.configuration.HOST_SSLAUTH;
         SocketAddress socketAddress = host.getSocketAddress();
         boolean isSSL = host.isSsl();
         LocalChannelReference localChannelReference = networkTransaction

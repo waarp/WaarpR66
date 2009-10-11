@@ -29,10 +29,12 @@ import openr66.database.data.DbConfiguration;
 import openr66.database.data.DbHostAuth;
 import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
+import openr66.database.data.AbstractDbData.UpdatedInfo;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
+import openr66.protocol.configuration.Configuration;
 
 /**
  * Commander is responsible to read from database updated data from time to time in order to
@@ -72,7 +74,8 @@ public class Commander implements Runnable {
             preparedStatementRule =
                 DbRule.getUpdatedPrepareStament(DbConstant.admin.session);
             preparedStatementRunner =
-                DbTaskRunner.getUpdatedPrepareStament(DbConstant.admin.session, LIMITSUBMIT);
+                DbTaskRunner.getUpdatedPrepareStament(DbConstant.admin.session,
+                        UpdatedInfo.TOSUBMIT, false, LIMITSUBMIT);
             // Clean tasks (CompleteOK and ALLDONE => DONE)
             DbTaskRunner.changeFinishedToDone(DbConstant.admin.session);
             // Change RUNNING or INTERRUPTED to TOSUBMIT since they should be ready
@@ -181,6 +184,13 @@ public class Commander implements Runnable {
                 DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatementRunner);
                 logger.info("get a task: {}",taskRunner);
                 // Launch if possible this task
+                String key = taskRunner.getRequested()+" "+taskRunner.getRequester()+
+                    " "+taskRunner.getSpecialId();
+                if (Configuration.configuration.getLocalTransaction().
+                        getFromRequest(key) != null) {
+                    // already running
+                    continue;
+                }
                 internalRunner.submitTaskRunner(taskRunner);
                 taskRunner = null;
             }

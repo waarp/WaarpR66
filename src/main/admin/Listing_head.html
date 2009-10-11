@@ -112,23 +112,33 @@ a img {
 <div id="Comp1_sys_doctext" style="width: 997; height: 150"><p>Listing of
   Transfers according to criteria.</p><p>&nbsp;</p>
   <form method="post" name="FILTER" action="/Listing.html">
-    From: <input type="text" name="start" size="20" value="XXXSTARTXXX">
+    From SpecialId:&nbsp;<input type="text" name="startid" size="20" value="XXXSTARTIDXXX">
+    <img id="fromidhelp" alt="help for From SpecialId field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerfromidhelp"><p class="cshelp">
+	The start SpecialId for filtering on the Special Id of transfers like id greater or equal than value.
+	</p></div>
+    &nbsp;&nbsp;To SpecialId:&nbsp;<input type="text" name="stopid" size="20" value="XXXSTOPIDXXX">
+    <img id="toidhelp" alt="help for To SpecialId field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containertoidhelp"><p class="cshelp">
+	The stop SpecialId for filtering on the Special Id of transfers like id less or equal than value.
+	</p></div>
+    <br>From date: <input type="text" name="start" size="20" value="XXXSTARTXXX">
     <img id="fromhelp" alt="help for From field"  class="help" width="16" height="16" src="img/help_small.gif" />
 	<div id="containerfromhelp"><p class="cshelp">
 	The start date for filtering in format yyyymmdd-hhmmss.SSS with or without :-/ . in it, partial or full (at least yyyymmdd). Example: 2009-09-19 09:54:05.492
 	</p></div>
-	&nbsp;&nbsp;To:&nbsp;
+	&nbsp;&nbsp;To date:&nbsp;
     <input type="text" name="stop" size="20" value="XXXSTOPXXX">
     <img id="tohelp" alt="help for To field"  class="help" width="16" height="16" src="img/help_small.gif" />
 	<div id="containertohelp"><p class="cshelp">
-	The stop date for filtering in format yyyymmdd-hhmmss.SSS with or without :-/ . in it, partial or full (at least yyyymmdd). Example: 2009-09-19 09:54:05.492
+	The stop date for filtering in format yyyymmdd-hhmmss.SSS with or without :-/ . in it, partial or full (at least yyyymmdd). If stop date is null while start is not null, 24H is kept as interval. Example: 2009-09-19 09:54:05.492
 	</p></div>
 	<br>Rule:&nbsp;<input type="text" name="rule" size="20" value="XXXRULEXXX">
 	<img id="rulehelp" alt="help for Rule field"  class="help" width="16" height="16" src="img/help_small.gif" />
 	<div id="containerrulehelp"><p class="cshelp">
 	This field could be part of a rule name.
 	</p></div>
-    Requested/Requester: <input type="text" name="req" size="20" value="XXXREQXXX">
+    &nbsp;&nbsp;Requested/Requester: <input type="text" name="req" size="20" value="XXXREQXXX">
     <img id="reqhelp" alt="help for Requested/Requester field"  class="help" width="16" height="16" src="img/help_small.gif" />
 	<div id="containerreqhelp"><p class="cshelp">
 	This field could be part of a requester or requested host id.

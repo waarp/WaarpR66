@@ -211,7 +211,7 @@ public class OpenR66SignalHandler implements SignalHandler {
      *
      * @param conn
      */
-    public static void removeConnection(long id, Connection conn) {
+    public static void removeConnection(long id) {
         listConnection.remove(Long.valueOf(id));
     }
     /**

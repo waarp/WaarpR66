@@ -35,6 +35,7 @@ import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
+import openr66.protocol.utils.OpenR66SignalHandler;
 
 /**
  * Oracle Database Model implementation
@@ -133,8 +134,9 @@ public class DbModelOracle implements DbModel {
             return;
         } catch (OpenR66DatabaseSqlError e) {
             return;
+        } finally {
+            request.close();
         }
-        request.close();
 
         // hosts
         action = createTableH2 + DbHostAuth.table + "(";
@@ -155,8 +157,9 @@ public class DbModelOracle implements DbModel {
             return;
         } catch (OpenR66DatabaseSqlError e) {
             return;
+        } finally {
+            request.close();
         }
-        request.close();
 
         // rules
         action = createTableH2 + DbRule.table + "(";
@@ -177,8 +180,9 @@ public class DbModelOracle implements DbModel {
             return;
         } catch (OpenR66DatabaseSqlError e) {
             return;
+        } finally {
+            request.close();
         }
-        request.close();
 
         // runner
         action = createTableH2 + DbTaskRunner.table + "(";
@@ -200,8 +204,9 @@ public class DbModelOracle implements DbModel {
             return;
         } catch (OpenR66DatabaseSqlError e) {
             return;
+        } finally {
+            request.close();
         }
-        request.close();
 
         // cptrunner
         action = "CREATE SEQUENCE " + DbTaskRunner.fieldseq +
@@ -215,8 +220,9 @@ public class DbModelOracle implements DbModel {
             return;
         } catch (OpenR66DatabaseSqlError e) {
             return;
+        } finally {
+            request.close();
         }
-        request.close();
     }
 
     /*
@@ -240,8 +246,9 @@ public class DbModelOracle implements DbModel {
         } catch (OpenR66DatabaseSqlError e) {
             e.printStackTrace();
             return;
+        } finally {
+            request.close();
         }
-        request.close();
 
         System.out.println(action);
     }
@@ -259,8 +266,8 @@ public class DbModelOracle implements DbModel {
         String action = "SELECT " + DbTaskRunner.fieldseq + ".NEXTVAL FROM DUAL";
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
                 dbSession);
-        preparedStatement.createPrepareStatement(action);
         try {
+            preparedStatement.createPrepareStatement(action);
             // Limit the search
             preparedStatement.executeQuery();
             if (preparedStatement.getNext()) {
@@ -293,10 +300,16 @@ public class DbModelOracle implements DbModel {
             }
         } catch (OpenR66DatabaseSqlError e) {
             try {
-                dbSession.disconnect();
                 DbSession newdbSession = new DbSession(DbConstant.admin, false);
+                try {
+                    if (dbSession.conn != null) {
+                        dbSession.conn.close();
+                    }
+                } catch (SQLException e1) {
+                }
                 dbSession.conn = newdbSession.conn;
-                dbSession.useConnection();
+                OpenR66SignalHandler.addConnection(dbSession.internalId, dbSession.conn);
+                OpenR66SignalHandler.removeConnection(newdbSession.internalId);
                 request.close();
                 request.select("select 1 from dual");
                 if (!request.getNext()) {

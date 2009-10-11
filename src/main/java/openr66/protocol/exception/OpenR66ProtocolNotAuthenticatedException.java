@@ -4,11 +4,11 @@
 package openr66.protocol.exception;
 
 /**
- * Protocol exception due to no valid authentication
- * 
+ * Business Protocol exception due to no valid authentication
+ *
  * @author frederic bregier
  */
-public class OpenR66ProtocolNotAuthenticatedException extends OpenR66Exception {
+public class OpenR66ProtocolNotAuthenticatedException extends OpenR66ProtocolBusinessException {
 
     /**
      *

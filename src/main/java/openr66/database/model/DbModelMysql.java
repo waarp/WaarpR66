@@ -36,6 +36,7 @@ import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
+import openr66.protocol.utils.OpenR66SignalHandler;
 
 /**
  * MySQL Database Model implementation
@@ -135,8 +136,9 @@ public class DbModelMysql implements DbModel {
         } catch (OpenR66DatabaseSqlError e) {
             e.printStackTrace();
             return;
+        } finally {
+            request.close();
         }
-        request.close();
 
         // hosts
         action = createTableH2 + DbHostAuth.table + "(";
@@ -157,8 +159,9 @@ public class DbModelMysql implements DbModel {
         } catch (OpenR66DatabaseSqlError e) {
             e.printStackTrace();
             return;
+        } finally {
+            request.close();
         }
-        request.close();
 
         // rules
         action = createTableH2 + DbRule.table + "(";
@@ -179,8 +182,9 @@ public class DbModelMysql implements DbModel {
         } catch (OpenR66DatabaseSqlError e) {
             e.printStackTrace();
             return;
+        } finally {
+            request.close();
         }
-        request.close();
 
         // runner
         action = createTableH2 + DbTaskRunner.table + "(";
@@ -203,8 +207,9 @@ public class DbModelMysql implements DbModel {
         } catch (OpenR66DatabaseSqlError e) {
             e.printStackTrace();
             return;
+        } finally {
+            request.close();
         }
-        request.close();
 
         // cptrunner
         /*
@@ -237,8 +242,9 @@ public class DbModelMysql implements DbModel {
         } catch (OpenR66DatabaseSqlError e) {
             e.printStackTrace();
             return;
+        } finally {
+            request.close();
         }
-        request.close();
         action = "INSERT INTO Sequences (name, seq) VALUES ('"+DbTaskRunner.fieldseq+"', "+
             (DbConstant.ILLEGALVALUE + 1)+")";
         System.out.println(action);
@@ -250,8 +256,9 @@ public class DbModelMysql implements DbModel {
         } catch (OpenR66DatabaseSqlError e) {
             e.printStackTrace();
             return;
+        } finally {
+            request.close();
         }
-        request.close();
     }
 
     /*
@@ -272,8 +279,9 @@ public class DbModelMysql implements DbModel {
         } catch (OpenR66DatabaseSqlError e) {
             e.printStackTrace();
             return;
+        } finally {
+            request.close();
         }
-        request.close();
         System.out.println(action);
     }
 
@@ -291,10 +299,14 @@ public class DbModelMysql implements DbModel {
             long result = DbConstant.ILLEGALVALUE;
             String action = "SELECT seq FROM Sequences WHERE name = '" +
                 DbTaskRunner.fieldseq + "' FOR UPDATE";
+            try {
+                dbSession.conn.setAutoCommit(false);
+            } catch (SQLException e1) {
+            }
             DbPreparedStatement preparedStatement = new DbPreparedStatement(
                     dbSession);
-            preparedStatement.createPrepareStatement(action);
             try {
+                preparedStatement.createPrepareStatement(action);
                 // Limit the search
                 preparedStatement.executeQuery();
                 if (preparedStatement.getNext()) {
@@ -312,8 +324,8 @@ public class DbModelMysql implements DbModel {
             }
             action = "UPDATE Sequences SET seq = "+(result+1)+
                 " WHERE name = '"+DbTaskRunner.fieldseq+"'";
-            preparedStatement.createPrepareStatement(action);
             try {
+                preparedStatement.createPrepareStatement(action);
                 // Limit the search
                 preparedStatement.executeUpdate();
             } finally {
@@ -321,6 +333,10 @@ public class DbModelMysql implements DbModel {
             }
             return result;
         } finally {
+            try {
+                dbSession.conn.setAutoCommit(true);
+            } catch (SQLException e1) {
+            }
             lock.unlock();
         }
     }
@@ -339,10 +355,16 @@ public class DbModelMysql implements DbModel {
             }
         } catch (OpenR66DatabaseSqlError e) {
             try {
-                dbSession.disconnect();
                 DbSession newdbSession = new DbSession(DbConstant.admin, false);
+                try {
+                    if (dbSession.conn != null) {
+                        dbSession.conn.close();
+                    }
+                } catch (SQLException e1) {
+                }
                 dbSession.conn = newdbSession.conn;
-                dbSession.useConnection();
+                OpenR66SignalHandler.addConnection(dbSession.internalId, dbSession.conn);
+                OpenR66SignalHandler.removeConnection(newdbSession.internalId);
                 request.close();
                 request.select("select 1 from dual");
                 if (!request.getNext()) {

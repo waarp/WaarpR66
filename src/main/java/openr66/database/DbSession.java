@@ -13,6 +13,7 @@ import java.sql.Savepoint;
 
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.utils.OpenR66SignalHandler;
 
 // Notice, do not import com.mysql.jdbc.*
@@ -48,7 +49,7 @@ public class DbSession {
     /**
      * Number of threads using this connection
      */
-    private int nbThread = 0;
+    public int nbThread = 0;
 
     static synchronized void setInternalId(DbSession session) {
         session.internalId = System.currentTimeMillis();
@@ -191,6 +192,9 @@ public class DbSession {
     public void useConnection() {
         nbThread ++;
     }
+    public void endUseConnection() {
+        nbThread --;
+    }
     /**
      * Close the connection
      *
@@ -200,15 +204,19 @@ public class DbSession {
             logger.warn("Connection already closed");
             return;
         }
-        nbThread--;
-        if (nbThread <= 0) {
-            OpenR66SignalHandler.removeConnection(internalId, conn);
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                logger.warn("Disconnection not OK");
-                error(e);
-            }
+        if (nbThread > 0) {
+            logger.warn("Still some clients: "+nbThread);
+        }
+        try {
+            Thread.sleep(Configuration.WAITFORNETOP);
+        } catch (InterruptedException e1) {
+        }
+        OpenR66SignalHandler.removeConnection(internalId);
+        try {
+            conn.close();
+        } catch (SQLException e) {
+            logger.warn("Disconnection not OK");
+            error(e);
         }
     }
 

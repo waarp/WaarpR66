@@ -120,7 +120,7 @@ a img {
     <input type="text" name="stop" size="20" value="XXXSTOPXXX">
     <img id="tohelp" alt="help for To field"  class="help" width="16" height="16" src="img/help_small.gif" />
 	<div id="containertohelp"><p class="cshelp">
-	The stop date for filtering in format yyyymmdd-hhmmss.SSS with or without :-/ . in it, partial or full (at least yyyymmdd). Example: 2009-09-19 09:54:05.492
+	The stop date for filtering in format yyyymmdd-hhmmss.SSS with or without :-/ . in it, partial or full (at least yyyymmdd). If stop date is null while start is not null, 24H is kept as interval. Example: 2009-09-19 09:54:05.492
 	</p></div>
     <br>Rule:&nbsp; <input type="text" name="rule" size="20" value="XXXRULEXXX">
 	<img id="rulehelp" alt="help for Rule field"  class="help" width="16" height="16" src="img/help_small.gif" />
@@ -136,7 +136,7 @@ a img {
     <input type="checkbox" name="transfer" value="ON" XXXTRANSXXX>In Transfer
     <input type="checkbox" name="error" value="ON" XXXERRXXX>In Error
     <input type="checkbox" name="done" value="ON" XXXDONEXXX>Done
-    <input type="checkbox" name="all" value="ON" XXXALLXXX>All</p>
+    <input type="checkbox" name="all" value="ON" XXXALLXXX>All
     <p></p><font color="Red">Warning: <input type="checkbox" name="purge" value="ON"> Purge after export</font>
     <img id="purgehelp" alt="help for Requested/Requester field"  class="help" width="16" height="16" src="img/help_small.gif" />
 	<div id="containerpurgehelp"><p class="cshelp">

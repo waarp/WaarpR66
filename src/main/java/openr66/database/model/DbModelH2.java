@@ -35,6 +35,7 @@ import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
+import openr66.protocol.utils.OpenR66SignalHandler;
 
 /**
  * H2 Database Model implementation
@@ -132,8 +133,9 @@ public class DbModelH2 implements DbModel {
         } catch (OpenR66DatabaseSqlError e) {
             e.printStackTrace();
             return;
+        } finally {
+            request.close();
         }
-        request.close();
 
         // hosts
         action = createTableH2 + DbHostAuth.table + "(";
@@ -154,8 +156,9 @@ public class DbModelH2 implements DbModel {
         } catch (OpenR66DatabaseSqlError e) {
             e.printStackTrace();
             return;
+        } finally {
+            request.close();
         }
-        request.close();
 
         // rules
         action = createTableH2 + DbRule.table + "(";
@@ -176,8 +179,9 @@ public class DbModelH2 implements DbModel {
         } catch (OpenR66DatabaseSqlError e) {
             e.printStackTrace();
             return;
+        } finally {
+            request.close();
         }
-        request.close();
 
         // runner
         action = createTableH2 + DbTaskRunner.table + "(";
@@ -200,8 +204,9 @@ public class DbModelH2 implements DbModel {
         } catch (OpenR66DatabaseSqlError e) {
             e.printStackTrace();
             return;
+        } finally {
+            request.close();
         }
-        request.close();
 
         // cptrunner
         action = "CREATE SEQUENCE IF NOT EXISTS " + DbTaskRunner.fieldseq +
@@ -215,8 +220,9 @@ public class DbModelH2 implements DbModel {
         } catch (OpenR66DatabaseSqlError e) {
             e.printStackTrace();
             return;
+        } finally {
+            request.close();
         }
-        request.close();
     }
 
     /*
@@ -237,8 +243,9 @@ public class DbModelH2 implements DbModel {
         } catch (OpenR66DatabaseSqlError e) {
             e.printStackTrace();
             return;
+        } finally {
+            request.close();
         }
-        request.close();
         System.out.println(action);
     }
 
@@ -255,8 +262,8 @@ public class DbModelH2 implements DbModel {
         String action = "SELECT NEXTVAL('" + DbTaskRunner.fieldseq + "')";
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
                 dbSession);
-        preparedStatement.createPrepareStatement(action);
         try {
+            preparedStatement.createPrepareStatement(action);
             // Limit the search
             preparedStatement.executeQuery();
             if (preparedStatement.getNext()) {
@@ -289,10 +296,16 @@ public class DbModelH2 implements DbModel {
             }
         } catch (OpenR66DatabaseSqlError e) {
             try {
-                dbSession.disconnect();
                 DbSession newdbSession = new DbSession(DbConstant.admin, false);
+                try {
+                    if (dbSession.conn != null) {
+                        dbSession.conn.close();
+                    }
+                } catch (SQLException e1) {
+                }
                 dbSession.conn = newdbSession.conn;
-                dbSession.useConnection();
+                OpenR66SignalHandler.addConnection(dbSession.internalId, dbSession.conn);
+                OpenR66SignalHandler.removeConnection(newdbSession.internalId);
                 request.close();
                 request.select("select 1");
                 if (!request.getNext()) {

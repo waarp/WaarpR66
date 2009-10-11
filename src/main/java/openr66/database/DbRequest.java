@@ -202,7 +202,7 @@ public class DbRequest {
         try {
             return rs.next();
         } catch (SQLException e) {
-            logger.error("SQL Exception to getNextRow", e);
+            logger.warn("SQL Exception to getNextRow", e);
             throw new OpenR66DatabaseSqlError("SQL Exception to getNextRow", e);
         }
     }

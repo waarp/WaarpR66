@@ -37,6 +37,7 @@ import openr66.database.DbConstant;
 import openr66.database.DbPreparedStatement;
 import openr66.database.DbSession;
 import openr66.database.data.DbTaskRunner;
+import openr66.database.data.AbstractDbData.UpdatedInfo;
 import openr66.database.data.DbTaskRunner.TASKSTEP;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
@@ -82,6 +83,8 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(HttpHandler.class);
+
+    public static final int LIMITROW = 60;// better if it can be divided by 4
 
     public static final R66Session authentHttp = new R66Session();
     {
@@ -249,7 +252,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
                 }
                 params = queryStringDecoder.getParameters();
             }
-            int nb = 100;
+            int nb = LIMITROW;
             boolean getMenu = (cval == 'z');
             String value = null;
             if (!params.isEmpty()) {
@@ -316,29 +319,35 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
      */
     private void addRunners(DbPreparedStatement preparedStatement, String type, int nb)
         throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
-        preparedStatement.executeQuery();
-        responseContent.append("<style>td{font-size: 8pt;}</style><table border=\"2\">");
-        responseContent.append("<tr><td>");
-        responseContent.append(type);
-        responseContent.append("</td>");
-        responseContent.append(DbTaskRunner.headerHtml());
-        responseContent.append("</tr>\r\n");
-        int i = 0;
-        while (preparedStatement.getNext()) {
-            DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatement);
+        try {
+            preparedStatement.executeQuery();
+            responseContent.append("<style>td{font-size: 8pt;}</style><table border=\"2\">");
             responseContent.append("<tr><td>");
-            responseContent.append(taskRunner.isSender()?"S":"R");
+            responseContent.append(type);
             responseContent.append("</td>");
-            responseContent.append(taskRunner.toHtml(authentHttp));
+            responseContent.append(DbTaskRunner.headerHtml());
             responseContent.append("</tr>\r\n");
-            if (nb > 0) {
-                i++;
-                if (i >= nb) {
-                    break;
+            int i = 0;
+            while (preparedStatement.getNext()) {
+                DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatement);
+                responseContent.append("<tr><td>");
+                responseContent.append(taskRunner.isSender()?"S":"R");
+                responseContent.append("</td>");
+                responseContent.append(taskRunner.toHtml(authentHttp));
+                responseContent.append("</tr>\r\n");
+                if (nb > 0) {
+                    i++;
+                    if (i >= nb) {
+                        break;
+                    }
                 }
             }
+            responseContent.append("</table><br>\r\n");
+        } finally {
+            if (preparedStatement != null) {
+                preparedStatement.realClose();
+            }
         }
-        responseContent.append("</table><br>\r\n");
     }
     /**
      * print all active transfers
@@ -351,29 +360,37 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
         endHeader();
         replacementBody();
         inlineBody();
-        DbPreparedStatement preparedStatement;
+        DbPreparedStatement preparedStatement = null;
         try {
             preparedStatement =
-                DbTaskRunner.getStatusPrepareStament(dbSession, ErrorCode.InitOk, nb);
-            addRunners(preparedStatement, ErrorCode.InitOk.mesg,nb);
-            preparedStatement.realClose();
-            preparedStatement =
-                DbTaskRunner.getStatusPrepareStament(dbSession, ErrorCode.PreProcessingOk, nb);
-            addRunners(preparedStatement, ErrorCode.PreProcessingOk.mesg, nb);
-            preparedStatement.realClose();
-            preparedStatement =
-                DbTaskRunner.getStatusPrepareStament(dbSession, ErrorCode.TransferOk, nb);
-            addRunners(preparedStatement, ErrorCode.TransferOk.mesg, nb);
-            preparedStatement.realClose();
-            preparedStatement =
-                DbTaskRunner.getStatusPrepareStament(dbSession, ErrorCode.PostProcessingOk, nb);
-            addRunners(preparedStatement, ErrorCode.PostProcessingOk.mesg, nb);
-            preparedStatement.realClose();
+                DbTaskRunner.getUpdatedPrepareStament(dbSession, UpdatedInfo.RUNNING, true, nb);
+            addRunners(preparedStatement, UpdatedInfo.RUNNING.name(), nb);
             preparedStatement =
                 DbTaskRunner.getStatusPrepareStament(dbSession, ErrorCode.Running, nb);
             addRunners(preparedStatement, ErrorCode.Running.mesg, nb);
-            preparedStatement.realClose();
+            preparedStatement =
+                DbTaskRunner.getUpdatedPrepareStament(dbSession, UpdatedInfo.INTERRUPTED, true, nb);
+            addRunners(preparedStatement, UpdatedInfo.INTERRUPTED.name(), nb);
+            preparedStatement =
+                DbTaskRunner.getUpdatedPrepareStament(dbSession, UpdatedInfo.TOSUBMIT, true, nb);
+            addRunners(preparedStatement, UpdatedInfo.TOSUBMIT.name(), nb);
+            preparedStatement =
+                DbTaskRunner.getStatusPrepareStament(dbSession, ErrorCode.InitOk, nb);
+            addRunners(preparedStatement, ErrorCode.InitOk.mesg,nb);
+            preparedStatement =
+                DbTaskRunner.getStatusPrepareStament(dbSession, ErrorCode.PreProcessingOk, nb);
+            addRunners(preparedStatement, ErrorCode.PreProcessingOk.mesg, nb);
+            preparedStatement =
+                DbTaskRunner.getStatusPrepareStament(dbSession, ErrorCode.TransferOk, nb);
+            addRunners(preparedStatement, ErrorCode.TransferOk.mesg, nb);
+            preparedStatement =
+                DbTaskRunner.getStatusPrepareStament(dbSession, ErrorCode.PostProcessingOk, nb);
+            addRunners(preparedStatement, ErrorCode.PostProcessingOk.mesg, nb);
+            preparedStatement = null;
         } catch (OpenR66DatabaseException e) {
+            if (preparedStatement != null) {
+                preparedStatement.realClose();
+            }
             logger.warn("OpenR66 Web Error",e);
             sendError(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE);
             return;
@@ -391,13 +408,21 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
         endHeader();
         replacementBody();
         inlineBody();
-        DbPreparedStatement preparedStatement;
+        DbPreparedStatement preparedStatement = null;
         try {
             preparedStatement =
-                DbTaskRunner.getStepPrepareStament(dbSession, TASKSTEP.ERRORTASK, nb);
-            addRunners(preparedStatement, TASKSTEP.ERRORTASK.name(), nb);
-            preparedStatement.realClose();
+                DbTaskRunner.getUpdatedPrepareStament(dbSession, UpdatedInfo.INERROR, true, nb/2);
+            addRunners(preparedStatement, UpdatedInfo.INERROR.name(), nb/2);
+            preparedStatement =
+                DbTaskRunner.getUpdatedPrepareStament(dbSession, UpdatedInfo.INTERRUPTED, true, nb/2);
+            addRunners(preparedStatement, UpdatedInfo.INTERRUPTED.name(), nb/2);
+            preparedStatement =
+                DbTaskRunner.getStepPrepareStament(dbSession, TASKSTEP.ERRORTASK, nb/4);
+            addRunners(preparedStatement, TASKSTEP.ERRORTASK.name(), nb/4);
         } catch (OpenR66DatabaseException e) {
+            if (preparedStatement != null) {
+                preparedStatement.realClose();
+            }
             logger.warn("OpenR66 Web Error",e);
             sendError(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE);
             return;
@@ -415,13 +440,15 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
         endHeader();
         replacementBody();
         inlineBody();
-        DbPreparedStatement preparedStatement;
+        DbPreparedStatement preparedStatement = null;
         try {
             preparedStatement =
                 DbTaskRunner.getStatusPrepareStament(dbSession, ErrorCode.CompleteOk, nb);
             addRunners(preparedStatement, ErrorCode.CompleteOk.mesg, nb);
-            preparedStatement.realClose();
         } catch (OpenR66DatabaseException e) {
+            if (preparedStatement != null) {
+                preparedStatement.realClose();
+            }
             logger.warn("OpenR66 Web Error",e);
             sendError(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE);
             return;
@@ -439,13 +466,15 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
         endHeader();
         replacementBody();
         inlineBody();
-        DbPreparedStatement preparedStatement;
+        DbPreparedStatement preparedStatement = null;
         try {
             preparedStatement =
                 DbTaskRunner.getStatusPrepareStament(dbSession, null, nb);// means all
             addRunners(preparedStatement, "ALL RUNNERS: "+nb, nb);
-            preparedStatement.realClose();
         } catch (OpenR66DatabaseException e) {
+            if (preparedStatement != null) {
+                preparedStatement.realClose();
+            }
             logger.warn("OpenR66 Web Error",e);
             sendError(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE);
             return;
@@ -572,7 +601,6 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
         try {
             if (DbConstant.admin.isConnected) {
                 this.dbSession = new DbSession(DbConstant.admin, false);
-                this.dbSession.useConnection();
                 this.isPrivateDbSession = true;
             }
         } catch (OpenR66DatabaseNoConnectionError e1) {

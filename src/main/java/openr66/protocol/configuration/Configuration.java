@@ -546,6 +546,7 @@ public class Configuration {
         this.delayLimit = delayLimit;
         if (globalTrafficShapingHandler != null) {
             globalTrafficShapingHandler.configure(serverGlobalWriteLimit, serverGlobalReadLimit, delayLimit);
+            logger.warn("Bandwidth limits change: {}", globalTrafficShapingHandler);
         }
         newWriteLimit = writeSessionLimit > 1024? writeSessionLimit
                 : serverChannelWriteLimit;

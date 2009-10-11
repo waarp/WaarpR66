@@ -99,7 +99,7 @@ public class OpenR66ExceptionTrappedFactory {
             return new OpenR66ProtocolNetworkException("Timeout occurs", e2);
         } else if (e1 instanceof NullPointerException) {
             final NullPointerException e2 = (NullPointerException) e1;
-            logger.info("Null pointer Exception", e2);
+            logger.error("Null pointer Exception", e2);
             return new OpenR66ProtocolSystemException("Null Pointer Exception",
                     e2);
         } else if (e1 instanceof SSLException) {

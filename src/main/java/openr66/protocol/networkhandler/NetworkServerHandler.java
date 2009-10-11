@@ -84,6 +84,11 @@ public class NetworkServerHandler extends SimpleChannelHandler {
             Configuration.configuration.getLocalTransaction()
                     .closeLocalChannelsFromNetworkChannel(e.getChannel());
         }
+        //Now force the close of the database after a wait
+        if (dbSession != null && dbSession.internalId != DbConstant.admin.session.internalId) {
+            dbSession.disconnect();
+            dbSession = null;
+        }
     }
 
     /*
@@ -106,7 +111,7 @@ public class NetworkServerHandler extends SimpleChannelHandler {
             logger.warn("Use default database connection");
             this.dbSession = DbConstant.admin.session;
         }
-        logger.debug("Network Channel Connected: [}", e.getChannel().getId());
+        logger.info("Network Channel Connected: {} ", e.getChannel().getId());
     }
 
     /*
@@ -121,6 +126,7 @@ public class NetworkServerHandler extends SimpleChannelHandler {
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) {
         final NetworkPacket packet = (NetworkPacket) e.getMessage();
         if (packet.getCode() == LocalPacketFactory.CONNECTERRORPACKET) {
+            logger.info("NetworkRecv: {}",packet);
             // Special code to STOP here
             if (packet.getLocalId() == ChannelUtils.NOCHANNEL) {
                 // No way to know what is wrong: close all connections with
@@ -136,6 +142,8 @@ public class NetworkServerHandler extends SimpleChannelHandler {
         }
         LocalChannelReference localChannelReference = null;
         if (packet.getLocalId() == ChannelUtils.NOCHANNEL) {
+            logger.info("NetworkRecv Create: {} {}",packet,
+                    e.getChannel().getId());
             try {
                 localChannelReference = Configuration.configuration
                         .getLocalTransaction().createNewClient(e.getChannel(),

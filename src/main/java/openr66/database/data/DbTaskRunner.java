@@ -105,6 +105,8 @@ public class DbTaskRunner extends AbstractDbData {
 
     public static String fieldseq = "RUNSEQ";
 
+    public static final String XMLRUNNERS = "taskrunners";
+    public static final String XMLRUNNER = "runner";
     /**
      * GlobalStep Value
      */
@@ -550,34 +552,38 @@ public class DbTaskRunner extends AbstractDbData {
             } catch (OpenR66DatabaseSqlError e) {
                 logger.info("Problem while inserting", e);
                 DbPreparedStatement find = new DbPreparedStatement(dbSession);
-                find.createPrepareStatement("SELECT MAX(" +
-                        primaryKey[2].column + ") FROM " + table + " WHERE " +
-                        primaryKey[0].column + " = ? AND " +
-                        primaryKey[1].column + " = ? AND " +
-                        primaryKey[2].column + " >= ? ");
-                primaryKey[0].setValue(requesterHostId);
-                primaryKey[1].setValue(requestedHostId);
-                primaryKey[2].setValue(specialId);
-                setValues(find, primaryKey);
-                find.executeQuery();
-                if (find.getNext()) {
-                    long result;
-                    try {
-                        result = find.getResultSet().getLong(1);
-                    } catch (SQLException e1) {
-                        throw new OpenR66DatabaseSqlError(e1);
-                    }
-                    specialId = result + 1;
-                    DbModelFactory.dbModel.resetSequence(specialId + 1);
-                    setToArray();
-                    preparedStatement.close();
-                    setValues(preparedStatement, allFields);
-                    int count = preparedStatement.executeUpdate();
-                    if (count <= 0) {
+                try {
+                    find.createPrepareStatement("SELECT MAX(" +
+                            primaryKey[2].column + ") FROM " + table + " WHERE " +
+                            primaryKey[0].column + " = ? AND " +
+                            primaryKey[1].column + " = ? AND " +
+                            primaryKey[2].column + " >= ? ");
+                    primaryKey[0].setValue(requesterHostId);
+                    primaryKey[1].setValue(requestedHostId);
+                    primaryKey[2].setValue(specialId);
+                    setValues(find, primaryKey);
+                    find.executeQuery();
+                    if (find.getNext()) {
+                        long result;
+                        try {
+                            result = find.getResultSet().getLong(1);
+                        } catch (SQLException e1) {
+                            throw new OpenR66DatabaseSqlError(e1);
+                        }
+                        specialId = result + 1;
+                        DbModelFactory.dbModel.resetSequence(specialId + 1);
+                        setToArray();
+                        preparedStatement.close();
+                        setValues(preparedStatement, allFields);
+                        int count = preparedStatement.executeUpdate();
+                        if (count <= 0) {
+                            throw new OpenR66DatabaseNoDataException("No row found");
+                        }
+                    } else {
                         throw new OpenR66DatabaseNoDataException("No row found");
                     }
-                } else {
-                    throw new OpenR66DatabaseNoDataException("No row found");
+                } finally {
+                    find.realClose();
                 }
             }
             isSaved = true;
@@ -626,11 +632,11 @@ public class DbTaskRunner extends AbstractDbData {
         }
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
                 dbSession);
-        preparedStatement.createPrepareStatement("SELECT " + selectAllFields +
-                " FROM " + table + " WHERE " + primaryKey[0].column +
-                " = ? AND " + primaryKey[1].column + " = ? AND " +
-                primaryKey[2].column + " = ? ");
         try {
+            preparedStatement.createPrepareStatement("SELECT " + selectAllFields +
+                    " FROM " + table + " WHERE " + primaryKey[0].column +
+                    " = ? AND " + primaryKey[1].column + " = ? AND " +
+                    primaryKey[2].column + " = ? ");
             primaryKey[0].setValue(requesterHostId);
             primaryKey[1].setValue(requestedHostId);
             primaryKey[2].setValue(specialId);
@@ -718,7 +724,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @param session
      * @param status
      * @param limit limit the number of rows
-     * @return the DbPreparedStatement for getting Runner according to status
+     * @return the DbPreparedStatement for getting Runner according to status ordered by start
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
      */
@@ -740,7 +746,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @param globalstep
      * @param limit limit the number of rows
      * @return the DbPreparedStatement for getting Runner according to
-     *         globalstep
+     *         globalstep ordered by start
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
      */
@@ -751,6 +757,10 @@ public class DbTaskRunner extends AbstractDbData {
         if (globalstep != null) {
             request += " WHERE " + Columns.GLOBALSTEP.name() + " = " +
                     globalstep.ordinal();
+            if (globalstep == TASKSTEP.ERRORTASK) {
+                request += " AND "+Columns.UPDATEDINFO.name() + " <> "+
+                    UpdatedInfo.INERROR.ordinal();
+            }
         }
         request += " ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
         request = DbModelFactory.dbModel.limitRequest(selectAllFields, request, limit);
@@ -763,6 +773,8 @@ public class DbTaskRunner extends AbstractDbData {
      * @param srcrequest
      * @param limit
      * @param orderby
+     * @param startid
+     * @param stopid
      * @param start
      * @param stop
      * @param rule
@@ -779,12 +791,13 @@ public class DbTaskRunner extends AbstractDbData {
      */
     private static DbPreparedStatement getFilterCondition(
             DbPreparedStatement preparedStatement, String srcrequest, int limit,
-            String orderby, Timestamp start, Timestamp stop, String rule,
+            String orderby, String startid, String stopid, Timestamp start, Timestamp stop, String rule,
             String req, boolean pending, boolean transfer, boolean error,
             boolean done, boolean all) throws OpenR66DatabaseNoConnectionError,
             OpenR66DatabaseSqlError {
         String request = srcrequest;
-        if (start == null && stop == null && rule == null && req == null && all) {
+        if (startid == null && stopid == null &&
+                start == null && stop == null && rule == null && req == null && all) {
             // finish
             if (limit > 0) {
                 request = DbModelFactory.dbModel.limitRequest(selectAllFields,
@@ -796,80 +809,116 @@ public class DbTaskRunner extends AbstractDbData {
             return preparedStatement;
         }
         request += " WHERE ";
-        String condition = null;
+        StringBuilder scondition = new StringBuilder();
         if (start != null & stop != null) {
-            condition = Columns.STARTTRANS.name() + " >= ? AND " +
-                    Columns.STARTTRANS.name() + " <= ? ";
+            scondition.append(Columns.STARTTRANS.name());
+            scondition.append(" >= ? AND ");
+            scondition.append(Columns.STARTTRANS.name());
+            scondition.append(" <= ? ");
         } else if (start != null) {
-            condition = Columns.STARTTRANS.name() + " >= ? ";
+            scondition.append(Columns.STARTTRANS.name());
+            scondition.append(" >= ? ");
         } else if (stop != null) {
-            condition = Columns.STARTTRANS.name() + " <= ? ";
+            scondition.append(Columns.STARTTRANS.name());
+            scondition.append(" <= ? ");
         }
-
-        if (rule != null) {
-            if (condition != null) {
-                condition += " AND ";
-            } else {
-                condition = "";
+        if (startid != null) {
+            if (scondition.length() != 0) {
+                scondition.append(" AND ");
             }
-            condition += Columns.IDRULE.name() + " LIKE '%" + rule + "%' ";
+            scondition.append(Columns.SPECIALID.name());
+            scondition.append(" >= ? ");
+        }
+        if (stopid != null) {
+            if (scondition.length() != 0) {
+                scondition.append(" AND ");
+            }
+            scondition.append(Columns.SPECIALID.name());
+            scondition.append(" <= ? ");
+        }
+        if (rule != null) {
+            if (scondition.length() != 0) {
+                scondition.append(" AND ");
+            }
+            scondition.append(Columns.IDRULE.name());
+            scondition.append(" LIKE '%");
+            scondition.append(rule);
+            scondition.append("%' ");
         }
         if (req != null) {
-            if (condition != null) {
-                condition += " AND ";
-            } else {
-                condition = "";
+            if (scondition.length() != 0) {
+                scondition.append(" AND ");
             }
-            condition += "( " + Columns.REQUESTED.name() + " LIKE '%" + req +
-                    "%' OR " + Columns.REQUESTER.name() + " LIKE '%" + req +
-                    "%' )";
+            scondition.append("( ");
+            scondition.append(Columns.REQUESTED.name());
+            scondition.append(" LIKE '%");
+            scondition.append(req);
+            scondition.append("%' OR ");
+            scondition.append(Columns.REQUESTER.name());
+            scondition.append(" LIKE '%");
+            scondition.append(req);
+            scondition.append("%' )");
         }
         if (!all) {
-            if (condition != null) {
-                condition += " AND ( ";
-            } else {
-                condition = "( ";
+            if (scondition.length() != 0) {
+                scondition.append(" AND ");
             }
+            scondition.append("( ");
             boolean hasone = false;
             if (pending) {
-                condition += Columns.GLOBALSTEP.name() + " = " +
-                        TASKSTEP.NOTASK.ordinal();
+                scondition.append(Columns.GLOBALSTEP.name());
+                scondition.append(" = ");
+                scondition.append(TASKSTEP.NOTASK.ordinal());
                 hasone = true;
             }
             if (transfer) {
                 if (hasone) {
-                    condition += " OR ";
+                    scondition.append(" OR ");
                 }
-                condition += "( " + Columns.GLOBALSTEP.name() + " = " +
-                        TASKSTEP.PRETASK.ordinal();
-                condition += " OR " + Columns.GLOBALSTEP.name() + " = " +
-                        TASKSTEP.TRANSFERTASK.ordinal();
-                condition += " OR " + Columns.GLOBALSTEP.name() + " = " +
-                        TASKSTEP.POSTTASK.ordinal() + " )";
+                scondition.append("( ");
+                scondition.append(Columns.GLOBALSTEP.name());
+                scondition.append(" = ");
+                scondition.append(TASKSTEP.PRETASK.ordinal());
+                scondition.append(" OR ");
+                scondition.append(Columns.GLOBALSTEP.name());
+                scondition.append(" = ");
+                scondition.append(TASKSTEP.TRANSFERTASK.ordinal());
+                scondition.append(" OR ");
+                scondition.append(Columns.GLOBALSTEP.name());
+                scondition.append(" = ");
+                scondition.append(TASKSTEP.POSTTASK.ordinal());
+                scondition.append(" )");
                 hasone = true;
             }
             if (error) {
                 if (hasone) {
-                    condition += " OR ";
+                    scondition.append(" OR ");
                 }
-                condition += Columns.GLOBALSTEP.name() + " = " +
-                        TASKSTEP.ERRORTASK.ordinal();
+                scondition.append(Columns.GLOBALSTEP.name());
+                scondition.append(" = ");
+                scondition.append(TASKSTEP.ERRORTASK.ordinal());
                 hasone = true;
             }
             if (done) {
                 if (hasone) {
-                    condition += " OR ";
+                    scondition.append(" OR ");
                 }
-                condition += Columns.GLOBALSTEP.name() + " = " +
-                        TASKSTEP.ALLDONETASK.ordinal();
+                scondition.append(Columns.GLOBALSTEP.name());
+                scondition.append(" = ");
+                scondition.append(TASKSTEP.ALLDONETASK.ordinal());
             }
-            condition += " )";
+            scondition.append(" )");
         }
         if (limit > 0) {
+            scondition.insert(0, request);
+            scondition.append(orderby);
+            request = scondition.toString();
             request = DbModelFactory.dbModel.limitRequest(selectAllFields,
-                request + condition + orderby, limit);
+                request, limit);
         } else {
-            request = request + condition + orderby;
+            scondition.insert(0, request);
+            scondition.append(orderby);
+            request = scondition.toString();
         }
         preparedStatement.createPrepareStatement(request);
         int rank = 1;
@@ -890,6 +939,18 @@ public class DbTaskRunner extends AbstractDbData {
                         stop);
                 rank ++;
             }
+            if (startid != null) {
+                long value = Long.parseLong(startid);
+                preparedStatement.getPreparedStatement().setLong(rank,
+                        value);
+                rank ++;
+            }
+            if (stopid != null) {
+                long value = Long.parseLong(stopid);
+                preparedStatement.getPreparedStatement().setLong(rank,
+                        value);
+                rank ++;
+            }
         } catch (SQLException e) {
             preparedStatement.realClose();
             throw new OpenR66DatabaseSqlError(e);
@@ -901,6 +962,9 @@ public class DbTaskRunner extends AbstractDbData {
      *
      * @param session
      * @param limit
+     * @param orderBySpecialId
+     * @param startid
+     * @param stopid
      * @param start
      * @param stop
      * @param rule
@@ -915,32 +979,45 @@ public class DbTaskRunner extends AbstractDbData {
      * @throws OpenR66DatabaseSqlError
      */
     public static DbPreparedStatement getFilterPrepareStament(
-            DbSession session, int limit, Timestamp start, Timestamp stop, String rule,
+            DbSession session, int limit, boolean orderBySpecialId, String startid, String stopid,
+            Timestamp start, Timestamp stop, String rule,
             String req, boolean pending, boolean transfer, boolean error,
             boolean done, boolean all) throws OpenR66DatabaseNoConnectionError,
             OpenR66DatabaseSqlError {
         DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
         String request = "SELECT " + selectAllFields + " FROM " + table;
-        String orderby = " ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
-        return getFilterCondition(preparedStatement, request, limit, orderby, start, stop, rule,
+        String orderby;
+        if (orderBySpecialId) {
+            orderby = " ORDER BY " + Columns.SPECIALID.name() + " DESC ";
+        } else {
+            orderby = " ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
+        }
+        return getFilterCondition(preparedStatement, request, limit, orderby,
+                startid, stopid, start, stop, rule,
                 req, pending, transfer, error, done, all);
     }
 
     /**
      *
      * @param session
+     * @param info
+     * @param orderByStart
      * @param limit
      * @return the DbPreparedStatement for getting Updated Object
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
      */
-    public static DbPreparedStatement getUpdatedPrepareStament(DbSession session, int limit)
+    public static DbPreparedStatement getUpdatedPrepareStament(DbSession session,
+            UpdatedInfo info, boolean orderByStart, int limit)
             throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
-        String request = "SELECT " + selectAllFields;
-        request += " FROM " + table + " WHERE " + Columns.UPDATEDINFO.name() +
-                " = " + AbstractDbData.UpdatedInfo.TOSUBMIT.ordinal();
+        String request = "SELECT " + selectAllFields+
+                " FROM " + table + " WHERE " + Columns.UPDATEDINFO.name() +
+                " = " + info.ordinal();
         if (limit > 0) {
             request += " AND ROWNUM <= "+limit;
+        }
+        if (orderByStart) {
+            request += " ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
         }
         return new DbPreparedStatement(session, request);
     }
@@ -963,7 +1040,7 @@ public class DbTaskRunner extends AbstractDbData {
         if (start != null & stop != null) {
             request += " WHERE " + Columns.STARTTRANS.name() + " >= ? AND " +
                     Columns.STARTTRANS.name() + " <= ? ORDER BY " +
-                    Columns.STARTTRANS.name() + " DESC ";
+                    Columns.SPECIALID.name() + " DESC ";
             preparedStatement.createPrepareStatement(request);
             try {
                 preparedStatement.getPreparedStatement().setTimestamp(1, start);
@@ -974,7 +1051,7 @@ public class DbTaskRunner extends AbstractDbData {
             }
         } else if (start != null) {
             request += " WHERE " + Columns.STARTTRANS.name() +
-                    " >= ? ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
+                    " >= ? ORDER BY " + Columns.SPECIALID.name() + " DESC ";
             preparedStatement.createPrepareStatement(request);
             try {
                 preparedStatement.getPreparedStatement().setTimestamp(1, start);
@@ -984,7 +1061,7 @@ public class DbTaskRunner extends AbstractDbData {
             }
         } else if (stop != null) {
             request += " WHERE " + Columns.STARTTRANS.name() +
-                    " <= ? ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
+                    " <= ? ORDER BY " + Columns.SPECIALID.name() + " DESC ";
             preparedStatement.createPrepareStatement(request);
             try {
                 preparedStatement.getPreparedStatement().setTimestamp(1, stop);
@@ -993,7 +1070,7 @@ public class DbTaskRunner extends AbstractDbData {
                 throw new OpenR66DatabaseSqlError(e);
             }
         } else {
-            request += " ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
+            request += " ORDER BY " + Columns.SPECIALID.name() + " DESC ";
             preparedStatement.createPrepareStatement(request);
         }
         return preparedStatement;
@@ -1015,51 +1092,55 @@ public class DbTaskRunner extends AbstractDbData {
             throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
         DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
         String request = "DELETE FROM " + table + " WHERE (" +
-                Columns.GLOBALLASTSTEP + " = " +
-                TASKSTEP.ALLDONETASK.ordinal() + " OR " +
-                Columns.GLOBALLASTSTEP + " = " + TASKSTEP.ERRORTASK.ordinal() +
+                Columns.GLOBALLASTSTEP + " = " +TASKSTEP.ALLDONETASK.ordinal() + " OR " +
+                Columns.GLOBALLASTSTEP + " = " +TASKSTEP.ERRORTASK.ordinal() +
                 ") ";
-        if (start != null & stop != null) {
-            request += " AND " + Columns.STARTTRANS.name() + " >= ? AND " +
-                    Columns.STOPTRANS.name() + " <= ? ";
-            preparedStatement.createPrepareStatement(request);
-            try {
-                preparedStatement.getPreparedStatement().setTimestamp(1, start);
-                preparedStatement.getPreparedStatement().setTimestamp(2, stop);
-            } catch (SQLException e) {
-                preparedStatement.realClose();
-                throw new OpenR66DatabaseSqlError(e);
+        try {
+            if (start != null & stop != null) {
+                request += " AND " + Columns.STARTTRANS.name() + " >= ? AND " +
+                        Columns.STOPTRANS.name() + " <= ? ";
+                preparedStatement.createPrepareStatement(request);
+                try {
+                    preparedStatement.getPreparedStatement().setTimestamp(1, start);
+                    preparedStatement.getPreparedStatement().setTimestamp(2, stop);
+                } catch (SQLException e) {
+                    preparedStatement.realClose();
+                    throw new OpenR66DatabaseSqlError(e);
+                }
+            } else if (start != null) {
+                request += " AND " + Columns.STARTTRANS.name() + " >= ? ";
+                preparedStatement.createPrepareStatement(request);
+                try {
+                    preparedStatement.getPreparedStatement().setTimestamp(1, start);
+                } catch (SQLException e) {
+                    preparedStatement.realClose();
+                    throw new OpenR66DatabaseSqlError(e);
+                }
+            } else if (stop != null) {
+                request += " AND " + Columns.STOPTRANS.name() + " <= ? ";
+                preparedStatement.createPrepareStatement(request);
+                try {
+                    preparedStatement.getPreparedStatement().setTimestamp(1, stop);
+                } catch (SQLException e) {
+                    preparedStatement.realClose();
+                    throw new OpenR66DatabaseSqlError(e);
+                }
+            } else {
+                preparedStatement.createPrepareStatement(request);
             }
-        } else if (start != null) {
-            request += " AND " + Columns.STARTTRANS.name() + " >= ? ";
-            preparedStatement.createPrepareStatement(request);
-            try {
-                preparedStatement.getPreparedStatement().setTimestamp(1, start);
-            } catch (SQLException e) {
-                preparedStatement.realClose();
-                throw new OpenR66DatabaseSqlError(e);
-            }
-        } else if (stop != null) {
-            request += " AND " + Columns.STOPTRANS.name() + " <= ? ";
-            preparedStatement.createPrepareStatement(request);
-            try {
-                preparedStatement.getPreparedStatement().setTimestamp(1, stop);
-            } catch (SQLException e) {
-                preparedStatement.realClose();
-                throw new OpenR66DatabaseSqlError(e);
-            }
-        } else {
-            preparedStatement.createPrepareStatement(request);
+            int nb = preparedStatement.executeUpdate();
+            logger.info("Purge " + nb + " from " + request);
+            return nb;
+        } finally {
+            preparedStatement.realClose();
         }
-        int nb = preparedStatement.executeUpdate();
-        logger.info("Purge " + nb + " from " + request);
-        preparedStatement.realClose();
-        return nb;
     }
 
     /**
      *
      * @param session
+     * @param startid
+     * @param stopid
      * @param start
      * @param stop
      * @param rule
@@ -1070,37 +1151,43 @@ public class DbTaskRunner extends AbstractDbData {
      * @param done
      * @param all
      * @return the DbPreparedStatement according to the filter and
-     * ALLDONE, NOTASK or ERROR globallaststep
+     * ALLDONE, ERROR globallaststep
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
      */
     public static int purgeLogPrepareStament(
-            DbSession session, Timestamp start, Timestamp stop, String rule,
+            DbSession session, String startid, String stopid,
+            Timestamp start, Timestamp stop, String rule,
             String req, boolean pending, boolean transfer, boolean error,
             boolean done, boolean all) throws OpenR66DatabaseNoConnectionError,
             OpenR66DatabaseSqlError {
         DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
         String request = "DELETE FROM " + table;
         String orderby;
-        if (start == null && stop == null && rule == null && req == null && all) {
-            orderby = " WHERE (" + Columns.GLOBALLASTSTEP + " = " +
-                TASKSTEP.ALLDONETASK.ordinal() + " OR " +
-                Columns.GLOBALLASTSTEP + " = " +TASKSTEP.NOTASK.ordinal() + " OR " +
-                Columns.GLOBALLASTSTEP + " = " + TASKSTEP.ERRORTASK.ordinal() +
+        if (startid == null && stopid == null && start == null && stop == null &&
+                rule == null && req == null && all) {
+            orderby = " WHERE (" +
+                Columns.GLOBALLASTSTEP + " = " +TASKSTEP.ALLDONETASK.ordinal() + " OR " +
+                Columns.GLOBALLASTSTEP + " = " +TASKSTEP.ERRORTASK.ordinal() +
                 ") ";
         } else {
-            orderby = " AND (" + Columns.GLOBALLASTSTEP + " = " +
-                TASKSTEP.ALLDONETASK.ordinal() + " OR " +
-                Columns.GLOBALLASTSTEP + " = " +TASKSTEP.NOTASK.ordinal() + " OR " +
-                Columns.GLOBALLASTSTEP + " = " + TASKSTEP.ERRORTASK.ordinal() +
+            orderby = " AND (" +
+                Columns.GLOBALLASTSTEP + " = " +TASKSTEP.ALLDONETASK.ordinal() + " OR " +
+                Columns.GLOBALLASTSTEP + " = " +TASKSTEP.ERRORTASK.ordinal() +
                 ") ";
         }
-        preparedStatement = getFilterCondition(preparedStatement, request, 0,
-                orderby, start, stop, rule,
-                req, pending, transfer, error, done, all);
-        int nb = preparedStatement.executeUpdate();
-        logger.info("Purge " + nb + " from " + request);
-        preparedStatement.realClose();
+        int nb = 0;
+        try {
+            preparedStatement = getFilterCondition(preparedStatement, request, 0,
+                    orderby, startid, stopid, start, stop, rule,
+                    req, pending, transfer, error, done, all);
+            nb = preparedStatement.executeUpdate();
+            logger.info("Purge " + nb + " from " + request);
+        } finally {
+            if (preparedStatement != null) {
+                preparedStatement.realClose();
+            }
+        }
         return nb;
     }
 
@@ -1117,8 +1204,8 @@ public class DbTaskRunner extends AbstractDbData {
         // Change RUNNING to TOSUBMIT since they should be ready
         String request = "UPDATE " + table + " SET " +
                 Columns.UPDATEDINFO.name() + "=" +
-                AbstractDbData.UpdatedInfo.TOSUBMIT.ordinal();
-        request += " WHERE " + Columns.UPDATEDINFO.name() + " = " +
+                AbstractDbData.UpdatedInfo.TOSUBMIT.ordinal()+
+                " WHERE " + Columns.UPDATEDINFO.name() + " = " +
                 AbstractDbData.UpdatedInfo.RUNNING.ordinal() +
                 " OR "+ Columns.UPDATEDINFO.name() + " = " +
                 AbstractDbData.UpdatedInfo.INTERRUPTED.ordinal();
@@ -1151,8 +1238,8 @@ public class DbTaskRunner extends AbstractDbData {
         // status = CompleteOk
         String request = "UPDATE " + table + " SET " +
                 Columns.UPDATEDINFO.name() + "=" +
-                AbstractDbData.UpdatedInfo.DONE.ordinal();
-        request += " WHERE " + Columns.UPDATEDINFO.name() + " <> " +
+                AbstractDbData.UpdatedInfo.DONE.ordinal()+
+                " WHERE " + Columns.UPDATEDINFO.name() + " <> " +
                 AbstractDbData.UpdatedInfo.DONE.ordinal() + " AND " +
                 Columns.UPDATEDINFO.name() + " > 0 AND " +
                 Columns.GLOBALLASTSTEP.name() + " = " +
@@ -1170,7 +1257,7 @@ public class DbTaskRunner extends AbstractDbData {
             logger.error("Cannot execute Commander", e);
             return;
         } finally {
-            initial.close();
+            initial.realClose();
         }
     }
 
@@ -2034,7 +2121,7 @@ public class DbTaskRunner extends AbstractDbData {
      */
     private static Element getElementFromRunner(DbTaskRunner runner)
             throws OpenR66DatabaseSqlError {
-        Element root = new DefaultElement("runner");
+        Element root = new DefaultElement(XMLRUNNER);
         for (DbValue value: runner.allFields) {
             if (value.column.equals(Columns.UPDATEDINFO.name())) {
                 continue;
@@ -2057,7 +2144,7 @@ public class DbTaskRunner extends AbstractDbData {
     public static Document writeXML(DbPreparedStatement preparedStatement)
             throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
         Document document = DocumentHelper.createDocument();
-        Element root = document.addElement("taskrunners");
+        Element root = document.addElement(XMLRUNNERS);
         preparedStatement.executeQuery();
         Element node;
         while (preparedStatement.getNext()) {
