@@ -95,7 +95,7 @@ public class R66Dir extends FilesystemBasedDirImpl {
      * @param file
      * @return the final unique basename without the temporary extension
      */
-    public String getFinalUniqueFilename(R66File file) {
+    public static String getFinalUniqueFilename(R66File file) {
         String finalpath = file.getBasename();
         int pos = finalpath.lastIndexOf(Configuration.EXT_R66);
         if (pos > 0) {

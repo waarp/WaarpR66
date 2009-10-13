@@ -32,7 +32,6 @@ import openr66.context.filesystem.R66Restart;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.data.DbTaskRunner;
 import openr66.database.data.DbTaskRunner.TASKSTEP;
-import openr66.database.exception.OpenR66DatabaseException;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.LocalChannelReference;
@@ -274,7 +273,7 @@ public class R66Session implements SessionInterface {
                 // File should already exist but can be using special code ('*?')
                 file = new R66File(this, dir, this.runner.getOriginalFilename());
             }
-            this.runner.setPreTask(0);
+            this.runner.setPreTask();
             runner.saveStatus();
             this.runner.run();
             runner.saveStatus();
@@ -369,15 +368,19 @@ public class R66Session implements SessionInterface {
             return;
         }
         if (runner.isFinished()) {
-            logger.warn("Transfer already done but " + status + " on " + file+runner.toShortString(),
+            logger.info("Transfer already done but " + status + " on " + file+runner.toShortString(),
                     new OpenR66RunnerErrorException(finalValue.toString()));
             return;
         }
         if (! status) {
             this.runner.deleteTempFile();
-            runner.setExecutionStatus(finalValue.code);
+            runner.setErrorExecutionStatus(finalValue.code);
         }
-        int rank = runner.finishTransferTask(status);
+        if (status) {
+            runner.finishTransferTask(ErrorCode.TransferOk);
+        } else {
+            runner.finishTransferTask(finalValue.code);
+        }
         runner.saveStatus();
         logger.info("Transfer " + status + " on {}", file);
         if (!runner.ready()) {
@@ -408,107 +411,7 @@ public class R66Session implements SessionInterface {
             localChannelReference.invalidateRequest(result);
             throw (OpenR66RunnerErrorException) result.exception;
         }
-        if (status) {
-            runner.setPostTask(0);
-            runner.saveStatus();
-            try {
-                runner.run();
-            } catch (OpenR66RunnerErrorException e1) {
-                R66Result result = finalValue;
-                if (status) {
-                    result = new R66Result(e1, this, false,
-                            ErrorCode.ExternalOp);
-                }
-                localChannelReference.invalidateRequest(result);
-                throw e1;
-            }
-            runner.saveStatus();
-            if (runner.isSender()) {
-                // Nothing to do since it is the original file
-            } else {
-                if ((!runner.isFileMoved()) &&
-                        (!RequestPacket.isRecvThroughMode(runner.getMode()))) {
-                    // Result file was not moved so move it
-                    String finalpath = dir.getFinalUniqueFilename(file);
-                    logger.debug("Will move file {}", finalpath);
-                    try {
-                        file.renameTo(runner.getRule().setRecvPath(finalpath));
-                    } catch (OpenR66ProtocolSystemException e) {
-                        R66Result result = finalValue;
-                        if (status) {
-                            result = new R66Result(e, this, false,
-                                    ErrorCode.FinalOp);
-                        }
-                        localChannelReference.invalidateRequest(result);
-                        throw e;
-                    } catch (CommandAbstractException e) {
-                        R66Result result = finalValue;
-                        if (status) {
-                            result = new R66Result(
-                                    new OpenR66RunnerErrorException(e), this,
-                                    false, ErrorCode.FinalOp);
-                        }
-                        localChannelReference.invalidateRequest(result);
-                        throw (OpenR66RunnerErrorException) result.exception;
-                    }
-                    logger.debug("File finally moved: {}", file);
-                    try {
-                        runner.setFilename(file.getFile());
-                    } catch (CommandAbstractException e) {
-                    }
-                }
-            }
-            runner.setAllDone();
-            runner.saveStatus();
-            logger.info("Transfer done on {} at RANK {}",file, rank);
-            localChannelReference.validateEndTransfer(finalValue);
-        } else {
-            // error or not ?
-            ErrorCode runnerStatus = runner.getStatus();
-            if (finalValue.exception != null) {
-                logger.warn("Transfer KO on " + file+ " due to "+ finalValue.exception.getMessage());
-            } else {
-                logger.warn("Transfer KO on " + file+" due to "+finalValue.toString());
-            }
-            if (runnerStatus == ErrorCode.CanceledTransfer) {
-                // delete file, reset runner
-                runner.setRankAtStartup(0);
-                runner.deleteTempFile();
-                runner.setPreTask(0);
-            } else if (runnerStatus == ErrorCode.StoppedTransfer) {
-                // just save runner and stop
-            } else if (runnerStatus == ErrorCode.Shutdown) {
-                // just save runner and stop
-            } else {
-                // real error
-                runner.setErrorTask(0);
-                runner.saveStatus();
-                try {
-                    runner.run();
-                } catch (OpenR66RunnerErrorException e1) {
-                    runner.setExecutionStatus(runnerStatus);
-                    runner.saveStatus();
-                    localChannelReference.invalidateRequest(finalValue);
-                    throw e1;
-                }
-                if (RequestPacket.isRecvThroughMode(runner.getMode()) ||
-                        RequestPacket.isSendThroughMode(runner.getMode())) {
-                    // delete the task since cannot be redone
-                    logger.error("Through Mode so delete: {}", runner);
-                    try {
-                        runner.delete();
-                    } catch (OpenR66DatabaseException e) {
-                    }
-                    runner.setExecutionStatus(runnerStatus);
-                    localChannelReference.invalidateRequest(finalValue);
-                    return;
-                }
-            }
-            // re set the original status
-            runner.setExecutionStatus(runnerStatus);
-            runner.saveStatus();
-            localChannelReference.invalidateRequest(finalValue);
-        }
+        runner.finalizeRunner(localChannelReference, file, finalValue, status);
     }
 
     /**

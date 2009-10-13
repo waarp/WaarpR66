@@ -113,14 +113,14 @@ public class TestTransferNoDb extends DirectTransfer {
                 arrayFuture[i].awaitUninterruptibly();
                 R66Result result = arrayFuture[i].getResult();
                 if (arrayFuture[i].isSuccess()) {
-                    if (result.runner.getStatus() == ErrorCode.Warning) {
+                    if (result.runner.getErrorInfo() == ErrorCode.Warning) {
                         warn ++;
                     } else {
                         success ++;
                     }
                 } else {
                     if (result.runner != null &&
-                            result.runner.getStatus() == ErrorCode.Warning) {
+                            result.runner.getErrorInfo() == ErrorCode.Warning) {
                         warn ++;
                     } else {
                         error ++;

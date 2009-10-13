@@ -109,7 +109,7 @@ public class TestRecvThroughClient extends RecvThroughClient {
             long delay = time2 - time1;
             R66Result result = future.getResult();
             if (future.isSuccess()) {
-                if (result.runner.getStatus() == ErrorCode.Warning) {
+                if (result.runner.getErrorInfo() == ErrorCode.Warning) {
                     logger.warn("Warning with Id: " +
                             result.runner.getSpecialId()+" on file: " +
                             (result.file != null? result.file.toString() : "no file")
@@ -126,7 +126,7 @@ public class TestRecvThroughClient extends RecvThroughClient {
                     networkTransaction.closeAll();
                     System.exit(1);
                 }
-                if (result.runner.getStatus() == ErrorCode.Warning) {
+                if (result.runner.getErrorInfo() == ErrorCode.Warning) {
                     logger.warn("Transfer in Warning with Id: " +
                             result.runner.getSpecialId(), future.getCause());
                     networkTransaction.closeAll();

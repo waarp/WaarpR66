@@ -223,8 +223,11 @@ public class LocalTransaction {
             LocalChannelReference localChannelReference = iterator.next();
             if (localChannelReference.getNetworkChannel().compareTo(
                     networkChannel) == 0) {
+                // give a chance for the LocalChannel to stop normally
+                localChannelReference.getFutureRequest().awaitUninterruptibly(
+                        Configuration.WAITFORNETOP*5);
                 logger.debug("Will close local channel");
-                Channels.close(localChannelReference.getLocalChannel());
+                Channels.close(localChannelReference.getLocalChannel()).awaitUninterruptibly();
             }
         }
     }

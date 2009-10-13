@@ -20,6 +20,7 @@
  */
 package openr66.commander;
 
+import goldengate.common.command.exception.CommandAbstractException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
@@ -31,7 +32,10 @@ import org.jboss.netty.channel.Channels;
 import openr66.client.RecvThroughHandler;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
+import openr66.context.R66Session;
 import openr66.context.authentication.R66Auth;
+import openr66.context.filesystem.R66Dir;
+import openr66.context.filesystem.R66File;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.DbConstant;
 import openr66.database.data.AbstractDbData;
@@ -42,6 +46,7 @@ import openr66.database.exception.OpenR66DatabaseException;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
+import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
@@ -141,7 +146,7 @@ public class ClientRunner implements Runnable {
         if (transfer.isSuccess()) {
             try {
                 taskRunner.select();
-                this.changeUpdatedInfo(UpdatedInfo.DONE);
+                this.changeUpdatedInfo(UpdatedInfo.DONE, ErrorCode.CompleteOk);
             } catch (OpenR66DatabaseException e) {
                 logger.info("Not a problem but cannot find at the end the task");
             }
@@ -149,7 +154,8 @@ public class ClientRunner implements Runnable {
             try {
                 taskRunner.select();
                 if (transfer.getResult().code == ErrorCode.QueryAlreadyFinished) {
-                    this.changeUpdatedInfo(UpdatedInfo.DONE);
+                    // FIXME check if post task to execute
+                    finalizeLocalTask(localChannelReference);
                 } else {
                     switch (taskRunner.getUpdatedInfo()) {
                         case DONE:
@@ -157,7 +163,7 @@ public class ClientRunner implements Runnable {
                         case INTERRUPTED:
                             break;
                         default:
-                            this.changeUpdatedInfo(UpdatedInfo.INERROR);
+                            this.changeUpdatedInfo(UpdatedInfo.INERROR, transfer.getResult().code);
                     }
                 }
             } catch (OpenR66DatabaseException e) {
@@ -165,6 +171,30 @@ public class ClientRunner implements Runnable {
             }
         }
         return transfer;
+    }
+    private void finalizeLocalTask(LocalChannelReference localChannelReference)
+    throws OpenR66RunnerErrorException {
+        R66Session session = new R66Session();
+        session.getAuth().specialHttpAuth(false);
+        R66File file;
+        try {
+            file = new R66File(session,
+                    new R66Dir(session), taskRunner.getFilename(), false);
+        } catch (CommandAbstractException e) {
+            logger.warn("Cannot recreate file: {}",taskRunner.getFilename());
+            this.changeUpdatedInfo(UpdatedInfo.INERROR, ErrorCode.Internal);
+            throw new OpenR66RunnerErrorException("Cannot recreate file", e);
+        }
+        R66Result finalValue = new R66Result(null, true, ErrorCode.CompleteOk);
+        finalValue.file = file;
+        finalValue.runner = taskRunner;
+        try {
+            taskRunner.finalizeRunner(localChannelReference, file, finalValue, true);
+        } catch (OpenR66ProtocolSystemException e) {
+            logger.warn("Cannot validate runner: {}",taskRunner.toShortString());
+            this.changeUpdatedInfo(UpdatedInfo.INERROR, ErrorCode.Internal);
+            throw new OpenR66RunnerErrorException("Cannot validate runner", e);
+        }
     }
     /**
      * Initialize the request
@@ -175,7 +205,7 @@ public class ClientRunner implements Runnable {
      */
     public LocalChannelReference initRequest()
         throws OpenR66ProtocolNoConnectionException, OpenR66RunnerErrorException, OpenR66ProtocolPacketException {
-        this.changeUpdatedInfo(UpdatedInfo.RUNNING);
+        this.changeUpdatedInfo(UpdatedInfo.RUNNING, ErrorCode.Running);
         long id = taskRunner.getSpecialId();
         String tid;
         if (id == DbConstant.ILLEGALVALUE) {
@@ -189,15 +219,15 @@ public class ClientRunner implements Runnable {
         if (taskRunner.isSelfRequested()) {
             // Don't have to restart a task for itself (or should use requester)
             logger.warn("Requested host cannot initiate itself the request");
-            this.changeUpdatedInfo(UpdatedInfo.INERROR);
+            this.changeUpdatedInfo(UpdatedInfo.INERROR, ErrorCode.NotKnownHost);
             throw new OpenR66RunnerErrorException("Requested host cannot initiate itself the request");
         }
         DbHostAuth host = R66Auth.getServerAuth(DbConstant.admin.session,
                 taskRunner.getRequested());
         if (host == null) {
             logger.warn("Requested host cannot be found: "+taskRunner.getRequested());
-            taskRunner.setExecutionStatus(ErrorCode.NotKnownHost);
-            this.changeUpdatedInfo(UpdatedInfo.INERROR);
+            //taskRunner.setExecutionStatus(ErrorCode.NotKnownHost);
+            this.changeUpdatedInfo(UpdatedInfo.INERROR, ErrorCode.NotKnownHost);
             throw new OpenR66RunnerErrorException("Requested host cannot be found "+
                     taskRunner.getRequested());
         }
@@ -214,19 +244,18 @@ public class ClientRunner implements Runnable {
             if (incrementTaskRunerTry(taskRunner, Configuration.RETRYNB)) {
                 logger.info("Will retry since Cannot connect to {}", host);
                 retry = " but will retry";
-                this.changeUpdatedInfo(UpdatedInfo.RUNNING);
+                //FIXME this.changeUpdatedInfo(UpdatedInfo.RUNNING);
                 // now wait
                 try {
                     Thread.sleep(Configuration.configuration.delayRetry);
                 } catch (InterruptedException e) {
                 }
-                this.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
+                this.changeUpdatedInfo(UpdatedInfo.TOSUBMIT, ErrorCode.ConnectionImpossible);
             } else {
                 logger.info("Will not retry since limit of connection attemtps is reached for {}",
                         host);
                 retry = " and retries limit is reached so stop here";
-                taskRunner.setExecutionStatus(ErrorCode.ConnectionImpossible);
-                this.changeUpdatedInfo(UpdatedInfo.INTERRUPTED);
+                this.changeUpdatedInfo(UpdatedInfo.INTERRUPTED, ErrorCode.ConnectionImpossible);
             }
             throw new OpenR66ProtocolNoConnectionException("Cannot connect to server "+
                     host.toString()+retry);
@@ -234,9 +263,15 @@ public class ClientRunner implements Runnable {
         if (handler != null) {
             localChannelReference.setRecvThroughHandler(handler);
         }
-        if (taskRunner.getRank() > 0) {
-            // start from one rank before
-            taskRunner.setRankAtStartup(taskRunner.getRank()-1);
+        // FIXME check if already transfered!!
+        if (taskRunner.getGloballaststep() < DbTaskRunner.TASKSTEP.POSTTASK.ordinal()) {
+            if (taskRunner.getStatus() == ErrorCode.Running && taskRunner.getRank() > 0) {
+                // start from one rank before
+                taskRunner.setRankAtStartup(taskRunner.getRank()-1);
+            }
+        } else if (taskRunner.getGloballaststep() == DbTaskRunner.TASKSTEP.POSTTASK.ordinal()) {
+            finalizeLocalTask(localChannelReference);
+            return localChannelReference;
         }
         RequestPacket request = taskRunner.getRequest();
         logger.debug("Will send request {} ",request);
@@ -245,7 +280,7 @@ public class ClientRunner implements Runnable {
         } catch (OpenR66ProtocolPacketException e) {
             // propose to redo
             logger.warn("Cannot transfer request to "+host.toString());
-            this.changeUpdatedInfo(UpdatedInfo.INTERRUPTED);
+            this.changeUpdatedInfo(UpdatedInfo.INTERRUPTED, ErrorCode.Internal);
             Channels.close(localChannelReference.getLocalChannel());
             localChannelReference = null;
             host = null;
@@ -261,8 +296,9 @@ public class ClientRunner implements Runnable {
      * Change the UpdatedInfo of the current runner
      * @param info
      */
-    public void changeUpdatedInfo(AbstractDbData.UpdatedInfo info) {
+    public void changeUpdatedInfo(AbstractDbData.UpdatedInfo info, ErrorCode code) {
         this.taskRunner.changeUpdatedInfo(info);
+        this.taskRunner.setErrorExecutionStatus(code);
         try {
             this.taskRunner.update();
         } catch (OpenR66DatabaseException e) {

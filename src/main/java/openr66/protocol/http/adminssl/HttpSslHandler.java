@@ -538,10 +538,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 ErrorCode code = (stop) ?
                         ErrorCode.StoppedTransfer : ErrorCode.CanceledTransfer;
                 if (lcr != null) {
-                    int rank = (stop ? taskRunner.getRank()-1 : 0);
-                    if (rank < 0) {
-                        rank = 0;
-                    }
+                    int rank = taskRunner.getRank();
                     ErrorPacket error = new ErrorPacket("Transfer "+parm+" "+rank,
                             code.getCode(), ErrorPacket.FORWARDCLOSECODE);
                     try {
@@ -597,7 +594,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     } else {
                         // Transfer is not running
                         // but maybe need action on database
-                        if (taskRunner.restart()) {
+                        if (taskRunner.restart(true)) {
                             comment = "Transfer is restarted";
                         } else {
                             comment = "Transfer is finished so not restartable";

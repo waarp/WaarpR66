@@ -204,12 +204,12 @@ public class DbSession {
             logger.warn("Connection already closed");
             return;
         }
-        if (nbThread > 0) {
-            logger.warn("Still some clients: "+nbThread);
-        }
         try {
             Thread.sleep(Configuration.WAITFORNETOP);
         } catch (InterruptedException e1) {
+        }
+        if (nbThread > 0) {
+            logger.warn("Still some clients could use this Database Session: "+nbThread);
         }
         OpenR66SignalHandler.removeConnection(internalId);
         try {

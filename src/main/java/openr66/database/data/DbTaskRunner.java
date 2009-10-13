@@ -34,6 +34,7 @@ import org.dom4j.Element;
 import org.dom4j.tree.DefaultElement;
 
 import openr66.context.ErrorCode;
+import openr66.context.R66Result;
 import openr66.context.R66Session;
 import openr66.context.filesystem.R66Dir;
 import openr66.context.filesystem.R66File;
@@ -53,6 +54,7 @@ import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.http.HttpHandler;
+import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.localhandler.packet.RequestPacket.TRANSFERMODE;
 import openr66.protocol.utils.FileUtils;
@@ -88,6 +90,7 @@ public class DbTaskRunner extends AbstractDbData {
         MODETRANS,
         STARTTRANS,
         STOPTRANS,
+        INFOSTATUS,
         UPDATEDINFO,
         REQUESTER,
         REQUESTED,
@@ -98,7 +101,7 @@ public class DbTaskRunner extends AbstractDbData {
             Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.INTEGER,
             Types.CHAR, Types.BIT, Types.VARCHAR, Types.BIT, Types.VARCHAR,
             Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
-            Types.TIMESTAMP, Types.TIMESTAMP, Types.INTEGER, Types.VARCHAR,
+            Types.TIMESTAMP, Types.TIMESTAMP, Types.CHAR, Types.INTEGER, Types.VARCHAR,
             Types.VARCHAR, Types.BIGINT };
 
     public static String table = " RUNNER ";
@@ -164,6 +167,12 @@ public class DbTaskRunner extends AbstractDbData {
     private Timestamp start;
 
     private Timestamp stop;
+
+    /**
+     * Info status error code
+     */
+    private ErrorCode infostatus = ErrorCode.Unknown;
+
     /**
      * The global status for running
      */
@@ -182,7 +191,7 @@ public class DbTaskRunner extends AbstractDbData {
             // FILENAME, ISMOVED, IDRULE,
             // BLOCKSZ, ORIGINALNAME, FILEINFO, MODETRANS,
             // STARTTRANS, STOPTRANS
-            // UPDATEDINFO
+            // INFOSTATUS, UPDATEDINFO
             new DbValue(globalstep, Columns.GLOBALSTEP.name()),
             new DbValue(globallaststep, Columns.GLOBALLASTSTEP.name()),
             new DbValue(step, Columns.STEP.name()),
@@ -198,6 +207,7 @@ public class DbTaskRunner extends AbstractDbData {
             new DbValue(mode, Columns.MODETRANS.name()),
             new DbValue(start, Columns.STARTTRANS.name()),
             new DbValue(stop, Columns.STOPTRANS.name()),
+            new DbValue(infostatus.getCode(), Columns.INFOSTATUS.name()),
             new DbValue(updatedInfo, Columns.UPDATEDINFO.name()) };
 
     private final DbValue[] allFields = {
@@ -205,6 +215,7 @@ public class DbTaskRunner extends AbstractDbData {
             otherFields[4], otherFields[5], otherFields[6], otherFields[7],
             otherFields[8], otherFields[9], otherFields[10], otherFields[11],
             otherFields[12], otherFields[13], otherFields[14], otherFields[15],
+            otherFields[16],
             primaryKey[0], primaryKey[1], primaryKey[2] };
 
     public static final String selectAllFields = Columns.GLOBALSTEP.name() +
@@ -215,7 +226,8 @@ public class DbTaskRunner extends AbstractDbData {
             Columns.BLOCKSZ.name() + "," + Columns.ORIGINALNAME.name() + "," +
             Columns.FILEINFO.name() + "," + Columns.MODETRANS.name() + "," +
             Columns.STARTTRANS.name() + "," + Columns.STOPTRANS.name() + "," +
-            Columns.UPDATEDINFO.name() + "," + Columns.REQUESTER.name() + "," +
+            Columns.INFOSTATUS.name() + "," + Columns.UPDATEDINFO.name() + "," +
+            Columns.REQUESTER.name() + "," +
             Columns.REQUESTED.name() + "," + Columns.SPECIALID.name();
 
     private static final String updateAllFields = Columns.GLOBALSTEP.name() +
@@ -227,9 +239,9 @@ public class DbTaskRunner extends AbstractDbData {
             "=?," + Columns.ORIGINALNAME.name() + "=?," +
             Columns.FILEINFO.name() + "=?," + Columns.MODETRANS.name() + "=?," +
             Columns.STARTTRANS.name() + "=?," + Columns.STOPTRANS.name() +
-            "=?," + Columns.UPDATEDINFO.name() + "=?";
+            "=?," + Columns.INFOSTATUS.name() + "=?," + Columns.UPDATEDINFO.name() + "=?";
 
-    private static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
+    private static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
 
     /**
      *
@@ -293,6 +305,7 @@ public class DbTaskRunner extends AbstractDbData {
         ruleId = this.rule.idRule;
         rank = requestPacket.getRank();
         status = ErrorCode.Unknown;
+        infostatus = ErrorCode.Unknown;
         this.isSender = isSender;
         filename = requestPacket.getFilename();
         blocksize = requestPacket.getBlocksize();
@@ -331,6 +344,7 @@ public class DbTaskRunner extends AbstractDbData {
         ruleId = this.rule.idRule;
         rank = requestPacket.getRank();
         status = ErrorCode.Unknown;
+        infostatus = ErrorCode.Unknown;
         this.isSender = isSender;
         filename = requestPacket.getFilename();
         blocksize = requestPacket.getBlocksize();
@@ -398,6 +412,7 @@ public class DbTaskRunner extends AbstractDbData {
         allFields[Columns.STARTTRANS.ordinal()].setValue(start);
         stop = new Timestamp(System.currentTimeMillis());
         allFields[Columns.STOPTRANS.ordinal()].setValue(stop);
+        allFields[Columns.INFOSTATUS.ordinal()].setValue(infostatus.getCode());
         allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
         allFields[Columns.REQUESTER.ordinal()].setValue(requesterHostId);
         allFields[Columns.REQUESTED.ordinal()].setValue(requestedHostId);
@@ -427,6 +442,8 @@ public class DbTaskRunner extends AbstractDbData {
         mode = (Integer) allFields[Columns.MODETRANS.ordinal()].getValue();
         start = (Timestamp) allFields[Columns.STARTTRANS.ordinal()].getValue();
         stop = (Timestamp) allFields[Columns.STOPTRANS.ordinal()].getValue();
+        infostatus = ErrorCode.getFromCode((String) allFields[Columns.INFOSTATUS
+                                                          .ordinal()].getValue());
         updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()]
                 .getValue();
         requesterHostId = (String) allFields[Columns.REQUESTER.ordinal()]
@@ -1273,7 +1290,7 @@ public class DbTaskRunner extends AbstractDbData {
             switch (TASKSTEP.values()[this.getGloballaststep()]) {
                 case PRETASK:
                     // restart
-                    this.setPreTask(0);
+                    this.setPreTask();
                     this.setExecutionStatus(ErrorCode.InitOk);
                     break;
                 case TRANSFERTASK:
@@ -1283,11 +1300,12 @@ public class DbTaskRunner extends AbstractDbData {
                     break;
                 case POSTTASK:
                     // restart
-                    this.setPostTask(0);
+                    this.setPostTask();
                     this.setExecutionStatus(ErrorCode.TransferOk);
                     break;
             }
             this.changeUpdatedInfo(UpdatedInfo.UNKNOWN);
+            this.setErrorExecutionStatus(this.status);
             return true;
         } else {
             // Already finished
@@ -1300,10 +1318,14 @@ public class DbTaskRunner extends AbstractDbData {
      *
      * @return True if OK
      */
-    public boolean restart() {
+    public boolean restart(boolean submit) {
         // Restart if already stopped and not finished
         if (reset()) {
-            this.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
+            if (submit) {
+                this.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
+            } else {
+                this.changeUpdatedInfo(UpdatedInfo.RUNNING);
+            }
             try {
                 this.saveStatus();
             } catch (OpenR66RunnerErrorException e) {
@@ -1312,7 +1334,8 @@ public class DbTaskRunner extends AbstractDbData {
             return true;
         } else {
             // Already finished so DONE
-            this.changeUpdatedInfo(UpdatedInfo.DONE);
+            this.setAllDone();
+            this.setErrorExecutionStatus(ErrorCode.QueryAlreadyFinished);
             try {
                 this.saveStatus();
             } catch (OpenR66RunnerErrorException e) {
@@ -1334,7 +1357,6 @@ public class DbTaskRunner extends AbstractDbData {
             if (! isFinished()) {
                 reset();
                 this.changeUpdatedInfo(UpdatedInfo.INTERRUPTED);
-                setExecutionStatus(code);
                 update();
                 logger.warn("StopOrCancel: {} {}",code.mesg,this.toShortString());
                 return true;
@@ -1358,7 +1380,17 @@ public class DbTaskRunner extends AbstractDbData {
             isSaved = false;
         }
     }
-
+    /**
+     * Set the ErrorCode for the UpdatedInfo
+     * @param code
+     */
+    public void setErrorExecutionStatus(ErrorCode code) {
+        if (infostatus != code) {
+            infostatus = code;
+            allFields[Columns.INFOSTATUS.ordinal()].setValue(infostatus.getCode());
+            isSaved = false;
+        }
+    }
     /**
      *
      * @return The current UpdatedInfo value
@@ -1366,7 +1398,13 @@ public class DbTaskRunner extends AbstractDbData {
     public UpdatedInfo getUpdatedInfo() {
         return UpdatedInfo.values()[updatedInfo];
     }
-
+    /**
+     *
+     * @return the error code associated with the Updated Info
+     */
+    public ErrorCode getErrorInfo() {
+        return infostatus;
+    }
     /**
      * To set the rank at startup of the request if the request specify a
      * specific rank
@@ -1567,17 +1605,21 @@ public class DbTaskRunner extends AbstractDbData {
     /**
      * Set Pre Task step
      *
-     * @param step
      */
-    public void setPreTask(int step) {
+    public void setPreTask() {
         globalstep = TASKSTEP.PRETASK.ordinal();
         globallaststep = TASKSTEP.PRETASK.ordinal();
         allFields[Columns.GLOBALSTEP.ordinal()].setValue(globalstep);
         allFields[Columns.GLOBALLASTSTEP.ordinal()].setValue(globallaststep);
-        this.step = step;
+        if (step <= 0) {
+            this.step = 0;
+        } else {
+            this.step--;
+        }
         allFields[Columns.STEP.ordinal()].setValue(this.step);
         status = ErrorCode.Running;
         allFields[Columns.STEPSTATUS.ordinal()].setValue(status.getCode());
+        this.setErrorExecutionStatus(ErrorCode.InitOk);
         isSaved = false;
     }
 
@@ -1595,6 +1637,7 @@ public class DbTaskRunner extends AbstractDbData {
         allFields[Columns.RANK.ordinal()].setValue(this.rank);
         status = ErrorCode.Running;
         allFields[Columns.STEPSTATUS.ordinal()].setValue(status.getCode());
+        this.setErrorExecutionStatus(ErrorCode.PreProcessingOk);
         isSaved = false;
     }
 
@@ -1605,16 +1648,18 @@ public class DbTaskRunner extends AbstractDbData {
      *            True if success
      * @return the current rank of transfer
      */
-    public int finishTransferTask(boolean status) {
-        if (status) {
-            this.status = ErrorCode.TransferOk;
+    public int finishTransferTask(ErrorCode code) {
+        if (code == ErrorCode.TransferOk) {
+            this.status = code;
+            this.setErrorExecutionStatus(code);
         } else {
-            if (this.status == ErrorCode.InitOk ||
-                    this.status == ErrorCode.PostProcessingOk ||
-                    this.status == ErrorCode.PreProcessingOk ||
-                    this.status == ErrorCode.Running ||
-                    this.status == ErrorCode.TransferOk) {
-                this.status = ErrorCode.TransferError;
+            this.changeUpdatedInfo(UpdatedInfo.INERROR);
+            if (this.infostatus == ErrorCode.InitOk ||
+                    this.infostatus == ErrorCode.PostProcessingOk ||
+                    this.infostatus == ErrorCode.PreProcessingOk ||
+                    this.infostatus == ErrorCode.Running ||
+                    this.infostatus == ErrorCode.TransferOk) {
+                this.setErrorExecutionStatus(code);
             }
         }
         allFields[Columns.STEPSTATUS.ordinal()].setValue(this.status.getCode());
@@ -1625,29 +1670,32 @@ public class DbTaskRunner extends AbstractDbData {
     /**
      * Set the Post Task step
      *
-     * @param step
      */
-    public void setPostTask(int step) {
+    public void setPostTask() {
         globalstep = TASKSTEP.POSTTASK.ordinal();
         globallaststep = TASKSTEP.POSTTASK.ordinal();
         allFields[Columns.GLOBALSTEP.ordinal()].setValue(globalstep);
         allFields[Columns.GLOBALLASTSTEP.ordinal()].setValue(globallaststep);
-        this.step = step;
+        if (step <= 0) {
+            this.step = 0;
+        } else {
+            this.step--;
+        }
         allFields[Columns.STEP.ordinal()].setValue(this.step);
         status = ErrorCode.Running;
         allFields[Columns.STEPSTATUS.ordinal()].setValue(status.getCode());
+        this.setErrorExecutionStatus(ErrorCode.TransferOk);
         isSaved = false;
     }
 
     /**
      * Set the Error Task step
      *
-     * @param step
      */
-    public void setErrorTask(int step) {
+    public void setErrorTask() {
         globalstep = TASKSTEP.ERRORTASK.ordinal();
         allFields[Columns.GLOBALSTEP.ordinal()].setValue(globalstep);
-        this.step = step;
+        this.step = 0;
         allFields[Columns.STEP.ordinal()].setValue(this.step);
         status = ErrorCode.Running;
         allFields[Columns.STEPSTATUS.ordinal()].setValue(status.getCode());
@@ -1664,10 +1712,10 @@ public class DbTaskRunner extends AbstractDbData {
         allFields[Columns.GLOBALLASTSTEP.ordinal()].setValue(globallaststep);
         step = 0;
         allFields[Columns.STEP.ordinal()].setValue(step);
-        if (status == ErrorCode.PostProcessingOk) {
-            status = ErrorCode.CompleteOk;
-        }
+        status = ErrorCode.CompleteOk;
         allFields[Columns.STEPSTATUS.ordinal()].setValue(status.getCode());
+        infostatus = ErrorCode.CompleteOk;
+        allFields[Columns.INFOSTATUS.ordinal()].setValue(infostatus.getCode());
         changeUpdatedInfo(UpdatedInfo.DONE);
         isSaved = false;
     }
@@ -1716,7 +1764,7 @@ public class DbTaskRunner extends AbstractDbData {
                     }
                 } catch (OpenR66RunnerEndTasksException e) {
                     if (status == ErrorCode.Running) {
-                        status = ErrorCode.PreProcessingOk;
+                        infostatus = status = ErrorCode.PreProcessingOk;
                     }
                     throw e;
                 }
@@ -1729,7 +1777,7 @@ public class DbTaskRunner extends AbstractDbData {
                     }
                 } catch (OpenR66RunnerEndTasksException e) {
                     if (status == ErrorCode.Running) {
-                        status = ErrorCode.PostProcessingOk;
+                        infostatus = status = ErrorCode.PostProcessingOk;
                     }
                     throw e;
                 }
@@ -1763,30 +1811,152 @@ public class DbTaskRunner extends AbstractDbData {
             try {
                 future = runNext();
             } catch (OpenR66RunnerEndTasksException e) {
+                step = 0;
                 allFields[Columns.STEP.ordinal()].setValue(step);
                 allFields[Columns.STEPSTATUS.ordinal()].setValue(status
                         .getCode());
+                allFields[Columns.INFOSTATUS.ordinal()].setValue(infostatus.getCode());
                 isSaved = false;
                 return;
             } catch (OpenR66RunnerErrorException e) {
-                status = ErrorCode.ExternalOp;
+                infostatus = ErrorCode.ExternalOp;
                 allFields[Columns.STEP.ordinal()].setValue(step);
-                allFields[Columns.STEPSTATUS.ordinal()].setValue(status
-                        .getCode());
+                allFields[Columns.INFOSTATUS.ordinal()].setValue(infostatus.getCode());
                 isSaved = false;
                 throw new OpenR66RunnerErrorException("Runner is in error: " +
                         e.getMessage(), e);
             }
             if (future.isCancelled()) {
-                status = future.getResult().code;
+                infostatus = future.getResult().code;
                 allFields[Columns.STEP.ordinal()].setValue(step);
-                allFields[Columns.STEPSTATUS.ordinal()].setValue(status
-                        .getCode());
+                allFields[Columns.INFOSTATUS.ordinal()].setValue(infostatus.getCode());
                 isSaved = false;
                 throw new OpenR66RunnerErrorException("Runner is error: " +
                         future.getCause().getMessage(), future.getCause());
             }
             step ++;
+        }
+    }
+
+    /**
+     * Once the transfer is over, finalize the Runner by running
+     * the error or post operation according to the status.
+     * @param localChannelReference
+     * @param file
+     * @param finalValue
+     * @param status
+     * @throws OpenR66RunnerErrorException
+     * @throws OpenR66ProtocolSystemException
+     */
+    public void finalizeRunner(LocalChannelReference localChannelReference, R66File file,
+            R66Result finalValue, boolean status)
+    throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException {
+        if (status) {
+            this.setPostTask();
+            this.saveStatus();
+            try {
+                this.run();
+            } catch (OpenR66RunnerErrorException e1) {
+                R66Result result = finalValue;
+                if (status) {
+                    result = new R66Result(e1, null, false,
+                            ErrorCode.ExternalOp);
+                    result.file = file;
+                    result.runner = this;
+                }
+                localChannelReference.invalidateRequest(result);
+                throw e1;
+            }
+            this.saveStatus();
+            if (this.isSender()) {
+                // Nothing to do since it is the original file
+            } else {
+                if ((!this.isFileMoved()) &&
+                        (!RequestPacket.isRecvThroughMode(this.getMode()))) {
+                    // Result file was not moved so move it
+                    String finalpath = R66Dir.getFinalUniqueFilename(file);
+                    logger.debug("Will move file {}", finalpath);
+                    try {
+                        file.renameTo(this.getRule().setRecvPath(finalpath));
+                    } catch (OpenR66ProtocolSystemException e) {
+                        R66Result result = finalValue;
+                        if (status) {
+                            result = new R66Result(e, null, false,
+                                    ErrorCode.FinalOp);
+                            result.file = file;
+                            result.runner = this;
+                        }
+                        localChannelReference.invalidateRequest(result);
+                        throw e;
+                    } catch (CommandAbstractException e) {
+                        R66Result result = finalValue;
+                        if (status) {
+                            result = new R66Result(
+                                    new OpenR66RunnerErrorException(e), null,
+                                    false, ErrorCode.FinalOp);
+                            result.file = file;
+                            result.runner = this;
+                        }
+                        localChannelReference.invalidateRequest(result);
+                        throw (OpenR66RunnerErrorException) result.exception;
+                    }
+                    logger.debug("File finally moved: {}", file);
+                    try {
+                        this.setFilename(file.getFile());
+                    } catch (CommandAbstractException e) {
+                    }
+                }
+            }
+            this.setAllDone();
+            this.saveStatus();
+            logger.info("Transfer done on {} at RANK {}",file, rank);
+            localChannelReference.validateEndTransfer(finalValue);
+        } else {
+         // error or not ?
+            ErrorCode runnerStatus = this.getErrorInfo();
+            if (finalValue.exception != null) {
+                logger.warn("Transfer KO on " + file+ " due to "+ finalValue.exception.getMessage());
+            } else {
+                logger.warn("Transfer KO on " + file+" due to "+finalValue.toString());
+            }
+            if (runnerStatus == ErrorCode.CanceledTransfer) {
+                // delete file, reset runner
+                this.setRankAtStartup(0);
+                this.deleteTempFile();
+                //FIXME runner.setPreTask(0);
+            } else if (runnerStatus == ErrorCode.StoppedTransfer) {
+                // just save runner and stop
+            } else if (runnerStatus == ErrorCode.Shutdown) {
+                // just save runner and stop
+            } else {
+                // real error
+                this.setErrorTask();
+                this.saveStatus();
+                try {
+                    this.run();
+                } catch (OpenR66RunnerErrorException e1) {
+                    this.setErrorExecutionStatus(runnerStatus);
+                    this.saveStatus();
+                    localChannelReference.invalidateRequest(finalValue);
+                    throw e1;
+                }
+                if (RequestPacket.isRecvThroughMode(this.getMode()) ||
+                        RequestPacket.isSendThroughMode(this.getMode())) {
+                    // delete the task since cannot be redone
+                    logger.error("Through Mode so delete: {}", this);
+                    try {
+                        this.delete();
+                    } catch (OpenR66DatabaseException e) {
+                    }
+                    this.setErrorExecutionStatus(runnerStatus);
+                    localChannelReference.invalidateRequest(finalValue);
+                    return;
+                }
+            }
+            // re set the original status
+            this.setErrorExecutionStatus(runnerStatus);
+            this.saveStatus();
+            localChannelReference.invalidateRequest(finalValue);
         }
     }
 
@@ -1858,6 +2028,7 @@ public class DbTaskRunner extends AbstractDbData {
                 " Requester: " + requesterHostId + " Requested: " +
                 requestedHostId + " Start: " + start + " Stop: " + stop +
                 " Internal: " + UpdatedInfo.values()[updatedInfo].name()+
+                ":"+infostatus.mesg+
                 " Fileinfo: "+fileInformation;
     }
 
@@ -1871,7 +2042,7 @@ public class DbTaskRunner extends AbstractDbData {
                 requesterHostId + "</REQR><REQD>" + requestedHostId +
                 "</REQD>\n    <START>" + start + "</START><STOP>" + stop +
                 "</STOP>\n    <INTERNAL>" + UpdatedInfo.values()[updatedInfo].name()
-                + "</INTERNAL>\n    <FILEINFO>"+
+                +" : "+infostatus.mesg+ "</INTERNAL>\n    <FILEINFO>"+
                 fileInformation+"</FILEINFO>";
     }
 
@@ -1884,7 +2055,7 @@ public class DbTaskRunner extends AbstractDbData {
                 + "</td><td>Step (LastStep)</td><td>Action</td><td>Status"
                 + "</td><td>Internal</t><td>Transfer Rank</td><td>isMoved"
                 + "</td><td>Requester</td><td>Requested"
-                + "</td><td>Start</td><td>Stop</td><td>Bandwidth (Kbits)</td><td>Free Space(MB)</td>";
+                + "</td><td>Start</td><td>Stop</td><td>Bandwidth (Mbits)</td><td>Free Space(MB)</td>";
     }
 
     /**
@@ -1932,6 +2103,13 @@ public class DbTaskRunner extends AbstractDbData {
             }
         }
         return freespace;
+    }
+
+    private String bandwidth() {
+        double size = (rank * blocksize * 8);
+        double time = (stop.getTime() + 1 - start.getTime());
+        double result = size/time / ((double) 0x100000L) * ((double) 1000);
+        return String.format("%,.2f", result);
     }
 
     private String getHtmlColor() {
@@ -1984,9 +2162,9 @@ public class DbTaskRunner extends AbstractDbData {
                 ")</td><td>" +
                 step +
                 "</td><td>" +
-                status.mesg +
+                status.mesg+
                 "</td><td>" +
-                UpdatedInfo.values()[updatedInfo].name()+
+                UpdatedInfo.values()[updatedInfo].name()+" : "+infostatus.mesg +
                 "</td><td>" +
                 rank +
                 "</td><td>" +
@@ -2000,8 +2178,7 @@ public class DbTaskRunner extends AbstractDbData {
                 "</td><td>" +
                 stop +
                 "</td><td>" +
-                (int) (((double) (rank * blocksize * 8)) / ((double) (stop
-                        .getTime() + 1 - start.getTime()))) + "</td>" + "<td>" +
+                bandwidth() + "</td>" + "<td>" +
                 freespace + "</td>";
     }
 
@@ -2023,7 +2200,8 @@ public class DbTaskRunner extends AbstractDbData {
         FileUtils.replace(builder, "XXXCOLXXX", getHtmlColor());
         FileUtils.replace(builder, "XXXActXXX", Integer.toString(step));
         FileUtils.replace(builder, "XXXStatXXX", status.mesg);
-        FileUtils.replace(builder, "XXXInternXXX", UpdatedInfo.values()[updatedInfo].name());
+        FileUtils.replace(builder, "XXXInternXXX", UpdatedInfo.values()[updatedInfo].name()+
+                " : "+infostatus.mesg);
         FileUtils.replace(builder, "XXXBloXXX", Integer.toString(rank));
         FileUtils.replace(builder, "XXXisSendXXX", Boolean.toString(isSender));
         FileUtils.replace(builder, "XXXisMovXXX", Boolean.toString(isFileMoved));
@@ -2032,9 +2210,7 @@ public class DbTaskRunner extends AbstractDbData {
         FileUtils.replaceAll(builder, "XXXReqdXXX", requestedHostId);
         FileUtils.replace(builder, "XXXStarXXX", start.toString());
         FileUtils.replace(builder, "XXXStopXXX", stop.toString());
-        FileUtils.replace(builder, "XXXBandXXX", Integer.toString((int) (((double) (rank *
-                        blocksize * 8)) / ((double) (stop.getTime() + 1 - start
-                        .getTime())))));
+        FileUtils.replace(builder, "XXXBandXXX", bandwidth());
         FileUtils.replace(builder, "XXXFreeXXX", Long.toString(freespace));
         return builder.toString();
     }

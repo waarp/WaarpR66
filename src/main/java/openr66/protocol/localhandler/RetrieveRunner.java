@@ -101,7 +101,7 @@ public class RetrieveRunner implements Runnable {
             return;
         }
         localChannelReference.getFutureEndTransfer().awaitUninterruptibly();
-        logger.info("Await future End Transfer done: " +
+        logger.warn("Await future End Transfer done: " +
                 localChannelReference.getFutureEndTransfer().isSuccess());
         if (localChannelReference.getFutureEndTransfer().isSuccess()) {
             // send a validation
@@ -114,6 +114,10 @@ public class RetrieveRunner implements Runnable {
             }
             localChannelReference.validateRequest(localChannelReference
                     .getFutureEndTransfer().getResult());
+            try {
+                Thread.sleep(Configuration.WAITFORNETOP);
+            } catch (InterruptedException e) {
+            }
             ChannelUtils.close(channel);
         } else {
             if (!localChannelReference.getFutureEndTransfer().getResult().isAnswered) {

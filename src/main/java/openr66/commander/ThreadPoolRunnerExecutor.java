@@ -26,6 +26,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import openr66.context.ErrorCode;
 import openr66.database.data.AbstractDbData;
 
 /**
@@ -48,7 +49,8 @@ public class ThreadPoolRunnerExecutor extends ThreadPoolExecutor {
         @Override
         public void rejectedExecution(Runnable arg0, ThreadPoolExecutor arg1) {
             ClientRunner runner = (ClientRunner) arg0;
-            runner.changeUpdatedInfo(AbstractDbData.UpdatedInfo.TOSUBMIT);
+            runner.changeUpdatedInfo(AbstractDbData.UpdatedInfo.TOSUBMIT,
+                    ErrorCode.Unknown);
         }
 
     }
@@ -121,7 +123,8 @@ public class ThreadPoolRunnerExecutor extends ThreadPoolExecutor {
     @Override
     protected void beforeExecute(Thread t, Runnable r) {
         ClientRunner runner = (ClientRunner) r;
-        runner.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
+        runner.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED,
+                ErrorCode.Unknown);
     }
 
 }

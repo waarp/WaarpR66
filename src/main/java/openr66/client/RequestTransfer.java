@@ -250,7 +250,7 @@ public class RequestTransfer implements Runnable {
         } else {
             // Only request
             logger.warn("Transfer information: "+runner.toString());
-            future.setResult(new R66Result(null,true,runner.getStatus()));
+            future.setResult(new R66Result(null,true,runner.getErrorInfo()));
             future.setSuccess();
         }
     }

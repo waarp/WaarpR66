@@ -226,7 +226,7 @@ public class ExecMoveTask extends AbstractTask {
         } else if (status == 1) {
             logger.warn("Exec in warning with " + commandLine.toString() +
                     " returns " + newname);
-            session.getRunner().setExecutionStatus(ErrorCode.Warning);
+            session.getRunner().setErrorExecutionStatus(ErrorCode.Warning);
             futureCompletion.setSuccess();
         } else {
             logger.error("Status: " + status + " Exec in error with " +

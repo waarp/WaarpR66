@@ -25,6 +25,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import openr66.context.R66Session;
+import openr66.context.filesystem.R66Dir;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import openr66.protocol.utils.FileUtils;
@@ -176,7 +177,7 @@ public abstract class AbstractTask implements Runnable {
         StringBuilder builder = new StringBuilder(arg);
         FileUtils.replaceAll(builder, TRUEFULLPATH, session.getFile()
                 .getTrueFile().getAbsolutePath());
-        FileUtils.replaceAll(builder, TRUEFILENAME, session.getDir()
+        FileUtils.replaceAll(builder, TRUEFILENAME, R66Dir
                 .getFinalUniqueFilename(session.getFile()));
         FileUtils.replaceAll(builder, ORIGINALFILENAME, session.getRunner()
                 .getOriginalFilename());

@@ -150,7 +150,7 @@ public class DirectTransfer extends AbstractTransfer {
             long delay = time2 - time1;
             R66Result result = future.getResult();
             if (future.isSuccess()) {
-                if (result.runner.getStatus() == ErrorCode.Warning) {
+                if (result.runner.getErrorInfo() == ErrorCode.Warning) {
                     logger.warn("Warning for "+result.runner.toShortString()+"<REMOTE>"+rhost+"</REMOTE>"+
                             " on file: <FILEFINAL>" +
                             (result.file != null? result.file.toString()+"</FILEFINAL>" : "no file")
@@ -175,7 +175,7 @@ public class DirectTransfer extends AbstractTransfer {
                     networkTransaction.closeAll();
                     System.exit(ErrorCode.Unknown.ordinal());
                 }
-                if (result.runner.getStatus() == ErrorCode.Warning) {
+                if (result.runner.getErrorInfo() == ErrorCode.Warning) {
                     logger.warn("Transfer in Warning "+result.runner.toShortString()+
                             "<REMOTE>"+rhost+"</REMOTE>", future.getCause());
                     networkTransaction.closeAll();
