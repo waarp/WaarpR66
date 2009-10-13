@@ -225,7 +225,7 @@ public class LocalTransaction {
                     networkChannel) == 0) {
                 // give a chance for the LocalChannel to stop normally
                 localChannelReference.getFutureRequest().awaitUninterruptibly(
-                        Configuration.WAITFORNETOP*5);
+                        Configuration.WAITFORNETOP*10);
                 logger.debug("Will close local channel");
                 Channels.close(localChannelReference.getLocalChannel()).awaitUninterruptibly();
             }

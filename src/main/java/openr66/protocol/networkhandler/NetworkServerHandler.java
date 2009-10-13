@@ -76,11 +76,6 @@ public class NetworkServerHandler extends SimpleChannelHandler {
                     e.getChannel().getId(),
                     NetworkTransaction.getNbLocalChannel(e.getChannel()));
             // close if necessary the local channel
-            // give a bit time
-            try {
-                Thread.sleep(Configuration.WAITFORNETOP);
-            } catch (InterruptedException e1) {
-            }
             Configuration.configuration.getLocalTransaction()
                     .closeLocalChannelsFromNetworkChannel(e.getChannel());
         }

@@ -101,7 +101,7 @@ public class RetrieveRunner implements Runnable {
             return;
         }
         localChannelReference.getFutureEndTransfer().awaitUninterruptibly();
-        logger.warn("Await future End Transfer done: " +
+        logger.info("Await future End Transfer done: " +
                 localChannelReference.getFutureEndTransfer().isSuccess());
         if (localChannelReference.getFutureEndTransfer().isSuccess()) {
             // send a validation

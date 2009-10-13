@@ -44,12 +44,14 @@ OpenR66-Command
 
   From there any argument are optional but in that order. Any existing data will be replaced. No data are deleted if not replaced.
 
-  * Second argument is the directory from where to load rules into the database using the XML
+  * -initdb : try to create database. It stops at the first error but the program continues.
+
+  * -dir directory : This argument is the directory from where to load rules into the database using the XML
   rule files present in this directory (rules table).
 
-  * Third argument is to load the host authentication XML file into the database (hosts table).
+  * -auth fileHost : This argument is to load the host authentication XML file into the database (hosts table).
 
-  * Fourth argument is to load the bandwidth XML file into the database (configuration table).
+  * -limit limitConfig : This argument is to load the bandwidth XML file into the database (configuration table).
 
   []
 
@@ -125,7 +127,7 @@ OpenR66-Command
 
 **ChangeBandwidthLimits
 
-  This tool enables to change dynamicaly the bandwidth limitations (only in memory, not in 
+  This tool enables to change dynamicaly the bandwidth limitations (only in memory, not in
   database). To use it, it should be used locally with the admin account.
 
   * The First argument is the Client Configuration (eventually without database access).

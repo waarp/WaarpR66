@@ -50,6 +50,39 @@ import ch.qos.logback.classic.Level;
  *
  */
 public class ServerInitDatabase {
+    /**
+     * Internal Logger
+     */
+    static volatile GgInternalLogger logger;
+
+    static String sxml = null;
+    static boolean database = false;
+    static String sdirconfig = null;
+    static String shostauth = null;
+    static String slimitconfig = null;
+
+    protected static boolean getParams(String [] args) {
+        if (args.length < 1) {
+            logger.error("Need at least the configuration file as first argument");
+            return false;
+        }
+        sxml = args[0];
+        for (int i = 1; i < args.length; i++) {
+            if (args[i].equalsIgnoreCase("-initdb")) {
+                database = true;
+            } else if (args[i].equalsIgnoreCase("-dir")) {
+                i++;
+                sdirconfig = args[i];
+            } else if (args[i].equalsIgnoreCase("-limit")) {
+                i++;
+                slimitconfig = args[i];
+            } else if (args[i].equalsIgnoreCase("-auth")) {
+                i++;
+                shostauth = args[i];
+            }
+        }
+        return true;
+    }
 
     /**
      * @param args
@@ -59,57 +92,68 @@ public class ServerInitDatabase {
     public static void main(String[] args) {
         InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
                 Level.WARN));
-        if (args.length < 1) {
-            System.err
-                    .println("Need at least config_database file " +
-                    		"and optionaly (in that order) rules_directory host_authent_file " +
-                    		"limit_configuration_file");
-            return;
+        if (logger == null) {
+            logger = GgInternalLoggerFactory.getLogger(SubmitTransfer.class);
         }
-        GgInternalLogger logger = GgInternalLoggerFactory.getLogger(SubmitTransfer.class);
+        if (! getParams(args)) {
+            logger.error("Need at least config_database file " +
+                    "and optionaly (in that order) rules_directory host_authent_file " +
+                    "limit_configuration_file");
+            if (DbConstant.admin != null && DbConstant.admin.isConnected) {
+                DbConstant.admin.close();
+            }
+            System.exit(1);
+        }
+
         try {
             Document document = null;
             // Open config file
             try {
-                document = new SAXReader().read(args[0]);
+                document = new SAXReader().read(sxml);
             } catch (DocumentException e) {
-                logger.error("Unable to read the XML Config file: " + args[0], e);
+                logger.error("Unable to read the XML Config file: " + sxml, e);
                 return;
             }
             if (document == null) {
-                logger.error("Unable to read the XML Config file: " + args[0]);
+                logger.error("Unable to read the XML Config file: " + sxml);
                 return;
             }
             if (!FileBasedConfiguration.loadDatabase(document)) {
                 logger.error("Cannot start database");
                 return;
             }
-            // Init database
-            try {
-                initdb();
-            } catch (OpenR66DatabaseNoConnectionError e) {
-                logger.error("Cannot connect to database");
-                return;
+            if (database) {
+                // Init database
+                try {
+                    initdb();
+                } catch (OpenR66DatabaseNoConnectionError e) {
+                    logger.error("Cannot connect to database");
+                    return;
+                }
+                System.out.println("End creation");
             }
-            System.out.println("End creation");
-            if (args.length > 1) {
+            if (sdirconfig != null) {
                 // load Rules
-                File dirConfig = new File(args[1]);
+                File dirConfig = new File(sdirconfig);
                 if (dirConfig.isDirectory()) {
                     loadRules(dirConfig);
                 } else {
-                    System.err.println("Dir is not a directory: " + args[4]);
+                    System.err.println("Dir is not a directory: " + sdirconfig);
                 }
+            }
+            if (shostauth != null) {
                 // Load Host Authentications
                 if (args.length > 2) {
-                    loadHostAuth(args[2]);
+                    loadHostAuth(shostauth);
                 }
+            }
+            if (slimitconfig != null) {
                 // Load configuration
                 if (args.length > 3) {
-                    loadConfiguration(args[3]);
+                    loadConfiguration(slimitconfig);
                 }
-                System.out.println("Load done");
             }
+            System.out.println("Load done");
         } finally {
             if (DbConstant.admin != null) {
                 DbConstant.admin.close();

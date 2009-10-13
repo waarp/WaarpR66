@@ -569,24 +569,41 @@ public class LocalServerHandler extends SimpleChannelHandler {
             DbTaskRunner runner = this.session.getRunner();
             if (runner != null) {
                 // FIXME do the real end
-                R66Result finalValue = new R66Result(session, true, ErrorCode.CompleteOk);
-                try {
-                    runner.finalizeRunner(localChannelReference, session.getFile(),
-                            finalValue, true);
+                if (runner.getStatus() == ErrorCode.CompleteOk) {
+                    runner.setAllDone();
                     session.setFinalizeTransfer(true, new R66Result(exception, session,
                             true, code));
-                } catch (OpenR66ProtocolSystemException e) {
-                    logger.warn("Cannot validate runner: {}",runner.toShortString());
-                    runner.changeUpdatedInfo(UpdatedInfo.INERROR);
-                    runner.setErrorExecutionStatus(code);
+                } else {
+                    R66Result finalValue = new R66Result(session, true, ErrorCode.CompleteOk);
                     try {
-                        runner.update();
-                    } catch (OpenR66DatabaseException e1) {
+                        runner.finalizeRunner(localChannelReference, session.getFile(),
+                                finalValue, true);
+                        session.setFinalizeTransfer(true, new R66Result(exception, session,
+                                true, code));
+                    } catch (OpenR66ProtocolSystemException e) {
+                        logger.warn("Cannot validate runner: {}",runner.toShortString());
+                        runner.changeUpdatedInfo(UpdatedInfo.INERROR);
+                        runner.setErrorExecutionStatus(code);
+                        try {
+                            runner.update();
+                        } catch (OpenR66DatabaseException e1) {
+                        }
+                        session.setFinalizeTransfer(false, new R66Result(exception, session,
+                                true, code));
+                        throw exception;
+                    } catch (OpenR66RunnerErrorException e) {
+                        logger.warn("Cannot validate runner: {}",runner.toShortString());
+                        runner.changeUpdatedInfo(UpdatedInfo.INERROR);
+                        runner.setErrorExecutionStatus(code);
+                        try {
+                            runner.update();
+                        } catch (OpenR66DatabaseException e1) {
+                        }
+                        session.setFinalizeTransfer(false, new R66Result(exception, session,
+                                true, code));
+                        throw exception;
                     }
-                    session.setFinalizeTransfer(false, new R66Result(exception, session,
-                            true, code));
                 }
-                throw exception;
             }
         } else if (code.code == ErrorCode.BadAuthent.code) {
             exception =

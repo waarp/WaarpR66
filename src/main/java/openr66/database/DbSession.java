@@ -50,6 +50,10 @@ public class DbSession {
      * Number of threads using this connection
      */
     public int nbThread = 0;
+    /**
+     * To be used when a local Channel is over
+     */
+    public boolean isDisconnected = false;
 
     static synchronized void setInternalId(DbSession session) {
         session.internalId = System.currentTimeMillis();
@@ -194,6 +198,15 @@ public class DbSession {
     }
     public void endUseConnection() {
         nbThread --;
+        if (isDisconnected) {
+            OpenR66SignalHandler.removeConnection(internalId);
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                logger.warn("Disconnection not OK");
+                error(e);
+            }
+        }
     }
     /**
      * Close the connection
@@ -209,8 +222,9 @@ public class DbSession {
         } catch (InterruptedException e1) {
         }
         if (nbThread > 0) {
-            logger.warn("Still some clients could use this Database Session: "+nbThread);
+            logger.info("Still some clients could use this Database Session: "+nbThread);
         }
+        isDisconnected = true;
         OpenR66SignalHandler.removeConnection(internalId);
         try {
             conn.close();
