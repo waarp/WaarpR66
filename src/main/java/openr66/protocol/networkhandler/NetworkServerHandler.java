@@ -20,6 +20,7 @@ import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.AbstractLocalPacket;
 import openr66.protocol.localhandler.packet.ConnectionErrorPacket;
+import openr66.protocol.localhandler.packet.LocalPacketCodec;
 import openr66.protocol.localhandler.packet.LocalPacketFactory;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
 import openr66.protocol.utils.ChannelUtils;
@@ -34,7 +35,7 @@ import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelHandler;
 
 /**
- * Network Server Handler
+ * Network Server Handler (Requester side)
  * @author frederic bregier
  */
 @ChannelPipelineCoverage("one")
@@ -56,7 +57,7 @@ public class NetworkServerHandler extends SimpleChannelHandler {
      * The Database connection attached to this NetworkChannel
      * shared among all associated LocalChannels
      */
-    private DbSession dbSession;
+    protected DbSession dbSession;
     /**
      * Does this Handler is for SSL
      */
@@ -79,6 +80,7 @@ public class NetworkServerHandler extends SimpleChannelHandler {
             Configuration.configuration.getLocalTransaction()
                     .closeLocalChannelsFromNetworkChannel(e.getChannel());
         }
+        NetworkTransaction.removeForceNetworkChannel(e.getChannel());
         //Now force the close of the database after a wait
         if (dbSession != null && dbSession.internalId != DbConstant.admin.session.internalId) {
             dbSession.disconnect();
@@ -139,39 +141,80 @@ public class NetworkServerHandler extends SimpleChannelHandler {
             logger.info("NetworkRecv Create: {} {}",packet,
                     e.getChannel().getId());
             try {
-                localChannelReference = Configuration.configuration
-                        .getLocalTransaction().createNewClient(e.getChannel(),
-                                packet.getRemoteId(), null);
-                NetworkTransaction.addNetworkChannel(e.getChannel());
+                localChannelReference =
+                    NetworkTransaction.createConnectionFromNetworkChannelStartup(
+                            e.getChannel(), packet);
             } catch (OpenR66ProtocolSystemException e1) {
-                logger.error("Cannot create LocalChannel: " + packet, e1);
+                logger.info("Cannot create LocalChannel: " + packet, e1);
+                NetworkTransaction.removeNetworkChannel(e.getChannel(), null);
                 final ConnectionErrorPacket error = new ConnectionErrorPacket(
-                        "Cannot connect to localChannel", null);
+                        "Cannot connect to localChannel since cannot create it", null);
                 writeError(e.getChannel(), packet.getRemoteId(), packet
                         .getLocalId(), error);
                 return;
             } catch (OpenR66ProtocolRemoteShutdownException e1) {
+                Configuration.configuration.getLocalTransaction()
+                    .closeLocalChannelsFromNetworkChannel(e.getChannel());
+                NetworkTransaction.removeForceNetworkChannel(e.getChannel());
                 // ignore since no more valid
                 return;
             }
         } else {
-            try {
-                localChannelReference = Configuration.configuration
-                        .getLocalTransaction().getClient(packet.getRemoteId(),
-                                packet.getLocalId());
-            } catch (OpenR66ProtocolSystemException e1) {
-                if (NetworkTransaction.isShuttingdownNetworkChannel(e
-                        .getChannel())) {
-                    // ignore
+            if (packet.getCode() == LocalPacketFactory.ENDREQUESTPACKET) {
+                // Not a local error but a remote one
+                try {
+                    localChannelReference = Configuration.configuration
+                            .getLocalTransaction().getClient(packet.getRemoteId(),
+                                    packet.getLocalId());
+                } catch (OpenR66ProtocolSystemException e1) {
+                    // do not send anything since the packet is external
+                    try {
+                        logger.info("Cannot get LocalChannel while an end of request comes: {}",
+                                LocalPacketCodec.decodeNetworkPacket(packet.getBuffer()));
+                    } catch (OpenR66ProtocolPacketException e2) {
+                        logger.info("Cannot get LocalChannel while an end of request comes: {}",
+                                packet.toString());
+                    }
                     return;
                 }
-                logger.error("Cannot get LocalChannel: " + packet + " due to " +
-                        e1.getMessage());
-                final ConnectionErrorPacket error = new ConnectionErrorPacket(
-                        "Cannot get localChannel", null);
-                writeError(e.getChannel(), packet.getRemoteId(), packet
-                        .getLocalId(), error);
-                return;
+                // OK continue and send to the local channel
+            } else if (packet.getCode() == LocalPacketFactory.CONNECTERRORPACKET) {
+                // Not a local error but a remote one
+                try {
+                    localChannelReference = Configuration.configuration
+                            .getLocalTransaction().getClient(packet.getRemoteId(),
+                                    packet.getLocalId());
+                } catch (OpenR66ProtocolSystemException e1) {
+                    // do not send anything since the packet is external
+                    try {
+                        logger.info("Cannot get LocalChannel while an external error comes: {}",
+                                LocalPacketCodec.decodeNetworkPacket(packet.getBuffer()));
+                    } catch (OpenR66ProtocolPacketException e2) {
+                        logger.info("Cannot get LocalChannel while an external error comes: {}",
+                                packet.toString());
+                    }
+                    return;
+                }
+                // OK continue and send to the local channel
+            } else {
+                try {
+                    localChannelReference = Configuration.configuration
+                            .getLocalTransaction().getClient(packet.getRemoteId(),
+                                    packet.getLocalId());
+                } catch (OpenR66ProtocolSystemException e1) {
+                    if (NetworkTransaction.isShuttingdownNetworkChannel(e
+                            .getChannel())) {
+                        // ignore
+                        return;
+                    }
+                    logger.info("Cannot get LocalChannel: " + packet + " due to " +
+                            e1.getMessage());
+                    final ConnectionErrorPacket error = new ConnectionErrorPacket(
+                            "Cannot get localChannel since cannot retrieve it", null);
+                    writeError(e.getChannel(), packet.getRemoteId(), packet
+                            .getLocalId(), error);
+                    return;
+                }
             }
         }
         Channels.write(localChannelReference.getLocalChannel(), packet

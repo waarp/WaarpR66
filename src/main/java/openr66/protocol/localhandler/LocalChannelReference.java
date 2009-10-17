@@ -65,6 +65,10 @@ public class LocalChannelReference {
      */
     private Integer remoteId;
     /**
+     * Says that request is done but waiting for EndRequest
+     */
+    private boolean requestDone = false;
+    /**
      * Future on Request
      */
     private final R66Future futureRequest;
@@ -76,6 +80,10 @@ public class LocalChannelReference {
      * Future on Connection
      */
     private final R66Future futureConnection = new R66Future(true);
+    /**
+     * Future on Startup
+     */
+    private final R66Future futureStartup = new R66Future(true);
     /**
      * Session
      */
@@ -105,6 +113,16 @@ public class LocalChannelReference {
        } else {
            this.futureRequest = futureRequest;
        }
+   }
+   /**
+    * Special empty LCR constructor
+    */
+   public LocalChannelReference() {
+       this.localChannel = null;
+       this.networkChannel = null;
+       networkServerHandler = null;
+       localId = 0;
+       this.futureRequest = new R66Future(true);
    }
 
    /**
@@ -175,7 +193,33 @@ public class LocalChannelReference {
     }
 
     /**
-     * Validate or Invalidate the connection
+     * Validate or not the Startup (before connection)
+     * @param validate
+     */
+    public void validateStartup(boolean validate) {
+        if (futureStartup.isDone()) {
+            return;
+        }
+        if (validate) {
+            futureStartup.setSuccess();
+        } else {
+            futureStartup.cancel();
+        }
+    }
+    /**
+    *
+    * @return the futureValidateStartup
+    */
+   public R66Future getFutureValidateStartup() {
+       if (!futureStartup
+               .awaitUninterruptibly(Configuration.WAITFORNETOP * 10)) {
+           validateStartup(false);
+           return futureStartup;
+       }
+       return futureStartup;
+   }
+    /**
+     * Validate or Invalidate the connection (authentication)
      *
      * @param validate
      */
@@ -201,7 +245,7 @@ public class LocalChannelReference {
      */
     public R66Future getFutureValidateConnection() {
         if (!futureConnection
-                .awaitUninterruptibly(Configuration.WAITFORNETOP * 2)) {
+                .awaitUninterruptibly(Configuration.WAITFORNETOP * 10)) {
             R66Result result = new R66Result(
                     new OpenR66ProtocolNoConnectionException("Out of time"),
                     session, false, ErrorCode.ConnectionImpossible);
@@ -280,6 +324,19 @@ public class LocalChannelReference {
         return futureRequest;
     }
     /**
+     * Set the request as done but still waiting if possible the EndRequest
+     */
+    public void RequestIsDone() {
+        this.requestDone = true;
+    }
+    /**
+     *
+     * @return True if the request was in a correct status
+     */
+    public boolean isRequestDone() {
+        return this.requestDone;
+    }
+    /**
      * Validate the current Request
      * @param finalValue
      */
@@ -299,7 +356,17 @@ public class LocalChannelReference {
             }
         }
     }
-
+    /**
+     * Set the result as the status of EndOfTransfer if successful, or set as finalValue
+     * @param finalValue
+     */
+    public void mixedValidateRequest(R66Result finalValue) {
+        if (getFutureEndTransfer().isSuccess()) {
+            validateRequest(getFutureEndTransfer().getResult());
+        } else {
+            invalidateRequest(finalValue);
+        }
+    }
     @Override
     public String toString() {
         return "LCR: L: " + localId + " R: " + remoteId;

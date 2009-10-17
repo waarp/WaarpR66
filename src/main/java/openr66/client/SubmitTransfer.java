@@ -31,6 +31,7 @@ import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.protocol.localhandler.packet.RequestPacket;
+import openr66.protocol.utils.ChannelUtils;
 import openr66.protocol.utils.R66Future;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
@@ -121,6 +122,7 @@ public class SubmitTransfer extends AbstractTransfer {
             if (DbConstant.admin != null && DbConstant.admin.isConnected) {
                 DbConstant.admin.close();
             }
+            ChannelUtils.stopLogger();
             System.exit(1);
         }
         R66Future future = new R66Future(true);
@@ -130,16 +132,17 @@ public class SubmitTransfer extends AbstractTransfer {
         future.awaitUninterruptibly();
         DbTaskRunner runner = ((DbTaskRunner) future.getResult().other);
         if (future.isSuccess()) {
-            logger.warn("Prepare transfer in Success "+runner.toShortString()+
+            logger.warn("Prepare transfer in\n    SUCCESS\n    "+runner.toShortString()+
                             "<REMOTE>"+rhost+"</REMOTE>");
         } else {
             if (runner != null) {
-                logger.error("Prepare transfer in Error "+runner.toShortString()+
+                logger.error("Prepare transfer in\n    ERROR\n     "+runner.toShortString()+
                             "<REMOTE>"+rhost+"</REMOTE>", future.getCause());
             } else {
-                logger.error("Prepare transfer in Error", future.getCause());
+                logger.error("Prepare transfer in\n    ERROR\n     ", future.getCause());
             }
             DbConstant.admin.close();
+            ChannelUtils.stopLogger();
             System.exit(future.getResult().code.ordinal());
         }
         DbConstant.admin.close();

@@ -31,7 +31,9 @@ import openr66.context.filesystem.R66File;
 import openr66.context.filesystem.R66Restart;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.data.DbTaskRunner;
+import openr66.database.data.AbstractDbData.UpdatedInfo;
 import openr66.database.data.DbTaskRunner.TASKSTEP;
+import openr66.database.exception.OpenR66DatabaseException;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.LocalChannelReference;
@@ -85,6 +87,8 @@ public class R66Session implements SessionInterface {
      */
     private DbTaskRunner runner = null;
 
+    private int status = -1;
+
     /**
      */
     public R66Session() {
@@ -93,7 +97,13 @@ public class R66Session implements SessionInterface {
         dir = new R66Dir(this);
         restart = new R66Restart(this);
     }
-
+    /**
+     * Debugging purpose
+     * @param stat
+     */
+    public void setStatus(int stat) {
+        this.status = stat;
+    }
     /*
      * (non-Javadoc)
      *
@@ -106,10 +116,12 @@ public class R66Session implements SessionInterface {
             R66Result result = new R66Result(new OpenR66RunnerErrorException(
                     "Close before ending"), this, true,
                     ErrorCode.Disconnection);// True since called from closed
-            try {
-                setFinalizeTransfer(false, result);
-            } catch (OpenR66RunnerErrorException e) {
-            } catch (OpenR66ProtocolSystemException e) {
+            if (localChannelReference != null) {
+                try {
+                    setFinalizeTransfer(false, result);
+                } catch (OpenR66RunnerErrorException e) {
+                } catch (OpenR66ProtocolSystemException e) {
+                }
             }
         }
         if (dir != null) {
@@ -282,8 +294,16 @@ public class R66Session implements SessionInterface {
         // Now create the associated file
         if (this.runner.isSender()) {
             try {
-                file = (R66File) dir.setFile(this.runner.getFilename(),
-                        false);
+                if (file == null) {
+                    try {
+                        file = (R66File) dir.setFile(this.runner.getFilename(),
+                            false);
+                    } catch (CommandAbstractException e) {
+                        // file is not under normal base directory, so is external
+                        // File should already exist but can be using special code ('*?')
+                        file = new R66File(this, dir, this.runner.getFilename());
+                    }
+                }
                 if (RequestPacket.isSendThroughMode(this.runner.getMode())) {
                     // no test on file since it does not really exist
                     logger.info("File is in through mode: {}", file);
@@ -349,6 +369,7 @@ public class R66Session implements SessionInterface {
         this.runner.saveStatus();
         logger.info("Final init: {}", this.runner);
     }
+
     /**
      * Finalize the transfer step by running the error or post operation according to the status.
      *
@@ -411,9 +432,66 @@ public class R66Session implements SessionInterface {
             localChannelReference.invalidateRequest(result);
             throw (OpenR66RunnerErrorException) result.exception;
         }
-        runner.finalizeRunner(localChannelReference, file, finalValue, status);
+        runner.finalizeTransfer(localChannelReference, file, finalValue, status);
     }
 
+    /**
+     * Try to finalize the request if possible
+     * @param errorValue
+     * @throws OpenR66RunnerErrorException
+     * @throws OpenR66ProtocolSystemException
+     */
+    public void tryFinalizeRequest(R66Result errorValue)
+    throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException {
+        if (this.getLocalChannelReference().getFutureRequest().isDone()) {
+            return;
+        }
+        if (runner == null) {
+            localChannelReference.invalidateRequest(errorValue);
+            return;
+        }
+        // FIXME do the real end
+        if (runner.getStatus() == ErrorCode.CompleteOk) {
+            //status = true;
+            runner.setAllDone();
+            try {
+                runner.update();
+            } catch (OpenR66DatabaseException e) {
+            }
+            localChannelReference.validateRequest(
+                    new R66Result(this, true, ErrorCode.CompleteOk));
+        } else if (runner.getStatus() == ErrorCode.TransferOk) {
+            // Try to finalize it
+            //status = true;
+            try {
+                this.setFinalizeTransfer(true,
+                        new R66Result(this, true, ErrorCode.CompleteOk));
+                localChannelReference.validateRequest(
+                    localChannelReference.getFutureEndTransfer().getResult());
+            } catch (OpenR66ProtocolSystemException e) {
+                logger.warn("Cannot validate runner: {}",runner.toShortString());
+                runner.changeUpdatedInfo(UpdatedInfo.INERROR);
+                runner.setErrorExecutionStatus(errorValue.code);
+                try {
+                    runner.update();
+                } catch (OpenR66DatabaseException e1) {
+                }
+                this.setFinalizeTransfer(false, errorValue);
+            } catch (OpenR66RunnerErrorException e) {
+                logger.warn("Cannot validate runner: {}",runner.toShortString());
+                runner.changeUpdatedInfo(UpdatedInfo.INERROR);
+                runner.setErrorExecutionStatus(errorValue.code);
+                try {
+                    runner.update();
+                } catch (OpenR66DatabaseException e1) {
+                }
+                this.setFinalizeTransfer(false, errorValue);
+            }
+        } else {
+            // invalidate Request
+            this.setFinalizeTransfer(false, errorValue);
+        }
+    }
     /**
      * @return the file
      */
@@ -423,10 +501,10 @@ public class R66Session implements SessionInterface {
 
     @Override
     public String toString() {
-        return "Session: " + (auth != null? auth.toString() : "no Auth") + " " +
-                (dir != null? dir.toString() : "no Dir") + " " +
-                (file != null? file.toString() : "no File") + " " +
-                (runner != null? runner.toString() : "no Runner");
+        return "Session: " + status+" "+(auth != null? auth.toString() : "no Auth") + "\n    " +
+                (dir != null? dir.toString() : "no Dir") + "\n    " +
+                (file != null? file.toString() : "no File") + "\n    " +
+                (runner != null? runner.toShortString() : "no Runner");
     }
 
     /*

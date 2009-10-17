@@ -199,23 +199,23 @@ public class LogExport implements Runnable {
             R66Result result = future.getResult();
             if (future.isSuccess()) {
                 if (result.code == ErrorCode.Warning) {
-                    logger.warn("Warning on file: " +
+                    logger.warn("WARNING on file:\n    " +
                             (result.other != null? ((ValidPacket)result.other).getSheader() :
                                 "no file")
-                            +" delay: "+delay);
+                            +"\n    delay: "+delay);
                 } else {
-                    logger.warn("Success on Final file: " +
+                    logger.warn("SUCCESS on Final file:\n    " +
                             (result.other != null? ((ValidPacket)result.other).getSheader() :
                             "no file")
-                            +" delay: "+delay);
+                            +"\n    delay: "+delay);
                 }
             } else {
                 if (result.code == ErrorCode.Warning) {
-                    logger.warn("Transfer in Warning", future.getCause());
+                    logger.warn("Transfer in WARNING", future.getCause());
                     networkTransaction.closeAll();
                     System.exit(result.code.ordinal());
                 } else {
-                    logger.error("Transfer in Error", future.getCause());
+                    logger.error("Transfer in ERROR", future.getCause());
                     networkTransaction.closeAll();
                     System.exit(result.code.ordinal());
                 }

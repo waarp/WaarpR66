@@ -37,6 +37,7 @@ import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
+import openr66.protocol.utils.ChannelUtils;
 import openr66.protocol.utils.R66Future;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
@@ -133,6 +134,7 @@ public class DirectTransfer extends AbstractTransfer {
             if (DbConstant.admin != null && DbConstant.admin.isConnected) {
                 DbConstant.admin.close();
             }
+            ChannelUtils.stopLogger();
             System.exit(1);
         }
         long time1 = System.currentTimeMillis();
@@ -151,15 +153,17 @@ public class DirectTransfer extends AbstractTransfer {
             R66Result result = future.getResult();
             if (future.isSuccess()) {
                 if (result.runner.getErrorInfo() == ErrorCode.Warning) {
-                    logger.warn("Warning for "+result.runner.toShortString()+"<REMOTE>"+rhost+"</REMOTE>"+
-                            " on file: <FILEFINAL>" +
+                    logger.warn("WARNING\n    "+result.runner.toShortString()+
+                            "\n    <REMOTE>"+rhost+"</REMOTE>"+
+                            "\n    <FILEFINAL>" +
                             (result.file != null? result.file.toString()+"</FILEFINAL>" : "no file")
-                            +" delay: "+delay);
+                            +"\n    delay: "+delay);
                 } else {
-                    logger.warn("Success for "+result.runner.toShortString()+"<REMOTE>"+rhost+"</REMOTE>"+
-                            " on Final file: <FILEFINAL>" +
+                    logger.warn("SUCCESS\n    "+result.runner.toShortString()+
+                            "\n    <REMOTE>"+rhost+"</REMOTE>"+
+                            "\n    <FILEFINAL>" +
                             (result.file != null? result.file.toString()+"</FILEFINAL>" : "no file")
-                            +" delay: "+delay);
+                            +"\n    delay: "+delay);
                 }
                 if (nolog) {
                     // In case of success, delete the runner
@@ -171,18 +175,18 @@ public class DirectTransfer extends AbstractTransfer {
                 }
             } else {
                 if (result == null || result.runner == null) {
-                    logger.warn("Transfer in Error with no Id", future.getCause());
+                    logger.warn("Transfer in ERROR with no Id", future.getCause());
                     networkTransaction.closeAll();
                     System.exit(ErrorCode.Unknown.ordinal());
                 }
                 if (result.runner.getErrorInfo() == ErrorCode.Warning) {
-                    logger.warn("Transfer in Warning "+result.runner.toShortString()+
-                            "<REMOTE>"+rhost+"</REMOTE>", future.getCause());
+                    logger.warn("Transfer in WARNING\n    "+result.runner.toShortString()+
+                            "\n    <REMOTE>"+rhost+"</REMOTE>", future.getCause());
                     networkTransaction.closeAll();
                     System.exit(result.code.ordinal());
                 } else {
-                    logger.error("Transfer in Error "+result.runner.toShortString()+
-                            "<REMOTE>"+rhost+"</REMOTE>", future.getCause());
+                    logger.error("Transfer in ERROR\n    "+result.runner.toShortString()+
+                            "\n    <REMOTE>"+rhost+"</REMOTE>", future.getCause());
                     networkTransaction.closeAll();
                     System.exit(result.code.ordinal());
                 }

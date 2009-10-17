@@ -207,6 +207,24 @@ public class DbModelH2 implements DbModel {
         } finally {
             request.close();
         }
+        // Index Runner
+        action = "CREATE INDEX IF NOT EXISTS IDX_RUNNER ON "+ DbTaskRunner.table + "(";
+        DbTaskRunner.Columns[] icolumns = DbTaskRunner.indexes;
+        for (int i = 0; i < icolumns.length-1; i ++) {
+            action += icolumns[i].name()+ ", ";
+        }
+        action += icolumns[icolumns.length-1].name()+ ")";
+        System.out.println(action);
+        try {
+            request.query(action);
+        } catch (OpenR66DatabaseNoConnectionError e) {
+            e.printStackTrace();
+            return;
+        } catch (OpenR66DatabaseSqlError e) {
+            return;
+        } finally {
+            request.close();
+        }
 
         // cptrunner
         action = "CREATE SEQUENCE IF NOT EXISTS " + DbTaskRunner.fieldseq +

@@ -34,16 +34,16 @@ import openr66.database.DbConstant;
 import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
 import openr66.database.exception.OpenR66DatabaseException;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.RetrieveRunner;
+import openr66.protocol.localhandler.packet.EndRequestPacket;
 import openr66.protocol.localhandler.packet.ErrorPacket;
-import openr66.protocol.localhandler.packet.LocalPacketFactory;
 import openr66.protocol.localhandler.packet.RequestPacket;
-import openr66.protocol.localhandler.packet.ValidPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.test.TestSendThroughClient;
 import openr66.protocol.utils.ChannelUtils;
@@ -219,7 +219,7 @@ public class SendThroughClient extends AbstractTransfer {
     public void finalizeRequest() {
         try {
             try {
-                ChannelUtils.writeValidEndTransfer(localChannelReference);
+                ChannelUtils.writeEndTransfer(localChannelReference);
             } catch (OpenR66ProtocolPacketException e) {
                 // An error occurs!
                 try {
@@ -240,27 +240,24 @@ public class SendThroughClient extends AbstractTransfer {
                     localChannelReference.getFutureEndTransfer().isSuccess());
             if (localChannelReference.getFutureEndTransfer().isSuccess()) {
                 // send a validation
-                ValidPacket validPacket = new ValidPacket("File transmitted",
-                        Integer.toString(localChannelReference.getSession().getRunner().getRank()),
-                        LocalPacketFactory.REQUESTPACKET);
+                EndRequestPacket validPacket = new EndRequestPacket(ErrorCode.CompleteOk.ordinal());
                 try {
                     ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket)
                         .awaitUninterruptibly();
                 } catch (OpenR66ProtocolPacketException e) {
                 }
-                localChannelReference.validateRequest(localChannelReference
+                localChannelReference.RequestIsDone();
+                if (!localChannelReference.getFutureRequest().awaitUninterruptibly(
+                    Configuration.WAITFORNETOP*10)) {
+                    // valid it however
+                    localChannelReference.validateRequest(localChannelReference
                         .getFutureEndTransfer().getResult());
-                ChannelUtils.close(localChannelReference.getLocalChannel());
-            } else {
-                if (!localChannelReference.getFutureEndTransfer().getResult().isAnswered) {
-                    ErrorPacket error = new ErrorPacket("Transfer in error",
-                            ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
-                    try {
-                        ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
-                    } catch (OpenR66ProtocolPacketException e) {
-                    }
                 }
-                ChannelUtils.close(localChannelReference.getLocalChannel());
+                if (taskRunner != null && taskRunner.isSelfRequested()) {
+                    ChannelUtils.close(localChannelReference.getLocalChannel());
+                }
+            } else {
+                transferInError(null);
             }
         } finally {
             if (taskRunner != null) {
@@ -278,15 +275,17 @@ public class SendThroughClient extends AbstractTransfer {
      * @param e
      */
     public void transferInError(OpenR66Exception e) {
-        R66Result result = new R66Result(e, localChannelReference.getSession(), true,
-                ErrorCode.TransferError);
-        localChannelReference.invalidateRequest(result);
-        logger.error("Transfer in error", e);
-        ErrorPacket error = new ErrorPacket("Transfer in error",
-                ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
-        try {
-            ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
-        } catch (OpenR66ProtocolPacketException e1) {
+        if (!localChannelReference.getFutureEndTransfer().getResult().isAnswered) {
+            R66Result result = new R66Result(e, localChannelReference.getSession(), true,
+                    ErrorCode.TransferError);
+            localChannelReference.invalidateRequest(result);
+            logger.error("Transfer in error", e);
+            ErrorPacket error = new ErrorPacket("Transfer in error",
+                    ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
+            try {
+                ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
+            } catch (OpenR66ProtocolPacketException e1) {
+            }
         }
         ChannelUtils.close(localChannelReference.getLocalChannel());
     }

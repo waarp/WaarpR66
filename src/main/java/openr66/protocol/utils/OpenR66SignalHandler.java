@@ -114,7 +114,11 @@ public class OpenR66SignalHandler implements SignalHandler {
         }
 
         private void printStackTrace(Thread thread, StackTraceElement[] stacks) {
-            logger.warn(thread.toString() + " : {}", stacks);
+            System.err.print(thread.toString() + " : ");
+            for (int i = 0; i < stacks.length-1; i++) {
+                System.err.print(stacks[i].toString()+" ");
+            }
+            System.err.println(stacks[stacks.length-1].toString());
         }
 
         /*
@@ -132,6 +136,7 @@ public class OpenR66SignalHandler implements SignalHandler {
                     for (Thread thread: map.keySet()) {
                         printStackTrace(thread, map.get(thread));
                     }
+                    //FIXME ChannelUtils.stopLogger();
                     System.exit(1);
                     break;
                 default:
@@ -151,6 +156,11 @@ public class OpenR66SignalHandler implements SignalHandler {
         if (shutdown) {
             ChannelUtils.exit();
             // shouldn't be System.exit(2);
+            try {
+                Thread.sleep(Configuration.WAITFORNETOP);
+            } catch (InterruptedException e) {
+            }
+            System.exit(2);
         } else {
             shutdown = true;
             ChannelUtils.exit();
@@ -167,7 +177,9 @@ public class OpenR66SignalHandler implements SignalHandler {
         Signal diagSignal = new Signal("TERM");
         OpenR66SignalHandler diagHandler = new OpenR66SignalHandler();
         diagHandler.oldHandler = Signal.handle(diagSignal, diagHandler);
-        // Not on WINDOWS
+        // Not on WINDOWS ?
+        Configuration.ISUNIX = (!System.getProperty("os.name")
+                .toLowerCase().startsWith("windows"));
         if (Configuration.ISUNIX) {
             String vendor = SystemPropertyUtil.get("java.vm.vendor");
             vendor = vendor.toLowerCase();
@@ -194,6 +206,7 @@ public class OpenR66SignalHandler implements SignalHandler {
             }
         } catch (final Exception e) {
         }
+        ChannelUtils.stopLogger();
         System.exit(signal.getNumber());
     }
 

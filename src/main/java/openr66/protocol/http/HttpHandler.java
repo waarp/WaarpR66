@@ -46,6 +46,7 @@ import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
+import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.utils.OpenR66SignalHandler;
 
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -87,10 +88,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
 
     public static final int LIMITROW = 60;// better if it can be divided by 4
 
-    public static final R66Session authentHttp = new R66Session();
-    {
-        authentHttp.getAuth().specialHttpAuth(false);
-    }
+    public final R66Session authentHttp = new R66Session();
 
     public static final ConcurrentHashMap<String, R66Dir> usedDir = new ConcurrentHashMap<String, R66Dir>();
 
@@ -179,7 +177,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
         responseContent.append("<td>");
         responseContent
                 .append("<A href='/'><h1>OpenR66 Page for Information: ");
-        responseContent.append(request.getHeader(HttpHeaders.Names.HOST));
+        responseContent.append(Configuration.configuration.HOST_ID);
         responseContent.append("</h1></A>");
         responseContent.append("</td>");
         responseContent.append("<td>");
@@ -220,7 +218,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
         responseContent.append("<tr>");
         responseContent.append("<td>");
         responseContent.append("<h1>OpenR66 Page for Information: " +
-                request.getHeader(HttpHeaders.Names.HOST) + "</h1>");
+                Configuration.configuration.HOST_ID + "</h1>");
         responseContent.append("You must fill all of the following fields.");
         responseContent.append("</td>");
         responseContent.append("</tr>");
@@ -384,7 +382,11 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
                 responseContent.append("<tr><td>");
                 responseContent.append(taskRunner.isSender()? "S" : "R");
                 responseContent.append("</td>");
-                responseContent.append(taskRunner.toHtml(authentHttp));
+                LocalChannelReference lcr =
+                    Configuration.configuration.getLocalTransaction().
+                    getFromRequest(taskRunner.getKey());
+                responseContent.append(taskRunner.toHtml(authentHttp,
+                        lcr != null ? "Active" : "NotActive"));
                 responseContent.append("</tr>\r\n");
                 if (nb > 0) {
                     i ++;
@@ -683,6 +685,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
     @Override
     public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
+        authentHttp.getAuth().specialHttpAuth(false);
         super.channelConnected(ctx, e);
         ChannelGroup group = Configuration.configuration.getHttpChannelGroup();
         if (group != null) {

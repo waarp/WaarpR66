@@ -83,6 +83,10 @@ public enum ErrorCode {
      */
     Disconnection("Disconnection before end", 'D'),
     /**
+     * Code stands for Remote Shutdown
+     */
+    RemoteShutdown("Disconnection before end due to a remote shutdown", 'r'),
+    /**
      * Code stands for final action (like moving file) is in error
      */
     FinalOp(
@@ -123,7 +127,7 @@ public enum ErrorCode {
     /**
      * Code stands for unknown type of error
      */
-    Unknown("Unknown type of error", '-'),
+    Unknown("Unknown status", '-'),
     /**
      * Code stands for unknown type of error
      */
@@ -184,6 +188,8 @@ public enum ErrorCode {
                 return MD5Error;
             case 'D':
                 return Disconnection;
+            case 'r':
+                return RemoteShutdown;
             case 'F':
                 return FinalOp;
             case 'U':

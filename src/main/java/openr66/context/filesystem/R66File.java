@@ -159,7 +159,7 @@ public class R66File extends FilesystemBasedFileImpl {
         } finally {
             if (retrieveDone) {
                 try {
-                    ChannelUtils.writeValidEndTransfer(localChannelReference);
+                    ChannelUtils.writeEndTransfer(localChannelReference);
                 } catch (OpenR66ProtocolPacketException e) {
                     // An error occurs!
                     getSession().setFinalizeTransfer(

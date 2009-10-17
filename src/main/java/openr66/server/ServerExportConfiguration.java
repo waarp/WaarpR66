@@ -35,6 +35,7 @@ import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
+import openr66.protocol.utils.ChannelUtils;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -78,19 +79,23 @@ public class ServerExportConfiguration {
                 document = new SAXReader().read(filename);
             } catch (DocumentException e) {
                 logger.error("Unable to read the XML Config file: " + filename, e);
+                ChannelUtils.stopLogger();
                 System.exit(1);
             }
             if (document == null) {
                 logger.error("Unable to read the XML Config file: " + filename);
+                ChannelUtils.stopLogger();
                 System.exit(1);
             }
             if (! FileBasedConfiguration.loadCommon(document)) {
                 logger.error("Unable to find Host ID in Config file: " + filename);
+                ChannelUtils.stopLogger();
                 System.exit(1);
             }
             if (! FileBasedConfiguration.loadDatabase(document)) {
                 logger
                 .error("Needs a correct configuration file as first argument");
+                ChannelUtils.stopLogger();
                 System.exit(1);
             }
             String directory = args[1];
@@ -105,14 +110,17 @@ public class ServerExportConfiguration {
             } catch (OpenR66DatabaseNoConnectionError e1) {
                 logger.warn("Error",e1);
                 DbConstant.admin.close();
+                ChannelUtils.stopLogger();
                 System.exit(2);
             } catch (OpenR66DatabaseSqlError e1) {
                 logger.warn("Error",e1);
                 DbConstant.admin.close();
+                ChannelUtils.stopLogger();
                 System.exit(2);
             } catch (OpenR66ProtocolSystemException e1) {
                 logger.warn("Error",e1);
                 DbConstant.admin.close();
+                ChannelUtils.stopLogger();
                 System.exit(2);
             }
             filename = dir.getAbsolutePath()+File.separator+hostname+"_Runners.run.xml";
@@ -121,11 +129,13 @@ public class ServerExportConfiguration {
             } catch (OpenR66DatabaseNoConnectionError e1) {
                 logger.warn("Error",e1);
                 DbConstant.admin.close();
+                ChannelUtils.stopLogger();
                 System.exit(2);
             } catch (OpenR66DatabaseSqlError e1) {
                 logger.warn("Error",e1);
                 DbConstant.admin.close();
-               System.exit(2);
+                ChannelUtils.stopLogger();
+                System.exit(2);
             }
             filename = dir.getAbsolutePath()+File.separator+hostname+"_Authentications.xml";
             try {
@@ -133,14 +143,17 @@ public class ServerExportConfiguration {
             } catch (OpenR66DatabaseNoConnectionError e) {
                 logger.warn("Error",e);
                 DbConstant.admin.close();
+                ChannelUtils.stopLogger();
                 System.exit(2);
             } catch (OpenR66DatabaseSqlError e) {
                 logger.warn("Error",e);
                 DbConstant.admin.close();
+                ChannelUtils.stopLogger();
                 System.exit(2);
             } catch (OpenR66ProtocolSystemException e) {
                 logger.warn("Error",e);
                 DbConstant.admin.close();
+                ChannelUtils.stopLogger();
                 System.exit(2);
             }
             logger.warn("End of Export");

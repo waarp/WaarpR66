@@ -17,6 +17,8 @@ package openr66.protocol.localhandler.packet;
 
 import goldengate.common.exception.InvalidArgumentException;
 
+import openr66.protocol.exception.OpenR66ProtocolPacketException;
+
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelDownstreamHandler;
@@ -52,6 +54,11 @@ public class LocalPacketCodec extends FrameDecoder implements
             // received and appended to the buffer.
             return null;
         }
+        return decodeNetworkPacket(buf);
+    }
+
+    public static AbstractLocalPacket decodeNetworkPacket(ChannelBuffer buf)
+    throws OpenR66ProtocolPacketException {
         // Mark the current buffer position
         buf.markReaderIndex();
         // Read the length field

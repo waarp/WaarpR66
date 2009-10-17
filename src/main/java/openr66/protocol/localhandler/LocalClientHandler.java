@@ -84,8 +84,8 @@ public class LocalClientHandler extends SimpleChannelHandler {
             throws InterruptedException, OpenR66ProtocolNetworkException {
         int i = 0;
         if (localChannelReference == null) {
-            for (i = 0; i < Configuration.RETRYNB * 10; i ++, Thread
-                    .sleep(Configuration.RETRYINMS)) {
+            // FIXME was RETRYNB*10 + Thread.Sleep(MS)
+            for (i = 0; i < Configuration.RETRYNB; i ++) {
                 localChannelReference = Configuration.configuration
                         .getLocalTransaction().getFromId(channel.getId());
                 if (localChannelReference != null) {

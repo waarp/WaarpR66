@@ -35,6 +35,7 @@ import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.model.DbModelFactory;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
+import openr66.protocol.utils.ChannelUtils;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -102,6 +103,7 @@ public class ServerInitDatabase {
             if (DbConstant.admin != null && DbConstant.admin.isConnected) {
                 DbConstant.admin.close();
             }
+            ChannelUtils.stopLogger();
             System.exit(1);
         }
 

@@ -340,6 +340,7 @@ public class RequestTransfer implements Runnable {
             if (DbConstant.admin != null && DbConstant.admin.isConnected) {
                 DbConstant.admin.close();
             }
+            ChannelUtils.stopLogger();
             System.exit(1);
         }
         try {
@@ -354,10 +355,10 @@ public class RequestTransfer implements Runnable {
             result.awaitUninterruptibly();
             // FIXME use result
             if (result.isSuccess()) {
-                logger.warn("Success: " +
+                logger.warn("SUCCESS\n    " +
                         result.getResult().toString());
             } else {
-                logger.error("Error: " +
+                logger.error("ERROR\n    " +
                         result.getResult().toString());
             }
 

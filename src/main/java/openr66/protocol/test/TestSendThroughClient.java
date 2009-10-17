@@ -156,6 +156,8 @@ public class TestSendThroughClient extends SendThroughClient {
             }
             if (transaction.sendFile()) {
                 transaction.finalizeRequest();
+            } else {
+                transaction.transferInError(null);
             }
             future.awaitUninterruptibly();
 

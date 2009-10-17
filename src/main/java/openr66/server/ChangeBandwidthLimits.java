@@ -186,23 +186,23 @@ public class ChangeBandwidthLimits implements Runnable {
             R66Result result = future.getResult();
             if (future.isSuccess()) {
                 if (result.code == ErrorCode.Warning) {
-                    logger.warn("Warning on bandwidth: " +
+                    logger.warn("WARNING on bandwidth:\n    " +
                             (result.other != null? ((ValidPacket)result.other).getSheader() :
                                 "no file")
-                            +" delay: "+delay);
+                            +"\n    delay: "+delay);
                 } else {
-                    logger.warn("Success on Bandwidth: " +
+                    logger.warn("SUCCESS on Bandwidth:\n    " +
                             (result.other != null? ((ValidPacket)result.other).getSheader() :
                             "no file")
-                            +" delay: "+delay);
+                            +"\n    delay: "+delay);
                 }
             } else {
                 if (result.code == ErrorCode.Warning) {
-                    logger.warn("Bandwidth in Warning", future.getCause());
+                    logger.warn("Bandwidth in WARNING", future.getCause());
                     networkTransaction.closeAll();
                     System.exit(result.code.ordinal());
                 } else {
-                    logger.error("Bandwidth in Error", future.getCause());
+                    logger.error("Bandwidth in ERROR", future.getCause());
                     networkTransaction.closeAll();
                     System.exit(result.code.ordinal());
                 }

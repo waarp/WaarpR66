@@ -20,7 +20,12 @@
  */
 package openr66.protocol.networkhandler;
 
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+import openr66.protocol.exception.OpenR66ProtocolRemoteShutdownException;
+
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.Channels;
 
 /**
  * NetworkChannel object to keep channel open with local channels
@@ -38,14 +43,43 @@ public class NetworkChannel {
      */
     public volatile boolean isShuttingDown = false;
     /**
+     * Does this Network Channel is a Passive one (Requested side)
+     */
+    public volatile boolean isPassive = false;
+    /**
+     * Associated LocalChannel
+     */
+    public ConcurrentLinkedQueue<Channel> localChannels =
+        new ConcurrentLinkedQueue<Channel>();
+    /**
      * Network Channel
      */
-    public Channel channel;
+    public final Channel channel;
 
-    public NetworkChannel(Channel channel) {
-        this.channel = channel;
+    public NetworkChannel(Channel networkChannel) {
+        this.channel = networkChannel;
     }
 
+    synchronized public void add(Channel localChannel)
+    throws OpenR66ProtocolRemoteShutdownException {
+        if (isShuttingDown) {
+            throw new OpenR66ProtocolRemoteShutdownException("Current NetworkChannel is closed");
+        }
+        localChannels.add(localChannel);
+    }
+
+    synchronized public void remove(Channel localChannel) {
+        localChannels.remove(localChannel);
+    }
+
+    synchronized public void shutdownAllLocalChannels() {
+        isShuttingDown = true;
+        Channel localChannel = localChannels.poll();
+        while (localChannel != null) {
+            Channels.close(localChannel);
+            localChannel = localChannels.poll();
+        }
+    }
     @Override
     public String toString() {
         return "NC: " + channel.isConnected() + " " +

@@ -191,6 +191,8 @@ public class Commander implements Runnable {
                     // already running
                     continue;
                 }
+                taskRunner.changeUpdatedInfo(UpdatedInfo.RUNNING);
+                taskRunner.update();
                 internalRunner.submitTaskRunner(taskRunner);
                 taskRunner = null;
             }

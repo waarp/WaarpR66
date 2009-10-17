@@ -170,6 +170,7 @@ public class Message implements Runnable {
             if (DbConstant.admin != null && DbConstant.admin.isConnected) {
                 DbConstant.admin.close();
             }
+            ChannelUtils.stopLogger();
             System.exit(1);
         }
         NetworkTransaction networkTransaction = null;
@@ -186,9 +187,9 @@ public class Message implements Runnable {
             if (result.isSuccess()) {
                 R66Result r66result = result.getResult();
                 ValidPacket info = (ValidPacket) r66result.other;
-                logger.warn("Test Message Success: "+info.getSheader());
+                logger.warn("Test Message\n    SUCCESS\n    "+info.getSheader());
             } else {
-                logger.error("Test Message Error: " +
+                logger.error("Test Message\n    ERROR\n    " +
                         result.getResult().toString());
             }
         } finally {

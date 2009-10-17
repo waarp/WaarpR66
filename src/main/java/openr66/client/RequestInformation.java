@@ -199,6 +199,7 @@ public class RequestInformation implements Runnable {
             if (DbConstant.admin != null && DbConstant.admin.isConnected) {
                 DbConstant.admin.close();
             }
+            ChannelUtils.stopLogger();
             System.exit(1);
         }
         NetworkTransaction networkTransaction = null;
@@ -216,9 +217,9 @@ public class RequestInformation implements Runnable {
             if (result.isSuccess()) {
                 R66Result r66result = result.getResult();
                 ValidPacket info = (ValidPacket) r66result.other;
-                logger.warn("Result: "+info.getSmiddle()+"\n"+info.getSheader());
+                logger.warn("SUCCESS\n    "+info.getSmiddle()+"\n    "+info.getSheader());
             } else {
-                logger.error("Error: " +
+                logger.error("ERROR\n    " +
                         result.getResult().toString());
             }
 

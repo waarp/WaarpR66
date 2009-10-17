@@ -32,9 +32,8 @@ import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
+import openr66.protocol.localhandler.packet.EndRequestPacket;
 import openr66.protocol.localhandler.packet.ErrorPacket;
-import openr66.protocol.localhandler.packet.LocalPacketFactory;
-import openr66.protocol.localhandler.packet.ValidPacket;
 import openr66.protocol.networkhandler.NetworkServerHandler;
 import openr66.protocol.utils.ChannelUtils;
 
@@ -83,7 +82,7 @@ public class RetrieveRunner implements Runnable {
             if (session.getRunner().getGloballaststep() == TASKSTEP.POSTTASK.ordinal()) {
                 // restart from PostTask global step so just end now
                 try {
-                    ChannelUtils.writeValidEndTransfer(localChannelReference);
+                    ChannelUtils.writeEndTransfer(localChannelReference);
                 } catch (OpenR66ProtocolPacketException e) {
                     transferInError(e);
                     logger.warn("End Retrieve in Error");
@@ -105,20 +104,21 @@ public class RetrieveRunner implements Runnable {
                 localChannelReference.getFutureEndTransfer().isSuccess());
         if (localChannelReference.getFutureEndTransfer().isSuccess()) {
             // send a validation
-            ValidPacket validPacket = new ValidPacket("File transmitted",
-                    Integer.toString(session.getRunner().getRank()),
-                    LocalPacketFactory.REQUESTPACKET);
+            EndRequestPacket validPacket = new EndRequestPacket(ErrorCode.CompleteOk.ordinal());
             try {
                 ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket).awaitUninterruptibly();
             } catch (OpenR66ProtocolPacketException e) {
             }
-            localChannelReference.validateRequest(localChannelReference
+            localChannelReference.RequestIsDone();
+            if (!localChannelReference.getFutureRequest().awaitUninterruptibly(
+                    Configuration.WAITFORNETOP*10)) {
+                // valid it however
+                localChannelReference.validateRequest(localChannelReference
                     .getFutureEndTransfer().getResult());
-            try {
-                Thread.sleep(Configuration.WAITFORNETOP);
-            } catch (InterruptedException e) {
             }
-            ChannelUtils.close(channel);
+            if (session.getRunner() != null && session.getRunner().isSelfRequested()) {
+                ChannelUtils.close(localChannelReference.getLocalChannel());
+            }
         } else {
             if (!localChannelReference.getFutureEndTransfer().getResult().isAnswered) {
                 ErrorPacket error = new ErrorPacket("Transfer in error",
@@ -128,7 +128,11 @@ public class RetrieveRunner implements Runnable {
                 } catch (OpenR66ProtocolPacketException e) {
                 }
             }
-            ChannelUtils.close(channel);
+            if (!localChannelReference.getFutureRequest().isDone()) {
+                localChannelReference.invalidateRequest(localChannelReference
+                    .getFutureEndTransfer().getResult());
+            }
+            // FIXME ChannelUtils.close(channel);
             logger.warn("End Retrieve in Error");
         }
     }

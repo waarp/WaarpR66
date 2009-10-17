@@ -18,6 +18,7 @@ package openr66.protocol.utils;
 import goldengate.common.file.DataBlock;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+import goldengate.common.logging.GgSlf4JLoggerFactory;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -43,6 +44,9 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.group.ChannelGroupFuture;
 import org.jboss.netty.channel.group.ChannelGroupFutureListener;
 import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.LoggerContext;
 
 /**
  * Channel Utils
@@ -219,12 +223,12 @@ public class ChannelUtils implements Runnable {
     }
 
     /**
-     * Write the ValidEndTransfer
+     * Write the EndTransfer
      *
      * @param localChannelReference
      * @throws OpenR66ProtocolPacketException
      */
-    public static void writeValidEndTransfer(
+    public static void writeEndTransfer(
             LocalChannelReference localChannelReference)
     throws OpenR66ProtocolPacketException {
         EndTransferPacket packet = new EndTransferPacket(
@@ -281,6 +285,7 @@ public class ChannelUtils implements Runnable {
         } catch (final InterruptedException e) {
         }
         NetworkTransaction.closeRetrieveExecutors();
+        Configuration.configuration.getLocalTransaction().debugPrintActiveLocalChannels();
         Configuration.configuration.getGlobalTrafficShapingHandler()
                 .releaseExternalResources();
         logger.info("Exit Shutdown Command");
@@ -291,9 +296,15 @@ public class ChannelUtils implements Runnable {
         terminateHttpChannels();
         OpenR66SignalHandler.closeAllConnection();
         Configuration.configuration.serverStop();
-        logger.warn("Exit end of Shutdown");
+        System.err.println("Exit end of Shutdown");
     }
 
+    public static void stopLogger() {
+        if (GgInternalLoggerFactory.getDefaultFactory() instanceof GgSlf4JLoggerFactory) {
+            LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
+            lc.stop();
+        }
+    }
     /**
      * This function is the top function to be called when the server is to be
      * shutdown.

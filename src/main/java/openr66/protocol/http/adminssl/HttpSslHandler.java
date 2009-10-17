@@ -232,7 +232,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         FileUtils.replace(builder, REPLACEMENT.XXXLOCALXXX.toString(),
                 Integer.toString(
                         Configuration.configuration.getLocalTransaction().
-                        getNumberLocalChannel()));
+                        getNumberLocalChannel())+" "+Thread.activeCount());
         FileUtils.replace(builder, REPLACEMENT.XXXNETWORKXXX.toString(),
                 Integer.toString(
                         OpenR66SignalHandler.getNbConnection()));
@@ -398,7 +398,11 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     while (preparedStatement.getNext()) {
                         i++;
                         DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatement);
-                        builder.append(taskRunner.toSpecializedHtml(authentHttp, body));
+                        LocalChannelReference lcr =
+                            Configuration.configuration.getLocalTransaction().
+                            getFromRequest(taskRunner.getKey());
+                        builder.append(taskRunner.toSpecializedHtml(authentHttp, body,
+                                lcr != null ? "Active" : "NotActive"));
                         if (i > LIMITROW) {
                             break;
                         }
@@ -494,7 +498,129 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     while (preparedStatement.getNext()) {
                         i++;
                         DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatement);
-                        builder.append(taskRunner.toSpecializedHtml(authentHttp, body));
+                        LocalChannelReference lcr =
+                            Configuration.configuration.getLocalTransaction().
+                            getFromRequest(taskRunner.getKey());
+                        builder.append(taskRunner.toSpecializedHtml(authentHttp, body,
+                                lcr != null ? "Active" : "NotActive"));
+                        if (i > LIMITROW) {
+                            break;
+                        }
+                    }
+                    preparedStatement.realClose();
+                    body = builder.toString();
+                } catch (OpenR66DatabaseException e) {
+                    if (preparedStatement != null) {
+                        preparedStatement.realClose();
+                    }
+                    logger.warn("OpenR66 Web Error",e);
+                }
+                body1 = readFile(Configuration.configuration.httpBasePath+"CancelRestart_body1.html");
+            } else if ("RestartAll".equalsIgnoreCase(parm) ||
+                    "StopAll".equalsIgnoreCase(parm)) {
+                boolean stopcommand = "StopAll".equalsIgnoreCase(parm);
+                String startid = params.get("startid").get(0).trim();
+                if (startid.length() == 0) {
+                    startid = null;
+                }
+                String stopid = params.get("stopid").get(0).trim();
+                if (stopid.length() == 0) {
+                    stopid = null;
+                }
+                String start = params.get("start").get(0);
+                String stop = params.get("stop").get(0);
+                String rule = params.get("rule").get(0).trim();
+                if (rule.length() == 0) {
+                    rule = null;
+                }
+                String req = params.get("req").get(0).trim();
+                if (req.length() == 0) {
+                    req = null;
+                }
+                boolean pending, transfer, error, done, all;
+                pending = params.containsKey("pending");
+                transfer = false;
+                error = params.containsKey("error");
+                done = false;
+                all = false;
+                if (pending && transfer && error && done) {
+                    all = true;
+                } else if (!(pending || transfer || error || done)) {
+                    all = true;
+                }
+                Timestamp tstart = fixDate(start);
+                if (tstart != null) {
+                    start = tstart.toString();
+                }
+                Timestamp tstop = fixDate(stop, tstart);
+                if (tstop != null) {
+                    stop = tstop.toString();
+                }
+                head = resetOptionTransfer(head, startid == null ? "":startid,
+                        stopid == null ? "":stopid, start, stop,
+                        rule == null ? "":rule, req == null ? "":req,
+                        pending, transfer, error, done, all);
+                body = readFile(Configuration.configuration.httpBasePath+"CancelRestart_body.html");
+                DbPreparedStatement preparedStatement = null;
+                try {
+                    preparedStatement =
+                        DbTaskRunner.getFilterPrepareStament(dbSession, LIMITROW, false,
+                                startid, stopid, tstart, tstop, rule, req,
+                                pending, transfer, error, done, all);
+                    preparedStatement.executeQuery();
+                    StringBuilder builder = new StringBuilder();
+                    int i = 0;
+                    while (preparedStatement.getNext()) {
+                        i++;
+                        DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatement);
+                        LocalChannelReference lcr =
+                            Configuration.configuration.getLocalTransaction().
+                            getFromRequest(taskRunner.getKey());
+                        ErrorCode result;
+                        if (stopcommand) {
+                            ErrorCode code = ErrorCode.StoppedTransfer;
+                            if (lcr != null) {
+                                int rank = taskRunner.getRank();
+                                ErrorPacket perror = new ErrorPacket("Transfer "+parm+" "+rank,
+                                        code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                                try {
+                                    //XXX ChannelUtils.writeAbstractLocalPacket(lcr, perror);
+                                    // inform local instead of remote
+                                    ChannelUtils.writeAbstractLocalPacketToLocal(lcr, perror);
+                                } catch (Exception e) {
+                                }
+                                result = ErrorCode.StoppedTransfer;
+                            } else {
+                                // Transfer is not running
+                                // But is the database saying the contrary
+                                result = ErrorCode.TransferError;
+                                if (taskRunner != null) {
+                                    if (taskRunner.stopOrCancelRunner(code)) {
+                                        result = ErrorCode.StoppedTransfer;
+                                    }
+                                }
+                            }
+                        } else {// Restart
+                            if (lcr != null) {
+                                result = ErrorCode.TransferError;
+                                //comment = "Transfer is still running so not restartable";
+                            } else {
+                                // Transfer is not running
+                                // but maybe need action on database
+                                if (taskRunner.restart(true)) {
+                                    result = ErrorCode.Running;
+                                    //comment = "Transfer is restarted";
+                                } else {
+                                    result = ErrorCode.CompleteOk;
+                                    //comment = "Transfer is finished so not restartable";
+                                }
+                            }
+                        }
+                        ErrorCode last = taskRunner.getErrorInfo();
+                        taskRunner.setErrorExecutionStatus(result);
+                        builder.append(taskRunner.toSpecializedHtml(authentHttp, body,
+                                lcr != null ? "Active" : "NotActive"));
+                        taskRunner.setErrorExecutionStatus(last);
                         if (i > LIMITROW) {
                             break;
                         }
@@ -560,7 +686,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 }
                 if (taskRunner != null) {
                     body = readFile(Configuration.configuration.httpBasePath+"CancelRestart_body.html");
-                    body = taskRunner.toSpecializedHtml(authentHttp, body);
+                    body = taskRunner.toSpecializedHtml(authentHttp, body,
+                            lcr != null ? "Active" : "NotActive");
                     String tstart = taskRunner.getStart().toString();
                     tstart = tstart.substring(0, tstart.length());
                     String tstop = taskRunner.getStop().toString();
@@ -601,7 +728,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                         }
                     }
                     body = readFile(Configuration.configuration.httpBasePath+"CancelRestart_body.html");
-                    body = taskRunner.toSpecializedHtml(authentHttp, body);
+                    body = taskRunner.toSpecializedHtml(authentHttp, body,
+                            lcr != null ? "Active" : "NotActive");
                     String tstart = taskRunner.getStart().toString();
                     tstart = tstart.substring(0, tstart.length());
                     String tstop = taskRunner.getStop().toString();
@@ -1378,6 +1506,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             DbSession ldbsession = dbSessions.remove(admin.getValue());
             admin = null;
             if (lsession != null) {
+                lsession.setStatus(75);
                 lsession.clear();
             }
             if (ldbsession != null) {
@@ -1444,10 +1573,12 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                         Arrays.equals(password.getBytes(),
                                 Configuration.configuration.getSERVERADMINKEY())) {
                     authentHttp.getAuth().specialHttpAuth(true);
+                    authentHttp.setStatus(70);
                 } else {
                     getMenu = true;
                 }
                 if (! authentHttp.isAuthenticated()) {
+                    authentHttp.setStatus(71);
                     logger.debug("Still not authenticated: {}",authentHttp);
                     getMenu = true;
                 }
@@ -1479,6 +1610,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             clearSession();
             admin = new DefaultCookie(R66SESSION, Long.toHexString(new Random().nextLong()));
             sessions.put(admin.getValue(), this.authentHttp);
+            authentHttp.setStatus(72);
             if (this.isPrivateDbSession) {
                 dbSessions.put(admin.getValue(), dbSession);
             }
@@ -1605,6 +1737,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             R66Session session = sessions.get(admin.getValue());
             if (session != null) {
                 authentHttp = session;
+                authentHttp.setStatus(73);
             }
             DbSession dbSession = dbSessions.get(admin.getValue());
             if (dbSession != null) {
@@ -1696,7 +1829,6 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         }
         if (shutdown) {
             Thread thread = new Thread(new ChannelUtils());
-            thread.setDaemon(true);
             thread.start();
         }
     }

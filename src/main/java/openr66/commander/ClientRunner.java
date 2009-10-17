@@ -42,6 +42,7 @@ import openr66.database.data.AbstractDbData;
 import openr66.database.data.DbHostAuth;
 import openr66.database.data.DbTaskRunner;
 import openr66.database.data.AbstractDbData.UpdatedInfo;
+import openr66.database.data.DbTaskRunner.TASKSTEP;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
@@ -73,11 +74,15 @@ public class ClientRunner implements Runnable {
     private final DbTaskRunner taskRunner;
     private final R66Future futureRequest;
     private RecvThroughHandler handler = null;
+    // FIXME
+    String debug;
 
     public ClientRunner(NetworkTransaction networkTransaction, DbTaskRunner taskRunner,
             R66Future futureRequest) {
         this.networkTransaction = networkTransaction;
         this.taskRunner = taskRunner;
+        // FIXME
+        debug = taskRunner.toShortString();
         this.futureRequest = futureRequest;
     }
 
@@ -100,8 +105,19 @@ public class ClientRunner implements Runnable {
             return;
         }
         R66Result result = transfer.getResult();
-        logger.warn("TRANSFER RESULT: "+transfer.isSuccess()+" "+
+        if (result != null) {
+            if (result.code == ErrorCode.QueryAlreadyFinished) {
+                logger.info("TRANSFER RESULT:\n    "+(transfer.isSuccess()?"SUCCESS":"ERROR")+"\n    "+
+                        ErrorCode.QueryAlreadyFinished.mesg+":"+
+                        (result != null ? result.toString() : "no result"));
+            } else {
+                logger.warn("TRANSFER RESULT:\n    "+(transfer.isSuccess()?"SUCCESS":"ERROR")+"\n    "+
+                        (result != null ? result.toString() : "no result"));
+            }
+        } else {
+            logger.warn("TRANSFER RESULT:\n    "+(transfer.isSuccess()?"SUCCESS":"ERROR")+"\n    "+
                 (result != null ? result.toString() : "no result"));
+        }
         transfer = null;
     }
     /**
@@ -141,7 +157,6 @@ public class ClientRunner implements Runnable {
         logger.info("Request done with {}",(transfer.isSuccess()?"success":"error"));
 
         Channels.close(localChannelReference.getLocalChannel());
-        localChannelReference = null;
         // now reload TaskRunner if it still exists (light client can forget it)
         if (transfer.isSuccess()) {
             try {
@@ -152,9 +167,12 @@ public class ClientRunner implements Runnable {
             }
         } else {
             try {
+                // FIXME
                 taskRunner.select();
                 if (transfer.getResult().code == ErrorCode.QueryAlreadyFinished) {
                     // FIXME check if post task to execute
+                    logger.warn("DEBUG QAF:\n    "+transfer.toString()+"\n    "+
+                            taskRunner.toShortString()+"\n   was "+debug);
                     finalizeLocalTask(localChannelReference);
                 } else {
                     switch (taskRunner.getUpdatedInfo()) {
@@ -175,6 +193,7 @@ public class ClientRunner implements Runnable {
     private void finalizeLocalTask(LocalChannelReference localChannelReference)
     throws OpenR66RunnerErrorException {
         R66Session session = new R66Session();
+        session.setStatus(50);
         session.getAuth().specialHttpAuth(false);
         R66File file;
         try {
@@ -189,7 +208,7 @@ public class ClientRunner implements Runnable {
         finalValue.file = file;
         finalValue.runner = taskRunner;
         try {
-            taskRunner.finalizeRunner(localChannelReference, file, finalValue, true);
+            taskRunner.finalizeTransfer(localChannelReference, file, finalValue, true);
         } catch (OpenR66ProtocolSystemException e) {
             logger.warn("Cannot validate runner: {}",taskRunner.toShortString());
             this.changeUpdatedInfo(UpdatedInfo.INERROR, ErrorCode.Internal);
@@ -217,6 +236,14 @@ public class ClientRunner implements Runnable {
         logger.info("Will run {}",this.taskRunner);
 
         if (taskRunner.isSelfRequested()) {
+            if (taskRunner.getGloballaststep() == TASKSTEP.POSTTASK.ordinal()) {
+                // can finalize locally
+                LocalChannelReference localChannelReference =
+                    new LocalChannelReference();
+                this.finalizeLocalTask(localChannelReference);
+                logger.warn("Finalize as Restart: "+taskRunner.toShortString());
+                throw new OpenR66ProtocolNoConnectionException("Finalize as restart");
+            }
             // Don't have to restart a task for itself (or should use requester)
             logger.warn("Requested host cannot initiate itself the request");
             this.changeUpdatedInfo(UpdatedInfo.INERROR, ErrorCode.NotKnownHost);
@@ -255,7 +282,7 @@ public class ClientRunner implements Runnable {
                 logger.info("Will not retry since limit of connection attemtps is reached for {}",
                         host);
                 retry = " and retries limit is reached so stop here";
-                this.changeUpdatedInfo(UpdatedInfo.INTERRUPTED, ErrorCode.ConnectionImpossible);
+                this.changeUpdatedInfo(UpdatedInfo.INERROR, ErrorCode.ConnectionImpossible);
             }
             throw new OpenR66ProtocolNoConnectionException("Cannot connect to server "+
                     host.toString()+retry);

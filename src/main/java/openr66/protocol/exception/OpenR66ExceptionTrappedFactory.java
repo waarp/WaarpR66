@@ -11,6 +11,7 @@ import java.net.BindException;
 import java.net.ConnectException;
 import java.nio.channels.CancelledKeyException;
 import java.nio.channels.ClosedChannelException;
+import java.util.concurrent.RejectedExecutionException;
 
 import javax.net.ssl.SSLException;
 
@@ -60,7 +61,7 @@ public class OpenR66ExceptionTrappedFactory {
             // Yes, No action
             return null;
         } else if (e1 instanceof ClosedChannelException) {
-            logger.warn("Connection closed before end");
+            logger.info("Connection closed before end");
             return new OpenR66ProtocolBusinessNoWriteBackException(
                     "Connection closed before end", e1);
         } else if (e1 instanceof OpenR66ProtocolBusinessCancelException) {
@@ -116,10 +117,19 @@ public class OpenR66ExceptionTrappedFactory {
             } else {
                 return new OpenR66ProtocolBusinessNoWriteBackException("Connection aborted", e2);
             }
+        } else if (e1 instanceof RejectedExecutionException) {
+            final RejectedExecutionException e2 = (RejectedExecutionException) e1;
+            logger.info("Connection aborted since {} with Channel {}", e2
+                    .getMessage(), channel);
+            if (channel.isConnected()) {
+                return new OpenR66ProtocolSystemException("Execution aborted", e2);
+            } else {
+                return new OpenR66ProtocolBusinessNoWriteBackException("Execution aborted", e2);
+            }
         } else {
             logger.warn("Unexpected exception from downstream" +
                     " Ref Channel: " + channel.toString(), e1);
         }
-        return new OpenR66ProtocolSystemException("Unexpected exception", e1);
+        return new OpenR66ProtocolSystemException("Unexpected exception: "+e1.getMessage(), e1);
     }
 }

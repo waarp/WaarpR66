@@ -11,7 +11,7 @@ import org.jboss.netty.buffer.ChannelBuffers;
 /**
  * Connection Error Message class for packet
  *
- * 3 strings: sheader,smiddle,send
+ * 2 strings: sheader,smiddle
  *
  * @author frederic bregier
  */

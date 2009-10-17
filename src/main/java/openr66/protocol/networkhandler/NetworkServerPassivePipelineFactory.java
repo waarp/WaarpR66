@@ -27,10 +27,10 @@ import org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler;
 import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
 
 /**
- * NetworkServer pipeline (Requester side)
+ * NetworkServer pipeline for Passive connection (Requested side)
  * @author Frederic Bregier
  */
-public class NetworkServerPipelineFactory implements ChannelPipelineFactory {
+public class NetworkServerPassivePipelineFactory implements ChannelPipelineFactory {
 
     @Override
     public ChannelPipeline getPipeline() {
@@ -51,7 +51,7 @@ public class NetworkServerPipelineFactory implements ChannelPipelineFactory {
         }
         pipeline.addLast("pipelineExecutor", new ExecutionHandler(
                 Configuration.configuration.getServerPipelineExecutor()));
-        pipeline.addLast("handler", new NetworkServerHandler());
+        pipeline.addLast("handler", new NetworkServerPassiveHandler());
         return pipeline;
     }
 

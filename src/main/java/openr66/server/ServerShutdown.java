@@ -58,6 +58,7 @@ public class ServerShutdown {
         if (args.length < 1) {
             logger
                     .error("Needs the configuration file as first argument");
+            ChannelUtils.stopLogger();
             System.exit(1);
             return;
         }
@@ -68,6 +69,7 @@ public class ServerShutdown {
             if (DbConstant.admin != null){
                 DbConstant.admin.close();
             }
+            ChannelUtils.stopLogger();
             System.exit(1);
             return;
         }

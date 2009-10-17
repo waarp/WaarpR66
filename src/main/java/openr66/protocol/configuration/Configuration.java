@@ -86,8 +86,7 @@ public class Configuration {
     /**
      * Hack to say Windows or Unix (USR1 not OK on Windows)
      */
-    public static final boolean ISUNIX = !System.getProperty("os.name")
-            .toLowerCase().startsWith("windows");
+    public static boolean ISUNIX;
 
     /**
      * Default size for buffers (NIO)
@@ -313,6 +312,11 @@ public class Configuration {
     private volatile OrderedMemoryAwareThreadPoolExecutor localPipelineExecutor;
 
     /**
+     * ThreadPoolExecutor for Http and Https Server
+     */
+    private volatile OrderedMemoryAwareThreadPoolExecutor httpPipelineExecutor;
+
+    /**
      * Bootstrap for server
      */
     private ServerBootstrap serverBootstrap = null;
@@ -398,12 +402,17 @@ public class Configuration {
         localTransaction = new LocalTransaction();
         InternalLoggerFactory.setDefaultFactory(InternalLoggerFactory
                 .getDefaultFactory());
+        objectSizeEstimator = new NetworkPacketSizeEstimator();
         serverPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
                 CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory, 500,
                 TimeUnit.MILLISECONDS, new R66ThreadFactory("ServerExecutor"));
         localPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
                 CLIENT_THREAD * 100, maxGlobalMemory / 10, maxGlobalMemory,
-                500, TimeUnit.MILLISECONDS, new R66ThreadFactory("LocalExecutor"));
+                500, TimeUnit.MILLISECONDS,
+                new R66ThreadFactory("LocalExecutor"));
+        httpPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
+                CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory, 500,
+                TimeUnit.MILLISECONDS, new R66ThreadFactory("HttpExecutor"));
         configured = true;
     }
 
@@ -450,7 +459,6 @@ public class Configuration {
         }
 
         // Factory for TrafficShapingHandler
-        objectSizeEstimator = new NetworkPacketSizeEstimator();
         globalTrafficShapingHandler = new GlobalTrafficHandler(
                 objectSizeEstimator, execTrafficCounter,
                 serverGlobalWriteLimit, serverGlobalReadLimit, delayLimit);
@@ -642,6 +650,13 @@ public class Configuration {
      */
     public OrderedMemoryAwareThreadPoolExecutor getLocalPipelineExecutor() {
         return localPipelineExecutor;
+    }
+
+    /**
+     * @return the httpPipelineExecutor
+     */
+    public OrderedMemoryAwareThreadPoolExecutor getHttpPipelineExecutor() {
+        return httpPipelineExecutor;
     }
 
     /**
