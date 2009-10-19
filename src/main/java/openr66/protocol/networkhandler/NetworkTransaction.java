@@ -70,6 +70,12 @@ public class NetworkTransaction {
     private static final ConcurrentHashMap<Integer, NetworkChannel> networkChannelOnSocketAddressConcurrentHashMap = new ConcurrentHashMap<Integer, NetworkChannel>();
 
     /**
+     * Hashmap for currently active Retrieve Runner (sender)
+     */
+    private static final ConcurrentHashMap<Integer, RetrieveRunner> retrieveRunnerConcurrentHashMap =
+        new ConcurrentHashMap<Integer, RetrieveRunner>();
+
+    /**
      * Lock for NetworkChannel operations
      */
     private static final ReentrantLock lock = new ReentrantLock();
@@ -427,7 +433,27 @@ public class NetworkTransaction {
      */
     public static void runRetrieve(R66Session session, Channel channel) {
         RetrieveRunner retrieveRunner = new RetrieveRunner(session, channel);
+        retrieveRunnerConcurrentHashMap.put(session.getLocalChannelReference().getLocalId(),
+                retrieveRunner);
         retrieveExecutor.execute(retrieveRunner);
+    }
+    /**
+     * Stop a retrieve operation
+     * @param localChannelReference
+     */
+    public static void stopRetrieve(LocalChannelReference localChannelReference) {
+        RetrieveRunner retrieveRunner =
+            retrieveRunnerConcurrentHashMap.remove(localChannelReference.getLocalId());
+        if (retrieveRunner != null) {
+            retrieveRunner.stopRunner();
+        }
+    }
+    /**
+     * Normal end of a Retrieve Operation
+     * @param localChannelReference
+     */
+    public static void normalEndRetrieve(LocalChannelReference localChannelReference) {
+        retrieveRunnerConcurrentHashMap.remove(localChannelReference.getLocalId());
     }
     /**
      * Stop all Retrieve Executors

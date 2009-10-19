@@ -52,7 +52,8 @@ public class InternalRunner {
             .getLogger(InternalRunner.class);
 
     private final ScheduledExecutorService scheduledExecutorService;
-    private final ScheduledFuture<?> scheduledFuture;
+    private ScheduledFuture<?> scheduledFuture;
+    private Commander commander = null;
     private volatile boolean isRunning = true;
     private final ThreadPoolExecutor threadPoolExecutor;
     private final BlockingQueue<Runnable> workQueue;
@@ -64,7 +65,7 @@ public class InternalRunner {
      * @throws OpenR66DatabaseSqlError
      */
     public InternalRunner() throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
-        Commander commander = new Commander(this);
+        commander = new Commander(this, true);
         scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
         isRunning = true;
         workQueue = new ArrayBlockingQueue<Runnable>(10);
@@ -109,5 +110,16 @@ public class InternalRunner {
         scheduledExecutorService.shutdownNow();
         threadPoolExecutor.shutdownNow();
         networkTransaction.closeAll();
+    }
+    public void reloadInternalRunner()
+    throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+        scheduledFuture.cancel(false);
+        if (commander != null) {
+            commander.finalize();
+        }
+        commander = new Commander(this);
+        scheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(commander,
+                Configuration.configuration.delayCommander,
+                Configuration.configuration.delayCommander, TimeUnit.MILLISECONDS);
     }
 }

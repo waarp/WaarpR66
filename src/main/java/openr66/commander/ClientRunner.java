@@ -296,13 +296,8 @@ public class ClientRunner implements Runnable {
         if (handler != null) {
             localChannelReference.setRecvThroughHandler(handler);
         }
-        // FIXME check if already transfered!!
-        if (taskRunner.getGloballaststep() < DbTaskRunner.TASKSTEP.POSTTASK.ordinal()) {
-            if (taskRunner.getStatus() == ErrorCode.Running && taskRunner.getRank() > 0) {
-                // start from one rank before
-                taskRunner.setRankAtStartup(taskRunner.getRank()-1);
-            }
-        } else if (taskRunner.getGloballaststep() == DbTaskRunner.TASKSTEP.POSTTASK.ordinal()) {
+        // check if already transfered!!
+        if (taskRunner.getGloballaststep() == DbTaskRunner.TASKSTEP.POSTTASK.ordinal()) {
             finalizeLocalTask(localChannelReference);
             return localChannelReference;
         }

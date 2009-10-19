@@ -1,0 +1,28 @@
+<config>
+	<comment>Example of config file: change its as your need.</comment>
+	<hostid>bptest</hostid>
+	<sslhostid>bptests</sslhostid>
+	<serverhome>/appli/R66</serverhome>
+	<in>data/in</in>
+	<out>data/out</out>
+	<arch>data/arch</arch>
+	<work>data/work</work>
+	<conf>conf</conf>
+	<keypath>/appli/R66/certs/openr66.store</keypath>
+	<keypass>openr66</keypass>
+	<keystorepass>storeopenr66</keystorepass>
+	<serverthread>49</serverthread>
+	<clientthread>800</clientthread>
+	<timeoutcon>10000</timeoutcon>
+	<deleteonabort>0</deleteonabort>
+	<usenio>0</usenio>
+	<usefastmd5>1</usefastmd5>
+	<fastmd5>/appli/R66/lib/MD5.so</fastmd5>
+	<blocksize>65536</blocksize>
+	<sessionlimit2>102400</sessionlimit2>
+	<globallimit2>1024000</globallimit2>
+	<sessionlimit>0</sessionlimit>
+	<globallimit>0</globallimit>
+	<delaylimit>0</delaylimit>
+	<authentfile>/appli/R66/conf/authent.xml</authentfile>
+</config>

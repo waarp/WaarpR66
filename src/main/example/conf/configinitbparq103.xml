@@ -1,0 +1,8 @@
+<config>
+	<comment>Example of config file: change its as your need.</comment>
+	<hostid>bparq103</hostid>
+	<dbdriver>oracle</dbdriver>
+	<dbserver>jdbc:oracle:thin:@bparq105:1521:iatlas</dbserver>
+	<dbuser>openr66</dbuser>
+	<dbpasswd>golden</dbpasswd>
+</config>

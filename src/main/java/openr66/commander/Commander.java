@@ -66,6 +66,25 @@ public class Commander implements Runnable {
      */
     public Commander(InternalRunner runner)
         throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+        this.internalConstructor(runner);
+    }
+    /**
+     * Prepare requests that will be executed from time to time
+     * @param runner
+     * @param fromStartup True if call from startup of the server
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66DatabaseSqlError
+     */
+    public Commander(InternalRunner runner, boolean fromStartup)
+        throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+        this.internalConstructor(runner);
+        if (fromStartup) {
+            // Change RUNNING or INTERRUPTED to TOSUBMIT since they should be ready
+            DbTaskRunner.resetToSubmit(DbConstant.admin.session);
+        }
+    }
+    private void internalConstructor(InternalRunner runner)
+    throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
         try {
             preparedStatementConfig =
                 DbConfiguration.getUpdatedPrepareStament(DbConstant.admin.session);
@@ -78,8 +97,6 @@ public class Commander implements Runnable {
                         UpdatedInfo.TOSUBMIT, false, LIMITSUBMIT);
             // Clean tasks (CompleteOK and ALLDONE => DONE)
             DbTaskRunner.changeFinishedToDone(DbConstant.admin.session);
-            // Change RUNNING or INTERRUPTED to TOSUBMIT since they should be ready
-            DbTaskRunner.resetToSubmit(DbConstant.admin.session);
             internalRunner = runner;
         } finally {
             if (internalRunner == null) {
@@ -97,6 +114,23 @@ public class Commander implements Runnable {
                     preparedStatementRunner.realClose();
                 }
             }
+        }
+    }
+    /**
+     * Finalize internal data
+     */
+    public void finalize() {
+        if (preparedStatementConfig != null) {
+            preparedStatementConfig.realClose();
+        }
+        if (preparedStatementHost != null) {
+            preparedStatementHost.realClose();
+        }
+        if (preparedStatementRule != null) {
+            preparedStatementRule.realClose();
+        }
+        if (preparedStatementRunner != null) {
+            preparedStatementRunner.realClose();
         }
     }
     /* (non-Javadoc)

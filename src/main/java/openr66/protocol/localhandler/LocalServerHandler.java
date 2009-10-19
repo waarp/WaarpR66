@@ -127,44 +127,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
             tryFinalizeRequest(finalValue);
         } catch (OpenR66Exception e2) {
         }
-        /*if (localChannelReference != null) {
-            if (!localChannelReference.isRequestDone()) {
-                try {
-                    session.setFinalizeTransfer(status, finalValue);
-                } catch (OpenR66RunnerErrorException e1) {
-                    if (status) {
-                        localChannelReference.validateRequest(finalValue);
-                    } else {
-                        localChannelReference.invalidateRequest(finalValue);
-                    }
-                } catch (OpenR66ProtocolSystemException e1) {
-                    if (status) {
-                        localChannelReference.validateRequest(finalValue);
-                    } else {
-                        localChannelReference.invalidateRequest(finalValue);
-                    }
-                }
-                if (!status) {
-                    if (runner == null) {
-                        logger.info("Current request terminate abnormally but no runner");
-                    } else {
-                        logger.error("Current request terminate abnormally for {}", runner);
-                    }
-                }
-            } else if (!localChannelReference.getFutureRequest().isDone()) {
-                localChannelReference.mixedValidateRequest(finalValue);
-            }
-            if (runner != null) {
-                if (runner.isSelfRequested()) {
-                    R66Future transfer = localChannelReference.getFutureRequest();
-                    // Since requested : log
-                    R66Result result = transfer.getResult();
-                    logger.warn("TRANSFER REQUESTED RESULT:\n    "+
-                            (transfer.isSuccess()?"SUCCESS":"FAILURE")+
-                            "\n    "+ (result != null ? result.toString() : "no result"));
-                }
-            }
-        }*/
         if (runner != null) {
             if (runner.isSelfRequested()) {
                 R66Future transfer = localChannelReference.getFutureRequest();
@@ -578,21 +540,26 @@ public class LocalServerHandler extends SimpleChannelHandler {
         Channels.close(channel);
     }
     /**
-     * Class to throw an exception when the future is over
+     * Class to finalize a runner when the future is over
      * @author Frederic Bregier
      *
      */
-    private class ExceptionChannelFutureListener implements ChannelFutureListener {
-        private Exception e;
-        public ExceptionChannelFutureListener(Exception e) {
-            this.e = e;
+    private class RunnerChannelFutureListener implements ChannelFutureListener {
+        private LocalChannelReference localChannelReference;
+        private R66Result result;
+        public RunnerChannelFutureListener(LocalChannelReference localChannelReference,
+                R66Result result) {
+            this.localChannelReference = localChannelReference;
+            this.result = result;
         }
         /* (non-Javadoc)
          * @see org.jboss.netty.channel.ChannelFutureListener#operationComplete(org.jboss.netty.channel.ChannelFuture)
          */
         @Override
         public void operationComplete(ChannelFuture future) throws Exception {
-            throw e;
+            localChannelReference.invalidateRequest(
+                    result);
+            ChannelUtils.close(localChannelReference.getLocalChannel());
         }
 
     }
@@ -607,6 +574,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
     private void error(Channel channel, ErrorPacket packet)
             throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException, OpenR66ProtocolBusinessException {
         // do something according to the error
+        if (session.getLocalChannelReference().getFutureRequest().isCancelled()) {
+            // already cancelled
+            return;
+        }
         logger.error(channel.getId() + ": " + packet.toString());
         session.setStatus(46);
         ErrorCode code = ErrorCode.getFromCode(packet.getSmiddle());
@@ -620,12 +591,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 runner.setRankAtStartup(rank);
                 runner.stopOrCancelRunner(code);
             }
-            session.setFinalizeTransfer(false, new R66Result(exception, session,
-                    true, code));
+            R66Result result = new R66Result(exception, session,
+                    true, code);
+            session.setFinalizeTransfer(false, result);
             // now try to inform other
             try {
                 ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet).
-                    addListener(new ExceptionChannelFutureListener(exception));
+                    addListener(new RunnerChannelFutureListener(localChannelReference, result));
             } catch (OpenR66ProtocolPacketException e) {
             }
             return;
@@ -642,12 +614,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 }
                 runner.stopOrCancelRunner(code);
             }
-            session.setFinalizeTransfer(false, new R66Result(exception, session,
-                    true, code));
+            R66Result result = new R66Result(exception, session,
+                    true, code);
+            session.setFinalizeTransfer(false, result);
             // now try to inform other
             try {
                 ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet).
-                    addListener(new ExceptionChannelFutureListener(exception));
+                    addListener(new RunnerChannelFutureListener(localChannelReference, result));
             } catch (OpenR66ProtocolPacketException e) {
             }
             return;
@@ -805,7 +778,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         } else {
             // Very new request
             // FIXME should not be the case (the requester should always set the id)
-            logger.error("SHOULD NOT BE THE CASE");
+            logger.error("NO TransferID specified: SHOULD NOT BE THE CASE");
             boolean isRetrieve = packet.isRetrieve();
             if (!packet.isToValidate()) {
                 isRetrieve = !isRetrieve;
@@ -822,10 +795,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
         }
         // Receiver can specify a rank different from database
         if (runner.isSender()) {
-            logger.warn("Rank was: "+runner.getRank()+" -> "+packet.getRank());
+            logger.info("Rank was: "+runner.getRank()+" -> "+packet.getRank());
             runner.setRankAtStartup(packet.getRank());
         } else if (runner.getRank() > packet.getRank()) {
-            logger.warn("Recv Rank was: "+runner.getRank()+" -> "+packet.getRank());
+            logger.info("Recv Rank was: "+runner.getRank()+" -> "+packet.getRank());
             // if receiver, change only if current rank is upper proposed rank
             runner.setRankAtStartup(packet.getRank());
         }
@@ -866,10 +839,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 // In case Wildcard was used
                 logger.info("New FILENAME: {}", runner.getOriginalFilename());
                 packet.setFilename(runner.getOriginalFilename());
-                logger.warn("Rank set: "+runner.getRank());
+                logger.info("Rank set: "+runner.getRank());
                 packet.setRank(runner.getRank());
             } else {
-                logger.warn("Rank set: "+runner.getRank());
+                logger.info("Rank set: "+runner.getRank());
                 packet.setRank(runner.getRank());
             }
             packet.validate();
@@ -911,10 +884,31 @@ public class LocalServerHandler extends SimpleChannelHandler {
             throw new OpenR66ProtocolBusinessException(
                     "Not in receive MODE but receive a packet");
         }
+        if (! session.getRunner().continueTransfer()) {
+            if (localChannelReference.getFutureEndTransfer().isCancelled()) {
+                // nothing to do since already done
+                session.setStatus(94);
+                return;
+            }
+            try {
+                session.setFinalizeTransfer(false, new R66Result(
+                        new OpenR66ProtocolPacketException(
+                                "Transfer was aborted previously"), session, true,
+                        ErrorCode.TransferError));
+            } catch (OpenR66RunnerErrorException e1) {
+            } catch (OpenR66ProtocolSystemException e1) {
+            }
+            ErrorPacket error = new ErrorPacket("Transfer in error due previously aborted transmission",
+                    ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
+            session.setStatus(95);
+            ChannelUtils.close(channel);
+            return;
+        }
         if (packet.getPacketRank() != session.getRunner().getRank()) {
             // Fix the rank if possible
             if (packet.getPacketRank() < session.getRunner().getRank()) {
-                logger.warn("Bad RANK: " + packet.getPacketRank() + " : " +
+                logger.info("Bad RANK: " + packet.getPacketRank() + " : " +
                         session.getRunner().getRank());
                 session.getRunner().setRankAtStartup(packet.getPacketRank());
                 session.getRestart().restartMarker(
@@ -926,7 +920,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     try {
                         session.setFinalizeTransfer(false, new R66Result(
                                 new OpenR66ProtocolPacketException(
-                                        "Bad Rank in transmission"), session, true,
+                                        "Bad Rank in transmission even after retry: "+
+                                        packet.getPacketRank()), session, true,
                                 ErrorCode.TransferError));
                     } catch (OpenR66RunnerErrorException e1) {
                     } catch (OpenR66ProtocolSystemException e1) {
@@ -934,7 +929,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     ErrorPacket error = new ErrorPacket("Transfer in error due to bad rank transmission",
                             ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
                     ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
-                    session.setStatus(20);
+                    session.setStatus(96);
                     ChannelUtils.close(channel);
                     return;
                 }
@@ -943,7 +938,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 try {
                     session.setFinalizeTransfer(false, new R66Result(
                             new OpenR66ProtocolPacketException(
-                                    "Bad Rank in transmission"), session, true,
+                                    "Bad Rank in transmission: "+
+                                    packet.getPacketRank()+" > "+
+                                    session.getRunner().getRank()), session, true,
                             ErrorCode.TransferError));
                 } catch (OpenR66RunnerErrorException e1) {
                 } catch (OpenR66ProtocolSystemException e1) {
@@ -1234,11 +1231,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         session.setFinalizeTransfer(false, result);
                     } else if (! runner.isSender()) {
                         // is receiver so informs back for the rank to use next time
-                        int rank = runner.getRank()-10;
-                        if (rank < 0) {
-                            rank = 0;
-                        }
-                        packet.setSmiddle(Integer.toString(rank));
+                        int newrank = runner.getRank();
+                        packet.setSmiddle(Integer.toString(newrank));
                         try {
                             runner.saveStatus();
                         } catch (OpenR66RunnerErrorException e) {
@@ -1296,16 +1290,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     if (code == ErrorCode.StoppedTransfer && lcr.getSession() != null) {
                         DbTaskRunner taskRunner = lcr.getSession().getRunner();
                         if (taskRunner != null) {
-                            if (taskRunner.isSender()) {
-                                // FIXME should we decrease ?
-                                rank = taskRunner.getRank()-1;
-                            } else {
-                                // FIXME should we decrease ?
-                                rank = taskRunner.getRank()-1;
-                            }
-                            if (rank < 0) {
-                                rank = 0;
-                            }
+                            rank = taskRunner.getRank();
                         }
                     }
                     ErrorPacket error = new ErrorPacket(code.name()+" "+rank,

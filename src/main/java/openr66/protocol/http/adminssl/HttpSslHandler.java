@@ -95,6 +95,7 @@ import org.jboss.netty.handler.codec.http2.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http2.HttpVersion;
 import org.jboss.netty.handler.codec.http2.QueryStringDecoder;
 import org.jboss.netty.handler.ssl.SslHandler;
+import org.jboss.netty.handler.traffic.TrafficCounter;
 
 /**
  * Handler for HTTP information support
@@ -139,7 +140,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         Hosts, Rules, System;
     }
     private static enum REPLACEMENT {
-        XXXHOSTIDXXX, XXXADMINXXX,
+        XXXHOSTIDXXX, XXXADMINXXX, XXXBANDWIDTHXXX,
         XXXXSESSIONLIMITRXXX, XXXXSESSIONLIMITWXXX,
         XXXXCHANNELLIMITRXXX, XXXXCHANNELLIMITWXXX,
         XXXXDELAYCOMMDXXX, XXXXDELAYRETRYXXX,
@@ -245,6 +246,12 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             FileUtils.replace(builder, REPLACEMENT.XXXADMINXXX.toString(),
                     "Not authenticated");
         }
+        TrafficCounter trafficCounter =
+            Configuration.configuration.getGlobalTrafficShapingHandler().getTrafficCounter();
+        FileUtils.replace(builder, REPLACEMENT.XXXBANDWIDTHXXX.toString(),
+                "IN:"+(trafficCounter.getLastReadThroughput()/131072)+
+                "Mbits&nbsp;<br>&nbsp;OUT:"+
+                (trafficCounter.getLastWriteThroughput()/131072)+"Mbits");
         return builder.toString();
     }
     private static SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmssSSS");
@@ -1472,6 +1479,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                         if (Configuration.configuration.delayCommander <= 100) {
                             Configuration.configuration.delayCommander = 100;
                         }
+                        Configuration.configuration.reloadCommanderDelay();
                     }
                     String dret = params.get("DRET").get(0).trim();
                     if (dret.length() != 0) {

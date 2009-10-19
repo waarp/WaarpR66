@@ -24,10 +24,12 @@ import openr66.context.R66Session;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.DbConstant;
 import openr66.database.DbSession;
+import openr66.database.data.DbTaskRunner;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.networkhandler.NetworkServerHandler;
+import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.utils.R66Future;
 
 import org.jboss.netty.channel.Channel;
@@ -292,6 +294,12 @@ public class LocalChannelReference {
             }
         } else {
             logger.info("Could not invalidate since Already finished: " + futureEndTransfer.getResult());
+        }
+        DbTaskRunner runner = this.session.getRunner();
+        if (runner != null) {
+            if (runner.isSender()) {
+                NetworkTransaction.stopRetrieve(this);
+            }
         }
     }
     /**

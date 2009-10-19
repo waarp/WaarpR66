@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<rule>
+  <idrule>rulesenddirect</idrule>
+  <hostids>
+    <hostid>bparq103</hostid>
+    <hostid>bparq102</hostid>
+    <hostid>bparq103s</hostid>
+    <hostid>bparq102s</hostid>
+    <hostid>bptest</hostid>
+  </hostids>
+  <mode>1</mode>
+  <recvpath></recvpath>
+  <sendpath></sendpath>
+  <archivepath></archivepath>
+  <workpath></workpath>
+  <rpretasks>
+    <tasks/>
+  </rpretasks>
+  <rposttasks>
+    <tasks>
+      <task>
+        <type>EXECMOVE</type>
+        <path>/appli/R66/bin/monprepare.sh #TRUEFULLPATH# #ORIGINALFILENAME# #RULE# #REMOTEHOST# %s #DATE# #HOUR#</path>
+        <delay>30000</delay>
+      </task>
+      <task>
+        <type>TRANSFER</type>
+        <path>#ORIGINALFILENAME# #REMOTEHOST# #RULE# #ORIGINALFILENAME#-#DATE#-#HOUR#</path>
+        <delay>0</delay>
+      </task>
+    </tasks>
+  </rposttasks>
+  <rerrortasks>
+    <tasks>
+      <task>
+        <type>TEST</type>
+        <path>erreur</path>
+        <delay>1</delay>
+      </task>
+    </tasks>
+  </rerrortasks>
+  <spretasks>
+    <tasks/>
+  </spretasks>
+  <sposttasks>
+    <tasks/>
+  </sposttasks>
+  <serrortasks>
+    <tasks>
+      <task>
+        <type>TEST</type>
+        <path>erreur</path>
+        <delay>1</delay>
+      </task>
+    </tasks>
+  </serrortasks>
+</rule>

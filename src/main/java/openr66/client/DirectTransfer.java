@@ -89,7 +89,7 @@ public class DirectTransfer extends AbstractTransfer {
                 DbConstant.ILLEGALVALUE, fileinfo);
         // Not isRecv since it is the requester, so send => isRetrieve is true
         boolean isRetrieve = ! RequestPacket.isRecvMode(request.getMode());
-        DbTaskRunner taskRunner;
+        DbTaskRunner taskRunner = null;
         try {
             taskRunner =
                 new DbTaskRunner(DbConstant.admin.session,rule,isRetrieve,request,remoteHost);

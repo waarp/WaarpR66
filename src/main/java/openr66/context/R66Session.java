@@ -112,15 +112,17 @@ public class R66Session implements SessionInterface {
     @Override
     public void clear() {
         // First check if a transfer was on going
-        if (runner != null && !runner.isFinished()) {
-            R66Result result = new R66Result(new OpenR66RunnerErrorException(
-                    "Close before ending"), this, true,
-                    ErrorCode.Disconnection);// True since called from closed
+        if (runner != null && (!runner.isFinished()) && (!runner.continueTransfer())) {
             if (localChannelReference != null) {
-                try {
-                    setFinalizeTransfer(false, result);
-                } catch (OpenR66RunnerErrorException e) {
-                } catch (OpenR66ProtocolSystemException e) {
+                if (!localChannelReference.getFutureRequest().isDone()) {
+                    R66Result result = new R66Result(new OpenR66RunnerErrorException(
+                            "Close before ending"), this, true,
+                            ErrorCode.Disconnection);// True since called from closed
+                    try {
+                        setFinalizeTransfer(false, result);
+                    } catch (OpenR66RunnerErrorException e) {
+                    } catch (OpenR66ProtocolSystemException e) {
+                    }
                 }
             }
         }
@@ -290,6 +292,9 @@ public class R66Session implements SessionInterface {
             this.runner.run();
             runner.saveStatus();
             runner.setTransferTask(runner.getRank());
+        } else {
+            runner.reset();
+            runner.saveStatus();
         }
         // Now create the associated file
         if (this.runner.isSender()) {

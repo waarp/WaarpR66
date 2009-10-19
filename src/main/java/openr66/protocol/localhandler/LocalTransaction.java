@@ -347,11 +347,8 @@ public class LocalTransaction {
                 DbTaskRunner runner = session.getRunner();
                 if (runner != null && runner.isInTransfer()) {
                     if (! runner.isSender()) {
-                        int rank = runner.getRank()-10;
-                        if (rank < 0) {
-                            rank = 0;
-                        }
-                        packet.setSmiddle(Integer.toString(rank));
+                        int newrank = runner.getRank();
+                        packet.setSmiddle(Integer.toString(newrank));
                     }
                     // Save File status
                     try {

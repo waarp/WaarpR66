@@ -24,6 +24,7 @@ import goldengate.common.command.exception.CommandAbstractException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
@@ -52,6 +53,7 @@ import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.database.model.DbModelFactory;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNoSslException;
+import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.http.HttpHandler;
 import openr66.protocol.localhandler.LocalChannelReference;
@@ -184,6 +186,8 @@ public class DbTaskRunner extends AbstractDbData {
     private int updatedInfo = UpdatedInfo.UNKNOWN.ordinal();
 
     private boolean isSaved = false;
+
+    private volatile boolean continueTransfer = true;
 
     // ALL TABLE SHOULD IMPLEMENT THIS
     private final DbValue primaryKey[] = {
@@ -1277,7 +1281,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * Change ComleteOk+ALLDONETASK to Updated = DONE TaskRunner from database.
+     * Change CompleteOk+ALLDONETASK to Updated = DONE TaskRunner from database.
      * This method is a clean function to be used for instance before log export or
      * at the very beginning of the commander.
      *
@@ -1330,10 +1334,7 @@ public class DbTaskRunner extends AbstractDbData {
                     break;
                 case TRANSFERTASK:
                     // continue
-                    int newrank = this.getRank()-10;
-                    if (newrank < 0) {
-                        newrank = 0;
-                    }
+                    int newrank = this.getRank();
                     this.setTransferTask(newrank);
                     this.setExecutionStatus(ErrorCode.PreProcessingOk);
                     break;
@@ -1366,6 +1367,14 @@ public class DbTaskRunner extends AbstractDbData {
         }
         // Restart if already stopped and not finished
         if (reset()) {
+            int newrank = this.getRank();
+            if (newrank > 0) {
+                newrank -= Configuration.RANKRESTART;
+                if (newrank <= 0) {
+                    newrank = 1;
+                }
+            }
+            this.setTransferTask(newrank);
             if (submit) {
                 this.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
             } else {
@@ -1406,11 +1415,12 @@ public class DbTaskRunner extends AbstractDbData {
                     case StoppedTransfer:
                     case RemoteShutdown:
                         this.changeUpdatedInfo(UpdatedInfo.INERROR);
+                        break;
                     default:
                         this.changeUpdatedInfo(UpdatedInfo.INTERRUPTED);
                 }
                 update();
-                logger.warn("StopOrCancel: {} {}",code.mesg,this.toShortString());
+                logger.warn("StopOrCancel: {}\n    {}",code.mesg,this.toShortString());
                 return true;
             } else {
                 // none found
@@ -1706,6 +1716,7 @@ public class DbTaskRunner extends AbstractDbData {
             this.status = code;
             this.setErrorExecutionStatus(code);
         } else {
+            continueTransfer = false;
             if (this.infostatus == ErrorCode.InitOk ||
                     this.infostatus == ErrorCode.PostProcessingOk ||
                     this.infostatus == ErrorCode.PreProcessingOk ||
@@ -1721,7 +1732,13 @@ public class DbTaskRunner extends AbstractDbData {
         isSaved = false;
         return rank;
     }
-
+    /**
+     *
+     * @return True if the transfer is valid to continue
+     */
+    public boolean continueTransfer() {
+        return continueTransfer;
+    }
     /**
      * Set the Post Task step
      *
@@ -1975,6 +1992,10 @@ public class DbTaskRunner extends AbstractDbData {
             logger.info("Transfer done on {} at RANK {}",file != null ? file : "no file", rank);
             localChannelReference.validateEndTransfer(finalValue);
         } else {
+            if (!continueTransfer) {
+                // already setup
+                return;
+            }
          // error or not ?
             ErrorCode runnerStatus = this.getErrorInfo();
             if (finalValue.exception != null) {
@@ -1994,17 +2015,20 @@ public class DbTaskRunner extends AbstractDbData {
                 // just save runner and stop
                 this.changeUpdatedInfo(UpdatedInfo.INERROR);
             } else {
-                // real error
-                this.setErrorTask();
-                this.saveStatus();
-                try {
-                    this.run();
-                } catch (OpenR66RunnerErrorException e1) {
-                    this.changeUpdatedInfo(UpdatedInfo.INERROR);
-                    this.setErrorExecutionStatus(runnerStatus);
+                if (this.globalstep != TASKSTEP.ERRORTASK.ordinal()) {
+                    // errorstep was not already executed
+                    // real error
+                    this.setErrorTask();
                     this.saveStatus();
-                    localChannelReference.invalidateRequest(finalValue);
-                    throw e1;
+                    try {
+                        this.run();
+                    } catch (OpenR66RunnerErrorException e1) {
+                        this.changeUpdatedInfo(UpdatedInfo.INERROR);
+                        this.setErrorExecutionStatus(runnerStatus);
+                        this.saveStatus();
+                        localChannelReference.invalidateRequest(finalValue);
+                        throw e1;
+                    }
                 }
                 this.changeUpdatedInfo(UpdatedInfo.INERROR);
                 if (RequestPacket.isRecvThroughMode(this.getMode()) ||
@@ -2030,21 +2054,26 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Increment the rank of the transfer
+     * @throws OpenR66ProtocolPacketException
      */
-    public void incrementRank() {
+    public void incrementRank() throws OpenR66ProtocolPacketException {
         rank ++;
         allFields[Columns.RANK.ordinal()].setValue(rank);
         isSaved = false;
         if (!isSender) {
             // flush partial file
-            session.getFile().flush();
+            try {
+                session.getFile().flush();
+            } catch (IOException e) {
+                throw new OpenR66ProtocolPacketException("Flush incorrect", e);
+            }
         }
         if (rank % 10 == 0) {
             // Save each 10 blocks
             try {
                 update();
             } catch (OpenR66DatabaseException e) {
-                logger.warn("Cannot update Runner", e);
+                logger.warn("Cannot update Runner: {}", e.getMessage());
             }
         }
     }

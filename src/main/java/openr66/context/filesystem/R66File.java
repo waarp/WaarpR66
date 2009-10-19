@@ -36,6 +36,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
@@ -94,10 +95,11 @@ public class R66File extends FilesystemBasedFileImpl {
     /**
      * Start the retrieve (send to the remote host the local file)
      *
+     * @param running When false, should stop the runner
      * @throws OpenR66RunnerErrorException
      * @throws OpenR66ProtocolSystemException
      */
-    public void retrieveBlocking() throws OpenR66RunnerErrorException,
+    public void retrieveBlocking(AtomicBoolean running) throws OpenR66RunnerErrorException,
             OpenR66ProtocolSystemException {
         boolean retrieveDone = false;
         LocalChannelReference localChannelReference = getSession()
@@ -121,23 +123,34 @@ public class R66File extends FilesystemBasedFileImpl {
             }
             // While not last block
             ChannelFuture future = null;
-            while (block != null && !block.isEOF()) {
+            while (block != null && (!block.isEOF()) && (running.get())) {
                 future = RetrieveRunner.writeWhenPossible(
                         block, localChannelReference);
                 try {
                     block = readDataBlock();
                 } catch (FileEndOfTransferException e) {
                     // Wait for last write
-                    future.awaitUninterruptibly();
+                    try {
+                        future.await();
+                    } catch (InterruptedException e1) {
+                    }
                     if (future.isSuccess()) {
                         retrieveDone = true;
                     }
                     return;
                 }
-                future.awaitUninterruptibly();
+                try {
+                    future.await();
+                } catch (InterruptedException e) {
+                    return;
+                }
                 if (future.isCancelled()) {
                     return;
                 }
+            }
+            if (!running.get()) {
+                // stopped
+                return;
             }
             // Last block
             if (block != null) {
@@ -145,7 +158,11 @@ public class R66File extends FilesystemBasedFileImpl {
             }
             // Wait for last write
             if (future != null) {
-                future.awaitUninterruptibly();
+                try {
+                    future.await();
+                } catch (InterruptedException e) {
+                    return;
+                }
                 if (future.isCancelled()) {
                     return;
                 }

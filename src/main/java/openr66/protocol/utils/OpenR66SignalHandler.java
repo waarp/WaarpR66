@@ -141,7 +141,6 @@ public class OpenR66SignalHandler implements SignalHandler {
                     for (Thread thread: map.keySet()) {
                         printStackTrace(thread, map.get(thread));
                     }
-                    //FIXME ChannelUtils.stopLogger();
                     System.exit(0);
                     break;
                 default:

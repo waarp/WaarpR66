@@ -104,6 +104,11 @@ public class Configuration {
     public static final String EXT_R66 = ".r66";
 
     /**
+     * Rank to redo when a restart occurs
+     */
+    public static final long RANKRESTART = 30;
+
+    /**
      * FileParameter
      */
     private static final FilesystemBasedFileParameterImpl fileParameter =
@@ -526,6 +531,21 @@ public class Configuration {
         if (internalRunner != null) {
             internalRunner.stopInternalRunner();
         }
+    }
+    /**
+     * Try to reload the Commander
+     * @return True if reloaded, else in error
+     */
+    public boolean reloadCommanderDelay() {
+        if (internalRunner != null) {
+            try {
+                internalRunner.reloadInternalRunner();
+                return true;
+            } catch (OpenR66DatabaseNoConnectionError e) {
+            } catch (OpenR66DatabaseSqlError e) {
+            }
+        }
+        return false;
     }
     /**
      * Reset the global monitor for bandwidth limitation and change future

@@ -20,6 +20,8 @@
  */
 package openr66.protocol.localhandler;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import goldengate.common.file.DataBlock;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
@@ -35,6 +37,7 @@ import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.packet.EndRequestPacket;
 import openr66.protocol.localhandler.packet.ErrorPacket;
 import openr66.protocol.networkhandler.NetworkServerHandler;
+import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.utils.ChannelUtils;
 
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -46,7 +49,7 @@ import org.jboss.netty.channel.ChannelFuture;
  * @author Frederic Bregier
  *
  */
-public class RetrieveRunner implements Runnable {
+public class RetrieveRunner extends Thread {
     /**
      * Internal Logger
      */
@@ -59,6 +62,10 @@ public class RetrieveRunner implements Runnable {
 
     private final Channel channel;
 
+    private boolean done = false;
+
+    private AtomicBoolean running = new AtomicBoolean(true);
+
     /**
      *
      * @param session
@@ -70,6 +77,22 @@ public class RetrieveRunner implements Runnable {
         this.channel = channel;
     }
 
+    /**
+     * Try to stop the runner
+     */
+    public void stopRunner() {
+        running.set(false);
+        /*boolean isinterrupted = false;
+        try {
+            Thread.sleep(Configuration.WAITFORNETOP);
+        } catch (InterruptedException e) {
+            isinterrupted = true;
+        }
+        this.interrupt();
+        if (isinterrupted) {
+            Thread.currentThread().interrupt();
+        }*/
+    }
     /*
      * (non-Javadoc)
      *
@@ -77,68 +100,106 @@ public class RetrieveRunner implements Runnable {
      */
     @Override
     public void run() {
-        Thread.currentThread().setName("RetrieveRunner: " + channel.getId());
         try {
-            if (session.getRunner().getGloballaststep() == TASKSTEP.POSTTASK.ordinal()) {
-                // restart from PostTask global step so just end now
-                try {
-                    ChannelUtils.writeEndTransfer(localChannelReference);
-                } catch (OpenR66ProtocolPacketException e) {
-                    transferInError(e);
-                    logger.warn("End Retrieve in Error");
-                    return;
-                }
-            }
-            session.getFile().retrieveBlocking();
-        } catch (OpenR66RunnerErrorException e) {
-            transferInError(e);
-            logger.warn("End Retrieve in Error");
-            return;
-        } catch (OpenR66ProtocolSystemException e) {
-            transferInError(e);
-            logger.warn("End Retrieve in Error");
-            return;
-        }
-        try {
-            localChannelReference.getFutureEndTransfer().await();
-        } catch (InterruptedException e1) {
-        }
-        logger.info("Await future End Transfer done: " +
-                localChannelReference.getFutureEndTransfer().isSuccess());
-        if (localChannelReference.getFutureEndTransfer().isSuccess()) {
-            // send a validation
-            EndRequestPacket validPacket = new EndRequestPacket(ErrorCode.CompleteOk.ordinal());
+            Thread.currentThread().setName("RetrieveRunner: " + channel.getId());
             try {
-                ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket).awaitUninterruptibly();
-            } catch (OpenR66ProtocolPacketException e) {
-            }
-            localChannelReference.RequestIsDone();
-            if (!localChannelReference.getFutureRequest().awaitUninterruptibly(
-                    Configuration.WAITFORNETOP*10)) {
-                // valid it however
-                localChannelReference.validateRequest(localChannelReference
-                    .getFutureEndTransfer().getResult());
-            }
-            if (session.getRunner() != null && session.getRunner().isSelfRequested()) {
-                ChannelUtils.close(localChannelReference.getLocalChannel());
-            }
-        } else {
-            if (localChannelReference.getFutureEndTransfer().isDone()) {
-                if (!localChannelReference.getFutureEndTransfer().getResult().isAnswered) {
-                    ErrorPacket error = new ErrorPacket("Transfer in error",
-                            ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                if (session.getRunner().getGloballaststep() == TASKSTEP.POSTTASK.ordinal()) {
+                    // restart from PostTask global step so just end now
                     try {
-                        ChannelUtils.writeAbstractLocalPacket(localChannelReference, error)
-                            .awaitUninterruptibly();
+                        ChannelUtils.writeEndTransfer(localChannelReference);
                     } catch (OpenR66ProtocolPacketException e) {
+                        transferInError(e);
+                        logger.warn("End Retrieve in Error");
+                        return;
+                    }
+                }
+                session.getFile().retrieveBlocking(running);
+            } catch (OpenR66RunnerErrorException e) {
+                transferInError(e);
+                logger.warn("End Retrieve in Error");
+                return;
+            } catch (OpenR66ProtocolSystemException e) {
+                transferInError(e);
+                logger.warn("End Retrieve in Error");
+                return;
+            }
+            try {
+                localChannelReference.getFutureEndTransfer().await();
+            } catch (InterruptedException e1) {
+            }
+            logger.info("Await future End Transfer done: " +
+                    localChannelReference.getFutureEndTransfer().isSuccess());
+            if (localChannelReference.getFutureEndTransfer().isSuccess()) {
+                // send a validation
+                EndRequestPacket validPacket = new EndRequestPacket(ErrorCode.CompleteOk.ordinal());
+                try {
+                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket).awaitUninterruptibly();
+                } catch (OpenR66ProtocolPacketException e) {
+                }
+                localChannelReference.RequestIsDone();
+                if (!localChannelReference.getFutureRequest().awaitUninterruptibly(
+                        Configuration.WAITFORNETOP*10)) {
+                    // valid it however
+                    localChannelReference.validateRequest(localChannelReference
+                        .getFutureEndTransfer().getResult());
+                }
+                if (session.getRunner() != null && session.getRunner().isSelfRequested()) {
+                    ChannelUtils.close(localChannelReference.getLocalChannel());
+                }
+                done = true;
+            } else {
+                if (localChannelReference.getFutureEndTransfer().isDone()) {
+                    if (!localChannelReference.getFutureEndTransfer().getResult().isAnswered) {
+                        ErrorPacket error = new ErrorPacket("Transfer in error",
+                                ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                        try {
+                            ChannelUtils.writeAbstractLocalPacket(localChannelReference, error)
+                                .awaitUninterruptibly();
+                        } catch (OpenR66ProtocolPacketException e) {
+                        }
+                    }
+                }
+                if (!localChannelReference.getFutureRequest().isDone()) {
+                    localChannelReference.invalidateRequest(localChannelReference
+                        .getFutureEndTransfer().getResult());
+                }
+                done = true;
+                logger.warn("End Retrieve in Error");
+            }
+        } finally {
+            if (!done) {
+                if (localChannelReference.getFutureEndTransfer().isSuccess()) {
+                    if (! localChannelReference.isRequestDone()) {
+                        EndRequestPacket validPacket = new EndRequestPacket(ErrorCode.CompleteOk.ordinal());
+                        try {
+                            ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket).awaitUninterruptibly();
+                        } catch (OpenR66ProtocolPacketException e) {
+                        }
+                    }
+                    localChannelReference.validateRequest(localChannelReference
+                            .getFutureEndTransfer().getResult());
+                    if (session.getRunner() != null && session.getRunner().isSelfRequested()) {
+                        ChannelUtils.close(localChannelReference.getLocalChannel());
+                    }
+                } else {
+                    if (localChannelReference.getFutureEndTransfer().isDone()) {
+                        if (!localChannelReference.getFutureEndTransfer().getResult().isAnswered) {
+                            ErrorPacket error = new ErrorPacket("Transfer in error",
+                                    ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                            try {
+                                ChannelUtils.writeAbstractLocalPacket(localChannelReference, error)
+                                    .awaitUninterruptibly();
+                            } catch (OpenR66ProtocolPacketException e) {
+                            }
+                        }
+                    }
+                    if (!localChannelReference.getFutureRequest().isDone()) {
+                        localChannelReference.invalidateRequest(localChannelReference
+                            .getFutureEndTransfer().getResult());
                     }
                 }
             }
-            if (!localChannelReference.getFutureRequest().isDone()) {
-                localChannelReference.invalidateRequest(localChannelReference
-                    .getFutureEndTransfer().getResult());
-            }
-            logger.warn("End Retrieve in Error");
+            NetworkTransaction.normalEndRetrieve(localChannelReference);
         }
     }
     private void transferInError(OpenR66Exception e) {
@@ -153,6 +214,7 @@ public class RetrieveRunner implements Runnable {
         } catch (OpenR66ProtocolPacketException e1) {
         }
         ChannelUtils.close(channel);
+        done = true;
     }
     /**
      * Write the next block when the channel is ready to prevent OOM
