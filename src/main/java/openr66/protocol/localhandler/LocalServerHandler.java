@@ -160,7 +160,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     // Since requested : log
                     R66Result result = transfer.getResult();
                     logger.warn("TRANSFER REQUESTED RESULT:\n    "+
-                            (transfer.isSuccess()?"SUCCESS":"ERROR")+
+                            (transfer.isSuccess()?"SUCCESS":"FAILURE")+
                             "\n    "+ (result != null ? result.toString() : "no result"));
                 }
             }
@@ -171,7 +171,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 // Since requested : log
                 R66Result result = transfer.getResult();
                 logger.warn("TRANSFER REQUESTED RESULT:\n    "+
-                        (transfer.isSuccess()?"SUCCESS":"ERROR")+
+                        (transfer.isSuccess()?"SUCCESS":"FAILURE")+
                         "\n    "+ (result != null ? result.toString() : "no result"));
             }
         }
@@ -368,7 +368,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     }
                 }
                 // dont'close, thread will do
-                new Thread(new ChannelUtils()).start();
+                Thread thread = new Thread(new ChannelUtils());
+                thread.setDaemon(true);
+                thread.start();
                 // set global shutdown info and before close, send a valid
                 // shutdown to all
                 session.setStatus(54);
@@ -409,7 +411,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     code = ErrorCode.Disconnection;
                     DbTaskRunner runner = session.getRunner();
                     if (runner != null) {
-                        runner.stopOrCancelRunner(code);
+                        R66Result finalValue = new R66Result(
+                                new OpenR66ProtocolSystemException("Finalize too early at close time"),
+                                session, true, code);
+                        try {
+                            tryFinalizeRequest(finalValue);
+                        } catch (OpenR66Exception e2) {
+                        }
                     }
                 } else if (exception instanceof OpenR66ProtocolRemoteShutdownException) {
                     code = ErrorCode.RemoteShutdown;
@@ -747,6 +755,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         return;
                     }
                     // ok to restart
+                    runner.restart(false);
                 } catch (OpenR66DatabaseNoDataException e) {
                     // Reception of request from requester host
                     boolean isRetrieve = RequestPacket.isRecvMode(packet.getMode());
@@ -813,8 +822,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
         }
         // Receiver can specify a rank different from database
         if (runner.isSender()) {
+            logger.warn("Rank was: "+runner.getRank()+" -> "+packet.getRank());
             runner.setRankAtStartup(packet.getRank());
         } else if (runner.getRank() > packet.getRank()) {
+            logger.warn("Recv Rank was: "+runner.getRank()+" -> "+packet.getRank());
             // if receiver, change only if current rank is upper proposed rank
             runner.setRankAtStartup(packet.getRank());
         }
@@ -855,8 +866,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 // In case Wildcard was used
                 logger.info("New FILENAME: {}", runner.getOriginalFilename());
                 packet.setFilename(runner.getOriginalFilename());
+                logger.warn("Rank set: "+runner.getRank());
                 packet.setRank(runner.getRank());
             } else {
+                logger.warn("Rank set: "+runner.getRank());
                 packet.setRank(runner.getRank());
             }
             packet.validate();
@@ -910,6 +923,20 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 try {
                     session.getFile().restartMarker(session.getRestart());
                 } catch (CommandAbstractException e) {
+                    try {
+                        session.setFinalizeTransfer(false, new R66Result(
+                                new OpenR66ProtocolPacketException(
+                                        "Bad Rank in transmission"), session, true,
+                                ErrorCode.TransferError));
+                    } catch (OpenR66RunnerErrorException e1) {
+                    } catch (OpenR66ProtocolSystemException e1) {
+                    }
+                    ErrorPacket error = new ErrorPacket("Transfer in error due to bad rank transmission",
+                            ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
+                    session.setStatus(20);
+                    ChannelUtils.close(channel);
+                    return;
                 }
             } else {
                 // really bad
@@ -1000,9 +1027,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
             result.other = validPacket;
             localChannelReference.validateRequest(result);
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket).awaitUninterruptibly();
-            logger.warn("Valid TEST MESSAGE: " +packet.toString()+" "+
-                        localChannelReference.toString());
-            Channels.close(channel);
+            logger.warn("Valid TEST MESSAGE: " +packet.toString());
+            ChannelUtils.close(channel);
         } else {
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet);
         }
@@ -1208,7 +1234,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         session.setFinalizeTransfer(false, result);
                     } else if (! runner.isSender()) {
                         // is receiver so informs back for the rank to use next time
-                        int rank = runner.getRank();
+                        int rank = runner.getRank()-10;
+                        if (rank < 0) {
+                            rank = 0;
+                        }
                         packet.setSmiddle(Integer.toString(rank));
                         try {
                             runner.saveStatus();
@@ -1230,6 +1259,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 try {
                     Thread.sleep(Configuration.WAITFORNETOP*2);
                 } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                 }
                 Configuration.configuration.getLocalTransaction()
                     .closeLocalChannelsFromNetworkChannel(localChannelReference
@@ -1268,10 +1298,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         if (taskRunner != null) {
                             if (taskRunner.isSender()) {
                                 // FIXME should we decrease ?
-                                rank = taskRunner.getRank();
+                                rank = taskRunner.getRank()-1;
                             } else {
                                 // FIXME should we decrease ?
-                                rank = taskRunner.getRank();
+                                rank = taskRunner.getRank()-1;
                             }
                             if (rank < 0) {
                                 rank = 0;
@@ -1484,8 +1514,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 break;
             }
             case LocalPacketFactory.TESTPACKET: {
-                logger.warn("Valid TEST MESSAGE: " +packet.toString()+" "+
-                        localChannelReference.toString());
+                logger.warn("Valid TEST MESSAGE: " +packet.toString());
                 R66Result resulttest = new R66Result(session, true,
                         ErrorCode.CompleteOk);
                 resulttest.other = packet;

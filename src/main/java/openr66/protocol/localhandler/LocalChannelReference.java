@@ -21,6 +21,7 @@ import openr66.client.RecvThroughHandler;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
+import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.DbConstant;
 import openr66.database.DbSession;
 import openr66.protocol.configuration.Configuration;
@@ -211,11 +212,16 @@ public class LocalChannelReference {
     * @return the futureValidateStartup
     */
    public R66Future getFutureValidateStartup() {
-       if (!futureStartup
-               .awaitUninterruptibly(Configuration.WAITFORNETOP * 10)) {
-           validateStartup(false);
-           return futureStartup;
-       }
+       try {
+           if (!futureStartup
+                   .await(Configuration.configuration.TIMEOUTCON)) {
+               validateStartup(false);
+               return futureStartup;
+           }
+        } catch (InterruptedException e) {
+            validateStartup(false);
+            return futureStartup;
+        }
        return futureStartup;
    }
     /**
@@ -244,10 +250,18 @@ public class LocalChannelReference {
      * @return the futureValidateConnection
      */
     public R66Future getFutureValidateConnection() {
-        if (!futureConnection
-                .awaitUninterruptibly(Configuration.WAITFORNETOP * 10)) {
+        try {
+            if (!futureConnection
+                    .await(Configuration.configuration.TIMEOUTCON)) {
+                R66Result result = new R66Result(
+                        new OpenR66ProtocolNoConnectionException("Out of time"),
+                        session, false, ErrorCode.ConnectionImpossible);
+                validateConnection(false, result);
+                return futureConnection;
+            }
+        } catch (InterruptedException e) {
             R66Result result = new R66Result(
-                    new OpenR66ProtocolNoConnectionException("Out of time"),
+                    new OpenR66ProtocolNoConnectionException("Interrupted connection"),
                     session, false, ErrorCode.ConnectionImpossible);
             validateConnection(false, result);
             return futureConnection;
@@ -309,7 +323,11 @@ public class LocalChannelReference {
      */
     public void waitReadyForSendThrough() throws OpenR66Exception {
         logger.info("Wait for End of Prepare Transfer");
-        this.futureEndTransfer.awaitUninterruptibly();
+        try {
+            this.futureEndTransfer.await();
+        } catch (InterruptedException e) {
+            throw new OpenR66RunnerErrorException("Interrupted",e);
+        }
         if (this.futureEndTransfer.isSuccess()) {
             // reset since transfer will start now
             this.futureEndTransfer = new R66Future(true);

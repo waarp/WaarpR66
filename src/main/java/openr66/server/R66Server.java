@@ -61,7 +61,7 @@ public class R66Server {
         } catch (OpenR66DatabaseException e) {
             logger
                 .error("Startup of server is in error");
-            OpenR66SignalHandler.terminate(true);
+            OpenR66SignalHandler.terminate(false);
         }
         logger.warn("Server OpenR66 starts for "+Configuration.configuration.HOST_ID);
         System.err.println("Server OpenR66 starts for "+Configuration.configuration.HOST_ID);

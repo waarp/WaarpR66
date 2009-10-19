@@ -96,7 +96,10 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
             logger.error("No wait For SSL found");
             return false;
         } else {
-            futureSSL.awaitUninterruptibly(Configuration.configuration.TIMEOUTCON);
+            try {
+                futureSSL.await(Configuration.configuration.TIMEOUTCON);
+            } catch (InterruptedException e) {
+            }
             if (futureSSL.isDone()) {
                 logger.info("Wait For SSL: "+futureSSL.isSuccess());
                 return futureSSL.isSuccess();

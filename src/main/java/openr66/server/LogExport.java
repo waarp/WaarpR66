@@ -92,7 +92,7 @@ public class LogExport implements Runnable {
         String lstop  = (stop != null) ? stop.toString() : null;
         byte type = (purgeLog) ? LocalPacketFactory.LOGPURGEPACKET : LocalPacketFactory.LOGPACKET;
         ValidPacket valid = new ValidPacket(lstart, lstop, type);
-        DbHostAuth host = Configuration.configuration.HOST_AUTH;
+        DbHostAuth host = Configuration.configuration.HOST_SSLAUTH;
         SocketAddress socketAddress = host.getSocketAddress();
         boolean isSSL = host.isSsl();
 
@@ -199,7 +199,7 @@ public class LogExport implements Runnable {
             R66Result result = future.getResult();
             if (future.isSuccess()) {
                 if (result.code == ErrorCode.Warning) {
-                    logger.warn("WARNING on file:\n    " +
+                    logger.warn("WARNED on file:\n    " +
                             (result.other != null? ((ValidPacket)result.other).getSheader() :
                                 "no file")
                             +"\n    delay: "+delay);
@@ -211,11 +211,11 @@ public class LogExport implements Runnable {
                 }
             } else {
                 if (result.code == ErrorCode.Warning) {
-                    logger.warn("Transfer in WARNING", future.getCause());
+                    logger.warn("Transfer is\n    WARNED", future.getCause());
                     networkTransaction.closeAll();
                     System.exit(result.code.ordinal());
                 } else {
-                    logger.error("Transfer in ERROR", future.getCause());
+                    logger.error("Transfer in\n    FAILURE", future.getCause());
                     networkTransaction.closeAll();
                     System.exit(result.code.ordinal());
                 }

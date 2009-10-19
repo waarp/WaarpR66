@@ -34,6 +34,7 @@ import openr66.database.data.DbTaskRunner;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
+import openr66.protocol.exception.OpenR66ProtocolNotYetConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
@@ -100,25 +101,39 @@ public class DirectTransfer extends AbstractTransfer {
             return;
         }
         ClientRunner runner = new ClientRunner(networkTransaction, taskRunner, future);
-        try {
-            runner.runTransfer();
-        } catch (OpenR66RunnerErrorException e) {
-            logger.error("Cannot Transfer", e);
-            future.setResult(new R66Result(e, null, true,
-                    ErrorCode.Internal));
-            future.setFailure(e);
-            return;
-        } catch (OpenR66ProtocolNoConnectionException e) {
-            logger.error("Cannot Connect", e);
-            future.setResult(new R66Result(e, null, true,
+        OpenR66ProtocolNotYetConnectionException exc = null;
+        for (int i = 0; i < Configuration.RETRYNB; i++) {
+            try {
+                runner.runTransfer();
+                exc = null;
+            } catch (OpenR66RunnerErrorException e) {
+                logger.error("Cannot Transfer", e);
+                future.setResult(new R66Result(e, null, true,
+                        ErrorCode.Internal));
+                future.setFailure(e);
+                return;
+            } catch (OpenR66ProtocolNoConnectionException e) {
+                logger.error("Cannot Connect", e);
+                future.setResult(new R66Result(e, null, true,
+                        ErrorCode.ConnectionImpossible));
+                future.setFailure(e);
+                return;
+            } catch (OpenR66ProtocolPacketException e) {
+                logger.error("Bad Protocol", e);
+                future.setResult(new R66Result(e, null, true,
+                        ErrorCode.TransferError));
+                future.setFailure(e);
+                return;
+            } catch (OpenR66ProtocolNotYetConnectionException e) {
+                exc = e;
+                continue;
+            }
+        }
+        if (exc!= null) {
+            logger.error("Cannot Connect", exc);
+            future.setResult(new R66Result(exc, null, true,
                     ErrorCode.ConnectionImpossible));
-            future.setFailure(e);
-            return;
-        } catch (OpenR66ProtocolPacketException e) {
-            logger.error("Bad Protocol", e);
-            future.setResult(new R66Result(e, null, true,
-                    ErrorCode.TransferError));
-            future.setFailure(e);
+            future.setFailure(exc);
             return;
         }
     }
@@ -153,7 +168,7 @@ public class DirectTransfer extends AbstractTransfer {
             R66Result result = future.getResult();
             if (future.isSuccess()) {
                 if (result.runner.getErrorInfo() == ErrorCode.Warning) {
-                    logger.warn("WARNING\n    "+result.runner.toShortString()+
+                    logger.warn("WARNED\n    "+result.runner.toShortString()+
                             "\n    <REMOTE>"+rhost+"</REMOTE>"+
                             "\n    <FILEFINAL>" +
                             (result.file != null? result.file.toString()+"</FILEFINAL>" : "no file")
@@ -175,17 +190,17 @@ public class DirectTransfer extends AbstractTransfer {
                 }
             } else {
                 if (result == null || result.runner == null) {
-                    logger.warn("Transfer in ERROR with no Id", future.getCause());
+                    logger.warn("Transfer in\n    FAILURE with no Id", future.getCause());
                     networkTransaction.closeAll();
                     System.exit(ErrorCode.Unknown.ordinal());
                 }
                 if (result.runner.getErrorInfo() == ErrorCode.Warning) {
-                    logger.warn("Transfer in WARNING\n    "+result.runner.toShortString()+
+                    logger.warn("Transfer is\n    WARNED\n    "+result.runner.toShortString()+
                             "\n    <REMOTE>"+rhost+"</REMOTE>", future.getCause());
                     networkTransaction.closeAll();
                     System.exit(result.code.ordinal());
                 } else {
-                    logger.error("Transfer in ERROR\n    "+result.runner.toShortString()+
+                    logger.error("Transfer in\n    FAILURE\n    "+result.runner.toShortString()+
                             "\n    <REMOTE>"+rhost+"</REMOTE>", future.getCause());
                     networkTransaction.closeAll();
                     System.exit(result.code.ordinal());

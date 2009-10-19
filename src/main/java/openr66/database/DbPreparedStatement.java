@@ -102,7 +102,8 @@ public class DbPreparedStatement {
             this.request = request;
             isReady = true;
         } catch (SQLException e) {
-            logger.error("SQL Exception PreparedStatement: " + request, e);
+            logger.error("SQL Exception PreparedStatement: " + request+"\n"+ e.getMessage());
+            DbSession.error(e);
             preparedStatement = null;
             isReady = false;
             throw new OpenR66DatabaseSqlError(
@@ -135,8 +136,9 @@ public class DbPreparedStatement {
             request = requestarg;
             isReady = true;
         } catch (SQLException e) {
-            logger.error("SQL Exception createPreparedStatement:" + requestarg,
-                    e);
+            logger.error("SQL Exception createPreparedStatement:" + requestarg+
+                    "\n"+e.getMessage());
+            DbSession.error(e);
             realClose();
             preparedStatement = null;
             isReady = false;
@@ -165,7 +167,9 @@ public class DbPreparedStatement {
         try {
             rs = preparedStatement.executeQuery();
         } catch (SQLException e) {
-            logger.error("SQL Exception executeQuery:" + request, e);
+            logger.error("SQL Exception executeQuery:" + request+
+                    "\n"+e.getMessage());
+            DbSession.error(e);
             close();
             rs = null;
             this.realClose();
@@ -195,7 +199,9 @@ public class DbPreparedStatement {
         try {
             retour = preparedStatement.executeUpdate();
         } catch (SQLException e) {
-            logger.error("SQL Exception executeUpdate:" + request, e);
+            logger.error("SQL Exception executeUpdate:" + request+
+                    "\n"+e.getMessage());
+            DbSession.error(e);
             this.realClose();
             throw new OpenR66DatabaseSqlError("SQL Exception executeUpdate: " +
                     request, e);
@@ -250,7 +256,9 @@ public class DbPreparedStatement {
         try {
             return rs.next();
         } catch (SQLException e) {
-            logger.error("SQL Exception to getNextRow", e);
+            logger.error("SQL Exception to getNextRow"+
+                    "\n"+e.getMessage());
+            DbSession.error(e);
             throw new OpenR66DatabaseSqlError("SQL Exception to getNextRow: " +
                     request, e);
         }

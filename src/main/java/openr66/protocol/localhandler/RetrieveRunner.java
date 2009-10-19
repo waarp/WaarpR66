@@ -99,7 +99,10 @@ public class RetrieveRunner implements Runnable {
             logger.warn("End Retrieve in Error");
             return;
         }
-        localChannelReference.getFutureEndTransfer().awaitUninterruptibly();
+        try {
+            localChannelReference.getFutureEndTransfer().await();
+        } catch (InterruptedException e1) {
+        }
         logger.info("Await future End Transfer done: " +
                 localChannelReference.getFutureEndTransfer().isSuccess());
         if (localChannelReference.getFutureEndTransfer().isSuccess()) {
@@ -120,19 +123,21 @@ public class RetrieveRunner implements Runnable {
                 ChannelUtils.close(localChannelReference.getLocalChannel());
             }
         } else {
-            if (!localChannelReference.getFutureEndTransfer().getResult().isAnswered) {
-                ErrorPacket error = new ErrorPacket("Transfer in error",
-                        ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
-                try {
-                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
-                } catch (OpenR66ProtocolPacketException e) {
+            if (localChannelReference.getFutureEndTransfer().isDone()) {
+                if (!localChannelReference.getFutureEndTransfer().getResult().isAnswered) {
+                    ErrorPacket error = new ErrorPacket("Transfer in error",
+                            ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                    try {
+                        ChannelUtils.writeAbstractLocalPacket(localChannelReference, error)
+                            .awaitUninterruptibly();
+                    } catch (OpenR66ProtocolPacketException e) {
+                    }
                 }
             }
             if (!localChannelReference.getFutureRequest().isDone()) {
                 localChannelReference.invalidateRequest(localChannelReference
                     .getFutureEndTransfer().getResult());
             }
-            // FIXME ChannelUtils.close(channel);
             logger.warn("End Retrieve in Error");
         }
     }

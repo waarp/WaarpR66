@@ -334,7 +334,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * Constructor from a request with a valid Special Id
+     * Constructor from a request with a valid Special Id but inserted into database
      *
      * @param dbSession
      * @param session
@@ -373,7 +373,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * Constructor from a request with a valid Special Id
+     * Constructor from a request with a valid Special Id so loaded from database
      *
      * @param dbSession
      * @param session
@@ -789,7 +789,7 @@ public class DbTaskRunner extends AbstractDbData {
             request += " WHERE " + Columns.GLOBALSTEP.name() + " = " +
                     globalstep.ordinal();
             if (globalstep == TASKSTEP.ERRORTASK) {
-                request += " AND "+Columns.UPDATEDINFO.name() + " <> "+
+                request += " OR "+Columns.UPDATEDINFO.name() + " = "+
                     UpdatedInfo.INERROR.ordinal();
             }
         }
@@ -897,9 +897,13 @@ public class DbTaskRunner extends AbstractDbData {
             scondition.append("( ");
             boolean hasone = false;
             if (pending) {
-                scondition.append(Columns.GLOBALSTEP.name());
+                /*scondition.append(Columns.GLOBALSTEP.name());
                 scondition.append(" = ");
                 scondition.append(TASKSTEP.NOTASK.ordinal());
+                scondition.append(" OR ");*/
+                scondition.append(Columns.UPDATEDINFO.name());
+                scondition.append(" = ");
+                scondition.append(UpdatedInfo.TOSUBMIT.ordinal());
                 hasone = true;
             }
             if (transfer) {
@@ -907,7 +911,7 @@ public class DbTaskRunner extends AbstractDbData {
                     scondition.append(" OR ");
                 }
                 scondition.append("( ");
-                scondition.append(Columns.GLOBALSTEP.name());
+                /*scondition.append(Columns.GLOBALSTEP.name());
                 scondition.append(" = ");
                 scondition.append(TASKSTEP.PRETASK.ordinal());
                 scondition.append(" OR ");
@@ -918,6 +922,10 @@ public class DbTaskRunner extends AbstractDbData {
                 scondition.append(Columns.GLOBALSTEP.name());
                 scondition.append(" = ");
                 scondition.append(TASKSTEP.POSTTASK.ordinal());
+                scondition.append(" OR ");*/
+                scondition.append(Columns.UPDATEDINFO.name());
+                scondition.append(" = ");
+                scondition.append(UpdatedInfo.RUNNING.ordinal());
                 scondition.append(" )");
                 hasone = true;
             }
@@ -941,6 +949,10 @@ public class DbTaskRunner extends AbstractDbData {
                 scondition.append(Columns.GLOBALSTEP.name());
                 scondition.append(" = ");
                 scondition.append(TASKSTEP.ALLDONETASK.ordinal());
+                scondition.append(" OR ");
+                scondition.append(Columns.UPDATEDINFO.name());
+                scondition.append(" = ");
+                scondition.append(UpdatedInfo.DONE.ordinal());
             }
             scondition.append(" )");
         }
@@ -1062,8 +1074,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @param session
      * @param start
      * @param stop
-     * @return the DbPreparedStatement for getting Selected Object, already
-     *         executed
+     * @return the DbPreparedStatement for getting Selected Object, whatever their status
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
      */
@@ -1113,7 +1124,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * purge in same interval all runners with globallaststep as ALLDONETASK or
-     * ERRORTASK
+     * UpdatedInfo as Done
      *
      * @param session
      * @param start
@@ -1128,7 +1139,7 @@ public class DbTaskRunner extends AbstractDbData {
         DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
         String request = "DELETE FROM " + table + " WHERE (" +
                 Columns.GLOBALLASTSTEP + " = " +TASKSTEP.ALLDONETASK.ordinal() + " OR " +
-                Columns.GLOBALLASTSTEP + " = " +TASKSTEP.ERRORTASK.ordinal() +
+                Columns.UPDATEDINFO + " = " +UpdatedInfo.DONE.ordinal() +
                 ") ";
         try {
             if (start != null & stop != null) {
@@ -1203,13 +1214,19 @@ public class DbTaskRunner extends AbstractDbData {
                 rule == null && req == null && all) {
             orderby = " WHERE (" +
                 Columns.GLOBALLASTSTEP + " = " +TASKSTEP.ALLDONETASK.ordinal() + " OR " +
-                Columns.GLOBALLASTSTEP + " = " +TASKSTEP.ERRORTASK.ordinal() +
+                Columns.UPDATEDINFO + " = " +UpdatedInfo.DONE.ordinal() +
                 ") ";
         } else {
-            orderby = " AND (" +
-                Columns.GLOBALLASTSTEP + " = " +TASKSTEP.ALLDONETASK.ordinal() + " OR " +
-                Columns.GLOBALLASTSTEP + " = " +TASKSTEP.ERRORTASK.ordinal() +
-                ") ";
+            if (all) {
+                orderby = " AND (" +
+                    Columns.GLOBALLASTSTEP + " = " +TASKSTEP.ALLDONETASK.ordinal() + " OR " +
+                    Columns.UPDATEDINFO + " = " +UpdatedInfo.DONE.ordinal() + " OR " +
+                    Columns.UPDATEDINFO + " = " +UpdatedInfo.INERROR.ordinal() +
+                    ") ";
+            } else {
+                orderby = " AND "+
+                    Columns.UPDATEDINFO + " <> " +UpdatedInfo.RUNNING.ordinal();// limit by field
+            }
         }
         int nb = 0;
         try {
@@ -1234,7 +1251,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @param session
      * @throws OpenR66DatabaseNoConnectionError
      */
-    public static void resetToUpdated(DbSession session)
+    public static void resetToSubmit(DbSession session)
             throws OpenR66DatabaseNoConnectionError {
         // Change RUNNING and INTERRUPTED to TOSUBMIT since they should be ready
         String request = "UPDATE " + table + " SET " +
@@ -1313,7 +1330,11 @@ public class DbTaskRunner extends AbstractDbData {
                     break;
                 case TRANSFERTASK:
                     // continue
-                    this.setTransferTask(this.getRank());
+                    int newrank = this.getRank()-10;
+                    if (newrank < 0) {
+                        newrank = 0;
+                    }
+                    this.setTransferTask(newrank);
                     this.setExecutionStatus(ErrorCode.PreProcessingOk);
                     break;
                 case POSTTASK:
@@ -1442,7 +1463,7 @@ public class DbTaskRunner extends AbstractDbData {
      *            the rank to set
      */
     public void setRankAtStartup(int rank) {
-        if (this.rank != rank) {
+        if (this.rank > rank) {
             this.rank = rank;
             allFields[Columns.RANK.ordinal()].setValue(this.rank);
             isSaved = false;
@@ -1663,7 +1684,9 @@ public class DbTaskRunner extends AbstractDbData {
         globallaststep = TASKSTEP.TRANSFERTASK.ordinal();
         allFields[Columns.GLOBALSTEP.ordinal()].setValue(globalstep);
         allFields[Columns.GLOBALLASTSTEP.ordinal()].setValue(globallaststep);
-        this.rank = rank;
+        if (this.rank > rank) {
+            this.rank = rank;
+        }
         allFields[Columns.RANK.ordinal()].setValue(this.rank);
         status = ErrorCode.Running;
         allFields[Columns.STEPSTATUS.ordinal()].setValue(status.getCode());
@@ -1773,7 +1796,10 @@ public class DbTaskRunner extends AbstractDbData {
         int delay = Integer.parseInt(tasks[step][2]);
         AbstractTask task = TaskType.getTaskFromId(name, arg, delay, session);
         task.run();
-        task.getFutureCompletion().awaitUninterruptibly();
+        try {
+            task.getFutureCompletion().await();
+        } catch (InterruptedException e) {
+        }
         return task.getFutureCompletion();
     }
 
@@ -1861,7 +1887,7 @@ public class DbTaskRunner extends AbstractDbData {
                 throw new OpenR66RunnerErrorException("Runner is in error: " +
                         e.getMessage(), e);
             }
-            if (future.isCancelled()) {
+            if ((!future.isDone()) || future.isCancelled()) {
                 infostatus = future.getResult().code;
                 allFields[Columns.STEP.ordinal()].setValue(step);
                 allFields[Columns.INFOSTATUS.ordinal()].setValue(infostatus.getCode());
@@ -1961,7 +1987,6 @@ public class DbTaskRunner extends AbstractDbData {
                 this.setRankAtStartup(0);
                 this.deleteTempFile();
                 this.changeUpdatedInfo(UpdatedInfo.INERROR);
-                //FIXME runner.setPreTask(0);
             } else if (runnerStatus == ErrorCode.StoppedTransfer) {
                 // just save runner and stop
                 this.changeUpdatedInfo(UpdatedInfo.INERROR);
@@ -2010,16 +2035,16 @@ public class DbTaskRunner extends AbstractDbData {
         rank ++;
         allFields[Columns.RANK.ordinal()].setValue(rank);
         isSaved = false;
+        if (!isSender) {
+            // flush partial file
+            session.getFile().flush();
+        }
         if (rank % 10 == 0) {
             // Save each 10 blocks
             try {
                 update();
             } catch (OpenR66DatabaseException e) {
                 logger.warn("Cannot update Runner", e);
-            }
-            if (!isSender) {
-                // flush partial file
-                session.getFile().flush();
             }
         }
     }

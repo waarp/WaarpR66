@@ -136,10 +136,10 @@ public class SubmitTransfer extends AbstractTransfer {
                             "<REMOTE>"+rhost+"</REMOTE>");
         } else {
             if (runner != null) {
-                logger.error("Prepare transfer in\n    ERROR\n     "+runner.toShortString()+
+                logger.error("Prepare transfer in\n    FAILURE\n     "+runner.toShortString()+
                             "<REMOTE>"+rhost+"</REMOTE>", future.getCause());
             } else {
-                logger.error("Prepare transfer in\n    ERROR\n     ", future.getCause());
+                logger.error("Prepare transfer in\n    FAILURE\n     ", future.getCause());
             }
             DbConstant.admin.close();
             ChannelUtils.stopLogger();

@@ -68,7 +68,7 @@ public class ExecTask extends AbstractTask {
          * First apply all replacements and format to argRule from context and
          * argTransfer. Will call exec (from first element of resulting string)
          * with arguments as the following value from the replacements. Return 0
-         * if OK, else 1 for a warning else as an error No change should be done
+         * if OK, else 1 for a warning else as an error. No change should be done
          * in the FILENAME
          */
         logger.info("Exec with " + argRule + ":" + argTransfer + " and {}",

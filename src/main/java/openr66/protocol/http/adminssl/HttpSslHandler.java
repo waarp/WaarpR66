@@ -352,6 +352,12 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 if (stopid.length() == 0) {
                     stopid = null;
                 }
+                if (startid != null && stopid == null) {
+                    stopid = Long.toString(Long.parseLong(startid)+(LIMITROW/2));
+                }
+                if (stopid != null && startid == null) {
+                    startid = Long.toString(Long.parseLong(stopid)-(LIMITROW/2));
+                }
                 String start = params.get("start").get(0);
                 String stop = params.get("stop").get(0);
                 String rule = params.get("rule").get(0).trim();
@@ -451,6 +457,12 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 String stopid = params.get("stopid").get(0).trim();
                 if (stopid.length() == 0) {
                     stopid = null;
+                }
+                if (startid != null && stopid == null) {
+                    stopid = Long.toString(Long.parseLong(startid)+(LIMITROW/2));
+                }
+                if (stopid != null && startid == null) {
+                    startid = Long.toString(Long.parseLong(stopid)-(LIMITROW/2));
                 }
                 String start = params.get("start").get(0);
                 String stop = params.get("stop").get(0);
@@ -761,7 +773,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         if (params == null) {
             String body = readFileHeader(Configuration.configuration.httpBasePath+"Export.html");
             body = resetOptionTransfer(body, "", "", "", "", "", "",
-                    false, false, false, false, true);
+                    false, false, false, true, false);
             return body.replace("XXXRESULTXXX", "");
         }
         String body = readFileHeader(Configuration.configuration.httpBasePath+"Export.html");
@@ -782,6 +794,9 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         done = params.containsKey("done");
         all = params.containsKey("all");
         boolean toPurge = params.containsKey("purge");
+        if (toPurge) {
+            transfer = false;
+        }
         if (pending && transfer && error && done) {
             all = true;
         } else if (!(pending || transfer || error || done)) {
@@ -1829,6 +1844,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         }
         if (shutdown) {
             Thread thread = new Thread(new ChannelUtils());
+            thread.setDaemon(true);
             thread.start();
         }
     }

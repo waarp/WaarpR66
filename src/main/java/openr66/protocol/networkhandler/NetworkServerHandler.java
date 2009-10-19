@@ -145,7 +145,7 @@ public class NetworkServerHandler extends SimpleChannelHandler {
                     NetworkTransaction.createConnectionFromNetworkChannelStartup(
                             e.getChannel(), packet);
             } catch (OpenR66ProtocolSystemException e1) {
-                logger.info("Cannot create LocalChannel: " + packet, e1);
+                logger.warn("Cannot create LocalChannel for: " + packet+" due to "+ e1.getMessage());
                 NetworkTransaction.removeNetworkChannel(e.getChannel(), null);
                 final ConnectionErrorPacket error = new ConnectionErrorPacket(
                         "Cannot connect to localChannel since cannot create it", null);
@@ -238,11 +238,16 @@ public class NetworkServerHandler extends SimpleChannelHandler {
         if (exception != null) {
             if (exception instanceof OpenR66ProtocolBusinessNoWriteBackException) {
                 if (NetworkTransaction.getNbLocalChannel(e.getChannel()) > 0) {
-                    logger.error(
+                    logger.info(
                             "Network Channel Exception: {} {}", e.getChannel().getId(),
                             exception.getMessage());
                 }
                 logger.info("Will close NETWORK channel");
+                try {
+                    Thread.sleep(Configuration.WAITFORNETOP);
+                } catch (InterruptedException e1) {
+                    Thread.currentThread().interrupt();
+                }
                 ChannelUtils.close(e.getChannel());
                 return;
             } else if (exception instanceof OpenR66ProtocolNoConnectionException) {

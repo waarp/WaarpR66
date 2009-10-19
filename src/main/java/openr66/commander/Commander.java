@@ -79,7 +79,7 @@ public class Commander implements Runnable {
             // Clean tasks (CompleteOK and ALLDONE => DONE)
             DbTaskRunner.changeFinishedToDone(DbConstant.admin.session);
             // Change RUNNING or INTERRUPTED to TOSUBMIT since they should be ready
-            DbTaskRunner.resetToUpdated(DbConstant.admin.session);
+            DbTaskRunner.resetToSubmit(DbConstant.admin.session);
             internalRunner = runner;
         } finally {
             if (internalRunner == null) {

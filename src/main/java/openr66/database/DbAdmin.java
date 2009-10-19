@@ -130,7 +130,8 @@ public class DbAdmin {
             classLoaded = true;
         } catch (SQLException e) {
             // SQLException
-            logger.error("Cannot register Driver " + typeDriver.name(), e);
+            logger.error("Cannot register Driver " + typeDriver.name()+ "\n"+e.getMessage());
+            DbSession.error(e);
             throw new OpenR66DatabaseNoConnectionError(
                     "Cannot load database drive:" + typeDriver.name(), e);
         }

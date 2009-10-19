@@ -129,7 +129,13 @@ public class R66File extends FilesystemBasedFileImpl {
                 } catch (FileEndOfTransferException e) {
                     // Wait for last write
                     future.awaitUninterruptibly();
-                    retrieveDone = true;
+                    if (future.isSuccess()) {
+                        retrieveDone = true;
+                    }
+                    return;
+                }
+                future.awaitUninterruptibly();
+                if (future.isCancelled()) {
                     return;
                 }
             }
@@ -140,6 +146,9 @@ public class R66File extends FilesystemBasedFileImpl {
             // Wait for last write
             if (future != null) {
                 future.awaitUninterruptibly();
+                if (future.isCancelled()) {
+                    return;
+                }
             }
             retrieveDone = true;
             return;
@@ -167,6 +176,12 @@ public class R66File extends FilesystemBasedFileImpl {
                             new R66Result(e, getSession(), false,
                                     ErrorCode.Internal));
                 }
+            } else {
+                // An error occurs!
+                getSession().setFinalizeTransfer(
+                        false,
+                        new R66Result(new OpenR66ProtocolSystemException("Transfer in error"),
+                                getSession(), false, ErrorCode.TransferError));
             }
         }
     }

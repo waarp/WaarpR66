@@ -117,14 +117,4 @@ public class ThreadPoolRunnerExecutor extends ThreadPoolExecutor {
         this.setRejectedExecutionHandler(new RunnerRejectedExecutionHandler());
     }
 
-    /* (non-Javadoc)
-     * @see java.util.concurrent.ThreadPoolExecutor#beforeExecute(java.lang.Thread, java.lang.Runnable)
-     */
-    @Override
-    protected void beforeExecute(Thread t, Runnable r) {
-        ClientRunner runner = (ClientRunner) r;
-        runner.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED,
-                ErrorCode.Unknown);
-    }
-
 }

@@ -171,6 +171,7 @@ public class ExecMoveTask extends AbstractTask {
                 thread.join(Configuration.configuration.TIMEOUTCON);
             }
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
         try {
             inputStream.close();
@@ -199,17 +200,6 @@ public class ExecMoveTask extends AbstractTask {
             File file = new File(newname);
             if (! file.exists()) {
                 logger.warn("New file does not exist at the end of the exec: "+newname);
-            }
-            try {
-                if (session.getFile().isFile()) {
-                    // not deleted, so do it now
-                    try {
-                        session.getFile().delete();
-                    } catch (CommandAbstractException e) {
-                        logger.warn("Original File cannot be deleted", e);
-                    }
-                }
-            } catch (CommandAbstractException e) {
             }
             // now replace the file with the new one
             try {

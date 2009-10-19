@@ -388,7 +388,7 @@ public class R66Session implements SessionInterface {
             }
             return;
         }
-        if (runner.isFinished()) {
+        if (runner.isAllDone()) {
             logger.info("Transfer already done but " + status + " on " + file+runner.toShortString(),
                     new OpenR66RunnerErrorException(finalValue.toString()));
             return;

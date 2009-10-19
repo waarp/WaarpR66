@@ -30,7 +30,9 @@ import openr66.database.DbConstant;
 import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
 import openr66.database.exception.OpenR66DatabaseException;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
+import openr66.protocol.exception.OpenR66ProtocolNotYetConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.RequestPacket;
@@ -134,25 +136,39 @@ public class RecvThroughClient extends AbstractTransfer {
             }
             ClientRunner runner = new ClientRunner(networkTransaction, taskRunner, future);
             runner.setRecvThroughHandler(handler);
-            try {
-                runner.runTransfer();
-            } catch (OpenR66RunnerErrorException e) {
-                logger.error("Cannot Transfer", e);
-                future.setResult(new R66Result(e, null, true,
-                        ErrorCode.Internal));
-                future.setFailure(e);
-                return;
-            } catch (OpenR66ProtocolNoConnectionException e) {
-                logger.error("Cannot Connect", e);
-                future.setResult(new R66Result(e, null, true,
+            OpenR66ProtocolNotYetConnectionException exc = null;
+            for (int i = 0; i < Configuration.RETRYNB; i++) {
+                try {
+                    runner.runTransfer();
+                    exc = null;
+                } catch (OpenR66RunnerErrorException e) {
+                    logger.error("Cannot Transfer", e);
+                    future.setResult(new R66Result(e, null, true,
+                            ErrorCode.Internal));
+                    future.setFailure(e);
+                    return;
+                } catch (OpenR66ProtocolNoConnectionException e) {
+                    logger.error("Cannot Connect", e);
+                    future.setResult(new R66Result(e, null, true,
+                            ErrorCode.ConnectionImpossible));
+                    future.setFailure(e);
+                    return;
+                } catch (OpenR66ProtocolPacketException e) {
+                    logger.error("Bad Protocol", e);
+                    future.setResult(new R66Result(e, null, true,
+                            ErrorCode.TransferError));
+                    future.setFailure(e);
+                    return;
+                } catch (OpenR66ProtocolNotYetConnectionException e) {
+                    exc = e;
+                    continue;
+                }
+            }
+            if (exc!= null) {
+                logger.error("Cannot Connect", exc);
+                future.setResult(new R66Result(exc, null, true,
                         ErrorCode.ConnectionImpossible));
-                future.setFailure(e);
-                return;
-            } catch (OpenR66ProtocolPacketException e) {
-                logger.error("Bad Protocol", e);
-                future.setResult(new R66Result(e, null, true,
-                        ErrorCode.TransferError));
-                future.setFailure(e);
+                future.setFailure(exc);
                 return;
             }
         } finally {

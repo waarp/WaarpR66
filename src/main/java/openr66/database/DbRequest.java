@@ -107,7 +107,9 @@ public class DbRequest {
                 rs = stmt.getResultSet();
             }
         } catch (SQLException e) {
-            logger.error("SQL Exception Request:" + select, e);
+            logger.error("SQL Exception Request:" + select+
+                    "\n"+e.getMessage());
+            DbSession.error(e);
             throw new OpenR66DatabaseSqlError(
                     "SQL Exception Request:" + select, e);
         }
@@ -131,7 +133,9 @@ public class DbRequest {
             logger.debug("QUERY(" + rowcount + "): {}", query);
             return rowcount;
         } catch (SQLException e) {
-            logger.error("SQL Exception Request:" + query, e);
+            logger.error("SQL Exception Request:" + query+
+                    "\n"+e.getMessage());
+            DbSession.error(e);
             throw new OpenR66DatabaseSqlError("SQL Exception Request:" + query,
                     e);
         }
@@ -202,7 +206,9 @@ public class DbRequest {
         try {
             return rs.next();
         } catch (SQLException e) {
-            logger.warn("SQL Exception to getNextRow", e);
+            logger.warn("SQL Exception to getNextRow"+
+                    "\n"+e.getMessage());
+            DbSession.error(e);
             throw new OpenR66DatabaseSqlError("SQL Exception to getNextRow", e);
         }
     }

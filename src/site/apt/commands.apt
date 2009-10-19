@@ -168,7 +168,8 @@ OpenR66-Command
     *'-info' option: specifies the optional information that is send at the same time with
     the transfer request (extra information that could be needed by the remote host).
 
-    *'-md5' option: specifies that each block transfer will be checked with a MD5 key.
+    *'-md5' option: specifies that each block transfer will be checked with a MD5 key. If
+    the rule used is already in MD5 mode, this option will change nothing.
 
     *'-block' option: specifies the block size (default is 64 KB).
 

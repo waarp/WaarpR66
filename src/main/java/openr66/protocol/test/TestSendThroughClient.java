@@ -95,7 +95,11 @@ public class TestSendThroughClient extends SendThroughClient {
                     // Wait for last write
                     future.awaitUninterruptibly();
                     retrieveDone = true;
-                    return retrieveDone;
+                    return future.isSuccess();
+                }
+                future.awaitUninterruptibly();
+                if (future.isCancelled()) {
+                    return false;
                 }
             }
             // Last block
@@ -105,25 +109,26 @@ public class TestSendThroughClient extends SendThroughClient {
             // Wait for last write
             if (future != null) {
                 future.awaitUninterruptibly();
+                return future.isSuccess();
             }
             retrieveDone = true;
             return retrieveDone;
         } catch (FileTransferException e) {
             // An error occurs!
             this.transferInError(new OpenR66ProtocolSystemException(e));
-            return retrieveDone;
+            return false;
         } catch (OpenR66ProtocolPacketException e) {
             // An error occurs!
             this.transferInError(e);
-            return retrieveDone;
+            return false;
         } catch (OpenR66RunnerErrorException e) {
             // An error occurs!
             this.transferInError(e);
-            return retrieveDone;
+            return false;
         } catch (OpenR66ProtocolSystemException e) {
             // An error occurs!
             this.transferInError(e);
-            return retrieveDone;
+            return false;
         }
     }
     /**

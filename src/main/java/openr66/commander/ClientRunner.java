@@ -46,6 +46,7 @@ import openr66.database.data.DbTaskRunner.TASKSTEP;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
+import openr66.protocol.exception.OpenR66ProtocolNotYetConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.LocalChannelReference;
@@ -74,15 +75,11 @@ public class ClientRunner implements Runnable {
     private final DbTaskRunner taskRunner;
     private final R66Future futureRequest;
     private RecvThroughHandler handler = null;
-    // FIXME
-    String debug;
 
     public ClientRunner(NetworkTransaction networkTransaction, DbTaskRunner taskRunner,
             R66Future futureRequest) {
         this.networkTransaction = networkTransaction;
         this.taskRunner = taskRunner;
-        // FIXME
-        debug = taskRunner.toShortString();
         this.futureRequest = futureRequest;
     }
 
@@ -103,19 +100,22 @@ public class ClientRunner implements Runnable {
         } catch (OpenR66ProtocolPacketException e) {
             logger.error("Protocol Error", e);
             return;
+        } catch (OpenR66ProtocolNotYetConnectionException e) {
+            logger.info("No connection warning {}", e.getMessage());
+            return;
         }
         R66Result result = transfer.getResult();
         if (result != null) {
             if (result.code == ErrorCode.QueryAlreadyFinished) {
-                logger.info("TRANSFER RESULT:\n    "+(transfer.isSuccess()?"SUCCESS":"ERROR")+"\n    "+
+                logger.info("TRANSFER RESULT:\n    "+(transfer.isSuccess()?"SUCCESS":"FAILURE")+"\n    "+
                         ErrorCode.QueryAlreadyFinished.mesg+":"+
                         (result != null ? result.toString() : "no result"));
             } else {
-                logger.warn("TRANSFER RESULT:\n    "+(transfer.isSuccess()?"SUCCESS":"ERROR")+"\n    "+
+                logger.warn("TRANSFER RESULT:\n    "+(transfer.isSuccess()?"SUCCESS":"FAILURE")+"\n    "+
                         (result != null ? result.toString() : "no result"));
             }
         } else {
-            logger.warn("TRANSFER RESULT:\n    "+(transfer.isSuccess()?"SUCCESS":"ERROR")+"\n    "+
+            logger.warn("TRANSFER RESULT:\n    "+(transfer.isSuccess()?"SUCCESS":"FAILURE")+"\n    "+
                 (result != null ? result.toString() : "no result"));
         }
         transfer = null;
@@ -149,11 +149,16 @@ public class ClientRunner implements Runnable {
      * @throws OpenR66RunnerErrorException
      * @throws OpenR66ProtocolNoConnectionException
      * @throws OpenR66ProtocolPacketException
+     * @throws OpenR66ProtocolNotYetConnectionException
      */
-    public R66Future runTransfer() throws OpenR66RunnerErrorException, OpenR66ProtocolNoConnectionException, OpenR66ProtocolPacketException {
+    public R66Future runTransfer()
+    throws OpenR66RunnerErrorException, OpenR66ProtocolNoConnectionException, OpenR66ProtocolPacketException, OpenR66ProtocolNotYetConnectionException {
         LocalChannelReference localChannelReference = initRequest();
         R66Future transfer = localChannelReference.getFutureRequest();
-        transfer.awaitUninterruptibly();
+        try {
+            transfer.await();
+        } catch (InterruptedException e1) {
+        }
         logger.info("Request done with {}",(transfer.isSuccess()?"success":"error"));
 
         Channels.close(localChannelReference.getLocalChannel());
@@ -167,12 +172,11 @@ public class ClientRunner implements Runnable {
             }
         } else {
             try {
-                // FIXME
                 taskRunner.select();
                 if (transfer.getResult().code == ErrorCode.QueryAlreadyFinished) {
-                    // FIXME check if post task to execute
-                    logger.warn("DEBUG QAF:\n    "+transfer.toString()+"\n    "+
-                            taskRunner.toShortString()+"\n   was "+debug);
+                    // check if post task to execute
+                    logger.warn("WARN QueryAlreadyFinished:\n    "+transfer.toString()+"\n    "+
+                            taskRunner.toShortString());
                     finalizeLocalTask(localChannelReference);
                 } else {
                     switch (taskRunner.getUpdatedInfo()) {
@@ -221,9 +225,10 @@ public class ClientRunner implements Runnable {
      * @throws OpenR66ProtocolNoConnectionException
      * @throws OpenR66RunnerErrorException
      * @throws OpenR66ProtocolPacketException
+     * @throws OpenR66ProtocolNotYetConnectionException
      */
     public LocalChannelReference initRequest()
-        throws OpenR66ProtocolNoConnectionException, OpenR66RunnerErrorException, OpenR66ProtocolPacketException {
+        throws OpenR66ProtocolNoConnectionException, OpenR66RunnerErrorException, OpenR66ProtocolPacketException, OpenR66ProtocolNotYetConnectionException {
         this.changeUpdatedInfo(UpdatedInfo.RUNNING, ErrorCode.Running);
         long id = taskRunner.getSpecialId();
         String tid;
@@ -271,21 +276,22 @@ public class ClientRunner implements Runnable {
             if (incrementTaskRunerTry(taskRunner, Configuration.RETRYNB)) {
                 logger.info("Will retry since Cannot connect to {}", host);
                 retry = " but will retry";
-                //FIXME this.changeUpdatedInfo(UpdatedInfo.RUNNING);
                 // now wait
                 try {
                     Thread.sleep(Configuration.configuration.delayRetry);
                 } catch (InterruptedException e) {
                 }
                 this.changeUpdatedInfo(UpdatedInfo.TOSUBMIT, ErrorCode.ConnectionImpossible);
+                throw new OpenR66ProtocolNotYetConnectionException("Cannot connect to server "+
+                        host.toString()+retry);
             } else {
                 logger.info("Will not retry since limit of connection attemtps is reached for {}",
                         host);
                 retry = " and retries limit is reached so stop here";
                 this.changeUpdatedInfo(UpdatedInfo.INERROR, ErrorCode.ConnectionImpossible);
+                throw new OpenR66ProtocolNoConnectionException("Cannot connect to server "+
+                        host.toString()+retry);
             }
-            throw new OpenR66ProtocolNoConnectionException("Cannot connect to server "+
-                    host.toString()+retry);
         }
         if (handler != null) {
             localChannelReference.setRecvThroughHandler(handler);

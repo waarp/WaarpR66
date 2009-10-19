@@ -101,7 +101,11 @@ public class TestTransaction implements Runnable {
         if (localChannelReference == null) {
             logger.error("Cannot connect: " + lastException.getMessage());
             future.setResult(null);
-            future.setFailure(lastException);
+            if (lastException == null) {
+                future.cancel();
+            } else {
+                future.setFailure(lastException);
+            }
             return;
         } else if (lastException != null) {
             logger.warn("Connection retry since ", lastException);

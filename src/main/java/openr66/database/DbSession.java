@@ -60,6 +60,7 @@ public class DbSession {
         try {
             Thread.sleep(1);
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -220,6 +221,7 @@ public class DbSession {
         try {
             Thread.sleep(Configuration.WAITFORNETOP);
         } catch (InterruptedException e1) {
+            Thread.currentThread().interrupt();
         }
         if (nbThread > 0) {
             logger.info("Still some clients could use this Database Session: "+nbThread);

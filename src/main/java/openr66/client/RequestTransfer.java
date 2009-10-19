@@ -189,7 +189,7 @@ public class RequestTransfer implements Runnable {
         if (cancel || stop || restart) {
             if (cancel) {
                 // Cancel the task and delete any file if in retrieve
-                if (runner.isFinished()) {
+                if (runner.isAllDone()) {
                     // nothing to do since already finished
                     setDone(runner);
                     logger.warn("Transfer already finished: "+runner.toString());
@@ -249,7 +249,7 @@ public class RequestTransfer implements Runnable {
             }
         } else {
             // Only request
-            logger.warn("Transfer information: "+runner.toString());
+            logger.warn("Transfer information: "+runner.toShortString());
             future.setResult(new R66Result(null,true,runner.getErrorInfo()));
             future.setSuccess();
         }
@@ -358,7 +358,7 @@ public class RequestTransfer implements Runnable {
                 logger.warn("SUCCESS\n    " +
                         result.getResult().toString());
             } else {
-                logger.error("ERROR\n    " +
+                logger.error("FAILURE\n    " +
                         result.getResult().toString());
             }
 

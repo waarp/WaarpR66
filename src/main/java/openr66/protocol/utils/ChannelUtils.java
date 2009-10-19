@@ -52,7 +52,7 @@ import ch.qos.logback.classic.LoggerContext;
  * Channel Utils
  * @author Frederic Bregier
  */
-public class ChannelUtils implements Runnable {
+public class ChannelUtils extends Thread {
     /**
      * Internal Logger
      */
@@ -196,6 +196,7 @@ public class ChannelUtils implements Runnable {
         try {
             Thread.sleep(Configuration.WAITFORNETOP);
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
         Channels.close(channel);
     }
@@ -297,6 +298,7 @@ public class ChannelUtils implements Runnable {
         OpenR66SignalHandler.closeAllConnection();
         Configuration.configuration.serverStop();
         System.err.println("Exit end of Shutdown");
+        Thread.currentThread().interrupt();
     }
 
     public static void stopLogger() {
@@ -311,6 +313,6 @@ public class ChannelUtils implements Runnable {
      */
     @Override
     public void run() {
-        OpenR66SignalHandler.terminate(true);
+        OpenR66SignalHandler.terminate(false);
     }
 }

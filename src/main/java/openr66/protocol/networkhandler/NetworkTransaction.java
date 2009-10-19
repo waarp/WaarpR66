@@ -245,7 +245,10 @@ public class NetworkTransaction {
             } else {
                 channelFuture = clientBootstrap.connect(socketServerAddress);
             }
-            channelFuture.awaitUninterruptibly();
+            try {
+                channelFuture.await();
+            } catch (InterruptedException e1) {
+            }
             if (channelFuture.isSuccess()) {
                 final Channel channel = channelFuture.getChannel();
                 if (isSSL) {
@@ -259,6 +262,10 @@ public class NetworkTransaction {
                 networkChannelGroup.add(channel);
                 return putRemoteChannel(channel);
             } else {
+                if (! channelFuture.isDone()) {
+                    throw new OpenR66ProtocolNoConnectionException(
+                            "Cannot connect to remote server due to interruption");
+                }
                 if (channelFuture.getCause() instanceof ConnectException) {
                     logger.info("KO CONNECT:" +
                             channelFuture.getCause().getMessage());
@@ -355,7 +362,6 @@ public class NetworkTransaction {
                     null, true, ErrorCode.ConnectionImpossible);
             logger.warn("Authent is Invalid due to no SSL: {}", e1.getMessage());
             localChannelReference.invalidateRequest(finalValue);
-            //FIXME
             if (localChannelReference.getRemoteId() != ChannelUtils.NOCHANNEL) {
                 ConnectionErrorPacket error = new ConnectionErrorPacket(
                         "Cannot connect to localChannel since no SSL is supported", null);
@@ -378,7 +384,6 @@ public class NetworkTransaction {
                     null, true, ErrorCode.ConnectionImpossible);
             logger.warn("Authent is Invalid due to protocol: {}", e.getMessage());
             localChannelReference.invalidateRequest(finalValue);
-            //FIXME
             if (localChannelReference.getRemoteId() != ChannelUtils.NOCHANNEL) {
                 ConnectionErrorPacket error = new ConnectionErrorPacket(
                         "Cannot connect to localChannel since Authent Protocol is invalid", null);
@@ -400,7 +405,6 @@ public class NetworkTransaction {
                     null, true, ErrorCode.ConnectionImpossible);
             logger.warn("Authent is Invalid due to out of time: {}", finalValue.exception.getMessage());
             localChannelReference.invalidateRequest(finalValue);
-            //FIXME
             if (localChannelReference.getRemoteId() != ChannelUtils.NOCHANNEL) {
                 ConnectionErrorPacket error = new ConnectionErrorPacket(
                         "Cannot connect to localChannel with Out of Time", null);
@@ -446,7 +450,7 @@ public class NetworkTransaction {
         } catch (InterruptedException e) {
         }
         OpenR66SignalHandler.closeAllConnection();
-        logger.warn("Last action before exit");
+        logger.info("Last action before exit");
         ChannelUtils.stopLogger();
     }
     /**
@@ -629,8 +633,6 @@ public class NetworkTransaction {
                     if (channel.isConnected()) {
                         logger.info("Should not be here",
                                 new OpenR66ProtocolSystemException());
-                        //FIXME
-                        //Channels.close(channel);
                     }
                 }
             }

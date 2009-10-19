@@ -82,6 +82,19 @@ public class OpenR66SignalHandler implements SignalHandler {
     }
 
     /**
+     * Print stack trace
+     * @param thread
+     * @param stacks
+     */
+    static private void printStackTrace(Thread thread, StackTraceElement[] stacks) {
+        System.err.print(thread.toString() + " : ");
+        for (int i = 0; i < stacks.length-1; i++) {
+            System.err.print(stacks[i].toString()+" ");
+        }
+        System.err.println(stacks[stacks.length-1].toString());
+    }
+
+    /**
      * Finalize resources attached to handlers
      *
      * @author Frederic Bregier
@@ -113,14 +126,6 @@ public class OpenR66SignalHandler implements SignalHandler {
             this.type = type;
         }
 
-        private void printStackTrace(Thread thread, StackTraceElement[] stacks) {
-            System.err.print(thread.toString() + " : ");
-            for (int i = 0; i < stacks.length-1; i++) {
-                System.err.print(stacks[i].toString()+" ");
-            }
-            System.err.println(stacks[stacks.length-1].toString());
-        }
-
         /*
          * (non-Javadoc)
          *
@@ -137,7 +142,7 @@ public class OpenR66SignalHandler implements SignalHandler {
                         printStackTrace(thread, map.get(thread));
                     }
                     //FIXME ChannelUtils.stopLogger();
-                    System.exit(1);
+                    System.exit(0);
                     break;
                 default:
                     logger.warn("Type unknown in TimerTask");
@@ -149,21 +154,31 @@ public class OpenR66SignalHandler implements SignalHandler {
      * Function to terminate IoSession and Connection.
      */
     private static void terminate() {
-        Timer timer = null;
-        timer = new Timer(true);
-        final R66TimerTask timerTask = new R66TimerTask(R66TimerTask.TIMER_EXIT);
-        timer.schedule(timerTask, Configuration.configuration.TIMEOUTCON * 2);
         if (shutdown) {
             ChannelUtils.exit();
-            // shouldn't be System.exit(2);
+            // FIXME Force exit!
             try {
-                Thread.sleep(Configuration.WAITFORNETOP);
+                Thread.sleep(Configuration.configuration.TIMEOUTCON);
             } catch (InterruptedException e) {
             }
-            System.exit(2);
+            Map<Thread, StackTraceElement[]> map = Thread
+                .getAllStackTraces();
+            for (Thread thread: map.keySet()) {
+                printStackTrace(thread, map.get(thread));
+            }
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+            }
+            Runtime.getRuntime().halt(0);
         } else {
+            Timer timer = null;
+            timer = new Timer(true);
+            final R66TimerTask timerTask = new R66TimerTask(R66TimerTask.TIMER_EXIT);
+            timer.schedule(timerTask, Configuration.configuration.TIMEOUTCON * 3);
             shutdown = true;
             ChannelUtils.exit();
+            System.exit(0);
         }
     }
 
@@ -206,8 +221,9 @@ public class OpenR66SignalHandler implements SignalHandler {
             }
         } catch (final Exception e) {
         }
-        ChannelUtils.stopLogger();
-        System.exit(signal.getNumber());
+        //ChannelUtils.stopLogger();
+        System.err.println("Signal: "+signal.getNumber());
+        System.exit(0);
     }
 
     /**

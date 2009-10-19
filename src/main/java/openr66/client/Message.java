@@ -189,7 +189,7 @@ public class Message implements Runnable {
                 ValidPacket info = (ValidPacket) r66result.other;
                 logger.warn("Test Message\n    SUCCESS\n    "+info.getSheader());
             } else {
-                logger.error("Test Message\n    ERROR\n    " +
+                logger.error("Test Message\n    FAILURE\n    " +
                         result.getResult().toString());
             }
         } finally {
