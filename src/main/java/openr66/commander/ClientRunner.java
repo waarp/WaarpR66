@@ -177,7 +177,7 @@ public class ClientRunner implements Runnable {
                     // check if post task to execute
                     logger.warn("WARN QueryAlreadyFinished:\n    "+transfer.toString()+"\n    "+
                             taskRunner.toShortString());
-                    finalizeLocalTask(localChannelReference);
+                    finalizeLocalTask(taskRunner, localChannelReference);
                 } else {
                     switch (taskRunner.getUpdatedInfo()) {
                         case DONE:
@@ -194,7 +194,14 @@ public class ClientRunner implements Runnable {
         }
         return transfer;
     }
-    private void finalizeLocalTask(LocalChannelReference localChannelReference)
+    /**
+     * Finalize a local task since only Post action has to be done
+     * @param taskRunner
+     * @param localChannelReference
+     * @throws OpenR66RunnerErrorException
+     */
+    public static void finalizeLocalTask(DbTaskRunner taskRunner,
+            LocalChannelReference localChannelReference)
     throws OpenR66RunnerErrorException {
         R66Session session = new R66Session();
         session.setStatus(50);
@@ -205,7 +212,12 @@ public class ClientRunner implements Runnable {
                     new R66Dir(session), taskRunner.getFilename(), false);
         } catch (CommandAbstractException e) {
             logger.warn("Cannot recreate file: {}",taskRunner.getFilename());
-            this.changeUpdatedInfo(UpdatedInfo.INERROR, ErrorCode.Internal);
+            taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);
+            taskRunner.setErrorExecutionStatus(ErrorCode.Internal);
+            try {
+                taskRunner.update();
+            } catch (OpenR66DatabaseException e1) {
+            }
             throw new OpenR66RunnerErrorException("Cannot recreate file", e);
         }
         R66Result finalValue = new R66Result(null, true, ErrorCode.CompleteOk, taskRunner);
@@ -215,7 +227,12 @@ public class ClientRunner implements Runnable {
             taskRunner.finalizeTransfer(localChannelReference, file, finalValue, true);
         } catch (OpenR66ProtocolSystemException e) {
             logger.warn("Cannot validate runner:\n    {}",taskRunner.toShortString());
-            this.changeUpdatedInfo(UpdatedInfo.INERROR, ErrorCode.Internal);
+            taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);
+            taskRunner.setErrorExecutionStatus(ErrorCode.Internal);
+            try {
+                taskRunner.update();
+            } catch (OpenR66DatabaseException e1) {
+            }
             throw new OpenR66RunnerErrorException("Cannot validate runner", e);
         }
     }
@@ -245,7 +262,7 @@ public class ClientRunner implements Runnable {
                 // can finalize locally
                 LocalChannelReference localChannelReference =
                     new LocalChannelReference();
-                this.finalizeLocalTask(localChannelReference);
+                finalizeLocalTask(taskRunner, localChannelReference);
                 logger.warn("Finalize as Restart:\n    "+taskRunner.toShortString());
                 throw new OpenR66ProtocolNoConnectionException("Finalize as restart");
             }

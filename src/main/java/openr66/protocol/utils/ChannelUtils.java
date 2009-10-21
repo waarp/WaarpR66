@@ -278,7 +278,24 @@ public class ChannelUtils extends Thread {
     throws OpenR66ProtocolPacketException {
         return Channels.write(localChannelReference.getLocalChannel(), packet);
     }
-
+    /**
+     * Stop all selected transfers
+     * @param dbSession
+     * @param limit
+     * @param builder
+     * @param session
+     * @param body
+     * @param startid
+     * @param stopid
+     * @param tstart
+     * @param tstop
+     * @param rule
+     * @param req
+     * @param pending
+     * @param transfer
+     * @param error
+     * @return
+     */
     public static StringBuilder StopAllTransfer(DbSession dbSession, int limit,
             StringBuilder builder, R66Session session, String body,
             String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,

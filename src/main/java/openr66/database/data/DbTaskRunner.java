@@ -1320,7 +1320,7 @@ public class DbTaskRunner extends AbstractDbData {
     /**
      * Reset the runner (ready to be run again)
      *
-     * @return True if OK
+     * @return True if OK, False if already finished
      */
     public boolean reset() {
         // Reset the status if already stopped and not finished
@@ -1356,7 +1356,8 @@ public class DbTaskRunner extends AbstractDbData {
     /**
      * Make this Runner ready for restart
      * @param submit True to resubmit this task, else False to keep it as running (only reset)
-     * @return True if OK
+     * @return True if OK or False if Already finished or if submitted and the request is
+     *          a selfRequested and is not ready to restart locally
      * @throws OpenR66RunnerErrorException
      */
     public boolean restart(boolean submit) throws OpenR66RunnerErrorException {
@@ -1425,7 +1426,7 @@ public class DbTaskRunner extends AbstractDbData {
                 logger.warn("StopOrCancel: {}\n    {}",code.mesg,this.toShortString());
                 return true;
             } else {
-                // none found
+                // is finished so do nothing
             }
         } catch (OpenR66DatabaseException e) {
         }
@@ -1951,7 +1952,9 @@ public class DbTaskRunner extends AbstractDbData {
                                 result.file = file;
                                 result.runner = this;
                             }
-                            localChannelReference.invalidateRequest(result);
+                            if (localChannelReference != null) {
+                                localChannelReference.invalidateRequest(result);
+                            }
                             throw e;
                         } catch (CommandAbstractException e) {
                             R66Result result = finalValue;
@@ -1962,7 +1965,9 @@ public class DbTaskRunner extends AbstractDbData {
                                 result.file = file;
                                 result.runner = this;
                             }
-                            localChannelReference.invalidateRequest(result);
+                            if (localChannelReference != null) {
+                                localChannelReference.invalidateRequest(result);
+                            }
                             throw (OpenR66RunnerErrorException) result.exception;
                         }
                         logger.debug("File finally moved: {}", file);
@@ -1985,14 +1990,18 @@ public class DbTaskRunner extends AbstractDbData {
                     result.file = file;
                     result.runner = this;
                 }
-                localChannelReference.invalidateRequest(result);
+                if (localChannelReference != null) {
+                    localChannelReference.invalidateRequest(result);
+                }
                 throw e1;
             }
             this.saveStatus();
             this.setAllDone();
             this.saveStatus();
             logger.info("Transfer done on {} at RANK {}",file != null ? file : "no file", rank);
-            localChannelReference.validateEndTransfer(finalValue);
+            if (localChannelReference != null) {
+                localChannelReference.validateEndTransfer(finalValue);
+            }
         } else {
             if (!continueTransfer) {
                 // already setup
@@ -2028,7 +2037,9 @@ public class DbTaskRunner extends AbstractDbData {
                         this.changeUpdatedInfo(UpdatedInfo.INERROR);
                         this.setErrorExecutionStatus(runnerStatus);
                         this.saveStatus();
-                        localChannelReference.invalidateRequest(finalValue);
+                        if (localChannelReference != null) {
+                            localChannelReference.invalidateRequest(finalValue);
+                        }
                         throw e1;
                     }
                 }
@@ -2043,14 +2054,18 @@ public class DbTaskRunner extends AbstractDbData {
                     }
                     this.setErrorExecutionStatus(runnerStatus);
                     this.saveStatus();
-                    localChannelReference.invalidateRequest(finalValue);
+                    if (localChannelReference != null) {
+                        localChannelReference.invalidateRequest(finalValue);
+                    }
                     return;
                 }
             }
             // re set the original status
             this.setErrorExecutionStatus(runnerStatus);
             this.saveStatus();
-            localChannelReference.invalidateRequest(finalValue);
+            if (localChannelReference != null) {
+                localChannelReference.invalidateRequest(finalValue);
+            }
         }
     }
 

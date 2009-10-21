@@ -122,12 +122,17 @@ public class LocalServerHandler extends SimpleChannelHandler {
                             session.getRunner().toShortString() : "no runner"));
         // FIXME clean session objects like files
         DbTaskRunner runner = session.getRunner();
-        R66Result finalValue = new R66Result(
-                new OpenR66ProtocolSystemException("Finalize too early at close time"),
-                session, true, ErrorCode.FinalOp, runner); // True since closed
-        try {
-            tryFinalizeRequest(finalValue);
-        } catch (OpenR66Exception e2) {
+        if (localChannelReference != null &&
+                localChannelReference.getFutureRequest().isDone()) {
+            // already done
+        } else {
+            R66Result finalValue = new R66Result(
+                    new OpenR66ProtocolSystemException("Finalize too early at close time"),
+                    session, true, ErrorCode.FinalOp, runner); // True since closed
+            try {
+                tryFinalizeRequest(finalValue);
+            } catch (OpenR66Exception e2) {
+            }
         }
         if (runner != null) {
             if (runner.isSelfRequested()) {
@@ -589,8 +594,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
     private void error(Channel channel, ErrorPacket packet)
             throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException, OpenR66ProtocolBusinessException {
         // do something according to the error
-        if (session.getLocalChannelReference().getFutureRequest().isCancelled()) {
-            // already cancelled
+        if (session.getLocalChannelReference().getFutureRequest().isDone()) {
+            // already canceled or successful
             return;
         }
         logger.error(channel.getId() + ": " + packet.toString());

@@ -42,6 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.net.ssl.SSLException;
 
 import openr66.client.RequestTransfer;
+import openr66.commander.ClientRunner;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
@@ -53,7 +54,6 @@ import openr66.database.DbSession;
 import openr66.database.data.DbHostAuth;
 import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
-import openr66.database.data.AbstractDbData.UpdatedInfo;
 import openr66.database.data.DbTaskRunner.TASKSTEP;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
@@ -445,6 +445,80 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         String end = readFile(Configuration.configuration.httpBasePath+"Listing_end.html");
         return head+body0+body+body1+end;
     }
+    /**
+     * Try to restart one Task
+     * @param taskRunner
+     * @return
+     * @throws OpenR66DatabaseException
+     */
+    private R66Result restart(DbTaskRunner taskRunner, LocalChannelReference lcr) throws OpenR66DatabaseException {
+        R66Result finalResult = new R66Result(null, true, ErrorCode.InitOk, taskRunner);
+        if (lcr != null) {
+            finalResult.code = ErrorCode.QueryStillRunning;
+            finalResult.other = "Transfer is still running so not restartable";
+        } else {
+            // Transfer is not running
+            // but maybe need action on database
+            try {
+                if (taskRunner.restart(true)) {
+                    finalResult.code = ErrorCode.PreProcessingOk;
+                    finalResult.other = "Transfer is restarted";
+                } else {
+                    if (taskRunner.isSelfRequested() &&
+                            (taskRunner.getGloballaststep() < TASKSTEP.POSTTASK.ordinal())) {
+                        // FIXME could send a VALID packet with VALID code to the requester
+                        R66Future result = new R66Future(true);
+                        RequestTransfer requestTransfer =
+                            new RequestTransfer(result, taskRunner.getSpecialId(),
+                                    taskRunner.getRequested(), taskRunner.getRequester(),
+                                    false, false, true,
+                                    Configuration.configuration.getInternalRunner().
+                                        getNetworkTransaction());
+                        requestTransfer.run();
+                        result.awaitUninterruptibly();
+                        R66Result finalValue = result.getResult();
+                        switch (finalValue.code) {
+                            case Running:
+                                finalResult.code = ErrorCode.Running;
+                                finalResult.other = "Transfer restart requested but already running";
+                                break;
+                            case PreProcessingOk:
+                                finalResult.code = ErrorCode.PreProcessingOk;
+                                finalResult.other = "Transfer restart requested and restarted";
+                                break;
+                            case CompleteOk:
+                                finalResult.code = ErrorCode.CompleteOk;
+                                finalResult.other = "Transfer restart requested but already finished so try to run Post Action";
+                                taskRunner.setPostTask();
+                                ClientRunner.finalizeLocalTask(taskRunner, lcr);
+                                taskRunner.setErrorExecutionStatus(ErrorCode.QueryAlreadyFinished);
+                                taskRunner.update();
+                                break;
+                            case RemoteError:
+                                finalResult.code = ErrorCode.RemoteError;
+                                finalResult.other = "Transfer restart requested but remote error";
+                                break;
+                            default:
+                                finalResult.code = ErrorCode.Internal;
+                            finalResult.other = "Transfer restart requested but internal error";
+                                break;
+                        }
+                    } else {
+                        finalResult.code = ErrorCode.CompleteOk;
+                        finalResult.other = "Transfer is finished so not restartable";
+                        taskRunner.setPostTask();
+                        ClientRunner.finalizeLocalTask(taskRunner, lcr);
+                        taskRunner.setErrorExecutionStatus(ErrorCode.QueryAlreadyFinished);
+                        taskRunner.update();
+                    }
+                }
+            } catch (OpenR66RunnerErrorException e) {
+                finalResult.code = ErrorCode.PreProcessingOk;
+                finalResult.other = "Transfer is restarted";
+            }
+        }
+        return finalResult;
+    }
     private String CancelRestart() {
         getParams();
         if (params == null) {
@@ -605,36 +679,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                             LocalChannelReference lcr =
                                 Configuration.configuration.getLocalTransaction().
                                 getFromRequest(taskRunner.getKey());
-                            ErrorCode result;
-
-                            if (lcr != null) {
-                                result = ErrorCode.TransferError;
-                                //comment = "Transfer is still running so not restartable";
-                            } else {
-                                // Transfer is not running
-                                // but maybe need action on database
-                                try {
-                                    if (taskRunner.restart(true)) {
-                                        result = ErrorCode.Running;
-                                        //comment = "Transfer is restarted";
-                                    } else {
-                                        if (taskRunner.isSelfRequested() &&
-                                                (taskRunner.getGloballaststep() < TASKSTEP.POSTTASK.ordinal())) {
-                                            // FIXME could send a VALID packet with VALID code to the requester
-                                            // but would be too long
-                                            result = ErrorCode.RemoteError;
-                                        } else {
-                                            taskRunner.changeUpdatedInfo(UpdatedInfo.DONE);
-                                            taskRunner.setErrorExecutionStatus(ErrorCode.QueryAlreadyFinished);
-                                            taskRunner.update();
-                                            result = ErrorCode.CompleteOk;
-                                        }
-                                        //comment = "Transfer is finished so not restartable";
-                                    }
-                                } catch (OpenR66RunnerErrorException e) {
-                                    result = ErrorCode.Running;
-                                }
-                            }
+                            R66Result finalResult = restart(taskRunner, lcr);
+                            ErrorCode result = finalResult.code;
                             ErrorCode last = taskRunner.getErrorInfo();
                             taskRunner.setErrorExecutionStatus(result);
                             builder.append(taskRunner.toSpecializedHtml(authentHttp, body,
@@ -731,64 +777,13 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 DbTaskRunner taskRunner;
                 String comment;
                 try {
-                    LocalChannelReference lcr =
-                        Configuration.configuration.getLocalTransaction().
-                        getFromRequest(reqd+" "+reqr+" "+lspecid);
                     taskRunner = new DbTaskRunner(dbSession, authentHttp, null,
                             lspecid, reqr, reqd);
-                    if (lcr != null) {
-                        comment = "Transfer is still running so not restartable";
-                    } else {
-                        // Transfer is not running
-                        // but maybe need action on database
-                        try {
-                            if (taskRunner.restart(true)) {
-                                comment = "Transfer is restarted";
-                            } else {
-                                if (taskRunner.isSelfRequested() &&
-                                        (taskRunner.getGloballaststep() < TASKSTEP.POSTTASK.ordinal())) {
-                                    // FIXME could send a VALID packet with VALID code to the requester
-                                    R66Future result = new R66Future(true);
-                                    RequestTransfer requestTransfer =
-                                        new RequestTransfer(result, taskRunner.getSpecialId(),
-                                                taskRunner.getRequested(), taskRunner.getRequester(),
-                                                false, false, true,
-                                                Configuration.configuration.getInternalRunner().
-                                                    getNetworkTransaction());
-                                    requestTransfer.run();
-                                    result.awaitUninterruptibly();
-                                    R66Result finalValue = result.getResult();
-                                    switch (finalValue.code) {
-                                        case Running:
-                                            comment = "Transfer restart requested but already running";
-                                            break;
-                                        case PreProcessingOk:
-                                            comment = "Transfer restart requested and restarted";
-                                            break;
-                                        case CompleteOk:
-                                            comment = "Transfer restart requested but already finished";
-                                            taskRunner.changeUpdatedInfo(UpdatedInfo.DONE);
-                                            taskRunner.setErrorExecutionStatus(ErrorCode.QueryAlreadyFinished);
-                                            taskRunner.update();
-                                            break;
-                                        case RemoteError:
-                                            comment = "Transfer restart requested but remote error";
-                                            break;
-                                        default:
-                                            comment = "Transfer restart requested but internal error";
-                                            break;
-                                    }
-                                } else {
-                                    comment = "Transfer is finished so not restartable";
-                                    taskRunner.changeUpdatedInfo(UpdatedInfo.DONE);
-                                    taskRunner.setErrorExecutionStatus(ErrorCode.QueryAlreadyFinished);
-                                    taskRunner.update();
-                                }
-                            }
-                        } catch (OpenR66RunnerErrorException e) {
-                            comment = "Transfer is restarted";
-                        }
-                    }
+                    LocalChannelReference lcr =
+                        Configuration.configuration.getLocalTransaction().
+                        getFromRequest(taskRunner.getKey());
+                    R66Result finalResult = restart(taskRunner, lcr);
+                    comment = (String) finalResult.other;
                     body = readFile(Configuration.configuration.httpBasePath+"CancelRestart_body.html");
                     body = taskRunner.toSpecializedHtml(authentHttp, body,
                             lcr != null ? "Active" : "NotActive");
