@@ -792,10 +792,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
                             session, rule, packet.getSpecialId(),
                             requester, requested);
                     try {
-                        // FIXME
-                        /*if (runner.isInError() && runner.restart(false)) {
-                            // ok
-                        }*/
                         runner.restart(false);
                     } catch (OpenR66RunnerErrorException e) {
                     }

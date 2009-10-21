@@ -137,7 +137,6 @@ public class R66Session implements SessionInterface {
             runner.clear();
         }
         // No clean of file since it can be used after channel is closed
-        // FIXME see if something else has to be done
         isReady = false;
     }
 
@@ -459,7 +458,7 @@ public class R66Session implements SessionInterface {
             localChannelReference.invalidateRequest(errorValue);
             return;
         }
-        // FIXME do the real end
+        // do the real end
         if (runner.getStatus() == ErrorCode.CompleteOk) {
             //status = true;
             runner.setAllDone();

@@ -313,12 +313,6 @@ public class ClientRunner implements Runnable {
         if (handler != null) {
             localChannelReference.setRecvThroughHandler(handler);
         }
-        // check if already transfered!!
-        // FIXME
-        /*if (taskRunner.getGloballaststep() == DbTaskRunner.TASKSTEP.POSTTASK.ordinal()) {
-            finalizeLocalTask(localChannelReference);
-            return localChannelReference;
-        }*/
         RequestPacket request = taskRunner.getRequest();
         logger.debug("Will send request {} ",request);
         try {

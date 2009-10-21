@@ -466,7 +466,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 } else {
                     if (taskRunner.isSelfRequested() &&
                             (taskRunner.getGloballaststep() < TASKSTEP.POSTTASK.ordinal())) {
-                        // FIXME could send a VALID packet with VALID code to the requester
+                        // send a VALID packet with VALID code to the requester
                         R66Future result = new R66Future(true);
                         RequestTransfer requestTransfer =
                             new RequestTransfer(result, taskRunner.getSpecialId(),
