@@ -41,11 +41,11 @@ Benchmarks
   used memory was less than 200 Mbytes, the CPU was always less than 4 CPU by JVM (server or client).
   The tested file has a size of 1,12 Mbytes.
 
-  - 100 synchronous clients using one multiplexing network connection: 32 transmissions by second
+  * 100 synchronous clients using one multiplexing network connection: 32 transmissions by second
   or 286 Mbits (with or without MD5)
 
-  - 1000 asynchronous transfers (submitted work) using one multiplexing network connection:
+  * 1000 asynchronous transfers (submitted work) using one multiplexing network connection:
   59 transmissions by second or 527 Mbits
 
-  - 1000 synchronous clients using 10 multiplexing network connection (100 synchronous clients
+  * 1000 synchronous clients using 10 multiplexing network connection (100 synchronous clients
   by network client): 70 transmissions by second or 627 Mbits

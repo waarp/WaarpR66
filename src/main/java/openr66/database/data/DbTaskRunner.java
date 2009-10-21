@@ -944,6 +944,10 @@ public class DbTaskRunner extends AbstractDbData {
                 scondition.append(Columns.UPDATEDINFO.name());
                 scondition.append(" = ");
                 scondition.append(UpdatedInfo.INERROR.ordinal());
+                scondition.append(" OR ");
+                scondition.append(Columns.UPDATEDINFO.name());
+                scondition.append(" = ");
+                scondition.append(UpdatedInfo.INTERRUPTED.ordinal());
                 hasone = true;
             }
             if (done) {
