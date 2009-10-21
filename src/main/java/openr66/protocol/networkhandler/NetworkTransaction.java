@@ -525,8 +525,8 @@ public class NetworkTransaction {
     }
     /**
      * Force remove of NetworkChannel when it is closed
-     * @param channel
-     * @return the number of still connected Local Channels
+     * @param networkChannel
+     * @param localChannel
      * @throws OpenR66ProtocolRemoteShutdownException
      */
     public static void addLocalChannelToNetworkChannel(Channel networkChannel,

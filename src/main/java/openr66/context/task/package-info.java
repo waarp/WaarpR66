@@ -39,7 +39,7 @@
  * <li>#TRUEFULLPATH# : Current full path of current FILENAME</li>
  * <li>#TRUEFILENAME# : Current FILENAME (basename) (change in retrieval part)</li>
  * <li>#ORIGINALFILENAME# : Original FILENAME (basename) (before changing in retrieval part)</li>
- * <li>FILESIZE# : File size if it exists</li>
+ * <li>#FILESIZE# : File size if it exists</li>
  * <li>#RULE# : Rule used during transfer</li>
  * <li>#DATE# : Current Date in yyyyMMdd format</li>
  * <li>#HOUR# : Current Hour in HHmmss format</li>

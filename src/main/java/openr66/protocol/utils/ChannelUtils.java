@@ -294,7 +294,7 @@ public class ChannelUtils extends Thread {
      * @param pending
      * @param transfer
      * @param error
-     * @return
+     * @return the associated StringBuilder if the one given as parameter is not null
      */
     public static StringBuilder StopAllTransfer(DbSession dbSession, int limit,
             StringBuilder builder, R66Session session, String body,

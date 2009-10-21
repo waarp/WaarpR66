@@ -1407,9 +1407,6 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Stop or Cancel a Runner from database point of view
-     * @param id
-     * @param reqd
-     * @param reqr
      * @param code
      * @return True if correctly stopped or canceled
      */
@@ -1714,8 +1711,8 @@ public class DbTaskRunner extends AbstractDbData {
     /**
      * Set the status of the transfer
      *
-     * @param status
-     *            True if success
+     * @param code
+     *            TransferOk if success
      * @return the current rank of transfer
      */
     public int finishTransferTask(ErrorCode code) {

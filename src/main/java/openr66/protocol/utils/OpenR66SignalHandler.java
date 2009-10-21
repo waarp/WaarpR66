@@ -77,7 +77,7 @@ public class OpenR66SignalHandler implements SignalHandler {
      * This function is the top function to be called when the process is to be
      * shutdown.
      *
-     * @param immediate
+     * @param immediateSet
      */
     public static void terminate(boolean immediateSet) {
         if (immediateSet) {
@@ -243,7 +243,7 @@ public class OpenR66SignalHandler implements SignalHandler {
     /**
      * Remove a Connection from the list
      *
-     * @param conn
+     * @param id Id of the connection
      */
     public static void removeConnection(long id) {
         listConnection.remove(Long.valueOf(id));

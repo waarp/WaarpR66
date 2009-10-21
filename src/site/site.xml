@@ -11,10 +11,11 @@
     	<item name="GoldenGate" href="http://openr66.free.fr/"/>
     </links>
   	<menu name="GoldenGate OpenR66">
-  		<item name="Overview of GoldenGate OpenR66" href="index.html"/>
-  		<item name="Configuration of GoldenGate OpenR66 Server and Clients" href="configuration.html"/>
-  		<item name="Commands for GoldenGate OpenR66 Server and Clients" href="commands.html"/>
-  		<item name="Main page of GoldenGate OpenR66" href="../OpenR66.html"/>
+  		<item name="Overview of OpenR66" href="index.html"/>
+  		<item name="Configuration of OpenR66 Server and Clients" href="configuration.html"/>
+  		<item name="Commands for OpenR66 Server and Clients" href="commands.html"/>
+  		<item name="Protocol for OpenR66 File Transfer" href="protocol.html"/>
+  		<item name="Main page of OpenR66" href="../OpenR66.html"/>
   		<item name="GoldenGate Main Project" href="../"/>
   	</menu>
     <menu ref="reports"/>
