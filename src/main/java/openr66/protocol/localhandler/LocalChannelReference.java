@@ -257,14 +257,14 @@ public class LocalChannelReference {
                     .await(Configuration.configuration.TIMEOUTCON)) {
                 R66Result result = new R66Result(
                         new OpenR66ProtocolNoConnectionException("Out of time"),
-                        session, false, ErrorCode.ConnectionImpossible);
+                        session, false, ErrorCode.ConnectionImpossible, null);
                 validateConnection(false, result);
                 return futureConnection;
             }
         } catch (InterruptedException e) {
             R66Result result = new R66Result(
                     new OpenR66ProtocolNoConnectionException("Interrupted connection"),
-                    session, false, ErrorCode.ConnectionImpossible);
+                    session, false, ErrorCode.ConnectionImpossible, null);
             validateConnection(false, result);
             return futureConnection;
         }
@@ -380,17 +380,6 @@ public class LocalChannelReference {
             if (!futureRequest.getResult().isAnswered) {
                 futureRequest.getResult().isAnswered = finalValue.isAnswered;
             }
-        }
-    }
-    /**
-     * Set the result as the status of EndOfTransfer if successful, or set as finalValue
-     * @param finalValue
-     */
-    public void mixedValidateRequest(R66Result finalValue) {
-        if (getFutureEndTransfer().isSuccess()) {
-            validateRequest(getFutureEndTransfer().getResult());
-        } else {
-            invalidateRequest(finalValue);
         }
     }
     @Override

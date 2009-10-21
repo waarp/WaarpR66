@@ -146,7 +146,7 @@ public class SendThroughClient extends AbstractTransfer {
         } catch (OpenR66DatabaseException e) {
             logger.error("Cannot get Rule: "+rulename, e);
             future.setResult(new R66Result(e, null, true,
-                    ErrorCode.Internal));
+                    ErrorCode.Internal,null));
             future.setFailure(e);
             return false;
         }
@@ -166,7 +166,7 @@ public class SendThroughClient extends AbstractTransfer {
             } catch (OpenR66DatabaseException e) {
                 logger.error("Cannot get task", e);
                 future.setResult(new R66Result(e, null, true,
-                        ErrorCode.Internal));
+                        ErrorCode.Internal, null));
                 future.setFailure(e);
                 return false;
             }
@@ -179,19 +179,19 @@ public class SendThroughClient extends AbstractTransfer {
                 } catch (OpenR66RunnerErrorException e) {
                     logger.error("Cannot Transfer", e);
                     future.setResult(new R66Result(e, null, true,
-                            ErrorCode.Internal));
+                            ErrorCode.Internal, taskRunner));
                     future.setFailure(e);
                     return false;
                 } catch (OpenR66ProtocolNoConnectionException e) {
                     logger.error("Cannot Connect", e);
                     future.setResult(new R66Result(e, null, true,
-                            ErrorCode.ConnectionImpossible));
+                            ErrorCode.ConnectionImpossible, taskRunner));
                     future.setFailure(e);
                     return false;
                 } catch (OpenR66ProtocolPacketException e) {
                     logger.error("Bad Protocol", e);
                     future.setResult(new R66Result(e, null, true,
-                            ErrorCode.TransferError));
+                            ErrorCode.TransferError, taskRunner));
                     future.setFailure(e);
                     return false;
                 } catch (OpenR66ProtocolNotYetConnectionException e) {
@@ -202,7 +202,7 @@ public class SendThroughClient extends AbstractTransfer {
             if (exc!= null) {
                 logger.error("Cannot Connect", exc);
                 future.setResult(new R66Result(exc, null, true,
-                        ErrorCode.ConnectionImpossible));
+                        ErrorCode.ConnectionImpossible, taskRunner));
                 future.setFailure(exc);
                 return false;
             }
@@ -211,7 +211,7 @@ public class SendThroughClient extends AbstractTransfer {
             } catch (OpenR66Exception e) {
                 logger.error("Cannot Transfer", e);
                 future.setResult(new R66Result(e, null, true,
-                        ErrorCode.Internal));
+                        ErrorCode.Internal, taskRunner));
                 future.setFailure(e);
                 return false;
             }
@@ -241,7 +241,7 @@ public class SendThroughClient extends AbstractTransfer {
                     localChannelReference.getSession().setFinalizeTransfer(
                             false,
                             new R66Result(e, localChannelReference.getSession(), false,
-                                    ErrorCode.Internal));
+                                    ErrorCode.Internal, taskRunner));
                 } catch (OpenR66RunnerErrorException e1) {
                     transferInError(e1);
                     return;
@@ -292,7 +292,7 @@ public class SendThroughClient extends AbstractTransfer {
     public void transferInError(OpenR66Exception e) {
         if (!localChannelReference.getFutureEndTransfer().getResult().isAnswered) {
             R66Result result = new R66Result(e, localChannelReference.getSession(), true,
-                    ErrorCode.TransferError);
+                    ErrorCode.TransferError, taskRunner);
             localChannelReference.invalidateRequest(result);
             logger.error("Transfer in error", e);
             ErrorPacket error = new ErrorPacket("Transfer in error",

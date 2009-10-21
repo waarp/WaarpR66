@@ -41,15 +41,20 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.net.ssl.SSLException;
 
+import openr66.client.RequestTransfer;
 import openr66.context.ErrorCode;
+import openr66.context.R66Result;
 import openr66.context.R66Session;
 import openr66.context.filesystem.R66Dir;
+import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.DbConstant;
 import openr66.database.DbPreparedStatement;
 import openr66.database.DbSession;
 import openr66.database.data.DbHostAuth;
 import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
+import openr66.database.data.AbstractDbData.UpdatedInfo;
+import openr66.database.data.DbTaskRunner.TASKSTEP;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
@@ -558,7 +563,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 }
                 boolean pending, transfer, error, done, all;
                 pending = params.containsKey("pending");
-                transfer = false;
+                transfer = params.containsKey("transfer");
                 error = params.containsKey("error");
                 done = false;
                 all = false;
@@ -580,78 +585,74 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                         rule == null ? "":rule, req == null ? "":req,
                         pending, transfer, error, done, all);
                 body = readFile(Configuration.configuration.httpBasePath+"CancelRestart_body.html");
-                DbPreparedStatement preparedStatement = null;
-                try {
-                    preparedStatement =
-                        DbTaskRunner.getFilterPrepareStament(dbSession, LIMITROW, false,
-                                startid, stopid, tstart, tstop, rule, req,
-                                pending, transfer, error, done, all);
-                    preparedStatement.executeQuery();
-                    StringBuilder builder = new StringBuilder();
-                    int i = 0;
-                    while (preparedStatement.getNext()) {
-                        i++;
-                        DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatement);
-                        LocalChannelReference lcr =
-                            Configuration.configuration.getLocalTransaction().
-                            getFromRequest(taskRunner.getKey());
-                        ErrorCode result;
-                        if (stopcommand) {
-                            ErrorCode code = ErrorCode.StoppedTransfer;
-                            if (lcr != null) {
-                                int rank = taskRunner.getRank();
-                                ErrorPacket perror = new ErrorPacket("Transfer "+parm+" "+rank,
-                                        code.getCode(), ErrorPacket.FORWARDCLOSECODE);
-                                try {
-                                    //XXX ChannelUtils.writeAbstractLocalPacket(lcr, perror);
-                                    // inform local instead of remote
-                                    ChannelUtils.writeAbstractLocalPacketToLocal(lcr, perror);
-                                } catch (Exception e) {
-                                }
-                                result = ErrorCode.StoppedTransfer;
-                            } else {
-                                // Transfer is not running
-                                // But is the database saying the contrary
-                                result = ErrorCode.TransferError;
-                                if (taskRunner != null) {
-                                    if (taskRunner.stopOrCancelRunner(code)) {
-                                        result = ErrorCode.StoppedTransfer;
-                                    }
-                                }
-                            }
-                        } else {// Restart
+                StringBuilder builder = new StringBuilder();
+                if (stopcommand) {
+                    builder = ChannelUtils.StopAllTransfer(dbSession, LIMITROW, builder,
+                            authentHttp, body, startid, stopid, tstart, tstop, rule, req,
+                            pending, transfer, error);
+                } else {
+                    DbPreparedStatement preparedStatement = null;
+                    try {
+                        preparedStatement =
+                            DbTaskRunner.getFilterPrepareStament(dbSession, LIMITROW, false,
+                                    startid, stopid, tstart, tstop, rule, req,
+                                    pending, transfer, error, done, all);
+                        preparedStatement.executeQuery();
+                        int i = 0;
+                        while (preparedStatement.getNext()) {
+                            i++;
+                            DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatement);
+                            LocalChannelReference lcr =
+                                Configuration.configuration.getLocalTransaction().
+                                getFromRequest(taskRunner.getKey());
+                            ErrorCode result;
+
                             if (lcr != null) {
                                 result = ErrorCode.TransferError;
                                 //comment = "Transfer is still running so not restartable";
                             } else {
                                 // Transfer is not running
                                 // but maybe need action on database
-                                if (taskRunner.restart(true)) {
+                                try {
+                                    if (taskRunner.restart(true)) {
+                                        result = ErrorCode.Running;
+                                        //comment = "Transfer is restarted";
+                                    } else {
+                                        if (taskRunner.isSelfRequested() &&
+                                                (taskRunner.getGloballaststep() < TASKSTEP.POSTTASK.ordinal())) {
+                                            // FIXME could send a VALID packet with VALID code to the requester
+                                            // but would be too long
+                                            result = ErrorCode.RemoteError;
+                                        } else {
+                                            taskRunner.changeUpdatedInfo(UpdatedInfo.DONE);
+                                            taskRunner.setErrorExecutionStatus(ErrorCode.QueryAlreadyFinished);
+                                            taskRunner.update();
+                                            result = ErrorCode.CompleteOk;
+                                        }
+                                        //comment = "Transfer is finished so not restartable";
+                                    }
+                                } catch (OpenR66RunnerErrorException e) {
                                     result = ErrorCode.Running;
-                                    //comment = "Transfer is restarted";
-                                } else {
-                                    result = ErrorCode.CompleteOk;
-                                    //comment = "Transfer is finished so not restartable";
                                 }
                             }
+                            ErrorCode last = taskRunner.getErrorInfo();
+                            taskRunner.setErrorExecutionStatus(result);
+                            builder.append(taskRunner.toSpecializedHtml(authentHttp, body,
+                                    lcr != null ? "Active" : "NotActive"));
+                            taskRunner.setErrorExecutionStatus(last);
+                            if (i > LIMITROW) {
+                                break;
+                            }
                         }
-                        ErrorCode last = taskRunner.getErrorInfo();
-                        taskRunner.setErrorExecutionStatus(result);
-                        builder.append(taskRunner.toSpecializedHtml(authentHttp, body,
-                                lcr != null ? "Active" : "NotActive"));
-                        taskRunner.setErrorExecutionStatus(last);
-                        if (i > LIMITROW) {
-                            break;
-                        }
-                    }
-                    preparedStatement.realClose();
-                    body = builder.toString();
-                } catch (OpenR66DatabaseException e) {
-                    if (preparedStatement != null) {
                         preparedStatement.realClose();
+                    } catch (OpenR66DatabaseException e) {
+                        if (preparedStatement != null) {
+                            preparedStatement.realClose();
+                        }
+                        logger.warn("OpenR66 Web Error",e);
                     }
-                    logger.warn("OpenR66 Web Error",e);
                 }
+                body = builder.toString();
                 body1 = readFile(Configuration.configuration.httpBasePath+"CancelRestart_body1.html");
             } else if ("Cancel".equalsIgnoreCase(parm) || "Stop".equalsIgnoreCase(parm)) {
                 // Cancel or Stop
@@ -740,10 +741,52 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     } else {
                         // Transfer is not running
                         // but maybe need action on database
-                        if (taskRunner.restart(true)) {
+                        try {
+                            if (taskRunner.restart(true)) {
+                                comment = "Transfer is restarted";
+                            } else {
+                                if (taskRunner.isSelfRequested() &&
+                                        (taskRunner.getGloballaststep() < TASKSTEP.POSTTASK.ordinal())) {
+                                    // FIXME could send a VALID packet with VALID code to the requester
+                                    R66Future result = new R66Future(true);
+                                    RequestTransfer requestTransfer =
+                                        new RequestTransfer(result, taskRunner.getSpecialId(),
+                                                taskRunner.getRequested(), taskRunner.getRequester(),
+                                                false, false, true,
+                                                Configuration.configuration.getInternalRunner().
+                                                    getNetworkTransaction());
+                                    requestTransfer.run();
+                                    result.awaitUninterruptibly();
+                                    R66Result finalValue = result.getResult();
+                                    switch (finalValue.code) {
+                                        case Running:
+                                            comment = "Transfer restart requested but already running";
+                                            break;
+                                        case PreProcessingOk:
+                                            comment = "Transfer restart requested and restarted";
+                                            break;
+                                        case CompleteOk:
+                                            comment = "Transfer restart requested but already finished";
+                                            taskRunner.changeUpdatedInfo(UpdatedInfo.DONE);
+                                            taskRunner.setErrorExecutionStatus(ErrorCode.QueryAlreadyFinished);
+                                            taskRunner.update();
+                                            break;
+                                        case RemoteError:
+                                            comment = "Transfer restart requested but remote error";
+                                            break;
+                                        default:
+                                            comment = "Transfer restart requested but internal error";
+                                            break;
+                                    }
+                                } else {
+                                    comment = "Transfer is finished so not restartable";
+                                    taskRunner.changeUpdatedInfo(UpdatedInfo.DONE);
+                                    taskRunner.setErrorExecutionStatus(ErrorCode.QueryAlreadyFinished);
+                                    taskRunner.update();
+                                }
+                            }
+                        } catch (OpenR66RunnerErrorException e) {
                             comment = "Transfer is restarted";
-                        } else {
-                            comment = "Transfer is finished so not restartable";
                         }
                     }
                     body = readFile(Configuration.configuration.httpBasePath+"CancelRestart_body.html");

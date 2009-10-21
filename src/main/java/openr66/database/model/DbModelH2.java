@@ -327,12 +327,25 @@ public class DbModelH2 implements DbModel {
                 request.close();
                 request.select("select 1");
                 if (!request.getNext()) {
-                    throw new OpenR66DatabaseNoConnectionError(
+                    try {
+                        if (dbSession.conn != null) {
+                            dbSession.conn.close();
+                        }
+                    } catch (SQLException e1) {
+                    }
+                    OpenR66SignalHandler.removeConnection(dbSession.internalId);                    throw new OpenR66DatabaseNoConnectionError(
                             "Cannot connect to database");
                 }
                 return;
             } catch (OpenR66DatabaseException e1) {
             }
+            try {
+                if (dbSession.conn != null) {
+                    dbSession.conn.close();
+                }
+            } catch (SQLException e1) {
+            }
+            OpenR66SignalHandler.removeConnection(dbSession.internalId);
             throw new OpenR66DatabaseNoConnectionError(
                     "Cannot connect to database", e);
         } finally {

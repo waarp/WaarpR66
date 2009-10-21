@@ -39,12 +39,16 @@
  * <li>#TRUEFULLPATH# : Current full path of current FILENAME</li>
  * <li>#TRUEFILENAME# : Current FILENAME (basename) (change in retrieval part)</li>
  * <li>#ORIGINALFILENAME# : Original FILENAME (basename) (before changing in retrieval part)</li>
+ * <li>FILESIZE# : File size if it exists</li>
  * <li>#RULE# : Rule used during transfer</li>
  * <li>#DATE# : Current Date in yyyyMMdd format</li>
  * <li>#HOUR# : Current Hour in HHmmss format</li>
- * <li>#REMOTEHOST# : Remote host id (if not the initiator of the call)</li>
- * <li>#LOCALHOST# : Local host id</li>
- * <li>#TRANSFERID# : Transfer id</li>
+ * <li>#REMOTEHOST# : Remote host Id (if not the initiator of the call)</li>
+ * <li>#LOCALHOST# : Local host Id</li>
+ * <li>#TRANSFERID# : Transfer Id</li>
+ * <li>#REQUESTERHOST# : Requester host Id</li>
+ * <li>#REQUESTEDHOST# : Requested host Id</li>
+ * <li>#FULLTRANSFERID# : Full Transfer Id as TRANSFERID_REQUESTERHOST_REQUESTEDHOST</li>
  * <li>#RANKTRANSFER# : Current or final RANK of block</li>
  * <li>#BLOCKSIZE# : Block size used</li>
  * </ul></li>

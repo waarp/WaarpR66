@@ -161,7 +161,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
                 }
                 if (!localChannelReference.getFutureRequest().isDone()) {
                     localChannelReference.invalidateRequest(new R66Result(
-                            exception, null, true, ErrorCode.Internal));
+                            exception, null, true, ErrorCode.Internal, null));
                 }
                 final ErrorPacket errorPacket = new ErrorPacket(exception
                         .getMessage(),

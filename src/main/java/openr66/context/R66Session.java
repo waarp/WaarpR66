@@ -117,7 +117,8 @@ public class R66Session implements SessionInterface {
                 if (!localChannelReference.getFutureRequest().isDone()) {
                     R66Result result = new R66Result(new OpenR66RunnerErrorException(
                             "Close before ending"), this, true,
-                            ErrorCode.Disconnection);// True since called from closed
+                            ErrorCode.Disconnection, runner);// True since called from closed
+                    result.runner = runner;
                     try {
                         setFinalizeTransfer(false, result);
                     } catch (OpenR66RunnerErrorException e) {
@@ -294,6 +295,7 @@ public class R66Session implements SessionInterface {
             runner.setTransferTask(runner.getRank());
         } else {
             runner.reset();
+            runner.changeUpdatedInfo(UpdatedInfo.RUNNING);
             runner.saveStatus();
         }
         // Now create the associated file
@@ -385,6 +387,7 @@ public class R66Session implements SessionInterface {
      */
     public void setFinalizeTransfer(boolean status, R66Result finalValue)
             throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException {
+        //setRunnerFromLocalChannelReference(localChannelReference);
         if (runner == null) {
             if (status) {
                 localChannelReference.validateRequest(finalValue);
@@ -432,7 +435,7 @@ public class R66Session implements SessionInterface {
             R66Result result = finalValue;
             if (status) {
                 result = new R66Result(new OpenR66RunnerErrorException(e1),
-                        this, false, ErrorCode.Internal);
+                        this, false, ErrorCode.Internal, runner);
             }
             localChannelReference.invalidateRequest(result);
             throw (OpenR66RunnerErrorException) result.exception;
@@ -451,6 +454,7 @@ public class R66Session implements SessionInterface {
         if (this.getLocalChannelReference().getFutureRequest().isDone()) {
             return;
         }
+        //setRunnerFromLocalChannelReference(localChannelReference);
         if (runner == null) {
             localChannelReference.invalidateRequest(errorValue);
             return;
@@ -464,17 +468,18 @@ public class R66Session implements SessionInterface {
             } catch (OpenR66DatabaseException e) {
             }
             localChannelReference.validateRequest(
-                    new R66Result(this, true, ErrorCode.CompleteOk));
-        } else if (runner.getStatus() == ErrorCode.TransferOk) {
+                    new R66Result(this, true, ErrorCode.CompleteOk, runner));
+        } else if (runner.getStatus() == ErrorCode.TransferOk &&
+                ((!runner.isSender()) || errorValue.code == ErrorCode.QueryAlreadyFinished)) {
             // Try to finalize it
             //status = true;
             try {
                 this.setFinalizeTransfer(true,
-                        new R66Result(this, true, ErrorCode.CompleteOk));
+                        new R66Result(this, true, ErrorCode.CompleteOk, runner));
                 localChannelReference.validateRequest(
                     localChannelReference.getFutureEndTransfer().getResult());
             } catch (OpenR66ProtocolSystemException e) {
-                logger.warn("Cannot validate runner: {}",runner.toShortString());
+                logger.warn("Cannot validate runner:\n    {}",runner.toShortString());
                 runner.changeUpdatedInfo(UpdatedInfo.INERROR);
                 runner.setErrorExecutionStatus(errorValue.code);
                 try {
@@ -483,7 +488,7 @@ public class R66Session implements SessionInterface {
                 }
                 this.setFinalizeTransfer(false, errorValue);
             } catch (OpenR66RunnerErrorException e) {
-                logger.warn("Cannot validate runner: {}",runner.toShortString());
+                logger.warn("Cannot validate runner:\n    {}",runner.toShortString());
                 runner.changeUpdatedInfo(UpdatedInfo.INERROR);
                 runner.setErrorExecutionStatus(errorValue.code);
                 try {

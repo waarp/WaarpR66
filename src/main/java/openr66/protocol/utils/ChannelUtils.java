@@ -22,14 +22,22 @@ import goldengate.common.logging.GgSlf4JLoggerFactory;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.sql.Timestamp;
 
+import openr66.context.ErrorCode;
+import openr66.context.R66Session;
+import openr66.database.DbConstant;
+import openr66.database.DbPreparedStatement;
+import openr66.database.DbSession;
 import openr66.database.data.DbTaskRunner;
+import openr66.database.exception.OpenR66DatabaseException;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.AbstractLocalPacket;
 import openr66.protocol.localhandler.packet.DataPacket;
 import openr66.protocol.localhandler.packet.EndTransferPacket;
+import openr66.protocol.localhandler.packet.ErrorPacket;
 import openr66.protocol.localhandler.packet.LocalPacketFactory;
 import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
@@ -270,10 +278,73 @@ public class ChannelUtils extends Thread {
     throws OpenR66ProtocolPacketException {
         return Channels.write(localChannelReference.getLocalChannel(), packet);
     }
+
+    public static StringBuilder StopAllTransfer(DbSession dbSession, int limit,
+            StringBuilder builder, R66Session session, String body,
+            String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,
+            String req, boolean pending, boolean transfer, boolean error) {
+        DbPreparedStatement preparedStatement = null;
+        try {
+            preparedStatement =
+                DbTaskRunner.getFilterPrepareStament(dbSession, limit, true,
+                        startid, stopid, tstart, tstop, rule, req,
+                        pending, transfer, error, false, false);
+            preparedStatement.executeQuery();
+            int i = 0;
+            while (preparedStatement.getNext()) {
+                i++;
+                DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatement);
+                LocalChannelReference lcr =
+                    Configuration.configuration.getLocalTransaction().
+                    getFromRequest(taskRunner.getKey());
+                ErrorCode result;
+                ErrorCode code = ErrorCode.StoppedTransfer;
+                if (lcr != null) {
+                    int rank = taskRunner.getRank();
+                    ErrorPacket perror = new ErrorPacket("Transfer Stopped at "+rank,
+                            code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                    try {
+                        //XXX ChannelUtils.writeAbstractLocalPacket(lcr, perror);
+                        // inform local instead of remote
+                        ChannelUtils.writeAbstractLocalPacketToLocal(lcr, perror);
+                    } catch (Exception e) {
+                    }
+                    result = ErrorCode.StoppedTransfer;
+                } else {
+                    // Transfer is not running
+                    // But is the database saying the contrary
+                    result = ErrorCode.TransferError;
+                    if (taskRunner != null) {
+                        if (taskRunner.stopOrCancelRunner(code)) {
+                            result = ErrorCode.StoppedTransfer;
+                        }
+                    }
+                }
+                ErrorCode last = taskRunner.getErrorInfo();
+                taskRunner.setErrorExecutionStatus(result);
+                if (builder != null) {
+                    builder.append(taskRunner.toSpecializedHtml(session, body,
+                        lcr != null ? "Active" : "NotActive"));
+                }
+                taskRunner.setErrorExecutionStatus(last);
+            }
+            preparedStatement.realClose();
+            return builder;
+        } catch (OpenR66DatabaseException e) {
+            if (preparedStatement != null) {
+                preparedStatement.realClose();
+            }
+            logger.warn("OpenR66 Error",e);
+            return null;
+        }
+    }
     /**
      * Exit global ChannelFactory
      */
     public static void exit() {
+        // First try to StopAll
+        StopAllTransfer(DbConstant.admin.session, 0,
+                null, null, null, null, null, null, null, null, null, true, true, true);
         Configuration.configuration.isShutdown = true;
         Configuration.configuration.prepareServerStop();
         final long delay = Configuration.configuration.TIMEOUTCON;

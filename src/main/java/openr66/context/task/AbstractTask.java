@@ -20,6 +20,7 @@
  */
 package openr66.context.task;
 
+import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -54,6 +55,11 @@ public abstract class AbstractTask implements Runnable {
     public static final String ORIGINALFILENAME = "#ORIGINALFILENAME#";
 
     /**
+     * Size of the current FILE
+     */
+    public static final String FILESIZE = "#FILESIZE#";
+
+    /**
      * Current full path of current RULE
      */
     public static final String RULE = "#RULE#";
@@ -82,6 +88,21 @@ public abstract class AbstractTask implements Runnable {
      * Transfer id
      */
     public static final String TRANSFERID = "#TRANSFERID#";
+
+    /**
+     * Requester Host
+     */
+    public static final String REQUESTERHOST = "#REQUESTERHOST#";
+
+    /**
+     * Requested Host
+     */
+    public static final String REQUESTEDHOST = "#REQUESTEDHOST#";
+
+    /**
+     * Full Transfer id (TRANSFERID_REQUESTERHOST_REQUESTEDHOST)
+     */
+    public static final String FULLTRANSFERID = "#FULLTRANSFERID#";
 
     /**
      * Current or final RANK of block
@@ -175,10 +196,20 @@ public abstract class AbstractTask implements Runnable {
      */
     protected String getReplacedValue(String arg, Object[] argFormat) {
         StringBuilder builder = new StringBuilder(arg);
-        FileUtils.replaceAll(builder, TRUEFULLPATH, session.getFile()
-                .getTrueFile().getAbsolutePath());
-        FileUtils.replaceAll(builder, TRUEFILENAME, R66Dir
-                .getFinalUniqueFilename(session.getFile()));
+        File trueFile = null;
+        if (session.getFile() != null) {
+            trueFile = session.getFile().getTrueFile();
+        }
+        if (trueFile != null) {
+            FileUtils.replaceAll(builder, TRUEFULLPATH, trueFile.getAbsolutePath());
+            FileUtils.replaceAll(builder, TRUEFILENAME, R66Dir
+                    .getFinalUniqueFilename(session.getFile()));
+            FileUtils.replaceAll(builder, FILESIZE, Long.toString(trueFile.length()));
+        } else {
+            FileUtils.replaceAll(builder, TRUEFULLPATH, "nofile");
+            FileUtils.replaceAll(builder, TRUEFILENAME, "nofile");
+            FileUtils.replaceAll(builder, FILESIZE, "0");
+        }
         FileUtils.replaceAll(builder, ORIGINALFILENAME, session.getRunner()
                 .getOriginalFilename());
         FileUtils.replaceAll(builder, RULE, session.getRunner()
@@ -199,6 +230,12 @@ public abstract class AbstractTask implements Runnable {
         }
         FileUtils.replaceAll(builder, TRANSFERID, Long.toString(session
                 .getRunner().getSpecialId()));
+        String requester = session.getRunner().getRequester();
+        FileUtils.replaceAll(builder, REQUESTERHOST, requester);
+        String requested = session.getRunner().getRequested();
+        FileUtils.replaceAll(builder, REQUESTEDHOST, requested);
+        FileUtils.replaceAll(builder, FULLTRANSFERID, session
+                .getRunner().getSpecialId()+"_"+requester+"_"+requested);
         FileUtils.replaceAll(builder, RANKTRANSFER, Integer.toString(session
                 .getRunner().getRank()));
         FileUtils.replaceAll(builder, BLOCKSIZE, Integer.toString(session

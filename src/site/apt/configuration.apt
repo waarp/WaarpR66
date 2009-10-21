@@ -86,10 +86,16 @@ GoldenGateR66 Server and Clients Configuration
 
   []
 
-  To shutdown the service, either you do a CTRL-C or better if Unix (but not IBM JDK)
+  To shutdown the service, either you do if Unix (not under Windows)
 
 ----------------------------------------
-  kill -SIGUSR1 <processID>
+  kill -s USR1 <processID>
+----------------------------------------
+
+  Or use the TERM (15) signal
+
+----------------------------------------
+  kill -s TERM <processID>
 ----------------------------------------
 
   or much better you connect as an admin user into the Administrator (HTTPS) and ask to shutdown

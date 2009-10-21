@@ -331,12 +331,26 @@ public class DbModelOracle implements DbModel {
                 request.close();
                 request.select("select 1 from dual");
                 if (!request.getNext()) {
+                    try {
+                        if (dbSession.conn != null) {
+                            dbSession.conn.close();
+                        }
+                    } catch (SQLException e1) {
+                    }
+                    OpenR66SignalHandler.removeConnection(dbSession.internalId);
                     throw new OpenR66DatabaseNoConnectionError(
                             "Cannot connect to database");
                 }
                 return;
             } catch (OpenR66DatabaseException e1) {
             }
+            try {
+                if (dbSession.conn != null) {
+                    dbSession.conn.close();
+                }
+            } catch (SQLException e1) {
+            }
+            OpenR66SignalHandler.removeConnection(dbSession.internalId);
             throw new OpenR66DatabaseNoConnectionError(
                     "Cannot connect to database", e);
         } finally {

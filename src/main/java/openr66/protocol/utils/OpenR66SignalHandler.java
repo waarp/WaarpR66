@@ -45,6 +45,11 @@ public class OpenR66SignalHandler implements SignalHandler {
     private static volatile boolean shutdown = false;
 
     /**
+     * Set if the program is in shutdown
+     */
+    private static volatile boolean immediate = false;
+
+    /**
      * Set if the Handler is initialized
      */
     private static boolean initialized = false;
@@ -74,9 +79,9 @@ public class OpenR66SignalHandler implements SignalHandler {
      *
      * @param immediate
      */
-    public static void terminate(boolean immediate) {
-        if (immediate) {
-            shutdown = immediate;
+    public static void terminate(boolean immediateSet) {
+        if (immediateSet) {
+            immediate = immediateSet;
         }
         terminate();
     }
@@ -153,7 +158,8 @@ public class OpenR66SignalHandler implements SignalHandler {
      * Function to terminate IoSession and Connection.
      */
     private static void terminate() {
-        if (shutdown) {
+        shutdown = true;
+        if (immediate) {
             ChannelUtils.exit();
             // FIXME Force exit!
             try {
@@ -175,7 +181,7 @@ public class OpenR66SignalHandler implements SignalHandler {
             timer = new Timer(true);
             final R66TimerTask timerTask = new R66TimerTask(R66TimerTask.TIMER_EXIT);
             timer.schedule(timerTask, Configuration.configuration.TIMEOUTCON * 3);
-            shutdown = true;
+            immediate = true;
             ChannelUtils.exit();
             System.exit(0);
         }

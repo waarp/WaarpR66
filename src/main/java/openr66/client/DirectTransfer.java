@@ -76,7 +76,7 @@ public class DirectTransfer extends AbstractTransfer {
         } catch (OpenR66DatabaseException e) {
             logger.error("Cannot get Rule: "+rulename, e);
             future.setResult(new R66Result(e, null, true,
-                    ErrorCode.Internal));
+                    ErrorCode.Internal, null));
             future.setFailure(e);
             return;
         }
@@ -96,7 +96,7 @@ public class DirectTransfer extends AbstractTransfer {
         } catch (OpenR66DatabaseException e) {
             logger.error("Cannot get task", e);
             future.setResult(new R66Result(e, null, true,
-                    ErrorCode.Internal));
+                    ErrorCode.Internal, null));
             future.setFailure(e);
             return;
         }
@@ -109,19 +109,19 @@ public class DirectTransfer extends AbstractTransfer {
             } catch (OpenR66RunnerErrorException e) {
                 logger.error("Cannot Transfer", e);
                 future.setResult(new R66Result(e, null, true,
-                        ErrorCode.Internal));
+                        ErrorCode.Internal, taskRunner));
                 future.setFailure(e);
                 return;
             } catch (OpenR66ProtocolNoConnectionException e) {
                 logger.error("Cannot Connect", e);
                 future.setResult(new R66Result(e, null, true,
-                        ErrorCode.ConnectionImpossible));
+                        ErrorCode.ConnectionImpossible, taskRunner));
                 future.setFailure(e);
                 return;
             } catch (OpenR66ProtocolPacketException e) {
                 logger.error("Bad Protocol", e);
                 future.setResult(new R66Result(e, null, true,
-                        ErrorCode.TransferError));
+                        ErrorCode.TransferError, taskRunner));
                 future.setFailure(e);
                 return;
             } catch (OpenR66ProtocolNotYetConnectionException e) {
@@ -132,7 +132,7 @@ public class DirectTransfer extends AbstractTransfer {
         if (exc!= null) {
             logger.error("Cannot Connect", exc);
             future.setResult(new R66Result(exc, null, true,
-                    ErrorCode.ConnectionImpossible));
+                    ErrorCode.ConnectionImpossible, taskRunner));
             future.setFailure(exc);
             return;
         }
@@ -185,7 +185,7 @@ public class DirectTransfer extends AbstractTransfer {
                     try {
                         result.runner.delete();
                     } catch (OpenR66DatabaseException e) {
-                        logger.warn("Cannot apply nolog to "+result.runner.toShortString(), e);
+                        logger.warn("Cannot apply nolog to\n    "+result.runner.toShortString(), e);
                     }
                 }
             } else {

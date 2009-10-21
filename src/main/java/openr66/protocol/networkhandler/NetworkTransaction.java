@@ -204,7 +204,7 @@ public class NetworkTransaction {
                 new OpenR66ProtocolNetworkException("Startup is invalid");
             logger.warn("Startup is Invalid", exc);
             R66Result finalValue = new R66Result(
-                    exc, null, true, ErrorCode.ConnectionImpossible);
+                    exc, null, true, ErrorCode.ConnectionImpossible, null);
             localChannelReference.invalidateRequest(finalValue);
             Channels.close(localChannelReference.getLocalChannel());
             throw exc;
@@ -365,7 +365,7 @@ public class NetworkTransaction {
         } catch (OpenR66ProtocolNoSslException e1) {
             R66Result finalValue = new R66Result(
                     new OpenR66ProtocolSystemException("No SSL support", e1),
-                    null, true, ErrorCode.ConnectionImpossible);
+                    null, true, ErrorCode.ConnectionImpossible, null);
             logger.warn("Authent is Invalid due to no SSL: {}", e1.getMessage());
             localChannelReference.invalidateRequest(finalValue);
             if (localChannelReference.getRemoteId() != ChannelUtils.NOCHANNEL) {
@@ -387,7 +387,7 @@ public class NetworkTransaction {
         } catch (OpenR66ProtocolPacketException e) {
             R66Result finalValue = new R66Result(
                     new OpenR66ProtocolSystemException("Wrong Authent Protocol",e),
-                    null, true, ErrorCode.ConnectionImpossible);
+                    null, true, ErrorCode.ConnectionImpossible, null);
             logger.warn("Authent is Invalid due to protocol: {}", e.getMessage());
             localChannelReference.invalidateRequest(finalValue);
             if (localChannelReference.getRemoteId() != ChannelUtils.NOCHANNEL) {
@@ -408,7 +408,7 @@ public class NetworkTransaction {
                     future);
             R66Result finalValue = new R66Result(
                     new OpenR66ProtocolSystemException("Out of time during Authentication"),
-                    null, true, ErrorCode.ConnectionImpossible);
+                    null, true, ErrorCode.ConnectionImpossible, null);
             logger.warn("Authent is Invalid due to out of time: {}", finalValue.exception.getMessage());
             localChannelReference.invalidateRequest(finalValue);
             if (localChannelReference.getRemoteId() != ChannelUtils.NOCHANNEL) {

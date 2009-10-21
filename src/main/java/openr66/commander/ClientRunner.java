@@ -116,7 +116,7 @@ public class ClientRunner implements Runnable {
             }
         } else {
             logger.warn("TRANSFER RESULT:\n    "+(transfer.isSuccess()?"SUCCESS":"FAILURE")+"\n    "+
-                (result != null ? result.toString() : "no result"));
+                "no result");
         }
         transfer = null;
     }
@@ -208,13 +208,13 @@ public class ClientRunner implements Runnable {
             this.changeUpdatedInfo(UpdatedInfo.INERROR, ErrorCode.Internal);
             throw new OpenR66RunnerErrorException("Cannot recreate file", e);
         }
-        R66Result finalValue = new R66Result(null, true, ErrorCode.CompleteOk);
+        R66Result finalValue = new R66Result(null, true, ErrorCode.CompleteOk, taskRunner);
         finalValue.file = file;
         finalValue.runner = taskRunner;
         try {
             taskRunner.finalizeTransfer(localChannelReference, file, finalValue, true);
         } catch (OpenR66ProtocolSystemException e) {
-            logger.warn("Cannot validate runner: {}",taskRunner.toShortString());
+            logger.warn("Cannot validate runner:\n    {}",taskRunner.toShortString());
             this.changeUpdatedInfo(UpdatedInfo.INERROR, ErrorCode.Internal);
             throw new OpenR66RunnerErrorException("Cannot validate runner", e);
         }
@@ -246,7 +246,7 @@ public class ClientRunner implements Runnable {
                 LocalChannelReference localChannelReference =
                     new LocalChannelReference();
                 this.finalizeLocalTask(localChannelReference);
-                logger.warn("Finalize as Restart: "+taskRunner.toShortString());
+                logger.warn("Finalize as Restart:\n    "+taskRunner.toShortString());
                 throw new OpenR66ProtocolNoConnectionException("Finalize as restart");
             }
             // Don't have to restart a task for itself (or should use requester)
@@ -297,10 +297,11 @@ public class ClientRunner implements Runnable {
             localChannelReference.setRecvThroughHandler(handler);
         }
         // check if already transfered!!
-        if (taskRunner.getGloballaststep() == DbTaskRunner.TASKSTEP.POSTTASK.ordinal()) {
+        // FIXME
+        /*if (taskRunner.getGloballaststep() == DbTaskRunner.TASKSTEP.POSTTASK.ordinal()) {
             finalizeLocalTask(localChannelReference);
             return localChannelReference;
-        }
+        }*/
         RequestPacket request = taskRunner.getRequest();
         logger.debug("Will send request {} ",request);
         try {

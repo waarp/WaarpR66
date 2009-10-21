@@ -126,7 +126,7 @@ public class Message implements Runnable {
                 requested);
         if (host == null) {
             logger.error("Requested host cannot be found: "+requested);
-            R66Result result = new R66Result(null, true, ErrorCode.ConnectionImpossible);
+            R66Result result = new R66Result(null, true, ErrorCode.ConnectionImpossible, null);
             this.future.setResult(result);
             this.future.cancel();
             return;
@@ -139,7 +139,7 @@ public class Message implements Runnable {
         socketAddress = null;
         if (localChannelReference == null) {
             logger.error("Cannot connect to server: "+requested);
-            R66Result result = new R66Result(null, true, ErrorCode.ConnectionImpossible);
+            R66Result result = new R66Result(null, true, ErrorCode.ConnectionImpossible, null);
             this.future.setResult(result);
             this.future.cancel();
             return;

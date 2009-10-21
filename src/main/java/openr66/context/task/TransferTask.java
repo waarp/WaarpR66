@@ -85,10 +85,10 @@ public class TransferTask extends AbstractTask {
         transaction.run();
         future.awaitUninterruptibly();
         futureCompletion.setResult(future.getResult());
-        DbTaskRunner runner = ((DbTaskRunner) future.getResult().other);
+        DbTaskRunner runner = future.getResult().runner;
         if (future.isSuccess()) {
-            logger.info("Prepare transfer in\n    SUCCESS\n    "+runner.toShortString()+
-                            "<REMOTE>"+requested+"</REMOTE>");
+            logger.warn("Prepare transfer in\n    SUCCESS\n    "+runner.toShortString()+
+                            "\n    <REMOTE>"+requested+"</REMOTE>");
             futureCompletion.setSuccess();
         } else {
             if (runner != null) {
@@ -98,14 +98,14 @@ public class TransferTask extends AbstractTask {
                     futureCompletion.setFailure(future.getCause());
                 }
                 logger.error("Prepare transfer in\n    FAILURE\n     "+runner.toShortString()+
-                            "<REMOTE>"+requested+"</REMOTE>", future.getCause());
+                            "\n    <REMOTE>"+requested+"</REMOTE>", future.getCause());
             } else {
                 if (future.getCause() == null) {
                     futureCompletion.cancel();
                 } else {
                     futureCompletion.setFailure(future.getCause());
                 }
-                logger.error("Prepare transfer in\n    FAILURE\n     ", future.getCause());
+                logger.error("Prepare transfer in\n    FAILURE without any runner back", future.getCause());
             }
         }
     }

@@ -174,14 +174,14 @@ public class R66File extends FilesystemBasedFileImpl {
             getSession().setFinalizeTransfer(
                     false,
                     new R66Result(new OpenR66ProtocolSystemException(e),
-                            getSession(), false, ErrorCode.TransferError));
+                            getSession(), false, ErrorCode.TransferError, getSession().getRunner()));
         } catch (OpenR66ProtocolPacketException e) {
             // An error occurs!
             getSession()
                     .setFinalizeTransfer(
                             false,
                             new R66Result(e, getSession(), false,
-                                    ErrorCode.Internal));
+                                    ErrorCode.Internal, getSession().getRunner()));
         } finally {
             if (retrieveDone) {
                 try {
@@ -191,14 +191,14 @@ public class R66File extends FilesystemBasedFileImpl {
                     getSession().setFinalizeTransfer(
                             false,
                             new R66Result(e, getSession(), false,
-                                    ErrorCode.Internal));
+                                    ErrorCode.Internal, getSession().getRunner()));
                 }
             } else {
                 // An error occurs!
                 getSession().setFinalizeTransfer(
                         false,
                         new R66Result(new OpenR66ProtocolSystemException("Transfer in error"),
-                                getSession(), false, ErrorCode.TransferError));
+                                getSession(), false, ErrorCode.TransferError, getSession().getRunner()));
             }
         }
     }

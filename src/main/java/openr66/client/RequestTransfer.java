@@ -182,7 +182,7 @@ public class RequestTransfer implements Runnable {
         } catch (OpenR66DatabaseException e) {
             logger.error("Cannot find the transfer");
             future.setResult(new R66Result(e, null, true,
-                    ErrorCode.Internal));
+                    ErrorCode.Internal, null));
             future.setFailure(e);
             return;
         }
@@ -192,8 +192,9 @@ public class RequestTransfer implements Runnable {
                 if (runner.isAllDone()) {
                     // nothing to do since already finished
                     setDone(runner);
-                    logger.warn("Transfer already finished: "+runner.toString());
-                    future.setResult(new R66Result(null,true,ErrorCode.TransferOk));
+                    logger.info("Transfer already finished: "+runner.toString());
+                    future.setResult(new R66Result(null,true,ErrorCode.TransferOk, runner));
+                    future.getResult().runner = runner;
                     future.setSuccess();
                     return;
                 } else {
@@ -201,13 +202,13 @@ public class RequestTransfer implements Runnable {
                     ErrorCode code = sendValid(LocalPacketFactory.CANCELPACKET);
                     switch (code) {
                         case CompleteOk:
-                            logger.warn("Transfer cancel requested and done: "+runner.toString());
+                            logger.info("Transfer cancel requested and done: "+runner.toString());
                             break;
                         case TransferOk:
-                            logger.warn("Transfer cancel requested but already finished: "+runner.toString());
+                            logger.info("Transfer cancel requested but already finished: "+runner.toString());
                             break;
                         default:
-                            logger.warn("Transfer cancel requested but internal error: "+runner.toString());
+                            logger.info("Transfer cancel requested but internal error: "+runner.toString());
                             break;
                     }
                 }
@@ -217,13 +218,13 @@ public class RequestTransfer implements Runnable {
                 ErrorCode code = sendValid(LocalPacketFactory.STOPPACKET);
                 switch (code) {
                     case CompleteOk:
-                        logger.warn("Transfer stop requested and done: "+runner.toString());
+                        logger.info("Transfer stop requested and done: "+runner.toString());
                         break;
                     case TransferOk:
-                        logger.warn("Transfer stop requested but already finished: "+runner.toString());
+                        logger.info("Transfer stop requested but already finished: "+runner.toString());
                         break;
                     default:
-                        logger.warn("Transfer stop requested but internal error: "+runner.toString());
+                        logger.info("Transfer stop requested but internal error: "+runner.toString());
                         break;
                 }
             } else if (restart) {
@@ -231,26 +232,26 @@ public class RequestTransfer implements Runnable {
                 ErrorCode code = sendValid(LocalPacketFactory.VALIDPACKET);
                 switch (code) {
                     case Running:
-                        logger.warn("Transfer restart requested but already running: "+runner.toString());
+                        logger.info("Transfer restart requested but already running: "+runner.toString());
                         break;
                     case PreProcessingOk:
-                        logger.warn("Transfer restart requested and restarted: "+runner.toString());
+                        logger.info("Transfer restart requested and restarted: "+runner.toString());
                         break;
                     case CompleteOk:
-                        logger.warn("Transfer restart requested but already finished: "+runner.toString());
+                        logger.info("Transfer restart requested but already finished: "+runner.toString());
                         break;
                     case RemoteError:
-                        logger.warn("Transfer restart requested but remote error: "+runner.toString());
+                        logger.info("Transfer restart requested but remote error: "+runner.toString());
                         break;
                     default:
-                        logger.warn("Transfer restart requested but internal error: "+runner.toString());
+                        logger.info("Transfer restart requested but internal error: "+runner.toString());
                         break;
                 }
             }
         } else {
             // Only request
-            logger.warn("Transfer information: "+runner.toShortString());
-            future.setResult(new R66Result(null,true,runner.getErrorInfo()));
+            logger.info("Transfer information:\n    "+runner.toShortString());
+            future.setResult(new R66Result(null,true,runner.getErrorInfo(),runner));
             future.setSuccess();
         }
     }
@@ -278,7 +279,7 @@ public class RequestTransfer implements Runnable {
             future.setResult(new R66Result(
                     e,
                     null, true,
-                    ErrorCode.TransferError));
+                    ErrorCode.TransferError, null));
             future.setFailure(e);
             return ErrorCode.Internal;
         }
@@ -292,7 +293,7 @@ public class RequestTransfer implements Runnable {
             logger.error("Cannot connect to "+host.toString());
             host = null;
             future.setResult(new R66Result(null, true,
-                    ErrorCode.ConnectionImpossible));
+                    ErrorCode.ConnectionImpossible, null));
             future.cancel();
             return ErrorCode.Internal;
        }
@@ -309,7 +310,7 @@ public class RequestTransfer implements Runnable {
             packet = null;
             logger.error("Bad Protocol", e);
             future.setResult(new R66Result(e, null, true,
-                    ErrorCode.TransferError));
+                    ErrorCode.TransferError, null));
             future.setFailure(e);
             return ErrorCode.Internal;
         }
@@ -353,15 +354,72 @@ public class RequestTransfer implements Runnable {
                         networkTransaction);
             requestTransfer.run();
             result.awaitUninterruptibly();
-            // FIXME use result
-            if (result.isSuccess()) {
-                logger.warn("SUCCESS\n    " +
-                        result.getResult().toString());
+            R66Result finalValue = result.getResult();
+            if (scancel || sstop || srestart) {
+                if (scancel) {
+                    if (result.isSuccess()) {
+                        logger.warn("Transfer already finished:\n    "+
+                                finalValue.runner.toShortString());
+                    } else {
+                        switch (finalValue.code) {
+                            case CompleteOk:
+                                logger.warn("Transfer cancel requested and done:\n    "+
+                                        finalValue.runner.toShortString());
+                                break;
+                            case TransferOk:
+                                logger.warn("Transfer cancel requested but already finished:\n    "+
+                                        finalValue.runner.toShortString());
+                                break;
+                            default:
+                                logger.warn("Transfer cancel requested but internal error:\n    "+
+                                        finalValue.runner.toShortString());
+                                break;
+                        }
+                    }
+                } else if (sstop) {
+                    switch (finalValue.code) {
+                        case CompleteOk:
+                            logger.warn("Transfer stop requested and done:\n    "+
+                                finalValue.runner.toShortString());
+                            break;
+                        case TransferOk:
+                            logger.warn("Transfer stop requested but already finished:\n    "+
+                                finalValue.runner.toShortString());
+                            break;
+                        default:
+                            logger.warn("Transfer stop requested but internal error:\n    "+
+                                finalValue.runner.toShortString());
+                            break;
+                    }
+                } else if (srestart) {
+                    switch (finalValue.code) {
+                        case Running:
+                            logger.warn("Transfer restart requested but already running:\n    "+
+                                finalValue.runner.toShortString());
+                            break;
+                        case PreProcessingOk:
+                            logger.warn("Transfer restart requested and restarted:\n    "+
+                                finalValue.runner.toShortString());
+                            break;
+                        case CompleteOk:
+                            logger.warn("Transfer restart requested but already finished:\n    "+
+                                finalValue.runner.toShortString());
+                            break;
+                        case RemoteError:
+                            logger.warn("Transfer restart requested but remote error:\n    "+
+                                finalValue.runner.toShortString());
+                            break;
+                        default:
+                            logger.warn("Transfer restart requested but internal error:\n    "+
+                                finalValue.runner.toShortString());
+                            break;
+                    }
+                }
             } else {
-                logger.error("FAILURE\n    " +
-                        result.getResult().toString());
+                // Only request
+                logger.warn("Transfer information:\n    "+
+                                finalValue.runner.toShortString());
             }
-
         } finally {
             if (DbConstant.admin != null) {
                 DbConstant.admin.close();

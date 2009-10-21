@@ -62,7 +62,7 @@ public class SubmitTransfer extends AbstractTransfer {
         } catch (OpenR66DatabaseException e) {
             logger.error("Cannot get Rule: "+rulename, e);
             future.setResult(new R66Result(e, null, true,
-                    ErrorCode.Internal));
+                    ErrorCode.Internal, null));
             future.setFailure(e);
             return;
         }
@@ -82,7 +82,7 @@ public class SubmitTransfer extends AbstractTransfer {
         } catch (OpenR66DatabaseException e) {
             logger.error("Cannot get task", e);
             future.setResult(new R66Result(e, null, true,
-                    ErrorCode.Internal));
+                    ErrorCode.Internal, null));
             future.setFailure(e);
             return;
         }
@@ -92,14 +92,12 @@ public class SubmitTransfer extends AbstractTransfer {
         } catch (OpenR66DatabaseException e) {
             logger.error("Cannot prepare task", e);
             R66Result result = new R66Result(e, null, true,
-                    ErrorCode.Internal);
-            result.other = taskRunner;
+                    ErrorCode.Internal, taskRunner);
             future.setResult(result);
             future.setFailure(e);
             return;
         }
-        R66Result result = new R66Result(null,false,ErrorCode.InitOk);
-        result.other = taskRunner;
+        R66Result result = new R66Result(null,false,ErrorCode.InitOk, taskRunner);
         future.setResult(result);
         future.setSuccess();
     }
@@ -130,7 +128,7 @@ public class SubmitTransfer extends AbstractTransfer {
                 rhost, localFilename, rule, fileInfo, ismd5, block);
         transaction.run();
         future.awaitUninterruptibly();
-        DbTaskRunner runner = ((DbTaskRunner) future.getResult().other);
+        DbTaskRunner runner = future.getResult().runner;
         if (future.isSuccess()) {
             logger.warn("Prepare transfer in\n    SUCCESS\n    "+runner.toShortString()+
                             "<REMOTE>"+rhost+"</REMOTE>");

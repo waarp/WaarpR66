@@ -295,7 +295,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * Constructor for submission (no transfer session), from database it is
+     * Constructor for submission (no transfer session), from database. It is
      * created, so with a new specialId if necessary
      *
      * @param dbSession
@@ -338,7 +338,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * Constructor from a request with a valid Special Id but inserted into database
+     * Constructor from a request with a valid Special Id to be inserted into database
      *
      * @param dbSession
      * @param session
@@ -1354,37 +1354,39 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     * Make this Runner ready for restart (through Commander)
+     * Make this Runner ready for restart
      * @param submit True to resubmit this task, else False to keep it as running (only reset)
      * @return True if OK
+     * @throws OpenR66RunnerErrorException
      */
-    public boolean restart(boolean submit) {
+    public boolean restart(boolean submit) throws OpenR66RunnerErrorException {
         // Restart if not Requested
         if (submit) {
-            if (isSelfRequested() && (this.globallaststep != TASKSTEP.POSTTASK.ordinal())) {
+            if (isSelfRequested() && (this.globallaststep < TASKSTEP.POSTTASK.ordinal())) {
                 return false;
             }
         }
         // Restart if already stopped and not finished
         if (reset()) {
-            int newrank = this.getRank();
-            if (newrank > 0) {
-                newrank -= Configuration.RANKRESTART;
-                if (newrank <= 0) {
-                    newrank = 1;
+            if ((!submit) && (this.globalstep == TASKSTEP.TRANSFERTASK.ordinal()) &&
+                    (! this.isSender)) {
+                int newrank = this.getRank();
+                if (! this.isSender) {
+                    if (newrank > 0) {
+                        newrank -= Configuration.RANKRESTART;
+                        if (newrank <= 0) {
+                            newrank = 1;
+                        }
+                    }
                 }
+                this.setTransferTask(newrank);
             }
-            this.setTransferTask(newrank);
             if (submit) {
                 this.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
             } else {
                 this.changeUpdatedInfo(UpdatedInfo.RUNNING);
             }
-            try {
-                this.saveStatus();
-            } catch (OpenR66RunnerErrorException e) {
-                return false;
-            }
+            this.saveStatus();
             return true;
         } else {
             // Already finished so DONE
@@ -1945,7 +1947,7 @@ public class DbTaskRunner extends AbstractDbData {
                             R66Result result = finalValue;
                             if (status) {
                                 result = new R66Result(e, null, false,
-                                        ErrorCode.FinalOp);
+                                        ErrorCode.FinalOp, this);
                                 result.file = file;
                                 result.runner = this;
                             }
@@ -1956,7 +1958,7 @@ public class DbTaskRunner extends AbstractDbData {
                             if (status) {
                                 result = new R66Result(
                                         new OpenR66RunnerErrorException(e), null,
-                                        false, ErrorCode.FinalOp);
+                                        false, ErrorCode.FinalOp, this);
                                 result.file = file;
                                 result.runner = this;
                             }
@@ -1979,7 +1981,7 @@ public class DbTaskRunner extends AbstractDbData {
                 R66Result result = finalValue;
                 if (status) {
                     result = new R66Result(e1, null, false,
-                            ErrorCode.ExternalOp);
+                            ErrorCode.ExternalOp, this);
                     result.file = file;
                     result.runner = this;
                 }
@@ -2104,9 +2106,11 @@ public class DbTaskRunner extends AbstractDbData {
     public void deleteTempFile() {
         if ((!isSender()) && getRank() == 0) {
             try {
-                R66File file = session.getFile();
-                if (file != null) {
-                    file.delete();
+                if (session != null) {
+                    R66File file = session.getFile();
+                    if (file != null) {
+                        file.delete();
+                    }
                 }
             } catch (CommandAbstractException e1) {
                 logger.warn("Cannot delete temporary empty file", e1);

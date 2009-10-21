@@ -76,6 +76,9 @@ public class InternalRunner {
                 Configuration.configuration.delayCommander, TimeUnit.MILLISECONDS);
         networkTransaction = new NetworkTransaction();
     }
+    public NetworkTransaction getNetworkTransaction() {
+        return networkTransaction;
+    }
     /**
      * Submit a task
      * @param taskRunner

@@ -35,6 +35,7 @@ import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.configuration.Configuration;
+import openr66.protocol.utils.OpenR66SignalHandler;
 
 /**
  * Commander is responsible to read from database updated data from time to time in order to
@@ -209,6 +210,10 @@ public class Commander implements Runnable {
             return;
         } finally {
             preparedStatementRule.close();
+        }
+        if (OpenR66SignalHandler.isInShutdown()) {
+            // no more task to submit
+            return;
         }
         logger.debug("start runner");
         // Check TaskRunner

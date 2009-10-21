@@ -192,8 +192,7 @@ public class RetrieveRunner extends Thread {
                             } catch (OpenR66ProtocolPacketException e) {
                             }
                         }
-                    }
-                    if (!localChannelReference.getFutureRequest().isDone()) {
+                    } else {
                         localChannelReference.invalidateRequest(localChannelReference
                             .getFutureEndTransfer().getResult());
                     }
@@ -204,7 +203,7 @@ public class RetrieveRunner extends Thread {
     }
     private void transferInError(OpenR66Exception e) {
         R66Result result = new R66Result(e, session, true,
-                ErrorCode.TransferError);
+                ErrorCode.TransferError, session.getRunner());
         localChannelReference.invalidateRequest(result);
         logger.error("Transfer in error", e);
         ErrorPacket error = new ErrorPacket("Transfer in error",
@@ -246,7 +245,7 @@ public class RetrieveRunner extends Thread {
                             new R66Result(
                                     new OpenR66ProtocolSystemException(
                                             e), session, false,
-                                    ErrorCode.Internal));
+                                    ErrorCode.Internal, session.getRunner()));
                     throw new OpenR66RunnerErrorException("Interruption while waiting", e);
                 }
             }

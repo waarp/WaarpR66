@@ -154,7 +154,7 @@ public class RequestInformation implements Runnable {
                 requested);
         if (host == null) {
             logger.warn("Requested host cannot be found: "+requested);
-            R66Result result = new R66Result(null, true, ErrorCode.ConnectionImpossible);
+            R66Result result = new R66Result(null, true, ErrorCode.ConnectionImpossible, null);
             this.future.setResult(result);
             this.future.cancel();
             return;
@@ -167,7 +167,7 @@ public class RequestInformation implements Runnable {
         socketAddress = null;
         if (localChannelReference == null) {
             logger.warn("Cannot connect to server: "+requested);
-            R66Result result = new R66Result(null, true, ErrorCode.ConnectionImpossible);
+            R66Result result = new R66Result(null, true, ErrorCode.ConnectionImpossible, null);
             this.future.setResult(result);
             this.future.cancel();
             return;
@@ -177,7 +177,7 @@ public class RequestInformation implements Runnable {
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, request);
         } catch (OpenR66ProtocolPacketException e) {
             logger.warn("Cannot write request");
-            R66Result result = new R66Result(null, true, ErrorCode.TransferError);
+            R66Result result = new R66Result(null, true, ErrorCode.TransferError, null);
             this.future.setResult(result);
             this.future.cancel();
             return;

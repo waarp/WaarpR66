@@ -99,7 +99,7 @@ public class ChangeBandwidthLimits implements Runnable {
             logger.error("Cannot Connect");
             future.setResult(new R66Result(
                     new OpenR66ProtocolNoConnectionException("Cannot connect to server"),
-                    null, true, ErrorCode.Internal));
+                    null, true, ErrorCode.Internal, null));
             future.setFailure(future.getResult().exception);
             return;
         }
@@ -112,7 +112,7 @@ public class ChangeBandwidthLimits implements Runnable {
             host = null;
             valid = null;
             future.setResult(new R66Result(e, null, true,
-                    ErrorCode.TransferError));
+                    ErrorCode.TransferError, null));
             future.setFailure(e);
             return;
         }

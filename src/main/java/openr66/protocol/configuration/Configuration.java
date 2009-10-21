@@ -512,6 +512,9 @@ public class Configuration {
         httpChannelGroup.add(httpsBootstrap.bind(new InetSocketAddress(SERVER_HTTPSPORT)));
 
     }
+    public InternalRunner getInternalRunner() {
+        return internalRunner;
+    }
     /**
      * Prepare the server to stop
      *

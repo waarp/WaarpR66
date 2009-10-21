@@ -129,13 +129,21 @@ public enum ErrorCode {
      */
     Unknown("Unknown status", '-'),
     /**
-     * Code stands for unknown type of error
+     * Code stands for a request that is already remotely finished
      */
     QueryAlreadyFinished("Restart Query for a transfer already finished", 'Q'),
+    /**
+     * Code stands for request that is still running
+     */
+    QueryStillRunning("Restart Query for a transfer still running", 's'),
     /**
      * Code stands for not known host
      */
     NotKnownHost("Not known remote host", 'N'),
+    /**
+     * Code stands for request should exist but is not found on remote host
+     */
+    QueryRemotelyUnknown("Not known remote asked query", 'u'),
     /**
      * Code stands for running step
      */
@@ -210,8 +218,12 @@ public enum ErrorCode {
                 return Unknown;
             case 'Q':
                 return QueryAlreadyFinished;
+            case 's':
+                return QueryStillRunning;
             case 'N':
                 return NotKnownHost;
+            case 'u':
+                return QueryRemotelyUnknown;
             case 'z':
                 return Running;
             default:

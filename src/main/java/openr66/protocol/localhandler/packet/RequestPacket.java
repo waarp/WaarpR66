@@ -180,10 +180,9 @@ public class RequestPacket extends AbstractLocalPacket {
      */
     public RequestPacket(String rulename, int mode, String filename,
             int blocksize, int rank, long specialId, String fileInformation) {
-        this(rulename, mode, filename, blocksize, rank, specialId, REQVALIDATE,
-                fileInformation);
+        this(rulename, mode, filename, blocksize, rank, specialId,
+                REQVALIDATE, fileInformation);
     }
-
     /*
      * (non-Javadoc)
      *

@@ -162,8 +162,8 @@ public class LocalTransaction {
                             channel, networkChannel, remoteId, futureRequest);
                 logger.debug("Create LocalChannel entry: " +i+" {}",
                         localChannelReference);
-                localChannelHashMap.put(channel.getId(), localChannelReference);
                 channel.getCloseFuture().addListener(remover);
+                localChannelHashMap.put(channel.getId(), localChannelReference);
                 try {
                     NetworkTransaction.addLocalChannelToNetworkChannel(networkChannel, channel);
                 } catch (OpenR66ProtocolRemoteShutdownException e) {
@@ -247,13 +247,16 @@ public class LocalTransaction {
             if (validLCR != null) {
                 validLCR.cancel();
             }
+            DbTaskRunner runner = null;
+            if (localChannelReference.getSession() != null) {
+                runner = localChannelReference.getSession().getRunner();
+            }
             R66Result result = new R66Result(
                     new OpenR66ProtocolSystemException(
                             "While closing Local Channel"), null, false,
-                    ErrorCode.ConnectionImpossible);
+                    ErrorCode.ConnectionImpossible, runner);
             localChannelReference.validateConnection(false, result);
             if (localChannelReference.getSession() != null) {
-                DbTaskRunner runner = localChannelReference.getSession().getRunner();
                 if (runner != null) {
                     String key = runner.getKey();
                     localChannelHashMapExternal.remove(key);
@@ -299,7 +302,7 @@ public class LocalTransaction {
                     networkChannel) == 0) {
                 // give a chance for the LocalChannel to stop normally
                 R66Result finalValue = new R66Result(localChannelReference.getSession(),
-                        true, ErrorCode.Shutdown);
+                        true, ErrorCode.Shutdown, null);
                 try {
                     localChannelReference.getSession().tryFinalizeRequest(finalValue);
                 } catch (OpenR66RunnerErrorException e) {
@@ -357,7 +360,7 @@ public class LocalTransaction {
                     }
                     R66Result result = new R66Result(
                             new OpenR66ProtocolShutdownException(), session, true,
-                            ErrorCode.Shutdown);
+                            ErrorCode.Shutdown, runner);
                     result.other = packet;
                     try {
                         session.setFinalizeTransfer(false, result);

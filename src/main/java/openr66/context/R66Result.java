@@ -60,9 +60,11 @@ public class R66Result {
      * @param exception
      * @param session
      * @param isAnswered
+     * @param code
+     * @param runner
      */
     public R66Result(OpenR66Exception exception, R66Session session,
-            boolean isAnswered, ErrorCode code) {
+            boolean isAnswered, ErrorCode code, DbTaskRunner runner) {
         this.exception = exception;
         if (session != null) {
             file = session.getFile();
@@ -70,19 +72,24 @@ public class R66Result {
         }
         this.isAnswered = isAnswered;
         this.code = code;
+        this.runner = runner;
     }
 
     /**
      * @param session
      * @param isAnswered
+     * @param code
+     * @param runner
      */
-    public R66Result(R66Session session, boolean isAnswered, ErrorCode code) {
+    public R66Result(R66Session session, boolean isAnswered, ErrorCode code,
+            DbTaskRunner runner) {
         if (session != null) {
             file = session.getFile();
             runner = session.getRunner();
         }
         this.isAnswered = isAnswered;
         this.code = code;
+        this.runner = runner;
     }
 
     @Override
