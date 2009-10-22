@@ -295,10 +295,12 @@ public class LocalChannelReference {
         } else {
             logger.info("Could not invalidate since Already finished: " + futureEndTransfer.getResult());
         }
-        DbTaskRunner runner = this.session.getRunner();
-        if (runner != null) {
-            if (runner.isSender()) {
-                NetworkTransaction.stopRetrieve(this);
+        if (this.session != null) {
+            DbTaskRunner runner = this.session.getRunner();
+            if (runner != null) {
+                if (runner.isSender()) {
+                    NetworkTransaction.stopRetrieve(this);
+                }
             }
         }
     }

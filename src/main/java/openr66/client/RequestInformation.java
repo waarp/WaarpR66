@@ -73,7 +73,7 @@ public class RequestInformation implements Runnable {
      * @return True if all parameters were found and correct
      */
     protected static boolean getParams(String []args) {
-        if (args.length < 3) {
+        if (args.length < 5) {
             logger
                     .error("Needs at least 3 arguments:\n" +
                             "  the XML client configuration file,\n" +
@@ -217,7 +217,7 @@ public class RequestInformation implements Runnable {
             if (result.isSuccess()) {
                 R66Result r66result = result.getResult();
                 ValidPacket info = (ValidPacket) r66result.other;
-                logger.warn("SUCCESS\n    "+info.getSmiddle()+"\n"+info.getSheader());
+                logger.warn("SUCCESS\n    "+info.getSmiddle()+"\n    "+info.getSheader());
             } else {
                 logger.error("FAILURE\n    " +
                         result.getResult().toString());

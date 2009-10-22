@@ -249,6 +249,15 @@ public class R66Session implements SessionInterface {
     }
 
     /**
+     * To be called in case of No Session not from a valid LocalChannelHandler
+     * @param runner
+     * @param file
+     */
+    public void setNoSessionRunner(DbTaskRunner runner, R66File file) {
+        this.runner = runner;
+        this.file = file;
+    }
+    /**
      * Set the runner, START from the PreTask if necessary, and prepare the file
      *
      * @param runner

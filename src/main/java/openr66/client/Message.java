@@ -63,6 +63,8 @@ public class Message implements Runnable {
 
     private final String requested;
 
+    private final DbHostAuth hostAuth;
+
     final private TestPacket testPacket;
 
     static String srequested = null;
@@ -74,9 +76,9 @@ public class Message implements Runnable {
      * @return True if all parameters were found and correct
      */
     protected static boolean getParams(String []args) {
-        if (args.length < 3) {
+        if (args.length < 5) {
             logger
-                    .error("Needs 3 arguments:\n" +
+                    .error("Needs 5 arguments:\n" +
                             "  the XML client configuration file,\n" +
                             "  '-to' the remoteHost Id,\n" +
                             "  '-msg' the message\n");
@@ -114,6 +116,19 @@ public class Message implements Runnable {
         this.future = future;
         this.requested = requested;
         testPacket = packet;
+        this.hostAuth = null;
+    }
+
+    public Message(NetworkTransaction networkTransaction,
+            R66Future future, DbHostAuth hostAuth, TestPacket packet) {
+        if (logger == null) {
+            logger = GgInternalLoggerFactory.getLogger(Message.class);
+        }
+        this.networkTransaction = networkTransaction;
+        this.future = future;
+        this.requested = null;
+        testPacket = packet;
+        this.hostAuth = hostAuth;
     }
 
     public void run() {
@@ -122,8 +137,13 @@ public class Message implements Runnable {
                     Message.class);
         }
         // Connection
-        DbHostAuth host = R66Auth.getServerAuth(DbConstant.admin.session,
+        DbHostAuth host = null;
+        if (hostAuth == null) {
+            host = R66Auth.getServerAuth(DbConstant.admin.session,
                 requested);
+        } else {
+            host = hostAuth;
+        }
         if (host == null) {
             logger.error("Requested host cannot be found: "+requested);
             R66Result result = new R66Result(null, true, ErrorCode.ConnectionImpossible, null);
@@ -160,9 +180,12 @@ public class Message implements Runnable {
         if (logger == null) {
             logger = GgInternalLoggerFactory.getLogger(Message.class);
         }
-        if (args.length < 1) {
+        if (args.length < 5) {
             logger
-                    .error("Needs at least the configuration file as first argument");
+            .error("Needs 5 arguments:\n" +
+                    "  the XML client configuration file,\n" +
+                    "  '-to' the remoteHost Id,\n" +
+                    "  '-msg' the message\n");
             return;
         }
         if (! getParams(args)) {

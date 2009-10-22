@@ -20,7 +20,6 @@
  */
 package openr66.commander;
 
-import goldengate.common.command.exception.CommandAbstractException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
@@ -32,10 +31,7 @@ import org.jboss.netty.channel.Channels;
 import openr66.client.RecvThroughHandler;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
-import openr66.context.R66Session;
 import openr66.context.authentication.R66Auth;
-import openr66.context.filesystem.R66Dir;
-import openr66.context.filesystem.R66File;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.DbConstant;
 import openr66.database.data.AbstractDbData;
@@ -48,12 +44,12 @@ import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolNotYetConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
-import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.utils.ChannelUtils;
 import openr66.protocol.utils.R66Future;
+import openr66.protocol.utils.TransferUtils;
 
 /**
  * Client Runner from a TaskRunner
@@ -177,7 +173,7 @@ public class ClientRunner implements Runnable {
                     // check if post task to execute
                     logger.warn("WARN QueryAlreadyFinished:\n    "+transfer.toString()+"\n    "+
                             taskRunner.toShortString());
-                    finalizeLocalTask(taskRunner, localChannelReference);
+                    TransferUtils.finalizeTaskWithNoSession(taskRunner, localChannelReference);
                 } else {
                     switch (taskRunner.getUpdatedInfo()) {
                         case DONE:
@@ -193,48 +189,6 @@ public class ClientRunner implements Runnable {
             }
         }
         return transfer;
-    }
-    /**
-     * Finalize a local task since only Post action has to be done
-     * @param taskRunner
-     * @param localChannelReference
-     * @throws OpenR66RunnerErrorException
-     */
-    public static void finalizeLocalTask(DbTaskRunner taskRunner,
-            LocalChannelReference localChannelReference)
-    throws OpenR66RunnerErrorException {
-        R66Session session = new R66Session();
-        session.setStatus(50);
-        session.getAuth().specialHttpAuth(false);
-        R66File file;
-        try {
-            file = new R66File(session,
-                    new R66Dir(session), taskRunner.getFilename(), false);
-        } catch (CommandAbstractException e) {
-            logger.warn("Cannot recreate file: {}",taskRunner.getFilename());
-            taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);
-            taskRunner.setErrorExecutionStatus(ErrorCode.Internal);
-            try {
-                taskRunner.update();
-            } catch (OpenR66DatabaseException e1) {
-            }
-            throw new OpenR66RunnerErrorException("Cannot recreate file", e);
-        }
-        R66Result finalValue = new R66Result(null, true, ErrorCode.CompleteOk, taskRunner);
-        finalValue.file = file;
-        finalValue.runner = taskRunner;
-        try {
-            taskRunner.finalizeTransfer(localChannelReference, file, finalValue, true);
-        } catch (OpenR66ProtocolSystemException e) {
-            logger.warn("Cannot validate runner:\n    {}",taskRunner.toShortString());
-            taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);
-            taskRunner.setErrorExecutionStatus(ErrorCode.Internal);
-            try {
-                taskRunner.update();
-            } catch (OpenR66DatabaseException e1) {
-            }
-            throw new OpenR66RunnerErrorException("Cannot validate runner", e);
-        }
     }
     /**
      * Initialize the request
@@ -262,9 +216,9 @@ public class ClientRunner implements Runnable {
                 // can finalize locally
                 LocalChannelReference localChannelReference =
                     new LocalChannelReference();
-                finalizeLocalTask(taskRunner, localChannelReference);
-                logger.warn("Finalize as Restart:\n    "+taskRunner.toShortString());
-                throw new OpenR66ProtocolNoConnectionException("Finalize as restart");
+                TransferUtils.finalizeTaskWithNoSession(taskRunner, localChannelReference);
+                logger.warn("Finalize transfer when try to Restart:\n    "+taskRunner.toShortString());
+                throw new OpenR66ProtocolNoConnectionException("Finalize transfer when try to restart");
             }
             // Don't have to restart a task for itself (or should use requester)
             logger.warn("Requested host cannot initiate itself the request");

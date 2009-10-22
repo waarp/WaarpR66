@@ -219,14 +219,16 @@ public abstract class AbstractTask implements Runnable {
         FileUtils.replaceAll(builder, DATE, dateFormat.format(date));
         dateFormat = new SimpleDateFormat("HHmmss");
         FileUtils.replaceAll(builder, HOUR, dateFormat.format(date));
-        FileUtils.replaceAll(builder, REMOTEHOST, session.getAuth().getUser());
-        try {
-            FileUtils.replaceAll(builder, LOCALHOST,
-                    Configuration.configuration.getHostId(session.getAuth().isSsl()));
-        } catch (OpenR66ProtocolNoSslException e) {
-            // replace by standard name
-            FileUtils.replaceAll(builder, LOCALHOST,
-                    Configuration.configuration.HOST_ID);
+        if (session.getAuth() != null) {
+            FileUtils.replaceAll(builder, REMOTEHOST, session.getAuth().getUser());
+            try {
+                FileUtils.replaceAll(builder, LOCALHOST,
+                        Configuration.configuration.getHostId(session.getAuth().isSsl()));
+            } catch (OpenR66ProtocolNoSslException e) {
+                // replace by standard name
+                FileUtils.replaceAll(builder, LOCALHOST,
+                        Configuration.configuration.HOST_ID);
+            }
         }
         FileUtils.replaceAll(builder, TRANSFERID, Long.toString(session
                 .getRunner().getSpecialId()));

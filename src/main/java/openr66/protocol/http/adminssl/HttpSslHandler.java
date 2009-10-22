@@ -41,20 +41,17 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.net.ssl.SSLException;
 
-import openr66.client.RequestTransfer;
-import openr66.commander.ClientRunner;
+import openr66.client.Message;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
 import openr66.context.filesystem.R66Dir;
-import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.DbConstant;
 import openr66.database.DbPreparedStatement;
 import openr66.database.DbSession;
 import openr66.database.data.DbHostAuth;
 import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
-import openr66.database.data.DbTaskRunner.TASKSTEP;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
@@ -67,11 +64,13 @@ import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.ErrorPacket;
 import openr66.protocol.localhandler.packet.RequestPacket;
+import openr66.protocol.localhandler.packet.TestPacket;
 import openr66.protocol.localhandler.packet.RequestPacket.TRANSFERMODE;
 import openr66.protocol.utils.ChannelUtils;
 import openr66.protocol.utils.FileUtils;
 import openr66.protocol.utils.OpenR66SignalHandler;
 import openr66.protocol.utils.R66Future;
+import openr66.protocol.utils.TransferUtils;
 
 import org.dom4j.Document;
 import org.dom4j.Element;
@@ -145,7 +144,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         Hosts, Rules, System;
     }
     private static enum REPLACEMENT {
-        XXXHOSTIDXXX, XXXADMINXXX, XXXBANDWIDTHXXX,
+        XXXHOSTIDXXX, XXXADMINXXX, XXXVERSIONXXX, XXXBANDWIDTHXXX,
         XXXXSESSIONLIMITRXXX, XXXXSESSIONLIMITWXXX,
         XXXXCHANNELLIMITRXXX, XXXXCHANNELLIMITWXXX,
         XXXXDELAYCOMMDXXX, XXXXDELAYRETRYXXX,
@@ -158,11 +157,11 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
      * The Database connection attached to this NetworkChannel
      * shared among all associated LocalChannels in the session
      */
-    private DbSession dbSession = null;
+    private volatile DbSession dbSession = null;
     /**
      * Does this dbSession is private and so should be closed
      */
-    private boolean isPrivateDbSession = false;
+    private volatile boolean isPrivateDbSession = false;
 
     /**
      * Remover from SSL HashMap
@@ -308,6 +307,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 Configuration.configuration.HOST_ID);
         FileUtils.replaceAll(builder, REPLACEMENT.XXXADMINXXX.toString(),
                 authentHttp.getAuth().getUser());
+        FileUtils.replace(builder, REPLACEMENT.XXXVERSIONXXX.toString(),
+                Configuration.VERSION);
         return builder.toString();
     }
     private String error(String mesg) {
@@ -445,80 +446,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         String end = readFile(Configuration.configuration.httpBasePath+"Listing_end.html");
         return head+body0+body+body1+end;
     }
-    /**
-     * Try to restart one Task
-     * @param taskRunner
-     * @return
-     * @throws OpenR66DatabaseException
-     */
-    private R66Result restart(DbTaskRunner taskRunner, LocalChannelReference lcr) throws OpenR66DatabaseException {
-        R66Result finalResult = new R66Result(null, true, ErrorCode.InitOk, taskRunner);
-        if (lcr != null) {
-            finalResult.code = ErrorCode.QueryStillRunning;
-            finalResult.other = "Transfer is still running so not restartable";
-        } else {
-            // Transfer is not running
-            // but maybe need action on database
-            try {
-                if (taskRunner.restart(true)) {
-                    finalResult.code = ErrorCode.PreProcessingOk;
-                    finalResult.other = "Transfer is restarted";
-                } else {
-                    if (taskRunner.isSelfRequested() &&
-                            (taskRunner.getGloballaststep() < TASKSTEP.POSTTASK.ordinal())) {
-                        // send a VALID packet with VALID code to the requester
-                        R66Future result = new R66Future(true);
-                        RequestTransfer requestTransfer =
-                            new RequestTransfer(result, taskRunner.getSpecialId(),
-                                    taskRunner.getRequested(), taskRunner.getRequester(),
-                                    false, false, true,
-                                    Configuration.configuration.getInternalRunner().
-                                        getNetworkTransaction());
-                        requestTransfer.run();
-                        result.awaitUninterruptibly();
-                        R66Result finalValue = result.getResult();
-                        switch (finalValue.code) {
-                            case Running:
-                                finalResult.code = ErrorCode.Running;
-                                finalResult.other = "Transfer restart requested but already running";
-                                break;
-                            case PreProcessingOk:
-                                finalResult.code = ErrorCode.PreProcessingOk;
-                                finalResult.other = "Transfer restart requested and restarted";
-                                break;
-                            case CompleteOk:
-                                finalResult.code = ErrorCode.CompleteOk;
-                                finalResult.other = "Transfer restart requested but already finished so try to run Post Action";
-                                taskRunner.setPostTask();
-                                ClientRunner.finalizeLocalTask(taskRunner, lcr);
-                                taskRunner.setErrorExecutionStatus(ErrorCode.QueryAlreadyFinished);
-                                taskRunner.update();
-                                break;
-                            case RemoteError:
-                                finalResult.code = ErrorCode.RemoteError;
-                                finalResult.other = "Transfer restart requested but remote error";
-                                break;
-                            default:
-                                finalResult.code = ErrorCode.Internal;
-                            finalResult.other = "Transfer restart requested but internal error";
-                                break;
-                        }
-                    } else {
-                        finalResult.code = ErrorCode.CompleteOk;
-                        finalResult.other = "Transfer is finished so not restartable";
-                        taskRunner.setPostTask();
-                        ClientRunner.finalizeLocalTask(taskRunner, lcr);
-                        taskRunner.setErrorExecutionStatus(ErrorCode.QueryAlreadyFinished);
-                        taskRunner.update();
-                    }
-                }
-            } catch (OpenR66RunnerErrorException e) {
-                finalResult.code = ErrorCode.PreProcessingOk;
-                finalResult.other = "Transfer is restarted";
-            }
-        }
-        return finalResult;
-    }
+
     private String CancelRestart() {
         getParams();
         if (params == null) {
@@ -661,7 +589,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 body = readFile(Configuration.configuration.httpBasePath+"CancelRestart_body.html");
                 StringBuilder builder = new StringBuilder();
                 if (stopcommand) {
-                    builder = ChannelUtils.StopAllTransfer(dbSession, LIMITROW, builder,
+                    builder = TransferUtils.stopSelectedTransfers(dbSession, LIMITROW, builder,
                             authentHttp, body, startid, stopid, tstart, tstop, rule, req,
                             pending, transfer, error);
                 } else {
@@ -679,7 +607,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                             LocalChannelReference lcr =
                                 Configuration.configuration.getLocalTransaction().
                                 getFromRequest(taskRunner.getKey());
-                            R66Result finalResult = restart(taskRunner, lcr);
+                            R66Result finalResult = TransferUtils.restartTransfer(taskRunner, lcr);
                             ErrorCode result = finalResult.code;
                             ErrorCode last = taskRunner.getErrorInfo();
                             taskRunner.setErrorExecutionStatus(result);
@@ -782,7 +710,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     LocalChannelReference lcr =
                         Configuration.configuration.getLocalTransaction().
                         getFromRequest(taskRunner.getKey());
-                    R66Result finalResult = restart(taskRunner, lcr);
+                    R66Result finalResult = TransferUtils.restartTransfer(taskRunner, lcr);
                     comment = (String) finalResult.other;
                     body = readFile(Configuration.configuration.httpBasePath+"CancelRestart_body.html");
                     body = taskRunner.toSpecializedHtml(authentHttp, body,
@@ -1072,6 +1000,45 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 }
                 body = readFile(Configuration.configuration.httpBasePath+"Hosts_body.html");
                 body = dbhost.toSpecializedHtml(authentHttp, body);
+            } else if ("TestConn".equalsIgnoreCase(parm)) {
+                String host = params.get("host").get(0).trim();
+                if (host.length() == 0) {
+                    host = null;
+                }
+                String addr = params.get("address").get(0).trim();
+                if (addr.length() == 0) {
+                    addr = null;
+                }
+                String port = params.get("port").get(0).trim();
+                if (port.length() == 0) {
+                    port = null;
+                }
+                String key = params.get("hostkey").get(0);
+                if (key.length() == 0) {
+                    key = null;
+                }
+                boolean ssl, admin;
+                ssl = params.containsKey("ssl");
+                admin = params.containsKey("admin");
+                head = resetOptionHosts(head, host, addr, ssl);
+                int iport = Integer.parseInt(port);
+                DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
+                        ssl, key.getBytes(), admin);
+                R66Future result = new R66Future(true);
+                TestPacket packet = new TestPacket("MSG", "CheckConnection", 100);
+                Message transaction = new Message(
+                        Configuration.configuration.getInternalRunner().getNetworkTransaction(),
+                        result, dbhost, packet);
+                transaction.run();
+                result.awaitUninterruptibly();
+                body = readFile(Configuration.configuration.httpBasePath+"Hosts_body.html");
+                body = dbhost.toSpecializedHtml(authentHttp, body);
+                if (result.isSuccess()) {
+                    body += "<p><center><b>Connection SUCCESSFUL</b></center></p>";
+                } else {
+                    body += "<p><center><b>Connection FAILURE: "+
+                        result.getResult().code.mesg+"</b></center></p>";
+                }
             } else if ("Delete".equalsIgnoreCase(parm)) {
                 String host = params.get("host").get(0).trim();
                 if (host.length() == 0) {
@@ -1633,7 +1600,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 if (name.equals(Configuration.configuration.ADMINNAME) &&
                         Arrays.equals(password.getBytes(),
                                 Configuration.configuration.getSERVERADMINKEY())) {
-                    authentHttp.getAuth().specialHttpAuth(true);
+                    authentHttp.getAuth().specialNoSessionAuth(true, Configuration.configuration.HOST_ID);
                     authentHttp.setStatus(70);
                 } else {
                     getMenu = true;

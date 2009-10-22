@@ -145,13 +145,20 @@ public class LogExport implements Runnable {
 
     protected static boolean getParams(String [] args) {
         if (args.length < 1) {
-            logger.error("Need at least the configuration file as first argument");
+            logger.error("Need at least the configuration file as first argument then optionally\n" +
+            		"    -purge\n" +
+            		"    -clean\n" +
+            		"    -start timestamp\n" +
+            		"    -stop timestamp");
             return false;
         }
         if (! FileBasedConfiguration
                 .setClientConfigurationFromXml(args[0])) {
-            logger
-                    .error("Needs a correct configuration file as first argument");
+            logger.error("Need at least the configuration file as first argument then optionally\n" +
+                    "    -purge\n" +
+                    "    -clean\n" +
+                    "    -start timestamp\n" +
+                    "    -stop timestamp");
             return false;
         }
         for (int i = 1; i < args.length; i++) {

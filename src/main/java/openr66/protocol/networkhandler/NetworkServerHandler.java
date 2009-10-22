@@ -52,16 +52,16 @@ public class NetworkServerHandler extends SimpleChannelHandler {
     /**
      * The underlying Network Channel
      */
-    private Channel networkChannel;
+    private volatile Channel networkChannel;
     /**
      * The Database connection attached to this NetworkChannel
      * shared among all associated LocalChannels
      */
-    protected DbSession dbSession;
+    protected volatile DbSession dbSession;
     /**
      * Does this Handler is for SSL
      */
-    protected boolean isSSL = false;
+    protected volatile boolean isSSL = false;
     /*
      * (non-Javadoc)
      *

@@ -31,6 +31,7 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import java.io.File;
 
 import openr66.context.R66Session;
+import openr66.database.DbConstant;
 import openr66.database.DbSession;
 import openr66.database.data.DbHostAuth;
 import openr66.database.exception.OpenR66DatabaseException;
@@ -236,11 +237,26 @@ public class R66Auth extends FilesystemBasedAuthImpl {
         return auth;
     }
 
-    public void specialHttpAuth(boolean isSSL) {
+    /**
+     * Special Authentication for local execution
+     * @param isSSL
+     * @param hostid
+     */
+    public void specialNoSessionAuth(boolean isSSL, String hostid) {
         this.isIdentified = true;
+        DbHostAuth auth = R66Auth.getServerAuth(DbConstant.admin.session,
+                    hostid);
+        currentAuth = auth;
+        setIsIdentified(true);
+        user = auth.getHostid();
+        try {
+            setRootFromAuth();
+        } catch (Reply421Exception e) {
+        }
+        getSession().getDir().initAfterIdentification();
+        isAdmin = isSSL;
         if (isSSL) {
             this.user = Configuration.configuration.ADMINNAME;
-            this.isAdmin = true;
         }
     }
 }

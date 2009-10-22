@@ -129,14 +129,21 @@ public class ChangeBandwidthLimits implements Runnable {
     protected static long sreadSessionLimit = -1;
 
     protected static boolean getParams(String [] args) {
-        if (args.length < 1) {
-            logger.error("Need at least the configuration file as first argument");
+        if (args.length < 3) {
+            logger.error("Need the configuration file as first argument then at least one of\n" +
+            		"   -wglob limitGlobalWrite\n" +
+            		"   -rglob limitGlobalRead\n" +
+            		"   -wsess limitSessionWrite\n" +
+            		"   -rsess limitSessionWrite");
             return false;
         }
         if (! FileBasedConfiguration
                 .setClientConfigurationFromXml(args[0])) {
-            logger
-                    .error("Needs a correct configuration file as first argument");
+            logger.error("Need the configuration file as first argument then at least one of\n" +
+                    "   -wglob limitGlobalWrite\n" +
+                    "   -rglob limitGlobalRead\n" +
+                    "   -wsess limitSessionWrite\n" +
+                    "   -rsess limitSessionWrite");
             return false;
         }
         for (int i = 1; i < args.length; i++) {
@@ -153,6 +160,15 @@ public class ChangeBandwidthLimits implements Runnable {
                 i++;
                 sreadSessionLimit = Long.parseLong(args[i]);
             }
+        }
+        if (swriteGlobalLimit == -1 && sreadGlobalLimit == -1 &&
+                swriteSessionLimit == -1 && sreadSessionLimit == -1) {
+            logger.error("Need the configuration file as first argument then at least one of\n" +
+                    "   -wglob limitGlobalWrite\n" +
+                    "   -rglob limitGlobalRead\n" +
+                    "   -wsess limitSessionWrite\n" +
+                    "   -rsess limitSessionWrite");
+            return false;
         }
         return true;
     }

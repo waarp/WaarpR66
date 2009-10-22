@@ -83,9 +83,9 @@ public class RequestTransfer implements Runnable {
      * @return True if all parameters were found and correct
      */
     protected static boolean getParams(String []args) {
-        if (args.length < 3) {
+        if (args.length < 5) {
             logger
-                    .error("Needs at least 3 arguments:\n" +
+                    .error("Needs at least 5 arguments:\n" +
                             "  the XML client configuration file,\n" +
                             "  '-id' the transfer Id,\n" +
                             "  '-to' the requested host Id or '-from' the requester host Id " +
@@ -202,13 +202,16 @@ public class RequestTransfer implements Runnable {
                     ErrorCode code = sendValid(LocalPacketFactory.CANCELPACKET);
                     switch (code) {
                         case CompleteOk:
-                            logger.info("Transfer cancel requested and done: "+runner.toString());
+                            logger.info("Transfer cancel requested and done: {}",
+                                runner);
                             break;
                         case TransferOk:
-                            logger.info("Transfer cancel requested but already finished: "+runner.toString());
+                            logger.info("Transfer cancel requested but already finished: {}",
+                                runner);
                             break;
                         default:
-                            logger.info("Transfer cancel requested but internal error: "+runner.toString());
+                            logger.info("Transfer cancel requested but internal error: {}",
+                                runner);
                             break;
                     }
                 }
@@ -218,33 +221,48 @@ public class RequestTransfer implements Runnable {
                 ErrorCode code = sendValid(LocalPacketFactory.STOPPACKET);
                 switch (code) {
                     case CompleteOk:
-                        logger.info("Transfer stop requested and done: "+runner.toString());
+                        logger.info("Transfer stop requested and done: {}",runner);
                         break;
                     case TransferOk:
-                        logger.info("Transfer stop requested but already finished: "+runner.toString());
+                        logger.info("Transfer stop requested but already finished: {}",
+                                runner);
                         break;
                     default:
-                        logger.info("Transfer stop requested but internal error: "+runner.toString());
+                        logger.info("Transfer stop requested but internal error: {}",
+                                runner);
                         break;
                 }
             } else if (restart) {
                 // Restart if already stopped and not finished
                 ErrorCode code = sendValid(LocalPacketFactory.VALIDPACKET);
                 switch (code) {
+                    case QueryStillRunning:
+                        logger.info("Transfer restart requested but already active and running: {}",
+                                runner);
+                        break;
                     case Running:
-                        logger.info("Transfer restart requested but already running: "+runner.toString());
+                        logger.info("Transfer restart requested but already running: {}",
+                                runner);
                         break;
                     case PreProcessingOk:
-                        logger.info("Transfer restart requested and restarted: "+runner.toString());
+                        logger.info("Transfer restart requested and restarted: {}",
+                                runner);
                         break;
                     case CompleteOk:
-                        logger.info("Transfer restart requested but already finished: "+runner.toString());
+                        logger.info("Transfer restart requested but already finished: {}",
+                                runner);
                         break;
                     case RemoteError:
-                        logger.info("Transfer restart requested but remote error: "+runner.toString());
+                        logger.info("Transfer restart requested but remote error: {}",
+                                runner);
+                        break;
+                    case PassThroughMode:
+                        logger.info("Transfer not restarted since it is in PassThrough mode: {}",
+                                runner);
                         break;
                     default:
-                        logger.info("Transfer restart requested but internal error: "+runner.toString());
+                        logger.info("Transfer restart requested but internal error: {}",
+                                runner);
                         break;
                 }
             }
@@ -393,6 +411,10 @@ public class RequestTransfer implements Runnable {
                     }
                 } else if (srestart) {
                     switch (finalValue.code) {
+                        case QueryStillRunning:
+                            logger.warn("Transfer restart requested but already active and running:\n    "+
+                                finalValue.runner.toShortString());
+                            break;
                         case Running:
                             logger.warn("Transfer restart requested but already running:\n    "+
                                 finalValue.runner.toShortString());
@@ -407,6 +429,10 @@ public class RequestTransfer implements Runnable {
                             break;
                         case RemoteError:
                             logger.warn("Transfer restart requested but remote error:\n    "+
+                                finalValue.runner.toShortString());
+                            break;
+                        case PassThroughMode:
+                            logger.warn("Transfer not restarted since it is in PassThrough mode:\n    "+
                                 finalValue.runner.toShortString());
                             break;
                         default:

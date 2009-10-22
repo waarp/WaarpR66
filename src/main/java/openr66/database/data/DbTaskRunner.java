@@ -127,7 +127,7 @@ public class DbTaskRunner extends AbstractDbData {
     // Values
     private DbRule rule;
 
-    private final R66Session session;
+    private R66Session session;
 
     /**
      * Last step
@@ -751,6 +751,13 @@ public class DbTaskRunner extends AbstractDbData {
                 .getDbSession());
         dbTaskRunner.getValues(preparedStatement, dbTaskRunner.allFields);
         dbTaskRunner.setFromArray();
+        if (dbTaskRunner.rule == null) {
+            try {
+                dbTaskRunner.rule = new DbRule(dbTaskRunner.dbSession, dbTaskRunner.ruleId);
+            } catch (OpenR66DatabaseException e) {
+                throw new OpenR66DatabaseSqlError(e);
+            }
+        }
         dbTaskRunner.isSaved = true;
         return dbTaskRunner;
     }
@@ -901,10 +908,6 @@ public class DbTaskRunner extends AbstractDbData {
             scondition.append("( ");
             boolean hasone = false;
             if (pending) {
-                /*scondition.append(Columns.GLOBALSTEP.name());
-                scondition.append(" = ");
-                scondition.append(TASKSTEP.NOTASK.ordinal());
-                scondition.append(" OR ");*/
                 scondition.append(Columns.UPDATEDINFO.name());
                 scondition.append(" = ");
                 scondition.append(UpdatedInfo.TOSUBMIT.ordinal());
@@ -915,18 +918,6 @@ public class DbTaskRunner extends AbstractDbData {
                     scondition.append(" OR ");
                 }
                 scondition.append("( ");
-                /*scondition.append(Columns.GLOBALSTEP.name());
-                scondition.append(" = ");
-                scondition.append(TASKSTEP.PRETASK.ordinal());
-                scondition.append(" OR ");
-                scondition.append(Columns.GLOBALSTEP.name());
-                scondition.append(" = ");
-                scondition.append(TASKSTEP.TRANSFERTASK.ordinal());
-                scondition.append(" OR ");
-                scondition.append(Columns.GLOBALSTEP.name());
-                scondition.append(" = ");
-                scondition.append(TASKSTEP.POSTTASK.ordinal());
-                scondition.append(" OR ");*/
                 scondition.append(Columns.UPDATEDINFO.name());
                 scondition.append(" = ");
                 scondition.append(UpdatedInfo.RUNNING.ordinal());
@@ -1834,7 +1825,16 @@ public class DbTaskRunner extends AbstractDbData {
     private R66Future runNext() throws OpenR66RunnerErrorException,
             OpenR66RunnerEndTasksException {
         if (rule == null) {
-            throw new OpenR66RunnerErrorException("Rule Object not initialized");
+            if (ruleId != null) {
+                try {
+                    rule = new DbRule(dbSession, ruleId);
+                } catch (OpenR66DatabaseException e) {
+                    rule = null;
+                }
+            }
+            if (rule == null) {
+                throw new OpenR66RunnerErrorException("Rule Object not initialized");
+            }
         }
         switch (TASKSTEP.values()[globalstep]) {
             case PRETASK:
@@ -1933,13 +1933,18 @@ public class DbTaskRunner extends AbstractDbData {
     public void finalizeTransfer(LocalChannelReference localChannelReference, R66File file,
             R66Result finalValue, boolean status)
     throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException {
+        if (session == null) {
+            this.session = localChannelReference.getSession();
+        }
         if (status) {
             // First move the file
             if (this.isSender()) {
                 // Nothing to do since it is the original file
             } else {
                 if (!RequestPacket.isRecvThroughMode(this.getMode())) {
-                    if (this.globalstep == TASKSTEP.TRANSFERTASK.ordinal()) {
+                    if (this.globalstep == TASKSTEP.TRANSFERTASK.ordinal() ||
+                            (this.globalstep == TASKSTEP.POSTTASK.ordinal() &&
+                                    this.step == 0)) {
                         // Result file moves
                         String finalpath = R66Dir.getFinalUniqueFilename(file);
                         logger.debug("Will move file {}", finalpath);
@@ -1981,6 +1986,28 @@ public class DbTaskRunner extends AbstractDbData {
             }
             this.setPostTask();
             this.saveStatus();
+            if (this.step == 0) {
+                // File must exist
+                try {
+                    if (! file.exists()) {
+                        // error
+                        R66Result error =
+                            new R66Result(this.session, finalValue.isAnswered,
+                                    ErrorCode.FileNotFound, this);
+                        this.setErrorExecutionStatus(ErrorCode.FileNotFound);
+                        errorTransfer(error, file, localChannelReference);
+                        return;
+                    }
+                } catch (CommandAbstractException e) {
+                    // error
+                    R66Result error =
+                        new R66Result(this.session, finalValue.isAnswered,
+                                ErrorCode.FileNotFound, this);
+                    this.setErrorExecutionStatus(ErrorCode.FileNotFound);
+                    errorTransfer(error, file, localChannelReference);
+                    return;
+                }
+            }
             try {
                 this.run();
             } catch (OpenR66RunnerErrorException e1) {
@@ -2008,68 +2035,72 @@ public class DbTaskRunner extends AbstractDbData {
                 // already setup
                 return;
             }
-         // error or not ?
-            ErrorCode runnerStatus = this.getErrorInfo();
-            if (finalValue.exception != null) {
-                logger.warn("Transfer KO on " + file+ " due to "+ finalValue.exception.getMessage());
-            } else {
-                logger.warn("Transfer KO on " + file+" due to "+finalValue.toString());
-            }
-            if (runnerStatus == ErrorCode.CanceledTransfer) {
-                // delete file, reset runner
-                this.setRankAtStartup(0);
-                this.deleteTempFile();
-                this.changeUpdatedInfo(UpdatedInfo.INERROR);
-            } else if (runnerStatus == ErrorCode.StoppedTransfer) {
-                // just save runner and stop
-                this.changeUpdatedInfo(UpdatedInfo.INERROR);
-            } else if (runnerStatus == ErrorCode.Shutdown) {
-                // just save runner and stop
-                this.changeUpdatedInfo(UpdatedInfo.INERROR);
-            } else {
-                if (this.globalstep != TASKSTEP.ERRORTASK.ordinal()) {
-                    // errorstep was not already executed
-                    // real error
-                    this.setErrorTask();
-                    this.saveStatus();
-                    try {
-                        this.run();
-                    } catch (OpenR66RunnerErrorException e1) {
-                        this.changeUpdatedInfo(UpdatedInfo.INERROR);
-                        this.setErrorExecutionStatus(runnerStatus);
-                        this.saveStatus();
-                        if (localChannelReference != null) {
-                            localChannelReference.invalidateRequest(finalValue);
-                        }
-                        throw e1;
-                    }
-                }
-                this.changeUpdatedInfo(UpdatedInfo.INERROR);
-                if (RequestPacket.isRecvThroughMode(this.getMode()) ||
-                        RequestPacket.isSendThroughMode(this.getMode())) {
-                    // delete the task since cannot be redone
-                    logger.error("Through Mode so delete: {}", this);
-                    try {
-                        this.delete();
-                    } catch (OpenR66DatabaseException e) {
-                    }
+            errorTransfer(finalValue, file, localChannelReference);
+        }
+    }
+    /**
+     * Finalize a transfer in error
+     * @param finalValue
+     * @param file
+     * @param localChannelReference
+     * @throws OpenR66RunnerErrorException
+     */
+    private void errorTransfer(R66Result finalValue, R66File file,
+            LocalChannelReference localChannelReference) throws OpenR66RunnerErrorException {
+        // error or not ?
+        ErrorCode runnerStatus = this.getErrorInfo();
+        if (finalValue.exception != null) {
+            logger.warn("Transfer KO on " + file+ " due to "+ finalValue.exception.getMessage());
+        } else {
+            logger.warn("Transfer KO on " + file+" due to "+finalValue.toString());
+        }
+        if (runnerStatus == ErrorCode.CanceledTransfer) {
+            // delete file, reset runner
+            this.setRankAtStartup(0);
+            this.deleteTempFile();
+            this.changeUpdatedInfo(UpdatedInfo.INERROR);
+        } else if (runnerStatus == ErrorCode.StoppedTransfer) {
+            // just save runner and stop
+            this.changeUpdatedInfo(UpdatedInfo.INERROR);
+        } else if (runnerStatus == ErrorCode.Shutdown) {
+            // just save runner and stop
+            this.changeUpdatedInfo(UpdatedInfo.INERROR);
+        } else {
+            if (this.globalstep != TASKSTEP.ERRORTASK.ordinal()) {
+                // errorstep was not already executed
+                // real error
+                this.setErrorTask();
+                this.saveStatus();
+                try {
+                    this.run();
+                } catch (OpenR66RunnerErrorException e1) {
+                    this.changeUpdatedInfo(UpdatedInfo.INERROR);
                     this.setErrorExecutionStatus(runnerStatus);
                     this.saveStatus();
                     if (localChannelReference != null) {
                         localChannelReference.invalidateRequest(finalValue);
                     }
-                    return;
+                    throw e1;
                 }
             }
-            // re set the original status
-            this.setErrorExecutionStatus(runnerStatus);
-            this.saveStatus();
-            if (localChannelReference != null) {
-                localChannelReference.invalidateRequest(finalValue);
+            this.changeUpdatedInfo(UpdatedInfo.INERROR);
+            if (RequestPacket.isRecvThroughMode(this.getMode()) ||
+                    RequestPacket.isSendThroughMode(this.getMode())) {
+                this.setErrorExecutionStatus(runnerStatus);
+                this.saveStatus();
+                if (localChannelReference != null) {
+                    localChannelReference.invalidateRequest(finalValue);
+                }
+                return;
             }
         }
+        // re set the original status
+        this.setErrorExecutionStatus(runnerStatus);
+        this.saveStatus();
+        if (localChannelReference != null) {
+            localChannelReference.invalidateRequest(finalValue);
+        }
     }
-
     /**
      * Increment the rank of the transfer
      * @throws OpenR66ProtocolPacketException

@@ -24,7 +24,6 @@ import openr66.database.DbConstant;
 import openr66.database.DbPreparedStatement;
 import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
-import openr66.database.data.DbTaskRunner.TASKSTEP;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
@@ -65,6 +64,7 @@ import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.utils.ChannelUtils;
 import openr66.protocol.utils.FileUtils;
 import openr66.protocol.utils.R66Future;
+import openr66.protocol.utils.TransferUtils;
 
 import org.dom4j.Document;
 import org.jboss.netty.channel.Channel;
@@ -94,15 +94,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
     /**
      * Session
      */
-    private R66Session session;
-    /**
-     * Status of the current request
-     */
-    private boolean status = false;
+    private volatile R66Session session;
     /**
      * Local Channel Reference
      */
-    private LocalChannelReference localChannelReference;
+    private volatile LocalChannelReference localChannelReference;
 
     /*
      * (non-Javadoc)
@@ -114,9 +110,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
      */
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) {
-        logger.info("Local Server Channel Closed: " +
-                status +
-                " {} {}",
+        logger.info("Local Server Channel Closed: {} {}",
                 (localChannelReference != null? localChannelReference
                         : "no LocalChannelReference"), (session.getRunner() != null ?
                             session.getRunner().toShortString() : "no runner"));
@@ -320,7 +314,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 if (localChannelReference != null) {
                     R66Result finalValue = new R66Result(exception, session, true,
                             ErrorCode.Shutdown, session.getRunner());
-                    status = true;
                     try {
                         tryFinalizeRequest(finalValue);
                     } catch (OpenR66RunnerErrorException e2) {
@@ -532,9 +525,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         }
         R66Result result = new R66Result(session, true, ErrorCode.InitOk, null);
         localChannelReference.validateConnection(true, result);
-        logger.info("Local Server Channel Validated: " +
-                status +
-                " {} ",
+        logger.info("Local Server Channel Validated: {} ",
                 (localChannelReference != null? localChannelReference
                         : "no LocalChannelReference"));
         session.setStatus(44);
@@ -1102,7 +1093,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 } catch (OpenR66ProtocolPacketException e) {
                     // ignore
                 }
-                status = true;
                 // Finish with post Operation
                 R66Result result = new R66Result(session, false,
                         ErrorCode.TransferOk, session.getRunner());
@@ -1119,7 +1109,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
         } else {
             if (!localChannelReference.getFutureRequest().isDone()) {
                 // Validation of end of transfer
-                status = true;
                 R66Result result = new R66Result(session, false,
                         ErrorCode.TransferOk, session.getRunner());
                 session.setFinalizeTransfer(true, result);
@@ -1463,46 +1452,31 @@ public class LocalServerHandler extends SimpleChannelHandler {
             case LocalPacketFactory.VALIDPACKET: {
                 // Try to validate a restarting transfer
                 // header = ?; middle = requested+blank+requester+blank+specialId
-                LocalChannelReference lcr =
-                    Configuration.configuration.getLocalTransaction().
-                    getFromRequest(packet.getSmiddle());
-                R66Result resulttest;
-                ErrorCode code;
-                if (lcr != null) {
-                    code = ErrorCode.Running;
-                    resulttest = new R66Result(session, true,
-                            code, null);
-                } else {
-                    // Transfer is not running
-                    // but maybe need action on database
-                    String [] keys = packet.getSmiddle().split(" ");
-                    long id = Long.parseLong(keys[2]);
-                    DbTaskRunner taskRunner = null;
-                    try {
-                        taskRunner =
-                            new DbTaskRunner(localChannelReference.getDbSession(), session,
-                                    null, id, keys[1], keys[0]);
-                        if (taskRunner.restart(true)) {
-                            code = ErrorCode.PreProcessingOk;
-                        } else {
-                            if (taskRunner.isSelfRequested() &&
-                                    (taskRunner.getGloballaststep() < TASKSTEP.POSTTASK.ordinal())) {
-                                code = ErrorCode.RemoteError;
-                            } else {
-                                code = ErrorCode.CompleteOk;
-                            }
-                        }
-                    } catch (OpenR66DatabaseException e) {
-                        code = ErrorCode.RemoteError;
-                    }
-                    resulttest = new R66Result(session, true,
-                            code, taskRunner);
+                String [] keys = packet.getSmiddle().split(" ");
+                long id = Long.parseLong(keys[2]);
+                DbTaskRunner taskRunner = null;
+                ValidPacket valid;
+                try {
+                    taskRunner = new DbTaskRunner(localChannelReference.getDbSession(), session,
+                            null, id, keys[1], keys[0]);
+                    LocalChannelReference lcr =
+                        Configuration.configuration.getLocalTransaction().
+                        getFromRequest(packet.getSmiddle());
+                    R66Result resulttest = TransferUtils.restartTransfer(taskRunner, lcr);
+                    valid = new ValidPacket(packet.getSmiddle(), resulttest.code.getCode(),
+                            LocalPacketFactory.REQUESTUSERPACKET);
+                    resulttest.other = packet;
+                    localChannelReference.validateRequest(resulttest);
+                } catch (OpenR66DatabaseException e1) {
+                    valid = new ValidPacket(packet.getSmiddle(),
+                            ErrorCode.Internal.getCode(),
+                            LocalPacketFactory.REQUESTUSERPACKET);
+                    R66Result resulttest = new R66Result(e1, session, true,
+                            ErrorCode.Internal, taskRunner);
+                    resulttest.other = packet;
+                    localChannelReference.invalidateRequest(resulttest);
                 }
                 // inform back the requester
-                ValidPacket valid = new ValidPacket(packet.getSmiddle(), resulttest.code.getCode(),
-                        LocalPacketFactory.REQUESTUSERPACKET);
-                resulttest.other = packet;
-                localChannelReference.validateRequest(resulttest);
                 try {
                     ChannelUtils.writeAbstractLocalPacket(localChannelReference,
                             valid).awaitUninterruptibly();
@@ -1576,7 +1550,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
         logger.info("Valid Request {} {}",
                 localChannelReference,
                 packet);
-        status = true;
         if (!localChannelReference.getFutureRequest().isDone()) {
             // end of request
             R66Future transfer = localChannelReference.getFutureEndTransfer();
@@ -1628,6 +1601,5 @@ public class LocalServerHandler extends SimpleChannelHandler {
     private void tryFinalizeRequest(R66Result errorValue)
     throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException {
         session.tryFinalizeRequest(errorValue);
-        status = true;
     }
 }

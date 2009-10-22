@@ -1,4 +1,4 @@
 echo Start R66Command
-. /appli/R66/bin/setvar6.sh
+. /appli/R66/ENVR66
 ${JAVARUNCLIENT} $* 
 echo R66Command stopped

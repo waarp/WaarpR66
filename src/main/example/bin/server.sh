@@ -1,5 +1,5 @@
 echo Start R66Server
-. /appli/R66/bin/setvar6.sh
-nohup ${JAVARUNSERVER} openr66.server.R66Server /appli/R66/conf/config`hostname`.xml 0</dev/null 2>&1 >> /appli/R66/log/R66Server.log &
-echo $! > /appli/R66/bin/lastpid
+. /appli/R66/ENVR66
+nohup ${JAVARUNSERVER} openr66.server.R66Server ${GGHOME}/conf/config`hostname`.xml 0</dev/null 2>&1 >> ${GGHOME}/log/R66Server.log &
+echo $! > ${GGHOME}/log/lastpid
 echo R66Server started

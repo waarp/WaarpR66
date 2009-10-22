@@ -43,7 +43,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
     /**
      * Local Channel Reference
      */
-    private LocalChannelReference localChannelReference = null;
+    private volatile LocalChannelReference localChannelReference = null;
 
     /*
      * (non-Javadoc)

@@ -64,7 +64,11 @@ public class ServerInitDatabase {
 
     protected static boolean getParams(String [] args) {
         if (args.length < 1) {
-            logger.error("Need at least the configuration file as first argument");
+            logger.error("Need at least the configuration file as first argument then optionally\n" +
+            		"    -initdb\n" +
+            		"    -dir directory for rules configuration\n" +
+            		"    -limit xmlfile containing limit of bandwidth\n" +
+            		"    -auth xml file containing the authentication of hosts");
             return false;
         }
         sxml = args[0];
@@ -97,9 +101,11 @@ public class ServerInitDatabase {
             logger = GgInternalLoggerFactory.getLogger(SubmitTransfer.class);
         }
         if (! getParams(args)) {
-            logger.error("Need at least config_database file " +
-                    "and optionaly (in that order) rules_directory host_authent_file " +
-                    "limit_configuration_file");
+            logger.error("Need at least the configuration file as first argument then optionally\n" +
+                    "    -initdb\n" +
+                    "    -dir directory for rules configuration\n" +
+                    "    -limit xmlfile containing limit of bandwidth\n" +
+                    "    -auth xml file containing the authentication of hosts");
             if (DbConstant.admin != null && DbConstant.admin.isConnected) {
                 DbConstant.admin.close();
             }

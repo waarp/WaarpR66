@@ -82,16 +82,6 @@ public class RetrieveRunner extends Thread {
      */
     public void stopRunner() {
         running.set(false);
-        /*boolean isinterrupted = false;
-        try {
-            Thread.sleep(Configuration.WAITFORNETOP);
-        } catch (InterruptedException e) {
-            isinterrupted = true;
-        }
-        this.interrupt();
-        if (isinterrupted) {
-            Thread.currentThread().interrupt();
-        }*/
     }
     /*
      * (non-Javadoc)
