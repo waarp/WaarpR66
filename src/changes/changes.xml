@@ -8,6 +8,7 @@
 		<release version="0.6.4" date="2009-10-22" description="Refactorization and cleaning">
 			<action dev="Frederic Bregier" type="fix">Refactorization</action>
 			<action dev="Frederic Bregier" type="fix">Cleaning</action>
+			<action dev="Frederic Bregier" type="fix">Common to 1.0.3</action>
 		</release>
 		<release version="0.6.3" date="2009-10-21" description="Fix due to benchmark and qualification">
 			<action dev="Frederic Bregier" type="fix">Fix Administrator</action>

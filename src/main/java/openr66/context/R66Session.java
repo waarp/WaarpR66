@@ -323,7 +323,13 @@ public class R66Session implements SessionInterface {
                     // no test on file since it does not really exist
                     logger.info("File is in through mode: {}", file);
                 } else if (!file.canRead()) {
-                    throw new OpenR66RunnerErrorException("File cannot be read");
+                 // file is not under normal base directory, so is external
+                    // File should already exist but can be using special code ('*?')
+                    file = new R66File(this, dir, this.runner.getFilename());
+                    if (!file.canRead()) {
+                        throw new OpenR66RunnerErrorException("File cannot be read: "+
+                            file.getTrueFile().getAbsolutePath());
+                    }
                 }
             } catch (CommandAbstractException e) {
                 throw new OpenR66RunnerErrorException(e);
