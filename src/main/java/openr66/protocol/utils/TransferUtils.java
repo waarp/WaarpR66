@@ -30,7 +30,6 @@ import openr66.client.RequestTransfer;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
-import openr66.context.filesystem.R66Dir;
 import openr66.context.filesystem.R66File;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.DbPreparedStatement;
@@ -195,11 +194,16 @@ public class TransferUtils {
                     result = ErrorCode.StoppedTransfer;
                 } else {
                     // Transfer is not running
-                    // But is the database saying the contrary
-                    result = ErrorCode.TransferError;
-                    if (taskRunner != null) {
-                        if (taskRunner.stopOrCancelRunner(code)) {
-                            result = ErrorCode.StoppedTransfer;
+                    // if in ERROR already just ignore it
+                    if (taskRunner.getUpdatedInfo() == UpdatedInfo.INERROR) {
+                        result = ErrorCode.TransferError;
+                    } else {
+                        // the database saying it is not stopped
+                        result = ErrorCode.TransferError;
+                        if (taskRunner != null) {
+                            if (taskRunner.stopOrCancelRunner(code)) {
+                                result = ErrorCode.StoppedTransfer;
+                            }
                         }
                     }
                 }
@@ -237,25 +241,40 @@ public class TransferUtils {
                 taskRunner.getRequester() :
                     taskRunner.getRequested();
         session.getAuth().specialNoSessionAuth(false, remoteId);
-        R66File file;
+        session.setNoSessionRunner(taskRunner);
+        session.setLocalChannelReference(localChannelReference);
+        if (taskRunner.isSender()) {
+            // Change dir
+            try {
+                session.getDir().changeDirectory(taskRunner.getRule().sendPath);
+            } catch (CommandAbstractException e) {
+                throw new OpenR66RunnerErrorException(e);
+            }
+        } else {
+            // Change dir
+            try {
+                session.getDir().changeDirectory(taskRunner.getRule().workPath);
+            } catch (CommandAbstractException e) {
+                throw new OpenR66RunnerErrorException(e);
+            }
+        }
         try {
-            file = new R66File(session,
-                    new R66Dir(session), taskRunner.getFilename(), false);
-        } catch (CommandAbstractException e) {
+            session.setFileAfterPreRunner(false);
+        } catch (OpenR66RunnerErrorException e) {
             logger.warn("Cannot recreate file: {}",taskRunner.getFilename());
             taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);
-            taskRunner.setErrorExecutionStatus(ErrorCode.Internal);
+            taskRunner.setErrorExecutionStatus(ErrorCode.FileNotFound);
             try {
                 taskRunner.update();
             } catch (OpenR66DatabaseException e1) {
             }
             throw new OpenR66RunnerErrorException("Cannot recreate file", e);
         }
-        session.setNoSessionRunner(taskRunner, file);
-        session.setLocalChannelReference(localChannelReference);
+        R66File file = session.getFile();
         R66Result finalValue = new R66Result(null, true, ErrorCode.CompleteOk, taskRunner);
         finalValue.file = file;
         finalValue.runner = taskRunner;
+        taskRunner.finishTransferTask(ErrorCode.TransferOk);
         try {
             taskRunner.finalizeTransfer(localChannelReference, file, finalValue, true);
         } catch (OpenR66ProtocolSystemException e) {

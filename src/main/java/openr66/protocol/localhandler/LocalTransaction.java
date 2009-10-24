@@ -219,7 +219,7 @@ public class LocalTransaction {
                 }
                 if (future.isSuccess()) {
                     return localChannelHashMap.get(id);
-                } else if (future.isCancelled()) {
+                } else if (future.isFailed()) {
                     return null;
                 }
             } else {
@@ -363,11 +363,6 @@ public class LocalTransaction {
                             ErrorCode.Shutdown, runner);
                     result.other = packet;
                     try {
-                        session.setFinalizeTransfer(false, result);
-                    } catch (OpenR66RunnerErrorException e) {
-                    } catch (OpenR66ProtocolSystemException e) {
-                    }
-                    try {
                         buffer = packet.getLocalPacket();
                     } catch (OpenR66ProtocolPacketException e1) {
                     }
@@ -376,6 +371,11 @@ public class LocalTransaction {
                             .getType(), buffer);
                     Channels.write(localChannelReference.getNetworkChannel(), message)
                         .awaitUninterruptibly();
+                    try {
+                        session.setFinalizeTransfer(false, result);
+                    } catch (OpenR66RunnerErrorException e) {
+                    } catch (OpenR66ProtocolSystemException e) {
+                    }
                     ChannelUtils.close(localChannelReference.getLocalChannel());
                     return;
                 }

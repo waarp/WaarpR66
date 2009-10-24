@@ -68,10 +68,6 @@ public class LocalChannelReference {
      */
     private Integer remoteId;
     /**
-     * Says that request is done but waiting for EndRequest
-     */
-    private boolean requestDone = false;
-    /**
      * Future on Request
      */
     private final R66Future futureRequest;
@@ -270,40 +266,6 @@ public class LocalChannelReference {
         }
         return futureConnection;
     }
-
-    /**
-     * Invalidate the current request
-     *
-     * @param finalValue
-     */
-    public void invalidateRequest(R66Result finalValue) {
-        if (!futureEndTransfer.isDone()) {
-            futureEndTransfer.setResult(finalValue);
-            if (finalValue.exception != null) {
-                futureEndTransfer.setFailure(finalValue.exception);
-            } else {
-                futureEndTransfer.cancel();
-            }
-        }
-        if (!futureRequest.isDone()) {
-            futureRequest.setResult(finalValue);
-            if (finalValue.exception != null) {
-                futureRequest.setFailure(finalValue.exception);
-            } else {
-                futureRequest.cancel();
-            }
-        } else {
-            logger.info("Could not invalidate since Already finished: " + futureEndTransfer.getResult());
-        }
-        if (this.session != null) {
-            DbTaskRunner runner = this.session.getRunner();
-            if (runner != null) {
-                if (runner.isSender()) {
-                    NetworkTransaction.stopRetrieve(this);
-                }
-            }
-        }
-    }
     /**
      * Validate the End of a Transfer
      * @param finalValue
@@ -351,18 +313,39 @@ public class LocalChannelReference {
     public R66Future getFutureRequest() {
         return futureRequest;
     }
+
     /**
-     * Set the request as done but still waiting if possible the EndRequest
-     */
-    public void RequestIsDone() {
-        this.requestDone = true;
-    }
-    /**
+     * Invalidate the current request
      *
-     * @return True if the request was in a correct status
+     * @param finalValue
      */
-    public boolean isRequestDone() {
-        return this.requestDone;
+    public void invalidateRequest(R66Result finalValue) {
+        if (!futureEndTransfer.isDone()) {
+            futureEndTransfer.setResult(finalValue);
+            if (finalValue.exception != null) {
+                futureEndTransfer.setFailure(finalValue.exception);
+            } else {
+                futureEndTransfer.cancel();
+            }
+        }
+        if (!futureRequest.isDone()) {
+            futureRequest.setResult(finalValue);
+            if (finalValue.exception != null) {
+                futureRequest.setFailure(finalValue.exception);
+            } else {
+                futureRequest.cancel();
+            }
+        } else {
+            logger.info("Could not invalidate since Already finished: " + futureEndTransfer.getResult());
+        }
+        if (this.session != null) {
+            DbTaskRunner runner = this.session.getRunner();
+            if (runner != null) {
+                if (runner.isSender()) {
+                    NetworkTransaction.stopRetrieve(this);
+                }
+            }
+        }
     }
     /**
      * Validate the current Request

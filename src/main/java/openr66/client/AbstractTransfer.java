@@ -138,6 +138,9 @@ public abstract class AbstractTransfer implements Runnable {
                 i++;
             }
         }
+        if (fileInfo == null) {
+            fileInfo = "noinfo";
+        }
         if (rhost != null && rule != null && localFilename != null) {
             return true;
         }

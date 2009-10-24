@@ -36,6 +36,7 @@ import openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
 import openr66.protocol.exception.OpenR66ProtocolBusinessQueryAlreadyFinishedException;
 import openr66.protocol.exception.OpenR66ProtocolBusinessQueryStillRunningException;
+import openr66.protocol.exception.OpenR66ProtocolBusinessRemoteFileNotFoundException;
 import openr66.protocol.exception.OpenR66ProtocolBusinessStopException;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
@@ -190,10 +191,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
             if (localChannelReference == null) {
                 logger.error("No LocalChannelReference at " +
                         packet.getClass().getName());
-                localChannelReference.invalidateRequest(new R66Result(
-                        new OpenR66ProtocolSystemException(
-                                "No LocalChannelReference"), session, true,
-                        ErrorCode.ConnectionImpossible, null));
                 final ErrorPacket errorPacket = new ErrorPacket(
                         "No LocalChannelReference at " +
                                 packet.getClass().getName(),
@@ -201,6 +198,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         ErrorPacket.FORWARDCLOSECODE);
                 Channels.write(e.getChannel(), errorPacket)
                         .awaitUninterruptibly();
+                localChannelReference.invalidateRequest(new R66Result(
+                        new OpenR66ProtocolSystemException(
+                                "No LocalChannelReference"), session, true,
+                        ErrorCode.ConnectionImpossible, null));
                 ChannelUtils.close(e.getChannel());
                 return;
             }
@@ -378,6 +379,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     Channels.close(e.getChannel());
                     session.setStatus(56);
                     return;
+                } else if (exception instanceof OpenR66ProtocolBusinessRemoteFileNotFoundException) {
+                    code = ErrorCode.FileNotFound;
                 } else if (exception instanceof OpenR66RunnerException) {
                     code = ErrorCode.ExternalOp;
                 } else if (exception instanceof OpenR66ProtocolNotAuthenticatedException) {
@@ -466,10 +469,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
             R66Result result = new R66Result(
                     new OpenR66ProtocolNotAuthenticatedException(), session, true,
                     ErrorCode.ConnectionImpossible, null);
-            localChannelReference.invalidateRequest(result);
             ErrorPacket error = new ErrorPacket("Cannot startup connection",
                     ErrorCode.ConnectionImpossible.getCode(), ErrorPacket.FORWARDCLOSECODE);
             Channels.write(channel, error).awaitUninterruptibly();
+            localChannelReference.invalidateRequest(result);
             // Cannot do writeBack(error, true);
             ChannelUtils.close(channel);
             session.setStatus(40);
@@ -604,13 +607,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
             }
             R66Result result = new R66Result(exception, session,
                     true, code, runner);
-            session.setFinalizeTransfer(false, result);
             // now try to inform other
             try {
                 ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet).
                     addListener(new RunnerChannelFutureListener(localChannelReference, result));
             } catch (OpenR66ProtocolPacketException e) {
             }
+            session.setFinalizeTransfer(false, result);
             return;
         } else if (code.code == ErrorCode.StoppedTransfer.code) {
             exception =
@@ -627,13 +630,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
             }
             R66Result result = new R66Result(exception, session,
                     true, code, runner);
-            session.setFinalizeTransfer(false, result);
             // now try to inform other
             try {
                 ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet).
                     addListener(new RunnerChannelFutureListener(localChannelReference, result));
             } catch (OpenR66ProtocolPacketException e) {
             }
+            session.setFinalizeTransfer(false, result);
             return;
         } else if (code.code == ErrorCode.QueryAlreadyFinished.code) {
             DbTaskRunner runner = session.getRunner();
@@ -662,6 +665,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
         } else if (code.code == ErrorCode.QueryRemotelyUnknown.code) {
             exception =
                 new OpenR66ProtocolBusinessCancelException(packet.toString());
+        } else if (code.code == ErrorCode.FileNotFound.code) {
+            exception =
+                new OpenR66ProtocolBusinessRemoteFileNotFoundException(packet.toString());
         } else {
             exception =
                 new OpenR66ProtocolBusinessNoWriteBackException(packet.toString());
@@ -848,12 +854,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     runner.getErrorInfo() == ErrorCode.TransferOk) {
                 runner.setErrorExecutionStatus(ErrorCode.ExternalOp);
             }
-            logger.error("PreTask in error", e);
-            localChannelReference.invalidateRequest(new R66Result(e, session,
-                    true, runner.getErrorInfo(), runner));
+            logger.error("PreTask in error {}", e.getMessage());
             ErrorPacket error = new ErrorPacket("PreTask in error: "+e
                     .getMessage(), runner.getErrorInfo().getCode(), ErrorPacket.FORWARDCLOSECODE);
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
+            localChannelReference.invalidateRequest(new R66Result(e, session,
+                    true, runner.getErrorInfo(), runner));
             try {
                 session.setFinalizeTransfer(false, new R66Result(e, session,
                         true, runner.getErrorInfo(), runner));
@@ -918,11 +924,14 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     "Not in receive MODE but receive a packet");
         }
         if (! session.getRunner().continueTransfer()) {
-            if (localChannelReference.getFutureEndTransfer().isCancelled()) {
+            if (localChannelReference.getFutureEndTransfer().isFailed()) {
                 // nothing to do since already done
                 session.setStatus(94);
                 return;
             }
+            ErrorPacket error = new ErrorPacket("Transfer in error due previously aborted transmission",
+                    ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
             try {
                 session.setFinalizeTransfer(false, new R66Result(
                         new OpenR66ProtocolPacketException(
@@ -931,9 +940,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
             } catch (OpenR66RunnerErrorException e1) {
             } catch (OpenR66ProtocolSystemException e1) {
             }
-            ErrorPacket error = new ErrorPacket("Transfer in error due previously aborted transmission",
-                    ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
-            ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
             session.setStatus(95);
             ChannelUtils.close(channel);
             return;
@@ -1097,7 +1103,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 R66Result result = new R66Result(session, false,
                         ErrorCode.TransferOk, session.getRunner());
                 session.setFinalizeTransfer(true, result);
-
             } else {
                 // in error due to a previous status (like bad MD5)
                 logger
@@ -1553,13 +1558,20 @@ public class LocalServerHandler extends SimpleChannelHandler {
         if (!localChannelReference.getFutureRequest().isDone()) {
             // end of request
             R66Future transfer = localChannelReference.getFutureEndTransfer();
-            localChannelReference.validateRequest(transfer.getResult());
+            try {
+                transfer.await();
+            } catch (InterruptedException e) {
+            }
+            if (transfer.isSuccess()) {
+                localChannelReference.validateRequest(transfer.getResult());
+            }
         }
         session.setStatus(1);
         if (packet.isToValidate()) {
             packet.validate();
             try {
-                ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet).awaitUninterruptibly();
+                ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+                        packet).awaitUninterruptibly();
             } catch (OpenR66ProtocolPacketException e) {
             }
         }

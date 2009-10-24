@@ -251,11 +251,140 @@ public class R66Session implements SessionInterface {
     /**
      * To be called in case of No Session not from a valid LocalChannelHandler
      * @param runner
-     * @param file
      */
-    public void setNoSessionRunner(DbTaskRunner runner, R66File file) {
+    public void setNoSessionRunner(DbTaskRunner runner) {
         this.runner = runner;
-        this.file = file;
+    }
+    /**
+     * Set the File from the runner before PRE operation are done
+     * @throws OpenR66RunnerErrorException
+     */
+    public void setFileBeforePreRunner() throws OpenR66RunnerErrorException {
+        // check first if the next step is the PRE task from beginning
+        String filename;
+        if (this.runner.isPreTaskStarting()) {
+            filename = this.runner.getOriginalFilename();
+        } else {
+            filename = this.runner.getFilename();
+        }
+        if (this.runner.isSender()) {
+            try {
+                if (file == null) {
+                    try {
+                        file = (R66File) dir.setFile(filename, false);
+                    } catch (CommandAbstractException e) {
+                        // file is not under normal base directory, so is external
+                        // File should already exist but can be using special code ('*?')
+                        file = new R66File(this, dir, filename);
+                    }
+                }
+                if (RequestPacket.isSendThroughMode(this.runner.getMode())) {
+                    // no test on file since it does not really exist
+                    logger.info("File is in through mode: {}", file);
+                } else if (!file.canRead()) {
+                 // file is not under normal base directory, so is external
+                    // File should already exist but can be using special code ('*?')
+                    file = new R66File(this, dir, filename);
+                    if (!file.canRead()) {
+                        this.runner.setErrorExecutionStatus(ErrorCode.FileNotFound);
+                        throw new OpenR66RunnerErrorException("File cannot be read: "+
+                            file.getTrueFile().getAbsolutePath());
+                    }
+                }
+            } catch (CommandAbstractException e) {
+                throw new OpenR66RunnerErrorException(e);
+            }
+        } else {
+            // not sender so file is just registered as is but no test of existence
+            file = new R66File(this, dir, filename);
+        }
+    }
+
+    /**
+     * Set the File from the runner once PRE operation are done
+     * @param createFile When True, the file can be newly created if needed.
+     *  If False, no new file will be created, thus having an Exception.
+     * @throws OpenR66RunnerErrorException
+     */
+    public void setFileAfterPreRunner(boolean createFile) throws OpenR66RunnerErrorException {
+        // Now create the associated file
+        if (this.runner.isSender()) {
+            try {
+                if (file == null) {
+                    try {
+                        file = (R66File) dir.setFile(this.runner.getFilename(),
+                            false);
+                    } catch (CommandAbstractException e) {
+                        // file is not under normal base directory, so is external
+                        // File should already exist but can be using special code ('*?')
+                        file = new R66File(this, dir, this.runner.getFilename());
+                    }
+                }
+                if (RequestPacket.isSendThroughMode(this.runner.getMode())) {
+                    // no test on file since it does not really exist
+                    logger.info("File is in through mode: {}", file);
+                } else if (!file.canRead()) {
+                 // file is not under normal base directory, so is external
+                    // File should already exist but can be using special code ('*?')
+                    file = new R66File(this, dir, this.runner.getFilename());
+                    if (!file.canRead()) {
+                        this.runner.setErrorExecutionStatus(ErrorCode.FileNotFound);
+                        throw new OpenR66RunnerErrorException("File cannot be read: "+
+                            file.getTrueFile().getAbsolutePath());
+                    }
+                }
+            } catch (CommandAbstractException e) {
+                throw new OpenR66RunnerErrorException(e);
+            }
+        } else {
+            // File should not exist except if restart
+            if (runner.getRank() > 0) {
+                // Filename should be get back from runner load from database
+                try {
+                    file = (R66File) dir.setFile(this.runner
+                            .getFilename(), true);
+                    if (RequestPacket.isRecvThroughMode(this.runner.getMode())) {
+                        // no test on file since it does not really exist
+                        logger.info("File is in through mode: {}", file);
+                    } else if (!file.canWrite()) {
+                        throw new OpenR66RunnerErrorException(
+                                "File cannot be write");
+                    }
+                } catch (CommandAbstractException e) {
+                    throw new OpenR66RunnerErrorException(e);
+                }
+            } else {
+                // New FILENAME if necessary and store it
+                if (createFile) {
+                    file = null;
+                    try {
+                        file = dir.setUniqueFile(this.runner.getSpecialId(),
+                                this.runner.getOriginalFilename());
+                        if (RequestPacket.isRecvThroughMode(this.runner.getMode())) {
+                            // no test on file since it does not really exist
+                            logger.info("File is in through mode: {}", file);
+                            this.runner.deleteTempFile();
+                        } else if (!file.canWrite()) {
+                            this.runner.deleteTempFile();
+                            throw new OpenR66RunnerErrorException(
+                                    "File cannot be write");
+                        }
+                    } catch (CommandAbstractException e) {
+                        this.runner.deleteTempFile();
+                        throw new OpenR66RunnerErrorException(e);
+                    }
+                } else {
+                    throw new OpenR66RunnerErrorException("No file created");
+                }
+            }
+        }
+        // Store TRUEFILENAME
+        try {
+            this.runner.setFilename(file.getFile());
+        } catch (CommandAbstractException e) {
+            this.runner.deleteTempFile();
+            throw new OpenR66RunnerErrorException(e);
+        }
     }
     /**
      * Set the runner, START from the PreTask if necessary, and prepare the file
@@ -288,14 +417,7 @@ public class R66Session implements SessionInterface {
         }
         if (runner.getGloballaststep() == TASKSTEP.NOTASK.ordinal() ||
                 runner.getGloballaststep() == TASKSTEP.PRETASK.ordinal()) {
-            try {
-                file = (R66File) dir.setFile(this.runner.getFilename(),
-                    false);
-            } catch (CommandAbstractException e) {
-                // file is not under normal base directory, so is external
-                // File should already exist but can be using special code ('*?')
-                file = new R66File(this, dir, this.runner.getOriginalFilename());
-            }
+            setFileBeforePreRunner();
             this.runner.setPreTask();
             runner.saveStatus();
             this.runner.run();
@@ -307,78 +429,7 @@ public class R66Session implements SessionInterface {
             runner.saveStatus();
         }
         // Now create the associated file
-        if (this.runner.isSender()) {
-            try {
-                if (file == null) {
-                    try {
-                        file = (R66File) dir.setFile(this.runner.getFilename(),
-                            false);
-                    } catch (CommandAbstractException e) {
-                        // file is not under normal base directory, so is external
-                        // File should already exist but can be using special code ('*?')
-                        file = new R66File(this, dir, this.runner.getFilename());
-                    }
-                }
-                if (RequestPacket.isSendThroughMode(this.runner.getMode())) {
-                    // no test on file since it does not really exist
-                    logger.info("File is in through mode: {}", file);
-                } else if (!file.canRead()) {
-                 // file is not under normal base directory, so is external
-                    // File should already exist but can be using special code ('*?')
-                    file = new R66File(this, dir, this.runner.getFilename());
-                    if (!file.canRead()) {
-                        throw new OpenR66RunnerErrorException("File cannot be read: "+
-                            file.getTrueFile().getAbsolutePath());
-                    }
-                }
-            } catch (CommandAbstractException e) {
-                throw new OpenR66RunnerErrorException(e);
-            }
-        } else {
-            // File should not exist except if restart
-            if (runner.getRank() > 0) {
-                // Filename should be get back from runner load from database
-                try {
-                    file = (R66File) dir.setFile(this.runner
-                            .getFilename(), true);
-                    if (RequestPacket.isRecvThroughMode(this.runner.getMode())) {
-                        // no test on file since it does not really exist
-                        logger.info("File is in through mode: {}", file);
-                    } else if (!file.canWrite()) {
-                        throw new OpenR66RunnerErrorException(
-                                "File cannot be write");
-                    }
-                } catch (CommandAbstractException e) {
-                    throw new OpenR66RunnerErrorException(e);
-                }
-            } else {
-                // New FILENAME if necessary and store it
-                file = null;
-                try {
-                    file = dir.setUniqueFile(this.runner.getSpecialId(),
-                            this.runner.getOriginalFilename());
-                    if (RequestPacket.isRecvThroughMode(this.runner.getMode())) {
-                        // no test on file since it does not really exist
-                        logger.info("File is in through mode: {}", file);
-                        this.runner.deleteTempFile();
-                    } else if (!file.canWrite()) {
-                        this.runner.deleteTempFile();
-                        throw new OpenR66RunnerErrorException(
-                                "File cannot be write");
-                    }
-                } catch (CommandAbstractException e) {
-                    this.runner.deleteTempFile();
-                    throw new OpenR66RunnerErrorException(e);
-                }
-            }
-        }
-        // Store TRUEFILENAME
-        try {
-            this.runner.setFilename(file.getFile());
-        } catch (CommandAbstractException e) {
-            this.runner.deleteTempFile();
-            throw new OpenR66RunnerErrorException(e);
-        }
+        setFileAfterPreRunner(true);
         if (runner.getGloballaststep() == TASKSTEP.TRANSFERTASK.ordinal()) {
             try {
                 file.restartMarker(restart);
@@ -401,7 +452,6 @@ public class R66Session implements SessionInterface {
      */
     public void setFinalizeTransfer(boolean status, R66Result finalValue)
             throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException {
-        //setRunnerFromLocalChannelReference(localChannelReference);
         if (runner == null) {
             if (status) {
                 localChannelReference.validateRequest(finalValue);
@@ -413,6 +463,10 @@ public class R66Session implements SessionInterface {
         if (runner.isAllDone()) {
             logger.info("Transfer already done but " + status + " on " + file+runner.toShortString(),
                     new OpenR66RunnerErrorException(finalValue.toString()));
+            return;
+        }
+        if (localChannelReference.getFutureRequest().isDone()) {
+            // Already finished once so do nothing more
             return;
         }
         if (! status) {
@@ -444,7 +498,9 @@ public class R66Session implements SessionInterface {
             throw runnerErrorException;
         }
         try {
-            file.closeFile();
+            if (file != null) {
+                file.closeFile();
+            }
         } catch (CommandAbstractException e1) {
             R66Result result = finalValue;
             if (status) {

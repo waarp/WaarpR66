@@ -78,6 +78,9 @@ public class R66Dir extends FilesystemBasedDirImpl {
         checkIdentify();
         File file = null;
         String prename = prefix + "_";
+        if (prename.length() < 3) {
+            prename = "xx_"+prename;
+        }
         String basename = R66File.getBasename(filename);
         try {
             file = File.createTempFile(prename, "_" + basename +
@@ -131,6 +134,13 @@ public class R66Dir extends FilesystemBasedDirImpl {
             throw new Reply553Exception("Wildcards in pathname is not allowed");
         }
         File wildcardFile = new File(pathWithWildcard);
+        File rootFile;
+        initWindowsSupport();
+        if (ISUNIX) {
+            rootFile = new File("/");
+        } else {
+            rootFile = getCorrespondingRoot(wildcardFile);
+        }
         // Split wildcard path into subdirectories.
         List<String> subdirs = new ArrayList<String>();
         while (wildcardFile != null) {
@@ -140,6 +150,11 @@ public class R66Dir extends FilesystemBasedDirImpl {
                 break;
             }
             subdirs.add(0, wildcardFile.getName());
+            if (parent.equals(rootFile)) {
+                // End of wildcard path
+                subdirs.add(0, parent.getPath());
+                break;
+            }
             wildcardFile = parent;
         }
         List<File> basedPaths = new ArrayList<File>();

@@ -90,6 +90,7 @@ public class RetrieveRunner extends Thread {
      */
     @Override
     public void run() {
+        boolean requestValidDone = false;
         try {
             Thread.currentThread().setName("RetrieveRunner: " + channel.getId());
             try {
@@ -121,14 +122,14 @@ public class RetrieveRunner extends Thread {
                     localChannelReference.getFutureEndTransfer().isSuccess());
             if (localChannelReference.getFutureEndTransfer().isSuccess()) {
                 // send a validation
+                requestValidDone = true;
                 EndRequestPacket validPacket = new EndRequestPacket(ErrorCode.CompleteOk.ordinal());
                 try {
                     ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket).awaitUninterruptibly();
                 } catch (OpenR66ProtocolPacketException e) {
                 }
-                localChannelReference.RequestIsDone();
                 if (!localChannelReference.getFutureRequest().awaitUninterruptibly(
-                        Configuration.WAITFORNETOP*10)) {
+                        Configuration.configuration.TIMEOUTCON)) {
                     // valid it however
                     localChannelReference.validateRequest(localChannelReference
                         .getFutureEndTransfer().getResult());
@@ -139,6 +140,7 @@ public class RetrieveRunner extends Thread {
                 done = true;
             } else {
                 if (localChannelReference.getFutureEndTransfer().isDone()) {
+                    // Done and Not Success => error
                     if (!localChannelReference.getFutureEndTransfer().getResult().isAnswered) {
                         ErrorPacket error = new ErrorPacket("Transfer in error",
                                 ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
@@ -159,7 +161,7 @@ public class RetrieveRunner extends Thread {
         } finally {
             if (!done) {
                 if (localChannelReference.getFutureEndTransfer().isSuccess()) {
-                    if (! localChannelReference.isRequestDone()) {
+                    if (! requestValidDone) {
                         EndRequestPacket validPacket = new EndRequestPacket(ErrorCode.CompleteOk.ordinal());
                         try {
                             ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket).awaitUninterruptibly();
@@ -194,7 +196,6 @@ public class RetrieveRunner extends Thread {
     private void transferInError(OpenR66Exception e) {
         R66Result result = new R66Result(e, session, true,
                 ErrorCode.TransferError, session.getRunner());
-        localChannelReference.invalidateRequest(result);
         logger.error("Transfer in error", e);
         ErrorPacket error = new ErrorPacket("Transfer in error",
                 ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
@@ -202,6 +203,7 @@ public class RetrieveRunner extends Thread {
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
         } catch (OpenR66ProtocolPacketException e1) {
         }
+        localChannelReference.invalidateRequest(result);
         ChannelUtils.close(channel);
         done = true;
     }

@@ -367,7 +367,6 @@ public class NetworkTransaction {
                     new OpenR66ProtocolSystemException("No SSL support", e1),
                     null, true, ErrorCode.ConnectionImpossible, null);
             logger.warn("Authent is Invalid due to no SSL: {}", e1.getMessage());
-            localChannelReference.invalidateRequest(finalValue);
             if (localChannelReference.getRemoteId() != ChannelUtils.NOCHANNEL) {
                 ConnectionErrorPacket error = new ConnectionErrorPacket(
                         "Cannot connect to localChannel since no SSL is supported", null);
@@ -377,6 +376,7 @@ public class NetworkTransaction {
                 } catch (OpenR66ProtocolPacketException e) {
                 }
             }
+            localChannelReference.invalidateRequest(finalValue);
             Channels.close(localChannelReference.getLocalChannel());
             throw new OpenR66ProtocolNetworkException(e1);
         }
@@ -403,7 +403,7 @@ public class NetworkTransaction {
             throw new OpenR66ProtocolNetworkException("Bad packet", e);
         }
         R66Future future = localChannelReference.getFutureValidateConnection();
-        if (future.isCancelled()) {
+        if (future.isFailed()) {
             logger.info("Will close NETWORK channel since Future cancelled: {}",
                     future);
             R66Result finalValue = new R66Result(

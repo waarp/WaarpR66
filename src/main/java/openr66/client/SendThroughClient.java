@@ -219,7 +219,7 @@ public class SendThroughClient extends AbstractTransfer {
             return true;
         } finally {
             if (taskRunner != null) {
-                if (future.isCancelled()) {
+                if (future.isFailed()) {
                     try {
                         taskRunner.delete();
                     } catch (OpenR66DatabaseException e) {
@@ -261,9 +261,8 @@ public class SendThroughClient extends AbstractTransfer {
                         .awaitUninterruptibly();
                 } catch (OpenR66ProtocolPacketException e) {
                 }
-                localChannelReference.RequestIsDone();
                 if (!localChannelReference.getFutureRequest().awaitUninterruptibly(
-                    Configuration.WAITFORNETOP*10)) {
+                    Configuration.configuration.TIMEOUTCON)) {
                     // valid it however
                     localChannelReference.validateRequest(localChannelReference
                         .getFutureEndTransfer().getResult());
@@ -276,7 +275,7 @@ public class SendThroughClient extends AbstractTransfer {
             }
         } finally {
             if (taskRunner != null) {
-                if (future.isCancelled() || nolog) {
+                if ((!future.isSuccess()) || nolog) {
                     try {
                         taskRunner.delete();
                     } catch (OpenR66DatabaseException e) {
@@ -293,7 +292,6 @@ public class SendThroughClient extends AbstractTransfer {
         if (!localChannelReference.getFutureEndTransfer().getResult().isAnswered) {
             R66Result result = new R66Result(e, localChannelReference.getSession(), true,
                     ErrorCode.TransferError, taskRunner);
-            localChannelReference.invalidateRequest(result);
             logger.error("Transfer in error", e);
             ErrorPacket error = new ErrorPacket("Transfer in error",
                     ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
@@ -301,6 +299,7 @@ public class SendThroughClient extends AbstractTransfer {
                 ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
             } catch (OpenR66ProtocolPacketException e1) {
             }
+            localChannelReference.invalidateRequest(result);
         }
         ChannelUtils.close(localChannelReference.getLocalChannel());
     }

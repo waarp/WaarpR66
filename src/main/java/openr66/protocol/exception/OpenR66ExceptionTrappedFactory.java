@@ -82,6 +82,11 @@ public class OpenR66ExceptionTrappedFactory {
                 (OpenR66ProtocolBusinessQueryStillRunningException) e1;
             logger.info("Request is still running: {}", e2.getMessage());
             return e2;
+        } else if (e1 instanceof OpenR66ProtocolBusinessRemoteFileNotFoundException) {
+            final OpenR66ProtocolBusinessRemoteFileNotFoundException e2 =
+                (OpenR66ProtocolBusinessRemoteFileNotFoundException) e1;
+            logger.info("Remote server did not find file: {}", e2.getMessage());
+            return e2;
         } else if (e1 instanceof OpenR66ProtocolBusinessNoWriteBackException) {
             final OpenR66ProtocolBusinessNoWriteBackException e2 = (OpenR66ProtocolBusinessNoWriteBackException) e1;
             logger.error("Command Error Reply: {}", e2.getMessage());

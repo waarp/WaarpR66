@@ -135,8 +135,8 @@ public class ExecMoveTask extends AbstractTask {
             } catch (IOException e1) {
             }
             pumpStreamHandler.stop();
-            logger.error("Exception: " + e.getMessage() +
-                    " Exec in error with " + commandLine.toString());
+            logger.error("ExecuteException: " + e.getMessage() +
+                    " . Exec in error with " + commandLine.toString());
             futureCompletion.setFailure(e);
             return;
         } catch (IOException e) {
@@ -150,8 +150,8 @@ public class ExecMoveTask extends AbstractTask {
             } catch (IOException e1) {
             }
             pumpStreamHandler.stop();
-            logger.error("Exception: " + e.getMessage() +
-                    " Exec in error with " + commandLine.toString(), e);
+            logger.error("IOException: " + e.getMessage() +
+                    " . Exec in error with " + commandLine.toString());
             futureCompletion.setFailure(e);
             return;
         }

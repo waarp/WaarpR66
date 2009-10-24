@@ -159,15 +159,15 @@ public class LocalClientHandler extends SimpleChannelHandler {
                     Channels.close(e.getChannel());
                     return;
                 }
-                if (!localChannelReference.getFutureRequest().isDone()) {
-                    localChannelReference.invalidateRequest(new R66Result(
-                            exception, null, true, ErrorCode.Internal, null));
-                }
                 final ErrorPacket errorPacket = new ErrorPacket(exception
                         .getMessage(),
                         ErrorCode.RemoteError.getCode(), ErrorPacket.FORWARDCLOSECODE);
                 ChannelUtils.writeAbstractLocalPacket(localChannelReference, errorPacket)
                     .awaitUninterruptibly();
+                if (!localChannelReference.getFutureRequest().isDone()) {
+                    localChannelReference.invalidateRequest(new R66Result(
+                            exception, null, true, ErrorCode.Internal, null));
+                }
             } else {
                 // Nothing to do
                 return;

@@ -582,7 +582,7 @@ public class DbTaskRunner extends AbstractDbData {
                     throw new OpenR66DatabaseNoDataException("No row found");
                 }
             } catch (OpenR66DatabaseSqlError e) {
-                logger.info("Problem while inserting", e);
+                logger.error("Problem while inserting", e);
                 DbPreparedStatement find = new DbPreparedStatement(dbSession);
                 try {
                     find.createPrepareStatement("SELECT MAX(" +
@@ -1658,6 +1658,17 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
+     * To be called before executing Pre execution
+     * @return True if the task is going to run PRE task from the first action
+     */
+    public boolean isPreTaskStarting() {
+        if (globallaststep == TASKSTEP.PRETASK.ordinal() ||
+                globallaststep == TASKSTEP.NOTASK.ordinal()) {
+            return (step-1 <= 0);
+        }
+        return false;
+    }
+    /**
      * Set Pre Task step
      *
      */
@@ -1899,21 +1910,33 @@ public class DbTaskRunner extends AbstractDbData {
                         .getCode());
                 allFields[Columns.INFOSTATUS.ordinal()].setValue(infostatus.getCode());
                 isSaved = false;
+                this.saveStatus();
                 return;
             } catch (OpenR66RunnerErrorException e) {
                 infostatus = ErrorCode.ExternalOp;
                 allFields[Columns.STEP.ordinal()].setValue(step);
                 allFields[Columns.INFOSTATUS.ordinal()].setValue(infostatus.getCode());
                 isSaved = false;
+                this.setErrorExecutionStatus(infostatus);
+                this.saveStatus();
                 throw new OpenR66RunnerErrorException("Runner is in error: " +
                         e.getMessage(), e);
             }
-            if ((!future.isDone()) || future.isCancelled()) {
-                infostatus = future.getResult().code;
+            if ((!future.isDone()) || future.isFailed()) {
+                R66Result result = future.getResult();
+                if (result != null) {
+                    infostatus = future.getResult().code;
+                } else {
+                    infostatus = ErrorCode.ExternalOp;
+                }
+                this.setErrorExecutionStatus(infostatus);
                 allFields[Columns.STEP.ordinal()].setValue(step);
                 allFields[Columns.INFOSTATUS.ordinal()].setValue(infostatus.getCode());
                 isSaved = false;
-                throw new OpenR66RunnerErrorException("Runner is error: " +
+                this.saveStatus();
+                // FIXME
+                logger.warn("Future is failed: "+infostatus.mesg);
+                throw new OpenR66RunnerErrorException("Runner is failed: " +
                         future.getCause().getMessage(), future.getCause());
             }
             step ++;
@@ -1940,37 +1963,35 @@ public class DbTaskRunner extends AbstractDbData {
             // First move the file
             if (this.isSender()) {
                 // Nothing to do since it is the original file
+                this.setPostTask();
             } else {
+                int poststep = this.step;
+                this.setPostTask();
+                this.saveStatus();
                 if (!RequestPacket.isRecvThroughMode(this.getMode())) {
                     if (this.globalstep == TASKSTEP.TRANSFERTASK.ordinal() ||
                             (this.globalstep == TASKSTEP.POSTTASK.ordinal() &&
-                                    this.step == 0)) {
+                                    poststep == 0)) {
                         // Result file moves
                         String finalpath = R66Dir.getFinalUniqueFilename(file);
                         logger.debug("Will move file {}", finalpath);
                         try {
                             file.renameTo(this.getRule().setRecvPath(finalpath));
                         } catch (OpenR66ProtocolSystemException e) {
-                            R66Result result = finalValue;
-                            if (status) {
-                                result = new R66Result(e, null, false,
-                                        ErrorCode.FinalOp, this);
-                                result.file = file;
-                                result.runner = this;
-                            }
+                            R66Result result = new R66Result(e, null, false,
+                                    ErrorCode.FinalOp, this);
+                            result.file = file;
+                            result.runner = this;
                             if (localChannelReference != null) {
                                 localChannelReference.invalidateRequest(result);
                             }
                             throw e;
                         } catch (CommandAbstractException e) {
-                            R66Result result = finalValue;
-                            if (status) {
-                                result = new R66Result(
-                                        new OpenR66RunnerErrorException(e), null,
-                                        false, ErrorCode.FinalOp, this);
-                                result.file = file;
-                                result.runner = this;
-                            }
+                            R66Result result = new R66Result(
+                                    new OpenR66RunnerErrorException(e), null,
+                                    false, ErrorCode.FinalOp, this);
+                            result.file = file;
+                            result.runner = this;
                             if (localChannelReference != null) {
                                 localChannelReference.invalidateRequest(result);
                             }
@@ -1984,9 +2005,11 @@ public class DbTaskRunner extends AbstractDbData {
                     }
                 }
             }
-            this.setPostTask();
             this.saveStatus();
-            if (this.step == 0) {
+            if (RequestPacket.isSendThroughMode(this.getMode()) ||
+                    RequestPacket.isRecvThroughMode(this.getMode())) {
+                // File could not exist
+            } else if (this.step == 0) {
                 // File must exist
                 try {
                     if (! file.exists()) {
@@ -2011,13 +2034,12 @@ public class DbTaskRunner extends AbstractDbData {
             try {
                 this.run();
             } catch (OpenR66RunnerErrorException e1) {
-                R66Result result = finalValue;
-                if (status) {
-                    result = new R66Result(e1, null, false,
-                            ErrorCode.ExternalOp, this);
-                    result.file = file;
-                    result.runner = this;
-                }
+                R66Result result = new R66Result(e1, null, false,
+                        ErrorCode.ExternalOp, this);
+                result.file = file;
+                result.runner = this;
+                this.changeUpdatedInfo(UpdatedInfo.INERROR);
+                this.saveStatus();
                 if (localChannelReference != null) {
                     localChannelReference.invalidateRequest(result);
                 }
@@ -2059,12 +2081,15 @@ public class DbTaskRunner extends AbstractDbData {
             this.setRankAtStartup(0);
             this.deleteTempFile();
             this.changeUpdatedInfo(UpdatedInfo.INERROR);
+            this.saveStatus();
         } else if (runnerStatus == ErrorCode.StoppedTransfer) {
             // just save runner and stop
             this.changeUpdatedInfo(UpdatedInfo.INERROR);
+            this.saveStatus();
         } else if (runnerStatus == ErrorCode.Shutdown) {
             // just save runner and stop
             this.changeUpdatedInfo(UpdatedInfo.INERROR);
+            this.saveStatus();
         } else {
             if (this.globalstep != TASKSTEP.ERRORTASK.ordinal()) {
                 // errorstep was not already executed

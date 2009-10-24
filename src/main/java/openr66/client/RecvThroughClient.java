@@ -173,7 +173,7 @@ public class RecvThroughClient extends AbstractTransfer {
             }
         } finally {
             if (taskRunner != null) {
-                if (future.isCancelled() || nolog) {
+                if (future.isFailed() || nolog) {
                     try {
                         taskRunner.delete();
                     } catch (OpenR66DatabaseException e) {

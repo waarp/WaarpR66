@@ -88,7 +88,7 @@ public class ClientRunner implements Runnable {
         try {
             transfer = this.runTransfer();
         } catch (OpenR66RunnerErrorException e) {
-            logger.error("Runner Error", e);
+            logger.error("Runner Error: {} {}", e.getMessage(), taskRunner.toShortString());
             return;
         } catch (OpenR66ProtocolNoConnectionException e) {
             logger.error("No connection Error {}", e.getMessage());
@@ -148,7 +148,8 @@ public class ClientRunner implements Runnable {
      * @throws OpenR66ProtocolNotYetConnectionException
      */
     public R66Future runTransfer()
-    throws OpenR66RunnerErrorException, OpenR66ProtocolNoConnectionException, OpenR66ProtocolPacketException, OpenR66ProtocolNotYetConnectionException {
+    throws OpenR66RunnerErrorException, OpenR66ProtocolNoConnectionException,
+    OpenR66ProtocolPacketException, OpenR66ProtocolNotYetConnectionException {
         LocalChannelReference localChannelReference = initRequest();
         R66Future transfer = localChannelReference.getFutureRequest();
         try {
@@ -173,7 +174,15 @@ public class ClientRunner implements Runnable {
                     // check if post task to execute
                     logger.warn("WARN QueryAlreadyFinished:\n    "+transfer.toString()+"\n    "+
                             taskRunner.toShortString());
-                    TransferUtils.finalizeTaskWithNoSession(taskRunner, localChannelReference);
+                    try {
+                        TransferUtils.finalizeTaskWithNoSession(taskRunner, localChannelReference);
+                    } catch (OpenR66RunnerErrorException e) {
+                        this.taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);
+                        try {
+                            this.taskRunner.update();
+                        } catch (OpenR66DatabaseException e1) {
+                        }
+                    }
                 } else {
                     switch (taskRunner.getUpdatedInfo()) {
                         case DONE:
@@ -199,7 +208,8 @@ public class ClientRunner implements Runnable {
      * @throws OpenR66ProtocolNotYetConnectionException
      */
     public LocalChannelReference initRequest()
-        throws OpenR66ProtocolNoConnectionException, OpenR66RunnerErrorException, OpenR66ProtocolPacketException, OpenR66ProtocolNotYetConnectionException {
+        throws OpenR66ProtocolNoConnectionException, OpenR66RunnerErrorException,
+        OpenR66ProtocolPacketException, OpenR66ProtocolNotYetConnectionException {
         this.changeUpdatedInfo(UpdatedInfo.RUNNING, ErrorCode.Running);
         long id = taskRunner.getSpecialId();
         String tid;
@@ -216,14 +226,25 @@ public class ClientRunner implements Runnable {
                 // can finalize locally
                 LocalChannelReference localChannelReference =
                     new LocalChannelReference();
-                TransferUtils.finalizeTaskWithNoSession(taskRunner, localChannelReference);
-                logger.warn("Finalize transfer when try to Restart:\n    "+taskRunner.toShortString());
-                throw new OpenR66ProtocolNoConnectionException("Finalize transfer when try to restart");
+                try {
+                    TransferUtils.finalizeTaskWithNoSession(taskRunner, localChannelReference);
+                } catch (OpenR66RunnerErrorException e) {
+                    this.taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);
+                    try {
+                        this.taskRunner.update();
+                    } catch (OpenR66DatabaseException e1) {
+                    }
+                    logger.warn("Transfer cannot be finalized when try to Restart: since "+e.getMessage()
+                            +"\n    "+taskRunner.toShortString());
+                    throw new OpenR66ProtocolNotYetConnectionException("Finalize transfer when try to restart");
+                }
+                logger.warn("Finalized transfer when try to Restart:\n    "+taskRunner.toShortString());
+                throw new OpenR66ProtocolNotYetConnectionException("Finalize transfer when try to restart");
             }
             // Don't have to restart a task for itself (or should use requester)
             logger.warn("Requested host cannot initiate itself the request");
             this.changeUpdatedInfo(UpdatedInfo.INERROR, ErrorCode.NotKnownHost);
-            throw new OpenR66RunnerErrorException("Requested host cannot initiate itself the request");
+            throw new OpenR66ProtocolNoConnectionException("Requested host cannot initiate itself the request");
         }
         DbHostAuth host = R66Auth.getServerAuth(DbConstant.admin.session,
                 taskRunner.getRequested());
@@ -231,7 +252,7 @@ public class ClientRunner implements Runnable {
             logger.warn("Requested host cannot be found: "+taskRunner.getRequested());
             //taskRunner.setExecutionStatus(ErrorCode.NotKnownHost);
             this.changeUpdatedInfo(UpdatedInfo.INERROR, ErrorCode.NotKnownHost);
-            throw new OpenR66RunnerErrorException("Requested host cannot be found "+
+            throw new OpenR66ProtocolNoConnectionException("Requested host cannot be found "+
                     taskRunner.getRequested());
         }
         SocketAddress socketAddress = host.getSocketAddress();

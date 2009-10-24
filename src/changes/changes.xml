@@ -5,6 +5,9 @@
 		<author email="fredbregier at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+		<release version="0.6.5" date="2009-10-24" description="Fix end of Request">
+			<action dev="Frederic Bregier" type="fix">Fix end of Request</action>
+		</release>
 		<release version="0.6.4" date="2009-10-22" description="Refactorization and cleaning">
 			<action dev="Frederic Bregier" type="fix">Refactorization</action>
 			<action dev="Frederic Bregier" type="fix">Cleaning</action>

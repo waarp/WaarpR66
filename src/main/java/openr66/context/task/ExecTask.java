@@ -103,7 +103,7 @@ public class ExecTask extends AbstractTask {
         } catch (IOException e) {
             pumpStreamHandler.stop();
             logger.error("Exception: " + e.getMessage() +
-                    " Exec in error with " + commandLine.toString(), e);
+                    " Exec in error with " + commandLine.toString());
             futureCompletion.setFailure(e);
             return;
         }
