@@ -26,7 +26,6 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import java.io.File;
 
 import openr66.context.R66Session;
-import openr66.context.filesystem.R66Dir;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.utils.FileUtils;
 
@@ -63,8 +62,7 @@ public class CopyTask extends AbstractTask {
         logger.info("Copy with " + argRule + ":" + argTransfer + " and {}",
                 session);
         File from = session.getFile().getTrueFile();
-        File to = new File(argRule +
-                R66Dir.getFinalUniqueFilename(session.getFile()));
+        File to = new File(argRule + session.getFile().getBasename());
         try {
             FileUtils.copy(from, to, false, false);
         } catch (OpenR66ProtocolSystemException e1) {

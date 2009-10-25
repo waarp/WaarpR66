@@ -206,7 +206,7 @@ public class R66File extends FilesystemBasedFileImpl {
     /**
      * This method is a good to have in a true FileInterface implementation.
      *
-     * @return the FileInterface associated with the current FileInterface
+     * @return the File associated with the current FileInterface
      *         operation
      */
     public File getTrueFile() {
@@ -535,6 +535,13 @@ public class R66File extends FilesystemBasedFileImpl {
         return status;
     }
 
+    /**
+     *
+     * @return True if this file is outside OpenR66 Base directory
+     */
+    public boolean isExternal() {
+        return isExternal;
+    }
     @Override
     public String toString() {
         return "File: " + currentFile + " Ready " + isReady + " " +

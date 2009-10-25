@@ -76,7 +76,11 @@ public class Configuration {
     /**
      * Version
      */
-    public static final String VERSION = "0.6.4";
+    public static final String VERSION = "0.6.6";
+    /**
+     * True if JDK6 or upper, False if JDK5.
+     */
+    public static final boolean USEJDK6 = true;
     /**
      * Time elapse for retry in ms
      */

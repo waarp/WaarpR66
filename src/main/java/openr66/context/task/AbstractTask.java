@@ -20,6 +20,8 @@
  */
 package openr66.context.task;
 
+import goldengate.common.command.exception.CommandAbstractException;
+
 import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -113,6 +115,26 @@ public abstract class AbstractTask implements Runnable {
      * Block size used
      */
     public static final String BLOCKSIZE = "#BLOCKSIZE#";
+
+    /**
+     * Block size used
+     */
+    public static final String INPATH = "#INPATH#";
+
+    /**
+     * Block size used
+     */
+    public static final String OUTPATH = "#OUTPATH#";
+
+    /**
+     * Block size used
+     */
+    public static final String WORKPATH = "#WORKPATH#";
+
+    /**
+     * Block size used
+     */
+    public static final String ARCHPATH = "#ARCHPATH#";
 
     /**
      * Type of operation
@@ -242,6 +264,30 @@ public abstract class AbstractTask implements Runnable {
                 .getRunner().getRank()));
         FileUtils.replaceAll(builder, BLOCKSIZE, Integer.toString(session
                 .getBlockSize()));
+        R66Dir dir = new R66Dir(session);
+        try {
+            dir.changeDirectory(session.getRunner().getRule().recvPath);
+            FileUtils.replaceAll(builder, INPATH, dir.getFullPath());
+        } catch (CommandAbstractException e) {
+        }
+        dir = new R66Dir(session);
+        try {
+            dir.changeDirectory(session.getRunner().getRule().sendPath);
+            FileUtils.replaceAll(builder, OUTPATH, dir.getFullPath());
+        } catch (CommandAbstractException e) {
+        }
+        dir = new R66Dir(session);
+        try {
+            dir.changeDirectory(session.getRunner().getRule().workPath);
+            FileUtils.replaceAll(builder, WORKPATH, dir.getFullPath());
+        } catch (CommandAbstractException e) {
+        }
+        dir = new R66Dir(session);
+        try {
+            dir.changeDirectory(session.getRunner().getRule().archivePath);
+            FileUtils.replaceAll(builder, ARCHPATH, dir.getFullPath());
+        } catch (CommandAbstractException e) {
+        }
         String finalname = String.format(builder.toString(), argFormat);
         return finalname;
     }

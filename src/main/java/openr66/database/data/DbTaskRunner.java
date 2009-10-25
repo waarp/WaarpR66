@@ -1593,6 +1593,14 @@ public class DbTaskRunner extends AbstractDbData {
      * @return the rule
      */
     public DbRule getRule() {
+        if (rule == null) {
+            if (ruleId != null) {
+                try {
+                    rule = new DbRule(dbSession, ruleId);
+                } catch (OpenR66DatabaseException e) {
+                }
+            }
+        }
         return rule;
     }
 

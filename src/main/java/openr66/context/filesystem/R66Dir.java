@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import openr66.context.R66Session;
+import openr66.context.authentication.R66Auth;
 import openr66.protocol.configuration.Configuration;
 
 /**
@@ -204,6 +205,18 @@ public class R66Dir extends FilesystemBasedDirImpl {
         }
         String extDir = paths.get(0);
         return newFile(extDir, false);
+    }
+
+    /**
+     * This method returns the Full path for the current directory
+     *
+     * @return the full path associated with the current Dir
+     */
+    public String getFullPath() {
+        if (session.getAuth() == null) {
+            return currentDir;
+        }
+        return ((R66Auth) session.getAuth()).getAbsolutePath(currentDir);
     }
 
     @Override

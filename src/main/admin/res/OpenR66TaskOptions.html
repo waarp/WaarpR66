@@ -51,6 +51,10 @@ a img {
 </li><li><span style="font-size:10pt;"><strong>#TRUEFILENAME#</strong> : Current FILENAME (basename) (change in retrieval part)</span>
 </li><li><span style="font-size:10pt;"><strong>#ORIGINALFILENAME#</strong> : Original FILENAME (basename) (before changing in retrieval part)</span>
 </li><li><span style="font-size:10pt;"><strong>#FILESIZE#</strong> : File size if it exists</span>
+</li><li><span style="font-size:10pt;"><strong>#INPATH#</strong> : In (Receive) path</span>
+</li><li><span style="font-size:10pt;"><strong>#OUTPATH#</strong> : Out (Send) path</span>
+</li><li><span style="font-size:10pt;"><strong>#WORKPATH#</strong> : Working (temporary while receiving) path</span>
+</li><li><span style="font-size:10pt;"><strong>#ARCHPATH#</strong> : Archive path (for export log for instance)</span>
 </li><li><span style="font-size:10pt;"><strong>#RULE#</strong> : Rule used during transfer</span>
 </li><li><span style="font-size:10pt;"><strong>#DATE#</strong> : Current Date in yyyyMMdd format</span>
 </li><li><span style="font-size:10pt;"><strong>#HOUR#</strong> : Current Hour in HHmmss format</span>
@@ -128,6 +132,14 @@ a img {
 <p style="text-align:justify;"><span style="font-size:10pt;">The transfer arguments are obtained from Path transformed according to above dynamic replacements, and after a String Format where Transfer Information is used as input (String.format(Path,Info)).</span></p>
 <p style="text-align:justify;"><span style="font-size:10pt;">The result should be as: "filepath requestedHost rule transferInformation" where each field is separated by blank character. Last field (transferInformation) may contain however blank character. </span></p>
 <p style="text-align:justify;"><span style="font-size:10pt;">Delay is ignored. </span></p>
+<p style="text-align:justify;"><span style="font-size:10pt;">The file is not marked as moved.</span></p></blockquote>
+<ul>
+<li><span style="font-size:10pt;"><strong>VALIDFILEPATH</strong></span></li></ul>
+<blockquote style="margin-right:0px;" dir="ltr">
+<p style="text-align:justify;"><span style="font-size:10pt;">Test if the current file is under one of the paths based on the Path and Transfer Information arguments. </span></p>
+<p style="text-align:justify;"><span style="font-size:10pt;">The paths arguments are obtained from Path transformed according to above dynamic replacements, and after a String Format where Transfer Information is used as input (String.format(Path,Info)).</span></p>
+<p style="text-align:justify;"><span style="font-size:10pt;">The result should be as: "path1 path2 ..." where each path is separated by blank character. </span></p>
+<p style="text-align:justify;"><span style="font-size:10pt;">If Delay is not 0, a log is printed out. </span></p>
 <p style="text-align:justify;"><span style="font-size:10pt;">The file is not marked as moved.</span></p></blockquote>
 <ul>
 <li><span style="font-size:10pt;"><strong>LINKRENAME</strong></span></li></ul>

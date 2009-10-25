@@ -25,6 +25,7 @@ import goldengate.common.digest.MD5;
 import goldengate.common.file.DirInterface;
 import goldengate.common.file.filesystembased.FilesystemBasedDirImpl;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
+import goldengate.common.file.filesystembased.specific.FilesystemBasedDirJdk5;
 import goldengate.common.file.filesystembased.specific.FilesystemBasedDirJdk6;
 import goldengate.common.file.filesystembased.specific.FilesystemBasedDirJdkAbstract;
 import goldengate.common.logging.GgInternalLogger;
@@ -629,7 +630,11 @@ public class FileBasedConfiguration {
             Configuration.configuration.TIMEOUTCON = Integer.parseInt(node
                     .getText());
         }
-        R66Dir.initJdkDependent(new FilesystemBasedDirJdk6());
+        if (Configuration.USEJDK6) {
+            R66Dir.initJdkDependent(new FilesystemBasedDirJdk6());
+        } else {
+            R66Dir.initJdkDependent(new FilesystemBasedDirJdk5());
+        }
 
         // Key
         node = document.selectSingleNode(XML_PATH_KEYPATH);

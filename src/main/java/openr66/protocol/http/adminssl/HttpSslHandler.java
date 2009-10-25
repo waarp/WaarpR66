@@ -1659,7 +1659,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             }
             checkSession(e.getChannel());
             if (! authentHttp.isAuthenticated()) {
-                logger.debug("Not Authent: "+uriRequest+":{}",authentHttp);
+                logger.info("Not Authent: "+uriRequest+":{}",authentHttp);
                 checkAuthent(e);
                 return;
             }

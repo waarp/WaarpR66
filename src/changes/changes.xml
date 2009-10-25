@@ -5,6 +5,11 @@
 		<author email="fredbregier at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+		<release version="0.6.6" date="2009-10-25" description="Add ValidFilePath Task">
+			<action dev="Frederic Bregier" type="add">Add ValidFilePath Task</action>
+			<action dev="Frederic Bregier" type="fix">Fix normalize path in Commons</action>
+			<action dev="Frederic Bregier" type="fix">Fix bug in bandwidth</action>
+		</release>
 		<release version="0.6.5" date="2009-10-24" description="Fix end of Request">
 			<action dev="Frederic Bregier" type="fix">Fix end of Request</action>
 		</release>

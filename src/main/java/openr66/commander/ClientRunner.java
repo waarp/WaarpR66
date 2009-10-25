@@ -221,26 +221,26 @@ public class ClientRunner implements Runnable {
         Thread.currentThread().setName(tid);
         logger.info("Will run {}",this.taskRunner);
 
-        if (taskRunner.isSelfRequested()) {
-            if (taskRunner.getGloballaststep() == TASKSTEP.POSTTASK.ordinal()) {
-                // can finalize locally
-                LocalChannelReference localChannelReference =
-                    new LocalChannelReference();
+        if (taskRunner.getGloballaststep() == TASKSTEP.POSTTASK.ordinal()) {
+            // can finalize locally
+            LocalChannelReference localChannelReference =
+                new LocalChannelReference();
+            try {
+                TransferUtils.finalizeTaskWithNoSession(taskRunner, localChannelReference);
+            } catch (OpenR66RunnerErrorException e) {
+                this.taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);
                 try {
-                    TransferUtils.finalizeTaskWithNoSession(taskRunner, localChannelReference);
-                } catch (OpenR66RunnerErrorException e) {
-                    this.taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);
-                    try {
-                        this.taskRunner.update();
-                    } catch (OpenR66DatabaseException e1) {
-                    }
-                    logger.warn("Transfer cannot be finalized when try to Restart: since "+e.getMessage()
-                            +"\n    "+taskRunner.toShortString());
-                    throw new OpenR66ProtocolNotYetConnectionException("Finalize transfer when try to restart");
+                    this.taskRunner.update();
+                } catch (OpenR66DatabaseException e1) {
                 }
-                logger.warn("Finalized transfer when try to Restart:\n    "+taskRunner.toShortString());
+                logger.warn("Transfer cannot be finalized when try to Restart: since "+e.getMessage()
+                        +"\n    "+taskRunner.toShortString());
                 throw new OpenR66ProtocolNotYetConnectionException("Finalize transfer when try to restart");
             }
+            logger.warn("Finalized transfer when try to Restart:\n    "+taskRunner.toShortString());
+            throw new OpenR66ProtocolNotYetConnectionException("Finalize transfer when try to restart");
+        }
+        if (taskRunner.isSelfRequested()) {
             // Don't have to restart a task for itself (or should use requester)
             logger.warn("Requested host cannot initiate itself the request");
             this.changeUpdatedInfo(UpdatedInfo.INERROR, ErrorCode.NotKnownHost);
