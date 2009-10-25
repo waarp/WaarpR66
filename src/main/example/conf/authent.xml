@@ -9,7 +9,7 @@
 	</entry>
 	<entry>
 		<hostid>bparq102</hostid>
-		<address>a.b.c.e</address>
+		<address>a.b.c.d</address>
 		<port>6666</port>
 		<isssl>0</isssl>
 		<keyfile>/appli/R66/conf/serverbparq102.txt</keyfile>
@@ -25,7 +25,7 @@
 	</entry>
 	<entry>
 		<hostid>bparq102s</hostid>
-		<address>a.b.c.e</address>
+		<address>a.b.c.d</address>
 		<port>6667</port>
 		<isssl>1</isssl>
 		<keyfile>/appli/R66/conf/serverbparq102.txt</keyfile>
@@ -33,7 +33,7 @@
 	</entry>
 	<entry>
 		<hostid>bptest</hostid>
-		<address>a.b.c.f</address>
+		<address>a.b.c.d</address>
 		<port>6666</port>
 		<isssl>0</isssl>
 		<keyfile>/appli/R66/conf/serverbptest.txt</keyfile>

@@ -31,12 +31,11 @@ ${GGBIN}/logback-classic-0.9.17.jar:${GGBIN}/logback-core-0.9.17.jar:\
 ${GGBIN}/dom4j-1.6.1.jar:${GGBIN}/jaxen-1.1.1.jar:${GGBIN}/commons-io-1.4.jar:\
 ${GGBIN}/commons-codec-1.3.jar:${GGBIN}/commons-exec-1.0.jar:\
 ${GGBIN}/ojdbc5.jar:${GGBIN}/orai18n.jar:\
-${GGBIN}/GoldenGateCommon-1.0.2.jar:${GGBIN}/GoldenGateDigest-1.0.0.jar:\
+${GGBIN}/GoldenGateCommon-1.0.3.jar:${GGBIN}/GoldenGateDigest-1.0.0.jar:\
 ${GGBIN}/NettyExtension-1.1.1.jar:${GGBIN}/netty-3.1.3.GA.jar:\
-${GGBIN}/GoldenGateR66-0.6.4.jar "
+${GGBIN}/GoldenGateR66-0.6.5.jar "
 export JAVARUNCLIENT="${JAVA_RUN} -cp ${libraries} ${loggerclient} "
 export JAVARUNSERVER="${JAVA_RUN} -cp ${libraries} ${loggerserver} "
-
 
 ################
 # R66 COMMANDS #
@@ -102,9 +101,8 @@ alias -x r66req="${R66REQ}"
 export R66SYNCSEND="${JAVARUNCLIENT} openr66.client.DirectTransfer /appli/R66/conf/configclient`hostname`.xml "
 alias -x r66syncsend="${R66SYNCSEND}"
 
-# asynchronous transfer
+# asynchronous transfer 
 # -to hostId -file filepath -rule ruleId [ -md5 ] [ -block size ] [ -nolog ] [ -info "information" ]
 export R66SEND="${JAVARUNCLIENT} openr66.client.SubmitTransfer /appli/R66/conf/configclient`hostname`.xml "
 alias -x r66send="${R66SEND}"
-
 
