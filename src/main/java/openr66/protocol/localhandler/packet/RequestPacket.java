@@ -49,7 +49,14 @@ public class RequestPacket extends AbstractLocalPacket {
      * @return the same mode (RECV or SEND) in MD5 version
      */
     public static int getModeMD5(int mode) {
-        return mode+2;
+        switch (mode) {
+            case 1:
+            case 2:
+            case 5:
+            case 6:
+                return mode+2;
+        }
+        return mode;
     }
     /**
      *
@@ -90,6 +97,17 @@ public class RequestPacket extends AbstractLocalPacket {
                 mode == TRANSFERMODE.SENDMD5MODE.ordinal() ||
                 mode == TRANSFERMODE.SENDMD5THROUGHMODE.ordinal() ||
                 mode == TRANSFERMODE.RECVMD5THROUGHMODE.ordinal());
+    }
+    /**
+     *
+     * @param mode1
+     * @param mode2
+     * @return true if both modes are compatible (both send, or both recv)
+     */
+    public static boolean isCompatibleMode(int mode1, int mode2) {
+        return ((RequestPacket.isRecvMode(mode1) && RequestPacket.isRecvThroughMode(mode2))
+                || ((!RequestPacket.isRecvMode(mode1)) &&
+                        (!RequestPacket.isRecvThroughMode(mode2))));
     }
     /**
      * @param headerLength

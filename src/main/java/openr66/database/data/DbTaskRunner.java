@@ -334,6 +334,13 @@ public class DbTaskRunner extends AbstractDbData {
         if (this.rule == null) {
             this.rule = new DbRule(this.dbSession, ruleId);
         }
+        if (mode != rule.mode) {
+            if (RequestPacket.isMD5Mode(mode)) {
+                mode = RequestPacket.getModeMD5(rule.mode);
+            } else {
+                mode = rule.mode;
+            }
+        }
         create();
     }
 
@@ -372,6 +379,13 @@ public class DbTaskRunner extends AbstractDbData {
         specialId = requestPacket.getSpecialId();
         if (this.rule == null) {
             this.rule = new DbRule(this.dbSession, ruleId);
+        }
+        if (mode != rule.mode) {
+            if (RequestPacket.isMD5Mode(mode)) {
+                mode = RequestPacket.getModeMD5(rule.mode);
+            } else {
+                mode = rule.mode;
+            }
         }
         insert();
     }

@@ -723,6 +723,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         "Rule is not allowed for the remote host");
             }
         }
+        if (! RequestPacket.isCompatibleMode(rule.mode, packet.getMode())) {
+            // not compatible Rule and mode in request
+            throw new OpenR66ProtocolNotAuthenticatedException(
+                    "Rule has not the same mode of transmission");
+        }
         session.setBlockSize(packet.getBlocksize());
         DbTaskRunner runner;
         if (packet.getSpecialId() != DbConstant.ILLEGALVALUE) {
