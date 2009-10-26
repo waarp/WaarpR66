@@ -31,7 +31,6 @@ import java.io.PipedOutputStream;
 
 import openr66.context.ErrorCode;
 import openr66.context.R66Session;
-import openr66.protocol.configuration.Configuration;
 
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
@@ -168,7 +167,7 @@ public class ExecMoveTask extends AbstractTask {
             if (delay > 0) {
                 thread.join(delay);
             } else {
-                thread.join(Configuration.configuration.TIMEOUTCON);
+                thread.join();
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

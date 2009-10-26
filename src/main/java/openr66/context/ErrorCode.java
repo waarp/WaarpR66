@@ -145,11 +145,11 @@ public enum ErrorCode {
      */
     QueryRemotelyUnknown("Not known remote asked query", 'u'),
     /**
-     * Code stands for request should exist but is not found on remote host
+     * Code stands for File not found error
      */
     FileNotFound("File not found", 'f'),
     /**
-     * Code stands for request should exist but is not found on remote host
+     * Code stands for a request in PassThroughMode and required action is incompatible with this mode
      */
     PassThroughMode("Error since action cannot be taken on PassThroughMode", 'p'),
     /**

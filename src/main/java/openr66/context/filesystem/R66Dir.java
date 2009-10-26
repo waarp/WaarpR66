@@ -23,7 +23,6 @@ package openr66.context.filesystem;
 import goldengate.common.command.exception.CommandAbstractException;
 import goldengate.common.command.exception.Reply550Exception;
 import goldengate.common.command.exception.Reply553Exception;
-import goldengate.common.file.FileInterface;
 import goldengate.common.file.filesystembased.FilesystemBasedDirImpl;
 import goldengate.common.file.filesystembased.FilesystemBasedOptsMLSxImpl;
 import goldengate.common.file.filesystembased.specific.FilesystemBasedCommonsIo;
@@ -194,7 +193,7 @@ public class R66Dir extends FilesystemBasedDirImpl {
      * @return the File created
      * @throws CommandAbstractException
      */
-    public FileInterface setFileNoCheck(String path)
+    public R66File setFileNoCheck(String path)
         throws CommandAbstractException {
         checkIdentify();
         String newpath = consolidatePath(path);
@@ -204,7 +203,7 @@ public class R66Dir extends FilesystemBasedDirImpl {
                     paths.size() + " founds");
         }
         String extDir = paths.get(0);
-        return newFile(extDir, false);
+        return new R66File((R66Session) getSession(), this, extDir);
     }
 
     /**

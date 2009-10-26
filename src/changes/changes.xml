@@ -5,6 +5,9 @@
 		<author email="fredbregier at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+		<release version="0.9.0" date="2009-10-26" description="Fix initialization of sent file">
+			<action dev="Frederic Bregier" type="fix">Fix initialization of sent file</action>
+		</release>
 		<release version="0.6.6" date="2009-10-25" description="Add ValidFilePath Task">
 			<action dev="Frederic Bregier" type="add">Add ValidFilePath Task</action>
 			<action dev="Frederic Bregier" type="fix">Fix normalize path in Commons</action>

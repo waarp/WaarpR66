@@ -78,6 +78,8 @@ public class LinkRenameTask extends AbstractTask {
             futureCompletion.setFailure(new OpenR66ProtocolSystemException(e1));
             return;
         }
+        session.getRunner().setFileMoved(finalname, true);
+        futureCompletion.setSuccess();
     }
 
 }

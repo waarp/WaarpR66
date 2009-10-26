@@ -275,15 +275,17 @@ public class R66Session implements SessionInterface {
                     } catch (CommandAbstractException e) {
                         // file is not under normal base directory, so is external
                         // File should already exist but can be using special code ('*?')
-                        file = new R66File(this, dir, filename);
+                        file = dir.setFileNoCheck(filename);
+                        // FIXME
+                        //file = new R66File(this, dir, filename);
                     }
                 }
                 if (RequestPacket.isSendThroughMode(this.runner.getMode())) {
                     // no test on file since it does not really exist
                     logger.info("File is in through mode: {}", file);
                 } else if (!file.canRead()) {
-                 // file is not under normal base directory, so is external
-                    // File should already exist but can be using special code ('*?')
+                    // file is not under normal base directory, so is external
+                    // File should already exist but cannot use special code ('*?')
                     file = new R66File(this, dir, filename);
                     if (!file.canRead()) {
                         this.runner.setErrorExecutionStatus(ErrorCode.FileNotFound);
@@ -316,8 +318,9 @@ public class R66Session implements SessionInterface {
                             false);
                     } catch (CommandAbstractException e) {
                         // file is not under normal base directory, so is external
-                        // File should already exist but can be using special code ('*?')
-                        file = new R66File(this, dir, this.runner.getFilename());
+                        // File must already exist but can be using special code ('*?')
+                        file = dir.setFileNoCheck(this.runner.getFilename());
+                        // file = new R66File(this, dir, this.runner.getFilename());
                     }
                 }
                 if (RequestPacket.isSendThroughMode(this.runner.getMode())) {
@@ -325,7 +328,7 @@ public class R66Session implements SessionInterface {
                     logger.info("File is in through mode: {}", file);
                 } else if (!file.canRead()) {
                  // file is not under normal base directory, so is external
-                    // File should already exist but can be using special code ('*?')
+                    // File must already exist but cannot used special code ('*?')
                     file = new R66File(this, dir, this.runner.getFilename());
                     if (!file.canRead()) {
                         this.runner.setErrorExecutionStatus(ErrorCode.FileNotFound);
