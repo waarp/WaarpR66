@@ -71,6 +71,7 @@ import openr66.protocol.utils.FileUtils;
 import openr66.protocol.utils.OpenR66SignalHandler;
 import openr66.protocol.utils.R66Future;
 import openr66.protocol.utils.TransferUtils;
+import openr66.protocol.utils.Version;
 
 import org.dom4j.Document;
 import org.dom4j.Element;
@@ -308,7 +309,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         FileUtils.replaceAll(builder, REPLACEMENT.XXXADMINXXX.toString(),
                 authentHttp.getAuth().getUser());
         FileUtils.replace(builder, REPLACEMENT.XXXVERSIONXXX.toString(),
-                Configuration.VERSION);
+                Version.ID);
         return builder.toString();
     }
     private String error(String mesg) {

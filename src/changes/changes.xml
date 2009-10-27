@@ -5,8 +5,10 @@
 		<author email="fredbregier at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
-		<release version="0.9.0" date="2009-10-26" description="Fix initialization of sent file">
+		<release version="0.9.0" date="2009-10-28" description="Last version before 1.0 waiting for Netty 3.2">
 			<action dev="Frederic Bregier" type="fix">Fix initialization of sent file</action>
+			<action dev="Frederic Bregier" type="fix">Add Version automatic in compile</action>
+			<action dev="Frederic Bregier" type="add">Add /status url in Supervision of OpenR66 for Supervision tools</action>
 		</release>
 		<release version="0.6.6" date="2009-10-25" description="Add ValidFilePath Task">
 			<action dev="Frederic Bregier" type="add">Add ValidFilePath Task</action>

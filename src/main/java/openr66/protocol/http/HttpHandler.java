@@ -96,6 +96,8 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
 
     private final StringBuilder responseContent = new StringBuilder();
 
+    private volatile HttpResponseStatus status;
+
     private volatile String uriRequest;
 
     private static final String sINFO = "INFO", sCOMMAND = "COMMAND",
@@ -255,6 +257,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
             throws Exception {
+        status = HttpResponseStatus.OK;
         try {
             if (DbConstant.admin.isConnected) {
                 this.dbSession = new DbSession(DbConstant.admin, false);
@@ -279,6 +282,8 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
             cval = '2';
         } else if (uriRequest.equalsIgnoreCase("/all")) {
             cval = '3';
+        } else if (uriRequest.equalsIgnoreCase("/status")) {
+            cval = '4';
         }
         // Get the params according to get or post
         Map<String, List<String>> params = null;
@@ -346,6 +351,9 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
                     break;
                 case '3':
                     all(ctx, nb);
+                    break;
+                case '4':
+                    status(ctx, nb);
                     break;
                 default:
                     createMenu();
@@ -541,6 +549,73 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
         endBody();
     }
 
+
+    /**
+     * print only status
+     *
+     * @param ctx
+     * @param nb
+     */
+    private void status(ChannelHandlerContext ctx, int nb) {
+        startHeader();
+        endHeader();
+        replacementBody();
+        inlineBody();
+        DbPreparedStatement preparedStatement = null;
+        try {
+            preparedStatement = DbTaskRunner.getUpdatedPrepareStament(
+                    dbSession, UpdatedInfo.INERROR, true, 1);
+            try {
+                preparedStatement.executeQuery();
+                if (preparedStatement.getNext()) {
+                    responseContent.append("<p>Some Transfers are in ERROR</p><br>");
+                    status = HttpResponseStatus.CONFLICT;
+                }
+            } finally {
+                if (preparedStatement != null) {
+                    preparedStatement.realClose();
+                }
+            }
+            preparedStatement = DbTaskRunner.getUpdatedPrepareStament(
+                    dbSession, UpdatedInfo.INTERRUPTED, true, 1);
+            try {
+                preparedStatement.executeQuery();
+                if (preparedStatement.getNext()) {
+                    responseContent.append("<p>Some Transfers are INTERRUPTED</p><br>");
+                    status = HttpResponseStatus.CONFLICT;
+                }
+            } finally {
+                if (preparedStatement != null) {
+                    preparedStatement.realClose();
+                }
+            }
+            preparedStatement = DbTaskRunner.getStepPrepareStament(dbSession,
+                    TASKSTEP.ERRORTASK, 1);
+            try {
+                preparedStatement.executeQuery();
+                if (preparedStatement.getNext()) {
+                    responseContent.append("<p>Some Transfers are in ERRORTASK</p><br>");
+                    status = HttpResponseStatus.CONFLICT;
+                }
+            } finally {
+                if (preparedStatement != null) {
+                    preparedStatement.realClose();
+                }
+            }
+            if (status != HttpResponseStatus.CONFLICT) {
+                responseContent.append("<p>No problem is found in Transfers</p><br>");
+            }
+        } catch (OpenR66DatabaseException e) {
+            if (preparedStatement != null) {
+                preparedStatement.realClose();
+            }
+            logger.warn("OpenR66 Web Error", e);
+            sendError(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE);
+            return;
+        }
+        endBody();
+    }
+
     /**
      * Write the response
      *
@@ -561,7 +636,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
 
         // Build the response object.
         HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
-                HttpResponseStatus.OK);
+                status);
         response.setContent(buf);
         response.setHeader(HttpHeaders.Names.CONTENT_TYPE, "text/html");
         if (HttpHeaders.Values.KEEP_ALIVE.equalsIgnoreCase(request
