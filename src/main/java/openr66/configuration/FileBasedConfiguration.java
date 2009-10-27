@@ -220,11 +220,6 @@ public class FileBasedConfiguration {
     private static final String XML_TIMEOUTCON = "/config/timeoutcon";
 
     /**
-     * Should a file be deleted when a Store like command is aborted
-     */
-    private static final String XML_DELETEONABORT = "/config/deleteonabort";
-
-    /**
      * Should a file MD5 SHA1 be computed using NIO
      */
     private static final String XML_USENIO = "/config/usenio";
@@ -587,11 +582,7 @@ public class FileBasedConfiguration {
             Configuration.configuration.CLIENT_THREAD = Integer.parseInt(node
                     .getText());
         }
-        node = document.selectSingleNode(XML_DELETEONABORT);
-        if (node != null) {
-            Configuration.getFileParameter().deleteOnAbort = Integer
-                    .parseInt(node.getText()) == 1? true : false;
-        }
+        Configuration.getFileParameter().deleteOnAbort = false;
         node = document.selectSingleNode(XML_USENIO);
         if (node != null) {
             FilesystemBasedFileParameterImpl.useNio = Integer.parseInt(node
