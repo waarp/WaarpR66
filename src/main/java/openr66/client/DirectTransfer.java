@@ -116,6 +116,11 @@ public class DirectTransfer extends AbstractTransfer {
                 logger.error("Cannot Connect", e);
                 future.setResult(new R66Result(e, null, true,
                         ErrorCode.ConnectionImpossible, taskRunner));
+                // since no connection : just forget it
+                try {
+                    taskRunner.delete();
+                } catch (OpenR66DatabaseException e1) {
+                }
                 future.setFailure(e);
                 return;
             } catch (OpenR66ProtocolPacketException e) {
@@ -133,6 +138,11 @@ public class DirectTransfer extends AbstractTransfer {
             logger.error("Cannot Connect", exc);
             future.setResult(new R66Result(exc, null, true,
                     ErrorCode.ConnectionImpossible, taskRunner));
+            // since no connection : just forget it
+            try {
+                taskRunner.delete();
+            } catch (OpenR66DatabaseException e1) {
+            }
             future.setFailure(exc);
             return;
         }
@@ -150,7 +160,7 @@ public class DirectTransfer extends AbstractTransfer {
                 DbConstant.admin.close();
             }
             ChannelUtils.stopLogger();
-            System.exit(1);
+            System.exit(2);
         }
         long time1 = System.currentTimeMillis();
         R66Future future = new R66Future(true);
@@ -208,6 +218,12 @@ public class DirectTransfer extends AbstractTransfer {
             }
         } finally {
             networkTransaction.closeAll();
+            // In case something wrong append
+            if (future.isSuccess()) {
+                System.exit(0);
+            } else {
+                System.exit(66);
+            }
         }
     }
 

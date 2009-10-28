@@ -246,7 +246,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 Configuration.configuration.HOST_ID);
         if (authentHttp.isAuthenticated()) {
             FileUtils.replace(builder, REPLACEMENT.XXXADMINXXX.toString(),
-                authentHttp.getAuth().getUser());
+                "Connected");
         } else {
             FileUtils.replace(builder, REPLACEMENT.XXXADMINXXX.toString(),
                     "Not authenticated");
@@ -307,7 +307,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         FileUtils.replaceAll(builder, REPLACEMENT.XXXHOSTIDXXX.toString(),
                 Configuration.configuration.HOST_ID);
         FileUtils.replaceAll(builder, REPLACEMENT.XXXADMINXXX.toString(),
-                authentHttp.getAuth().getUser());
+                "Administrator Connected");
         FileUtils.replace(builder, REPLACEMENT.XXXVERSIONXXX.toString(),
                 Version.ID);
         return builder.toString();
