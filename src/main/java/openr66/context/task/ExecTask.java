@@ -26,6 +26,7 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import java.io.IOException;
 
 import openr66.context.R66Session;
+import openr66.protocol.configuration.Configuration;
 
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
@@ -95,11 +96,34 @@ public class ExecTask extends AbstractTask {
         try {
             status = defaultExecutor.execute(commandLine);
         } catch (ExecuteException e) {
-            pumpStreamHandler.stop();
-            logger.error("Exception: " + e.getMessage() +
-                    " Exec in error with " + commandLine.toString());
-            futureCompletion.setFailure(e);
-            return;
+            if (e.getExitValue() == -559038737) {
+                // Cannot run immediately so retry once
+                try {
+                    Thread.sleep(Configuration.RETRYINMS);
+                } catch (InterruptedException e1) {
+                }
+                try {
+                    status = defaultExecutor.execute(commandLine);
+                } catch (ExecuteException e1) {
+                    pumpStreamHandler.stop();
+                    logger.error("Exception: " + e.getMessage() +
+                            " Exec in error with " + commandLine.toString());
+                    futureCompletion.setFailure(e);
+                    return;
+                } catch (IOException e1) {
+                    pumpStreamHandler.stop();
+                    logger.error("Exception: " + e.getMessage() +
+                            " Exec in error with " + commandLine.toString());
+                    futureCompletion.setFailure(e);
+                    return;
+                }
+            } else {
+                pumpStreamHandler.stop();
+                logger.error("Exception: " + e.getMessage() +
+                        " Exec in error with " + commandLine.toString());
+                futureCompletion.setFailure(e);
+                return;
+            }
         } catch (IOException e) {
             pumpStreamHandler.stop();
             logger.error("Exception: " + e.getMessage() +

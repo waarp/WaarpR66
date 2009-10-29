@@ -203,6 +203,7 @@ public class RequestInformation implements Runnable {
             System.exit(1);
         }
         NetworkTransaction networkTransaction = null;
+        int value = 3;
         try {
             Configuration.configuration.pipelineInit();
             networkTransaction = new NetworkTransaction();
@@ -215,10 +216,12 @@ public class RequestInformation implements Runnable {
             result.awaitUninterruptibly();
             // FIXME use result
             if (result.isSuccess()) {
+                value = 0;
                 R66Result r66result = result.getResult();
                 ValidPacket info = (ValidPacket) r66result.other;
                 logger.warn("SUCCESS\n    "+info.getSmiddle()+"\n    "+info.getSheader());
             } else {
+                value = 2;
                 logger.error("FAILURE\n    " +
                         result.getResult().toString());
             }
@@ -230,6 +233,7 @@ public class RequestInformation implements Runnable {
             if (DbConstant.admin != null) {
                 DbConstant.admin.close();
             }
+            System.exit(value);
         }
     }
 

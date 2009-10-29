@@ -190,11 +190,12 @@ public class DbModelPostgresql implements DbModel {
             action += acolumns[i].name() +
                     DBType.getType(DbTaskRunner.dbTypes[i]) + notNull + ", ";
         }
-        // Two columns for primary key
-        action += " CONSTRAINT runner_pk " + primaryKey + "(" +
-                acolumns[acolumns.length - 3].name() + "," +
-                acolumns[acolumns.length - 2].name() + "," +
-                acolumns[acolumns.length - 1].name() + "))";
+        // Several columns for primary key
+        action += " CONSTRAINT runner_pk " + primaryKey + "(";
+        for (int i = DbTaskRunner.NBPRKEY; i > 1; i--) {
+            action += acolumns[acolumns.length - i].name() + ",";
+        }
+        action += acolumns[acolumns.length - 1].name() + "))";
         System.out.println(action);
         try {
             request.query(action);

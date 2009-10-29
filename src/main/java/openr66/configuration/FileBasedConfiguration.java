@@ -322,14 +322,20 @@ public class FileBasedConfiguration {
             logger.error("Unable to find Host ID in Config file: " + filename);
             return false;
         }
-        try {
-            Configuration.configuration.httpBasePath = FilesystemBasedDirImpl
-                    .normalizePath(getSubPath(document, XML_HTTPADMINPATH));
-        } catch (OpenR66ProtocolSystemException e2) {
-            logger.error("Unable to set Http Admin Base in Config file");
+        Node node = document.selectSingleNode(XML_HTTPADMINPATH);
+        if (node == null) {
+            logger.error("Unable to find Http Admin Base in Config file");
             return false;
         }
-        Node node = null;
+
+        String path = node.getText();
+        if (path == null || path.length() == 0) {
+            logger.error("Unable to set correct Http Admin Base in Config file");
+            return false;
+        }
+        path = DirInterface.SEPARATOR + path;
+        Configuration.configuration.httpBasePath =
+            FilesystemBasedDirImpl.normalizePath(path);
         node = document.selectSingleNode(XML_SERVER_PORT);
         int port = 6666;
         if (node != null) {

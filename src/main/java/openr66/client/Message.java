@@ -186,7 +186,7 @@ public class Message implements Runnable {
                     "  the XML client configuration file,\n" +
                     "  '-to' the remoteHost Id,\n" +
                     "  '-msg' the message\n");
-            return;
+            System.exit(1);
         }
         if (! getParams(args)) {
             logger.error("Wrong initialization");
@@ -197,6 +197,7 @@ public class Message implements Runnable {
             System.exit(1);
         }
         NetworkTransaction networkTransaction = null;
+        int value = 3;
         try {
             Configuration.configuration.pipelineInit();
             networkTransaction = new NetworkTransaction();
@@ -208,10 +209,12 @@ public class Message implements Runnable {
             transaction.run();
             result.awaitUninterruptibly();
             if (result.isSuccess()) {
+                value = 0;
                 R66Result r66result = result.getResult();
                 ValidPacket info = (ValidPacket) r66result.other;
                 logger.warn("Test Message\n    SUCCESS\n    "+info.getSheader());
             } else {
+                value = 2;
                 logger.error("Test Message\n    FAILURE\n    " +
                         result.getResult().toString());
             }
@@ -222,6 +225,7 @@ public class Message implements Runnable {
             if (DbConstant.admin != null) {
                 DbConstant.admin.close();
             }
+            System.exit(value);
         }
     }
 

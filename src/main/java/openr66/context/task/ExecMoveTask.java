@@ -31,6 +31,7 @@ import java.io.PipedOutputStream;
 
 import openr66.context.ErrorCode;
 import openr66.context.R66Session;
+import openr66.protocol.configuration.Configuration;
 
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
@@ -124,20 +125,61 @@ public class ExecMoveTask extends AbstractTask {
         try {
             status = defaultExecutor.execute(commandLine);
         } catch (ExecuteException e) {
-            try {
-                outputStream.close();
-            } catch (IOException e1) {
+            if (e.getExitValue() == -559038737) {
+                // Cannot run immediately so retry once
+                try {
+                    Thread.sleep(Configuration.RETRYINMS);
+                } catch (InterruptedException e1) {
+                }
+                try {
+                    status = defaultExecutor.execute(commandLine);
+                } catch (ExecuteException e1) {
+                    try {
+                        outputStream.close();
+                    } catch (IOException e2) {
+                    }
+                    thread.interrupt();
+                    try {
+                        inputStream.close();
+                    } catch (IOException e2) {
+                    }
+                    pumpStreamHandler.stop();
+                    logger.error("ExecuteException: " + e.getMessage() +
+                            " . Exec in error with " + commandLine.toString());
+                    futureCompletion.setFailure(e);
+                    return;
+                } catch (IOException e1) {
+                    try {
+                        outputStream.close();
+                    } catch (IOException e2) {
+                    }
+                    thread.interrupt();
+                    try {
+                        inputStream.close();
+                    } catch (IOException e2) {
+                    }
+                    pumpStreamHandler.stop();
+                    logger.error("IOException: " + e.getMessage() +
+                            " . Exec in error with " + commandLine.toString());
+                    futureCompletion.setFailure(e);
+                    return;
+                }
+            } else {
+                try {
+                    outputStream.close();
+                } catch (IOException e1) {
+                }
+                thread.interrupt();
+                try {
+                    inputStream.close();
+                } catch (IOException e1) {
+                }
+                pumpStreamHandler.stop();
+                logger.error("ExecuteException: " + e.getMessage() +
+                        " . Exec in error with " + commandLine.toString());
+                futureCompletion.setFailure(e);
+                return;
             }
-            thread.interrupt();
-            try {
-                inputStream.close();
-            } catch (IOException e1) {
-            }
-            pumpStreamHandler.stop();
-            logger.error("ExecuteException: " + e.getMessage() +
-                    " . Exec in error with " + commandLine.toString());
-            futureCompletion.setFailure(e);
-            return;
         } catch (IOException e) {
             try {
                 outputStream.close();

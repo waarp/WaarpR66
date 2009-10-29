@@ -158,14 +158,13 @@ public class RuleFileBasedConfiguration {
             throws OpenR66ProtocolNoDataException {
         Node node = document.selectSingleNode(path);
         if (node == null) {
-            logger.error("Unable to find in Rule file: " + path);
             throw new OpenR66ProtocolNoDataException(
-                    "Unable to find in the XML Rule file: " + path);
+                    "Unable to find in the XML Rule field: " + path);
         }
         String result = node.getText();
         if (result == null || result.length() == 0) {
             throw new OpenR66ProtocolNoDataException(
-                    "Unable to find in the XML Rule file: " + path);
+                    "Unable to find in the XML Rule field: " + path);
         }
         return result;
     }
@@ -205,12 +204,14 @@ public class RuleFileBasedConfiguration {
         try {
             idrule = getValue(document, IDRULE);
         } catch (OpenR66ProtocolNoDataException e1) {
+            logger.warn("Unable to find in Rule field: " + IDRULE);
             throw new OpenR66ProtocolSystemException(e1);
         }
         String smode;
         try {
             smode = getValue(document, MODE);
         } catch (OpenR66ProtocolNoDataException e1) {
+            logger.warn("Unable to find in Rule field: " + MODE);
             throw new OpenR66ProtocolSystemException(e1);
         }
         int mode = Integer.parseInt(smode);

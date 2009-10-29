@@ -362,6 +362,7 @@ public class RequestTransfer implements Runnable {
             ChannelUtils.stopLogger();
             System.exit(1);
         }
+        int value = 99;
         try {
             Configuration.configuration.pipelineInit();
             NetworkTransaction networkTransaction = new NetworkTransaction();
@@ -376,19 +377,23 @@ public class RequestTransfer implements Runnable {
             if (scancel || sstop || srestart) {
                 if (scancel) {
                     if (result.isSuccess()) {
+                        value = 0;
                         logger.warn("Transfer already finished:\n    "+
                                 finalValue.runner.toShortString());
                     } else {
                         switch (finalValue.code) {
                             case CompleteOk:
+                                value = 0;
                                 logger.warn("Transfer cancel requested and done:\n    "+
                                         finalValue.runner.toShortString());
                                 break;
                             case TransferOk:
+                                value = 3;
                                 logger.warn("Transfer cancel requested but already finished:\n    "+
                                         finalValue.runner.toShortString());
                                 break;
                             default:
+                                value = 4;
                                 logger.warn("Transfer cancel requested but internal error:\n    "+
                                         finalValue.runner.toShortString());
                                 break;
@@ -397,14 +402,17 @@ public class RequestTransfer implements Runnable {
                 } else if (sstop) {
                     switch (finalValue.code) {
                         case CompleteOk:
+                            value = 0;
                             logger.warn("Transfer stop requested and done:\n    "+
                                 finalValue.runner.toShortString());
                             break;
                         case TransferOk:
+                            value = 0;
                             logger.warn("Transfer stop requested but already finished:\n    "+
                                 finalValue.runner.toShortString());
                             break;
                         default:
+                            value = 3;
                             logger.warn("Transfer stop requested but internal error:\n    "+
                                 finalValue.runner.toShortString());
                             break;
@@ -412,36 +420,44 @@ public class RequestTransfer implements Runnable {
                 } else if (srestart) {
                     switch (finalValue.code) {
                         case QueryStillRunning:
+                            value = 0;
                             logger.warn("Transfer restart requested but already active and running:\n    "+
                                 finalValue.runner.toShortString());
                             break;
                         case Running:
+                            value = 0;
                             logger.warn("Transfer restart requested but already running:\n    "+
                                 finalValue.runner.toShortString());
                             break;
                         case PreProcessingOk:
+                            value = 0;
                             logger.warn("Transfer restart requested and restarted:\n    "+
                                 finalValue.runner.toShortString());
                             break;
                         case CompleteOk:
+                            value = 4;
                             logger.warn("Transfer restart requested but already finished:\n    "+
                                 finalValue.runner.toShortString());
                             break;
                         case RemoteError:
+                            value = 5;
                             logger.warn("Transfer restart requested but remote error:\n    "+
                                 finalValue.runner.toShortString());
                             break;
                         case PassThroughMode:
+                            value = 6;
                             logger.warn("Transfer not restarted since it is in PassThrough mode:\n    "+
                                 finalValue.runner.toShortString());
                             break;
                         default:
+                            value = 3;
                             logger.warn("Transfer restart requested but internal error:\n    "+
                                 finalValue.runner.toShortString());
                             break;
                     }
                 }
             } else {
+                value = 0;
                 // Only request
                 logger.warn("Transfer information:\n    "+
                                 finalValue.runner.toShortString());
@@ -450,6 +466,7 @@ public class RequestTransfer implements Runnable {
             if (DbConstant.admin != null) {
                 DbConstant.admin.close();
             }
+            System.exit(value);
         }
     }
 

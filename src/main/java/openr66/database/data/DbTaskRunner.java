@@ -94,6 +94,7 @@ public class DbTaskRunner extends AbstractDbData {
         STOPTRANS,
         INFOSTATUS,
         UPDATEDINFO,
+        OWNERREQ,
         REQUESTER,
         REQUESTED,
         SPECIALID;
@@ -103,15 +104,15 @@ public class DbTaskRunner extends AbstractDbData {
             Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.INTEGER,
             Types.CHAR, Types.BIT, Types.VARCHAR, Types.BIT, Types.VARCHAR,
             Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
-            Types.TIMESTAMP, Types.TIMESTAMP, Types.CHAR, Types.INTEGER, Types.VARCHAR,
-            Types.VARCHAR, Types.BIGINT };
+            Types.TIMESTAMP, Types.TIMESTAMP, Types.CHAR, Types.INTEGER,
+            Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BIGINT };
 
     public static String table = " RUNNER ";
 
     public static String fieldseq = "RUNSEQ";
 
     public static Columns [] indexes = {
-        Columns.STARTTRANS, Columns.STEPSTATUS, Columns.UPDATEDINFO,
+        Columns.STARTTRANS, Columns.OWNERREQ, Columns.STEPSTATUS, Columns.UPDATEDINFO,
         Columns.GLOBALSTEP
     };
 
@@ -167,6 +168,8 @@ public class DbTaskRunner extends AbstractDbData {
 
     private int mode;
 
+    private String ownerRequest;
+
     private String requesterHostId;
 
     private String requestedHostId;
@@ -189,12 +192,16 @@ public class DbTaskRunner extends AbstractDbData {
 
     private volatile boolean continueTransfer = true;
 
+    /**
+     * Special For DbTaskRunner
+     */
+    public static final int NBPRKEY = 4;
     // ALL TABLE SHOULD IMPLEMENT THIS
     private final DbValue primaryKey[] = {
+            new DbValue(ownerRequest, Columns.OWNERREQ.name()),
             new DbValue(requesterHostId, Columns.REQUESTER.name()),
             new DbValue(requestedHostId, Columns.REQUESTED.name()),
             new DbValue(specialId, Columns.SPECIALID.name()) };
-
     private final DbValue[] otherFields = {
             // GLOBALSTEP, GLOBALLASTSTEP, STEP, RANK, STEPSTATUS, RETRIEVEMODE,
             // FILENAME, ISMOVED, IDRULE,
@@ -225,7 +232,7 @@ public class DbTaskRunner extends AbstractDbData {
             otherFields[8], otherFields[9], otherFields[10], otherFields[11],
             otherFields[12], otherFields[13], otherFields[14], otherFields[15],
             otherFields[16],
-            primaryKey[0], primaryKey[1], primaryKey[2] };
+            primaryKey[0], primaryKey[1], primaryKey[2], primaryKey[3]  };
 
     public static final String selectAllFields = Columns.GLOBALSTEP.name() +
             "," + Columns.GLOBALLASTSTEP.name() + "," + Columns.STEP.name() +
@@ -236,7 +243,7 @@ public class DbTaskRunner extends AbstractDbData {
             Columns.FILEINFO.name() + "," + Columns.MODETRANS.name() + "," +
             Columns.STARTTRANS.name() + "," + Columns.STOPTRANS.name() + "," +
             Columns.INFOSTATUS.name() + "," + Columns.UPDATEDINFO.name() + "," +
-            Columns.REQUESTER.name() + "," +
+            Columns.OWNERREQ.name() + "," + Columns.REQUESTER.name() + "," +
             Columns.REQUESTED.name() + "," + Columns.SPECIALID.name();
 
     private static final String updateAllFields = Columns.GLOBALSTEP.name() +
@@ -250,7 +257,7 @@ public class DbTaskRunner extends AbstractDbData {
             Columns.STARTTRANS.name() + "=?," + Columns.STOPTRANS.name() +
             "=?," + Columns.INFOSTATUS.name() + "=?," + Columns.UPDATEDINFO.name() + "=?";
 
-    private static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
+    private static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
 
     /**
      *
@@ -326,6 +333,8 @@ public class DbTaskRunner extends AbstractDbData {
                 requested);
         // given one
         requestedHostId = requested;
+        // always itself
+        ownerRequest = Configuration.configuration.HOST_ID;
 
         start = new Timestamp(System.currentTimeMillis());
         setToArray();
@@ -372,6 +381,8 @@ public class DbTaskRunner extends AbstractDbData {
         mode = requestPacket.getMode();
         requesterHostId = getRequester(session, requestPacket);
         requestedHostId = getRequested(session, requestPacket);
+        // always itself
+        ownerRequest = Configuration.configuration.HOST_ID;
 
         start = new Timestamp(System.currentTimeMillis());
         setToArray();
@@ -413,6 +424,8 @@ public class DbTaskRunner extends AbstractDbData {
         // is responsible of this
         requestedHostId = requested;
         requesterHostId = requester;
+        // always itself
+        ownerRequest = Configuration.configuration.HOST_ID;
 
         select();
         if (rule != null) {
@@ -443,6 +456,7 @@ public class DbTaskRunner extends AbstractDbData {
         allFields[Columns.STOPTRANS.ordinal()].setValue(stop);
         allFields[Columns.INFOSTATUS.ordinal()].setValue(infostatus.getCode());
         allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
+        allFields[Columns.OWNERREQ.ordinal()].setValue(ownerRequest);
         allFields[Columns.REQUESTER.ordinal()].setValue(requesterHostId);
         allFields[Columns.REQUESTED.ordinal()].setValue(requestedHostId);
         allFields[Columns.SPECIALID.ordinal()].setValue(specialId);
@@ -475,13 +489,40 @@ public class DbTaskRunner extends AbstractDbData {
                                                           .ordinal()].getValue());
         updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()]
                 .getValue();
+        ownerRequest = (String) allFields[Columns.OWNERREQ.ordinal()]
+                                             .getValue();
         requesterHostId = (String) allFields[Columns.REQUESTER.ordinal()]
                 .getValue();
         requestedHostId = (String) allFields[Columns.REQUESTED.ordinal()]
                 .getValue();
         specialId = (Long) allFields[Columns.SPECIALID.ordinal()].getValue();
     }
-
+    /**
+     *
+     * @return The Where condition on Primary Key
+     */
+    private String getWherePrimaryKey() {
+        return primaryKey[0].column + " = ? AND " +
+            primaryKey[1].column + " = ? AND " +
+            primaryKey[2].column + " = ? AND " +
+            primaryKey[3].column + " = ? ";
+    }
+    /**
+     * Set the primary Key as current value
+     */
+    private void setPrimaryKey() {
+        primaryKey[0].setValue(ownerRequest);
+        primaryKey[1].setValue(requesterHostId);
+        primaryKey[2].setValue(requestedHostId);
+        primaryKey[3].setValue(specialId);
+    }
+    /**
+     *
+     * @return the condition to limit access to the row concerned by the Host
+     */
+    private static String getLimitWhereCondition() {
+        return " "+Columns.OWNERREQ + " = '"+Configuration.configuration.HOST_ID+"' ";
+    }
     /*
      * (non-Javadoc)
      *
@@ -496,12 +537,8 @@ public class DbTaskRunner extends AbstractDbData {
                 dbSession);
         try {
             preparedStatement.createPrepareStatement("DELETE FROM " + table +
-                    " WHERE " + primaryKey[0].column + " = ? AND " +
-                    primaryKey[1].column + " = ? AND " + primaryKey[2].column +
-                    " = ? ");
-            primaryKey[0].setValue(requesterHostId);
-            primaryKey[1].setValue(requestedHostId);
-            primaryKey[2].setValue(specialId);
+                    " WHERE " + getWherePrimaryKey());
+            setPrimaryKey();
             setValues(preparedStatement, primaryKey);
             int count = preparedStatement.executeUpdate();
             if (count <= 0) {
@@ -536,9 +573,7 @@ public class DbTaskRunner extends AbstractDbData {
             specialId = DbModelFactory.dbModel.nextSequence(dbSession);
             logger.debug("Try Insert create a new Id from sequence: " +
                     specialId);
-            primaryKey[0].setValue(requesterHostId);
-            primaryKey[1].setValue(requestedHostId);
-            primaryKey[2].setValue(specialId);
+            setPrimaryKey();
         }
         setToArray();
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
@@ -579,9 +614,7 @@ public class DbTaskRunner extends AbstractDbData {
             specialId = DbModelFactory.dbModel.nextSequence(dbSession);
             logger.info("Try Insert create a new Id from sequence: " +
                     specialId);
-            primaryKey[0].setValue(requesterHostId);
-            primaryKey[1].setValue(requestedHostId);
-            primaryKey[2].setValue(specialId);
+            setPrimaryKey();
         }
         setToArray();
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
@@ -600,13 +633,12 @@ public class DbTaskRunner extends AbstractDbData {
                 DbPreparedStatement find = new DbPreparedStatement(dbSession);
                 try {
                     find.createPrepareStatement("SELECT MAX(" +
-                            primaryKey[2].column + ") FROM " + table + " WHERE " +
+                            primaryKey[3].column + ") FROM " + table + " WHERE " +
                             primaryKey[0].column + " = ? AND " +
                             primaryKey[1].column + " = ? AND " +
-                            primaryKey[2].column + " >= ? ");
-                    primaryKey[0].setValue(requesterHostId);
-                    primaryKey[1].setValue(requestedHostId);
-                    primaryKey[2].setValue(specialId);
+                            primaryKey[2].column + " = ? AND " +
+                            primaryKey[3].column + " >= ? ");
+                    setPrimaryKey();
                     setValues(find, primaryKey);
                     find.executeQuery();
                     if (find.getNext()) {
@@ -652,12 +684,9 @@ public class DbTaskRunner extends AbstractDbData {
                 dbSession);
         try {
             preparedStatement.createPrepareStatement("SELECT " +
-                    primaryKey[0].column + " FROM " + table + " WHERE " +
-                    primaryKey[0].column + " = ? AND " + primaryKey[1].column +
-                    " = ? AND " + primaryKey[2].column + " = ? ");
-            primaryKey[0].setValue(requesterHostId);
-            primaryKey[1].setValue(requestedHostId);
-            primaryKey[2].setValue(specialId);
+                    primaryKey[3].column + " FROM " + table + " WHERE " +
+                    getWherePrimaryKey());
+            setPrimaryKey();
             setValues(preparedStatement, primaryKey);
             preparedStatement.executeQuery();
             return preparedStatement.getNext();
@@ -680,12 +709,9 @@ public class DbTaskRunner extends AbstractDbData {
                 dbSession);
         try {
             preparedStatement.createPrepareStatement("SELECT " + selectAllFields +
-                    " FROM " + table + " WHERE " + primaryKey[0].column +
-                    " = ? AND " + primaryKey[1].column + " = ? AND " +
-                    primaryKey[2].column + " = ? ");
-            primaryKey[0].setValue(requesterHostId);
-            primaryKey[1].setValue(requestedHostId);
-            primaryKey[2].setValue(specialId);
+                    " FROM " + table + " WHERE " +
+                    getWherePrimaryKey());
+            setPrimaryKey();
             setValues(preparedStatement, primaryKey);
             preparedStatement.executeQuery();
             if (preparedStatement.getNext()) {
@@ -697,9 +723,9 @@ public class DbTaskRunner extends AbstractDbData {
                 isSaved = true;
             } else {
                 throw new OpenR66DatabaseNoDataException("No row found: " +
-                        primaryKey[0].getValueAsString() + ":" +
                         primaryKey[1].getValueAsString() + ":" +
-                        primaryKey[2].getValueAsString());
+                        primaryKey[2].getValueAsString() + ":" +
+                        primaryKey[3].getValueAsString());
             }
         } finally {
             preparedStatement.realClose();
@@ -726,8 +752,7 @@ public class DbTaskRunner extends AbstractDbData {
         try {
             preparedStatement.createPrepareStatement("UPDATE " + table +
                     " SET " + updateAllFields + " WHERE " +
-                    primaryKey[0].column + " = ? AND " + primaryKey[1].column +
-                    " = ? AND " + primaryKey[2].column + " = ? ");
+                    getWherePrimaryKey());
             setValues(preparedStatement, allFields);
             int count = preparedStatement.executeUpdate();
             if (count <= 0) {
@@ -790,7 +815,9 @@ public class DbTaskRunner extends AbstractDbData {
         String request = "SELECT " + selectAllFields + " FROM " + table;
         if (status != null) {
             request += " WHERE " + Columns.STEPSTATUS.name() + " = '" +
-                    status.getCode() + "'";
+                    status.getCode() + "' AND "+getLimitWhereCondition();
+        } else {
+            request += " WHERE "+getLimitWhereCondition();
         }
         request += " ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
         request = DbModelFactory.dbModel.limitRequest(selectAllFields, request, limit);
@@ -811,12 +838,15 @@ public class DbTaskRunner extends AbstractDbData {
             OpenR66DatabaseSqlError {
         String request = "SELECT " + selectAllFields + " FROM " + table;
         if (globalstep != null) {
-            request += " WHERE " + Columns.GLOBALSTEP.name() + " = " +
+            request += " WHERE (" + Columns.GLOBALSTEP.name() + " = " +
                     globalstep.ordinal();
             if (globalstep == TASKSTEP.ERRORTASK) {
                 request += " OR "+Columns.UPDATEDINFO.name() + " = "+
-                    UpdatedInfo.INERROR.ordinal();
+                    UpdatedInfo.INERROR.ordinal()+") AND ";
+            } else {
+                request += ") AND ";
             }
+            request += getLimitWhereCondition();
         }
         request += " ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
         request = DbModelFactory.dbModel.limitRequest(selectAllFields, request, limit);
@@ -1047,10 +1077,16 @@ public class DbTaskRunner extends AbstractDbData {
         DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
         String request = "SELECT " + selectAllFields + " FROM " + table;
         String orderby;
-        if (orderBySpecialId) {
-            orderby = " ORDER BY " + Columns.SPECIALID.name() + " DESC ";
+        if (startid == null && stopid == null &&
+                start == null && stop == null && rule == null && req == null && all) {
+            orderby = " WHERE "+getLimitWhereCondition();
         } else {
-            orderby = " ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
+            orderby = " AND " + getLimitWhereCondition();
+        }
+        if (orderBySpecialId) {
+            orderby += " ORDER BY " + Columns.SPECIALID.name() + " DESC ";
+        } else {
+            orderby += " ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
         }
         return getFilterCondition(preparedStatement, request, limit, orderby,
                 startid, stopid, start, stop, rule,
@@ -1072,7 +1108,7 @@ public class DbTaskRunner extends AbstractDbData {
             throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
         String request = "SELECT " + selectAllFields+
                 " FROM " + table + " WHERE " + Columns.UPDATEDINFO.name() +
-                " = " + info.ordinal();
+                " = " + info.ordinal()+ " AND "+getLimitWhereCondition();
         if (limit > 0) {
             request += " AND ROWNUM <= "+limit;
         }
@@ -1098,8 +1134,8 @@ public class DbTaskRunner extends AbstractDbData {
         String request = "SELECT " + selectAllFields + " FROM " + table;
         if (start != null & stop != null) {
             request += " WHERE " + Columns.STARTTRANS.name() + " >= ? AND " +
-                    Columns.STARTTRANS.name() + " <= ? ORDER BY " +
-                    Columns.SPECIALID.name() + " DESC ";
+                    Columns.STARTTRANS.name() + " <= ? AND "+getLimitWhereCondition()+
+                    " ORDER BY " + Columns.SPECIALID.name() + " DESC ";
             preparedStatement.createPrepareStatement(request);
             try {
                 preparedStatement.getPreparedStatement().setTimestamp(1, start);
@@ -1110,7 +1146,8 @@ public class DbTaskRunner extends AbstractDbData {
             }
         } else if (start != null) {
             request += " WHERE " + Columns.STARTTRANS.name() +
-                    " >= ? ORDER BY " + Columns.SPECIALID.name() + " DESC ";
+                    " >= ? AND "+getLimitWhereCondition()+
+                    " ORDER BY " + Columns.SPECIALID.name() + " DESC ";
             preparedStatement.createPrepareStatement(request);
             try {
                 preparedStatement.getPreparedStatement().setTimestamp(1, start);
@@ -1120,7 +1157,8 @@ public class DbTaskRunner extends AbstractDbData {
             }
         } else if (stop != null) {
             request += " WHERE " + Columns.STARTTRANS.name() +
-                    " <= ? ORDER BY " + Columns.SPECIALID.name() + " DESC ";
+                    " <= ? AND "+getLimitWhereCondition()+
+                    " ORDER BY " + Columns.SPECIALID.name() + " DESC ";
             preparedStatement.createPrepareStatement(request);
             try {
                 preparedStatement.getPreparedStatement().setTimestamp(1, stop);
@@ -1129,7 +1167,8 @@ public class DbTaskRunner extends AbstractDbData {
                 throw new OpenR66DatabaseSqlError(e);
             }
         } else {
-            request += " ORDER BY " + Columns.SPECIALID.name() + " DESC ";
+            request += " WHERE "+getLimitWhereCondition()+
+                " ORDER BY " + Columns.SPECIALID.name() + " DESC ";
             preparedStatement.createPrepareStatement(request);
         }
         return preparedStatement;
@@ -1153,7 +1192,7 @@ public class DbTaskRunner extends AbstractDbData {
         String request = "DELETE FROM " + table + " WHERE (" +
                 Columns.GLOBALLASTSTEP + " = " +TASKSTEP.ALLDONETASK.ordinal() + " OR " +
                 Columns.UPDATEDINFO + " = " +UpdatedInfo.DONE.ordinal() +
-                ") ";
+                ") AND "+getLimitWhereCondition();
         try {
             if (start != null & stop != null) {
                 request += " AND " + Columns.STARTTRANS.name() + " >= ? AND " +
@@ -1228,17 +1267,18 @@ public class DbTaskRunner extends AbstractDbData {
             orderby = " WHERE (" +
                 Columns.GLOBALLASTSTEP + " = " +TASKSTEP.ALLDONETASK.ordinal() + " OR " +
                 Columns.UPDATEDINFO + " = " +UpdatedInfo.DONE.ordinal() +
-                ") ";
+                ") AND "+getLimitWhereCondition();
         } else {
             if (all) {
                 orderby = " AND (" +
                     Columns.GLOBALLASTSTEP + " = " +TASKSTEP.ALLDONETASK.ordinal() + " OR " +
                     Columns.UPDATEDINFO + " = " +UpdatedInfo.DONE.ordinal() + " OR " +
                     Columns.UPDATEDINFO + " = " +UpdatedInfo.INERROR.ordinal() +
-                    ") ";
+                    ") AND "+getLimitWhereCondition();
             } else {
                 orderby = " AND "+
-                    Columns.UPDATEDINFO + " <> " +UpdatedInfo.RUNNING.ordinal();// limit by field
+                    Columns.UPDATEDINFO + " <> " +UpdatedInfo.RUNNING.ordinal()+
+                    " AND "+getLimitWhereCondition();// limit by field
             }
         }
         int nb = 0;
@@ -1270,10 +1310,11 @@ public class DbTaskRunner extends AbstractDbData {
         String request = "UPDATE " + table + " SET " +
                 Columns.UPDATEDINFO.name() + "=" +
                 AbstractDbData.UpdatedInfo.TOSUBMIT.ordinal()+
-                " WHERE " + Columns.UPDATEDINFO.name() + " = " +
+                " WHERE (" + Columns.UPDATEDINFO.name() + " = " +
                 AbstractDbData.UpdatedInfo.RUNNING.ordinal() +
                 " OR "+ Columns.UPDATEDINFO.name() + " = " +
-                AbstractDbData.UpdatedInfo.INTERRUPTED.ordinal();
+                AbstractDbData.UpdatedInfo.INTERRUPTED.ordinal()+") AND "+
+                getLimitWhereCondition();
         DbPreparedStatement initial = new DbPreparedStatement(session);
         try {
             initial.createPrepareStatement(request);
@@ -1310,7 +1351,8 @@ public class DbTaskRunner extends AbstractDbData {
                 Columns.GLOBALLASTSTEP.name() + " = " +
                 TASKSTEP.ALLDONETASK.ordinal() + " AND " +
                 Columns.STEPSTATUS.name() + " = '" +
-                ErrorCode.CompleteOk.getCode() + "'";
+                ErrorCode.CompleteOk.getCode() + "' AND "+
+                getLimitWhereCondition();
         DbPreparedStatement initial = new DbPreparedStatement(session);
         try {
             initial.createPrepareStatement(request);
@@ -2575,7 +2617,7 @@ public class DbTaskRunner extends AbstractDbData {
     public static void writeXML(String filename)
             throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
         String request = "SELECT " + DbTaskRunner.selectAllFields + " FROM " +
-                DbTaskRunner.table;
+                DbTaskRunner.table+" WHERE "+getLimitWhereCondition();
         DbPreparedStatement preparedStatement = null;
         Document document = null;
         try {
