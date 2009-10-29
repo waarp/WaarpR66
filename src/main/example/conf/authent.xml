@@ -4,7 +4,7 @@
 		<address>a.b.c.d</address>
 		<port>6666</port>
 		<isssl>0</isssl>
-		<keyfile>/appli/R66/conf/serverbparq103.txt</keyfile>
+		<keyfile>/appli/tower/R66/conf/serverbparq103.txt</keyfile>
 		<admin>0</admin>
 	</entry>
 	<entry>
@@ -12,7 +12,7 @@
 		<address>a.b.c.d</address>
 		<port>6666</port>
 		<isssl>0</isssl>
-		<keyfile>/appli/R66/conf/serverbparq102.txt</keyfile>
+		<keyfile>/appli/tower/R66/conf/serverbparq102.txt</keyfile>
 		<admin>0</admin>
 	</entry>
 	<entry>
@@ -20,7 +20,7 @@
 		<address>a.b.c.d</address>
 		<port>6667</port>
 		<isssl>1</isssl>
-		<keyfile>/appli/R66/conf/serverbparq103.txt</keyfile>
+		<keyfile>/appli/tower/R66/conf/serverbparq103.txt</keyfile>
 		<admin>1</admin>
 	</entry>
 	<entry>
@@ -28,7 +28,7 @@
 		<address>a.b.c.d</address>
 		<port>6667</port>
 		<isssl>1</isssl>
-		<keyfile>/appli/R66/conf/serverbparq102.txt</keyfile>
+		<keyfile>/appli/tower/R66/conf/serverbparq102.txt</keyfile>
 		<admin>1</admin>
 	</entry>
 	<entry>
@@ -36,7 +36,7 @@
 		<address>a.b.c.d</address>
 		<port>6666</port>
 		<isssl>0</isssl>
-		<keyfile>/appli/R66/conf/serverbptest.txt</keyfile>
+		<keyfile>/appli/tower/R66/conf/serverbptest.txt</keyfile>
 		<admin>1</admin>
 	</entry>
 </authent>

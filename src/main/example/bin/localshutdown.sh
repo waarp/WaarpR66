@@ -4,7 +4,7 @@ if [[ "${LASTPID}x" != "x" ]]
 then
    echo Will use PID ${LASTPID}
 else
-   LASTPID=`cat /appli/R66/log/lastpid`
+   LASTPID=`cat /appli/tower/R66/log/lastpid`
 fi
 if [[ "${LASTPID}X" != "X" ]]
 then

@@ -2,7 +2,7 @@
 	<comment>Example of config file: change its as your need.</comment>
 	<hostid>bparq103</hostid>
 	<sslhostid>bparq103s</sslhostid>
-	<serverhome>/appli/R66</serverhome>
+	<serverhome>/appli/tower/R66</serverhome>
 	<in>data/in</in>
 	<out>data/out</out>
 	<arch>data/arch</arch>
@@ -14,7 +14,7 @@
 	<deleteonabort>0</deleteonabort>
 	<usenio>0</usenio>
 	<usefastmd5>1</usefastmd5>
-	<fastmd5>/appli/R66/lib/MD5.so</fastmd5>
+	<fastmd5>/appli/tower/R66/lib/MD5.so</fastmd5>
 	<blocksize>65536</blocksize>
 	<dbdriver>oracle</dbdriver>
 	<dbserver>jdbc:oracle:thin:@bparq105:1521:iatlas</dbserver>

@@ -10,7 +10,7 @@ export AIXTHREAD_SCOPE=S
 
 # JDK IBM
 #export JAVABASE="/usr/java6_64"
-export JAVABASE="/appli/R66/jdk6/sdk"
+export JAVABASE="/appli/tower/R66/jdk6/sdk"
 export JAVAJDK="${JAVABASE}"
 JAVA_HOME="${JAVAJDK}/jre"
 JAVA_OPTS1="-Xquickstart -Xgcpolicy:gencon -Xdisableexcessivegc"
@@ -20,22 +20,24 @@ export JAVA_RUN="${JAVA_HOME}/bin/java ${JAVA_OPTS1} ${JAVA_OPTS2} "
 export PATH=${JAVA_HOME}/bin:${JAVAJDK}/bin:$PATH
 export LDR_CNTRL=LARGE_PAGE_DATA=Y
 
-export GGHOME="/appli/R66"
-export GGBIN="${GGHOME}/lib"
+export R66HOME="/appli/tower/R66"
+export R66BIN="${R66HOME}/lib"
 # command for Client
 # Logger
-loggerserver=" -Dlogback.configurationFile=${GGHOME}/conf/logback.xml "
-loggerclient=" -Dlogback.configurationFile=${GGHOME}/conf/logback-client.xml "
-libraries=" ${GGBIN}/slf4j-api-1.5.8.jar:${GGBIN}/logback-access-0.9.17.jar:\
-${GGBIN}/logback-classic-0.9.17.jar:${GGBIN}/logback-core-0.9.17.jar:\
-${GGBIN}/dom4j-1.6.1.jar:${GGBIN}/jaxen-1.1.1.jar:${GGBIN}/commons-io-1.4.jar:\
-${GGBIN}/commons-codec-1.3.jar:${GGBIN}/commons-exec-1.0.jar:\
-${GGBIN}/ojdbc5.jar:${GGBIN}/orai18n.jar:\
-${GGBIN}/GoldenGateCommon-1.0.3.jar:${GGBIN}/GoldenGateDigest-1.0.0.jar:\
-${GGBIN}/NettyExtension-1.1.1.jar:${GGBIN}/netty-3.1.3.GA.jar:\
-${GGBIN}/GoldenGateR66-0.6.5.jar "
+loggerserver=" -Dlogback.configurationFile=${R66HOME}/conf/logback.xml "
+loggerclient=" -Dlogback.configurationFile=${R66HOME}/conf/logback-client.xml "
+libraries=" ${R66BIN}/slf4j-api-1.5.8.jar:${R66BIN}/logback-access-0.9.17.jar:\
+${R66BIN}/logback-classic-0.9.17.jar:${R66BIN}/logback-core-0.9.17.jar:\
+${R66BIN}/dom4j-1.6.1.jar:${R66BIN}/jaxen-1.1.1.jar:\
+${R66BIN}/commons-io-1.4.jar:\
+${R66BIN}/commons-codec-1.3.jar:${R66BIN}/commons-exec-1.0.jar:\
+${R66BIN}/ojdbc5.jar:${R66BIN}/orai18n.jar:\
+${R66BIN}/GoldenGateCommon-1.0.5.jar:${R66BIN}/GoldenGateDigest-1.0.0.jar:\
+${R66BIN}/NettyExtension-1.1.2.jar:${R66BIN}/netty-3.1.3.GA.jar:\
+${R66BIN}/GoldenGateR66-0.9.0.jar "
 export JAVARUNCLIENT="${JAVA_RUN} -cp ${libraries} ${loggerclient} "
 export JAVARUNSERVER="${JAVA_RUN} -cp ${libraries} ${loggerserver} "
+
 
 ################
 # R66 COMMANDS #
@@ -45,37 +47,37 @@ export JAVARUNSERVER="${JAVA_RUN} -cp ${libraries} ${loggerserver} "
 ###############
 # start the OpenR66 server
 # no option
-export R66SERVER="${GGHOME}/bin/server.sh"
+export R66SERVER="${R66HOME}/bin/server.sh"
 alias -x r66server="${R66SERVER}"
 
 # shutdown locally the server
 # [ PID ] optional PID of the server process
-export R66SIGNAL="${GGHOME}/bin/localshutdown.sh"
+export R66SIGNAL="${R66HOME}/bin/localshutdown.sh"
 alias -x r66signal="${R66SIGNAL}"
 
 # shutdown by network the server
 # no option
-export R66SHUTD="${JAVARUNCLIENT} openr66.server.ServerShutdown /appli/R66/conf/config`hostname`.xml"
+export R66SHUTD="${JAVARUNCLIENT} openr66.server.ServerShutdown ${R66HOME}/conf/config`hostname`.xml"
 alias -x r66shutd="${R66SHUTD}"
 
 # change limits of bandwidth
 # "[ -wglob x ] [ -rglob w ] [ -wsess x ] [ -rsess x ]"
-export R66LIMIT="${JAVARUNCLIENT} openr66.server.ChangeBandwidthLimits /appli/R66/conf/config`hostname`.xml "
+export R66LIMIT="${JAVARUNCLIENT} openr66.server.ChangeBandwidthLimits ${R66HOME}/conf/config`hostname`.xml "
 alias -x r66limit="${R66LIMIT}"
 
 # init database from argument
 # [ -initdb ] [ -dir rulesDirectory ] [ -limit xmlFileLimit ] [ -auth xmlFileAuthent ]
-export R66INIT="${JAVARUNCLIENT} openr66.server.ServerInitDatabase /appli/R66/conf/configinit`hostname`.xml "
+export R66INIT="${JAVARUNCLIENT} openr66.server.ServerInitDatabase ${R66HOME}/conf/configinit`hostname`.xml "
 alias -x r66init="${R66INIT}"
 
 # export the log
 # [ -purge ]|[ -clean ] [ -start timestamp ] [ -stop timestamp ]
-export R66EXPORT="${JAVARUNCLIENT} openr66.server.LogExport /appli/R66/conf/config`hostname`.xml "
+export R66EXPORT="${JAVARUNCLIENT} openr66.server.LogExport ${R66HOME}/conf/config`hostname`.xml "
 alias -x r66export="${R66EXPORT}"
 
 # export configuration
 # directory
-export R66CNFEXP="${JAVARUNCLIENT} openr66.server.ServerExportConfiguration /appli/R66/conf/configclient`hostname`.xml "
+export R66CNFEXP="${JAVARUNCLIENT} openr66.server.ServerExportConfiguration ${R66HOME}/conf/configclient`hostname`.xml "
 alias -x r66cnfexp="${R66CNFEXP}"
 
 
@@ -83,26 +85,27 @@ alias -x r66cnfexp="${R66CNFEXP}"
 ###############
 # get information on remote files or directory
 # "-to host -rule rule [ -file file ] [ -exist | -detail | -list | -mlsx ]
-export R66INFO="${JAVARUNCLIENT} openr66.client.RequestInformation  /appli/R66/conf/configclient`hostname`.xml "
+export R66INFO="${JAVARUNCLIENT} openr66.client.RequestInformation  ${R66HOME}/conf/configclient`hostname`.xml "
 alias -x r66info="${R66INFO}"
 
 # test the connectivity
 # -to host -msg "message"
-export R66MESG="${JAVARUNCLIENT} openr66.client.Message /appli/R66/conf/configclient`hostname`.xml "
+export R66MESG="${JAVARUNCLIENT} openr66.client.Message ${R66HOME}/conf/configclient`hostname`.xml "
 alias -x r66mesg="${R66MESG}"
 
 # get information on transfers
 # -id transferId [ -to hostId | -from hostId ] [ -cancel | -stop | -restart ]
-export R66REQ="${JAVARUNCLIENT} openr66.client.RequestTransfer /appli/R66/conf/configclient`hostname`.xml "
+export R66REQ="${JAVARUNCLIENT} openr66.client.RequestTransfer ${R66HOME}/conf/configclient`hostname`.xml "
 alias -x r66req="${R66REQ}"
 
 # synchronous transfer
 # -to hostId -file filepath -rule ruleId [ -md5 ] [ -block size ] [ -nolog ] [ -info "information" ]
-export R66SYNCSEND="${JAVARUNCLIENT} openr66.client.DirectTransfer /appli/R66/conf/configclient`hostname`.xml "
+export R66SYNCSEND="${JAVARUNCLIENT} openr66.client.DirectTransfer ${R66HOME}/conf/configclient`hostname`.xml "
 alias -x r66syncsend="${R66SYNCSEND}"
 
-# asynchronous transfer 
+# asynchronous transfer
 # -to hostId -file filepath -rule ruleId [ -md5 ] [ -block size ] [ -nolog ] [ -info "information" ]
-export R66SEND="${JAVARUNCLIENT} openr66.client.SubmitTransfer /appli/R66/conf/configclient`hostname`.xml "
+export R66SEND="${JAVARUNCLIENT} openr66.client.SubmitTransfer ${R66HOME}/conf/configclient`hostname`.xml "
 alias -x r66send="${R66SEND}"
+
 

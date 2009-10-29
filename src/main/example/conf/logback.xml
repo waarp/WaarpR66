@@ -2,12 +2,12 @@
 
   <appender name="FILE"
     class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>/appli/R66/log/R66Server.log</file>
+    <file>/appli/tower/R66/log/R66Server.log</file>
     <Append>true</Append>
     <BufferedIO>false</BufferedIO>
     <ImmediateFlush>true</ImmediateFlush>
     <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-      <FileNamePattern>/appli/R66/log/R66Server.%d{yyyy-MM-dd}.%i.log.zip</FileNamePattern>
+      <FileNamePattern>/appli/tower/R66/log/R66Server.%d{yyyy-MM-dd}.%i.log.zip</FileNamePattern>
       <MaxHistory>30</MaxHistory>
       <TimeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
           <MaxFileSize>10MB</MaxFileSize>
