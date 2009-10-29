@@ -10,6 +10,8 @@
 			<action dev="Frederic Bregier" type="fix">Add Version automatic in compile</action>
 			<action dev="Frederic Bregier" type="add">Add /status url in Supervision of OpenR66 for Supervision tools</action>
 			<action dev="Frederic Bregier" type="add">Add Multiple R66 hosts support on same database</action>
+			<action dev="Frederic Bregier" type="add">Add #BASEHOME# support</action>
+			<action dev="Frederic Bregier" type="fix">Test correctness of external executable</action>
 		</release>
 		<release version="0.6.6" date="2009-10-25" description="Add ValidFilePath Task">
 			<action dev="Frederic Bregier" type="add">Add ValidFilePath Task</action>

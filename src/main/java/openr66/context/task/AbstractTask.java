@@ -137,6 +137,11 @@ public abstract class AbstractTask implements Runnable {
     public static final String ARCHPATH = "#ARCHPATH#";
 
     /**
+     * Block size used
+     */
+    public static final String HOMEPATH = "#HOMEPATH#";
+
+    /**
      * Type of operation
      */
     final TaskType type;
@@ -288,6 +293,7 @@ public abstract class AbstractTask implements Runnable {
             FileUtils.replaceAll(builder, ARCHPATH, dir.getFullPath());
         } catch (CommandAbstractException e) {
         }
+        FileUtils.replaceAll(builder, HOMEPATH, Configuration.configuration.baseDirectory);
         String finalname = String.format(builder.toString(), argFormat);
         return finalname;
     }

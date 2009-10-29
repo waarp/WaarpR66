@@ -86,6 +86,14 @@ public class ExecMoveTask extends AbstractTask {
         String finalname = argRule;
         finalname = getReplacedValue(finalname, argTransfer.split(" "));
         String[] args = finalname.split(" ");
+        File exec = new File(args[0]);
+        if (exec.isAbsolute()) {
+            if (! exec.canExecute()) {
+                logger.error("Exec command is not executable: " + finalname);
+                futureCompletion.cancel();
+                return;
+            }
+        }
         CommandLine commandLine = new CommandLine(args[0]);
         for (int i = 1; i < args.length; i ++) {
             commandLine.addArgument(args[i]);
