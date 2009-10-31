@@ -22,6 +22,10 @@ package openr66.server;
 
 import java.net.SocketAddress;
 import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.GregorianCalendar;
 
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
@@ -79,7 +83,6 @@ public class LogExport implements Runnable {
         this.stop = stop;
         this.networkTransaction = networkTransaction;
     }
-
     /**
      * Prior to call this method, the pipeline and NetworkTransaction must have been initialized.
      * It is the responsibility of the caller to finish all network resources.
@@ -143,13 +146,64 @@ public class LogExport implements Runnable {
     protected static Timestamp sstop = null;
     protected static boolean sclean = false;
 
+    private static SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+    private static Timestamp fixDate(String date) {
+        Timestamp tdate = null;
+        date = date.replaceAll("/|:|\\.| |-", "");
+        if (date.length() > 0) {
+            if (date.length() < 15) {
+                int len = date.length();
+                date += "000000000000000".substring(len);
+            }
+            try {
+                Date ddate = format.parse(date);
+                tdate = new Timestamp(ddate.getTime());
+            } catch (ParseException e) {
+                logger.warn("start",e);
+            }
+        }
+        return tdate;
+    }
+    private static Timestamp fixDate(String date, Timestamp before) {
+        Timestamp tdate = null;
+        date = date.replaceAll("/|:|\\.| |-", "");
+        if (date.length() > 0) {
+            if (date.length() < 15) {
+                int len = date.length();
+                date += "000000000000000".substring(len);
+            }
+            try {
+                Date ddate = format.parse(date);
+                if (before != null) {
+                    Date bef = new Date(before.getTime());
+                    if (bef.compareTo(ddate) >= 0) {
+                        ddate = new Date(bef.getTime()+1000*3600*24-1);
+                    }
+                }
+                tdate = new Timestamp(ddate.getTime());
+            } catch (ParseException e) {
+                logger.warn("start",e);
+            }
+        }
+        return tdate;
+    }
+    private static Timestamp getTodayMidnight() {
+        GregorianCalendar calendar = new GregorianCalendar();
+        calendar.set(GregorianCalendar.HOUR_OF_DAY, 0);
+        calendar.set(GregorianCalendar.MINUTE, 0);
+        calendar.set(GregorianCalendar.SECOND, 0);
+        calendar.set(GregorianCalendar.MILLISECOND, 0);
+        return new Timestamp(calendar.getTimeInMillis());
+    }
     protected static boolean getParams(String [] args) {
         if (args.length < 1) {
             logger.error("Need at least the configuration file as first argument then optionally\n" +
             		"    -purge\n" +
             		"    -clean\n" +
-            		"    -start timestamp\n" +
-            		"    -stop timestamp");
+            		"    -start timestamp in format yyyyMMddHHmmssSSS possibly truncated and where one of ':-. ' can be separators\n" +
+            		"    -stop timestamp in same format than start\n" +
+            		"If not start and no stop are given, stop is Today Midnight\n" +
+            		"If start is equals or greater than stop, stop is start+24H");
             return false;
         }
         if (! FileBasedConfiguration
@@ -157,10 +211,14 @@ public class LogExport implements Runnable {
             logger.error("Need at least the configuration file as first argument then optionally\n" +
                     "    -purge\n" +
                     "    -clean\n" +
-                    "    -start timestamp\n" +
-                    "    -stop timestamp");
+                    "    -start timestamp in format yyyyMMddHHmmssSSS possibly truncated and where one of ':-. ' can be separators\n" +
+                    "    -stop timestamp in same format than start\n" +
+                    "If not start and no stop are given, stop is Today Midnight\n" +
+                    "If start is equals or greater than stop, stop is start+24H");
             return false;
         }
+        String ssstart = null;
+        String ssstop = null;
         for (int i = 1; i < args.length; i++) {
             if (args[i].equalsIgnoreCase("-purge")) {
                 spurgeLog = true;
@@ -168,11 +226,26 @@ public class LogExport implements Runnable {
                 sclean = true;
             } else if (args[i].equalsIgnoreCase("-start")) {
                 i++;
-                sstart = Timestamp.valueOf(args[i]);
+                ssstart = args[i];
             } else if (args[i].equalsIgnoreCase("-stop")) {
                 i++;
-                sstop = Timestamp.valueOf(args[i]);
+                ssstop = args[i];
             }
+        }
+        if (ssstart != null) {
+            Timestamp tstart = fixDate(ssstart);
+            if (tstart != null) {
+                sstart = tstart;
+            }
+        }
+        if (ssstop != null) {
+            Timestamp tstop = fixDate(ssstop, sstart);
+            if (tstop != null) {
+                sstop = tstop;
+            }
+        }
+        if (ssstart == null && ssstop == null) {
+            sstop = getTodayMidnight();
         }
         return true;
     }
