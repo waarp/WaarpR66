@@ -5,6 +5,9 @@
 		<author email="fredbregier at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+		<release version="0.9.1" date="2009-10-31" description="Pre version before 1.0 waiting for Netty 3.2">
+			<action dev="Frederic Bregier" type="fix">Fix start and stop date in LogExport</action>
+		</release>
 		<release version="0.9.0" date="2009-10-28" description="Last version before 1.0 waiting for Netty 3.2">
 			<action dev="Frederic Bregier" type="fix">Fix initialization of sent file</action>
 			<action dev="Frederic Bregier" type="fix">Add Version automatic in compile</action>
