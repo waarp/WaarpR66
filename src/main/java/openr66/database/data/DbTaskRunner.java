@@ -2000,8 +2000,13 @@ public class DbTaskRunner extends AbstractDbData {
                 this.saveStatus();
                 // FIXME
                 logger.warn("Future is failed: "+infostatus.mesg);
-                throw new OpenR66RunnerErrorException("Runner is failed: " +
+                if (future.getCause() != null) {
+                    throw new OpenR66RunnerErrorException("Runner is failed: " +
                         future.getCause().getMessage(), future.getCause());
+                } else {
+                    throw new OpenR66RunnerErrorException("Runner is failed: " +
+                            infostatus.mesg);
+                }
             }
             step ++;
         }

@@ -49,6 +49,7 @@ a img {
 </li><li><span style="font-size:10pt;">Path is a fixed argument for the task to execute. On this argument, string replacements are done when&nbsp;the following patterns are found:</span><ul>
 <li><span style="font-size:10pt;"><strong>#TRUEFULLPATH#</strong> : Current full path of current FILENAME</span>
 </li><li><span style="font-size:10pt;"><strong>#TRUEFILENAME#</strong> : Current FILENAME (basename) (change in retrieval part)</span>
+</li><li><span style="font-size:10pt;"><strong>#ORIGINALFULLPATH#</strong> : Original full path FILENAME (before changing in retrieval part)</span>
 </li><li><span style="font-size:10pt;"><strong>#ORIGINALFILENAME#</strong> : Original FILENAME (basename) (before changing in retrieval part)</span>
 </li><li><span style="font-size:10pt;"><strong>#FILESIZE#</strong> : File size if it exists</span>
 </li><li><span style="font-size:10pt;"><strong>#INPATH#</strong> : In (Receive) path</span>
@@ -72,7 +73,7 @@ a img {
 </li><li><span style="font-size:10pt;">Additionally, a task will use also the argument from the transfer itself (Transfer Information).</span></li></ul>
 <p><span style="font-size:10pt;"><span size="+0"><span style="font-size:10pt;"><span size="+0">&nbsp;Each action is of one of the following items:</span></span></span></span></p>
 <ul>
-<li><span style="font-size:10pt;"><strong>TEST</strong></span></li></ul>
+<li><span style="font-size:10pt;"><strong>LOG</strong></span></li></ul>
 <blockquote style="margin-right:0px;" dir="ltr">
 <p style="text-align:justify;"><span style="font-size:10pt;">This task logs the informations from the rule and the transfer only if delay is &gt; 0.</span></p></blockquote>
 <ul>

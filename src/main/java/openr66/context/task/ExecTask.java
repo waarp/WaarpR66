@@ -26,6 +26,8 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import java.io.File;
 import java.io.IOException;
 
+import openr66.context.ErrorCode;
+import openr66.context.R66Result;
 import openr66.context.R66Session;
 import openr66.protocol.configuration.Configuration;
 
@@ -82,6 +84,9 @@ public class ExecTask extends AbstractTask {
         if (exec.isAbsolute()) {
             if (! exec.canExecute()) {
                 logger.error("Exec command is not executable: " + finalname);
+                R66Result result = new R66Result(session, false,
+                        ErrorCode.CommandNotFound, session.getRunner());
+                futureCompletion.setResult(result);
                 futureCompletion.cancel();
                 return;
             }

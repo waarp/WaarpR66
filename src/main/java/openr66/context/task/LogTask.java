@@ -30,12 +30,12 @@ import openr66.context.R66Session;
  * @author Frederic Bregier
  *
  */
-public class TestTask extends AbstractTask {
+public class LogTask extends AbstractTask {
     /**
      * Internal Logger
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
-            .getLogger(TestTask.class);
+            .getLogger(LogTask.class);
 
     /**
      * @param argRule
@@ -43,9 +43,9 @@ public class TestTask extends AbstractTask {
      * @param argTransfer
      * @param session
      */
-    public TestTask(String argRule, int delay, String argTransfer,
+    public LogTask(String argRule, int delay, String argTransfer,
             R66Session session) {
-        super(TaskType.TEST, delay, argRule, argTransfer, session);
+        super(TaskType.LOG, delay, argRule, argTransfer, session);
     }
 
     /*

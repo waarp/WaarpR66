@@ -29,6 +29,7 @@ import java.util.Date;
 
 import openr66.context.R66Session;
 import openr66.context.filesystem.R66Dir;
+import openr66.context.filesystem.R66File;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import openr66.protocol.utils.FileUtils;
@@ -47,12 +48,16 @@ public abstract class AbstractTask implements Runnable {
     public static final String TRUEFULLPATH = "#TRUEFULLPATH#";
 
     /**
-     * Current FILENAME (change in retrieval part)
+     * Current FILENAME (basename) (change in retrieval part)
      */
     public static final String TRUEFILENAME = "#TRUEFILENAME#";
+    /**
+     * Current full path of Original FILENAME (as transmitted) (before changing in retrieval part)
+     */
+    public static final String ORIGINALFULLPATH = "#ORIGINALFULLPATH#";
 
     /**
-     * Original FILENAME (before changing in retrieval part)
+     * Original FILENAME (basename) (before changing in retrieval part)
      */
     public static final String ORIGINALFILENAME = "#ORIGINALFILENAME#";
 
@@ -237,8 +242,10 @@ public abstract class AbstractTask implements Runnable {
             FileUtils.replaceAll(builder, TRUEFILENAME, "nofile");
             FileUtils.replaceAll(builder, FILESIZE, "0");
         }
-        FileUtils.replaceAll(builder, ORIGINALFILENAME, session.getRunner()
+        FileUtils.replaceAll(builder, ORIGINALFULLPATH, session.getRunner()
                 .getOriginalFilename());
+        FileUtils.replaceAll(builder, ORIGINALFILENAME, R66File.getBasename(session.getRunner()
+                .getOriginalFilename()));
         FileUtils.replaceAll(builder, RULE, session.getRunner()
                 .getRuleId());
         DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");

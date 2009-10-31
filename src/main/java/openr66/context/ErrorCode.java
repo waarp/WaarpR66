@@ -149,6 +149,10 @@ public enum ErrorCode {
      */
     FileNotFound("File not found", 'f'),
     /**
+     * Code stands for Command not found error
+     */
+    CommandNotFound("Command not found", 'c'),
+    /**
      * Code stands for a request in PassThroughMode and required action is incompatible with this mode
      */
     PassThroughMode("Error since action cannot be taken on PassThroughMode", 'p'),
@@ -236,6 +240,8 @@ public enum ErrorCode {
                 return FileNotFound;
             case 'z':
                 return Running;
+            case 'c':
+                return CommandNotFound;
             case 'p':
                 return PassThroughMode;
             default:

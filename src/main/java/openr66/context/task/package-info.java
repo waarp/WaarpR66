@@ -3,7 +3,7 @@
  *
  *
  * Several kind of tasks exist in OpenR66:<br>
- * TEST, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, LINKRENAME<br><br>
+ * LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, LINKRENAME, TRANSFER, VALIDFILEPATH<br><br>
  * <br><br>
  *
  * Several tasks are possible to run before a transfer starts (pre action),
@@ -38,8 +38,14 @@
  * replacements are done when the following patterns are found:<ul>
  * <li>#TRUEFULLPATH# : Current full path of current FILENAME</li>
  * <li>#TRUEFILENAME# : Current FILENAME (basename) (change in retrieval part)</li>
+ * <li>#ORIGINALFULLPATH# : Original full path FILENAME (before changing in retrieval part)</li>
  * <li>#ORIGINALFILENAME# : Original FILENAME (basename) (before changing in retrieval part)</li>
  * <li>#FILESIZE# : File size if it exists</li>
+ * <li>#INPATH# : In (Receive) path</li>
+ * <li>#OUTPATH# : Out (Send) path</li>
+ * <li>#WORKPATH# : Working (while receiving) path</li>
+ * <li>#ARCHPATH# : Archive path (for export Log)</li>
+ * <li>#HOMEPATH# : Home path (to enable for instance relative path commands)</li>
  * <li>#RULE# : Rule used during transfer</li>
  * <li>#DATE# : Current Date in yyyyMMdd format</li>
  * <li>#HOUR# : Current Hour in HHmmss format</li>
@@ -60,7 +66,7 @@
  *
  * The different kinds of TASK are:<br>
  * <ul>
- * <li>TEST</li> This task logs some information only if delay is > 0.
+ * <li>LOG</li> This task logs some information only if delay is > 0.
  * <li>MOVE</li> Move the file to the path designed by Path argument without renaming the filename (same basename). Delay and Transfer Information are ignored.
  * The file is marked as moved.
  * <li>MOVERENAME</li> Move the file to the path designed by Path and Transfer Information arguments. Delay is ignored.

@@ -383,7 +383,11 @@ public class R66Session implements SessionInterface {
         }
         // Store TRUEFILENAME
         try {
-            this.runner.setFilename(file.getFile());
+            if (this.runner.isFileMoved()) {
+                this.runner.setFileMoved(file.getFile(), true);
+            } else {
+                this.runner.setFilename(file.getFile());
+            }
         } catch (CommandAbstractException e) {
             this.runner.deleteTempFile();
             throw new OpenR66RunnerErrorException(e);
@@ -443,6 +447,27 @@ public class R66Session implements SessionInterface {
         }
         this.runner.saveStatus();
         logger.info("Final init: {}", this.runner);
+    }
+    /**
+     * Rename the current receive file from the very beginning since the sender
+     * has a post action that changes its name
+     * @param newFilename
+     * @throws OpenR66RunnerErrorException
+     */
+    public void renameReceiverFile(String newFilename) throws OpenR66RunnerErrorException {
+        // First delete the temporary file if needed
+        if (runner.getRank() > 0) {
+            logger.error("Renaming file is not correct since transfer does not start from first block");
+            // Not correct
+            throw new OpenR66RunnerErrorException("Renaming file not correct since transfer already started");
+        }
+        if (!RequestPacket.isRecvThroughMode(this.runner.getMode())) {
+            this.runner.deleteTempFile();
+        }
+        // Now rename it
+        this.runner.setOriginalFilename(newFilename);
+        this.setFileAfterPreRunner(true);
+        this.runner.saveStatus();
     }
 
     /**

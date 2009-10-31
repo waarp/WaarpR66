@@ -416,15 +416,22 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     StringBuilder builder = new StringBuilder();
                     int i = 0;
                     while (preparedStatement.getNext()) {
-                        i++;
-                        DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatement);
-                        LocalChannelReference lcr =
-                            Configuration.configuration.getLocalTransaction().
-                            getFromRequest(taskRunner.getKey());
-                        builder.append(taskRunner.toSpecializedHtml(authentHttp, body,
-                                lcr != null ? "Active" : "NotActive"));
-                        if (i > LIMITROW) {
-                            break;
+                        try {
+                            i++;
+                            DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatement);
+                            LocalChannelReference lcr =
+                                Configuration.configuration.getLocalTransaction().
+                                getFromRequest(taskRunner.getKey());
+                            builder.append(taskRunner.toSpecializedHtml(authentHttp, body,
+                                    lcr != null ? "Active" : "NotActive"));
+                            if (i > LIMITROW) {
+                                break;
+                            }
+                        } catch (OpenR66DatabaseException e) {
+                            // try to continue if possible
+                            logger.warn("An error occurs while accessing a Runner: ",
+                                    e);
+                            continue;
                         }
                     }
                     preparedStatement.realClose();
@@ -523,15 +530,22 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     StringBuilder builder = new StringBuilder();
                     int i = 0;
                     while (preparedStatement.getNext()) {
-                        i++;
-                        DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatement);
-                        LocalChannelReference lcr =
-                            Configuration.configuration.getLocalTransaction().
-                            getFromRequest(taskRunner.getKey());
-                        builder.append(taskRunner.toSpecializedHtml(authentHttp, body,
-                                lcr != null ? "Active" : "NotActive"));
-                        if (i > LIMITROW) {
-                            break;
+                        try {
+                            i++;
+                            DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatement);
+                            LocalChannelReference lcr =
+                                Configuration.configuration.getLocalTransaction().
+                                getFromRequest(taskRunner.getKey());
+                            builder.append(taskRunner.toSpecializedHtml(authentHttp, body,
+                                    lcr != null ? "Active" : "NotActive"));
+                            if (i > LIMITROW) {
+                                break;
+                            }
+                        } catch (OpenR66DatabaseException e) {
+                            // try to continue if possible
+                            logger.warn("An error occurs while accessing a Runner: ",
+                                    e);
+                            continue;
                         }
                     }
                     preparedStatement.realClose();
@@ -603,22 +617,28 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                         preparedStatement.executeQuery();
                         int i = 0;
                         while (preparedStatement.getNext()) {
-                            i++;
-                            DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatement);
-                            LocalChannelReference lcr =
-                                Configuration.configuration.getLocalTransaction().
-                                getFromRequest(taskRunner.getKey());
-                            R66Result finalResult = TransferUtils.restartTransfer(taskRunner, lcr);
-                            ErrorCode result = finalResult.code;
-                            ErrorCode last = taskRunner.getErrorInfo();
-                            taskRunner.setErrorExecutionStatus(result);
-                            builder.append(taskRunner.toSpecializedHtml(authentHttp, body,
-                                    lcr != null ? "Active" : "NotActive"));
-                            taskRunner.setErrorExecutionStatus(last);
-                            if (i > LIMITROW) {
-                                break;
-                            }
-                        }
+                            try {
+                                i++;
+                                DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatement);
+                                LocalChannelReference lcr =
+                                    Configuration.configuration.getLocalTransaction().
+                                    getFromRequest(taskRunner.getKey());
+                                R66Result finalResult = TransferUtils.restartTransfer(taskRunner, lcr);
+                                ErrorCode result = finalResult.code;
+                                ErrorCode last = taskRunner.getErrorInfo();
+                                taskRunner.setErrorExecutionStatus(result);
+                                builder.append(taskRunner.toSpecializedHtml(authentHttp, body,
+                                        lcr != null ? "Active" : "NotActive"));
+                                taskRunner.setErrorExecutionStatus(last);
+                                if (i > LIMITROW) {
+                                    break;
+                                }
+                            } catch (OpenR66DatabaseException e) {
+                                // try to continue if possible
+                                logger.warn("An error occurs while accessing a Runner: ",
+                                        e);
+                                continue;
+                            }                        }
                         preparedStatement.realClose();
                     } catch (OpenR66DatabaseException e) {
                         if (preparedStatement != null) {

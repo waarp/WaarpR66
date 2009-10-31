@@ -202,7 +202,7 @@ public class LogExport implements Runnable {
             		"    -clean\n" +
             		"    -start timestamp in format yyyyMMddHHmmssSSS possibly truncated and where one of ':-. ' can be separators\n" +
             		"    -stop timestamp in same format than start\n" +
-            		"If not start and no stop are given, stop is Today Midnight\n" +
+            		"If not start and no stop are given, stop is Today Midnight (00:00:00)\n" +
             		"If start is equals or greater than stop, stop is start+24H");
             return false;
         }
@@ -213,7 +213,7 @@ public class LogExport implements Runnable {
                     "    -clean\n" +
                     "    -start timestamp in format yyyyMMddHHmmssSSS possibly truncated and where one of ':-. ' can be separators\n" +
                     "    -stop timestamp in same format than start\n" +
-                    "If not start and no stop are given, stop is Today Midnight\n" +
+                    "If not start and no stop are given, stop is Today Midnight (00:00:00)\n" +
                     "If start is equals or greater than stop, stop is start+24H");
             return false;
         }

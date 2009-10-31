@@ -7,6 +7,10 @@
 	<body>
 		<release version="0.9.1" date="2009-10-31" description="Pre version before 1.0 waiting for Netty 3.2">
 			<action dev="Frederic Bregier" type="fix">Fix start and stop date in LogExport</action>
+			<action dev="Frederic Bregier" type="fix">Fix TEST command to LOG command</action>
+			<action dev="Frederic Bregier" type="fix">Fix EXEC command for special CommandNotFound code</action>
+			<action dev="Frederic Bregier" type="fix">Fix changing name from sender at startup should inform receiver</action>
+			<action dev="Frederic Bregier" type="add">Add #ORIGINALFULLPATH#</action>
 		</release>
 		<release version="0.9.0" date="2009-10-28" description="Last version before 1.0 waiting for Netty 3.2">
 			<action dev="Frederic Bregier" type="fix">Fix initialization of sent file</action>

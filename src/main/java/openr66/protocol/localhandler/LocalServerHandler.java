@@ -404,7 +404,21 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         runner.stopOrCancelRunner(code);
                     }
                 } else {
-                    code = ErrorCode.Internal;
+                    DbTaskRunner runner = session.getRunner();
+                    if (runner != null) {
+                        switch (runner.getErrorInfo()) {
+                            case InitOk:
+                            case PostProcessingOk:
+                            case PreProcessingOk:
+                            case Running:
+                            case TransferOk:
+                                code = ErrorCode.Internal;
+                            default:
+                                code = runner.getErrorInfo();
+                        }
+                    } else {
+                        code = ErrorCode.Internal;
+                    }
                 }
                 if ((!isAnswered) &&
                         (!(exception instanceof OpenR66ProtocolBusinessNoWriteBackException)) &&
@@ -712,9 +726,14 @@ public class LocalServerHandler extends SimpleChannelHandler {
         try {
             rule = new DbRule(localChannelReference.getDbSession(), packet.getRulename());
         } catch (OpenR66DatabaseException e) {
-            logger.error("Rule is unknown: " + packet.getRulename(), e);
+            logger.error("Rule is unknown: " + packet.getRulename()+" {}", e.getMessage());
             session.setStatus(49);
-            throw new OpenR66ProtocolNoDataException(e);
+            endInitRequestInError(channel,
+                    ErrorCode.QueryRemotelyUnknown,
+                new OpenR66ProtocolBusinessException(
+                   "The Transfer is associated with an Unknown Rule: "+
+                   packet.getRulename()), packet);
+            return;
         }
         if (packet.isToValidate()) {
             if (!rule.checkHostAllow(session.getAuth().getUser())) {
@@ -874,6 +893,18 @@ public class LocalServerHandler extends SimpleChannelHandler {
             session.setStatus(38);
             ChannelUtils.close(channel);
             return;
+        }
+        if (runner.isFileMoved() && runner.isSender() && runner.isInTransfer()
+                && runner.getRank() == 0 && (!packet.isToValidate())) {
+            // File was moved during PreTask and very beginning of the transfer
+            // and the remote host has already received the request packet
+            // => Informs the receiver of the new name
+            logger.info("Will send a modification of filename due to pretask: "+
+                    runner.getFilename());
+            ValidPacket validPacket = new ValidPacket("Change Filename by Pre action on sender",
+                    runner.getFilename(), LocalPacketFactory.REQUESTPACKET);
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+                    validPacket).awaitUninterruptibly();
         }
         session.setReady(true);
         Configuration.configuration.getLocalTransaction().setFromId(runner, localChannelReference);
@@ -1249,7 +1280,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
             throws OpenR66ProtocolNotAuthenticatedException,
             OpenR66RunnerErrorException, OpenR66ProtocolSystemException, OpenR66ProtocolBusinessException {
         if (packet.getTypeValid() != LocalPacketFactory.SHUTDOWNPACKET &&
-                !session.isAuthenticated()) {
+                (!session.isAuthenticated())) {
+            logger.warn("Valid packet received while not authenticated: {} {}",packet, session);
             throw new OpenR66ProtocolNotAuthenticatedException(
                     "Not authenticated");
         }
@@ -1493,6 +1525,41 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 } catch (OpenR66ProtocolPacketException e) {
                 }
                 Channels.close(channel);
+                break;
+            }
+            case LocalPacketFactory.REQUESTPACKET: {
+                // The filename from sender is changed due to PreTask so change it too in receiver
+                String newfilename = packet.getSmiddle();
+                // Pre execution was already done since this packet is only received once
+                // the request is already validated by the receiver
+                try {
+                    session.renameReceiverFile(newfilename);
+                } catch (OpenR66RunnerErrorException e) {
+                    DbTaskRunner runner = session.getRunner();
+                    runner.saveStatus();
+                    runner.setErrorExecutionStatus(ErrorCode.FileNotFound);
+                    logger.error("File renaming in error {}", e.getMessage());
+                    ErrorPacket error = new ErrorPacket("File renaming in error: "+e
+                            .getMessage(), runner.getErrorInfo().getCode(),
+                            ErrorPacket.FORWARDCLOSECODE);
+                    try {
+                        ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+                                error).awaitUninterruptibly();
+                    } catch (OpenR66ProtocolPacketException e2) {
+                    }
+                    localChannelReference.invalidateRequest(new R66Result(e, session,
+                            true, runner.getErrorInfo(), runner));
+                    try {
+                        session.setFinalizeTransfer(false, new R66Result(e, session,
+                                true, runner.getErrorInfo(), runner));
+                    } catch (OpenR66RunnerErrorException e1) {
+                    } catch (OpenR66ProtocolSystemException e1) {
+                    }
+                    session.setStatus(97);
+                    ChannelUtils.close(channel);
+                    return;
+                }
+                // Success: No write back at all
                 break;
             }
             case LocalPacketFactory.BANDWIDTHPACKET: {

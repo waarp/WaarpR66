@@ -33,7 +33,7 @@ import openr66.context.task.exception.OpenR66RunnerErrorException;
  *
  */
 public enum TaskType {
-    TEST, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, LINKRENAME, TRANSFER, VALIDFILEPATH;
+    LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, LINKRENAME, TRANSFER, VALIDFILEPATH;
 
     public int type;
 
@@ -57,8 +57,8 @@ public enum TaskType {
             int delay, R66Session session)
             throws OpenR66RunnerErrorException {
         switch (type) {
-            case TEST:
-                return new TestTask(argRule, delay, session.getRunner()
+            case LOG:
+                return new LogTask(argRule, delay, session.getRunner()
                         .getFileInformation(), session);
             case MOVE:
                 return new MoveTask(argRule, delay, session.getRunner()
