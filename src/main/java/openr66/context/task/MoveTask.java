@@ -24,6 +24,7 @@ import goldengate.common.command.exception.CommandAbstractException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.context.R66Session;
+import openr66.context.filesystem.R66Dir;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 
 /**
@@ -60,7 +61,10 @@ public class MoveTask extends AbstractTask {
         logger.info("Move with " + argRule + ":" + argTransfer + " and {}",
                 session);
         boolean success = false;
-        String finalname = argRule + session.getFile().getBasename();
+        String directory = argRule;
+        directory = getReplacedValue(directory, argTransfer.split(" "));
+        String finalname = directory.split(" ")[0] + R66Dir.SEPARATOR +
+            session.getFile().getBasename();
         try {
             success = session.getFile().renameTo(finalname, true);
         } catch (CommandAbstractException e) {

@@ -5,6 +5,10 @@
 		<author email="fredbregier at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+		<release version="0.9.2" date="2009-11-01" description="Second Pre version before 1.0 waiting for Netty 3.2">
+			<action dev="Frederic Bregier" type="add">Add a new function: DELETE</action>
+			<action dev="Frederic Bregier" type="fix">Fix LOG command to allow export to a FILE</action>
+		</release>
 		<release version="0.9.1" date="2009-10-31" description="Pre version before 1.0 waiting for Netty 3.2">
 			<action dev="Frederic Bregier" type="fix">Fix start and stop date in LogExport</action>
 			<action dev="Frederic Bregier" type="fix">Fix TEST command to LOG command</action>

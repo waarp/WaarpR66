@@ -33,7 +33,8 @@ import openr66.context.task.exception.OpenR66RunnerErrorException;
  *
  */
 public enum TaskType {
-    LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, LINKRENAME, TRANSFER, VALIDFILEPATH;
+    LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, LINKRENAME, TRANSFER,
+    VALIDFILEPATH, DELETE;
 
     public int type;
 
@@ -86,6 +87,9 @@ public enum TaskType {
                         .getFileInformation(), session);
             case VALIDFILEPATH:
                 return new ValidFilePathTask(argRule, delay, session.getRunner()
+                        .getFileInformation(), session);
+            case DELETE:
+                return new DeleteTask(argRule, delay, session.getRunner()
                         .getFileInformation(), session);
             default:
                 throw new OpenR66RunnerErrorException("Unvalid Task: " +

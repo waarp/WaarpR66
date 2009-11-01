@@ -75,12 +75,19 @@ a img {
 <ul>
 <li><span style="font-size:10pt;"><strong>LOG</strong></span></li></ul>
 <blockquote style="margin-right:0px;" dir="ltr">
-<p style="text-align:justify;"><span style="font-size:10pt;">This task logs the informations from the rule and the transfer only if delay is &gt; 0.</span></p></blockquote>
+<p style="text-align:justify;"><span style="font-size:10pt;">This task logs or writes to an external file some info:<br>
+ - if delay is 0, no echo at all will be done<br>
+ - if delay is 1, will echo some information in the normal log<br>
+ - if delay is 2, will echo some information in the file
+ (last deduced argument will be the full path for the file output)<br>
+ - if delay is 3, will echo both in the normal log and in the file
+ (last deduced argument will be the full path for the file output)</span></p></blockquote>
 <ul>
 <li><span style="font-size:10pt;"><strong>MOVE</strong></span></li></ul>
 <blockquote style="margin-right:0px;" dir="ltr">
-<p style="text-align:justify;"><span style="font-size:10pt;">Move the file to the path designed by Path argument without renaming the filename (same basename). </span></p>
-<p style="text-align:justify;"><span style="font-size:10pt;">Delay and Transfer Information are ignored.</span></p>
+<p style="text-align:justify;"><span style="font-size:10pt;">Move the file to the path designed by Path and Transfer Information arguments without renaming the filename (same basename). </span></p>
+<p style="text-align:justify;"><span style="font-size:10pt;">After Path is transformed according to above dynamic replacements, it is then used as a String Format where Transfer Information is used as input (String.format(Path,Info)). </span></p>
+<p style="text-align:justify;"><span style="font-size:10pt;">Delay is ignored.</span></p>
 <p style="text-align:justify;"><span style="font-size:10pt;">The file is marked as moved.</span></p></blockquote>
 <ul>
 <li><span style="font-size:10pt;"><strong>MOVERENAME</strong></span></li></ul>
@@ -143,6 +150,11 @@ a img {
 <p style="text-align:justify;"><span style="font-size:10pt;">The result should be as: "path1 path2 ..." where each path is separated by blank character. </span></p>
 <p style="text-align:justify;"><span style="font-size:10pt;">If Delay is not 0, a log is printed out. </span></p>
 <p style="text-align:justify;"><span style="font-size:10pt;">The file is not marked as moved.</span></p></blockquote>
+<ul>
+<li><span style="font-size:10pt;"><strong>DELETE</strong></span></li></ul>
+<blockquote style="margin-right:0px;" dir="ltr">
+<p style="text-align:justify;"><span style="font-size:10pt;">This task deletes the current file.The current file is no more valid. </span></p>
+<p style="text-align:justify;"><span style="font-size:10pt;">No arguments are taken into account.</span></p></blockquote>
 <ul>
 <li><span style="font-size:10pt;"><strong>LINKRENAME</strong></span></li></ul>
 <blockquote style="margin-right:0px;" dir="ltr">

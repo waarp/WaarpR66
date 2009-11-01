@@ -20,12 +20,24 @@
  */
 package openr66.context.task;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+import openr66.context.ErrorCode;
 import openr66.context.R66Session;
 
 /**
- * This class is for testing purpose only (if delay is > 0, will echo some information)
+ * This class is for logging or write to an external file some info:<br>
+ * - if delay is 0, no echo at all will be done<br>
+ * - if delay is 1, will echo some information in the normal log<br>
+ * - if delay is 2, will echo some information in the file
+ * (last deduced argument will be the full path for the file output)<br>
+ * - if delay is 3, will echo both in the normal log and in the file
+ * (last deduced argument will be the full path for the file output)<br>
  *
  * @author Frederic Bregier
  *
@@ -55,9 +67,59 @@ public class LogTask extends AbstractTask {
      */
     @Override
     public void run() {
-        if (delay > 0) {
-            logger.warn("Test output " + argRule + ":" + argTransfer + " and\n    " +
-                    session.toString());
+        String finalValue = argRule;
+        finalValue = getReplacedValue(finalValue, argTransfer.split(" "));
+        switch (delay) {
+            case 0:
+                break;
+            case 1:
+                logger.warn(finalValue+"\n    " + session.toString());
+                break;
+            case 2:
+                String []args = finalValue.split(" ");
+                String filename = args[args.length-1];
+                File file = new File(filename);
+                if (file.getParentFile() == null ||
+                    (!file.canWrite())) {
+                    // File cannot be written so revert to log
+                    session.getRunner().setErrorExecutionStatus(ErrorCode.Warning);
+                    logger.warn(finalValue+"\n    " + session.toString());
+                    futureCompletion.setSuccess();
+                    return;
+                }
+                FileOutputStream outputStream = null;
+                try {
+                    outputStream = new FileOutputStream(file);
+                } catch (FileNotFoundException e) {
+                    // File cannot be written so revert to log
+                    session.getRunner().setErrorExecutionStatus(ErrorCode.Warning);
+                    logger.warn(finalValue+"\n    " + session.toString());
+                    futureCompletion.setSuccess();
+                    return;
+                }
+                try {
+                    outputStream.write(finalValue.getBytes());
+                } catch (IOException e) {
+                    // File cannot be written so revert to log
+                    try {
+                        outputStream.close();
+                    } catch (IOException e1) {
+                    }
+                    file.delete();
+                    session.getRunner().setErrorExecutionStatus(ErrorCode.Warning);
+                    logger.warn(finalValue+"\n    " + session.toString());
+                    futureCompletion.setSuccess();
+                    return;
+                }
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                }
+                break;
+            case 3:
+                logger.warn(finalValue+"\n    " + session.toString());
+                break;
+            default:
         }
         futureCompletion.setSuccess();
     }

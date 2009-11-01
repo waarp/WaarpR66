@@ -23,21 +23,24 @@ package openr66.context.task;
 import goldengate.common.command.exception.CommandAbstractException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+import openr66.context.ErrorCode;
+import openr66.context.R66Result;
 import openr66.context.R66Session;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 
 /**
- * Move and Rename the current file
+ * Delete the file. The current file is no more valid.<br>
+ * No arguments are taken into account.
  *
  * @author Frederic Bregier
  *
  */
-public class MoveRenameTask extends AbstractTask {
+public class DeleteTask extends AbstractTask {
     /**
      * Internal Logger
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
-            .getLogger(MoveRenameTask.class);
+            .getLogger(DeleteTask.class);
 
     /**
      * @param argRule
@@ -45,9 +48,9 @@ public class MoveRenameTask extends AbstractTask {
      * @param argTransfer
      * @param session
      */
-    public MoveRenameTask(String argRule, int delay, String argTransfer,
+    public DeleteTask(String argRule, int delay, String argTransfer,
             R66Session session) {
-        super(TaskType.MOVERENAME, delay, argRule, argTransfer, session);
+        super(TaskType.DELETE, delay, argRule, argTransfer, session);
     }
 
     /*
@@ -57,28 +60,20 @@ public class MoveRenameTask extends AbstractTask {
      */
     @Override
     public void run() {
-        boolean success = false;
-        String finalname = argRule;
-        finalname = getReplacedValue(finalname, argTransfer.split(" ")).split(" ")[0];
-        logger.info("Move and Rename to " + finalname + " with " + argRule +
-                ":" + argTransfer + " and {}", session);
+        logger.info("Delete file from session {}",
+                session);
         try {
-            success = session.getFile().renameTo(finalname, true);
-        } catch (CommandAbstractException e) {
-            logger.error("Move and Rename to " + finalname + " with " +
-                    argRule + ":" + argTransfer + " and " + session, e);
-            futureCompletion.setFailure(new OpenR66ProtocolSystemException(e));
+            session.getFile().delete();
+        } catch (CommandAbstractException e1) {
+            logger.info("CANNOT Delete file from session {}",
+                    session, e1);
+            R66Result result = new R66Result(session, false,
+                    ErrorCode.FileNotFound, session.getRunner());
+            futureCompletion.setResult(result);
+            futureCompletion.setFailure(new OpenR66ProtocolSystemException(e1));
             return;
         }
-        if (success) {
-            session.getRunner().setFileMoved(finalname, success);
-            futureCompletion.setSuccess();
-        } else {
-            logger.error("Cannot Move and Rename to " + finalname + " with " +
-                    argRule + ":" + argTransfer + " and " + session);
-            futureCompletion.setFailure(new OpenR66ProtocolSystemException(
-                    "Cannot move file"));
-        }
+        futureCompletion.setSuccess();
     }
 
 }
