@@ -376,9 +376,9 @@ public class LocalTransaction {
                     } catch (OpenR66RunnerErrorException e) {
                     } catch (OpenR66ProtocolSystemException e) {
                     }
-                    ChannelUtils.close(localChannelReference.getLocalChannel());
-                    return;
                 }
+                ChannelUtils.close(localChannelReference.getLocalChannel());
+                return;
             }
             try {
                 buffer = packet.getLocalPacket();

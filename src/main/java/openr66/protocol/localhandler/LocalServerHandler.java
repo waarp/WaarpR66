@@ -691,16 +691,36 @@ public class LocalServerHandler extends SimpleChannelHandler {
         throw exception;
     }
 
-    private void endInitRequestInError(Channel channel, ErrorCode code,
+    private void endInitRequestInError(Channel channel, ErrorCode code, DbTaskRunner runner,
             OpenR66Exception e1, RequestPacket packet) throws OpenR66ProtocolPacketException {
         logger.error("TaskRunner initialisation in error "+ code.mesg+" "+session);
         localChannelReference.invalidateRequest(new R66Result(
                 e1, session, true, code, null));
-        ErrorPacket error = new ErrorPacket(
+
+        if (packet.isToValidate()) {
+            /// answer with a wrong request since runner is not set on remote host
+            if (runner != null) {
+                if (runner.isSender()) {
+                    // In case Wildcard was used
+                    logger.info("New FILENAME: {}", runner.getOriginalFilename());
+                    packet.setFilename(runner.getOriginalFilename());
+                    logger.info("Rank set: "+runner.getRank());
+                    packet.setRank(runner.getRank());
+                } else {
+                    logger.info("Rank set: "+runner.getRank());
+                    packet.setRank(runner.getRank());
+                }
+            }
+            packet.validate();
+            packet.setCode(code.code);
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet).awaitUninterruptibly();
+        } else {
+            ErrorPacket error = new ErrorPacket(
                 "TaskRunner initialisation in error: "+e1
                         .getMessage()+" for "+packet.toString()+" since "+code.mesg,
                         code.getCode(), ErrorPacket.FORWARDCLOSECODE);
-        ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
+        }
         ChannelUtils.close(channel);
         session.setStatus(47);
     }
@@ -709,13 +729,16 @@ public class LocalServerHandler extends SimpleChannelHandler {
      * Receive a request
      * @param channel
      * @param packet
-     * @throws OpenR66ProtocolNotAuthenticatedException
      * @throws OpenR66ProtocolNoDataException
      * @throws OpenR66ProtocolPacketException
+     * @throws OpenR66ProtocolBusinessException
+     * @throws OpenR66ProtocolSystemException
+     * @throws OpenR66RunnerErrorException
      */
     private void request(Channel channel, RequestPacket packet)
-            throws OpenR66ProtocolNotAuthenticatedException,
-            OpenR66ProtocolNoDataException, OpenR66ProtocolPacketException {
+            throws OpenR66ProtocolNoDataException, OpenR66ProtocolPacketException,
+            OpenR66RunnerErrorException, OpenR66ProtocolSystemException,
+            OpenR66ProtocolBusinessException {
         session.setStatus(99);
         if (!session.isAuthenticated()) {
             session.setStatus(48);
@@ -729,7 +752,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             logger.error("Rule is unknown: " + packet.getRulename()+" {}", e.getMessage());
             session.setStatus(49);
             endInitRequestInError(channel,
-                    ErrorCode.QueryRemotelyUnknown,
+                    ErrorCode.QueryRemotelyUnknown, null,
                 new OpenR66ProtocolBusinessException(
                    "The Transfer is associated with an Unknown Rule: "+
                    packet.getRulename()), packet);
@@ -764,7 +787,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         // truly an error since done
                         session.setStatus(31);
                         endInitRequestInError(channel,
-                                ErrorCode.QueryAlreadyFinished,
+                                ErrorCode.QueryAlreadyFinished, runner,
                             new OpenR66ProtocolBusinessQueryAlreadyFinishedException(
                                "The TransferId is associated with a Transfer already finished: "+
                                packet.getSpecialId()), packet);
@@ -777,7 +800,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         // truly an error since still running
                         session.setStatus(32);
                         endInitRequestInError(channel,
-                                ErrorCode.QueryStillRunning,
+                                ErrorCode.QueryStillRunning, runner,
                             new OpenR66ProtocolBusinessQueryStillRunningException(
                                "The TransferId is associated with a Transfer still running: "+
                                packet.getSpecialId()), packet);
@@ -796,12 +819,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
                                 session, rule, isRetrieve, packet);
                     } catch (OpenR66DatabaseException e1) {
                         session.setStatus(33);
-                        endInitRequestInError(channel, ErrorCode.QueryRemotelyUnknown, e, packet);
+                        endInitRequestInError(channel, ErrorCode.QueryRemotelyUnknown, null, e, packet);
                         return;
                     }
                 } catch (OpenR66DatabaseException e) {
                     session.setStatus(34);
-                    endInitRequestInError(channel, ErrorCode.QueryRemotelyUnknown, e, packet);
+                    endInitRequestInError(channel, ErrorCode.QueryRemotelyUnknown, null, e, packet);
                     return;
                 }
                 // Change the SpecialID! => could generate an error ? FIXME
@@ -825,13 +848,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
                                     session, rule, isRetrieve, packet);
                         } catch (OpenR66DatabaseException e1) {
                             session.setStatus(35);
-                            endInitRequestInError(channel, ErrorCode.QueryRemotelyUnknown, e1,
-                                    packet);
+                            endInitRequestInError(channel, ErrorCode.QueryRemotelyUnknown, null,
+                                    e1, packet);
                             return;
                         }
                     } else {
-                        endInitRequestInError(channel, ErrorCode.QueryRemotelyUnknown, e,
-                                packet);
+                        endInitRequestInError(channel, ErrorCode.QueryRemotelyUnknown, null,
+                                e, packet);
                         session.setStatus(36);
                         return;
                     }
@@ -850,11 +873,22 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         session, rule, isRetrieve, packet);
             } catch (OpenR66DatabaseException e) {
                 session.setStatus(37);
-                endInitRequestInError(channel, ErrorCode.QueryRemotelyUnknown, e,
-                        packet);
+                endInitRequestInError(channel, ErrorCode.QueryRemotelyUnknown, null,
+                        e, packet);
                 return;
             }
             packet.setSpecialId(runner.getSpecialId());
+        }
+        // Check now if request is a valid one
+        if (packet.getCode() != ErrorCode.InitOk.code) {
+            //not valid so create an error from there
+            ErrorCode code = ErrorCode.getFromCode(""+packet.getCode());
+            session.setBadRunner(runner, code);
+            logger.warn("Bad runner at startup {} {}", packet, session);
+            ErrorPacket errorPacket = new ErrorPacket(code.mesg,
+                    code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+            error(channel, errorPacket);
+            return;
         }
         // Receiver can specify a rank different from database
         if (runner.isSender()) {

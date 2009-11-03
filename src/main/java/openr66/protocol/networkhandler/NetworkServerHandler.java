@@ -20,6 +20,7 @@ import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.AbstractLocalPacket;
 import openr66.protocol.localhandler.packet.ConnectionErrorPacket;
+import openr66.protocol.localhandler.packet.KeepAlivePacket;
 import openr66.protocol.localhandler.packet.LocalPacketCodec;
 import openr66.protocol.localhandler.packet.LocalPacketFactory;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
@@ -32,14 +33,17 @@ import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelHandler;
+import org.jboss.netty.handler.timeout.IdleStateAwareChannelHandler;
+import org.jboss.netty.handler.timeout.IdleStateEvent;
+import org.jboss.netty.handler.timeout.ReadTimeoutException;
 
 /**
  * Network Server Handler (Requester side)
  * @author frederic bregier
  */
 @ChannelPipelineCoverage("one")
-public class NetworkServerHandler extends SimpleChannelHandler {
+public class NetworkServerHandler extends IdleStateAwareChannelHandler {
+    //extends SimpleChannelHandler {
     /**
      * Internal Logger
      */
@@ -110,6 +114,21 @@ public class NetworkServerHandler extends SimpleChannelHandler {
         logger.info("Network Channel Connected: {} ", e.getChannel().getId());
     }
 
+
+    /* (non-Javadoc)
+     * @see org.jboss.netty.handler.timeout.IdleStateAwareChannelHandler#channelIdle(org.jboss.netty.channel.ChannelHandlerContext, org.jboss.netty.handler.timeout.IdleStateEvent)
+     */
+    @Override
+    public void channelIdle(ChannelHandlerContext ctx, IdleStateEvent e)
+            throws Exception {
+        KeepAlivePacket keepAlivePacket = new KeepAlivePacket();
+        NetworkPacket response =
+            new NetworkPacket(ChannelUtils.NOCHANNEL,
+                    ChannelUtils.NOCHANNEL, keepAlivePacket);
+        logger.warn("Write KAlive");
+        Channels.write(e.getChannel(), response);
+    }
+
     /*
      * (non-Javadoc)
      *
@@ -135,6 +154,21 @@ public class NetworkServerHandler extends SimpleChannelHandler {
                 Channels.close(e.getChannel());
                 return;
             }
+        } else if (packet.getCode() == LocalPacketFactory.KEEPALIVEPACKET) {
+            try {
+                KeepAlivePacket keepAlivePacket = (KeepAlivePacket)
+                    LocalPacketCodec.decodeNetworkPacket(packet.getBuffer());
+                if (keepAlivePacket.isToValidate()) {
+                    keepAlivePacket.validate();
+                    NetworkPacket response =
+                        new NetworkPacket(ChannelUtils.NOCHANNEL,
+                                ChannelUtils.NOCHANNEL, keepAlivePacket);
+                    logger.warn("Answer KAlive");
+                    Channels.write(e.getChannel(), response);
+                }
+            } catch (OpenR66ProtocolPacketException e1) {
+            }
+            return;
         }
         LocalChannelReference localChannelReference = null;
         if (packet.getLocalId() == ChannelUtils.NOCHANNEL) {
@@ -233,6 +267,18 @@ public class NetworkServerHandler extends SimpleChannelHandler {
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
         logger.info("Network Channel Exception: {}",e.getChannel().getId(), e
                 .getCause());
+        if (e.getCause() instanceof ReadTimeoutException) {
+            ReadTimeoutException exception = (ReadTimeoutException) e.getCause();
+            // No read for too long
+            if (NetworkTransaction.getNbLocalChannel(e.getChannel()) > 0) {
+                logger.info(
+                        "Network Channel Exception: {} {}", e.getChannel().getId(),
+                        exception.getMessage());
+            }
+            logger.warn("ReadTimeout so Will close NETWORK channel");
+            ChannelUtils.close(e.getChannel());
+            return;
+        }
         OpenR66Exception exception = OpenR66ExceptionTrappedFactory
                 .getExceptionFromTrappedException(e.getChannel(), e);
         if (exception != null) {

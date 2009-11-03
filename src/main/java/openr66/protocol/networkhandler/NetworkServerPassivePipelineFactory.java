@@ -15,6 +15,8 @@
  */
 package openr66.protocol.networkhandler;
 
+import java.util.concurrent.TimeUnit;
+
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import openr66.protocol.networkhandler.packet.NetworkPacketCodec;
@@ -23,8 +25,10 @@ import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.handler.execution.ExecutionHandler;
+import org.jboss.netty.handler.timeout.ReadTimeoutHandler;
 import org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler;
 import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
+import org.jboss.netty.util.HashedWheelTimer;
 
 /**
  * NetworkServer pipeline for Passive connection (Requested side)
@@ -51,6 +55,12 @@ public class NetworkServerPassivePipelineFactory implements ChannelPipelineFacto
         }
         pipeline.addLast("pipelineExecutor", new ExecutionHandler(
                 Configuration.configuration.getServerPipelineExecutor()));
+        HashedWheelTimer timer = new HashedWheelTimer();
+        // No Idle since Passive Handler
+        /*pipeline.addLast("timeout", new IdleStateHandler(timer,
+                0, 0, Configuration.configuration.TIMEOUTCON, TimeUnit.MILLISECONDS));*/
+        pipeline.addLast("readTimeout", new ReadTimeoutHandler(timer,
+                Configuration.configuration.TIMEOUTCON*2, TimeUnit.MILLISECONDS));
         pipeline.addLast("handler", new NetworkServerPassiveHandler());
         return pipeline;
     }

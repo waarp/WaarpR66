@@ -24,7 +24,6 @@ import goldengate.common.command.exception.CommandAbstractException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
-import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
@@ -2203,14 +2202,6 @@ public class DbTaskRunner extends AbstractDbData {
         rank ++;
         allFields[Columns.RANK.ordinal()].setValue(rank);
         isSaved = false;
-        if (!isSender) {
-            // flush partial file
-            try {
-                session.getFile().flush();
-            } catch (IOException e) {
-                throw new OpenR66ProtocolPacketException("Flush incorrect", e);
-            }
-        }
         if (rank % 10 == 0) {
             // Save each 10 blocks
             try {

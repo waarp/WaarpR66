@@ -15,6 +15,8 @@
  */
 package openr66.protocol.networkhandler;
 
+import java.util.concurrent.TimeUnit;
+
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import openr66.protocol.networkhandler.packet.NetworkPacketCodec;
@@ -23,8 +25,11 @@ import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.handler.execution.ExecutionHandler;
+import org.jboss.netty.handler.timeout.IdleStateHandler;
+import org.jboss.netty.handler.timeout.ReadTimeoutHandler;
 import org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler;
 import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
+import org.jboss.netty.util.HashedWheelTimer;
 
 /**
  * NetworkServer pipeline (Requester side)
@@ -45,12 +50,19 @@ public class NetworkServerPipelineFactory implements ChannelPipelineFactory {
                 trafficChannel =
                     Configuration.configuration
                     .newChannelTrafficShapingHandler();
-                pipeline.addLast("LIMITCHANNEL", trafficChannel);
+                if (trafficChannel != null) {
+                    pipeline.addLast("LIMITCHANNEL", trafficChannel);
+                }
             } catch (OpenR66ProtocolNoDataException e) {
             }
         }
         pipeline.addLast("pipelineExecutor", new ExecutionHandler(
                 Configuration.configuration.getServerPipelineExecutor()));
+        HashedWheelTimer timer = new HashedWheelTimer();
+        pipeline.addLast("timeout", new IdleStateHandler(timer,
+                0, 0, Configuration.configuration.TIMEOUTCON, TimeUnit.MILLISECONDS));
+        pipeline.addLast("readTimeout", new ReadTimeoutHandler(timer,
+                Configuration.configuration.TIMEOUTCON*2, TimeUnit.MILLISECONDS));
         pipeline.addLast("handler", new NetworkServerHandler());
         return pipeline;
     }

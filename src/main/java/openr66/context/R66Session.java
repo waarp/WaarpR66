@@ -394,6 +394,34 @@ public class R66Session implements SessionInterface {
         }
     }
     /**
+     * To be used when a request comes with a bad code so it cannot be set normally
+     * @param runner
+     * @param code
+     */
+    public void setBadRunner(DbTaskRunner runner, ErrorCode code) {
+        this.runner = runner;
+        if (code == ErrorCode.QueryAlreadyFinished) {
+            if (this.runner.isSender()) {
+                // Change dir
+                try {
+                    dir.changeDirectory(this.runner.getRule().sendPath);
+                } catch (CommandAbstractException e) {
+                }
+            } else {
+                // Change dir
+                try {
+                    dir.changeDirectory(this.runner.getRule().workPath);
+                } catch (CommandAbstractException e) {
+                }
+            }
+            this.runner.setPostTask();
+            try {
+                setFileAfterPreRunner(false);
+            } catch (OpenR66RunnerErrorException e) {
+            }
+        }
+    }
+    /**
      * Set the runner, START from the PreTask if necessary, and prepare the file
      *
      * @param runner

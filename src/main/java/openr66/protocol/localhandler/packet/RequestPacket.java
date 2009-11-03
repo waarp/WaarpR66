@@ -3,6 +3,7 @@
  */
 package openr66.protocol.localhandler.packet;
 
+import openr66.context.ErrorCode;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 
@@ -12,7 +13,7 @@ import org.jboss.netty.buffer.ChannelBuffers;
 /**
  * Request class
  *
- * header = "rulename MODETRANS" middle = way+"FILENAME BLOCKSIZE RANK specialId" end
+ * header = "rulename MODETRANS" middle = way+"FILENAME BLOCKSIZE RANK specialId code" end
  * = "fileInformation"
  *
  * @author frederic bregier
@@ -40,6 +41,8 @@ public class RequestPacket extends AbstractLocalPacket {
     private long specialId;
 
     private byte way;
+
+    private char code;
 
     private final String fileInformation;
 
@@ -147,7 +150,7 @@ public class RequestPacket extends AbstractLocalPacket {
             throw new OpenR66ProtocolPacketException("Not enough data");
         }
         final String[] amiddle = smiddle.split(" ");
-        if (amiddle.length != 4) {
+        if (amiddle.length != 5) {
             throw new OpenR66ProtocolPacketException("Not enough data");
         }
         int blocksize = Integer.parseInt(amiddle[1]);
@@ -156,8 +159,9 @@ public class RequestPacket extends AbstractLocalPacket {
         }
         int rank = Integer.parseInt(amiddle[2]);
         long specialId = Long.parseLong(amiddle[3]);
+        char code = amiddle[4].charAt(0);
         return new RequestPacket(aheader[0], Integer.parseInt(aheader[1]),
-                amiddle[0], blocksize, rank, specialId, valid, send);
+                amiddle[0], blocksize, rank, specialId, valid, send, code);
     }
 
     /**
@@ -172,7 +176,7 @@ public class RequestPacket extends AbstractLocalPacket {
      */
     private RequestPacket(String rulename, int mode, String filename,
             int blocksize, int rank, long specialId, byte valid,
-            String fileInformation) {
+            String fileInformation, char code) {
         this.rulename = rulename;
         this.mode = mode;
         this.filename = filename;
@@ -185,6 +189,7 @@ public class RequestPacket extends AbstractLocalPacket {
         this.specialId = specialId;
         way = valid;
         this.fileInformation = fileInformation;
+        this.code = code;
     }
 
     /**
@@ -199,7 +204,7 @@ public class RequestPacket extends AbstractLocalPacket {
     public RequestPacket(String rulename, int mode, String filename,
             int blocksize, int rank, long specialId, String fileInformation) {
         this(rulename, mode, filename, blocksize, rank, specialId,
-                REQVALIDATE, fileInformation);
+                REQVALIDATE, fileInformation, ErrorCode.InitOk.code);
     }
     /*
      * (non-Javadoc)
@@ -244,7 +249,8 @@ public class RequestPacket extends AbstractLocalPacket {
         middle = ChannelBuffers.wrappedBuffer(away, filename.getBytes(), " "
                 .getBytes(), Integer.toString(blocksize).getBytes(), " "
                 .getBytes(), Integer.toString(rank).getBytes(), " ".getBytes(),
-                Long.toString(specialId).getBytes());
+                Long.toString(specialId).getBytes()," ".getBytes(),
+                Character.toString(code).getBytes());
     }
 
     @Override
@@ -261,7 +267,7 @@ public class RequestPacket extends AbstractLocalPacket {
     public String toString() {
         return "RequestPacket: " + rulename + " : " + mode + " : " + filename +
                 " : " + fileInformation + " : " + blocksize + " : " + rank +
-                " : " + way;
+                " : " + way + " : " + code;
     }
 
     /**
@@ -356,6 +362,19 @@ public class RequestPacket extends AbstractLocalPacket {
      */
     public void setFilename(String filename) {
         this.filename = filename;
+    }
+
+    /**
+     * @return the code
+     */
+    public char getCode() {
+        return code;
+    }
+    /**
+     * @param code the code to set
+     */
+    public void setCode(char code) {
+        this.code = code;
     }
 
 }

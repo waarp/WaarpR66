@@ -317,12 +317,12 @@ public class R66File extends FilesystemBasedFileImpl {
      *
      * @see
      * goldengate.common.file.filesystembased.FilesystemBasedFileImpl#getFileChannel
-     * (boolean)
+     * ()
      */
     @Override
-    protected FileChannel getFileChannel(boolean isOut) {
+    protected FileChannel getFileChannel() {
         if (!isExternal) {
-            return super.getFileChannel(isOut);
+            return super.getFileChannel();
         }
         if (!isReady) {
             return null;
@@ -330,26 +330,10 @@ public class R66File extends FilesystemBasedFileImpl {
         File trueFile = getTrueFile();
         FileChannel fileChannel;
         try {
-            if (isOut) {
-                if (getPosition() == 0) {
-                    FileOutputStream fileOutputStream = new FileOutputStream(
-                            trueFile);
-                    fileChannel = fileOutputStream.getChannel();
-                } else {
-                    RandomAccessFile randomAccessFile = new RandomAccessFile(
-                            trueFile, "rw");
-                    fileChannel = randomAccessFile.getChannel();
-                    fileChannel = fileChannel.position(getPosition());
-                }
-            } else {
-                if (!trueFile.exists()) {
-                    return null;
-                }
-                FileInputStream fileInputStream = new FileInputStream(trueFile);
-                fileChannel = fileInputStream.getChannel();
-                if (getPosition() != 0) {
-                    fileChannel = fileChannel.position(getPosition());
-                }
+            FileInputStream fileInputStream = new FileInputStream(trueFile);
+            fileChannel = fileInputStream.getChannel();
+            if (getPosition() != 0) {
+                fileChannel = fileChannel.position(getPosition());
             }
         } catch (FileNotFoundException e) {
             logger.error("FileInterface not found in getFileChannel:", e);
@@ -361,6 +345,28 @@ public class R66File extends FilesystemBasedFileImpl {
         return fileChannel;
     }
 
+    @Override
+    protected RandomAccessFile getRandomFile() {
+        if (!isExternal) {
+            return super.getRandomFile();
+        }
+        if (!isReady) {
+            return null;
+        }
+        File trueFile = getTrueFile();
+        RandomAccessFile raf = null;
+        try {
+            raf = new RandomAccessFile(trueFile, "rw");
+            raf.seek(getPosition());
+        } catch (FileNotFoundException e) {
+            logger.error("File not found in getRandomFile:", e);
+            return null;
+        } catch (IOException e) {
+            logger.error("Change position in getRandomFile:", e);
+            return null;
+        }
+        return raf;
+    }
     /*
      * (non-Javadoc)
      *

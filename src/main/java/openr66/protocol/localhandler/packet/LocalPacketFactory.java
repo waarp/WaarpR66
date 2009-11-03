@@ -65,6 +65,7 @@ public class LocalPacketFactory {
 
     public static final byte ENDREQUESTPACKET = 20;
 
+    public static final byte KEEPALIVEPACKET = 21;
 
     /**
      * This method create a Packet from the ChannelBuffer.
@@ -127,6 +128,9 @@ public class LocalPacketFactory {
                         middleLength, endLength, buf);
             case ENDREQUESTPACKET:
                 return EndRequestPacket.createFromBuffer(headerLength,
+                        middleLength, endLength, buf);
+            case KEEPALIVEPACKET:
+                return KeepAlivePacket.createFromBuffer(headerLength,
                         middleLength, endLength, buf);
             default:
                 throw new OpenR66ProtocolPacketException(
