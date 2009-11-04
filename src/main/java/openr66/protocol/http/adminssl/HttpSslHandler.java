@@ -28,6 +28,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.SocketAddress;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -66,6 +67,7 @@ import openr66.protocol.localhandler.packet.ErrorPacket;
 import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.localhandler.packet.TestPacket;
 import openr66.protocol.localhandler.packet.RequestPacket.TRANSFERMODE;
+import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.utils.ChannelUtils;
 import openr66.protocol.utils.FileUtils;
 import openr66.protocol.utils.OpenR66SignalHandler;
@@ -1053,12 +1055,59 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 transaction.run();
                 result.awaitUninterruptibly();
                 body = readFile(Configuration.configuration.httpBasePath+"Hosts_body.html");
-                body = dbhost.toSpecializedHtml(authentHttp, body);
                 if (result.isSuccess()) {
+                    body = dbhost.toSpecializedHtml(authentHttp, body);
                     body += "<p><center><b>Connection SUCCESSFUL</b></center></p>";
                 } else {
-                    body += "<p><center><b>Connection FAILURE: "+
+                    SocketAddress socketAddress = dbhost.getSocketAddress();
+                    boolean resultShutDown = false;
+                    resultShutDown =
+                        NetworkTransaction.shuttingdownNetworkChannel(socketAddress, null);
+                    if (resultShutDown) {
+                        body = dbhost.toSpecializedHtml(authentHttp, body);
+                        body += "<p><center><b>Connection FAILURE: Disconnection is on going due to "+
                         result.getResult().code.mesg+"</b></center></p>";
+                    } else {
+                        body = dbhost.toSpecializedHtml(authentHttp, body);
+                        body += "<p><center><b>Connection FAILURE: "+
+                        result.getResult().code.mesg+"</b></center></p>";
+                    }
+                }
+            } else if ("CloseConn".equalsIgnoreCase(parm)) {
+                String host = params.get("host").get(0).trim();
+                if (host.length() == 0) {
+                    host = null;
+                }
+                String addr = params.get("address").get(0).trim();
+                if (addr.length() == 0) {
+                    addr = null;
+                }
+                String port = params.get("port").get(0).trim();
+                if (port.length() == 0) {
+                    port = null;
+                }
+                String key = params.get("hostkey").get(0);
+                if (key.length() == 0) {
+                    key = null;
+                }
+                boolean ssl, admin;
+                ssl = params.containsKey("ssl");
+                admin = params.containsKey("admin");
+                head = resetOptionHosts(head, host, addr, ssl);
+                int iport = Integer.parseInt(port);
+                DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
+                        ssl, key.getBytes(), admin);
+                SocketAddress socketAddress = dbhost.getSocketAddress();
+                body = readFile(Configuration.configuration.httpBasePath+"Hosts_body.html");
+                boolean resultShutDown = false;
+                resultShutDown =
+                    NetworkTransaction.shuttingdownNetworkChannel(socketAddress, null);
+                if (resultShutDown) {
+                    body = dbhost.toSpecializedHtml(authentHttp, body);
+                    body += "<p><center><b>Disconnection on going SUCCESSFUL</b></center></p>";
+                } else {
+                    body = dbhost.toSpecializedHtml(authentHttp, body);
+                    body += "<p><center><b>Disconnection cannot be done</b></center></p>";
                 }
             } else if ("Delete".equalsIgnoreCase(parm)) {
                 String host = params.get("host").get(0).trim();

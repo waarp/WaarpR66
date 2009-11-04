@@ -3,6 +3,8 @@
  */
 package openr66.protocol.networkhandler;
 
+import java.net.BindException;
+
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.database.DbConstant;
@@ -35,7 +37,9 @@ import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.timeout.IdleStateAwareChannelHandler;
 import org.jboss.netty.handler.timeout.IdleStateEvent;
+import org.jboss.netty.handler.timeout.IdleStateHandler;
 import org.jboss.netty.handler.timeout.ReadTimeoutException;
+import org.jboss.netty.handler.timeout.ReadTimeoutHandler;
 
 /**
  * Network Server Handler (Requester side)
@@ -88,6 +92,17 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
         //Now force the close of the database after a wait
         if (dbSession != null && dbSession.internalId != DbConstant.admin.session.internalId) {
             dbSession.disconnect();
+        }
+        // terminate KeepAlive handler
+        ReadTimeoutHandler readhandler =
+            (ReadTimeoutHandler) ctx.getPipeline().get(NetworkServerPipelineFactory.READTIMEOUT);
+        if (readhandler != null) {
+            readhandler.releaseExternalResources();
+        }
+        IdleStateHandler handler =
+            (IdleStateHandler) ctx.getPipeline().get(NetworkServerPipelineFactory.TIMEOUT);
+        if (handler != null) {
+            handler.releaseExternalResources();
         }
     }
 
@@ -189,7 +204,8 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
             } catch (OpenR66ProtocolRemoteShutdownException e1) {
                 Configuration.configuration.getLocalTransaction()
                     .closeLocalChannelsFromNetworkChannel(e.getChannel());
-                NetworkTransaction.removeForceNetworkChannel(e.getChannel());
+                Channels.close(e.getChannel());
+                //NetworkTransaction.removeForceNetworkChannel(e.getChannel());
                 // ignore since no more valid
                 return;
             }
@@ -270,12 +286,17 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
         if (e.getCause() instanceof ReadTimeoutException) {
             ReadTimeoutException exception = (ReadTimeoutException) e.getCause();
             // No read for too long
-            if (NetworkTransaction.getNbLocalChannel(e.getChannel()) > 0) {
-                logger.info(
-                        "Network Channel Exception: {} {}", e.getChannel().getId(),
-                        exception.getMessage());
+            logger.warn("ReadTimeout so Will close NETWORK channel {}", exception.getMessage());
+            ChannelUtils.close(e.getChannel());
+            return;
+        }
+        if (e.getCause() instanceof BindException) {
+            // received when not yet connected
+            logger.info("BindException");
+            try {
+                Thread.sleep(Configuration.WAITFORNETOP);
+            } catch (InterruptedException e1) {
             }
-            logger.warn("ReadTimeout so Will close NETWORK channel");
             ChannelUtils.close(e.getChannel());
             return;
         }
@@ -310,7 +331,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
                     exception.getMessage(), null);
             writeError(e.getChannel(), ChannelUtils.NOCHANNEL,
                     ChannelUtils.NOCHANNEL, errorPacket);
-            logger.error("Will close NETWORK channel", exception);
+            logger.error("Will close NETWORK channel {}", exception.getMessage());
             ChannelUtils.close(e.getChannel());
         } else {
             // Nothing to do
@@ -357,7 +378,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
      * @param localId
      * @param error
      */
-    private void writeError(Channel channel, Integer remoteId, Integer localId,
+    void writeError(Channel channel, Integer remoteId, Integer localId,
             AbstractLocalPacket error) {
         NetworkPacket networkPacket = null;
         try {

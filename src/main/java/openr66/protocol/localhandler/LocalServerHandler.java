@@ -13,6 +13,7 @@ import goldengate.common.exception.FileTransferException;
 import goldengate.common.file.DataBlock;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+import openr66.commander.ClientRunner;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
@@ -155,6 +156,22 @@ public class LocalServerHandler extends SimpleChannelHandler {
             logger
                     .error("Local Server Channel Closed but no LocalChannelReference: " +
                             e.getChannel().getId());
+        }
+        // Now if runner is not yet finished, finish it by force
+        if (localChannelReference != null && (!localChannelReference.getFutureRequest().isDone())) {
+            R66Result finalValue = new R66Result(
+                    new OpenR66ProtocolSystemException("Finalize too early at close time"),
+                    session, true, ErrorCode.FinalOp, runner);
+            localChannelReference.invalidateRequest(finalValue);
+            // In case stop the attached thread if any
+            ClientRunner clientRunner = localChannelReference.getClientRunner();
+            if (clientRunner != null) {
+                try {
+                    Thread.sleep(Configuration.WAITFORNETOP);
+                } catch (InterruptedException e1) {
+                }
+                clientRunner.interrupt();
+            }
         }
     }
 

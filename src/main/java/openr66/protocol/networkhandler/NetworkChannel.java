@@ -43,10 +43,6 @@ public class NetworkChannel {
      */
     public volatile boolean isShuttingDown = false;
     /**
-     * Does this Network Channel is a Passive one (Requested side)
-     */
-    public volatile boolean isPassive = false;
-    /**
      * Associated LocalChannel
      */
     public ConcurrentLinkedQueue<Channel> localChannels =
@@ -69,6 +65,9 @@ public class NetworkChannel {
     }
 
     synchronized public void remove(Channel localChannel) {
+        if (localChannel.isConnected()) {
+            Channels.close(localChannel);
+        }
         localChannels.remove(localChannel);
     }
 

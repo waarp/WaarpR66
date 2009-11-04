@@ -57,7 +57,7 @@ import openr66.protocol.utils.TransferUtils;
  * @author Frederic Bregier
  *
  */
-public class ClientRunner implements Runnable {
+public class ClientRunner extends Thread {
     /**
      * Internal Logger
      */
@@ -115,6 +115,7 @@ public class ClientRunner implements Runnable {
                 "no result");
         }
         transfer = null;
+        Thread.currentThread().setName("Finished_"+Thread.currentThread().getName());
     }
     /**
      *
@@ -170,6 +171,27 @@ public class ClientRunner implements Runnable {
         } else {
             try {
                 taskRunner.select();
+                // Case when we were interrupted
+                if (transfer.getResult() == null) {
+                    switch (taskRunner.getUpdatedInfo()) {
+                        case DONE:
+                            R66Result ok =
+                                new R66Result(null, true, ErrorCode.CompleteOk, taskRunner);
+                            transfer.setResult(ok);
+                            transfer.setSuccess();
+                            this.changeUpdatedInfo(UpdatedInfo.DONE, ErrorCode.CompleteOk);
+                            break;
+                        case INERROR:
+                        case INTERRUPTED:
+                        default:
+                            R66Result error =
+                                new R66Result(null, true, ErrorCode.Internal, taskRunner);
+                            transfer.setResult(error);
+                            transfer.cancel();
+                            this.changeUpdatedInfo(UpdatedInfo.INERROR, ErrorCode.Internal);
+                    }
+                    return transfer;
+                }
                 if (transfer.getResult().code == ErrorCode.QueryAlreadyFinished) {
                     // check if post task to execute
                     logger.warn("WARN QueryAlreadyFinished:\n    "+transfer.toString()+"\n    "+
@@ -305,6 +327,7 @@ public class ClientRunner implements Runnable {
         logger.debug("Wait for request to {}",host);
         request = null;
         host = null;
+        localChannelReference.setClientRunner(this);
         return localChannelReference;
     }
     /**

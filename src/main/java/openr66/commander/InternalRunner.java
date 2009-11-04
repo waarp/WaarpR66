@@ -88,6 +88,7 @@ public class InternalRunner {
         if (isRunning) {
             logger.debug("Will run {}",taskRunner);
             ClientRunner runner = new ClientRunner(networkTransaction, taskRunner, null);
+            runner.setDaemon(true);
             // create the client, connect and run
             threadPoolExecutor.execute(runner);
             runner = null;

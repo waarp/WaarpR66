@@ -37,6 +37,9 @@ import org.jboss.netty.util.HashedWheelTimer;
  */
 public class NetworkServerPipelineFactory implements ChannelPipelineFactory {
 
+    public static final String TIMEOUT = "timeout";
+    public static final String READTIMEOUT = "readTimeout";
+
     @Override
     public ChannelPipeline getPipeline() {
         final ChannelPipeline pipeline = Channels.pipeline();
@@ -59,10 +62,12 @@ public class NetworkServerPipelineFactory implements ChannelPipelineFactory {
         pipeline.addLast("pipelineExecutor", new ExecutionHandler(
                 Configuration.configuration.getServerPipelineExecutor()));
         HashedWheelTimer timer = new HashedWheelTimer();
-        pipeline.addLast("timeout", new IdleStateHandler(timer,
+        pipeline.addLast(TIMEOUT,
+                new IdleStateHandler(timer,
                 0, 0, Configuration.configuration.TIMEOUTCON, TimeUnit.MILLISECONDS));
-        pipeline.addLast("readTimeout", new ReadTimeoutHandler(timer,
-                Configuration.configuration.TIMEOUTCON*2, TimeUnit.MILLISECONDS));
+        pipeline.addLast(READTIMEOUT,
+                new ReadTimeoutHandler(timer,
+                Configuration.configuration.TIMEOUTCON*10, TimeUnit.MILLISECONDS));
         pipeline.addLast("handler", new NetworkServerHandler());
         return pipeline;
     }

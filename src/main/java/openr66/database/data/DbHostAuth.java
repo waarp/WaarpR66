@@ -35,6 +35,7 @@ import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
+import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.utils.FileUtils;
 
 /**
@@ -493,6 +494,9 @@ public class DbHostAuth extends AbstractDbData {
         FileUtils.replace(builder, "XXXKEYXXX", new String(hostkey));
         FileUtils.replace(builder, "XXXSSLXXX", isSsl ? "checked": "");
         FileUtils.replace(builder, "XXXADMXXX", adminrole ? "checked": "");
+        FileUtils.replace(builder, "XXXCONNXXX",
+                NetworkTransaction.existConnection(getSocketAddress())
+                ? "(Connected) ": "");
         return builder.toString();
     }
 }
