@@ -102,7 +102,7 @@ public class DbTaskRunner extends AbstractDbData {
     public static int[] dbTypes = {
             Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.INTEGER,
             Types.CHAR, Types.BIT, Types.VARCHAR, Types.BIT, Types.VARCHAR,
-            Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
+            Types.INTEGER, Types.VARCHAR, Types.LONGVARCHAR, Types.INTEGER,
             Types.TIMESTAMP, Types.TIMESTAMP, Types.CHAR, Types.INTEGER,
             Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BIGINT };
 
@@ -636,7 +636,7 @@ public class DbTaskRunner extends AbstractDbData {
                             primaryKey[0].column + " = ? AND " +
                             primaryKey[1].column + " = ? AND " +
                             primaryKey[2].column + " = ? AND " +
-                            primaryKey[3].column + " >= ? ");
+                            primaryKey[3].column + " != ? ");
                     setPrimaryKey();
                     setValues(find, primaryKey);
                     find.executeQuery();

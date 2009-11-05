@@ -107,12 +107,20 @@ public class ClientRunner extends Thread {
                         ErrorCode.QueryAlreadyFinished.mesg+":"+
                         (result != null ? result.toString() : "no result"));
             } else {
-                logger.warn("TRANSFER RESULT:\n    "+(transfer.isSuccess()?"SUCCESS":"FAILURE")+"\n    "+
-                        (result != null ? result.toString() : "no result"));
+                if (transfer.isSuccess()){
+                    logger.warn("TRANSFER RESULT:\n    SUCCESS\n    "+
+                            (result != null ? result.toString() : "no result"));
+                } else {
+                    logger.error("TRANSFER RESULT:\n    FAILURE\n    "+
+                            (result != null ? result.toString() : "no result"));
+                }
             }
         } else {
-            logger.warn("TRANSFER RESULT:\n    "+(transfer.isSuccess()?"SUCCESS":"FAILURE")+"\n    "+
-                "no result");
+            if (transfer.isSuccess()){
+                logger.warn("TRANSFER REQUESTED RESULT:\n    SUCCESS\n    no result");
+            } else {
+                logger.error("TRANSFER REQUESTED RESULT:\n    FAILURE\n    no result");
+            }
         }
         transfer = null;
         Thread.currentThread().setName("Finished_"+Thread.currentThread().getName());

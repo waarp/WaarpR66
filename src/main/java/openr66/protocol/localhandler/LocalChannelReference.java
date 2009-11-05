@@ -29,6 +29,7 @@ import openr66.database.data.DbTaskRunner;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
+import openr66.protocol.networkhandler.NetworkChannel;
 import openr66.protocol.networkhandler.NetworkServerHandler;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.utils.R66Future;
@@ -56,6 +57,10 @@ public class LocalChannelReference {
      * Network Channel
      */
     private final Channel networkChannel;
+    /**
+     * Associated NetworkChannel
+     */
+    private NetworkChannel networkChannelObject;
     /**
      * Network Server Handler
      */
@@ -157,6 +162,18 @@ public class LocalChannelReference {
         return remoteId;
     }
 
+    /**
+     * @return the networkChannelObject
+     */
+    public NetworkChannel getNetworkChannelObject() {
+        return networkChannelObject;
+    }
+    /**
+     * @param networkChannelObject the networkChannelObject to set
+     */
+    public void setNetworkChannelObject(NetworkChannel networkChannelObject) {
+        this.networkChannelObject = networkChannelObject;
+    }
     /**
      * @return the networkServerHandler
      */

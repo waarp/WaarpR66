@@ -28,7 +28,8 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.Channels;
 
 /**
- * NetworkChannel object to keep channel open with local channels
+ * NetworkChannel object to keep Network channel open while some local channels
+ * are attached to it.
  *
  * @author Frederic Bregier
  *
@@ -73,6 +74,7 @@ public class NetworkChannel {
 
     synchronized public void shutdownAllLocalChannels() {
         isShuttingDown = true;
+        count = 0;
         Channel localChannel = localChannels.poll();
         while (localChannel != null) {
             Channels.close(localChannel);
@@ -84,4 +86,25 @@ public class NetworkChannel {
         return "NC: " + channel.isConnected() + " " +
                 channel.getRemoteAddress() + " Count: " + count;
     }
+
+    /* (non-Javadoc)
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof NetworkChannel) {
+            NetworkChannel obj2 = (NetworkChannel) obj;
+            return (obj2.channel.getId() == this.channel.getId());
+        }
+        return false;
+    }
+
+    /* (non-Javadoc)
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return this.channel.getId();
+    }
+
 }

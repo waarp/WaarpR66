@@ -62,6 +62,7 @@ import openr66.protocol.localhandler.packet.ShutdownPacket;
 import openr66.protocol.localhandler.packet.StartupPacket;
 import openr66.protocol.localhandler.packet.TestPacket;
 import openr66.protocol.localhandler.packet.ValidPacket;
+import openr66.protocol.networkhandler.NetworkChannel;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.utils.ChannelUtils;
 import openr66.protocol.utils.FileUtils;
@@ -135,9 +136,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 R66Future transfer = localChannelReference.getFutureRequest();
                 // Since requested : log
                 R66Result result = transfer.getResult();
-                logger.warn("TRANSFER REQUESTED RESULT:\n    "+
-                        (transfer.isSuccess()?"SUCCESS":"FAILURE")+
-                        "\n    "+ (result != null ? result.toString() : "no result"));
+                if (transfer.isSuccess()){
+                    logger.warn("TRANSFER REQUESTED RESULT:\n    SUCCESS\n    "+
+                            (result != null ? result.toString() : "no result"));
+                } else {
+                    logger.error("TRANSFER REQUESTED RESULT:\n    FAILURE\n    "+
+                            (result != null ? result.toString() : "no result"));
+                }
             }
         }
         session.setStatus(50);
@@ -150,11 +155,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
             }
             NetworkTransaction.removeNetworkChannel(localChannelReference
                     .getNetworkChannel(), e.getChannel());
-            if (runner != null) {
-                if (NetworkTransaction.getNbLocalChannel(localChannelReference.
-                        getNetworkChannel()) <= 0) {
-                    NetworkTransaction.removeClient(runner.getRequester());
-                }
+            // Only requested can has a remote client
+            if (runner != null && runner.isSelfRequested() &&
+                    localChannelReference.getNetworkChannelObject() != null
+                    && localChannelReference.getNetworkChannelObject().count <= 0) {
+                NetworkTransaction.removeClient(runner.getRequester(),
+                        localChannelReference.getNetworkChannelObject());
             }
             session.setStatus(52);
             Configuration.configuration.getLocalTransaction().remove(e.getChannel());
@@ -515,6 +521,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
             session.setStatus(40);
             return;
         }
+        NetworkChannel networkChannel =
+            NetworkTransaction.getNetworkChannel(localChannelReference.getNetworkChannel());
+        if (networkChannel != null) {
+            localChannelReference.setNetworkChannelObject(networkChannel);
+        } else {
+            logger.warn("No NetworkChannek found!");
+        }
         localChannelReference.validateStartup(true);
         session.setLocalChannelReference(localChannelReference);
         Channels.write(channel, packet);
@@ -568,10 +581,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
         logger.info("Local Server Channel Validated: {} ",
                 (localChannelReference != null? localChannelReference
                         : "no LocalChannelReference"));
-        NetworkTransaction.addClient(localChannelReference.getNetworkChannel(),
-                packet.getHostId());
         session.setStatus(44);
         if (packet.isToValidate()) {
+            // only requested
+            NetworkTransaction.addClient(localChannelReference.getNetworkChannel(),
+                    packet.getHostId());
             packet.validate(session.getAuth().isSsl());
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet);
             session.setStatus(98);

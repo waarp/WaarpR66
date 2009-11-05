@@ -68,8 +68,14 @@ public class NetworkTransaction {
      * Hashmap for currently active remote host
      */
     private static final ConcurrentHashMap<Integer, NetworkChannel> networkChannelOnSocketAddressConcurrentHashMap = new ConcurrentHashMap<Integer, NetworkChannel>();
-
-    private static final ConcurrentHashMap<String, NetworkChannel> remoteClient = new ConcurrentHashMap<String, NetworkChannel>();
+    /**
+     * Remote Client NetworkChannels
+     */
+    private static final ConcurrentHashMap<String, ClientNetworkChannels> remoteClients = new ConcurrentHashMap<String, ClientNetworkChannels>();
+    /**
+     * Lock for Client NetworkChannels operations
+     */
+    private static final ReentrantLock lockClient = new ReentrantLock();
     /**
      * Hashmap for currently active Retrieve Runner (sender)
      */
@@ -596,20 +602,43 @@ public class NetworkTransaction {
     /**
      * Remove of requester
      * @param requester
+     * @param networkChannel
      */
-    public static void removeClient(String requester) {
-        remoteClient.remove(requester);
+    public static void removeClient(String requester, NetworkChannel networkChannel) {
+        if (networkChannel != null) {
+            lockClient.lock();
+            try {
+                ClientNetworkChannels clientNetworkChannels = remoteClients.get(requester);
+                if (clientNetworkChannels != null) {
+                    clientNetworkChannels.remove(networkChannel);
+                    if (clientNetworkChannels.isEmpty()) {
+                        remoteClients.remove(requester);
+                    }
+                }
+            } finally {
+                lockClient.unlock();
+            }
+        }
     }
     /**
      * Get NetworkChannel as client
      * @param requester
      * @return NetworkChannel associated with this host as client (only 1 allow even if more are available)
      */
-    public static NetworkChannel getClient(String requester) {
-        return remoteClient.get(requester);
+    public static boolean shuttingdownNetworkChannels(String requester) {
+        lockClient.lock();
+        try {
+            ClientNetworkChannels clientNetworkChannels = remoteClients.remove(requester);
+            if (clientNetworkChannels != null) {
+                return clientNetworkChannels.shutdownAll();
+            }
+        } finally {
+            lockClient.unlock();
+        }
+        return false;
     }
     /**
-     * Add a requester
+     * Add a requester channel (so call only by requested host)
      * @param channel (network channel)
      * @param requester
      */
@@ -619,9 +648,31 @@ public class NetworkTransaction {
             NetworkChannel networkChannel =
                 networkChannelOnSocketAddressConcurrentHashMap.get(address.hashCode());
             if (networkChannel != null) {
-                remoteClient.put(requester, networkChannel);
+                lockClient.lock();
+                try {
+                    ClientNetworkChannels clientNetworkChannels = remoteClients.get(requester);
+                    if (clientNetworkChannels == null) {
+                        clientNetworkChannels = new ClientNetworkChannels(requester);
+                        remoteClients.put(requester, clientNetworkChannels);
+                    }
+                    clientNetworkChannels.add(networkChannel);
+                } finally {
+                    lockClient.unlock();
+                }
             }
         }
+    }
+    /**
+     *
+     * @param requester
+     * @return The number of NetworkChannels associated with this requester
+     */
+    public static int getNumberClients(String requester) {
+        ClientNetworkChannels clientNetworkChannels = remoteClients.get(requester);
+        if (clientNetworkChannels != null) {
+            return clientNetworkChannels.size();
+        }
+        return 0;
     }
     /**
      * Force remove of NetworkChannel when it is closed
@@ -700,9 +751,9 @@ public class NetworkTransaction {
      * @param host
      * @return True if a connection is still active on this socket or for this host
      */
-    public static boolean existConnection(SocketAddress address, String host) {
-        return networkChannelOnSocketAddressConcurrentHashMap.containsKey(address.hashCode())
-            || remoteClient.containsKey(host);
+    public static int existConnection(SocketAddress address, String host) {
+        return (networkChannelOnSocketAddressConcurrentHashMap.containsKey(address.hashCode())?1:0)
+            + getNumberClients(host);
     }
     /**
      *
@@ -746,6 +797,19 @@ public class NetworkTransaction {
             logger.info("NOT FOUND SO NO SHUTDOWN");
             return true;
         }
+    }
+    /**
+     *
+     * @param channel
+     * @return the associated NetworkChannel if any (Null if none)
+     */
+    public static NetworkChannel getNetworkChannel(Channel channel) {
+        SocketAddress address = channel.getRemoteAddress();
+        if (address != null) {
+            return networkChannelOnSocketAddressConcurrentHashMap.get(address
+                    .hashCode());
+        }
+        return null;
     }
     /**
      *
