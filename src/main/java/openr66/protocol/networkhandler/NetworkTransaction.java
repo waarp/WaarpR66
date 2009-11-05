@@ -601,6 +601,14 @@ public class NetworkTransaction {
         remoteClient.remove(requester);
     }
     /**
+     * Get NetworkChannel as client
+     * @param requester
+     * @return NetworkChannel associated with this host as client (only 1 allow even if more are available)
+     */
+    public static NetworkChannel getClient(String requester) {
+        return remoteClient.get(requester);
+    }
+    /**
      * Add a requester
      * @param channel (network channel)
      * @param requester

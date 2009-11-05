@@ -67,6 +67,7 @@ import openr66.protocol.localhandler.packet.ErrorPacket;
 import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.localhandler.packet.TestPacket;
 import openr66.protocol.localhandler.packet.RequestPacket.TRANSFERMODE;
+import openr66.protocol.networkhandler.NetworkChannel;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.utils.ChannelUtils;
 import openr66.protocol.utils.FileUtils;
@@ -1063,6 +1064,13 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     boolean resultShutDown = false;
                     resultShutDown =
                         NetworkTransaction.shuttingdownNetworkChannel(socketAddress, null);
+                    NetworkChannel networkChannel =
+                        NetworkTransaction.getClient(host);
+                    if (networkChannel != null) {
+                        socketAddress = networkChannel.channel.getRemoteAddress();
+                        resultShutDown = resultShutDown ||
+                            NetworkTransaction.shuttingdownNetworkChannel(socketAddress, null);
+                    }
                     if (resultShutDown) {
                         body = dbhost.toSpecializedHtml(authentHttp, body);
                         body += "<p><center><b>Connection FAILURE: Disconnection is on going due to "+
@@ -1102,6 +1110,13 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 boolean resultShutDown = false;
                 resultShutDown =
                     NetworkTransaction.shuttingdownNetworkChannel(socketAddress, null);
+                NetworkChannel networkChannel =
+                    NetworkTransaction.getClient(host);
+                if (networkChannel != null) {
+                    socketAddress = networkChannel.channel.getRemoteAddress();
+                    resultShutDown = resultShutDown ||
+                        NetworkTransaction.shuttingdownNetworkChannel(socketAddress, null);
+                }
                 if (resultShutDown) {
                     body = dbhost.toSpecializedHtml(authentHttp, body);
                     body += "<p><center><b>Disconnection on going SUCCESSFUL</b></center></p>";
