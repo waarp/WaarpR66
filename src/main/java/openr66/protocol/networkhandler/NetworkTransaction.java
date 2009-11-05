@@ -7,9 +7,7 @@ import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
 import java.net.ConnectException;
-import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.HashSet;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
@@ -71,7 +69,7 @@ public class NetworkTransaction {
      */
     private static final ConcurrentHashMap<Integer, NetworkChannel> networkChannelOnSocketAddressConcurrentHashMap = new ConcurrentHashMap<Integer, NetworkChannel>();
 
-    private static final HashSet<String> remoteSetAddresses = new HashSet<String>();
+    private static final ConcurrentHashMap<String, NetworkChannel> remoteClient = new ConcurrentHashMap<String, NetworkChannel>();
     /**
      * Hashmap for currently active Retrieve Runner (sender)
      */
@@ -596,6 +594,28 @@ public class NetworkTransaction {
         }
     }
     /**
+     * Remove of requester
+     * @param requester
+     */
+    public static void removeClient(String requester) {
+        remoteClient.remove(requester);
+    }
+    /**
+     * Add a requester
+     * @param channel (network channel)
+     * @param requester
+     */
+    public static void addClient(Channel channel, String requester) {
+        SocketAddress address = channel.getRemoteAddress();
+        if (address != null) {
+            NetworkChannel networkChannel =
+                networkChannelOnSocketAddressConcurrentHashMap.get(address.hashCode());
+            if (networkChannel != null) {
+                remoteClient.put(requester, networkChannel);
+            }
+        }
+    }
+    /**
      * Force remove of NetworkChannel when it is closed
      * @param channel
      * @return the number of still connected Local Channels
@@ -606,8 +626,7 @@ public class NetworkTransaction {
             SocketAddress address = channel.getRemoteAddress();
             if (address != null) {
                 NetworkChannel networkChannel = networkChannelOnSocketAddressConcurrentHashMap
-                    .remove(address.hashCode());
-                remoteSetAddresses.remove(((InetSocketAddress)address).getAddress().toString());
+                    .get(address.hashCode());
                 if (networkChannel != null) {
                     if (networkChannel.isShuttingDown) {
                         return networkChannel.count;
@@ -615,6 +634,8 @@ public class NetworkTransaction {
                     logger.debug("NC left: {}", networkChannel);
                     int count = networkChannel.count;
                     networkChannel.shutdownAllLocalChannels();
+                    networkChannelOnSocketAddressConcurrentHashMap
+                        .remove(address.hashCode());
                     return count;
                 } else {
                     logger.info("Network not registered");
@@ -646,7 +667,6 @@ public class NetworkTransaction {
                     if (networkChannel.count <= 0) {
                         networkChannelOnSocketAddressConcurrentHashMap
                                 .remove(address.hashCode());
-                        remoteSetAddresses.remove(((InetSocketAddress)address).getAddress().toString());
                         logger
                                 .info("Will close NETWORK channel");
                         Channels.close(channel).awaitUninterruptibly();
@@ -669,12 +689,12 @@ public class NetworkTransaction {
     /**
      *
      * @param address
-     * @return True if a connection is still active on this socket
+     * @param host
+     * @return True if a connection is still active on this socket or for this host
      */
-    public static boolean existConnection(SocketAddress address) {
-        InetSocketAddress inetSocketAddress = (InetSocketAddress) address;
-        return remoteSetAddresses.contains(inetSocketAddress.getAddress().toString());
-
+    public static boolean existConnection(SocketAddress address, String host) {
+        return networkChannelOnSocketAddressConcurrentHashMap.containsKey(address.hashCode())
+            || remoteClient.containsKey(host);
     }
     /**
      *
@@ -775,7 +795,6 @@ public class NetworkTransaction {
                 logger.debug("NC new active: {}", networkChannel);
                 networkChannelOnSocketAddressConcurrentHashMap.put(address
                         .hashCode(), networkChannel);
-                remoteSetAddresses.add(((InetSocketAddress)address).getAddress().toString());
                 return networkChannel;
             }
         }

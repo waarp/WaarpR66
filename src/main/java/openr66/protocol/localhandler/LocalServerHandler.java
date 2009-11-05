@@ -150,6 +150,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
             }
             NetworkTransaction.removeNetworkChannel(localChannelReference
                     .getNetworkChannel(), e.getChannel());
+            if (runner != null) {
+                if (NetworkTransaction.getNbLocalChannel(localChannelReference.
+                        getNetworkChannel()) <= 0) {
+                    NetworkTransaction.removeClient(runner.getRequester());
+                }
+            }
             session.setStatus(52);
             Configuration.configuration.getLocalTransaction().remove(e.getChannel());
         } else {
@@ -562,6 +568,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
         logger.info("Local Server Channel Validated: {} ",
                 (localChannelReference != null? localChannelReference
                         : "no LocalChannelReference"));
+        NetworkTransaction.addClient(localChannelReference.getNetworkChannel(),
+                packet.getHostId());
         session.setStatus(44);
         if (packet.isToValidate()) {
             packet.validate(session.getAuth().isSsl());

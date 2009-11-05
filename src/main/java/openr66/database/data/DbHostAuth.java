@@ -495,7 +495,7 @@ public class DbHostAuth extends AbstractDbData {
         FileUtils.replace(builder, "XXXSSLXXX", isSsl ? "checked": "");
         FileUtils.replace(builder, "XXXADMXXX", adminrole ? "checked": "");
         FileUtils.replace(builder, "XXXCONNXXX",
-                NetworkTransaction.existConnection(getSocketAddress())
+                NetworkTransaction.existConnection(getSocketAddress(), getHostid())
                 ? "(Connected) ": "");
         return builder.toString();
     }
