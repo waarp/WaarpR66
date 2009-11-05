@@ -447,7 +447,7 @@ public class R66File extends FilesystemBasedFileImpl {
                     if (get(fileChannelOut)) {
                         delete();
                     } else {
-                        logger.warn("Cannot write file: {}", newFile);
+                        logger.error("Cannot write file: {}", newFile);
                         return false;
                     }
                 }
@@ -496,7 +496,7 @@ public class R66File extends FilesystemBasedFileImpl {
                     if (get(fileChannelOut)) {
                         delete();
                     } else {
-                        logger.warn("Cannot write file: {}", newFile);
+                        logger.error("Cannot write file: {}", newFile);
                         return false;
                     }
                 }

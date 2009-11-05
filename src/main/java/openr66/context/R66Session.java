@@ -548,7 +548,7 @@ public class R66Session implements SessionInterface {
                         "Pre task in error (or even before)");
             }
             finalValue.exception = runnerErrorException;
-            logger.warn("Pre task in error (or even before) : "+
+            logger.error("Pre task in error (or even before) : "+
                     runnerErrorException.getMessage());
             localChannelReference.invalidateRequest(finalValue);
             throw runnerErrorException;
@@ -605,7 +605,7 @@ public class R66Session implements SessionInterface {
                 localChannelReference.validateRequest(
                     localChannelReference.getFutureEndTransfer().getResult());
             } catch (OpenR66ProtocolSystemException e) {
-                logger.warn("Cannot validate runner:\n    {}",runner.toShortString());
+                logger.error("Cannot validate runner:\n    {}",runner.toShortString());
                 runner.changeUpdatedInfo(UpdatedInfo.INERROR);
                 runner.setErrorExecutionStatus(errorValue.code);
                 try {
@@ -614,7 +614,7 @@ public class R66Session implements SessionInterface {
                 }
                 this.setFinalizeTransfer(false, errorValue);
             } catch (OpenR66RunnerErrorException e) {
-                logger.warn("Cannot validate runner:\n    {}",runner.toShortString());
+                logger.error("Cannot validate runner:\n    {}",runner.toShortString());
                 runner.changeUpdatedInfo(UpdatedInfo.INERROR);
                 runner.setErrorExecutionStatus(errorValue.code);
                 try {

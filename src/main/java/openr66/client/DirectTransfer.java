@@ -200,7 +200,7 @@ public class DirectTransfer extends AbstractTransfer {
                 }
             } else {
                 if (result == null || result.runner == null) {
-                    logger.warn("Transfer in\n    FAILURE with no Id", future.getCause());
+                    logger.error("Transfer in\n    FAILURE with no Id", future.getCause());
                     networkTransaction.closeAll();
                     System.exit(ErrorCode.Unknown.ordinal());
                 }

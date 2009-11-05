@@ -108,17 +108,17 @@ public class ServerExportConfiguration {
             try {
                 RuleFileBasedConfiguration.writeXml(directory, hostname);
             } catch (OpenR66DatabaseNoConnectionError e1) {
-                logger.warn("Error",e1);
+                logger.error("Error",e1);
                 DbConstant.admin.close();
                 ChannelUtils.stopLogger();
                 System.exit(2);
             } catch (OpenR66DatabaseSqlError e1) {
-                logger.warn("Error",e1);
+                logger.error("Error",e1);
                 DbConstant.admin.close();
                 ChannelUtils.stopLogger();
                 System.exit(2);
             } catch (OpenR66ProtocolSystemException e1) {
-                logger.warn("Error",e1);
+                logger.error("Error",e1);
                 DbConstant.admin.close();
                 ChannelUtils.stopLogger();
                 System.exit(2);
@@ -127,12 +127,12 @@ public class ServerExportConfiguration {
             try {
                 DbTaskRunner.writeXML(filename);
             } catch (OpenR66DatabaseNoConnectionError e1) {
-                logger.warn("Error",e1);
+                logger.error("Error",e1);
                 DbConstant.admin.close();
                 ChannelUtils.stopLogger();
                 System.exit(2);
             } catch (OpenR66DatabaseSqlError e1) {
-                logger.warn("Error",e1);
+                logger.error("Error",e1);
                 DbConstant.admin.close();
                 ChannelUtils.stopLogger();
                 System.exit(2);
@@ -141,17 +141,17 @@ public class ServerExportConfiguration {
             try {
                 AuthenticationFileBasedConfiguration.writeXML(filename);
             } catch (OpenR66DatabaseNoConnectionError e) {
-                logger.warn("Error",e);
+                logger.error("Error",e);
                 DbConstant.admin.close();
                 ChannelUtils.stopLogger();
                 System.exit(2);
             } catch (OpenR66DatabaseSqlError e) {
-                logger.warn("Error",e);
+                logger.error("Error",e);
                 DbConstant.admin.close();
                 ChannelUtils.stopLogger();
                 System.exit(2);
             } catch (OpenR66ProtocolSystemException e) {
-                logger.warn("Error",e);
+                logger.error("Error",e);
                 DbConstant.admin.close();
                 ChannelUtils.stopLogger();
                 System.exit(2);

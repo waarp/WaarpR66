@@ -451,7 +451,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
             if (preparedStatement != null) {
                 preparedStatement.realClose();
             }
-            logger.warn("OpenR66 Web Error", e);
+            logger.warn("OpenR66 Web Error {}", e.getMessage());
             sendError(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE);
             return;
         }
@@ -486,7 +486,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
             if (preparedStatement != null) {
                 preparedStatement.realClose();
             }
-            logger.warn("OpenR66 Web Error", e);
+            logger.warn("OpenR66 Web Error {}", e.getMessage());
             sendError(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE);
             return;
         }
@@ -514,7 +514,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
             if (preparedStatement != null) {
                 preparedStatement.realClose();
             }
-            logger.warn("OpenR66 Web Error", e);
+            logger.warn("OpenR66 Web Error {}", e.getMessage());
             sendError(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE);
             return;
         }
@@ -542,7 +542,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
             if (preparedStatement != null) {
                 preparedStatement.realClose();
             }
-            logger.warn("OpenR66 Web Error", e);
+            logger.warn("OpenR66 Web Error {}", e.getMessage());
             sendError(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE);
             return;
         }
@@ -609,7 +609,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
             if (preparedStatement != null) {
                 preparedStatement.realClose();
             }
-            logger.warn("OpenR66 Web Error", e);
+            logger.warn("OpenR66 Web Error {}", e.getMessage());
             sendError(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE);
             return;
         }
@@ -717,7 +717,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
                     // Nothing to do
                     return;
                 }
-                logger.warn("Exception in HttpHandler", exception);
+                logger.warn("Exception in HttpHandler {}", exception.getMessage());
             }
             if (e.getChannel().isConnected()) {
                 sendError(ctx, HttpResponseStatus.BAD_REQUEST);

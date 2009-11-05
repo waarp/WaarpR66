@@ -159,7 +159,7 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
                 }
             });
         } else {
-            logger.warn("SSL Not found");
+            logger.error("SSL Not found");
         }
         super.channelConnected(ctx, e);
     }

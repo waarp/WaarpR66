@@ -99,7 +99,7 @@ public class ServerShutdown {
                     ((ValidPacket) result.other).getTypeValid() == LocalPacketFactory.SHUTDOWNPACKET) {
                 logger.warn("Shutdown command OK");
             } else {
-                logger.warn("Cannot Shutdown", localChannelReference
+                logger.error("Cannot Shutdown", localChannelReference
                         .getFutureRequest().getCause());
             }
         }

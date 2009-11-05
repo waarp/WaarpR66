@@ -48,7 +48,7 @@ public class NetworkPacketSizeEstimator implements ObjectSizeEstimator {
     public int estimateSize(Object o) {
         if (!(o instanceof NetworkPacket)) {
             // Type unimplemented
-            logger.warn("Not NetworkPacket: "+o.getClass().getName());
+            logger.error("Not NetworkPacket: "+o.getClass().getName());
             return Configuration.configuration.BLOCKSIZE+13;
         }
         NetworkPacket packet = (NetworkPacket) o;

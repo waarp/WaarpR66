@@ -291,7 +291,7 @@ public class RequestTransfer implements Runnable {
         host = R66Auth.getServerAuth(DbConstant.admin.session,
                     this.requester);
         if (host == null) {
-            logger.warn("Requested host cannot be found: "+this.requester);
+            logger.error("Requested host cannot be found: "+this.requester);
             OpenR66Exception e =
                 new OpenR66RunnerErrorException("Requested host cannot be found");
             future.setResult(new R66Result(
@@ -321,7 +321,7 @@ public class RequestTransfer implements Runnable {
         try {
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet);
         } catch (OpenR66ProtocolPacketException e) {
-            logger.warn("Cannot transfer request to "+host.toString());
+            logger.error("Cannot transfer request to "+host.toString());
             Channels.close(localChannelReference.getLocalChannel());
             localChannelReference = null;
             host = null;
@@ -394,7 +394,7 @@ public class RequestTransfer implements Runnable {
                                 break;
                             default:
                                 value = 4;
-                                logger.warn("Transfer cancel requested but internal error:\n    "+
+                                logger.error("Transfer cancel requested but internal error:\n    "+
                                         finalValue.runner.toShortString());
                                 break;
                         }
@@ -413,7 +413,7 @@ public class RequestTransfer implements Runnable {
                             break;
                         default:
                             value = 3;
-                            logger.warn("Transfer stop requested but internal error:\n    "+
+                            logger.error("Transfer stop requested but internal error:\n    "+
                                 finalValue.runner.toShortString());
                             break;
                     }
@@ -441,7 +441,7 @@ public class RequestTransfer implements Runnable {
                             break;
                         case RemoteError:
                             value = 5;
-                            logger.warn("Transfer restart requested but remote error:\n    "+
+                            logger.error("Transfer restart requested but remote error:\n    "+
                                 finalValue.runner.toShortString());
                             break;
                         case PassThroughMode:
@@ -451,7 +451,7 @@ public class RequestTransfer implements Runnable {
                             break;
                         default:
                             value = 3;
-                            logger.warn("Transfer restart requested but internal error:\n    "+
+                            logger.error("Transfer restart requested but internal error:\n    "+
                                 finalValue.runner.toShortString());
                             break;
                     }

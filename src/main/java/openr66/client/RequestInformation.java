@@ -153,7 +153,7 @@ public class RequestInformation implements Runnable {
         DbHostAuth host = R66Auth.getServerAuth(DbConstant.admin.session,
                 requested);
         if (host == null) {
-            logger.warn("Requested host cannot be found: "+requested);
+            logger.error("Requested host cannot be found: "+requested);
             R66Result result = new R66Result(null, true, ErrorCode.ConnectionImpossible, null);
             this.future.setResult(result);
             this.future.cancel();
@@ -166,7 +166,7 @@ public class RequestInformation implements Runnable {
             .createConnectionWithRetry(socketAddress, isSSL, future);
         socketAddress = null;
         if (localChannelReference == null) {
-            logger.warn("Cannot connect to server: "+requested);
+            logger.error("Cannot connect to server: "+requested);
             R66Result result = new R66Result(null, true, ErrorCode.ConnectionImpossible, null);
             this.future.setResult(result);
             this.future.cancel();
@@ -176,7 +176,7 @@ public class RequestInformation implements Runnable {
         try {
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, request);
         } catch (OpenR66ProtocolPacketException e) {
-            logger.warn("Cannot write request");
+            logger.error("Cannot write request");
             R66Result result = new R66Result(null, true, ErrorCode.TransferError, null);
             this.future.setResult(result);
             this.future.cancel();

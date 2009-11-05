@@ -263,7 +263,7 @@ public class ClientRunner extends Thread {
                     this.taskRunner.update();
                 } catch (OpenR66DatabaseException e1) {
                 }
-                logger.warn("Transfer cannot be finalized when try to Restart: since "+e.getMessage()
+                logger.error("Transfer cannot be finalized when try to Restart: since "+e.getMessage()
                         +"\n    "+taskRunner.toShortString());
                 throw new OpenR66ProtocolNotYetConnectionException("Finalize transfer when try to restart");
             }
@@ -279,7 +279,7 @@ public class ClientRunner extends Thread {
         DbHostAuth host = R66Auth.getServerAuth(DbConstant.admin.session,
                 taskRunner.getRequested());
         if (host == null) {
-            logger.warn("Requested host cannot be found: "+taskRunner.getRequested());
+            logger.error("Requested host cannot be found: "+taskRunner.getRequested());
             //taskRunner.setExecutionStatus(ErrorCode.NotKnownHost);
             this.changeUpdatedInfo(UpdatedInfo.INERROR, ErrorCode.NotKnownHost);
             throw new OpenR66ProtocolNoConnectionException("Requested host cannot be found "+

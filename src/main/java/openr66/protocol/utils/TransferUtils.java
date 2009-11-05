@@ -221,7 +221,7 @@ public class TransferUtils {
             if (preparedStatement != null) {
                 preparedStatement.realClose();
             }
-            logger.warn("OpenR66 Error",e);
+            logger.error("OpenR66 Error {}",e.getMessage());
             return null;
         }
     }
@@ -261,7 +261,7 @@ public class TransferUtils {
         try {
             session.setFileAfterPreRunner(false);
         } catch (OpenR66RunnerErrorException e) {
-            logger.warn("Cannot recreate file: {}",taskRunner.getFilename());
+            logger.error("Cannot recreate file: {}",taskRunner.getFilename());
             taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);
             taskRunner.setErrorExecutionStatus(ErrorCode.FileNotFound);
             try {
@@ -278,7 +278,7 @@ public class TransferUtils {
         try {
             taskRunner.finalizeTransfer(localChannelReference, file, finalValue, true);
         } catch (OpenR66ProtocolSystemException e) {
-            logger.warn("Cannot validate runner:\n    {}",taskRunner.toShortString());
+            logger.error("Cannot validate runner:\n    {}",taskRunner.toShortString());
             taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);
             taskRunner.setErrorExecutionStatus(ErrorCode.Internal);
             try {

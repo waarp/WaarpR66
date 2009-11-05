@@ -526,7 +526,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         if (networkChannel != null) {
             localChannelReference.setNetworkChannelObject(networkChannel);
         } else {
-            logger.warn("No NetworkChannek found!");
+            logger.error("No NetworkChannek found!");
         }
         localChannelReference.validateStartup(true);
         session.setLocalChannelReference(localChannelReference);
@@ -923,7 +923,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             //not valid so create an error from there
             ErrorCode code = ErrorCode.getFromCode(""+packet.getCode());
             session.setBadRunner(runner, code);
-            logger.warn("Bad runner at startup {} {}", packet, session);
+            logger.error("Bad runner at startup {} {}", packet, session);
             ErrorPacket errorPacket = new ErrorPacket(code.mesg,
                     code.getCode(), ErrorPacket.FORWARDCLOSECODE);
             error(channel, errorPacket);

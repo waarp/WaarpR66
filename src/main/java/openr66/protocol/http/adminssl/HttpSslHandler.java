@@ -274,7 +274,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 Date ddate = format.parse(date);
                 tdate = new Timestamp(ddate.getTime());
             } catch (ParseException e) {
-                logger.warn("start",e);
+                logger.info("start",e);
             }
         }
         return tdate;
@@ -297,7 +297,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 }
                 tdate = new Timestamp(ddate.getTime());
             } catch (ParseException e) {
-                logger.warn("start",e);
+                logger.info("start",e);
             }
         }
         return tdate;
@@ -431,8 +431,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                             }
                         } catch (OpenR66DatabaseException e) {
                             // try to continue if possible
-                            logger.warn("An error occurs while accessing a Runner: ",
-                                    e);
+                            logger.warn("An error occurs while accessing a Runner: {}",
+                                    e.getMessage());
                             continue;
                         }
                     }
@@ -442,7 +442,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     if (preparedStatement != null) {
                         preparedStatement.realClose();
                     }
-                    logger.warn("OpenR66 Web Error",e);
+                    logger.warn("OpenR66 Web Error {}",e.getMessage());
                 }
             } else {
                 head = resetOptionTransfer(head, "", "", "", "", "", "",
@@ -545,8 +545,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                             }
                         } catch (OpenR66DatabaseException e) {
                             // try to continue if possible
-                            logger.warn("An error occurs while accessing a Runner: ",
-                                    e);
+                            logger.warn("An error occurs while accessing a Runner: {}",
+                                    e.getMessage());
                             continue;
                         }
                     }
@@ -556,7 +556,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     if (preparedStatement != null) {
                         preparedStatement.realClose();
                     }
-                    logger.warn("OpenR66 Web Error",e);
+                    logger.warn("OpenR66 Web Error {}",e.getMessage());
                 }
                 body1 = readFile(Configuration.configuration.httpBasePath+"CancelRestart_body1.html");
             } else if ("RestartAll".equalsIgnoreCase(parm) ||
@@ -637,8 +637,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                                 }
                             } catch (OpenR66DatabaseException e) {
                                 // try to continue if possible
-                                logger.warn("An error occurs while accessing a Runner: ",
-                                        e);
+                                logger.warn("An error occurs while accessing a Runner: {}",
+                                        e.getMessage());
                                 continue;
                             }                        }
                         preparedStatement.realClose();
@@ -646,7 +646,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                         if (preparedStatement != null) {
                             preparedStatement.realClose();
                         }
-                        logger.warn("OpenR66 Web Error",e);
+                        logger.warn("OpenR66 Web Error {}",e.getMessage());
                     }
                 }
                 body = builder.toString();
@@ -976,7 +976,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     if (preparedStatement != null) {
                         preparedStatement.realClose();
                     }
-                    logger.warn("OpenR66 Web Error",e);
+                    logger.warn("OpenR66 Web Error {}",e.getMessage());
                 }
                 body1 = readFile(Configuration.configuration.httpBasePath+"Hosts_body1.html");
             } else if ("Update".equalsIgnoreCase(parm)) {
@@ -1172,7 +1172,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             if (preparedStatement != null) {
                 preparedStatement.realClose();
             }
-            logger.warn("OpenR66 Web Error",e);
+            logger.warn("OpenR66 Web Error {}",e.getMessage());
         }
     }
     private String resetOptionRules(String header,
@@ -1964,7 +1964,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     // Nothing to do
                     return;
                 }
-                logger.warn("Exception in HttpSslHandler", exception);
+                logger.warn("Exception in HttpSslHandler {}", exception.getMessage());
             }
             if (e.getChannel().isConnected()) {
                 sendError(ctx, HttpResponseStatus.BAD_REQUEST);

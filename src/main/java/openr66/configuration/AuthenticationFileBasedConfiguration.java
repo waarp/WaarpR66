@@ -156,7 +156,7 @@ public class AuthenticationFileBasedConfiguration {
                 // load key from file
                 key = new File(skey);
                 if (!key.canRead()) {
-                    logger.warn("Cannot read key for hostId " + refHostId+":"+skey);
+                    logger.error("Cannot read key for hostId " + refHostId+":"+skey);
                     continue;
                 }
                 byteKeys = new byte[(int) key.length()];
@@ -165,7 +165,7 @@ public class AuthenticationFileBasedConfiguration {
                     inputStream.read(byteKeys);
                     inputStream.close();
                 } catch (IOException e) {
-                    logger.warn("Cannot read key for hostId " + refHostId, e);
+                    logger.error("Cannot read key for hostId " + refHostId, e);
                     try {
                         if (inputStream != null)
                             inputStream.close();
@@ -209,7 +209,7 @@ public class AuthenticationFileBasedConfiguration {
                     auth.insert();
                 }
             } catch (OpenR66DatabaseException e) {
-                logger.warn("Cannot create Authentication for hostId {}",refHostId);
+                logger.error("Cannot create Authentication for hostId {}",refHostId);
                 continue;
             }
             logger.debug("Add {} {}",refHostId,auth);

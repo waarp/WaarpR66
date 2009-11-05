@@ -100,18 +100,18 @@ public class RetrieveRunner extends Thread {
                         ChannelUtils.writeEndTransfer(localChannelReference);
                     } catch (OpenR66ProtocolPacketException e) {
                         transferInError(e);
-                        logger.warn("End Retrieve in Error");
+                        logger.error("End Retrieve in Error");
                         return;
                     }
                 }
                 session.getFile().retrieveBlocking(running);
             } catch (OpenR66RunnerErrorException e) {
                 transferInError(e);
-                logger.warn("End Retrieve in Error");
+                logger.error("End Retrieve in Error");
                 return;
             } catch (OpenR66ProtocolSystemException e) {
                 transferInError(e);
-                logger.warn("End Retrieve in Error");
+                logger.error("End Retrieve in Error");
                 return;
             }
             try {
@@ -156,7 +156,7 @@ public class RetrieveRunner extends Thread {
                         .getFutureEndTransfer().getResult());
                 }
                 done = true;
-                logger.warn("End Retrieve in Error");
+                logger.error("End Retrieve in Error");
             }
         } finally {
             if (!done) {

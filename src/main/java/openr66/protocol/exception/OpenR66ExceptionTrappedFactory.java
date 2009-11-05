@@ -56,7 +56,7 @@ public class OpenR66ExceptionTrappedFactory {
                     "Connection (example: timeout) impossible", e2);
         } else if (e1 instanceof CancelledKeyException) {
             final CancelledKeyException e2 = (CancelledKeyException) e1;
-            logger.warn("Connection aborted since {}", e2.getMessage());
+            logger.error("Connection aborted since {}", e2.getMessage());
             // Is it really what we should do ?
             // Yes, No action
             return null;
@@ -115,7 +115,7 @@ public class OpenR66ExceptionTrappedFactory {
                     e2);
         } else if (e1 instanceof SSLException) {
             final SSLException e2 = (SSLException) e1;
-            logger.warn("Connection aborted since SSL Error {} with Channel {}", e2
+            logger.error("Connection aborted since SSL Error {} with Channel {}", e2
                     .getMessage(), channel);
             return new OpenR66ProtocolBusinessNoWriteBackException("SSL Connection aborted", e2);
         } else if (e1 instanceof IOException) {
@@ -137,7 +137,7 @@ public class OpenR66ExceptionTrappedFactory {
                 return new OpenR66ProtocolBusinessNoWriteBackException("Execution aborted", e2);
             }
         } else {
-            logger.warn("Unexpected exception from downstream" +
+            logger.error("Unexpected exception from downstream" +
                     " Ref Channel: " + channel.toString(), e1);
         }
         return new OpenR66ProtocolSystemException("Unexpected exception: "+e1.getMessage(), e1);

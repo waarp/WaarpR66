@@ -30,9 +30,10 @@ import openr66.database.data.DbTaskRunner;
 import openr66.protocol.utils.R66Future;
 
 /**
- * Transfer task:
+ * Transfer task:<br>
  *
- * Result of arguments will be: "filepath requestedHost rule information"\n
+ * Result of arguments will be as r66send command but in that order: <br>
+ * "-file filepath -to requestedHost -rule rule -info information"<br>
  * where information can include blank char too.
  *
  * @author Frederic Bregier
@@ -68,15 +69,15 @@ public class TransferTask extends AbstractTask {
         String finalname = argRule;
         finalname = getReplacedValue(finalname, argTransfer.split(" "));
         String[] args = finalname.split(" ");
-        if (args.length < 4) {
+        if (args.length < 8) {
             futureCompletion.setFailure(
                     new OpenR66RunnerErrorException("Not enough argument in Transfer"));
         }
-        String filepath = args[0];
-        String requested = args[1];
-        String rule = args[2];
-        String information = args[3];
-        for (int i = 4; i < args.length; i++) {
+        String filepath = args[1];
+        String requested = args[3];
+        String rule = args[5];
+        String information = args[7];
+        for (int i = 8; i < args.length; i++) {
             information += " "+args[i];
         }
         R66Future future = new R66Future(true);

@@ -149,7 +149,7 @@ public class OpenR66SignalHandler implements SignalHandler {
                     System.exit(0);
                     break;
                 default:
-                    logger.warn("Type unknown in TimerTask");
+                    logger.error("Type unknown in TimerTask");
             }
         }
     }

@@ -1998,7 +1998,7 @@ public class DbTaskRunner extends AbstractDbData {
                 isSaved = false;
                 this.saveStatus();
                 // FIXME
-                logger.warn("Future is failed: "+infostatus.mesg);
+                logger.info("Future is failed: "+infostatus.mesg);
                 if (future.getCause() != null) {
                     throw new OpenR66RunnerErrorException("Runner is failed: " +
                         future.getCause().getMessage(), future.getCause());
@@ -2140,9 +2140,9 @@ public class DbTaskRunner extends AbstractDbData {
         // error or not ?
         ErrorCode runnerStatus = this.getErrorInfo();
         if (finalValue.exception != null) {
-            logger.warn("Transfer KO on " + file+ " due to "+ finalValue.exception.getMessage());
+            logger.error("Transfer KO on " + file+ " due to "+ finalValue.exception.getMessage());
         } else {
-            logger.warn("Transfer KO on " + file+" due to "+finalValue.toString());
+            logger.error("Transfer KO on " + file+" due to "+finalValue.toString());
         }
         if (runnerStatus == ErrorCode.CanceledTransfer) {
             // delete file, reset runner
@@ -2630,7 +2630,7 @@ public class DbTaskRunner extends AbstractDbData {
             try {
                 FileUtils.writeXML(filename, null, document);
             } catch (OpenR66ProtocolSystemException e) {
-                logger.warn("Cannot write XML file", e);
+                logger.error("Cannot write XML file", e);
             }
         }
     }

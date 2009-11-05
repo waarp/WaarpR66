@@ -106,7 +106,7 @@ public class LogExport implements Runnable {
             try {
                 DbTaskRunner.changeFinishedToDone(DbConstant.admin.session);
             } catch (OpenR66DatabaseNoConnectionError e) {
-                logger.warn("Clean cannot be done", e);
+                logger.warn("Clean cannot be done {}", e.getMessage());
             }
         }
         LocalChannelReference localChannelReference = networkTransaction
@@ -159,7 +159,7 @@ public class LogExport implements Runnable {
                 Date ddate = format.parse(date);
                 tdate = new Timestamp(ddate.getTime());
             } catch (ParseException e) {
-                logger.warn("start",e);
+                logger.info("start {}",e.getMessage());
             }
         }
         return tdate;
@@ -182,7 +182,7 @@ public class LogExport implements Runnable {
                 }
                 tdate = new Timestamp(ddate.getTime());
             } catch (ParseException e) {
-                logger.warn("start",e);
+                logger.info("start {}",e.getMessage());
             }
         }
         return tdate;

@@ -422,7 +422,7 @@ public class FileBasedConfiguration {
         Configuration.configuration.HOST_AUTH = R66Auth.getServerAuth(
                 DbConstant.admin.session, Configuration.configuration.HOST_ID);
         if (Configuration.configuration.HOST_AUTH == null) {
-            logger.warn("Cannot find Authentication for current host");
+            logger.error("Cannot find Authentication for current host");
             return false;
         }
         if (Configuration.configuration.HOST_SSLID != null) {
@@ -430,7 +430,7 @@ public class FileBasedConfiguration {
                     DbConstant.admin.session,
                     Configuration.configuration.HOST_SSLID);
             if (Configuration.configuration.HOST_SSLAUTH == null) {
-                logger.warn("Cannot find SSL Authentication for current host");
+                logger.error("Cannot find SSL Authentication for current host");
                 return false;
             }
         }
@@ -488,7 +488,7 @@ public class FileBasedConfiguration {
         Configuration.configuration.HOST_AUTH = R66Auth.getServerAuth(
                 DbConstant.admin.session, Configuration.configuration.HOST_ID);
         if (Configuration.configuration.HOST_AUTH == null) {
-            logger.warn("Cannot find Authentication for current host");
+            logger.error("Cannot find Authentication for current host");
             return false;
         }
         if (Configuration.configuration.HOST_SSLID != null) {
@@ -496,7 +496,7 @@ public class FileBasedConfiguration {
                     DbConstant.admin.session,
                     Configuration.configuration.HOST_SSLID);
             if (Configuration.configuration.HOST_SSLAUTH == null) {
-                logger.warn("Cannot find SSL Authentication for current host");
+                logger.error("Cannot find SSL Authentication for current host");
                 return false;
             }
         }
@@ -640,32 +640,32 @@ public class FileBasedConfiguration {
         } else {
             String keypath = node.getText();
             if ((keypath == null) || (keypath.length() == 0)) {
-                logger.warn("Bad Key Path");
+                logger.error("Bad Key Path");
                 return false;
             }
             node = document.selectSingleNode(XML_PATH_KEYPASS);
             if (node == null) {
-                logger.warn("Unable to find Key Passwd");
+                logger.error("Unable to find Key Passwd");
                 return false;
             }
             String keypass = node.getText();
             if ((keypass == null) || (keypass.length() == 0)) {
-                logger.warn("Bad Key Passwd");
+                logger.error("Bad Key Passwd");
                 return false;
             }
             node = document.selectSingleNode(XML_PATH_KEYSTOREPASS);
             if (node == null) {
-                logger.warn("Unable to find KeyStore Passwd");
+                logger.error("Unable to find KeyStore Passwd");
                 return false;
             }
             String keystorepass = node.getText();
             if ((keystorepass == null) || (keystorepass.length() == 0)) {
-                logger.warn("Bad KeyStore Passwd");
+                logger.error("Bad KeyStore Passwd");
                 return false;
             }
             if (!R66SecureKeyStore.initSecureKeyStore(keypath, keystorepass,
                     keypass)) {
-                logger.warn("Bad Key");
+                logger.error("Bad Key");
                 return false;
             }
         }
@@ -675,32 +675,32 @@ public class FileBasedConfiguration {
         if (node != null) {
             String keypath = node.getText();
             if ((keypath == null) || (keypath.length() == 0)) {
-                logger.warn("Bad Key Path");
+                logger.error("Bad Key Path");
                 return false;
             }
             node = document.selectSingleNode(XML_PATH_ADMIN_KEYPASS);
             if (node == null) {
-                logger.warn("Unable to find Key Passwd");
+                logger.error("Unable to find Key Passwd");
                 return false;
             }
             String keypass = node.getText();
             if ((keypass == null) || (keypass.length() == 0)) {
-                logger.warn("Bad Key Passwd");
+                logger.error("Bad Key Passwd");
                 return false;
             }
             node = document.selectSingleNode(XML_PATH_ADMIN_KEYSTOREPASS);
             if (node == null) {
-                logger.warn("Unable to find KeyStore Passwd");
+                logger.error("Unable to find KeyStore Passwd");
                 return false;
             }
             String keystorepass = node.getText();
             if ((keystorepass == null) || (keystorepass.length() == 0)) {
-                logger.warn("Bad KeyStore Passwd");
+                logger.error("Bad KeyStore Passwd");
                 return false;
             }
             if (!HttpSecureKeyStore.initSecureKeyStore(keypath, keystorepass,
                     keypass)) {
-                logger.warn("Bad Key");
+                logger.error("Bad Key");
                 return false;
             }
         }

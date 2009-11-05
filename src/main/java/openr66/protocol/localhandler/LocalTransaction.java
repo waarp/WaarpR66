@@ -180,7 +180,7 @@ public class LocalTransaction {
                 validLCR.setSuccess();
                 return localChannelReference;
             } else {
-                logger.warn("Can't connect to local server "+i);
+                logger.error("Can't connect to local server "+i);
             }
             try {
                 Thread.sleep(Configuration.RETRYINMS);
@@ -323,9 +323,9 @@ public class LocalTransaction {
         Iterator<LocalChannelReference> iterator = collection.iterator();
         while (iterator.hasNext()) {
             LocalChannelReference localChannelReference = iterator.next();
-            logger.warn("Will close local channel: {}",
+            logger.debug("Will close local channel: {}",
                     localChannelReference);
-            logger.warn(" Containing: {}",(localChannelReference.getSession() != null ?
+            logger.debug(" Containing: {}",(localChannelReference.getSession() != null ?
                     localChannelReference.getSession() : "no session"));
         }
     }

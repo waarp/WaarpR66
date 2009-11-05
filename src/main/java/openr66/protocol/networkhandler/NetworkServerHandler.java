@@ -140,7 +140,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
         NetworkPacket response =
             new NetworkPacket(ChannelUtils.NOCHANNEL,
                     ChannelUtils.NOCHANNEL, keepAlivePacket);
-        logger.warn("Write KAlive");
+        logger.info("Write KAlive");
         Channels.write(e.getChannel(), response);
     }
 
@@ -178,7 +178,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
                     NetworkPacket response =
                         new NetworkPacket(ChannelUtils.NOCHANNEL,
                                 ChannelUtils.NOCHANNEL, keepAlivePacket);
-                    logger.warn("Answer KAlive");
+                    logger.info("Answer KAlive");
                     Channels.write(e.getChannel(), response);
                 }
             } catch (OpenR66ProtocolPacketException e1) {
@@ -194,7 +194,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
                     NetworkTransaction.createConnectionFromNetworkChannelStartup(
                             e.getChannel(), packet);
             } catch (OpenR66ProtocolSystemException e1) {
-                logger.warn("Cannot create LocalChannel for: " + packet+" due to "+ e1.getMessage());
+                logger.error("Cannot create LocalChannel for: " + packet+" due to "+ e1.getMessage());
                 NetworkTransaction.removeNetworkChannel(e.getChannel(), null);
                 final ConnectionErrorPacket error = new ConnectionErrorPacket(
                         "Cannot connect to localChannel since cannot create it", null);
@@ -286,7 +286,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
         if (e.getCause() instanceof ReadTimeoutException) {
             ReadTimeoutException exception = (ReadTimeoutException) e.getCause();
             // No read for too long
-            logger.warn("ReadTimeout so Will close NETWORK channel {}", exception.getMessage());
+            logger.error("ReadTimeout so Will close NETWORK channel {}", exception.getMessage());
             ChannelUtils.close(e.getChannel());
             return;
         }

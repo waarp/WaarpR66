@@ -204,14 +204,14 @@ public class RuleFileBasedConfiguration {
         try {
             idrule = getValue(document, IDRULE);
         } catch (OpenR66ProtocolNoDataException e1) {
-            logger.warn("Unable to find in Rule field: " + IDRULE);
+            logger.error("Unable to find in Rule field: " + IDRULE);
             throw new OpenR66ProtocolSystemException(e1);
         }
         String smode;
         try {
             smode = getValue(document, MODE);
         } catch (OpenR66ProtocolNoDataException e1) {
-            logger.warn("Unable to find in Rule field: " + MODE);
+            logger.error("Unable to find in Rule field: " + MODE);
             throw new OpenR66ProtocolSystemException(e1);
         }
         int mode = Integer.parseInt(smode);
