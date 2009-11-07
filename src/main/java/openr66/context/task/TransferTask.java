@@ -27,14 +27,18 @@ import openr66.client.SubmitTransfer;
 import openr66.context.R66Session;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.data.DbTaskRunner;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.utils.R66Future;
 
 /**
  * Transfer task:<br>
  *
- * Result of arguments will be as r66send command but in that order: <br>
- * "-file filepath -to requestedHost -rule rule -info information"<br>
- * where information can include blank char too.
+ * Result of arguments will be as r66send command.<br>
+ * Format is like r66send command in any order except "-info" which should be
+ * the last item:<br>
+ * "-file filepath -to requestedHost -rule rule [-md5] [-info information]"<br>
+ * <br>
+ * INFO is the only one field that can contains blank character.<br>
  *
  * @author Frederic Bregier
  *
@@ -69,20 +73,51 @@ public class TransferTask extends AbstractTask {
         String finalname = argRule;
         finalname = getReplacedValue(finalname, argTransfer.split(" "));
         String[] args = finalname.split(" ");
-        if (args.length < 8) {
+        if (args.length < 6) {
             futureCompletion.setFailure(
                     new OpenR66RunnerErrorException("Not enough argument in Transfer"));
         }
-        String filepath = args[1];
-        String requested = args[3];
-        String rule = args[5];
-        String information = args[7];
-        for (int i = 8; i < args.length; i++) {
-            information += " "+args[i];
+        String filepath = null;
+        String requested = null;
+        String rule = null;
+        String information = null;
+        boolean isMD5 = false;
+        int blocksize = Configuration.configuration.BLOCKSIZE;
+        for (int i = 0; i < args.length; i ++) {
+            if (args[i].equalsIgnoreCase("-to")) {
+                i ++;
+                requested = args[i];
+            } else if (args[i].equalsIgnoreCase("-file")) {
+                i ++;
+                filepath = args[i];
+            } else if (args[i].equalsIgnoreCase("-rule")) {
+                i ++;
+                rule = args[i];
+            } else if (args[i].equalsIgnoreCase("-info")) {
+                i ++;
+                information = args[i];
+                i ++;
+                while (i < args.length) {
+                    information += " " + args[i];
+                    i ++;
+                }
+            } else if (args[i].equalsIgnoreCase("-md5")) {
+                isMD5 = true;
+            } else if (args[i].equalsIgnoreCase("-block")) {
+                i ++;
+                blocksize = Integer.parseInt(args[i]);
+                if (blocksize < 100) {
+                    logger.warn("Block size is too small: " + blocksize);
+                    blocksize = Configuration.configuration.BLOCKSIZE;
+                }
+            }
+        }
+        if (information == null) {
+            information = "noinfo";
         }
         R66Future future = new R66Future(true);
         SubmitTransfer transaction = new SubmitTransfer(future,
-                requested, filepath, rule, information, false, 0);
+                requested, filepath, rule, information, isMD5, blocksize);
         transaction.run();
         future.awaitUninterruptibly();
         futureCompletion.setResult(future.getResult());

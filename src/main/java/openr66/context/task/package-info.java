@@ -96,7 +96,8 @@
  * is responsible to really move the previous file to the new one. The file is marked as moved.
  * <li>TRANSFER</li> Submit a new transfer based on the Path and Transfer Information arguments.
  * The transfer arguments are obtained from Path transformed according to above dynamic replacements, and after a String Format where Transfer Information is used as input (String.format(Path,Info)).
- * The result should be as r66send in that order: "-file filepath -to requestedHost -rule rule -info transferInformation"
+ * The result should be as r66send except that "-info" must be the last entry:<br>
+ * "-file filepath -to requestedHost -rule rule [-md5] -info transferInformation"
  * where each field is separated by blank character. Last field (transferInformation) may contain however blank character.
  * Delay is ignored.
  * The file is not marked as moved.
