@@ -5,6 +5,9 @@
 		<author email="fredbregier at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+		<release version="1.0.1" date="2009-11-09" description="Performance release">
+			<action dev="Frederic Bregier" type="fix">Fix GG Common version used and File Support</action>
+		</release>
 		<release version="1.0.0" date="2009-11-06" description="Production release">
 			<action dev="Frederic Bregier" type="fix">Fix Transfer Task</action>
 			<action dev="Frederic Bregier" type="fix">Fix GG Common version used</action>

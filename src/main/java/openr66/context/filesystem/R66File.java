@@ -367,6 +367,42 @@ public class R66File extends FilesystemBasedFileImpl {
         }
         return raf;
     }
+    /**
+     * Returns the FileOutputStream in Out mode associated with the current file.
+     * @param append True if the FileOutputStream should be in append mode
+     * @return the FileOutputStream (OUT)
+     */
+    protected FileOutputStream getFileOutputStream(boolean append) {
+        if (!isExternal) {
+            return super.getFileOutputStream(append);
+        }
+        if (!isReady) {
+            return null;
+        }
+        File trueFile = getTrueFile();
+        if (getPosition() > 0) {
+            if (trueFile.length() < getPosition()) {
+                logger.error("Cannot Change position in getFileOutputStream: file is smaller than required position");
+                return null;
+            }
+            RandomAccessFile raf = getRandomFile();
+            try {
+                raf.setLength(getPosition());
+                raf.close();
+            } catch (IOException e) {
+                logger.error("Change position in getFileOutputStream:", e);
+                return null;
+            }
+        }
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(trueFile, append);
+        } catch (FileNotFoundException e) {
+            logger.error("File not found in getRandomFile:", e);
+            return null;
+        }
+        return fos;
+    }
     /*
      * (non-Javadoc)
      *
