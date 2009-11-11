@@ -672,7 +672,7 @@ public class DbRule extends AbstractDbData {
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
      */
-    public static DbRule[] getAllHost(DbSession dbSession) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+    public static DbRule[] getAllRules(DbSession dbSession) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
         if (dbSession == null) {
             DbRule [] result = new DbRule[0];
             return dbR66RuleHashMap.values().toArray(result);

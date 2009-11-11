@@ -333,7 +333,7 @@ public class DbHostAuth extends AbstractDbData {
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
      */
-    public static DbHostAuth[] getAllHost(DbSession dbSession) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+    public static DbHostAuth[] getAllHosts(DbSession dbSession) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
         if (dbSession == null) {
             DbHostAuth [] result = new DbHostAuth[0];
             return dbR66HostAuthHashMap.values().toArray(result);
