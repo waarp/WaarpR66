@@ -296,7 +296,7 @@ public class ClientRunner extends Thread {
             // See if reprogramming is ok (not too many tries)
             String retry;
             if (incrementTaskRunerTry(taskRunner, Configuration.RETRYNB)) {
-                logger.info("Will retry since Cannot connect to {}", host);
+                logger.warn("Will retry since Cannot connect to {}", host);
                 retry = " but will retry";
                 // now wait
                 try {

@@ -263,7 +263,8 @@ public class R66Session implements SessionInterface {
         // check first if the next step is the PRE task from beginning
         String filename;
         if (this.runner.isPreTaskStarting()) {
-            filename = this.runner.getOriginalFilename();
+            filename = R66Dir.normalizePath(this.runner.getOriginalFilename());
+            this.runner.setOriginalFilename(filename);
         } else {
             filename = this.runner.getFilename();
         }
@@ -360,9 +361,15 @@ public class R66Session implements SessionInterface {
                 // New FILENAME if necessary and store it
                 if (createFile) {
                     file = null;
+                    String newfilename = this.runner.getOriginalFilename();
+                    if (newfilename.charAt(1) == ':') {
+                        // Windows path
+                        newfilename = newfilename.substring(2);
+                    }
+                    this.runner.setFilename(R66File.getBasename(newfilename));
                     try {
                         file = dir.setUniqueFile(this.runner.getSpecialId(),
-                                this.runner.getOriginalFilename());
+                                this.runner.getFilename());
                         if (RequestPacket.isRecvThroughMode(this.runner.getMode())) {
                             // no test on file since it does not really exist
                             logger.info("File is in through mode: {}", file);
@@ -577,6 +584,9 @@ public class R66Session implements SessionInterface {
      */
     public void tryFinalizeRequest(R66Result errorValue)
     throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException {
+        if (this.getLocalChannelReference() == null) {
+            return;
+        }
         if (this.getLocalChannelReference().getFutureRequest().isDone()) {
             return;
         }

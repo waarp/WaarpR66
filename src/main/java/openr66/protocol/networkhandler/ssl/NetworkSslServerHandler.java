@@ -79,10 +79,12 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
      */
     private static void setStatusSslConnectedChannel(Channel channel, boolean status) {
         R66Future futureSSL = waitForSsl.get(channel.getId());
-        if (status) {
-            futureSSL.setSuccess();
-        } else {
-            futureSSL.cancel();
+        if (futureSSL != null) {
+            if (status) {
+                futureSSL.setSuccess();
+            } else {
+                futureSSL.cancel();
+            }
         }
     }
     /**

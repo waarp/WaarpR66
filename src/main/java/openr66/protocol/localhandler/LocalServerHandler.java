@@ -508,14 +508,14 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 .getLocalTransaction().getFromId(packet.getLocalId());
         if (localChannelReference == null) {
             logger.error("Cannot startup");
-            localChannelReference.validateStartup(false);
-            R66Result result = new R66Result(
+            //localChannelReference.validateStartup(false);
+            /*R66Result result = new R66Result(
                     new OpenR66ProtocolNotAuthenticatedException(), session, true,
-                    ErrorCode.ConnectionImpossible, null);
+                    ErrorCode.ConnectionImpossible, null);*/
             ErrorPacket error = new ErrorPacket("Cannot startup connection",
                     ErrorCode.ConnectionImpossible.getCode(), ErrorPacket.FORWARDCLOSECODE);
             Channels.write(channel, error).awaitUninterruptibly();
-            localChannelReference.invalidateRequest(result);
+            //localChannelReference.invalidateRequest(result);
             // Cannot do writeBack(error, true);
             ChannelUtils.close(channel);
             session.setStatus(40);
@@ -541,7 +541,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
      */
     private void authent(Channel channel, AuthentPacket packet)
             throws OpenR66ProtocolPacketException {
-        localChannelReference.getDbSession().useConnection();
+        if (localChannelReference.getDbSession() != null) {
+            localChannelReference.getDbSession().useConnection();
+        }
         try {
             session.getAuth().connection(localChannelReference.getDbSession(),
                     packet.getHostId(), packet.getKey());
@@ -732,7 +734,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
 
     private void endInitRequestInError(Channel channel, ErrorCode code, DbTaskRunner runner,
             OpenR66Exception e1, RequestPacket packet) throws OpenR66ProtocolPacketException {
-        logger.error("TaskRunner initialisation in error "+ code.mesg+" "+session);
+        logger.error("TaskRunner initialisation in error "+ code.mesg+" "+session+" {}",
+                e1 != null ? e1.getMessage():"no exception");
         localChannelReference.invalidateRequest(new R66Result(
                 e1, session, true, code, null));
 

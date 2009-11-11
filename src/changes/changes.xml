@@ -5,6 +5,11 @@
 		<author email="fredbregier at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+		<release version="1.0.2" date="2009-11-11" description="Small fixes">
+			<action dev="Frederic Bregier" type="fix">Fix on Direct Transfer</action>
+			<action dev="Frederic Bregier" type="fix">Fix for getting correct output for GUI</action>
+			<action dev="Frederic Bregier" type="add">Add Export Configuration in Administrator</action>
+		</release>
 		<release version="1.0.1" date="2009-11-09" description="Performance release">
 			<action dev="Frederic Bregier" type="fix">Fix GG Common version used and File Support</action>
 		</release>

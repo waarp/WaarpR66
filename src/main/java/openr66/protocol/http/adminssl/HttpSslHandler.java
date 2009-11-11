@@ -43,6 +43,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.net.ssl.SSLException;
 
 import openr66.client.Message;
+import openr66.configuration.AuthenticationFileBasedConfiguration;
+import openr66.configuration.RuleFileBasedConfiguration;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
@@ -1512,10 +1514,33 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     Long.toString(Configuration.configuration.serverGlobalReadLimit));
             return builder.toString();
         }
+        String extraInformation = null;
         if (params.containsKey("ACTION")) {
             List<String> action = params.get("ACTION");
             for (String act : action) {
-                if (act.equalsIgnoreCase("Disconnect")) {
+                if (act.equalsIgnoreCase("ExportConfig")) {
+                    String directory = Configuration.configuration.baseDirectory+
+                        R66Dir.SEPARATOR+Configuration.configuration.archivePath;
+                    extraInformation = "Export Directory: "+directory+"<br>";
+                    try {
+                        RuleFileBasedConfiguration.writeXml(directory,
+                            Configuration.configuration.HOST_ID);
+                        extraInformation += "-Rule are exported.<br>";
+                    } catch (OpenR66DatabaseNoConnectionError e1) {
+                    } catch (OpenR66DatabaseSqlError e1) {
+                    } catch (OpenR66ProtocolSystemException e1) {
+                    }
+                    String filename =
+                        directory+R66Dir.SEPARATOR+Configuration.configuration.HOST_ID+
+                            "_Authentications.xml";
+                    extraInformation += "-Authent are exported.<br>";
+                    try {
+                        AuthenticationFileBasedConfiguration.writeXML(filename);
+                    } catch (OpenR66DatabaseNoConnectionError e) {
+                    } catch (OpenR66DatabaseSqlError e) {
+                    } catch (OpenR66ProtocolSystemException e) {
+                    }
+                } else if (act.equalsIgnoreCase("Disconnect")) {
                     String logon = Logon();
                     newSession = true;
                     clearSession();
@@ -1567,7 +1592,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                             Configuration.configuration.delayRetry = 1000;
                         }
                     }
-
+                    extraInformation = "Configuration Saved";
                 }
             }
         }
@@ -1585,6 +1610,9 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 Long.toString(Configuration.configuration.serverGlobalWriteLimit));
         FileUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITRXXX.toString(),
                 Long.toString(Configuration.configuration.serverGlobalReadLimit));
+        if (extraInformation != null) {
+            builder.append(extraInformation);
+        }
         return builder.toString();
     }
 

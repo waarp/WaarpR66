@@ -2265,6 +2265,20 @@ public class DbTaskRunner extends AbstractDbData {
                 " Fileinfo: "+fileInformation;
     }
 
+    public String toShortNoHtmlString(String newline) {
+        return "Run: " + ruleId + " on " +
+                filename + newline+" STEP: " + TASKSTEP.values()[globalstep] + "(" +
+                TASKSTEP.values()[globallaststep] + "):" + step + ":" +
+                status.mesg + newline+" Transfer Rank: " + rank + " SpecialId: " +
+                specialId + " isSender: " + isSender + " isMoved: " +
+                isFileMoved + " Mode: " + TRANSFERMODE.values()[mode] +
+                newline+" Requester: " + requesterHostId + " Requested: " +
+                requestedHostId + " Start: " + start + " Stop: " + stop +
+                newline+" Internal: " + UpdatedInfo.values()[updatedInfo].name()+
+                ":"+infostatus.mesg+
+                newline+" Fileinfo: "+fileInformation;
+    }
+
     public String toShortString() {
         return "<RULE>" + ruleId + "</RULE><ID>" + specialId + "</ID><FILE>" +
                 filename + "</FILE>\n    <STEP>" + TASKSTEP.values()[globalstep] +
