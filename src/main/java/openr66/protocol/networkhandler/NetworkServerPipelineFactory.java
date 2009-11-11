@@ -64,7 +64,7 @@ public class NetworkServerPipelineFactory implements ChannelPipelineFactory {
         HashedWheelTimer timer = new HashedWheelTimer();
         pipeline.addLast(TIMEOUT,
                 new IdleStateHandler(timer,
-                0, 0, Configuration.configuration.TIMEOUTCON, TimeUnit.MILLISECONDS));
+                0, 0, Configuration.configuration.TIMEOUTCON*2, TimeUnit.MILLISECONDS));
         pipeline.addLast(READTIMEOUT,
                 new ReadTimeoutHandler(timer,
                 Configuration.configuration.TIMEOUTCON*10, TimeUnit.MILLISECONDS));
