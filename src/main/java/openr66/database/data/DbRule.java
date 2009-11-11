@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.StringReader;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -663,6 +664,32 @@ public class DbRule extends AbstractDbData {
      */
     private DbRule() {
         super(DbConstant.admin.session);
+    }
+    /**
+     * Get All DbRule from database or from internal hashMap in case of no database support
+     * @param dbSession may be null
+     * @return the array of DbRule
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66DatabaseSqlError
+     */
+    public static DbRule[] getAllHost(DbSession dbSession) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+        if (dbSession == null) {
+            DbRule [] result = new DbRule[0];
+            return dbR66RuleHashMap.values().toArray(result);
+        }
+        String request = "SELECT " +selectAllFields;
+            request += " FROM "+table;
+        DbPreparedStatement preparedStatement = new DbPreparedStatement(dbSession, request);
+        ArrayList<DbRule> dbArrayList = new ArrayList<DbRule>();
+        preparedStatement.executeQuery();
+        while (preparedStatement.getNext()) {
+            DbRule hostAuth = getFromStatement(preparedStatement);
+            dbArrayList.add(hostAuth);
+        }
+        preparedStatement.realClose();
+        DbRule [] result = new DbRule[0];
+        dbArrayList.toArray(result);
+        return result;
     }
     /**
      * For instance from Commander when getting updated information

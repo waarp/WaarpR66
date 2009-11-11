@@ -24,6 +24,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -324,6 +325,32 @@ public class DbHostAuth extends AbstractDbData {
      */
     private DbHostAuth() {
         super(DbConstant.admin.session);
+    }
+    /**
+     * Get All DbHostAuth from database or from internal hashMap in case of no database support
+     * @param dbSession may be null
+     * @return the array of DbHostAuth
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66DatabaseSqlError
+     */
+    public static DbHostAuth[] getAllHost(DbSession dbSession) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+        if (dbSession == null) {
+            DbHostAuth [] result = new DbHostAuth[0];
+            return dbR66HostAuthHashMap.values().toArray(result);
+        }
+        String request = "SELECT " +selectAllFields;
+            request += " FROM "+table;
+        DbPreparedStatement preparedStatement = new DbPreparedStatement(dbSession, request);
+        ArrayList<DbHostAuth> dbArrayList = new ArrayList<DbHostAuth>();
+        preparedStatement.executeQuery();
+        while (preparedStatement.getNext()) {
+            DbHostAuth hostAuth = getFromStatement(preparedStatement);
+            dbArrayList.add(hostAuth);
+        }
+        preparedStatement.realClose();
+        DbHostAuth [] result = new DbHostAuth[0];
+        dbArrayList.toArray(result);
+        return result;
     }
     /**
      * For instance from Commander when getting updated information
