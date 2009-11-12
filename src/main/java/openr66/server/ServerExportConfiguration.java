@@ -34,6 +34,7 @@ import openr66.database.data.DbTaskRunner;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.configuration.Configuration;
+import openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.utils.ChannelUtils;
 
@@ -125,13 +126,18 @@ public class ServerExportConfiguration {
             }
             filename = dir.getAbsolutePath()+File.separator+hostname+"_Runners.run.xml";
             try {
-                DbTaskRunner.writeXML(filename);
+                DbTaskRunner.writeXMLWriter(filename);
             } catch (OpenR66DatabaseNoConnectionError e1) {
                 logger.error("Error",e1);
                 DbConstant.admin.close();
                 ChannelUtils.stopLogger();
                 System.exit(2);
             } catch (OpenR66DatabaseSqlError e1) {
+                logger.error("Error",e1);
+                DbConstant.admin.close();
+                ChannelUtils.stopLogger();
+                System.exit(2);
+            } catch (OpenR66ProtocolBusinessException e1) {
                 logger.error("Error",e1);
                 DbConstant.admin.close();
                 ChannelUtils.stopLogger();

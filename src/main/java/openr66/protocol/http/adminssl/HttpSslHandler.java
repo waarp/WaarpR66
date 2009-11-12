@@ -61,6 +61,7 @@ import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
+import openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
@@ -72,13 +73,12 @@ import openr66.protocol.localhandler.packet.RequestPacket.TRANSFERMODE;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.utils.ChannelUtils;
 import openr66.protocol.utils.FileUtils;
+import openr66.protocol.utils.NbAndSpecialId;
 import openr66.protocol.utils.OpenR66SignalHandler;
 import openr66.protocol.utils.R66Future;
 import openr66.protocol.utils.TransferUtils;
 import openr66.protocol.utils.Version;
 
-import org.dom4j.Document;
-import org.dom4j.Element;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -765,7 +765,6 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         String end = readFile(Configuration.configuration.httpBasePath+"CancelRestart_end.html");
         return head+body0+body+body1+end;
     }
-    @SuppressWarnings("unchecked")
     private String Export() {
         getParams();
         if (params == null) {
@@ -820,58 +819,47 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         }
         // create export of log and optionally purge them from database
         DbPreparedStatement getValid = null;
-        Document document = null;
+        NbAndSpecialId nbAndSpecialId = null;
+        String filename = Configuration.configuration.baseDirectory+
+            Configuration.configuration.archivePath+R66Dir.SEPARATOR+
+            Configuration.configuration.HOST_ID+"_"+System.currentTimeMillis()+
+            "_runners.xml";
         try {
             getValid =
                 DbTaskRunner.getFilterPrepareStament(dbSession, 0,// 0 means no limit
                         true, null, null, tstart, tstop, rule, req,
                         pending, transfer, error, done, all);
-            document = DbTaskRunner.writeXML(getValid);
+            nbAndSpecialId = DbTaskRunner.writeXMLWriter(getValid, filename);
         } catch (OpenR66DatabaseNoConnectionError e1) {
             isexported = false;
+            toPurge = false;
         } catch (OpenR66DatabaseSqlError e1) {
             isexported = false;
+            toPurge = false;
+        } catch (OpenR66ProtocolBusinessException e) {
+            isexported = false;
+            toPurge = false;
         } finally {
             if (getValid != null) {
                 getValid.realClose();
             }
         }
-        String filename = null;
-        int nb = 0;
-        if (isexported) {
-            List<Element> runners =
-                document.selectNodes(DbTaskRunner.XMLRUNNERS+"/"+DbTaskRunner.XMLRUNNER);
-            nb = runners.size();
-            if (nb <= 0) {
+        int purge = 0;
+        if (isexported && nbAndSpecialId != null) {
+            if (nbAndSpecialId.nb <= 0) {
                 return body.replace("XXXRESULTXXX",
                         "Export unsuccessful since no records were found");
-            }
-            filename = Configuration.configuration.baseDirectory+
-                Configuration.configuration.archivePath+R66Dir.SEPARATOR+
-                Configuration.configuration.HOST_ID+"_"+System.currentTimeMillis()+
-                "_runners.xml";
-            try {
-                FileUtils.writeXML(filename, null, document);
-            } catch (OpenR66ProtocolSystemException e1) {
-                toPurge = false;
-                isexported = false;
             }
             // in case of purge
             if (isexported && toPurge) {
                 // purge with same filter all runners where globallasttep
                 // is ALLDONE or ERROR
                 // but getting the higher Special first
-                Element runner = runners.get(0);
-                Element find = (Element) runner.selectSingleNode(
-                        DbTaskRunner.Columns.SPECIALID.name().toLowerCase());
-                String lastSpecialId = null;
-                if (find != null) {
-                    lastSpecialId = find.getText();
-                }
+                String stopId = Long.toString(nbAndSpecialId.higherSpecialId);
                 try {
-                    nb =
+                    purge =
                         DbTaskRunner.purgeLogPrepareStament(dbSession,
-                                null,lastSpecialId, tstart, tstop, rule, req,
+                                null,stopId, tstart, tstop, rule, req,
                                 pending, transfer, error, done, all);
                 } catch (OpenR66DatabaseNoConnectionError e) {
                 } catch (OpenR66DatabaseSqlError e) {
@@ -879,7 +867,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             }
         }
         return body.replace("XXXRESULTXXX", "Export "+(isexported?"successful into "+
-                filename+" with "+nb+" records":"in error"));
+                filename+" with "+nbAndSpecialId.nb+" exported and "+purge+" purged records":
+                    "in error"));
     }
     private String resetOptionHosts(String header,
             String host, String addr, boolean ssl) {

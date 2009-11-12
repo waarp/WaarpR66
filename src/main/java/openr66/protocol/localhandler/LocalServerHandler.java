@@ -65,11 +65,9 @@ import openr66.protocol.localhandler.packet.ValidPacket;
 import openr66.protocol.networkhandler.NetworkChannel;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.utils.ChannelUtils;
-import openr66.protocol.utils.FileUtils;
 import openr66.protocol.utils.R66Future;
 import openr66.protocol.utils.TransferUtils;
 
-import org.dom4j.Document;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
@@ -1510,12 +1508,15 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     Timestamp.valueOf(sstop);
                 // create export of log and optionally purge them from database
                 DbPreparedStatement getValid = null;
-                Document document = null;
+                String filename = Configuration.configuration.baseDirectory+
+                    Configuration.configuration.archivePath+R66Dir.SEPARATOR+
+                    Configuration.configuration.HOST_ID+"_"+System.currentTimeMillis()+
+                    "_runners.xml";
                 try {
                     getValid =
                         DbTaskRunner.getLogPrepareStament(localChannelReference.getDbSession(),
                                 start, stop);
-                    document = DbTaskRunner.writeXML(getValid);
+                    DbTaskRunner.writeXMLWriter(getValid, filename);
                 } catch (OpenR66DatabaseNoConnectionError e1) {
                     throw new OpenR66ProtocolBusinessException(e1);
                 } catch (OpenR66DatabaseSqlError e1) {
@@ -1525,11 +1526,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         getValid.realClose();
                     }
                 }
-                String filename = Configuration.configuration.baseDirectory+
-                    Configuration.configuration.archivePath+R66Dir.SEPARATOR+
-                    Configuration.configuration.HOST_ID+"_"+System.currentTimeMillis()+
-                    "_runners.xml";
-                FileUtils.writeXML(filename, null, document);
                 // in case of purge
                 int nb = 0;
                 if (isPurge) {

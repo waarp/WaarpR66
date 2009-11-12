@@ -24,14 +24,21 @@ import goldengate.common.command.exception.CommandAbstractException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 
-import org.dom4j.Document;
-import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
+import org.dom4j.io.OutputFormat;
+import org.dom4j.io.XMLWriter;
 import org.dom4j.tree.DefaultElement;
+import org.xml.sax.SAXException;
 
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
@@ -51,6 +58,7 @@ import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.database.model.DbModelFactory;
 import openr66.protocol.configuration.Configuration;
+import openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
@@ -59,6 +67,7 @@ import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.localhandler.packet.RequestPacket.TRANSFERMODE;
 import openr66.protocol.utils.FileUtils;
+import openr66.protocol.utils.NbAndSpecialId;
 import openr66.protocol.utils.R66Future;
 
 /**
@@ -2592,59 +2601,130 @@ public class DbTaskRunner extends AbstractDbData {
         }
         return root;
     }
-
     /**
-     * Write the selected TaskRunners from PrepareStatement to a XML tree
+     * Write the selected TaskRunners from PrepareStatement to a XMLWriter
      *
      * @param preparedStatement
      *            ready to be executed
-     * @return the generated Document
+     * @param xmlWriter
+     * @return the NbAndSpecialId for the number of transfer and higher rank found
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
+     * @throws OpenR66ProtocolBusinessException
      */
-    public static Document writeXML(DbPreparedStatement preparedStatement)
-            throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
-        Document document = DocumentHelper.createDocument();
-        Element root = document.addElement(XMLRUNNERS);
-        preparedStatement.executeQuery();
-        Element node;
-        while (preparedStatement.getNext()) {
-            DbTaskRunner runner = DbTaskRunner
-                    .getFromStatement(preparedStatement);
-            node = DbTaskRunner.getElementFromRunner(runner);
-            root.add(node);
+    public static NbAndSpecialId writeXML(DbPreparedStatement preparedStatement, XMLWriter xmlWriter)
+            throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError, OpenR66ProtocolBusinessException {
+        Element root = new DefaultElement(XMLRUNNERS);
+        NbAndSpecialId nbAndSpecialId = new NbAndSpecialId();
+        try {
+            xmlWriter.writeOpen(root);
+            Element node;
+            while (preparedStatement.getNext()) {
+                DbTaskRunner runner = DbTaskRunner
+                        .getFromStatement(preparedStatement);
+                if (nbAndSpecialId.higherSpecialId < runner.specialId) {
+                    nbAndSpecialId.higherSpecialId = runner.specialId;
+                }
+                node = DbTaskRunner.getElementFromRunner(runner);
+                xmlWriter.write(node);
+                xmlWriter.flush();
+                nbAndSpecialId.nb ++;
+            }
+            xmlWriter.writeClose(root);
+        } catch (IOException e) {
+            logger.error("Cannot write XML file", e);
+            throw new OpenR66ProtocolBusinessException("Cannot write file: "+e.getMessage());
         }
-        return document;
+        return nbAndSpecialId;
+    }
+    /**
+     * Write selected TaskRunners to an XML file using an XMLWriter
+     *
+     * @param preparedStatement
+     * @param filename
+     * @return the NbAndSpecialId for the number of transfer and higher rank found
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66DatabaseSqlError
+     * @throws OpenR66ProtocolBusinessException
+     */
+    public static NbAndSpecialId writeXMLWriter(DbPreparedStatement preparedStatement, String filename)
+            throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError,
+            OpenR66ProtocolBusinessException {
+        NbAndSpecialId nbAndSpecialId = null;
+        OutputStream outputStream = null;
+        XMLWriter xmlWriter = null;
+        try {
+            outputStream = new FileOutputStream(filename);
+            OutputFormat format = OutputFormat.createPrettyPrint();
+            format.setEncoding("ISO-8859-1");
+            xmlWriter = new XMLWriter(outputStream, format);
+            preparedStatement.executeQuery();
+            nbAndSpecialId = writeXML(preparedStatement, xmlWriter);
+        } catch (FileNotFoundException e) {
+            logger.error("Cannot write XML file", e);
+            throw new OpenR66ProtocolBusinessException("File not found");
+        } catch (UnsupportedEncodingException e) {
+            logger.error("Cannot write XML file", e);
+            throw new OpenR66ProtocolBusinessException("Unsupported Encoding");
+        } finally {
+            if (xmlWriter != null) {
+                try {
+                    xmlWriter.endDocument();
+                    xmlWriter.flush();
+                    xmlWriter.close();
+                } catch (SAXException e) {
+                    try {
+                        outputStream.close();
+                    } catch (IOException e2) {
+                    }
+                    File file = new File(filename);
+                    file.delete();
+                    logger.error("Cannot write XML file", e);
+                    throw new OpenR66ProtocolBusinessException("Unsupported Encoding");
+                } catch (IOException e) {
+                    try {
+                        outputStream.close();
+                    } catch (IOException e2) {
+                    }
+                    File file = new File(filename);
+                    file.delete();
+                    logger.error("Cannot write XML file", e);
+                    throw new OpenR66ProtocolBusinessException("Unsupported Encoding");
+                }
+            } else if (outputStream != null){
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                }
+                File file = new File(filename);
+                file.delete();
+            }
+        }
+        return nbAndSpecialId;
     }
 
     /**
-     * Write all TaskRunners to an XML file
+     * Write all TaskRunners to an XML file using an XMLWriter
      *
      * @param filename
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
+     * @throws OpenR66ProtocolBusinessException
      */
-    public static void writeXML(String filename)
-            throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+    public static void writeXMLWriter(String filename)
+            throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError,
+            OpenR66ProtocolBusinessException {
         String request = "SELECT " + DbTaskRunner.selectAllFields + " FROM " +
                 DbTaskRunner.table+" WHERE "+getLimitWhereCondition();
         DbPreparedStatement preparedStatement = null;
-        Document document = null;
         try {
             preparedStatement = new DbPreparedStatement(
                     DbConstant.admin.session);
             preparedStatement.createPrepareStatement(request);
-            document = writeXML(preparedStatement);
+            writeXMLWriter(preparedStatement, filename);
         } finally {
             if (preparedStatement != null) {
                 preparedStatement.realClose();
-            }
-        }
-        if (document != null) {
-            try {
-                FileUtils.writeXML(filename, null, document);
-            } catch (OpenR66ProtocolSystemException e) {
-                logger.error("Cannot write XML file", e);
             }
         }
     }
