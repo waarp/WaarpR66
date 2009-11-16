@@ -60,17 +60,17 @@ import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.group.ChannelGroup;
-import org.jboss.netty.handler.codec.http.Cookie;
-import org.jboss.netty.handler.codec.http.CookieDecoder;
-import org.jboss.netty.handler.codec.http.CookieEncoder;
-import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpMethod;
-import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpResponse;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.jboss.netty.handler.codec.http.HttpVersion;
-import org.jboss.netty.handler.codec.http.QueryStringDecoder;
+import org.jboss.netty.handler.codec.http2.Cookie;
+import org.jboss.netty.handler.codec.http2.CookieDecoder;
+import org.jboss.netty.handler.codec.http2.CookieEncoder;
+import org.jboss.netty.handler.codec.http2.DefaultHttpResponse;
+import org.jboss.netty.handler.codec.http2.HttpHeaders;
+import org.jboss.netty.handler.codec.http2.HttpMethod;
+import org.jboss.netty.handler.codec.http2.HttpRequest;
+import org.jboss.netty.handler.codec.http2.HttpResponse;
+import org.jboss.netty.handler.codec.http2.HttpResponseStatus;
+import org.jboss.netty.handler.codec.http2.HttpVersion;
+import org.jboss.netty.handler.codec.http2.QueryStringDecoder;
 
 /**
  * Handler for HTTP information support
