@@ -5,8 +5,9 @@
 		<author email="fredbregier at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
-		<release version="1.0.3" date="2009-11-16" description="Fix HTTP">
+		<release version="1.0.3" date="2009-11-16" description="Fix HTTP and Netty version">
 			<action dev="Frederic Bregier" type="fix">Fix HTTP was using wrong version of codec</action>
+			<action dev="Frederic Bregier" type="fix">Fix version of Netty</action>
 		</release>
 		<release version="1.0.2" date="2009-11-12" description="Small fixes">
 			<action dev="Frederic Bregier" type="fix">Fix writing XML for Runner</action>

@@ -40,8 +40,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.net.ssl.SSLException;
-
 import openr66.client.Message;
 import openr66.configuration.AuthenticationFileBasedConfiguration;
 import openr66.configuration.RuleFileBasedConfiguration;
@@ -63,7 +61,6 @@ import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
-import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.ErrorPacket;
@@ -2014,13 +2011,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             // Get the SslHandler and begin handshake ASAP.
             // Get notified when SSL handshake is done.
             ChannelFuture handshakeFuture;
-            try {
-                handshakeFuture = sslHandler.handshake(e.getChannel());
-            } catch (SSLException e1) {
-                setStatusSslConnectedChannel(e.getChannel(), false);
-                throw new OpenR66ProtocolNetworkException("Bad SSL handshake",
-                        e1);
-            }
+            handshakeFuture = sslHandler.handshake(e.getChannel());
             if (handshakeFuture != null) {
                 handshakeFuture.addListener(new ChannelFutureListener() {
                     public void operationComplete(ChannelFuture future)

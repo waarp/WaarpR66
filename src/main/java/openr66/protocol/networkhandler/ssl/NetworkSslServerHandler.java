@@ -25,8 +25,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
-import javax.net.ssl.SSLException;
-
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import openr66.protocol.networkhandler.NetworkServerHandler;
@@ -141,13 +139,7 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
             // Get the SslHandler and begin handshake ASAP.
             // Get notified when SSL handshake is done.
             ChannelFuture handshakeFuture;
-            try {
-                handshakeFuture = sslHandler.handshake(e.getChannel());
-            } catch (SSLException e1) {
-                setStatusSslConnectedChannel(e.getChannel(), false);
-                throw new OpenR66ProtocolNetworkException("Bad SSL handshake",
-                        e1);
-            }
+            handshakeFuture = sslHandler.handshake(e.getChannel());
             handshakeFuture.addListener(new ChannelFutureListener() {
                 public void operationComplete(ChannelFuture future)
                         throws Exception {

@@ -18,7 +18,6 @@ package openr66.protocol.networkhandler.packet;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.localhandler.packet.AbstractLocalPacket;
 
-import org.jboss.netty.buffer.AggregateChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 
@@ -103,8 +102,7 @@ public class NetworkPacket {
         buf.writeInt(remoteId);
         buf.writeInt(localId);
         buf.writeByte(code);
-        return AggregateChannelBuffer.wrappedCheckedBuffer(buf, buffer);
-        //FIXME Aggregate ChannelBuffers.wrappedBuffer(buf, buffer);
+        return ChannelBuffers.wrappedBuffer(buf, buffer);
     }
 
     @Override
