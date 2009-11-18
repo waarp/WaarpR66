@@ -6,6 +6,7 @@
 	</properties>
 	<body>
 		<release version="1.0.3" date="2009-11-16" description="Fix HTTP and Netty version">
+			<action dev="Frederic Bregier" type="fix">Fix Administrator by adding info transfer</action>
 			<action dev="Frederic Bregier" type="fix">Fix HTTP was using wrong version of codec</action>
 			<action dev="Frederic Bregier" type="fix">Fix version of Netty</action>
 		</release>
