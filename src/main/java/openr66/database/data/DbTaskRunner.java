@@ -2307,7 +2307,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @return the header for a table of runners in Html format
      */
     public static String headerHtml() {
-        return "<td>SpecialId</td><td>Rule</td><td>Filename"
+        return "<td>SpecialId</td><td>Rule</td><td>Filename</td><td>Info"
                 + "</td><td>Step (LastStep)</td><td>Action</td><td>Status"
                 + "</td><td>Internal</t><td>Transfer Rank</td><td>isMoved"
                 + "</td><td>Requester</td><td>Requested"
@@ -2443,6 +2443,7 @@ public class DbTaskRunner extends AbstractDbData {
                 (rule != null? rule.toShortString() : ruleId) +
                 "</td><td>" +
                 filename +
+                "</td><td>" +fileInformation+
                 "</td><td bgcolor=\"" +
                 color +
                 "\">" +
@@ -2487,6 +2488,7 @@ public class DbTaskRunner extends AbstractDbData {
         FileUtils.replace(builder, "XXXRulXXX", (rule != null? rule.toShortString()
                 : ruleId));
         FileUtils.replace(builder, "XXXFileXXX", filename);
+        FileUtils.replace(builder, "XXXInfoXXX", fileInformation);
         FileUtils.replace(builder, "XXXStepXXX", TASKSTEP.values()[globalstep] + " (" +
                 TASKSTEP.values()[globallaststep] + ")");
         FileUtils.replace(builder, "XXXCOLXXX", getHtmlColor());

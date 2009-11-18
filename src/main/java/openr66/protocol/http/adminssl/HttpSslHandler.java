@@ -1685,6 +1685,9 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 getMenu = true;
             }
             if (! getMenu) {
+                logger.info("Name="+name+" vs "+name.equals(Configuration.configuration.ADMINNAME)+
+                        " Passwd="+password+" vs "+Arrays.equals(password.getBytes(),
+                                Configuration.configuration.getSERVERADMINKEY()));
                 if (name.equals(Configuration.configuration.ADMINNAME) &&
                         Arrays.equals(password.getBytes(),
                                 Configuration.configuration.getSERVERADMINKEY())) {
