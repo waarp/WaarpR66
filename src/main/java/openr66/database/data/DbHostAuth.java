@@ -47,7 +47,7 @@ import openr66.protocol.utils.FileUtils;
  */
 public class DbHostAuth extends AbstractDbData {
     public static enum Columns {
-        ADDRESS, PORT, SSL, HOSTKEY, ADMINROLE, UPDATEDINFO, HOSTID
+        ADDRESS, PORT, ISSSL, HOSTKEY, ADMINROLE, UPDATEDINFO, HOSTID
     }
 
     public static int[] dbTypes = {
@@ -85,7 +85,7 @@ public class DbHostAuth extends AbstractDbData {
     private final DbValue[] otherFields = {
             new DbValue(address, Columns.ADDRESS.name()),
             new DbValue(port, Columns.PORT.name()),
-            new DbValue(isSsl, Columns.SSL.name()),
+            new DbValue(isSsl, Columns.ISSSL.name()),
             new DbValue(hostkey, Columns.HOSTKEY.name()),
             new DbValue(adminrole, Columns.ADMINROLE.name()),
             new DbValue(updatedInfo, Columns.UPDATEDINFO.name()) };
@@ -95,14 +95,14 @@ public class DbHostAuth extends AbstractDbData {
             otherFields[3], otherFields[4], otherFields[5], primaryKey };
 
     public static final String selectAllFields = Columns.ADDRESS.name() + "," +
-            Columns.PORT.name() + "," +Columns.SSL.name() + "," +
+            Columns.PORT.name() + "," +Columns.ISSSL.name() + "," +
             Columns.HOSTKEY.name() + "," +
             Columns.ADMINROLE.name() + "," + Columns.UPDATEDINFO.name() + "," +
             Columns.HOSTID.name();
 
     private static final String updateAllFields =
         Columns.ADDRESS.name() + "=?," +Columns.PORT.name() +
-        "=?," +Columns.SSL.name() + "=?," + Columns.HOSTKEY.name() +
+        "=?," +Columns.ISSSL.name() + "=?," + Columns.HOSTKEY.name() +
             "=?," + Columns.ADMINROLE.name() + "=?," +
             Columns.UPDATEDINFO.name() + "=?";
 
@@ -112,7 +112,7 @@ public class DbHostAuth extends AbstractDbData {
     protected void setToArray() {
         allFields[Columns.ADDRESS.ordinal()].setValue(address);
         allFields[Columns.PORT.ordinal()].setValue(port);
-        allFields[Columns.SSL.ordinal()].setValue(isSsl);
+        allFields[Columns.ISSSL.ordinal()].setValue(isSsl);
         allFields[Columns.HOSTKEY.ordinal()].setValue(hostkey);
         allFields[Columns.ADMINROLE.ordinal()].setValue(adminrole);
         allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
@@ -123,7 +123,7 @@ public class DbHostAuth extends AbstractDbData {
     protected void setFromArray() throws OpenR66DatabaseSqlError {
         address = (String) allFields[Columns.ADDRESS.ordinal()].getValue();
         port = (Integer) allFields[Columns.PORT.ordinal()].getValue();
-        isSsl = (Boolean) allFields[Columns.SSL.ordinal()].getValue();
+        isSsl = (Boolean) allFields[Columns.ISSSL.ordinal()].getValue();
         hostkey = (byte[]) allFields[Columns.HOSTKEY.ordinal()].getValue();
         adminrole = (Boolean) allFields[Columns.ADMINROLE.ordinal()].getValue();
         updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()]
@@ -411,7 +411,7 @@ public class DbHostAuth extends AbstractDbData {
        } else {
            condition = "";
        }
-       condition += Columns.SSL.name()+" = ?";
+       condition += Columns.ISSSL.name()+" = ?";
        preparedStatement.createPrepareStatement(request+condition+
                " ORDER BY "+Columns.HOSTID.name());
        try {

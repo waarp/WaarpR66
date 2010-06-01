@@ -250,8 +250,8 @@ public class DbModelMysql implements DbModel {
               WHERE name = ?;
             $seq = $db->LastInsertId();
          */
-        action = "CREATE TABLE Sequences (name VARCHAR(22) NOT NULL,"+
-              "seq BIGINT NOT NULL, PRIMARY KEY name)";
+        action = "CREATE TABLE Sequences (name VARCHAR(22) NOT NULL PRIMARY KEY,"+
+              "seq BIGINT NOT NULL)";
         System.out.println(action);
         try {
             request.query(action);

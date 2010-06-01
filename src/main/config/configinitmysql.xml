@@ -1,0 +1,8 @@
+<config>
+	<comment>Example of config file: change its as your need.</comment>
+	<hostid>hostmysql</hostid>
+	<dbdriver>mysql</dbdriver>
+	<dbserver>jdbc:mysql://localhost/openr66</dbserver>
+	<dbuser>openr66</dbuser>
+	<dbpasswd>openr66</dbpasswd>
+</config>
