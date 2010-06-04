@@ -156,13 +156,13 @@ public class Commander implements Runnable {
             }
             preparedStatementConfig.close();
         } catch (OpenR66DatabaseNoConnectionError e) {
-            logger.error("Cannot execute Commander", e);
+            logger.error("Database No Connection Error: Cannot execute Commander", e);
             return;
         } catch (OpenR66DatabaseSqlError e) {
-            logger.error("Cannot execute Commander", e);
+            logger.error("Database SQL Error: Cannot execute Commander", e);
             return;
         } catch (OpenR66DatabaseException e) {
-            logger.error("Cannot execute Commander", e);
+            logger.error("Database Error: Cannot execute Commander", e);
             return;
         } finally {
             preparedStatementConfig.close();
@@ -178,13 +178,13 @@ public class Commander implements Runnable {
                 hostAuth = null;
             }
         } catch (OpenR66DatabaseNoConnectionError e) {
-            logger.error("Cannot execute Commander", e);
+            logger.error("Database No Connection Error: Cannot execute Commander", e);
             return;
         } catch (OpenR66DatabaseSqlError e) {
-            logger.error("Cannot execute Commander", e);
+            logger.error("Database SQL Error: Cannot execute Commander", e);
             return;
         } catch (OpenR66DatabaseException e) {
-            logger.error("Cannot execute Commander", e);
+            logger.error("Database Error: Cannot execute Commander", e);
             return;
         } finally {
             preparedStatementHost.close();
@@ -200,13 +200,13 @@ public class Commander implements Runnable {
                 rule = null;
             }
         } catch (OpenR66DatabaseNoConnectionError e) {
-            logger.error("Cannot execute Commander", e);
+            logger.error("Database No Connection Error: Cannot execute Commander", e);
             return;
         } catch (OpenR66DatabaseSqlError e) {
-            logger.error("Cannot execute Commander", e);
+            logger.error("Database SQL Error: Cannot execute Commander", e);
             return;
         } catch (OpenR66DatabaseNoDataException e) {
-            logger.error("Cannot execute Commander", e);
+            logger.error("Database Error: Cannot execute Commander", e);
             return;
         } finally {
             preparedStatementRule.close();
@@ -236,13 +236,13 @@ public class Commander implements Runnable {
                 taskRunner = null;
             }
         } catch (OpenR66DatabaseNoConnectionError e) {
-            logger.error("Cannot execute Commander", e);
+            logger.error("Database No Connection Error: Cannot execute Commander", e);
             return;
         } catch (OpenR66DatabaseSqlError e) {
-            logger.error("Cannot execute Commander", e);
+            logger.error("Database SQL Error: Cannot execute Commander", e);
             return;
         } catch (OpenR66DatabaseException e) {
-            logger.error("Cannot execute Commander", e);
+            logger.error("Database Error: Cannot execute Commander", e);
             return;
         } finally {
             preparedStatementRunner.close();

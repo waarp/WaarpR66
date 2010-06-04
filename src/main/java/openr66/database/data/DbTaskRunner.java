@@ -57,6 +57,7 @@ import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.database.model.DbModelFactory;
+import openr66.database.model.DbModelOracle;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import openr66.protocol.exception.OpenR66ProtocolNoSslException;
@@ -1118,7 +1119,12 @@ public class DbTaskRunner extends AbstractDbData {
                 " FROM " + table + " WHERE " + Columns.UPDATEDINFO.name() +
                 " = " + info.ordinal()+ " AND "+getLimitWhereCondition();
         if (limit > 0) {
-            request += " AND ROWNUM <= "+limit;
+            if (DbModelFactory.dbModel instanceof DbModelOracle) {
+                request += " AND ROWNUM <= "+limit;
+            } else {
+                request =
+                    DbModelFactory.dbModel.limitRequest(selectAllFields, request, limit);
+            }
         }
         if (orderByStart) {
             request += " ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
@@ -1328,10 +1334,10 @@ public class DbTaskRunner extends AbstractDbData {
             initial.createPrepareStatement(request);
             initial.executeUpdate();
         } catch (OpenR66DatabaseNoConnectionError e) {
-            logger.error("Cannot execute Commander", e);
+            logger.error("Database No Connection Error: Cannot execute Commander", e);
             return;
         } catch (OpenR66DatabaseSqlError e) {
-            logger.error("Cannot execute Commander", e);
+            logger.error("Database SQL Error: Cannot execute Commander", e);
             return;
         } finally {
             initial.close();
@@ -1366,10 +1372,10 @@ public class DbTaskRunner extends AbstractDbData {
             initial.createPrepareStatement(request);
             initial.executeUpdate();
         } catch (OpenR66DatabaseNoConnectionError e) {
-            logger.error("Cannot execute Commander", e);
+            logger.error("Database No Connection Error: Cannot execute Commander", e);
             return;
         } catch (OpenR66DatabaseSqlError e) {
-            logger.error("Cannot execute Commander", e);
+            logger.error("Database SQL Error: Cannot execute Commander", e);
             return;
         } finally {
             initial.realClose();
