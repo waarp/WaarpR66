@@ -5,6 +5,9 @@
 		<author email="fredbregier at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+		<release version="1.0.6" date="2010-07-04" description="Improve Log when a file error occurs">
+			<action dev="Frederic Bregier" type="fix">Improve Log when a file error occurs</action>
+		</release>
 		<release version="1.0.5" date="2010-06-04" description="Fix MySQL, PostGre and H2 support">
 			<action dev="Frederic Bregier" type="fix">Fix MySQL, Postgre and H2 support - LIMIT instead of ROWNUM -</action>
 		</release>

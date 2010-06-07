@@ -216,6 +216,7 @@ public class R66File extends FilesystemBasedFileImpl {
         try {
             return getFileFromPath(getFile());
         } catch (CommandAbstractException e) {
+            logger.info("Exception while getting file", e);
             return null;
         }
     }
