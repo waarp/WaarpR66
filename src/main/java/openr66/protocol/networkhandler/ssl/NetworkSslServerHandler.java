@@ -139,7 +139,7 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
             // Get the SslHandler and begin handshake ASAP.
             // Get notified when SSL handshake is done.
             ChannelFuture handshakeFuture;
-            handshakeFuture = sslHandler.handshake(e.getChannel());
+            handshakeFuture = sslHandler.handshake();
             handshakeFuture.addListener(new ChannelFutureListener() {
                 public void operationComplete(ChannelFuture future)
                         throws Exception {

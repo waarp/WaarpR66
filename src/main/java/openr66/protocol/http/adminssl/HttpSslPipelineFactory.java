@@ -28,9 +28,9 @@ import openr66.protocol.configuration.Configuration;
 
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.handler.codec.http2.HttpChunkAggregator;
-import org.jboss.netty.handler.codec.http2.HttpRequestDecoder;
-import org.jboss.netty.handler.codec.http2.HttpResponseEncoder;
+import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
+import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
+import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
 import org.jboss.netty.handler.execution.ExecutionHandler;
 import org.jboss.netty.handler.ssl.SslHandler;
 

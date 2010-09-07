@@ -22,7 +22,6 @@ import openr66.protocol.utils.ChannelUtils;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ChannelPipelineCoverage;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.ExceptionEvent;
@@ -32,7 +31,6 @@ import org.jboss.netty.channel.SimpleChannelHandler;
 /**
  * @author frederic bregier
  */
-@ChannelPipelineCoverage("one")
 public class LocalClientHandler extends SimpleChannelHandler {
     /**
      * Internal Logger

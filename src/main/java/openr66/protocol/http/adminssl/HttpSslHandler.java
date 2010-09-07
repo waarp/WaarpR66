@@ -29,6 +29,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.SocketAddress;
+import java.nio.charset.Charset;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -83,24 +84,23 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ChannelPipelineCoverage;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.group.ChannelGroup;
-import org.jboss.netty.handler.codec.http2.Cookie;
-import org.jboss.netty.handler.codec.http2.CookieDecoder;
-import org.jboss.netty.handler.codec.http2.CookieEncoder;
-import org.jboss.netty.handler.codec.http2.DefaultCookie;
-import org.jboss.netty.handler.codec.http2.DefaultHttpResponse;
-import org.jboss.netty.handler.codec.http2.HttpHeaders;
-import org.jboss.netty.handler.codec.http2.HttpMethod;
-import org.jboss.netty.handler.codec.http2.HttpRequest;
-import org.jboss.netty.handler.codec.http2.HttpResponse;
-import org.jboss.netty.handler.codec.http2.HttpResponseStatus;
-import org.jboss.netty.handler.codec.http2.HttpVersion;
-import org.jboss.netty.handler.codec.http2.QueryStringDecoder;
+import org.jboss.netty.handler.codec.http.Cookie;
+import org.jboss.netty.handler.codec.http.CookieDecoder;
+import org.jboss.netty.handler.codec.http.CookieEncoder;
+import org.jboss.netty.handler.codec.http.DefaultCookie;
+import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
+import org.jboss.netty.handler.codec.http.HttpMethod;
+import org.jboss.netty.handler.codec.http.HttpRequest;
+import org.jboss.netty.handler.codec.http.HttpResponse;
+import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import org.jboss.netty.handler.codec.http.HttpVersion;
+import org.jboss.netty.handler.codec.http.QueryStringDecoder;
 import org.jboss.netty.handler.ssl.SslHandler;
 import org.jboss.netty.handler.traffic.TrafficCounter;
 
@@ -109,7 +109,6 @@ import org.jboss.netty.handler.traffic.TrafficCounter;
  * @author Frederic Bregier
  *
  */
-@ChannelPipelineCoverage("one")
 public class HttpSslHandler extends SimpleChannelUpstreamHandler {
     /**
      * Internal Logger
@@ -155,6 +154,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         XXXERRORMESGXXX;
     }
     public static final int LIMITROW = 48;// better if it can be divided by 4
+
+    private static final Charset UTF8 = Charset.forName("UTF-8");
 
     /**
      * The Database connection attached to this NetworkChannel
@@ -1792,7 +1793,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         } else if (request.getMethod() == HttpMethod.POST) {
             ChannelBuffer content = request.getContent();
             if (content.readable()) {
-                String param = content.toString("UTF-8");
+                String param = content.toString(UTF8);
                 QueryStringDecoder queryStringDecoder2 = new QueryStringDecoder("/?"+param);
                 params = queryStringDecoder2.getParameters();
             } else {
@@ -2099,7 +2100,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
      */
     private void writeResponse(Channel channel) {
         // Convert the response content to a ChannelBuffer.
-        ChannelBuffer buf = ChannelBuffers.copiedBuffer(responseContent.toString(), "UTF-8");
+        ChannelBuffer buf = ChannelBuffers.copiedBuffer(responseContent.toString(), UTF8);
         responseContent.setLength(0);
 
         // Decide whether to close the connection or not.
@@ -2148,7 +2149,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 HttpHeaders.Names.CONTENT_TYPE, "text/html");
         responseContent.setLength(0);
         responseContent.append(error(status.toString()));
-        response.setContent(ChannelBuffers.copiedBuffer(responseContent.toString(), "UTF-8"));
+        response.setContent(ChannelBuffers.copiedBuffer(responseContent.toString(), UTF8));
         clearSession();
         // Close the connection as soon as the error message is sent.
         ctx.getChannel().write(response).addListener(ChannelFutureListener.CLOSE);
@@ -2198,7 +2199,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             // Get the SslHandler and begin handshake ASAP.
             // Get notified when SSL handshake is done.
             ChannelFuture handshakeFuture;
-            handshakeFuture = sslHandler.handshake(e.getChannel());
+            handshakeFuture = sslHandler.handshake();
             if (handshakeFuture != null) {
                 handshakeFuture.addListener(new ChannelFutureListener() {
                     public void operationComplete(ChannelFuture future)

@@ -24,6 +24,7 @@ import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -54,23 +55,22 @@ import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ChannelPipelineCoverage;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.group.ChannelGroup;
-import org.jboss.netty.handler.codec.http2.Cookie;
-import org.jboss.netty.handler.codec.http2.CookieDecoder;
-import org.jboss.netty.handler.codec.http2.CookieEncoder;
-import org.jboss.netty.handler.codec.http2.DefaultHttpResponse;
-import org.jboss.netty.handler.codec.http2.HttpHeaders;
-import org.jboss.netty.handler.codec.http2.HttpMethod;
-import org.jboss.netty.handler.codec.http2.HttpRequest;
-import org.jboss.netty.handler.codec.http2.HttpResponse;
-import org.jboss.netty.handler.codec.http2.HttpResponseStatus;
-import org.jboss.netty.handler.codec.http2.HttpVersion;
-import org.jboss.netty.handler.codec.http2.QueryStringDecoder;
+import org.jboss.netty.handler.codec.http.Cookie;
+import org.jboss.netty.handler.codec.http.CookieDecoder;
+import org.jboss.netty.handler.codec.http.CookieEncoder;
+import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
+import org.jboss.netty.handler.codec.http.HttpMethod;
+import org.jboss.netty.handler.codec.http.HttpRequest;
+import org.jboss.netty.handler.codec.http.HttpResponse;
+import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import org.jboss.netty.handler.codec.http.HttpVersion;
+import org.jboss.netty.handler.codec.http.QueryStringDecoder;
 
 /**
  * Handler for HTTP information support
@@ -78,7 +78,6 @@ import org.jboss.netty.handler.codec.http2.QueryStringDecoder;
  * @author Frederic Bregier
  *
  */
-@ChannelPipelineCoverage("one")
 public class HttpHandler extends SimpleChannelUpstreamHandler {
     /**
      * Internal Logger
@@ -102,6 +101,8 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
 
     private static final String sINFO = "INFO", sCOMMAND = "COMMAND",
             sNB = "NB";
+
+    private static final Charset UTF8 = Charset.forName("UTF-8");
 
     /**
      * The Database connection attached to this NetworkChannel shared among all
@@ -292,7 +293,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
         } else if (request.getMethod() == HttpMethod.POST) {
             ChannelBuffer content = request.getContent();
             if (content.readable()) {
-                String param = content.toString("UTF-8");
+                String param = content.toString(UTF8);
                 queryStringDecoder = new QueryStringDecoder("/?" + param);
             } else {
                 createMenu();
@@ -624,7 +625,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
     private void writeResponse(MessageEvent e) {
         // Convert the response content to a ChannelBuffer.
         ChannelBuffer buf = ChannelBuffers.copiedBuffer(responseContent
-                .toString(), "UTF-8");
+                .toString(), UTF8);
         responseContent.setLength(0);
 
         // Decide whether to close the connection or not.
@@ -696,7 +697,7 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
         responseContent.append(status.toString());
         endBody();
         response.setContent(ChannelBuffers.copiedBuffer(responseContent
-                .toString(), "UTF-8"));
+                .toString(), UTF8));
         // Close the connection as soon as the error message is sent.
         ctx.getChannel().write(response).addListener(
                 ChannelFutureListener.CLOSE);

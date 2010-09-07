@@ -3,7 +3,7 @@
   <groupId>GoldenGate</groupId>
   <artifactId>GoldenGateR66</artifactId>
   <name>GoldenGate OpenR66</name>
-  <version>1.0.6</version>
+  <version>1.0.7</version>
   <description>
   OpenR66 is a File Transfer Monitor to be used in real production to transfer files between servers.
   It allows to start/restart a transfer, check the remote MD5, check status, make pre or post
@@ -90,27 +90,36 @@
   			<enabled>false</enabled>
   		</snapshots>
   	</repository>
+  	<repository>
+  		<id>jboss org</id>
+  		<name>Jboss org</name>
+  		<url>http://repository.jboss.org/nexus/content/groups/public</url>
+  		<snapshots>
+  			<enabled>false</enabled>
+  		</snapshots>
+  	</repository>
   </repositories>
   <dependencies>
-    <dependency>
+  <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-access</artifactId>
-      <version>0.9.17</version>
+      <version>0.9.24</version>
+      <scope>compile</scope>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>0.9.17</version>
+      <version>0.9.24</version>
+      <scope>compile</scope>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-core</artifactId>
-      <version>0.9.17</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>1.5.8</version>
+      <version>0.9.24</version>
+      <scope>compile</scope>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>dom4j</groupId>
@@ -124,52 +133,21 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>jaxen</groupId>
-      <artifactId>jaxen</artifactId>
-      <version>1.1.1</version>
-      <exclusions>
-      	<exclusion>
-      		<artifactId>icu4j</artifactId>
-      		<groupId>com.ibm.icu</groupId>
-      	</exclusion>
-      	<exclusion>
-      		<artifactId>xml-apis</artifactId>
-      		<groupId>xml-apis</groupId>
-      	</exclusion>
-      	<exclusion>
-      		<artifactId>xml-apis</artifactId>
-      		<groupId>xml-apis</groupId>
-      	</exclusion>
-      	<exclusion>
-      		<artifactId>jdom</artifactId>
-      		<groupId>jdom</groupId>
-      	</exclusion>
-      	<exclusion>
-      		<artifactId>xom</artifactId>
-      		<groupId>xom</groupId>
-      	</exclusion>
-      	<exclusion>
-      		<artifactId>xercesImpl</artifactId>
-      		<groupId>xerces</groupId>
-      	</exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
     	<groupId>NettyExtension</groupId>
     	<artifactId>NettyExtension</artifactId>
-    	<version>1.1.4</version>
+    	<version>1.1.6</version>
     	<scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>GoldenGate</groupId>
       <artifactId>GoldenGateDigest</artifactId>
-      <version>1.0.0</version>
+      <version>1.0.1</version>
       <scope>compile</scope>
     </dependency>
         <dependency>
       <groupId>GoldenGate</groupId>
       <artifactId>GoldenGateCommon</artifactId>
-      <version>1.0.8</version>
+      <version>1.0.9</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -183,7 +161,7 @@
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
-      <version>1.1.118</version>
+      <version>1.2.142</version>
       <optional>true</optional>
     </dependency>
     <dependency>
@@ -196,23 +174,23 @@
 	<dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-exec</artifactId>
-      <version>1.0</version>
+      <version>1.0.1</version>
     </dependency>
     <dependency>
     	<groupId>commons-codec</groupId>
     	<artifactId>commons-codec</artifactId>
-    	<version>1.3</version>
+    	<version>1.4</version>
     </dependency>
     <dependency>
     	<groupId>postgresql</groupId>
     	<artifactId>postgresql</artifactId>
-    	<version>8.3-603.jdbc4</version>
+    	<version>8.4-701.jdbc4</version>
     	<optional>true</optional>
     </dependency>
     <dependency>
     	<groupId>mysql</groupId>
     	<artifactId>mysql-connector-java</artifactId>
-    	<version>5.1.6</version>
+    	<version>5.1.13</version>
     	<optional>true</optional>
     </dependency>
   </dependencies>
@@ -430,7 +408,7 @@
 	          <docletArtifact>
 	            <groupId>org.jboss.apiviz</groupId>
 	            <artifactId>apiviz</artifactId>
-	            <version>1.3.0.GA</version>
+	            <version>1.3.1.GA</version>
 	          </docletArtifact>
 	          <attach>false</attach>
 	          <useStandardDocletOptions>true</useStandardDocletOptions>
