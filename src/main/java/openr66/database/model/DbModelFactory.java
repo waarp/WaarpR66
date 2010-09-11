@@ -22,7 +22,6 @@ package openr66.database.model;
 
 import openr66.database.DbAdmin;
 import openr66.database.DbConstant;
-import openr66.database.DbAdmin.DatabaseType;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 
 /**
@@ -32,6 +31,11 @@ import openr66.database.exception.OpenR66DatabaseNoConnectionError;
  *
  */
 public class DbModelFactory {
+
+    /**
+     * Info on JDBC Class is already loaded or not
+     */
+    static public volatile boolean classLoaded = false;
     /**
      * Database Model Object
      */
@@ -48,7 +52,7 @@ public class DbModelFactory {
     public static void initialize(String dbdriver, String dbserver,
             String dbuser, String dbpasswd, boolean write)
             throws OpenR66DatabaseNoConnectionError {
-        DatabaseType type = DatabaseType.getFromDriver(dbdriver);
+        DbType type = DbType.getFromDriver(dbdriver);
         switch (type) {
             case H2:
                 dbModel = new DbModelH2();
@@ -66,7 +70,7 @@ public class DbModelFactory {
                 throw new OpenR66DatabaseNoConnectionError(
                         "TypeDriver unknown: " + type);
         }
-        DbConstant.admin = new DbAdmin(dbdriver, dbserver, dbuser, dbpasswd,
+        DbConstant.admin = new DbAdmin(type, dbserver, dbuser, dbpasswd,
                 write);
     }
 }

@@ -20,6 +20,10 @@
  */
 package openr66.database.model;
 
+import goldengate.common.logging.GgInternalLogger;
+import goldengate.common.logging.GgInternalLoggerFactory;
+
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Types;
 
@@ -43,6 +47,33 @@ import openr66.protocol.utils.OpenR66SignalHandler;
  *
  */
 public class DbModelPostgresql implements DbModel {
+    /**
+     * Internal Logger
+     */
+    private static final GgInternalLogger logger = GgInternalLoggerFactory
+            .getLogger(DbModelPostgresql.class);
+
+    public static DbType type = DbType.PostGreSQL;
+    /**
+     * Create the object and initialize if necessary the driver
+     * @throws OpenR66DatabaseNoConnectionError
+     */
+    public DbModelPostgresql() throws OpenR66DatabaseNoConnectionError {
+        if (DbModelFactory.classLoaded) {
+            return;
+        }
+        try {
+            DriverManager.registerDriver(new org.postgresql.Driver());
+            DbModelFactory.classLoaded = true;
+        } catch (SQLException e) {
+         // SQLException
+            logger.error("Cannot register Driver " + type.name()+ "\n"+e.getMessage());
+            DbSession.error(e);
+            throw new OpenR66DatabaseNoConnectionError(
+                    "Cannot load database drive:" + type.name(), e);
+        }
+    }
+
     private static enum DBType {
         CHAR(Types.CHAR, " CHAR(3) "),
         VARCHAR(Types.VARCHAR, " VARCHAR(254) "),

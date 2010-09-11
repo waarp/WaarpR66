@@ -7,11 +7,10 @@ import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
+import openr66.database.model.DbType;
 import openr66.database.model.DbModelFactory;
 import openr66.protocol.configuration.Configuration;
 
@@ -28,31 +27,9 @@ public class DbAdmin {
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(DbAdmin.class);
     /**
-     * Type of Database supported
-     * @author Frederic Bregier
-     *
-     */
-    public static enum DatabaseType {
-        Oracle, MySQL, PostGreSQL, H2;
-
-        public static DatabaseType getFromDriver(String driver) {
-            if (driver.contains("oracle")) {
-                return DatabaseType.Oracle;
-            } else if (driver.contains("mysql")) {
-                return DatabaseType.MySQL;
-            } else if (driver.contains("postgresql")) {
-                return DatabaseType.PostGreSQL;
-            } else if (driver.contains("h2")) {
-                return DatabaseType.H2;
-            }
-            return null;
-        }
-    }
-
-    /**
      * Database type
      */
-    public DatabaseType typeDriver;
+    public DbType typeDriver;
 
     /**
      * DB Server
@@ -91,53 +68,6 @@ public class DbAdmin {
     public DbSession session = null;
 
     /**
-     * Info on JDBC Class is already loaded or not
-     */
-    static public volatile boolean classLoaded = false;
-
-    /**
-     * Load the correct jdbc driver (default com.mysql.jdbc.Driver)
-     *
-     * @param typeDriver
-     * @throws OpenR66DatabaseNoConnectionError
-     */
-    public static void initialize(DatabaseType typeDriver)
-            throws OpenR66DatabaseNoConnectionError {
-        if (classLoaded) {
-            return;
-        }
-        try {
-            switch (typeDriver) {
-                case Oracle:
-                    DriverManager
-                            .registerDriver(new oracle.jdbc.OracleDriver());
-                    break;
-                case H2:
-                    DriverManager.registerDriver(new org.h2.Driver());
-                    break;
-                case PostGreSQL:
-                    DriverManager.registerDriver(new org.postgresql.Driver());
-                    break;
-                case MySQL:
-                    DriverManager.registerDriver(new com.mysql.jdbc.Driver());
-                    break;
-                default:
-                    logger.error("Cannot load database drive:" +
-                            typeDriver.name());
-                    throw new OpenR66DatabaseNoConnectionError(
-                            "Cannot load database drive:" + typeDriver.name());
-            }
-            classLoaded = true;
-        } catch (SQLException e) {
-            // SQLException
-            logger.error("Cannot register Driver " + typeDriver.name()+ "\n"+e.getMessage());
-            DbSession.error(e);
-            throw new OpenR66DatabaseNoConnectionError(
-                    "Cannot load database drive:" + typeDriver.name(), e);
-        }
-    }
-
-    /**
      * Validate connection
      *
      * @throws OpenR66DatabaseNoConnectionError
@@ -170,18 +100,17 @@ public class DbAdmin {
      * @param passwd
      * @throws OpenR66DatabaseNoConnectionError
      */
-    public DbAdmin(String driver, String server, String user, String passwd)
+    public DbAdmin(DbType driver, String server, String user, String passwd)
             throws OpenR66DatabaseNoConnectionError {
         this.server = server;
         this.user = user;
         this.passwd = passwd;
-        typeDriver = DatabaseType.getFromDriver(driver);
+        this.typeDriver = driver;
         if (typeDriver == null) {
-            logger.error("Cannot find TypeDriver:" + driver);
+            logger.error("Cannot find TypeDriver:" + driver.name());
             throw new OpenR66DatabaseNoConnectionError(
-                    "Cannot find database drive:" + driver);
+                    "Cannot find database drive:" + driver.name());
         }
-        DbAdmin.initialize(typeDriver);
         session = new DbSession(this.server, this.user, this.passwd, false);
         isReadOnly = false;
         validConnection();
@@ -207,18 +136,17 @@ public class DbAdmin {
      * @throws OpenR66DatabaseSqlError
      * @throws OpenR66DatabaseNoConnectionError
      */
-    public DbAdmin(String driver, String server, String user, String passwd,
+    public DbAdmin(DbType driver, String server, String user, String passwd,
             boolean write) throws OpenR66DatabaseNoConnectionError {
         this.server = server;
         this.user = user;
         this.passwd = passwd;
-        typeDriver = DatabaseType.getFromDriver(driver);
+        this.typeDriver = driver;
         if (typeDriver == null) {
-            logger.error("Cannot find TypeDriver:" + driver);
+            logger.error("Cannot find TypeDriver:" + driver.name());
             throw new OpenR66DatabaseNoConnectionError(
-                    "Cannot find database drive:" + driver);
+                    "Cannot find database drive:" + driver.name());
         }
-        DbAdmin.initialize(typeDriver);
         if (write) {
             for (int i = 0; i < Configuration.RETRYNB; i ++) {
                 try {
@@ -289,7 +217,7 @@ public class DbAdmin {
      */
     public DbAdmin() {
         // not true but to enable pseudo database functions
-        classLoaded = true;
+        DbModelFactory.classLoaded = true;
         isConnected = false;
     }
     /**

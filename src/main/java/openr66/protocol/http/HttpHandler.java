@@ -627,21 +627,18 @@ public class HttpHandler extends SimpleChannelUpstreamHandler {
         ChannelBuffer buf = ChannelBuffers.copiedBuffer(responseContent
                 .toString(), UTF8);
         responseContent.setLength(0);
-
         // Decide whether to close the connection or not.
+        boolean keepAlive = HttpHeaders.isKeepAlive(request);
         boolean close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(request
                 .getHeader(HttpHeaders.Names.CONNECTION)) ||
-                request.getProtocolVersion().equals(HttpVersion.HTTP_1_0) &&
-                !HttpHeaders.Values.KEEP_ALIVE.equalsIgnoreCase(request
-                        .getHeader(HttpHeaders.Names.CONNECTION));
+                (!keepAlive);
 
         // Build the response object.
         HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
                 status);
         response.setContent(buf);
         response.setHeader(HttpHeaders.Names.CONTENT_TYPE, "text/html");
-        if (HttpHeaders.Values.KEEP_ALIVE.equalsIgnoreCase(request
-                .getHeader(HttpHeaders.Names.CONNECTION))) {
+        if (keepAlive) {
             response.setHeader(HttpHeaders.Names.CONNECTION,
                     HttpHeaders.Values.KEEP_ALIVE);
         }

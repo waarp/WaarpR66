@@ -2104,17 +2104,16 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         responseContent.setLength(0);
 
         // Decide whether to close the connection or not.
-        boolean close =
-            HttpHeaders.Values.CLOSE.equalsIgnoreCase(request.getHeader(HttpHeaders.Names.CONNECTION)) ||
-            request.getProtocolVersion().equals(HttpVersion.HTTP_1_0) &&
-            !HttpHeaders.Values.KEEP_ALIVE.equalsIgnoreCase(request.getHeader(HttpHeaders.Names.CONNECTION))
-            || forceClose;
+        boolean keepAlive = HttpHeaders.isKeepAlive(request);
+        boolean close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(request
+                .getHeader(HttpHeaders.Names.CONNECTION)) ||
+                (!keepAlive) || forceClose;
 
         // Build the response object.
         HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
         response.setContent(buf);
         response.setHeader(HttpHeaders.Names.CONTENT_TYPE, "text/html");
-        if (HttpHeaders.Values.KEEP_ALIVE.equalsIgnoreCase(request.getHeader(HttpHeaders.Names.CONNECTION))) {
+        if (keepAlive) {
             response.setHeader(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
         }
         if (!close) {

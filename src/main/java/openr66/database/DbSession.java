@@ -13,6 +13,7 @@ import java.sql.Savepoint;
 
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
+import openr66.database.model.DbModelFactory;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.utils.OpenR66SignalHandler;
 
@@ -121,7 +122,7 @@ public class DbSession {
      */
     public DbSession(String server, String user, String passwd,
             boolean isReadOnly) throws OpenR66DatabaseNoConnectionError {
-        if (!DbAdmin.classLoaded) {
+        if (!DbModelFactory.classLoaded) {
             throw new OpenR66DatabaseNoConnectionError("DbAdmin not initialzed");
         }
         if (server == null) {
@@ -160,7 +161,7 @@ public class DbSession {
      */
     public DbSession(DbAdmin admin,
             boolean isReadOnly) throws OpenR66DatabaseNoConnectionError {
-        if (!DbAdmin.classLoaded) {
+        if (!DbModelFactory.classLoaded) {
             throw new OpenR66DatabaseNoConnectionError("DbAdmin not initialzed");
         }
         try {
