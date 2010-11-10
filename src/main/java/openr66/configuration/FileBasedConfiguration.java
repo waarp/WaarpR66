@@ -20,8 +20,12 @@
  */
 package openr66.configuration;
 
+import goldengate.common.crypto.Des;
+import goldengate.common.crypto.ssl.GgSecureKeyStore;
+import goldengate.common.crypto.ssl.GgSslContextFactory;
 import goldengate.common.digest.FilesystemBasedDigest;
 import goldengate.common.digest.MD5;
+import goldengate.common.exception.CryptoException;
 import goldengate.common.file.DirInterface;
 import goldengate.common.file.filesystembased.FilesystemBasedDirImpl;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
@@ -32,11 +36,14 @@ import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 
 import openr66.context.authentication.R66Auth;
 import openr66.context.filesystem.R66Dir;
+import openr66.context.task.localexec.LocalExecClient;
 import openr66.database.DbAdmin;
 import openr66.database.DbConstant;
 import openr66.database.data.DbConfiguration;
@@ -46,8 +53,8 @@ import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.model.DbModelFactory;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
-import openr66.protocol.http.adminssl.HttpSecureKeyStore;
-import openr66.protocol.networkhandler.ssl.R66SecureKeyStore;
+import openr66.protocol.http.adminssl.HttpSslPipelineFactory;
+import openr66.protocol.networkhandler.ssl.NetworkSslServerPipelineFactory;
 import openr66.protocol.utils.FileUtils;
 
 import org.dom4j.Document;
@@ -72,179 +79,234 @@ public class FileBasedConfiguration {
     /**
      * SERVER HOSTID
      */
-    private static final String XML_SERVER_HOSTID = "/config/hostid";
+    private static final String XML_SERVER_HOSTID = "/config/identity/hostid";
 
     /**
      * SERVER SSL HOSTID
      */
-    private static final String XML_SERVER_SSLHOSTID = "/config/sslhostid";
+    private static final String XML_SERVER_SSLHOSTID = "/config/identity/sslhostid";
 
     /**
      * ADMINISTRATOR SERVER NAME (shutdown)
      */
-    private static final String XML_SERVER_ADMIN = "/config/serveradmin";
+    private static final String XML_SERVER_ADMIN = "/config/identity/serveradmin";
 
     /**
      * SERVER PASSWORD (shutdown)
      */
-    private static final String XML_SERVER_PASSWD = "/config/serverpasswd";
+    private static final String XML_SERVER_PASSWD = "/config/identity/serverpasswd";
 
     /**
      * SERVER PORT
      */
-    private static final String XML_SERVER_PORT = "/config/serverport";
+    private static final String XML_SERVER_PORT = "/config/network/serverport";
 
     /**
      * SERVER SSL PORT
      */
-    private static final String XML_SERVER_SSLPORT = "/config/serversslport";
+    private static final String XML_SERVER_SSLPORT = "/config/network/serversslport";
 
     /**
      * SERVER HTTP PORT
      */
-    private static final String XML_SERVER_HTTPPORT = "/config/serverhttpport";
+    private static final String XML_SERVER_HTTPPORT = "/config/network/serverhttpport";
 
     /**
      * SERVER HTTP PORT
      */
-    private static final String XML_SERVER_HTTPSPORT = "/config/serverhttpsport";
+    private static final String XML_SERVER_HTTPSPORT = "/config/network/serverhttpsport";
 
     /**
-     * SERVER SSL KEY PATH ADMIN_
+     * SERVER SSL STOREKEY PATH
      */
-    private static final String XML_PATH_KEYPATH = "/config/keypath";
-
-    /**
-     * SERVER SSL KEY PASS
-     */
-    private static final String XML_PATH_KEYPASS = "/config/keypass";
+    private static final String XML_PATH_KEYPATH = "/config/ssl/keypath";
 
     /**
      * SERVER SSL KEY PASS
      */
-    private static final String XML_PATH_KEYSTOREPASS = "/config/keystorepass";
+    private static final String XML_PATH_KEYPASS = "/config/ssl/keypass";
 
     /**
-     * SERVER SSL KEY PATH ADMIN
+     * SERVER SSL STOREKEY PASS
      */
-    private static final String XML_PATH_ADMIN_KEYPATH = "/config/admkeypath";
+    private static final String XML_PATH_KEYSTOREPASS = "/config/ssl/keystorepass";
+
+    /**
+     * SERVER SSL TRUSTSTOREKEY PATH
+     */
+    private static final String XML_PATH_TRUSTKEYPATH = "/config/ssl/trustkeypath";
+
+    /**
+     * SERVER SSL TRUSTSTOREKEY PASS
+     */
+    private static final String XML_PATH_TRUSTKEYSTOREPASS = "/config/ssl/trustkeystorepass";
+
+    /**
+     * SERVER SSL STOREKEY PATH ADMIN
+     */
+    private static final String XML_PATH_ADMIN_KEYPATH = "/config/ssl/admkeypath";
 
     /**
      * SERVER SSL KEY PASS ADMIN
      */
-    private static final String XML_PATH_ADMIN_KEYPASS = "/config/admkeypass";
+    private static final String XML_PATH_ADMIN_KEYPASS = "/config/ssl/admkeypass";
 
     /**
-     * SERVER SSL KEY PASS ADMIN
+     * SERVER SSL STOREKEY PASS ADMIN
      */
-    private static final String XML_PATH_ADMIN_KEYSTOREPASS = "/config/admkeystorepass";
+    private static final String XML_PATH_ADMIN_KEYSTOREPASS = "/config/ssl/admkeystorepass";
+
+    /**
+     * SERVER CRYPTO for Password
+     */
+    private static final String XML_PATH_CRYPTOKEY = "/config/ssl/cryptokey";
 
     /**
      * Base Directory
      */
-    private static final String XML_SERVER_HOME = "/config/serverhome";
+    private static final String XML_SERVER_HOME = "/config/directory/serverhome";
 
     /**
      * IN Directory
      */
-    private static final String XML_INPATH = "/config/in";
+    private static final String XML_INPATH = "/config/directory/in";
 
     /**
      * OUT Directory
      */
-    private static final String XML_OUTPATH = "/config/out";
+    private static final String XML_OUTPATH = "/config/directory/out";
 
     /**
      * ARCHIVE Directory
      */
-    private static final String XML_ARCHIVEPATH = "/config/arch";
+    private static final String XML_ARCHIVEPATH = "/config/directory/arch";
 
     /**
      * WORKING Directory
      */
-    private static final String XML_WORKINGPATH = "/config/work";
+    private static final String XML_WORKINGPATH = "/config/directory/work";
 
     /**
      * CONFIG Directory
      */
-    private static final String XML_CONFIGPATH = "/config/conf";
+    private static final String XML_CONFIGPATH = "/config/directory/conf";
 
     /**
      * HTTP Admin Directory
      */
-    private static final String XML_HTTPADMINPATH = "/config/httpadmin";
+    private static final String XML_HTTPADMINPATH = "/config/directory/httpadmin";
+
+    /**
+     * Use SSL for R66 connection
+     */
+    private static final String XML_USESSL = "/config/parameter/usessl";
+
+    /**
+     * Use non SSL for R66 connection
+     */
+    private static final String XML_USENOSSL = "/config/parameter/usenossl";
+
+    /**
+     * Use HTTP compression for R66 HTTP connection
+     */
+    private static final String XML_USEHTTPCOMP = "/config/parameter/usehttpcomp";
+
+    /**
+     * SERVER SSL Use TrustStore for Client Authentication
+     */
+    private static final String XML_USECLIENT_AUTHENT = "/config/parameter/trustuseclientauthenticate";
+
+    /**
+     * Use external GoldenGate Local Exec for ExecTask and ExecMoveTask
+     */
+    private static final String XML_USELOCALEXEC = "/config/parameter/uselocalexec";
+
+    /**
+     * Address of GoldenGate Local Exec for ExecTask and ExecMoveTask
+     */
+    private static final String XML_LEXECADDR = "/config/parameter/lexecaddr";
+
+    /**
+     * Port of GoldenGate Local Exec for ExecTask and ExecMoveTask
+     */
+    private static final String XML_LEXECPORT = "/config/parameter/lexecport";
 
     /**
      * Default number of threads in pool for Server.
      */
-    private static final String XML_SERVER_THREAD = "/config/serverthread";
+    private static final String XML_SERVER_THREAD = "/config/parameter/serverthread";
 
     /**
      * Default number of threads in pool for Client (truly concurrent).
      */
-    private static final String XML_CLIENT_THREAD = "/config/clientthread";
+    private static final String XML_CLIENT_THREAD = "/config/parameter/clientthread";
+
+    /**
+     * Memory Limit to use.
+     */
+    private static final String XML_MEMORY_LIMIT = "/config/parameter/memorylimit";
 
     /**
      * Limit per session
      */
-    private static final String XML_LIMITSESSION = "/config/sessionlimit";
+    private static final String XML_LIMITSESSION = "/config/parameter/sessionlimit";
 
     /**
      * Limit global
      */
-    private static final String XML_LIMITGLOBAL = "/config/globallimit";
+    private static final String XML_LIMITGLOBAL = "/config/parameter/globallimit";
 
     /**
      * Delay between two checks for Limit
      */
-    private static final String XML_LIMITDELAY = "/config/delaylimit";
+    private static final String XML_LIMITDELAY = "/config/parameter/delaylimit";
 
     /**
      * Limit of number of active Runner from Commander
      */
-    private static final String XML_LIMITRUNNING = "/config/runlimit";
+    private static final String XML_LIMITRUNNING = "/config/parameter/runlimit";
 
     /**
      * Delay between two checks for Commander
      */
-    private static final String XML_DELAYCOMMANDER = "/config/delaycommand";
+    private static final String XML_DELAYCOMMANDER = "/config/parameter/delaycommand";
 
     /**
      * Delay between two checks for Commander
      */
-    private static final String XML_DELAYRETRY = "/config/delayretry";
+    private static final String XML_DELAYRETRY = "/config/parameter/delayretry";
 
     /**
      * Nb of milliseconds after connection is in timeout
      */
-    private static final String XML_TIMEOUTCON = "/config/timeoutcon";
+    private static final String XML_TIMEOUTCON = "/config/parameter/timeoutcon";
 
     /**
      * Should a file MD5 SHA1 be computed using NIO
      */
-    private static final String XML_USENIO = "/config/usenio";
+    private static final String XML_USENIO = "/config/parameter/usenio";
 
     /**
      * Should a file MD5 be computed using FastMD5
      */
-    private static final String XML_USEFASTMD5 = "/config/usefastmd5";
+    private static final String XML_USEFASTMD5 = "/config/parameter/usefastmd5";
 
     /**
      * If using Fast MD5, should we used the binary JNI library, empty meaning
      * no
      */
-    private static final String XML_FASTMD5 = "/config/fastmd5";
+    private static final String XML_FASTMD5 = "/config/parameter/fastmd5";
 
     /**
      * Size by default of block size for receive/sending files. Should be a
      * multiple of 8192 (maximum = 64K due to block limitation to 2 bytes)
      */
-    private static final String XML_BLOCKSIZE = "/config/blocksize";
+    private static final String XML_BLOCKSIZE = "/config/parameter/blocksize";
 
     /**
      * Database Driver as of oracle, mysql, postgresql, h2
      */
-    private static final String XML_DBDRIVER = "/config/dbdriver";
+    private static final String XML_DBDRIVER = "/config/db/dbdriver";
 
     /**
      * Database Server connection string as of
@@ -252,17 +314,17 @@ public class FileBasedConfiguration {
      * .../[database][?propertyName1][
      * =propertyValue1][&propertyName2][=propertyValue2]...
      */
-    private static final String XML_DBSERVER = "/config/dbserver";
+    private static final String XML_DBSERVER = "/config/db/dbserver";
 
     /**
      * Database User
      */
-    private static final String XML_DBUSER = "/config/dbuser";
+    private static final String XML_DBUSER = "/config/db/dbuser";
 
     /**
      * Database Password
      */
-    private static final String XML_DBPASSWD = "/config/dbpasswd";
+    private static final String XML_DBPASSWD = "/config/db/dbpasswd";
 
     /**
      * Authentication
@@ -300,6 +362,22 @@ public class FileBasedConfiguration {
     }
 
     /**
+     * Read a boolean value (0,1,true,false) from a node
+     * @param node
+     * @return the corresponding value
+     */
+    private static boolean getBoolean(Node node) {
+        String val = node.getText();
+        boolean bval;
+        try {
+            int ival = Integer.parseInt(val);
+            bval = (ival == 1) ? true : false;
+        } catch (NumberFormatException e) {
+            bval = Boolean.parseBoolean(val);
+        }
+        return bval;
+    }
+    /**
      * Initiate the configuration from the xml file for server
      *
      * @param filename
@@ -318,11 +396,55 @@ public class FileBasedConfiguration {
             logger.error("Unable to read the XML Config file: " + filename);
             return false;
         }
+        Node node = document.selectSingleNode(XML_USESSL);
+        if (node != null) {
+            Configuration.configuration.useSSL = getBoolean(node);
+        }
+        node = document.selectSingleNode(XML_USENOSSL);
+        if (node != null) {
+            Configuration.configuration.useNOSSL = getBoolean(node);
+        }
+        node = document.selectSingleNode(XML_USEHTTPCOMP);
+        if (node != null) {
+            Configuration.configuration.useHttpCompression = getBoolean(node);
+        }
+        node = document.selectSingleNode(XML_USELOCALEXEC);
+        if (node != null) {
+            Configuration.configuration.useLocalExec = getBoolean(node);
+            if (Configuration.configuration.useLocalExec) {
+                node = document.selectSingleNode(XML_LEXECADDR);
+                String saddr;
+                InetAddress addr;
+                if (node == null) {
+                    logger.warn("Unable to find LocalExec Address in Config file: " + filename);
+                    try {
+                        addr = InetAddress.getByAddress(new byte[]{127,0,0,1});
+                    } catch (UnknownHostException e) {
+                        logger.error("Unable to find LocalExec Address in Config file: " + filename);
+                        return false;
+                    }
+                } else {
+                    saddr = node.getText();
+                    try {
+                        addr = InetAddress.getByName(saddr);
+                    } catch (UnknownHostException e) {
+                        logger.error("Unable to find LocalExec Address in Config file: " + filename);
+                        return false;
+                    }
+                }
+                node = document.selectSingleNode(XML_LEXECPORT);
+                int port = 6666;
+                if (node != null) {
+                    port = Integer.parseInt(node.getText());
+                }
+                LocalExecClient.address = new InetSocketAddress(addr, port);
+            }
+        }
         if (!loadCommon(document)) {
             logger.error("Unable to find Host ID in Config file: " + filename);
             return false;
         }
-        Node node = document.selectSingleNode(XML_HTTPADMINPATH);
+        node = document.selectSingleNode(XML_HTTPADMINPATH);
         if (node == null) {
             logger.error("Unable to find Http Admin Base in Config file");
             return false;
@@ -367,34 +489,23 @@ public class FileBasedConfiguration {
             return false;
         }
         Configuration.configuration.ADMINNAME = node.getText();
-
         node = document.selectSingleNode(XML_SERVER_PASSWD);
         if (node == null) {
             logger.error("Unable to find Password in Config file: " + filename);
             return false;
         }
         String passwd = node.getText();
-        // load from a file and store as a key
-        File key = new File(passwd);
-        if (!key.canRead()) {
-            logger
-                    .error("Unable to Load Server Password in Config file from: " +
-                            passwd);
-            return false;
-        }
-        byte[] byteKeys = new byte[(int) key.length()];
-        FileInputStream inputStream;
+        byte[] decodedByteKeys = null;
         try {
-            inputStream = new FileInputStream(key);
-            inputStream.read(byteKeys);
-            inputStream.close();
-        } catch (IOException e2) {
+            decodedByteKeys =
+                Configuration.configuration.cryptoKey.decryptBase64InBytes(passwd);
+        } catch (Exception e) {
             logger.error(
-                    "Unable to Load Server Password in Config file from: " +
-                            passwd, e2);
+                    "Unable to Decrypt Server Password in Config file from: " +
+                            passwd, e);
             return false;
         }
-        Configuration.configuration.setSERVERKEY(byteKeys);
+        Configuration.configuration.setSERVERKEY(decodedByteKeys);
 
         if (!loadDatabase(document)) {
             return false;
@@ -421,7 +532,8 @@ public class FileBasedConfiguration {
         }
         Configuration.configuration.HOST_AUTH = R66Auth.getServerAuth(
                 DbConstant.admin.session, Configuration.configuration.HOST_ID);
-        if (Configuration.configuration.HOST_AUTH == null) {
+        if (Configuration.configuration.HOST_AUTH == null &&
+                Configuration.configuration.useNOSSL) {
             logger.error("Cannot find Authentication for current host");
             return false;
         }
@@ -429,7 +541,8 @@ public class FileBasedConfiguration {
             Configuration.configuration.HOST_SSLAUTH = R66Auth.getServerAuth(
                     DbConstant.admin.session,
                     Configuration.configuration.HOST_SSLID);
-            if (Configuration.configuration.HOST_SSLAUTH == null) {
+            if (Configuration.configuration.HOST_SSLAUTH == null &&
+                    Configuration.configuration.useSSL) {
                 logger.error("Cannot find SSL Authentication for current host");
                 return false;
             }
@@ -521,6 +634,7 @@ public class FileBasedConfiguration {
         if (node == null) {
             logger
                     .warn("Unable to find Host SSL ID in Config file so no SSL support will be used");
+            Configuration.configuration.useSSL = false;
             Configuration.configuration.HOST_SSLID = null;
         } else {
             Configuration.configuration.HOST_SSLID = node.getText();
@@ -588,16 +702,18 @@ public class FileBasedConfiguration {
             Configuration.configuration.CLIENT_THREAD = Integer.parseInt(node
                     .getText());
         }
+        node = document.selectSingleNode(XML_MEMORY_LIMIT);
+        if (node != null) {
+            Configuration.configuration.maxGlobalMemory = Integer.parseInt(node.getText());
+        }
         Configuration.getFileParameter().deleteOnAbort = false;
         node = document.selectSingleNode(XML_USENIO);
         if (node != null) {
-            FilesystemBasedFileParameterImpl.useNio = Integer.parseInt(node
-                    .getText()) == 1? true : false;
+            FilesystemBasedFileParameterImpl.useNio = getBoolean(node);
         }
         node = document.selectSingleNode(XML_USEFASTMD5);
         if (node != null) {
-            FilesystemBasedDigest.useFastMd5 = Integer.parseInt(node.getText()) == 1? true
-                    : false;
+            FilesystemBasedDigest.useFastMd5 = getBoolean(node);
             if (FilesystemBasedDigest.useFastMd5) {
                 node = document.selectSingleNode(XML_FASTMD5);
                 if (node != null) {
@@ -633,59 +749,104 @@ public class FileBasedConfiguration {
             R66Dir.initJdkDependent(new FilesystemBasedDirJdk5());
         }
 
-        // Key
-        node = document.selectSingleNode(XML_PATH_KEYPATH);
-        if (node == null) {
-            logger.info("Unable to find Key Path");
-        } else {
-            String keypath = node.getText();
-            if ((keypath == null) || (keypath.length() == 0)) {
-                logger.error("Bad Key Path");
-                return false;
-            }
-            node = document.selectSingleNode(XML_PATH_KEYPASS);
+        // Key for OpenR66 server
+        if (Configuration.configuration.useSSL) {
+            node = document.selectSingleNode(XML_PATH_KEYPATH);
             if (node == null) {
-                logger.error("Unable to find Key Passwd");
-                return false;
+                logger.info("Unable to find Key Path");
+                try {
+                    NetworkSslServerPipelineFactory.ggSecureKeyStore =
+                        new GgSecureKeyStore("secret", "secret");
+                } catch (CryptoException e) {
+                    logger.error("Bad SecureKeyStore construction");
+                    return false;
+                }
+            } else {
+                String keypath = node.getText();
+                if ((keypath == null) || (keypath.length() == 0)) {
+                    logger.error("Bad Key Path");
+                    return false;
+                }
+                node = document.selectSingleNode(XML_PATH_KEYSTOREPASS);
+                if (node == null) {
+                    logger.error("Unable to find KeyStore Passwd");
+                    return false;
+                }
+                String keystorepass = node.getText();
+                if ((keystorepass == null) || (keystorepass.length() == 0)) {
+                    logger.error("Bad KeyStore Passwd");
+                    return false;
+                }
+                node = document.selectSingleNode(XML_PATH_KEYPASS);
+                if (node == null) {
+                    logger.error("Unable to find Key Passwd");
+                    return false;
+                }
+                String keypass = node.getText();
+                if ((keypass == null) || (keypass.length() == 0)) {
+                    logger.error("Bad Key Passwd");
+                    return false;
+                }
+                try {
+                    NetworkSslServerPipelineFactory.ggSecureKeyStore =
+                        new GgSecureKeyStore(keypath, keystorepass,
+                                keypass);
+                } catch (CryptoException e) {
+                    logger.error("Bad SecureKeyStore construction");
+                    return false;
+                }
+
             }
-            String keypass = node.getText();
-            if ((keypass == null) || (keypass.length() == 0)) {
-                logger.error("Bad Key Passwd");
-                return false;
-            }
-            node = document.selectSingleNode(XML_PATH_KEYSTOREPASS);
+            // TrustedKey for OpenR66 server
+            node = document.selectSingleNode(XML_PATH_TRUSTKEYPATH);
             if (node == null) {
-                logger.error("Unable to find KeyStore Passwd");
-                return false;
+                logger.info("Unable to find TRUST Key Path");
+                try {
+                    NetworkSslServerPipelineFactory.ggSecureKeyStore.initEmptyTrustStore();
+                } catch (CryptoException e) {
+                    logger.error("Bad TrustKeyStore construction");
+                    return false;
+                }
+            } else {
+                String keypath = node.getText();
+                if ((keypath == null) || (keypath.length() == 0)) {
+                    logger.error("Bad TRUST Key Path");
+                    return false;
+                }
+                node = document.selectSingleNode(XML_PATH_TRUSTKEYSTOREPASS);
+                if (node == null) {
+                    logger.error("Unable to find TRUST KeyStore Passwd");
+                    return false;
+                }
+                String keystorepass = node.getText();
+                if ((keystorepass == null) || (keystorepass.length() == 0)) {
+                    logger.error("Bad TRUST KeyStore Passwd");
+                    return false;
+                }
+                node = document.selectSingleNode(XML_USECLIENT_AUTHENT);
+                boolean useClientAuthent = false;
+                if (node != null) {
+                    useClientAuthent = getBoolean(node);
+                }
+                try {
+                    NetworkSslServerPipelineFactory.ggSecureKeyStore.initTrustStore(keypath,
+                            keystorepass, useClientAuthent);
+                } catch (CryptoException e) {
+                    logger.error("Bad TrustKeyStore construction");
+                    return false;
+                }
             }
-            String keystorepass = node.getText();
-            if ((keystorepass == null) || (keystorepass.length() == 0)) {
-                logger.error("Bad KeyStore Passwd");
-                return false;
-            }
-            if (!R66SecureKeyStore.initSecureKeyStore(keypath, keystorepass,
-                    keypass)) {
-                logger.error("Bad Key");
-                return false;
-            }
+            NetworkSslServerPipelineFactory.ggSslContextFactory =
+                new GgSslContextFactory(
+                        NetworkSslServerPipelineFactory.ggSecureKeyStore);
         }
 
-        // Key
+        // Key for HTTPS
         node = document.selectSingleNode(XML_PATH_ADMIN_KEYPATH);
         if (node != null) {
             String keypath = node.getText();
             if ((keypath == null) || (keypath.length() == 0)) {
                 logger.error("Bad Key Path");
-                return false;
-            }
-            node = document.selectSingleNode(XML_PATH_ADMIN_KEYPASS);
-            if (node == null) {
-                logger.error("Unable to find Key Passwd");
-                return false;
-            }
-            String keypass = node.getText();
-            if ((keypass == null) || (keypass.length() == 0)) {
-                logger.error("Bad Key Passwd");
                 return false;
             }
             node = document.selectSingleNode(XML_PATH_ADMIN_KEYSTOREPASS);
@@ -698,11 +859,38 @@ public class FileBasedConfiguration {
                 logger.error("Bad KeyStore Passwd");
                 return false;
             }
-            if (!HttpSecureKeyStore.initSecureKeyStore(keypath, keystorepass,
-                    keypass)) {
-                logger.error("Bad Key");
+            node = document.selectSingleNode(XML_PATH_ADMIN_KEYPASS);
+            if (node == null) {
+                logger.error("Unable to find Key Passwd");
                 return false;
             }
+            String keypass = node.getText();
+            if ((keypass == null) || (keypass.length() == 0)) {
+                logger.error("Bad Key Passwd");
+                return false;
+            }
+            try {
+                HttpSslPipelineFactory.ggSecureKeyStore =
+                    new GgSecureKeyStore(keypath, keystorepass,
+                            keypass);
+            } catch (CryptoException e) {
+                logger.error("Bad SecureKeyStore construction for AdminSsl");
+                return false;
+            }
+            // No client authentication
+            try {
+                HttpSslPipelineFactory.ggSecureKeyStore.initEmptyTrustStore();
+            } catch (CryptoException e) {
+                logger.error("Bad TrustKeyStore construction");
+                return false;
+            }
+            HttpSslPipelineFactory.ggSslContextFactory =
+                new GgSslContextFactory(
+                        HttpSslPipelineFactory.ggSecureKeyStore, true);
+        }
+
+        if (!setCryptoKey(document)) {
+            return false;
         }
 
         // We use Apache Commons IO
@@ -710,6 +898,32 @@ public class FileBasedConfiguration {
         return true;
     }
 
+    /**
+     * Set the Crypto Key from the Document
+     * @param document
+     * @return True if OK
+     */
+    public static boolean setCryptoKey(Document document) {
+        Node node = document.selectSingleNode(XML_PATH_CRYPTOKEY);
+        if (node == null) {
+            logger.error("Unable to find CryptoKey in Config file");
+            return false;
+        }
+        String filename = node.getText();
+        File key = new File(filename);
+        Des des = new Des();
+        try {
+            des.setSecretKey(key);
+        } catch (CryptoException e) {
+            logger.error("Unable to load CryptoKey from Config file");
+            return false;
+        } catch (IOException e) {
+            logger.error("Unable to load CryptoKey from Config file");
+            return false;
+        }
+        Configuration.configuration.cryptoKey = des;
+        return true;
+    }
     /**
      * Load data from database or from files if not connected
      *

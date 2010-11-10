@@ -15,6 +15,7 @@
  */
 package openr66.protocol.configuration;
 
+import goldengate.common.crypto.Des;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
@@ -27,6 +28,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import openr66.commander.InternalRunner;
+import openr66.context.task.localexec.LocalExecClient;
 import openr66.database.DbSession;
 import openr66.database.data.DbHostAuth;
 import openr66.database.exception.OpenR66DatabaseException;
@@ -272,6 +274,30 @@ public class Configuration {
     public long delayLimit = 10000;
 
     /**
+     * Does this OpenR66 server will use and accept SSL connections
+     */
+    public boolean useSSL = false;
+    /**
+     * Does this OpenR66 server will use and accept non SSL connections
+     */
+    public boolean useNOSSL = true;
+
+    /**
+     * Does this OpenR66 server will try to compress HTTP connections
+     */
+    public boolean useHttpCompression = false;
+
+    /**
+     * Does this OpenR66 server will use GoldenGate LocalExec Daemon for ExecTask and ExecMoveTask
+     */
+    public boolean useLocalExec = false;
+
+    /**
+     * Crypto Key
+     */
+    public Des cryptoKey = null;
+
+    /**
      * List of all Server Channels to enable the close call on them using Netty
      * ChannelGroup
      */
@@ -422,6 +448,9 @@ public class Configuration {
         httpPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
                 CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory, 500,
                 TimeUnit.MILLISECONDS, new R66ThreadFactory("HttpExecutor"));
+        if (useLocalExec) {
+            LocalExecClient.initialize();
+        }
         configured = true;
     }
 
@@ -431,6 +460,10 @@ public class Configuration {
      * @throws OpenR66DatabaseNoConnectionError
      */
     public void serverStartup() throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+        if ((!useNOSSL) && (!useSSL)) {
+            logger.error("OpenR66 has neither NOSSL nor SSL support included! Stop here!");
+            System.exit(-1);
+        }
         pipelineInit();
         // Global Server
         serverChannelGroup = new DefaultChannelGroup("OpenR66");
@@ -438,20 +471,22 @@ public class Configuration {
 
         serverChannelFactory = new NioServerSocketChannelFactory(
                 execServerBoss, execServerWorker, SERVER_THREAD);
-        serverBootstrap = new ServerBootstrap(serverChannelFactory);
-        serverBootstrap.setPipelineFactory(new NetworkServerPipelineFactory());
-        serverBootstrap.setOption("child.tcpNoDelay", true);
-        serverBootstrap.setOption("child.keepAlive", true);
-        serverBootstrap.setOption("child.reuseAddress", true);
-        serverBootstrap.setOption("child.connectTimeoutMillis", TIMEOUTCON);
-        serverBootstrap.setOption("tcpNoDelay", true);
-        serverBootstrap.setOption("reuseAddress", true);
-        serverBootstrap.setOption("connectTimeoutMillis", TIMEOUTCON);
+        if (useNOSSL) {
+            serverBootstrap = new ServerBootstrap(serverChannelFactory);
+            serverBootstrap.setPipelineFactory(new NetworkServerPipelineFactory());
+            serverBootstrap.setOption("child.tcpNoDelay", true);
+            serverBootstrap.setOption("child.keepAlive", true);
+            serverBootstrap.setOption("child.reuseAddress", true);
+            serverBootstrap.setOption("child.connectTimeoutMillis", TIMEOUTCON);
+            serverBootstrap.setOption("tcpNoDelay", true);
+            serverBootstrap.setOption("reuseAddress", true);
+            serverBootstrap.setOption("connectTimeoutMillis", TIMEOUTCON);
 
-        serverChannelGroup.add(serverBootstrap.bind(new InetSocketAddress(
-                SERVER_PORT)));
+            serverChannelGroup.add(serverBootstrap.bind(new InetSocketAddress(
+                    SERVER_PORT)));
+        }
 
-        if (HOST_SSLID != null) {
+        if (useSSL && HOST_SSLID != null) {
             serverSslBootstrap = new ServerBootstrap(serverChannelFactory);
             serverSslBootstrap.setPipelineFactory(new NetworkSslServerPipelineFactory(false,
                     execServerWorker));
@@ -484,7 +519,7 @@ public class Configuration {
         httpBootstrap = new ServerBootstrap(
                 httpChannelFactory);
         // Set up the event pipeline factory.
-        httpBootstrap.setPipelineFactory(new HttpPipelineFactory());
+        httpBootstrap.setPipelineFactory(new HttpPipelineFactory(useHttpCompression));
         httpBootstrap.setOption("child.tcpNoDelay", true);
         httpBootstrap.setOption("child.keepAlive", true);
         httpBootstrap.setOption("child.reuseAddress", true);
@@ -504,7 +539,8 @@ public class Configuration {
         httpsBootstrap = new ServerBootstrap(
                 httpsChannelFactory);
         // Set up the event pipeline factory.
-        httpsBootstrap.setPipelineFactory(new HttpSslPipelineFactory());
+        httpsBootstrap.setPipelineFactory(new HttpSslPipelineFactory(useHttpCompression,
+                true, execServerWorker));
         httpsBootstrap.setOption("child.tcpNoDelay", true);
         httpsBootstrap.setOption("child.keepAlive", true);
         httpsBootstrap.setOption("child.reuseAddress", true);
@@ -610,6 +646,7 @@ public class Configuration {
         if (SERVER_THREAD < nb) {
             logger.info("Change default number of threads to " + nb);
             SERVER_THREAD = nb;
+            CLIENT_THREAD = SERVER_THREAD*10;
         }
     }
 

@@ -63,6 +63,13 @@ public interface DbModel {
     public void validConnection(DbSession dbSession) throws OpenR66DatabaseNoConnectionError;
 
     /**
+     * Add a limit on the request to get the "limit" first rows. Note that
+     * it must be compatible to add the "limit" condition.<br>
+     * <b>DO NOT CHANGE (add) ANYTHING to the request</b><br>
+     *
+     * On Oracle: select allfield from (request) where rownnum <= limit<br>
+     * On others: request LIMIT limit<br>
+     *
      * @param allfields string representing the equivalent to "*" in "select *" but more precisely
      *          as "field1, field2" in "select field1, field2"
      * @param request

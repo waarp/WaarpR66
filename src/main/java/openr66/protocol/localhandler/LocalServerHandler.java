@@ -1738,11 +1738,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
             throw new OpenR66ProtocolNotAuthenticatedException(
                     "Not authenticated");
         }
-        if (session.getAuth().isAdmin() &&
-                Configuration.configuration.isKeyValid(packet.getKey())) {
+        boolean isAdmin = session.getAuth().isAdmin();
+        boolean isKeyValid = Configuration.configuration.isKeyValid(packet.getKey());
+        if (isAdmin && isKeyValid) {
             throw new OpenR66ProtocolShutdownException("Shutdown Type received");
         }
-        logger.error("Invalid Shutdown command");
+        logger.error("Invalid Shutdown command: from "+session.getAuth().getUser()+" AdmValid: "+isAdmin+" KeyValid: "+isKeyValid);
         throw new OpenR66ProtocolBusinessException("Invalid Shutdown comand");
     }
 

@@ -114,6 +114,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
         DbHostAuth auth = R66Auth
                 .getServerAuth(dbSession, hostId);
         if (auth == null) {
+            logger.error("Cannot find authentication for "+hostId);
             setIsIdentified(false);
             currentAuth = null;
             throw new Reply530Exception("HostId not allowed");

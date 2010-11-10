@@ -41,6 +41,32 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
+import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.channel.ChannelFutureListener;
+import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.ChannelStateEvent;
+import org.jboss.netty.channel.ExceptionEvent;
+import org.jboss.netty.channel.MessageEvent;
+import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import org.jboss.netty.channel.group.ChannelGroup;
+import org.jboss.netty.handler.codec.http.Cookie;
+import org.jboss.netty.handler.codec.http.CookieDecoder;
+import org.jboss.netty.handler.codec.http.CookieEncoder;
+import org.jboss.netty.handler.codec.http.DefaultCookie;
+import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
+import org.jboss.netty.handler.codec.http.HttpMethod;
+import org.jboss.netty.handler.codec.http.HttpRequest;
+import org.jboss.netty.handler.codec.http.HttpResponse;
+import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import org.jboss.netty.handler.codec.http.HttpVersion;
+import org.jboss.netty.handler.codec.http.QueryStringDecoder;
+import org.jboss.netty.handler.ssl.SslHandler;
+import org.jboss.netty.handler.traffic.TrafficCounter;
+
 import openr66.client.Message;
 import openr66.configuration.AuthenticationFileBasedConfiguration;
 import openr66.configuration.RuleFileBasedConfiguration;
@@ -78,34 +104,7 @@ import openr66.protocol.utils.R66Future;
 import openr66.protocol.utils.TransferUtils;
 import openr66.protocol.utils.Version;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelFutureListener;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ChannelStateEvent;
-import org.jboss.netty.channel.ExceptionEvent;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.channel.group.ChannelGroup;
-import org.jboss.netty.handler.codec.http.Cookie;
-import org.jboss.netty.handler.codec.http.CookieDecoder;
-import org.jboss.netty.handler.codec.http.CookieEncoder;
-import org.jboss.netty.handler.codec.http.DefaultCookie;
-import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpMethod;
-import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpResponse;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.jboss.netty.handler.codec.http.HttpVersion;
-import org.jboss.netty.handler.codec.http.QueryStringDecoder;
-import org.jboss.netty.handler.ssl.SslHandler;
-import org.jboss.netty.handler.traffic.TrafficCounter;
-
 /**
- * Handler for HTTP information support
  * @author Frederic Bregier
  *
  */
@@ -1052,7 +1051,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     logger.error("Error while trying to read: Hosts_body.html",e);
                     body = "";
                 }
-                body = dbhost.toSpecializedHtml(authentHttp, body);
+                body = dbhost.toSpecializedHtml(authentHttp, body, false);
             } else if ("Filter".equalsIgnoreCase(parm)) {
                 String host = params.get("host").get(0).trim();
                 if (host.length() == 0) {
@@ -1082,7 +1081,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     while (preparedStatement.getNext()) {
                         i++;
                         DbHostAuth dbhost = DbHostAuth.getFromStatement(preparedStatement);
-                        builder.append(dbhost.toSpecializedHtml(authentHttp, body));
+                        builder.append(dbhost.toSpecializedHtml(authentHttp, body, false));
                         if (i > LIMITROW) {
                             break;
                         }
@@ -1149,7 +1148,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     logger.error("Error while trying to read: Hosts_body.html",e);
                     body = "";
                 }
-                body = dbhost.toSpecializedHtml(authentHttp, body);
+                body = dbhost.toSpecializedHtml(authentHttp, body, false);
             } else if ("TestConn".equalsIgnoreCase(parm)) {
                 String host = params.get("host").get(0).trim();
                 if (host.length() == 0) {
@@ -1188,7 +1187,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     body = "";
                 }
                 if (result.isSuccess()) {
-                    body = dbhost.toSpecializedHtml(authentHttp, body);
+                    body = dbhost.toSpecializedHtml(authentHttp, body, false);
                     body += "<p><center><b>Connection SUCCESSFUL</b></center></p>";
                 } else {
                     SocketAddress socketAddress = dbhost.getSocketAddress();
@@ -1198,11 +1197,11 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     resultShutDown = resultShutDown ||
                         NetworkTransaction.shuttingdownNetworkChannels(host);
                     if (resultShutDown) {
-                        body = dbhost.toSpecializedHtml(authentHttp, body);
+                        body = dbhost.toSpecializedHtml(authentHttp, body, false);
                         body += "<p><center><b>Connection FAILURE: Disconnection is on going due to "+
                         result.getResult().code.mesg+"</b></center></p>";
                     } else {
-                        body = dbhost.toSpecializedHtml(authentHttp, body);
+                        body = dbhost.toSpecializedHtml(authentHttp, body, false);
                         body += "<p><center><b>Connection FAILURE: "+
                         result.getResult().code.mesg+"</b></center></p>";
                     }
@@ -1244,10 +1243,10 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 resultShutDown = resultShutDown ||
                     NetworkTransaction.shuttingdownNetworkChannels(host);
                 if (resultShutDown) {
-                    body = dbhost.toSpecializedHtml(authentHttp, body);
+                    body = dbhost.toSpecializedHtml(authentHttp, body, false);
                     body += "<p><center><b>Disconnection on going SUCCESSFUL</b></center></p>";
                 } else {
-                    body = dbhost.toSpecializedHtml(authentHttp, body);
+                    body = dbhost.toSpecializedHtml(authentHttp, body, false);
                     body += "<p><center><b>Disconnection cannot be done</b></center></p>";
                 }
             } else if ("Delete".equalsIgnoreCase(parm)) {

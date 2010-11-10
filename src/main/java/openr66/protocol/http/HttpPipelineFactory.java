@@ -39,18 +39,24 @@ import org.jboss.netty.handler.execution.ExecutionHandler;
  */
 public class HttpPipelineFactory
     implements ChannelPipelineFactory {
-        public ChannelPipeline getPipeline() throws Exception {
-            // Create a default pipeline implementation.
-            ChannelPipeline pipeline = pipeline();
+    public boolean useHttpCompression = false;
+    public HttpPipelineFactory(boolean useHttpCompression) {
+        this.useHttpCompression = useHttpCompression;
+    }
+    public ChannelPipeline getPipeline() throws Exception {
+        // Create a default pipeline implementation.
+        ChannelPipeline pipeline = pipeline();
 
-            pipeline.addLast("decoder", new HttpRequestDecoder());
-            pipeline.addLast("aggregator", new HttpChunkAggregator(1048576));
-            pipeline.addLast("encoder", new HttpResponseEncoder());
-            pipeline.addLast("pipelineExecutor", new ExecutionHandler(
-                    Configuration.configuration.getHttpPipelineExecutor()));
-            // FIXME: make an option for compression on HTTP
+        pipeline.addLast("decoder", new HttpRequestDecoder());
+        pipeline.addLast("aggregator", new HttpChunkAggregator(1048576));
+        pipeline.addLast("encoder", new HttpResponseEncoder());
+        pipeline.addLast("pipelineExecutor", new ExecutionHandler(
+                Configuration.configuration.getHttpPipelineExecutor()));
+        // FIXME: make an option for compression on HTTP
+        if (useHttpCompression) {
             pipeline.addLast("deflater", new HttpContentCompressor());
-            pipeline.addLast("handler", new HttpHandler());
-            return pipeline;
         }
+        pipeline.addLast("handler", new HttpHandler());
+        return pipeline;
+    }
 }

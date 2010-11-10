@@ -126,6 +126,9 @@ public class ServerInitDatabase {
                 logger.error("Unable to read the XML Config file: " + sxml);
                 return;
             }
+            if (!FileBasedConfiguration.setCryptoKey(document)) {
+                logger.error("Cannot load Crypto Key");
+            }
             if (!FileBasedConfiguration.loadDatabase(document)) {
                 logger.error("Cannot start database");
                 return;

@@ -23,6 +23,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
 import openr66.configuration.FileBasedConfiguration;
+import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.database.DbConstant;
 import openr66.protocol.configuration.Configuration;
@@ -98,8 +99,10 @@ public class ServerShutdown {
             if (result.other instanceof ValidPacket &&
                     ((ValidPacket) result.other).getTypeValid() == LocalPacketFactory.SHUTDOWNPACKET) {
                 logger.warn("Shutdown command OK");
+            } else if (result.code == ErrorCode.Shutdown) {
+                logger.warn("Shutdown command On going");
             } else {
-                logger.error("Cannot Shutdown", localChannelReference
+                logger.error("Cannot Shutdown: "+result.toString(), localChannelReference
                         .getFutureRequest().getCause());
             }
         }

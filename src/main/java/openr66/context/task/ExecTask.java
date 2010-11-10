@@ -29,6 +29,7 @@ import java.io.IOException;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
+import openr66.context.task.localexec.LocalExecClient;
 import openr66.protocol.configuration.Configuration;
 
 import org.apache.commons.exec.CommandLine;
@@ -40,10 +41,13 @@ import org.apache.commons.exec.PumpStreamHandler;
 /**
  * Execute an external command
  *
+ * FIXME add LocalExec support
+ *
  * @author Frederic Bregier
  *
  */
 public class ExecTask extends AbstractTask {
+
     /**
      * Internal Logger
      */
@@ -79,6 +83,13 @@ public class ExecTask extends AbstractTask {
                 session);
         String finalname = argRule;
         finalname = getReplacedValue(finalname, argTransfer.split(" "));
+        if (Configuration.configuration.useLocalExec) {
+            LocalExecClient localExecClient = new LocalExecClient();
+            localExecClient.connect();
+            localExecClient.runOneCommand(finalname, delay, futureCompletion);
+            localExecClient.disconnect();
+            return;
+        }
         String[] args = finalname.split(" ");
         File exec = new File(args[0]);
         if (exec.isAbsolute()) {

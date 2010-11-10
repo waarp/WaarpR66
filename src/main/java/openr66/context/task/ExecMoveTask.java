@@ -20,6 +20,7 @@
  */
 package openr66.context.task;
 
+import goldengate.commandexec.utils.LocalExecResult;
 import goldengate.common.command.exception.CommandAbstractException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
@@ -32,6 +33,7 @@ import java.io.PipedOutputStream;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
+import openr66.context.task.localexec.LocalExecClient;
 import openr66.protocol.configuration.Configuration;
 
 import org.apache.commons.exec.CommandLine;
@@ -44,6 +46,8 @@ import org.apache.commons.exec.PumpStreamHandler;
  * Execute an external command and Rename the file (using the new name from the result).
  *
  * The move of the file (if any) should be done by the external command itself.
+ *
+ * FIXME add LocalExec support
  *
  * @author Frederic Bregier
  *
@@ -86,6 +90,15 @@ public class ExecMoveTask extends AbstractTask {
                 session);
         String finalname = argRule;
         finalname = getReplacedValue(finalname, argTransfer.split(" "));
+        if (Configuration.configuration.useLocalExec) {
+            LocalExecClient localExecClient = new LocalExecClient();
+            localExecClient.connect();
+            localExecClient.runOneCommand(finalname, delay, futureCompletion);
+            LocalExecResult result = localExecClient.getLocalExecResult();
+            move(result.status, result.result, finalname);
+            localExecClient.disconnect();
+            return;
+        }
         String[] args = finalname.split(" ");
         File exec = new File(args[0]);
         if (exec.isAbsolute()) {
@@ -242,11 +255,15 @@ public class ExecMoveTask extends AbstractTask {
                 status = 1;
             }
         }
+        move(status, newname, commandLine.toString());
+    }
+
+    private void move(int status, String newname, String commandLine) {
         if (status == 0) {
             if (newname.indexOf(' ') > 0) {
                 logger.warn("Exec returns a multiple string in final line: " +
                         newname);
-                args = newname.split(" ");
+                String []args = newname.split(" ");
                 newname = args[args.length - 1];
             }
             // now test if the previous file was deleted (should be)
@@ -259,21 +276,21 @@ public class ExecMoveTask extends AbstractTask {
                 session.getFile().replaceFilename(newname, true);
             } catch (CommandAbstractException e) {
                 logger
-                        .warn("Exec in warning with " + commandLine.toString(),
+                        .warn("Exec in warning with " + commandLine,
                                 e);
             }
             session.getRunner().setFileMoved(newname, true);
             futureCompletion.setSuccess();
-            logger.info("Exec OK with {} returns {}", commandLine.toString(),
+            logger.info("Exec OK with {} returns {}", commandLine,
                     newname);
         } else if (status == 1) {
-            logger.warn("Exec in warning with " + commandLine.toString() +
+            logger.warn("Exec in warning with " + commandLine+
                     " returns " + newname);
             session.getRunner().setErrorExecutionStatus(ErrorCode.Warning);
             futureCompletion.setSuccess();
         } else {
             logger.error("Status: " + status + " Exec in error with " +
-                    commandLine.toString() + " returns " + newname);
+                    commandLine + " returns " + newname);
             futureCompletion.cancel();
         }
     }

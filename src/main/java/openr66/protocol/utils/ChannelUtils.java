@@ -23,6 +23,7 @@ import goldengate.common.logging.GgSlf4JLoggerFactory;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
+import openr66.context.task.localexec.LocalExecClient;
 import openr66.database.DbConstant;
 import openr66.database.data.DbTaskRunner;
 import openr66.protocol.configuration.Configuration;
@@ -299,6 +300,9 @@ public class ChannelUtils extends Thread {
         Configuration.configuration.getLocalTransaction().closeAll();
         logger.info("Exit Shutdown Http");
         terminateHttpChannels();
+        if (Configuration.configuration.useLocalExec) {
+            LocalExecClient.releaseResources();
+        }
         OpenR66SignalHandler.closeAllConnection();
         Configuration.configuration.serverStop();
         System.err.println("Exit end of Shutdown");

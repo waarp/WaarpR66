@@ -36,7 +36,6 @@ import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
-import openr66.protocol.configuration.Configuration;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.utils.FileUtils;
 
@@ -46,7 +45,7 @@ import openr66.protocol.utils.FileUtils;
  * @author Frederic Bregier
  *
  */
-public class DbHostAuth extends AbstractDbData {
+public class DbHostAuthBack extends AbstractDbData {
     public static enum Columns {
         ADDRESS, PORT, ISSSL, HOSTKEY, ADMINROLE, UPDATEDINFO, HOSTID
     }
@@ -60,8 +59,8 @@ public class DbHostAuth extends AbstractDbData {
     /**
      * HashTable in case of lack of database
      */
-    private static final ConcurrentHashMap<String, DbHostAuth> dbR66HostAuthHashMap =
-        new ConcurrentHashMap<String, DbHostAuth>();
+    private static final ConcurrentHashMap<String, DbHostAuthBack> dbR66HostAuthHashMap =
+        new ConcurrentHashMap<String, DbHostAuthBack>();
 
     private String hostid;
 
@@ -141,23 +140,14 @@ public class DbHostAuth extends AbstractDbData {
      * @param hostkey
      * @param adminrole
      */
-    public DbHostAuth(DbSession dbSession, String hostid, String address, int port,
+    public DbHostAuthBack(DbSession dbSession, String hostid, String address, int port,
             boolean isSSL, byte[] hostkey, boolean adminrole) {
         super(dbSession);
         this.hostid = hostid;
         this.address = address;
         this.port = port;
         this.isSsl = isSSL;
-        if (hostkey == null) {
-            this.hostkey = null;
-        } else {
-            try {
-                // Save as crypted with the local Key and Base64
-                this.hostkey = Configuration.configuration.cryptoKey.cryptToBase64(hostkey).getBytes();
-            } catch (Exception e) {
-                this.hostkey = new byte[0];
-            }
-        }
+        this.hostkey = hostkey;
         this.adminrole = adminrole;
         setToArray();
         isSaved = false;
@@ -168,7 +158,7 @@ public class DbHostAuth extends AbstractDbData {
      * @param hostid
      * @throws OpenR66DatabaseException
      */
-    public DbHostAuth(DbSession dbSession, String hostid) throws OpenR66DatabaseException {
+    public DbHostAuthBack(DbSession dbSession, String hostid) throws OpenR66DatabaseException {
         super(dbSession);
         this.hostid = hostid;
         // load from DB
@@ -265,7 +255,7 @@ public class DbHostAuth extends AbstractDbData {
     @Override
     public void select() throws OpenR66DatabaseException {
         if (dbSession == null) {
-            DbHostAuth host = dbR66HostAuthHashMap.get(this.hostid);
+            DbHostAuthBack host = dbR66HostAuthHashMap.get(this.hostid);
             if (host == null) {
                 throw new OpenR66DatabaseNoDataException("No row found");
             } else {
@@ -333,44 +323,44 @@ public class DbHostAuth extends AbstractDbData {
     /**
      * Private constructor for Commander only
      */
-    private DbHostAuth() {
+    private DbHostAuthBack() {
         super(DbConstant.admin.session);
     }
     /**
-     * Get All DbHostAuth from database or from internal hashMap in case of no database support
+     * Get All DbHostAuthBack from database or from internal hashMap in case of no database support
      * @param dbSession may be null
-     * @return the array of DbHostAuth
+     * @return the array of DbHostAuthBack
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
      */
-    public static DbHostAuth[] getAllHosts(DbSession dbSession) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+    public static DbHostAuthBack[] getAllHosts(DbSession dbSession) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
         if (dbSession == null) {
-            DbHostAuth [] result = new DbHostAuth[0];
+            DbHostAuthBack [] result = new DbHostAuthBack[0];
             return dbR66HostAuthHashMap.values().toArray(result);
         }
         String request = "SELECT " +selectAllFields;
             request += " FROM "+table;
         DbPreparedStatement preparedStatement = new DbPreparedStatement(dbSession, request);
-        ArrayList<DbHostAuth> dbArrayList = new ArrayList<DbHostAuth>();
+        ArrayList<DbHostAuthBack> dbArrayList = new ArrayList<DbHostAuthBack>();
         preparedStatement.executeQuery();
         while (preparedStatement.getNext()) {
-            DbHostAuth hostAuth = getFromStatement(preparedStatement);
+            DbHostAuthBack hostAuth = getFromStatement(preparedStatement);
             dbArrayList.add(hostAuth);
         }
         preparedStatement.realClose();
-        DbHostAuth [] result = new DbHostAuth[0];
+        DbHostAuthBack [] result = new DbHostAuthBack[0];
         dbArrayList.toArray(result);
         return result;
     }
     /**
      * For instance from Commander when getting updated information
      * @param preparedStatement
-     * @return the next updated DbHostAuth
+     * @return the next updated DbHostAuthBack
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66DatabaseSqlError
      */
-    public static DbHostAuth getFromStatement(DbPreparedStatement preparedStatement) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
-        DbHostAuth dbHostAuth = new DbHostAuth();
+    public static DbHostAuthBack getFromStatement(DbPreparedStatement preparedStatement) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+        DbHostAuthBack dbHostAuth = new DbHostAuthBack();
         dbHostAuth.getValues(preparedStatement, dbHostAuth.allFields);
         dbHostAuth.setFromArray();
         dbHostAuth.isSaved = true;
@@ -461,25 +451,14 @@ public class DbHostAuth extends AbstractDbData {
         if (newkey == null) {
             return false;
         }
-        try {
-            return Arrays.equals(Configuration.configuration.cryptoKey.decryptBase64InBytes(this.hostkey), newkey);
-        } catch (Exception e) {
-            return false;
-        }
+        return Arrays.equals(this.hostkey, newkey);
     }
 
     /**
      * @return the hostkey
      */
     public byte[] getHostkey() {
-        if (hostkey == null) {
-            return null;
-        }
-        try {
-            return Configuration.configuration.cryptoKey.decryptBase64InBytes(hostkey);
-        } catch (Exception e) {
-            return new byte[0];
-        }
+        return hostkey;
     }
 
     /**
@@ -532,24 +511,14 @@ public class DbHostAuth extends AbstractDbData {
     /**
      * @param session
      * @param body
-     * @param crypted True if the Key is kept crypted, False it will be in clear form
      * @return the runner in Html format specified by body by replacing all instance of fields
      */
-    public String toSpecializedHtml(R66Session session, String body, boolean crypted) {
+    public String toSpecializedHtml(R66Session session, String body) {
         StringBuilder builder = new StringBuilder(body);
         FileUtils.replace(builder, "XXXHOSTXXX", hostid);
         FileUtils.replace(builder, "XXXADDRXXX", address);
         FileUtils.replace(builder, "XXXPORTXXX", Integer.toString(port));
-        if (crypted) {
-            FileUtils.replace(builder, "XXXKEYXXX", new String(hostkey));
-        } else {
-            try {
-                FileUtils.replace(builder, "XXXKEYXXX",
-                        Configuration.configuration.cryptoKey.decryptBase64InString(new String(this.hostkey)));
-            } catch (Exception e) {
-                FileUtils.replace(builder, "XXXKEYXXX", "BAD DECRYPT");
-            }
-        }
+        FileUtils.replace(builder, "XXXKEYXXX", new String(hostkey));
         FileUtils.replace(builder, "XXXSSLXXX", isSsl ? "checked": "");
         FileUtils.replace(builder, "XXXADMXXX", adminrole ? "checked": "");
         int nb = NetworkTransaction.existConnection(getSocketAddress(), getHostid());

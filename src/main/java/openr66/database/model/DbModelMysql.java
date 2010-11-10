@@ -445,9 +445,6 @@ public class DbModelMysql implements DbModel {
             request.close();
         }
     }
-    /* (non-Javadoc)
-     * @see openr66.database.model.DbModel#limitRequest(java.lang.String, java.lang.String, int)
-     */
     @Override
     public String limitRequest(String allfields, String request, int nb) {
         return request+" LIMIT "+nb;

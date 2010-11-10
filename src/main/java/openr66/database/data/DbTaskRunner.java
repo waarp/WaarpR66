@@ -57,7 +57,6 @@ import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseNoDataException;
 import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.database.model.DbModelFactory;
-import openr66.database.model.DbModelOracle;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import openr66.protocol.exception.OpenR66ProtocolNoSslException;
@@ -1118,17 +1117,20 @@ public class DbTaskRunner extends AbstractDbData {
         String request = "SELECT " + selectAllFields+
                 " FROM " + table + " WHERE " + Columns.UPDATEDINFO.name() +
                 " = " + info.ordinal()+ " AND "+getLimitWhereCondition();
-        if (limit > 0) {
+        //FIXME if adding limit after is efficient with Oracle, remove the following code
+        /*if (limit > 0) {
             if (DbModelFactory.dbModel instanceof DbModelOracle) {
                 request += " AND ROWNUM <= "+limit;
-            } else {
-                request =
-                    DbModelFactory.dbModel.limitRequest(selectAllFields, request, limit);
             }
-        }
+        }*/
         if (orderByStart) {
             request += " ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
         }
+        /*if (limit > 0 &&
+                (!(DbModelFactory.dbModel instanceof DbModelOracle))) {*/
+            request =
+                DbModelFactory.dbModel.limitRequest(selectAllFields, request, limit);
+        /*}*/
         return new DbPreparedStatement(session, request);
     }
 

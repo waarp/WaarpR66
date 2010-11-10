@@ -24,8 +24,6 @@ import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
@@ -35,10 +33,10 @@ import openr66.database.data.DbHostAuth;
 import openr66.database.exception.OpenR66DatabaseException;
 import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.exception.OpenR66DatabaseSqlError;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.utils.FileUtils;
 
-import org.apache.commons.codec.binary.Base64;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
@@ -132,7 +130,6 @@ public class AuthenticationFileBasedConfiguration {
         Node nodebase, node;
         File key;
         byte[] byteKeys;
-        FileInputStream inputStream = null;
         while (iterator.hasNext()) {
             nodebase = iterator.next();
             node = nodebase.selectSingleNode(XML_AUTHENTIFICATION_HOSTID);
@@ -148,8 +145,17 @@ public class AuthenticationFileBasedConfiguration {
                     byteKeys = null;
                 } else {
                     String skey = node.getText();
-                    // key is coded with Base64 algorithm
-                    byteKeys = Base64.decodeBase64(skey.getBytes());
+                    // key is crypted
+                    if (skey.length() > 0) {
+                        try {
+                            byteKeys = Configuration.configuration.cryptoKey.decryptBase64InBytes(skey);
+                        } catch (Exception e) {
+                            logger.error("Cannot read key for hostId " + refHostId+":"+skey);
+                            continue;
+                        }
+                    } else {
+                        byteKeys = null;
+                    }
                 }
             } else {
                 String skey = node.getText();
@@ -159,18 +165,10 @@ public class AuthenticationFileBasedConfiguration {
                     logger.error("Cannot read key for hostId " + refHostId+":"+skey);
                     continue;
                 }
-                byteKeys = new byte[(int) key.length()];
                 try {
-                    inputStream = new FileInputStream(key);
-                    inputStream.read(byteKeys);
-                    inputStream.close();
-                } catch (IOException e) {
-                    logger.error("Cannot read key for hostId " + refHostId, e);
-                    try {
-                        if (inputStream != null)
-                            inputStream.close();
-                    } catch (IOException e1) {
-                    }
+                    byteKeys = Configuration.configuration.cryptoKey.decryptBase64File(key);
+                } catch (Exception e2) {
+                    logger.error("Cannot read key for hostId " + refHostId, e2);
                     continue;
                 }
             }
@@ -250,8 +248,13 @@ public class AuthenticationFileBasedConfiguration {
                 Element entry = new DefaultElement(XML_AUTHENTIFICATION_ENTRY);
                 entry.add(newElement(XML_AUTHENTIFICATION_HOSTID, auth.getHostid()));
                 byte [] key = auth.getHostkey();
-                byte [] encode = Base64.encodeBase64(key);
-                entry.add(newElement(XML_AUTHENTIFICATION_KEY, new String(encode)));
+                String encode;
+                try {
+                    encode = Configuration.configuration.cryptoKey.cryptToBase64(key);
+                } catch (Exception e) {
+                   encode = "";
+                }
+                entry.add(newElement(XML_AUTHENTIFICATION_KEY, encode));
                 entry.add(newElement(XML_AUTHENTIFICATION_ADMIN, Boolean.toString(auth.isAdminrole())));
                 entry.add(newElement(XML_AUTHENTIFICATION_ADDRESS, auth.getAddress()));
                 entry.add(newElement(XML_AUTHENTIFICATION_PORT, Integer.toString(auth.getPort())));
