@@ -55,6 +55,9 @@ public class LocalExecClient {
     // Configure the pipeline factory.
     static LocalExecClientPipelineFactory localExecClientPipelineFactory;
 
+    /**
+     * Initialize the LocalExec Client context
+     */
     public static void initialize() {
         // Configure the client.
         bootstrap = new ClientBootstrap(
@@ -67,6 +70,9 @@ public class LocalExecClient {
         bootstrap.setPipelineFactory(localExecClientPipelineFactory);
     }
 
+    /**
+     * To be called when the server is shutting down to release the resources
+     */
     public static void releaseResources() {
         if (bootstrap == null) {
             return;
@@ -87,6 +93,13 @@ public class LocalExecClient {
         return result;
     }
 
+    /**
+     * Run one command with a specific allowed delay for execution.
+     * The connection must be ready (done with connect()).
+     * @param command
+     * @param delay
+     * @param futureCompletion
+     */
     public void runOneCommand(String command, int delay, GgFuture futureCompletion) {
      // Initialize the command context
         LocalExecClientHandler clientHandler =

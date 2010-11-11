@@ -83,6 +83,7 @@ public class ExecTask extends AbstractTask {
                 session);
         String finalname = argRule;
         finalname = getReplacedValue(finalname, argTransfer.split(" "));
+        // Check if the execution will be done through LocalExec daemon
         if (Configuration.configuration.useLocalExec) {
             LocalExecClient localExecClient = new LocalExecClient();
             localExecClient.connect();
@@ -90,6 +91,7 @@ public class ExecTask extends AbstractTask {
             localExecClient.disconnect();
             return;
         }
+        // Execution is done internally
         String[] args = finalname.split(" ");
         File exec = new File(args[0]);
         if (exec.isAbsolute()) {
