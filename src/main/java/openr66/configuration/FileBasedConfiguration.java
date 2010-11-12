@@ -498,7 +498,7 @@ public class FileBasedConfiguration {
         byte[] decodedByteKeys = null;
         try {
             decodedByteKeys =
-                Configuration.configuration.cryptoKey.decryptBase64InBytes(passwd);
+                Configuration.configuration.cryptoKey.decryptHexInBytes(passwd);
         } catch (Exception e) {
             logger.error(
                     "Unable to Decrypt Server Password in Config file from: " +
@@ -569,6 +569,8 @@ public class FileBasedConfiguration {
             logger.error("Unable to read the XML Config file: " + filename);
             return false;
         }
+        // Client enables SSL by default but could be reverted later on
+        Configuration.configuration.useSSL = true;
         if (!loadCommon(document)) {
             logger.error("Unable to load commons in Config file: " + filename);
             return false;

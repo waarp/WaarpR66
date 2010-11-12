@@ -114,6 +114,8 @@ public enum TaskType {
         } catch (NullPointerException e) {
             System.err.println("name: " + name);
             throw new OpenR66RunnerErrorException("Unvalid Task: " + name);
+        } catch (IllegalArgumentException e) {
+            throw new OpenR66RunnerErrorException("Unvalid Task: " + name);
         }
         return getTaskFromId(type, argRule, delay, session);
     }

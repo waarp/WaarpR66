@@ -217,7 +217,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 
     @Override
     public String toString() {
-        return "Auth: " +isIdentified+":"+
+        return "Auth:" +isIdentified+" "+
                 (currentAuth != null? currentAuth.toString()
                         : "no Internal Auth");
     }

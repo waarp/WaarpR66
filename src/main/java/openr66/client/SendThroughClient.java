@@ -176,6 +176,7 @@ public class SendThroughClient extends AbstractTransfer {
                 try {
                     localChannelReference = runner.initRequest();
                     exc = null;
+                    break;
                 } catch (OpenR66RunnerErrorException e) {
                     logger.error("Cannot Transfer", e);
                     future.setResult(new R66Result(e, null, true,
@@ -195,6 +196,7 @@ public class SendThroughClient extends AbstractTransfer {
                     future.setFailure(e);
                     return false;
                 } catch (OpenR66ProtocolNotYetConnectionException e) {
+                    logger.info("Not Yet Connected", e);
                     exc = e;
                     continue;
                 }

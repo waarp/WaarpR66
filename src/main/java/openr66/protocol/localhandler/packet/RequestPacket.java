@@ -108,9 +108,12 @@ public class RequestPacket extends AbstractLocalPacket {
      * @return true if both modes are compatible (both send, or both recv)
      */
     public static boolean isCompatibleMode(int mode1, int mode2) {
-        return ((RequestPacket.isRecvMode(mode1) && RequestPacket.isRecvThroughMode(mode2))
+        return ((RequestPacket.isRecvMode(mode1) && RequestPacket.isRecvMode(mode2))
                 || ((!RequestPacket.isRecvMode(mode1)) &&
-                        (!RequestPacket.isRecvThroughMode(mode2))));
+                        (!RequestPacket.isRecvMode(mode2))));
+        /*return ((RequestPacket.isRecvMode(mode1) && RequestPacket.isRecvThroughMode(mode2))
+                || ((!RequestPacket.isRecvMode(mode1)) &&
+                        (!RequestPacket.isRecvThroughMode(mode2))));*/
     }
     /**
      * @param headerLength

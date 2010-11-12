@@ -148,7 +148,7 @@ public class AuthenticationFileBasedConfiguration {
                     // key is crypted
                     if (skey.length() > 0) {
                         try {
-                            byteKeys = Configuration.configuration.cryptoKey.decryptBase64InBytes(skey);
+                            byteKeys = Configuration.configuration.cryptoKey.decryptHexInBytes(skey);
                         } catch (Exception e) {
                             logger.error("Cannot read key for hostId " + refHostId+":"+skey);
                             continue;
@@ -166,7 +166,7 @@ public class AuthenticationFileBasedConfiguration {
                     continue;
                 }
                 try {
-                    byteKeys = Configuration.configuration.cryptoKey.decryptBase64File(key);
+                    byteKeys = Configuration.configuration.cryptoKey.decryptHexFile(key);
                 } catch (Exception e2) {
                     logger.error("Cannot read key for hostId " + refHostId, e2);
                     continue;
@@ -250,7 +250,7 @@ public class AuthenticationFileBasedConfiguration {
                 byte [] key = auth.getHostkey();
                 String encode;
                 try {
-                    encode = Configuration.configuration.cryptoKey.cryptToBase64(key);
+                    encode = Configuration.configuration.cryptoKey.cryptToHex(key);
                 } catch (Exception e) {
                    encode = "";
                 }

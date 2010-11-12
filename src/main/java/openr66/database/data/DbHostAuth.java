@@ -153,7 +153,7 @@ public class DbHostAuth extends AbstractDbData {
         } else {
             try {
                 // Save as crypted with the local Key and Base64
-                this.hostkey = Configuration.configuration.cryptoKey.cryptToBase64(hostkey).getBytes();
+                this.hostkey = Configuration.configuration.cryptoKey.cryptToHex(hostkey).getBytes();
             } catch (Exception e) {
                 this.hostkey = new byte[0];
             }
@@ -462,7 +462,7 @@ public class DbHostAuth extends AbstractDbData {
             return false;
         }
         try {
-            return Arrays.equals(Configuration.configuration.cryptoKey.decryptBase64InBytes(this.hostkey), newkey);
+            return Arrays.equals(Configuration.configuration.cryptoKey.decryptHexInBytes(this.hostkey), newkey);
         } catch (Exception e) {
             return false;
         }
@@ -476,7 +476,7 @@ public class DbHostAuth extends AbstractDbData {
             return null;
         }
         try {
-            return Configuration.configuration.cryptoKey.decryptBase64InBytes(hostkey);
+            return Configuration.configuration.cryptoKey.decryptHexInBytes(hostkey);
         } catch (Exception e) {
             return new byte[0];
         }
@@ -527,7 +527,7 @@ public class DbHostAuth extends AbstractDbData {
     @Override
     public String toString() {
         return "HostAuth: " + hostid + " address: " +address+":"+port+" isSSL: "+isSsl+
-        " admin: "+ adminrole +" "+(hostkey!=null?hostkey.length:0);
+        " admin: "+ adminrole +" ("+(hostkey!=null?hostkey.length:0)+")";
     }
     /**
      * @param session
@@ -545,7 +545,7 @@ public class DbHostAuth extends AbstractDbData {
         } else {
             try {
                 FileUtils.replace(builder, "XXXKEYXXX",
-                        Configuration.configuration.cryptoKey.decryptBase64InString(new String(this.hostkey)));
+                        Configuration.configuration.cryptoKey.decryptHexInString(new String(this.hostkey)));
             } catch (Exception e) {
                 FileUtils.replace(builder, "XXXKEYXXX", "BAD DECRYPT");
             }

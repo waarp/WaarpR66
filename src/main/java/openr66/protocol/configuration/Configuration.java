@@ -484,6 +484,8 @@ public class Configuration {
 
             serverChannelGroup.add(serverBootstrap.bind(new InetSocketAddress(
                     SERVER_PORT)));
+        } else {
+            logger.warn("NOSSL mode is desactivated");
         }
 
         if (useSSL && HOST_SSLID != null) {
@@ -500,6 +502,8 @@ public class Configuration {
 
             serverChannelGroup.add(serverSslBootstrap.bind(new InetSocketAddress(
                     SERVER_SSLPORT)));
+        } else {
+            logger.warn("SSL mode is desactivated");
         }
 
         // Factory for TrafficShapingHandler

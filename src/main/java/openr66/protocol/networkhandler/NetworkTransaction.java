@@ -122,12 +122,14 @@ public class NetworkTransaction {
         clientBootstrap.setOption("reuseAddress", true);
         clientBootstrap.setOption("connectTimeoutMillis",
                 Configuration.configuration.TIMEOUTCON);
-        if (Configuration.configuration.HOST_SSLID != null) {
+        if (Configuration.configuration.useSSL && Configuration.configuration.HOST_SSLID != null) {
             clientSslBootstrap.setPipelineFactory(new NetworkSslServerPipelineFactory(true,
                     execServerWorker));
             clientSslBootstrap.setOption("tcpNoDelay", true);
             clientSslBootstrap.setOption("reuseAddress", true);
             clientSslBootstrap.setOption("connectTimeoutMillis", Configuration.configuration.TIMEOUTCON);
+        } else {
+            logger.warn("No SSL support configured");
         }
     }
 

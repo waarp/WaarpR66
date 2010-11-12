@@ -436,6 +436,7 @@ public class DbTaskRunner extends AbstractDbData {
         ownerRequest = Configuration.configuration.HOST_ID;
 
         select();
+
         if (rule != null) {
             if (!ruleId.equals(rule.idRule)) {
                 throw new OpenR66DatabaseNoDataException(

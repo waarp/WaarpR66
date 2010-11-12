@@ -730,8 +730,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
 
     private void endInitRequestInError(Channel channel, ErrorCode code, DbTaskRunner runner,
             OpenR66Exception e1, RequestPacket packet) throws OpenR66ProtocolPacketException {
-        logger.error("TaskRunner initialisation in error "+ code.mesg+" "+session+" {}",
-                e1 != null ? e1.getMessage():"no exception");
+        logger.error("TaskRunner initialisation in error: "+ code.mesg+" "+session+" {} runner {}",
+                e1 != null ? e1.getMessage():"no exception", runner.toShortString());
         localChannelReference.invalidateRequest(new R66Result(
                 e1, session, true, code, null));
 
@@ -806,7 +806,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         if (! RequestPacket.isCompatibleMode(rule.mode, packet.getMode())) {
             // not compatible Rule and mode in request
             throw new OpenR66ProtocolNotAuthenticatedException(
-                    "Rule has not the same mode of transmission");
+                    "Rule has not the same mode of transmission: "+rule.mode+" vs "+packet.getMode());
         }
         session.setBlockSize(packet.getBlocksize());
         DbTaskRunner runner;

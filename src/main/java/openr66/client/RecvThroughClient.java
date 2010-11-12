@@ -141,6 +141,7 @@ public class RecvThroughClient extends AbstractTransfer {
                 try {
                     runner.runTransfer();
                     exc = null;
+                    break;
                 } catch (OpenR66RunnerErrorException e) {
                     logger.error("Cannot Transfer", e);
                     future.setResult(new R66Result(e, null, true,
@@ -160,6 +161,7 @@ public class RecvThroughClient extends AbstractTransfer {
                     future.setFailure(e);
                     return;
                 } catch (OpenR66ProtocolNotYetConnectionException e) {
+                    logger.info("Not Yet Connected", e);
                     exc = e;
                     continue;
                 }
