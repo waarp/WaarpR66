@@ -86,10 +86,11 @@ public class ExecTask extends AbstractTask {
         // Check if the execution will be done through LocalExec daemon
         if (Configuration.configuration.useLocalExec) {
             LocalExecClient localExecClient = new LocalExecClient();
-            localExecClient.connect();
-            localExecClient.runOneCommand(finalname, delay, futureCompletion);
-            localExecClient.disconnect();
-            return;
+            if (localExecClient.connect()) {
+                localExecClient.runOneCommand(finalname, delay, futureCompletion);
+                localExecClient.disconnect();
+                return;
+            }// else continue 
         }
         // Execution is done internally
         String[] args = finalname.split(" ");
@@ -167,7 +168,7 @@ public class ExecTask extends AbstractTask {
         }
         if (status == 0) {
             futureCompletion.setSuccess();
-            logger.info("Exec OK with {}", commandLine);
+            logger.warn("Exec OK with {}", commandLine);
         } else if (status == 1) {
             logger.warn("Exec in warning with " + commandLine.toString());
             futureCompletion.setSuccess();

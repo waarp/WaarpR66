@@ -51,34 +51,34 @@ public class LocalExecClient {
 
     static public InetSocketAddress address;
     // Configure the client.
-    static ClientBootstrap bootstrap;
+    static private ClientBootstrap bootstrapLocalExec;
     // Configure the pipeline factory.
-    static LocalExecClientPipelineFactory localExecClientPipelineFactory;
+    static private LocalExecClientPipelineFactory localExecClientPipelineFactory;
 
     /**
      * Initialize the LocalExec Client context
      */
     public static void initialize() {
         // Configure the client.
-        bootstrap = new ClientBootstrap(
+        bootstrapLocalExec = new ClientBootstrap(
                 new NioClientSocketChannelFactory(
                         Configuration.configuration.getLocalPipelineExecutor(),
                         Configuration.configuration.getLocalPipelineExecutor()));
         // Configure the pipeline factory.
         localExecClientPipelineFactory =
                 new LocalExecClientPipelineFactory();
-        bootstrap.setPipelineFactory(localExecClientPipelineFactory);
+        bootstrapLocalExec.setPipelineFactory(localExecClientPipelineFactory);
     }
 
     /**
      * To be called when the server is shutting down to release the resources
      */
     public static void releaseResources() {
-        if (bootstrap == null) {
+        if (bootstrapLocalExec == null) {
             return;
         }
         // Shut down all thread pools to exit.
-        bootstrap.releaseExternalResources();
+        bootstrapLocalExec.releaseExternalResources();
         localExecClientPipelineFactory.releaseResources();
     }
 
@@ -110,20 +110,25 @@ public class LocalExecClient {
         ChannelFuture lastWriteFuture = null;
         String line = delay+" "+command+"\n";
         // Sends the received line to the server.
+        
         lastWriteFuture = channel.write(line);
         // Wait until all messages are flushed before closing the channel.
         if (lastWriteFuture != null) {
-            lastWriteFuture.awaitUninterruptibly();
+            if (delay <= 0) {
+                lastWriteFuture.awaitUninterruptibly();
+            } else {
+                lastWriteFuture.awaitUninterruptibly(delay);
+            }
         }
         // Wait for the end of the exec command
-        LocalExecResult localExecResult = clientHandler.waitFor();
+        LocalExecResult localExecResult = clientHandler.waitFor(delay*2);
         result = localExecResult;
         if (futureCompletion == null) {
             return;
         }
         if (result.status == 0) {
             futureCompletion.setSuccess();
-            logger.info("Exec OK with {}", command);
+            logger.warn("Exec OK with {}", command);
         } else if (result.status == 1) {
             logger.warn("Exec in warning with {}", command);
             futureCompletion.setSuccess();
@@ -137,16 +142,17 @@ public class LocalExecClient {
     /**
      * Connect to the Server
      */
-    public void connect() {
+    public boolean connect() {
         // Start the connection attempt.
-        ChannelFuture future = bootstrap.connect(address);
+        ChannelFuture future = bootstrapLocalExec.connect(address);
 
         // Wait until the connection attempt succeeds or fails.
         channel = future.awaitUninterruptibly().getChannel();
         if (!future.isSuccess()) {
             logger.error("Client Not Connected", future.getCause());
-            return;
+            return false;
         }
+        return true;
     }
     /**
      * Disconnect from the server

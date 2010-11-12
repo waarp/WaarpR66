@@ -92,12 +92,13 @@ public class ExecMoveTask extends AbstractTask {
         finalname = getReplacedValue(finalname, argTransfer.split(" "));
         if (Configuration.configuration.useLocalExec) {
             LocalExecClient localExecClient = new LocalExecClient();
-            localExecClient.connect();
-            localExecClient.runOneCommand(finalname, delay, futureCompletion);
-            LocalExecResult result = localExecClient.getLocalExecResult();
-            move(result.status, result.result, finalname);
-            localExecClient.disconnect();
-            return;
+            if (localExecClient.connect()) {
+                localExecClient.runOneCommand(finalname, delay, futureCompletion);
+                LocalExecResult result = localExecClient.getLocalExecResult();
+                move(result.status, result.result, finalname);
+                localExecClient.disconnect();
+                return;
+            } // else continue
         }
         String[] args = finalname.split(" ");
         File exec = new File(args[0]);
@@ -281,7 +282,7 @@ public class ExecMoveTask extends AbstractTask {
             }
             session.getRunner().setFileMoved(newname, true);
             futureCompletion.setSuccess();
-            logger.info("Exec OK with {} returns {}", commandLine,
+            logger.warn("Exec OK with {} returns {}", commandLine,
                     newname);
         } else if (status == 1) {
             logger.warn("Exec in warning with " + commandLine+

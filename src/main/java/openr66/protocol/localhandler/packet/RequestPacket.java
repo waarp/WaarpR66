@@ -111,7 +111,8 @@ public class RequestPacket extends AbstractLocalPacket {
         return ((RequestPacket.isRecvMode(mode1) && RequestPacket.isRecvMode(mode2))
                 || ((!RequestPacket.isRecvMode(mode1)) &&
                         (!RequestPacket.isRecvMode(mode2))));
-        /*return ((RequestPacket.isRecvMode(mode1) && RequestPacket.isRecvThroughMode(mode2))
+        /* Was
+         * return ((RequestPacket.isRecvMode(mode1) && RequestPacket.isRecvThroughMode(mode2))
                 || ((!RequestPacket.isRecvMode(mode1)) &&
                         (!RequestPacket.isRecvThroughMode(mode2))));*/
     }

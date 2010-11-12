@@ -433,7 +433,7 @@ public class FileBasedConfiguration {
                     }
                 }
                 node = document.selectSingleNode(XML_LEXECPORT);
-                int port = 6666;
+                int port = 9999;
                 if (node != null) {
                     port = Integer.parseInt(node.getText());
                 }
