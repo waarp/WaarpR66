@@ -1,9 +1,13 @@
 <config>
 	<comment>Example of config file: change its as your need.</comment>
-	<hostid>hostb</hostid>
-	<sessionlimit>102400000</sessionlimit>
-	<globallimit>1024000000</globallimit>
-	<sessionlimit2>0</sessionlimit2>
-	<globallimit2>0</globallimit2>
-	<delaylimit>5000</delaylimit>
+    <identity>
+        <hostid>hostb</hostid>
+    </identity>
+    <parameter>
+        <sessionlimit2>1024000</sessionlimit2>
+        <globallimit2>10240000</globallimit2>
+        <sessionlimit>0</sessionlimit>
+        <globallimit>0</globallimit>
+        <delaylimit>0</delaylimit>
+    </parameter>
 </config>
