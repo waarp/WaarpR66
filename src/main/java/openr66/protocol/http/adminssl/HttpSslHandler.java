@@ -188,8 +188,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             return handler.readFileHeader(Configuration.configuration.httpBasePath+this.header);
         }
         
-        public String readHeader() {
-            return GgStringUtils.readFile(Configuration.configuration.httpBasePath+this.header);
+        public String readHeader(HttpSslHandler handler) {
+            return handler.readFileHeader(Configuration.configuration.httpBasePath+this.header);
         }
         public String readBodyHeader() {
             return GgStringUtils.readFile(Configuration.configuration.httpBasePath+this.headerBody);
@@ -365,13 +365,13 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
     private String Listing() {
         getParams();
         if (params == null) {
-            String head = REQUEST.Listing.readHeader();
+            String head = REQUEST.Listing.readHeader(this);
             head = resetOptionTransfer(head, "", "", "", "", "", "",
                     false, false, false, false, true);
             String end = REQUEST.Listing.readEnd();
             return head+end;
         }
-        String head = REQUEST.Listing.readHeader();
+        String head = REQUEST.Listing.readHeader(this);
         String body0, body, body1;
         body0 = body1 = body = "";
         List<String> parms = params.get("ACTION");
@@ -468,14 +468,14 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
     private String CancelRestart() {
         getParams();
         if (params == null) {
-            String head = REQUEST.CancelRestart.readHeader();
+            String head = REQUEST.CancelRestart.readHeader(this);
             head = resetOptionTransfer(head, "", "", "", "", "", "",
                     false, false, false, false, true);
             String end;
             end = REQUEST.CancelRestart.readEnd();
             return head+end;
         }
-        String head = REQUEST.CancelRestart.readHeader();
+        String head = REQUEST.CancelRestart.readHeader(this);
         String body0, body, body1;
         body0 = body1 = body = "";
         List<String> parms = params.get("ACTION");
@@ -855,7 +855,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
     }
     private String Hosts() {
         getParams();
-        String head = REQUEST.Hosts.readHeader();
+        String head = REQUEST.Hosts.readHeader(this);
         String end;
         end = REQUEST.Hosts.readEnd();
         if (params == null) {
@@ -1131,7 +1131,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
     }
     private String Rules() {
         getParams();
-        String head = REQUEST.Rules.readHeader();
+        String head = REQUEST.Rules.readHeader(this);
         String end;
         end = REQUEST.Rules.readEnd();
         if (params == null) {

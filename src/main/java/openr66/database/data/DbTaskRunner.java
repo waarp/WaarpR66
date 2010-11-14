@@ -62,7 +62,7 @@ import openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
-import openr66.protocol.http.HttpHandler;
+import openr66.protocol.http.HttpFormattedHandler;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.localhandler.packet.RequestPacket.TRANSFERMODE;
@@ -2354,12 +2354,12 @@ public class DbTaskRunner extends AbstractDbData {
                         sdir = rule.workPath;
                     }
                     R66Dir dir;
-                    if (HttpHandler.usedDir.containsKey(sdir)) {
-                        dir = HttpHandler.usedDir.get(sdir);
+                    if (HttpFormattedHandler.usedDir.containsKey(sdir)) {
+                        dir = HttpFormattedHandler.usedDir.get(sdir);
                     } else {
                         dir = new R66Dir(session);
                         dir.changeDirectory(sdir);
-                        HttpHandler.usedDir.put(sdir, dir);
+                        HttpFormattedHandler.usedDir.put(sdir, dir);
                     }
                     freespace = dir.getFreeSpace() / 0x100000L;
                 } catch (CommandAbstractException e) {
