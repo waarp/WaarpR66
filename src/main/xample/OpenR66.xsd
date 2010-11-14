@@ -1,0 +1,535 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:fg="http://www.FGolubov.com/XMLEditor" elementFormDefault="qualified">
+
+  <xsd:simpleType name="booleanType">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<fg:node-info editor-class="com.fg.ftreenodes.FCheckBox">
+					<fg:param>True</fg:param>
+					<fg:param>False</fg:param>
+				</fg:node-info>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:NMTOKEN">
+			<xsd:enumeration value="True"/>
+			<xsd:enumeration value="False"/>
+		</xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="nonNegInteger">
+    <xsd:restriction base="xsd:nonNegativeInteger"/>
+  </xsd:simpleType>
+  <xsd:simpleType name="nonNulInteger">
+    <xsd:restriction base="xsd:positiveInteger"/>
+  </xsd:simpleType>
+  <xsd:simpleType name="nonEmptyString">
+    <xsd:restriction base="xsd:token">
+        <xsd:minLength value="1"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="address">
+    <xsd:restriction base="xsd:token">
+        <xsd:minLength value="1"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="normString">
+    <xsd:restriction base="xsd:normalizedString">
+        <xsd:minLength value="1"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="pathType">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<fg:node-info
+					editor-id="FileDialog" 
+					message="Any File">
+					<fg:param>|2Any files: *.*</fg:param>
+				</fg:node-info>
+			</xsd:appinfo>
+		</xsd:annotation>
+        <xsd:restriction base="nonEmptyString"/>
+  </xsd:simpleType>
+  <xsd:simpleType name="directoryType">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<fg:node-info 
+                    editor-id="FileDialog"
+                    message="Directory"> 
+					<fg:param>|1Directory: *</fg:param>
+				</fg:node-info>
+			</xsd:appinfo>
+		</xsd:annotation>
+        <xsd:restriction base="nonEmptyString"/>
+    </xsd:simpleType>
+    <xsd:simpleType name="JKS-File">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<fg:node-info
+					editor-id="FileDialog" 
+					message="JKS KeyStore File">
+					<fg:param>jks|jeks|0JKS Keystore files: *.jks, *.jeks</fg:param>
+				</fg:node-info>
+			</xsd:appinfo>
+		</xsd:annotation>
+        <xsd:restriction base="nonEmptyString"/>
+	</xsd:simpleType>
+    <xsd:simpleType name="XML-File">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<fg:node-info
+					editor-id="FileDialog" 
+					message="XML File">
+					<fg:param>xml|0XML files: *.xml</fg:param>
+				</fg:node-info>
+			</xsd:appinfo>
+		</xsd:annotation>
+        <xsd:restriction base="nonEmptyString"/>
+	</xsd:simpleType>
+    <xsd:simpleType name="Des-File">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<fg:node-info
+					editor-id="FileDialog" 
+					message="Des Blowfish Key File">
+                    <fg:param>des|blf|0Des Blowfish Key files: *.des, *.blf</fg:param>
+				</fg:node-info>
+			</xsd:appinfo>
+		</xsd:annotation>
+        <xsd:restriction base="nonEmptyString"/>
+	</xsd:simpleType>
+    <xsd:simpleType name="SODLL-File">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<fg:node-info
+					editor-id="FileDialog" 
+					message="SO or DLL File">
+					<fg:param>so|dll|0SO or DLL files: *.so, *.dll</fg:param>
+				</fg:node-info>
+			</xsd:appinfo>
+		</xsd:annotation>
+        <xsd:restriction base="nonEmptyString"/>
+	</xsd:simpleType>
+            <xsd:group name="KeyStore">
+                 <xsd:sequence>
+				  <xsd:element name="keypath" type="JKS-File">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="JKS KeyStore for R66 Access in SSL Mode (containing Server Certificate)"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="keystorepass" type="nonEmptyString">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Password for the KeyStore"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="keypass" type="nonEmptyString">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Password for the Server Certificate within the KeyStore"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+                 </xsd:sequence>
+            </xsd:group>
+            <xsd:group name="TrustKeyStore">
+                 <xsd:sequence>
+				  <xsd:element name="trustkeypath" type="JKS-File">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="JKS Trust KeyStore for R66 Access in SSL Mode with Client Authentication (containing Client Certificate)"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="trustkeystorepass" type="nonEmptyString">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Password for the Trust KeyStore"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+                 </xsd:sequence>
+            </xsd:group>
+            <xsd:group name="AdministratorKeyStore">
+                 <xsd:sequence>
+				  <xsd:element name="admkeypath" type="JKS-File">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="JKS HTTP KeyStore for Administrator Access in HTTPS Mode (containing Server Certificate)"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="admkeystorepass" type="nonEmptyString">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Password for the HTTP KeyStore"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="admkeypass" type="nonEmptyString">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Password for the HTTP Server Certificate within the HTTP KeyStore"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+                 </xsd:sequence>
+            </xsd:group>
+     
+
+	
+	
+  <xsd:element name="config">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="comment" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+		
+        <xsd:element name="identity" >
+			<xsd:complexType>
+			  <xsd:sequence>
+				<xsd:element name="hostid" type="nonEmptyString">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<fg:node-info exposed="true"/>
+                            <fg:node-info message="Host ID in NON SSL mode"/>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="sslhostid" type="nonEmptyString" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Host ID in SSL mode"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+				<xsd:element name="serveradmin" type="nonEmptyString">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Username for Administrator access"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+				<xsd:element name="serverpasswd" type="nonEmptyString">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Password for Administrator access using Crupto Key"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+			  </xsd:sequence>
+			</xsd:complexType>
+		</xsd:element>
+
+		<xsd:element name="authentfile" type="XML-File" minOccurs="0" maxOccurs="1">
+            <xsd:annotation>
+                <xsd:appinfo>
+                    <fg:node-info message="Authentication File containing Authentications for partners"/>
+                </xsd:appinfo>
+            </xsd:annotation>
+        </xsd:element>
+        
+		<xsd:element name="network" >
+			<xsd:complexType>
+			  <xsd:sequence>
+				<xsd:element name="serverport"  type="nonNulInteger" default="6666">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Port used in NON SSL mode"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+				<xsd:element name="serversslport" minOccurs="0" maxOccurs="1" type="nonNulInteger" default="6667">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Port used in SSL mode"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+				<xsd:element name="serverhttpport" type="nonNulInteger" default="8066">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Port used for monitoring in HTTP mode"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+				<xsd:element name="serverhttpsport" type="nonNulInteger" default="8067">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Port used for Administrator access in HTTPS mode"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+			  </xsd:sequence>
+			</xsd:complexType>
+		</xsd:element>
+
+        <xsd:element name="ssl" minOccurs="0" maxOccurs="1">
+			<xsd:complexType>
+			  <xsd:sequence>
+                <xsd:group ref="KeyStore">
+                </xsd:group>
+                <xsd:group ref="TrustKeyStore" minOccurs="0" maxOccurs="1">
+                </xsd:group>
+                <xsd:group ref="AdministratorKeyStore">
+                </xsd:group>
+				  <xsd:element name="cryptokey" type="Des-File">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Des CryptoKey File containing the key in Des mode for R66 passwords"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+			  </xsd:sequence>
+			</xsd:complexType>
+		</xsd:element>
+		
+        <xsd:element name="directory" >
+			<xsd:complexType>
+			  <xsd:sequence>
+				  <xsd:element name="serverhome" type="directoryType" >
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Home Directory for the OpenR66 Server (relative path to this Home)"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="in" type="nonEmptyString" minOccurs="0" maxOccurs="1" default="IN">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Default Receive Directory"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="out" type="nonEmptyString" minOccurs="0" maxOccurs="1" default="OUT">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Default Send Directory"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="arch" type="nonEmptyString" minOccurs="0" maxOccurs="1" default="ARCH">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Default Archive Directory"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="work" type="nonEmptyString" minOccurs="0" maxOccurs="1" default="WORK">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Default Working Directory"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="conf" type="nonEmptyString" minOccurs="0" maxOccurs="1" default="CONF">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Configuration Directory"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="httpadmin" type="directoryType" >
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Home Directory for HTTPS file support for Administrator"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+			  </xsd:sequence>
+			</xsd:complexType>
+		</xsd:element>
+
+        <xsd:element name="parameter" >
+			<xsd:complexType>
+			  <xsd:all>
+				  <xsd:element name="usenossl" type="booleanType" default="True" >
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="True (Default) if R66 will allow no SSL mode connection"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="usessl" type="booleanType" default="False" >
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="True if R66 will allow SSL mode connection"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="usehttpcomp" type="booleanType" default="False" >
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="True if Administrator (HTTPS) will allow HTTP compression"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="trustuseclientauthenticate" type="booleanType" default="False" >
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="True if R66 will only allow client through SSL authentication"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="uselocalexec" type="booleanType" default="False" >
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="By default, use the System.exec() but can lead to limitation in performances (JDK limitation). The usage of the GoldenGate LocalExec Daemin tends to reach better performances through execution delegation"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="lexecaddr" type="address" default="127.0.0.1" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Address of LocalExec Daemon"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="lexecport" type="nonNulInteger" default="9999" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Port of LocalExec Daemon"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="serverthread" type="nonNulInteger" default="8" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Number of Threads on Server side (=Number of Cores)"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="clientthread" type="nonNulInteger" default="80" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Number of Threads on Client side (=10xServer)"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="memorylimit" type="nonNulInteger" default="4000000000" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Memory Limit for R66 Server Java Process"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="sessionlimit" type="nonNegInteger" default="8388608" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="HBandwidth for one session (64Mb)"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="globallimit" type="nonNegInteger" default="67108864" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Global Bandwidth (512Mb)"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="delaylimit" type="nonNulInteger" default="10000" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Delay between 2 checks of Bandwidth (10s). The less this value, the better the bandwidth limitation is done. However take care to not give too low value"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="runlimit" type="nonNulInteger" default="10000" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Limite by batch of active transfers (10000)"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="delaycommand" type="nonNulInteger" default="5000" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Delay between 2 execution of the Commander (5s)"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="delayretry" type="nonNulInteger" default="30000" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Delay between 2 attemps in case of error (30s)"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="timeoutcon" type="nonNulInteger" default="30000" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Delay before a Time Out occurs (30s)"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="blocksize" type="nonNulInteger" default="65536" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Block size (64Ko). A value between 8 KB to 16 MB is recommanded"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="usenio" type="booleanType" default="False" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Usage of NIO support for the files. According to the JDK, it can enhance the performances"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="usefastmd5" type="booleanType" default="True" >
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Usage of FastMD5 library. The library greatly improves the performances for the MD5 computations"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="fastmd5" type="SODLL-File" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Library JNI Filepath. If the path is empty, the pure Java version will be used"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+			  </xsd:all>
+			</xsd:complexType>
+		</xsd:element>
+		
+        <xsd:element name="db" minOccurs="0" maxOccurs="1">
+			<xsd:complexType>
+			  <xsd:sequence>
+				  <xsd:element name="dbdriver" type="address" >
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="4 types of database are currently supported: oracle, mysql, postgresql, h2"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="dbserver" type="normString" >
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Connection to the database in JDBC mode (jdbc:type://[host:port]....). Use the database documentation to find the correct syntax for the JDBC connection"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="dbuser" type="address" >
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Database User"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="dbpasswd" type="nonEmptyString" >
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Database User's Password"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+			  </xsd:sequence>
+			</xsd:complexType>
+		</xsd:element>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  
+</xsd:schema>

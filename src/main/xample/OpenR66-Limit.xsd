@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:fg="http://www.FGolubov.com/XMLEditor" elementFormDefault="qualified">
+
+  <xsd:simpleType name="booleanType">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<fg:node-info editor-class="com.fg.ftreenodes.FCheckBox">
+					<fg:param>True</fg:param>
+					<fg:param>False</fg:param>
+				</fg:node-info>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:NMTOKEN">
+			<xsd:enumeration value="True"/>
+			<xsd:enumeration value="False"/>
+		</xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="nonNegInteger">
+    <xsd:restriction base="xsd:nonNegativeInteger"/>
+  </xsd:simpleType>
+  <xsd:simpleType name="nonNulInteger">
+    <xsd:restriction base="xsd:positiveInteger"/>
+  </xsd:simpleType>
+  <xsd:simpleType name="nonEmptyString">
+    <xsd:restriction base="xsd:token">
+        <xsd:minLength value="1"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="address">
+    <xsd:restriction base="xsd:token">
+        <xsd:minLength value="1"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="normString">
+    <xsd:restriction base="xsd:normalizedString">
+        <xsd:minLength value="1"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+	
+	
+  <xsd:element name="config">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="comment" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+		
+        <xsd:element name="identity" >
+			<xsd:complexType>
+			  <xsd:sequence>
+				<xsd:element name="hostid" type="nonEmptyString">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<fg:node-info exposed="true"/>
+                            <fg:node-info message="Host ID in NON SSL mode"/>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:element>
+			  </xsd:sequence>
+			</xsd:complexType>
+		</xsd:element>
+
+
+        <xsd:element name="parameter" >
+			<xsd:complexType>
+			  <xsd:all>
+				  <xsd:element name="sessionlimit" type="nonNegInteger" default="8388608" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="HBandwidth for one session (64Mb)"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="globallimit" type="nonNegInteger" default="67108864" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Global Bandwidth (512Mb)"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="delaylimit" type="nonNulInteger" default="10000" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Delay between 2 checks of Bandwidth (10s). The less this value, the better the bandwidth limitation is done. However take care to not give too low value"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="runlimit" type="nonNulInteger" default="10000" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Limite by batch of active transfers (10000)"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="delaycommand" type="nonNulInteger" default="5000" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Delay between 2 execution of the Commander (5s)"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="delayretry" type="nonNulInteger" default="30000" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Delay between 2 attemps in case of error (30s)"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+			  </xsd:all>
+			</xsd:complexType>
+		</xsd:element>
+		
+ 
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  
+</xsd:schema>
