@@ -100,7 +100,7 @@ public class LocalExecClient {
      * @param delay
      * @param futureCompletion
      */
-    public void runOneCommand(String command, int delay, GgFuture futureCompletion) {
+    public void runOneCommand(String command, long delay, GgFuture futureCompletion) {
      // Initialize the command context
         LocalExecClientHandler clientHandler =
             (LocalExecClientHandler) channel.getPipeline().getLast();
@@ -128,7 +128,7 @@ public class LocalExecClient {
         }
         if (result.status == 0) {
             futureCompletion.setSuccess();
-            logger.warn("Exec OK with {}", command);
+            logger.info("Exec OK with {}", command);
         } else if (result.status == 1) {
             logger.warn("Exec in warning with {}", command);
             futureCompletion.setSuccess();
