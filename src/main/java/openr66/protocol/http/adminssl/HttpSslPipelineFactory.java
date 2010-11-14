@@ -26,7 +26,6 @@ import goldengate.common.crypto.ssl.GgSslContextFactory;
 import java.util.concurrent.ExecutorService;
 
 import openr66.protocol.configuration.Configuration;
-import openr66.protocol.http.adminsslback.HttpSslHandler;
 
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;

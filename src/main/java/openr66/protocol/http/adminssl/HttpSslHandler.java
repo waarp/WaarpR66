@@ -20,21 +20,19 @@
  */
 package openr66.protocol.http.adminssl;
 
+import goldengate.common.exception.FileTransferException;
+import goldengate.common.exception.InvalidArgumentException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+import goldengate.common.utility.GgStringUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.net.SocketAddress;
-import java.nio.charset.Charset;
 import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -74,7 +72,6 @@ import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
 import openr66.context.filesystem.R66Dir;
-import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.DbConstant;
 import openr66.database.DbPreparedStatement;
 import openr66.database.DbSession;
@@ -140,10 +137,74 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 
     private static final String R66SESSION = "R66SESSION";
     private static enum REQUEST {
-        Logon, index,
-        Transfers, Listing, CancelRestart, Export,
-        Hosts, Rules, System;
+        Logon("Logon.html"), 
+        index("index.html"),
+        error("error.html"),
+        Transfers("Transfers.html"), 
+        Listing("Listing_head.html","Listing_body0.html","Listing_body.html","Listing_body1.html","Listing_end.html"), 
+        CancelRestart("CancelRestart_head.html","CancelRestart_body0.html","CancelRestart_body.html","CancelRestart_body1.html","CancelRestart_end.html"), 
+        Export("Export.html"),
+        Hosts("Hosts_head.html","Hosts_body0.html","Hosts_body.html","Hosts_body1.html","Hosts_end.html"), 
+        Rules("Rules_head.html","Rules_body0.html","Rules_body.html","Rules_body1.html","Rules_end.html"), 
+        System("System.html");
+        
+        private String header;
+        private String headerBody;
+        private String body;
+        private String endBody;
+        private String end;
+        /**
+         * Constructor for a unique file
+         * @param uniquefile
+         */
+        private REQUEST(String uniquefile) {
+            this.header = uniquefile;
+            this.headerBody = null;
+            this.body = null;
+            this.endBody = null;
+            this.end = null;
+        }
+        /**
+         * @param header
+         * @param headerBody
+         * @param body
+         * @param endBody
+         * @param end
+         */
+        private REQUEST(String header, String headerBody, String body,
+                String endBody, String end) {
+            this.header = header;
+            this.headerBody = headerBody;
+            this.body = body;
+            this.endBody = endBody;
+            this.end = end;
+        }
+        
+        /**
+         * Reader for a unique file
+         * @return the content of the unique file
+         */
+        public String readFileUnique(HttpSslHandler handler) {
+            return handler.readFileHeader(Configuration.configuration.httpBasePath+this.header);
+        }
+        
+        public String readHeader() {
+            return GgStringUtils.readFile(Configuration.configuration.httpBasePath+this.header);
+        }
+        public String readBodyHeader() {
+            return GgStringUtils.readFile(Configuration.configuration.httpBasePath+this.headerBody);
+        }
+        public String readBody() {
+            return GgStringUtils.readFile(Configuration.configuration.httpBasePath+this.body);
+        }
+        public String readBodyEnd() {
+            return GgStringUtils.readFile(Configuration.configuration.httpBasePath+this.endBody);
+        }
+        public String readEnd() {
+            return GgStringUtils.readFile(Configuration.configuration.httpBasePath+this.end);
+        }
     }
+    
     private static enum REPLACEMENT {
         XXXHOSTIDXXX, XXXADMINXXX, XXXVERSIONXXX, XXXBANDWIDTHXXX,
         XXXXSESSIONLIMITRXXX, XXXXSESSIONLIMITWXXX,
@@ -153,8 +214,6 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         XXXERRORMESGXXX;
     }
     public static final int LIMITROW = 48;// better if it can be divided by 4
-
-    private static final Charset UTF8 = Charset.forName("UTF-8");
 
     /**
      * The Database connection attached to this NetworkChannel
@@ -175,6 +234,54 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             waitForSsl.remove(future.getChannel().getId());
         }
     };
+
+    private String readFileHeader(String filename) {
+        String value;
+        try {
+            value = GgStringUtils.readFileException(filename);
+        } catch (InvalidArgumentException e) {
+            logger.error("Error while trying to open: "+filename,e);
+            return "";
+        } catch (FileTransferException e) {
+            logger.error("Error while trying to read: "+filename,e);
+            return "";
+        }
+        StringBuilder builder = new StringBuilder(value);
+        FileUtils.replace(builder, REPLACEMENT.XXXLOCALXXX.toString(),
+                Integer.toString(
+                        Configuration.configuration.getLocalTransaction().
+                        getNumberLocalChannel())+" "+Thread.activeCount());
+        FileUtils.replace(builder, REPLACEMENT.XXXNETWORKXXX.toString(),
+                Integer.toString(
+                        OpenR66SignalHandler.getNbConnection()));
+        FileUtils.replace(builder, REPLACEMENT.XXXHOSTIDXXX.toString(),
+                Configuration.configuration.HOST_ID);
+        if (authentHttp.isAuthenticated()) {
+            FileUtils.replace(builder, REPLACEMENT.XXXADMINXXX.toString(),
+                "Connected");
+        } else {
+            FileUtils.replace(builder, REPLACEMENT.XXXADMINXXX.toString(),
+                    "Not authenticated");
+        }
+        TrafficCounter trafficCounter =
+            Configuration.configuration.getGlobalTrafficShapingHandler().getTrafficCounter();
+        FileUtils.replace(builder, REPLACEMENT.XXXBANDWIDTHXXX.toString(),
+                "IN:"+(trafficCounter.getLastReadThroughput()/131072)+
+                "Mbits&nbsp;<br>&nbsp;OUT:"+
+                (trafficCounter.getLastWriteThroughput()/131072)+"Mbits");
+        return builder.toString();
+    }
+
+    private String getTrimValue(String varname) {
+        String value = params.get(varname).get(0).trim();
+        if (value.length() == 0) {
+            value = null;
+        }
+        return value;
+    }
+    private String getValue(String varname) {
+        return params.get(varname).get(0);
+    }
     /**
      * Add the Channel as SSL handshake is over
      * @param channel
@@ -213,109 +320,10 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         super.channelOpen(ctx, e);
     }
 
-    private String readFile(String filename) throws OpenR66RunnerErrorException {
-        File file = new File(filename);
-        char [] chars = new char[(int) file.length()];
-        FileReader fileReader;
-        try {
-            fileReader = new FileReader(file);
-        } catch (FileNotFoundException e) {
-            logger.error("File not found while trying to access: "+filename, e);
-            throw new OpenR66RunnerErrorException("File not found while trying to access",e);
-            //return null;
-        }
-        int length;
-        try {
-            length = fileReader.read(chars);
-        } catch (IOException e) {
-            logger.error("Error on File while trying to read: "+filename, e);
-            throw new OpenR66RunnerErrorException("Error on File while trying to read",e);
-            //return null;
-        }
-        if (length != file.length()) {
-            // error
-            throw new OpenR66RunnerErrorException("Length File error while reading");
-            //return null;
-        }
-        return new String(chars);
-    }
-    private String readFileHeader(String filename) {
-        String value;
-        try {
-            value = readFile(filename);
-        } catch (OpenR66RunnerErrorException e) {
-            logger.error("Error while trying to read: "+filename,e);
-            return "";
-        }
-        StringBuilder builder = new StringBuilder(value);
-        FileUtils.replace(builder, REPLACEMENT.XXXLOCALXXX.toString(),
-                Integer.toString(
-                        Configuration.configuration.getLocalTransaction().
-                        getNumberLocalChannel())+" "+Thread.activeCount());
-        FileUtils.replace(builder, REPLACEMENT.XXXNETWORKXXX.toString(),
-                Integer.toString(
-                        OpenR66SignalHandler.getNbConnection()));
-        FileUtils.replace(builder, REPLACEMENT.XXXHOSTIDXXX.toString(),
-                Configuration.configuration.HOST_ID);
-        if (authentHttp.isAuthenticated()) {
-            FileUtils.replace(builder, REPLACEMENT.XXXADMINXXX.toString(),
-                "Connected");
-        } else {
-            FileUtils.replace(builder, REPLACEMENT.XXXADMINXXX.toString(),
-                    "Not authenticated");
-        }
-        TrafficCounter trafficCounter =
-            Configuration.configuration.getGlobalTrafficShapingHandler().getTrafficCounter();
-        FileUtils.replace(builder, REPLACEMENT.XXXBANDWIDTHXXX.toString(),
-                "IN:"+(trafficCounter.getLastReadThroughput()/131072)+
-                "Mbits&nbsp;<br>&nbsp;OUT:"+
-                (trafficCounter.getLastWriteThroughput()/131072)+"Mbits");
-        return builder.toString();
-    }
-    private static SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmssSSS");
-    private Timestamp fixDate(String date) {
-        Timestamp tdate = null;
-        date = date.replaceAll("/|:|\\.| |-", "");
-        if (date.length() > 0) {
-            if (date.length() < 15) {
-                int len = date.length();
-                date += "000000000000000".substring(len);
-            }
-            try {
-                Date ddate = format.parse(date);
-                tdate = new Timestamp(ddate.getTime());
-            } catch (ParseException e) {
-                logger.info("start",e);
-            }
-        }
-        return tdate;
-    }
-    private Timestamp fixDate(String date, Timestamp before) {
-        Timestamp tdate = null;
-        date = date.replaceAll("/|:|\\.| |-", "");
-        if (date.length() > 0) {
-            if (date.length() < 15) {
-                int len = date.length();
-                date += "000000000000000".substring(len);
-            }
-            try {
-                Date ddate = format.parse(date);
-                if (before != null) {
-                    Date bef = new Date(before.getTime());
-                    if (bef.compareTo(ddate) >= 0) {
-                        ddate = new Date(bef.getTime()+1000*3600*24-1);
-                    }
-                }
-                tdate = new Timestamp(ddate.getTime());
-            } catch (ParseException e) {
-                logger.info("start",e);
-            }
-        }
-        return tdate;
-    }
+    
 
     private String index() {
-        String index = readFileHeader(Configuration.configuration.httpBasePath+"index.html");
+        String index = REQUEST.index.readFileUnique(this);
         StringBuilder builder = new StringBuilder(index);
         FileUtils.replaceAll(builder, REPLACEMENT.XXXHOSTIDXXX.toString(),
                 Configuration.configuration.HOST_ID);
@@ -326,15 +334,15 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         return builder.toString();
     }
     private String error(String mesg) {
-        String index = readFileHeader(Configuration.configuration.httpBasePath+"error.html");
+        String index = REQUEST.error.readFileUnique(this);
         return index.replaceAll(REPLACEMENT.XXXERRORMESGXXX.toString(),
                 mesg);
     }
     private String Logon() {
-        return readFileHeader(Configuration.configuration.httpBasePath+"Logon.html");
+        return REQUEST.Logon.readFileUnique(this);
     }
     private String Transfers() {
-        return readFileHeader(Configuration.configuration.httpBasePath+"Transfers.html");
+        return REQUEST.Transfers.readFileUnique(this);
     }
 
     private String resetOptionTransfer(String header, String startid, String stopid,
@@ -357,55 +365,32 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
     private String Listing() {
         getParams();
         if (params == null) {
-            String head = readFileHeader(Configuration.configuration.httpBasePath+"Listing_head.html");
+            String head = REQUEST.Listing.readHeader();
             head = resetOptionTransfer(head, "", "", "", "", "", "",
                     false, false, false, false, true);
-            String end;
-            try {
-                end = readFile(Configuration.configuration.httpBasePath+"Listing_end.html");
-            } catch (OpenR66RunnerErrorException e) {
-                logger.error("Error while trying to read: Listing_end.html",e);
-                return head;
-            }
+            String end = REQUEST.Listing.readEnd();
             return head+end;
         }
-        String head = readFileHeader(Configuration.configuration.httpBasePath+"Listing_head.html");
+        String head = REQUEST.Listing.readHeader();
         String body0, body, body1;
         body0 = body1 = body = "";
         List<String> parms = params.get("ACTION");
         if (parms != null) {
-            try {
-                body0 = readFile(Configuration.configuration.httpBasePath+"Listing_body0.html");
-            } catch (OpenR66RunnerErrorException e1) {
-                logger.error("Error while trying to read: Listing_body0.html",e1);
-                body0 = "";
-            }
+            body0 = REQUEST.Listing.readBodyHeader();
             String parm = parms.get(0);
             if ("Filter".equalsIgnoreCase(parm)) {
-                String startid = params.get("startid").get(0).trim();
-                if (startid.length() == 0) {
-                    startid = null;
-                }
-                String stopid = params.get("stopid").get(0).trim();
-                if (stopid.length() == 0) {
-                    stopid = null;
-                }
+                String startid = getTrimValue("startid");
+                String stopid = getTrimValue("stopid");
                 if (startid != null && stopid == null) {
                     stopid = Long.toString(Long.parseLong(startid)+(LIMITROW/2));
                 }
                 if (stopid != null && startid == null) {
                     startid = Long.toString(Long.parseLong(stopid)-(LIMITROW/2));
                 }
-                String start = params.get("start").get(0);
-                String stop = params.get("stop").get(0);
-                String rule = params.get("rule").get(0).trim();
-                if (rule.length() == 0) {
-                    rule = null;
-                }
-                String req = params.get("req").get(0).trim();
-                if (req.length() == 0) {
-                    req = null;
-                }
+                String start = getValue("start");
+                String stop = getValue("stop");
+                String rule = getTrimValue("rule");
+                String req = getTrimValue("req");
                 boolean pending, transfer, error, done, all;
                 pending = params.containsKey("pending");
                 transfer = params.containsKey("transfer");
@@ -417,11 +402,11 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 } else if (!(pending || transfer || error || done)) {
                     all = true;
                 }
-                Timestamp tstart = fixDate(start);
+                Timestamp tstart = GgStringUtils.fixDate(start);
                 if (tstart != null) {
                     start = tstart.toString();
                 }
-                Timestamp tstop = fixDate(stop, tstart);
+                Timestamp tstop = GgStringUtils.fixDate(stop, tstart);
                 if (tstop != null) {
                     stop = tstop.toString();
                 }
@@ -429,12 +414,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                         stopid == null ? "":stopid, start, stop,
                         rule == null ? "":rule, req == null ? "":req,
                         pending, transfer, error, done, all);
-                try {
-                    body = readFile(Configuration.configuration.httpBasePath+"Listing_body.html");
-                } catch (OpenR66RunnerErrorException e1) {
-                    logger.error("Error while trying to read: Listing_body.html",e1);
-                    body = "";
-                }
+                body = REQUEST.Listing.readBody();
                 DbPreparedStatement preparedStatement = null;
                 try {
                     preparedStatement =
@@ -475,78 +455,46 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 head = resetOptionTransfer(head, "", "", "", "", "", "",
                         false, false, false, false, true);
             }
-            try {
-                body1 = readFile(Configuration.configuration.httpBasePath+"Listing_body1.html");
-            } catch (OpenR66RunnerErrorException e) {
-                logger.error("Error while trying to read: Listing_body1.html",e);
-                body1 = "";
-            }
+            body1 = REQUEST.Listing.readBodyEnd();
         } else {
             head = resetOptionTransfer(head, "", "", "", "", "", "",
                     false, false, false, false, true);
         }
         String end;
-        try {
-            end = readFile(Configuration.configuration.httpBasePath+"Listing_end.html");
-        } catch (OpenR66RunnerErrorException e) {
-            logger.error("Error while trying to read: Listing_end.html",e);
-            end = "";
-        }
+        end = REQUEST.Listing.readEnd();
         return head+body0+body+body1+end;
     }
 
     private String CancelRestart() {
         getParams();
         if (params == null) {
-            String head = readFileHeader(Configuration.configuration.httpBasePath+"CancelRestart_head.html");
+            String head = REQUEST.CancelRestart.readHeader();
             head = resetOptionTransfer(head, "", "", "", "", "", "",
                     false, false, false, false, true);
             String end;
-            try {
-                end = readFile(Configuration.configuration.httpBasePath+"CancelRestart_end.html");
-            } catch (OpenR66RunnerErrorException e) {
-                logger.error("Error while reading CancelRestart_end.html",e);
-                return head;
-            }
+            end = REQUEST.CancelRestart.readEnd();
             return head+end;
         }
-        String head = readFileHeader(Configuration.configuration.httpBasePath+"CancelRestart_head.html");
+        String head = REQUEST.CancelRestart.readHeader();
         String body0, body, body1;
         body0 = body1 = body = "";
         List<String> parms = params.get("ACTION");
         if (parms != null) {
-            try {
-                body0 = readFile(Configuration.configuration.httpBasePath+"CancelRestart_body0.html");
-            } catch (OpenR66RunnerErrorException e1) {
-                logger.error("Error while trying to read: CancelRestart_body0.html",e1);
-                body0 = "";
-            }
+            body0 = REQUEST.CancelRestart.readBodyHeader();
             String parm = parms.get(0);
             if ("Filter".equalsIgnoreCase(parm)) {
-                String startid = params.get("startid").get(0).trim();
-                if (startid.length() == 0) {
-                    startid = null;
-                }
-                String stopid = params.get("stopid").get(0).trim();
-                if (stopid.length() == 0) {
-                    stopid = null;
-                }
+                String startid = getTrimValue("startid");
+                String stopid = getTrimValue("stopid");
                 if (startid != null && stopid == null) {
                     stopid = Long.toString(Long.parseLong(startid)+(LIMITROW/2));
                 }
                 if (stopid != null && startid == null) {
                     startid = Long.toString(Long.parseLong(stopid)-(LIMITROW/2));
                 }
-                String start = params.get("start").get(0);
-                String stop = params.get("stop").get(0);
-                String rule = params.get("rule").get(0).trim();
-                if (rule.length() == 0) {
-                    rule = null;
-                }
-                String req = params.get("req").get(0).trim();
-                if (req.length() == 0) {
-                    req = null;
-                }
+                String start = getValue("start");
+                String stop = getValue("stop");
+                String rule = getTrimValue("rule");
+                String req = getTrimValue("req");
                 boolean pending, transfer, error, done, all;
                 pending = params.containsKey("pending");
                 transfer = params.containsKey("transfer");
@@ -558,11 +506,11 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 } else if (!(pending || transfer || error || done)) {
                     all = true;
                 }
-                Timestamp tstart = fixDate(start);
+                Timestamp tstart = GgStringUtils.fixDate(start);
                 if (tstart != null) {
                     start = tstart.toString();
                 }
-                Timestamp tstop = fixDate(stop, tstart);
+                Timestamp tstop = GgStringUtils.fixDate(stop, tstart);
                 if (tstop != null) {
                     stop = tstop.toString();
                 }
@@ -570,12 +518,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                         stopid == null ? "":stopid, start, stop,
                         rule == null ? "":rule, req == null ? "":req,
                         pending, transfer, error, done, all);
-                try {
-                    body = readFile(Configuration.configuration.httpBasePath+"CancelRestart_body.html");
-                } catch (OpenR66RunnerErrorException e1) {
-                    logger.error("Error while trying to read: CancelRestart_body.html",e1);
-                    body = "";
-                }
+                body = REQUEST.CancelRestart.readBody();
                 DbPreparedStatement preparedStatement = null;
                 try {
                     preparedStatement =
@@ -612,33 +555,16 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     }
                     logger.warn("OpenR66 Web Error {}",e.getMessage());
                 }
-                try {
-                    body1 = readFile(Configuration.configuration.httpBasePath+"CancelRestart_body1.html");
-                } catch (OpenR66RunnerErrorException e) {
-                    logger.error("Error while trying to read: CancelRestart_body1.html",e);
-                    body1 = "";
-                }
+                body1 = REQUEST.CancelRestart.readBodyEnd();
             } else if ("RestartAll".equalsIgnoreCase(parm) ||
                     "StopAll".equalsIgnoreCase(parm)) {
                 boolean stopcommand = "StopAll".equalsIgnoreCase(parm);
-                String startid = params.get("startid").get(0).trim();
-                if (startid.length() == 0) {
-                    startid = null;
-                }
-                String stopid = params.get("stopid").get(0).trim();
-                if (stopid.length() == 0) {
-                    stopid = null;
-                }
-                String start = params.get("start").get(0);
-                String stop = params.get("stop").get(0);
-                String rule = params.get("rule").get(0).trim();
-                if (rule.length() == 0) {
-                    rule = null;
-                }
-                String req = params.get("req").get(0).trim();
-                if (req.length() == 0) {
-                    req = null;
-                }
+                String startid = getTrimValue("startid");
+                String stopid = getTrimValue("stopid");
+                String start = getValue("start");
+                String stop = getValue("stop");
+                String rule = getTrimValue("rule");
+                String req = getTrimValue("req");
                 boolean pending, transfer, error, done, all;
                 pending = params.containsKey("pending");
                 transfer = params.containsKey("transfer");
@@ -650,11 +576,11 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 } else if (!(pending || transfer || error || done)) {
                     all = true;
                 }
-                Timestamp tstart = fixDate(start);
+                Timestamp tstart = GgStringUtils.fixDate(start);
                 if (tstart != null) {
                     start = tstart.toString();
                 }
-                Timestamp tstop = fixDate(stop, tstart);
+                Timestamp tstop = GgStringUtils.fixDate(stop, tstart);
                 if (tstop != null) {
                     stop = tstop.toString();
                 }
@@ -662,12 +588,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                         stopid == null ? "":stopid, start, stop,
                         rule == null ? "":rule, req == null ? "":req,
                         pending, transfer, error, done, all);
-                try {
-                    body = readFile(Configuration.configuration.httpBasePath+"CancelRestart_body.html");
-                } catch (OpenR66RunnerErrorException e1) {
-                    logger.error("Error while trying to read: CancelRestart_body.html",e1);
-                    body = "";
-                }
+                body = REQUEST.CancelRestart.readBody();
                 StringBuilder builder = new StringBuilder();
                 if (stopcommand) {
                     builder = TransferUtils.stopSelectedTransfers(dbSession, LIMITROW, builder,
@@ -714,18 +635,13 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     }
                 }
                 body = builder.toString();
-                try {
-                    body1 = readFile(Configuration.configuration.httpBasePath+"CancelRestart_body1.html");
-                } catch (OpenR66RunnerErrorException e) {
-                    logger.error("Error while trying to read: CancelRestart_body1.html",e);
-                    body1 = "";
-                }
+                body1 = REQUEST.CancelRestart.readBodyEnd();
             } else if ("Cancel".equalsIgnoreCase(parm) || "Stop".equalsIgnoreCase(parm)) {
                 // Cancel or Stop
                 boolean stop = "Stop".equalsIgnoreCase(parm);
-                String specid = params.get("specid").get(0);
-                String reqd = params.get("reqd").get(0);
-                String reqr = params.get("reqr").get(0);
+                String specid = getValue("specid");
+                String reqd = getValue("reqd");
+                String reqr = getValue("reqr");
                 LocalChannelReference lcr =
                     Configuration.configuration.getLocalTransaction().
                     getFromRequest(reqd+" "+reqr+" "+specid);
@@ -740,22 +656,10 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 }
                 if (taskRunner == null) {
                     body = "";
-                    try {
-                        body1 = readFile(Configuration.configuration.httpBasePath+
-                                "CancelRestart_body1.html");
-                    } catch (OpenR66RunnerErrorException e) {
-                        logger.error("Error while trying to read: CancelRestart_body1.html",e);
-                        body1 = "";
-                    }
+                    body1 = REQUEST.CancelRestart.readBodyEnd();
                     body1 += "<br><b>"+parm+" aborted since Transfer is not found</b>";
                     String end;
-                    try {
-                        end = readFile(Configuration.configuration.httpBasePath+
-                                "CancelRestart_end.html");
-                    } catch (OpenR66RunnerErrorException e) {
-                        logger.error("Error while trying to read: CancelRestart_end.html",e);
-                        end = "";
-                    }
+                    end = REQUEST.CancelRestart.readEnd();
                     return head+body0+body+body1+end;
                 }
                 ErrorCode code = (stop) ?
@@ -782,12 +686,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     }
                 }
                 if (taskRunner != null) {
-                    try {
-                        body = readFile(Configuration.configuration.httpBasePath+"CancelRestart_body.html");
-                    } catch (OpenR66RunnerErrorException e) {
-                        logger.error("Error while trying to read: CancelRestart_body.html",e);
-                        body = "";
-                    }
+                    body = REQUEST.CancelRestart.readBody();
                     body = taskRunner.toSpecializedHtml(authentHttp, body,
                             lcr != null ? "Active" : "NotActive");
                     String tstart = taskRunner.getStart().toString();
@@ -798,22 +697,15 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                             (taskRunner.getSpecialId()+1)+"", tstart, tstop,
                             taskRunner.getRuleId(), taskRunner.getRequested(),
                             false, false, false, false, true);
-                } else {
-                    body = "";
                 }
-                try {
-                    body1 = readFile(Configuration.configuration.httpBasePath+"CancelRestart_body1.html");
-                } catch (OpenR66RunnerErrorException e) {
-                    logger.error("Error while trying to read: CancelRestart_body1.html",e);
-                    body1 = "";
-                }
+                body1 = REQUEST.CancelRestart.readBodyEnd();
                 body1 += "<br><b>"+(result == ErrorCode.CompleteOk ? parm+" transmitted":
                     parm+" aborted since Transfer is not running")+"</b>";
             } else if ("Restart".equalsIgnoreCase(parm)) {
                 // Restart
-                String specid = params.get("specid").get(0);
-                String reqd = params.get("reqd").get(0);
-                String reqr = params.get("reqr").get(0);
+                String specid = getValue("specid");
+                String reqd = getValue("reqd");
+                String reqr = getValue("reqr");
                 long lspecid = Long.parseLong(specid);
                 DbTaskRunner taskRunner;
                 String comment;
@@ -825,12 +717,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                         getFromRequest(taskRunner.getKey());
                     R66Result finalResult = TransferUtils.restartTransfer(taskRunner, lcr);
                     comment = (String) finalResult.other;
-                    try {
-                        body = readFile(Configuration.configuration.httpBasePath+"CancelRestart_body.html");
-                    } catch (OpenR66RunnerErrorException e) {
-                        logger.error("Error while trying to read: CancelRestart_body.html",e);
-                        body = "";
-                    }
+                    body = REQUEST.CancelRestart.readBody();
                     body = taskRunner.toSpecializedHtml(authentHttp, body,
                             lcr != null ? "Active" : "NotActive");
                     String tstart = taskRunner.getStart().toString();
@@ -845,12 +732,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     body = "";
                     comment = "Internal error";
                 }
-                try {
-                    body1 = readFile(Configuration.configuration.httpBasePath+"CancelRestart_body1.html");
-                } catch (OpenR66RunnerErrorException e) {
-                    logger.error("Error while trying to read: CancelRestart_body1.html",e);
-                    body1 = "";
-                }
+                body1 = REQUEST.CancelRestart.readBodyEnd();
                 body1 += "<br><b>"+comment+"</b>";
             } else {
                 head = resetOptionTransfer(head, "", "", "", "", "", "",
@@ -861,33 +743,22 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     false, false, false, false, true);
         }
         String end;
-        try {
-            end = readFile(Configuration.configuration.httpBasePath+"CancelRestart_end.html");
-        } catch (OpenR66RunnerErrorException e) {
-            logger.error("Error while trying to read: CancelRestart_end.html",e);
-            end = "";
-        }
+        end = REQUEST.CancelRestart.readEnd();
         return head+body0+body+body1+end;
     }
     private String Export() {
         getParams();
         if (params == null) {
-            String body = readFileHeader(Configuration.configuration.httpBasePath+"Export.html");
+            String body = REQUEST.Export.readFileUnique(this);
             body = resetOptionTransfer(body, "", "", "", "", "", "",
                     false, false, false, true, false);
             return body.replace("XXXRESULTXXX", "");
         }
-        String body = readFileHeader(Configuration.configuration.httpBasePath+"Export.html");
-        String start = params.get("start").get(0);
-        String stop = params.get("stop").get(0);
-        String rule = params.get("rule").get(0).trim();
-        if (rule.length() == 0) {
-            rule = null;
-        }
-        String req = params.get("req").get(0).trim();
-        if (req.length() == 0) {
-            req = null;
-        }
+        String body = REQUEST.Export.readFileUnique(this);
+        String start = getValue("start");
+        String stop = getValue("stop");
+        String rule = getTrimValue("rule");
+        String req = getTrimValue("req");
         boolean pending, transfer, error, done, all;
         pending = params.containsKey("pending");
         transfer = params.containsKey("transfer");
@@ -903,11 +774,11 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         } else if (!(pending || transfer || error || done)) {
             all = true;
         }
-        Timestamp tstart = fixDate(start);
+        Timestamp tstart = GgStringUtils.fixDate(start);
         if (tstart != null) {
             start = tstart.toString();
         }
-        Timestamp tstop = fixDate(stop, tstart);
+        Timestamp tstop = GgStringUtils.fixDate(stop, tstart);
         if (tstop != null) {
             stop = tstop.toString();
         }
@@ -984,14 +855,9 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
     }
     private String Hosts() {
         getParams();
-        String head = readFileHeader(Configuration.configuration.httpBasePath+"Hosts_head.html");
+        String head = REQUEST.Hosts.readHeader();
         String end;
-        try {
-            end = readFile(Configuration.configuration.httpBasePath+"Hosts_end.html");
-        } catch (OpenR66RunnerErrorException e1) {
-            logger.error("Error while trying to read: Hosts_end.html",e1);
-            end = "";
-        }
+        end = REQUEST.Hosts.readEnd();
         if (params == null) {
             head = resetOptionHosts(head, "", "", false);
             return head+end;
@@ -1000,30 +866,13 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         body0 = body1 = body = "";
         List<String> parms = params.get("ACTION");
         if (parms != null) {
-            try {
-                body0 = readFile(Configuration.configuration.httpBasePath+"Hosts_body0.html");
-            } catch (OpenR66RunnerErrorException e1) {
-                logger.error("Error while trying to read: Hosts_body0.html",e1);
-                body0 = "";
-            }
+            body0 = REQUEST.Hosts.readBodyHeader();
             String parm = parms.get(0);
             if ("Create".equalsIgnoreCase(parm)) {
-                String host = params.get("host").get(0).trim();
-                if (host.length() == 0) {
-                    host = null;
-                }
-                String addr = params.get("address").get(0).trim();
-                if (addr.length() == 0) {
-                    addr = null;
-                }
-                String port = params.get("port").get(0).trim();
-                if (port.length() == 0) {
-                    port = null;
-                }
-                String key = params.get("hostkey").get(0);
-                if (key.length() == 0) {
-                    key = null;
-                }
+                String host = getTrimValue("host");
+                String addr = getTrimValue("address");
+                String port = getTrimValue("port");
+                String key = getTrimValue("hostkey");
                 boolean ssl, admin;
                 ssl = params.containsKey("ssl");
                 admin = params.containsKey("admin");
@@ -1045,31 +894,15 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     head = resetOptionHosts(head, "", "", false);
                     return head+body0+body+body1+end;
                 }
-                try {
-                    body = readFile(Configuration.configuration.httpBasePath+"Hosts_body.html");
-                } catch (OpenR66RunnerErrorException e) {
-                    logger.error("Error while trying to read: Hosts_body.html",e);
-                    body = "";
-                }
+                body = REQUEST.Hosts.readBody();
                 body = dbhost.toSpecializedHtml(authentHttp, body, false);
             } else if ("Filter".equalsIgnoreCase(parm)) {
-                String host = params.get("host").get(0).trim();
-                if (host.length() == 0) {
-                    host = null;
-                }
-                String addr = params.get("address").get(0).trim();
-                if (addr.length() == 0) {
-                    addr = null;
-                }
+                String host = getTrimValue("host");
+                String addr = getTrimValue("address");
                 boolean ssl = params.containsKey("ssl");
                 head = resetOptionHosts(head, host == null ? "":host,
                         addr == null ? "":addr, ssl);
-                try {
-                    body = readFile(Configuration.configuration.httpBasePath+"Hosts_body.html");
-                } catch (OpenR66RunnerErrorException e1) {
-                    logger.error("Error while trying to read: Hosts_body.html",e1);
-                    body = "";
-                }
+                body = REQUEST.Hosts.readBody();
                 DbPreparedStatement preparedStatement = null;
                 try {
                     preparedStatement =
@@ -1094,29 +927,12 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     }
                     logger.warn("OpenR66 Web Error {}",e.getMessage());
                 }
-                try {
-                    body1 = readFile(Configuration.configuration.httpBasePath+"Hosts_body1.html");
-                } catch (OpenR66RunnerErrorException e) {
-                    logger.error("Error while trying to read: Hosts_body1.html",e);
-                    body1 = "";
-                }
+                body1 = REQUEST.Hosts.readBodyEnd();
             } else if ("Update".equalsIgnoreCase(parm)) {
-                String host = params.get("host").get(0).trim();
-                if (host.length() == 0) {
-                    host = null;
-                }
-                String addr = params.get("address").get(0).trim();
-                if (addr.length() == 0) {
-                    addr = null;
-                }
-                String port = params.get("port").get(0).trim();
-                if (port.length() == 0) {
-                    port = null;
-                }
-                String key = params.get("hostkey").get(0);
-                if (key.length() == 0) {
-                    key = null;
-                }
+                String host = getTrimValue("host");
+                String addr = getTrimValue("address");
+                String port = getTrimValue("port");
+                String key = getTrimValue("hostkey");
                 boolean ssl, admin;
                 ssl = params.containsKey("ssl");
                 admin = params.containsKey("admin");
@@ -1142,30 +958,13 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     head = resetOptionHosts(head, "", "", false);
                     return head+body0+body+body1+end;
                 }
-                try {
-                    body = readFile(Configuration.configuration.httpBasePath+"Hosts_body.html");
-                } catch (OpenR66RunnerErrorException e) {
-                    logger.error("Error while trying to read: Hosts_body.html",e);
-                    body = "";
-                }
+                body = REQUEST.Hosts.readBody();
                 body = dbhost.toSpecializedHtml(authentHttp, body, false);
             } else if ("TestConn".equalsIgnoreCase(parm)) {
-                String host = params.get("host").get(0).trim();
-                if (host.length() == 0) {
-                    host = null;
-                }
-                String addr = params.get("address").get(0).trim();
-                if (addr.length() == 0) {
-                    addr = null;
-                }
-                String port = params.get("port").get(0).trim();
-                if (port.length() == 0) {
-                    port = null;
-                }
-                String key = params.get("hostkey").get(0);
-                if (key.length() == 0) {
-                    key = null;
-                }
+                String host = getTrimValue("host");
+                String addr = getTrimValue("address");
+                String port = getTrimValue("port");
+                String key = getTrimValue("hostkey");
                 boolean ssl, admin;
                 ssl = params.containsKey("ssl");
                 admin = params.containsKey("admin");
@@ -1180,12 +979,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                         result, dbhost, packet);
                 transaction.run();
                 result.awaitUninterruptibly();
-                try {
-                    body = readFile(Configuration.configuration.httpBasePath+"Hosts_body.html");
-                } catch (OpenR66RunnerErrorException e) {
-                    logger.error("Error while trying to read: Hosts_body.html",e);
-                    body = "";
-                }
+                body = REQUEST.Hosts.readBody();
                 if (result.isSuccess()) {
                     body = dbhost.toSpecializedHtml(authentHttp, body, false);
                     body += "<p><center><b>Connection SUCCESSFUL</b></center></p>";
@@ -1207,22 +1001,10 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     }
                 }
             } else if ("CloseConn".equalsIgnoreCase(parm)) {
-                String host = params.get("host").get(0).trim();
-                if (host.length() == 0) {
-                    host = null;
-                }
-                String addr = params.get("address").get(0).trim();
-                if (addr.length() == 0) {
-                    addr = null;
-                }
-                String port = params.get("port").get(0).trim();
-                if (port.length() == 0) {
-                    port = null;
-                }
-                String key = params.get("hostkey").get(0);
-                if (key.length() == 0) {
-                    key = null;
-                }
+                String host = getTrimValue("host");
+                String addr = getTrimValue("address");
+                String port = getTrimValue("port");
+                String key = getTrimValue("hostkey");
                 boolean ssl, admin;
                 ssl = params.containsKey("ssl");
                 admin = params.containsKey("admin");
@@ -1231,12 +1013,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
                         ssl, key.getBytes(), admin);
                 SocketAddress socketAddress = dbhost.getSocketAddress();
-                try {
-                    body = readFile(Configuration.configuration.httpBasePath+"Hosts_body.html");
-                } catch (OpenR66RunnerErrorException e) {
-                    logger.error("Error while trying to read: Hosts_body.html",e);
-                    body = "";
-                }
+                body = REQUEST.Hosts.readBody();
                 boolean resultShutDown = false;
                 resultShutDown =
                     NetworkTransaction.shuttingdownNetworkChannel(socketAddress, null);
@@ -1250,8 +1027,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     body += "<p><center><b>Disconnection cannot be done</b></center></p>";
                 }
             } else if ("Delete".equalsIgnoreCase(parm)) {
-                String host = params.get("host").get(0).trim();
-                if (host.length() == 0) {
+                String host = getTrimValue("host");
+                if (host == null || host.length() == 0) {
                     body0 = body1 = body = "";
                     body = "<p><center><b>Not enough data to delete a Host</b></center></p>";
                     head = resetOptionHosts(head, "", "", false);
@@ -1281,12 +1058,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             } else {
                 head = resetOptionHosts(head, "", "", false);
             }
-            try {
-                body1 = readFile(Configuration.configuration.httpBasePath+"Hosts_body1.html");
-            } catch (OpenR66RunnerErrorException e) {
-                logger.error("Error while trying to read: Hosts_body1.html",e);
-                body1 = "";
-            }
+            body1 = REQUEST.Hosts.readBodyEnd();
         } else {
             head = resetOptionHosts(head, "", "", false);
         }
@@ -1359,14 +1131,9 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
     }
     private String Rules() {
         getParams();
-        String head = readFileHeader(Configuration.configuration.httpBasePath+"Rules_head.html");
+        String head = REQUEST.Rules.readHeader();
         String end;
-        try {
-            end = readFile(Configuration.configuration.httpBasePath+"Rules_end.html");
-        } catch (OpenR66RunnerErrorException e1) {
-            logger.error("Error while trying to read: Rules_end.html",e1);
-            end = "";
-        }
+        end = REQUEST.Rules.readEnd();
         if (params == null) {
             head = resetOptionRules(head, "", null, -3);
             return head+end;
@@ -1375,66 +1142,22 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         body0 = body1 = body = "";
         List<String> parms = params.get("ACTION");
         if (parms != null) {
-            try {
-                body0 = readFile(Configuration.configuration.httpBasePath+"Rules_body0.html");
-            } catch (OpenR66RunnerErrorException e1) {
-                logger.error("Error while trying to read: Rules_body0.html",e1);
-                body0 = "";
-            }
+            body0 = REQUEST.Rules.readBodyHeader();
             String parm = parms.get(0);
             if ("Create".equalsIgnoreCase(parm) || "Update".equalsIgnoreCase(parm)) {
-                String rule = params.get("rule").get(0).trim();
-                if (rule.length() == 0) {
-                    rule = null;
-                }
-                String hostids = params.get("hostids").get(0).trim();
-                if (hostids.length() == 0) {
-                    hostids = null;
-                }
-                String recvp = params.get("recvp").get(0).trim();
-                if (recvp.length() == 0) {
-                    recvp = null;
-                }
-                String sendp = params.get("sendp").get(0).trim();
-                if (sendp.length() == 0) {
-                    sendp = null;
-                }
-                String archp = params.get("archp").get(0).trim();
-                if (archp.length() == 0) {
-                    archp = null;
-                }
-                String workp = params.get("workp").get(0).trim();
-                if (workp.length() == 0) {
-                    workp = null;
-                }
-                String rpre = params.get("rpre").get(0).trim();
-                if (rpre.length() == 0) {
-                    rpre = null;
-                }
-                String rpost = params.get("rpost").get(0).trim();
-                if (rpost.length() == 0) {
-                    rpost = null;
-                }
-                String rerr = params.get("rerr").get(0).trim();
-                if (rerr.length() == 0) {
-                    rerr = null;
-                }
-                String spre = params.get("spre").get(0).trim();
-                if (spre.length() == 0) {
-                    spre = null;
-                }
-                String spost = params.get("spost").get(0).trim();
-                if (spost.length() == 0) {
-                    spost = null;
-                }
-                String serr = params.get("serr").get(0).trim();
-                if (serr.length() == 0) {
-                    serr = null;
-                }
-                String mode = params.get("mode").get(0).trim();
-                if (mode.length() == 0) {
-                    mode = null;
-                }
+                String rule = getTrimValue("rule");
+                String hostids = getTrimValue("hostids");
+                String recvp = getTrimValue("recvp");
+                String sendp = getTrimValue("sendp");
+                String archp = getTrimValue("archp");
+                String workp = getTrimValue("workp");
+                String rpre = getTrimValue("rpre");
+                String rpost = getTrimValue("rpost");
+                String rerr = getTrimValue("rerr");
+                String spre = getTrimValue("spre");
+                String spost = getTrimValue("spost");
+                String serr = getTrimValue("serr");
+                String mode = getTrimValue("mode");
                 if (rule == null || mode == null) {
                     body0 = body1 = body = "";
                     body = "<p><center><b>Not enough data to "+parm+" a Rule</b></center></p>";
@@ -1488,22 +1211,11 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     head = resetOptionRules(head, "", null, -3);
                     return head+body0+body+body1+end;
                 }
-                try {
-                    body = readFile(Configuration.configuration.httpBasePath+"Rules_body.html");
-                } catch (OpenR66RunnerErrorException e) {
-                    logger.error("Error while trying to read: Rules_body.html",e);
-                    body = "";
-                }
+                body = REQUEST.Rules.readBody();
                 body = dbrule.toSpecializedHtml(authentHttp, body);
             } else if ("Filter".equalsIgnoreCase(parm)) {
-                String rule = params.get("rule").get(0).trim();
-                if (rule.length() == 0) {
-                    rule = null;
-                }
-                String mode = params.get("mode").get(0).trim();
-                if (mode.length() == 0) {
-                    mode = null;
-                }
+                String rule = getTrimValue("rule");
+                String mode = getTrimValue("mode");
                 TRANSFERMODE tmode;
                 int gmode = 0;
                 if (mode.equals("all")) {
@@ -1515,12 +1227,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 }
                 head = resetOptionRules(head, rule == null ? "":rule,
                         null, gmode);
-                try {
-                    body = readFile(Configuration.configuration.httpBasePath+"Rules_body.html");
-                } catch (OpenR66RunnerErrorException e) {
-                    logger.error("Error while trying to read: Rules_body.html",e);
-                    body = "";
-                }
+                body = REQUEST.Rules.readBody();
                 StringBuilder builder = new StringBuilder();
                 boolean specific = false;
                 if (params.containsKey("send")) {
@@ -1615,15 +1322,10 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     }
                 }
                 body = builder.toString();
-                try {
-                    body1 = readFile(Configuration.configuration.httpBasePath+"Rules_body1.html");
-                } catch (OpenR66RunnerErrorException e) {
-                    logger.error("Error while trying to read: Rules_body1.html",e);
-                    body1 = "";
-                }
+                body1 = REQUEST.Rules.readBodyEnd();
             } else if ("Delete".equalsIgnoreCase(parm)) {
-                String rule = params.get("rule").get(0).trim();
-                if (rule.length() == 0) {
+                String rule = getTrimValue("rule");
+                if (rule == null || rule.length() == 0) {
                     body0 = body1 = body = "";
                     body = "<p><center><b>Not enough data to delete a Rule</b></center></p>";
                     head = resetOptionRules(head, "", null, -3);
@@ -1653,12 +1355,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             } else {
                 head = resetOptionRules(head, "", null, -3);
             }
-            try {
-                body1 = readFile(Configuration.configuration.httpBasePath+"Rules_body1.html");
-            } catch (OpenR66RunnerErrorException e) {
-                logger.error("Error while trying to read: Rules_body1.html",e);
-                body1 = "";
-            }
+            body1 = REQUEST.Rules.readBodyEnd();
         } else {
             head = resetOptionRules(head, "", null, -3);
         }
@@ -1668,7 +1365,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
     private String System() {
         getParams();
         if (params == null) {
-            String system = readFileHeader(Configuration.configuration.httpBasePath+"System.html");
+            String system = REQUEST.System.readFileUnique(this);
             StringBuilder builder = new StringBuilder(system);
             FileUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITWXXX.toString(),
                     Long.toString(Configuration.configuration.serverChannelWriteLimit));
@@ -1724,39 +1421,39 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     shutdown = true;
                     return error;
                 } else if (act.equalsIgnoreCase("Validate")) {
-                    String bsessionr = params.get("BSESSR").get(0).trim();
+                    String bsessionr = getTrimValue("BSESSR");
                     long lsessionr = Configuration.configuration.serverChannelReadLimit;
-                    if (bsessionr.length() != 0) {
+                    if (bsessionr != null) {
                         lsessionr = Long.parseLong(bsessionr);
                     }
-                    String bglobalr = params.get("BGLOBR").get(0).trim();
+                    String bglobalr = getTrimValue("BGLOBR");
                     long lglobalr = Configuration.configuration.serverGlobalReadLimit;
-                    if (bglobalr.length() != 0) {
+                    if (bglobalr != null) {
                         lglobalr = Long.parseLong(bglobalr);
                     }
-                    String bsessionw = params.get("BSESSW").get(0).trim();
+                    String bsessionw = getTrimValue("BSESSW");
                     long lsessionw = Configuration.configuration.serverChannelWriteLimit;
-                    if (bsessionw.length() != 0) {
+                    if (bsessionw !=null) {
                         lsessionw = Long.parseLong(bsessionw);
                     }
-                    String bglobalw = params.get("BGLOBW").get(0).trim();
+                    String bglobalw = getTrimValue("BGLOBW");
                     long lglobalw = Configuration.configuration.serverGlobalWriteLimit;
-                    if (bglobalw.length() != 0) {
+                    if (bglobalw != null) {
                         lglobalw = Long.parseLong(bglobalw);
                     }
                     Configuration.configuration.changeNetworkLimit(
                             lglobalw, lglobalr, lsessionw, lsessionr,
                             Configuration.configuration.delayLimit);
-                    String dcomm = params.get("DCOM").get(0).trim();
-                    if (dcomm.length() != 0) {
+                    String dcomm = getTrimValue("DCOM");
+                    if (dcomm != null) {
                         Configuration.configuration.delayCommander = Long.parseLong(dcomm);
                         if (Configuration.configuration.delayCommander <= 100) {
                             Configuration.configuration.delayCommander = 100;
                         }
                         Configuration.configuration.reloadCommanderDelay();
                     }
-                    String dret = params.get("DRET").get(0).trim();
-                    if (dret.length() != 0) {
+                    String dret = getTrimValue("DRET");
+                    if (dret != null) {
                         Configuration.configuration.delayRetry = Long.parseLong(dret);
                         if (Configuration.configuration.delayRetry <= 1000) {
                             Configuration.configuration.delayRetry = 1000;
@@ -1766,7 +1463,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 }
             }
         }
-        String system = readFileHeader(Configuration.configuration.httpBasePath+"System.html");
+        String system = REQUEST.System.readFileUnique(this);
         StringBuilder builder = new StringBuilder(system);
         FileUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITWXXX.toString(),
                 Long.toString(Configuration.configuration.serverChannelWriteLimit));
@@ -1792,7 +1489,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         } else if (request.getMethod() == HttpMethod.POST) {
             ChannelBuffer content = request.getContent();
             if (content.readable()) {
-                String param = content.toString(UTF8);
+                String param = content.toString(GgStringUtils.UTF8);
                 QueryStringDecoder queryStringDecoder2 = new QueryStringDecoder("/?"+param);
                 params = queryStringDecoder2.getParameters();
             } else {
@@ -2099,7 +1796,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
      */
     private void writeResponse(Channel channel) {
         // Convert the response content to a ChannelBuffer.
-        ChannelBuffer buf = ChannelBuffers.copiedBuffer(responseContent.toString(), UTF8);
+        ChannelBuffer buf = ChannelBuffers.copiedBuffer(responseContent.toString(), GgStringUtils.UTF8);
         responseContent.setLength(0);
 
         // Decide whether to close the connection or not.
@@ -2147,7 +1844,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 HttpHeaders.Names.CONTENT_TYPE, "text/html");
         responseContent.setLength(0);
         responseContent.append(error(status.toString()));
-        response.setContent(ChannelBuffers.copiedBuffer(responseContent.toString(), UTF8));
+        response.setContent(ChannelBuffers.copiedBuffer(responseContent.toString(), GgStringUtils.UTF8));
         clearSession();
         // Close the connection as soon as the error message is sent.
         ctx.getChannel().write(response).addListener(ChannelFutureListener.CLOSE);

@@ -56,7 +56,7 @@ public class HttpPipelineFactory
         if (useHttpCompression) {
             pipeline.addLast("deflater", new HttpContentCompressor());
         }
-        pipeline.addLast("handler", new HttpHandler());
+        pipeline.addLast("handler", new HttpFormattedHandler());
         return pipeline;
     }
 }
