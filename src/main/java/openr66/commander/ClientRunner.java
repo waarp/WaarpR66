@@ -285,6 +285,13 @@ public class ClientRunner extends Thread {
             throw new OpenR66ProtocolNoConnectionException("Requested host cannot be found "+
                     taskRunner.getRequested());
         }
+        if (host.isClient()) {
+            logger.info("Cannot initiate a connection with a client: {}",
+                    host);
+            this.changeUpdatedInfo(UpdatedInfo.INERROR, ErrorCode.ConnectionImpossible);
+            throw new OpenR66ProtocolNoConnectionException("Cannot connect to client "+
+                    host.toString());
+        }
         SocketAddress socketAddress = host.getSocketAddress();
         boolean isSSL = host.isSsl();
 

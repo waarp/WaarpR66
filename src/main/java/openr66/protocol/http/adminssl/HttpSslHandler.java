@@ -984,10 +984,12 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     body = dbhost.toSpecializedHtml(authentHttp, body, false);
                     body += "<p><center><b>Connection SUCCESSFUL</b></center></p>";
                 } else {
-                    SocketAddress socketAddress = dbhost.getSocketAddress();
                     boolean resultShutDown = false;
-                    resultShutDown =
-                        NetworkTransaction.shuttingdownNetworkChannel(socketAddress, null);
+                    if (!dbhost.isClient()) {
+                        SocketAddress socketAddress = dbhost.getSocketAddress();
+                        resultShutDown =
+                            NetworkTransaction.shuttingdownNetworkChannel(socketAddress, null);
+                    }
                     resultShutDown = resultShutDown ||
                         NetworkTransaction.shuttingdownNetworkChannels(host);
                     if (resultShutDown) {
@@ -1012,11 +1014,13 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 int iport = Integer.parseInt(port);
                 DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
                         ssl, key.getBytes(), admin);
-                SocketAddress socketAddress = dbhost.getSocketAddress();
                 body = REQUEST.Hosts.readBody();
                 boolean resultShutDown = false;
-                resultShutDown =
-                    NetworkTransaction.shuttingdownNetworkChannel(socketAddress, null);
+                if (!dbhost.isClient()) {
+                    SocketAddress socketAddress = dbhost.getSocketAddress();
+                    resultShutDown =
+                        NetworkTransaction.shuttingdownNetworkChannel(socketAddress, null);
+                }
                 resultShutDown = resultShutDown ||
                     NetworkTransaction.shuttingdownNetworkChannels(host);
                 if (resultShutDown) {

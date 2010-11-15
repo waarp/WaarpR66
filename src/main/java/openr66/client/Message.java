@@ -151,6 +151,13 @@ public class Message implements Runnable {
             this.future.cancel();
             return;
         }
+        if (host.isClient()) {
+            logger.error("Requested host is a client and cannot be requested: "+requested);
+            R66Result result = new R66Result(null, true, ErrorCode.ConnectionImpossible, null);
+            this.future.setResult(result);
+            this.future.cancel();
+            return;
+        }
         SocketAddress socketAddress = host.getSocketAddress();
         boolean isSSL = host.isSsl();
         LocalChannelReference localChannelReference = null;

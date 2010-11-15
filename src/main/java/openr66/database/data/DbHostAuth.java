@@ -489,6 +489,13 @@ public class DbHostAuth extends AbstractDbData {
         return adminrole;
     }
     /**
+     * Test if the address is 0.0.0.0 for a client
+     * @return True if the address is a client address (0.0.0.0)
+     */
+    public boolean isClient() {
+        return (this.address.equals("0.0.0.0"));
+    }
+    /**
      *
      * @return the SocketAddress from the address and port
      */
