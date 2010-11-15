@@ -20,8 +20,10 @@
  */
 package openr66.configuration;
 
+import goldengate.common.exception.InvalidArgumentException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+import goldengate.common.utility.GgStringUtils;
 
 import java.io.File;
 import java.util.Iterator;
@@ -175,10 +177,7 @@ public class AuthenticationFileBasedConfiguration {
             node = nodebase.selectSingleNode(XML_AUTHENTIFICATION_ADMIN);
             boolean isAdmin = false;
             if (node != null) {
-                isAdmin = node.getText().equals("1")? true : false;
-                if (! isAdmin) {
-                    isAdmin = node.getText().equalsIgnoreCase("true")? true : false;
-                }
+                isAdmin = GgStringUtils.getBoolean(node);
             }
             node = nodebase.selectSingleNode(XML_AUTHENTIFICATION_ADDRESS);
             if (node == null) {
@@ -186,17 +185,16 @@ public class AuthenticationFileBasedConfiguration {
             }
             String address = node.getText();
             node = nodebase.selectSingleNode(XML_AUTHENTIFICATION_PORT);
-            if (node == null) {
+            int port;
+            try {
+                port = GgStringUtils.getInteger(node);
+            } catch (InvalidArgumentException e1) {
                 continue;
             }
-            int port = Integer.parseInt(node.getText());
             node = nodebase.selectSingleNode(XML_AUTHENTIFICATION_ISSSL);
             boolean isSsl = false;
             if (node != null) {
-                isSsl = node.getText().equals("1")? true : false;
-                if (! isSsl) {
-                    isSsl = node.getText().equalsIgnoreCase("true")? true : false;
-                }
+                isSsl = GgStringUtils.getBoolean(node);
             }
             DbHostAuth auth = new DbHostAuth(DbConstant.admin.session,
                     refHostId, address, port, isSsl, byteKeys, isAdmin);

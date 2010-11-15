@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import openr66.context.R66Session;
+import openr66.context.task.TaskType;
 import openr66.database.DbConstant;
 import openr66.database.DbPreparedStatement;
 import openr66.database.DbSession;
@@ -846,7 +847,15 @@ public class DbRule extends AbstractDbData {
             } else {
                 delay = nodedelay.getText();
             }
-            taskArray[rank][0] = nodetype.getText();
+            taskArray[rank][0] = nodetype.getText().toUpperCase();
+            // CHECK TASK_TYPE 
+            try {
+                TaskType.valueOf(taskArray[rank][0]);
+            } catch (IllegalArgumentException e) {
+                // Bad Type
+                logger.warn("Bad Type of Task: "+taskArray[rank][0]);
+                continue;
+            }
             taskArray[rank][1] = nodepath.getText();
             taskArray[rank][2] = delay;
             rank++;

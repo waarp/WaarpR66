@@ -26,6 +26,7 @@ import goldengate.common.crypto.ssl.GgSslContextFactory;
 import goldengate.common.digest.FilesystemBasedDigest;
 import goldengate.common.digest.MD5;
 import goldengate.common.exception.CryptoException;
+import goldengate.common.exception.InvalidArgumentException;
 import goldengate.common.file.DirInterface;
 import goldengate.common.file.filesystembased.FilesystemBasedDirImpl;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
@@ -34,6 +35,7 @@ import goldengate.common.file.filesystembased.specific.FilesystemBasedDirJdk6;
 import goldengate.common.file.filesystembased.specific.FilesystemBasedDirJdkAbstract;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+import goldengate.common.utility.GgStringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -361,22 +363,7 @@ public class FileBasedConfiguration {
         return path;
     }
 
-    /**
-     * Read a boolean value (0,1,true,false) from a node
-     * @param node
-     * @return the corresponding value
-     */
-    private static boolean getBoolean(Node node) {
-        String val = node.getText();
-        boolean bval;
-        try {
-            int ival = Integer.parseInt(val);
-            bval = (ival == 1) ? true : false;
-        } catch (NumberFormatException e) {
-            bval = Boolean.parseBoolean(val);
-        }
-        return bval;
-    }
+    
     /**
      * Initiate the configuration from the xml file for server
      *
@@ -398,19 +385,19 @@ public class FileBasedConfiguration {
         }
         Node node = document.selectSingleNode(XML_USESSL);
         if (node != null) {
-            Configuration.configuration.useSSL = getBoolean(node);
+            Configuration.configuration.useSSL = GgStringUtils.getBoolean(node);
         }
         node = document.selectSingleNode(XML_USENOSSL);
         if (node != null) {
-            Configuration.configuration.useNOSSL = getBoolean(node);
+            Configuration.configuration.useNOSSL = GgStringUtils.getBoolean(node);
         }
         node = document.selectSingleNode(XML_USEHTTPCOMP);
         if (node != null) {
-            Configuration.configuration.useHttpCompression = getBoolean(node);
+            Configuration.configuration.useHttpCompression = GgStringUtils.getBoolean(node);
         }
         node = document.selectSingleNode(XML_USELOCALEXEC);
         if (node != null) {
-            Configuration.configuration.useLocalExec = getBoolean(node);
+            Configuration.configuration.useLocalExec = GgStringUtils.getBoolean(node);
             if (Configuration.configuration.useLocalExec) {
                 node = document.selectSingleNode(XML_LEXECADDR);
                 String saddr;
@@ -433,9 +420,11 @@ public class FileBasedConfiguration {
                     }
                 }
                 node = document.selectSingleNode(XML_LEXECPORT);
-                int port = 9999;
-                if (node != null) {
-                    port = Integer.parseInt(node.getText());
+                int port;
+                try {
+                    port = GgStringUtils.getInteger(node);
+                } catch (InvalidArgumentException e) {
+                    port = 9999;
                 }
                 LocalExecClient.address = new InetSocketAddress(addr, port);
             }
@@ -460,26 +449,34 @@ public class FileBasedConfiguration {
             FilesystemBasedDirImpl.normalizePath(path);
         node = document.selectSingleNode(XML_SERVER_PORT);
         int port = 6666;
-        if (node != null) {
-            port = Integer.parseInt(node.getText());
+        try {
+            port = GgStringUtils.getInteger(node);
+        } catch (InvalidArgumentException e) {
+            port = 6666;
         }
         Configuration.configuration.SERVER_PORT = port;
         node = document.selectSingleNode(XML_SERVER_SSLPORT);
         int sslport = 6667;
-        if (node != null) {
-            sslport = Integer.parseInt(node.getText());
+        try {
+            sslport = GgStringUtils.getInteger(node);
+        } catch (InvalidArgumentException e1) {
+            sslport = 6667;
         }
         Configuration.configuration.SERVER_SSLPORT = sslport;
         node = document.selectSingleNode(XML_SERVER_HTTPPORT);
         int httpport = 8066;
-        if (node != null) {
-            httpport = Integer.parseInt(node.getText());
+        try {
+            httpport = GgStringUtils.getInteger(node);
+        } catch (InvalidArgumentException e1) {
+            httpport = 8066;
         }
         Configuration.configuration.SERVER_HTTPPORT = httpport;
         node = document.selectSingleNode(XML_SERVER_HTTPSPORT);
         int httpsport = 8067;
-        if (node != null) {
-            httpsport = Integer.parseInt(node.getText());
+        try {
+            httpsport = GgStringUtils.getInteger(node);
+        } catch (InvalidArgumentException e1) {
+            httpsport = 8067;
         }
         Configuration.configuration.SERVER_HTTPSPORT = httpsport;
 
@@ -695,27 +692,28 @@ public class FileBasedConfiguration {
             return false;
         }
         node = document.selectSingleNode(XML_SERVER_THREAD);
-        if (node != null) {
-            Configuration.configuration.SERVER_THREAD = Integer.parseInt(node
-                    .getText());
+        try {
+            Configuration.configuration.SERVER_THREAD = GgStringUtils.getInteger(node);
+        } catch (InvalidArgumentException e) {
         }
         node = document.selectSingleNode(XML_CLIENT_THREAD);
-        if (node != null) {
-            Configuration.configuration.CLIENT_THREAD = Integer.parseInt(node
-                    .getText());
+        try {
+            Configuration.configuration.CLIENT_THREAD = GgStringUtils.getInteger(node);
+        } catch (InvalidArgumentException e) {
         }
         node = document.selectSingleNode(XML_MEMORY_LIMIT);
-        if (node != null) {
-            Configuration.configuration.maxGlobalMemory = Integer.parseInt(node.getText());
+        try {
+            Configuration.configuration.maxGlobalMemory = GgStringUtils.getInteger(node);
+        } catch (InvalidArgumentException e) {
         }
         Configuration.getFileParameter().deleteOnAbort = false;
         node = document.selectSingleNode(XML_USENIO);
         if (node != null) {
-            FilesystemBasedFileParameterImpl.useNio = getBoolean(node);
+            FilesystemBasedFileParameterImpl.useNio = GgStringUtils.getBoolean(node);
         }
         node = document.selectSingleNode(XML_USEFASTMD5);
         if (node != null) {
-            FilesystemBasedDigest.useFastMd5 = getBoolean(node);
+            FilesystemBasedDigest.useFastMd5 = GgStringUtils.getBoolean(node);
             if (FilesystemBasedDigest.useFastMd5) {
                 node = document.selectSingleNode(XML_FASTMD5);
                 if (node != null) {
@@ -736,14 +734,14 @@ public class FileBasedConfiguration {
             }
         }
         node = document.selectSingleNode(XML_BLOCKSIZE);
-        if (node != null) {
-            Configuration.configuration.BLOCKSIZE = Integer.parseInt(node
-                    .getText());
+        try {
+            Configuration.configuration.BLOCKSIZE = GgStringUtils.getInteger(node);
+        } catch (InvalidArgumentException e) {
         }
         node = document.selectSingleNode(XML_TIMEOUTCON);
-        if (node != null) {
-            Configuration.configuration.TIMEOUTCON = Integer.parseInt(node
-                    .getText());
+        try {
+            Configuration.configuration.TIMEOUTCON = GgStringUtils.getInteger(node);
+        } catch (InvalidArgumentException e) {
         }
         if (Configuration.USEJDK6) {
             R66Dir.initJdkDependent(new FilesystemBasedDirJdk6());
@@ -828,7 +826,7 @@ public class FileBasedConfiguration {
                 node = document.selectSingleNode(XML_USECLIENT_AUTHENT);
                 boolean useClientAuthent = false;
                 if (node != null) {
-                    useClientAuthent = getBoolean(node);
+                    useClientAuthent = GgStringUtils.getBoolean(node);
                 }
                 try {
                     NetworkSslServerPipelineFactory.ggSecureKeyStore.initTrustStore(keypath,
@@ -1063,15 +1061,15 @@ public class FileBasedConfiguration {
                     Configuration.configuration.delayLimit);
         }
         node = document.selectSingleNode(XML_LIMITRUNNING);
-        if (node != null) {
-            Configuration.configuration.RUNNER_THREAD = Integer.parseInt(node
-                    .getText());
-            if (Configuration.configuration.RUNNER_THREAD < 10) {
-                Configuration.configuration.RUNNER_THREAD = 10;
-            }
-            logger.info("Limit of Runner: {}",
-                    Configuration.configuration.RUNNER_THREAD);
+        try {
+            Configuration.configuration.RUNNER_THREAD = GgStringUtils.getInteger(node);
+        } catch (InvalidArgumentException e) {
         }
+        if (Configuration.configuration.RUNNER_THREAD < 10) {
+            Configuration.configuration.RUNNER_THREAD = 10;
+        }
+        logger.info("Limit of Runner: {}",
+                Configuration.configuration.RUNNER_THREAD);
         node = document.selectSingleNode(XML_DELAYCOMMANDER);
         if (node != null) {
             Configuration.configuration.delayCommander = Long.parseLong(node
