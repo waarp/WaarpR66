@@ -1833,6 +1833,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         if (shutdown) {
             Thread thread = new Thread(new ChannelUtils());
             thread.setDaemon(true);
+            thread.setName("Shutdown Thread");
             thread.start();
         }
     }
@@ -1874,15 +1875,6 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             // Nothing to do
             return;
         }
-    }
-
-    /* (non-Javadoc)
-     * @see org.jboss.netty.channel.SimpleChannelUpstreamHandler#channelClosed(org.jboss.netty.channel.ChannelHandlerContext, org.jboss.netty.channel.ChannelStateEvent)
-     */
-    @Override
-    public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e)
-            throws Exception {
-        super.channelClosed(ctx, e);
     }
 
     /* (non-Javadoc)

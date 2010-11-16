@@ -58,7 +58,7 @@ public class TestTransferNoDb extends DirectTransfer {
                 i++;
                 nb = Integer.parseInt(args[i]);
             } else if (args[i].equalsIgnoreCase("-md5")) {
-            } else if (args[i].startsWith("-")) {
+            } else if (args[i].charAt(0) == '-') {
                 i++;// jump one
             }
         }

@@ -358,6 +358,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 // dont'close, thread will do
                 Thread thread = new Thread(new ChannelUtils());
                 thread.setDaemon(true);
+                thread.setName("Shutdown Thread");
                 thread.start();
                 // set global shutdown info and before close, send a valid
                 // shutdown to all
@@ -1272,7 +1273,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 StringBuilder builder = new StringBuilder();
                 for (String elt: list) {
                     builder.append(elt);
-                    builder.append("\n");
+                    builder.append('\n');
                 }
                 ValidPacket validPacket = new ValidPacket(builder.toString(), ""+list.size(),
                         LocalPacketFactory.INFORMATIONPACKET);
