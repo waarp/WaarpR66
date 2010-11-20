@@ -245,7 +245,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     break;
                 }
                 case LocalPacketFactory.ERRORPACKET: {
-                    error(e.getChannel(), (ErrorPacket) packet);
+                    errorMesg(e.getChannel(), (ErrorPacket) packet);
                     break;
                 }
                 case LocalPacketFactory.CONNECTERRORPACKET: {
@@ -637,7 +637,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
      * @throws OpenR66ProtocolSystemException
      * @throws OpenR66ProtocolBusinessException
      */
-    private void error(Channel channel, ErrorPacket packet)
+    private void errorMesg(Channel channel, ErrorPacket packet)
             throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException, OpenR66ProtocolBusinessException {
         // do something according to the error
         if (session.getLocalChannelReference().getFutureRequest().isDone()) {
@@ -926,7 +926,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             logger.error("Bad runner at startup {} {}", packet, session);
             ErrorPacket errorPacket = new ErrorPacket(code.mesg,
                     code.getCode(), ErrorPacket.FORWARDCLOSECODE);
-            error(channel, errorPacket);
+            errorMesg(channel, errorPacket);
             return;
         }
         // Receiver can specify a rank different from database

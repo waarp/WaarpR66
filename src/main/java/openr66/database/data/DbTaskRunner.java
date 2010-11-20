@@ -33,6 +33,7 @@ import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.TreeSet;
 
 import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
@@ -267,6 +268,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     private static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
 
+    private static final TreeSet<Long> clientNoDbSpecialId = new TreeSet<Long>();
     /**
      *
      * @param session
@@ -532,6 +534,29 @@ public class DbTaskRunner extends AbstractDbData {
     private static String getLimitWhereCondition() {
         return " "+Columns.OWNERREQ + " = '"+Configuration.configuration.HOST_ID+"' ";
     }
+    /**
+     * Create a Special Id for NoDb client
+     */
+    private void createNoDbSpecialId() {
+        synchronized (clientNoDbSpecialId) {
+            // New SpecialId is not possible with No Database Model
+            specialId = System.currentTimeMillis();
+            Long newOne = specialId;
+            while (clientNoDbSpecialId.contains(newOne)) {
+                newOne = specialId++;
+            }
+            clientNoDbSpecialId.add(newOne);
+        }
+    }
+    /**
+     * Remove a Spcieal Id for NoDb Client
+     */
+    private void removeNoDbSpecialId() {
+        synchronized (clientNoDbSpecialId) {
+            Long oldOne = specialId;
+            clientNoDbSpecialId.remove(oldOne);
+        }
+    }
     /*
      * (non-Javadoc)
      *
@@ -540,6 +565,7 @@ public class DbTaskRunner extends AbstractDbData {
     @Override
     public void delete() throws OpenR66DatabaseException {
         if (dbSession == null) {
+            removeNoDbSpecialId();
             return;
         }
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
@@ -572,7 +598,7 @@ public class DbTaskRunner extends AbstractDbData {
         if (dbSession == null) {
             if (specialId == DbConstant.ILLEGALVALUE) {
                 // New SpecialId is not possible with No Database Model
-                specialId = System.currentTimeMillis();
+                createNoDbSpecialId();
             }
             isSaved = true;
             return;
@@ -613,7 +639,7 @@ public class DbTaskRunner extends AbstractDbData {
         if (dbSession == null) {
             if (specialId == DbConstant.ILLEGALVALUE) {
                 // New SpecialId is not possible with No Database Model
-                specialId = System.currentTimeMillis();
+                createNoDbSpecialId();
             }
             isSaved = true;
             return;
