@@ -3,6 +3,9 @@
  */
 package openr66.protocol.localhandler;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.sql.Timestamp;
 import java.util.List;
 
@@ -17,12 +20,14 @@ import openr66.commander.ClientRunner;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
+import openr66.context.authentication.R66Auth;
 import openr66.context.filesystem.R66Dir;
 import openr66.context.filesystem.R66File;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.context.task.exception.OpenR66RunnerException;
 import openr66.database.DbConstant;
 import openr66.database.DbPreparedStatement;
+import openr66.database.data.DbHostAuth;
 import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
 import openr66.database.exception.OpenR66DatabaseException;
@@ -44,6 +49,7 @@ import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import openr66.protocol.exception.OpenR66ProtocolNotAuthenticatedException;
+import openr66.protocol.exception.OpenR66ProtocolNotYetConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolRemoteShutdownException;
 import openr66.protocol.exception.OpenR66ProtocolShutdownException;
@@ -208,7 +214,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
             throws OpenR66Exception {
-        // FIXME action as requested and answer if necessary
+        // action as requested and answer if necessary
         final AbstractLocalPacket packet = (AbstractLocalPacket) e.getMessage();
         if (packet.getType() == LocalPacketFactory.STARTUPPACKET) {
             startup(e.getChannel(), (StartupPacket) packet);
@@ -531,6 +537,27 @@ public class LocalServerHandler extends SimpleChannelHandler {
         session.setStatus(41);
     }
     /**
+     * Refuse a connection
+     * @param channel
+     * @param packet
+     * @param e1
+     * @throws OpenR66ProtocolPacketException
+     */
+    private void refusedConnection(Channel channel, AuthentPacket packet, Exception e1) throws OpenR66ProtocolPacketException {
+        logger.error("Cannot connect: " + packet.getHostId(), e1);
+        R66Result result = new R66Result(
+                new OpenR66ProtocolSystemException(
+                        "Connection not allowed", e1), session, true,
+                ErrorCode.BadAuthent, null);
+        localChannelReference.invalidateRequest(result);
+        ErrorPacket error = new ErrorPacket("Connection not allowed",
+                ErrorCode.BadAuthent.getCode(),
+                ErrorPacket.FORWARDCLOSECODE);
+        ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
+        localChannelReference.validateConnection(false, result);
+        ChannelUtils.close(channel);
+    }
+    /**
      * Authentication
      * @param channel
      * @param packet
@@ -545,18 +572,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             session.getAuth().connection(localChannelReference.getDbSession(),
                     packet.getHostId(), packet.getKey());
         } catch (Reply530Exception e1) {
-            logger.error("Cannot connect: " + packet.getHostId(), e1);
-            R66Result result = new R66Result(
-                    new OpenR66ProtocolSystemException(
-                            "Connection not allowed", e1), session, true,
-                    ErrorCode.BadAuthent, null);
-            localChannelReference.invalidateRequest(result);
-            ErrorPacket error = new ErrorPacket("Connection not allowed",
-                    ErrorCode.BadAuthent.getCode(),
-                    ErrorPacket.FORWARDCLOSECODE);
-            ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
-            localChannelReference.validateConnection(false, result);
-            ChannelUtils.close(channel);
+            refusedConnection(channel, packet, e1);
             session.setStatus(42);
             return;
         } catch (Reply421Exception e1) {
@@ -574,6 +590,47 @@ public class LocalServerHandler extends SimpleChannelHandler {
             ChannelUtils.close(channel);
             session.setStatus(43);
             return;
+        }
+        // Now if configuration say to do so: check remote ip address
+        if (Configuration.configuration.checkRemoteAddress) {
+            DbHostAuth host = R66Auth.getServerAuth(DbConstant.admin.session,
+                    packet.getHostId());
+            if (host.isClient()) {
+                if (Configuration.configuration.checkClientAddress) {
+                    // 0.0.0.0 so error
+                    refusedConnection(channel, packet, 
+                            new OpenR66ProtocolNotAuthenticatedException("Client IP not authenticated not allowed"));
+                    session.setStatus(103);
+                    return;
+                }
+            } else {
+                // Real address so compare
+                String address = host.getAddress();
+                InetAddress []inetAddress = null;
+                try {
+                    inetAddress = InetAddress.getAllByName(address);
+                } catch (UnknownHostException e) {
+                    inetAddress = null;
+                }
+                if (inetAddress != null) {
+                    InetSocketAddress socketAddress = (InetSocketAddress) session.getRemoteAddress();
+                    boolean found = false;
+                    for (int i = 0; i < inetAddress.length; i++) {
+                        if (socketAddress.getAddress().equals(inetAddress[i])) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (! found) {
+                        // error
+                        refusedConnection(channel, packet, 
+                                new OpenR66ProtocolNotAuthenticatedException("Server IP not authenticated: "+
+                                        inetAddress[0].toString()+" compare to "+socketAddress.getAddress().toString()));
+                        session.setStatus(104);
+                        return;
+                    }
+                }
+            }
         }
         R66Result result = new R66Result(session, true, ErrorCode.InitOk, null);
         localChannelReference.validateConnection(true, result);
@@ -729,10 +786,19 @@ public class LocalServerHandler extends SimpleChannelHandler {
         throw exception;
     }
 
+    /**
+     * Finalize a request initialization in error
+     * @param channel
+     * @param code
+     * @param runner
+     * @param e1
+     * @param packet
+     * @throws OpenR66ProtocolPacketException
+     */
     private void endInitRequestInError(Channel channel, ErrorCode code, DbTaskRunner runner,
             OpenR66Exception e1, RequestPacket packet) throws OpenR66ProtocolPacketException {
         logger.error("TaskRunner initialisation in error: "+ code.mesg+" "+session+" {} runner {}",
-                e1 != null ? e1.getMessage():"no exception", runner.toShortString());
+                e1 != null ? e1.getMessage():"no exception", (runner != null ? runner.toShortString() : "no runner"));
         localChannelReference.invalidateRequest(new R66Result(
                 e1, session, true, code, null));
 
@@ -783,6 +849,27 @@ public class LocalServerHandler extends SimpleChannelHandler {
             session.setStatus(48);
             throw new OpenR66ProtocolNotAuthenticatedException(
                     "Not authenticated");
+        }
+        // XXX validLimit only on requested side
+        if (packet.isToValidate()) {
+            if (Configuration.configuration.constraintLimitHandler.checkConstraints()) {
+                logger.error("Limit exceeded when receive request with Rule: " + packet.getRulename()+" from "+session.getAuth().toString());
+                session.setStatus(100);
+                endInitRequestInError(channel,
+                        ErrorCode.ServerOverloaded, null,
+                    new OpenR66ProtocolNotYetConnectionException(
+                       "Limit exceeded"), packet);
+                session.setStatus(100);
+                return;
+            }
+        } else if (packet.getCode() == ErrorCode.ServerOverloaded.code) {
+            // XXX unvalid limit on requested host received
+            logger.error("TaskRunner initialisation in error: "+ ErrorCode.ServerOverloaded.mesg);
+            localChannelReference.invalidateRequest(new R66Result(
+                    null, session, true, ErrorCode.ServerOverloaded, null));
+            ChannelUtils.close(channel);
+            session.setStatus(101);
+            return;
         }
         DbRule rule;
         try {
@@ -866,7 +953,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     endInitRequestInError(channel, ErrorCode.QueryRemotelyUnknown, null, e, packet);
                     return;
                 }
-                // Change the SpecialID! => could generate an error ? FIXME
+                // Change the SpecialID! => could generate an error ? 
                 packet.setSpecialId(runner.getSpecialId());
             } else {
                 // Id should be a reload
@@ -901,7 +988,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             }
         } else {
             // Very new request
-            // FIXME should not be the case (the requester should always set the id)
+            // should not be the case (the requester should always set the id)
             logger.error("NO TransferID specified: SHOULD NOT BE THE CASE");
             boolean isRetrieve = packet.isRetrieve();
             if (!packet.isToValidate()) {
@@ -1485,6 +1572,22 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 R66Result resulttest = new R66Result(session, true,
                         ErrorCode.getFromCode(packet.getSmiddle()), null);
                 resulttest.other = packet;
+                switch (resulttest.code) {
+                    case CompleteOk:
+                    case InitOk:
+                    case PostProcessingOk:
+                    case PreProcessingOk:
+                    case QueryAlreadyFinished:
+                    case QueryStillRunning:
+                    case Running:
+                    case TransferOk:
+                        break;
+                    default:
+                        localChannelReference.invalidateRequest(resulttest);
+                        session.setStatus(102);
+                        Channels.close(channel);
+                        return;
+                }
                 localChannelReference.validateRequest(resulttest);
                 session.setStatus(28);
                 Channels.close(channel);
@@ -1563,6 +1666,28 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 break;
             }
             case LocalPacketFactory.VALIDPACKET: {
+                // Try to validate a restarting transfer
+                // XXX validLimit on requested side
+                if (Configuration.configuration.constraintLimitHandler.checkConstraints()) {
+                    logger.error("Limit exceeded while asking to relaunch a task" + packet.getSmiddle());
+                    session.setStatus(100);
+                    ValidPacket valid;
+                    valid = new ValidPacket(packet.getSmiddle(),
+                            ErrorCode.ServerOverloaded.getCode(),
+                            LocalPacketFactory.REQUESTUSERPACKET);
+                    R66Result resulttest = new R66Result(null, session, true,
+                            ErrorCode.Internal, null);
+                    resulttest.other = packet;
+                    localChannelReference.invalidateRequest(resulttest);
+                    // inform back the requester
+                    try {
+                        ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+                                valid).awaitUninterruptibly();
+                    } catch (OpenR66ProtocolPacketException e) {
+                    }
+                    Channels.close(channel);
+                    return;
+                }
                 // Try to validate a restarting transfer
                 // header = ?; middle = requested+blank+requester+blank+specialId
                 String [] keys = packet.getSmiddle().split(" ");

@@ -90,7 +90,7 @@ public class NetworkSslServerPipelineFactory implements ChannelPipelineFactory {
         }
         pipeline.addLast("pipelineExecutor", new ExecutionHandler(
                 Configuration.configuration.getServerPipelineExecutor()));
-        pipeline.addLast("handler", new NetworkSslServerHandler());
+        pipeline.addLast("handler", new NetworkSslServerHandler(!this.isClient));
         return pipeline;
     }
 }

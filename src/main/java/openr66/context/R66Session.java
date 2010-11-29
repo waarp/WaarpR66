@@ -20,7 +20,10 @@
  */
 package openr66.context;
 
+import java.net.SocketAddress;
+
 import goldengate.common.command.exception.CommandAbstractException;
+import goldengate.common.exception.NoRestartException;
 import goldengate.common.file.SessionInterface;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 import goldengate.common.logging.GgInternalLogger;
@@ -64,6 +67,15 @@ public class R66Session implements SessionInterface {
      * Authentication
      */
     private final R66Auth auth;
+    /**
+     * Remote Address
+     */
+    private SocketAddress raddress;
+    /**
+     * Local Address
+     */
+    private SocketAddress laddress;
+
     /**
      * Current directory
      */
@@ -239,8 +251,24 @@ public class R66Session implements SessionInterface {
             LocalChannelReference localChannelReference) {
         this.localChannelReference = localChannelReference;
         this.localChannelReference.setSession(this);
+        this.raddress = this.localChannelReference.getNetworkChannel().getRemoteAddress();
+        this.laddress = this.localChannelReference.getNetworkChannel().getLocalAddress();
     }
 
+    /**
+     * 
+     * @return the remote SocketAddress
+     */
+    public SocketAddress getRemoteAddress() {
+        return this.raddress;
+    }
+    /**
+     * 
+     * @return the local SocketAddress
+     */
+    public SocketAddress getLocalAddress() {
+        return this.laddress;
+    }
     /**
      * @return the localChannelReference
      */
@@ -456,6 +484,8 @@ public class R66Session implements SessionInterface {
         if (runner.getRank() > 0) {
             runner.setTransferTask(runner.getRank());
             restart.restartMarker(runner.getBlocksize() * runner.getRank());
+        } else {
+            restart.restartMarker(0);
         }
         if (runner.getGloballaststep() == TASKSTEP.NOTASK.ordinal() ||
                 runner.getGloballaststep() == TASKSTEP.PRETASK.ordinal()) {
@@ -473,11 +503,36 @@ public class R66Session implements SessionInterface {
         // Now create the associated file
         setFileAfterPreRunner(true);
         if (runner.getGloballaststep() == TASKSTEP.TRANSFERTASK.ordinal()) {
-            try {
-                file.restartMarker(restart);
-            } catch (CommandAbstractException e) {
-                this.runner.deleteTempFile();
-                throw new OpenR66RunnerErrorException(e);
+            if (!this.runner.isSender()) {
+                // Check file length according to rank
+                try {
+                    long length = file.length();
+                    long oldPosition = restart.getPosition();
+                    restart.setSet(true);
+                    if (oldPosition > length) {
+                        int newRank = (int) (length / this.runner.getBlocksize());
+                        runner.setTransferTask(newRank);
+                        restart.restartMarker(this.runner.getBlocksize() * this.runner.getRank());
+                    }
+                    try {
+                        file.restartMarker(restart);
+                    } catch (CommandAbstractException e) {
+                        this.runner.deleteTempFile();
+                        throw new OpenR66RunnerErrorException(e);
+                    }
+                } catch (CommandAbstractException e1) {
+                    // FIXME length wrong
+                    throw new OpenR66RunnerErrorException("File length is wrong", e1);
+                } catch (NoRestartException e) {
+                    // length is not to be changed
+                }
+            } else {
+                try {
+                    file.restartMarker(restart);
+                } catch (CommandAbstractException e) {
+                    this.runner.deleteTempFile();
+                    throw new OpenR66RunnerErrorException(e);
+                }
             }
         }
         this.runner.saveStatus();

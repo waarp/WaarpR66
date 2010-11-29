@@ -117,7 +117,7 @@ public class NetworkTransaction {
             "NetworkChannels");
 
     public NetworkTransaction() {
-        clientBootstrap.setPipelineFactory(new NetworkServerPipelineFactory());
+        clientBootstrap.setPipelineFactory(new NetworkServerPipelineFactory(false));
         clientBootstrap.setOption("tcpNoDelay", true);
         clientBootstrap.setOption("reuseAddress", true);
         clientBootstrap.setOption("connectTimeoutMillis",
@@ -193,6 +193,25 @@ public class NetworkTransaction {
         NetworkChannel networkChannel = null;
         LocalChannelReference localChannelReference = null;
         boolean ok = false;
+        // FIXME check valid limit on server side only (could be the initiator but not a client)
+        if (!Configuration.configuration.HOST_AUTH.isClient()) {
+            boolean valid = false;
+            for (int i = 0; i < Configuration.RETRYNB*2; i++) {
+                if (Configuration.configuration.constraintLimitHandler.checkConstraintsSleep(i)) {
+                    logger.debug("Constraints exceeded: "+i);
+                } else {
+                    logger.debug("Constraints NOT exceeded");
+                    valid = true;
+                    break;
+                }
+            }
+            if (!valid) {
+                // Limit is locally exceeded
+                logger.debug("Overloaded local system");
+                throw new OpenR66ProtocolNetworkException(
+                        "Cannot connect to remote server due to local overload");
+            }
+        }
         lock.lock();
         try {
             networkChannel = createNewConnection(socketAddress, isSSL);

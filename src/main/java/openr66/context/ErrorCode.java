@@ -59,6 +59,12 @@ public enum ErrorCode {
             "Connection Impossible",
             'C'),
     /**
+     * Code stands for connection is impossible now due to limits(remote or local reason)
+     */
+    ServerOverloaded(
+                    "Connection delayed due to exceed of capacity",
+                    'l'),
+    /**
      * Code stands for bad authentication (remote or local)
      */
     BadAuthent("Bad Authentication", 'A'),
@@ -244,6 +250,8 @@ public enum ErrorCode {
                 return CommandNotFound;
             case 'p':
                 return PassThroughMode;
+            case 'l':
+                return ServerOverloaded;
             default:
                 return Unknown;
 

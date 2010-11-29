@@ -40,6 +40,7 @@ import openr66.protocol.http.HttpPipelineFactory;
 import openr66.protocol.http.adminssl.HttpSslPipelineFactory;
 import openr66.protocol.localhandler.LocalTransaction;
 import openr66.protocol.networkhandler.ChannelTrafficHandler;
+import openr66.protocol.networkhandler.ConstraintLimitHandler;
 import openr66.protocol.networkhandler.GlobalTrafficHandler;
 import openr66.protocol.networkhandler.NetworkServerPipelineFactory;
 import openr66.protocol.networkhandler.packet.NetworkPacketSizeEstimator;
@@ -418,7 +419,13 @@ public class Configuration {
      * Delay in ms between two retries
      */
     public long delayRetry = 30000;
+    
+    public ConstraintLimitHandler constraintLimitHandler = 
+        new ConstraintLimitHandler(true, false, 0.9, 100);
 
+    public boolean checkRemoteAddress = false;
+    public boolean checkClientAddress = false;
+    
     private volatile boolean configured = false;
 
     public Configuration() {
@@ -465,6 +472,9 @@ public class Configuration {
             System.exit(-1);
         }
         pipelineInit();
+        // FIXME add into configuration
+        this.constraintLimitHandler.setServer(true);
+        this.checkRemoteAddress = true;
         // Global Server
         serverChannelGroup = new DefaultChannelGroup("OpenR66");
         httpChannelGroup = new DefaultChannelGroup("HttpOpenR66");
@@ -473,7 +483,7 @@ public class Configuration {
                 execServerBoss, execServerWorker, SERVER_THREAD);
         if (useNOSSL) {
             serverBootstrap = new ServerBootstrap(serverChannelFactory);
-            serverBootstrap.setPipelineFactory(new NetworkServerPipelineFactory());
+            serverBootstrap.setPipelineFactory(new NetworkServerPipelineFactory(true));
             serverBootstrap.setOption("child.tcpNoDelay", true);
             serverBootstrap.setOption("child.keepAlive", true);
             serverBootstrap.setOption("child.reuseAddress", true);

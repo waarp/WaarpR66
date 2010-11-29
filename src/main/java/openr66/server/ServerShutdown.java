@@ -19,13 +19,13 @@ import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
 
-import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
 import openr66.configuration.FileBasedConfiguration;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.database.DbConstant;
+import openr66.database.data.DbHostAuth;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.localhandler.LocalChannelReference;
@@ -79,8 +79,8 @@ public class ServerShutdown {
         final ShutdownPacket packet = new ShutdownPacket(
                 Configuration.configuration.getSERVERADMINKEY());
         final NetworkTransaction networkTransaction = new NetworkTransaction();
-        final SocketAddress socketServerAddress = new InetSocketAddress(
-                Configuration.configuration.SERVER_SSLPORT);
+        DbHostAuth host = Configuration.configuration.HOST_SSLAUTH;
+        final SocketAddress socketServerAddress = host.getSocketAddress();
         LocalChannelReference localChannelReference = null;
         localChannelReference = networkTransaction
             .createConnectionWithRetry(socketServerAddress,true, null);

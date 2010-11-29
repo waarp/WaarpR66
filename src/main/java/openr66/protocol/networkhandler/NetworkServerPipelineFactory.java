@@ -40,6 +40,10 @@ public class NetworkServerPipelineFactory implements ChannelPipelineFactory {
     public static final String TIMEOUT = "timeout";
     public static final String READTIMEOUT = "readTimeout";
 
+    private boolean server = false;
+    public NetworkServerPipelineFactory(boolean server) {
+        this.server = server;
+    }
     @Override
     public ChannelPipeline getPipeline() {
         final ChannelPipeline pipeline = Channels.pipeline();
@@ -68,7 +72,7 @@ public class NetworkServerPipelineFactory implements ChannelPipelineFactory {
         pipeline.addLast(READTIMEOUT,
                 new ReadTimeoutHandler(timer,
                 Configuration.configuration.TIMEOUTCON*10, TimeUnit.MILLISECONDS));
-        pipeline.addLast("handler", new NetworkServerHandler());
+        pipeline.addLast("handler", new NetworkServerHandler(this.server));
         return pipeline;
     }
 

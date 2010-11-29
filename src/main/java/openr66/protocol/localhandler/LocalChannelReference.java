@@ -273,9 +273,20 @@ public class LocalChannelReference {
         try {
             if (!futureConnection
                     .await(Configuration.configuration.TIMEOUTCON)) {
-                R66Result result = new R66Result(
-                        new OpenR66ProtocolNoConnectionException("Out of time"),
-                        session, false, ErrorCode.ConnectionImpossible, null);
+                R66Result result;
+                if (futureConnection.isDone()) {
+                    if (futureRequest.isDone()) {
+                        result = futureRequest.getResult();
+                    } else {
+                        result = new R66Result(
+                                new OpenR66ProtocolNoConnectionException("Connection was impossible"),
+                                session, false, ErrorCode.ConnectionImpossible, null);
+                    }
+                } else {
+                    result = new R66Result(
+                            new OpenR66ProtocolNoConnectionException("Out of time"),
+                            session, false, ErrorCode.ConnectionImpossible, null);
+                }
                 validateConnection(false, result);
                 return futureConnection;
             }

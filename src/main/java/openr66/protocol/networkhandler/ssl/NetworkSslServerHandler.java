@@ -43,6 +43,12 @@ import openr66.protocol.utils.R66Future;
  */
 public class NetworkSslServerHandler extends NetworkServerHandler {
     /**
+     * @param isServer
+     */
+    public NetworkSslServerHandler(boolean isServer) {
+        super(isServer);
+    }
+    /**
      * Internal Logger
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory

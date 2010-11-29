@@ -46,6 +46,7 @@ import openr66.protocol.exception.OpenR66ProtocolNotYetConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.RequestPacket;
+import openr66.protocol.networkhandler.ConstraintLimitHandler;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.utils.ChannelUtils;
 import openr66.protocol.utils.R66Future;
@@ -222,6 +223,16 @@ public class ClientRunner extends Thread {
                         default:
                             this.changeUpdatedInfo(UpdatedInfo.INERROR, transfer.getResult().code);
                     }
+                    if (transfer.getResult().code == ErrorCode.ServerOverloaded) {
+                        // redo if possible
+                        if (incrementTaskRunerTry(taskRunner, Configuration.RETRYNB)) {
+                            try {
+                                Thread.sleep(ConstraintLimitHandler.getSleepTime());
+                            } catch (InterruptedException e) {
+                            }
+                            return runTransfer();
+                        }
+                    }
                 }
             } catch (OpenR66DatabaseException e) {
                 logger.info("Not a problem but cannot find at the end the task");
@@ -322,11 +333,13 @@ public class ClientRunner extends Thread {
                         host.toString()+retry);
             }
         }
+        taskRunnerRetryHashMap.remove(taskRunner.getKey());
         if (handler != null) {
             localChannelReference.setRecvThroughHandler(handler);
         }
         RequestPacket request = taskRunner.getRequest();
         logger.debug("Will send request {} ",request);
+        localChannelReference.setClientRunner(this);
         try {
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, request);
         } catch (OpenR66ProtocolPacketException e) {
@@ -342,7 +355,6 @@ public class ClientRunner extends Thread {
         logger.debug("Wait for request to {}",host);
         request = null;
         host = null;
-        localChannelReference.setClientRunner(this);
         return localChannelReference;
     }
     /**

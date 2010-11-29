@@ -68,6 +68,17 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
      * Does this Handler is for SSL
      */
     protected volatile boolean isSSL = false;
+    /**
+     * Is this Handler a server side
+     */
+    protected boolean isServer = false;
+    /**
+     * 
+     * @param isServer
+     */
+    public NetworkServerHandler(boolean isServer) {
+        this.isServer = isServer;
+    }
     /*
      * (non-Javadoc)
      *

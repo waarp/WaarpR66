@@ -87,9 +87,19 @@ public abstract class AbstractTask implements Runnable {
     public static final String REMOTEHOST = "#REMOTEHOST#";
 
     /**
+     * Remote host address
+     */
+    public static final String REMOTEHOSTADDR = "#REMOTEHOSTADDR#";
+
+    /**
      * Local host id
      */
     public static final String LOCALHOST = "#LOCALHOST#";
+
+    /**
+     * Local host address
+     */
+    public static final String LOCALHOSTADDR = "#LOCALHOSTADDR#";
 
     /**
      * Transfer id
@@ -264,6 +274,8 @@ public abstract class AbstractTask implements Runnable {
                         Configuration.configuration.HOST_ID);
             }
         }
+        FileUtils.replaceAll(builder, REMOTEHOSTADDR, session.getRemoteAddress().toString());
+        FileUtils.replaceAll(builder, LOCALHOSTADDR, session.getLocalAddress().toString());
         FileUtils.replaceAll(builder, TRANSFERID, Long.toString(session
                 .getRunner().getSpecialId()));
         String requester = session.getRunner().getRequester();

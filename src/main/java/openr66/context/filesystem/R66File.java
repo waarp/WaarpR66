@@ -333,7 +333,7 @@ public class R66File extends FilesystemBasedFileImpl {
         try {
             FileInputStream fileInputStream = new FileInputStream(trueFile);
             fileChannel = fileInputStream.getChannel();
-            if (getPosition() != 0) {
+            if (getPosition() > 0) {
                 fileChannel = fileChannel.position(getPosition());
             }
         } catch (FileNotFoundException e) {
