@@ -20,12 +20,13 @@
  */
 package openr66.database.data;
 
+import goldengate.common.digest.MD5;
+
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 
 import openr66.context.R66Session;
@@ -462,7 +463,10 @@ public class DbHostAuth extends AbstractDbData {
             return false;
         }
         try {
-            return Arrays.equals(Configuration.configuration.cryptoKey.decryptHexInBytes(this.hostkey), newkey);
+            return MD5.equalPasswd(
+                    Configuration.configuration.cryptoKey.decryptHexInBytes(this.hostkey), 
+                    newkey);
+            //return Arrays.equals(Configuration.configuration.cryptoKey.decryptHexInBytes(this.hostkey), newkey);
         } catch (Exception e) {
             return false;
         }

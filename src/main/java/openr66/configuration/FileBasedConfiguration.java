@@ -722,6 +722,7 @@ public class FileBasedConfiguration {
                             FilesystemBasedDigest.fastMd5Path.length() == 0) {
                         logger.info("FastMD5 init lib to null");
                         FilesystemBasedDigest.fastMd5Path = null;
+                        MD5.initNativeLibrary(true);
                     } else {
                         logger.info("FastMD5 init lib to {}",
                                 FilesystemBasedDigest.fastMd5Path);
@@ -731,7 +732,12 @@ public class FileBasedConfiguration {
                 }
             } else {
                 FilesystemBasedDigest.fastMd5Path = null;
+                MD5.initNativeLibrary(true);
             }
+        } else {
+            FilesystemBasedDigest.useFastMd5 = false;
+            FilesystemBasedDigest.fastMd5Path = null;
+            MD5.initNativeLibrary(true);
         }
         node = document.selectSingleNode(XML_BLOCKSIZE);
         try {

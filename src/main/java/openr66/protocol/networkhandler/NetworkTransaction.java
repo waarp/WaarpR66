@@ -3,6 +3,7 @@
  */
 package openr66.protocol.networkhandler;
 
+import goldengate.common.digest.MD5;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
@@ -392,7 +393,8 @@ public class NetworkTransaction {
             authent = new AuthentPacket(
                     Configuration.configuration.getHostId(
                             localChannelReference.getNetworkServerHandler().isSsl()),
-                    Configuration.configuration.HOST_AUTH.getHostkey(),
+                    MD5.passwdCrypt(
+                    Configuration.configuration.HOST_AUTH.getHostkey()),
                     localChannelReference.getLocalId());
         } catch (OpenR66ProtocolNoSslException e1) {
             R66Result finalValue = new R66Result(
