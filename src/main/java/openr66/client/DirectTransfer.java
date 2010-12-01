@@ -55,10 +55,10 @@ public class DirectTransfer extends AbstractTransfer {
     protected final NetworkTransaction networkTransaction;
 
     public DirectTransfer(R66Future future, String remoteHost,
-            String filename, String rulename, String fileinfo, boolean isMD5, int blocksize,
+            String filename, String rulename, String fileinfo, boolean isMD5, int blocksize, long id,
             NetworkTransaction networkTransaction) {
         super(DirectTransfer.class,
-                future, filename, rulename, fileinfo, isMD5, remoteHost, blocksize);
+                future, filename, rulename, fileinfo, isMD5, remoteHost, blocksize, id);
         this.networkTransaction = networkTransaction;
     }
 
@@ -86,7 +86,7 @@ public class DirectTransfer extends AbstractTransfer {
         }
         RequestPacket request = new RequestPacket(rulename,
                 mode, filename, blocksize, 0,
-                DbConstant.ILLEGALVALUE, fileinfo);
+                id, fileinfo);
         // Not isRecv since it is the requester, so send => isRetrieve is true
         boolean isRetrieve = ! RequestPacket.isRecvMode(request.getMode());
         DbTaskRunner taskRunner = null;
@@ -171,7 +171,7 @@ public class DirectTransfer extends AbstractTransfer {
         NetworkTransaction networkTransaction = new NetworkTransaction();
         try {
             DirectTransfer transaction = new DirectTransfer(future,
-                    rhost, localFilename, rule, fileInfo, ismd5, block,
+                    rhost, localFilename, rule, fileInfo, ismd5, block, idt,
                     networkTransaction);
             transaction.run();
             future.awaitUninterruptibly();
@@ -180,13 +180,13 @@ public class DirectTransfer extends AbstractTransfer {
             R66Result result = future.getResult();
             if (future.isSuccess()) {
                 if (result.runner.getErrorInfo() == ErrorCode.Warning) {
-                    logger.warn("WARNED\n    "+result.runner.toShortString()+
+                    logger.warn("Transfer in status:\nWARNED\n    "+result.runner.toShortString()+
                             "\n    <REMOTE>"+rhost+"</REMOTE>"+
                             "\n    <FILEFINAL>" +
                             (result.file != null? result.file.toString()+"</FILEFINAL>" : "no file")
                             +"\n    delay: "+delay);
                 } else {
-                    logger.warn("SUCCESS\n    "+result.runner.toShortString()+
+                    logger.warn("Transfer in status:\nSUCCESS\n    "+result.runner.toShortString()+
                             "\n    <REMOTE>"+rhost+"</REMOTE>"+
                             "\n    <FILEFINAL>" +
                             (result.file != null? result.file.toString()+"</FILEFINAL>" : "no file")

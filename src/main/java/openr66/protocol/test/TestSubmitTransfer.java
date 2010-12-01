@@ -62,7 +62,8 @@ public class TestSubmitTransfer extends SubmitTransfer {
 
     public TestSubmitTransfer(R66Future future, String remoteHost,
             String filename, String rulename, String fileinfo, boolean isMD5, int blocksize) {
-        super(future, remoteHost, filename, rulename, fileinfo, isMD5, blocksize);
+        super(future, remoteHost, filename, rulename, fileinfo, isMD5, blocksize, 
+                DbConstant.ILLEGALVALUE);
     }
 
     public static void main(String[] args) {

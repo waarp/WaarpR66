@@ -23,6 +23,7 @@ package openr66.client;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.configuration.FileBasedConfiguration;
+import openr66.database.DbConstant;
 import openr66.protocol.utils.R66Future;
 
 /**
@@ -50,6 +51,8 @@ public abstract class AbstractTransfer implements Runnable {
     protected final String remoteHost;
 
     protected final int blocksize;
+    
+    protected final long id;
 
 
     /**
@@ -61,10 +64,11 @@ public abstract class AbstractTransfer implements Runnable {
      * @param isMD5
      * @param remoteHost
      * @param blocksize
+     * @param id
      */
     public AbstractTransfer(Class<?> clasz, R66Future future, String filename,
             String rulename, String fileinfo,
-            boolean isMD5, String remoteHost, int blocksize) {
+            boolean isMD5, String remoteHost, int blocksize, long id) {
         if (logger == null) {
             logger = GgInternalLoggerFactory.getLogger(clasz);
         }
@@ -75,6 +79,7 @@ public abstract class AbstractTransfer implements Runnable {
         this.isMD5 = isMD5;
         this.remoteHost = remoteHost;
         this.blocksize = blocksize;
+        this.id = id;
     }
 
     static protected String rhost = null;
@@ -84,7 +89,8 @@ public abstract class AbstractTransfer implements Runnable {
     static protected boolean ismd5 = false;
     static protected int block = 0x10000; // 64K as default
     static protected boolean nolog = false;
-
+    static protected long idt = DbConstant.ILLEGALVALUE;
+    
     /**
      * Parse the parameter and set current values
      * @param args
@@ -99,6 +105,7 @@ public abstract class AbstractTransfer implements Runnable {
                                 "  '-file' the file to transfer,\n" +
                                 "  '-rule' the rule\n"+
                                 "Other options:\n" +
+                                "   '-id' \"Id of a previous transfer\",\n"+
                                 "  '-info' \"information to send\",\n" +
                                 "  '-md5' to force MD5 by packet control,\n" +
                                 "  '-block' size of packet > 1K (prefered is 64K),\n" +
@@ -136,6 +143,9 @@ public abstract class AbstractTransfer implements Runnable {
             } else if (args[i].equalsIgnoreCase("-nolog")) {
                 nolog = true;
                 i++;
+            } else if (args[i].equalsIgnoreCase("-id")) {
+                i++;
+                idt = Long.parseLong(args[i]);
             }
         }
         if (fileInfo == null) {

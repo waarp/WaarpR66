@@ -73,7 +73,7 @@ public class TestRecvThroughClient extends RecvThroughClient {
             String filename, String rulename, String fileinfo, boolean isMD5,
             int blocksize, NetworkTransaction networkTransaction) {
         super(future, handler, remoteHost, filename, rulename, fileinfo, isMD5, blocksize,
-                networkTransaction);
+                DbConstant.ILLEGALVALUE, networkTransaction);
     }
 
     /**

@@ -66,9 +66,9 @@ public class TestTransferNoDb extends DirectTransfer {
     }
 
     public TestTransferNoDb(R66Future future, String remoteHost,
-            String filename, String rulename, String fileinfo, boolean isMD5, int blocksize,
+            String filename, String rulename, String fileinfo, boolean isMD5, int blocksize, long id,
             NetworkTransaction networkTransaction) {
-        super(future, remoteHost, filename, rulename, fileinfo, isMD5, blocksize, networkTransaction);
+        super(future, remoteHost, filename, rulename, fileinfo, isMD5, blocksize, id, networkTransaction);
     }
 
 
@@ -99,6 +99,7 @@ public class TestTransferNoDb extends DirectTransfer {
                 arrayFuture[i] = new R66Future(true);
                 TestTransferNoDb transaction = new TestTransferNoDb(arrayFuture[i],
                         rhost, localFilename, rule, fileInfo, ismd5, block,
+                        DbConstant.ILLEGALVALUE,
                         networkTransaction);
                 executorService.execute(transaction);
                 try {

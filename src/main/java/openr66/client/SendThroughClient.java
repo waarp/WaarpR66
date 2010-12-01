@@ -115,12 +115,13 @@ public class SendThroughClient extends AbstractTransfer {
      * @param isMD5
      * @param blocksize
      * @param networkTransaction
+     * @param id
      */
     public SendThroughClient(R66Future future, String remoteHost,
             String filename, String rulename, String fileinfo, boolean isMD5,
-            int blocksize, NetworkTransaction networkTransaction) {
+            int blocksize, long id, NetworkTransaction networkTransaction) {
         super(SendThroughClient.class,
-                future, filename, rulename, fileinfo, isMD5, remoteHost, blocksize);
+                future, filename, rulename, fileinfo, isMD5, remoteHost, blocksize, id);
         this.networkTransaction = networkTransaction;
     }
     /**
@@ -156,7 +157,7 @@ public class SendThroughClient extends AbstractTransfer {
         }
         RequestPacket request = new RequestPacket(rulename,
                 mode, filename, blocksize, 0,
-                DbConstant.ILLEGALVALUE, fileinfo);
+                id, fileinfo);
         // Not isRecv since it is the requester, so send => isSender is true
         boolean isSender = true;
         try {

@@ -1082,6 +1082,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
             }
             packet.validate();
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet).awaitUninterruptibly();
+        } else {
+            // Force log in case client with no DB
+            if (localChannelReference.getDbSession() == null) {
+                logger.warn("Starts \n    "+runner.toShortString()+
+                        "\n    <REMOTE>"+session.getAuth().getUser()+"</REMOTE>");
+            }
         }
         // if retrieve => START the retrieve operation except if in Send Through mode
         if (runner.isSender()) {

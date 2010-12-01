@@ -85,13 +85,14 @@ public class RecvThroughClient extends AbstractTransfer {
      * @param fileinfo
      * @param isMD5
      * @param blocksize
+     * @param id
      * @param networkTransaction
      */
     public RecvThroughClient(R66Future future, RecvThroughHandler handler, String remoteHost,
             String filename, String rulename, String fileinfo, boolean isMD5,
-            int blocksize, NetworkTransaction networkTransaction) {
+            int blocksize, long id, NetworkTransaction networkTransaction) {
         super(RecvThroughClient.class,
-                future, filename, rulename, fileinfo, isMD5, remoteHost, blocksize);
+                future, filename, rulename, fileinfo, isMD5, remoteHost, blocksize, id);
         this.networkTransaction = networkTransaction;
         this.handler = handler;
     }
@@ -119,7 +120,7 @@ public class RecvThroughClient extends AbstractTransfer {
         }
         RequestPacket request = new RequestPacket(rulename,
                 mode, filename, blocksize, 0,
-                DbConstant.ILLEGALVALUE, fileinfo);
+                id, fileinfo);
         // isRecv is True since it is the requester, so recv => isSender is false
         boolean isSender = false;
         DbTaskRunner taskRunner = null;

@@ -47,9 +47,9 @@ import ch.qos.logback.classic.Level;
 public class SubmitTransfer extends AbstractTransfer {
 
     public SubmitTransfer(R66Future future, String remoteHost,
-            String filename, String rulename, String fileinfo, boolean isMD5, int blocksize) {
+            String filename, String rulename, String fileinfo, boolean isMD5, int blocksize, long id) {
         super(SubmitTransfer.class,
-                future, filename, rulename, fileinfo, isMD5, remoteHost, blocksize);
+                future, filename, rulename, fileinfo, isMD5, remoteHost, blocksize, id);
     }
 
     public void run() {
@@ -72,7 +72,7 @@ public class SubmitTransfer extends AbstractTransfer {
         }
         RequestPacket request = new RequestPacket(rulename,
                 mode, filename, blocksize, 0,
-                DbConstant.ILLEGALVALUE, fileinfo);
+                id, fileinfo);
         // Not isRecv since it is the requester, so send => isRetrieve is true
         boolean isRetrieve = ! RequestPacket.isRecvMode(request.getMode());
         DbTaskRunner taskRunner;
@@ -125,7 +125,7 @@ public class SubmitTransfer extends AbstractTransfer {
         }
         R66Future future = new R66Future(true);
         SubmitTransfer transaction = new SubmitTransfer(future,
-                rhost, localFilename, rule, fileInfo, ismd5, block);
+                rhost, localFilename, rule, fileInfo, ismd5, block, DbConstant.ILLEGALVALUE);
         transaction.run();
         future.awaitUninterruptibly();
         DbTaskRunner runner = future.getResult().runner;

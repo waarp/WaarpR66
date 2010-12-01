@@ -65,7 +65,7 @@ public class TestSendThroughClient extends SendThroughClient {
             String filename, String rulename, String fileinfo, boolean isMD5,
             int blocksize, NetworkTransaction networkTransaction) {
         super(future, remoteHost, filename, rulename, fileinfo, isMD5, blocksize,
-                networkTransaction);
+                DbConstant.ILLEGALVALUE, networkTransaction);
     }
 
     public boolean sendFile() {

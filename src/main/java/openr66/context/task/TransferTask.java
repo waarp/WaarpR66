@@ -26,6 +26,7 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.client.SubmitTransfer;
 import openr66.context.R66Session;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
+import openr66.database.DbConstant;
 import openr66.database.data.DbTaskRunner;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.utils.R66Future;
@@ -117,7 +118,7 @@ public class TransferTask extends AbstractTask {
         }
         R66Future future = new R66Future(true);
         SubmitTransfer transaction = new SubmitTransfer(future,
-                requested, filepath, rule, information, isMD5, blocksize);
+                requested, filepath, rule, information, isMD5, blocksize, DbConstant.ILLEGALVALUE);
         transaction.run();
         future.awaitUninterruptibly();
         futureCompletion.setResult(future.getResult());
