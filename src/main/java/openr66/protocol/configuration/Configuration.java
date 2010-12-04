@@ -425,6 +425,7 @@ public class Configuration {
 
     public boolean checkRemoteAddress = false;
     public boolean checkClientAddress = false;
+    public boolean saveTaskRunnerWithNoDb = false;
     
     private volatile boolean configured = false;
 

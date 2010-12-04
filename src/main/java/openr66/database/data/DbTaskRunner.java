@@ -35,8 +35,11 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.TreeSet;
 
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
+import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
 import org.dom4j.tree.DefaultElement;
 import org.xml.sax.SAXException;
@@ -566,6 +569,9 @@ public class DbTaskRunner extends AbstractDbData {
     public void delete() throws OpenR66DatabaseException {
         if (dbSession == null) {
             removeNoDbSpecialId();
+            if (Configuration.configuration.saveTaskRunnerWithNoDb) {
+                deleteXmlWorkNoDb();
+            }
             return;
         }
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
@@ -601,6 +607,14 @@ public class DbTaskRunner extends AbstractDbData {
                 createNoDbSpecialId();
             }
             isSaved = true;
+            if (Configuration.configuration.saveTaskRunnerWithNoDb) {
+                try {
+                    setToArray();
+                    this.writeXmlWorkNoDb();
+                } catch (OpenR66ProtocolBusinessException e) {
+                    // Ignore
+                }
+            }
             return;
         }
         // First need to find a new id if id is not ok
@@ -642,6 +656,14 @@ public class DbTaskRunner extends AbstractDbData {
                 createNoDbSpecialId();
             }
             isSaved = true;
+            if (Configuration.configuration.saveTaskRunnerWithNoDb) {
+                try {
+                    setToArray();
+                    this.writeXmlWorkNoDb();
+                } catch (OpenR66ProtocolBusinessException e) {
+                    // Ignore
+                }
+            }
             return;
         }
         // First need to find a new id if id is not ok
@@ -713,6 +735,9 @@ public class DbTaskRunner extends AbstractDbData {
     @Override
     public boolean exist() throws OpenR66DatabaseException {
         if (dbSession == null) {
+            if (Configuration.configuration.saveTaskRunnerWithNoDb) {
+                return existXmlWorkNoDb();
+            }
             return false;
         }
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
@@ -738,6 +763,19 @@ public class DbTaskRunner extends AbstractDbData {
     @Override
     public void select() throws OpenR66DatabaseException {
         if (dbSession == null) {
+            if (Configuration.configuration.saveTaskRunnerWithNoDb) {
+                try {
+                    this.loadXmlWorkNoDb();
+                    setFromArray();
+                } catch (OpenR66ProtocolBusinessException e) {
+                    throw new OpenR66DatabaseNoDataException("No file found");
+                }
+                if (rule == null) {
+                    rule = new DbRule(this.dbSession, ruleId);
+                }
+                isSaved = true;
+                return;
+            }
             throw new OpenR66DatabaseNoDataException("No row found");
         }
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
@@ -779,6 +817,14 @@ public class DbTaskRunner extends AbstractDbData {
         }
         if (dbSession == null) {
             isSaved = true;
+            if (Configuration.configuration.saveTaskRunnerWithNoDb) {
+                try {
+                    setToArray();
+                    this.writeXmlWorkNoDb();
+                } catch (OpenR66ProtocolBusinessException e) {
+                    // Ignore
+                }
+            }
             return;
         }
         setToArray();
@@ -2621,7 +2667,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     /**
-     *
+     * Need to call 'setToArray' before
      * @param runner
      * @return The Element representing the given Runner
      * @throws OpenR66DatabaseSqlError
@@ -2637,6 +2683,26 @@ public class DbTaskRunner extends AbstractDbData {
                     .getValueAsString()));
         }
         return root;
+    }
+    /**
+     * Set the given runner from the root element of the runner itself (XMLRUNNER but not XMLRUNNERS).
+     * Need to call 'setFromArray' after.
+     * @param runner
+     * @param root
+     * @throws OpenR66DatabaseSqlError
+     */
+    private static void setRunnerFromElement(DbTaskRunner runner, Element root) 
+        throws OpenR66DatabaseSqlError {
+        for (DbValue value: runner.allFields) {
+            if (value.column.equals(Columns.UPDATEDINFO.name())) {
+                continue;
+            }
+            Element elt = (Element) root.selectSingleNode(value.column.toLowerCase());
+            if (elt != null) {
+                String newValue = elt.getText();
+                value.setValueFromString(newValue);
+            }
+        }
     }
     /**
      * Write the selected TaskRunners from PrepareStatement to a XMLWriter
@@ -2764,5 +2830,126 @@ public class DbTaskRunner extends AbstractDbData {
                 preparedStatement.realClose();
             }
         }
+    }
+    /**
+     * 
+     * @return the backend XML filename for the current TaskRunner in NoDb Client mode
+     */
+    public String backendXmlFilename() {
+        return Configuration.configuration.baseDirectory+
+            Configuration.configuration.archivePath+R66Dir.SEPARATOR+
+            this.requesterHostId+"_"+this.requestedHostId+"_"+this.ruleId+"_"+this.specialId
+            +"_singlerunner.xml";
+    }
+    /**
+     * Method to write the current DbTaskRunner for NoDb client instead of updating DB.
+     * 'setToArray' must be called priorly to be able to store the values.
+     * @throws OpenR66ProtocolBusinessException
+     */
+    public void writeXmlWorkNoDb() throws OpenR66ProtocolBusinessException {
+        String filename = backendXmlFilename();
+        OutputStream outputStream = null;
+        XMLWriter xmlWriter = null;
+        try {
+            outputStream = new FileOutputStream(filename);
+            OutputFormat format = OutputFormat.createPrettyPrint();
+            format.setEncoding("ISO-8859-1");
+            xmlWriter = new XMLWriter(outputStream, format);
+            Element root = new DefaultElement(XMLRUNNERS);
+            try {
+                xmlWriter.writeOpen(root);
+                Element node;
+                node = DbTaskRunner.getElementFromRunner(this);
+                xmlWriter.write(node);
+                xmlWriter.flush();
+                xmlWriter.writeClose(root);
+            } catch (IOException e) {
+                logger.error("Cannot write XML file", e);
+                throw new OpenR66ProtocolBusinessException("Cannot write file: "+e.getMessage());
+            } catch (OpenR66DatabaseSqlError e) {
+                logger.error("Cannot write Data", e);
+                throw new OpenR66ProtocolBusinessException("Cannot write Data: "+e.getMessage());
+            }
+        } catch (FileNotFoundException e) {
+            logger.error("Cannot write XML file", e);
+            throw new OpenR66ProtocolBusinessException("File not found");
+        } catch (UnsupportedEncodingException e) {
+            logger.error("Cannot write XML file", e);
+            throw new OpenR66ProtocolBusinessException("Unsupported Encoding");
+        } finally {
+            if (xmlWriter != null) {
+                try {
+                    xmlWriter.endDocument();
+                    xmlWriter.flush();
+                    xmlWriter.close();
+                } catch (SAXException e) {
+                    try {
+                        outputStream.close();
+                    } catch (IOException e2) {
+                    }
+                    File file = new File(filename);
+                    file.delete();
+                    logger.error("Cannot write XML file", e);
+                    throw new OpenR66ProtocolBusinessException("Unsupported Encoding");
+                } catch (IOException e) {
+                    try {
+                        outputStream.close();
+                    } catch (IOException e2) {
+                    }
+                    File file = new File(filename);
+                    file.delete();
+                    logger.error("Cannot write XML file", e);
+                    throw new OpenR66ProtocolBusinessException("Unsupported Encoding");
+                }
+            } else if (outputStream != null){
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                }
+                File file = new File(filename);
+                file.delete();
+            }
+        }
+    }
+    /**
+     * Method to load a previous existing DbTaskRunner for NoDb client from File instead of from DB.
+     * 'setFromArray' must be called after.
+     * @throws OpenR66ProtocolBusinessException
+     */
+    public void loadXmlWorkNoDb() throws OpenR66ProtocolBusinessException {
+        String filename = backendXmlFilename();
+        File file = new File(filename);
+        if (! file.canRead()) {
+            throw new OpenR66ProtocolBusinessException("Backend XML file cannot be read");
+        }
+        SAXReader reader = new SAXReader();
+        Document document;
+        try {
+            document = reader.read(file);
+        } catch (DocumentException e) {
+            throw new OpenR66ProtocolBusinessException("Backend XML file cannot be read as an XML file");
+        }
+        Element root = (Element) document.selectSingleNode("/"+XMLRUNNERS+"/"+XMLRUNNER);
+        try {
+            setRunnerFromElement(this, root);
+        } catch (OpenR66DatabaseSqlError e) {
+            throw new OpenR66ProtocolBusinessException("Backend XML file is not conform to the model");
+        }
+    }
+    /**
+     * 
+     * @return True if the backend XML for NoDb client is available for this TaskRunner
+     */
+    public boolean existXmlWorkNoDb() {
+        String filename = backendXmlFilename();
+        File file = new File(filename);
+        return file.canRead();
+    }
+    /**
+     * Delete the backend XML file for the current TaskRunner for NoDb Client
+     */
+    public void deleteXmlWorkNoDb() {
+        File file = new File(backendXmlFilename());
+        file.delete();
     }
 }

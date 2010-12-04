@@ -23,6 +23,8 @@ package openr66.database.data;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.text.DateFormat;
+import java.text.ParseException;
 
 import openr66.database.exception.OpenR66DatabaseSqlError;
 
@@ -281,6 +283,55 @@ public class DbValue {
                 return ((Date) value).toString();
             case Types.TIMESTAMP:
                 return ((Timestamp) value).toString();
+            default:
+                throw new OpenR66DatabaseSqlError("Type unknown: " + type);
+        }
+    }
+    
+    public void setValueFromString(String svalue) throws OpenR66DatabaseSqlError {
+        switch (type) {
+            case Types.VARCHAR:
+            case Types.LONGVARCHAR:
+                value = svalue;
+                break;
+            case Types.BIT:
+                value = Boolean.parseBoolean(svalue);
+                break;
+            case Types.TINYINT:
+                value = Byte.parseByte(svalue);
+                break;
+            case Types.SMALLINT:
+                value = Short.parseShort(svalue);
+                break;
+            case Types.INTEGER:
+                value = Integer.parseInt(svalue);
+                break;
+            case Types.BIGINT:
+                value = Long.parseLong(svalue);
+                break;
+            case Types.REAL:
+                value = Float.parseFloat(svalue);
+                break;
+            case Types.DOUBLE:
+                value = Double.parseDouble(svalue);
+                break;
+            case Types.VARBINARY:
+                value = svalue.getBytes();
+                break;
+            case Types.DATE:
+                try {
+                    value = DateFormat.getDateTimeInstance().parse(svalue);
+                } catch (ParseException e) {
+                    throw new OpenR66DatabaseSqlError("Error in Date: " + svalue);
+                }
+                break;
+            case Types.TIMESTAMP:
+                try {
+                    value = DateFormat.getDateTimeInstance().parse(svalue);
+                } catch (ParseException e) {
+                    throw new OpenR66DatabaseSqlError("Error in Timestamp: " + svalue);
+                }
+                break;
             default:
                 throw new OpenR66DatabaseSqlError("Type unknown: " + type);
         }
