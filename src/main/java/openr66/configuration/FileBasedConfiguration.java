@@ -26,7 +26,6 @@ import goldengate.common.crypto.ssl.GgSslContextFactory;
 import goldengate.common.digest.FilesystemBasedDigest;
 import goldengate.common.digest.MD5;
 import goldengate.common.exception.CryptoException;
-import goldengate.common.exception.InvalidArgumentException;
 import goldengate.common.file.DirInterface;
 import goldengate.common.file.filesystembased.FilesystemBasedDirImpl;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
@@ -35,7 +34,11 @@ import goldengate.common.file.filesystembased.specific.FilesystemBasedDirJdk6;
 import goldengate.common.file.filesystembased.specific.FilesystemBasedDirJdkAbstract;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
-import goldengate.common.utility.GgStringUtils;
+import goldengate.common.xml.XmlDecl;
+import goldengate.common.xml.XmlHash;
+import goldengate.common.xml.XmlType;
+import goldengate.common.xml.XmlUtil;
+import goldengate.common.xml.XmlValue;
 
 import java.io.File;
 import java.io.IOException;
@@ -56,12 +59,12 @@ import openr66.database.model.DbModelFactory;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.http.adminssl.HttpSslPipelineFactory;
+import openr66.protocol.networkhandler.ConstraintLimitHandler;
 import openr66.protocol.networkhandler.ssl.NetworkSslServerPipelineFactory;
 import openr66.protocol.utils.FileUtils;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
-import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 import org.jboss.netty.handler.traffic.AbstractTrafficShapingHandler;
 
@@ -81,234 +84,267 @@ public class FileBasedConfiguration {
     /**
      * SERVER HOSTID
      */
-    private static final String XML_SERVER_HOSTID = "/config/identity/hostid";
+    private static final String XML_SERVER_HOSTID = "hostid";
 
     /**
      * SERVER SSL HOSTID
      */
-    private static final String XML_SERVER_SSLHOSTID = "/config/identity/sslhostid";
+    private static final String XML_SERVER_SSLHOSTID = "sslhostid";
 
     /**
      * ADMINISTRATOR SERVER NAME (shutdown)
      */
-    private static final String XML_SERVER_ADMIN = "/config/identity/serveradmin";
+    private static final String XML_SERVER_ADMIN = "serveradmin";
 
     /**
      * SERVER PASSWORD (shutdown)
      */
-    private static final String XML_SERVER_PASSWD = "/config/identity/serverpasswd";
+    private static final String XML_SERVER_PASSWD = "serverpasswd";
+    /**
+     * Authentication
+     */
+    private static final String XML_AUTHENTIFICATION_FILE = "authentfile";
 
     /**
      * SERVER PORT
      */
-    private static final String XML_SERVER_PORT = "/config/network/serverport";
+    private static final String XML_SERVER_PORT = "serverport";
 
     /**
      * SERVER SSL PORT
      */
-    private static final String XML_SERVER_SSLPORT = "/config/network/serversslport";
+    private static final String XML_SERVER_SSLPORT = "serversslport";
 
     /**
      * SERVER HTTP PORT
      */
-    private static final String XML_SERVER_HTTPPORT = "/config/network/serverhttpport";
+    private static final String XML_SERVER_HTTPPORT = "serverhttpport";
 
     /**
      * SERVER HTTP PORT
      */
-    private static final String XML_SERVER_HTTPSPORT = "/config/network/serverhttpsport";
+    private static final String XML_SERVER_HTTPSPORT = "serverhttpsport";
 
     /**
      * SERVER SSL STOREKEY PATH
      */
-    private static final String XML_PATH_KEYPATH = "/config/ssl/keypath";
+    private static final String XML_PATH_KEYPATH = "keypath";
 
     /**
      * SERVER SSL KEY PASS
      */
-    private static final String XML_PATH_KEYPASS = "/config/ssl/keypass";
+    private static final String XML_PATH_KEYPASS = "keypass";
 
     /**
      * SERVER SSL STOREKEY PASS
      */
-    private static final String XML_PATH_KEYSTOREPASS = "/config/ssl/keystorepass";
+    private static final String XML_PATH_KEYSTOREPASS = "keystorepass";
 
     /**
      * SERVER SSL TRUSTSTOREKEY PATH
      */
-    private static final String XML_PATH_TRUSTKEYPATH = "/config/ssl/trustkeypath";
+    private static final String XML_PATH_TRUSTKEYPATH = "trustkeypath";
 
     /**
      * SERVER SSL TRUSTSTOREKEY PASS
      */
-    private static final String XML_PATH_TRUSTKEYSTOREPASS = "/config/ssl/trustkeystorepass";
+    private static final String XML_PATH_TRUSTKEYSTOREPASS = "trustkeystorepass";
 
     /**
      * SERVER SSL STOREKEY PATH ADMIN
      */
-    private static final String XML_PATH_ADMIN_KEYPATH = "/config/ssl/admkeypath";
+    private static final String XML_PATH_ADMIN_KEYPATH = "admkeypath";
 
     /**
      * SERVER SSL KEY PASS ADMIN
      */
-    private static final String XML_PATH_ADMIN_KEYPASS = "/config/ssl/admkeypass";
+    private static final String XML_PATH_ADMIN_KEYPASS = "admkeypass";
 
     /**
      * SERVER SSL STOREKEY PASS ADMIN
      */
-    private static final String XML_PATH_ADMIN_KEYSTOREPASS = "/config/ssl/admkeystorepass";
+    private static final String XML_PATH_ADMIN_KEYSTOREPASS = "admkeystorepass";
 
     /**
      * SERVER CRYPTO for Password
      */
-    private static final String XML_PATH_CRYPTOKEY = "/config/ssl/cryptokey";
-
+    private static final String XML_PATH_CRYPTOKEY = "cryptokey";
     /**
      * Base Directory
      */
-    private static final String XML_SERVER_HOME = "/config/directory/serverhome";
+    private static final String XML_SERVER_HOME = "serverhome";
 
     /**
      * IN Directory
      */
-    private static final String XML_INPATH = "/config/directory/in";
+    private static final String XML_INPATH = "in";
 
     /**
      * OUT Directory
      */
-    private static final String XML_OUTPATH = "/config/directory/out";
+    private static final String XML_OUTPATH = "out";
 
     /**
      * ARCHIVE Directory
      */
-    private static final String XML_ARCHIVEPATH = "/config/directory/arch";
+    private static final String XML_ARCHIVEPATH = "arch";
 
     /**
      * WORKING Directory
      */
-    private static final String XML_WORKINGPATH = "/config/directory/work";
+    private static final String XML_WORKINGPATH = "work";
 
     /**
      * CONFIG Directory
      */
-    private static final String XML_CONFIGPATH = "/config/directory/conf";
+    private static final String XML_CONFIGPATH = "conf";
 
     /**
      * HTTP Admin Directory
      */
-    private static final String XML_HTTPADMINPATH = "/config/directory/httpadmin";
-
+    private static final String XML_HTTPADMINPATH = "httpadmin";
     /**
      * Use SSL for R66 connection
      */
-    private static final String XML_USESSL = "/config/parameter/usessl";
+    private static final String XML_USESSL = "usessl";
 
     /**
      * Use non SSL for R66 connection
      */
-    private static final String XML_USENOSSL = "/config/parameter/usenossl";
+    private static final String XML_USENOSSL = "usenossl";
 
     /**
      * Use HTTP compression for R66 HTTP connection
      */
-    private static final String XML_USEHTTPCOMP = "/config/parameter/usehttpcomp";
+    private static final String XML_USEHTTPCOMP = "usehttpcomp";
 
     /**
      * SERVER SSL Use TrustStore for Client Authentication
      */
-    private static final String XML_USECLIENT_AUTHENT = "/config/parameter/trustuseclientauthenticate";
-
-    /**
-     * Use external GoldenGate Local Exec for ExecTask and ExecMoveTask
-     */
-    private static final String XML_USELOCALEXEC = "/config/parameter/uselocalexec";
-
-    /**
-     * Address of GoldenGate Local Exec for ExecTask and ExecMoveTask
-     */
-    private static final String XML_LEXECADDR = "/config/parameter/lexecaddr";
-
-    /**
-     * Port of GoldenGate Local Exec for ExecTask and ExecMoveTask
-     */
-    private static final String XML_LEXECPORT = "/config/parameter/lexecport";
-
-    /**
-     * Default number of threads in pool for Server.
-     */
-    private static final String XML_SERVER_THREAD = "/config/parameter/serverthread";
-
-    /**
-     * Default number of threads in pool for Client (truly concurrent).
-     */
-    private static final String XML_CLIENT_THREAD = "/config/parameter/clientthread";
-
-    /**
-     * Memory Limit to use.
-     */
-    private static final String XML_MEMORY_LIMIT = "/config/parameter/memorylimit";
+    private static final String XML_USECLIENT_AUTHENT = "trustuseclientauthenticate";
 
     /**
      * Limit per session
      */
-    private static final String XML_LIMITSESSION = "/config/parameter/sessionlimit";
+    private static final String XML_LIMITSESSION = "sessionlimit";
 
     /**
      * Limit global
      */
-    private static final String XML_LIMITGLOBAL = "/config/parameter/globallimit";
+    private static final String XML_LIMITGLOBAL = "globallimit";
 
     /**
      * Delay between two checks for Limit
      */
-    private static final String XML_LIMITDELAY = "/config/parameter/delaylimit";
+    private static final String XML_LIMITDELAY = "delaylimit";
+
+    /**
+     * Usage of CPU Limit
+     */
+    private static final String XML_CSTRT_USECPULIMIT = "usecpulimit";
+
+    /**
+     * Usage of JDK CPU Limit (True) or SysMon CPU Limit
+     */
+    private static final String XML_CSTRT_USECPUJDKLIMIT = "usejdkcpulimit";
+
+    /**
+     * CPU LIMIT between 0 and 1, where 1 stands for no limit
+     */
+    private static final String XML_CSTRT_CPULIMIT = "cpulimit";
+    /**
+     * Connection limit where 0 stands for no limit
+     */
+    private static final String XML_CSTRT_CONNLIMIT = "connlimit";
+    /**
+     * Usage of checking remote address with the DbHost definition
+     */
+    private static final String XML_CHECK_ADDRESS = "checkaddress";
+    /**
+     * Usage of checking remote address also for Client
+     */
+    private static final String XML_CHECK_CLIENTADDRESS = "checkclientaddress";
+
+    /**
+     * In case of No Db Client, Usage of saving TaskRunner into independent XML file
+     */
+    private static final String XML_SAVE_TASKRUNNERNODB = "taskrunnernodb";
+
+    /**
+     * Use external GoldenGate Local Exec for ExecTask and ExecMoveTask
+     */
+    private static final String XML_USELOCALEXEC = "uselocalexec";
+
+    /**
+     * Address of GoldenGate Local Exec for ExecTask and ExecMoveTask
+     */
+    private static final String XML_LEXECADDR = "lexecaddr";
+
+    /**
+     * Port of GoldenGate Local Exec for ExecTask and ExecMoveTask
+     */
+    private static final String XML_LEXECPORT = "lexecport";
+
+    /**
+     * Default number of threads in pool for Server.
+     */
+    private static final String XML_SERVER_THREAD = "serverthread";
+
+    /**
+     * Default number of threads in pool for Client (truly concurrent).
+     */
+    private static final String XML_CLIENT_THREAD = "clientthread";
+
+    /**
+     * Memory Limit to use.
+     */
+    private static final String XML_MEMORY_LIMIT = "memorylimit";
 
     /**
      * Limit of number of active Runner from Commander
      */
-    private static final String XML_LIMITRUNNING = "/config/parameter/runlimit";
+    private static final String XML_LIMITRUNNING = "runlimit";
 
     /**
      * Delay between two checks for Commander
      */
-    private static final String XML_DELAYCOMMANDER = "/config/parameter/delaycommand";
+    private static final String XML_DELAYCOMMANDER = "delaycommand";
 
     /**
      * Delay between two checks for Commander
      */
-    private static final String XML_DELAYRETRY = "/config/parameter/delayretry";
+    private static final String XML_DELAYRETRY = "delayretry";
 
     /**
      * Nb of milliseconds after connection is in timeout
      */
-    private static final String XML_TIMEOUTCON = "/config/parameter/timeoutcon";
+    private static final String XML_TIMEOUTCON = "timeoutcon";
 
     /**
      * Should a file MD5 SHA1 be computed using NIO
      */
-    private static final String XML_USENIO = "/config/parameter/usenio";
+    private static final String XML_USENIO = "usenio";
 
     /**
      * Should a file MD5 be computed using FastMD5
      */
-    private static final String XML_USEFASTMD5 = "/config/parameter/usefastmd5";
+    private static final String XML_USEFASTMD5 = "usefastmd5";
 
     /**
      * If using Fast MD5, should we used the binary JNI library, empty meaning
      * no
      */
-    private static final String XML_FASTMD5 = "/config/parameter/fastmd5";
+    private static final String XML_FASTMD5 = "fastmd5";
 
     /**
      * Size by default of block size for receive/sending files. Should be a
      * multiple of 8192 (maximum = 64K due to block limitation to 2 bytes)
      */
-    private static final String XML_BLOCKSIZE = "/config/parameter/blocksize";
-
+    private static final String XML_BLOCKSIZE = "blocksize";
     /**
      * Database Driver as of oracle, mysql, postgresql, h2
      */
-    private static final String XML_DBDRIVER = "/config/db/dbdriver";
+    private static final String XML_DBDRIVER = "dbdriver";
 
     /**
      * Database Server connection string as of
@@ -316,23 +352,829 @@ public class FileBasedConfiguration {
      * .../[database][?propertyName1][
      * =propertyValue1][&propertyName2][=propertyValue2]...
      */
-    private static final String XML_DBSERVER = "/config/db/dbserver";
+    private static final String XML_DBSERVER = "dbserver";
 
     /**
      * Database User
      */
-    private static final String XML_DBUSER = "/config/db/dbuser";
+    private static final String XML_DBUSER = "dbuser";
 
     /**
      * Database Password
      */
-    private static final String XML_DBPASSWD = "/config/db/dbpasswd";
+    private static final String XML_DBPASSWD = "dbpasswd";
+    
+    /**
+     * Structure of the Configuration file
+     *
+     */
+    private static final XmlDecl [] configIdentityDecls = {
+        // identity
+        new XmlDecl(XmlType.STRING, XML_SERVER_HOSTID), 
+        new XmlDecl(XmlType.STRING, XML_SERVER_SSLHOSTID),
+        new XmlDecl(XmlType.STRING, XML_PATH_CRYPTOKEY),
+        new XmlDecl(XmlType.STRING, XML_AUTHENTIFICATION_FILE)
+    };
+    /**
+     * Structure of the Configuration file
+     *
+     */
+    private static final XmlDecl [] configServerParamDecls = {
+        // server
+        new XmlDecl(XmlType.BOOLEAN, XML_USESSL), 
+        new XmlDecl(XmlType.BOOLEAN, XML_USENOSSL), 
+        new XmlDecl(XmlType.BOOLEAN, XML_USEHTTPCOMP),
+        new XmlDecl(XmlType.BOOLEAN, XML_USELOCALEXEC), 
+        new XmlDecl(XmlType.STRING, XML_LEXECADDR), 
+        new XmlDecl(XmlType.INTEGER, XML_LEXECPORT),
+        new XmlDecl(XmlType.BOOLEAN, XML_CHECK_ADDRESS),
+        new XmlDecl(XmlType.BOOLEAN, XML_CHECK_CLIENTADDRESS),
+        new XmlDecl(XmlType.STRING, XML_SERVER_ADMIN), 
+        new XmlDecl(XmlType.STRING, XML_SERVER_PASSWD),
+        new XmlDecl(XmlType.STRING, XML_HTTPADMINPATH),
+        new XmlDecl(XmlType.STRING, XML_PATH_ADMIN_KEYPATH), 
+        new XmlDecl(XmlType.STRING, XML_PATH_ADMIN_KEYSTOREPASS), 
+        new XmlDecl(XmlType.STRING, XML_PATH_ADMIN_KEYPASS)
+    };
+    /**
+     * Structure of the Configuration file
+     *
+     */
+    private static final XmlDecl [] configNetworkServerDecls = {
+        // network
+        new XmlDecl(XmlType.INTEGER, XML_SERVER_PORT),
+        new XmlDecl(XmlType.INTEGER, XML_SERVER_SSLPORT),
+        new XmlDecl(XmlType.INTEGER, XML_SERVER_HTTPPORT),
+        new XmlDecl(XmlType.INTEGER, XML_SERVER_HTTPSPORT)
+    };
 
     /**
-     * Authentication
+     * Structure of the Configuration file
+     *
      */
-    private static final String XML_AUTHENTIFICATION_FILE = "/config/authentfile";
+    private static final XmlDecl [] configSslDecls = {
+        // ssl
+        new XmlDecl(XmlType.STRING, XML_PATH_KEYPATH),
+        new XmlDecl(XmlType.STRING, XML_PATH_KEYSTOREPASS),
+        new XmlDecl(XmlType.STRING, XML_PATH_KEYPASS), 
+        new XmlDecl(XmlType.STRING, XML_PATH_TRUSTKEYPATH), 
+        new XmlDecl(XmlType.STRING, XML_PATH_TRUSTKEYSTOREPASS), 
+        new XmlDecl(XmlType.BOOLEAN, XML_USECLIENT_AUTHENT)
+    };
+    /**
+     * Structure of the Configuration file
+     *
+     */
+    private static final XmlDecl [] configDbDecls = {
+        //db
+        new XmlDecl(XmlType.STRING, XML_DBDRIVER), 
+        new XmlDecl(XmlType.STRING, XML_DBSERVER),
+        new XmlDecl(XmlType.STRING, XML_DBUSER), 
+        new XmlDecl(XmlType.STRING, XML_DBPASSWD)
+    };
+ 
+    /**
+     * Structure of the Configuration file
+     *
+     */
+    private static final XmlDecl [] configLimitDecls = {
+        // limit
+        new XmlDecl(XmlType.LONG, XML_LIMITSESSION), 
+        new XmlDecl(XmlType.LONG, XML_LIMITGLOBAL), 
+        new XmlDecl(XmlType.LONG, XML_LIMITDELAY),
+        new XmlDecl(XmlType.LONG, XML_LIMITRUNNING), 
+        new XmlDecl(XmlType.LONG, XML_DELAYCOMMANDER), 
+        new XmlDecl(XmlType.LONG, XML_DELAYRETRY), 
+        new XmlDecl(XmlType.INTEGER, XML_SERVER_THREAD), 
+        new XmlDecl(XmlType.INTEGER, XML_CLIENT_THREAD), 
+        new XmlDecl(XmlType.LONG, XML_MEMORY_LIMIT), 
+        new XmlDecl(XmlType.BOOLEAN, XML_CSTRT_USECPULIMIT),
+        new XmlDecl(XmlType.BOOLEAN, XML_CSTRT_USECPUJDKLIMIT),
+        new XmlDecl(XmlType.DOUBLE, XML_CSTRT_CPULIMIT),
+        new XmlDecl(XmlType.INTEGER, XML_CSTRT_CONNLIMIT),
+        new XmlDecl(XmlType.LONG, XML_TIMEOUTCON),
+        new XmlDecl(XmlType.BOOLEAN, XML_USENIO),
+        new XmlDecl(XmlType.BOOLEAN, XML_USEFASTMD5), 
+        new XmlDecl(XmlType.STRING, XML_FASTMD5), 
+        new XmlDecl(XmlType.INTEGER, XML_BLOCKSIZE)
+    };
+    /**
+     * Structure of the Configuration file
+     *
+     */
+    private static final XmlDecl [] configClientParamDecls = {
+        // client
+        new XmlDecl(XmlType.BOOLEAN, XML_SAVE_TASKRUNNERNODB), 
+    };
+    /**
+     * Structure of the Configuration file
+     *
+     */
+    private static final XmlDecl [] configDirectoryDecls = {
+        // directory
+        new XmlDecl(XmlType.STRING, XML_SERVER_HOME), 
+        new XmlDecl(XmlType.STRING, XML_INPATH), 
+        new XmlDecl(XmlType.STRING, XML_OUTPATH), 
+        new XmlDecl(XmlType.STRING, XML_ARCHIVEPATH), 
+        new XmlDecl(XmlType.STRING, XML_WORKINGPATH),
+        new XmlDecl(XmlType.STRING, XML_CONFIGPATH)
+    };
+    /**
+     * Overall structure of the Configuration file
+     */
+    private static final String XML_ROOT = "/config/";
+    private static final String XML_IDENTITY = "identity";
+    private static final String XML_SERVER = "server";
+    private static final String XML_CLIENT = "client";
+    private static final String XML_DIRECTORY = "directory";
+    private static final String XML_LIMIT = "limit";
+    private static final String XML_NETWORK = "network";
+    private static final String XML_SSL = "ssl";
+    private static final String XML_DB = "db";
+    /**
+     * Global Structure for Server Configuration
+     */
+    private static final XmlDecl[] configServer = {
+        new XmlDecl(XML_IDENTITY, XmlType.XVAL, XML_ROOT+XML_IDENTITY, configIdentityDecls, false),
+        new XmlDecl(XML_SERVER, XmlType.XVAL, XML_ROOT+XML_SERVER, configServerParamDecls, false),
+        new XmlDecl(XML_DIRECTORY, XmlType.XVAL, XML_ROOT+XML_DIRECTORY, configDirectoryDecls, false),
+        new XmlDecl(XML_LIMIT, XmlType.XVAL, XML_ROOT+XML_LIMIT, configLimitDecls, false),
+        new XmlDecl(XML_SSL, XmlType.XVAL, XML_ROOT+XML_SSL, configSslDecls, false),
+        new XmlDecl(XML_NETWORK, XmlType.XVAL, XML_ROOT+XML_NETWORK, configNetworkServerDecls, false),
+        new XmlDecl(XML_DB, XmlType.XVAL, XML_ROOT+XML_DB, configDbDecls, false)
+    };
+    /**
+     * Global Structure for Client Configuration
+     */
+    private static final XmlDecl[] configClient = {
+        new XmlDecl(XML_IDENTITY, XmlType.XVAL, XML_ROOT+XML_IDENTITY, configIdentityDecls, false),
+        new XmlDecl(XML_CLIENT, XmlType.XVAL, XML_ROOT+XML_CLIENT, configClientParamDecls, false),
+        new XmlDecl(XML_DIRECTORY, XmlType.XVAL, XML_ROOT+XML_DIRECTORY, configDirectoryDecls, false),
+        new XmlDecl(XML_LIMIT, XmlType.XVAL, XML_ROOT+XML_LIMIT, configLimitDecls, false),
+        new XmlDecl(XML_SSL, XmlType.XVAL, XML_ROOT+XML_SSL, configSslDecls, false),
+        new XmlDecl(XML_DB, XmlType.XVAL, XML_ROOT+XML_DB, configDbDecls, false)
+    };
+    private static XmlValue[] configuration = null;
+    private static XmlHash hashConfig = null; 
+    
+    private static boolean loadIdentity() {
+        XmlValue value = hashConfig.get(XML_SERVER_HOSTID);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.HOST_ID = value.getString();
+        } else {
+            logger.error("Unable to find Host ID in Config file");
+            return false;
+        }
+        value = hashConfig.get(XML_SERVER_SSLHOSTID);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.HOST_SSLID = value.getString();
+        } else {
+            logger
+                    .warn("Unable to find Host SSL ID in Config file so no SSL support will be used");
+            Configuration.configuration.useSSL = false;
+            Configuration.configuration.HOST_SSLID = null;
+        }
+        return setCryptoKey();
+    }
+    
+    private static boolean loadAuthentication() {
+        if (!DbConstant.admin.isConnected) {
+            // if no database, must load authentication from file
+            XmlValue value = hashConfig.get(XML_AUTHENTIFICATION_FILE);
+            if (value != null && (!value.isEmpty())) {
+                String fileauthent = value.getString();
+                if (!AuthenticationFileBasedConfiguration
+                        .loadAuthentication(fileauthent)) {
+                    return false;
+                }
+            } else {
+                logger.warn("Unable to find Authentication file in Config file");
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    private static boolean loadServerParam() {
+        XmlValue value = hashConfig.get(XML_USESSL);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.useSSL = value.getBoolean();
+        }
+        value = hashConfig.get(XML_USENOSSL);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.useNOSSL = value.getBoolean();
+        }
+        value = hashConfig.get(XML_USEHTTPCOMP);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.useHttpCompression = value.getBoolean();
+        }
+        value = hashConfig.get(XML_USELOCALEXEC);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.useLocalExec = value.getBoolean();
+            if (Configuration.configuration.useLocalExec) {
+                value = hashConfig.get(XML_LEXECADDR);
+                String saddr;
+                InetAddress addr;
+                if (value != null && (!value.isEmpty())) {
+                    saddr = value.getString();
+                    try {
+                        addr = InetAddress.getByName(saddr);
+                    } catch (UnknownHostException e) {
+                        logger.error("Unable to find LocalExec Address in Config file");
+                        return false;
+                    }
+                } else {
+                    logger.warn("Unable to find LocalExec Address in Config file");
+                    try {
+                        addr = InetAddress.getByAddress(new byte[]{127,0,0,1});
+                    } catch (UnknownHostException e) {
+                        logger.error("Unable to find LocalExec Address in Config file");
+                        return false;
+                    }
+                }
+                value = hashConfig.get(XML_LEXECPORT);
+                int port;
+                if (value != null && (!value.isEmpty())) {
+                    port = value.getInteger();
+                } else {
+                    port = 9999;
+                }
+                LocalExecClient.address = new InetSocketAddress(addr, port);
+            }
+        }
+        value = hashConfig.get(XML_CHECK_ADDRESS);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.checkRemoteAddress = value.getBoolean();
+        }
+        value = hashConfig.get(XML_CHECK_CLIENTADDRESS);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.checkClientAddress = value.getBoolean();
+        }
+        value = hashConfig.get(XML_SERVER_ADMIN);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.ADMINNAME = value.getString();
+        } else {
+            logger.error("Unable to find Administrator name in Config file");
+            return false;
+        }
+        if (Configuration.configuration.cryptoKey == null) {
+            if (! setCryptoKey()) {
+                logger.error("Unable to find Crypto Key in Config file");
+                return false;
+            }
+        }
+        String passwd;
+        value = hashConfig.get(XML_SERVER_PASSWD);
+        if (value != null && (!value.isEmpty())) {
+            passwd = value.getString();
+        } else {
+            logger.error("Unable to find Password in Config file");
+            return false;
+        }
+        byte[] decodedByteKeys = null;
+        try {
+            decodedByteKeys =
+                Configuration.configuration.cryptoKey.decryptHexInBytes(passwd);
+        } catch (Exception e) {
+            logger.error(
+                    "Unable to Decrypt Server Password in Config file from: " +
+                            passwd, e);
+            return false;
+        }
+        Configuration.configuration.setSERVERKEY(decodedByteKeys);
+        value = hashConfig.get(XML_HTTPADMINPATH);
+        if (value == null || (value.isEmpty())) {
+            logger.error("Unable to find Http Admin Base in Config file");
+            return false;
+        }
+        String path = value.getString();
+        if (path == null || path.length() == 0) {
+            logger.error("Unable to set correct Http Admin Base in Config file");
+            return false;
+        }
+        path = DirInterface.SEPARATOR + path;
+        Configuration.configuration.httpBasePath =
+            FilesystemBasedDirImpl.normalizePath(path);
 
+        // Key for HTTPS
+        value = hashConfig.get(XML_PATH_ADMIN_KEYPATH);
+        if (value != null && (!value.isEmpty())) {
+            String keypath = value.getString();
+            if ((keypath == null) || (keypath.length() == 0)) {
+                logger.error("Bad Key Path");
+                return false;
+            }
+            value = hashConfig.get(XML_PATH_ADMIN_KEYSTOREPASS);
+            if (value == null || (value.isEmpty())) {
+                logger.error("Unable to find KeyStore Passwd");
+                return false;
+            }
+            String keystorepass = value.getString();
+            if ((keystorepass == null) || (keystorepass.length() == 0)) {
+                logger.error("Bad KeyStore Passwd");
+                return false;
+            }
+            value = hashConfig.get(XML_PATH_ADMIN_KEYPASS);
+            if (value == null || (value.isEmpty())) {
+                logger.error("Unable to find Key Passwd");
+                return false;
+            }
+            String keypass = value.getString();
+            if ((keypass == null) || (keypass.length() == 0)) {
+                logger.error("Bad Key Passwd");
+                return false;
+            }
+            try {
+                HttpSslPipelineFactory.ggSecureKeyStore =
+                    new GgSecureKeyStore(keypath, keystorepass,
+                            keypass);
+            } catch (CryptoException e) {
+                logger.error("Bad SecureKeyStore construction for AdminSsl");
+                return false;
+            }
+            // No client authentication
+            try {
+                HttpSslPipelineFactory.ggSecureKeyStore.initEmptyTrustStore();
+            } catch (CryptoException e) {
+                logger.error("Bad TrustKeyStore construction");
+                return false;
+            }
+            HttpSslPipelineFactory.ggSslContextFactory =
+                new GgSslContextFactory(
+                        HttpSslPipelineFactory.ggSecureKeyStore, true);
+        }
+        return true;
+    }
+    private static boolean loadClientParam() {
+        XmlValue value = hashConfig.get(XML_SAVE_TASKRUNNERNODB);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.saveTaskRunnerWithNoDb = value.getBoolean();
+        }
+        return true;
+    }
+    private static boolean loadDirectory() {
+        XmlValue value = hashConfig.get(XML_SERVER_HOME);
+        if (value == null || (value.isEmpty())) {
+            logger.error("Unable to find Home in Config file");
+            return false;
+        }
+        String path = value.getString();
+        File file = new File(path);
+        if (!file.isDirectory()) {
+            logger.error("Home is not a directory in Config file");
+            return false;
+        }
+        try {
+            Configuration.configuration.baseDirectory = FilesystemBasedDirImpl
+                    .normalizePath(file.getCanonicalPath());
+        } catch (IOException e1) {
+            logger.error("Unable to set Home in Config file");
+            return false;
+        }
+        try {
+            Configuration.configuration.configPath = FilesystemBasedDirImpl
+                    .normalizePath(getSubPath(XML_CONFIGPATH));
+        } catch (OpenR66ProtocolSystemException e2) {
+            logger.error("Unable to set Config in Config file");
+            return false;
+        }
+        try {
+            Configuration.configuration.inPath = FilesystemBasedDirImpl
+                    .normalizePath(getSubPath(XML_INPATH));
+        } catch (OpenR66ProtocolSystemException e2) {
+            logger.error("Unable to set In in Config file");
+            return false;
+        }
+        try {
+            Configuration.configuration.outPath = FilesystemBasedDirImpl
+                    .normalizePath(getSubPath(XML_OUTPATH));
+        } catch (OpenR66ProtocolSystemException e2) {
+            logger.error("Unable to set Out in Config file");
+            return false;
+        }
+        try {
+            Configuration.configuration.workingPath = FilesystemBasedDirImpl
+                    .normalizePath(getSubPath(XML_WORKINGPATH));
+        } catch (OpenR66ProtocolSystemException e2) {
+            logger.error("Unable to set Working in Config file");
+            return false;
+        }
+        try {
+            Configuration.configuration.archivePath = FilesystemBasedDirImpl
+                    .normalizePath(getSubPath(XML_ARCHIVEPATH));
+        } catch (OpenR66ProtocolSystemException e2) {
+            logger.error("Unable to set Archive in Config file");
+            return false;
+        }
+        return true;
+    }
+    private static boolean loadLimit(boolean updateLimit) {
+        XmlValue value = hashConfig.get(XML_LIMITGLOBAL);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.serverGlobalReadLimit = value.getLong();
+            if (Configuration.configuration.serverGlobalReadLimit <= 0) {
+                Configuration.configuration.serverGlobalReadLimit = 0;
+            }
+            Configuration.configuration.serverGlobalWriteLimit = Configuration.configuration.serverGlobalReadLimit;
+            logger.info("Global Limit: {}",
+                    Configuration.configuration.serverGlobalReadLimit);
+        }
+        value = hashConfig.get(XML_LIMITSESSION);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.serverChannelReadLimit = value.getLong();
+            if (Configuration.configuration.serverChannelReadLimit <= 0) {
+                Configuration.configuration.serverChannelReadLimit = 0;
+            }
+            Configuration.configuration.serverChannelWriteLimit = Configuration.configuration.serverChannelReadLimit;
+            logger.info("SessionInterface Limit: {}",
+                    Configuration.configuration.serverChannelReadLimit);
+        }
+        Configuration.configuration.delayLimit = AbstractTrafficShapingHandler.DEFAULT_CHECK_INTERVAL;
+        value = hashConfig.get(XML_LIMITDELAY);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.delayLimit = value.getLong();
+            if (Configuration.configuration.delayLimit <= 0) {
+                Configuration.configuration.delayLimit = 0;
+            }
+            logger.info("Delay Limit: {}",
+                    Configuration.configuration.delayLimit);
+        }
+        value = hashConfig.get(XML_LIMITRUNNING);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.RUNNER_THREAD = value.getInteger();
+        }
+        if (Configuration.configuration.RUNNER_THREAD < 10) {
+            Configuration.configuration.RUNNER_THREAD = 10;
+        }
+        logger.info("Limit of Runner: {}",
+                Configuration.configuration.RUNNER_THREAD);
+        value = hashConfig.get(XML_DELAYCOMMANDER);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.delayCommander = value.getLong();
+            if (Configuration.configuration.delayCommander <= 100) {
+                Configuration.configuration.delayCommander = 100;
+            }
+            logger.info("Delay Commander: {}",
+                    Configuration.configuration.delayCommander);
+        }
+        value = hashConfig.get(XML_DELAYRETRY);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.delayRetry = value.getLong();
+            if (Configuration.configuration.delayRetry <= 1000) {
+                Configuration.configuration.delayRetry = 1000;
+            }
+            logger.info("Delay Retry: {}",
+                    Configuration.configuration.delayRetry);
+        }
+        if (DbConstant.admin.isConnected && updateLimit) {
+            value = hashConfig.get(XML_SERVER_HOSTID);
+            if (value != null && (!value.isEmpty())) {
+                Configuration.configuration.HOST_ID = value.getString();
+                DbConfiguration configuration = new DbConfiguration(
+                        DbConstant.admin.session,
+                        Configuration.configuration.HOST_ID,
+                        Configuration.configuration.serverGlobalReadLimit,
+                        Configuration.configuration.serverGlobalWriteLimit,
+                        Configuration.configuration.serverChannelReadLimit,
+                        Configuration.configuration.serverChannelWriteLimit,
+                        Configuration.configuration.delayLimit);
+                configuration.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
+                try {
+                    if (configuration.exist()) {
+                        configuration.update();
+                    } else {
+                        configuration.insert();
+                    }
+                } catch (OpenR66DatabaseException e) {
+                }
+            }
+        }
+        boolean useCpuLimit = false;
+        boolean useCpuLimitJDK = false; 
+        double cpulimit = 1.0;
+        value = hashConfig.get(XML_CSTRT_USECPULIMIT);
+        if (value != null && (!value.isEmpty())) {
+            useCpuLimit = value.getBoolean();
+            value = hashConfig.get(XML_CSTRT_USECPUJDKLIMIT);
+            if (value != null && (!value.isEmpty())) {
+                useCpuLimitJDK = value.getBoolean();
+            }
+            value = hashConfig.get(XML_CSTRT_CPULIMIT);
+            if (value != null && (!value.isEmpty())) {
+                cpulimit = value.getDouble();
+            }
+        }
+        int connlimit = 0;
+        value = hashConfig.get(XML_CSTRT_CONNLIMIT);
+        if (value != null && (!value.isEmpty())) {
+            connlimit = value.getInteger();
+        }
+        Configuration.configuration.constraintLimitHandler =
+            new ConstraintLimitHandler(useCpuLimit, useCpuLimitJDK, cpulimit, connlimit);
+        value = hashConfig.get(XML_SERVER_THREAD);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.SERVER_THREAD = value.getInteger();
+        }
+        value = hashConfig.get(XML_CLIENT_THREAD);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.CLIENT_THREAD = value.getInteger();
+        }
+        value = hashConfig.get(XML_MEMORY_LIMIT);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.maxGlobalMemory = value.getLong();
+        }
+        Configuration.getFileParameter().deleteOnAbort = false;
+        value = hashConfig.get(XML_USENIO);
+        if (value != null && (!value.isEmpty())) {
+            FilesystemBasedFileParameterImpl.useNio = value.getBoolean();
+        }
+        value = hashConfig.get(XML_USEFASTMD5);
+        if (value != null && (!value.isEmpty())) {
+            FilesystemBasedDigest.useFastMd5 = value.getBoolean();
+            if (FilesystemBasedDigest.useFastMd5) {
+                value = hashConfig.get(XML_FASTMD5);
+                if (value != null && (!value.isEmpty())) {
+                    FilesystemBasedDigest.fastMd5Path = value.getString();
+                    if (FilesystemBasedDigest.fastMd5Path == null ||
+                            FilesystemBasedDigest.fastMd5Path.length() == 0) {
+                        logger.info("FastMD5 init lib to null");
+                        FilesystemBasedDigest.fastMd5Path = null;
+                        MD5.initNativeLibrary(true);
+                    } else {
+                        logger.info("FastMD5 init lib to {}",
+                                FilesystemBasedDigest.fastMd5Path);
+                        MD5
+                                .initNativeLibrary(FilesystemBasedDigest.fastMd5Path);
+                    }
+                }
+            } else {
+                FilesystemBasedDigest.fastMd5Path = null;
+                MD5.initNativeLibrary(true);
+            }
+        } else {
+            FilesystemBasedDigest.useFastMd5 = false;
+            FilesystemBasedDigest.fastMd5Path = null;
+            MD5.initNativeLibrary(true);
+        }
+        value = hashConfig.get(XML_BLOCKSIZE);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.BLOCKSIZE = value.getInteger();
+        }
+        value = hashConfig.get(XML_TIMEOUTCON);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.TIMEOUTCON = value.getLong();
+        }
+        if (Configuration.USEJDK6) {
+            R66Dir.initJdkDependent(new FilesystemBasedDirJdk6());
+        } else {
+            R66Dir.initJdkDependent(new FilesystemBasedDirJdk5());
+        }
+        return true;
+    }
+    private static boolean loadSsl() {
+        // StoreKey for Server
+        XmlValue value = hashConfig.get(XML_PATH_KEYPATH);
+        if (value == null || (value.isEmpty())) {
+            logger.info("Unable to find Key Path");
+            try {
+                NetworkSslServerPipelineFactory.ggSecureKeyStore =
+                    new GgSecureKeyStore("secret", "secret");
+            } catch (CryptoException e) {
+                logger.error("Bad SecureKeyStore construction");
+                return false;
+            }
+        } else {
+            String keypath = value.getString();
+            if ((keypath == null) || (keypath.length() == 0)) {
+                logger.error("Bad Key Path");
+                return false;
+            }
+            value = hashConfig.get(XML_PATH_KEYSTOREPASS);
+            if (value == null || (value.isEmpty())) {
+                logger.error("Unable to find KeyStore Passwd");
+                return false;
+            }
+            String keystorepass = value.getString();
+            if ((keystorepass == null) || (keystorepass.length() == 0)) {
+                logger.error("Bad KeyStore Passwd");
+                return false;
+            }
+            value = hashConfig.get(XML_PATH_KEYPASS);
+            if (value == null || (value.isEmpty())) {
+                logger.error("Unable to find Key Passwd");
+                return false;
+            }
+            String keypass = value.getString();
+            if ((keypass == null) || (keypass.length() == 0)) {
+                logger.error("Bad Key Passwd");
+                return false;
+            }
+            try {
+                NetworkSslServerPipelineFactory.ggSecureKeyStore =
+                    new GgSecureKeyStore(keypath, keystorepass,
+                            keypass);
+            } catch (CryptoException e) {
+                logger.error("Bad SecureKeyStore construction");
+                return false;
+            }
+
+        }
+        // TrustedKey for OpenR66 server
+        value = hashConfig.get(XML_PATH_TRUSTKEYPATH);
+        if (value == null || (value.isEmpty())) {
+            logger.info("Unable to find TRUST Key Path");
+            try {
+                NetworkSslServerPipelineFactory.ggSecureKeyStore.initEmptyTrustStore();
+            } catch (CryptoException e) {
+                logger.error("Bad TrustKeyStore construction");
+                return false;
+            }
+        } else {
+            String keypath = value.getString();
+            if ((keypath == null) || (keypath.length() == 0)) {
+                logger.error("Bad TRUST Key Path");
+                return false;
+            }
+            value = hashConfig.get(XML_PATH_TRUSTKEYSTOREPASS);
+            if (value == null || (value.isEmpty())) {
+                logger.error("Unable to find TRUST KeyStore Passwd");
+                return false;
+            }
+            String keystorepass = value.getString();
+            if ((keystorepass == null) || (keystorepass.length() == 0)) {
+                logger.error("Bad TRUST KeyStore Passwd");
+                return false;
+            }
+            boolean useClientAuthent = false;
+            value = hashConfig.get(XML_USECLIENT_AUTHENT);
+            if (value != null && (!value.isEmpty())) {
+                useClientAuthent = value.getBoolean();
+            }
+            try {
+                NetworkSslServerPipelineFactory.ggSecureKeyStore.initTrustStore(keypath,
+                        keystorepass, useClientAuthent);
+            } catch (CryptoException e) {
+                logger.error("Bad TrustKeyStore construction");
+                return false;
+            }
+        }
+        NetworkSslServerPipelineFactory.ggSslContextFactory =
+            new GgSslContextFactory(
+                    NetworkSslServerPipelineFactory.ggSecureKeyStore);
+        return true;
+    }
+    private static boolean loadNetworkServer() {
+        XmlValue value = hashConfig.get(XML_SERVER_PORT);
+        int port = 6666;
+        if (value != null && (!value.isEmpty())) {
+            port = value.getInteger();
+        } else {
+            port = 6666;
+        }
+        Configuration.configuration.SERVER_PORT = port;
+        value = hashConfig.get(XML_SERVER_SSLPORT);
+        int sslport = 6667;
+        if (value != null && (!value.isEmpty())) {
+            sslport = value.getInteger();
+        } else {
+            sslport = 6667;
+        }
+        Configuration.configuration.SERVER_SSLPORT = sslport;
+        value = hashConfig.get(XML_SERVER_HTTPPORT);
+        int httpport = 8066;
+        if (value != null && (!value.isEmpty())) {
+            httpport = value.getInteger();
+        }
+        Configuration.configuration.SERVER_HTTPPORT = httpport;
+        value = hashConfig.get(XML_SERVER_HTTPSPORT);
+        int httpsport = 8067;
+        if (value != null && (!value.isEmpty())) {
+            httpsport = value.getInteger();
+        }
+        Configuration.configuration.SERVER_HTTPSPORT = httpsport;
+        return true;
+    }
+    /**
+     * Set the Crypto Key from the Document
+     * @param document
+     * @return True if OK
+     */
+    private static boolean setCryptoKey() {
+        XmlValue value = hashConfig.get(XML_PATH_CRYPTOKEY);
+        if (value == null || (value.isEmpty())) {
+            logger.error("Unable to find CryptoKey in Config file");
+            return false;
+        }
+        String filename = value.getString();
+        File key = new File(filename);
+        Des des = new Des();
+        try {
+            des.setSecretKey(key);
+        } catch (CryptoException e) {
+            logger.error("Unable to load CryptoKey from Config file");
+            return false;
+        } catch (IOException e) {
+            logger.error("Unable to load CryptoKey from Config file");
+            return false;
+        }
+        Configuration.configuration.cryptoKey = des;
+        return true;
+    }
+    /**
+     * Load data from database or from files if not connected
+     *
+     * @param document
+     * @return True if OK
+     */
+    private static boolean loadFromDatabase() {
+        if (DbConstant.admin.isConnected) {
+            // load from database the limit to apply
+            try {
+                DbConfiguration configuration = new DbConfiguration(
+                        DbConstant.admin.session,
+                        Configuration.configuration.HOST_ID);
+                configuration.updateConfiguration();
+            } catch (OpenR66DatabaseException e) {
+                logger.warn("Cannot load configuration from database", e);
+            }
+        } else {
+            if (Configuration.configuration.baseDirectory != null &&
+                    Configuration.configuration.configPath != null) {
+                // load Rules from files
+                File dirConfig = new File(
+                        Configuration.configuration.baseDirectory +
+                                Configuration.configuration.configPath);
+                if (dirConfig.isDirectory()) {
+                    try {
+                        RuleFileBasedConfiguration.importRules(dirConfig);
+                    } catch (OpenR66ProtocolSystemException e) {
+                        logger.error("Cannot load Rules", e);
+                        return false;
+                    } catch (OpenR66DatabaseException e) {
+                        logger.error("Cannot load Rules", e);
+                        return false;
+                    }
+                } else {
+                    logger.error("Config Directory is not a directory: " +
+                            Configuration.configuration.baseDirectory +
+                            Configuration.configuration.configPath);
+                    return false;
+                }
+            }
+            // load if possible the limit to apply
+            loadLimit(false);
+        }
+        return true;
+    }
+
+    /**
+     * Load database parameter
+     *
+     * @param document
+     * @return True if OK
+     */
+    private static boolean loadDatabase() {
+        XmlValue value = hashConfig.get(XML_DBDRIVER);
+        if (value == null || (value.isEmpty())) {
+            logger.error("Unable to find DBDriver in Config file");
+            DbConstant.admin = new DbAdmin(); // no database support
+        } else {
+            String dbdriver = value.getString();
+            value = hashConfig.get(XML_DBSERVER);
+            if (value == null || (value.isEmpty())) {
+                logger.error("Unable to find DBServer in Config file");
+                return false;
+            }
+            String dbserver = value.getString();
+            value = hashConfig.get(XML_DBUSER);
+            if (value == null || (value.isEmpty())) {
+                logger.error("Unable to find DBUser in Config file");
+                return false;
+            }
+            String dbuser = value.getString();
+            value = hashConfig.get(XML_DBPASSWD);
+            if (value == null || (value.isEmpty())) {
+                logger.error("Unable to find DBPassword in Config file");
+                return false;
+            }
+            String dbpasswd = value.getString();
+            if (dbdriver == null || dbserver == null || dbuser == null ||
+                    dbpasswd == null || dbdriver.length() == 0 ||
+                    dbserver.length() == 0 || dbuser.length() == 0 ||
+                    dbpasswd.length() == 0) {
+                logger.error("Unable to find Correct DB data in Config file");
+                return false;
+            }
+            try {
+                DbModelFactory.initialize(dbdriver, dbserver, dbuser, dbpasswd,
+                        true);
+            } catch (OpenR66DatabaseNoConnectionError e2) {
+                logger.error("Unable to Connect to DB", e2);
+                return false;
+            }
+        }
+        return true;
+    }
     /**
      *
      * @param document
@@ -340,16 +1182,16 @@ public class FileBasedConfiguration {
      * @return the new subpath
      * @throws OpenR66ProtocolSystemException
      */
-    private static String getSubPath(Document document, String fromXML)
+    private static String getSubPath(String fromXML)
             throws OpenR66ProtocolSystemException {
-        Node node = document.selectSingleNode(fromXML);
-        if (node == null) {
+        XmlValue value = hashConfig.get(fromXML);
+        if (value == null || (value.isEmpty())) {
             logger.error("Unable to find a Path in Config file: "+fromXML);
             throw new OpenR66ProtocolSystemException(
                     "Unable to find a Path in Config file: " + fromXML);
         }
 
-        String path = node.getText();
+        String path = value.getString();
         if (path == null || path.length() == 0) {
             throw new OpenR66ProtocolSystemException(
                     "Unable to find a correct Path in Config file: " + fromXML);
@@ -362,15 +1204,12 @@ public class FileBasedConfiguration {
         }
         return path;
     }
-
-    
     /**
-     * Initiate the configuration from the xml file for server
-     *
+     * Load minimalistic Limit configuration
      * @param filename
      * @return True if OK
      */
-    public static boolean setConfigurationFromXml(String filename) {
+    public static boolean setConfigurationLoadLimitFromXml(String filename) {
         Document document = null;
         // Open config file
         try {
@@ -383,148 +1222,138 @@ public class FileBasedConfiguration {
             logger.error("Unable to read the XML Config file: " + filename);
             return false;
         }
-        Node node = document.selectSingleNode(XML_USESSL);
-        if (node != null) {
-            Configuration.configuration.useSSL = GgStringUtils.getBoolean(node);
-        }
-        node = document.selectSingleNode(XML_USENOSSL);
-        if (node != null) {
-            Configuration.configuration.useNOSSL = GgStringUtils.getBoolean(node);
-        }
-        node = document.selectSingleNode(XML_USEHTTPCOMP);
-        if (node != null) {
-            Configuration.configuration.useHttpCompression = GgStringUtils.getBoolean(node);
-        }
-        node = document.selectSingleNode(XML_USELOCALEXEC);
-        if (node != null) {
-            Configuration.configuration.useLocalExec = GgStringUtils.getBoolean(node);
-            if (Configuration.configuration.useLocalExec) {
-                node = document.selectSingleNode(XML_LEXECADDR);
-                String saddr;
-                InetAddress addr;
-                if (node == null) {
-                    logger.warn("Unable to find LocalExec Address in Config file: " + filename);
-                    try {
-                        addr = InetAddress.getByAddress(new byte[]{127,0,0,1});
-                    } catch (UnknownHostException e) {
-                        logger.error("Unable to find LocalExec Address in Config file: " + filename);
-                        return false;
-                    }
-                } else {
-                    saddr = node.getText();
-                    try {
-                        addr = InetAddress.getByName(saddr);
-                    } catch (UnknownHostException e) {
-                        logger.error("Unable to find LocalExec Address in Config file: " + filename);
-                        return false;
-                    }
-                }
-                node = document.selectSingleNode(XML_LEXECPORT);
-                int port;
-                try {
-                    port = GgStringUtils.getInteger(node);
-                } catch (InvalidArgumentException e) {
-                    port = 9999;
-                }
-                LocalExecClient.address = new InetSocketAddress(addr, port);
-            }
-        }
-        if (!loadCommon(document)) {
-            logger.error("Unable to find Host ID in Config file: " + filename);
+        configuration = XmlUtil.read(document, configServer);
+        hashConfig = new XmlHash(configuration);
+        if (! loadLimit(true)) {
+            logger.error("Unable to read Limitation config file: " + filename);
             return false;
         }
-        node = document.selectSingleNode(XML_HTTPADMINPATH);
-        if (node == null) {
-            logger.error("Unable to find Http Admin Base in Config file");
-            return false;
-        }
-
-        String path = node.getText();
-        if (path == null || path.length() == 0) {
-            logger.error("Unable to set correct Http Admin Base in Config file");
-            return false;
-        }
-        path = DirInterface.SEPARATOR + path;
-        Configuration.configuration.httpBasePath =
-            FilesystemBasedDirImpl.normalizePath(path);
-        node = document.selectSingleNode(XML_SERVER_PORT);
-        int port = 6666;
+        return true;
+    }
+    /**
+     * Load minimalistic configuration
+     * @param filename
+     * @return True if OK
+     */
+    public static boolean setConfigurationServerMinimalFromXml(String filename) {
+        Document document = null;
+        // Open config file
         try {
-            port = GgStringUtils.getInteger(node);
-        } catch (InvalidArgumentException e) {
-            port = 6666;
-        }
-        Configuration.configuration.SERVER_PORT = port;
-        node = document.selectSingleNode(XML_SERVER_SSLPORT);
-        int sslport = 6667;
-        try {
-            sslport = GgStringUtils.getInteger(node);
-        } catch (InvalidArgumentException e1) {
-            sslport = 6667;
-        }
-        Configuration.configuration.SERVER_SSLPORT = sslport;
-        node = document.selectSingleNode(XML_SERVER_HTTPPORT);
-        int httpport = 8066;
-        try {
-            httpport = GgStringUtils.getInteger(node);
-        } catch (InvalidArgumentException e1) {
-            httpport = 8066;
-        }
-        Configuration.configuration.SERVER_HTTPPORT = httpport;
-        node = document.selectSingleNode(XML_SERVER_HTTPSPORT);
-        int httpsport = 8067;
-        try {
-            httpsport = GgStringUtils.getInteger(node);
-        } catch (InvalidArgumentException e1) {
-            httpsport = 8067;
-        }
-        Configuration.configuration.SERVER_HTTPSPORT = httpsport;
-
-        node = document.selectSingleNode(XML_SERVER_ADMIN);
-        if (node == null) {
-            logger.error("Unable to find Administrator name in Config file: " + filename);
+            document = new SAXReader().read(filename);
+        } catch (DocumentException e) {
+            logger.error("Unable to read the XML Config file: " + filename, e);
             return false;
         }
-        Configuration.configuration.ADMINNAME = node.getText();
-        node = document.selectSingleNode(XML_SERVER_PASSWD);
-        if (node == null) {
-            logger.error("Unable to find Password in Config file: " + filename);
+        if (document == null) {
+            logger.error("Unable to read the XML Config file: " + filename);
             return false;
         }
-        String passwd = node.getText();
-        byte[] decodedByteKeys = null;
-        try {
-            decodedByteKeys =
-                Configuration.configuration.cryptoKey.decryptHexInBytes(passwd);
-        } catch (Exception e) {
-            logger.error(
-                    "Unable to Decrypt Server Password in Config file from: " +
-                            passwd, e);
+        configuration = XmlUtil.read(document, configServer);
+        hashConfig = new XmlHash(configuration);
+        if (! loadIdentity()) {
+            logger.error("Cannot load Identity");
             return false;
         }
-        Configuration.configuration.setSERVERKEY(decodedByteKeys);
-
-        if (!loadDatabase(document)) {
+        if (!loadDatabase()) {
+            logger.error("Cannot load Database configuration");
             return false;
         }
-        if (!loadFromDatabase(document)) {
+        if (! loadDirectory()) {
+            logger.error("Cannot load Directory configuration");
+            return false;
+        }
+        if (! loadLimit(false)) {
+            logger.error("Cannot load Limit configuration");
             return false;
         }
         if (!DbConstant.admin.isConnected) {
             // if no database, must load authentication from file
-            node = document.selectSingleNode(XML_AUTHENTIFICATION_FILE);
-            if (node == null) {
-                logger
-                        .warn("Unable to find Authentication file in Config file: " +
-                                filename);
+            if (! loadAuthentication()) {
+                logger.error("Cannot load Authentication configuration");
                 return false;
-            } else {
-                String fileauthent = node.getText();
-                document = null;
-                if (!AuthenticationFileBasedConfiguration
-                        .loadAuthentication(fileauthent)) {
-                    return false;
-                }
+            }
+        }
+        Configuration.configuration.HOST_AUTH = R66Auth.getServerAuth(
+                DbConstant.admin.session, Configuration.configuration.HOST_ID);
+        if (Configuration.configuration.HOST_AUTH == null &&
+                Configuration.configuration.useNOSSL) {
+            logger.error("Cannot find Authentication for current host");
+            return false;
+        }
+        if (Configuration.configuration.HOST_SSLID != null) {
+            Configuration.configuration.HOST_SSLAUTH = R66Auth.getServerAuth(
+                    DbConstant.admin.session,
+                    Configuration.configuration.HOST_SSLID);
+            if (Configuration.configuration.HOST_SSLAUTH == null &&
+                    Configuration.configuration.useSSL) {
+                logger.error("Cannot find SSL Authentication for current host");
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    /**
+     * Initiate the configuration from the xml file for server
+     *
+     * @param filename
+     * @return True if OK
+     */
+    public static boolean setConfigurationServerFromXml(String filename) {
+        Document document = null;
+        // Open config file
+        try {
+            document = new SAXReader().read(filename);
+        } catch (DocumentException e) {
+            logger.error("Unable to read the XML Config file: " + filename, e);
+            return false;
+        }
+        if (document == null) {
+            logger.error("Unable to read the XML Config file: " + filename);
+            return false;
+        }
+        configuration = XmlUtil.read(document, configServer);
+        hashConfig = new XmlHash(configuration);
+        // Now read the configuration
+        if (! loadIdentity()) {
+            logger.error("Cannot load Identity");
+            return false;
+        }
+        if (!loadDatabase()) {
+            logger.error("Cannot load Database configuration");
+            return false;
+        }
+        if (! loadServerParam()) {
+            logger.error("Cannot load Server Parameters");
+            return false;
+        }
+        if (! loadDirectory()) {
+            logger.error("Cannot load Directory configuration");
+            return false;
+        }
+        if (! loadLimit(false)) {
+            logger.error("Cannot load Limit configuration");
+            return false;
+        }
+        if (Configuration.configuration.useSSL) {
+            if (!loadSsl()) {
+                logger.error("Cannot load SSL configuration");
+                return false;
+            }
+        }
+        if (! loadNetworkServer()) {
+            logger.error("Cannot load Network configuration");
+            return false;
+        }
+        if (!loadFromDatabase()) {
+            logger.error("Cannot load configuration from Database");
+            return false;
+        }
+        if (!DbConstant.admin.isConnected) {
+            // if no database, must load authentication from file
+            if (! loadAuthentication()) {
+                logger.error("Cannot load Authentication configuration");
+                return false;
             }
         }
         Configuration.configuration.HOST_AUTH = R66Auth.getServerAuth(
@@ -566,35 +1395,45 @@ public class FileBasedConfiguration {
             logger.error("Unable to read the XML Config file: " + filename);
             return false;
         }
+        configuration = XmlUtil.read(document, configClient);
+        hashConfig = new XmlHash(configuration);
         // Client enables SSL by default but could be reverted later on
         Configuration.configuration.useSSL = true;
-        if (!loadCommon(document)) {
-            logger.error("Unable to load commons in Config file: " + filename);
+        if (! loadIdentity()) {
+            logger.error("Cannot load Identity");
             return false;
         }
-        Node node = null;
-        if (!loadDatabase(document)) {
+        if (!loadDatabase()) {
+            logger.error("Cannot load Database configuration");
             return false;
         }
-        if (!loadFromDatabase(document)) {
+        if (! loadClientParam()) {
+            logger.error("Cannot load Client Parameters");
             return false;
         }
-
+        if (! loadDirectory()) {
+            logger.error("Cannot load Directory configuration");
+            return false;
+        }
+        if (! loadLimit(false)) {
+            logger.error("Cannot load Limit configuration");
+            return false;
+        }
+        if (Configuration.configuration.useSSL) {
+            if (!loadSsl()) {
+                logger.error("Cannot load SSL configuration");
+                return false;
+            }
+        }
+        if (!loadFromDatabase()) {
+            logger.error("Cannot load configuration from Database");
+            return false;
+        }
         if (!DbConstant.admin.isConnected) {
             // if no database, must load authentication from file
-            node = document.selectSingleNode(XML_AUTHENTIFICATION_FILE);
-            if (node == null) {
-                logger
-                        .warn("Unable to find Authentication file in Config file: " +
-                                filename);
+            if (! loadAuthentication()) {
+                logger.error("Cannot load Authentication configuration");
                 return false;
-            } else {
-                String fileauthent = node.getText();
-                document = null;
-                if (!AuthenticationFileBasedConfiguration
-                        .loadAuthentication(fileauthent)) {
-                    return false;
-                }
             }
         }
         Configuration.configuration.HOST_AUTH = R66Auth.getServerAuth(
@@ -621,29 +1460,29 @@ public class FileBasedConfiguration {
      * @param document
      * @return True if OK
      */
-    public static boolean loadCommon(Document document) {
-        Node node = null;
-        node = document.selectSingleNode(XML_SERVER_HOSTID);
-        if (node == null) {
+    private static boolean loadCommonXX(Document document) {
+        XmlValue value = hashConfig.get(XML_SERVER_HOSTID);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.HOST_ID = value.getString();
+        } else {
             logger.error("Unable to find Host ID in Config file");
             return false;
         }
-        Configuration.configuration.HOST_ID = node.getText();
-        node = document.selectSingleNode(XML_SERVER_SSLHOSTID);
-        if (node == null) {
+        value = hashConfig.get(XML_SERVER_SSLHOSTID);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.HOST_SSLID = value.getString();
+        } else {
             logger
                     .warn("Unable to find Host SSL ID in Config file so no SSL support will be used");
             Configuration.configuration.useSSL = false;
             Configuration.configuration.HOST_SSLID = null;
-        } else {
-            Configuration.configuration.HOST_SSLID = node.getText();
         }
-        node = document.selectSingleNode(XML_SERVER_HOME);
-        if (node == null) {
+        value = hashConfig.get(XML_SERVER_HOME);
+        if (value == null || (value.isEmpty())) {
             logger.error("Unable to find Home in Config file");
             return false;
         }
-        String path = node.getText();
+        String path = value.getString();
         File file = new File(path);
         if (!file.isDirectory()) {
             logger.error("Home is not a directory in Config file");
@@ -658,66 +1497,63 @@ public class FileBasedConfiguration {
         }
         try {
             Configuration.configuration.configPath = FilesystemBasedDirImpl
-                    .normalizePath(getSubPath(document, XML_CONFIGPATH));
+                    .normalizePath(getSubPath(XML_CONFIGPATH));
         } catch (OpenR66ProtocolSystemException e2) {
             logger.error("Unable to set Config in Config file");
             return false;
         }
         try {
             Configuration.configuration.inPath = FilesystemBasedDirImpl
-                    .normalizePath(getSubPath(document, XML_INPATH));
+                    .normalizePath(getSubPath(XML_INPATH));
         } catch (OpenR66ProtocolSystemException e2) {
             logger.error("Unable to set In in Config file");
             return false;
         }
         try {
             Configuration.configuration.outPath = FilesystemBasedDirImpl
-                    .normalizePath(getSubPath(document, XML_OUTPATH));
+                    .normalizePath(getSubPath(XML_OUTPATH));
         } catch (OpenR66ProtocolSystemException e2) {
             logger.error("Unable to set Out in Config file");
             return false;
         }
         try {
             Configuration.configuration.workingPath = FilesystemBasedDirImpl
-                    .normalizePath(getSubPath(document, XML_WORKINGPATH));
+                    .normalizePath(getSubPath(XML_WORKINGPATH));
         } catch (OpenR66ProtocolSystemException e2) {
             logger.error("Unable to set Working in Config file");
             return false;
         }
         try {
             Configuration.configuration.archivePath = FilesystemBasedDirImpl
-                    .normalizePath(getSubPath(document, XML_ARCHIVEPATH));
+                    .normalizePath(getSubPath(XML_ARCHIVEPATH));
         } catch (OpenR66ProtocolSystemException e2) {
             logger.error("Unable to set Archive in Config file");
             return false;
         }
-        node = document.selectSingleNode(XML_SERVER_THREAD);
-        try {
-            Configuration.configuration.SERVER_THREAD = GgStringUtils.getInteger(node);
-        } catch (InvalidArgumentException e) {
+        value = hashConfig.get(XML_SERVER_THREAD);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.SERVER_THREAD = value.getInteger();
         }
-        node = document.selectSingleNode(XML_CLIENT_THREAD);
-        try {
-            Configuration.configuration.CLIENT_THREAD = GgStringUtils.getInteger(node);
-        } catch (InvalidArgumentException e) {
+        value = hashConfig.get(XML_CLIENT_THREAD);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.CLIENT_THREAD = value.getInteger();
         }
-        node = document.selectSingleNode(XML_MEMORY_LIMIT);
-        try {
-            Configuration.configuration.maxGlobalMemory = GgStringUtils.getInteger(node);
-        } catch (InvalidArgumentException e) {
+        value = hashConfig.get(XML_MEMORY_LIMIT);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.maxGlobalMemory = value.getLong();
         }
         Configuration.getFileParameter().deleteOnAbort = false;
-        node = document.selectSingleNode(XML_USENIO);
-        if (node != null) {
-            FilesystemBasedFileParameterImpl.useNio = GgStringUtils.getBoolean(node);
+        value = hashConfig.get(XML_USENIO);
+        if (value != null && (!value.isEmpty())) {
+            FilesystemBasedFileParameterImpl.useNio = value.getBoolean();
         }
-        node = document.selectSingleNode(XML_USEFASTMD5);
-        if (node != null) {
-            FilesystemBasedDigest.useFastMd5 = GgStringUtils.getBoolean(node);
+        value = hashConfig.get(XML_USEFASTMD5);
+        if (value != null && (!value.isEmpty())) {
+            FilesystemBasedDigest.useFastMd5 = value.getBoolean();
             if (FilesystemBasedDigest.useFastMd5) {
-                node = document.selectSingleNode(XML_FASTMD5);
-                if (node != null) {
-                    FilesystemBasedDigest.fastMd5Path = node.getText();
+                value = hashConfig.get(XML_FASTMD5);
+                if (value != null && (!value.isEmpty())) {
+                    FilesystemBasedDigest.fastMd5Path = value.getString();
                     if (FilesystemBasedDigest.fastMd5Path == null ||
                             FilesystemBasedDigest.fastMd5Path.length() == 0) {
                         logger.info("FastMD5 init lib to null");
@@ -739,15 +1575,13 @@ public class FileBasedConfiguration {
             FilesystemBasedDigest.fastMd5Path = null;
             MD5.initNativeLibrary(true);
         }
-        node = document.selectSingleNode(XML_BLOCKSIZE);
-        try {
-            Configuration.configuration.BLOCKSIZE = GgStringUtils.getInteger(node);
-        } catch (InvalidArgumentException e) {
+        value = hashConfig.get(XML_BLOCKSIZE);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.BLOCKSIZE = value.getInteger();
         }
-        node = document.selectSingleNode(XML_TIMEOUTCON);
-        try {
-            Configuration.configuration.TIMEOUTCON = GgStringUtils.getInteger(node);
-        } catch (InvalidArgumentException e) {
+        value = hashConfig.get(XML_TIMEOUTCON);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.TIMEOUTCON = value.getLong();
         }
         if (Configuration.USEJDK6) {
             R66Dir.initJdkDependent(new FilesystemBasedDirJdk6());
@@ -757,8 +1591,8 @@ public class FileBasedConfiguration {
 
         // Key for OpenR66 server
         if (Configuration.configuration.useSSL) {
-            node = document.selectSingleNode(XML_PATH_KEYPATH);
-            if (node == null) {
+            value = hashConfig.get(XML_PATH_KEYPATH);
+            if (value == null || (value.isEmpty())) {
                 logger.info("Unable to find Key Path");
                 try {
                     NetworkSslServerPipelineFactory.ggSecureKeyStore =
@@ -768,27 +1602,27 @@ public class FileBasedConfiguration {
                     return false;
                 }
             } else {
-                String keypath = node.getText();
+                String keypath = value.getString();
                 if ((keypath == null) || (keypath.length() == 0)) {
                     logger.error("Bad Key Path");
                     return false;
                 }
-                node = document.selectSingleNode(XML_PATH_KEYSTOREPASS);
-                if (node == null) {
+                value = hashConfig.get(XML_PATH_KEYSTOREPASS);
+                if (value == null || (value.isEmpty())) {
                     logger.error("Unable to find KeyStore Passwd");
                     return false;
                 }
-                String keystorepass = node.getText();
+                String keystorepass = value.getString();
                 if ((keystorepass == null) || (keystorepass.length() == 0)) {
                     logger.error("Bad KeyStore Passwd");
                     return false;
                 }
-                node = document.selectSingleNode(XML_PATH_KEYPASS);
-                if (node == null) {
+                value = hashConfig.get(XML_PATH_KEYPASS);
+                if (value == null || (value.isEmpty())) {
                     logger.error("Unable to find Key Passwd");
                     return false;
                 }
-                String keypass = node.getText();
+                String keypass = value.getString();
                 if ((keypass == null) || (keypass.length() == 0)) {
                     logger.error("Bad Key Passwd");
                     return false;
@@ -804,8 +1638,8 @@ public class FileBasedConfiguration {
 
             }
             // TrustedKey for OpenR66 server
-            node = document.selectSingleNode(XML_PATH_TRUSTKEYPATH);
-            if (node == null) {
+            value = hashConfig.get(XML_PATH_TRUSTKEYPATH);
+            if (value == null || (value.isEmpty())) {
                 logger.info("Unable to find TRUST Key Path");
                 try {
                     NetworkSslServerPipelineFactory.ggSecureKeyStore.initEmptyTrustStore();
@@ -814,25 +1648,25 @@ public class FileBasedConfiguration {
                     return false;
                 }
             } else {
-                String keypath = node.getText();
+                String keypath = value.getString();
                 if ((keypath == null) || (keypath.length() == 0)) {
                     logger.error("Bad TRUST Key Path");
                     return false;
                 }
-                node = document.selectSingleNode(XML_PATH_TRUSTKEYSTOREPASS);
-                if (node == null) {
+                value = hashConfig.get(XML_PATH_TRUSTKEYSTOREPASS);
+                if (value == null || (value.isEmpty())) {
                     logger.error("Unable to find TRUST KeyStore Passwd");
                     return false;
                 }
-                String keystorepass = node.getText();
+                String keystorepass = value.getString();
                 if ((keystorepass == null) || (keystorepass.length() == 0)) {
                     logger.error("Bad TRUST KeyStore Passwd");
                     return false;
                 }
-                node = document.selectSingleNode(XML_USECLIENT_AUTHENT);
                 boolean useClientAuthent = false;
-                if (node != null) {
-                    useClientAuthent = GgStringUtils.getBoolean(node);
+                value = hashConfig.get(XML_USECLIENT_AUTHENT);
+                if (value != null && (!value.isEmpty())) {
+                    useClientAuthent = value.getBoolean();
                 }
                 try {
                     NetworkSslServerPipelineFactory.ggSecureKeyStore.initTrustStore(keypath,
@@ -848,29 +1682,29 @@ public class FileBasedConfiguration {
         }
 
         // Key for HTTPS
-        node = document.selectSingleNode(XML_PATH_ADMIN_KEYPATH);
-        if (node != null) {
-            String keypath = node.getText();
+        value = hashConfig.get(XML_PATH_ADMIN_KEYPATH);
+        if (value != null && (!value.isEmpty())) {
+            String keypath = value.getString();
             if ((keypath == null) || (keypath.length() == 0)) {
                 logger.error("Bad Key Path");
                 return false;
             }
-            node = document.selectSingleNode(XML_PATH_ADMIN_KEYSTOREPASS);
-            if (node == null) {
+            value = hashConfig.get(XML_PATH_ADMIN_KEYSTOREPASS);
+            if (value == null || (value.isEmpty())) {
                 logger.error("Unable to find KeyStore Passwd");
                 return false;
             }
-            String keystorepass = node.getText();
+            String keystorepass = value.getString();
             if ((keystorepass == null) || (keystorepass.length() == 0)) {
                 logger.error("Bad KeyStore Passwd");
                 return false;
             }
-            node = document.selectSingleNode(XML_PATH_ADMIN_KEYPASS);
-            if (node == null) {
+            value = hashConfig.get(XML_PATH_ADMIN_KEYPASS);
+            if (value == null || (value.isEmpty())) {
                 logger.error("Unable to find Key Passwd");
                 return false;
             }
-            String keypass = node.getText();
+            String keypass = value.getString();
             if ((keypass == null) || (keypass.length() == 0)) {
                 logger.error("Bad Key Passwd");
                 return false;
@@ -895,7 +1729,7 @@ public class FileBasedConfiguration {
                         HttpSslPipelineFactory.ggSecureKeyStore, true);
         }
 
-        if (!setCryptoKey(document)) {
+        if (!setCryptoKey()) {
             return false;
         }
 
@@ -904,139 +1738,17 @@ public class FileBasedConfiguration {
         return true;
     }
 
-    /**
-     * Set the Crypto Key from the Document
-     * @param document
-     * @return True if OK
-     */
-    public static boolean setCryptoKey(Document document) {
-        Node node = document.selectSingleNode(XML_PATH_CRYPTOKEY);
-        if (node == null) {
-            logger.error("Unable to find CryptoKey in Config file");
-            return false;
-        }
-        String filename = node.getText();
-        File key = new File(filename);
-        Des des = new Des();
-        try {
-            des.setSecretKey(key);
-        } catch (CryptoException e) {
-            logger.error("Unable to load CryptoKey from Config file");
-            return false;
-        } catch (IOException e) {
-            logger.error("Unable to load CryptoKey from Config file");
-            return false;
-        }
-        Configuration.configuration.cryptoKey = des;
-        return true;
-    }
-    /**
-     * Load data from database or from files if not connected
-     *
-     * @param document
-     * @return True if OK
-     */
-    private static boolean loadFromDatabase(Document document) {
-        if (DbConstant.admin.isConnected) {
-            // load from database the limit to apply
-            try {
-                DbConfiguration configuration = new DbConfiguration(
-                        DbConstant.admin.session,
-                        Configuration.configuration.HOST_ID);
-                configuration.updateConfiguration();
-            } catch (OpenR66DatabaseException e) {
-                logger.warn("Cannot load configuration from database", e);
-            }
-        } else {
-            if (Configuration.configuration.baseDirectory != null &&
-                    Configuration.configuration.configPath != null) {
-                // load Rules from files
-                File dirConfig = new File(
-                        Configuration.configuration.baseDirectory +
-                                Configuration.configuration.configPath);
-                if (dirConfig.isDirectory()) {
-                    try {
-                        RuleFileBasedConfiguration.importRules(dirConfig);
-                    } catch (OpenR66ProtocolSystemException e) {
-                        logger.error("Cannot load Rules", e);
-                        return false;
-                    } catch (OpenR66DatabaseException e) {
-                        logger.error("Cannot load Rules", e);
-                        return false;
-                    }
-                } else {
-                    logger.error("Config Directory is not a directory: " +
-                            Configuration.configuration.baseDirectory +
-                            Configuration.configuration.configPath);
-                    return false;
-                }
-            }
-            // load if possible the limit to apply
-            loadLimit(document);
-        }
-        return true;
-    }
-
-    /**
-     * Load database parameter
-     *
-     * @param document
-     * @return True if OK
-     */
-    public static boolean loadDatabase(Document document) {
-        Node node = document.selectSingleNode(XML_DBDRIVER);
-        if (node == null) {
-            logger.error("Unable to find DBDriver in Config file");
-            DbConstant.admin = new DbAdmin(); // no database support
-        } else {
-            String dbdriver = node.getText();
-            node = document.selectSingleNode(XML_DBSERVER);
-            if (node == null) {
-                logger.error("Unable to find DBServer in Config file");
-                return false;
-            }
-            String dbserver = node.getText();
-            node = document.selectSingleNode(XML_DBUSER);
-            if (node == null) {
-                logger.error("Unable to find DBUser in Config file");
-                return false;
-            }
-            String dbuser = node.getText();
-            node = document.selectSingleNode(XML_DBPASSWD);
-            if (node == null) {
-                logger.error("Unable to find DBPassword in Config file");
-                return false;
-            }
-            String dbpasswd = node.getText();
-            if (dbdriver == null || dbserver == null || dbuser == null ||
-                    dbpasswd == null || dbdriver.length() == 0 ||
-                    dbserver.length() == 0 || dbuser.length() == 0 ||
-                    dbpasswd.length() == 0) {
-                logger.error("Unable to find Correct DB data in Config file");
-                return false;
-            }
-            try {
-                DbModelFactory.initialize(dbdriver, dbserver, dbuser, dbpasswd,
-                        true);
-            } catch (OpenR66DatabaseNoConnectionError e2) {
-                logger.error("Unable to Connect to DB", e2);
-                return false;
-            }
-        }
-        return true;
-    }
 
     /**
      *
      * @param document
      * @return True if the load of the limit is ok
      */
-    public static boolean loadLimit(Document document) {
+    private static boolean loadLimit2() {
         // should be removed and set from database
-        Node node = document.selectSingleNode(XML_LIMITGLOBAL);
-        if (node != null) {
-            Configuration.configuration.serverGlobalReadLimit = Long
-                    .parseLong(node.getText());
+        XmlValue value = hashConfig.get(XML_LIMITGLOBAL);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.serverGlobalReadLimit = value.getLong();
             if (Configuration.configuration.serverGlobalReadLimit <= 0) {
                 Configuration.configuration.serverGlobalReadLimit = 0;
             }
@@ -1044,10 +1756,9 @@ public class FileBasedConfiguration {
             logger.info("Global Limit: {}",
                     Configuration.configuration.serverGlobalReadLimit);
         }
-        node = document.selectSingleNode(XML_LIMITSESSION);
-        if (node != null) {
-            Configuration.configuration.serverChannelReadLimit = Long
-                    .parseLong(node.getText());
+        value = hashConfig.get(XML_LIMITSESSION);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.serverChannelReadLimit = value.getLong();
             if (Configuration.configuration.serverChannelReadLimit <= 0) {
                 Configuration.configuration.serverChannelReadLimit = 0;
             }
@@ -1056,40 +1767,36 @@ public class FileBasedConfiguration {
                     Configuration.configuration.serverChannelReadLimit);
         }
         Configuration.configuration.delayLimit = AbstractTrafficShapingHandler.DEFAULT_CHECK_INTERVAL;
-        node = document.selectSingleNode(XML_LIMITDELAY);
-        if (node != null) {
-            Configuration.configuration.delayLimit = Long.parseLong(node
-                    .getText());
+        value = hashConfig.get(XML_LIMITDELAY);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.delayLimit = value.getLong();
             if (Configuration.configuration.delayLimit <= 0) {
                 Configuration.configuration.delayLimit = 0;
             }
             logger.info("Delay Limit: {}",
                     Configuration.configuration.delayLimit);
         }
-        node = document.selectSingleNode(XML_LIMITRUNNING);
-        try {
-            Configuration.configuration.RUNNER_THREAD = GgStringUtils.getInteger(node);
-        } catch (InvalidArgumentException e) {
+        value = hashConfig.get(XML_LIMITRUNNING);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.RUNNER_THREAD = value.getInteger();
         }
         if (Configuration.configuration.RUNNER_THREAD < 10) {
             Configuration.configuration.RUNNER_THREAD = 10;
         }
         logger.info("Limit of Runner: {}",
                 Configuration.configuration.RUNNER_THREAD);
-        node = document.selectSingleNode(XML_DELAYCOMMANDER);
-        if (node != null) {
-            Configuration.configuration.delayCommander = Long.parseLong(node
-                    .getText());
+        value = hashConfig.get(XML_DELAYCOMMANDER);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.delayCommander = value.getLong();
             if (Configuration.configuration.delayCommander <= 100) {
                 Configuration.configuration.delayCommander = 100;
             }
             logger.info("Delay Commander: {}",
                     Configuration.configuration.delayCommander);
         }
-        node = document.selectSingleNode(XML_DELAYRETRY);
-        if (node != null) {
-            Configuration.configuration.delayRetry = Long.parseLong(node
-                    .getText());
+        value = hashConfig.get(XML_DELAYRETRY);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.delayRetry = value.getLong();
             if (Configuration.configuration.delayRetry <= 1000) {
                 Configuration.configuration.delayRetry = 1000;
             }
@@ -1097,24 +1804,26 @@ public class FileBasedConfiguration {
                     Configuration.configuration.delayRetry);
         }
         if (DbConstant.admin.isConnected) {
-            node = document.selectSingleNode(XML_SERVER_HOSTID);
-            Configuration.configuration.HOST_ID = node.getText();
-            DbConfiguration configuration = new DbConfiguration(
-                    DbConstant.admin.session,
-                    Configuration.configuration.HOST_ID,
-                    Configuration.configuration.serverGlobalReadLimit,
-                    Configuration.configuration.serverGlobalWriteLimit,
-                    Configuration.configuration.serverChannelReadLimit,
-                    Configuration.configuration.serverChannelWriteLimit,
-                    Configuration.configuration.delayLimit);
-            configuration.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
-            try {
-                if (configuration.exist()) {
-                    configuration.update();
-                } else {
-                    configuration.insert();
+            value = hashConfig.get(XML_SERVER_HOSTID);
+            if (value != null && (!value.isEmpty())) {
+                Configuration.configuration.HOST_ID = value.getString();
+                DbConfiguration configuration = new DbConfiguration(
+                        DbConstant.admin.session,
+                        Configuration.configuration.HOST_ID,
+                        Configuration.configuration.serverGlobalReadLimit,
+                        Configuration.configuration.serverGlobalWriteLimit,
+                        Configuration.configuration.serverChannelReadLimit,
+                        Configuration.configuration.serverChannelWriteLimit,
+                        Configuration.configuration.delayLimit);
+                configuration.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
+                try {
+                    if (configuration.exist()) {
+                        configuration.update();
+                    } else {
+                        configuration.insert();
+                    }
+                } catch (OpenR66DatabaseException e) {
                 }
-            } catch (OpenR66DatabaseException e) {
             }
         }
         return true;

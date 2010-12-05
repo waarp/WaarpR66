@@ -83,7 +83,7 @@ public class ConstraintLimitHandler {
     public boolean checkConstraints() {
         if (! isServer)
             return false;
-        if (cpuLimit < 1) {
+        if (cpuLimit < 1 && cpuLimit > 0) {
             long newTime = System.currentTimeMillis();
             // first check if last test was done too shortly
             if ((newTime - lastTime) < (Configuration.WAITFORNETOP/2)) {
@@ -124,7 +124,7 @@ public class ConstraintLimitHandler {
         if (! isServer)
             return false;
         long delay = Configuration.WAITFORNETOP/2;
-        if (cpuLimit < 1) {
+        if (cpuLimit < 1 && cpuLimit > 0) {
             long newTime = System.currentTimeMillis();
             // first check if last test was done too shortly
             if ((newTime - lastTime) < delay) {

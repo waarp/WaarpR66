@@ -842,7 +842,7 @@ public class DbRule extends AbstractDbData {
             nodedelay = noderoot.selectSingleNode(TASK_DELAY);
             String delay;
             if (nodedelay == null) {
-                delay = Integer
+                delay = Long
                         .toString(Configuration.configuration.TIMEOUTCON);
             } else {
                 delay = nodedelay.getText();

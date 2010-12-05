@@ -51,7 +51,7 @@ public class R66Server {
             return;
         }
         if (! FileBasedConfiguration
-                .setConfigurationFromXml(args[0])) {
+                .setConfigurationServerFromXml(args[0])) {
             logger
                     .error("Needs a correct configuration file as first argument");
             return;

@@ -37,9 +37,6 @@ import openr66.database.model.DbModelFactory;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.utils.ChannelUtils;
 
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.io.SAXReader;
 import org.jboss.netty.logging.InternalLoggerFactory;
 
 import ch.qos.logback.classic.Level;
@@ -114,7 +111,18 @@ public class ServerInitDatabase {
         }
 
         try {
-            Document document = null;
+            if (! FileBasedConfiguration
+                    .setConfigurationServerMinimalFromXml(args[0])) {
+                logger
+                        .error("Needs a correct configuration file as first argument");
+                if (DbConstant.admin != null){
+                    DbConstant.admin.close();
+                }
+                ChannelUtils.stopLogger();
+                System.exit(1);
+                return;
+            }
+            /*Document document = null;
             // Open config file
             try {
                 document = new SAXReader().read(sxml);
@@ -132,7 +140,7 @@ public class ServerInitDatabase {
             if (!FileBasedConfiguration.loadDatabase(document)) {
                 logger.error("Cannot start database");
                 return;
-            }
+            }*/
             if (database) {
                 // Init database
                 try {
@@ -161,7 +169,7 @@ public class ServerInitDatabase {
             if (slimitconfig != null) {
                 // Load configuration
                 if (args.length > 3) {
-                    loadConfiguration(slimitconfig);
+                    FileBasedConfiguration.setConfigurationLoadLimitFromXml(slimitconfig);
                 }
             }
             System.out.println("Load done");
@@ -188,16 +196,5 @@ public class ServerInitDatabase {
     }
     public static void loadHostAuth(String filename) {
         AuthenticationFileBasedConfiguration.loadAuthentication(filename);
-    }
-    public static void loadConfiguration(String filename) {
-        Document document = null;
-        // Open config file
-        try {
-            document = new SAXReader().read(filename);
-        } catch (DocumentException e) {
-            e.printStackTrace();
-            return;
-        }
-        FileBasedConfiguration.loadLimit(document);
     }
 }

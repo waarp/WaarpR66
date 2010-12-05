@@ -16,12 +16,12 @@
 package openr66.protocol.configuration;
 
 import goldengate.common.crypto.Des;
+import goldengate.common.digest.MD5;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
 import java.net.InetSocketAddress;
-import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -196,7 +196,7 @@ public class Configuration {
     /**
      * Nb of milliseconds after connection is in timeout
      */
-    public int TIMEOUTCON = 30000;
+    public long TIMEOUTCON = 30000;
 
     /**
      * Size by default of block size for receive/sending files. Should be a
@@ -419,12 +419,22 @@ public class Configuration {
      * Delay in ms between two retries
      */
     public long delayRetry = 30000;
-    
+    /**
+     * Constraint Limit Handler on CPU usage and Connection limitation
+     */
     public ConstraintLimitHandler constraintLimitHandler = 
-        new ConstraintLimitHandler(true, false, 0.9, 100);
-
+        new ConstraintLimitHandler(false, false, 1, 0);
+    /**
+     * Do we check Remote Address from DbHost
+     */
     public boolean checkRemoteAddress = false;
+    /**
+     * Do we check address even for Client
+     */
     public boolean checkClientAddress = false;
+    /**
+     * For No Db client, do we saved TaskRunner in a XML
+     */
     public boolean saveTaskRunnerWithNoDb = false;
     
     private volatile boolean configured = false;
@@ -770,7 +780,7 @@ public class Configuration {
         if (newkey == null) {
             return false;
         }
-        return Arrays.equals(SERVERADMINKEY, newkey);
+        return MD5.equalPasswd(SERVERADMINKEY, newkey);
     }
 
     /**

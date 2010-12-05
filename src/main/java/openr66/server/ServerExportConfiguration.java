@@ -38,9 +38,6 @@ import openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.utils.ChannelUtils;
 
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.io.SAXReader;
 import org.jboss.netty.logging.InternalLoggerFactory;
 
 import ch.qos.logback.classic.Level;
@@ -73,7 +70,18 @@ public class ServerExportConfiguration {
             System.exit(1);
         }
         try {
-            Document document = null;
+            if (! FileBasedConfiguration
+                    .setConfigurationServerMinimalFromXml(args[0])) {
+                logger
+                        .error("Needs a correct configuration file as first argument");
+                if (DbConstant.admin != null){
+                    DbConstant.admin.close();
+                }
+                ChannelUtils.stopLogger();
+                System.exit(1);
+                return;
+            }
+            /*Document document = null;
             String filename = args[0];
             // Open config file
             try {
@@ -98,7 +106,7 @@ public class ServerExportConfiguration {
                 .error("Needs a correct configuration file as first argument");
                 ChannelUtils.stopLogger();
                 System.exit(1);
-            }
+            }*/
             String directory = args[1];
             String hostname = Configuration.configuration.HOST_ID;
             logger.warn("Start of Export");
@@ -124,7 +132,7 @@ public class ServerExportConfiguration {
                 ChannelUtils.stopLogger();
                 System.exit(2);
             }
-            filename = dir.getAbsolutePath()+File.separator+hostname+"_Runners.run.xml";
+            String filename = dir.getAbsolutePath()+File.separator+hostname+"_Runners.run.xml";
             try {
                 DbTaskRunner.writeXMLWriter(filename);
             } catch (OpenR66DatabaseNoConnectionError e1) {

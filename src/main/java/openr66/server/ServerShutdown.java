@@ -15,6 +15,7 @@
  */
 package openr66.server;
 
+import goldengate.common.digest.MD5;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
@@ -64,7 +65,7 @@ public class ServerShutdown {
             return;
         }
         if (! FileBasedConfiguration
-                .setConfigurationFromXml(args[0])) {
+                .setConfigurationServerFromXml(args[0])) {
             logger
                     .error("Needs a correct configuration file as first argument");
             if (DbConstant.admin != null){
@@ -75,9 +76,9 @@ public class ServerShutdown {
             return;
         }
         Configuration.configuration.pipelineInit();
-
+        byte []key = MD5.passwdCrypt(Configuration.configuration.getSERVERADMINKEY());
         final ShutdownPacket packet = new ShutdownPacket(
-                Configuration.configuration.getSERVERADMINKEY());
+                key);
         final NetworkTransaction networkTransaction = new NetworkTransaction();
         DbHostAuth host = Configuration.configuration.HOST_SSLAUTH;
         final SocketAddress socketServerAddress = host.getSocketAddress();
