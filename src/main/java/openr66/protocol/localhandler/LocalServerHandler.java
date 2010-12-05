@@ -595,15 +595,20 @@ public class LocalServerHandler extends SimpleChannelHandler {
         if (Configuration.configuration.checkRemoteAddress) {
             DbHostAuth host = R66Auth.getServerAuth(DbConstant.admin.session,
                     packet.getHostId());
+            boolean toTest = false;
             if (host.isClient()) {
                 if (Configuration.configuration.checkClientAddress) {
-                    // 0.0.0.0 so error
-                    refusedConnection(channel, packet, 
-                            new OpenR66ProtocolNotAuthenticatedException("Client IP not authenticated not allowed"));
-                    session.setStatus(103);
-                    return;
+                    if (host.isNoAddress()) {
+                        // 0.0.0.0 so nothing
+                        toTest = false;
+                    } else {
+                        toTest = true;
+                    }
                 }
             } else {
+                toTest = true;
+            }
+            if (toTest) {
                 // Real address so compare
                 String address = host.getAddress();
                 InetAddress []inetAddress = null;

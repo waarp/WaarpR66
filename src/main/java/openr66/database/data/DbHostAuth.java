@@ -502,11 +502,18 @@ public class DbHostAuth extends AbstractDbData {
         return adminrole;
     }
     /**
-     * Test if the address is 0.0.0.0 for a client
-     * @return True if the address is a client address (0.0.0.0)
+     * Test if the address is 0.0.0.0 for a client or isClient
+     * @return True if the address is a client address (0.0.0.0) or isClient
      */
     public boolean isClient() {
         return isClient || (this.address.equals("0.0.0.0"));
+    }
+    /**
+     * True if the address is a client address (0.0.0.0) 
+     * @return True if the address is a client address (0.0.0.0) 
+     */
+    public boolean isNoAddress() {
+        return (this.address.equals("0.0.0.0"));
     }
     /**
      *
