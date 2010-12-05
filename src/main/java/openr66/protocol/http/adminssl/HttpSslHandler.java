@@ -873,9 +873,10 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 String addr = getTrimValue("address");
                 String port = getTrimValue("port");
                 String key = getTrimValue("hostkey");
-                boolean ssl, admin;
+                boolean ssl, admin, isclient;
                 ssl = params.containsKey("ssl");
                 admin = params.containsKey("admin");
+                isclient = params.containsKey("isclient");
                 if (host == null || addr == null || port == null || key == null) {
                     body0 = body1 = body = "";
                     body = "<p><center><b>Not enough data to create a Host</b></center></p>";
@@ -885,7 +886,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 head = resetOptionHosts(head, host, addr, ssl);
                 int iport = Integer.parseInt(port);
                 DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
-                        ssl, key.getBytes(), admin);
+                        ssl, key.getBytes(), admin, isclient);
                 try {
                     dbhost.insert();
                 } catch (OpenR66DatabaseException e) {
@@ -933,9 +934,10 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 String addr = getTrimValue("address");
                 String port = getTrimValue("port");
                 String key = getTrimValue("hostkey");
-                boolean ssl, admin;
+                boolean ssl, admin, isclient;
                 ssl = params.containsKey("ssl");
                 admin = params.containsKey("admin");
+                isclient = params.containsKey("isclient");
                 if (host == null || addr == null || port == null || key == null) {
                     body0 = body1 = body = "";
                     body = "<p><center><b>Not enough data to update a Host</b></center></p>";
@@ -945,7 +947,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 head = resetOptionHosts(head, host, addr, ssl);
                 int iport = Integer.parseInt(port);
                 DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
-                        ssl, key.getBytes(), admin);
+                        ssl, key.getBytes(), admin, isclient);
                 try {
                     if (dbhost.exist()) {
                         dbhost.update();
@@ -965,13 +967,14 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 String addr = getTrimValue("address");
                 String port = getTrimValue("port");
                 String key = getTrimValue("hostkey");
-                boolean ssl, admin;
+                boolean ssl, admin, isclient;
                 ssl = params.containsKey("ssl");
                 admin = params.containsKey("admin");
+                isclient = params.containsKey("isclient");
                 head = resetOptionHosts(head, host, addr, ssl);
                 int iport = Integer.parseInt(port);
                 DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
-                        ssl, key.getBytes(), admin);
+                        ssl, key.getBytes(), admin, isclient);
                 R66Future result = new R66Future(true);
                 TestPacket packet = new TestPacket("MSG", "CheckConnection", 100);
                 Message transaction = new Message(
@@ -1007,13 +1010,14 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 String addr = getTrimValue("address");
                 String port = getTrimValue("port");
                 String key = getTrimValue("hostkey");
-                boolean ssl, admin;
+                boolean ssl, admin, isclient;
                 ssl = params.containsKey("ssl");
                 admin = params.containsKey("admin");
+                isclient = params.containsKey("isclient");
                 head = resetOptionHosts(head, host, addr, ssl);
                 int iport = Integer.parseInt(port);
                 DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
-                        ssl, key.getBytes(), admin);
+                        ssl, key.getBytes(), admin, isclient);
                 body = REQUEST.Hosts.readBody();
                 boolean resultShutDown = false;
                 if (!dbhost.isClient()) {

@@ -65,7 +65,7 @@ public class ServerShutdown {
             return;
         }
         if (! FileBasedConfiguration
-                .setConfigurationServerFromXml(args[0])) {
+                .setConfigurationServerShutdownFromXml(args[0])) {
             logger
                     .error("Needs a correct configuration file as first argument");
             if (DbConstant.admin != null){

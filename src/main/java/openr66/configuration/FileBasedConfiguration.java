@@ -31,7 +31,6 @@ import goldengate.common.file.filesystembased.FilesystemBasedDirImpl;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 import goldengate.common.file.filesystembased.specific.FilesystemBasedDirJdk5;
 import goldengate.common.file.filesystembased.specific.FilesystemBasedDirJdk6;
-import goldengate.common.file.filesystembased.specific.FilesystemBasedDirJdkAbstract;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.xml.XmlDecl;
@@ -1231,6 +1230,51 @@ public class FileBasedConfiguration {
         return true;
     }
     /**
+     * Load configuration for init database
+     * @param filename
+     * @return True if OK
+     */
+    public static boolean setConfigurationInitDatabase(String filename) {
+        Document document = null;
+        // Open config file
+        try {
+            document = new SAXReader().read(filename);
+        } catch (DocumentException e) {
+            logger.error("Unable to read the XML Config file: " + filename, e);
+            return false;
+        }
+        if (document == null) {
+            logger.error("Unable to read the XML Config file: " + filename);
+            return false;
+        }
+        configuration = XmlUtil.read(document, configServer);
+        hashConfig = new XmlHash(configuration);
+        if (! loadIdentity()) {
+            logger.error("Cannot load Identity");
+            return false;
+        }
+        if (!loadDatabase()) {
+            logger.error("Cannot load Database configuration");
+            return false;
+        }
+        if (! loadDirectory()) {
+            logger.error("Cannot load Directory configuration");
+            return false;
+        }
+        if (! loadLimit(false)) {
+            logger.error("Cannot load Limit configuration");
+            return false;
+        }
+        if (!DbConstant.admin.isConnected) {
+            // if no database, must load authentication from file
+            if (! loadAuthentication()) {
+                logger.error("Cannot load Authentication configuration");
+                return false;
+            }
+        }
+        return true;
+    }
+    /**
      * Load minimalistic configuration
      * @param filename
      * @return True if OK
@@ -1293,6 +1337,84 @@ public class FileBasedConfiguration {
         return true;
     }
     
+    /**
+     * Initiate the configuration from the xml file for server shutdown
+     *
+     * @param filename
+     * @return True if OK
+     */
+    public static boolean setConfigurationServerShutdownFromXml(String filename) {
+        Document document = null;
+        // Open config file
+        try {
+            document = new SAXReader().read(filename);
+        } catch (DocumentException e) {
+            logger.error("Unable to read the XML Config file: " + filename, e);
+            return false;
+        }
+        if (document == null) {
+            logger.error("Unable to read the XML Config file: " + filename);
+            return false;
+        }
+        configuration = XmlUtil.read(document, configServer);
+        hashConfig = new XmlHash(configuration);
+        // Now read the configuration
+        if (! loadIdentity()) {
+            logger.error("Cannot load Identity");
+            return false;
+        }
+        if (!loadDatabase()) {
+            logger.error("Cannot load Database configuration");
+            return false;
+        }
+        if (! loadServerParam()) {
+            logger.error("Cannot load Server Parameters");
+            return false;
+        }
+        if (! loadDirectory()) {
+            logger.error("Cannot load Directory configuration");
+            return false;
+        }
+        if (! loadLimit(false)) {
+            logger.error("Cannot load Limit configuration");
+            return false;
+        }
+        if (Configuration.configuration.useSSL) {
+            if (!loadSsl()) {
+                logger.error("Cannot load SSL configuration");
+                return false;
+            }
+        }
+        if (! loadNetworkServer()) {
+            logger.error("Cannot load Network configuration");
+            return false;
+        }
+        if (!DbConstant.admin.isConnected) {
+            // if no database, must load authentication from file
+            if (! loadAuthentication()) {
+                logger.error("Cannot load Authentication configuration");
+                return false;
+            }
+        }
+        Configuration.configuration.HOST_AUTH = R66Auth.getServerAuth(
+                DbConstant.admin.session, Configuration.configuration.HOST_ID);
+        if (Configuration.configuration.HOST_AUTH == null &&
+                Configuration.configuration.useNOSSL) {
+            logger.error("Cannot find Authentication for current host");
+            return false;
+        }
+        if (Configuration.configuration.HOST_SSLID != null) {
+            Configuration.configuration.HOST_SSLAUTH = R66Auth.getServerAuth(
+                    DbConstant.admin.session,
+                    Configuration.configuration.HOST_SSLID);
+            if (Configuration.configuration.HOST_SSLAUTH == null &&
+                    Configuration.configuration.useSSL) {
+                logger.error("Cannot find SSL Authentication for current host");
+                return false;
+            }
+        }
+        return true;
+    }
     /**
      * Initiate the configuration from the xml file for server
      *
@@ -1449,381 +1571,6 @@ public class FileBasedConfiguration {
             if (Configuration.configuration.HOST_SSLAUTH == null) {
                 logger.error("Cannot find SSL Authentication for current host");
                 return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Load common configuration from XML document
-     *
-     * @param document
-     * @return True if OK
-     */
-    private static boolean loadCommonXX(Document document) {
-        XmlValue value = hashConfig.get(XML_SERVER_HOSTID);
-        if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.HOST_ID = value.getString();
-        } else {
-            logger.error("Unable to find Host ID in Config file");
-            return false;
-        }
-        value = hashConfig.get(XML_SERVER_SSLHOSTID);
-        if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.HOST_SSLID = value.getString();
-        } else {
-            logger
-                    .warn("Unable to find Host SSL ID in Config file so no SSL support will be used");
-            Configuration.configuration.useSSL = false;
-            Configuration.configuration.HOST_SSLID = null;
-        }
-        value = hashConfig.get(XML_SERVER_HOME);
-        if (value == null || (value.isEmpty())) {
-            logger.error("Unable to find Home in Config file");
-            return false;
-        }
-        String path = value.getString();
-        File file = new File(path);
-        if (!file.isDirectory()) {
-            logger.error("Home is not a directory in Config file");
-            return false;
-        }
-        try {
-            Configuration.configuration.baseDirectory = FilesystemBasedDirImpl
-                    .normalizePath(file.getCanonicalPath());
-        } catch (IOException e1) {
-            logger.error("Unable to set Home in Config file");
-            return false;
-        }
-        try {
-            Configuration.configuration.configPath = FilesystemBasedDirImpl
-                    .normalizePath(getSubPath(XML_CONFIGPATH));
-        } catch (OpenR66ProtocolSystemException e2) {
-            logger.error("Unable to set Config in Config file");
-            return false;
-        }
-        try {
-            Configuration.configuration.inPath = FilesystemBasedDirImpl
-                    .normalizePath(getSubPath(XML_INPATH));
-        } catch (OpenR66ProtocolSystemException e2) {
-            logger.error("Unable to set In in Config file");
-            return false;
-        }
-        try {
-            Configuration.configuration.outPath = FilesystemBasedDirImpl
-                    .normalizePath(getSubPath(XML_OUTPATH));
-        } catch (OpenR66ProtocolSystemException e2) {
-            logger.error("Unable to set Out in Config file");
-            return false;
-        }
-        try {
-            Configuration.configuration.workingPath = FilesystemBasedDirImpl
-                    .normalizePath(getSubPath(XML_WORKINGPATH));
-        } catch (OpenR66ProtocolSystemException e2) {
-            logger.error("Unable to set Working in Config file");
-            return false;
-        }
-        try {
-            Configuration.configuration.archivePath = FilesystemBasedDirImpl
-                    .normalizePath(getSubPath(XML_ARCHIVEPATH));
-        } catch (OpenR66ProtocolSystemException e2) {
-            logger.error("Unable to set Archive in Config file");
-            return false;
-        }
-        value = hashConfig.get(XML_SERVER_THREAD);
-        if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.SERVER_THREAD = value.getInteger();
-        }
-        value = hashConfig.get(XML_CLIENT_THREAD);
-        if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.CLIENT_THREAD = value.getInteger();
-        }
-        value = hashConfig.get(XML_MEMORY_LIMIT);
-        if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.maxGlobalMemory = value.getLong();
-        }
-        Configuration.getFileParameter().deleteOnAbort = false;
-        value = hashConfig.get(XML_USENIO);
-        if (value != null && (!value.isEmpty())) {
-            FilesystemBasedFileParameterImpl.useNio = value.getBoolean();
-        }
-        value = hashConfig.get(XML_USEFASTMD5);
-        if (value != null && (!value.isEmpty())) {
-            FilesystemBasedDigest.useFastMd5 = value.getBoolean();
-            if (FilesystemBasedDigest.useFastMd5) {
-                value = hashConfig.get(XML_FASTMD5);
-                if (value != null && (!value.isEmpty())) {
-                    FilesystemBasedDigest.fastMd5Path = value.getString();
-                    if (FilesystemBasedDigest.fastMd5Path == null ||
-                            FilesystemBasedDigest.fastMd5Path.length() == 0) {
-                        logger.info("FastMD5 init lib to null");
-                        FilesystemBasedDigest.fastMd5Path = null;
-                        MD5.initNativeLibrary(true);
-                    } else {
-                        logger.info("FastMD5 init lib to {}",
-                                FilesystemBasedDigest.fastMd5Path);
-                        MD5
-                                .initNativeLibrary(FilesystemBasedDigest.fastMd5Path);
-                    }
-                }
-            } else {
-                FilesystemBasedDigest.fastMd5Path = null;
-                MD5.initNativeLibrary(true);
-            }
-        } else {
-            FilesystemBasedDigest.useFastMd5 = false;
-            FilesystemBasedDigest.fastMd5Path = null;
-            MD5.initNativeLibrary(true);
-        }
-        value = hashConfig.get(XML_BLOCKSIZE);
-        if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.BLOCKSIZE = value.getInteger();
-        }
-        value = hashConfig.get(XML_TIMEOUTCON);
-        if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.TIMEOUTCON = value.getLong();
-        }
-        if (Configuration.USEJDK6) {
-            R66Dir.initJdkDependent(new FilesystemBasedDirJdk6());
-        } else {
-            R66Dir.initJdkDependent(new FilesystemBasedDirJdk5());
-        }
-
-        // Key for OpenR66 server
-        if (Configuration.configuration.useSSL) {
-            value = hashConfig.get(XML_PATH_KEYPATH);
-            if (value == null || (value.isEmpty())) {
-                logger.info("Unable to find Key Path");
-                try {
-                    NetworkSslServerPipelineFactory.ggSecureKeyStore =
-                        new GgSecureKeyStore("secret", "secret");
-                } catch (CryptoException e) {
-                    logger.error("Bad SecureKeyStore construction");
-                    return false;
-                }
-            } else {
-                String keypath = value.getString();
-                if ((keypath == null) || (keypath.length() == 0)) {
-                    logger.error("Bad Key Path");
-                    return false;
-                }
-                value = hashConfig.get(XML_PATH_KEYSTOREPASS);
-                if (value == null || (value.isEmpty())) {
-                    logger.error("Unable to find KeyStore Passwd");
-                    return false;
-                }
-                String keystorepass = value.getString();
-                if ((keystorepass == null) || (keystorepass.length() == 0)) {
-                    logger.error("Bad KeyStore Passwd");
-                    return false;
-                }
-                value = hashConfig.get(XML_PATH_KEYPASS);
-                if (value == null || (value.isEmpty())) {
-                    logger.error("Unable to find Key Passwd");
-                    return false;
-                }
-                String keypass = value.getString();
-                if ((keypass == null) || (keypass.length() == 0)) {
-                    logger.error("Bad Key Passwd");
-                    return false;
-                }
-                try {
-                    NetworkSslServerPipelineFactory.ggSecureKeyStore =
-                        new GgSecureKeyStore(keypath, keystorepass,
-                                keypass);
-                } catch (CryptoException e) {
-                    logger.error("Bad SecureKeyStore construction");
-                    return false;
-                }
-
-            }
-            // TrustedKey for OpenR66 server
-            value = hashConfig.get(XML_PATH_TRUSTKEYPATH);
-            if (value == null || (value.isEmpty())) {
-                logger.info("Unable to find TRUST Key Path");
-                try {
-                    NetworkSslServerPipelineFactory.ggSecureKeyStore.initEmptyTrustStore();
-                } catch (CryptoException e) {
-                    logger.error("Bad TrustKeyStore construction");
-                    return false;
-                }
-            } else {
-                String keypath = value.getString();
-                if ((keypath == null) || (keypath.length() == 0)) {
-                    logger.error("Bad TRUST Key Path");
-                    return false;
-                }
-                value = hashConfig.get(XML_PATH_TRUSTKEYSTOREPASS);
-                if (value == null || (value.isEmpty())) {
-                    logger.error("Unable to find TRUST KeyStore Passwd");
-                    return false;
-                }
-                String keystorepass = value.getString();
-                if ((keystorepass == null) || (keystorepass.length() == 0)) {
-                    logger.error("Bad TRUST KeyStore Passwd");
-                    return false;
-                }
-                boolean useClientAuthent = false;
-                value = hashConfig.get(XML_USECLIENT_AUTHENT);
-                if (value != null && (!value.isEmpty())) {
-                    useClientAuthent = value.getBoolean();
-                }
-                try {
-                    NetworkSslServerPipelineFactory.ggSecureKeyStore.initTrustStore(keypath,
-                            keystorepass, useClientAuthent);
-                } catch (CryptoException e) {
-                    logger.error("Bad TrustKeyStore construction");
-                    return false;
-                }
-            }
-            NetworkSslServerPipelineFactory.ggSslContextFactory =
-                new GgSslContextFactory(
-                        NetworkSslServerPipelineFactory.ggSecureKeyStore);
-        }
-
-        // Key for HTTPS
-        value = hashConfig.get(XML_PATH_ADMIN_KEYPATH);
-        if (value != null && (!value.isEmpty())) {
-            String keypath = value.getString();
-            if ((keypath == null) || (keypath.length() == 0)) {
-                logger.error("Bad Key Path");
-                return false;
-            }
-            value = hashConfig.get(XML_PATH_ADMIN_KEYSTOREPASS);
-            if (value == null || (value.isEmpty())) {
-                logger.error("Unable to find KeyStore Passwd");
-                return false;
-            }
-            String keystorepass = value.getString();
-            if ((keystorepass == null) || (keystorepass.length() == 0)) {
-                logger.error("Bad KeyStore Passwd");
-                return false;
-            }
-            value = hashConfig.get(XML_PATH_ADMIN_KEYPASS);
-            if (value == null || (value.isEmpty())) {
-                logger.error("Unable to find Key Passwd");
-                return false;
-            }
-            String keypass = value.getString();
-            if ((keypass == null) || (keypass.length() == 0)) {
-                logger.error("Bad Key Passwd");
-                return false;
-            }
-            try {
-                HttpSslPipelineFactory.ggSecureKeyStore =
-                    new GgSecureKeyStore(keypath, keystorepass,
-                            keypass);
-            } catch (CryptoException e) {
-                logger.error("Bad SecureKeyStore construction for AdminSsl");
-                return false;
-            }
-            // No client authentication
-            try {
-                HttpSslPipelineFactory.ggSecureKeyStore.initEmptyTrustStore();
-            } catch (CryptoException e) {
-                logger.error("Bad TrustKeyStore construction");
-                return false;
-            }
-            HttpSslPipelineFactory.ggSslContextFactory =
-                new GgSslContextFactory(
-                        HttpSslPipelineFactory.ggSecureKeyStore, true);
-        }
-
-        if (!setCryptoKey()) {
-            return false;
-        }
-
-        // We use Apache Commons IO
-        FilesystemBasedDirJdkAbstract.ueApacheCommonsIo = true;
-        return true;
-    }
-
-
-    /**
-     *
-     * @param document
-     * @return True if the load of the limit is ok
-     */
-    private static boolean loadLimit2() {
-        // should be removed and set from database
-        XmlValue value = hashConfig.get(XML_LIMITGLOBAL);
-        if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.serverGlobalReadLimit = value.getLong();
-            if (Configuration.configuration.serverGlobalReadLimit <= 0) {
-                Configuration.configuration.serverGlobalReadLimit = 0;
-            }
-            Configuration.configuration.serverGlobalWriteLimit = Configuration.configuration.serverGlobalReadLimit;
-            logger.info("Global Limit: {}",
-                    Configuration.configuration.serverGlobalReadLimit);
-        }
-        value = hashConfig.get(XML_LIMITSESSION);
-        if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.serverChannelReadLimit = value.getLong();
-            if (Configuration.configuration.serverChannelReadLimit <= 0) {
-                Configuration.configuration.serverChannelReadLimit = 0;
-            }
-            Configuration.configuration.serverChannelWriteLimit = Configuration.configuration.serverChannelReadLimit;
-            logger.info("SessionInterface Limit: {}",
-                    Configuration.configuration.serverChannelReadLimit);
-        }
-        Configuration.configuration.delayLimit = AbstractTrafficShapingHandler.DEFAULT_CHECK_INTERVAL;
-        value = hashConfig.get(XML_LIMITDELAY);
-        if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.delayLimit = value.getLong();
-            if (Configuration.configuration.delayLimit <= 0) {
-                Configuration.configuration.delayLimit = 0;
-            }
-            logger.info("Delay Limit: {}",
-                    Configuration.configuration.delayLimit);
-        }
-        value = hashConfig.get(XML_LIMITRUNNING);
-        if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.RUNNER_THREAD = value.getInteger();
-        }
-        if (Configuration.configuration.RUNNER_THREAD < 10) {
-            Configuration.configuration.RUNNER_THREAD = 10;
-        }
-        logger.info("Limit of Runner: {}",
-                Configuration.configuration.RUNNER_THREAD);
-        value = hashConfig.get(XML_DELAYCOMMANDER);
-        if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.delayCommander = value.getLong();
-            if (Configuration.configuration.delayCommander <= 100) {
-                Configuration.configuration.delayCommander = 100;
-            }
-            logger.info("Delay Commander: {}",
-                    Configuration.configuration.delayCommander);
-        }
-        value = hashConfig.get(XML_DELAYRETRY);
-        if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.delayRetry = value.getLong();
-            if (Configuration.configuration.delayRetry <= 1000) {
-                Configuration.configuration.delayRetry = 1000;
-            }
-            logger.info("Delay Retry: {}",
-                    Configuration.configuration.delayRetry);
-        }
-        if (DbConstant.admin.isConnected) {
-            value = hashConfig.get(XML_SERVER_HOSTID);
-            if (value != null && (!value.isEmpty())) {
-                Configuration.configuration.HOST_ID = value.getString();
-                DbConfiguration configuration = new DbConfiguration(
-                        DbConstant.admin.session,
-                        Configuration.configuration.HOST_ID,
-                        Configuration.configuration.serverGlobalReadLimit,
-                        Configuration.configuration.serverGlobalWriteLimit,
-                        Configuration.configuration.serverChannelReadLimit,
-                        Configuration.configuration.serverChannelWriteLimit,
-                        Configuration.configuration.delayLimit);
-                configuration.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
-                try {
-                    if (configuration.exist()) {
-                        configuration.update();
-                    } else {
-                        configuration.insert();
-                    }
-                } catch (OpenR66DatabaseException e) {
-                }
             }
         }
         return true;

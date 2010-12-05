@@ -112,7 +112,7 @@ public class ServerInitDatabase {
 
         try {
             if (! FileBasedConfiguration
-                    .setConfigurationServerMinimalFromXml(args[0])) {
+                    .setConfigurationInitDatabase(args[0])) {
                 logger
                         .error("Needs a correct configuration file as first argument");
                 if (DbConstant.admin != null){
@@ -122,25 +122,6 @@ public class ServerInitDatabase {
                 System.exit(1);
                 return;
             }
-            /*Document document = null;
-            // Open config file
-            try {
-                document = new SAXReader().read(sxml);
-            } catch (DocumentException e) {
-                logger.error("Unable to read the XML Config file: " + sxml, e);
-                return;
-            }
-            if (document == null) {
-                logger.error("Unable to read the XML Config file: " + sxml);
-                return;
-            }
-            if (!FileBasedConfiguration.setCryptoKey(document)) {
-                logger.error("Cannot load Crypto Key");
-            }
-            if (!FileBasedConfiguration.loadDatabase(document)) {
-                logger.error("Cannot start database");
-                return;
-            }*/
             if (database) {
                 // Init database
                 try {

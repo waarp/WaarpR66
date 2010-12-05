@@ -49,12 +49,12 @@ import openr66.protocol.utils.FileUtils;
  */
 public class DbHostAuth extends AbstractDbData {
     public static enum Columns {
-        ADDRESS, PORT, ISSSL, HOSTKEY, ADMINROLE, UPDATEDINFO, HOSTID
+        ADDRESS, PORT, ISSSL, HOSTKEY, ADMINROLE, ISCLIENT, UPDATEDINFO, HOSTID
     }
 
     public static int[] dbTypes = {
         Types.VARCHAR, Types.INTEGER, Types.BIT,
-        Types.VARBINARY, Types.BIT, Types.INTEGER, Types.VARCHAR };
+        Types.VARBINARY, Types.BIT, Types.BIT, Types.INTEGER, Types.VARCHAR };
 
     public static String table = " HOSTS ";
 
@@ -75,6 +75,8 @@ public class DbHostAuth extends AbstractDbData {
     private byte[] hostkey;
 
     private boolean adminrole;
+    
+    private boolean isClient;
 
     private int updatedInfo = UpdatedInfo.UNKNOWN.ordinal();
 
@@ -90,25 +92,28 @@ public class DbHostAuth extends AbstractDbData {
             new DbValue(isSsl, Columns.ISSSL.name()),
             new DbValue(hostkey, Columns.HOSTKEY.name()),
             new DbValue(adminrole, Columns.ADMINROLE.name()),
+            new DbValue(isClient, Columns.ISCLIENT.name()),
             new DbValue(updatedInfo, Columns.UPDATEDINFO.name()) };
 
     private final DbValue[] allFields = {
             otherFields[0], otherFields[1], otherFields[2],
-            otherFields[3], otherFields[4], otherFields[5], primaryKey };
+            otherFields[3], otherFields[4], otherFields[5], otherFields[6], primaryKey };
 
     public static final String selectAllFields = Columns.ADDRESS.name() + "," +
             Columns.PORT.name() + "," +Columns.ISSSL.name() + "," +
             Columns.HOSTKEY.name() + "," +
-            Columns.ADMINROLE.name() + "," + Columns.UPDATEDINFO.name() + "," +
+            Columns.ADMINROLE.name() + "," + Columns.ISCLIENT.name() + "," + 
+            Columns.UPDATEDINFO.name() + "," +
             Columns.HOSTID.name();
 
     private static final String updateAllFields =
         Columns.ADDRESS.name() + "=?," +Columns.PORT.name() +
         "=?," +Columns.ISSSL.name() + "=?," + Columns.HOSTKEY.name() +
             "=?," + Columns.ADMINROLE.name() + "=?," +
+            Columns.ISCLIENT.name() + "=?," +
             Columns.UPDATEDINFO.name() + "=?";
 
-    private static final String insertAllValues = " (?,?,?,?,?,?,?) ";
+    private static final String insertAllValues = " (?,?,?,?,?,?,?,?) ";
 
     @Override
     protected void setToArray() {
@@ -117,6 +122,7 @@ public class DbHostAuth extends AbstractDbData {
         allFields[Columns.ISSSL.ordinal()].setValue(isSsl);
         allFields[Columns.HOSTKEY.ordinal()].setValue(hostkey);
         allFields[Columns.ADMINROLE.ordinal()].setValue(adminrole);
+        allFields[Columns.ISCLIENT.ordinal()].setValue(isClient);
         allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
         allFields[Columns.HOSTID.ordinal()].setValue(hostid);
     }
@@ -128,6 +134,7 @@ public class DbHostAuth extends AbstractDbData {
         isSsl = (Boolean) allFields[Columns.ISSSL.ordinal()].getValue();
         hostkey = (byte[]) allFields[Columns.HOSTKEY.ordinal()].getValue();
         adminrole = (Boolean) allFields[Columns.ADMINROLE.ordinal()].getValue();
+        isClient = (Boolean) allFields[Columns.ISCLIENT.ordinal()].getValue();
         updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()]
                 .getValue();
         hostid = (String) allFields[Columns.HOSTID.ordinal()].getValue();
@@ -141,9 +148,10 @@ public class DbHostAuth extends AbstractDbData {
      * @param isSSL
      * @param hostkey
      * @param adminrole
+     * @param isClient
      */
     public DbHostAuth(DbSession dbSession, String hostid, String address, int port,
-            boolean isSSL, byte[] hostkey, boolean adminrole) {
+            boolean isSSL, byte[] hostkey, boolean adminrole, boolean isClient) {
         super(dbSession);
         this.hostid = hostid;
         this.address = address;
@@ -160,6 +168,7 @@ public class DbHostAuth extends AbstractDbData {
             }
         }
         this.adminrole = adminrole;
+        this.isClient = isClient;
         setToArray();
         isSaved = false;
     }
@@ -497,7 +506,7 @@ public class DbHostAuth extends AbstractDbData {
      * @return True if the address is a client address (0.0.0.0)
      */
     public boolean isClient() {
-        return (this.address.equals("0.0.0.0"));
+        return isClient || (this.address.equals("0.0.0.0"));
     }
     /**
      *
@@ -538,7 +547,7 @@ public class DbHostAuth extends AbstractDbData {
     @Override
     public String toString() {
         return "HostAuth: " + hostid + " address: " +address+":"+port+" isSSL: "+isSsl+
-        " admin: "+ adminrole +" ("+(hostkey!=null?hostkey.length:0)+")";
+        " admin: "+ adminrole +" isClient: "+isClient+" ("+(hostkey!=null?hostkey.length:0)+")";
     }
     /**
      * @param session
@@ -563,6 +572,7 @@ public class DbHostAuth extends AbstractDbData {
         }
         FileUtils.replace(builder, "XXXSSLXXX", isSsl ? "checked": "");
         FileUtils.replace(builder, "XXXADMXXX", adminrole ? "checked": "");
+        FileUtils.replace(builder, "XXXISCXXX", isClient ? "checked": "");
         int nb = NetworkTransaction.existConnection(getSocketAddress(), getHostid());
         FileUtils.replace(builder, "XXXCONNXXX", (nb > 0)
                 ? "("+nb+" Connected) ": "");

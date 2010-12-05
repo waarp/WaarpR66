@@ -20,10 +20,13 @@
  */
 package openr66.configuration;
 
-import goldengate.common.exception.InvalidArgumentException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
-import goldengate.common.utility.GgStringUtils;
+import goldengate.common.xml.XmlDecl;
+import goldengate.common.xml.XmlHash;
+import goldengate.common.xml.XmlType;
+import goldengate.common.xml.XmlUtil;
+import goldengate.common.xml.XmlValue;
 
 import java.io.File;
 import java.util.Iterator;
@@ -43,7 +46,6 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
-import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 import org.dom4j.tree.DefaultElement;
 
@@ -106,7 +108,33 @@ public class AuthenticationFileBasedConfiguration {
      * Authentication Fields
      */
     private static final String XML_AUTHENTIFICATION_ISSSL = "isssl";
-
+    /**
+     * Authentication Fields
+     */
+    private static final String XML_AUTHENTIFICATION_ISCLIENT = "isclient";
+    
+    /**
+     * Structure of the Configuration file
+     *
+     */
+    private static final XmlDecl [] configAuthenticationDecls = {
+        // identity
+        new XmlDecl(XmlType.STRING, XML_AUTHENTIFICATION_HOSTID), 
+        new XmlDecl(XmlType.STRING, XML_AUTHENTIFICATION_KEYFILE),
+        new XmlDecl(XmlType.STRING, XML_AUTHENTIFICATION_KEY),
+        new XmlDecl(XmlType.BOOLEAN, XML_AUTHENTIFICATION_ADMIN),
+        new XmlDecl(XmlType.STRING, XML_AUTHENTIFICATION_ADDRESS),
+        new XmlDecl(XmlType.INTEGER, XML_AUTHENTIFICATION_PORT),
+        new XmlDecl(XmlType.BOOLEAN, XML_AUTHENTIFICATION_ISSSL),
+        new XmlDecl(XmlType.BOOLEAN, XML_AUTHENTIFICATION_ISCLIENT)
+    };
+    /**
+     * Global Structure for Server Configuration
+     */
+    private static final XmlDecl[] authentElements = {
+        new XmlDecl(XML_AUTHENTIFICATION_ENTRY, XmlType.XVAL, XML_AUTHENTIFICATION_BASED, 
+                configAuthenticationDecls, true)
+    };
     /**
      * Load Authentication from File
      * @param filename
@@ -127,26 +155,29 @@ public class AuthenticationFileBasedConfiguration {
                     filename);
             return false;
         }
-        List<Node> list = document.selectNodes(XML_AUTHENTIFICATION_BASED);
-        Iterator<Node> iterator = list.iterator();
-        Node nodebase, node;
+        XmlValue[] values = XmlUtil.read(document, authentElements);
+        XmlHash hash = new XmlHash(values);
+        XmlValue value = hash.get(XML_AUTHENTIFICATION_ENTRY);
+        List<XmlValue[]> list = (List<XmlValue[]>) value.getList();
+        Iterator<XmlValue[]> iterator = list.iterator();
         File key;
         byte[] byteKeys;
         while (iterator.hasNext()) {
-            nodebase = iterator.next();
-            node = nodebase.selectSingleNode(XML_AUTHENTIFICATION_HOSTID);
-            if (node == null) {
+            XmlValue [] subvalues = iterator.next();
+            XmlHash subHash = new XmlHash(subvalues);
+            value = subHash.get(XML_AUTHENTIFICATION_HOSTID);
+            if (value == null || (value.isEmpty())) {
                 continue;
             }
-            String refHostId = node.getText();
-            node = nodebase.selectSingleNode(XML_AUTHENTIFICATION_KEYFILE);
-            if (node == null) {
-                node = nodebase.selectSingleNode(XML_AUTHENTIFICATION_KEY);
-                if (node == null) {
+            String refHostId = value.getString();
+            value = subHash.get(XML_AUTHENTIFICATION_KEYFILE);
+            if (value == null || (value.isEmpty())) {
+                value = subHash.get(XML_AUTHENTIFICATION_KEY);
+                if (value == null || (value.isEmpty())) {
                     // Allow empty key
                     byteKeys = null;
                 } else {
-                    String skey = node.getText();
+                    String skey = value.getString();
                     // key is crypted
                     if (skey.length() > 0) {
                         try {
@@ -160,7 +191,7 @@ public class AuthenticationFileBasedConfiguration {
                     }
                 }
             } else {
-                String skey = node.getText();
+                String skey = value.getString();
                 // load key from file
                 key = new File(skey);
                 if (!key.canRead()) {
@@ -174,30 +205,35 @@ public class AuthenticationFileBasedConfiguration {
                     continue;
                 }
             }
-            node = nodebase.selectSingleNode(XML_AUTHENTIFICATION_ADMIN);
             boolean isAdmin = false;
-            if (node != null) {
-                isAdmin = GgStringUtils.getBoolean(node);
+            value = subHash.get(XML_AUTHENTIFICATION_ADMIN);
+            if (value != null && (!value.isEmpty())) {
+                isAdmin = value.getBoolean();
             }
-            node = nodebase.selectSingleNode(XML_AUTHENTIFICATION_ADDRESS);
-            if (node == null) {
+            value = subHash.get(XML_AUTHENTIFICATION_ADDRESS);
+            if (value == null || (value.isEmpty())) {
                 continue;
             }
-            String address = node.getText();
-            node = nodebase.selectSingleNode(XML_AUTHENTIFICATION_PORT);
+            String address = value.getString();
             int port;
-            try {
-                port = GgStringUtils.getInteger(node);
-            } catch (InvalidArgumentException e1) {
+            value = subHash.get(XML_AUTHENTIFICATION_PORT);
+            if (value != null && (!value.isEmpty())) {
+                port = value.getInteger();
+            } else {
                 continue;
             }
-            node = nodebase.selectSingleNode(XML_AUTHENTIFICATION_ISSSL);
             boolean isSsl = false;
-            if (node != null) {
-                isSsl = GgStringUtils.getBoolean(node);
+            value = subHash.get(XML_AUTHENTIFICATION_ISSSL);
+            if (value != null && (!value.isEmpty())) {
+                isSsl = value.getBoolean();
+            }
+            boolean isClient = false;
+            value = subHash.get(XML_AUTHENTIFICATION_ISCLIENT);
+            if (value != null && (!value.isEmpty())) {
+                isClient = value.getBoolean();
             }
             DbHostAuth auth = new DbHostAuth(DbConstant.admin.session,
-                    refHostId, address, port, isSsl, byteKeys, isAdmin);
+                    refHostId, address, port, isSsl, byteKeys, isAdmin, isClient);
             try {
                 if (auth.exist()) {
                     auth.update();

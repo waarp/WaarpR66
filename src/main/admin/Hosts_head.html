@@ -108,6 +108,7 @@ a img {
         <td width="12%" align="center"><b>SSL</b></td>
         <td width="13%" align="center"><b>HostKey</b></td>
         <td width="13%" align="center"><b>Admin Role</b></td>
+        <td width="8%" align="center"><b>Is Client</b></td>
       </tr>
       <tr>
         <td width="12%" align="center"><input type="text" name="host" size="20">
@@ -141,6 +142,12 @@ a img {
         <img id="admhelp" alt="help for Admin field"  class="help" width="16" height="16" src="img/help_small.gif" />
 	<div id="containeradmhelp"><p class="cshelp">
 	If checked, this host can be used in local client for administration purpose (using the above key).
+	</p></div></td>
+        <td width="8%" align="center">
+        <input type="checkbox" name="isclient" value="on">
+        <img id="ischelp" alt="help for Is Client field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containericshelp"><p class="cshelp">
+	If checked, this host is a client only, meaning that it can only initiate transfers but cannot receive new request of transfer.
 	</p></div></td>
       </tr>
     </table>
