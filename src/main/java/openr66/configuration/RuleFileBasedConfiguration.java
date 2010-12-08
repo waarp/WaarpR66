@@ -23,11 +23,17 @@ package openr66.configuration;
 import goldengate.common.file.DirInterface;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+import goldengate.common.xml.XmlDecl;
+import goldengate.common.xml.XmlHash;
+import goldengate.common.xml.XmlType;
+import goldengate.common.xml.XmlUtil;
+import goldengate.common.xml.XmlValue;
 
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.List;
 
+import openr66.context.task.TaskType;
 import openr66.database.DbConstant;
 import openr66.database.DbPreparedStatement;
 import openr66.database.data.DbRule;
@@ -44,7 +50,6 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
-import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 import org.dom4j.tree.DefaultElement;
 
@@ -79,34 +84,37 @@ public class RuleFileBasedConfiguration {
     private static final String XTASKS = "tasks";
     private static final String XTASK = "task";
 
-    private static final String IDRULE = "/"+ROOT+"/"+XIDRULE;
+    private static final String HOSTIDS_HOSTID = XHOSTIDS+"/"+XHOSTID;
 
-    private static final String HOSTIDS_HOSTID = "/"+ROOT+"/"+XHOSTIDS+"/"+XHOSTID;
-
-    private static final String MODE = "/"+ROOT+"/"+XMODE;
-
-    private static final String RECVPATH = "/"+ROOT+"/"+XRECVPATH;
-
-    private static final String SENDPATH = "/"+ROOT+"/"+XSENDPATH;
-
-    private static final String ARCHIVEPATH = "/"+ROOT+"/"+XARCHIVEPATH;
-
-    private static final String WORKPATH = "/"+ROOT+"/"+XWORKPATH;
-
-    private static final String RPRETASKS = "/"+ROOT+"/"+XRPRETASKS;
-
-    private static final String RPOSTTASKS = "/"+ROOT+"/"+XRPOSTTASKS;
-
-    private static final String RERRORTASKS = "/"+ROOT+"/"+XRERRORTASKS;
-
-    private static final String SPRETASKS = "/"+ROOT+"/"+XSPRETASKS;
-
-    private static final String SPOSTTASKS = "/"+ROOT+"/"+XSPOSTTASKS;
-
-    private static final String SERRORTASKS = "/"+ROOT+"/"+XSERRORTASKS;
-
-    private static final String TASK = "tasks/task";
-
+    private static final String TASK = "/tasks/task";
+    
+    private static final XmlDecl [] taskDecl = {
+        new XmlDecl(XmlType.STRING, DbRule.TASK_TYPE),
+        new XmlDecl(XmlType.STRING, DbRule.TASK_PATH),
+        new XmlDecl(XmlType.LONG, DbRule.TASK_DELAY),
+    };
+    public static final XmlDecl [] tasksDecl = {
+        new XmlDecl(XTASK, XmlType.XVAL, TASK, taskDecl, true)
+    };
+    private static final XmlDecl [] subruleDecls = {
+        new XmlDecl(XmlType.STRING, XIDRULE), 
+        new XmlDecl(XHOSTIDS, XmlType.STRING, HOSTIDS_HOSTID, true),
+        new XmlDecl(XmlType.INTEGER, XMODE), 
+        new XmlDecl(XmlType.STRING, XRECVPATH), 
+        new XmlDecl(XmlType.STRING, XSENDPATH), 
+        new XmlDecl(XmlType.STRING, XARCHIVEPATH),
+        new XmlDecl(XmlType.STRING, XWORKPATH),
+        new XmlDecl(XRPRETASKS, XmlType.XVAL, XRPRETASKS, tasksDecl, false),
+        new XmlDecl(XRPOSTTASKS, XmlType.XVAL, XRPOSTTASKS, tasksDecl, false),
+        new XmlDecl(XRERRORTASKS, XmlType.XVAL, XRERRORTASKS, tasksDecl, false),
+        new XmlDecl(XSPRETASKS, XmlType.XVAL, XSPRETASKS, tasksDecl, false),
+        new XmlDecl(XSPOSTTASKS, XmlType.XVAL, XSPOSTTASKS, tasksDecl, false),
+        new XmlDecl(XSERRORTASKS, XmlType.XVAL, XSERRORTASKS, tasksDecl, false)
+    };
+    private static final XmlDecl [] ruleDecls = {
+        new XmlDecl(ROOT, XmlType.XVAL, ROOT, subruleDecls, false)
+    };
+    
     /**
      * Extension of rule files
      */
@@ -148,27 +156,62 @@ public class RuleFileBasedConfiguration {
     }
 
     /**
-     *
-     * @param document
+     * Utility function
+     * @param node
      * @param path
-     * @return The value associated with the path
-     * @throws OpenR66ProtocolNoDataException
+     * @return the array of tasks or empty array if in error.
      */
-    private static String getValue(Document document, String path)
-            throws OpenR66ProtocolNoDataException {
-        Node node = document.selectSingleNode(path);
-        if (node == null) {
-            throw new OpenR66ProtocolNoDataException(
-                    "Unable to find in the XML Rule field: " + path);
+    @SuppressWarnings("unchecked")
+    public static String [][] getTasksRule(XmlValue value) {
+        List<XmlValue[]> list = (List<XmlValue[]>) value.getList();
+        if (list == null || list.isEmpty()) {
+            logger.debug("NoRule for "+value.getName());
+            //Unable to find the tasks for Rule, setting to the default
+            return new String[0][0];
         }
-        String result = node.getText();
-        if (result == null || result.length() == 0) {
-            throw new OpenR66ProtocolNoDataException(
-                    "Unable to find in the XML Rule field: " + path);
+        String[][] taskArray = new String[list.size()][3];
+        for (int i = 0; i < list.size(); i ++) {
+            taskArray[i][0] = null;
+            taskArray[i][1] = null;
+            taskArray[i][2] = null;
         }
-        return result;
+        int rank = 0;
+        for (XmlValue[] subvals: list) {
+            XmlHash hash = new XmlHash(subvals);
+            XmlValue valtype = hash.get(DbRule.TASK_TYPE);
+            if (valtype == null || (valtype.isEmpty()) || valtype.getString().isEmpty()) {
+                continue;
+            }
+            XmlValue valpath = hash.get(DbRule.TASK_PATH);
+            if (valpath == null || (valpath.isEmpty()) || valtype.getString().isEmpty()) {
+                continue;
+            }
+            XmlValue valdelay = hash.get(DbRule.TASK_DELAY);
+            String delay;
+            if (valdelay == null || (valdelay.isEmpty())) {
+                delay = Long
+                    .toString(Configuration.configuration.TIMEOUTCON);
+            } else {
+                delay = valdelay.getIntoString();
+            }
+            taskArray[rank][0] = valtype.getString().toUpperCase();
+            // CHECK TASK_TYPE 
+            try {
+                TaskType.valueOf(taskArray[rank][0]);
+            } catch (IllegalArgumentException e) {
+                // Bad Type
+                logger.warn("Bad Type of Task: "+taskArray[rank][0]);
+                continue;
+            }
+            taskArray[rank][1] = valpath.getString();
+            taskArray[rank][2] = delay;
+            rank++;
+            hash.clear();
+        }
+        list.clear();
+        list = null;
+        return taskArray;
     }
-
     /**
      * Load and update a Rule from a file
      * @param file
@@ -199,99 +242,114 @@ public class RuleFileBasedConfiguration {
             throw new OpenR66ProtocolSystemException(
                     "Unable to read the XML Rule file");
         }
-        Node nodebase = null;
-        String idrule;
-        try {
-            idrule = getValue(document, IDRULE);
-        } catch (OpenR66ProtocolNoDataException e1) {
-            logger.error("Unable to find in Rule field: " + IDRULE);
-            throw new OpenR66ProtocolSystemException(e1);
+        XmlValue[] values = XmlUtil.read(document, ruleDecls);
+        XmlHash hash = new XmlHash(values);
+        XmlValue value = hash.get(XIDRULE);
+        if (value == null || (value.isEmpty()) || value.getString().length() == 0) {
+            logger.error("Unable to find in Rule field: " + XIDRULE);
+            throw new OpenR66ProtocolSystemException();
         }
-        String smode;
-        try {
-            smode = getValue(document, MODE);
-        } catch (OpenR66ProtocolNoDataException e1) {
-            logger.error("Unable to find in Rule field: " + MODE);
-            throw new OpenR66ProtocolSystemException(e1);
+        String idrule = value.getString();
+        value = hash.get(XMODE);
+        if (value == null || (value.isEmpty())) {
+            logger.error("Unable to find in Rule field: " + XMODE);
+            throw new OpenR66ProtocolSystemException();
         }
-        int mode = Integer.parseInt(smode);
+        int mode = value.getInteger();
         String recvpath;
-        try {
-            recvpath = DirInterface.SEPARATOR + getValue(document, RECVPATH);
-        } catch (OpenR66ProtocolNoDataException e) {
+        value = hash.get(XRECVPATH);
+        if (value == null || (value.isEmpty()) || value.getString().length() == 0) {
             recvpath = Configuration.configuration.inPath;
+        } else {
+            recvpath = DirInterface.SEPARATOR + value.getString();
         }
         String sendpath;
-        try {
-            sendpath = DirInterface.SEPARATOR + getValue(document, SENDPATH);
-        } catch (OpenR66ProtocolNoDataException e) {
+        value = hash.get(XSENDPATH);
+        if (value == null || (value.isEmpty()) || value.getString().length() == 0) {
             sendpath = Configuration.configuration.outPath;
+        } else {
+            sendpath = DirInterface.SEPARATOR + value.getString();
         }
         String archivepath;
-        try {
-            archivepath = DirInterface.SEPARATOR +
-                    getValue(document, ARCHIVEPATH);
-        } catch (OpenR66ProtocolNoDataException e) {
+        value = hash.get(XARCHIVEPATH);
+        if (value == null || (value.isEmpty()) || value.getString().length() == 0) {
             archivepath = Configuration.configuration.archivePath;
+        } else {
+            archivepath = DirInterface.SEPARATOR + value.getString();
         }
         String workpath;
-        try {
-            workpath = DirInterface.SEPARATOR + getValue(document, WORKPATH);
-        } catch (OpenR66ProtocolNoDataException e) {
+        value = hash.get(XWORKPATH);
+        if (value == null || (value.isEmpty()) || value.getString().length() == 0) {
             workpath = Configuration.configuration.workingPath;
-        }
-
-        String[] idsArray = null;
-        List<Node> listNode = document.selectNodes(HOSTIDS_HOSTID);
-        if (listNode == null) {
-            logger
-                    .info("Unable to find the id for Rule, setting to the default");
         } else {
-            idsArray = new String[listNode.size()];
+            workpath = DirInterface.SEPARATOR + value.getString();
+        }
+        String[] idsArray = null;
+        value = hash.get(XHOSTIDS);
+        if (value == null || (value.isEmpty()) || value.getList().isEmpty()) {
+            logger
+            .info("Unable to find the id for Rule, setting to the default");
+        } else {
+            List<String> ids = (List<String>) value.getList();
+            idsArray = new String[ids.size()];
             int i = 0;
-            for (Node nodeid: listNode) {
-                idsArray[i] = nodeid.getText();
+            for (String sval: ids) {
+                if (sval.isEmpty()) {
+                    continue;
+                }
+                idsArray[i] = sval;
                 i ++;
             }
-            listNode.clear();
-            listNode = null;
+            ids.clear();
+            ids = null;
         }
-
-        nodebase = document.selectSingleNode(RPRETASKS);
         String[][] rpretasks = new String[0][0];
-        if (nodebase != null) {
-            rpretasks = DbRule.getTasksRule(nodebase, TASK);
-            nodebase = null;
+        value = hash.get(XRPRETASKS);
+        if (value != null && (! value.isEmpty())) {
+            XmlValue [] subvalues = value.getSubXml();
+            if (subvalues.length > 0) {
+                rpretasks = getTasksRule(subvalues[0]);
+            }
         }
-        nodebase = document.selectSingleNode(RPOSTTASKS);
         String[][] rposttasks = new String[0][0];
-        if (nodebase != null) {
-            rposttasks = DbRule.getTasksRule(nodebase, TASK);
-            nodebase = null;
+        value = hash.get(XRPOSTTASKS);
+        if (value != null && (! value.isEmpty())) {
+            XmlValue [] subvalues = value.getSubXml();
+            if (subvalues.length > 0) {
+                rposttasks = getTasksRule(subvalues[0]);
+            }
         }
-        nodebase = document.selectSingleNode(RERRORTASKS);
         String[][] rerrortasks = new String[0][0];
-        if (nodebase != null) {
-            rerrortasks = DbRule.getTasksRule(nodebase, TASK);
-            nodebase = null;
+        value = hash.get(XRERRORTASKS);
+        if (value != null && (! value.isEmpty())) {
+            XmlValue [] subvalues = value.getSubXml();
+            if (subvalues.length > 0) {
+                rerrortasks = getTasksRule(subvalues[0]);
+            }
         }
-        nodebase = document.selectSingleNode(SPRETASKS);
         String[][] spretasks = new String[0][0];
-        if (nodebase != null) {
-            spretasks = DbRule.getTasksRule(nodebase, TASK);
-            nodebase = null;
+        value = hash.get(XSPRETASKS);
+        if (value != null && (! value.isEmpty())) {
+            XmlValue [] subvalues = value.getSubXml();
+            if (subvalues.length > 0) {
+                spretasks = getTasksRule(subvalues[0]);
+            }
         }
-        nodebase = document.selectSingleNode(SPOSTTASKS);
         String[][] sposttasks = new String[0][0];
-        if (nodebase != null) {
-            sposttasks = DbRule.getTasksRule(nodebase, TASK);
-            nodebase = null;
+        value = hash.get(XSPOSTTASKS);
+        if (value != null && (! value.isEmpty())) {
+            XmlValue [] subvalues = value.getSubXml();
+            if (subvalues.length > 0) {
+                sposttasks = getTasksRule(subvalues[0]);
+            }
         }
-        nodebase = document.selectSingleNode(SERRORTASKS);
         String[][] serrortasks = new String[0][0];
-        if (nodebase != null) {
-            serrortasks = DbRule.getTasksRule(nodebase, TASK);
-            nodebase = null;
+        value = hash.get(XSERRORTASKS);
+        if (value != null && (! value.isEmpty())) {
+            XmlValue [] subvalues = value.getSubXml();
+            if (subvalues.length > 0) {
+                serrortasks = getTasksRule(subvalues[0]);
+            }
         }
 
         newRule = new DbRule(DbConstant.admin.session, idrule, idsArray, mode, recvpath, sendpath,

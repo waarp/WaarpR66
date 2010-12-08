@@ -23,6 +23,8 @@ package openr66.database.data;
 import goldengate.common.file.DirInterface;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+import goldengate.common.xml.XmlUtil;
+import goldengate.common.xml.XmlValue;
 
 import java.io.File;
 import java.io.StringReader;
@@ -32,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import openr66.configuration.RuleFileBasedConfiguration;
 import openr66.context.R66Session;
 import openr66.context.task.TaskType;
 import openr66.database.DbConstant;
@@ -804,7 +807,9 @@ public class DbRule extends AbstractDbData {
             reader.close();
             return new String[0][0];
         }
-        String [][] result = getTasksRule(document, TASKS_ROOT);
+        XmlValue[] values = XmlUtil.read(document, RuleFileBasedConfiguration.tasksDecl);
+        String [][] result = RuleFileBasedConfiguration.getTasksRule(values[0]);
+        //String [][] result = getTasksRule(document, TASKS_ROOT);
         reader.close();
         return result;
     }
@@ -815,7 +820,8 @@ public class DbRule extends AbstractDbData {
      * @return the array of tasks or empty array if in error.
      */
     @SuppressWarnings("unchecked")
-    public static String [][] getTasksRule(Node node, String path) {
+    // FIXME remove this obsolete function
+    private static String [][] getTasksRule(Node node, String path) {
         List<Node> listNode = node.selectNodes(path);
         if (listNode == null) {
             logger.warn("NoRule for "+path);

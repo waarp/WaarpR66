@@ -1227,6 +1227,9 @@ public class FileBasedConfiguration {
             logger.error("Unable to read Limitation config file: " + filename);
             return false;
         }
+        hashConfig.clear();
+        hashConfig = null;
+        configuration = null;
         return true;
     }
     /**
@@ -1272,6 +1275,9 @@ public class FileBasedConfiguration {
                 return false;
             }
         }
+        hashConfig.clear();
+        hashConfig = null;
+        configuration = null;
         return true;
     }
     /**
@@ -1334,6 +1340,9 @@ public class FileBasedConfiguration {
                 return false;
             }
         }
+        hashConfig.clear();
+        hashConfig = null;
+        configuration = null;
         return true;
     }
     
@@ -1413,6 +1422,9 @@ public class FileBasedConfiguration {
                 return false;
             }
         }
+        hashConfig.clear();
+        hashConfig = null;
+        configuration = null;
         return true;
     }
     /**
@@ -1495,6 +1507,9 @@ public class FileBasedConfiguration {
                 return false;
             }
         }
+        hashConfig.clear();
+        hashConfig = null;
+        configuration = null;
         return true;
     }
 
@@ -1573,6 +1588,9 @@ public class FileBasedConfiguration {
                 return false;
             }
         }
+        hashConfig.clear();
+        hashConfig = null;
+        configuration = null;
         return true;
     }
 }
