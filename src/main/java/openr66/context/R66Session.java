@@ -510,7 +510,11 @@ public class R66Session implements SessionInterface {
                     long oldPosition = restart.getPosition();
                     restart.setSet(true);
                     if (oldPosition > length) {
-                        int newRank = (int) (length / this.runner.getBlocksize());
+                        int newRank = ((int) (length / this.runner.getBlocksize()))
+                            - Configuration.RANKRESTART;
+                        if (newRank <= 0) {
+                            newRank = 1;
+                        }
                         runner.setTransferTask(newRank);
                         restart.restartMarker(this.runner.getBlocksize() * this.runner.getRank());
                     }

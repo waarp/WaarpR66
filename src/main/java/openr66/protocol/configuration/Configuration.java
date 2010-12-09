@@ -113,7 +113,7 @@ public class Configuration {
     /**
      * Rank to redo when a restart occurs
      */
-    public static final long RANKRESTART = 30;
+    public static int RANKRESTART = 30;
 
     /**
      * FileParameter

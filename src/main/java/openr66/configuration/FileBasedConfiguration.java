@@ -336,6 +336,11 @@ public class FileBasedConfiguration {
     private static final String XML_FASTMD5 = "fastmd5";
 
     /**
+     * number of rank to go back when a transfer is restarted.
+     * restart is gaprestart*blocksize
+     */
+    private static final String XML_GAPRESTART = "gaprestart";
+    /**
      * Size by default of block size for receive/sending files. Should be a
      * multiple of 8192 (maximum = 64K due to block limitation to 2 bytes)
      */
@@ -455,6 +460,7 @@ public class FileBasedConfiguration {
         new XmlDecl(XmlType.BOOLEAN, XML_USENIO),
         new XmlDecl(XmlType.BOOLEAN, XML_USEFASTMD5), 
         new XmlDecl(XmlType.STRING, XML_FASTMD5), 
+        new XmlDecl(XmlType.INTEGER, XML_GAPRESTART),
         new XmlDecl(XmlType.INTEGER, XML_BLOCKSIZE)
     };
     /**
@@ -914,6 +920,13 @@ public class FileBasedConfiguration {
             FilesystemBasedDigest.useFastMd5 = false;
             FilesystemBasedDigest.fastMd5Path = null;
             MD5.initNativeLibrary(true);
+        }
+        value = hashConfig.get(XML_GAPRESTART);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.RANKRESTART = value.getInteger();
+            if (Configuration.RANKRESTART <= 0) {
+                Configuration.RANKRESTART = 1;
+            }
         }
         value = hashConfig.get(XML_BLOCKSIZE);
         if (value != null && (!value.isEmpty())) {
