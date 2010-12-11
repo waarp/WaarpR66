@@ -140,12 +140,6 @@
     </dependency>
     <dependency>
       <groupId>GoldenGate</groupId>
-      <artifactId>GoldenGateCpu</artifactId>
-      <version>1.0.0</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>GoldenGate</groupId>
       <artifactId>GoldenGateDigest</artifactId>
       <version>1.0.1</version>
       <scope>compile</scope>
