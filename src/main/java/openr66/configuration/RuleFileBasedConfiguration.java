@@ -68,8 +68,8 @@ public class RuleFileBasedConfiguration {
 
     private static final String ROOT = "rule";
     private static final String XIDRULE = "idrule";
-    private static final String XHOSTIDS = "hostids";
-    private static final String XHOSTID = "hostid";
+    public static final String XHOSTIDS = "hostids";
+    public static final String XHOSTID = "hostid";
     private static final String XMODE = "mode";
     private static final String XRECVPATH = "recvpath";
     private static final String XSENDPATH = "sendpath";
@@ -81,10 +81,10 @@ public class RuleFileBasedConfiguration {
     private static final String XSPRETASKS = "spretasks";
     private static final String XSPOSTTASKS = "sposttasks";
     private static final String XSERRORTASKS = "serrortasks";
-    private static final String XTASKS = "tasks";
-    private static final String XTASK = "task";
+    public static final String XTASKS = "tasks";
+    public static final String XTASK = "task";
 
-    private static final String HOSTIDS_HOSTID = XHOSTIDS+"/"+XHOSTID;
+    private static final String HOSTIDS_HOSTID = "/"+XHOSTIDS+"/"+XHOSTID;
 
     private static final String TASK = "/tasks/task";
     
@@ -113,6 +113,9 @@ public class RuleFileBasedConfiguration {
     };
     private static final XmlDecl [] ruleDecls = {
         new XmlDecl(ROOT, XmlType.XVAL, ROOT, subruleDecls, false)
+    };
+    public static final XmlDecl [] hostsDecls = {
+        new XmlDecl(XHOSTIDS, XmlType.STRING, HOSTIDS_HOSTID, true),
     };
     
     /**
@@ -213,6 +216,33 @@ public class RuleFileBasedConfiguration {
         return taskArray;
     }
     /**
+     * 
+     * @param value the XmlValue hosting hostids/hostid
+     * @return the array of HostIds allowed for the current rule
+     */
+    public static String[] getHostIds(XmlValue value) {
+        String []idsArray = null;
+        if (value == null || (value.isEmpty()) || value.getList().isEmpty()) {
+            logger
+            .info("Unable to find the id for Rule, setting to the default");
+        } else {
+            @SuppressWarnings("unchecked")
+            List<String> ids = (List<String>) value.getList();
+            idsArray = new String[ids.size()];
+            int i = 0;
+            for (String sval: ids) {
+                if (sval.isEmpty()) {
+                    continue;
+                }
+                idsArray[i] = sval;
+                i ++;
+            }
+            ids.clear();
+            ids = null;
+        }
+        return idsArray;
+    }
+    /**
      * Load and update a Rule from a file
      * @param file
      * @return the newly created R66Rule from XML File
@@ -223,7 +253,6 @@ public class RuleFileBasedConfiguration {
      * @throws OpenR66DatabaseNoConnectionError
      * @throws OpenR66ProtocolNoDataException
      */
-    @SuppressWarnings("unchecked")
     public static DbRule getFromFile(File file)
             throws OpenR66ProtocolSystemException, OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError, OpenR66DatabaseNoDataException, OpenR66DatabaseException {
         DbRule newRule = null;
@@ -286,23 +315,7 @@ public class RuleFileBasedConfiguration {
         }
         String[] idsArray = null;
         value = hash.get(XHOSTIDS);
-        if (value == null || (value.isEmpty()) || value.getList().isEmpty()) {
-            logger
-            .info("Unable to find the id for Rule, setting to the default");
-        } else {
-            List<String> ids = (List<String>) value.getList();
-            idsArray = new String[ids.size()];
-            int i = 0;
-            for (String sval: ids) {
-                if (sval.isEmpty()) {
-                    continue;
-                }
-                idsArray[i] = sval;
-                i ++;
-            }
-            ids.clear();
-            ids = null;
-        }
+        idsArray = getHostIds(value);
         String[][] rpretasks = new String[0][0];
         value = hash.get(XRPRETASKS);
         if (value != null && (! value.isEmpty())) {
@@ -365,6 +378,8 @@ public class RuleFileBasedConfiguration {
             // put in hashtable
             newRule.insert();
         }
+        hash.clear();
+        values = null;
         return newRule;
     }
     /**

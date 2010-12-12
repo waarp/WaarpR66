@@ -115,7 +115,7 @@ public class SubmitTransfer extends AbstractTransfer {
         if (logger == null) {
             logger = GgInternalLoggerFactory.getLogger(SubmitTransfer.class);
         }
-        if (! getParams(args)) {
+        if (! getParams(args, true)) {
             logger.error("Wrong initialization");
             if (DbConstant.admin != null && DbConstant.admin.isConnected) {
                 DbConstant.admin.close();

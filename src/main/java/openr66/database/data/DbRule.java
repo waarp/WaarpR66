@@ -31,12 +31,10 @@ import java.io.StringReader;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import openr66.configuration.RuleFileBasedConfiguration;
 import openr66.context.R66Session;
-import openr66.context.task.TaskType;
 import openr66.database.DbConstant;
 import openr66.database.DbPreparedStatement;
 import openr66.database.DbSession;
@@ -51,7 +49,6 @@ import openr66.protocol.utils.FileUtils;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
-import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 
 /**
@@ -101,52 +98,42 @@ public class DbRule extends AbstractDbData {
     /**
      * Internal context XML fields
      */
-    public static final String HOSTIDS_HOSTID = "/hostids/hostid";
+    private static final String XMLHOSTIDS = "<"+RuleFileBasedConfiguration.XHOSTIDS+">";
 
     /**
      * Internal context XML fields
      */
-    private static final String XMLHOSTIDS = "<hostids>";
+    private static final String XMLENDHOSTIDS = "</"+RuleFileBasedConfiguration.XHOSTIDS+">";
 
     /**
      * Internal context XML fields
      */
-    private static final String XMLENDHOSTIDS = "</hostids>";
+    private static final String XMLHOSTID = "<"+RuleFileBasedConfiguration.XHOSTID+">";
 
     /**
      * Internal context XML fields
      */
-    private static final String XMLHOSTID = "<hostid>";
+    private static final String XMLENDHOSTID = "</"+RuleFileBasedConfiguration.XHOSTID+">";
 
     /**
      * Internal context XML fields
      */
-    private static final String XMLENDHOSTID = "</hostid>";
+    private static final String XMLTASKS = "<"+RuleFileBasedConfiguration.XTASKS+">";
 
     /**
      * Internal context XML fields
      */
-    public static final String TASKS_ROOT = "/tasks/task";
+    private static final String XMLENDTASKS = "</"+RuleFileBasedConfiguration.XTASKS+">";
 
     /**
      * Internal context XML fields
      */
-    private static final String XMLTASKS = "<tasks>";
+    private static final String XMLTASK = "<"+RuleFileBasedConfiguration.XTASK+">";
 
     /**
      * Internal context XML fields
      */
-    private static final String XMLENDTASKS = "</tasks>";
-
-    /**
-     * Internal context XML fields
-     */
-    private static final String XMLTASK = "<task>";
-
-    /**
-     * Internal context XML fields
-     */
-    private static final String XMLENDTASK = "</task>";
+    private static final String XMLENDTASK = "</"+RuleFileBasedConfiguration.XTASK+">";
 
     /**
      * Internal context XML fields
@@ -743,7 +730,6 @@ public class DbRule extends AbstractDbData {
      * @param idsref
      * @return True if ok, else False (default values).
      */
-    @SuppressWarnings("unchecked")
     private boolean getIdsRule(String idsref) {
         if (idsref == null) {
             //No ids so setting to the default!
@@ -764,23 +750,9 @@ public class DbRule extends AbstractDbData {
             reader.close();
             return false;
         }
-        List<Node> listNode = document.selectNodes(HOSTIDS_HOSTID);
-        if (listNode == null) {
-            logger
-                    .info("Unable to find the id for Rule, setting to the default");
-            ids = null;
-            idsArray = null;
-            reader.close();
-            return false;
-        }
-        idsArray = new String[listNode.size()];
-        int i = 0;
-        for (Node nodeid: listNode) {
-            idsArray[i] = nodeid.getText();
-            i ++;
-        }
-        listNode.clear();
-        listNode = null;
+        XmlValue []values = XmlUtil.read(document, 
+                RuleFileBasedConfiguration.hostsDecls);
+        idsArray = RuleFileBasedConfiguration.getHostIds(values[0]);
         reader.close();
         return true;
     }
@@ -809,68 +781,10 @@ public class DbRule extends AbstractDbData {
         }
         XmlValue[] values = XmlUtil.read(document, RuleFileBasedConfiguration.tasksDecl);
         String [][] result = RuleFileBasedConfiguration.getTasksRule(values[0]);
-        //String [][] result = getTasksRule(document, TASKS_ROOT);
         reader.close();
         return result;
     }
-    /**
-     * Utility function
-     * @param node
-     * @param path
-     * @return the array of tasks or empty array if in error.
-     */
-    @SuppressWarnings("unchecked")
-    // FIXME remove this obsolete function
-    private static String [][] getTasksRule(Node node, String path) {
-        List<Node> listNode = node.selectNodes(path);
-        if (listNode == null) {
-            logger.warn("NoRule for "+path);
-            //Unable to find the tasks for Rule, setting to the default
-            return new String[0][0];
-        }
-        String[][] taskArray = new String[listNode.size()][3];
-        for (int i = 0; i < listNode.size(); i ++) {
-            taskArray[i][0] = null;
-            taskArray[i][1] = null;
-            taskArray[i][2] = null;
-        }
-        int rank = 0;
-        for (Node noderoot: listNode) {
-            Node nodetype = null, nodepath = null, nodedelay = null;
-            nodetype = noderoot.selectSingleNode(TASK_TYPE);
-            if (nodetype == null) {
-                continue;
-            }
-            nodepath = noderoot.selectSingleNode(TASK_PATH);
-            if (nodepath == null) {
-                continue;
-            }
-            nodedelay = noderoot.selectSingleNode(TASK_DELAY);
-            String delay;
-            if (nodedelay == null) {
-                delay = Long
-                        .toString(Configuration.configuration.TIMEOUTCON);
-            } else {
-                delay = nodedelay.getText();
-            }
-            taskArray[rank][0] = nodetype.getText().toUpperCase();
-            // CHECK TASK_TYPE 
-            try {
-                TaskType.valueOf(taskArray[rank][0]);
-            } catch (IllegalArgumentException e) {
-                // Bad Type
-                logger.warn("Bad Type of Task: "+taskArray[rank][0]);
-                continue;
-            }
-            taskArray[rank][1] = nodepath.getText();
-            taskArray[rank][2] = delay;
-            rank++;
-        }
-        listNode.clear();
-        listNode = null;
-        return taskArray;
-    }
-
+    
     /**
      * Initialized a ids String from args
      *
@@ -896,19 +810,25 @@ public class DbRule extends AbstractDbData {
      * @return the new tasks string
      */
     private static String setTasksRule(String[][] tasksArray) {
-        String tasks = null;
+        StringBuilder builder = new StringBuilder();
         if (tasksArray != null) {
-            tasks = XMLTASKS;
+            builder.append(XMLTASKS);
             for (int i = 0; i < tasksArray.length; i ++) {
-                tasks += XMLTASK + "<" + TASK_TYPE + ">" + tasksArray[i][0] +
-                        "</" + TASK_TYPE + "><" + TASK_PATH + ">" +
-                        tasksArray[i][1] + "</" + TASK_PATH + "><" +
-                        TASK_DELAY + ">" + tasksArray[i][2] + "</" +
-                        TASK_DELAY + ">" + XMLENDTASK;
+                builder.append(XMLTASK);
+                builder.append('<').append(TASK_TYPE).append('>');
+                builder.append(tasksArray[i][0]);
+                builder.append("</").append(TASK_TYPE).append('>');
+                builder.append('<').append(TASK_PATH).append('>');
+                builder.append(tasksArray[i][1]);
+                builder.append("</").append(TASK_PATH).append('>');
+                builder.append('<').append(TASK_DELAY).append('>');
+                builder.append(tasksArray[i][2]);
+                builder.append("</").append(TASK_DELAY).append('>');
+                builder.append(XMLENDTASK);
             }
-            tasks += XMLENDTASKS;
+            builder.append(XMLENDTASKS);
         }
-        return tasks;
+        return builder.toString();
     }
 
     /**

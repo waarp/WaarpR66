@@ -468,6 +468,14 @@ public class FileBasedConfiguration {
      * Structure of the Configuration file
      *
      */
+    private static final XmlDecl [] configSubmitLimitDecls = {
+        // limit
+        new XmlDecl(XmlType.INTEGER, XML_BLOCKSIZE)
+    };
+    /**
+     * Structure of the Configuration file
+     *
+     */
     private static final XmlDecl [] configClientParamDecls = {
         // client
         new XmlDecl(XmlType.BOOLEAN, XML_SAVE_TASKRUNNERNODB), 
@@ -518,6 +526,14 @@ public class FileBasedConfiguration {
         new XmlDecl(XML_DIRECTORY, XmlType.XVAL, XML_ROOT+XML_DIRECTORY, configDirectoryDecls, false),
         new XmlDecl(XML_LIMIT, XmlType.XVAL, XML_ROOT+XML_LIMIT, configLimitDecls, false),
         new XmlDecl(XML_SSL, XmlType.XVAL, XML_ROOT+XML_SSL, configSslDecls, false),
+        new XmlDecl(XML_DB, XmlType.XVAL, XML_ROOT+XML_DB, configDbDecls, false)
+    };
+    /**
+     * Global Structure for Submit only Client Configuration
+     */
+    private static final XmlDecl[] configSubmitClient = {
+        new XmlDecl(XML_IDENTITY, XmlType.XVAL, XML_ROOT+XML_IDENTITY, configIdentityDecls, false),
+        new XmlDecl(XML_LIMIT, XmlType.XVAL, XML_ROOT+XML_LIMIT, configSubmitLimitDecls, false),
         new XmlDecl(XML_DB, XmlType.XVAL, XML_ROOT+XML_DB, configDbDecls, false)
     };
     private static XmlValue[] configuration = null;
@@ -1586,6 +1602,61 @@ public class FileBasedConfiguration {
                 logger.error("Cannot load Authentication configuration");
                 return false;
             }
+        }
+        Configuration.configuration.HOST_AUTH = R66Auth.getServerAuth(
+                DbConstant.admin.session, Configuration.configuration.HOST_ID);
+        if (Configuration.configuration.HOST_AUTH == null) {
+            logger.error("Cannot find Authentication for current host");
+            return false;
+        }
+        if (Configuration.configuration.HOST_SSLID != null) {
+            Configuration.configuration.HOST_SSLAUTH = R66Auth.getServerAuth(
+                    DbConstant.admin.session,
+                    Configuration.configuration.HOST_SSLID);
+            if (Configuration.configuration.HOST_SSLAUTH == null) {
+                logger.error("Cannot find SSL Authentication for current host");
+                return false;
+            }
+        }
+        hashConfig.clear();
+        hashConfig = null;
+        configuration = null;
+        return true;
+    }
+    /**
+     * Initiate the configuration from the xml file for submit database client
+     *
+     * @param filename
+     * @return True if OK
+     */
+    public static boolean setSubmitClientConfigurationFromXml(String filename) {
+        Document document = null;
+        // Open config file
+        try {
+            document = new SAXReader().read(filename);
+        } catch (DocumentException e) {
+            logger.error("Unable to read the XML Config file: " + filename, e);
+            return false;
+        }
+        if (document == null) {
+            logger.error("Unable to read the XML Config file: " + filename);
+            return false;
+        }
+        configuration = XmlUtil.read(document, configSubmitClient);
+        hashConfig = new XmlHash(configuration);
+        // Client enables SSL by default but could be reverted later on
+        Configuration.configuration.useSSL = true;
+        if (! loadIdentity()) {
+            logger.error("Cannot load Identity");
+            return false;
+        }
+        if (!loadDatabase()) {
+            logger.error("Cannot load Database configuration");
+            return false;
+        }
+        XmlValue value = hashConfig.get(XML_BLOCKSIZE);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.BLOCKSIZE = value.getInteger();
         }
         Configuration.configuration.HOST_AUTH = R66Auth.getServerAuth(
                 DbConstant.admin.session, Configuration.configuration.HOST_ID);

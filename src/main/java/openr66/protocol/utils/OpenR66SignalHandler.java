@@ -42,7 +42,6 @@ import sun.misc.SignalHandler;
  *
  * @author Frederic Bregier
  */
-@SuppressWarnings("restriction")
 public class OpenR66SignalHandler implements SignalHandler {
     /**
      * Set if the program is in shutdown

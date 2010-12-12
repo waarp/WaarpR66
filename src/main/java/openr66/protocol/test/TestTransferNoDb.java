@@ -78,7 +78,7 @@ public class TestTransferNoDb extends DirectTransfer {
         if (logger == null) {
             logger = GgInternalLoggerFactory.getLogger(DirectTransfer.class);
         }
-        if (! getParams(args)) {
+        if (! getParams(args, false)) {
             logger.error("Wrong initialization");
             if (DbConstant.admin != null && DbConstant.admin.isConnected) {
                 DbConstant.admin.close();

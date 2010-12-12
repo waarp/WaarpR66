@@ -85,7 +85,7 @@ public class TestRecvThroughClient extends RecvThroughClient {
         if (logger == null) {
             logger = GgInternalLoggerFactory.getLogger(TestRecvThroughHandler.class);
         }
-        if (! getParams(args)) {
+        if (! getParams(args, false)) {
             logger.error("Wrong initialization");
             if (DbConstant.admin != null && DbConstant.admin.isConnected) {
                 DbConstant.admin.close();

@@ -81,32 +81,6 @@ public class ServerExportConfiguration {
                 System.exit(1);
                 return;
             }
-            /*Document document = null;
-            String filename = args[0];
-            // Open config file
-            try {
-                document = new SAXReader().read(filename);
-            } catch (DocumentException e) {
-                logger.error("Unable to read the XML Config file: " + filename, e);
-                ChannelUtils.stopLogger();
-                System.exit(1);
-            }
-            if (document == null) {
-                logger.error("Unable to read the XML Config file: " + filename);
-                ChannelUtils.stopLogger();
-                System.exit(1);
-            }
-            if (! FileBasedConfiguration.loadCommon(document)) {
-                logger.error("Unable to find Host ID in Config file: " + filename);
-                ChannelUtils.stopLogger();
-                System.exit(1);
-            }
-            if (! FileBasedConfiguration.loadDatabase(document)) {
-                logger
-                .error("Needs a correct configuration file as first argument");
-                ChannelUtils.stopLogger();
-                System.exit(1);
-            }*/
             String directory = args[1];
             String hostname = Configuration.configuration.HOST_ID;
             logger.warn("Start of Export");

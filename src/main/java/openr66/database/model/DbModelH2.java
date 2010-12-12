@@ -90,15 +90,13 @@ public class DbModelH2 implements DbModel {
         DATE(Types.DATE, " DATE "),
         TIMESTAMP(Types.TIMESTAMP, " TIMESTAMP ");
 
+        @SuppressWarnings("unused")
         public int type;
-
-        public String name;
 
         public String constructor;
 
         private DBType(int type, String constructor) {
             this.type = type;
-            name = name();
             this.constructor = constructor;
         }
 

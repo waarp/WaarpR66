@@ -94,9 +94,10 @@ public abstract class AbstractTransfer implements Runnable {
     /**
      * Parse the parameter and set current values
      * @param args
+     * @param submitOnly True if the client is only a submitter (through database)
      * @return True if all parameters were found and correct
      */
-    protected static boolean getParams(String []args) {
+    protected static boolean getParams(String []args, boolean submitOnly) {
         if (args.length < 4) {
             logger
                     .error("Needs at least 4 arguments:\n" +
@@ -112,7 +113,14 @@ public abstract class AbstractTransfer implements Runnable {
                                 "  '-nolog' to not log locally this action");
             return false;
         }
-        if (! FileBasedConfiguration
+        if (submitOnly) {
+            if (! FileBasedConfiguration
+                    .setSubmitClientConfigurationFromXml(args[0])) {
+                logger
+                        .error("Needs a correct configuration file as first argument");
+                return false;
+            }
+        } else if (! FileBasedConfiguration
                 .setClientConfigurationFromXml(args[0])) {
             logger
                     .error("Needs a correct configuration file as first argument");

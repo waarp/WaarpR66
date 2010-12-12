@@ -247,6 +247,8 @@ public class AuthenticationFileBasedConfiguration {
             logger.debug("Add {} {}",refHostId,auth);
         }
         document = null;
+        hash.clear();
+        values = null;
         return true;
     }
     /**

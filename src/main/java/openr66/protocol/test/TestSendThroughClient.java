@@ -140,7 +140,7 @@ public class TestSendThroughClient extends SendThroughClient {
         if (logger == null) {
             logger = GgInternalLoggerFactory.getLogger(TestSendThroughClient.class);
         }
-        if (! getParams(args)) {
+        if (! getParams(args, false)) {
             logger.error("Wrong initialization");
             if (DbConstant.admin != null && DbConstant.admin.isConnected) {
                 DbConstant.admin.close();
