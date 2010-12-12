@@ -20,6 +20,7 @@
  */
 package openr66.protocol.localhandler;
 
+import java.io.File;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
@@ -34,6 +35,8 @@ import goldengate.common.file.DataBlock;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.commander.ClientRunner;
+import openr66.configuration.AuthenticationFileBasedConfiguration;
+import openr66.configuration.RuleFileBasedConfiguration;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
@@ -286,8 +289,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 }
                 case LocalPacketFactory.STOPPACKET:
                 case LocalPacketFactory.CANCELPACKET:
-                case LocalPacketFactory.CONFIGSENDPACKET:
-                case LocalPacketFactory.CONFIGRECVPACKET:
+                case LocalPacketFactory.CONFIMPORTPACKET:
+                case LocalPacketFactory.CONFEXPORTPACKET:
                 case LocalPacketFactory.BANDWIDTHPACKET: {
                     logger.error("Unimplemented Mesg: " +
                             packet.getClass().getName());
@@ -1460,7 +1463,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         return false;
     }
     /**
-     * Receive a validation
+     * Receive a validation or a special request
      * @param channel
      * @param packet
      * @throws OpenR66ProtocolNotAuthenticatedException
@@ -1678,6 +1681,173 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 R66Result result = new R66Result(session, true, ErrorCode.CompleteOk, null);
                 // Now answer
                 ValidPacket valid = new ValidPacket(filename+" "+nb, result.code.getCode(),
+                        LocalPacketFactory.REQUESTUSERPACKET);
+                localChannelReference.validateRequest(result);
+                try {
+                    ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+                            valid).awaitUninterruptibly();
+                } catch (OpenR66ProtocolPacketException e) {
+                }
+                Channels.close(channel);
+                break;
+            }
+            case LocalPacketFactory.CONFEXPORTPACKET: {
+                String shost = packet.getSheader();
+                String srule = packet.getSmiddle();
+                boolean bhost = Boolean.parseBoolean(shost);
+                boolean brule = Boolean.parseBoolean(srule);
+                String dir = Configuration.configuration.baseDirectory+
+                    Configuration.configuration.archivePath;
+                String hostname = Configuration.configuration.HOST_ID;
+                if (bhost) {
+                    String filename = dir+File.separator+hostname+"_Authentications.xml";
+                    try {
+                        AuthenticationFileBasedConfiguration.writeXML(filename);
+                        shost = filename;
+                    } catch (OpenR66DatabaseNoConnectionError e) {
+                        logger.error("Error",e);
+                        shost = "#";
+                        bhost = false;
+                    } catch (OpenR66DatabaseSqlError e) {
+                        logger.error("Error",e);
+                        shost = "#";
+                        bhost = false;
+                    } catch (OpenR66ProtocolSystemException e) {
+                        logger.error("Error",e);
+                        shost = "#";
+                        bhost = false;
+                    }
+                }
+                if (brule) {
+                    try {
+                        srule = RuleFileBasedConfiguration.writeOneXml(dir, hostname);
+                    } catch (OpenR66DatabaseNoConnectionError e1) {
+                        logger.error("Error",e1);
+                        srule = "#";
+                        brule = false;
+                    } catch (OpenR66DatabaseSqlError e1) {
+                        logger.error("Error",e1);
+                        srule = "#";
+                        brule = false;
+                    } catch (OpenR66ProtocolSystemException e1) {
+                        logger.error("Error",e1);
+                        srule = "#";
+                        brule = false;
+                    }
+                }
+                R66Result result = null;
+                if (brule || bhost) {
+                    result = new R66Result(session, true, ErrorCode.CompleteOk, null);
+                } else {
+                    result = new R66Result(session, true, ErrorCode.TransferError, null);
+                }
+                // Now answer
+                ValidPacket valid = new ValidPacket(shost+" "+srule, result.code.getCode(),
+                        LocalPacketFactory.REQUESTUSERPACKET);
+                localChannelReference.validateRequest(result);
+                try {
+                    ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+                            valid).awaitUninterruptibly();
+                } catch (OpenR66ProtocolPacketException e) {
+                }
+                Channels.close(channel);
+                break;
+            }
+            case LocalPacketFactory.CONFIMPORTPACKET: {
+                String shost = packet.getSheader();
+                String srule = packet.getSmiddle();
+                boolean bhostPurge = shost.startsWith("1 ");
+                shost = shost.substring(2);
+                boolean brulePurge = srule.startsWith("1 ");
+                srule = srule.substring(2);
+                boolean bhost = shost.length()>0;
+                boolean brule = srule.length()>0;
+                if (bhost) {
+                    DbHostAuth [] oldHosts = null;
+                    if (bhostPurge) {
+                        // Need to first delete all entries
+                        try {
+                            oldHosts = DbHostAuth.deleteAll(DbConstant.admin.session);
+                        } catch (OpenR66DatabaseException e) {
+                            // ignore
+                        }
+                    }
+                    String filename = shost;
+                    if (AuthenticationFileBasedConfiguration.loadAuthentication(filename)) {
+                        shost = "Host:OK";
+                    } else {
+                        logger.error("Error in Load Hosts");
+                        shost = "Host:KO";
+                        bhost = false;
+                    }
+                    if (!bhost) {
+                        if (oldHosts != null) {
+                            for (DbHostAuth dbHost: oldHosts) {
+                                try {
+                                    if (!dbHost.exist()) {
+                                        dbHost.insert();
+                                    }
+                                } catch (OpenR66DatabaseException e1) {
+                                    // ignore
+                                }
+                            }
+                        }
+                    }
+                }
+                if (brule) {
+                    DbRule[] oldRules = null;
+                    if (brulePurge) {
+                        // Need to first delete all entries
+                        try {
+                            oldRules = DbRule.deleteAll(DbConstant.admin.session);
+                        } catch (OpenR66DatabaseException e) {
+                            // ignore
+                        }
+                    }
+                    File file = new File(srule);
+                    try {
+                        RuleFileBasedConfiguration.getMultipleFromFile(file);
+                        srule = "Rule:OK";
+                        brule = true;
+                    } catch (OpenR66DatabaseNoConnectionError e) {
+                        logger.error("Error",e);
+                        srule = "Rule:KO";
+                        brule = false;
+                    } catch (OpenR66DatabaseSqlError e) {
+                        logger.error("Error",e);
+                        srule = "Rule:KO";
+                        brule = false;
+                    } catch (OpenR66DatabaseNoDataException e) {
+                        logger.error("Error",e);
+                        srule = "Rule:KO";
+                        brule = false;
+                    } catch (OpenR66DatabaseException e) {
+                        logger.error("Error",e);
+                        srule = "Rule:KO";
+                        brule = false;
+                    }
+                    if (!brule) {
+                        if (oldRules != null) {
+                            for (DbRule dbRule: oldRules) {
+                                try {
+                                    if (!dbRule.exist()) {
+                                        dbRule.insert();
+                                    }
+                                } catch (OpenR66DatabaseException e1) {
+                                    // ignore
+                                }
+                            }
+                        }
+                    }
+                }
+                R66Result result = null;
+                if (brule || bhost) {
+                    result = new R66Result(session, true, ErrorCode.CompleteOk, null);
+                } else {
+                    result = new R66Result(session, true, ErrorCode.TransferError, null);
+                }
+                // Now answer
+                ValidPacket valid = new ValidPacket(shost+" "+srule, result.code.getCode(),
                         LocalPacketFactory.REQUESTUSERPACKET);
                 localChannelReference.validateRequest(result);
                 try {

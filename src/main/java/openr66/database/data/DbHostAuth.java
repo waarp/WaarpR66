@@ -184,7 +184,28 @@ public class DbHostAuth extends AbstractDbData {
         // load from DB
         select();
     }
-
+    /**
+     * Delete all entries (used when purge and reload)
+     * @param dbSession
+     * @return the previous existing array of DbRule
+     * @throws OpenR66DatabaseException
+     */
+    public static DbHostAuth[] deleteAll(DbSession dbSession) throws OpenR66DatabaseException {
+        DbHostAuth[] result = getAllHosts(dbSession);
+        if (dbSession == null) {
+            dbR66HostAuthHashMap.clear();
+            return result;
+        }
+        DbPreparedStatement preparedStatement = new DbPreparedStatement(
+                dbSession);
+        try {
+            preparedStatement.createPrepareStatement("DELETE FROM " + table);
+            preparedStatement.executeUpdate();
+            return result;
+        } finally {
+            preparedStatement.realClose();
+        }
+    }
     /*
      * (non-Javadoc)
      *

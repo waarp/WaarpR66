@@ -468,7 +468,28 @@ public class DbRule extends AbstractDbData {
         setToArray();
         isSaved = false;
     }
-
+    /**
+     * Delete all entries (used when purge and reload)
+     * @param dbSession
+     * @return the previous existing array of DbRule
+     * @throws OpenR66DatabaseException
+     */
+    public static DbRule[] deleteAll(DbSession dbSession) throws OpenR66DatabaseException {
+        DbRule[] result = getAllRules(dbSession);
+        if (dbSession == null) {
+            dbR66RuleHashMap.clear();
+            return result;
+        }
+        DbPreparedStatement preparedStatement = new DbPreparedStatement(
+                dbSession);
+        try {
+            preparedStatement.createPrepareStatement("DELETE FROM " + table);
+            preparedStatement.executeUpdate();
+            return result;
+        } finally {
+            preparedStatement.realClose();
+        }
+    }
     /*
      * (non-Javadoc)
      *
@@ -535,7 +556,11 @@ public class DbRule extends AbstractDbData {
     @Override
     public boolean exist() throws OpenR66DatabaseException {
         if (dbSession == null) {
-            return dbR66RuleHashMap.containsKey(idRule);
+            boolean result = dbR66RuleHashMap.containsKey(idRule);
+            if (! result) {
+                isSaved = false;
+            }
+            return result;
         }
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
                 dbSession);
@@ -546,7 +571,11 @@ public class DbRule extends AbstractDbData {
             primaryKey.setValue(idRule);
             setValue(preparedStatement, primaryKey);
             preparedStatement.executeQuery();
-            return preparedStatement.getNext();
+            boolean result = preparedStatement.getNext();
+            if (! result) {
+                isSaved = false;
+            }
+            return result;
         } finally {
             preparedStatement.realClose();
         }

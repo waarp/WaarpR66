@@ -31,6 +31,7 @@ import goldengate.common.xml.XmlValue;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.ArrayList;
 import java.util.List;
 
 import openr66.context.task.TaskType;
@@ -66,6 +67,7 @@ public class RuleFileBasedConfiguration {
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(RuleFileBasedConfiguration.class);
 
+    private static final String MULTIPLEROOT = "rules";
     private static final String ROOT = "rule";
     private static final String XIDRULE = "idrule";
     public static final String XHOSTIDS = "hostids";
@@ -114,6 +116,9 @@ public class RuleFileBasedConfiguration {
     private static final XmlDecl [] ruleDecls = {
         new XmlDecl(ROOT, XmlType.XVAL, ROOT, subruleDecls, false)
     };
+    private static final XmlDecl [] multipleruleDecls = {
+        new XmlDecl(MULTIPLEROOT, XmlType.XVAL, "/"+MULTIPLEROOT+"/"+ROOT, subruleDecls, true)
+    };
     public static final XmlDecl [] hostsDecls = {
         new XmlDecl(XHOSTIDS, XmlType.STRING, HOSTIDS_HOSTID, true),
     };
@@ -122,6 +127,10 @@ public class RuleFileBasedConfiguration {
      * Extension of rule files
      */
     public static final String EXT_RULE = ".rule.xml";
+    /**
+     * Extension of multiple rules in one file
+     */
+    public static final String EXT_RULES = ".rules.xml";
 
     /**
      *
@@ -129,6 +138,10 @@ public class RuleFileBasedConfiguration {
      *
      */
     static class ExtensionFilter implements FilenameFilter {
+        String filter = EXT_RULE;
+        public ExtensionFilter(String filter) {
+            this.filter = filter;
+        }
         /*
          * (non-Javadoc)
          *
@@ -136,7 +149,7 @@ public class RuleFileBasedConfiguration {
          */
         @Override
         public boolean accept(File arg0, String arg1) {
-            return arg1.endsWith(EXT_RULE);
+            return arg1.endsWith(filter);
         }
 
     }
@@ -151,10 +164,15 @@ public class RuleFileBasedConfiguration {
     public static void importRules(File configDirectory)
             throws OpenR66ProtocolSystemException, OpenR66DatabaseException {
         File[] files = FileUtils.getFiles(configDirectory,
-                new ExtensionFilter());
+                new ExtensionFilter(EXT_RULE));
         for (File file: files) {
             DbRule rule = getFromFile(file);
             logger.debug(rule.toString());
+        }
+        files = FileUtils.getFiles(configDirectory,
+                new ExtensionFilter(EXT_RULES));
+        for (File file: files) {
+            getMultipleFromFile(file);
         }
     }
 
@@ -272,7 +290,67 @@ public class RuleFileBasedConfiguration {
                     "Unable to read the XML Rule file");
         }
         XmlValue[] values = XmlUtil.read(document, ruleDecls);
-        XmlHash hash = new XmlHash(values);
+        newRule = getFromXmlValue(values);
+        values = null;
+        return newRule;
+    }
+    /**
+     * Load and update multiple Rules from one file
+     * @param file
+     * @return a list of newly created R66Rule from XML File
+     * @throws OpenR66ProtocolSystemException
+     * @throws OpenR66DatabaseException
+     * @throws OpenR66DatabaseNoDataException
+     * @throws OpenR66DatabaseSqlError
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66ProtocolNoDataException
+     */
+    public static List<DbRule> getMultipleFromFile(File file)
+            throws OpenR66ProtocolSystemException, OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError, OpenR66DatabaseNoDataException, OpenR66DatabaseException {
+        Document document = null;
+        // Open config file
+        try {
+            document = new SAXReader().read(file);
+        } catch (DocumentException e) {
+            logger.error("Unable to read the XML Rule file: " + file.getName(),
+                    e);
+            throw new OpenR66ProtocolSystemException(
+                    "Unable to read the XML Rule file", e);
+        }
+        if (document == null) {
+            logger.error("Unable to read the XML Rule file: " + file.getName());
+            throw new OpenR66ProtocolSystemException(
+                    "Unable to read the XML Rule file");
+        }
+        XmlValue[] values = XmlUtil.read(document, multipleruleDecls);
+        if (values.length <=0) {
+            return new ArrayList<DbRule>(0);
+        }
+        XmlValue value = values[0];
+        @SuppressWarnings("unchecked")
+        List<XmlValue[]> list = (List<XmlValue[]>)value.getList();
+        List<DbRule> result = new ArrayList<DbRule>(list.size());
+        for (XmlValue []xmlValue: list) {
+            result.add(getFromXmlValue(xmlValue));
+        }
+        values = null;
+        return result;
+    }
+    /**
+     * Load and update one Rule from a XmlValue
+     * @param root
+     * @return the newly created R66Rule from XML File
+     * @throws OpenR66ProtocolSystemException
+     * @throws OpenR66DatabaseException
+     * @throws OpenR66DatabaseNoDataException
+     * @throws OpenR66DatabaseSqlError
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66ProtocolNoDataException
+     */
+    private static DbRule getFromXmlValue(XmlValue []root)
+            throws OpenR66ProtocolSystemException, OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError, OpenR66DatabaseNoDataException, OpenR66DatabaseException {
+        DbRule newRule = null;
+        XmlHash hash = new XmlHash(root);
         XmlValue value = hash.get(XIDRULE);
         if (value == null || (value.isEmpty()) || value.getString().length() == 0) {
             logger.error("Unable to find in Rule field: " + XIDRULE);
@@ -379,7 +457,6 @@ public class RuleFileBasedConfiguration {
             newRule.insert();
         }
         hash.clear();
-        values = null;
         return newRule;
     }
     /**
@@ -394,18 +471,18 @@ public class RuleFileBasedConfiguration {
         return node;
     }
     /**
-     * Write the rule to a file from filename
-     * @param filename
+     * Add a rule from root element (ROOT = rule)
+     * @param element
      * @param rule
-     * @throws OpenR66ProtocolSystemException
      */
-    private static void writeXML(String filename, DbRule rule) throws OpenR66ProtocolSystemException {
-        Document document = DocumentHelper.createDocument();
-        Element root = document.addElement(ROOT);
+    private static void addToElement(Element element, DbRule rule) {
+        Element root = element;
         root.add(newElement(XIDRULE, rule.idRule));
         Element hosts = new DefaultElement(XHOSTIDS);
-        for (String host: rule.idsArray) {
-            hosts.add(newElement(XHOSTID, host));
+        if (rule.idsArray != null) {
+            for (String host: rule.idsArray) {
+                hosts.add(newElement(XHOSTID, host));
+            }
         }
         root.add(hosts);
         root.add(newElement(XMODE, Integer.toString(rule.mode)));
@@ -425,76 +502,98 @@ public class RuleFileBasedConfiguration {
         Element roottasks = new DefaultElement(XTASKS);
         int rank = 0;
         String [][] array = rule.rpreTasksArray;
-        for (rank = 0; rank < array.length; rank++) {
-            Element task = new DefaultElement(XTASK);
-            task.add(newElement(DbRule.TASK_TYPE, array[rank][0]));
-            task.add(newElement(DbRule.TASK_PATH, array[rank][1]));
-            task.add(newElement(DbRule.TASK_DELAY, array[rank][2]));
-            roottasks.add(task);
+        if (array != null) {
+            for (rank = 0; rank < array.length; rank++) {
+                Element task = new DefaultElement(XTASK);
+                task.add(newElement(DbRule.TASK_TYPE, array[rank][0]));
+                task.add(newElement(DbRule.TASK_PATH, array[rank][1]));
+                task.add(newElement(DbRule.TASK_DELAY, array[rank][2]));
+                roottasks.add(task);
+            }
         }
         tasks.add(roottasks);
         root.add(tasks);
         tasks = new DefaultElement(XRPOSTTASKS);
         roottasks = new DefaultElement(XTASKS);
         array = rule.rpostTasksArray;
-        for (rank = 0; rank < array.length; rank++) {
-            Element task = new DefaultElement(XTASK);
-            task.add(newElement(DbRule.TASK_TYPE, array[rank][0]));
-            task.add(newElement(DbRule.TASK_PATH, array[rank][1]));
-            task.add(newElement(DbRule.TASK_DELAY, array[rank][2]));
-            roottasks.add(task);
+        if (array != null) {
+            for (rank = 0; rank < array.length; rank++) {
+                Element task = new DefaultElement(XTASK);
+                task.add(newElement(DbRule.TASK_TYPE, array[rank][0]));
+                task.add(newElement(DbRule.TASK_PATH, array[rank][1]));
+                task.add(newElement(DbRule.TASK_DELAY, array[rank][2]));
+                roottasks.add(task);
+            }
         }
         tasks.add(roottasks);
         root.add(tasks);
         tasks = new DefaultElement(XRERRORTASKS);
         roottasks = new DefaultElement(XTASKS);
         array = rule.rerrorTasksArray;
-        for (rank = 0; rank < array.length; rank++) {
-            Element task = new DefaultElement(XTASK);
-            task.add(newElement(DbRule.TASK_TYPE, array[rank][0]));
-            task.add(newElement(DbRule.TASK_PATH, array[rank][1]));
-            task.add(newElement(DbRule.TASK_DELAY, array[rank][2]));
-            roottasks.add(task);
+        if (array != null) {
+            for (rank = 0; rank < array.length; rank++) {
+                Element task = new DefaultElement(XTASK);
+                task.add(newElement(DbRule.TASK_TYPE, array[rank][0]));
+                task.add(newElement(DbRule.TASK_PATH, array[rank][1]));
+                task.add(newElement(DbRule.TASK_DELAY, array[rank][2]));
+                roottasks.add(task);
+            }
         }
         tasks.add(roottasks);
         root.add(tasks);
         tasks = new DefaultElement(XSPRETASKS);
         roottasks = new DefaultElement(XTASKS);
         array = rule.spreTasksArray;
-        for (rank = 0; rank < array.length; rank++) {
-            Element task = new DefaultElement(XTASK);
-            task.add(newElement(DbRule.TASK_TYPE, array[rank][0]));
-            task.add(newElement(DbRule.TASK_PATH, array[rank][1]));
-            task.add(newElement(DbRule.TASK_DELAY, array[rank][2]));
-            roottasks.add(task);
+        if (array != null) {
+            for (rank = 0; rank < array.length; rank++) {
+                Element task = new DefaultElement(XTASK);
+                task.add(newElement(DbRule.TASK_TYPE, array[rank][0]));
+                task.add(newElement(DbRule.TASK_PATH, array[rank][1]));
+                task.add(newElement(DbRule.TASK_DELAY, array[rank][2]));
+                roottasks.add(task);
+            }
         }
         tasks.add(roottasks);
         root.add(tasks);
         tasks = new DefaultElement(XSPOSTTASKS);
         roottasks = new DefaultElement(XTASKS);
         array = rule.spostTasksArray;
-        for (rank = 0; rank < array.length; rank++) {
-            Element task = new DefaultElement(XTASK);
-            task.add(newElement(DbRule.TASK_TYPE, array[rank][0]));
-            task.add(newElement(DbRule.TASK_PATH, array[rank][1]));
-            task.add(newElement(DbRule.TASK_DELAY, array[rank][2]));
-            roottasks.add(task);
+        if (array != null) {
+            for (rank = 0; rank < array.length; rank++) {
+                Element task = new DefaultElement(XTASK);
+                task.add(newElement(DbRule.TASK_TYPE, array[rank][0]));
+                task.add(newElement(DbRule.TASK_PATH, array[rank][1]));
+                task.add(newElement(DbRule.TASK_DELAY, array[rank][2]));
+                roottasks.add(task);
+            }
         }
         tasks.add(roottasks);
         root.add(tasks);
         tasks = new DefaultElement(XSERRORTASKS);
         roottasks = new DefaultElement(XTASKS);
         array = rule.serrorTasksArray;
-        for (rank = 0; rank < array.length; rank++) {
-            Element task = new DefaultElement(XTASK);
-            task.add(newElement(DbRule.TASK_TYPE, array[rank][0]));
-            task.add(newElement(DbRule.TASK_PATH, array[rank][1]));
-            task.add(newElement(DbRule.TASK_DELAY, array[rank][2]));
-            roottasks.add(task);
+        if (array != null) {
+            for (rank = 0; rank < array.length; rank++) {
+                Element task = new DefaultElement(XTASK);
+                task.add(newElement(DbRule.TASK_TYPE, array[rank][0]));
+                task.add(newElement(DbRule.TASK_PATH, array[rank][1]));
+                task.add(newElement(DbRule.TASK_DELAY, array[rank][2]));
+                roottasks.add(task);
+            }
         }
         tasks.add(roottasks);
         root.add(tasks);
-
+    }
+    /**
+     * Write the rule to a file from filename
+     * @param filename
+     * @param rule
+     * @throws OpenR66ProtocolSystemException
+     */
+    private static void writeXML(String filename, DbRule rule) throws OpenR66ProtocolSystemException {
+        Document document = DocumentHelper.createDocument();
+        Element root = document.addElement(ROOT);
+        addToElement(root, rule);
         FileUtils.writeXML(filename, null, document);
     }
     /**
@@ -522,6 +621,43 @@ public class RuleFileBasedConfiguration {
                     RuleFileBasedConfiguration.EXT_RULE;
                 RuleFileBasedConfiguration.writeXML(filename, rule);
             }
+        } finally {
+            if (preparedStatement != null) {
+                preparedStatement.realClose();
+            }
+        }
+    }
+    /**
+     * Write to directory 1 file prefixed by hostname all Rules from database
+     * @param directory
+     * @param hostname
+     * @return the filename
+     * @throws OpenR66DatabaseNoConnectionError
+     * @throws OpenR66DatabaseSqlError
+     * @throws OpenR66ProtocolSystemException
+     */
+    public static String writeOneXml(String directory, String hostname) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError, OpenR66ProtocolSystemException {
+        File dir = new File(directory);
+        if (! dir.isDirectory()) {
+            dir.mkdirs();
+        }
+        String request = "SELECT " +DbRule.selectAllFields+" FROM "+DbRule.table;
+        DbPreparedStatement preparedStatement = null;
+        try {
+            preparedStatement = new DbPreparedStatement(DbConstant.admin.session);
+            preparedStatement.createPrepareStatement(request);
+            preparedStatement.executeQuery();
+            String filename = dir.getAbsolutePath()+File.separator+hostname+
+                RuleFileBasedConfiguration.EXT_RULES;
+            Document document = DocumentHelper.createDocument();
+            Element root = document.addElement(MULTIPLEROOT);
+            while (preparedStatement.getNext()) {
+                DbRule rule = DbRule.getFromStatement(preparedStatement);
+                Element element = root.addElement(ROOT);
+                addToElement(element, rule);
+            }
+            FileUtils.writeXML(filename, null, document);
+            return filename;
         } finally {
             if (preparedStatement != null) {
                 preparedStatement.realClose();

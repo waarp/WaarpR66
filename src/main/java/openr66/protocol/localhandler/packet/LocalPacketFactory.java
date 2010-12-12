@@ -50,9 +50,9 @@ public class LocalPacketFactory {
 
     public static final byte CANCELPACKET = 10;
 
-    public static final byte CONFIGSENDPACKET = 11;
+    public static final byte CONFEXPORTPACKET = 11;
 
-    public static final byte CONFIGRECVPACKET = 12;
+    public static final byte CONFIMPORTPACKET = 12;
 
     public static final byte TESTPACKET = 13;
 
@@ -115,10 +115,10 @@ public class LocalPacketFactory {
             case STOPPACKET:
             case CANCELPACKET:
             case REQUESTUSERPACKET:
-            case CONFIGSENDPACKET:
-            case CONFIGRECVPACKET:
             case LOGPACKET:
             case LOGPURGEPACKET:
+            case CONFEXPORTPACKET:
+            case CONFIMPORTPACKET:
             case BANDWIDTHPACKET:
                 throw new OpenR66ProtocolPacketException(
                         "Unimplemented Packet Type received: " + packetType);

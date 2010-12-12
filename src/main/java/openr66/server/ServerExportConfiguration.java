@@ -43,7 +43,7 @@ import org.jboss.netty.logging.InternalLoggerFactory;
 import ch.qos.logback.classic.Level;
 
 /**
- * Server configuration export to files
+ * Server local configuration export to files
  *
  * @author Frederic Bregier
  *
