@@ -13,6 +13,7 @@
   	<menu name="GoldenGate OpenR66">
   		<item name="Overview of OpenR66" href="index.html"/>
   		<item name="Configuration of OpenR66 Server and Clients" href="configuration.html"/>
+  		<item name="Configuration of OpenR66 SSL keys" href="sslconfig.html"/>
   		<item name="Commands for OpenR66 Server and Clients" href="commands.html"/>
   		<item name="Protocol for OpenR66 File Transfer" href="protocol.html"/>
   		<item name="Main page of OpenR66" href="../OpenR66.html"/>

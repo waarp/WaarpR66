@@ -59,7 +59,7 @@
 		</xsd:element>
 
 
-        <xsd:element name="parameter" >
+        <xsd:element name="limit" >
 			<xsd:complexType>
 			  <xsd:all>
 				  <xsd:element name="sessionlimit" type="nonNegInteger" default="8388608" minOccurs="0" maxOccurs="1">

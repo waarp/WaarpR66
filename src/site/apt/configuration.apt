@@ -4,11 +4,11 @@ GoldenGateR66 Server and Clients Configuration
 
   In the zip distribution <GoldenGateR66-X.Y.Z-dist.zip> (available at sourceforge for download),
   you will find an extra directory named: <src/main/config> where several examples files are located as:
-  <configa.xml>, <configb.xml>. Other files like <configclienta.xml> are for clients, and
-  <configinita.xml>, <authent.xml>, <limitConfiga.xml>, <*.rule.xml>, <server*.txt> are for initialization
-  or password storage.
+  <config-serverA.xml>, <config-serverB.xml>. Other files like <config-clientA.xml> are for clients, and
+  <config-serverInitA.xml>, <OpenR66-authent-A.xml>, <limitConfiga.xml>, <*.rule.xml>, certs/*.cer/*.jks/*.ggp 
+  are for initialization or password storage.
 
-  The first ones (<configX.xml>) specifies the general behavior for the OpenR66 Server:
+  The first ones (<config-ServerX.xml>) specifies the general behavior for the OpenR66 Server:
 
   * server names, ports, home directory and subdirectories, ssl key
 
@@ -21,7 +21,7 @@ GoldenGateR66 Server and Clients Configuration
 
   []
 
-  The second one (<configclientX.xml>) is a configuration file for OpenR66 Client:
+  The second one (<config-clientX.xml>) is a configuration file for OpenR66 Client:
 
   * client names, home directory and subdirectories, optionally ssl key
 
@@ -32,16 +32,16 @@ GoldenGateR66 Server and Clients Configuration
 
   []
 
-  The file <configinitX.xml> is an example of how to instantiate the database with the correct values in it.
+  The file <config-serverInitC.xml> is an example of how to instantiate the database with the correct values in it.
   The values are from:
 
-  * <configinitX.xml> : host name and database access
+  * <config-serverInitX.xml> : host name and database access
 
   * rules_directory where <*.rule.xml> files are: all information needed to process a rule (directories,
   actions on pre transfer, post transfer and error status).
 
-  * host_authent_file <authent.xml> (host name, address, ports and ssl support) and
-  the associated <*.txt> for password:
+  * host_authent_file <OpenR66-authent-A.xml> (host name, address, ports and ssl support) and
+  the associated <*.ggp> for password:
 
   * limit_configuration_file <limitConfiga.xml> where session and global limit for bandwitdth are specified.
 
@@ -64,6 +64,8 @@ GoldenGateR66 Server and Clients Configuration
 
     *{{{http://commons.apache.org/exec/}Apache-Commons-Exec}}
 
+    *{{{http://commons.apache.org/compress/}Apache-Commons-Compress}}
+
     *{{{http://commons.apache.org/codec/}Apache-Commons-Codec}}
 
     *{{{http://www.dom4j.org/}DOM4J}}
@@ -84,6 +86,8 @@ GoldenGateR66 Server and Clients Configuration
 
     *<GoldenGateCommon>
 
+	*<GoldenGateExec>
+	
   []
 
   To shutdown the service, either you do if Unix (not under Windows)

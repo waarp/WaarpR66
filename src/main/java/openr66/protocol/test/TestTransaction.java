@@ -24,12 +24,12 @@ import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
 
-import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import openr66.configuration.FileBasedConfiguration;
+import openr66.database.data.DbHostAuth;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
@@ -136,8 +136,8 @@ public class TestTransaction implements Runnable {
         Configuration.configuration.pipelineInit();
 
         final NetworkTransaction networkTransaction = new NetworkTransaction();
-        final SocketAddress socketServerAddress = new InetSocketAddress(
-                Configuration.configuration.SERVER_PORT);
+        DbHostAuth host = Configuration.configuration.HOST_AUTH;
+        final SocketAddress socketServerAddress = host.getSocketAddress();
         ExecutorService executorService = Executors.newCachedThreadPool();
         int nb = 100;
 

@@ -4,10 +4,21 @@
     <identity>
         <hostid>hostb</hostid>
         <sslhostid>hostbs</sslhostid>
+        <cryptokey>D:\GG\R66\certs\test-key.des</cryptokey>
+        <authentfile>D:\GG\R66\conf\OpenR66-authent-A.xml</authentfile>
+    </identity>
+    <server>
+        <usenossl>True</usenossl>
+        <usessl>True</usessl>
+        <usehttpcomp>True</usehttpcomp>
+        <uselocalexec>False</uselocalexec>
         <serveradmin>monadmin</serveradmin>
         <serverpasswd>c5f4876737cf351a</serverpasswd>
-    </identity>
-    <authentfile>D:\GG\R66\conf\OpenR66-authent-A.xml</authentfile>
+        <httpadmin>D:/NEWSOURCE/GoldenGateR66/src/main/admin/</httpadmin>
+        <admkeypath>D:\GG\R66\certs\testsslnocert.jks</admkeypath>
+        <admkeystorepass>testsslnocert</admkeystorepass>
+        <admkeypass>testalias</admkeypass>
+    </server>
     <network>
         <serverport>6676</serverport>
         <serversslport>6677</serversslport>
@@ -20,10 +31,7 @@
         <keypass>testalias</keypass>
         <trustkeypath>D:\GG\R66\certs\testcert.jks</trustkeypath>
         <trustkeystorepass>testcert</trustkeystorepass>
-        <admkeypath>D:\GG\R66\certs\testsslnocert.jks</admkeypath>
-        <admkeystorepass>testsslnocert</admkeystorepass>
-        <admkeypass>testalias</admkeypass>
-        <cryptokey>D:\GG\R66\certs\test-key.des</cryptokey>
+        <trustuseclientauthenticate>True</trustuseclientauthenticate>
     </ssl>
     <directory>
         <serverhome>d:/GG/R66</serverhome>
@@ -32,19 +40,13 @@
         <arch>arch</arch>
         <work>work</work>
         <conf>conf</conf>
-        <httpadmin>D:/NEWSOURCE/GoldenGateR66/src/main/admin/</httpadmin>
     </directory>
-    <parameter>
-        <usenossl>True</usenossl>
-        <usessl>True</usessl>
-        <usehttpcomp>False</usehttpcomp>
-        <trustuseclientauthenticate>False</trustuseclientauthenticate>
-        <uselocalexec>False</uselocalexec>
+    <limit>
         <usefastmd5>True</usefastmd5>
         <fastmd5>D:\NEWJARS\gglib\win32\MD5.dll</fastmd5>
         <delayretry>10000</delayretry>
         <timeoutcon>10000</timeoutcon>
-    </parameter>
+    </limit>
     <db>
         <dbdriver>h2</dbdriver>
         <dbserver>jdbc:h2:D:/GG/R66/data/openr66b;IFEXISTS=TRUE;MODE=Oracle;AUTO_SERVER=TRUE</dbserver>

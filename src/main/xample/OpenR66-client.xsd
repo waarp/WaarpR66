@@ -203,17 +203,37 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
+				  <xsd:element name="cryptokey" type="Des-File">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Des CryptoKey File containing the key in Des mode for R66 passwords"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+                <xsd:element name="authentfile" type="XML-File" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Authentication File containing Authentications for partners"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
 			  </xsd:sequence>
 			</xsd:complexType>
 		</xsd:element>
 
-		<xsd:element name="authentfile" type="XML-File" minOccurs="0" maxOccurs="1">
-            <xsd:annotation>
-                <xsd:appinfo>
-                    <fg:node-info message="Authentication File containing Authentications for partners"/>
-                </xsd:appinfo>
-            </xsd:annotation>
-        </xsd:element>
+        <xsd:element name="client" minOccurs="0" maxOccurs="1">
+			<xsd:complexType>
+			  <xsd:sequence>
+				  <xsd:element name="taskrunnernodb" type="booleanType" default="False" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="When client with no DB, do R66 will use XML files as permanent information on Transfer Tasks"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+			  </xsd:sequence>
+			</xsd:complexType>
+		</xsd:element>
         
         <xsd:element name="ssl" minOccurs="0" maxOccurs="1">
 			<xsd:complexType>
@@ -222,10 +242,10 @@
                 </xsd:group>
                 <xsd:group ref="TrustKeyStore" minOccurs="0" maxOccurs="1">
                 </xsd:group>
-				  <xsd:element name="cryptokey" type="Des-File">
+				  <xsd:element name="trustuseclientauthenticate" type="booleanType" default="False" >
                     <xsd:annotation>
                         <xsd:appinfo>
-                            <fg:node-info message="Des CryptoKey File containing the key in Des mode for R66 passwords"/>
+                            <fg:node-info message="True if R66 will only allow client through SSL authentication"/>
                         </xsd:appinfo>
                     </xsd:annotation>
                   </xsd:element>
@@ -282,7 +302,7 @@
 			</xsd:complexType>
 		</xsd:element>
 
-        <xsd:element name="parameter" >
+        <xsd:element name="limit" >
 			<xsd:complexType>
 			  <xsd:all>
 				  <xsd:element name="serverthread" type="nonNulInteger" default="8" minOccurs="0" maxOccurs="1">
@@ -362,10 +382,45 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                   </xsd:element>
+				<xsd:element name="gaprestart"  type="nonNulInteger" default="30" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Gap to use when restarting a transfer as gap x blocksize"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
 				  <xsd:element name="usenio" type="booleanType" default="False" minOccurs="0" maxOccurs="1">
                     <xsd:annotation>
                         <xsd:appinfo>
                             <fg:node-info message="Usage of NIO support for the files. According to the JDK, it can enhance the performances"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="usecpulimit" type="booleanType" default="False" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Usage of CPU Limitation when new request starts"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="usejdkcpulimit" type="booleanType" default="False" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Usage of CPU limitation based on Native JDK support, else (False) on Java Sysmon library"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="cpulimit" type="decimalType" default="0.0" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Usage of CPU limitation based on Native JDK support, else (False) on Java Sysmon library"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="connlimit" type="nonNegInteger" default="0" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Usage of CPU limitation based on Native JDK support, else (False) on Java Sysmon library"/>
                         </xsd:appinfo>
                     </xsd:annotation>
                   </xsd:element>

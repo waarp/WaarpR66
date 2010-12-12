@@ -825,7 +825,7 @@ public class DbRule extends AbstractDbData {
         if (idsArray != null) {
             ids = XMLHOSTIDS;
             for (String element: idsArray) {
-                ids += XMLHOSTID + element + XMLENDHOSTID;
+                ids += XMLHOSTID + element + XMLENDHOSTID+"\n";
             }
             ids += XMLENDHOSTIDS;
         }
@@ -846,14 +846,14 @@ public class DbRule extends AbstractDbData {
                 builder.append(XMLTASK);
                 builder.append('<').append(TASK_TYPE).append('>');
                 builder.append(tasksArray[i][0]);
-                builder.append("</").append(TASK_TYPE).append('>');
+                builder.append("</").append(TASK_TYPE).append(">\n");
                 builder.append('<').append(TASK_PATH).append('>');
                 builder.append(tasksArray[i][1]);
-                builder.append("</").append(TASK_PATH).append('>');
+                builder.append("</").append(TASK_PATH).append(">\n");
                 builder.append('<').append(TASK_DELAY).append('>');
                 builder.append(tasksArray[i][2]);
                 builder.append("</").append(TASK_DELAY).append('>');
-                builder.append(XMLENDTASK);
+                builder.append(XMLENDTASK).append("\n");
             }
             builder.append(XMLENDTASKS);
         }

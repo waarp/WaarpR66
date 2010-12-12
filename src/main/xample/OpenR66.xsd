@@ -15,6 +15,9 @@
 			<xsd:enumeration value="False"/>
 		</xsd:restriction>
   </xsd:simpleType>
+  <xsd:simpleType name="decimalType">
+    <xsd:restriction base="xsd:double"/>
+  </xsd:simpleType>
   <xsd:simpleType name="nonNegInteger">
     <xsd:restriction base="xsd:nonNegativeInteger"/>
   </xsd:simpleType>
@@ -203,6 +206,28 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
+				  <xsd:element name="cryptokey" type="Des-File">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Des CryptoKey File containing the key in Des mode for R66 passwords"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+                <xsd:element name="authentfile" type="XML-File" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Authentication File containing Authentications for partners"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+			  </xsd:sequence>
+			</xsd:complexType>
+		</xsd:element>
+
+        
+        <xsd:element name="server" >
+			<xsd:complexType>
+			  <xsd:sequence>
 				<xsd:element name="serveradmin" type="nonEmptyString">
                     <xsd:annotation>
                         <xsd:appinfo>
@@ -217,18 +242,75 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
+				  <xsd:element name="usenossl" type="booleanType" default="True" >
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="True (Default) if R66 will allow no SSL mode connection"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="usessl" type="booleanType" default="False" >
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="True if R66 will allow SSL mode connection"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="usehttpcomp" type="booleanType" default="False" >
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="True if Administrator (HTTPS) will allow HTTP compression"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="uselocalexec" type="booleanType" default="False" >
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="By default, use the System.exec() but can lead to limitation in performances (JDK limitation). The usage of the GoldenGate LocalExec Daemin tends to reach better performances through execution delegation"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="lexecaddr" type="address" default="127.0.0.1" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Address of LocalExec Daemon"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="lexecport" type="nonNulInteger" default="9999" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Port of LocalExec Daemon"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="httpadmin" type="directoryType" >
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Home Directory for HTTPS file support for Administrator"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+                <xsd:group ref="AdministratorKeyStore">
+                </xsd:group>
+				  <xsd:element name="checkaddress" type="booleanType" default="False" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="True if R66 will check remote IP address while accepting a new connection"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="checkclientaddress" type="booleanType" default="False" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="True if R66 will check remote IP address also for remote Client"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
 			  </xsd:sequence>
 			</xsd:complexType>
 		</xsd:element>
 
-		<xsd:element name="authentfile" type="XML-File" minOccurs="0" maxOccurs="1">
-            <xsd:annotation>
-                <xsd:appinfo>
-                    <fg:node-info message="Authentication File containing Authentications for partners"/>
-                </xsd:appinfo>
-            </xsd:annotation>
-        </xsd:element>
-        
 		<xsd:element name="network" >
 			<xsd:complexType>
 			  <xsd:sequence>
@@ -271,12 +353,10 @@
                 </xsd:group>
                 <xsd:group ref="TrustKeyStore" minOccurs="0" maxOccurs="1">
                 </xsd:group>
-                <xsd:group ref="AdministratorKeyStore">
-                </xsd:group>
-				  <xsd:element name="cryptokey" type="Des-File">
+				  <xsd:element name="trustuseclientauthenticate" type="booleanType" default="False" >
                     <xsd:annotation>
                         <xsd:appinfo>
-                            <fg:node-info message="Des CryptoKey File containing the key in Des mode for R66 passwords"/>
+                            <fg:node-info message="True if R66 will only allow client through SSL authentication"/>
                         </xsd:appinfo>
                     </xsd:annotation>
                   </xsd:element>
@@ -329,69 +409,13 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                   </xsd:element>
-				  <xsd:element name="httpadmin" type="directoryType" >
-                    <xsd:annotation>
-                        <xsd:appinfo>
-                            <fg:node-info message="Home Directory for HTTPS file support for Administrator"/>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                  </xsd:element>
 			  </xsd:sequence>
 			</xsd:complexType>
 		</xsd:element>
 
-        <xsd:element name="parameter" >
+        <xsd:element name="limit" >
 			<xsd:complexType>
 			  <xsd:all>
-				  <xsd:element name="usenossl" type="booleanType" default="True" >
-                    <xsd:annotation>
-                        <xsd:appinfo>
-                            <fg:node-info message="True (Default) if R66 will allow no SSL mode connection"/>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                  </xsd:element>
-				  <xsd:element name="usessl" type="booleanType" default="False" >
-                    <xsd:annotation>
-                        <xsd:appinfo>
-                            <fg:node-info message="True if R66 will allow SSL mode connection"/>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                  </xsd:element>
-				  <xsd:element name="usehttpcomp" type="booleanType" default="False" >
-                    <xsd:annotation>
-                        <xsd:appinfo>
-                            <fg:node-info message="True if Administrator (HTTPS) will allow HTTP compression"/>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                  </xsd:element>
-				  <xsd:element name="trustuseclientauthenticate" type="booleanType" default="False" >
-                    <xsd:annotation>
-                        <xsd:appinfo>
-                            <fg:node-info message="True if R66 will only allow client through SSL authentication"/>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                  </xsd:element>
-				  <xsd:element name="uselocalexec" type="booleanType" default="False" >
-                    <xsd:annotation>
-                        <xsd:appinfo>
-                            <fg:node-info message="By default, use the System.exec() but can lead to limitation in performances (JDK limitation). The usage of the GoldenGate LocalExec Daemin tends to reach better performances through execution delegation"/>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                  </xsd:element>
-				  <xsd:element name="lexecaddr" type="address" default="127.0.0.1" minOccurs="0" maxOccurs="1">
-                    <xsd:annotation>
-                        <xsd:appinfo>
-                            <fg:node-info message="Address of LocalExec Daemon"/>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                  </xsd:element>
-				  <xsd:element name="lexecport" type="nonNulInteger" default="9999" minOccurs="0" maxOccurs="1">
-                    <xsd:annotation>
-                        <xsd:appinfo>
-                            <fg:node-info message="Port of LocalExec Daemon"/>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                  </xsd:element>
 				  <xsd:element name="serverthread" type="nonNulInteger" default="8" minOccurs="0" maxOccurs="1">
                     <xsd:annotation>
                         <xsd:appinfo>
@@ -469,10 +493,45 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                   </xsd:element>
+				<xsd:element name="gaprestart"  type="nonNulInteger" default="30" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Gap to use when restarting a transfer as gap x blocksize"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
 				  <xsd:element name="usenio" type="booleanType" default="False" minOccurs="0" maxOccurs="1">
                     <xsd:annotation>
                         <xsd:appinfo>
                             <fg:node-info message="Usage of NIO support for the files. According to the JDK, it can enhance the performances"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="usecpulimit" type="booleanType" default="False" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Usage of CPU Limitation when new request starts"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="usejdkcpulimit" type="booleanType" default="False" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Usage of CPU limitation based on Native JDK support, else (False) on Java Sysmon library"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="cpulimit" type="decimalType" default="0.0" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Usage of CPU limitation based on Native JDK support, else (False) on Java Sysmon library"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="connlimit" type="nonNegInteger" default="0" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Usage of CPU limitation based on Native JDK support, else (False) on Java Sysmon library"/>
                         </xsd:appinfo>
                     </xsd:annotation>
                   </xsd:element>

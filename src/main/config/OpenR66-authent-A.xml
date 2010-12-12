@@ -36,6 +36,7 @@
         <address>127.0.0.1</address>
         <port>6670</port>
         <isssl>False</isssl>
+        <isclient>True</isclient>
         <keyfile>D:\GG\R66\certs\test-passwd3.ggp</keyfile>
     </entry>
     <entry>
@@ -44,6 +45,7 @@
         <port>6670</port>
         <isssl>True</isssl>
         <admin>True</admin>
+        <isclient>True</isclient>
         <keyfile>D:\GG\R66\certs\test-passwd3.ggp</keyfile>
     </entry>
 </authent>

@@ -4,8 +4,8 @@
     <identity>
         <hostid>hosta</hostid>
     </identity>
-    <parameter>
+    <limit>
         <sessionlimit>0</sessionlimit>
         <globallimit>0</globallimit>
-    </parameter>
+    </limit>
 </config>

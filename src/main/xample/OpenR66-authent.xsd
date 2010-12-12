@@ -99,6 +99,13 @@
                                 </xsd:appinfo>
                             </xsd:annotation>
                         </xsd:element>
+						<xsd:element name="isclient"  type="booleanType" default="False">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <fg:node-info message="True if this Address Entry is for a Client"/>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
                         <xsd:choice minOccurs="1" maxOccurs="1">
                             <xsd:element name="keyfile" type="GGP-File">
                                 <xsd:annotation>

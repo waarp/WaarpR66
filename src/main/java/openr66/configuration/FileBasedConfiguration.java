@@ -511,10 +511,10 @@ public class FileBasedConfiguration {
     private static final XmlDecl[] configServer = {
         new XmlDecl(XML_IDENTITY, XmlType.XVAL, XML_ROOT+XML_IDENTITY, configIdentityDecls, false),
         new XmlDecl(XML_SERVER, XmlType.XVAL, XML_ROOT+XML_SERVER, configServerParamDecls, false),
+        new XmlDecl(XML_NETWORK, XmlType.XVAL, XML_ROOT+XML_NETWORK, configNetworkServerDecls, false),
+        new XmlDecl(XML_SSL, XmlType.XVAL, XML_ROOT+XML_SSL, configSslDecls, false),
         new XmlDecl(XML_DIRECTORY, XmlType.XVAL, XML_ROOT+XML_DIRECTORY, configDirectoryDecls, false),
         new XmlDecl(XML_LIMIT, XmlType.XVAL, XML_ROOT+XML_LIMIT, configLimitDecls, false),
-        new XmlDecl(XML_SSL, XmlType.XVAL, XML_ROOT+XML_SSL, configSslDecls, false),
-        new XmlDecl(XML_NETWORK, XmlType.XVAL, XML_ROOT+XML_NETWORK, configNetworkServerDecls, false),
         new XmlDecl(XML_DB, XmlType.XVAL, XML_ROOT+XML_DB, configDbDecls, false)
     };
     /**
@@ -523,9 +523,9 @@ public class FileBasedConfiguration {
     private static final XmlDecl[] configClient = {
         new XmlDecl(XML_IDENTITY, XmlType.XVAL, XML_ROOT+XML_IDENTITY, configIdentityDecls, false),
         new XmlDecl(XML_CLIENT, XmlType.XVAL, XML_ROOT+XML_CLIENT, configClientParamDecls, false),
+        new XmlDecl(XML_SSL, XmlType.XVAL, XML_ROOT+XML_SSL, configSslDecls, false),
         new XmlDecl(XML_DIRECTORY, XmlType.XVAL, XML_ROOT+XML_DIRECTORY, configDirectoryDecls, false),
         new XmlDecl(XML_LIMIT, XmlType.XVAL, XML_ROOT+XML_LIMIT, configLimitDecls, false),
-        new XmlDecl(XML_SSL, XmlType.XVAL, XML_ROOT+XML_SSL, configSslDecls, false),
         new XmlDecl(XML_DB, XmlType.XVAL, XML_ROOT+XML_DB, configDbDecls, false)
     };
     /**
