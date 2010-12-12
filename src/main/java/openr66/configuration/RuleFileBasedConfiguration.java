@@ -178,8 +178,7 @@ public class RuleFileBasedConfiguration {
 
     /**
      * Utility function
-     * @param node
-     * @param path
+     * @param value
      * @return the array of tasks or empty array if in error.
      */
     @SuppressWarnings("unchecked")
