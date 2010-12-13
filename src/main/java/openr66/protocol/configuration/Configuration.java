@@ -488,9 +488,8 @@ public class Configuration {
             System.exit(-1);
         }
         pipelineInit();
-        // FIXME add into configuration
+        // add into configuration
         this.constraintLimitHandler.setServer(true);
-        this.checkRemoteAddress = true;
         // Global Server
         serverChannelGroup = new DefaultChannelGroup("OpenR66");
         httpChannelGroup = new DefaultChannelGroup("HttpOpenR66");

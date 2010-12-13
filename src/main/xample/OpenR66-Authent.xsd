@@ -99,7 +99,7 @@
                                 </xsd:appinfo>
                             </xsd:annotation>
                         </xsd:element>
-						<xsd:element name="isclient"  type="booleanType" default="False">
+						<xsd:element name="isclient" minOccurs="0" maxOccurs="1" type="booleanType" default="False">
                             <xsd:annotation>
                                 <xsd:appinfo>
                                     <fg:node-info message="True if this Address Entry is for a Client"/>

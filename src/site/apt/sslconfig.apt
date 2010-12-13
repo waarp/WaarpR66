@@ -8,7 +8,7 @@ OpenR66 SSL configuration
 
 *Using Keytool IUI:
 
-	*For SSL connection without authentication of clients:
+**For SSL connection without authentication of clients:
 
 		* Server side:
 
@@ -35,7 +35,7 @@ OpenR66 SSL configuration
 			3) Import the Trusted Certificate as Regular Certificate (Certificate Chain 
 			as .der file)
 
-	*For SSL connection with authentication of clients:
+**For SSL connection with authentication of clients:
 
 		A) First do as without authentication of clients for the server authentication 
 		side.
@@ -71,3 +71,10 @@ OpenR66 SSL configuration
 				Chain as .der file)
 
 				4) Import all Trusted Certificates as with 2 and 3 in the same TrustStore
+
+*Password Keys
+
+	For Host passwords, admin passwords, OpenR66 uses encrypted password using private DES key.
+	We provide a GUI to generate the DES key (*.des file) and those passwords in files (*.ggp files).
+	
+	It can be found in the subproject GoldenGatePassword Gui project.

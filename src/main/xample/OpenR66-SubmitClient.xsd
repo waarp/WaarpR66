@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:fg="http://www.FGolubov.com/XMLEditor" elementFormDefault="qualified">
+
+  <xsd:simpleType name="booleanType">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<fg:node-info editor-class="com.fg.ftreenodes.FCheckBox">
+					<fg:param>True</fg:param>
+					<fg:param>False</fg:param>
+				</fg:node-info>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:NMTOKEN">
+			<xsd:enumeration value="True"/>
+			<xsd:enumeration value="False"/>
+		</xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="decimalType">
+    <xsd:restriction base="xsd:double"/>
+  </xsd:simpleType>
+  <xsd:simpleType name="nonNegInteger">
+    <xsd:restriction base="xsd:nonNegativeInteger"/>
+  </xsd:simpleType>
+  <xsd:simpleType name="nonNulInteger">
+    <xsd:restriction base="xsd:positiveInteger"/>
+  </xsd:simpleType>
+  <xsd:simpleType name="nonEmptyString">
+    <xsd:restriction base="xsd:token">
+        <xsd:minLength value="1"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="address">
+    <xsd:restriction base="xsd:token">
+        <xsd:minLength value="1"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="normString">
+    <xsd:restriction base="xsd:normalizedString">
+        <xsd:minLength value="1"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="pathType">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<fg:node-info
+					editor-id="FileDialog" 
+					message="Any File">
+					<fg:param>|2Any files: *.*</fg:param>
+				</fg:node-info>
+			</xsd:appinfo>
+		</xsd:annotation>
+        <xsd:restriction base="nonEmptyString"/>
+  </xsd:simpleType>
+  <xsd:simpleType name="directoryType">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<fg:node-info 
+                    editor-id="FileDialog"
+                    message="Directory"> 
+					<fg:param>|1Directory: *</fg:param>
+				</fg:node-info>
+			</xsd:appinfo>
+		</xsd:annotation>
+        <xsd:restriction base="nonEmptyString"/>
+    </xsd:simpleType>
+    <xsd:simpleType name="XML-File">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<fg:node-info
+					editor-id="FileDialog" 
+					message="XML File">
+					<fg:param>xml|0XML files: *.xml</fg:param>
+				</fg:node-info>
+			</xsd:appinfo>
+		</xsd:annotation>
+        <xsd:restriction base="nonEmptyString"/>
+	</xsd:simpleType>
+    <xsd:simpleType name="Des-File">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<fg:node-info
+					editor-id="FileDialog" 
+					message="Des Blowfish Key File">
+                    <fg:param>des|blf|0Des Blowfish Key files: *.des, *.blf</fg:param>
+				</fg:node-info>
+			</xsd:appinfo>
+		</xsd:annotation>
+        <xsd:restriction base="nonEmptyString"/>
+	</xsd:simpleType>
+     
+
+	
+	
+  <xsd:element name="config">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="comment" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+		
+        <xsd:element name="identity" >
+			<xsd:complexType>
+			  <xsd:sequence>
+				<xsd:element name="hostid" type="nonEmptyString">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<fg:node-info exposed="true"/>
+                            <fg:node-info message="Host ID in NON SSL mode"/>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="sslhostid" type="nonEmptyString" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Host ID in SSL mode"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+				  <xsd:element name="cryptokey" type="Des-File">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Des CryptoKey File containing the key in Des mode for R66 passwords"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+			  </xsd:sequence>
+			</xsd:complexType>
+		</xsd:element>
+        
+		
+        <xsd:element name="directory" >
+			<xsd:complexType>
+			  <xsd:sequence>
+				  <xsd:element name="serverhome" type="directoryType" >
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Home Directory for the OpenR66 Server (relative path to this Home)"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="in" type="nonEmptyString" minOccurs="0" maxOccurs="1" default="IN">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Default Receive Directory"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="out" type="nonEmptyString" minOccurs="0" maxOccurs="1" default="OUT">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Default Send Directory"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="arch" type="nonEmptyString" minOccurs="0" maxOccurs="1" default="ARCH">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Default Archive Directory"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="work" type="nonEmptyString" minOccurs="0" maxOccurs="1" default="WORK">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Default Working Directory"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="conf" type="nonEmptyString" minOccurs="0" maxOccurs="1" default="CONF">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Configuration Directory"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+			  </xsd:sequence>
+			</xsd:complexType>
+		</xsd:element>
+
+        <xsd:element name="limit" >
+			<xsd:complexType>
+			  <xsd:all>
+				  <xsd:element name="blocksize" type="nonNulInteger" default="65536" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Block size (64Ko). A value between 8 KB to 16 MB is recommanded"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+			  </xsd:all>
+			</xsd:complexType>
+		</xsd:element>
+		
+        <xsd:element name="db">
+			<xsd:complexType>
+			  <xsd:sequence>
+				  <xsd:element name="dbdriver" type="address" >
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="4 types of database are currently supported: oracle, mysql, postgresql, h2"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="dbserver" type="normString" >
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Connection to the database in JDBC mode (jdbc:type://[host:port]....). Use the database documentation to find the correct syntax for the JDBC connection"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="dbuser" type="address" >
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Database User"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="dbpasswd" type="nonEmptyString" >
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Database User's Password"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+			  </xsd:sequence>
+			</xsd:complexType>
+		</xsd:element>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  
+</xsd:schema>

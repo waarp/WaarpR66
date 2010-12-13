@@ -7,5 +7,9 @@
     <limit>
         <sessionlimit>0</sessionlimit>
         <globallimit>0</globallimit>
+        <delaylimit>10000</delaylimit>
+        <runlimit>10000</runlimit>
+        <delaycommand>5000</delaycommand>
+        <delayretry>30000</delayretry>
     </limit>
 </config>

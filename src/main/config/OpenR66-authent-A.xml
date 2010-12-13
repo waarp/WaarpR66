@@ -21,6 +21,7 @@
         <address>127.0.0.1</address>
         <port>6676</port>
         <isssl>False</isssl>
+        <isclient>False</isclient>
         <keyfile>D:\GG\R66\certs\test-passwd2.ggp</keyfile>
     </entry>
     <entry>

@@ -15,6 +15,9 @@
 			<xsd:enumeration value="False"/>
 		</xsd:restriction>
   </xsd:simpleType>
+  <xsd:simpleType name="decimalType">
+    <xsd:restriction base="xsd:double"/>
+  </xsd:simpleType>
   <xsd:simpleType name="nonNegInteger">
     <xsd:restriction base="xsd:nonNegativeInteger"/>
   </xsd:simpleType>
@@ -221,20 +224,128 @@
 			</xsd:complexType>
 		</xsd:element>
 
-        <xsd:element name="client" minOccurs="0" maxOccurs="1">
+        
+        <xsd:element name="server" >
 			<xsd:complexType>
 			  <xsd:sequence>
-				  <xsd:element name="taskrunnernodb" type="booleanType" default="False" minOccurs="0" maxOccurs="1">
+				<xsd:element name="serveradmin" type="nonEmptyString">
                     <xsd:annotation>
                         <xsd:appinfo>
-                            <fg:node-info message="When client with no DB, do R66 will use XML files as permanent information on Transfer Tasks"/>
+                            <fg:node-info message="Username for Administrator access"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+				<xsd:element name="serverpasswd" type="nonEmptyString">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Password for Administrator access using Crupto Key"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+				  <xsd:element name="usenossl" type="booleanType" default="True" >
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="True (Default) if R66 will allow no SSL mode connection"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="usessl" type="booleanType" default="False" >
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="True if R66 will allow SSL mode connection"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="usehttpcomp" type="booleanType" default="False" >
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="True if Administrator (HTTPS) will allow HTTP compression"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="uselocalexec" type="booleanType" default="False" >
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="By default, use the System.exec() but can lead to limitation in performances (JDK limitation). The usage of the GoldenGate LocalExec Daemin tends to reach better performances through execution delegation"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="lexecaddr" type="address" default="127.0.0.1" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Address of LocalExec Daemon"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="lexecport" type="nonNulInteger" default="9999" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Port of LocalExec Daemon"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="httpadmin" type="directoryType" >
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Home Directory for HTTPS file support for Administrator"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+                <xsd:group ref="AdministratorKeyStore">
+                </xsd:group>
+				  <xsd:element name="checkaddress" type="booleanType" default="False" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="True if R66 will check remote IP address while accepting a new connection"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="checkclientaddress" type="booleanType" default="False" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="True if R66 will check remote IP address also for remote Client"/>
                         </xsd:appinfo>
                     </xsd:annotation>
                   </xsd:element>
 			  </xsd:sequence>
 			</xsd:complexType>
 		</xsd:element>
-        
+
+		<xsd:element name="network" >
+			<xsd:complexType>
+			  <xsd:sequence>
+				<xsd:element name="serverport"  type="nonNulInteger" default="6666">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Port used in NON SSL mode"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+				<xsd:element name="serversslport" minOccurs="0" maxOccurs="1" type="nonNulInteger" default="6667">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Port used in SSL mode"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+				<xsd:element name="serverhttpport" type="nonNulInteger" default="8066">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Port used for monitoring in HTTP mode"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+				<xsd:element name="serverhttpsport" type="nonNulInteger" default="8067">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Port used for Administrator access in HTTPS mode"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+			  </xsd:sequence>
+			</xsd:complexType>
+		</xsd:element>
+
         <xsd:element name="ssl" minOccurs="0" maxOccurs="1">
 			<xsd:complexType>
 			  <xsd:sequence>
@@ -442,7 +553,7 @@
 			</xsd:complexType>
 		</xsd:element>
 		
-        <xsd:element name="db" minOccurs="0" maxOccurs="1">
+        <xsd:element name="db">
 			<xsd:complexType>
 			  <xsd:sequence>
 				  <xsd:element name="dbdriver" type="address" >

@@ -75,6 +75,37 @@ OpenR66-Command
 
   It will export Rules, all present Runners, Host Authentications.
 
+  
+**ConfigExport
+
+	This tool enables to ask the server remotely to export Rules and Hosts configuration into one file each.
+	It could be used before a retrieve of the configuration in a central repository.
+	
+	Options are:
+
+    * The first argument is the client XML configuration file
+	
+	* -hosts : export all Hosts configuration
+	
+	* -rules : export all Rules configuration
+
+**ConfigImport
+
+	This tool enables to ask the server remotely to import Rules and Hosts configuration from one file each.
+	It could be used before a upload the configuration from a central repository after transmission.
+	
+	Options are:
+
+    * The first argument is the client XML configuration file
+	
+	* -hosts : import all Hosts configuration
+	
+	* -purgehosts : purge all hosts configuration before importing new configuration
+	
+	* -rules : import all Rules configuration
+	
+	* -purgerules : purge all rules configuration before importing new configuration
+
 **ServerShutdown
 
   The OpenR66 Server can be shutdown mainly in two ways:
@@ -264,3 +295,14 @@ OpenR66-Command
 
     *'-mlsx' to get the list and details of files
 
+**Message
+
+  This utility is used to send a short message to another server (like a ping in OpenR66 protocol)
+  
+  The arguments are the following:
+  
+  * The first argument is the client XML configuration file
+
+  *'-to' option: specifies the requested host.
+
+  *'-msg' option: the msg to send

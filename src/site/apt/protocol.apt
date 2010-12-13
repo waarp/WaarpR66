@@ -2,6 +2,10 @@ OpenR66-Protocol
 
   We describe here the logic of the protocol.
 
+  A simplified picture is shown here:
+
+[images/OpenR66Protocol.jpg] GoldenGate Protocol
+
   First we describe the different value that can be found.
 
 UpdatedInfo status
@@ -113,11 +117,13 @@ Sequential logic
   * Once the LocalChannelReference is OK, the Requester host sends an Authent Message in order
   to authenticate this host.
 
-  * The Requested host sends back its own Authent Message too.
+  * The Requested host sends back its own Authent Message too. In case of Check of IP, the authentication
+  is confirmed if both password and IP are aligned with the local definition of the remote partner.
 
   * Once authenticated, the Requester Host sends the Request Message.
 
   * The Requested Host check if the authentication and the request are compatibles, check some
+  constraints (like CPU or connexion limits), check some
   specific options on the request itself (start, restart, ...) and sends back the validated
   request to the Requester Host.
 
@@ -157,7 +163,3 @@ Sequential logic
   At each step, an error can occurs and will stop the request, setting its UpdatedInfo to
   INERROR or INTERRUPTED status. The GlobalStep could be in ERROR status if the ERROR step
   action is run.
-
-  A simplified picture is shown here:
-
-[images/OpenR66Protocol.jpg] GoldenGate Protocol

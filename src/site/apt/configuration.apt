@@ -2,12 +2,20 @@ GoldenGateR66 Server and Clients Configuration
 
 *How to configure GoldenGate OpenR66
 
+**Configuration files
+
   In the zip distribution <GoldenGateR66-X.Y.Z-dist.zip> (available at sourceforge for download),
   you will find an extra directory named: <src/main/config> where several examples files are located as:
   <config-serverA.xml>, <config-serverB.xml>. Other files like <config-clientA.xml> are for clients, and
   <config-serverInitA.xml>, <OpenR66-authent-A.xml>, <limitConfiga.xml>, <*.rule.xml>, certs/*.cer/*.jks/*.ggp 
   are for initialization or password storage.
 
+  A detailed description of their contents can be found in {{{./Config-OpenR66-Server.html}Config OpenR66 Server}},
+  {{{./Config-OpenR66-Client.html}Config OpenR66 Client}}, {{{./Config-OpenR66-ClientNoDB.html}Config OpenR66 Client with No Database}},
+  {{{./Config-OpenR66-SubmitClient.html}Config OpenR66 Client for Submit Only}}, {{{./OpenR66-Limit.html}Config OpenR66 Limits}},
+  {{{./OpenR66-Rule.html}Config OpenR66 Rule}}
+  and {{{./OpenR66-Authent.html}Config OpenR66 Authentications}}.
+  
   The first ones (<config-ServerX.xml>) specifies the general behavior for the OpenR66 Server:
 
   * server names, ports, home directory and subdirectories, ssl key
@@ -45,6 +53,17 @@ GoldenGateR66 Server and Clients Configuration
 
   * limit_configuration_file <limitConfiga.xml> where session and global limit for bandwitdth are specified.
 
+**Steps
+
+  *Create keys for SSH and Passwords (see {{{./sslconfig.html}Config OpenR66 OpenSSL and GoldengatePassword GUI project}})
+
+  *Create configurations files (server configuration file, authentication configuration file, rule configuration file) for a server
+  
+  *Create configurations files (client configuration file, authentication configuration file, rule configuration file) for a client
+  
+  *Create the database using the ServerInitDatabase (see {{{./commands.html}Commands detail}})
+  
+  *Make some tests for server using Message command to all declared interface (NOSSL and SSL) (see {{{./commands.html}Commands detail}})
 
 *How to run GoldenGate OpenR66
 
