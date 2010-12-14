@@ -62,9 +62,9 @@ OpenR66 Rule Configuration File
    	
 Where List of tasks is
    
-**tasks
+*tasks
 
-***task Optional unbounded
+**task Optional unbounded
       	
   *type:nonEmptyString
          
