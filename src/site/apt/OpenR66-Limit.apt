@@ -2,7 +2,7 @@ OpenR66 Limit Configuration File
 
 *config
 
-  comment:string Optional
+  *comment:string Optional
 		
 **identity
 	

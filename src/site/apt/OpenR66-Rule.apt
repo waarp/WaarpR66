@@ -60,7 +60,7 @@ OpenR66 Rule Configuration File
    
    List of tasks -if any- to execute after an error on sender side
    	
-   Where List of tasks is
+Where List of tasks is
    
 **tasks
 
