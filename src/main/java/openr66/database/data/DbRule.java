@@ -20,6 +20,14 @@
  */
 package openr66.database.data;
 
+import goldengate.common.database.DbPreparedStatement;
+import goldengate.common.database.DbSession;
+import goldengate.common.database.data.AbstractDbData;
+import goldengate.common.database.data.DbValue;
+import goldengate.common.database.exception.OpenR66DatabaseException;
+import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
+import goldengate.common.database.exception.OpenR66DatabaseNoDataException;
+import goldengate.common.database.exception.OpenR66DatabaseSqlError;
 import goldengate.common.file.DirInterface;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
@@ -35,13 +43,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import openr66.configuration.RuleFileBasedConfiguration;
 import openr66.context.R66Session;
-import openr66.database.DbConstant;
-import openr66.database.DbPreparedStatement;
-import openr66.database.DbSession;
-import openr66.database.exception.OpenR66DatabaseException;
-import openr66.database.exception.OpenR66DatabaseNoConnectionError;
-import openr66.database.exception.OpenR66DatabaseNoDataException;
-import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.packet.RequestPacket;
@@ -493,7 +494,7 @@ public class DbRule extends AbstractDbData {
     /*
      * (non-Javadoc)
      *
-     * @see openr66.database.data.AbstractDbData#delete()
+     * @see openr66.databaseold.data.AbstractDbData#delete()
      */
     @Override
     public void delete() throws OpenR66DatabaseException {
@@ -522,7 +523,7 @@ public class DbRule extends AbstractDbData {
     /*
      * (non-Javadoc)
      *
-     * @see openr66.database.data.AbstractDbData#insert()
+     * @see openr66.databaseold.data.AbstractDbData#insert()
      */
     @Override
     public void insert() throws OpenR66DatabaseException {
@@ -551,7 +552,7 @@ public class DbRule extends AbstractDbData {
     }
 
     /* (non-Javadoc)
-     * @see openr66.database.data.AbstractDbData#exist()
+     * @see openr66.databaseold.data.AbstractDbData#exist()
      */
     @Override
     public boolean exist() throws OpenR66DatabaseException {
@@ -584,7 +585,7 @@ public class DbRule extends AbstractDbData {
     /*
      * (non-Javadoc)
      *
-     * @see openr66.database.data.AbstractDbData#select()
+     * @see openr66.databaseold.data.AbstractDbData#select()
      */
     @Override
     public void select() throws OpenR66DatabaseException {
@@ -650,7 +651,7 @@ public class DbRule extends AbstractDbData {
     /*
      * (non-Javadoc)
      *
-     * @see openr66.database.data.AbstractDbData#update()
+     * @see openr66.databaseold.data.AbstractDbData#update()
      */
     @Override
     public void update() throws OpenR66DatabaseNoConnectionError,
@@ -682,8 +683,8 @@ public class DbRule extends AbstractDbData {
     /**
      * Private constructor for Commander only
      */
-    private DbRule() {
-        super(DbConstant.admin.session);
+    private DbRule(DbSession session) {
+        super(session);
     }
     /**
      * Get All DbRule from database or from internal hashMap in case of no database support
@@ -719,7 +720,7 @@ public class DbRule extends AbstractDbData {
      * @throws OpenR66DatabaseSqlError
      */
     public static DbRule getFromStatement(DbPreparedStatement preparedStatement) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
-        DbRule dbRule = new DbRule();
+        DbRule dbRule = new DbRule(preparedStatement.getDbSession());
         dbRule.getValues(preparedStatement, dbRule.allFields);
         dbRule.setFromArray();
         dbRule.isSaved = true;
@@ -741,7 +742,7 @@ public class DbRule extends AbstractDbData {
     /*
      * (non-Javadoc)
      *
-     * @see openr66.database.data.AbstractDbData#changeUpdatedInfo(UpdatedInfo)
+     * @see openr66.databaseold.data.AbstractDbData#changeUpdatedInfo(UpdatedInfo)
      */
     @Override
     public void changeUpdatedInfo(UpdatedInfo info) {

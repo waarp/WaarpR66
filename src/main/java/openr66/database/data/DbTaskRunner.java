@@ -21,6 +21,14 @@
 package openr66.database.data;
 
 import goldengate.common.command.exception.CommandAbstractException;
+import goldengate.common.database.DbPreparedStatement;
+import goldengate.common.database.DbSession;
+import goldengate.common.database.data.AbstractDbData;
+import goldengate.common.database.data.DbValue;
+import goldengate.common.database.exception.OpenR66DatabaseException;
+import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
+import goldengate.common.database.exception.OpenR66DatabaseNoDataException;
+import goldengate.common.database.exception.OpenR66DatabaseSqlError;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
@@ -35,15 +43,6 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.TreeSet;
 
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.Element;
-import org.dom4j.io.OutputFormat;
-import org.dom4j.io.SAXReader;
-import org.dom4j.io.XMLWriter;
-import org.dom4j.tree.DefaultElement;
-import org.xml.sax.SAXException;
-
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
@@ -54,12 +53,6 @@ import openr66.context.task.TaskType;
 import openr66.context.task.exception.OpenR66RunnerEndTasksException;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.DbConstant;
-import openr66.database.DbPreparedStatement;
-import openr66.database.DbSession;
-import openr66.database.exception.OpenR66DatabaseException;
-import openr66.database.exception.OpenR66DatabaseNoConnectionError;
-import openr66.database.exception.OpenR66DatabaseNoDataException;
-import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.database.model.DbModelFactory;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolBusinessException;
@@ -73,6 +66,15 @@ import openr66.protocol.localhandler.packet.RequestPacket.TRANSFERMODE;
 import openr66.protocol.utils.FileUtils;
 import openr66.protocol.utils.NbAndSpecialId;
 import openr66.protocol.utils.R66Future;
+
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.Element;
+import org.dom4j.io.OutputFormat;
+import org.dom4j.io.SAXReader;
+import org.dom4j.io.XMLWriter;
+import org.dom4j.tree.DefaultElement;
+import org.xml.sax.SAXException;
 
 /**
  * Task Runner from pre operation to transfer to post operation, except in case
@@ -563,7 +565,7 @@ public class DbTaskRunner extends AbstractDbData {
     /*
      * (non-Javadoc)
      *
-     * @see openr66.database.data.AbstractDbData#delete()
+     * @see openr66.databaseold.data.AbstractDbData#delete()
      */
     @Override
     public void delete() throws OpenR66DatabaseException {
@@ -594,7 +596,7 @@ public class DbTaskRunner extends AbstractDbData {
     /*
      * (non-Javadoc)
      *
-     * @see openr66.database.data.AbstractDbData#insert()
+     * @see openr66.databaseold.data.AbstractDbData#insert()
      */
     @Override
     public void insert() throws OpenR66DatabaseException {
@@ -706,7 +708,7 @@ public class DbTaskRunner extends AbstractDbData {
                             throw new OpenR66DatabaseSqlError(e1);
                         }
                         specialId = result + 1;
-                        DbModelFactory.dbModel.resetSequence(specialId + 1);
+                        DbModelFactory.dbModel.resetSequence(dbSession, specialId + 1);
                         setToArray();
                         preparedStatement.close();
                         setValues(preparedStatement, allFields);
@@ -730,7 +732,7 @@ public class DbTaskRunner extends AbstractDbData {
     /*
      * (non-Javadoc)
      *
-     * @see openr66.database.data.AbstractDbData#exist()
+     * @see openr66.databaseold.data.AbstractDbData#exist()
      */
     @Override
     public boolean exist() throws OpenR66DatabaseException {
@@ -758,7 +760,7 @@ public class DbTaskRunner extends AbstractDbData {
     /*
      * (non-Javadoc)
      *
-     * @see openr66.database.data.AbstractDbData#select()
+     * @see openr66.databaseold.data.AbstractDbData#select()
      */
     @Override
     public void select() throws OpenR66DatabaseException {
@@ -808,7 +810,7 @@ public class DbTaskRunner extends AbstractDbData {
     /*
      * (non-Javadoc)
      *
-     * @see openr66.database.data.AbstractDbData#update()
+     * @see openr66.databaseold.data.AbstractDbData#update()
      */
     @Override
     public void update() throws OpenR66DatabaseException {
@@ -1572,7 +1574,7 @@ public class DbTaskRunner extends AbstractDbData {
     /*
      * (non-Javadoc)
      *
-     * @see openr66.database.data.AbstractDbData#changeUpdatedInfo(UpdatedInfo)
+     * @see openr66.databaseold.data.AbstractDbData#changeUpdatedInfo(UpdatedInfo)
      */
     @Override
     public void changeUpdatedInfo(UpdatedInfo info) {
