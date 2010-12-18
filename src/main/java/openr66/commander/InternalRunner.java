@@ -20,6 +20,12 @@
  */
 package openr66.commander;
 
+import goldengate.common.database.exception.OpenR66DatabaseException;
+import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
+import goldengate.common.database.exception.OpenR66DatabaseSqlError;
+import goldengate.common.logging.GgInternalLogger;
+import goldengate.common.logging.GgInternalLoggerFactory;
+
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
@@ -29,14 +35,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import openr66.database.data.DbTaskRunner;
-import openr66.database.exception.OpenR66DatabaseException;
-import openr66.database.exception.OpenR66DatabaseNoConnectionError;
-import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.networkhandler.NetworkTransaction;
-
-import goldengate.common.logging.GgInternalLogger;
-import goldengate.common.logging.GgInternalLoggerFactory;
 
 /**
  * This class launch and control the Commander and enable TaskRunner job submissions

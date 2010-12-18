@@ -20,6 +20,7 @@
  */
 package openr66.protocol.localhandler;
 
+import goldengate.common.database.DbSession;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.client.RecvThroughHandler;
@@ -29,7 +30,6 @@ import openr66.context.R66Result;
 import openr66.context.R66Session;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.DbConstant;
-import openr66.database.DbSession;
 import openr66.database.data.DbTaskRunner;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66Exception;

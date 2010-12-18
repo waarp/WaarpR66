@@ -20,11 +20,12 @@
  */
 package openr66.protocol.localhandler;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import goldengate.common.file.DataBlock;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.context.R66Session;

@@ -20,14 +20,14 @@
  */
 package openr66.protocol.networkhandler;
 
-import java.util.Random;
-
 import goldengate.common.cpu.CpuManagement;
 import goldengate.common.cpu.CpuManagementInterface;
 import goldengate.common.cpu.CpuManagementNoInfo;
 import goldengate.common.cpu.CpuManagementSysmon;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+
+import java.util.Random;
 
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.utils.OpenR66SignalHandler;

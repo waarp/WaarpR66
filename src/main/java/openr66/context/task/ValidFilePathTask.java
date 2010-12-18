@@ -20,10 +20,11 @@
  */
 package openr66.context.task;
 
-import java.io.File;
-
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+
+import java.io.File;
+
 import openr66.context.R66Session;
 import openr66.context.filesystem.R66Dir;
 import openr66.context.task.exception.OpenR66RunnerException;

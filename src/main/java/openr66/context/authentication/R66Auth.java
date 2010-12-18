@@ -23,6 +23,8 @@ package openr66.context.authentication;
 import goldengate.common.command.NextCommandReply;
 import goldengate.common.command.exception.Reply421Exception;
 import goldengate.common.command.exception.Reply530Exception;
+import goldengate.common.database.DbSession;
+import goldengate.common.database.exception.OpenR66DatabaseException;
 import goldengate.common.file.DirInterface;
 import goldengate.common.file.filesystembased.FilesystemBasedAuthImpl;
 import goldengate.common.logging.GgInternalLogger;
@@ -32,9 +34,7 @@ import java.io.File;
 
 import openr66.context.R66Session;
 import openr66.database.DbConstant;
-import openr66.database.DbSession;
 import openr66.database.data.DbHostAuth;
-import openr66.database.exception.OpenR66DatabaseException;
 import openr66.protocol.configuration.Configuration;
 
 /**

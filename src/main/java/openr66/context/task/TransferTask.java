@@ -22,7 +22,6 @@ package openr66.context.task;
 
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
-
 import openr66.client.SubmitTransfer;
 import openr66.context.R66Session;
 import openr66.context.task.exception.OpenR66RunnerErrorException;

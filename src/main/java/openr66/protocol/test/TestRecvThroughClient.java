@@ -22,11 +22,6 @@ package openr66.protocol.test;
 
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
-
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.logging.InternalLoggerFactory;
-
-import ch.qos.logback.classic.Level;
 import openr66.client.RecvThroughClient;
 import openr66.client.RecvThroughHandler;
 import openr66.context.ErrorCode;
@@ -36,6 +31,11 @@ import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.utils.R66Future;
+
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.logging.InternalLoggerFactory;
+
+import ch.qos.logback.classic.Level;
 
 /**
  * Test class for Recv Through client

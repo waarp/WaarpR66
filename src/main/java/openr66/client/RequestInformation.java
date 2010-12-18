@@ -20,14 +20,12 @@
  */
 package openr66.client;
 
-import java.net.SocketAddress;
-
-import org.jboss.netty.logging.InternalLoggerFactory;
-
-import ch.qos.logback.classic.Level;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
+
+import java.net.SocketAddress;
+
 import openr66.configuration.FileBasedConfiguration;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
@@ -42,6 +40,10 @@ import openr66.protocol.localhandler.packet.ValidPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.utils.ChannelUtils;
 import openr66.protocol.utils.R66Future;
+
+import org.jboss.netty.logging.InternalLoggerFactory;
+
+import ch.qos.logback.classic.Level;
 
 /**
  * Class to request information on remote files

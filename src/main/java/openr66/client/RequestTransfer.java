@@ -20,15 +20,14 @@
  */
 package openr66.client;
 
-import java.net.SocketAddress;
-
-import org.jboss.netty.channel.Channels;
-import org.jboss.netty.logging.InternalLoggerFactory;
-
-import ch.qos.logback.classic.Level;
+import goldengate.common.database.data.AbstractDbData.UpdatedInfo;
+import goldengate.common.database.exception.OpenR66DatabaseException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
+
+import java.net.SocketAddress;
+
 import openr66.configuration.FileBasedConfiguration;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
@@ -37,9 +36,8 @@ import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.DbConstant;
 import openr66.database.data.DbHostAuth;
 import openr66.database.data.DbTaskRunner;
-import openr66.database.data.AbstractDbData.UpdatedInfo;
-import openr66.database.exception.OpenR66DatabaseException;
 import openr66.protocol.configuration.Configuration;
+import openr66.protocol.exception.OpenR66DatabaseGlobalException;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.localhandler.LocalChannelReference;
@@ -48,6 +46,11 @@ import openr66.protocol.localhandler.packet.ValidPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.utils.ChannelUtils;
 import openr66.protocol.utils.R66Future;
+
+import org.jboss.netty.channel.Channels;
+import org.jboss.netty.logging.InternalLoggerFactory;
+
+import ch.qos.logback.classic.Level;
 
 /**
  * Class to request information or request cancellation or restart
@@ -181,7 +184,7 @@ public class RequestTransfer implements Runnable {
                     specialId,requester,requested);
         } catch (OpenR66DatabaseException e) {
             logger.error("Cannot find the transfer");
-            future.setResult(new R66Result(e, null, true,
+            future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
                     ErrorCode.Internal, null));
             future.setFailure(e);
             return;

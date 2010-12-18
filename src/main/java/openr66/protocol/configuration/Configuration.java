@@ -21,6 +21,10 @@
 package openr66.protocol.configuration;
 
 import goldengate.common.crypto.Des;
+import goldengate.common.database.DbSession;
+import goldengate.common.database.exception.OpenR66DatabaseException;
+import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
+import goldengate.common.database.exception.OpenR66DatabaseSqlError;
 import goldengate.common.digest.MD5;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 import goldengate.common.logging.GgInternalLogger;
@@ -34,11 +38,7 @@ import java.util.concurrent.TimeUnit;
 
 import openr66.commander.InternalRunner;
 import openr66.context.task.localexec.LocalExecClient;
-import openr66.database.DbSession;
 import openr66.database.data.DbHostAuth;
-import openr66.database.exception.OpenR66DatabaseException;
-import openr66.database.exception.OpenR66DatabaseNoConnectionError;
-import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import openr66.protocol.http.HttpPipelineFactory;

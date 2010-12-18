@@ -20,8 +20,8 @@
  */
 package openr66.client;
 
+import goldengate.common.database.exception.OpenR66DatabaseException;
 import goldengate.common.logging.GgInternalLoggerFactory;
-
 import openr66.commander.ClientRunner;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
@@ -29,8 +29,8 @@ import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.DbConstant;
 import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
-import openr66.database.exception.OpenR66DatabaseException;
 import openr66.protocol.configuration.Configuration;
+import openr66.protocol.exception.OpenR66DatabaseGlobalException;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolNotYetConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
@@ -109,7 +109,7 @@ public class RecvThroughClient extends AbstractTransfer {
             rule = new DbRule(DbConstant.admin.session, rulename);
         } catch (OpenR66DatabaseException e) {
             logger.error("Cannot get Rule: "+rulename, e);
-            future.setResult(new R66Result(e, null, true,
+            future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
                     ErrorCode.Internal, null));
             future.setFailure(e);
             return;
@@ -130,7 +130,7 @@ public class RecvThroughClient extends AbstractTransfer {
                     new DbTaskRunner(DbConstant.admin.session,rule,isSender,request,remoteHost);
             } catch (OpenR66DatabaseException e) {
                 logger.error("Cannot get task", e);
-                future.setResult(new R66Result(e, null, true,
+                future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
                         ErrorCode.Internal, null));
                 future.setFailure(e);
                 return;

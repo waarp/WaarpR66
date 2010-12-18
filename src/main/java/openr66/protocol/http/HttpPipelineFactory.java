@@ -21,7 +21,6 @@
 package openr66.protocol.http;
 
 import static org.jboss.netty.channel.Channels.pipeline;
-
 import openr66.protocol.configuration.Configuration;
 
 import org.jboss.netty.channel.ChannelPipeline;

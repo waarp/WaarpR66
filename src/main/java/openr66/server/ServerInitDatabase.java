@@ -20,6 +20,8 @@
  */
 package openr66.server;
 
+import goldengate.common.database.exception.OpenR66DatabaseException;
+import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
@@ -31,8 +33,6 @@ import openr66.configuration.AuthenticationFileBasedConfiguration;
 import openr66.configuration.FileBasedConfiguration;
 import openr66.configuration.RuleFileBasedConfiguration;
 import openr66.database.DbConstant;
-import openr66.database.exception.OpenR66DatabaseException;
-import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.model.DbModelFactory;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.utils.ChannelUtils;
@@ -163,7 +163,7 @@ public class ServerInitDatabase {
 
     public static void initdb() throws OpenR66DatabaseNoConnectionError {
         // Create tables: configuration, hosts, rules, runner, cptrunner
-        DbModelFactory.dbModel.createTables();
+        DbModelFactory.dbModel.createTables(DbConstant.admin.session);
     }
 
     public static void loadRules(File dirConfig) {

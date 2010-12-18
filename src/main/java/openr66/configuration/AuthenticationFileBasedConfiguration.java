@@ -20,6 +20,10 @@
  */
 package openr66.configuration;
 
+import goldengate.common.database.DbPreparedStatement;
+import goldengate.common.database.exception.OpenR66DatabaseException;
+import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
+import goldengate.common.database.exception.OpenR66DatabaseSqlError;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.xml.XmlDecl;
@@ -33,11 +37,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import openr66.database.DbConstant;
-import openr66.database.DbPreparedStatement;
 import openr66.database.data.DbHostAuth;
-import openr66.database.exception.OpenR66DatabaseException;
-import openr66.database.exception.OpenR66DatabaseNoConnectionError;
-import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.utils.FileUtils;

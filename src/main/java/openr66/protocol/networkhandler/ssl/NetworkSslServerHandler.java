@@ -25,17 +25,17 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+import openr66.protocol.configuration.Configuration;
+import openr66.protocol.exception.OpenR66ProtocolNetworkException;
+import openr66.protocol.networkhandler.NetworkServerHandler;
+import openr66.protocol.utils.R66Future;
+
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.handler.ssl.SslHandler;
-
-import openr66.protocol.configuration.Configuration;
-import openr66.protocol.exception.OpenR66ProtocolNetworkException;
-import openr66.protocol.networkhandler.NetworkServerHandler;
-import openr66.protocol.utils.R66Future;
 
 /**
  * @author Frederic Bregier

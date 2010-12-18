@@ -20,6 +20,8 @@
  */
 package openr66.commander;
 
+import goldengate.common.database.data.AbstractDbData;
+
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadFactory;
@@ -27,7 +29,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import openr66.context.ErrorCode;
-import openr66.database.data.AbstractDbData;
 
 /**
  * Thread Pool Executor for ClientRunner

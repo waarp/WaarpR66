@@ -20,6 +20,19 @@
  */
 package openr66.protocol.localhandler;
 
+import goldengate.common.command.exception.CommandAbstractException;
+import goldengate.common.command.exception.Reply421Exception;
+import goldengate.common.command.exception.Reply530Exception;
+import goldengate.common.database.DbPreparedStatement;
+import goldengate.common.database.exception.OpenR66DatabaseException;
+import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
+import goldengate.common.database.exception.OpenR66DatabaseNoDataException;
+import goldengate.common.database.exception.OpenR66DatabaseSqlError;
+import goldengate.common.exception.FileTransferException;
+import goldengate.common.file.DataBlock;
+import goldengate.common.logging.GgInternalLogger;
+import goldengate.common.logging.GgInternalLoggerFactory;
+
 import java.io.File;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -27,13 +40,6 @@ import java.net.UnknownHostException;
 import java.sql.Timestamp;
 import java.util.List;
 
-import goldengate.common.command.exception.CommandAbstractException;
-import goldengate.common.command.exception.Reply421Exception;
-import goldengate.common.command.exception.Reply530Exception;
-import goldengate.common.exception.FileTransferException;
-import goldengate.common.file.DataBlock;
-import goldengate.common.logging.GgInternalLogger;
-import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.commander.ClientRunner;
 import openr66.configuration.AuthenticationFileBasedConfiguration;
 import openr66.configuration.RuleFileBasedConfiguration;
@@ -46,15 +52,11 @@ import openr66.context.filesystem.R66File;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.context.task.exception.OpenR66RunnerException;
 import openr66.database.DbConstant;
-import openr66.database.DbPreparedStatement;
 import openr66.database.data.DbHostAuth;
 import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
-import openr66.database.exception.OpenR66DatabaseException;
-import openr66.database.exception.OpenR66DatabaseNoConnectionError;
-import openr66.database.exception.OpenR66DatabaseNoDataException;
-import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.configuration.Configuration;
+import openr66.protocol.exception.OpenR66DatabaseGlobalException;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolBusinessCancelException;
@@ -970,12 +972,14 @@ public class LocalServerHandler extends SimpleChannelHandler {
                                 session, rule, isRetrieve, packet);
                     } catch (OpenR66DatabaseException e1) {
                         session.setStatus(33);
-                        endInitRequestInError(channel, ErrorCode.QueryRemotelyUnknown, null, e, packet);
+                        endInitRequestInError(channel, ErrorCode.QueryRemotelyUnknown, 
+                                null, new OpenR66DatabaseGlobalException(e), packet);
                         return;
                     }
                 } catch (OpenR66DatabaseException e) {
                     session.setStatus(34);
-                    endInitRequestInError(channel, ErrorCode.QueryRemotelyUnknown, null, e, packet);
+                    endInitRequestInError(channel, ErrorCode.QueryRemotelyUnknown, null, 
+                            new OpenR66DatabaseGlobalException(e), packet);
                     return;
                 }
                 // Change the SpecialID! => could generate an error ? 
@@ -1000,12 +1004,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         } catch (OpenR66DatabaseException e1) {
                             session.setStatus(35);
                             endInitRequestInError(channel, ErrorCode.QueryRemotelyUnknown, null,
-                                    e1, packet);
+                                    new OpenR66DatabaseGlobalException(e1), packet);
                             return;
                         }
                     } else {
                         endInitRequestInError(channel, ErrorCode.QueryRemotelyUnknown, null,
-                                e, packet);
+                                new OpenR66DatabaseGlobalException(e), packet);
                         session.setStatus(36);
                         return;
                     }
@@ -1025,7 +1029,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             } catch (OpenR66DatabaseException e) {
                 session.setStatus(37);
                 endInitRequestInError(channel, ErrorCode.QueryRemotelyUnknown, null,
-                        e, packet);
+                        new OpenR66DatabaseGlobalException(e), packet);
                 return;
             }
             packet.setSpecialId(runner.getSpecialId());
@@ -1911,7 +1915,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     valid = new ValidPacket(packet.getSmiddle(),
                             ErrorCode.Internal.getCode(),
                             LocalPacketFactory.REQUESTUSERPACKET);
-                    R66Result resulttest = new R66Result(e1, session, true,
+                    R66Result resulttest = new R66Result(new OpenR66DatabaseGlobalException(e1), session, true,
                             ErrorCode.Internal, taskRunner);
                     resulttest.other = packet;
                     localChannelReference.invalidateRequest(resulttest);

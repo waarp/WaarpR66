@@ -24,6 +24,10 @@ package openr66.configuration;
 import goldengate.common.crypto.Des;
 import goldengate.common.crypto.ssl.GgSecureKeyStore;
 import goldengate.common.crypto.ssl.GgSslContextFactory;
+import goldengate.common.database.DbAdmin;
+import goldengate.common.database.data.AbstractDbData.UpdatedInfo;
+import goldengate.common.database.exception.OpenR66DatabaseException;
+import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
 import goldengate.common.digest.FilesystemBasedDigest;
 import goldengate.common.digest.MD5;
 import goldengate.common.exception.CryptoException;
@@ -49,12 +53,8 @@ import java.net.UnknownHostException;
 import openr66.context.authentication.R66Auth;
 import openr66.context.filesystem.R66Dir;
 import openr66.context.task.localexec.LocalExecClient;
-import openr66.database.DbAdmin;
 import openr66.database.DbConstant;
 import openr66.database.data.DbConfiguration;
-import openr66.database.data.AbstractDbData.UpdatedInfo;
-import openr66.database.exception.OpenR66DatabaseException;
-import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.database.model.DbModelFactory;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
@@ -447,7 +447,7 @@ public class FileBasedConfiguration {
         new XmlDecl(XmlType.LONG, XML_LIMITSESSION), 
         new XmlDecl(XmlType.LONG, XML_LIMITGLOBAL), 
         new XmlDecl(XmlType.LONG, XML_LIMITDELAY),
-        new XmlDecl(XmlType.LONG, XML_LIMITRUNNING), 
+        new XmlDecl(XmlType.INTEGER, XML_LIMITRUNNING), 
         new XmlDecl(XmlType.LONG, XML_DELAYCOMMANDER), 
         new XmlDecl(XmlType.LONG, XML_DELAYRETRY), 
         new XmlDecl(XmlType.INTEGER, XML_SERVER_THREAD), 
@@ -674,9 +674,19 @@ public class FileBasedConfiguration {
             logger.error("Unable to set correct Http Admin Base in Config file");
             return false;
         }
-        path = DirInterface.SEPARATOR + path;
-        Configuration.configuration.httpBasePath =
-            FilesystemBasedDirImpl.normalizePath(path);
+        File file = new File(path);
+        if (!file.isDirectory()) {
+            logger.error("Http Admin is not a directory in Config file");
+            return false;
+        }
+        try {
+            Configuration.configuration.httpBasePath =
+                FilesystemBasedDirImpl.normalizePath(file.getCanonicalPath())+ 
+                DirInterface.SEPARATOR;
+        } catch (IOException e1) {
+            logger.error("Unable to set Http Admin Path in Config file");
+            return false;
+        }
 
         // Key for HTTPS
         value = hashConfig.get(XML_PATH_ADMIN_KEYPATH);
@@ -1195,7 +1205,8 @@ public class FileBasedConfiguration {
                 return false;
             }
             try {
-                DbModelFactory.initialize(dbdriver, dbserver, dbuser, dbpasswd,
+                DbConstant.admin = 
+                    DbModelFactory.initialize(dbdriver, dbserver, dbuser, dbpasswd,
                         true);
             } catch (OpenR66DatabaseNoConnectionError e2) {
                 logger.error("Unable to Connect to DB", e2);

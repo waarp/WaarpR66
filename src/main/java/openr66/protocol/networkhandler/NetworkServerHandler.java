@@ -20,13 +20,14 @@
  */
 package openr66.protocol.networkhandler;
 
-import java.net.BindException;
-
+import goldengate.common.database.DbSession;
+import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+
+import java.net.BindException;
+
 import openr66.database.DbConstant;
-import openr66.database.DbSession;
-import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;

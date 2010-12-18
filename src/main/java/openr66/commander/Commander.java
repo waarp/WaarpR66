@@ -20,20 +20,20 @@
  */
 package openr66.commander;
 
+import goldengate.common.database.DbPreparedStatement;
+import goldengate.common.database.data.AbstractDbData;
+import goldengate.common.database.data.AbstractDbData.UpdatedInfo;
+import goldengate.common.database.exception.OpenR66DatabaseException;
+import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
+import goldengate.common.database.exception.OpenR66DatabaseNoDataException;
+import goldengate.common.database.exception.OpenR66DatabaseSqlError;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.database.DbConstant;
-import openr66.database.DbPreparedStatement;
-import openr66.database.data.AbstractDbData;
 import openr66.database.data.DbConfiguration;
 import openr66.database.data.DbHostAuth;
 import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
-import openr66.database.data.AbstractDbData.UpdatedInfo;
-import openr66.database.exception.OpenR66DatabaseException;
-import openr66.database.exception.OpenR66DatabaseNoConnectionError;
-import openr66.database.exception.OpenR66DatabaseNoDataException;
-import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.utils.OpenR66SignalHandler;
 

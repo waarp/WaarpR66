@@ -20,6 +20,11 @@
  */
 package openr66.server;
 
+import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
+import goldengate.common.logging.GgInternalLogger;
+import goldengate.common.logging.GgInternalLoggerFactory;
+import goldengate.common.logging.GgSlf4JLoggerFactory;
+
 import java.net.SocketAddress;
 import java.sql.Timestamp;
 import java.text.ParseException;
@@ -27,18 +32,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-import goldengate.common.logging.GgInternalLogger;
-import goldengate.common.logging.GgInternalLoggerFactory;
-import goldengate.common.logging.GgSlf4JLoggerFactory;
-
-
 import openr66.configuration.FileBasedConfiguration;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.database.DbConstant;
 import openr66.database.data.DbHostAuth;
 import openr66.database.data.DbTaskRunner;
-import openr66.database.exception.OpenR66DatabaseNoConnectionError;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;

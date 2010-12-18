@@ -20,19 +20,19 @@
  */
 package openr66.server;
 
-import java.io.File;
-
+import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
+import goldengate.common.database.exception.OpenR66DatabaseSqlError;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
+
+import java.io.File;
 
 import openr66.configuration.AuthenticationFileBasedConfiguration;
 import openr66.configuration.FileBasedConfiguration;
 import openr66.configuration.RuleFileBasedConfiguration;
 import openr66.database.DbConstant;
 import openr66.database.data.DbTaskRunner;
-import openr66.database.exception.OpenR66DatabaseNoConnectionError;
-import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;

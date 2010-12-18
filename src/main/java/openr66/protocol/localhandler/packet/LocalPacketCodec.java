@@ -21,7 +21,6 @@
 package openr66.protocol.localhandler.packet;
 
 import goldengate.common.exception.InvalidArgumentException;
-
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 
 import org.jboss.netty.buffer.ChannelBuffer;

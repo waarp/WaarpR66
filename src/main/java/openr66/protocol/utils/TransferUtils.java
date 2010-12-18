@@ -21,6 +21,10 @@
 package openr66.protocol.utils;
 
 import goldengate.common.command.exception.CommandAbstractException;
+import goldengate.common.database.DbPreparedStatement;
+import goldengate.common.database.DbSession;
+import goldengate.common.database.data.AbstractDbData.UpdatedInfo;
+import goldengate.common.database.exception.OpenR66DatabaseException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
@@ -32,12 +36,8 @@ import openr66.context.R66Result;
 import openr66.context.R66Session;
 import openr66.context.filesystem.R66File;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
-import openr66.database.DbPreparedStatement;
-import openr66.database.DbSession;
 import openr66.database.data.DbTaskRunner;
-import openr66.database.data.AbstractDbData.UpdatedInfo;
 import openr66.database.data.DbTaskRunner.TASKSTEP;
-import openr66.database.exception.OpenR66DatabaseException;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.LocalChannelReference;

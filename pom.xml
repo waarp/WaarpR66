@@ -3,7 +3,7 @@
   <groupId>GoldenGate</groupId>
   <artifactId>GoldenGateR66</artifactId>
   <name>GoldenGate OpenR66</name>
-  <version>2.0.0</version>
+  <version>2.0.1</version>
   <description>
   OpenR66 is a File Transfer Monitor to be used in real production to transfer files between servers.
   It allows to start/restart a transfer, check the remote MD5, check status, make pre or post
@@ -147,7 +147,7 @@
     <dependency>
       <groupId>GoldenGate</groupId>
       <artifactId>GoldenGateCommon</artifactId>
-      <version>1.0.9</version>
+      <version>1.0.10</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -165,6 +165,18 @@
       <optional>true</optional>
     </dependency>
     <dependency>
+    	<groupId>postgresql</groupId>
+    	<artifactId>postgresql</artifactId>
+    	<version>8.4-702.jdbc4</version>
+    	<optional>true</optional>
+    </dependency>
+    <dependency>
+    	<groupId>mysql</groupId>
+    	<artifactId>mysql-connector-java</artifactId>
+    	<version>5.1.13</version>
+    	<optional>true</optional>
+    </dependency>
+    <dependency>
     	<groupId>commons-io</groupId>
     	<artifactId>commons-io</artifactId>
     	<version>2.0</version>
@@ -179,18 +191,6 @@
     	<groupId>commons-codec</groupId>
     	<artifactId>commons-codec</artifactId>
     	<version>1.4</version>
-    </dependency>
-    <dependency>
-    	<groupId>postgresql</groupId>
-    	<artifactId>postgresql</artifactId>
-    	<version>8.4-702.jdbc4</version>
-    	<optional>true</optional>
-    </dependency>
-    <dependency>
-    	<groupId>mysql</groupId>
-    	<artifactId>mysql-connector-java</artifactId>
-    	<version>5.1.13</version>
-    	<optional>true</optional>
     </dependency>
     <dependency>
     	<groupId>jaxen</groupId>
@@ -218,7 +218,7 @@
     <dependency>
     	<groupId>GoldenGate</groupId>
     	<artifactId>GoldenGateExec</artifactId>
-    	<version>1.0.0</version>
+    	<version>1.0.1</version>
     </dependency>
   </dependencies>
   <properties>

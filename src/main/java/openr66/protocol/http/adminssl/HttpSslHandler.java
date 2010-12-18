@@ -20,6 +20,11 @@
  */
 package openr66.protocol.http.adminssl;
 
+import goldengate.common.database.DbPreparedStatement;
+import goldengate.common.database.DbSession;
+import goldengate.common.database.exception.OpenR66DatabaseException;
+import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
+import goldengate.common.database.exception.OpenR66DatabaseSqlError;
 import goldengate.common.exception.FileTransferException;
 import goldengate.common.exception.InvalidArgumentException;
 import goldengate.common.logging.GgInternalLogger;
@@ -38,6 +43,37 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
+import openr66.client.Message;
+import openr66.configuration.AuthenticationFileBasedConfiguration;
+import openr66.configuration.RuleFileBasedConfiguration;
+import openr66.context.ErrorCode;
+import openr66.context.R66Result;
+import openr66.context.R66Session;
+import openr66.context.filesystem.R66Dir;
+import openr66.database.DbConstant;
+import openr66.database.data.DbHostAuth;
+import openr66.database.data.DbRule;
+import openr66.database.data.DbTaskRunner;
+import openr66.protocol.configuration.Configuration;
+import openr66.protocol.exception.OpenR66Exception;
+import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
+import openr66.protocol.exception.OpenR66ProtocolBusinessException;
+import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
+import openr66.protocol.exception.OpenR66ProtocolSystemException;
+import openr66.protocol.localhandler.LocalChannelReference;
+import openr66.protocol.localhandler.packet.ErrorPacket;
+import openr66.protocol.localhandler.packet.RequestPacket;
+import openr66.protocol.localhandler.packet.RequestPacket.TRANSFERMODE;
+import openr66.protocol.localhandler.packet.TestPacket;
+import openr66.protocol.networkhandler.NetworkTransaction;
+import openr66.protocol.utils.ChannelUtils;
+import openr66.protocol.utils.FileUtils;
+import openr66.protocol.utils.NbAndSpecialId;
+import openr66.protocol.utils.OpenR66SignalHandler;
+import openr66.protocol.utils.R66Future;
+import openr66.protocol.utils.TransferUtils;
+import openr66.protocol.utils.Version;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -64,42 +100,6 @@ import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.handler.codec.http.QueryStringDecoder;
 import org.jboss.netty.handler.ssl.SslHandler;
 import org.jboss.netty.handler.traffic.TrafficCounter;
-
-import openr66.client.Message;
-import openr66.configuration.AuthenticationFileBasedConfiguration;
-import openr66.configuration.RuleFileBasedConfiguration;
-import openr66.context.ErrorCode;
-import openr66.context.R66Result;
-import openr66.context.R66Session;
-import openr66.context.filesystem.R66Dir;
-import openr66.database.DbConstant;
-import openr66.database.DbPreparedStatement;
-import openr66.database.DbSession;
-import openr66.database.data.DbHostAuth;
-import openr66.database.data.DbRule;
-import openr66.database.data.DbTaskRunner;
-import openr66.database.exception.OpenR66DatabaseException;
-import openr66.database.exception.OpenR66DatabaseNoConnectionError;
-import openr66.database.exception.OpenR66DatabaseSqlError;
-import openr66.protocol.configuration.Configuration;
-import openr66.protocol.exception.OpenR66Exception;
-import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
-import openr66.protocol.exception.OpenR66ProtocolBusinessException;
-import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
-import openr66.protocol.exception.OpenR66ProtocolSystemException;
-import openr66.protocol.localhandler.LocalChannelReference;
-import openr66.protocol.localhandler.packet.ErrorPacket;
-import openr66.protocol.localhandler.packet.RequestPacket;
-import openr66.protocol.localhandler.packet.TestPacket;
-import openr66.protocol.localhandler.packet.RequestPacket.TRANSFERMODE;
-import openr66.protocol.networkhandler.NetworkTransaction;
-import openr66.protocol.utils.ChannelUtils;
-import openr66.protocol.utils.FileUtils;
-import openr66.protocol.utils.NbAndSpecialId;
-import openr66.protocol.utils.OpenR66SignalHandler;
-import openr66.protocol.utils.R66Future;
-import openr66.protocol.utils.TransferUtils;
-import openr66.protocol.utils.Version;
 
 /**
  * @author Frederic Bregier

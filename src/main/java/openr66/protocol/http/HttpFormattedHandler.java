@@ -20,6 +20,12 @@
  */
 package openr66.protocol.http;
 
+import goldengate.common.database.DbPreparedStatement;
+import goldengate.common.database.DbSession;
+import goldengate.common.database.data.AbstractDbData.UpdatedInfo;
+import goldengate.common.database.exception.OpenR66DatabaseException;
+import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
+import goldengate.common.database.exception.OpenR66DatabaseSqlError;
 import goldengate.common.exception.FileTransferException;
 import goldengate.common.exception.InvalidArgumentException;
 import goldengate.common.logging.GgInternalLogger;
@@ -37,14 +43,8 @@ import openr66.context.ErrorCode;
 import openr66.context.R66Session;
 import openr66.context.filesystem.R66Dir;
 import openr66.database.DbConstant;
-import openr66.database.DbPreparedStatement;
-import openr66.database.DbSession;
 import openr66.database.data.DbTaskRunner;
-import openr66.database.data.AbstractDbData.UpdatedInfo;
 import openr66.database.data.DbTaskRunner.TASKSTEP;
-import openr66.database.exception.OpenR66DatabaseException;
-import openr66.database.exception.OpenR66DatabaseNoConnectionError;
-import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;

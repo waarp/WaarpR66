@@ -20,13 +20,14 @@
  */
 package openr66.commander;
 
+import goldengate.common.database.data.AbstractDbData;
+import goldengate.common.database.data.AbstractDbData.UpdatedInfo;
+import goldengate.common.database.exception.OpenR66DatabaseException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
 import java.net.SocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
-
-import org.jboss.netty.channel.Channels;
 
 import openr66.client.RecvThroughHandler;
 import openr66.context.ErrorCode;
@@ -34,12 +35,9 @@ import openr66.context.R66Result;
 import openr66.context.authentication.R66Auth;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.DbConstant;
-import openr66.database.data.AbstractDbData;
 import openr66.database.data.DbHostAuth;
 import openr66.database.data.DbTaskRunner;
-import openr66.database.data.AbstractDbData.UpdatedInfo;
 import openr66.database.data.DbTaskRunner.TASKSTEP;
-import openr66.database.exception.OpenR66DatabaseException;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolNotYetConnectionException;
@@ -51,6 +49,8 @@ import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.utils.ChannelUtils;
 import openr66.protocol.utils.R66Future;
 import openr66.protocol.utils.TransferUtils;
+
+import org.jboss.netty.channel.Channels;
 
 /**
  * Client Runner from a TaskRunner

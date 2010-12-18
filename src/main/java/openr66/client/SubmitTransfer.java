@@ -20,16 +20,16 @@
  */
 package openr66.client;
 
+import goldengate.common.database.data.AbstractDbData;
+import goldengate.common.database.exception.OpenR66DatabaseException;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
-
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.database.DbConstant;
-import openr66.database.data.AbstractDbData;
 import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
-import openr66.database.exception.OpenR66DatabaseException;
+import openr66.protocol.exception.OpenR66DatabaseGlobalException;
 import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.utils.ChannelUtils;
 import openr66.protocol.utils.R66Future;
@@ -61,7 +61,7 @@ public class SubmitTransfer extends AbstractTransfer {
             rule = new DbRule(DbConstant.admin.session, rulename);
         } catch (OpenR66DatabaseException e) {
             logger.error("Cannot get Rule: "+rulename, e);
-            future.setResult(new R66Result(e, null, true,
+            future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
                     ErrorCode.Internal, null));
             future.setFailure(e);
             return;
@@ -81,7 +81,7 @@ public class SubmitTransfer extends AbstractTransfer {
                 new DbTaskRunner(DbConstant.admin.session,rule,isRetrieve,request,remoteHost);
         } catch (OpenR66DatabaseException e) {
             logger.error("Cannot get task", e);
-            future.setResult(new R66Result(e, null, true,
+            future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
                     ErrorCode.Internal, null));
             future.setFailure(e);
             return;
@@ -91,7 +91,7 @@ public class SubmitTransfer extends AbstractTransfer {
             taskRunner.update();
         } catch (OpenR66DatabaseException e) {
             logger.error("Cannot prepare task", e);
-            R66Result result = new R66Result(e, null, true,
+            R66Result result = new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
                     ErrorCode.Internal, taskRunner);
             future.setResult(result);
             future.setFailure(e);
