@@ -20,9 +20,10 @@
  */
 package openr66.database.model;
 
-import openr66.database.DbAdmin;
-import openr66.database.DbConstant;
-import openr66.database.exception.OpenR66DatabaseNoConnectionError;
+import goldengate.common.database.DbAdmin;
+import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
+import goldengate.common.database.model.DbType;
+
 
 /**
  * Factory to store the Database Model object
@@ -30,16 +31,8 @@ import openr66.database.exception.OpenR66DatabaseNoConnectionError;
  * @author Frederic Bregier
  *
  */
-public class DbModelFactory {
+public class DbModelFactory extends goldengate.common.database.model.DbModelFactory {
 
-    /**
-     * Info on JDBC Class is already loaded or not
-     */
-    static public volatile boolean classLoaded = false;
-    /**
-     * Database Model Object
-     */
-    public static DbModel dbModel;
     /**
      * Initialize the Database Model according to arguments.
      * @param dbdriver
@@ -49,7 +42,7 @@ public class DbModelFactory {
      * @param write
      * @throws OpenR66DatabaseNoConnectionError
      */
-    public static void initialize(String dbdriver, String dbserver,
+    public static DbAdmin initialize(String dbdriver, String dbserver,
             String dbuser, String dbpasswd, boolean write)
             throws OpenR66DatabaseNoConnectionError {
         DbType type = DbType.getFromDriver(dbdriver);
@@ -70,7 +63,7 @@ public class DbModelFactory {
                 throw new OpenR66DatabaseNoConnectionError(
                         "TypeDriver unknown: " + type);
         }
-        DbConstant.admin = new DbAdmin(type, dbserver, dbuser, dbpasswd,
+        return new DbAdmin(type, dbserver, dbuser, dbpasswd,
                 write);
     }
 }

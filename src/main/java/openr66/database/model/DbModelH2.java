@@ -20,25 +20,21 @@
  */
 package openr66.database.model;
 
-import goldengate.common.logging.GgInternalLogger;
-import goldengate.common.logging.GgInternalLoggerFactory;
+import goldengate.common.database.DbPreparedStatement;
+import goldengate.common.database.DbRequest;
+import goldengate.common.database.DbSession;
+import goldengate.common.database.exception.OpenR66DatabaseException;
+import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
+import goldengate.common.database.exception.OpenR66DatabaseNoDataException;
+import goldengate.common.database.exception.OpenR66DatabaseSqlError;
 
-import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Types;
 
 import openr66.database.DbConstant;
-import openr66.database.DbPreparedStatement;
-import openr66.database.DbRequest;
-import openr66.database.DbSession;
 import openr66.database.data.DbConfiguration;
 import openr66.database.data.DbHostAuth;
 import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
-import openr66.database.exception.OpenR66DatabaseException;
-import openr66.database.exception.OpenR66DatabaseNoConnectionError;
-import openr66.database.exception.OpenR66DatabaseNoDataException;
-import openr66.database.exception.OpenR66DatabaseSqlError;
 import openr66.protocol.utils.OpenR66SignalHandler;
 
 /**
@@ -46,96 +42,16 @@ import openr66.protocol.utils.OpenR66SignalHandler;
  * @author Frederic Bregier
  *
  */
-public class DbModelH2 implements DbModel {
-    /**
-     * Internal Logger
-     */
-    private static final GgInternalLogger logger = GgInternalLoggerFactory
-            .getLogger(DbModelH2.class);
-
-    public static DbType type = DbType.H2;
+public class DbModelH2 extends goldengate.common.database.model.DbModelH2 {
     /**
      * Create the object and initialize if necessary the driver
      * @throws OpenR66DatabaseNoConnectionError
      */
     public DbModelH2() throws OpenR66DatabaseNoConnectionError {
-        if (DbModelFactory.classLoaded) {
-            return;
-        }
-        try {
-            DriverManager.registerDriver(new org.h2.Driver());
-            DbModelFactory.classLoaded = true;
-        } catch (SQLException e) {
-         // SQLException
-            logger.error("Cannot register Driver " + type.name()+ "\n"+e.getMessage());
-            DbSession.error(e);
-            throw new OpenR66DatabaseNoConnectionError(
-                    "Cannot load database drive:" + type.name(), e);
-        }
-
+        super();
     }
-
-    private static enum DBType {
-        CHAR(Types.CHAR, " CHAR(3) "),
-        VARCHAR(Types.VARCHAR, " VARCHAR(254) "),
-        LONGVARCHAR(Types.LONGVARCHAR, " LONGVARCHAR "),
-        BIT(Types.BIT, " BOOLEAN "),
-        TINYINT(Types.TINYINT, " TINYINT "),
-        SMALLINT(Types.SMALLINT, " SMALLINT "),
-        INTEGER(Types.INTEGER, " INTEGER "),
-        BIGINT(Types.BIGINT, " BIGINT "),
-        REAL(Types.REAL, " REAL "),
-        DOUBLE(Types.DOUBLE, " DOUBLE "),
-        VARBINARY(Types.VARBINARY, " BINARY "),
-        DATE(Types.DATE, " DATE "),
-        TIMESTAMP(Types.TIMESTAMP, " TIMESTAMP ");
-
-        @SuppressWarnings("unused")
-        public int type;
-
-        public String constructor;
-
-        private DBType(int type, String constructor) {
-            this.type = type;
-            this.constructor = constructor;
-        }
-
-        public static String getType(int sqltype) {
-            switch (sqltype) {
-                case Types.CHAR:
-                    return CHAR.constructor;
-                case Types.VARCHAR:
-                    return VARCHAR.constructor;
-                case Types.LONGVARCHAR:
-                    return LONGVARCHAR.constructor;
-                case Types.BIT:
-                    return BIT.constructor;
-                case Types.TINYINT:
-                    return TINYINT.constructor;
-                case Types.SMALLINT:
-                    return SMALLINT.constructor;
-                case Types.INTEGER:
-                    return INTEGER.constructor;
-                case Types.BIGINT:
-                    return BIGINT.constructor;
-                case Types.REAL:
-                    return REAL.constructor;
-                case Types.DOUBLE:
-                    return DOUBLE.constructor;
-                case Types.VARBINARY:
-                    return VARBINARY.constructor;
-                case Types.DATE:
-                    return DATE.constructor;
-                case Types.TIMESTAMP:
-                    return TIMESTAMP.constructor;
-                default:
-                    return null;
-            }
-        }
-    }
-
     @Override
-    public void createTables() throws OpenR66DatabaseNoConnectionError {
+    public void createTables(DbSession session) throws OpenR66DatabaseNoConnectionError {
         // Create tables: configuration, hosts, rules, runner, cptrunner
         String createTableH2 = "CREATE TABLE IF NOT EXISTS ";
         String primaryKey = " PRIMARY KEY ";
@@ -154,7 +70,7 @@ public class DbModelH2 implements DbModel {
                 DBType.getType(DbConfiguration.dbTypes[ccolumns.length - 1]) +
                 primaryKey + ")";
         System.out.println(action);
-        DbRequest request = new DbRequest(DbConstant.admin.session);
+        DbRequest request = new DbRequest(session);
         try {
             request.query(action);
         } catch (OpenR66DatabaseNoConnectionError e) {
@@ -277,13 +193,13 @@ public class DbModelH2 implements DbModel {
     /*
      * (non-Javadoc)
      *
-     * @see openr66.database.model.DbModel#resetSequence()
+     * @see openr66.databaseold.model.DbModel#resetSequence()
      */
     @Override
-    public void resetSequence(long newvalue) throws OpenR66DatabaseNoConnectionError {
+    public void resetSequence(DbSession session, long newvalue) throws OpenR66DatabaseNoConnectionError {
         String action = "ALTER SEQUENCE " + DbTaskRunner.fieldseq +
                 " RESTART WITH " + newvalue;
-        DbRequest request = new DbRequest(DbConstant.admin.session);
+        DbRequest request = new DbRequest(session);
         try {
             request.query(action);
         } catch (OpenR66DatabaseNoConnectionError e) {
@@ -301,7 +217,7 @@ public class DbModelH2 implements DbModel {
     /*
      * (non-Javadoc)
      *
-     * @see openr66.database.model.DbModel#nextSequence()
+     * @see openr66.databaseold.model.DbModel#nextSequence()
      */
     @Override
     public long nextSequence(DbSession dbSession)
@@ -332,7 +248,7 @@ public class DbModelH2 implements DbModel {
     }
 
     /* (non-Javadoc)
-     * @see openr66.database.model.DbModel#validConnection(DbSession)
+     * @see openr66.databaseold.model.DbModel#validConnection(DbSession)
      */
     @Override
     public void validConnection(DbSession dbSession) throws OpenR66DatabaseNoConnectionError {
@@ -345,7 +261,7 @@ public class DbModelH2 implements DbModel {
             }
         } catch (OpenR66DatabaseSqlError e) {
             try {
-                DbSession newdbSession = new DbSession(DbConstant.admin, false);
+                DbSession newdbSession = new DbSession(dbSession.getAdmin(), false);
                 try {
                     if (dbSession.conn != null) {
                         dbSession.conn.close();
