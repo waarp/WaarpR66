@@ -51,7 +51,6 @@ import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
 import openr66.protocol.localhandler.LocalChannelReference;
-import openr66.protocol.utils.FileUtils;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -177,20 +176,20 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
         }
         StringBuilder builder = new StringBuilder(value);
         
-        FileUtils.replace(builder, REPLACEMENT.XXXDATEXXX.toString(),
+        GgStringUtils.replace(builder, REPLACEMENT.XXXDATEXXX.toString(),
                 (new Date()).toString());
-        FileUtils.replace(builder, REPLACEMENT.XXXLOCACTIVEXXX.toString(),
+        GgStringUtils.replace(builder, REPLACEMENT.XXXLOCACTIVEXXX.toString(),
                 Integer.toString(
                         Configuration.configuration.getLocalTransaction().
                         getNumberLocalChannel()));
-        FileUtils.replace(builder, REPLACEMENT.XXXNETACTIVEXXX.toString(),
+        GgStringUtils.replace(builder, REPLACEMENT.XXXNETACTIVEXXX.toString(),
                 Integer.toString(
                         DbAdmin.getNbConnection()));
-        FileUtils.replace(builder, REPLACEMENT.XXXHOSTIDXXX.toString(),
+        GgStringUtils.replace(builder, REPLACEMENT.XXXHOSTIDXXX.toString(),
                 Configuration.configuration.HOST_ID);
         TrafficCounter trafficCounter =
             Configuration.configuration.getGlobalTrafficShapingHandler().getTrafficCounter();
-        FileUtils.replace(builder, REPLACEMENT.XXXBANDWIDTHXXX.toString(),
+        GgStringUtils.replace(builder, REPLACEMENT.XXXBANDWIDTHXXX.toString(),
                 "IN:"+(trafficCounter.getLastReadThroughput()/131072)+
                 "Mbits&nbsp;&nbsp;OUT:"+
                 (trafficCounter.getLastWriteThroughput()/131072)+"Mbits");

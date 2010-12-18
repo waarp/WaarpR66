@@ -27,7 +27,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
@@ -35,9 +34,6 @@ import java.nio.channels.FileChannel;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 
-import org.dom4j.Document;
-import org.dom4j.io.OutputFormat;
-import org.dom4j.io.XMLWriter;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 
@@ -513,61 +509,5 @@ public class FileUtils {
                     transfert + " bytes instead of " + size + " original bytes");
         }
         return size;
-    }
-    /**
-     * Write the given XML document to filename using the encoding
-     * @param filename
-     * @param encoding if null, default encoding ISO-8859-1 will be used
-     * @param document
-     * @throws OpenR66ProtocolSystemException
-     */
-    public static void writeXML(String filename, String encoding, Document document)
-    throws OpenR66ProtocolSystemException {
-        OutputFormat format = OutputFormat.createPrettyPrint();
-        if (encoding != null) {
-            format.setEncoding(encoding);
-        } else {
-            format.setEncoding("ISO-8859-1");
-        }
-        XMLWriter writer = null;
-        try {
-            writer = new XMLWriter(new FileWriter(filename), format);
-        } catch (IOException e) {
-            throw new OpenR66ProtocolSystemException("Cannot open for write file: "+filename, e);
-        }
-        try {
-            writer.write(document);
-        } catch (IOException e) {
-            throw new OpenR66ProtocolSystemException("Cannot write to file: "+filename, e);
-        }
-        try {
-            writer.close();
-        } catch (IOException e) {
-        }
-    }
-    /**
-     * Make a replacement of first "find" string by "replace" string into the StringBuilder
-     * @param builder
-     * @param find
-     * @param replace
-     */
-    public static boolean replace(StringBuilder builder, String find, String replace) {
-        int start = builder.indexOf(find);
-        if (start == -1) {
-            return false;
-        }
-        int end = start+find.length();
-        builder.replace(start, end, replace);
-        return true;
-    }
-    /**
-     * Make replacement of all "find" string by "replace" string into the StringBuilder
-     * @param builder
-     * @param find
-     * @param replace
-     */
-    public static void replaceAll(StringBuilder builder, String find, String replace) {
-        while (replace(builder, find, replace)) {
-        }
     }
 }

@@ -36,6 +36,7 @@ import goldengate.common.xml.XmlValue;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -593,7 +594,11 @@ public class RuleFileBasedConfiguration {
         Document document = DocumentHelper.createDocument();
         Element root = document.addElement(ROOT);
         addToElement(root, rule);
-        FileUtils.writeXML(filename, null, document);
+        try {
+            XmlUtil.writeXML(filename, null, document);
+        } catch (IOException e) {
+            throw new OpenR66ProtocolSystemException("Cannot write file: "+filename, e);
+        }
     }
     /**
      * Write to directory files prefixed by hostname all Rules from database
@@ -655,7 +660,11 @@ public class RuleFileBasedConfiguration {
                 Element element = root.addElement(ROOT);
                 addToElement(element, rule);
             }
-            FileUtils.writeXML(filename, null, document);
+            try {
+                XmlUtil.writeXML(filename, null, document);
+            } catch (IOException e) {
+                throw new OpenR66ProtocolSystemException("Cannot write file: "+filename, e);
+            }
             return filename;
         } finally {
             if (preparedStatement != null) {

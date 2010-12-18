@@ -21,6 +21,7 @@
 package openr66.context.task;
 
 import goldengate.common.command.exception.CommandAbstractException;
+import goldengate.common.utility.GgStringUtils;
 
 import java.io.File;
 import java.text.DateFormat;
@@ -32,7 +33,6 @@ import openr66.context.filesystem.R66Dir;
 import openr66.context.filesystem.R66File;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNoSslException;
-import openr66.protocol.utils.FileUtils;
 import openr66.protocol.utils.R66Future;
 
 /**
@@ -243,76 +243,76 @@ public abstract class AbstractTask implements Runnable {
             trueFile = session.getFile().getTrueFile();
         }
         if (trueFile != null) {
-            FileUtils.replaceAll(builder, TRUEFULLPATH, trueFile.getAbsolutePath());
-            FileUtils.replaceAll(builder, TRUEFILENAME, R66Dir
+            GgStringUtils.replaceAll(builder, TRUEFULLPATH, trueFile.getAbsolutePath());
+            GgStringUtils.replaceAll(builder, TRUEFILENAME, R66Dir
                     .getFinalUniqueFilename(session.getFile()));
-            FileUtils.replaceAll(builder, FILESIZE, Long.toString(trueFile.length()));
+            GgStringUtils.replaceAll(builder, FILESIZE, Long.toString(trueFile.length()));
         } else {
-            FileUtils.replaceAll(builder, TRUEFULLPATH, "nofile");
-            FileUtils.replaceAll(builder, TRUEFILENAME, "nofile");
-            FileUtils.replaceAll(builder, FILESIZE, "0");
+            GgStringUtils.replaceAll(builder, TRUEFULLPATH, "nofile");
+            GgStringUtils.replaceAll(builder, TRUEFILENAME, "nofile");
+            GgStringUtils.replaceAll(builder, FILESIZE, "0");
         }
-        FileUtils.replaceAll(builder, ORIGINALFULLPATH, session.getRunner()
+        GgStringUtils.replaceAll(builder, ORIGINALFULLPATH, session.getRunner()
                 .getOriginalFilename());
-        FileUtils.replaceAll(builder, ORIGINALFILENAME, R66File.getBasename(session.getRunner()
+        GgStringUtils.replaceAll(builder, ORIGINALFILENAME, R66File.getBasename(session.getRunner()
                 .getOriginalFilename()));
-        FileUtils.replaceAll(builder, RULE, session.getRunner()
+        GgStringUtils.replaceAll(builder, RULE, session.getRunner()
                 .getRuleId());
         DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
         Date date = new Date();
-        FileUtils.replaceAll(builder, DATE, dateFormat.format(date));
+        GgStringUtils.replaceAll(builder, DATE, dateFormat.format(date));
         dateFormat = new SimpleDateFormat("HHmmss");
-        FileUtils.replaceAll(builder, HOUR, dateFormat.format(date));
+        GgStringUtils.replaceAll(builder, HOUR, dateFormat.format(date));
         if (session.getAuth() != null) {
-            FileUtils.replaceAll(builder, REMOTEHOST, session.getAuth().getUser());
+            GgStringUtils.replaceAll(builder, REMOTEHOST, session.getAuth().getUser());
             try {
-                FileUtils.replaceAll(builder, LOCALHOST,
+                GgStringUtils.replaceAll(builder, LOCALHOST,
                         Configuration.configuration.getHostId(session.getAuth().isSsl()));
             } catch (OpenR66ProtocolNoSslException e) {
                 // replace by standard name
-                FileUtils.replaceAll(builder, LOCALHOST,
+                GgStringUtils.replaceAll(builder, LOCALHOST,
                         Configuration.configuration.HOST_ID);
             }
         }
-        FileUtils.replaceAll(builder, REMOTEHOSTADDR, session.getRemoteAddress().toString());
-        FileUtils.replaceAll(builder, LOCALHOSTADDR, session.getLocalAddress().toString());
-        FileUtils.replaceAll(builder, TRANSFERID, Long.toString(session
+        GgStringUtils.replaceAll(builder, REMOTEHOSTADDR, session.getRemoteAddress().toString());
+        GgStringUtils.replaceAll(builder, LOCALHOSTADDR, session.getLocalAddress().toString());
+        GgStringUtils.replaceAll(builder, TRANSFERID, Long.toString(session
                 .getRunner().getSpecialId()));
         String requester = session.getRunner().getRequester();
-        FileUtils.replaceAll(builder, REQUESTERHOST, requester);
+        GgStringUtils.replaceAll(builder, REQUESTERHOST, requester);
         String requested = session.getRunner().getRequested();
-        FileUtils.replaceAll(builder, REQUESTEDHOST, requested);
-        FileUtils.replaceAll(builder, FULLTRANSFERID, session
+        GgStringUtils.replaceAll(builder, REQUESTEDHOST, requested);
+        GgStringUtils.replaceAll(builder, FULLTRANSFERID, session
                 .getRunner().getSpecialId()+"_"+requester+"_"+requested);
-        FileUtils.replaceAll(builder, RANKTRANSFER, Integer.toString(session
+        GgStringUtils.replaceAll(builder, RANKTRANSFER, Integer.toString(session
                 .getRunner().getRank()));
-        FileUtils.replaceAll(builder, BLOCKSIZE, Integer.toString(session
+        GgStringUtils.replaceAll(builder, BLOCKSIZE, Integer.toString(session
                 .getBlockSize()));
         R66Dir dir = new R66Dir(session);
         try {
             dir.changeDirectory(session.getRunner().getRule().recvPath);
-            FileUtils.replaceAll(builder, INPATH, dir.getFullPath());
+            GgStringUtils.replaceAll(builder, INPATH, dir.getFullPath());
         } catch (CommandAbstractException e) {
         }
         dir = new R66Dir(session);
         try {
             dir.changeDirectory(session.getRunner().getRule().sendPath);
-            FileUtils.replaceAll(builder, OUTPATH, dir.getFullPath());
+            GgStringUtils.replaceAll(builder, OUTPATH, dir.getFullPath());
         } catch (CommandAbstractException e) {
         }
         dir = new R66Dir(session);
         try {
             dir.changeDirectory(session.getRunner().getRule().workPath);
-            FileUtils.replaceAll(builder, WORKPATH, dir.getFullPath());
+            GgStringUtils.replaceAll(builder, WORKPATH, dir.getFullPath());
         } catch (CommandAbstractException e) {
         }
         dir = new R66Dir(session);
         try {
             dir.changeDirectory(session.getRunner().getRule().archivePath);
-            FileUtils.replaceAll(builder, ARCHPATH, dir.getFullPath());
+            GgStringUtils.replaceAll(builder, ARCHPATH, dir.getFullPath());
         } catch (CommandAbstractException e) {
         }
-        FileUtils.replaceAll(builder, HOMEPATH, Configuration.configuration.baseDirectory);
+        GgStringUtils.replaceAll(builder, HOMEPATH, Configuration.configuration.baseDirectory);
         String finalname = String.format(builder.toString(), argFormat);
         return finalname;
     }

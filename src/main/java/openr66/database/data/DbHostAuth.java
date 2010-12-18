@@ -29,6 +29,7 @@ import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
 import goldengate.common.database.exception.OpenR66DatabaseNoDataException;
 import goldengate.common.database.exception.OpenR66DatabaseSqlError;
 import goldengate.common.digest.MD5;
+import goldengate.common.utility.GgStringUtils;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -40,7 +41,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import openr66.context.R66Session;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.networkhandler.NetworkTransaction;
-import openr66.protocol.utils.FileUtils;
 
 /**
  * Host Authentication Table object
@@ -586,24 +586,24 @@ public class DbHostAuth extends AbstractDbData {
      */
     public String toSpecializedHtml(R66Session session, String body, boolean crypted) {
         StringBuilder builder = new StringBuilder(body);
-        FileUtils.replace(builder, "XXXHOSTXXX", hostid);
-        FileUtils.replace(builder, "XXXADDRXXX", address);
-        FileUtils.replace(builder, "XXXPORTXXX", Integer.toString(port));
+        GgStringUtils.replace(builder, "XXXHOSTXXX", hostid);
+        GgStringUtils.replace(builder, "XXXADDRXXX", address);
+        GgStringUtils.replace(builder, "XXXPORTXXX", Integer.toString(port));
         if (crypted) {
-            FileUtils.replace(builder, "XXXKEYXXX", new String(hostkey));
+            GgStringUtils.replace(builder, "XXXKEYXXX", new String(hostkey));
         } else {
             try {
-                FileUtils.replace(builder, "XXXKEYXXX",
+                GgStringUtils.replace(builder, "XXXKEYXXX",
                         Configuration.configuration.cryptoKey.decryptHexInString(new String(this.hostkey)));
             } catch (Exception e) {
-                FileUtils.replace(builder, "XXXKEYXXX", "BAD DECRYPT");
+                GgStringUtils.replace(builder, "XXXKEYXXX", "BAD DECRYPT");
             }
         }
-        FileUtils.replace(builder, "XXXSSLXXX", isSsl ? "checked": "");
-        FileUtils.replace(builder, "XXXADMXXX", adminrole ? "checked": "");
-        FileUtils.replace(builder, "XXXISCXXX", isClient ? "checked": "");
+        GgStringUtils.replace(builder, "XXXSSLXXX", isSsl ? "checked": "");
+        GgStringUtils.replace(builder, "XXXADMXXX", adminrole ? "checked": "");
+        GgStringUtils.replace(builder, "XXXISCXXX", isClient ? "checked": "");
         int nb = NetworkTransaction.existConnection(getSocketAddress(), getHostid());
-        FileUtils.replace(builder, "XXXCONNXXX", (nb > 0)
+        GgStringUtils.replace(builder, "XXXCONNXXX", (nb > 0)
                 ? "("+nb+" Connected) ": "");
         return builder.toString();
     }

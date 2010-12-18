@@ -33,6 +33,7 @@ import goldengate.common.xml.XmlUtil;
 import goldengate.common.xml.XmlValue;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
@@ -40,7 +41,6 @@ import openr66.database.DbConstant;
 import openr66.database.data.DbHostAuth;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
-import openr66.protocol.utils.FileUtils;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -297,7 +297,11 @@ public class AuthenticationFileBasedConfiguration {
                 entry.add(newElement(XML_AUTHENTIFICATION_ISSSL, Boolean.toString(auth.isSsl())));
                 root.add(entry);
             }
-            FileUtils.writeXML(filename, null, document);
+            try {
+                XmlUtil.writeXML(filename, null, document);
+            } catch (IOException e) {
+                throw new OpenR66ProtocolSystemException("Cannot write file: "+filename, e);
+            }
         } finally {
             if (preparedStatement != null) {
                 preparedStatement.realClose();

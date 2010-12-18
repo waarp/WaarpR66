@@ -69,7 +69,6 @@ import openr66.protocol.localhandler.packet.RequestPacket.TRANSFERMODE;
 import openr66.protocol.localhandler.packet.TestPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.utils.ChannelUtils;
-import openr66.protocol.utils.FileUtils;
 import openr66.protocol.utils.NbAndSpecialId;
 import openr66.protocol.utils.R66Future;
 import openr66.protocol.utils.TransferUtils;
@@ -247,25 +246,25 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             return "";
         }
         StringBuilder builder = new StringBuilder(value);
-        FileUtils.replace(builder, REPLACEMENT.XXXLOCALXXX.toString(),
+        GgStringUtils.replace(builder, REPLACEMENT.XXXLOCALXXX.toString(),
                 Integer.toString(
                         Configuration.configuration.getLocalTransaction().
                         getNumberLocalChannel())+" "+Thread.activeCount());
-        FileUtils.replace(builder, REPLACEMENT.XXXNETWORKXXX.toString(),
+        GgStringUtils.replace(builder, REPLACEMENT.XXXNETWORKXXX.toString(),
                 Integer.toString(
                         DbAdmin.getNbConnection()));
-        FileUtils.replace(builder, REPLACEMENT.XXXHOSTIDXXX.toString(),
+        GgStringUtils.replace(builder, REPLACEMENT.XXXHOSTIDXXX.toString(),
                 Configuration.configuration.HOST_ID);
         if (authentHttp.isAuthenticated()) {
-            FileUtils.replace(builder, REPLACEMENT.XXXADMINXXX.toString(),
+            GgStringUtils.replace(builder, REPLACEMENT.XXXADMINXXX.toString(),
                 "Connected");
         } else {
-            FileUtils.replace(builder, REPLACEMENT.XXXADMINXXX.toString(),
+            GgStringUtils.replace(builder, REPLACEMENT.XXXADMINXXX.toString(),
                     "Not authenticated");
         }
         TrafficCounter trafficCounter =
             Configuration.configuration.getGlobalTrafficShapingHandler().getTrafficCounter();
-        FileUtils.replace(builder, REPLACEMENT.XXXBANDWIDTHXXX.toString(),
+        GgStringUtils.replace(builder, REPLACEMENT.XXXBANDWIDTHXXX.toString(),
                 "IN:"+(trafficCounter.getLastReadThroughput()/131072)+
                 "Mbits&nbsp;<br>&nbsp;OUT:"+
                 (trafficCounter.getLastWriteThroughput()/131072)+"Mbits");
@@ -325,11 +324,11 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
     private String index() {
         String index = REQUEST.index.readFileUnique(this);
         StringBuilder builder = new StringBuilder(index);
-        FileUtils.replaceAll(builder, REPLACEMENT.XXXHOSTIDXXX.toString(),
+        GgStringUtils.replaceAll(builder, REPLACEMENT.XXXHOSTIDXXX.toString(),
                 Configuration.configuration.HOST_ID);
-        FileUtils.replaceAll(builder, REPLACEMENT.XXXADMINXXX.toString(),
+        GgStringUtils.replaceAll(builder, REPLACEMENT.XXXADMINXXX.toString(),
                 "Administrator Connected");
-        FileUtils.replace(builder, REPLACEMENT.XXXVERSIONXXX.toString(),
+        GgStringUtils.replace(builder, REPLACEMENT.XXXVERSIONXXX.toString(),
                 Version.ID);
         return builder.toString();
     }
@@ -349,17 +348,17 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             String start, String stop, String rule, String req,
             boolean pending, boolean transfer, boolean error, boolean done, boolean all) {
         StringBuilder builder = new StringBuilder(header);
-        FileUtils.replace(builder, "XXXSTARTIDXXX", startid);
-        FileUtils.replace(builder, "XXXSTOPIDXXX", stopid);
-        FileUtils.replace(builder, "XXXSTARTXXX", start);
-        FileUtils.replace(builder, "XXXSTOPXXX", stop);
-        FileUtils.replace(builder, "XXXRULEXXX", rule);
-        FileUtils.replace(builder, "XXXREQXXX", req);
-        FileUtils.replace(builder, "XXXPENDXXX", pending ? "checked":"");
-        FileUtils.replace(builder, "XXXTRANSXXX", transfer ? "checked":"");
-        FileUtils.replace(builder, "XXXERRXXX", error ? "checked":"");
-        FileUtils.replace(builder, "XXXDONEXXX", done ? "checked":"");
-        FileUtils.replace(builder, "XXXALLXXX", all ? "checked":"");
+        GgStringUtils.replace(builder, "XXXSTARTIDXXX", startid);
+        GgStringUtils.replace(builder, "XXXSTOPIDXXX", stopid);
+        GgStringUtils.replace(builder, "XXXSTARTXXX", start);
+        GgStringUtils.replace(builder, "XXXSTOPXXX", stop);
+        GgStringUtils.replace(builder, "XXXRULEXXX", rule);
+        GgStringUtils.replace(builder, "XXXREQXXX", req);
+        GgStringUtils.replace(builder, "XXXPENDXXX", pending ? "checked":"");
+        GgStringUtils.replace(builder, "XXXTRANSXXX", transfer ? "checked":"");
+        GgStringUtils.replace(builder, "XXXERRXXX", error ? "checked":"");
+        GgStringUtils.replace(builder, "XXXDONEXXX", done ? "checked":"");
+        GgStringUtils.replace(builder, "XXXALLXXX", all ? "checked":"");
         return builder.toString();
     }
     private String Listing() {
@@ -848,9 +847,9 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
     private String resetOptionHosts(String header,
             String host, String addr, boolean ssl) {
         StringBuilder builder = new StringBuilder(header);
-        FileUtils.replace(builder, "XXXFHOSTXXX", host);
-        FileUtils.replace(builder, "XXXFADDRXXX", addr);
-        FileUtils.replace(builder, "XXXFSSLXXX", ssl ? "checked":"");
+        GgStringUtils.replace(builder, "XXXFHOSTXXX", host);
+        GgStringUtils.replace(builder, "XXXFADDRXXX", addr);
+        GgStringUtils.replace(builder, "XXXFSSLXXX", ssl ? "checked":"");
         return builder.toString();
     }
     private String Hosts() {
@@ -1099,41 +1098,41 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
     private String resetOptionRules(String header,
             String rule, RequestPacket.TRANSFERMODE mode, int gmode) {
         StringBuilder builder = new StringBuilder(header);
-        FileUtils.replace(builder, "XXXRULEXXX", rule);
+        GgStringUtils.replace(builder, "XXXRULEXXX", rule);
         if (mode != null) {
             switch (mode) {
             case RECVMODE:
-                FileUtils.replace(builder, "XXXRECVXXX", "checked");
+                GgStringUtils.replace(builder, "XXXRECVXXX", "checked");
                 break;
             case SENDMODE:
-                FileUtils.replace(builder, "XXXSENDXXX", "checked");
+                GgStringUtils.replace(builder, "XXXSENDXXX", "checked");
                 break;
             case RECVMD5MODE:
-                FileUtils.replace(builder, "XXXRECVMXXX", "checked");
+                GgStringUtils.replace(builder, "XXXRECVMXXX", "checked");
                 break;
             case SENDMD5MODE:
-                FileUtils.replace(builder, "XXXSENDMXXX", "checked");
+                GgStringUtils.replace(builder, "XXXSENDMXXX", "checked");
                 break;
             case RECVTHROUGHMODE:
-                FileUtils.replace(builder, "XXXRECVTXXX", "checked");
+                GgStringUtils.replace(builder, "XXXRECVTXXX", "checked");
                 break;
             case SENDTHROUGHMODE:
-                FileUtils.replace(builder, "XXXSENDTXXX", "checked");
+                GgStringUtils.replace(builder, "XXXSENDTXXX", "checked");
                 break;
             case RECVMD5THROUGHMODE:
-                FileUtils.replace(builder, "XXXRECVMTXXX", "checked");
+                GgStringUtils.replace(builder, "XXXRECVMTXXX", "checked");
                 break;
             case SENDMD5THROUGHMODE:
-                FileUtils.replace(builder, "XXXSENDMTXXX", "checked");
+                GgStringUtils.replace(builder, "XXXSENDMTXXX", "checked");
                 break;
             }
         }
         if (gmode == -1) {// All Recv
-            FileUtils.replace(builder, "XXXARECVXXX", "checked");
+            GgStringUtils.replace(builder, "XXXARECVXXX", "checked");
         } else if (gmode == -2) {// All Send
-            FileUtils.replace(builder, "XXXASENDXXX", "checked");
+            GgStringUtils.replace(builder, "XXXASENDXXX", "checked");
         } else if (gmode == -3) {// All
-            FileUtils.replace(builder, "XXXALLXXX", "checked");
+            GgStringUtils.replace(builder, "XXXALLXXX", "checked");
         }
         return builder.toString();
     }
@@ -1375,17 +1374,17 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         if (params == null) {
             String system = REQUEST.System.readFileUnique(this);
             StringBuilder builder = new StringBuilder(system);
-            FileUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITWXXX.toString(),
+            GgStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITWXXX.toString(),
                     Long.toString(Configuration.configuration.serverChannelWriteLimit));
-            FileUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITRXXX.toString(),
+            GgStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITRXXX.toString(),
                     Long.toString(Configuration.configuration.serverChannelReadLimit));
-            FileUtils.replace(builder, REPLACEMENT.XXXXDELAYCOMMDXXX.toString(),
+            GgStringUtils.replace(builder, REPLACEMENT.XXXXDELAYCOMMDXXX.toString(),
                     Long.toString(Configuration.configuration.delayCommander));
-            FileUtils.replace(builder, REPLACEMENT.XXXXDELAYRETRYXXX.toString(),
+            GgStringUtils.replace(builder, REPLACEMENT.XXXXDELAYRETRYXXX.toString(),
                     Long.toString(Configuration.configuration.delayRetry));
-            FileUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITWXXX.toString(),
+            GgStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITWXXX.toString(),
                     Long.toString(Configuration.configuration.serverGlobalWriteLimit));
-            FileUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITRXXX.toString(),
+            GgStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITRXXX.toString(),
                     Long.toString(Configuration.configuration.serverGlobalReadLimit));
             return builder.toString();
         }
@@ -1473,17 +1472,17 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         }
         String system = REQUEST.System.readFileUnique(this);
         StringBuilder builder = new StringBuilder(system);
-        FileUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITWXXX.toString(),
+        GgStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITWXXX.toString(),
                 Long.toString(Configuration.configuration.serverChannelWriteLimit));
-        FileUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITRXXX.toString(),
+        GgStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITRXXX.toString(),
                 Long.toString(Configuration.configuration.serverChannelReadLimit));
-        FileUtils.replace(builder, REPLACEMENT.XXXXDELAYCOMMDXXX.toString(),
+        GgStringUtils.replace(builder, REPLACEMENT.XXXXDELAYCOMMDXXX.toString(),
                 Long.toString(Configuration.configuration.delayCommander));
-        FileUtils.replace(builder, REPLACEMENT.XXXXDELAYRETRYXXX.toString(),
+        GgStringUtils.replace(builder, REPLACEMENT.XXXXDELAYRETRYXXX.toString(),
                 Long.toString(Configuration.configuration.delayRetry));
-        FileUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITWXXX.toString(),
+        GgStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITWXXX.toString(),
                 Long.toString(Configuration.configuration.serverGlobalWriteLimit));
-        FileUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITRXXX.toString(),
+        GgStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITRXXX.toString(),
                 Long.toString(Configuration.configuration.serverGlobalReadLimit));
         if (extraInformation != null) {
             builder.append(extraInformation);

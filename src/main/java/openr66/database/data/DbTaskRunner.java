@@ -31,6 +31,7 @@ import goldengate.common.database.exception.OpenR66DatabaseNoDataException;
 import goldengate.common.database.exception.OpenR66DatabaseSqlError;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+import goldengate.common.utility.GgStringUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -63,7 +64,6 @@ import openr66.protocol.http.HttpFormattedHandler;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.localhandler.packet.RequestPacket.TRANSFERMODE;
-import openr66.protocol.utils.FileUtils;
 import openr66.protocol.utils.NbAndSpecialId;
 import openr66.protocol.utils.R66Future;
 
@@ -2567,30 +2567,30 @@ public class DbTaskRunner extends AbstractDbData {
     public String toSpecializedHtml(R66Session session, String body, String running) {
         long freespace = freespace(session);
         StringBuilder builder = new StringBuilder(body);
-        FileUtils.replaceAll(builder, "XXXSpecIdXXX", Long.toString(specialId));
-        FileUtils.replace(builder, "XXXRulXXX", (rule != null? rule.toShortString()
+        GgStringUtils.replaceAll(builder, "XXXSpecIdXXX", Long.toString(specialId));
+        GgStringUtils.replace(builder, "XXXRulXXX", (rule != null? rule.toShortString()
                 : ruleId));
-        FileUtils.replace(builder, "XXXFileXXX", filename);
-        FileUtils.replace(builder, "XXXInfoXXX", fileInformation);
-        FileUtils.replace(builder, "XXXStepXXX", TASKSTEP.values()[globalstep] + " (" +
+        GgStringUtils.replace(builder, "XXXFileXXX", filename);
+        GgStringUtils.replace(builder, "XXXInfoXXX", fileInformation);
+        GgStringUtils.replace(builder, "XXXStepXXX", TASKSTEP.values()[globalstep] + " (" +
                 TASKSTEP.values()[globallaststep] + ")");
-        FileUtils.replace(builder, "XXXCOLXXX", getHtmlColor());
-        FileUtils.replace(builder, "XXXActXXX", Integer.toString(step));
-        FileUtils.replace(builder, "XXXStatXXX", status.mesg);
-        FileUtils.replace(builder, "XXXRunningXXX", running);
-        FileUtils.replace(builder, "XXXInternXXX", UpdatedInfo.values()[updatedInfo].name()+
+        GgStringUtils.replace(builder, "XXXCOLXXX", getHtmlColor());
+        GgStringUtils.replace(builder, "XXXActXXX", Integer.toString(step));
+        GgStringUtils.replace(builder, "XXXStatXXX", status.mesg);
+        GgStringUtils.replace(builder, "XXXRunningXXX", running);
+        GgStringUtils.replace(builder, "XXXInternXXX", UpdatedInfo.values()[updatedInfo].name()+
                 " : "+infostatus.mesg);
-        FileUtils.replace(builder, "XXXUPDCOLXXX", getInfoHtmlColor());
-        FileUtils.replace(builder, "XXXBloXXX", Integer.toString(rank));
-        FileUtils.replace(builder, "XXXisSendXXX", Boolean.toString(isSender));
-        FileUtils.replace(builder, "XXXisMovXXX", Boolean.toString(isFileMoved));
-        FileUtils.replace(builder, "XXXModXXX", TRANSFERMODE.values()[mode].toString());
-        FileUtils.replaceAll(builder, "XXXReqrXXX", requesterHostId);
-        FileUtils.replaceAll(builder, "XXXReqdXXX", requestedHostId);
-        FileUtils.replace(builder, "XXXStarXXX", start.toString());
-        FileUtils.replace(builder, "XXXStopXXX", stop.toString());
-        FileUtils.replace(builder, "XXXBandXXX", bandwidth());
-        FileUtils.replace(builder, "XXXFreeXXX", Long.toString(freespace));
+        GgStringUtils.replace(builder, "XXXUPDCOLXXX", getInfoHtmlColor());
+        GgStringUtils.replace(builder, "XXXBloXXX", Integer.toString(rank));
+        GgStringUtils.replace(builder, "XXXisSendXXX", Boolean.toString(isSender));
+        GgStringUtils.replace(builder, "XXXisMovXXX", Boolean.toString(isFileMoved));
+        GgStringUtils.replace(builder, "XXXModXXX", TRANSFERMODE.values()[mode].toString());
+        GgStringUtils.replaceAll(builder, "XXXReqrXXX", requesterHostId);
+        GgStringUtils.replaceAll(builder, "XXXReqdXXX", requestedHostId);
+        GgStringUtils.replace(builder, "XXXStarXXX", start.toString());
+        GgStringUtils.replace(builder, "XXXStopXXX", stop.toString());
+        GgStringUtils.replace(builder, "XXXBandXXX", bandwidth());
+        GgStringUtils.replace(builder, "XXXFreeXXX", Long.toString(freespace));
         return builder.toString();
     }
 

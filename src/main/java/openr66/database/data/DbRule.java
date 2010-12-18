@@ -31,6 +31,7 @@ import goldengate.common.database.exception.OpenR66DatabaseSqlError;
 import goldengate.common.file.DirInterface;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+import goldengate.common.utility.GgStringUtils;
 import goldengate.common.xml.XmlUtil;
 import goldengate.common.xml.XmlValue;
 
@@ -1034,35 +1035,35 @@ public class DbRule extends AbstractDbData {
      */
     public String toSpecializedHtml(R66Session session, String body) {
         StringBuilder builder = new StringBuilder(body);
-        FileUtils.replace(builder, "XXXRULEXXX", idRule);
-        FileUtils.replace(builder, "XXXIDSXXX", ids == null ? "" : ids);
+        GgStringUtils.replace(builder, "XXXRULEXXX", idRule);
+        GgStringUtils.replace(builder, "XXXIDSXXX", ids == null ? "" : ids);
         if (mode == RequestPacket.TRANSFERMODE.RECVMODE.ordinal()) {
-            FileUtils.replace(builder, "XXXRECVXXX", "checked");
+            GgStringUtils.replace(builder, "XXXRECVXXX", "checked");
         } else if (mode == RequestPacket.TRANSFERMODE.SENDMODE.ordinal()) {
-            FileUtils.replace(builder, "XXXSENDXXX", "checked");
+            GgStringUtils.replace(builder, "XXXSENDXXX", "checked");
         } else if (mode == RequestPacket.TRANSFERMODE.RECVMD5MODE.ordinal()) {
-            FileUtils.replace(builder, "XXXRECVMXXX", "checked");
+            GgStringUtils.replace(builder, "XXXRECVMXXX", "checked");
         } else if (mode == RequestPacket.TRANSFERMODE.SENDMD5MODE.ordinal()) {
-            FileUtils.replace(builder, "XXXSENDMXXX", "checked");
+            GgStringUtils.replace(builder, "XXXSENDMXXX", "checked");
         } else if (mode == RequestPacket.TRANSFERMODE.RECVTHROUGHMODE.ordinal()) {
-            FileUtils.replace(builder, "XXXRECVTXXX", "checked");
+            GgStringUtils.replace(builder, "XXXRECVTXXX", "checked");
         } else if (mode == RequestPacket.TRANSFERMODE.SENDTHROUGHMODE.ordinal()) {
-            FileUtils.replace(builder, "XXXSENDTXXX", "checked");
+            GgStringUtils.replace(builder, "XXXSENDTXXX", "checked");
         } else if (mode == RequestPacket.TRANSFERMODE.RECVMD5THROUGHMODE.ordinal()) {
-            FileUtils.replace(builder, "XXXRECVMTXXX", "checked");
+            GgStringUtils.replace(builder, "XXXRECVMTXXX", "checked");
         } else if (mode == RequestPacket.TRANSFERMODE.SENDMD5THROUGHMODE.ordinal()) {
-            FileUtils.replace(builder, "XXXSENDMTXXX", "checked");
+            GgStringUtils.replace(builder, "XXXSENDMTXXX", "checked");
         }
-        FileUtils.replace(builder, "XXXRPXXX", recvPath == null ? "" : recvPath);
-        FileUtils.replace(builder, "XXXSPXXX", sendPath == null ? "" : sendPath);
-        FileUtils.replace(builder, "XXXAPXXX", archivePath == null ? "" : archivePath);
-        FileUtils.replace(builder, "XXXWPXXX", workPath == null ? "" : workPath);
-        FileUtils.replace(builder, "XXXRPTXXX", rpreTasks == null ? "" : rpreTasks);
-        FileUtils.replace(builder, "XXXRSTXXX", rpostTasks == null ? "" : rpostTasks);
-        FileUtils.replace(builder, "XXXRETXXX", rerrorTasks == null ? "" : rerrorTasks);
-        FileUtils.replace(builder, "XXXSPTXXX", spreTasks == null ? "" : spreTasks);
-        FileUtils.replace(builder, "XXXSSTXXX", spostTasks == null ? "" : spostTasks);
-        FileUtils.replace(builder, "XXXSETXXX", serrorTasks == null ? "" : serrorTasks);
+        GgStringUtils.replace(builder, "XXXRPXXX", recvPath == null ? "" : recvPath);
+        GgStringUtils.replace(builder, "XXXSPXXX", sendPath == null ? "" : sendPath);
+        GgStringUtils.replace(builder, "XXXAPXXX", archivePath == null ? "" : archivePath);
+        GgStringUtils.replace(builder, "XXXWPXXX", workPath == null ? "" : workPath);
+        GgStringUtils.replace(builder, "XXXRPTXXX", rpreTasks == null ? "" : rpreTasks);
+        GgStringUtils.replace(builder, "XXXRSTXXX", rpostTasks == null ? "" : rpostTasks);
+        GgStringUtils.replace(builder, "XXXRETXXX", rerrorTasks == null ? "" : rerrorTasks);
+        GgStringUtils.replace(builder, "XXXSPTXXX", spreTasks == null ? "" : spreTasks);
+        GgStringUtils.replace(builder, "XXXSSTXXX", spostTasks == null ? "" : spostTasks);
+        GgStringUtils.replace(builder, "XXXSETXXX", serrorTasks == null ? "" : serrorTasks);
         return builder.toString();
     }
 
