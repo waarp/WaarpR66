@@ -20,6 +20,7 @@
  */
 package openr66.protocol.http;
 
+import goldengate.common.database.DbAdmin;
 import goldengate.common.database.DbPreparedStatement;
 import goldengate.common.database.DbSession;
 import goldengate.common.database.data.AbstractDbData.UpdatedInfo;
@@ -51,7 +52,6 @@ import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.utils.FileUtils;
-import openr66.protocol.utils.OpenR66SignalHandler;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -185,7 +185,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
                         getNumberLocalChannel()));
         FileUtils.replace(builder, REPLACEMENT.XXXNETACTIVEXXX.toString(),
                 Integer.toString(
-                        OpenR66SignalHandler.getNbConnection()));
+                        DbAdmin.getNbConnection()));
         FileUtils.replace(builder, REPLACEMENT.XXXHOSTIDXXX.toString(),
                 Configuration.configuration.HOST_ID);
         TrafficCounter trafficCounter =

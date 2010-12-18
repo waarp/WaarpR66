@@ -20,6 +20,7 @@
  */
 package openr66.database.model;
 
+import goldengate.common.database.DbAdmin;
 import goldengate.common.database.DbPreparedStatement;
 import goldengate.common.database.DbRequest;
 import goldengate.common.database.DbSession;
@@ -36,7 +37,6 @@ import openr66.database.data.DbConfiguration;
 import openr66.database.data.DbHostAuth;
 import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
-import openr66.protocol.utils.OpenR66SignalHandler;
 
 /**
  * MySQL Database Model implementation
@@ -328,8 +328,8 @@ public class DbModelMysql extends goldengate.common.database.model.DbModelMysql 
                 } catch (SQLException e1) {
                 }
                 dbSession.conn = newdbSession.conn;
-                OpenR66SignalHandler.addConnection(dbSession.internalId, dbSession.conn);
-                OpenR66SignalHandler.removeConnection(newdbSession.internalId);
+                DbAdmin.addConnection(dbSession.internalId, dbSession.conn);
+                DbAdmin.removeConnection(newdbSession.internalId);
                 request.close();
                 request.select("select 1 from dual");
                 if (!request.getNext()) {
@@ -339,7 +339,7 @@ public class DbModelMysql extends goldengate.common.database.model.DbModelMysql 
                         }
                     } catch (SQLException e1) {
                     }
-                    OpenR66SignalHandler.removeConnection(dbSession.internalId);
+                    DbAdmin.removeConnection(dbSession.internalId);
                     throw new OpenR66DatabaseNoConnectionError(
                             "Cannot connect to database");
                 }
@@ -352,7 +352,7 @@ public class DbModelMysql extends goldengate.common.database.model.DbModelMysql 
                 }
             } catch (SQLException e1) {
             }
-            OpenR66SignalHandler.removeConnection(dbSession.internalId);
+            DbAdmin.removeConnection(dbSession.internalId);
             throw new OpenR66DatabaseNoConnectionError(
                     "Cannot connect to database", e);
         } finally {

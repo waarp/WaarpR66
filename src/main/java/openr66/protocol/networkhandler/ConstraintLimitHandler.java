@@ -24,13 +24,13 @@ import goldengate.common.cpu.CpuManagement;
 import goldengate.common.cpu.CpuManagementInterface;
 import goldengate.common.cpu.CpuManagementNoInfo;
 import goldengate.common.cpu.CpuManagementSysmon;
+import goldengate.common.database.DbAdmin;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
 import java.util.Random;
 
 import openr66.protocol.configuration.Configuration;
-import openr66.protocol.utils.OpenR66SignalHandler;
 
 /**
  * Constraint Limit (CPU and connection - network and local -) handler, only for server side (requested or requester).
@@ -101,7 +101,7 @@ public class ConstraintLimitHandler {
             }
         }
         if (channelLimit > 0) {
-            int nb = OpenR66SignalHandler.getNbConnection();
+            int nb = DbAdmin.getNbConnection();
             if (channelLimit <= nb) {
                 logger.debug("NW:"+nb+" > "+channelLimit);
                 return true;

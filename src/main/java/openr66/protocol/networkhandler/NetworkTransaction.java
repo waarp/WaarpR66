@@ -20,6 +20,7 @@
  */
 package openr66.protocol.networkhandler;
 
+import goldengate.common.database.DbAdmin;
 import goldengate.common.digest.MD5;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
@@ -527,7 +528,7 @@ public class NetworkTransaction {
             Thread.sleep(Configuration.WAITFORNETOP);
         } catch (InterruptedException e) {
         }
-        OpenR66SignalHandler.closeAllConnection();
+        DbAdmin.closeAllConnection();
         logger.info("Last action before exit");
         ChannelUtils.stopLogger();
     }

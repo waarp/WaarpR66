@@ -20,6 +20,7 @@
  */
 package openr66.protocol.http.adminssl;
 
+import goldengate.common.database.DbAdmin;
 import goldengate.common.database.DbPreparedStatement;
 import goldengate.common.database.DbSession;
 import goldengate.common.database.exception.OpenR66DatabaseException;
@@ -70,7 +71,6 @@ import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.utils.ChannelUtils;
 import openr66.protocol.utils.FileUtils;
 import openr66.protocol.utils.NbAndSpecialId;
-import openr66.protocol.utils.OpenR66SignalHandler;
 import openr66.protocol.utils.R66Future;
 import openr66.protocol.utils.TransferUtils;
 import openr66.protocol.utils.Version;
@@ -253,7 +253,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                         getNumberLocalChannel())+" "+Thread.activeCount());
         FileUtils.replace(builder, REPLACEMENT.XXXNETWORKXXX.toString(),
                 Integer.toString(
-                        OpenR66SignalHandler.getNbConnection()));
+                        DbAdmin.getNbConnection()));
         FileUtils.replace(builder, REPLACEMENT.XXXHOSTIDXXX.toString(),
                 Configuration.configuration.HOST_ID);
         if (authentHttp.isAuthenticated()) {

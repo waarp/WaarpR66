@@ -20,6 +20,7 @@
  */
 package openr66.database.model;
 
+import goldengate.common.database.DbAdmin;
 import goldengate.common.database.DbPreparedStatement;
 import goldengate.common.database.DbRequest;
 import goldengate.common.database.DbSession;
@@ -35,7 +36,6 @@ import openr66.database.data.DbConfiguration;
 import openr66.database.data.DbHostAuth;
 import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
-import openr66.protocol.utils.OpenR66SignalHandler;
 
 /**
  * PostGreSQL Database Model implementation
@@ -270,8 +270,8 @@ public class DbModelPostgresql extends goldengate.common.database.model.DbModelP
                 } catch (SQLException e1) {
                 }
                 dbSession.conn = newdbSession.conn;
-                OpenR66SignalHandler.addConnection(dbSession.internalId, dbSession.conn);
-                OpenR66SignalHandler.removeConnection(newdbSession.internalId);
+                DbAdmin.addConnection(dbSession.internalId, dbSession.conn);
+                DbAdmin.removeConnection(newdbSession.internalId);
                 request.close();
                 request.select("select 1");
                 if (!request.getNext()) {
@@ -281,7 +281,7 @@ public class DbModelPostgresql extends goldengate.common.database.model.DbModelP
                         }
                     } catch (SQLException e1) {
                     }
-                    OpenR66SignalHandler.removeConnection(dbSession.internalId);
+                    DbAdmin.removeConnection(dbSession.internalId);
                     throw new OpenR66DatabaseNoConnectionError(
                             "Cannot connect to database");
                 }
@@ -294,7 +294,7 @@ public class DbModelPostgresql extends goldengate.common.database.model.DbModelP
                 }
             } catch (SQLException e1) {
             }
-            OpenR66SignalHandler.removeConnection(dbSession.internalId);
+            DbAdmin.removeConnection(dbSession.internalId);
             throw new OpenR66DatabaseNoConnectionError(
                     "Cannot connect to database", e);
         } finally {

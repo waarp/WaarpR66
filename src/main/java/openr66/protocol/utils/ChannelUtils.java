@@ -20,6 +20,7 @@
  */
 package openr66.protocol.utils;
 
+import goldengate.common.database.DbAdmin;
 import goldengate.common.file.DataBlock;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
@@ -308,7 +309,7 @@ public class ChannelUtils extends Thread {
         if (Configuration.configuration.useLocalExec) {
             LocalExecClient.releaseResources();
         }
-        OpenR66SignalHandler.closeAllConnection();
+        DbAdmin.closeAllConnection();
         Configuration.configuration.serverStop();
         System.err.println("Exit end of Shutdown");
         Thread.currentThread().interrupt();

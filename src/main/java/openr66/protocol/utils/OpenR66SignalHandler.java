@@ -23,12 +23,9 @@ package openr66.protocol.utils;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ConcurrentHashMap;
 
 import openr66.protocol.configuration.Configuration;
 
@@ -57,11 +54,6 @@ public class OpenR66SignalHandler implements SignalHandler {
      * Set if the Handler is initialized
      */
     private static boolean initialized = false;
-
-    /**
-     * List all Connection to enable the close call on them
-     */
-    private static ConcurrentHashMap<Long, Connection> listConnection = new ConcurrentHashMap<Long, Connection>();
 
     /**
      * Previous Handler
@@ -233,42 +225,5 @@ public class OpenR66SignalHandler implements SignalHandler {
         //ChannelUtils.stopLogger();
         System.err.println("Signal: "+signal.getNumber());
         System.exit(0);
-    }
-
-    /**
-     * Add a Connection into the list
-     *
-     * @param conn
-     */
-    public static void addConnection(long id, Connection conn) {
-        listConnection.put(Long.valueOf(id), conn);
-    }
-
-    /**
-     * Remove a Connection from the list
-     *
-     * @param id Id of the connection
-     */
-    public static void removeConnection(long id) {
-        listConnection.remove(Long.valueOf(id));
-    }
-    /**
-     *
-     * @return the number of connection (so number of network channels)
-     */
-    public static int getNbConnection() {
-        return listConnection.size()-1;
-    }
-    /**
-     * Close all database connections
-     */
-    public static void closeAllConnection() {
-        for (Connection con : listConnection.values()) {
-            try {
-                con.close();
-            } catch (SQLException e) {
-            }
-        }
-        listConnection.clear();
     }
 }
