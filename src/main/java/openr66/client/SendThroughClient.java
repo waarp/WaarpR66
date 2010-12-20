@@ -20,7 +20,7 @@
  */
 package openr66.client;
 
-import goldengate.common.database.exception.OpenR66DatabaseException;
+import goldengate.common.database.exception.GoldenGateDatabaseException;
 import goldengate.common.file.DataBlock;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.commander.ClientRunner;
@@ -144,7 +144,7 @@ public class SendThroughClient extends AbstractTransfer {
         DbRule rule;
         try {
             rule = new DbRule(DbConstant.admin.session, rulename);
-        } catch (OpenR66DatabaseException e) {
+        } catch (GoldenGateDatabaseException e) {
             logger.error("Cannot get Rule: "+rulename, e);
             future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
                     ErrorCode.Internal,null));
@@ -164,7 +164,7 @@ public class SendThroughClient extends AbstractTransfer {
             try {
                 taskRunner =
                     new DbTaskRunner(DbConstant.admin.session,rule,isSender,request,remoteHost);
-            } catch (OpenR66DatabaseException e) {
+            } catch (GoldenGateDatabaseException e) {
                 logger.error("Cannot get task", e);
                 future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
                         ErrorCode.Internal, null));
@@ -225,7 +225,7 @@ public class SendThroughClient extends AbstractTransfer {
                 if (future.isFailed()) {
                     try {
                         taskRunner.delete();
-                    } catch (OpenR66DatabaseException e) {
+                    } catch (GoldenGateDatabaseException e) {
                     }
                 }
             }
@@ -281,7 +281,7 @@ public class SendThroughClient extends AbstractTransfer {
                 if ((!future.isSuccess()) || nolog) {
                     try {
                         taskRunner.delete();
-                    } catch (OpenR66DatabaseException e) {
+                    } catch (GoldenGateDatabaseException e) {
                     }
                 }
             }

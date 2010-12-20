@@ -23,9 +23,9 @@ package openr66.protocol.http.adminssl;
 import goldengate.common.database.DbAdmin;
 import goldengate.common.database.DbPreparedStatement;
 import goldengate.common.database.DbSession;
-import goldengate.common.database.exception.OpenR66DatabaseException;
-import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
-import goldengate.common.database.exception.OpenR66DatabaseSqlError;
+import goldengate.common.database.exception.GoldenGateDatabaseException;
+import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
+import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
 import goldengate.common.exception.FileTransferException;
 import goldengate.common.exception.InvalidArgumentException;
 import goldengate.common.logging.GgInternalLogger;
@@ -435,7 +435,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                             if (i > LIMITROW) {
                                 break;
                             }
-                        } catch (OpenR66DatabaseException e) {
+                        } catch (GoldenGateDatabaseException e) {
                             // try to continue if possible
                             logger.warn("An error occurs while accessing a Runner: {}",
                                     e.getMessage());
@@ -444,7 +444,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     }
                     preparedStatement.realClose();
                     body = builder.toString();
-                } catch (OpenR66DatabaseException e) {
+                } catch (GoldenGateDatabaseException e) {
                     if (preparedStatement != null) {
                         preparedStatement.realClose();
                     }
@@ -539,7 +539,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                             if (i > LIMITROW) {
                                 break;
                             }
-                        } catch (OpenR66DatabaseException e) {
+                        } catch (GoldenGateDatabaseException e) {
                             // try to continue if possible
                             logger.warn("An error occurs while accessing a Runner: {}",
                                     e.getMessage());
@@ -548,7 +548,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     }
                     preparedStatement.realClose();
                     body = builder.toString();
-                } catch (OpenR66DatabaseException e) {
+                } catch (GoldenGateDatabaseException e) {
                     if (preparedStatement != null) {
                         preparedStatement.realClose();
                     }
@@ -619,14 +619,14 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                                 if (i > LIMITROW) {
                                     break;
                                 }
-                            } catch (OpenR66DatabaseException e) {
+                            } catch (GoldenGateDatabaseException e) {
                                 // try to continue if possible
                                 logger.warn("An error occurs while accessing a Runner: {}",
                                         e.getMessage());
                                 continue;
                             }                        }
                         preparedStatement.realClose();
-                    } catch (OpenR66DatabaseException e) {
+                    } catch (GoldenGateDatabaseException e) {
                         if (preparedStatement != null) {
                             preparedStatement.realClose();
                         }
@@ -651,7 +651,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 try {
                     taskRunner = new DbTaskRunner(dbSession, authentHttp, null,
                             lspecid, reqr, reqd);
-                } catch (OpenR66DatabaseException e) {
+                } catch (GoldenGateDatabaseException e) {
                 }
                 if (taskRunner == null) {
                     body = "";
@@ -727,7 +727,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                             (taskRunner.getSpecialId()+1)+"", tstart, tstop,
                             taskRunner.getRuleId(), taskRunner.getRequested(),
                             false, false, false, false, true);
-                } catch (OpenR66DatabaseException e) {
+                } catch (GoldenGateDatabaseException e) {
                     body = "";
                     comment = "Internal error";
                 }
@@ -788,7 +788,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         // clean a bit the database before exporting
         try {
             DbTaskRunner.changeFinishedToDone(dbSession);
-        } catch (OpenR66DatabaseNoConnectionError e2) {
+        } catch (GoldenGateDatabaseNoConnectionError e2) {
             // should not be
         }
         // create export of log and optionally purge them from database
@@ -804,10 +804,10 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                         true, null, null, tstart, tstop, rule, req,
                         pending, transfer, error, done, all);
             nbAndSpecialId = DbTaskRunner.writeXMLWriter(getValid, filename);
-        } catch (OpenR66DatabaseNoConnectionError e1) {
+        } catch (GoldenGateDatabaseNoConnectionError e1) {
             isexported = false;
             toPurge = false;
-        } catch (OpenR66DatabaseSqlError e1) {
+        } catch (GoldenGateDatabaseSqlError e1) {
             isexported = false;
             toPurge = false;
         } catch (OpenR66ProtocolBusinessException e) {
@@ -835,8 +835,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                         DbTaskRunner.purgeLogPrepareStament(dbSession,
                                 null,stopId, tstart, tstop, rule, req,
                                 pending, transfer, error, done, all);
-                } catch (OpenR66DatabaseNoConnectionError e) {
-                } catch (OpenR66DatabaseSqlError e) {
+                } catch (GoldenGateDatabaseNoConnectionError e) {
+                } catch (GoldenGateDatabaseSqlError e) {
                 }
             }
         }
@@ -888,7 +888,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                         ssl, key.getBytes(), admin, isclient);
                 try {
                     dbhost.insert();
-                } catch (OpenR66DatabaseException e) {
+                } catch (GoldenGateDatabaseException e) {
                     body0 = body1 = body = "";
                     body = "<p><center><b>Cannot create a Host: "+e.getMessage()+"</b></center></p>";
                     head = resetOptionHosts(head, "", "", false);
@@ -921,7 +921,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     }
                     preparedStatement.realClose();
                     body = builder.toString();
-                } catch (OpenR66DatabaseException e) {
+                } catch (GoldenGateDatabaseException e) {
                     if (preparedStatement != null) {
                         preparedStatement.realClose();
                     }
@@ -953,7 +953,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     } else {
                         dbhost.insert();
                     }
-                } catch (OpenR66DatabaseException e) {
+                } catch (GoldenGateDatabaseException e) {
                     body0 = body1 = body = "";
                     body = "<p><center><b>Cannot update a Host: "+e.getMessage()+"</b></center></p>";
                     head = resetOptionHosts(head, "", "", false);
@@ -1044,7 +1044,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 DbHostAuth dbhost;
                 try {
                     dbhost = new DbHostAuth(dbSession, host);
-                } catch (OpenR66DatabaseException e) {
+                } catch (GoldenGateDatabaseException e) {
                     body0 = body1 = body = "";
                     body = "<p><center><b>Cannot delete a Host: "+e.getMessage()+"</b></center></p>";
                     head = resetOptionHosts(head, "", "", false);
@@ -1052,7 +1052,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 }
                 try {
                     dbhost.delete();
-                } catch (OpenR66DatabaseException e) {
+                } catch (GoldenGateDatabaseException e) {
                     body0 = body1 = body = "";
                     body = "<p><center><b>Cannot delete a Host: "+e.getMessage()+"</b></center></p>";
                     head = resetOptionHosts(head, "", "", false);
@@ -1088,7 +1088,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 }
             }
             preparedStatement.realClose();
-        } catch (OpenR66DatabaseException e) {
+        } catch (GoldenGateDatabaseException e) {
             if (preparedStatement != null) {
                 preparedStatement.realClose();
             }
@@ -1212,7 +1212,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                             dbrule.insert();
                         }
                     }
-                } catch (OpenR66DatabaseException e) {
+                } catch (GoldenGateDatabaseException e) {
                     body0 = body1 = body = "";
                     body = "<p><center><b>Cannot create a Rule: "+e.getMessage()+"</b></center></p>";
                     head = resetOptionRules(head, "", null, -3);
@@ -1341,7 +1341,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 DbRule dbrule;
                 try {
                     dbrule = new DbRule(dbSession,rule);
-                } catch (OpenR66DatabaseException e) {
+                } catch (GoldenGateDatabaseException e) {
                     body0 = body1 = body = "";
                     body = "<p><center><b>Cannot delete a Rule: "+e.getMessage()+"</b></center></p>";
                     head = resetOptionRules(head, "", null, -3);
@@ -1349,7 +1349,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 }
                 try {
                     dbrule.delete();
-                } catch (OpenR66DatabaseException e) {
+                } catch (GoldenGateDatabaseException e) {
                     body0 = body1 = body = "";
                     body = "<p><center><b>Cannot delete a Rule: "+e.getMessage()+"</b></center></p>";
                     head = resetOptionRules(head, "", null, -3);
@@ -1400,8 +1400,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                         RuleFileBasedConfiguration.writeXml(directory,
                             Configuration.configuration.HOST_ID);
                         extraInformation += "-Rule are exported.<br>";
-                    } catch (OpenR66DatabaseNoConnectionError e1) {
-                    } catch (OpenR66DatabaseSqlError e1) {
+                    } catch (GoldenGateDatabaseNoConnectionError e1) {
+                    } catch (GoldenGateDatabaseSqlError e1) {
                     } catch (OpenR66ProtocolSystemException e1) {
                     }
                     String filename =
@@ -1410,8 +1410,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     extraInformation += "-Authent are exported.<br>";
                     try {
                         AuthenticationFileBasedConfiguration.writeXML(filename);
-                    } catch (OpenR66DatabaseNoConnectionError e) {
-                    } catch (OpenR66DatabaseSqlError e) {
+                    } catch (GoldenGateDatabaseNoConnectionError e) {
+                    } catch (GoldenGateDatabaseSqlError e) {
                     } catch (OpenR66ProtocolSystemException e) {
                     }
                 } else if (act.equalsIgnoreCase("Disconnect")) {
@@ -1596,7 +1596,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                             this.dbSession = new DbSession(DbConstant.admin, false);
                             this.isPrivateDbSession = true;
                         }
-                    } catch (OpenR66DatabaseNoConnectionError e1) {
+                    } catch (GoldenGateDatabaseNoConnectionError e1) {
                         // Cannot connect so use default connection
                         logger.warn("Use default database connection");
                         this.dbSession = DbConstant.admin.session;

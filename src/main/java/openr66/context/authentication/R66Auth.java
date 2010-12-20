@@ -24,7 +24,7 @@ import goldengate.common.command.NextCommandReply;
 import goldengate.common.command.exception.Reply421Exception;
 import goldengate.common.command.exception.Reply530Exception;
 import goldengate.common.database.DbSession;
-import goldengate.common.database.exception.OpenR66DatabaseException;
+import goldengate.common.database.exception.GoldenGateDatabaseException;
 import goldengate.common.file.DirInterface;
 import goldengate.common.file.filesystembased.FilesystemBasedAuthImpl;
 import goldengate.common.logging.GgInternalLogger;
@@ -231,7 +231,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
         DbHostAuth auth = null;
         try {
             auth = new DbHostAuth(dbSession, server);
-        } catch (OpenR66DatabaseException e) {
+        } catch (GoldenGateDatabaseException e) {
             logger.warn("Cannot find the authentication", e);
             return null;
         }

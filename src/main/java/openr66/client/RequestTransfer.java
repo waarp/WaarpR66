@@ -21,7 +21,7 @@
 package openr66.client;
 
 import goldengate.common.database.data.AbstractDbData.UpdatedInfo;
-import goldengate.common.database.exception.OpenR66DatabaseException;
+import goldengate.common.database.exception.GoldenGateDatabaseException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
@@ -115,7 +115,7 @@ public class RequestTransfer implements Runnable {
                 try {
                     srequester = Configuration.configuration.getHostId(DbConstant.admin.session,
                             srequested);
-                } catch (OpenR66DatabaseException e) {
+                } catch (GoldenGateDatabaseException e) {
                     logger.error("Cannot get Host Id: "+srequester,e);
                     return false;
                 }
@@ -125,7 +125,7 @@ public class RequestTransfer implements Runnable {
                 try {
                     srequested = Configuration.configuration.getHostId(DbConstant.admin.session,
                             srequester);
-                } catch (OpenR66DatabaseException e) {
+                } catch (GoldenGateDatabaseException e) {
                     logger.error("Cannot get Host Id: "+srequested,e);
                     return false;
                 }
@@ -182,7 +182,7 @@ public class RequestTransfer implements Runnable {
         try {
             runner = new DbTaskRunner(DbConstant.admin.session,null,null,
                     specialId,requester,requested);
-        } catch (OpenR66DatabaseException e) {
+        } catch (GoldenGateDatabaseException e) {
             logger.error("Cannot find the transfer");
             future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
                     ErrorCode.Internal, null));

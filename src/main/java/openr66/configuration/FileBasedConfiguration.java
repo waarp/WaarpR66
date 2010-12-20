@@ -26,8 +26,8 @@ import goldengate.common.crypto.ssl.GgSecureKeyStore;
 import goldengate.common.crypto.ssl.GgSslContextFactory;
 import goldengate.common.database.DbAdmin;
 import goldengate.common.database.data.AbstractDbData.UpdatedInfo;
-import goldengate.common.database.exception.OpenR66DatabaseException;
-import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
+import goldengate.common.database.exception.GoldenGateDatabaseException;
+import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
 import goldengate.common.digest.FilesystemBasedDigest;
 import goldengate.common.digest.MD5;
 import goldengate.common.exception.CryptoException;
@@ -877,7 +877,7 @@ public class FileBasedConfiguration {
                     } else {
                         configuration.insert();
                     }
-                } catch (OpenR66DatabaseException e) {
+                } catch (GoldenGateDatabaseException e) {
                 }
             }
         }
@@ -1133,7 +1133,7 @@ public class FileBasedConfiguration {
                         DbConstant.admin.session,
                         Configuration.configuration.HOST_ID);
                 configuration.updateConfiguration();
-            } catch (OpenR66DatabaseException e) {
+            } catch (GoldenGateDatabaseException e) {
                 logger.warn("Cannot load configuration from database", e);
             }
         } else {
@@ -1149,7 +1149,7 @@ public class FileBasedConfiguration {
                     } catch (OpenR66ProtocolSystemException e) {
                         logger.error("Cannot load Rules", e);
                         return false;
-                    } catch (OpenR66DatabaseException e) {
+                    } catch (GoldenGateDatabaseException e) {
                         logger.error("Cannot load Rules", e);
                         return false;
                     }
@@ -1208,7 +1208,7 @@ public class FileBasedConfiguration {
                 DbConstant.admin = 
                     DbModelFactory.initialize(dbdriver, dbserver, dbuser, dbpasswd,
                         true);
-            } catch (OpenR66DatabaseNoConnectionError e2) {
+            } catch (GoldenGateDatabaseNoConnectionError e2) {
                 logger.error("Unable to Connect to DB", e2);
                 return false;
             }

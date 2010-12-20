@@ -20,8 +20,8 @@
  */
 package openr66.server;
 
-import goldengate.common.database.exception.OpenR66DatabaseException;
-import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
+import goldengate.common.database.exception.GoldenGateDatabaseException;
+import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
@@ -126,7 +126,7 @@ public class ServerInitDatabase {
                 // Init database
                 try {
                     initdb();
-                } catch (OpenR66DatabaseNoConnectionError e) {
+                } catch (GoldenGateDatabaseNoConnectionError e) {
                     logger.error("Cannot connect to database");
                     return;
                 }
@@ -161,7 +161,7 @@ public class ServerInitDatabase {
         }
     }
 
-    public static void initdb() throws OpenR66DatabaseNoConnectionError {
+    public static void initdb() throws GoldenGateDatabaseNoConnectionError {
         // Create tables: configuration, hosts, rules, runner, cptrunner
         DbModelFactory.dbModel.createTables(DbConstant.admin.session);
     }
@@ -171,7 +171,7 @@ public class ServerInitDatabase {
             RuleFileBasedConfiguration.importRules(dirConfig);
         } catch (OpenR66ProtocolSystemException e3) {
             e3.printStackTrace();
-        } catch (OpenR66DatabaseException e) {
+        } catch (GoldenGateDatabaseException e) {
             e.printStackTrace();
         }
     }

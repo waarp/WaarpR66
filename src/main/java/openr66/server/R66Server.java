@@ -20,7 +20,7 @@
  */
 package openr66.server;
 
-import goldengate.common.database.exception.OpenR66DatabaseException;
+import goldengate.common.database.exception.GoldenGateDatabaseException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
@@ -63,7 +63,7 @@ public class R66Server {
         }
         try {
             Configuration.configuration.serverStartup();
-        } catch (OpenR66DatabaseException e) {
+        } catch (GoldenGateDatabaseException e) {
             logger
                 .error("Startup of server is in error");
             OpenR66SignalHandler.terminate(false);

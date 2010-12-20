@@ -25,10 +25,10 @@ import goldengate.common.database.DbPreparedStatement;
 import goldengate.common.database.DbSession;
 import goldengate.common.database.data.AbstractDbData;
 import goldengate.common.database.data.DbValue;
-import goldengate.common.database.exception.OpenR66DatabaseException;
-import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
-import goldengate.common.database.exception.OpenR66DatabaseNoDataException;
-import goldengate.common.database.exception.OpenR66DatabaseSqlError;
+import goldengate.common.database.exception.GoldenGateDatabaseException;
+import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
+import goldengate.common.database.exception.GoldenGateDatabaseNoDataException;
+import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.utility.GgStringUtils;
@@ -325,11 +325,11 @@ public class DbTaskRunner extends AbstractDbData {
      * @param isSender
      * @param requestPacket
      * @param requested
-     * @throws OpenR66DatabaseException
+     * @throws GoldenGateDatabaseException
      */
     public DbTaskRunner(DbSession dbSession, DbRule rule, boolean isSender,
             RequestPacket requestPacket, String requested)
-            throws OpenR66DatabaseException {
+            throws GoldenGateDatabaseException {
         super(dbSession);
         this.session = null;
         this.rule = rule;
@@ -376,11 +376,11 @@ public class DbTaskRunner extends AbstractDbData {
      * @param rule
      * @param isSender
      * @param requestPacket
-     * @throws OpenR66DatabaseException
+     * @throws GoldenGateDatabaseException
      */
     public DbTaskRunner(DbSession dbSession, R66Session session, DbRule rule,
             boolean isSender, RequestPacket requestPacket)
-            throws OpenR66DatabaseException {
+            throws GoldenGateDatabaseException {
         super(dbSession);
         this.session = session;
         this.rule = rule;
@@ -425,11 +425,11 @@ public class DbTaskRunner extends AbstractDbData {
      * @param id
      * @param requester
      * @param requested
-     * @throws OpenR66DatabaseException
+     * @throws GoldenGateDatabaseException
      */
     public DbTaskRunner(DbSession dbSession, R66Session session, DbRule rule,
             long id, String requester, String requested)
-            throws OpenR66DatabaseException {
+            throws GoldenGateDatabaseException {
         super(dbSession);
         this.session = session;
         this.rule = rule;
@@ -446,7 +446,7 @@ public class DbTaskRunner extends AbstractDbData {
 
         if (rule != null) {
             if (!ruleId.equals(rule.idRule)) {
-                throw new OpenR66DatabaseNoDataException(
+                throw new GoldenGateDatabaseNoDataException(
                         "Rule does not correspond");
             }
         }
@@ -479,7 +479,7 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     @Override
-    protected void setFromArray() throws OpenR66DatabaseSqlError {
+    protected void setFromArray() throws GoldenGateDatabaseSqlError {
         globalstep = (Integer) allFields[Columns.GLOBALSTEP.ordinal()]
                 .getValue();
         globallaststep = (Integer) allFields[Columns.GLOBALLASTSTEP.ordinal()]
@@ -568,7 +568,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @see openr66.databaseold.data.AbstractDbData#delete()
      */
     @Override
-    public void delete() throws OpenR66DatabaseException {
+    public void delete() throws GoldenGateDatabaseException {
         if (dbSession == null) {
             removeNoDbSpecialId();
             if (Configuration.configuration.saveTaskRunnerWithNoDb) {
@@ -585,7 +585,7 @@ public class DbTaskRunner extends AbstractDbData {
             setValues(preparedStatement, primaryKey);
             int count = preparedStatement.executeUpdate();
             if (count <= 0) {
-                throw new OpenR66DatabaseNoDataException("No row found");
+                throw new GoldenGateDatabaseNoDataException("No row found");
             }
             isSaved = false;
         } finally {
@@ -599,7 +599,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @see openr66.databaseold.data.AbstractDbData#insert()
      */
     @Override
-    public void insert() throws OpenR66DatabaseException {
+    public void insert() throws GoldenGateDatabaseException {
         if (isSaved) {
             return;
         }
@@ -635,7 +635,7 @@ public class DbTaskRunner extends AbstractDbData {
             setValues(preparedStatement, allFields);
             int count = preparedStatement.executeUpdate();
             if (count <= 0) {
-                throw new OpenR66DatabaseNoDataException("No row found");
+                throw new GoldenGateDatabaseNoDataException("No row found");
             }
             isSaved = true;
         } finally {
@@ -646,9 +646,9 @@ public class DbTaskRunner extends AbstractDbData {
     /**
      * As insert but with the ability to change the SpecialId
      *
-     * @throws OpenR66DatabaseException
+     * @throws GoldenGateDatabaseException
      */
-    public void create() throws OpenR66DatabaseException {
+    public void create() throws GoldenGateDatabaseException {
         if (isSaved) {
             return;
         }
@@ -685,9 +685,9 @@ public class DbTaskRunner extends AbstractDbData {
             try {
                 int count = preparedStatement.executeUpdate();
                 if (count <= 0) {
-                    throw new OpenR66DatabaseNoDataException("No row found");
+                    throw new GoldenGateDatabaseNoDataException("No row found");
                 }
-            } catch (OpenR66DatabaseSqlError e) {
+            } catch (GoldenGateDatabaseSqlError e) {
                 logger.error("Problem while inserting", e);
                 DbPreparedStatement find = new DbPreparedStatement(dbSession);
                 try {
@@ -705,7 +705,7 @@ public class DbTaskRunner extends AbstractDbData {
                         try {
                             result = find.getResultSet().getLong(1);
                         } catch (SQLException e1) {
-                            throw new OpenR66DatabaseSqlError(e1);
+                            throw new GoldenGateDatabaseSqlError(e1);
                         }
                         specialId = result + 1;
                         DbModelFactory.dbModel.resetSequence(dbSession, specialId + 1);
@@ -714,10 +714,10 @@ public class DbTaskRunner extends AbstractDbData {
                         setValues(preparedStatement, allFields);
                         int count = preparedStatement.executeUpdate();
                         if (count <= 0) {
-                            throw new OpenR66DatabaseNoDataException("No row found");
+                            throw new GoldenGateDatabaseNoDataException("No row found");
                         }
                     } else {
-                        throw new OpenR66DatabaseNoDataException("No row found");
+                        throw new GoldenGateDatabaseNoDataException("No row found");
                     }
                 } finally {
                     find.realClose();
@@ -735,7 +735,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @see openr66.databaseold.data.AbstractDbData#exist()
      */
     @Override
-    public boolean exist() throws OpenR66DatabaseException {
+    public boolean exist() throws GoldenGateDatabaseException {
         if (dbSession == null) {
             if (Configuration.configuration.saveTaskRunnerWithNoDb) {
                 return existXmlWorkNoDb();
@@ -763,14 +763,14 @@ public class DbTaskRunner extends AbstractDbData {
      * @see openr66.databaseold.data.AbstractDbData#select()
      */
     @Override
-    public void select() throws OpenR66DatabaseException {
+    public void select() throws GoldenGateDatabaseException {
         if (dbSession == null) {
             if (Configuration.configuration.saveTaskRunnerWithNoDb) {
                 try {
                     this.loadXmlWorkNoDb();
                     setFromArray();
                 } catch (OpenR66ProtocolBusinessException e) {
-                    throw new OpenR66DatabaseNoDataException("No file found");
+                    throw new GoldenGateDatabaseNoDataException("No file found");
                 }
                 if (rule == null) {
                     rule = new DbRule(this.dbSession, ruleId);
@@ -778,7 +778,7 @@ public class DbTaskRunner extends AbstractDbData {
                 isSaved = true;
                 return;
             }
-            throw new OpenR66DatabaseNoDataException("No row found");
+            throw new GoldenGateDatabaseNoDataException("No row found");
         }
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
                 dbSession);
@@ -797,7 +797,7 @@ public class DbTaskRunner extends AbstractDbData {
                 }
                 isSaved = true;
             } else {
-                throw new OpenR66DatabaseNoDataException("No row found: " +
+                throw new GoldenGateDatabaseNoDataException("No row found: " +
                         primaryKey[1].getValueAsString() + ":" +
                         primaryKey[2].getValueAsString() + ":" +
                         primaryKey[3].getValueAsString());
@@ -813,7 +813,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @see openr66.databaseold.data.AbstractDbData#update()
      */
     @Override
-    public void update() throws OpenR66DatabaseException {
+    public void update() throws GoldenGateDatabaseException {
         if (isSaved) {
             return;
         }
@@ -839,7 +839,7 @@ public class DbTaskRunner extends AbstractDbData {
             setValues(preparedStatement, allFields);
             int count = preparedStatement.executeUpdate();
             if (count <= 0) {
-                throw new OpenR66DatabaseNoDataException("No row found");
+                throw new GoldenGateDatabaseNoDataException("No row found");
             }
             isSaved = true;
         } finally {
@@ -863,12 +863,12 @@ public class DbTaskRunner extends AbstractDbData {
      *
      * @param preparedStatement
      * @return the next updated DbTaskRunner
-     * @throws OpenR66DatabaseNoConnectionError
-     * @throws OpenR66DatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionError
+     * @throws GoldenGateDatabaseSqlError
      */
     public static DbTaskRunner getFromStatement(
             DbPreparedStatement preparedStatement)
-            throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+            throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
         DbTaskRunner dbTaskRunner = new DbTaskRunner(preparedStatement
                 .getDbSession());
         dbTaskRunner.getValues(preparedStatement, dbTaskRunner.allFields);
@@ -876,8 +876,8 @@ public class DbTaskRunner extends AbstractDbData {
         if (dbTaskRunner.rule == null) {
             try {
                 dbTaskRunner.rule = new DbRule(dbTaskRunner.dbSession, dbTaskRunner.ruleId);
-            } catch (OpenR66DatabaseException e) {
-                throw new OpenR66DatabaseSqlError(e);
+            } catch (GoldenGateDatabaseException e) {
+                throw new GoldenGateDatabaseSqlError(e);
             }
         }
         dbTaskRunner.isSaved = true;
@@ -889,12 +889,12 @@ public class DbTaskRunner extends AbstractDbData {
      * @param status
      * @param limit limit the number of rows
      * @return the DbPreparedStatement for getting Runner according to status ordered by start
-     * @throws OpenR66DatabaseNoConnectionError
-     * @throws OpenR66DatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionError
+     * @throws GoldenGateDatabaseSqlError
      */
     public static DbPreparedStatement getStatusPrepareStament(
             DbSession session, ErrorCode status, int limit)
-            throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+            throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
         String request = "SELECT " + selectAllFields + " FROM " + table;
         if (status != null) {
             request += " WHERE " + Columns.STEPSTATUS.name() + " = '" +
@@ -913,12 +913,12 @@ public class DbTaskRunner extends AbstractDbData {
      * @param limit limit the number of rows
      * @return the DbPreparedStatement for getting Runner according to
      *         globalstep ordered by start
-     * @throws OpenR66DatabaseNoConnectionError
-     * @throws OpenR66DatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionError
+     * @throws GoldenGateDatabaseSqlError
      */
     public static DbPreparedStatement getStepPrepareStament(DbSession session,
-            TASKSTEP globalstep, int limit) throws OpenR66DatabaseNoConnectionError,
-            OpenR66DatabaseSqlError {
+            TASKSTEP globalstep, int limit) throws GoldenGateDatabaseNoConnectionError,
+            GoldenGateDatabaseSqlError {
         String request = "SELECT " + selectAllFields + " FROM " + table;
         if (globalstep != null) {
             request += " WHERE (" + Columns.GLOBALSTEP.name() + " = " +
@@ -955,15 +955,15 @@ public class DbTaskRunner extends AbstractDbData {
      * @param all
      * @return The DbPreparedStatement already prepared according to select or
      *         delete command
-     * @throws OpenR66DatabaseNoConnectionError
-     * @throws OpenR66DatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionError
+     * @throws GoldenGateDatabaseSqlError
      */
     private static DbPreparedStatement getFilterCondition(
             DbPreparedStatement preparedStatement, String srcrequest, int limit,
             String orderby, String startid, String stopid, Timestamp start, Timestamp stop, String rule,
             String req, boolean pending, boolean transfer, boolean error,
-            boolean done, boolean all) throws OpenR66DatabaseNoConnectionError,
-            OpenR66DatabaseSqlError {
+            boolean done, boolean all) throws GoldenGateDatabaseNoConnectionError,
+            GoldenGateDatabaseSqlError {
         String request = srcrequest;
         if (startid == null && stopid == null &&
                 start == null && stop == null && rule == null && req == null && all) {
@@ -1126,7 +1126,7 @@ public class DbTaskRunner extends AbstractDbData {
             }
         } catch (SQLException e) {
             preparedStatement.realClose();
-            throw new OpenR66DatabaseSqlError(e);
+            throw new GoldenGateDatabaseSqlError(e);
         }
         return preparedStatement;
     }
@@ -1148,15 +1148,15 @@ public class DbTaskRunner extends AbstractDbData {
      * @param done
      * @param all
      * @return the DbPreparedStatement according to the filter
-     * @throws OpenR66DatabaseNoConnectionError
-     * @throws OpenR66DatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionError
+     * @throws GoldenGateDatabaseSqlError
      */
     public static DbPreparedStatement getFilterPrepareStament(
             DbSession session, int limit, boolean orderBySpecialId, String startid, String stopid,
             Timestamp start, Timestamp stop, String rule,
             String req, boolean pending, boolean transfer, boolean error,
-            boolean done, boolean all) throws OpenR66DatabaseNoConnectionError,
-            OpenR66DatabaseSqlError {
+            boolean done, boolean all) throws GoldenGateDatabaseNoConnectionError,
+            GoldenGateDatabaseSqlError {
         DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
         String request = "SELECT " + selectAllFields + " FROM " + table;
         String orderby;
@@ -1183,12 +1183,12 @@ public class DbTaskRunner extends AbstractDbData {
      * @param orderByStart
      * @param limit
      * @return the DbPreparedStatement for getting Updated Object
-     * @throws OpenR66DatabaseNoConnectionError
-     * @throws OpenR66DatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionError
+     * @throws GoldenGateDatabaseSqlError
      */
     public static DbPreparedStatement getUpdatedPrepareStament(DbSession session,
             UpdatedInfo info, boolean orderByStart, int limit)
-            throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+            throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
         String request = "SELECT " + selectAllFields+
                 " FROM " + table + " WHERE " + Columns.UPDATEDINFO.name() +
                 " = " + info.ordinal()+ " AND "+getLimitWhereCondition();
@@ -1215,12 +1215,12 @@ public class DbTaskRunner extends AbstractDbData {
      * @param start
      * @param stop
      * @return the DbPreparedStatement for getting Selected Object, whatever their status
-     * @throws OpenR66DatabaseNoConnectionError
-     * @throws OpenR66DatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionError
+     * @throws GoldenGateDatabaseSqlError
      */
     public static DbPreparedStatement getLogPrepareStament(DbSession session,
             Timestamp start, Timestamp stop)
-            throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+            throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
         DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
         String request = "SELECT " + selectAllFields + " FROM " + table;
         if (start != null & stop != null) {
@@ -1233,7 +1233,7 @@ public class DbTaskRunner extends AbstractDbData {
                 preparedStatement.getPreparedStatement().setTimestamp(2, stop);
             } catch (SQLException e) {
                 preparedStatement.realClose();
-                throw new OpenR66DatabaseSqlError(e);
+                throw new GoldenGateDatabaseSqlError(e);
             }
         } else if (start != null) {
             request += " WHERE " + Columns.STARTTRANS.name() +
@@ -1244,7 +1244,7 @@ public class DbTaskRunner extends AbstractDbData {
                 preparedStatement.getPreparedStatement().setTimestamp(1, start);
             } catch (SQLException e) {
                 preparedStatement.realClose();
-                throw new OpenR66DatabaseSqlError(e);
+                throw new GoldenGateDatabaseSqlError(e);
             }
         } else if (stop != null) {
             request += " WHERE " + Columns.STARTTRANS.name() +
@@ -1255,7 +1255,7 @@ public class DbTaskRunner extends AbstractDbData {
                 preparedStatement.getPreparedStatement().setTimestamp(1, stop);
             } catch (SQLException e) {
                 preparedStatement.realClose();
-                throw new OpenR66DatabaseSqlError(e);
+                throw new GoldenGateDatabaseSqlError(e);
             }
         } else {
             request += " WHERE "+getLimitWhereCondition()+
@@ -1273,12 +1273,12 @@ public class DbTaskRunner extends AbstractDbData {
      * @param start
      * @param stop
      * @return the number of log purged
-     * @throws OpenR66DatabaseNoConnectionError
-     * @throws OpenR66DatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionError
+     * @throws GoldenGateDatabaseSqlError
      */
     public static int purgeLogPrepareStament(DbSession session,
             Timestamp start, Timestamp stop)
-            throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+            throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
         DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
         String request = "DELETE FROM " + table + " WHERE (" +
                 Columns.GLOBALLASTSTEP + " = " +TASKSTEP.ALLDONETASK.ordinal() + " OR " +
@@ -1294,7 +1294,7 @@ public class DbTaskRunner extends AbstractDbData {
                     preparedStatement.getPreparedStatement().setTimestamp(2, stop);
                 } catch (SQLException e) {
                     preparedStatement.realClose();
-                    throw new OpenR66DatabaseSqlError(e);
+                    throw new GoldenGateDatabaseSqlError(e);
                 }
             } else if (start != null) {
                 request += " AND " + Columns.STARTTRANS.name() + " >= ? ";
@@ -1303,7 +1303,7 @@ public class DbTaskRunner extends AbstractDbData {
                     preparedStatement.getPreparedStatement().setTimestamp(1, start);
                 } catch (SQLException e) {
                     preparedStatement.realClose();
-                    throw new OpenR66DatabaseSqlError(e);
+                    throw new GoldenGateDatabaseSqlError(e);
                 }
             } else if (stop != null) {
                 request += " AND " + Columns.STOPTRANS.name() + " <= ? ";
@@ -1312,7 +1312,7 @@ public class DbTaskRunner extends AbstractDbData {
                     preparedStatement.getPreparedStatement().setTimestamp(1, stop);
                 } catch (SQLException e) {
                     preparedStatement.realClose();
-                    throw new OpenR66DatabaseSqlError(e);
+                    throw new GoldenGateDatabaseSqlError(e);
                 }
             } else {
                 preparedStatement.createPrepareStatement(request);
@@ -1341,15 +1341,15 @@ public class DbTaskRunner extends AbstractDbData {
      * @param all
      * @return the DbPreparedStatement according to the filter and
      * ALLDONE, ERROR globallaststep
-     * @throws OpenR66DatabaseNoConnectionError
-     * @throws OpenR66DatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionError
+     * @throws GoldenGateDatabaseSqlError
      */
     public static int purgeLogPrepareStament(
             DbSession session, String startid, String stopid,
             Timestamp start, Timestamp stop, String rule,
             String req, boolean pending, boolean transfer, boolean error,
-            boolean done, boolean all) throws OpenR66DatabaseNoConnectionError,
-            OpenR66DatabaseSqlError {
+            boolean done, boolean all) throws GoldenGateDatabaseNoConnectionError,
+            GoldenGateDatabaseSqlError {
         DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
         String request = "DELETE FROM " + table;
         String orderby;
@@ -1393,10 +1393,10 @@ public class DbTaskRunner extends AbstractDbData {
      * in order to be ready to rerun tasks that are pending.
      *
      * @param session
-     * @throws OpenR66DatabaseNoConnectionError
+     * @throws GoldenGateDatabaseNoConnectionError
      */
     public static void resetToSubmit(DbSession session)
-            throws OpenR66DatabaseNoConnectionError {
+            throws GoldenGateDatabaseNoConnectionError {
         // Change RUNNING and INTERRUPTED to TOSUBMIT since they should be ready
         String request = "UPDATE " + table + " SET " +
                 Columns.UPDATEDINFO.name() + "=" +
@@ -1410,10 +1410,10 @@ public class DbTaskRunner extends AbstractDbData {
         try {
             initial.createPrepareStatement(request);
             initial.executeUpdate();
-        } catch (OpenR66DatabaseNoConnectionError e) {
+        } catch (GoldenGateDatabaseNoConnectionError e) {
             logger.error("Database No Connection Error: Cannot execute Commander", e);
             return;
-        } catch (OpenR66DatabaseSqlError e) {
+        } catch (GoldenGateDatabaseSqlError e) {
             logger.error("Database SQL Error: Cannot execute Commander", e);
             return;
         } finally {
@@ -1427,10 +1427,10 @@ public class DbTaskRunner extends AbstractDbData {
      * at the very beginning of the commander.
      *
      * @param session
-     * @throws OpenR66DatabaseNoConnectionError
+     * @throws GoldenGateDatabaseNoConnectionError
      */
     public static void changeFinishedToDone(DbSession session)
-            throws OpenR66DatabaseNoConnectionError {
+            throws GoldenGateDatabaseNoConnectionError {
         // Update all UpdatedInfo to DONE where GlobalLastStep = ALLDONETASK and
         // status = CompleteOk
         String request = "UPDATE " + table + " SET " +
@@ -1448,10 +1448,10 @@ public class DbTaskRunner extends AbstractDbData {
         try {
             initial.createPrepareStatement(request);
             initial.executeUpdate();
-        } catch (OpenR66DatabaseNoConnectionError e) {
+        } catch (GoldenGateDatabaseNoConnectionError e) {
             logger.error("Database No Connection Error: Cannot execute Commander", e);
             return;
-        } catch (OpenR66DatabaseSqlError e) {
+        } catch (GoldenGateDatabaseSqlError e) {
             logger.error("Database SQL Error: Cannot execute Commander", e);
             return;
         } finally {
@@ -1567,7 +1567,7 @@ public class DbTaskRunner extends AbstractDbData {
             } else {
                 // is finished so do nothing
             }
-        } catch (OpenR66DatabaseException e) {
+        } catch (GoldenGateDatabaseException e) {
         }
         return false;
     }
@@ -1744,7 +1744,7 @@ public class DbTaskRunner extends AbstractDbData {
             if (ruleId != null) {
                 try {
                     rule = new DbRule(dbSession, ruleId);
-                } catch (OpenR66DatabaseException e) {
+                } catch (GoldenGateDatabaseException e) {
                 }
             }
         }
@@ -1994,7 +1994,7 @@ public class DbTaskRunner extends AbstractDbData {
             if (ruleId != null) {
                 try {
                     rule = new DbRule(dbSession, ruleId);
-                } catch (OpenR66DatabaseException e) {
+                } catch (GoldenGateDatabaseException e) {
                     rule = null;
                 }
             }
@@ -2298,7 +2298,7 @@ public class DbTaskRunner extends AbstractDbData {
             // Save each 10 blocks
             try {
                 update();
-            } catch (OpenR66DatabaseException e) {
+            } catch (GoldenGateDatabaseException e) {
                 logger.warn("Cannot update Runner: {}", e.getMessage());
             }
         }
@@ -2312,7 +2312,7 @@ public class DbTaskRunner extends AbstractDbData {
     public void saveStatus() throws OpenR66RunnerErrorException {
         try {
             update();
-        } catch (OpenR66DatabaseException e) {
+        } catch (GoldenGateDatabaseException e) {
             throw new OpenR66RunnerErrorException(e);
         }
     }
@@ -2407,7 +2407,7 @@ public class DbTaskRunner extends AbstractDbData {
         try {
             rule = (this.rule != null)? this.rule : new DbRule(this.dbSession,
                     this.ruleId);
-        } catch (OpenR66DatabaseException e) {
+        } catch (GoldenGateDatabaseException e) {
         }
         if (this.rule == null) {
             this.rule = rule;
@@ -2672,10 +2672,10 @@ public class DbTaskRunner extends AbstractDbData {
      * Need to call 'setToArray' before
      * @param runner
      * @return The Element representing the given Runner
-     * @throws OpenR66DatabaseSqlError
+     * @throws GoldenGateDatabaseSqlError
      */
     private static Element getElementFromRunner(DbTaskRunner runner)
-            throws OpenR66DatabaseSqlError {
+            throws GoldenGateDatabaseSqlError {
         Element root = new DefaultElement(XMLRUNNER);
         for (DbValue value: runner.allFields) {
             if (value.column.equals(Columns.UPDATEDINFO.name())) {
@@ -2691,10 +2691,10 @@ public class DbTaskRunner extends AbstractDbData {
      * Need to call 'setFromArray' after.
      * @param runner
      * @param root
-     * @throws OpenR66DatabaseSqlError
+     * @throws GoldenGateDatabaseSqlError
      */
     private static void setRunnerFromElement(DbTaskRunner runner, Element root) 
-        throws OpenR66DatabaseSqlError {
+        throws GoldenGateDatabaseSqlError {
         for (DbValue value: runner.allFields) {
             if (value.column.equals(Columns.UPDATEDINFO.name())) {
                 continue;
@@ -2713,12 +2713,12 @@ public class DbTaskRunner extends AbstractDbData {
      *            ready to be executed
      * @param xmlWriter
      * @return the NbAndSpecialId for the number of transfer and higher rank found
-     * @throws OpenR66DatabaseNoConnectionError
-     * @throws OpenR66DatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionError
+     * @throws GoldenGateDatabaseSqlError
      * @throws OpenR66ProtocolBusinessException
      */
     public static NbAndSpecialId writeXML(DbPreparedStatement preparedStatement, XMLWriter xmlWriter)
-            throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError, OpenR66ProtocolBusinessException {
+            throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError, OpenR66ProtocolBusinessException {
         Element root = new DefaultElement(XMLRUNNERS);
         NbAndSpecialId nbAndSpecialId = new NbAndSpecialId();
         try {
@@ -2748,12 +2748,12 @@ public class DbTaskRunner extends AbstractDbData {
      * @param preparedStatement
      * @param filename
      * @return the NbAndSpecialId for the number of transfer and higher rank found
-     * @throws OpenR66DatabaseNoConnectionError
-     * @throws OpenR66DatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionError
+     * @throws GoldenGateDatabaseSqlError
      * @throws OpenR66ProtocolBusinessException
      */
     public static NbAndSpecialId writeXMLWriter(DbPreparedStatement preparedStatement, String filename)
-            throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError,
+            throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError,
             OpenR66ProtocolBusinessException {
         NbAndSpecialId nbAndSpecialId = null;
         OutputStream outputStream = null;
@@ -2812,12 +2812,12 @@ public class DbTaskRunner extends AbstractDbData {
      * Write all TaskRunners to an XML file using an XMLWriter
      *
      * @param filename
-     * @throws OpenR66DatabaseNoConnectionError
-     * @throws OpenR66DatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionError
+     * @throws GoldenGateDatabaseSqlError
      * @throws OpenR66ProtocolBusinessException
      */
     public static void writeXMLWriter(String filename)
-            throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError,
+            throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError,
             OpenR66ProtocolBusinessException {
         String request = "SELECT " + DbTaskRunner.selectAllFields + " FROM " +
                 DbTaskRunner.table+" WHERE "+getLimitWhereCondition();
@@ -2868,7 +2868,7 @@ public class DbTaskRunner extends AbstractDbData {
             } catch (IOException e) {
                 logger.error("Cannot write XML file", e);
                 throw new OpenR66ProtocolBusinessException("Cannot write file: "+e.getMessage());
-            } catch (OpenR66DatabaseSqlError e) {
+            } catch (GoldenGateDatabaseSqlError e) {
                 logger.error("Cannot write Data", e);
                 throw new OpenR66ProtocolBusinessException("Cannot write Data: "+e.getMessage());
             }
@@ -2934,7 +2934,7 @@ public class DbTaskRunner extends AbstractDbData {
         Element root = (Element) document.selectSingleNode("/"+XMLRUNNERS+"/"+XMLRUNNER);
         try {
             setRunnerFromElement(this, root);
-        } catch (OpenR66DatabaseSqlError e) {
+        } catch (GoldenGateDatabaseSqlError e) {
             throw new OpenR66ProtocolBusinessException("Backend XML file is not conform to the model");
         }
     }

@@ -20,7 +20,7 @@
  */
 package openr66.server;
 
-import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
+import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
@@ -104,7 +104,7 @@ public class LogExport implements Runnable {
             // where GlobalLastStep = ALLDONETASK and status = CompleteOk
             try {
                 DbTaskRunner.changeFinishedToDone(DbConstant.admin.session);
-            } catch (OpenR66DatabaseNoConnectionError e) {
+            } catch (GoldenGateDatabaseNoConnectionError e) {
                 logger.warn("Clean cannot be done {}", e.getMessage());
             }
         }

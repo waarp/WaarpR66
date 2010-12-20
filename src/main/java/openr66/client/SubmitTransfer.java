@@ -21,7 +21,7 @@
 package openr66.client;
 
 import goldengate.common.database.data.AbstractDbData;
-import goldengate.common.database.exception.OpenR66DatabaseException;
+import goldengate.common.database.exception.GoldenGateDatabaseException;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
 import openr66.context.ErrorCode;
@@ -59,7 +59,7 @@ public class SubmitTransfer extends AbstractTransfer {
         DbRule rule;
         try {
             rule = new DbRule(DbConstant.admin.session, rulename);
-        } catch (OpenR66DatabaseException e) {
+        } catch (GoldenGateDatabaseException e) {
             logger.error("Cannot get Rule: "+rulename, e);
             future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
                     ErrorCode.Internal, null));
@@ -79,7 +79,7 @@ public class SubmitTransfer extends AbstractTransfer {
         try {
             taskRunner =
                 new DbTaskRunner(DbConstant.admin.session,rule,isRetrieve,request,remoteHost);
-        } catch (OpenR66DatabaseException e) {
+        } catch (GoldenGateDatabaseException e) {
             logger.error("Cannot get task", e);
             future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
                     ErrorCode.Internal, null));
@@ -89,7 +89,7 @@ public class SubmitTransfer extends AbstractTransfer {
         taskRunner.changeUpdatedInfo(AbstractDbData.UpdatedInfo.TOSUBMIT);
         try {
             taskRunner.update();
-        } catch (OpenR66DatabaseException e) {
+        } catch (GoldenGateDatabaseException e) {
             logger.error("Cannot prepare task", e);
             R66Result result = new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
                     ErrorCode.Internal, taskRunner);

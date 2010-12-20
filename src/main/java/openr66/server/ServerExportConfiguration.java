@@ -20,8 +20,8 @@
  */
 package openr66.server;
 
-import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
-import goldengate.common.database.exception.OpenR66DatabaseSqlError;
+import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
+import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
@@ -90,12 +90,12 @@ public class ServerExportConfiguration {
             }
             try {
                 RuleFileBasedConfiguration.writeXml(directory, hostname);
-            } catch (OpenR66DatabaseNoConnectionError e1) {
+            } catch (GoldenGateDatabaseNoConnectionError e1) {
                 logger.error("Error",e1);
                 DbConstant.admin.close();
                 ChannelUtils.stopLogger();
                 System.exit(2);
-            } catch (OpenR66DatabaseSqlError e1) {
+            } catch (GoldenGateDatabaseSqlError e1) {
                 logger.error("Error",e1);
                 DbConstant.admin.close();
                 ChannelUtils.stopLogger();
@@ -109,12 +109,12 @@ public class ServerExportConfiguration {
             String filename = dir.getAbsolutePath()+File.separator+hostname+"_Runners.run.xml";
             try {
                 DbTaskRunner.writeXMLWriter(filename);
-            } catch (OpenR66DatabaseNoConnectionError e1) {
+            } catch (GoldenGateDatabaseNoConnectionError e1) {
                 logger.error("Error",e1);
                 DbConstant.admin.close();
                 ChannelUtils.stopLogger();
                 System.exit(2);
-            } catch (OpenR66DatabaseSqlError e1) {
+            } catch (GoldenGateDatabaseSqlError e1) {
                 logger.error("Error",e1);
                 DbConstant.admin.close();
                 ChannelUtils.stopLogger();
@@ -128,12 +128,12 @@ public class ServerExportConfiguration {
             filename = dir.getAbsolutePath()+File.separator+hostname+"_Authentications.xml";
             try {
                 AuthenticationFileBasedConfiguration.writeXML(filename);
-            } catch (OpenR66DatabaseNoConnectionError e) {
+            } catch (GoldenGateDatabaseNoConnectionError e) {
                 logger.error("Error",e);
                 DbConstant.admin.close();
                 ChannelUtils.stopLogger();
                 System.exit(2);
-            } catch (OpenR66DatabaseSqlError e) {
+            } catch (GoldenGateDatabaseSqlError e) {
                 logger.error("Error",e);
                 DbConstant.admin.close();
                 ChannelUtils.stopLogger();

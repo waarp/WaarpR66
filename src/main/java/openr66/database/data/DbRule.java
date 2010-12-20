@@ -24,10 +24,10 @@ import goldengate.common.database.DbPreparedStatement;
 import goldengate.common.database.DbSession;
 import goldengate.common.database.data.AbstractDbData;
 import goldengate.common.database.data.DbValue;
-import goldengate.common.database.exception.OpenR66DatabaseException;
-import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
-import goldengate.common.database.exception.OpenR66DatabaseNoDataException;
-import goldengate.common.database.exception.OpenR66DatabaseSqlError;
+import goldengate.common.database.exception.GoldenGateDatabaseException;
+import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
+import goldengate.common.database.exception.GoldenGateDatabaseNoDataException;
+import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
 import goldengate.common.file.DirInterface;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
@@ -325,7 +325,7 @@ public class DbRule extends AbstractDbData {
     }
 
     @Override
-    protected void setFromArray() throws OpenR66DatabaseSqlError {
+    protected void setFromArray() throws GoldenGateDatabaseSqlError {
         ids = (String) allFields[Columns.HOSTIDS.ordinal()].getValue();
         mode = (Integer) allFields[Columns.MODETRANS.ordinal()].getValue();
         recvPath = (String) allFields[Columns.RECVPATH.ordinal()].getValue();
@@ -408,9 +408,9 @@ public class DbRule extends AbstractDbData {
     /**
      * @param dbSession
      * @param idRule
-     * @throws OpenR66DatabaseException
+     * @throws GoldenGateDatabaseException
      */
-    public DbRule(DbSession dbSession, String idRule) throws OpenR66DatabaseException {
+    public DbRule(DbSession dbSession, String idRule) throws GoldenGateDatabaseException {
         super(dbSession);
         this.idRule = idRule;
         // load from DB
@@ -474,9 +474,9 @@ public class DbRule extends AbstractDbData {
      * Delete all entries (used when purge and reload)
      * @param dbSession
      * @return the previous existing array of DbRule
-     * @throws OpenR66DatabaseException
+     * @throws GoldenGateDatabaseException
      */
-    public static DbRule[] deleteAll(DbSession dbSession) throws OpenR66DatabaseException {
+    public static DbRule[] deleteAll(DbSession dbSession) throws GoldenGateDatabaseException {
         DbRule[] result = getAllRules(dbSession);
         if (dbSession == null) {
             dbR66RuleHashMap.clear();
@@ -498,7 +498,7 @@ public class DbRule extends AbstractDbData {
      * @see openr66.databaseold.data.AbstractDbData#delete()
      */
     @Override
-    public void delete() throws OpenR66DatabaseException {
+    public void delete() throws GoldenGateDatabaseException {
         if (dbSession == null) {
             dbR66RuleHashMap.remove(this.idRule);
             isSaved = false;
@@ -513,7 +513,7 @@ public class DbRule extends AbstractDbData {
             setValue(preparedStatement, primaryKey);
             int count = preparedStatement.executeUpdate();
             if (count <= 0) {
-                throw new OpenR66DatabaseNoDataException("No row found");
+                throw new GoldenGateDatabaseNoDataException("No row found");
             }
             isSaved = false;
         } finally {
@@ -527,7 +527,7 @@ public class DbRule extends AbstractDbData {
      * @see openr66.databaseold.data.AbstractDbData#insert()
      */
     @Override
-    public void insert() throws OpenR66DatabaseException {
+    public void insert() throws GoldenGateDatabaseException {
         if (isSaved) {
             return;
         }
@@ -544,7 +544,7 @@ public class DbRule extends AbstractDbData {
             setValues(preparedStatement, allFields);
             int count = preparedStatement.executeUpdate();
             if (count <= 0) {
-                throw new OpenR66DatabaseNoDataException("No row found");
+                throw new GoldenGateDatabaseNoDataException("No row found");
             }
             isSaved = true;
         } finally {
@@ -556,7 +556,7 @@ public class DbRule extends AbstractDbData {
      * @see openr66.databaseold.data.AbstractDbData#exist()
      */
     @Override
-    public boolean exist() throws OpenR66DatabaseException {
+    public boolean exist() throws GoldenGateDatabaseException {
         if (dbSession == null) {
             boolean result = dbR66RuleHashMap.containsKey(idRule);
             if (! result) {
@@ -589,11 +589,11 @@ public class DbRule extends AbstractDbData {
      * @see openr66.databaseold.data.AbstractDbData#select()
      */
     @Override
-    public void select() throws OpenR66DatabaseException {
+    public void select() throws GoldenGateDatabaseException {
         if (dbSession == null) {
             DbRule rule = dbR66RuleHashMap.get(this.idRule);
             if (rule == null) {
-                throw new OpenR66DatabaseNoDataException("No row found");
+                throw new GoldenGateDatabaseNoDataException("No row found");
             } else {
                 // copy info
                 for (int i = 0; i < allFields.length; i++){
@@ -642,7 +642,7 @@ public class DbRule extends AbstractDbData {
                 }
                 isSaved = true;
             } else {
-                throw new OpenR66DatabaseNoDataException("No row found");
+                throw new GoldenGateDatabaseNoDataException("No row found");
             }
         } finally {
             preparedStatement.realClose();
@@ -655,8 +655,8 @@ public class DbRule extends AbstractDbData {
      * @see openr66.databaseold.data.AbstractDbData#update()
      */
     @Override
-    public void update() throws OpenR66DatabaseNoConnectionError,
-            OpenR66DatabaseSqlError, OpenR66DatabaseNoDataException {
+    public void update() throws GoldenGateDatabaseNoConnectionError,
+            GoldenGateDatabaseSqlError, GoldenGateDatabaseNoDataException {
         if (isSaved) {
             return;
         }
@@ -674,7 +674,7 @@ public class DbRule extends AbstractDbData {
             setValues(preparedStatement, allFields);
             int count = preparedStatement.executeUpdate();
             if (count <= 0) {
-                throw new OpenR66DatabaseNoDataException("No row found");
+                throw new GoldenGateDatabaseNoDataException("No row found");
             }
             isSaved = true;
         } finally {
@@ -691,10 +691,10 @@ public class DbRule extends AbstractDbData {
      * Get All DbRule from database or from internal hashMap in case of no database support
      * @param dbSession may be null
      * @return the array of DbRule
-     * @throws OpenR66DatabaseNoConnectionError
-     * @throws OpenR66DatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionError
+     * @throws GoldenGateDatabaseSqlError
      */
-    public static DbRule[] getAllRules(DbSession dbSession) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+    public static DbRule[] getAllRules(DbSession dbSession) throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
         if (dbSession == null) {
             DbRule [] result = new DbRule[0];
             return dbR66RuleHashMap.values().toArray(result);
@@ -717,10 +717,10 @@ public class DbRule extends AbstractDbData {
      * For instance from Commander when getting updated information
      * @param preparedStatement
      * @return the next updated DbRule
-     * @throws OpenR66DatabaseNoConnectionError
-     * @throws OpenR66DatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionError
+     * @throws GoldenGateDatabaseSqlError
      */
-    public static DbRule getFromStatement(DbPreparedStatement preparedStatement) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+    public static DbRule getFromStatement(DbPreparedStatement preparedStatement) throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
         DbRule dbRule = new DbRule(preparedStatement.getDbSession());
         dbRule.getValues(preparedStatement, dbRule.allFields);
         dbRule.setFromArray();
@@ -730,10 +730,10 @@ public class DbRule extends AbstractDbData {
     /**
     *
     * @return the DbPreparedStatement for getting Updated Object
-    * @throws OpenR66DatabaseNoConnectionError
-    * @throws OpenR66DatabaseSqlError
+    * @throws GoldenGateDatabaseNoConnectionError
+    * @throws GoldenGateDatabaseSqlError
     */
-   public static DbPreparedStatement getUpdatedPrepareStament(DbSession session) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+   public static DbPreparedStatement getUpdatedPrepareStament(DbSession session) throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
        String request = "SELECT " +selectAllFields;
        request += " FROM "+table+
            " WHERE "+Columns.UPDATEDINFO.name()+" = "+
@@ -994,12 +994,12 @@ public class DbRule extends AbstractDbData {
      * @param rule
      * @param mode
      * @return the DbPreparedStatement according to the filter
-     * @throws OpenR66DatabaseNoConnectionError
-     * @throws OpenR66DatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionError
+     * @throws GoldenGateDatabaseSqlError
      */
     public static DbPreparedStatement getFilterPrepareStament(DbSession session,
             String rule, int mode)
-        throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+        throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
         DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
         String request = "SELECT " +selectAllFields+" FROM "+table;
         String condition = null;
@@ -1023,7 +1023,7 @@ public class DbRule extends AbstractDbData {
                 preparedStatement.getPreparedStatement().setInt(1, mode);
             } catch (SQLException e) {
                 preparedStatement.realClose();
-                throw new OpenR66DatabaseSqlError(e);
+                throw new GoldenGateDatabaseSqlError(e);
             }
         }
         return preparedStatement;

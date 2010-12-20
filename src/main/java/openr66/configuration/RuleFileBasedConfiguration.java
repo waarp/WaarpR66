@@ -21,10 +21,10 @@
 package openr66.configuration;
 
 import goldengate.common.database.DbPreparedStatement;
-import goldengate.common.database.exception.OpenR66DatabaseException;
-import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
-import goldengate.common.database.exception.OpenR66DatabaseNoDataException;
-import goldengate.common.database.exception.OpenR66DatabaseSqlError;
+import goldengate.common.database.exception.GoldenGateDatabaseException;
+import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
+import goldengate.common.database.exception.GoldenGateDatabaseNoDataException;
+import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
 import goldengate.common.file.DirInterface;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
@@ -160,10 +160,10 @@ public class RuleFileBasedConfiguration {
      *
      * @param configDirectory
      * @throws OpenR66ProtocolSystemException
-     * @throws OpenR66DatabaseException
+     * @throws GoldenGateDatabaseException
      */
     public static void importRules(File configDirectory)
-            throws OpenR66ProtocolSystemException, OpenR66DatabaseException {
+            throws OpenR66ProtocolSystemException, GoldenGateDatabaseException {
         File[] files = FileUtils.getFiles(configDirectory,
                 new ExtensionFilter(EXT_RULE));
         for (File file: files) {
@@ -265,14 +265,14 @@ public class RuleFileBasedConfiguration {
      * @param file
      * @return the newly created R66Rule from XML File
      * @throws OpenR66ProtocolSystemException
-     * @throws OpenR66DatabaseException
-     * @throws OpenR66DatabaseNoDataException
-     * @throws OpenR66DatabaseSqlError
-     * @throws OpenR66DatabaseNoConnectionError
+     * @throws GoldenGateDatabaseException
+     * @throws GoldenGateDatabaseNoDataException
+     * @throws GoldenGateDatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionError
      * @throws OpenR66ProtocolNoDataException
      */
     public static DbRule getFromFile(File file)
-            throws OpenR66ProtocolSystemException, OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError, OpenR66DatabaseNoDataException, OpenR66DatabaseException {
+            throws OpenR66ProtocolSystemException, GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError, GoldenGateDatabaseNoDataException, GoldenGateDatabaseException {
         DbRule newRule = null;
         Document document = null;
         // Open config file
@@ -299,14 +299,14 @@ public class RuleFileBasedConfiguration {
      * @param file
      * @return a list of newly created R66Rule from XML File
      * @throws OpenR66ProtocolSystemException
-     * @throws OpenR66DatabaseException
-     * @throws OpenR66DatabaseNoDataException
-     * @throws OpenR66DatabaseSqlError
-     * @throws OpenR66DatabaseNoConnectionError
+     * @throws GoldenGateDatabaseException
+     * @throws GoldenGateDatabaseNoDataException
+     * @throws GoldenGateDatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionError
      * @throws OpenR66ProtocolNoDataException
      */
     public static List<DbRule> getMultipleFromFile(File file)
-            throws OpenR66ProtocolSystemException, OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError, OpenR66DatabaseNoDataException, OpenR66DatabaseException {
+            throws OpenR66ProtocolSystemException, GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError, GoldenGateDatabaseNoDataException, GoldenGateDatabaseException {
         Document document = null;
         // Open config file
         try {
@@ -341,14 +341,14 @@ public class RuleFileBasedConfiguration {
      * @param root
      * @return the newly created R66Rule from XML File
      * @throws OpenR66ProtocolSystemException
-     * @throws OpenR66DatabaseException
-     * @throws OpenR66DatabaseNoDataException
-     * @throws OpenR66DatabaseSqlError
-     * @throws OpenR66DatabaseNoConnectionError
+     * @throws GoldenGateDatabaseException
+     * @throws GoldenGateDatabaseNoDataException
+     * @throws GoldenGateDatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionError
      * @throws OpenR66ProtocolNoDataException
      */
     private static DbRule getFromXmlValue(XmlValue []root)
-            throws OpenR66ProtocolSystemException, OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError, OpenR66DatabaseNoDataException, OpenR66DatabaseException {
+            throws OpenR66ProtocolSystemException, GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError, GoldenGateDatabaseNoDataException, GoldenGateDatabaseException {
         DbRule newRule = null;
         XmlHash hash = new XmlHash(root);
         XmlValue value = hash.get(XIDRULE);
@@ -604,11 +604,11 @@ public class RuleFileBasedConfiguration {
      * Write to directory files prefixed by hostname all Rules from database
      * @param directory
      * @param hostname
-     * @throws OpenR66DatabaseNoConnectionError
-     * @throws OpenR66DatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionError
+     * @throws GoldenGateDatabaseSqlError
      * @throws OpenR66ProtocolSystemException
      */
-    public static void writeXml(String directory, String hostname) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError, OpenR66ProtocolSystemException {
+    public static void writeXml(String directory, String hostname) throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError, OpenR66ProtocolSystemException {
         File dir = new File(directory);
         if (! dir.isDirectory()) {
             dir.mkdirs();
@@ -636,11 +636,11 @@ public class RuleFileBasedConfiguration {
      * @param directory
      * @param hostname
      * @return the filename
-     * @throws OpenR66DatabaseNoConnectionError
-     * @throws OpenR66DatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionError
+     * @throws GoldenGateDatabaseSqlError
      * @throws OpenR66ProtocolSystemException
      */
-    public static String writeOneXml(String directory, String hostname) throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError, OpenR66ProtocolSystemException {
+    public static String writeOneXml(String directory, String hostname) throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError, OpenR66ProtocolSystemException {
         File dir = new File(directory);
         if (! dir.isDirectory()) {
             dir.mkdirs();

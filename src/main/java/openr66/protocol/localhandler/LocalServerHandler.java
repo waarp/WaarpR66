@@ -24,10 +24,10 @@ import goldengate.common.command.exception.CommandAbstractException;
 import goldengate.common.command.exception.Reply421Exception;
 import goldengate.common.command.exception.Reply530Exception;
 import goldengate.common.database.DbPreparedStatement;
-import goldengate.common.database.exception.OpenR66DatabaseException;
-import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
-import goldengate.common.database.exception.OpenR66DatabaseNoDataException;
-import goldengate.common.database.exception.OpenR66DatabaseSqlError;
+import goldengate.common.database.exception.GoldenGateDatabaseException;
+import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
+import goldengate.common.database.exception.GoldenGateDatabaseNoDataException;
+import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
 import goldengate.common.exception.FileTransferException;
 import goldengate.common.file.DataBlock;
 import goldengate.common.logging.GgInternalLogger;
@@ -901,7 +901,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         DbRule rule;
         try {
             rule = new DbRule(localChannelReference.getDbSession(), packet.getRulename());
-        } catch (OpenR66DatabaseException e) {
+        } catch (GoldenGateDatabaseException e) {
             logger.error("Rule is unknown: " + packet.getRulename()+" {}", e.getMessage());
             session.setStatus(49);
             endInitRequestInError(channel,
@@ -964,19 +964,19 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         runner.restart(false);
                     } catch (OpenR66RunnerErrorException e) {
                     }
-                } catch (OpenR66DatabaseNoDataException e) {
+                } catch (GoldenGateDatabaseNoDataException e) {
                     // Reception of request from requester host
                     boolean isRetrieve = RequestPacket.isRecvMode(packet.getMode());
                     try {
                         runner = new DbTaskRunner(localChannelReference.getDbSession(),
                                 session, rule, isRetrieve, packet);
-                    } catch (OpenR66DatabaseException e1) {
+                    } catch (GoldenGateDatabaseException e1) {
                         session.setStatus(33);
                         endInitRequestInError(channel, ErrorCode.QueryRemotelyUnknown, 
                                 null, new OpenR66DatabaseGlobalException(e), packet);
                         return;
                     }
-                } catch (OpenR66DatabaseException e) {
+                } catch (GoldenGateDatabaseException e) {
                     session.setStatus(34);
                     endInitRequestInError(channel, ErrorCode.QueryRemotelyUnknown, null, 
                             new OpenR66DatabaseGlobalException(e), packet);
@@ -994,14 +994,14 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         runner.restart(false);
                     } catch (OpenR66RunnerErrorException e) {
                     }
-                } catch (OpenR66DatabaseException e) {
+                } catch (GoldenGateDatabaseException e) {
                     if (localChannelReference.getDbSession() == null) {
                         //Special case of no database client
                         boolean isRetrieve = (!RequestPacket.isRecvMode(packet.getMode()));
                         try {
                             runner = new DbTaskRunner(localChannelReference.getDbSession(),
                                     session, rule, isRetrieve, packet);
-                        } catch (OpenR66DatabaseException e1) {
+                        } catch (GoldenGateDatabaseException e1) {
                             session.setStatus(35);
                             endInitRequestInError(channel, ErrorCode.QueryRemotelyUnknown, null,
                                     new OpenR66DatabaseGlobalException(e1), packet);
@@ -1026,7 +1026,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             try {
                 runner = new DbTaskRunner(localChannelReference.getDbSession(),
                         session, rule, isRetrieve, packet);
-            } catch (OpenR66DatabaseException e) {
+            } catch (GoldenGateDatabaseException e) {
                 session.setStatus(37);
                 endInitRequestInError(channel, ErrorCode.QueryRemotelyUnknown, null,
                         new OpenR66DatabaseGlobalException(e), packet);
@@ -1375,7 +1375,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         DbRule rule;
         try {
             rule = new DbRule(localChannelReference.getDbSession(), packet.getRulename());
-        } catch (OpenR66DatabaseException e) {
+        } catch (GoldenGateDatabaseException e) {
             logger.error("Rule is unknown: " + packet.getRulename(), e);
             throw new OpenR66ProtocolNoDataException(e);
         }
@@ -1462,7 +1462,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 new DbTaskRunner(localChannelReference.getDbSession(), session,
                         null, id, reqr, reqd);
             return taskRunner.stopOrCancelRunner(code);
-        } catch (OpenR66DatabaseException e) {
+        } catch (GoldenGateDatabaseException e) {
         }
         return false;
     }
@@ -1658,9 +1658,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         DbTaskRunner.getLogPrepareStament(localChannelReference.getDbSession(),
                                 start, stop);
                     DbTaskRunner.writeXMLWriter(getValid, filename);
-                } catch (OpenR66DatabaseNoConnectionError e1) {
+                } catch (GoldenGateDatabaseNoConnectionError e1) {
                     throw new OpenR66ProtocolBusinessException(e1);
-                } catch (OpenR66DatabaseSqlError e1) {
+                } catch (GoldenGateDatabaseSqlError e1) {
                     throw new OpenR66ProtocolBusinessException(e1);
                 } finally {
                     if (getValid != null) {
@@ -1676,9 +1676,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         nb = DbTaskRunner.purgeLogPrepareStament(
                                 localChannelReference.getDbSession(),
                                 start, stop);
-                    } catch (OpenR66DatabaseNoConnectionError e) {
+                    } catch (GoldenGateDatabaseNoConnectionError e) {
                         throw new OpenR66ProtocolBusinessException(e);
-                    } catch (OpenR66DatabaseSqlError e) {
+                    } catch (GoldenGateDatabaseSqlError e) {
                         throw new OpenR66ProtocolBusinessException(e);
                     }
                 }
@@ -1708,11 +1708,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     try {
                         AuthenticationFileBasedConfiguration.writeXML(filename);
                         shost = filename;
-                    } catch (OpenR66DatabaseNoConnectionError e) {
+                    } catch (GoldenGateDatabaseNoConnectionError e) {
                         logger.error("Error",e);
                         shost = "#";
                         bhost = false;
-                    } catch (OpenR66DatabaseSqlError e) {
+                    } catch (GoldenGateDatabaseSqlError e) {
                         logger.error("Error",e);
                         shost = "#";
                         bhost = false;
@@ -1725,11 +1725,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 if (brule) {
                     try {
                         srule = RuleFileBasedConfiguration.writeOneXml(dir, hostname);
-                    } catch (OpenR66DatabaseNoConnectionError e1) {
+                    } catch (GoldenGateDatabaseNoConnectionError e1) {
                         logger.error("Error",e1);
                         srule = "#";
                         brule = false;
-                    } catch (OpenR66DatabaseSqlError e1) {
+                    } catch (GoldenGateDatabaseSqlError e1) {
                         logger.error("Error",e1);
                         srule = "#";
                         brule = false;
@@ -1772,7 +1772,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         // Need to first delete all entries
                         try {
                             oldHosts = DbHostAuth.deleteAll(DbConstant.admin.session);
-                        } catch (OpenR66DatabaseException e) {
+                        } catch (GoldenGateDatabaseException e) {
                             // ignore
                         }
                     }
@@ -1791,7 +1791,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                                     if (!dbHost.exist()) {
                                         dbHost.insert();
                                     }
-                                } catch (OpenR66DatabaseException e1) {
+                                } catch (GoldenGateDatabaseException e1) {
                                     // ignore
                                 }
                             }
@@ -1804,7 +1804,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         // Need to first delete all entries
                         try {
                             oldRules = DbRule.deleteAll(DbConstant.admin.session);
-                        } catch (OpenR66DatabaseException e) {
+                        } catch (GoldenGateDatabaseException e) {
                             // ignore
                         }
                     }
@@ -1813,19 +1813,19 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         RuleFileBasedConfiguration.getMultipleFromFile(file);
                         srule = "Rule:OK";
                         brule = true;
-                    } catch (OpenR66DatabaseNoConnectionError e) {
+                    } catch (GoldenGateDatabaseNoConnectionError e) {
                         logger.error("Error",e);
                         srule = "Rule:KO";
                         brule = false;
-                    } catch (OpenR66DatabaseSqlError e) {
+                    } catch (GoldenGateDatabaseSqlError e) {
                         logger.error("Error",e);
                         srule = "Rule:KO";
                         brule = false;
-                    } catch (OpenR66DatabaseNoDataException e) {
+                    } catch (GoldenGateDatabaseNoDataException e) {
                         logger.error("Error",e);
                         srule = "Rule:KO";
                         brule = false;
-                    } catch (OpenR66DatabaseException e) {
+                    } catch (GoldenGateDatabaseException e) {
                         logger.error("Error",e);
                         srule = "Rule:KO";
                         brule = false;
@@ -1837,7 +1837,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                                     if (!dbRule.exist()) {
                                         dbRule.insert();
                                     }
-                                } catch (OpenR66DatabaseException e1) {
+                                } catch (GoldenGateDatabaseException e1) {
                                     // ignore
                                 }
                             }
@@ -1911,7 +1911,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                             LocalPacketFactory.REQUESTUSERPACKET);
                     resulttest.other = packet;
                     localChannelReference.validateRequest(resulttest);
-                } catch (OpenR66DatabaseException e1) {
+                } catch (GoldenGateDatabaseException e1) {
                     valid = new ValidPacket(packet.getSmiddle(),
                             ErrorCode.Internal.getCode(),
                             LocalPacketFactory.REQUESTUSERPACKET);

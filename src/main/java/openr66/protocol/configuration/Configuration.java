@@ -22,9 +22,9 @@ package openr66.protocol.configuration;
 
 import goldengate.common.crypto.Des;
 import goldengate.common.database.DbSession;
-import goldengate.common.database.exception.OpenR66DatabaseException;
-import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
-import goldengate.common.database.exception.OpenR66DatabaseSqlError;
+import goldengate.common.database.exception.GoldenGateDatabaseException;
+import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
+import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
 import goldengate.common.digest.MD5;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 import goldengate.common.logging.GgInternalLogger;
@@ -479,10 +479,10 @@ public class Configuration {
 
     /**
      * Startup the server
-     * @throws OpenR66DatabaseSqlError
-     * @throws OpenR66DatabaseNoConnectionError
+     * @throws GoldenGateDatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionError
      */
-    public void serverStartup() throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+    public void serverStartup() throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
         if ((!useNOSSL) && (!useSSL)) {
             logger.error("OpenR66 has neither NOSSL nor SSL support included! Stop here!");
             System.exit(-1);
@@ -613,8 +613,8 @@ public class Configuration {
             try {
                 internalRunner.reloadInternalRunner();
                 return true;
-            } catch (OpenR66DatabaseNoConnectionError e) {
-            } catch (OpenR66DatabaseSqlError e) {
+            } catch (GoldenGateDatabaseNoConnectionError e) {
+            } catch (GoldenGateDatabaseSqlError e) {
             }
         }
         return false;
@@ -815,14 +815,14 @@ public class Configuration {
      * @param dbSession
      * @param remoteHost
      * @return the HostId according to remoteHost (and its SSL status)
-     * @throws OpenR66DatabaseException
+     * @throws GoldenGateDatabaseException
      */
-    public String getHostId(DbSession dbSession, String remoteHost) throws OpenR66DatabaseException {
+    public String getHostId(DbSession dbSession, String remoteHost) throws GoldenGateDatabaseException {
         DbHostAuth hostAuth = new DbHostAuth(dbSession,remoteHost);
         try {
             return Configuration.configuration.getHostId(hostAuth.isSsl());
         } catch (OpenR66ProtocolNoSslException e) {
-            throw new OpenR66DatabaseException(e);
+            throw new GoldenGateDatabaseException(e);
         }
     }
 }

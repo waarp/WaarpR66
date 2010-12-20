@@ -20,9 +20,9 @@
  */
 package openr66.commander;
 
-import goldengate.common.database.exception.OpenR66DatabaseException;
-import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
-import goldengate.common.database.exception.OpenR66DatabaseSqlError;
+import goldengate.common.database.exception.GoldenGateDatabaseException;
+import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
+import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
@@ -61,10 +61,10 @@ public class InternalRunner {
 
     /**
      * Create the structure to enable submission by database
-     * @throws OpenR66DatabaseNoConnectionError
-     * @throws OpenR66DatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionError
+     * @throws GoldenGateDatabaseSqlError
      */
-    public InternalRunner() throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+    public InternalRunner() throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
         commander = new Commander(this, true);
         scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
         isRunning = true;
@@ -82,9 +82,9 @@ public class InternalRunner {
     /**
      * Submit a task
      * @param taskRunner
-     * @throws OpenR66DatabaseException
+     * @throws GoldenGateDatabaseException
      */
-    public void submitTaskRunner(DbTaskRunner taskRunner) throws OpenR66DatabaseException {
+    public void submitTaskRunner(DbTaskRunner taskRunner) throws GoldenGateDatabaseException {
         if (isRunning) {
             logger.debug("Will run {}",taskRunner);
             ClientRunner runner = new ClientRunner(networkTransaction, taskRunner, null);
@@ -116,7 +116,7 @@ public class InternalRunner {
         networkTransaction.closeAll();
     }
     public void reloadInternalRunner()
-    throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+    throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
         scheduledFuture.cancel(false);
         if (commander != null) {
             commander.finalize();

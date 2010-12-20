@@ -21,7 +21,7 @@
 package openr66.protocol.networkhandler;
 
 import goldengate.common.database.DbSession;
-import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
+import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
@@ -148,7 +148,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
             if (DbConstant.admin.isConnected) {
                 this.dbSession = new DbSession(DbConstant.admin, false);
             }
-        } catch (OpenR66DatabaseNoConnectionError e1) {
+        } catch (GoldenGateDatabaseNoConnectionError e1) {
             // Cannot connect so use default connection
             logger.warn("Use default database connection");
             this.dbSession = DbConstant.admin.session;

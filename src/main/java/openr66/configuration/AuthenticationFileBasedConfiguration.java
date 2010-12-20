@@ -21,9 +21,9 @@
 package openr66.configuration;
 
 import goldengate.common.database.DbPreparedStatement;
-import goldengate.common.database.exception.OpenR66DatabaseException;
-import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
-import goldengate.common.database.exception.OpenR66DatabaseSqlError;
+import goldengate.common.database.exception.GoldenGateDatabaseException;
+import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
+import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.xml.XmlDecl;
@@ -240,7 +240,7 @@ public class AuthenticationFileBasedConfiguration {
                 } else {
                     auth.insert();
                 }
-            } catch (OpenR66DatabaseException e) {
+            } catch (GoldenGateDatabaseException e) {
                 logger.error("Cannot create Authentication for hostId {}",refHostId);
                 continue;
             }
@@ -266,10 +266,10 @@ public class AuthenticationFileBasedConfiguration {
      * Write all authentication to a file with filename
      * @param filename
      * @throws OpenR66ProtocolSystemException
-     * @throws OpenR66DatabaseNoConnectionError
-     * @throws OpenR66DatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionError
+     * @throws GoldenGateDatabaseSqlError
      */
-    public static void writeXML(String filename) throws OpenR66ProtocolSystemException, OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+    public static void writeXML(String filename) throws OpenR66ProtocolSystemException, GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
         Document document = DocumentHelper.createDocument();
         Element root = document.addElement(XML_AUTHENTIFICATION_ROOT);
         String request = "SELECT " +DbHostAuth.selectAllFields+" FROM "+DbHostAuth.table;

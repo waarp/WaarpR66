@@ -23,10 +23,10 @@ package openr66.commander;
 import goldengate.common.database.DbPreparedStatement;
 import goldengate.common.database.data.AbstractDbData;
 import goldengate.common.database.data.AbstractDbData.UpdatedInfo;
-import goldengate.common.database.exception.OpenR66DatabaseException;
-import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
-import goldengate.common.database.exception.OpenR66DatabaseNoDataException;
-import goldengate.common.database.exception.OpenR66DatabaseSqlError;
+import goldengate.common.database.exception.GoldenGateDatabaseException;
+import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
+import goldengate.common.database.exception.GoldenGateDatabaseNoDataException;
+import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.database.DbConstant;
@@ -62,22 +62,22 @@ public class Commander implements Runnable {
     /**
      * Prepare requests that will be executed from time to time
      * @param runner
-     * @throws OpenR66DatabaseNoConnectionError
-     * @throws OpenR66DatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionError
+     * @throws GoldenGateDatabaseSqlError
      */
     public Commander(InternalRunner runner)
-        throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+        throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
         this.internalConstructor(runner);
     }
     /**
      * Prepare requests that will be executed from time to time
      * @param runner
      * @param fromStartup True if call from startup of the server
-     * @throws OpenR66DatabaseNoConnectionError
-     * @throws OpenR66DatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionError
+     * @throws GoldenGateDatabaseSqlError
      */
     public Commander(InternalRunner runner, boolean fromStartup)
-        throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+        throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
         this.internalConstructor(runner);
         if (fromStartup) {
             // Change RUNNING or INTERRUPTED to TOSUBMIT since they should be ready
@@ -85,7 +85,7 @@ public class Commander implements Runnable {
         }
     }
     private void internalConstructor(InternalRunner runner)
-    throws OpenR66DatabaseNoConnectionError, OpenR66DatabaseSqlError {
+    throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
         try {
             preparedStatementConfig =
                 DbConfiguration.getUpdatedPrepareStament(DbConstant.admin.session);
@@ -155,13 +155,13 @@ public class Commander implements Runnable {
                 configuration = null;
             }
             preparedStatementConfig.close();
-        } catch (OpenR66DatabaseNoConnectionError e) {
+        } catch (GoldenGateDatabaseNoConnectionError e) {
             logger.error("Database No Connection Error: Cannot execute Commander", e);
             return;
-        } catch (OpenR66DatabaseSqlError e) {
+        } catch (GoldenGateDatabaseSqlError e) {
             logger.error("Database SQL Error: Cannot execute Commander", e);
             return;
-        } catch (OpenR66DatabaseException e) {
+        } catch (GoldenGateDatabaseException e) {
             logger.error("Database Error: Cannot execute Commander", e);
             return;
         } finally {
@@ -177,13 +177,13 @@ public class Commander implements Runnable {
                 hostAuth.update();
                 hostAuth = null;
             }
-        } catch (OpenR66DatabaseNoConnectionError e) {
+        } catch (GoldenGateDatabaseNoConnectionError e) {
             logger.error("Database No Connection Error: Cannot execute Commander", e);
             return;
-        } catch (OpenR66DatabaseSqlError e) {
+        } catch (GoldenGateDatabaseSqlError e) {
             logger.error("Database SQL Error: Cannot execute Commander", e);
             return;
-        } catch (OpenR66DatabaseException e) {
+        } catch (GoldenGateDatabaseException e) {
             logger.error("Database Error: Cannot execute Commander", e);
             return;
         } finally {
@@ -199,13 +199,13 @@ public class Commander implements Runnable {
                 rule.update();
                 rule = null;
             }
-        } catch (OpenR66DatabaseNoConnectionError e) {
+        } catch (GoldenGateDatabaseNoConnectionError e) {
             logger.error("Database No Connection Error: Cannot execute Commander", e);
             return;
-        } catch (OpenR66DatabaseSqlError e) {
+        } catch (GoldenGateDatabaseSqlError e) {
             logger.error("Database SQL Error: Cannot execute Commander", e);
             return;
-        } catch (OpenR66DatabaseNoDataException e) {
+        } catch (GoldenGateDatabaseNoDataException e) {
             logger.error("Database Error: Cannot execute Commander", e);
             return;
         } finally {
@@ -235,13 +235,13 @@ public class Commander implements Runnable {
                 internalRunner.submitTaskRunner(taskRunner);
                 taskRunner = null;
             }
-        } catch (OpenR66DatabaseNoConnectionError e) {
+        } catch (GoldenGateDatabaseNoConnectionError e) {
             logger.error("Database No Connection Error: Cannot execute Commander", e);
             return;
-        } catch (OpenR66DatabaseSqlError e) {
+        } catch (GoldenGateDatabaseSqlError e) {
             logger.error("Database SQL Error: Cannot execute Commander", e);
             return;
-        } catch (OpenR66DatabaseException e) {
+        } catch (GoldenGateDatabaseException e) {
             logger.error("Database Error: Cannot execute Commander", e);
             return;
         } finally {

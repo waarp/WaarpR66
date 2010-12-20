@@ -22,7 +22,7 @@ package openr66.commander;
 
 import goldengate.common.database.data.AbstractDbData;
 import goldengate.common.database.data.AbstractDbData.UpdatedInfo;
-import goldengate.common.database.exception.OpenR66DatabaseException;
+import goldengate.common.database.exception.GoldenGateDatabaseException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
@@ -174,7 +174,7 @@ public class ClientRunner extends Thread {
             try {
                 taskRunner.select();
                 this.changeUpdatedInfo(UpdatedInfo.DONE, ErrorCode.CompleteOk);
-            } catch (OpenR66DatabaseException e) {
+            } catch (GoldenGateDatabaseException e) {
                 logger.info("Not a problem but cannot find at the end the task");
             }
         } else {
@@ -211,7 +211,7 @@ public class ClientRunner extends Thread {
                         this.taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);
                         try {
                             this.taskRunner.update();
-                        } catch (OpenR66DatabaseException e1) {
+                        } catch (GoldenGateDatabaseException e1) {
                         }
                     }
                 } else {
@@ -234,7 +234,7 @@ public class ClientRunner extends Thread {
                         }
                     }
                 }
-            } catch (OpenR66DatabaseException e) {
+            } catch (GoldenGateDatabaseException e) {
                 logger.info("Not a problem but cannot find at the end the task");
             }
         }
@@ -272,7 +272,7 @@ public class ClientRunner extends Thread {
                 this.taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);
                 try {
                     this.taskRunner.update();
-                } catch (OpenR66DatabaseException e1) {
+                } catch (GoldenGateDatabaseException e1) {
                 }
                 logger.error("Transfer cannot be finalized when try to Restart: since "+e.getMessage()
                         +"\n    "+taskRunner.toShortString());
@@ -366,7 +366,7 @@ public class ClientRunner extends Thread {
         this.taskRunner.setErrorExecutionStatus(code);
         try {
             this.taskRunner.update();
-        } catch (OpenR66DatabaseException e) {
+        } catch (GoldenGateDatabaseException e) {
         }
     }
 

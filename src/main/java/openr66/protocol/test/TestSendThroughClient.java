@@ -20,7 +20,7 @@
  */
 package openr66.protocol.test;
 
-import goldengate.common.database.exception.OpenR66DatabaseException;
+import goldengate.common.database.exception.GoldenGateDatabaseException;
 import goldengate.common.exception.FileEndOfTransferException;
 import goldengate.common.exception.FileTransferException;
 import goldengate.common.file.DataBlock;
@@ -185,7 +185,7 @@ public class TestSendThroughClient extends SendThroughClient {
                     // In case of success, delete the runner
                     try {
                         result.runner.delete();
-                    } catch (OpenR66DatabaseException e) {
+                    } catch (GoldenGateDatabaseException e) {
                         logger.warn("Cannot apply nolog to "+result.runner.toString(), e);
                     }
                 }

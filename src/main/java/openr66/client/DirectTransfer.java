@@ -20,7 +20,7 @@
  */
 package openr66.client;
 
-import goldengate.common.database.exception.OpenR66DatabaseException;
+import goldengate.common.database.exception.GoldenGateDatabaseException;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
 import openr66.commander.ClientRunner;
@@ -72,7 +72,7 @@ public class DirectTransfer extends AbstractTransfer {
         DbRule rule;
         try {
             rule = new DbRule(DbConstant.admin.session, rulename);
-        } catch (OpenR66DatabaseException e) {
+        } catch (GoldenGateDatabaseException e) {
             logger.error("Cannot get Rule: "+rulename, e);
             future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
                     ErrorCode.Internal, null));
@@ -92,7 +92,7 @@ public class DirectTransfer extends AbstractTransfer {
         try {
             taskRunner =
                 new DbTaskRunner(DbConstant.admin.session,rule,isRetrieve,request,remoteHost);
-        } catch (OpenR66DatabaseException e) {
+        } catch (GoldenGateDatabaseException e) {
             logger.error("Cannot get task", e);
             future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
                     ErrorCode.Internal, null));
@@ -119,7 +119,7 @@ public class DirectTransfer extends AbstractTransfer {
                 // since no connection : just forget it
                 try {
                     taskRunner.delete();
-                } catch (OpenR66DatabaseException e1) {
+                } catch (GoldenGateDatabaseException e1) {
                 }
                 future.setFailure(e);
                 return;
@@ -142,7 +142,7 @@ public class DirectTransfer extends AbstractTransfer {
             // since no connection : just forget it
             try {
                 taskRunner.delete();
-            } catch (OpenR66DatabaseException e1) {
+            } catch (GoldenGateDatabaseException e1) {
             }
             future.setFailure(exc);
             return;
@@ -195,7 +195,7 @@ public class DirectTransfer extends AbstractTransfer {
                     // In case of success, delete the runner
                     try {
                         result.runner.delete();
-                    } catch (OpenR66DatabaseException e) {
+                    } catch (GoldenGateDatabaseException e) {
                         logger.warn("Cannot apply nolog to\n    "+result.runner.toShortString(), e);
                     }
                 }

@@ -24,7 +24,7 @@ import goldengate.common.command.exception.CommandAbstractException;
 import goldengate.common.database.DbPreparedStatement;
 import goldengate.common.database.DbSession;
 import goldengate.common.database.data.AbstractDbData.UpdatedInfo;
-import goldengate.common.database.exception.OpenR66DatabaseException;
+import goldengate.common.database.exception.GoldenGateDatabaseException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
@@ -61,9 +61,9 @@ public class TransferUtils {
      * Try to restart one Transfer Runner Task
      * @param taskRunner
      * @return
-     * @throws OpenR66DatabaseException
+     * @throws GoldenGateDatabaseException
      */
-    public static R66Result restartTransfer(DbTaskRunner taskRunner, LocalChannelReference lcr) throws OpenR66DatabaseException {
+    public static R66Result restartTransfer(DbTaskRunner taskRunner, LocalChannelReference lcr) throws GoldenGateDatabaseException {
         R66Result finalResult = new R66Result(null, true, ErrorCode.InitOk, taskRunner);
         if (lcr != null) {
             finalResult.code = ErrorCode.QueryStillRunning;
@@ -217,7 +217,7 @@ public class TransferUtils {
             }
             preparedStatement.realClose();
             return builder;
-        } catch (OpenR66DatabaseException e) {
+        } catch (GoldenGateDatabaseException e) {
             if (preparedStatement != null) {
                 preparedStatement.realClose();
             }
@@ -266,7 +266,7 @@ public class TransferUtils {
             taskRunner.setErrorExecutionStatus(ErrorCode.FileNotFound);
             try {
                 taskRunner.update();
-            } catch (OpenR66DatabaseException e1) {
+            } catch (GoldenGateDatabaseException e1) {
             }
             throw new OpenR66RunnerErrorException("Cannot recreate file", e);
         }
@@ -283,7 +283,7 @@ public class TransferUtils {
             taskRunner.setErrorExecutionStatus(ErrorCode.Internal);
             try {
                 taskRunner.update();
-            } catch (OpenR66DatabaseException e1) {
+            } catch (GoldenGateDatabaseException e1) {
             }
             throw new OpenR66RunnerErrorException("Cannot validate runner", e);
         }

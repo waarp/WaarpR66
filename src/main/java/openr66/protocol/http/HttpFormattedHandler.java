@@ -24,9 +24,9 @@ import goldengate.common.database.DbAdmin;
 import goldengate.common.database.DbPreparedStatement;
 import goldengate.common.database.DbSession;
 import goldengate.common.database.data.AbstractDbData.UpdatedInfo;
-import goldengate.common.database.exception.OpenR66DatabaseException;
-import goldengate.common.database.exception.OpenR66DatabaseNoConnectionError;
-import goldengate.common.database.exception.OpenR66DatabaseSqlError;
+import goldengate.common.database.exception.GoldenGateDatabaseException;
+import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
+import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
 import goldengate.common.exception.FileTransferException;
 import goldengate.common.exception.InvalidArgumentException;
 import goldengate.common.logging.GgInternalLogger;
@@ -213,7 +213,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
                 this.dbSession = new DbSession(DbConstant.admin, false);
                 this.isPrivateDbSession = true;
             }
-        } catch (OpenR66DatabaseNoConnectionError e1) {
+        } catch (GoldenGateDatabaseNoConnectionError e1) {
             // Cannot connect so use default connection
             logger.warn("Use default database connection");
             this.dbSession = DbConstant.admin.session;
@@ -302,12 +302,12 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
      * @param preparedStatement
      * @param type
      * @param nb
-     * @throws OpenR66DatabaseNoConnectionError
-     * @throws OpenR66DatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionError
+     * @throws GoldenGateDatabaseSqlError
      */
     private void addRunners(DbPreparedStatement preparedStatement, String type,
-            int nb) throws OpenR66DatabaseNoConnectionError,
-            OpenR66DatabaseSqlError {
+            int nb) throws GoldenGateDatabaseNoConnectionError,
+            GoldenGateDatabaseSqlError {
         try {
             preparedStatement.executeQuery();
             responseContent
@@ -377,7 +377,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
                     ErrorCode.PostProcessingOk, nb);
             addRunners(preparedStatement, ErrorCode.PostProcessingOk.mesg, nb);
             preparedStatement = null;
-        } catch (OpenR66DatabaseException e) {
+        } catch (GoldenGateDatabaseException e) {
             if (preparedStatement != null) {
                 preparedStatement.realClose();
             }
@@ -408,7 +408,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
             preparedStatement = DbTaskRunner.getStepPrepareStament(dbSession,
                     TASKSTEP.ERRORTASK, nb / 4);
             addRunners(preparedStatement, TASKSTEP.ERRORTASK.name(), nb / 4);
-        } catch (OpenR66DatabaseException e) {
+        } catch (GoldenGateDatabaseException e) {
             if (preparedStatement != null) {
                 preparedStatement.realClose();
             }
@@ -432,7 +432,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
             preparedStatement = DbTaskRunner.getStatusPrepareStament(dbSession,
                     ErrorCode.CompleteOk, nb);
             addRunners(preparedStatement, ErrorCode.CompleteOk.mesg, nb);
-        } catch (OpenR66DatabaseException e) {
+        } catch (GoldenGateDatabaseException e) {
             if (preparedStatement != null) {
                 preparedStatement.realClose();
             }
@@ -456,7 +456,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
             preparedStatement = DbTaskRunner.getStatusPrepareStament(dbSession,
                     null, nb);// means all
             addRunners(preparedStatement, "ALL RUNNERS: " + nb, nb);
-        } catch (OpenR66DatabaseException e) {
+        } catch (GoldenGateDatabaseException e) {
             if (preparedStatement != null) {
                 preparedStatement.realClose();
             }
@@ -520,7 +520,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
             if (status != HttpResponseStatus.INTERNAL_SERVER_ERROR) {
                 responseContent.append("<p>No problem is found in Transfers</p><br>");
             }
-        } catch (OpenR66DatabaseException e) {
+        } catch (GoldenGateDatabaseException e) {
             if (preparedStatement != null) {
                 preparedStatement.realClose();
             }

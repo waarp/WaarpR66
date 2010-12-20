@@ -22,7 +22,7 @@ package openr66.context;
 
 import goldengate.common.command.exception.CommandAbstractException;
 import goldengate.common.database.data.AbstractDbData.UpdatedInfo;
-import goldengate.common.database.exception.OpenR66DatabaseException;
+import goldengate.common.database.exception.GoldenGateDatabaseException;
 import goldengate.common.exception.NoRestartException;
 import goldengate.common.file.SessionInterface;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
@@ -661,7 +661,7 @@ public class R66Session implements SessionInterface {
             runner.setAllDone();
             try {
                 runner.update();
-            } catch (OpenR66DatabaseException e) {
+            } catch (GoldenGateDatabaseException e) {
             }
             localChannelReference.validateRequest(
                     new R66Result(this, true, ErrorCode.CompleteOk, runner));
@@ -680,7 +680,7 @@ public class R66Session implements SessionInterface {
                 runner.setErrorExecutionStatus(errorValue.code);
                 try {
                     runner.update();
-                } catch (OpenR66DatabaseException e1) {
+                } catch (GoldenGateDatabaseException e1) {
                 }
                 this.setFinalizeTransfer(false, errorValue);
             } catch (OpenR66RunnerErrorException e) {
@@ -689,7 +689,7 @@ public class R66Session implements SessionInterface {
                 runner.setErrorExecutionStatus(errorValue.code);
                 try {
                     runner.update();
-                } catch (OpenR66DatabaseException e1) {
+                } catch (GoldenGateDatabaseException e1) {
                 }
                 this.setFinalizeTransfer(false, errorValue);
             }
