@@ -28,7 +28,6 @@ import goldengate.common.logging.GgSlf4JLoggerFactory;
 
 import java.io.File;
 
-import openr66.client.SubmitTransfer;
 import openr66.configuration.AuthenticationFileBasedConfiguration;
 import openr66.configuration.FileBasedConfiguration;
 import openr66.configuration.RuleFileBasedConfiguration;
@@ -95,7 +94,7 @@ public class ServerInitDatabase {
         InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
                 Level.WARN));
         if (logger == null) {
-            logger = GgInternalLoggerFactory.getLogger(SubmitTransfer.class);
+            logger = GgInternalLoggerFactory.getLogger(ServerInitDatabase.class);
         }
         if (! getParams(args)) {
             logger.error("Need at least the configuration file as first argument then optionally\n" +
