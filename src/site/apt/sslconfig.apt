@@ -8,7 +8,7 @@ OpenR66 SSL configuration
 
 *Using Keytool IUI:
 
-**For SSL connection without authentication of clients:
+**For SSL connection without authentication of clients (also valid for Administration):
 
 		* Server side:
 

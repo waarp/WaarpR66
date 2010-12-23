@@ -33,10 +33,10 @@ ${R66BIN}/commons-io-1.4.jar:${R66BIN}/commons-compress-1.1.jar:\
 ${R66BIN}/commons-codec-1.4.jar:${R66BIN}/commons-exec-1.1.jar:\
 ${R66BIN}/ojdbc5.jar:${R66BIN}/orai18n.jar:\
 ${R66BIN}/javasysmon-0.3.3.jar:\
-${R66BIN}/GoldenGateCommon-1.0.9.jar:${R66BIN}/GoldenGateDigest-1.0.1.jar:\
-${R66BIN}/GoldenGateExec-1.0.0.jar:\
+${R66BIN}/GoldenGateCommon-1.1.0.jar:${R66BIN}/GoldenGateDigest-1.0.1.jar:\
+${R66BIN}/GoldenGateExec-1.0.1.jar:\
 ${R66BIN}/NettyExtension-1.1.7.jar:${R66BIN}/netty-3.2.3.Final.jar:\
-${R66BIN}/GoldenGateR66-2.0.0.jar "
+${R66BIN}/GoldenGateR66-2.0.1.jar "
 export JAVARUNCLIENT="${JAVA_RUN} -cp ${libraries} ${loggerclient} "
 export JAVARUNSERVER="${JAVA_RUN} -cp ${libraries} ${loggerserver} "
 
