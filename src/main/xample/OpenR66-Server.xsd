@@ -238,7 +238,7 @@
 				<xsd:element name="serverpasswd" type="nonEmptyString">
                     <xsd:annotation>
                         <xsd:appinfo>
-                            <fg:node-info message="Password for Administrator access using Crupto Key"/>
+                            <fg:node-info message="Password for Administrator access using Crypto Key"/>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
@@ -440,7 +440,7 @@
 				  <xsd:element name="sessionlimit" type="nonNegInteger" default="8388608" minOccurs="0" maxOccurs="1">
                     <xsd:annotation>
                         <xsd:appinfo>
-                            <fg:node-info message="HBandwidth for one session (64Mb)"/>
+                            <fg:node-info message="Bandwidth for one session (64Mb)"/>
                         </xsd:appinfo>
                     </xsd:annotation>
                   </xsd:element>
@@ -524,14 +524,14 @@
 				  <xsd:element name="cpulimit" type="decimalType" default="0.0" minOccurs="0" maxOccurs="1">
                     <xsd:annotation>
                         <xsd:appinfo>
-                            <fg:node-info message="Usage of CPU limitation based on Native JDK support, else (False) on Java Sysmon library"/>
+                            <fg:node-info message="Limit of CPU usage in percentage from 0 to 1"/>
                         </xsd:appinfo>
                     </xsd:annotation>
                   </xsd:element>
 				  <xsd:element name="connlimit" type="nonNegInteger" default="0" minOccurs="0" maxOccurs="1">
                     <xsd:annotation>
                         <xsd:appinfo>
-                            <fg:node-info message="Usage of CPU limitation based on Native JDK support, else (False) on Java Sysmon library"/>
+                            <fg:node-info message="Limit of concurrent connections usage from 0"/>
                         </xsd:appinfo>
                     </xsd:annotation>
                   </xsd:element>
