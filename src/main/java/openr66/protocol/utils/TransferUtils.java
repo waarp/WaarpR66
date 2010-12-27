@@ -60,7 +60,7 @@ public class TransferUtils {
     /**
      * Try to restart one Transfer Runner Task
      * @param taskRunner
-     * @return
+     * @return the associated Result
      * @throws GoldenGateDatabaseException
      */
     public static R66Result restartTransfer(DbTaskRunner taskRunner, LocalChannelReference lcr) throws GoldenGateDatabaseException {
