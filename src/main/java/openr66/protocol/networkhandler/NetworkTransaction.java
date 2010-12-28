@@ -21,10 +21,11 @@
 package openr66.protocol.networkhandler;
 
 import goldengate.common.database.DbAdmin;
-import goldengate.common.digest.MD5;
+import goldengate.common.digest.FilesystemBasedDigest;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
+import java.io.IOException;
 import java.net.ConnectException;
 import java.net.SocketAddress;
 import java.util.Timer;
@@ -411,7 +412,7 @@ public class NetworkTransaction {
             authent = new AuthentPacket(
                     Configuration.configuration.getHostId(
                             localChannelReference.getNetworkServerHandler().isSsl()),
-                    MD5.passwdCrypt(
+                    FilesystemBasedDigest.passwdCrypt(
                     Configuration.configuration.HOST_AUTH.getHostkey()),
                     localChannelReference.getLocalId());
         } catch (OpenR66ProtocolNoSslException e1) {
@@ -431,6 +432,23 @@ public class NetworkTransaction {
             localChannelReference.invalidateRequest(finalValue);
             Channels.close(localChannelReference.getLocalChannel());
             throw new OpenR66ProtocolNetworkException(e1);
+        } catch (IOException e) {
+            R66Result finalValue = new R66Result(
+                    new OpenR66ProtocolSystemException("No MD5 support", e),
+                    null, true, ErrorCode.ConnectionImpossible, null);
+            logger.error("Authent is Invalid due to no MD5 Support: {}", e.getMessage());
+            if (localChannelReference.getRemoteId() != ChannelUtils.NOCHANNEL) {
+                ConnectionErrorPacket error = new ConnectionErrorPacket(
+                        "Cannot connect to localChannel since no MD5 is supported", null);
+                try {
+                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, error)
+                        .awaitUninterruptibly();
+                } catch (OpenR66ProtocolPacketException e1) {
+                }
+            }
+            localChannelReference.invalidateRequest(finalValue);
+            Channels.close(localChannelReference.getLocalChannel());
+            throw new OpenR66ProtocolNetworkException(e);
         }
         logger.info("Will send request of connection validation");
         try {

@@ -25,7 +25,7 @@ import goldengate.common.database.DbSession;
 import goldengate.common.database.exception.GoldenGateDatabaseException;
 import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
 import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
-import goldengate.common.digest.MD5;
+import goldengate.common.digest.FilesystemBasedDigest;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
@@ -784,7 +784,7 @@ public class Configuration {
         if (newkey == null) {
             return false;
         }
-        return MD5.equalPasswd(SERVERADMINKEY, newkey);
+        return FilesystemBasedDigest.equalPasswd(SERVERADMINKEY, newkey);
     }
 
     /**

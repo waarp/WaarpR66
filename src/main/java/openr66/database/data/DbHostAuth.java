@@ -28,7 +28,7 @@ import goldengate.common.database.exception.GoldenGateDatabaseException;
 import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
 import goldengate.common.database.exception.GoldenGateDatabaseNoDataException;
 import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
-import goldengate.common.digest.MD5;
+import goldengate.common.digest.FilesystemBasedDigest;
 import goldengate.common.utility.GgStringUtils;
 
 import java.net.InetSocketAddress;
@@ -494,10 +494,9 @@ public class DbHostAuth extends AbstractDbData {
             return false;
         }
         try {
-            return MD5.equalPasswd(
+            return FilesystemBasedDigest.equalPasswd(
                     Configuration.configuration.cryptoKey.decryptHexInBytes(this.hostkey), 
                     newkey);
-            //return Arrays.equals(Configuration.configuration.cryptoKey.decryptHexInBytes(this.hostkey), newkey);
         } catch (Exception e) {
             return false;
         }

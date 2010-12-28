@@ -20,7 +20,9 @@
  */
 package openr66.protocol.localhandler.packet;
 
-import goldengate.common.digest.MD5;
+import java.io.IOException;
+
+import goldengate.common.digest.FilesystemBasedDigest;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
@@ -200,7 +202,12 @@ public class AuthentPacket extends AbstractLocalPacket {
         } catch (OpenR66ProtocolNoSslException e) {
             hostId = Configuration.configuration.HOST_ID;
         }
-        key = MD5.passwdCrypt(Configuration.configuration.HOST_AUTH.getHostkey());
+        try {
+            key = FilesystemBasedDigest.passwdCrypt(Configuration.configuration.HOST_AUTH.getHostkey());
+        } catch (IOException e) {
+            // FIXME ignore !!!
+            key = null;
+        }
         header = null;
         middle = null;
         end = null;
