@@ -25,7 +25,6 @@ import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
 
-import java.io.IOException;
 import java.net.SocketAddress;
 
 import openr66.configuration.FileBasedConfiguration;
@@ -83,17 +82,7 @@ public class ServerShutdown {
         }
         Configuration.configuration.pipelineInit();
         byte[] key;
-        try {
-            key = FilesystemBasedDigest.passwdCrypt(Configuration.configuration.getSERVERADMINKEY());
-        } catch (IOException e) {
-            logger.error("MD5 error", e);
-            if (DbConstant.admin != null){
-                DbConstant.admin.close();
-            }
-            ChannelUtils.stopLogger();
-            System.exit(1);
-            return;
-        }
+        key = FilesystemBasedDigest.passwdCrypt(Configuration.configuration.getSERVERADMINKEY());
         final ShutdownPacket packet = new ShutdownPacket(
                 key);
         final NetworkTransaction networkTransaction = new NetworkTransaction();

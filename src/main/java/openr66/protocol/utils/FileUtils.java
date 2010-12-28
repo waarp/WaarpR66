@@ -21,7 +21,6 @@
 package openr66.protocol.utils;
 
 import goldengate.common.digest.FilesystemBasedDigest;
-import goldengate.common.digest.MD5;
 import goldengate.common.file.DirInterface;
 
 import java.io.File;
@@ -450,13 +449,7 @@ public class FileUtils {
      */
     public static ChannelBuffer getHash(ChannelBuffer buffer) {
         byte[] newkey;
-        try {
-            newkey = FilesystemBasedDigest.getHashMd5(buffer);
-        } catch (IOException e) {
-            MD5 md5 = new MD5();
-            md5.Update(buffer);
-            newkey = md5.Final();
-        }
+        newkey = FilesystemBasedDigest.getHashMd5(buffer);
         return ChannelBuffers.wrappedBuffer(newkey);
     }
 

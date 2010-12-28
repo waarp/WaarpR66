@@ -29,7 +29,6 @@ import goldengate.common.database.data.AbstractDbData.UpdatedInfo;
 import goldengate.common.database.exception.GoldenGateDatabaseException;
 import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
 import goldengate.common.digest.FilesystemBasedDigest;
-import goldengate.common.digest.MD5;
 import goldengate.common.exception.CryptoException;
 import goldengate.common.file.DirInterface;
 import goldengate.common.file.filesystembased.FilesystemBasedDirImpl;
@@ -930,23 +929,20 @@ public class FileBasedConfiguration {
                     if (FilesystemBasedDigest.fastMd5Path == null ||
                             FilesystemBasedDigest.fastMd5Path.length() == 0) {
                         logger.info("FastMD5 init lib to null");
-                        FilesystemBasedDigest.fastMd5Path = null;
-                        MD5.initNativeLibrary(true);
+                        FilesystemBasedDigest.initializeMd5(false, null);
                     } else {
                         logger.info("FastMD5 init lib to {}",
                                 FilesystemBasedDigest.fastMd5Path);
-                        MD5
-                                .initNativeLibrary(FilesystemBasedDigest.fastMd5Path);
+                        FilesystemBasedDigest.initializeMd5(true, 
+                                FilesystemBasedDigest.fastMd5Path);
                     }
                 }
             } else {
-                FilesystemBasedDigest.fastMd5Path = null;
-                MD5.initNativeLibrary(true);
+                FilesystemBasedDigest.initializeMd5(false, null);
             }
         } else {
             FilesystemBasedDigest.useFastMd5 = false;
-            FilesystemBasedDigest.fastMd5Path = null;
-            MD5.initNativeLibrary(true);
+            FilesystemBasedDigest.initializeMd5(false, null);
         }
         value = hashConfig.get(XML_GAPRESTART);
         if (value != null && (!value.isEmpty())) {
