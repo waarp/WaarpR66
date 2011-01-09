@@ -20,7 +20,6 @@
  */
 package openr66.configuration;
 
-import goldengate.common.database.DbPreparedStatement;
 import goldengate.common.database.exception.GoldenGateDatabaseException;
 import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
 import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
@@ -272,40 +271,28 @@ public class AuthenticationFileBasedConfiguration {
     public static void writeXML(String filename) throws OpenR66ProtocolSystemException, GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
         Document document = DocumentHelper.createDocument();
         Element root = document.addElement(XML_AUTHENTIFICATION_ROOT);
-        String request = "SELECT " +DbHostAuth.selectAllFields+" FROM "+DbHostAuth.table;
-        DbPreparedStatement preparedStatement = null;
-        try {
-            preparedStatement =
-                new DbPreparedStatement(DbConstant.admin.session);
-            preparedStatement.createPrepareStatement(request);
-            preparedStatement.executeQuery();
-            while (preparedStatement.getNext()) {
-                DbHostAuth auth = DbHostAuth.getFromStatement(preparedStatement);
-                Element entry = new DefaultElement(XML_AUTHENTIFICATION_ENTRY);
-                entry.add(newElement(XML_AUTHENTIFICATION_HOSTID, auth.getHostid()));
-                byte [] key = auth.getHostkey();
-                String encode;
-                try {
-                    encode = Configuration.configuration.cryptoKey.cryptToHex(key);
-                } catch (Exception e) {
-                   encode = "";
-                }
-                entry.add(newElement(XML_AUTHENTIFICATION_KEY, encode));
-                entry.add(newElement(XML_AUTHENTIFICATION_ADMIN, Boolean.toString(auth.isAdminrole())));
-                entry.add(newElement(XML_AUTHENTIFICATION_ADDRESS, auth.getAddress()));
-                entry.add(newElement(XML_AUTHENTIFICATION_PORT, Integer.toString(auth.getPort())));
-                entry.add(newElement(XML_AUTHENTIFICATION_ISSSL, Boolean.toString(auth.isSsl())));
-                root.add(entry);
-            }
+        DbHostAuth []hosts = DbHostAuth.getAllHosts(DbConstant.admin.session);
+        for (DbHostAuth auth: hosts) {
+            Element entry = new DefaultElement(XML_AUTHENTIFICATION_ENTRY);
+            entry.add(newElement(XML_AUTHENTIFICATION_HOSTID, auth.getHostid()));
+            byte [] key = auth.getHostkey();
+            String encode;
             try {
-                XmlUtil.writeXML(filename, null, document);
-            } catch (IOException e) {
-                throw new OpenR66ProtocolSystemException("Cannot write file: "+filename, e);
+                encode = Configuration.configuration.cryptoKey.cryptToHex(key);
+            } catch (Exception e) {
+               encode = "";
             }
-        } finally {
-            if (preparedStatement != null) {
-                preparedStatement.realClose();
-            }
+            entry.add(newElement(XML_AUTHENTIFICATION_KEY, encode));
+            entry.add(newElement(XML_AUTHENTIFICATION_ADMIN, Boolean.toString(auth.isAdminrole())));
+            entry.add(newElement(XML_AUTHENTIFICATION_ADDRESS, auth.getAddress()));
+            entry.add(newElement(XML_AUTHENTIFICATION_PORT, Integer.toString(auth.getPort())));
+            entry.add(newElement(XML_AUTHENTIFICATION_ISSSL, Boolean.toString(auth.isSsl())));
+            root.add(entry);
+        }
+        try {
+            XmlUtil.writeXML(filename, null, document);
+        } catch (IOException e) {
+            throw new OpenR66ProtocolSystemException("Cannot write file: "+filename, e);
         }
     }
 }

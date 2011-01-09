@@ -53,11 +53,11 @@ public class DbHostAuth extends AbstractDbData {
         ADDRESS, PORT, ISSSL, HOSTKEY, ADMINROLE, ISCLIENT, UPDATEDINFO, HOSTID
     }
 
-    public static int[] dbTypes = {
+    public static final int[] dbTypes = {
         Types.VARCHAR, Types.INTEGER, Types.BIT,
         Types.VARBINARY, Types.BIT, Types.BIT, Types.INTEGER, Types.VARCHAR };
 
-    public static String table = " HOSTS ";
+    public static final String table = " HOSTS ";
 
     /**
      * HashTable in case of lack of database
@@ -81,40 +81,76 @@ public class DbHostAuth extends AbstractDbData {
 
     private int updatedInfo = UpdatedInfo.UNKNOWN.ordinal();
 
-    private boolean isSaved = false;
-
     // ALL TABLE SHOULD IMPLEMENT THIS
-    private final DbValue primaryKey = new DbValue(hostid, Columns.HOSTID
-            .name());
+    public static final int NBPRKEY = 1;
 
-    private final DbValue[] otherFields = {
-            new DbValue(address, Columns.ADDRESS.name()),
-            new DbValue(port, Columns.PORT.name()),
-            new DbValue(isSsl, Columns.ISSSL.name()),
-            new DbValue(hostkey, Columns.HOSTKEY.name()),
-            new DbValue(adminrole, Columns.ADMINROLE.name()),
-            new DbValue(isClient, Columns.ISCLIENT.name()),
-            new DbValue(updatedInfo, Columns.UPDATEDINFO.name()) };
-
-    private final DbValue[] allFields = {
-            otherFields[0], otherFields[1], otherFields[2],
-            otherFields[3], otherFields[4], otherFields[5], otherFields[6], primaryKey };
-
-    public static final String selectAllFields = Columns.ADDRESS.name() + "," +
+    protected static final String selectAllFields = Columns.ADDRESS.name() + "," +
             Columns.PORT.name() + "," +Columns.ISSSL.name() + "," +
             Columns.HOSTKEY.name() + "," +
             Columns.ADMINROLE.name() + "," + Columns.ISCLIENT.name() + "," + 
             Columns.UPDATEDINFO.name() + "," +
             Columns.HOSTID.name();
 
-    private static final String updateAllFields =
+    protected static final String updateAllFields =
         Columns.ADDRESS.name() + "=?," +Columns.PORT.name() +
         "=?," +Columns.ISSSL.name() + "=?," + Columns.HOSTKEY.name() +
             "=?," + Columns.ADMINROLE.name() + "=?," +
             Columns.ISCLIENT.name() + "=?," +
             Columns.UPDATEDINFO.name() + "=?";
 
-    private static final String insertAllValues = " (?,?,?,?,?,?,?,?) ";
+    protected static final String insertAllValues = " (?,?,?,?,?,?,?,?) ";
+
+    /* (non-Javadoc)
+     * @see goldengate.common.database.data.AbstractDbData#initObject()
+     */
+    @Override
+    protected void initObject() {
+        primaryKey = new DbValue[]{new DbValue(hostid, Columns.HOSTID
+                .name())};
+        otherFields = new DbValue[]{
+                new DbValue(address, Columns.ADDRESS.name()),
+                new DbValue(port, Columns.PORT.name()),
+                new DbValue(isSsl, Columns.ISSSL.name()),
+                new DbValue(hostkey, Columns.HOSTKEY.name()),
+                new DbValue(adminrole, Columns.ADMINROLE.name()),
+                new DbValue(isClient, Columns.ISCLIENT.name()),
+                new DbValue(updatedInfo, Columns.UPDATEDINFO.name()) };
+        allFields = new DbValue[]{
+                otherFields[0], otherFields[1], otherFields[2],
+                otherFields[3], otherFields[4], otherFields[5], otherFields[6], primaryKey[0] };
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.database.data.AbstractDbData#getSelectAllFields()
+     */
+    @Override
+    protected String getSelectAllFields() {
+        return selectAllFields;
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.database.data.AbstractDbData#getTable()
+     */
+    @Override
+    protected String getTable() {
+        return table;
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.database.data.AbstractDbData#getInsertAllValues()
+     */
+    @Override
+    protected String getInsertAllValues() {
+        return insertAllValues;
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.database.data.AbstractDbData#getUpdateAllFields()
+     */
+    @Override
+    protected String getUpdateAllFields() {
+        return updateAllFields;
+    }
 
     @Override
     protected void setToArray() {
@@ -139,6 +175,22 @@ public class DbHostAuth extends AbstractDbData {
         updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()]
                 .getValue();
         hostid = (String) allFields[Columns.HOSTID.ordinal()].getValue();
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.database.data.AbstractDbData#getWherePrimaryKey()
+     */
+    @Override
+    protected String getWherePrimaryKey() {
+        return primaryKey[0].column + " = ? ";
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.database.data.AbstractDbData#setPrimaryKey()
+     */
+    @Override
+    protected void setPrimaryKey() {
+        primaryKey[0].setValue(hostid);
     }
 
     /**
@@ -223,9 +275,9 @@ public class DbHostAuth extends AbstractDbData {
                 dbSession);
         try {
             preparedStatement.createPrepareStatement("DELETE FROM " + table +
-                    " WHERE " + primaryKey.column + " = ?");
-            primaryKey.setValue(hostid);
-            setValue(preparedStatement, primaryKey);
+                    " WHERE " + getWherePrimaryKey());
+            setPrimaryKey();
+            setValues(preparedStatement, primaryKey);
             int count = preparedStatement.executeUpdate();
             if (count <= 0) {
                 throw new GoldenGateDatabaseNoDataException("No row found");
@@ -279,10 +331,10 @@ public class DbHostAuth extends AbstractDbData {
                 dbSession);
         try {
             preparedStatement.createPrepareStatement("SELECT " +
-                    primaryKey.column + " FROM " + table + " WHERE " +
-                    primaryKey.column + " = ?");
-            primaryKey.setValue(hostid);
-            setValue(preparedStatement, primaryKey);
+                    primaryKey[0].column + " FROM " + table + " WHERE " +
+                    getWherePrimaryKey());
+            setPrimaryKey();
+            setValues(preparedStatement, primaryKey);
             preparedStatement.executeQuery();
             return preparedStatement.getNext();
         } finally {
@@ -315,9 +367,9 @@ public class DbHostAuth extends AbstractDbData {
         try {
             preparedStatement.createPrepareStatement("SELECT " +
                     selectAllFields + " FROM " + table + " WHERE " +
-                    primaryKey.column + " = ?");
-            primaryKey.setValue(hostid);
-            setValue(preparedStatement, primaryKey);
+                    getWherePrimaryKey());
+            setPrimaryKey();
+            setValues(preparedStatement, primaryKey);
             preparedStatement.executeQuery();
             if (preparedStatement.getNext()) {
                 getValues(preparedStatement, allFields);
@@ -351,7 +403,7 @@ public class DbHostAuth extends AbstractDbData {
         try {
             preparedStatement.createPrepareStatement("UPDATE " + table +
                     " SET " + updateAllFields + " WHERE " +
-                    primaryKey.column + " = ?");
+                    getWherePrimaryKey());
             setValues(preparedStatement, allFields);
             int count = preparedStatement.executeUpdate();
             if (count <= 0) {

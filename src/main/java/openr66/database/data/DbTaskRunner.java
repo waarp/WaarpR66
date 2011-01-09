@@ -114,18 +114,18 @@ public class DbTaskRunner extends AbstractDbData {
         SPECIALID;
     }
 
-    public static int[] dbTypes = {
+    public static final int[] dbTypes = {
             Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.INTEGER,
             Types.CHAR, Types.BIT, Types.VARCHAR, Types.BIT, Types.VARCHAR,
             Types.INTEGER, Types.VARCHAR, Types.LONGVARCHAR, Types.INTEGER,
             Types.TIMESTAMP, Types.TIMESTAMP, Types.CHAR, Types.INTEGER,
             Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BIGINT };
 
-    public static String table = " RUNNER ";
+    public static final String table = " RUNNER ";
 
-    public static String fieldseq = "RUNSEQ";
+    public static final String fieldseq = "RUNSEQ";
 
-    public static Columns [] indexes = {
+    public static final Columns [] indexes = {
         Columns.STARTTRANS, Columns.OWNERREQ, Columns.STEPSTATUS, Columns.UPDATEDINFO,
         Columns.GLOBALSTEP
     };
@@ -202,8 +202,6 @@ public class DbTaskRunner extends AbstractDbData {
      */
     private int updatedInfo = UpdatedInfo.UNKNOWN.ordinal();
 
-    private boolean isSaved = false;
-
     private volatile boolean continueTransfer = true;
 
     /**
@@ -211,44 +209,8 @@ public class DbTaskRunner extends AbstractDbData {
      */
     public static final int NBPRKEY = 4;
     // ALL TABLE SHOULD IMPLEMENT THIS
-    private final DbValue primaryKey[] = {
-            new DbValue(ownerRequest, Columns.OWNERREQ.name()),
-            new DbValue(requesterHostId, Columns.REQUESTER.name()),
-            new DbValue(requestedHostId, Columns.REQUESTED.name()),
-            new DbValue(specialId, Columns.SPECIALID.name()) };
-    private final DbValue[] otherFields = {
-            // GLOBALSTEP, GLOBALLASTSTEP, STEP, RANK, STEPSTATUS, RETRIEVEMODE,
-            // FILENAME, ISMOVED, IDRULE,
-            // BLOCKSZ, ORIGINALNAME, FILEINFO, MODETRANS,
-            // STARTTRANS, STOPTRANS
-            // INFOSTATUS, UPDATEDINFO
-            new DbValue(globalstep, Columns.GLOBALSTEP.name()),
-            new DbValue(globallaststep, Columns.GLOBALLASTSTEP.name()),
-            new DbValue(step, Columns.STEP.name()),
-            new DbValue(rank, Columns.RANK.name()),
-            new DbValue(status.getCode(), Columns.STEPSTATUS.name()),
-            new DbValue(isSender, Columns.RETRIEVEMODE.name()),
-            new DbValue(filename, Columns.FILENAME.name()),
-            new DbValue(isFileMoved, Columns.ISMOVED.name()),
-            new DbValue(ruleId, Columns.IDRULE.name()),
-            new DbValue(blocksize, Columns.BLOCKSZ.name()),
-            new DbValue(originalFilename, Columns.ORIGINALNAME.name()),
-            new DbValue(fileInformation, Columns.FILEINFO.name()),
-            new DbValue(mode, Columns.MODETRANS.name()),
-            new DbValue(start, Columns.STARTTRANS.name()),
-            new DbValue(stop, Columns.STOPTRANS.name()),
-            new DbValue(infostatus.getCode(), Columns.INFOSTATUS.name()),
-            new DbValue(updatedInfo, Columns.UPDATEDINFO.name()) };
 
-    private final DbValue[] allFields = {
-            otherFields[0], otherFields[1], otherFields[2], otherFields[3],
-            otherFields[4], otherFields[5], otherFields[6], otherFields[7],
-            otherFields[8], otherFields[9], otherFields[10], otherFields[11],
-            otherFields[12], otherFields[13], otherFields[14], otherFields[15],
-            otherFields[16],
-            primaryKey[0], primaryKey[1], primaryKey[2], primaryKey[3]  };
-
-    public static final String selectAllFields = Columns.GLOBALSTEP.name() +
+    protected static final String selectAllFields = Columns.GLOBALSTEP.name() +
             "," + Columns.GLOBALLASTSTEP.name() + "," + Columns.STEP.name() +
             "," + Columns.RANK.name() + "," + Columns.STEPSTATUS.name() + "," +
             Columns.RETRIEVEMODE.name() + "," + Columns.FILENAME.name() + "," +
@@ -260,7 +222,7 @@ public class DbTaskRunner extends AbstractDbData {
             Columns.OWNERREQ.name() + "," + Columns.REQUESTER.name() + "," +
             Columns.REQUESTED.name() + "," + Columns.SPECIALID.name();
 
-    private static final String updateAllFields = Columns.GLOBALSTEP.name() +
+    protected static final String updateAllFields = Columns.GLOBALSTEP.name() +
             "=?," + Columns.GLOBALLASTSTEP.name() + "=?," +
             Columns.STEP.name() + "=?," + Columns.RANK.name() + "=?," +
             Columns.STEPSTATUS.name() + "=?," + Columns.RETRIEVEMODE.name() +
@@ -271,9 +233,166 @@ public class DbTaskRunner extends AbstractDbData {
             Columns.STARTTRANS.name() + "=?," + Columns.STOPTRANS.name() +
             "=?," + Columns.INFOSTATUS.name() + "=?," + Columns.UPDATEDINFO.name() + "=?";
 
-    private static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
+    protected static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
 
     private static final TreeSet<Long> clientNoDbSpecialId = new TreeSet<Long>();
+    
+
+    /* (non-Javadoc)
+     * @see goldengate.common.database.data.AbstractDbData#initObject()
+     */
+    @Override
+    protected void initObject() {
+        primaryKey = new DbValue[]{
+                new DbValue(ownerRequest, Columns.OWNERREQ.name()),
+                new DbValue(requesterHostId, Columns.REQUESTER.name()),
+                new DbValue(requestedHostId, Columns.REQUESTED.name()),
+                new DbValue(specialId, Columns.SPECIALID.name()) };
+        otherFields = new DbValue[]{
+                // GLOBALSTEP, GLOBALLASTSTEP, STEP, RANK, STEPSTATUS, RETRIEVEMODE,
+                // FILENAME, ISMOVED, IDRULE,
+                // BLOCKSZ, ORIGINALNAME, FILEINFO, MODETRANS,
+                // STARTTRANS, STOPTRANS
+                // INFOSTATUS, UPDATEDINFO
+                new DbValue(globalstep, Columns.GLOBALSTEP.name()),
+                new DbValue(globallaststep, Columns.GLOBALLASTSTEP.name()),
+                new DbValue(step, Columns.STEP.name()),
+                new DbValue(rank, Columns.RANK.name()),
+                new DbValue(ErrorCode.Unknown.getCode(), Columns.STEPSTATUS.name()), // status.getCode()
+                new DbValue(isSender, Columns.RETRIEVEMODE.name()),
+                new DbValue(filename, Columns.FILENAME.name()),
+                new DbValue(isFileMoved, Columns.ISMOVED.name()),
+                new DbValue(ruleId, Columns.IDRULE.name()),
+                new DbValue(blocksize, Columns.BLOCKSZ.name()),
+                new DbValue(originalFilename, Columns.ORIGINALNAME.name()),
+                new DbValue(fileInformation, Columns.FILEINFO.name()),
+                new DbValue(mode, Columns.MODETRANS.name()),
+                new DbValue(start, Columns.STARTTRANS.name()),
+                new DbValue(stop, Columns.STOPTRANS.name()),
+                new DbValue(ErrorCode.Unknown.getCode(), Columns.INFOSTATUS.name()),// infostatus.getCode()
+                new DbValue(updatedInfo, Columns.UPDATEDINFO.name()) };
+        allFields = new DbValue[]{
+                otherFields[0], otherFields[1], otherFields[2], otherFields[3],
+                otherFields[4], otherFields[5], otherFields[6], otherFields[7],
+                otherFields[8], otherFields[9], otherFields[10], otherFields[11],
+                otherFields[12], otherFields[13], otherFields[14], otherFields[15],
+                otherFields[16],
+                primaryKey[0], primaryKey[1], primaryKey[2], primaryKey[3]  };
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.database.data.AbstractDbData#getSelectAllFields()
+     */
+    @Override
+    protected String getSelectAllFields() {
+        return selectAllFields;
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.database.data.AbstractDbData#getTable()
+     */
+    @Override
+    protected String getTable() {
+        return table;
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.database.data.AbstractDbData#getInsertAllValues()
+     */
+    @Override
+    protected String getInsertAllValues() {
+        return insertAllValues;
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.database.data.AbstractDbData#getUpdateAllFields()
+     */
+    @Override
+    protected String getUpdateAllFields() {
+        return updateAllFields;
+    }
+
+    @Override
+    protected void setToArray() {
+        allFields[Columns.GLOBALSTEP.ordinal()].setValue(globalstep);
+        allFields[Columns.GLOBALLASTSTEP.ordinal()].setValue(globallaststep);
+        allFields[Columns.STEP.ordinal()].setValue(step);
+        allFields[Columns.RANK.ordinal()].setValue(rank);
+        allFields[Columns.STEPSTATUS.ordinal()].setValue(status.getCode());
+        allFields[Columns.RETRIEVEMODE.ordinal()].setValue(isSender);
+        allFields[Columns.FILENAME.ordinal()].setValue(filename);
+        allFields[Columns.ISMOVED.ordinal()].setValue(isFileMoved);
+        allFields[Columns.IDRULE.ordinal()].setValue(ruleId);
+        allFields[Columns.BLOCKSZ.ordinal()].setValue(blocksize);
+        allFields[Columns.ORIGINALNAME.ordinal()].setValue(originalFilename);
+        allFields[Columns.FILEINFO.ordinal()].setValue(fileInformation);
+        allFields[Columns.MODETRANS.ordinal()].setValue(mode);
+        allFields[Columns.STARTTRANS.ordinal()].setValue(start);
+        stop = new Timestamp(System.currentTimeMillis());
+        allFields[Columns.STOPTRANS.ordinal()].setValue(stop);
+        allFields[Columns.INFOSTATUS.ordinal()].setValue(infostatus.getCode());
+        allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
+        allFields[Columns.OWNERREQ.ordinal()].setValue(ownerRequest);
+        allFields[Columns.REQUESTER.ordinal()].setValue(requesterHostId);
+        allFields[Columns.REQUESTED.ordinal()].setValue(requestedHostId);
+        allFields[Columns.SPECIALID.ordinal()].setValue(specialId);
+    }
+
+    @Override
+    protected void setFromArray() throws GoldenGateDatabaseSqlError {
+        globalstep = (Integer) allFields[Columns.GLOBALSTEP.ordinal()]
+                .getValue();
+        globallaststep = (Integer) allFields[Columns.GLOBALLASTSTEP.ordinal()]
+                .getValue();
+        step = (Integer) allFields[Columns.STEP.ordinal()].getValue();
+        rank = (Integer) allFields[Columns.RANK.ordinal()].getValue();
+        status = ErrorCode.getFromCode((String) allFields[Columns.STEPSTATUS
+                .ordinal()].getValue());
+        isSender = (Boolean) allFields[Columns.RETRIEVEMODE.ordinal()]
+                .getValue();
+        filename = (String) allFields[Columns.FILENAME.ordinal()].getValue();
+        isFileMoved = (Boolean) allFields[Columns.ISMOVED.ordinal()].getValue();
+        ruleId = (String) allFields[Columns.IDRULE.ordinal()].getValue();
+        blocksize = (Integer) allFields[Columns.BLOCKSZ.ordinal()].getValue();
+        originalFilename = (String) allFields[Columns.ORIGINALNAME.ordinal()]
+                .getValue();
+        fileInformation = (String) allFields[Columns.FILEINFO.ordinal()]
+                .getValue();
+        mode = (Integer) allFields[Columns.MODETRANS.ordinal()].getValue();
+        start = (Timestamp) allFields[Columns.STARTTRANS.ordinal()].getValue();
+        stop = (Timestamp) allFields[Columns.STOPTRANS.ordinal()].getValue();
+        infostatus = ErrorCode.getFromCode((String) allFields[Columns.INFOSTATUS
+                                                          .ordinal()].getValue());
+        updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()]
+                .getValue();
+        ownerRequest = (String) allFields[Columns.OWNERREQ.ordinal()]
+                                             .getValue();
+        requesterHostId = (String) allFields[Columns.REQUESTER.ordinal()]
+                .getValue();
+        requestedHostId = (String) allFields[Columns.REQUESTED.ordinal()]
+                .getValue();
+        specialId = (Long) allFields[Columns.SPECIALID.ordinal()].getValue();
+    }
+    /**
+     *
+     * @return The Where condition on Primary Key
+     */
+    protected String getWherePrimaryKey() {
+        return primaryKey[0].column + " = ? AND " +
+            primaryKey[1].column + " = ? AND " +
+            primaryKey[2].column + " = ? AND " +
+            primaryKey[3].column + " = ? ";
+    }
+    /**
+     * Set the primary Key as current value
+     */
+    protected void setPrimaryKey() {
+        primaryKey[0].setValue(ownerRequest);
+        primaryKey[1].setValue(requesterHostId);
+        primaryKey[2].setValue(requestedHostId);
+        primaryKey[3].setValue(specialId);
+    }
+
     /**
      *
      * @param session
@@ -451,87 +570,6 @@ public class DbTaskRunner extends AbstractDbData {
             }
         }
     }
-
-    @Override
-    protected void setToArray() {
-        allFields[Columns.GLOBALSTEP.ordinal()].setValue(globalstep);
-        allFields[Columns.GLOBALLASTSTEP.ordinal()].setValue(globallaststep);
-        allFields[Columns.STEP.ordinal()].setValue(step);
-        allFields[Columns.RANK.ordinal()].setValue(rank);
-        allFields[Columns.STEPSTATUS.ordinal()].setValue(status.getCode());
-        allFields[Columns.RETRIEVEMODE.ordinal()].setValue(isSender);
-        allFields[Columns.FILENAME.ordinal()].setValue(filename);
-        allFields[Columns.ISMOVED.ordinal()].setValue(isFileMoved);
-        allFields[Columns.IDRULE.ordinal()].setValue(ruleId);
-        allFields[Columns.BLOCKSZ.ordinal()].setValue(blocksize);
-        allFields[Columns.ORIGINALNAME.ordinal()].setValue(originalFilename);
-        allFields[Columns.FILEINFO.ordinal()].setValue(fileInformation);
-        allFields[Columns.MODETRANS.ordinal()].setValue(mode);
-        allFields[Columns.STARTTRANS.ordinal()].setValue(start);
-        stop = new Timestamp(System.currentTimeMillis());
-        allFields[Columns.STOPTRANS.ordinal()].setValue(stop);
-        allFields[Columns.INFOSTATUS.ordinal()].setValue(infostatus.getCode());
-        allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
-        allFields[Columns.OWNERREQ.ordinal()].setValue(ownerRequest);
-        allFields[Columns.REQUESTER.ordinal()].setValue(requesterHostId);
-        allFields[Columns.REQUESTED.ordinal()].setValue(requestedHostId);
-        allFields[Columns.SPECIALID.ordinal()].setValue(specialId);
-    }
-
-    @Override
-    protected void setFromArray() throws GoldenGateDatabaseSqlError {
-        globalstep = (Integer) allFields[Columns.GLOBALSTEP.ordinal()]
-                .getValue();
-        globallaststep = (Integer) allFields[Columns.GLOBALLASTSTEP.ordinal()]
-                .getValue();
-        step = (Integer) allFields[Columns.STEP.ordinal()].getValue();
-        rank = (Integer) allFields[Columns.RANK.ordinal()].getValue();
-        status = ErrorCode.getFromCode((String) allFields[Columns.STEPSTATUS
-                .ordinal()].getValue());
-        isSender = (Boolean) allFields[Columns.RETRIEVEMODE.ordinal()]
-                .getValue();
-        filename = (String) allFields[Columns.FILENAME.ordinal()].getValue();
-        isFileMoved = (Boolean) allFields[Columns.ISMOVED.ordinal()].getValue();
-        ruleId = (String) allFields[Columns.IDRULE.ordinal()].getValue();
-        blocksize = (Integer) allFields[Columns.BLOCKSZ.ordinal()].getValue();
-        originalFilename = (String) allFields[Columns.ORIGINALNAME.ordinal()]
-                .getValue();
-        fileInformation = (String) allFields[Columns.FILEINFO.ordinal()]
-                .getValue();
-        mode = (Integer) allFields[Columns.MODETRANS.ordinal()].getValue();
-        start = (Timestamp) allFields[Columns.STARTTRANS.ordinal()].getValue();
-        stop = (Timestamp) allFields[Columns.STOPTRANS.ordinal()].getValue();
-        infostatus = ErrorCode.getFromCode((String) allFields[Columns.INFOSTATUS
-                                                          .ordinal()].getValue());
-        updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()]
-                .getValue();
-        ownerRequest = (String) allFields[Columns.OWNERREQ.ordinal()]
-                                             .getValue();
-        requesterHostId = (String) allFields[Columns.REQUESTER.ordinal()]
-                .getValue();
-        requestedHostId = (String) allFields[Columns.REQUESTED.ordinal()]
-                .getValue();
-        specialId = (Long) allFields[Columns.SPECIALID.ordinal()].getValue();
-    }
-    /**
-     *
-     * @return The Where condition on Primary Key
-     */
-    private String getWherePrimaryKey() {
-        return primaryKey[0].column + " = ? AND " +
-            primaryKey[1].column + " = ? AND " +
-            primaryKey[2].column + " = ? AND " +
-            primaryKey[3].column + " = ? ";
-    }
-    /**
-     * Set the primary Key as current value
-     */
-    private void setPrimaryKey() {
-        primaryKey[0].setValue(ownerRequest);
-        primaryKey[1].setValue(requesterHostId);
-        primaryKey[2].setValue(requestedHostId);
-        primaryKey[3].setValue(specialId);
-    }
     /**
      *
      * @return the condition to limit access to the row concerned by the Host
@@ -576,21 +614,7 @@ public class DbTaskRunner extends AbstractDbData {
             }
             return;
         }
-        DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                dbSession);
-        try {
-            preparedStatement.createPrepareStatement("DELETE FROM " + table +
-                    " WHERE " + getWherePrimaryKey());
-            setPrimaryKey();
-            setValues(preparedStatement, primaryKey);
-            int count = preparedStatement.executeUpdate();
-            if (count <= 0) {
-                throw new GoldenGateDatabaseNoDataException("No row found");
-            }
-            isSaved = false;
-        } finally {
-            preparedStatement.realClose();
-        }
+        super.delete();
     }
 
     /*
@@ -626,21 +650,7 @@ public class DbTaskRunner extends AbstractDbData {
                     specialId);
             setPrimaryKey();
         }
-        setToArray();
-        DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                dbSession);
-        try {
-            preparedStatement.createPrepareStatement("INSERT INTO " + table +
-                    " (" + selectAllFields + ") VALUES " + insertAllValues);
-            setValues(preparedStatement, allFields);
-            int count = preparedStatement.executeUpdate();
-            if (count <= 0) {
-                throw new GoldenGateDatabaseNoDataException("No row found");
-            }
-            isSaved = true;
-        } finally {
-            preparedStatement.realClose();
-        }
+        super.insert();
     }
 
     /**
@@ -742,19 +752,7 @@ public class DbTaskRunner extends AbstractDbData {
             }
             return false;
         }
-        DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                dbSession);
-        try {
-            preparedStatement.createPrepareStatement("SELECT " +
-                    primaryKey[3].column + " FROM " + table + " WHERE " +
-                    getWherePrimaryKey());
-            setPrimaryKey();
-            setValues(preparedStatement, primaryKey);
-            preparedStatement.executeQuery();
-            return preparedStatement.getNext();
-        } finally {
-            preparedStatement.realClose();
-        }
+        return super.exist();
     }
 
     /*
@@ -780,30 +778,9 @@ public class DbTaskRunner extends AbstractDbData {
             }
             throw new GoldenGateDatabaseNoDataException("No row found");
         }
-        DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                dbSession);
-        try {
-            preparedStatement.createPrepareStatement("SELECT " + selectAllFields +
-                    " FROM " + table + " WHERE " +
-                    getWherePrimaryKey());
-            setPrimaryKey();
-            setValues(preparedStatement, primaryKey);
-            preparedStatement.executeQuery();
-            if (preparedStatement.getNext()) {
-                getValues(preparedStatement, allFields);
-                setFromArray();
-                if (rule == null) {
-                    rule = new DbRule(this.dbSession, ruleId);
-                }
-                isSaved = true;
-            } else {
-                throw new GoldenGateDatabaseNoDataException("No row found: " +
-                        primaryKey[1].getValueAsString() + ":" +
-                        primaryKey[2].getValueAsString() + ":" +
-                        primaryKey[3].getValueAsString());
-            }
-        } finally {
-            preparedStatement.realClose();
+        super.select();
+        if (rule == null) {
+            rule = new DbRule(this.dbSession, ruleId);
         }
     }
 
@@ -829,22 +806,7 @@ public class DbTaskRunner extends AbstractDbData {
             }
             return;
         }
-        setToArray();
-        DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                dbSession);
-        try {
-            preparedStatement.createPrepareStatement("UPDATE " + table +
-                    " SET " + updateAllFields + " WHERE " +
-                    getWherePrimaryKey());
-            setValues(preparedStatement, allFields);
-            int count = preparedStatement.executeUpdate();
-            if (count <= 0) {
-                throw new GoldenGateDatabaseNoDataException("No row found");
-            }
-            isSaved = true;
-        } finally {
-            preparedStatement.realClose();
-        }
+        super.update();
     }
 
     /**

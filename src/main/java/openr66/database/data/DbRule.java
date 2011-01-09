@@ -82,14 +82,14 @@ public class DbRule extends AbstractDbData {
         IDRULE
     }
 
-    public static int[] dbTypes = {
+    public static final int[] dbTypes = {
             Types.LONGVARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR,
             Types.VARCHAR, Types.VARCHAR,
             Types.LONGVARCHAR, Types.LONGVARCHAR, Types.LONGVARCHAR,
             Types.LONGVARCHAR, Types.LONGVARCHAR, Types.LONGVARCHAR,
             Types.INTEGER, Types.VARCHAR };
 
-    public static String table = " RULES ";
+    public static final String table = " RULES ";
 
     /**
      * HashTable in case of lack of database
@@ -255,36 +255,10 @@ public class DbRule extends AbstractDbData {
 
     private int updatedInfo = UpdatedInfo.UNKNOWN.ordinal();
 
-    private boolean isSaved = false;
-
     // ALL TABLE SHOULD IMPLEMENT THIS
-    private final DbValue primaryKey = new DbValue(idRule, Columns.IDRULE
-            .name());
+    public static final int NBPRKEY = 1;
 
-    private final DbValue[] otherFields = {
-            // HOSTIDS, MODETRANS, RECVPATH, SENDPATH, ARCHIVEPATH, WORKPATH,
-            // PRETASKS, POSTTASKS, ERRORTASKS
-            new DbValue(ids, Columns.HOSTIDS.name(), true),
-            new DbValue(mode, Columns.MODETRANS.name()),
-            new DbValue(recvPath, Columns.RECVPATH.name()),
-            new DbValue(sendPath, Columns.SENDPATH.name()),
-            new DbValue(archivePath, Columns.ARCHIVEPATH.name()),
-            new DbValue(workPath, Columns.WORKPATH.name()),
-            new DbValue(rpreTasks, Columns.RPRETASKS.name(), true),
-            new DbValue(rpostTasks, Columns.RPOSTTASKS.name(), true),
-            new DbValue(rerrorTasks, Columns.RERRORTASKS.name(), true),
-            new DbValue(spreTasks, Columns.SPRETASKS.name(), true),
-            new DbValue(spostTasks, Columns.SPOSTTASKS.name(), true),
-            new DbValue(serrorTasks, Columns.SERRORTASKS.name(), true),
-            new DbValue(updatedInfo, Columns.UPDATEDINFO.name()) };
-
-    private final DbValue[] allFields = {
-            otherFields[0], otherFields[1], otherFields[2], otherFields[3],
-            otherFields[4], otherFields[5], otherFields[6], otherFields[7],
-            otherFields[8], otherFields[9], otherFields[10],
-            otherFields[11], otherFields[12], primaryKey };
-
-    public static final String selectAllFields = Columns.HOSTIDS.name() + "," +
+    protected static final String selectAllFields = Columns.HOSTIDS.name() + "," +
             Columns.MODETRANS.name() + "," + Columns.RECVPATH.name() + "," +
             Columns.SENDPATH.name() + "," + Columns.ARCHIVEPATH.name() + "," +
             Columns.WORKPATH.name() + "," +
@@ -294,7 +268,7 @@ public class DbRule extends AbstractDbData {
             Columns.SPOSTTASKS.name() + "," + Columns.SERRORTASKS.name() + "," +
             Columns.UPDATEDINFO.name() + "," + Columns.IDRULE.name();
 
-    private static final String updateAllFields = Columns.HOSTIDS.name() +
+    protected static final String updateAllFields = Columns.HOSTIDS.name() +
             "=?," + Columns.MODETRANS.name() + "=?," + Columns.RECVPATH.name() +
             "=?," + Columns.SENDPATH.name() + "=?," +
             Columns.ARCHIVEPATH.name() + "=?," + Columns.WORKPATH.name() +
@@ -304,7 +278,69 @@ public class DbRule extends AbstractDbData {
             "=?," + Columns.SERRORTASKS.name() + "=?," +
             Columns.UPDATEDINFO.name() + "=?";
 
-    private static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
+    protected static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
+
+    /* (non-Javadoc)
+     * @see goldengate.common.database.data.AbstractDbData#initObject()
+     */
+    @Override
+    protected void initObject() {
+        primaryKey = new DbValue[]{new DbValue(idRule, Columns.IDRULE
+                .name())};
+        otherFields = new DbValue[]{
+                // HOSTIDS, MODETRANS, RECVPATH, SENDPATH, ARCHIVEPATH, WORKPATH,
+                // PRETASKS, POSTTASKS, ERRORTASKS
+                new DbValue(ids, Columns.HOSTIDS.name(), true),
+                new DbValue(mode, Columns.MODETRANS.name()),
+                new DbValue(recvPath, Columns.RECVPATH.name()),
+                new DbValue(sendPath, Columns.SENDPATH.name()),
+                new DbValue(archivePath, Columns.ARCHIVEPATH.name()),
+                new DbValue(workPath, Columns.WORKPATH.name()),
+                new DbValue(rpreTasks, Columns.RPRETASKS.name(), true),
+                new DbValue(rpostTasks, Columns.RPOSTTASKS.name(), true),
+                new DbValue(rerrorTasks, Columns.RERRORTASKS.name(), true),
+                new DbValue(spreTasks, Columns.SPRETASKS.name(), true),
+                new DbValue(spostTasks, Columns.SPOSTTASKS.name(), true),
+                new DbValue(serrorTasks, Columns.SERRORTASKS.name(), true),
+                new DbValue(updatedInfo, Columns.UPDATEDINFO.name()) };
+        allFields = new DbValue[]{
+                otherFields[0], otherFields[1], otherFields[2], otherFields[3],
+                otherFields[4], otherFields[5], otherFields[6], otherFields[7],
+                otherFields[8], otherFields[9], otherFields[10],
+                otherFields[11], otherFields[12], primaryKey[0] };
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.database.data.AbstractDbData#getSelectAllFields()
+     */
+    @Override
+    protected String getSelectAllFields() {
+        return selectAllFields;
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.database.data.AbstractDbData#getTable()
+     */
+    @Override
+    protected String getTable() {
+        return table;
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.database.data.AbstractDbData#getInsertAllValues()
+     */
+    @Override
+    protected String getInsertAllValues() {
+        return insertAllValues;
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.database.data.AbstractDbData#getUpdateAllFields()
+     */
+    @Override
+    protected String getUpdateAllFields() {
+        return updateAllFields;
+    }
 
     @Override
     protected void setToArray() {
@@ -351,6 +387,22 @@ public class DbRule extends AbstractDbData {
         spreTasksArray = getTasksRule(spreTasks);
         spostTasksArray = getTasksRule(spostTasks);
         serrorTasksArray = getTasksRule(serrorTasks);
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.database.data.AbstractDbData#getWherePrimaryKey()
+     */
+    @Override
+    protected String getWherePrimaryKey() {
+        return primaryKey[0].column + " = ? ";
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.database.data.AbstractDbData#setPrimaryKey()
+     */
+    @Override
+    protected void setPrimaryKey() {
+        primaryKey[0].setValue(idRule);
     }
 
     /**
@@ -504,21 +556,7 @@ public class DbRule extends AbstractDbData {
             isSaved = false;
             return;
         }
-        DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                dbSession);
-        try {
-            preparedStatement.createPrepareStatement("DELETE FROM " + table +
-                    " WHERE " + primaryKey.column + " = ?");
-            primaryKey.setValue(idRule);
-            setValue(preparedStatement, primaryKey);
-            int count = preparedStatement.executeUpdate();
-            if (count <= 0) {
-                throw new GoldenGateDatabaseNoDataException("No row found");
-            }
-            isSaved = false;
-        } finally {
-            preparedStatement.realClose();
-        }
+        super.delete();
     }
 
     /*
@@ -536,20 +574,7 @@ public class DbRule extends AbstractDbData {
             isSaved = true;
             return;
         }
-        DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                dbSession);
-        try {
-            preparedStatement.createPrepareStatement("INSERT INTO " + table +
-                    " (" + selectAllFields + ") VALUES " + insertAllValues);
-            setValues(preparedStatement, allFields);
-            int count = preparedStatement.executeUpdate();
-            if (count <= 0) {
-                throw new GoldenGateDatabaseNoDataException("No row found");
-            }
-            isSaved = true;
-        } finally {
-            preparedStatement.realClose();
-        }
+        super.insert();
     }
 
     /* (non-Javadoc)
@@ -564,23 +589,7 @@ public class DbRule extends AbstractDbData {
             }
             return result;
         }
-        DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                dbSession);
-        try {
-            preparedStatement.createPrepareStatement("SELECT " +
-                    primaryKey.column + " FROM " + table + " WHERE " +
-                    primaryKey.column + " = ?");
-            primaryKey.setValue(idRule);
-            setValue(preparedStatement, primaryKey);
-            preparedStatement.executeQuery();
-            boolean result = preparedStatement.getNext();
-            if (! result) {
-                isSaved = false;
-            }
-            return result;
-        } finally {
-            preparedStatement.realClose();
-        }
+        return super.exist();
     }
 
     /*
@@ -616,36 +625,18 @@ public class DbRule extends AbstractDbData {
                 return;
             }
         }
-        DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                dbSession);
-        try {
-            preparedStatement.createPrepareStatement("SELECT " +
-                    selectAllFields + " FROM " + table + " WHERE " +
-                    primaryKey.column + " = ?");
-            primaryKey.setValue(idRule);
-            setValue(preparedStatement, primaryKey);
-            preparedStatement.executeQuery();
-            if (preparedStatement.getNext()) {
-                getValues(preparedStatement, allFields);
-                setFromArray();
-                if (recvPath == null) {
-                    recvPath = Configuration.configuration.inPath;
-                }
-                if (sendPath == null) {
-                    sendPath = Configuration.configuration.outPath;
-                }
-                if (archivePath == null) {
-                    archivePath = Configuration.configuration.archivePath;
-                }
-                if (workPath == null) {
-                    workPath = Configuration.configuration.workingPath;
-                }
-                isSaved = true;
-            } else {
-                throw new GoldenGateDatabaseNoDataException("No row found");
-            }
-        } finally {
-            preparedStatement.realClose();
+        super.select();
+        if (recvPath == null) {
+            recvPath = Configuration.configuration.inPath;
+        }
+        if (sendPath == null) {
+            sendPath = Configuration.configuration.outPath;
+        }
+        if (archivePath == null) {
+            archivePath = Configuration.configuration.archivePath;
+        }
+        if (workPath == null) {
+            workPath = Configuration.configuration.workingPath;
         }
     }
 
@@ -655,8 +646,7 @@ public class DbRule extends AbstractDbData {
      * @see openr66.databaseold.data.AbstractDbData#update()
      */
     @Override
-    public void update() throws GoldenGateDatabaseNoConnectionError,
-            GoldenGateDatabaseSqlError, GoldenGateDatabaseNoDataException {
+    public void update() throws GoldenGateDatabaseException {
         if (isSaved) {
             return;
         }
@@ -665,21 +655,7 @@ public class DbRule extends AbstractDbData {
             isSaved = true;
             return;
         }
-        DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                dbSession);
-        try {
-            preparedStatement.createPrepareStatement("UPDATE " + table +
-                    " SET " + updateAllFields + " WHERE " +
-                    primaryKey.column + " = ?");
-            setValues(preparedStatement, allFields);
-            int count = preparedStatement.executeUpdate();
-            if (count <= 0) {
-                throw new GoldenGateDatabaseNoDataException("No row found");
-            }
-            isSaved = true;
-        } finally {
-            preparedStatement.realClose();
-        }
+        super.update();
     }
     /**
      * Private constructor for Commander only

@@ -20,7 +20,6 @@
  */
 package openr66.configuration;
 
-import goldengate.common.database.DbPreparedStatement;
 import goldengate.common.database.exception.GoldenGateDatabaseException;
 import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
 import goldengate.common.database.exception.GoldenGateDatabaseNoDataException;
@@ -613,22 +612,11 @@ public class RuleFileBasedConfiguration {
         if (! dir.isDirectory()) {
             dir.mkdirs();
         }
-        String request = "SELECT " +DbRule.selectAllFields+" FROM "+DbRule.table;
-        DbPreparedStatement preparedStatement = null;
-        try {
-            preparedStatement = new DbPreparedStatement(DbConstant.admin.session);
-            preparedStatement.createPrepareStatement(request);
-            preparedStatement.executeQuery();
-            while (preparedStatement.getNext()) {
-                DbRule rule = DbRule.getFromStatement(preparedStatement);
-                String filename = dir.getAbsolutePath()+File.separator+hostname+"_"+rule.idRule+
-                    RuleFileBasedConfiguration.EXT_RULE;
-                RuleFileBasedConfiguration.writeXML(filename, rule);
-            }
-        } finally {
-            if (preparedStatement != null) {
-                preparedStatement.realClose();
-            }
+        DbRule []rules = DbRule.getAllRules(DbConstant.admin.session);
+        for (DbRule rule: rules) {
+            String filename = dir.getAbsolutePath()+File.separator+hostname+"_"+rule.idRule+
+                RuleFileBasedConfiguration.EXT_RULE;
+            RuleFileBasedConfiguration.writeXML(filename, rule);
         }
     }
     /**
@@ -645,31 +633,20 @@ public class RuleFileBasedConfiguration {
         if (! dir.isDirectory()) {
             dir.mkdirs();
         }
-        String request = "SELECT " +DbRule.selectAllFields+" FROM "+DbRule.table;
-        DbPreparedStatement preparedStatement = null;
-        try {
-            preparedStatement = new DbPreparedStatement(DbConstant.admin.session);
-            preparedStatement.createPrepareStatement(request);
-            preparedStatement.executeQuery();
-            String filename = dir.getAbsolutePath()+File.separator+hostname+
-                RuleFileBasedConfiguration.EXT_RULES;
-            Document document = DocumentHelper.createDocument();
-            Element root = document.addElement(MULTIPLEROOT);
-            while (preparedStatement.getNext()) {
-                DbRule rule = DbRule.getFromStatement(preparedStatement);
-                Element element = root.addElement(ROOT);
-                addToElement(element, rule);
-            }
-            try {
-                XmlUtil.writeXML(filename, null, document);
-            } catch (IOException e) {
-                throw new OpenR66ProtocolSystemException("Cannot write file: "+filename, e);
-            }
-            return filename;
-        } finally {
-            if (preparedStatement != null) {
-                preparedStatement.realClose();
-            }
+        DbRule []rules = DbRule.getAllRules(DbConstant.admin.session);
+        String filename = dir.getAbsolutePath()+File.separator+hostname+
+            RuleFileBasedConfiguration.EXT_RULES;
+        Document document = DocumentHelper.createDocument();
+        Element root = document.addElement(MULTIPLEROOT);
+        for (DbRule rule: rules) {
+            Element element = root.addElement(ROOT);
+            addToElement(element, rule);
         }
+        try {
+            XmlUtil.writeXML(filename, null, document);
+        } catch (IOException e) {
+            throw new OpenR66ProtocolSystemException("Cannot write file: "+filename, e);
+        }
+        return filename;
     }
 }

@@ -51,11 +51,11 @@ public class DbConfiguration extends AbstractDbData {
         HOSTID
     }
 
-    public static int[] dbTypes = {
+    public static final int[] dbTypes = {
             Types.BIGINT, Types.BIGINT, Types.BIGINT, Types.BIGINT,
             Types.BIGINT, Types.INTEGER, Types.VARCHAR };
 
-    public static String table = " CONFIGURATION ";
+    public static final String table = " CONFIGURATION ";
 
     /**
      * HashTable in case of lack of database
@@ -77,25 +77,11 @@ public class DbConfiguration extends AbstractDbData {
 
     private int updatedInfo = UpdatedInfo.UNKNOWN.ordinal();
 
-    private boolean isSaved = false;
 
     // ALL TABLE SHOULD IMPLEMENT THIS
-    private final DbValue primaryKey = new DbValue(hostid, Columns.HOSTID
-            .name());
+    public static final int NBPRKEY = 1;
 
-    private final DbValue[] otherFields = {
-            new DbValue(readgloballimit, Columns.READGLOBALLIMIT.name()),
-            new DbValue(writegloballimit, Columns.WRITEGLOBALLIMIT.name()),
-            new DbValue(readsessionlimit, Columns.READSESSIONLIMIT.name()),
-            new DbValue(writesessionlimit, Columns.WRITESESSIONLIMIT.name()),
-            new DbValue(delayllimit, Columns.DELAYLIMIT.name()),
-            new DbValue(updatedInfo, Columns.UPDATEDINFO.name()) };
-
-    private final DbValue[] allFields = {
-            otherFields[0], otherFields[1], otherFields[2], otherFields[3],
-            otherFields[4], otherFields[5], primaryKey };
-
-    public static final String selectAllFields = Columns.READGLOBALLIMIT
+    protected static final String selectAllFields = Columns.READGLOBALLIMIT
             .name() +
             "," +
             Columns.WRITEGLOBALLIMIT.name() +
@@ -107,7 +93,7 @@ public class DbConfiguration extends AbstractDbData {
             Columns.DELAYLIMIT.name() +
             "," + Columns.UPDATEDINFO.name() + "," + Columns.HOSTID.name();
 
-    private static final String updateAllFields = Columns.READGLOBALLIMIT
+    protected static final String updateAllFields = Columns.READGLOBALLIMIT
             .name() +
             "=?," +
             Columns.WRITEGLOBALLIMIT.name() +
@@ -121,7 +107,59 @@ public class DbConfiguration extends AbstractDbData {
             Columns.UPDATEDINFO.name() +
             "=?";
 
-    private static final String insertAllValues = " (?,?,?,?,?,?,?) ";
+    protected static final String insertAllValues = " (?,?,?,?,?,?,?) ";
+
+
+    /* (non-Javadoc)
+     * @see goldengate.common.database.data.AbstractDbData#initObject()
+     */
+    @Override
+    protected void initObject() {
+        primaryKey = new DbValue[]{new DbValue(hostid, Columns.HOSTID
+                .name())};
+        otherFields = new DbValue[]{
+                new DbValue(readgloballimit, Columns.READGLOBALLIMIT.name()),
+                new DbValue(writegloballimit, Columns.WRITEGLOBALLIMIT.name()),
+                new DbValue(readsessionlimit, Columns.READSESSIONLIMIT.name()),
+                new DbValue(writesessionlimit, Columns.WRITESESSIONLIMIT.name()),
+                new DbValue(delayllimit, Columns.DELAYLIMIT.name()),
+                new DbValue(updatedInfo, Columns.UPDATEDINFO.name()) };
+        allFields = new DbValue[]{
+                otherFields[0], otherFields[1], otherFields[2], otherFields[3],
+                otherFields[4], otherFields[5], primaryKey[0] };
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.database.data.AbstractDbData#getSelectAllFields()
+     */
+    @Override
+    protected String getSelectAllFields() {
+        return selectAllFields;
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.database.data.AbstractDbData#getTable()
+     */
+    @Override
+    protected String getTable() {
+        return table;
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.database.data.AbstractDbData#getInsertAllValues()
+     */
+    @Override
+    protected String getInsertAllValues() {
+        return insertAllValues;
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.database.data.AbstractDbData#getUpdateAllFields()
+     */
+    @Override
+    protected String getUpdateAllFields() {
+        return updateAllFields;
+    }
 
     @Override
     protected void setToArray() {
@@ -151,6 +189,22 @@ public class DbConfiguration extends AbstractDbData {
         delayllimit = (Long) allFields[Columns.DELAYLIMIT.ordinal()].getValue();
         updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()]
                 .getValue();
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.database.data.AbstractDbData#getWherePrimaryKey()
+     */
+    @Override
+    protected String getWherePrimaryKey() {
+        return primaryKey[0].column + " = ? ";
+    }
+
+    /* (non-Javadoc)
+     * @see goldengate.common.database.data.AbstractDbData#setPrimaryKey()
+     */
+    @Override
+    protected void setPrimaryKey() {
+        primaryKey[0].setValue(hostid);
     }
 
     /**
@@ -204,21 +258,7 @@ public class DbConfiguration extends AbstractDbData {
             isSaved = false;
             return;
         }
-        DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                dbSession);
-        try {
-            preparedStatement.createPrepareStatement("DELETE FROM " + table +
-                    " WHERE " + primaryKey.column + " = ?");
-            primaryKey.setValue(hostid);
-            setValue(preparedStatement, primaryKey);
-            int count = preparedStatement.executeUpdate();
-            if (count <= 0) {
-                throw new GoldenGateDatabaseNoDataException("No row found");
-            }
-            isSaved = false;
-        } finally {
-            preparedStatement.realClose();
-        }
+        super.delete();
     }
 
     /*
@@ -236,20 +276,7 @@ public class DbConfiguration extends AbstractDbData {
             isSaved = true;
             return;
         }
-        DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                dbSession);
-        try {
-            preparedStatement.createPrepareStatement("INSERT INTO " + table +
-                    " (" + selectAllFields + ") VALUES " + insertAllValues);
-            setValues(preparedStatement, allFields);
-            int count = preparedStatement.executeUpdate();
-            if (count <= 0) {
-                throw new GoldenGateDatabaseNoDataException("No row found");
-            }
-            isSaved = true;
-        } finally {
-            preparedStatement.realClose();
-        }
+        super.insert();
     }
 
     /* (non-Javadoc)
@@ -260,19 +287,7 @@ public class DbConfiguration extends AbstractDbData {
         if (dbSession == null) {
             return dbR66ConfigurationHashMap.containsKey(hostid);
         }
-        DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                dbSession);
-        try {
-            preparedStatement.createPrepareStatement("SELECT " +
-                    primaryKey.column + " FROM " + table + " WHERE " +
-                    primaryKey.column + " = ?");
-            primaryKey.setValue(hostid);
-            setValue(preparedStatement, primaryKey);
-            preparedStatement.executeQuery();
-            return preparedStatement.getNext();
-        } finally {
-            preparedStatement.realClose();
-        }
+        return super.exist();
     }
     /*
      * (non-Javadoc)
@@ -295,25 +310,7 @@ public class DbConfiguration extends AbstractDbData {
                 return;
             }
         }
-        DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                dbSession);
-        try {
-            preparedStatement.createPrepareStatement("SELECT " +
-                    selectAllFields + " FROM " + table + " WHERE " +
-                    primaryKey.column + " = ?");
-            primaryKey.setValue(hostid);
-            setValue(preparedStatement, primaryKey);
-            preparedStatement.executeQuery();
-            if (preparedStatement.getNext()) {
-                getValues(preparedStatement, allFields);
-                setFromArray();
-                isSaved = true;
-            } else {
-                throw new GoldenGateDatabaseNoDataException("No row found");
-            }
-        } finally {
-            preparedStatement.realClose();
-        }
+        super.select();
     }
     /*
      * (non-Javadoc)
@@ -330,21 +327,7 @@ public class DbConfiguration extends AbstractDbData {
             isSaved = true;
             return;
         }
-        DbPreparedStatement preparedStatement = new DbPreparedStatement(
-                dbSession);
-        try {
-            preparedStatement.createPrepareStatement("UPDATE " + table +
-                    " SET " + updateAllFields + " WHERE " +
-                    primaryKey.column + " = ?");
-            setValues(preparedStatement, allFields);
-            int count = preparedStatement.executeUpdate();
-            if (count <= 0) {
-                throw new GoldenGateDatabaseNoDataException("No row found");
-            }
-            isSaved = true;
-        } finally {
-            preparedStatement.realClose();
-        }
+        super.update();
     }
     /**
      * Private constructor for Commander only

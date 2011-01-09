@@ -208,6 +208,9 @@ public class Commander implements Runnable {
         } catch (GoldenGateDatabaseNoDataException e) {
             logger.error("Database Error: Cannot execute Commander", e);
             return;
+        } catch (GoldenGateDatabaseException e) {
+            logger.error("Database Error: Cannot execute Commander", e);
+            return;
         } finally {
             preparedStatementRule.close();
         }
