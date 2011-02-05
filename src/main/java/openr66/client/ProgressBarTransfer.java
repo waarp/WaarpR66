@@ -20,58 +20,110 @@
  */
 package openr66.client;
 
+
+import goldengate.common.database.data.AbstractDbData.UpdatedInfo;
 import goldengate.common.database.exception.GoldenGateDatabaseException;
 import goldengate.common.logging.GgInternalLoggerFactory;
-import goldengate.common.logging.GgSlf4JLoggerFactory;
 import openr66.commander.ClientRunner;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
-import openr66.database.DbConstant;
 import openr66.database.data.DbTaskRunner;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolNotYetConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
+import openr66.protocol.localhandler.LocalChannelReference;
+import openr66.protocol.networkhandler.ConstraintLimitHandler;
 import openr66.protocol.networkhandler.NetworkTransaction;
-import openr66.protocol.utils.ChannelUtils;
 import openr66.protocol.utils.R66Future;
 
-import org.jboss.netty.logging.InternalLoggerFactory;
-
-import ch.qos.logback.classic.Level;
-
 /**
- * Direct Transfer from a client with or without database connection
+ * Through API Transfer from a client with or without database connection,
+ * and enabling access to statistic of the transfer (unblocking transfer)
  *
  * @author Frederic Bregier
  *
  */
-public class DirectTransfer extends AbstractTransfer {
+public abstract class ProgressBarTransfer extends AbstractTransfer {
     protected final NetworkTransaction networkTransaction;
+    protected long INTERVALCALLBACK = 100;
+    protected long filesize = 0;
 
-    public DirectTransfer(R66Future future, String remoteHost,
+    public ProgressBarTransfer(R66Future future, String remoteHost,
             String filename, String rulename, String fileinfo, boolean isMD5, int blocksize, long id,
-            NetworkTransaction networkTransaction) {
-        super(DirectTransfer.class,
+            NetworkTransaction networkTransaction, long callbackdelay) {
+        super(ProgressBarTransfer.class,
                 future, filename, rulename, fileinfo, isMD5, remoteHost, blocksize, id);
         this.networkTransaction = networkTransaction;
+        this.INTERVALCALLBACK = callbackdelay;
     }
 
+    /**
+     * This function will be called every 100ms (or other fixed value in INTERVALCALLBACK). 
+     * Note that final rank is unknown. 
+     * @param currentBlock the current block rank (from 0 to n-1)
+     * @param blocksize blocksize of 1 block
+     */
+    abstract public void callBack(int currentBlock, int blocksize);
+    /**
+     * This function will be called only once when the transfer is over 
+     * @param success True if the transfer is successful
+     * @param currentBlock
+     * @param blocksize
+     */
+    abstract public void lastCallBack(boolean success, int currentBlock, int blocksize);
     /**
      * Prior to call this method, the pipeline and NetworkTransaction must have been initialized.
      * It is the responsibility of the caller to finish all network resources.
      */
     public void run() {
         if (logger == null) {
-            logger = GgInternalLoggerFactory.getLogger(DirectTransfer.class);
+            logger = GgInternalLoggerFactory.getLogger(ProgressBarTransfer.class);
         }
         DbTaskRunner taskRunner = this.initRequest();
         ClientRunner runner = new ClientRunner(networkTransaction, taskRunner, future);
         OpenR66ProtocolNotYetConnectionException exc = null;
         for (int i = 0; i < Configuration.RETRYNB; i++) {
             try {
-                runner.runTransfer();
+                LocalChannelReference localChannelReference = runner.initRequest();
+                try {
+                    localChannelReference.getFutureValidRequest().await();
+                } catch (InterruptedException e) {
+                }
+                if ((! localChannelReference.getFutureValidRequest().isSuccess()) &&
+                        (localChannelReference.getFutureValidRequest().getResult().code ==
+                    ErrorCode.ServerOverloaded)) {
+                    switch (taskRunner.getUpdatedInfo()) {
+                        case DONE:
+                        case INERROR:
+                        case INTERRUPTED:
+                            break;
+                        default:
+                            runner.changeUpdatedInfo(UpdatedInfo.INERROR, ErrorCode.ServerOverloaded);
+                    }
+                    // redo if possible
+                    if (runner.incrementTaskRunerTry(taskRunner, Configuration.RETRYNB)) {
+                        try {
+                            Thread.sleep(ConstraintLimitHandler.getSleepTime());
+                        } catch (InterruptedException e) {
+                        }
+                        i--;
+                        continue;
+                    } else {
+                        throw new OpenR66ProtocolNotYetConnectionException("End of retry on ServerOverloaded");
+                    }
+                }
+                this.filesize = future.filesize;
+                while (!future.awaitUninterruptibly(INTERVALCALLBACK)) {
+                    if (future.isDone()) {
+                        break;
+                    }
+                    callBack(future.runner.getRank(), future.runner.getBlocksize());
+                }
+                runner.finishTransfer(false, localChannelReference);
+                lastCallBack(future.isSuccess(), 
+                        future.runner.getRank(), future.runner.getBlocksize());
                 exc = null;
                 break;
             } catch (OpenR66RunnerErrorException e) {
@@ -79,6 +131,7 @@ public class DirectTransfer extends AbstractTransfer {
                 future.setResult(new R66Result(e, null, true,
                         ErrorCode.Internal, taskRunner));
                 future.setFailure(e);
+                lastCallBack(future.isSuccess(), taskRunner.getRank(), taskRunner.getBlocksize());
                 return;
             } catch (OpenR66ProtocolNoConnectionException e) {
                 logger.error("Cannot Connect", e);
@@ -92,12 +145,14 @@ public class DirectTransfer extends AbstractTransfer {
                     }
                 }
                 future.setFailure(e);
+                lastCallBack(future.isSuccess(), taskRunner.getRank(), taskRunner.getBlocksize());
                 return;
             } catch (OpenR66ProtocolPacketException e) {
                 logger.error("Bad Protocol", e);
                 future.setResult(new R66Result(e, null, true,
                         ErrorCode.TransferError, taskRunner));
                 future.setFailure(e);
+                lastCallBack(future.isSuccess(), taskRunner.getRank(), taskRunner.getBlocksize());
                 return;
             } catch (OpenR66ProtocolNotYetConnectionException e) {
                 logger.info("Not Yet Connected", e);
@@ -109,6 +164,7 @@ public class DirectTransfer extends AbstractTransfer {
             logger.error("Cannot Connect", exc);
             future.setResult(new R66Result(exc, null, true,
                     ErrorCode.ConnectionImpossible, taskRunner));
+            lastCallBack(future.isSuccess(), taskRunner.getRank(), taskRunner.getBlocksize());
             // since no connection : just forget it
             if (nolog) {
                 try {
@@ -120,84 +176,4 @@ public class DirectTransfer extends AbstractTransfer {
             return;
         }
     }
-
-    public static void main(String[] args) {
-        InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
-                Level.WARN));
-        if (logger == null) {
-            logger = GgInternalLoggerFactory.getLogger(DirectTransfer.class);
-        }
-        if (! getParams(args, false)) {
-            logger.error("Wrong initialization");
-            if (DbConstant.admin != null && DbConstant.admin.isConnected) {
-                DbConstant.admin.close();
-            }
-            ChannelUtils.stopLogger();
-            System.exit(2);
-        }
-        long time1 = System.currentTimeMillis();
-        R66Future future = new R66Future(true);
-
-        Configuration.configuration.pipelineInit();
-        NetworkTransaction networkTransaction = new NetworkTransaction();
-        try {
-            DirectTransfer transaction = new DirectTransfer(future,
-                    rhost, localFilename, rule, fileInfo, ismd5, block, idt,
-                    networkTransaction);
-            transaction.run();
-            future.awaitUninterruptibly();
-            long time2 = System.currentTimeMillis();
-            long delay = time2 - time1;
-            R66Result result = future.getResult();
-            if (future.isSuccess()) {
-                if (result.runner.getErrorInfo() == ErrorCode.Warning) {
-                    logger.warn("Transfer in status:\nWARNED\n    "+result.runner.toShortString()+
-                            "\n    <REMOTE>"+rhost+"</REMOTE>"+
-                            "\n    <FILEFINAL>" +
-                            (result.file != null? result.file.toString()+"</FILEFINAL>" : "no file")
-                            +"\n    delay: "+delay);
-                } else {
-                    logger.warn("Transfer in status:\nSUCCESS\n    "+result.runner.toShortString()+
-                            "\n    <REMOTE>"+rhost+"</REMOTE>"+
-                            "\n    <FILEFINAL>" +
-                            (result.file != null? result.file.toString()+"</FILEFINAL>" : "no file")
-                            +"\n    delay: "+delay);
-                }
-                if (nolog) {
-                    // In case of success, delete the runner
-                    try {
-                        result.runner.delete();
-                    } catch (GoldenGateDatabaseException e) {
-                        logger.warn("Cannot apply nolog to\n    "+result.runner.toShortString(), e);
-                    }
-                }
-            } else {
-                if (result == null || result.runner == null) {
-                    logger.error("Transfer in\n    FAILURE with no Id", future.getCause());
-                    networkTransaction.closeAll();
-                    System.exit(ErrorCode.Unknown.ordinal());
-                }
-                if (result.runner.getErrorInfo() == ErrorCode.Warning) {
-                    logger.warn("Transfer is\n    WARNED\n    "+result.runner.toShortString()+
-                            "\n    <REMOTE>"+rhost+"</REMOTE>", future.getCause());
-                    networkTransaction.closeAll();
-                    System.exit(result.code.ordinal());
-                } else {
-                    logger.error("Transfer in\n    FAILURE\n    "+result.runner.toShortString()+
-                            "\n    <REMOTE>"+rhost+"</REMOTE>", future.getCause());
-                    networkTransaction.closeAll();
-                    System.exit(result.code.ordinal());
-                }
-            }
-        } finally {
-            networkTransaction.closeAll();
-            // In case something wrong append
-            if (future.isSuccess()) {
-                System.exit(0);
-            } else {
-                System.exit(66);
-            }
-        }
-    }
-
 }

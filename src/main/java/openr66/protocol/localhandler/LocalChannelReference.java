@@ -83,6 +83,10 @@ public class LocalChannelReference {
      */
     private final R66Future futureRequest;
     /**
+     * Future on Valid Starting Request
+     */
+    private R66Future futureValidRequest = new R66Future(true);
+    /**
      * Future on Transfer
      */
     private R66Future futureEndTransfer = new R66Future(true);
@@ -345,6 +349,13 @@ public class LocalChannelReference {
             throw this.futureEndTransfer.getResult().exception;
         }
     }
+    
+    /**
+     * @return the futureValidRequest
+     */
+    public R66Future getFutureValidRequest() {
+        return futureValidRequest;
+    }
     /**
      * @return the futureRequest
      */
@@ -366,15 +377,25 @@ public class LocalChannelReference {
                 futureEndTransfer.cancel();
             }
         }
-        if (!futureRequest.isDone()) {
-            futureRequest.setResult(finalValue);
+        if (!futureValidRequest.isDone()) {
+            futureValidRequest.setResult(finalValue);
             if (finalValue.exception != null) {
-                futureRequest.setFailure(finalValue.exception);
+                futureValidRequest.setFailure(finalValue.exception);
             } else {
-                futureRequest.cancel();
+                futureValidRequest.cancel();
             }
-        } else {
-            logger.info("Could not invalidate since Already finished: " + futureEndTransfer.getResult());
+        }
+        if (finalValue.code != ErrorCode.ServerOverloaded) {
+            if (!futureRequest.isDone()) {
+                futureRequest.setResult(finalValue);
+                if (finalValue.exception != null) {
+                    futureRequest.setFailure(finalValue.exception);
+                } else {
+                    futureRequest.cancel();
+                }
+            } else {
+                logger.info("Could not invalidate since Already finished: " + futureEndTransfer.getResult());
+            }
         }
         if (this.session != null) {
             DbTaskRunner runner = this.session.getRunner();
@@ -393,6 +414,10 @@ public class LocalChannelReference {
         if (!futureEndTransfer.isDone()) {
             logger.info("Will validate EndTransfer");
             validateEndTransfer(finalValue);
+        }
+        if (!futureValidRequest.isDone()) {
+            futureValidRequest.setResult(finalValue);
+            futureValidRequest.setSuccess();
         }
         if (!futureRequest.isDone()) {
             futureRequest.setResult(finalValue);

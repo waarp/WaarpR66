@@ -151,6 +151,12 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
+    	<groupId>javasysmon</groupId>
+    	<artifactId>javasysmon</artifactId>
+    	<version>0.3.3</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
     	<groupId>Oracle</groupId>
     	<artifactId>ojdbc5</artifactId>
     	<version>5</version>

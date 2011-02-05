@@ -132,7 +132,7 @@ public class ClientRunner extends Thread {
      * @param limit
      * @return True if the task was run less than limit, else False
      */
-    private boolean incrementTaskRunerTry(DbTaskRunner runner, int limit) {
+    public boolean incrementTaskRunerTry(DbTaskRunner runner, int limit) {
         String key = runner.getKey();
         Integer tries = taskRunnerRetryHashMap.get(key);
         if (tries == null) {
@@ -161,13 +161,69 @@ public class ClientRunner extends Thread {
     throws OpenR66RunnerErrorException, OpenR66ProtocolNoConnectionException,
     OpenR66ProtocolPacketException, OpenR66ProtocolNotYetConnectionException {
         LocalChannelReference localChannelReference = initRequest();
+        try {
+            localChannelReference.getFutureValidRequest().await();
+        } catch (InterruptedException e) {
+        }
+        if (localChannelReference.getFutureValidRequest().isSuccess()) {
+            return finishTransfer(true, localChannelReference);
+        } else if (localChannelReference.getFutureValidRequest().getResult().code ==
+            ErrorCode.ServerOverloaded) {
+            return tryAgainTransferOnOverloaded(true, localChannelReference);
+        } else return finishTransfer(true, localChannelReference);
+    }
+    /**
+     * In case an overloaded signal is returned by the requested
+     * @param retry if True, it will retry in case of overloaded remote server, else it just stops
+     * @param localChannelReference
+     * @return The R66Future of the transfer operation
+     * @throws OpenR66RunnerErrorException
+     * @throws OpenR66ProtocolNoConnectionException
+     * @throws OpenR66ProtocolPacketException
+     * @throws OpenR66ProtocolNotYetConnectionException
+     */
+    public R66Future tryAgainTransferOnOverloaded(boolean retry, LocalChannelReference localChannelReference) 
+    throws OpenR66RunnerErrorException, OpenR66ProtocolNoConnectionException, 
+    OpenR66ProtocolPacketException, OpenR66ProtocolNotYetConnectionException {
+        switch (taskRunner.getUpdatedInfo()) {
+            case DONE:
+            case INERROR:
+            case INTERRUPTED:
+                break;
+            default:
+                this.changeUpdatedInfo(UpdatedInfo.INERROR, ErrorCode.ServerOverloaded);
+        }
+        // redo if possible
+        if (retry && incrementTaskRunerTry(taskRunner, Configuration.RETRYNB)) {
+            try {
+                Thread.sleep(ConstraintLimitHandler.getSleepTime());
+            } catch (InterruptedException e) {
+            }
+            return runTransfer();
+        } else {
+            throw new OpenR66ProtocolNotYetConnectionException("End of retry on ServerOverloaded");
+        }
+    }
+    /**
+     * Finish the transfer (called at the end of runTransfer)
+     * 
+     * @param retry if True, it will retry in case of overloaded remote server, else it just stops
+     * @param localChannelReference
+     * @return The R66Future of the transfer operation
+     * @throws OpenR66ProtocolNotYetConnectionException 
+     * @throws OpenR66ProtocolPacketException 
+     * @throws OpenR66ProtocolNoConnectionException 
+     * @throws OpenR66RunnerErrorException 
+     */
+    public R66Future finishTransfer(boolean retry, LocalChannelReference localChannelReference) 
+    throws OpenR66RunnerErrorException, OpenR66ProtocolNoConnectionException, 
+    OpenR66ProtocolPacketException, OpenR66ProtocolNotYetConnectionException {
         R66Future transfer = localChannelReference.getFutureRequest();
         try {
             transfer.await();
         } catch (InterruptedException e1) {
         }
         logger.info("Request done with {}",(transfer.isSuccess()?"success":"error"));
-
         Channels.close(localChannelReference.getLocalChannel());
         // now reload TaskRunner if it still exists (light client can forget it)
         if (transfer.isSuccess()) {
@@ -222,16 +278,6 @@ public class ClientRunner extends Thread {
                             break;
                         default:
                             this.changeUpdatedInfo(UpdatedInfo.INERROR, transfer.getResult().code);
-                    }
-                    if (transfer.getResult().code == ErrorCode.ServerOverloaded) {
-                        // redo if possible
-                        if (incrementTaskRunerTry(taskRunner, Configuration.RETRYNB)) {
-                            try {
-                                Thread.sleep(ConstraintLimitHandler.getSleepTime());
-                            } catch (InterruptedException e) {
-                            }
-                            return runTransfer();
-                        }
                     }
                 }
             } catch (GoldenGateDatabaseException e) {
@@ -376,5 +422,4 @@ public class ClientRunner extends Thread {
     public void setRecvThroughHandler(RecvThroughHandler handler) {
         this.handler = handler;
     }
-
 }

@@ -143,19 +143,32 @@ public class LocalServerHandler extends SimpleChannelHandler {
                             session.getRunner().toShortString() : "no runner"));
         // FIXME clean session objects like files
         DbTaskRunner runner = session.getRunner();
+        boolean mustFinalize = true;
         if (localChannelReference != null &&
                 localChannelReference.getFutureRequest().isDone()) {
             // already done
         } else {
-            R66Result finalValue = new R66Result(
-                    new OpenR66ProtocolSystemException("Finalize too early at close time"),
-                    session, true, ErrorCode.FinalOp, runner); // True since closed
-            try {
-                tryFinalizeRequest(finalValue);
-            } catch (OpenR66Exception e2) {
+            if (localChannelReference != null) {
+                R66Future fvr = localChannelReference.getFutureValidRequest();
+                if (!fvr.isSuccess()) {
+                    // test if remote server was Overloaded
+                    if (fvr.getResult().code == ErrorCode.ServerOverloaded) {
+                        // ignore
+                        mustFinalize = false;
+                    }
+                }
+                if (mustFinalize) {
+                    R66Result finalValue = new R66Result(
+                            new OpenR66ProtocolSystemException("Finalize too early at close time"),
+                            session, true, ErrorCode.FinalOp, runner); // True since closed
+                    try {
+                        tryFinalizeRequest(finalValue);
+                    } catch (OpenR66Exception e2) {
+                    }
+                }
             }
         }
-        if (runner != null) {
+        if (mustFinalize && runner != null) {
             if (runner.isSelfRequested()) {
                 R66Future transfer = localChannelReference.getFutureRequest();
                 // Since requested : log
@@ -194,7 +207,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                             e.getChannel().getId());
         }
         // Now if runner is not yet finished, finish it by force
-        if (localChannelReference != null && (!localChannelReference.getFutureRequest().isDone())) {
+        if (mustFinalize && localChannelReference != null && (!localChannelReference.getFutureRequest().isDone())) {
             R66Result finalValue = new R66Result(
                     new OpenR66ProtocolSystemException("Finalize too early at close time"),
                     session, true, ErrorCode.FinalOp, runner);
@@ -911,11 +924,19 @@ public class LocalServerHandler extends SimpleChannelHandler {
                    packet.getRulename()), packet);
             return;
         }
+        int blocksize = packet.getBlocksize();
         if (packet.isToValidate()) {
             if (!rule.checkHostAllow(session.getAuth().getUser())) {
                 session.setStatus(30);
                 throw new OpenR66ProtocolNotAuthenticatedException(
                         "Rule is not allowed for the remote host");
+            }
+            // Check if the blocksize is greater than local value
+            if (Configuration.configuration.BLOCKSIZE < blocksize) {
+                blocksize = Configuration.configuration.BLOCKSIZE;
+                packet = new RequestPacket(packet.getRulename(),packet.getMode(),
+                        packet.getFilename(),blocksize,packet.getRank(), 
+                        packet.getSpecialId(), packet.getFileInformation());
             }
         }
         if (! RequestPacket.isCompatibleMode(rule.mode, packet.getMode())) {
@@ -923,7 +944,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             throw new OpenR66ProtocolNotAuthenticatedException(
                     "Rule has not the same mode of transmission: "+rule.mode+" vs "+packet.getMode());
         }
-        session.setBlockSize(packet.getBlocksize());
+        session.setBlockSize(blocksize);
         DbTaskRunner runner;
         if (packet.getSpecialId() != DbConstant.ILLEGALVALUE) {
             // Reload or create
@@ -1111,17 +1132,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
             }
             packet.validate();
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet).awaitUninterruptibly();
+        } else {
+            // requester => might be a client
+            // Save the runner into the session and validate the request so begin transfer 
+            // FIXME XXX 
+            session.getLocalChannelReference().getFutureRequest().runner = runner;
+            localChannelReference.getFutureValidRequest().setSuccess();
         }
-        /* 
-             else {
-            // WAS: Force log in case client with no DB
-            // But replace by backend XML
-            if (localChannelReference.getDbSession() == null) {
-                logger.warn("Starts \n    "+runner.toShortString()+
-                        "\n    <REMOTE>"+session.getAuth().getUser()+"</REMOTE>");
-            }
-        } 
-        */
         // if retrieve => START the retrieve operation except if in Send Through mode
         if (runner.isSender()) {
             if (RequestPacket.isSendThroughMode(packet.getMode())) {

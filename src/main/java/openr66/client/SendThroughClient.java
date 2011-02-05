@@ -102,7 +102,7 @@ import org.jboss.netty.channel.ChannelFuture;
  * @author Frederic Bregier
  *
  */
-public class SendThroughClient extends AbstractTransfer {
+public abstract class SendThroughClient extends AbstractTransfer {
     protected final NetworkTransaction networkTransaction;
     protected LocalChannelReference localChannelReference;
     protected DbTaskRunner taskRunner = null;

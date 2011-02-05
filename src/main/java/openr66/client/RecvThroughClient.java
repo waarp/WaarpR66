@@ -26,16 +26,12 @@ import openr66.commander.ClientRunner;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
-import openr66.database.DbConstant;
-import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
 import openr66.protocol.configuration.Configuration;
-import openr66.protocol.exception.OpenR66DatabaseGlobalException;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolNotYetConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.localhandler.LocalChannelReference;
-import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.test.TestRecvThroughClient;
 import openr66.protocol.utils.R66Future;
@@ -104,37 +100,8 @@ public class RecvThroughClient extends AbstractTransfer {
         if (logger == null) {
             logger = GgInternalLoggerFactory.getLogger(RecvThroughClient.class);
         }
-        DbRule rule;
+        DbTaskRunner taskRunner = this.initRequest();
         try {
-            rule = new DbRule(DbConstant.admin.session, rulename);
-        } catch (GoldenGateDatabaseException e) {
-            logger.error("Cannot get Rule: "+rulename, e);
-            future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
-                    ErrorCode.Internal, null));
-            future.setFailure(e);
-            return;
-        }
-        int mode = rule.mode;
-        if (isMD5) {
-            mode = RequestPacket.getModeMD5(mode);
-        }
-        RequestPacket request = new RequestPacket(rulename,
-                mode, filename, blocksize, 0,
-                id, fileinfo);
-        // isRecv is True since it is the requester, so recv => isSender is false
-        boolean isSender = false;
-        DbTaskRunner taskRunner = null;
-        try {
-            try {
-                taskRunner =
-                    new DbTaskRunner(DbConstant.admin.session,rule,isSender,request,remoteHost);
-            } catch (GoldenGateDatabaseException e) {
-                logger.error("Cannot get task", e);
-                future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
-                        ErrorCode.Internal, null));
-                future.setFailure(e);
-                return;
-            }
             ClientRunner runner = new ClientRunner(networkTransaction, taskRunner, future);
             runner.setRecvThroughHandler(handler);
             OpenR66ProtocolNotYetConnectionException exc = null;

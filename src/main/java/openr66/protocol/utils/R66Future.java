@@ -22,6 +22,7 @@ package openr66.protocol.utils;
 
 import goldengate.common.future.GgFuture;
 import openr66.context.R66Result;
+import openr66.database.data.DbTaskRunner;
 
 /**
  * Future implementation
@@ -31,6 +32,11 @@ import openr66.context.R66Result;
 public class R66Future extends GgFuture {
 
     private R66Result result = null;
+    /**
+     * Used in some specific occasion, such as client submission in API mode
+     */
+    public DbTaskRunner runner = null;
+    public long filesize = 0;
 
     /**
      *

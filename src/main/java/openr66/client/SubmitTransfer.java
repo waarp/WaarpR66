@@ -27,10 +27,8 @@ import goldengate.common.logging.GgSlf4JLoggerFactory;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.database.DbConstant;
-import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
 import openr66.protocol.exception.OpenR66DatabaseGlobalException;
-import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.utils.ChannelUtils;
 import openr66.protocol.utils.R66Future;
 
@@ -56,36 +54,7 @@ public class SubmitTransfer extends AbstractTransfer {
         if (logger == null) {
             logger = GgInternalLoggerFactory.getLogger(SubmitTransfer.class);
         }
-        DbRule rule;
-        try {
-            rule = new DbRule(DbConstant.admin.session, rulename);
-        } catch (GoldenGateDatabaseException e) {
-            logger.error("Cannot get Rule: "+rulename, e);
-            future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
-                    ErrorCode.Internal, null));
-            future.setFailure(e);
-            return;
-        }
-        int mode = rule.mode;
-        if (isMD5) {
-            mode = RequestPacket.getModeMD5(mode);
-        }
-        RequestPacket request = new RequestPacket(rulename,
-                mode, filename, blocksize, 0,
-                id, fileinfo);
-        // Not isRecv since it is the requester, so send => isRetrieve is true
-        boolean isRetrieve = ! RequestPacket.isRecvMode(request.getMode());
-        DbTaskRunner taskRunner;
-        try {
-            taskRunner =
-                new DbTaskRunner(DbConstant.admin.session,rule,isRetrieve,request,remoteHost);
-        } catch (GoldenGateDatabaseException e) {
-            logger.error("Cannot get task", e);
-            future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
-                    ErrorCode.Internal, null));
-            future.setFailure(e);
-            return;
-        }
+        DbTaskRunner taskRunner = this.initRequest();
         taskRunner.changeUpdatedInfo(AbstractDbData.UpdatedInfo.TOSUBMIT);
         try {
             taskRunner.update();

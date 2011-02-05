@@ -18,106 +18,73 @@
    You should have received a copy of the GNU General Public License
    along with GoldenGate .  If not, see <http://www.gnu.org/licenses/>.
  */
-package openr66.client;
+package openr66.protocol.test;
 
 import goldengate.common.database.exception.GoldenGateDatabaseException;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
-import openr66.commander.ClientRunner;
-import openr66.context.ErrorCode;
-import openr66.context.R66Result;
-import openr66.context.task.exception.OpenR66RunnerErrorException;
-import openr66.database.DbConstant;
-import openr66.database.data.DbTaskRunner;
-import openr66.protocol.configuration.Configuration;
-import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
-import openr66.protocol.exception.OpenR66ProtocolNotYetConnectionException;
-import openr66.protocol.exception.OpenR66ProtocolPacketException;
-import openr66.protocol.networkhandler.NetworkTransaction;
-import openr66.protocol.utils.ChannelUtils;
-import openr66.protocol.utils.R66Future;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
 
 import ch.qos.logback.classic.Level;
+import openr66.client.ProgressBarTransfer;
+import openr66.context.ErrorCode;
+import openr66.context.R66Result;
+import openr66.database.DbConstant;
+import openr66.protocol.configuration.Configuration;
+import openr66.protocol.networkhandler.NetworkTransaction;
+import openr66.protocol.utils.ChannelUtils;
+import openr66.protocol.utils.R66Future;
 
 /**
- * Direct Transfer from a client with or without database connection
- *
  * @author Frederic Bregier
  *
  */
-public class DirectTransfer extends AbstractTransfer {
-    protected final NetworkTransaction networkTransaction;
-
-    public DirectTransfer(R66Future future, String remoteHost,
-            String filename, String rulename, String fileinfo, boolean isMD5, int blocksize, long id,
-            NetworkTransaction networkTransaction) {
-        super(DirectTransfer.class,
-                future, filename, rulename, fileinfo, isMD5, remoteHost, blocksize, id);
-        this.networkTransaction = networkTransaction;
-    }
+public class TestProgressBarTransfer extends ProgressBarTransfer {
 
     /**
-     * Prior to call this method, the pipeline and NetworkTransaction must have been initialized.
-     * It is the responsibility of the caller to finish all network resources.
+     * @param future
+     * @param remoteHost
+     * @param filename
+     * @param rulename
+     * @param fileinfo
+     * @param isMD5
+     * @param blocksize
+     * @param id
+     * @param networkTransaction
+     * @param callbackdelay
      */
-    public void run() {
-        if (logger == null) {
-            logger = GgInternalLoggerFactory.getLogger(DirectTransfer.class);
+    public TestProgressBarTransfer(R66Future future, String remoteHost,
+            String filename, String rulename, String fileinfo, boolean isMD5,
+            int blocksize, long id, NetworkTransaction networkTransaction,
+            long callbackdelay) {
+        super(future, remoteHost, filename, rulename, fileinfo, isMD5,
+                blocksize, id, networkTransaction, callbackdelay);
+    }
+
+    /* (non-Javadoc)
+     * @see openr66.client.ProgressBarTransfer#callBack(int, int)
+     */
+    @Override
+    public void callBack(int currentBlock, int blocksize) {
+        if (filesize == 0) {
+            System.err.println("Block: "+currentBlock+" BSize: "+blocksize);
+        } else {
+            System.err.println("Block: "+currentBlock+" BSize: "+blocksize+" on "+
+                    (int) (Math.ceil(((double)filesize/(double)blocksize))));
         }
-        DbTaskRunner taskRunner = this.initRequest();
-        ClientRunner runner = new ClientRunner(networkTransaction, taskRunner, future);
-        OpenR66ProtocolNotYetConnectionException exc = null;
-        for (int i = 0; i < Configuration.RETRYNB; i++) {
-            try {
-                runner.runTransfer();
-                exc = null;
-                break;
-            } catch (OpenR66RunnerErrorException e) {
-                logger.error("Cannot Transfer", e);
-                future.setResult(new R66Result(e, null, true,
-                        ErrorCode.Internal, taskRunner));
-                future.setFailure(e);
-                return;
-            } catch (OpenR66ProtocolNoConnectionException e) {
-                logger.error("Cannot Connect", e);
-                future.setResult(new R66Result(e, null, true,
-                        ErrorCode.ConnectionImpossible, taskRunner));
-                // since no connection : just forget it
-                if (nolog) {
-                    try {
-                        taskRunner.delete();
-                    } catch (GoldenGateDatabaseException e1) {
-                    }
-                }
-                future.setFailure(e);
-                return;
-            } catch (OpenR66ProtocolPacketException e) {
-                logger.error("Bad Protocol", e);
-                future.setResult(new R66Result(e, null, true,
-                        ErrorCode.TransferError, taskRunner));
-                future.setFailure(e);
-                return;
-            } catch (OpenR66ProtocolNotYetConnectionException e) {
-                logger.info("Not Yet Connected", e);
-                exc = e;
-                continue;
-            }
-        }
-        if (exc!= null) {
-            logger.error("Cannot Connect", exc);
-            future.setResult(new R66Result(exc, null, true,
-                    ErrorCode.ConnectionImpossible, taskRunner));
-            // since no connection : just forget it
-            if (nolog) {
-                try {
-                    taskRunner.delete();
-                } catch (GoldenGateDatabaseException e1) {
-                }
-            }
-            future.setFailure(exc);
-            return;
+    }
+
+    /* (non-Javadoc)
+     * @see openr66.client.ProgressBarTransfer#lastCallBack(boolean, int, int)
+     */
+    @Override
+    public void lastCallBack(boolean success, int currentBlock, int blocksize) {
+        if (filesize == 0) {
+            System.err.println("Status: "+success+" Block: "+currentBlock+" BSize: "+blocksize);
+        } else {
+            System.err.println("Status: "+success+" Block: "+currentBlock+" BSize: "+blocksize+
+                    " Size="+filesize);
         }
     }
 
@@ -125,7 +92,7 @@ public class DirectTransfer extends AbstractTransfer {
         InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
                 Level.WARN));
         if (logger == null) {
-            logger = GgInternalLoggerFactory.getLogger(DirectTransfer.class);
+            logger = GgInternalLoggerFactory.getLogger(ProgressBarTransfer.class);
         }
         if (! getParams(args, false)) {
             logger.error("Wrong initialization");
@@ -141,9 +108,9 @@ public class DirectTransfer extends AbstractTransfer {
         Configuration.configuration.pipelineInit();
         NetworkTransaction networkTransaction = new NetworkTransaction();
         try {
-            DirectTransfer transaction = new DirectTransfer(future,
+            TestProgressBarTransfer transaction = new TestProgressBarTransfer(future,
                     rhost, localFilename, rule, fileInfo, ismd5, block, idt,
-                    networkTransaction);
+                    networkTransaction, 100);
             transaction.run();
             future.awaitUninterruptibly();
             long time2 = System.currentTimeMillis();
@@ -199,5 +166,6 @@ public class DirectTransfer extends AbstractTransfer {
             }
         }
     }
+
 
 }

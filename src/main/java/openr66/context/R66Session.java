@@ -506,32 +506,40 @@ public class R66Session implements SessionInterface {
         if (runner.getGloballaststep() == TASKSTEP.TRANSFERTASK.ordinal()) {
             if (!this.runner.isSender()) {
                 // Check file length according to rank
-                try {
-                    long length = file.length();
-                    long oldPosition = restart.getPosition();
-                    restart.setSet(true);
-                    if (oldPosition > length) {
-                        int newRank = ((int) (length / this.runner.getBlocksize()))
-                            - Configuration.RANKRESTART;
-                        if (newRank <= 0) {
-                            newRank = 1;
-                        }
-                        runner.setTransferTask(newRank);
-                        restart.restartMarker(this.runner.getBlocksize() * this.runner.getRank());
-                    }
+                if (RequestPacket.isRecvThroughMode(this.runner.getMode())) {
+                    // no size can be checked
+                } else {
                     try {
-                        file.restartMarker(restart);
-                    } catch (CommandAbstractException e) {
-                        this.runner.deleteTempFile();
-                        throw new OpenR66RunnerErrorException(e);
+                        long length = file.length();
+                        long oldPosition = restart.getPosition();
+                        restart.setSet(true);
+                        if (oldPosition > length) {
+                            int newRank = ((int) (length / this.runner.getBlocksize()))
+                                - Configuration.RANKRESTART;
+                            if (newRank <= 0) {
+                                newRank = 1;
+                            }
+                            runner.setTransferTask(newRank);
+                            restart.restartMarker(this.runner.getBlocksize() * this.runner.getRank());
+                        }
+                        try {
+                            file.restartMarker(restart);
+                        } catch (CommandAbstractException e) {
+                            this.runner.deleteTempFile();
+                            throw new OpenR66RunnerErrorException(e);
+                        }
+                    } catch (CommandAbstractException e1) {
+                        // FIXME length wrong
+                        throw new OpenR66RunnerErrorException("File length is wrong", e1);
+                    } catch (NoRestartException e) {
+                        // length is not to be changed
                     }
-                } catch (CommandAbstractException e1) {
-                    // FIXME length wrong
-                    throw new OpenR66RunnerErrorException("File length is wrong", e1);
-                } catch (NoRestartException e) {
-                    // length is not to be changed
                 }
             } else {
+                try {
+                    this.localChannelReference.getFutureRequest().filesize = file.length();
+                } catch (CommandAbstractException e1) {
+                }
                 try {
                     file.restartMarker(restart);
                 } catch (CommandAbstractException e) {

@@ -20,10 +20,18 @@
  */
 package openr66.client;
 
+import goldengate.common.database.exception.GoldenGateDatabaseException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.configuration.FileBasedConfiguration;
+import openr66.context.ErrorCode;
+import openr66.context.R66Result;
 import openr66.database.DbConstant;
+import openr66.database.data.DbRule;
+import openr66.database.data.DbTaskRunner;
+import openr66.protocol.configuration.Configuration;
+import openr66.protocol.exception.OpenR66DatabaseGlobalException;
+import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.utils.R66Future;
 
 /**
@@ -81,7 +89,58 @@ public abstract class AbstractTransfer implements Runnable {
         this.blocksize = blocksize;
         this.id = id;
     }
-
+    /**
+     * Initiate the Request and return a potential DbTaskRunner
+     * @return null if an error occurs or a DbTaskRunner
+     */
+    protected DbTaskRunner initRequest() {
+        DbRule rule;
+        try {
+            rule = new DbRule(DbConstant.admin.session, rulename);
+        } catch (GoldenGateDatabaseException e) {
+            logger.error("Cannot get Rule: "+rulename, e);
+            future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
+                    ErrorCode.Internal, null));
+            future.setFailure(e);
+            return null;
+        }
+        int mode = rule.mode;
+        if (isMD5) {
+            mode = RequestPacket.getModeMD5(mode);
+        }
+        RequestPacket request;
+        DbTaskRunner taskRunner = null;
+        if (id != DbConstant.ILLEGALVALUE) {
+            try {
+                taskRunner = new DbTaskRunner(DbConstant.admin.session, id, 
+                        remoteHost);
+                request = new RequestPacket(rulename,
+                        mode, filename, taskRunner.getBlocksize(), taskRunner.getRank(),
+                        id, fileinfo);
+            } catch (GoldenGateDatabaseException e) {
+                request = new RequestPacket(rulename,
+                        mode, filename, blocksize, 0,
+                        id, fileinfo);
+            }
+        } else {
+            request = new RequestPacket(rulename,
+                mode, filename, blocksize, 0,
+                id, fileinfo);
+            // Not isRecv since it is the requester, so send => isRetrieve is true
+            boolean isRetrieve = ! RequestPacket.isRecvMode(request.getMode());
+            try {
+                taskRunner =
+                    new DbTaskRunner(DbConstant.admin.session,rule,isRetrieve,request,remoteHost);
+            } catch (GoldenGateDatabaseException e) {
+                logger.error("Cannot get task", e);
+                future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
+                        ErrorCode.Internal, null));
+                future.setFailure(e);
+                return null;
+            }
+        }
+        return taskRunner;
+    }
     static protected String rhost = null;
     static protected String localFilename = null;
     static protected String rule = null;
@@ -98,15 +157,17 @@ public abstract class AbstractTransfer implements Runnable {
      * @return True if all parameters were found and correct
      */
     protected static boolean getParams(String []args, boolean submitOnly) {
-        if (args.length < 4) {
+        if (args.length < 2) {
             logger
-                    .error("Needs at least 4 arguments:\n" +
+                    .error("Needs at least 3 or 4 arguments:\n" +
                     		"  the XML client configuration file,\n" +
-                    		"  '-to' the remoteHost Id,\n" +
+                                "  '-to' the remoteHost Id,\n" +
                                 "  '-file' the file to transfer,\n" +
                                 "  '-rule' the rule\n"+
+                                "Or\n"+
+                                "  '-to' the remoteHost Id,\n" +
+                                "  '-id' \"Id of a previous transfer\",\n"+
                                 "Other options:\n" +
-                                "   '-id' \"Id of a previous transfer\",\n"+
                                 "  '-info' \"information to send\",\n" +
                                 "  '-md5' to force MD5 by packet control,\n" +
                                 "  '-block' size of packet > 1K (prefered is 64K),\n" +
@@ -126,6 +187,8 @@ public abstract class AbstractTransfer implements Runnable {
                     .error("Needs a correct configuration file as first argument");
             return false;
         }
+        // Now set default values from configuration
+        block = Configuration.configuration.BLOCKSIZE;
         for (int i = 1; i < args.length; i++) {
             if (args[i].equalsIgnoreCase("-to")) {
                 i++;
@@ -161,8 +224,21 @@ public abstract class AbstractTransfer implements Runnable {
         }
         if (rhost != null && rule != null && localFilename != null) {
             return true;
+        } else if (idt != DbConstant.ILLEGALVALUE && rhost != null) {
+            try {
+                DbTaskRunner runner = new DbTaskRunner(DbConstant.admin.session, idt, 
+                        rhost);
+                rule = runner.getRuleId();
+                localFilename = runner.getOriginalFilename();
+            } catch (GoldenGateDatabaseException e) {
+                logger.error("All params are not correctly set! Need at least (-to -rule and -file)" +
+                		" or (-to and -id) params", e);
+                return false;
+            }
+
         }
-        logger.error("All params are not set! Need at least -to -rule and -file params");
+        logger.error("All params are not set! Need at least (-to -rule and -file)" +
+                                " or (-to and -id) params");
         return false;
     }
 }

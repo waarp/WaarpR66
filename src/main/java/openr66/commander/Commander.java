@@ -20,6 +20,9 @@
  */
 package openr66.commander;
 
+import java.sql.SQLException;
+import java.sql.Timestamp;
+
 import goldengate.common.database.DbPreparedStatement;
 import goldengate.common.database.data.AbstractDbData;
 import goldengate.common.database.data.AbstractDbData.UpdatedInfo;
@@ -221,6 +224,13 @@ public class Commander implements Runnable {
         logger.debug("start runner");
         // Check TaskRunner
         try {
+            Timestamp start = new Timestamp(System.currentTimeMillis());
+            try {
+                preparedStatementRunner.getPreparedStatement().setTimestamp(1, start);
+            } catch (SQLException e) {
+                logger.error("Database SQL Error: Cannot execute Commander", e);
+                return;
+            }
             preparedStatementRunner.executeQuery();
             while (preparedStatementRunner.getNext()) {
                 DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatementRunner);

@@ -571,6 +571,31 @@ public class DbTaskRunner extends AbstractDbData {
         }
     }
     /**
+     * Constructor to initiate a request with a valid previous Special Id so loaded from database.
+     * 
+     * This object cannot be used except to retrieve information.
+     *
+     * @param dbSession
+     * @param id
+     * @param requested
+     * @throws GoldenGateDatabaseException
+     */
+    public DbTaskRunner(DbSession dbSession, long id, String requested)
+            throws GoldenGateDatabaseException {
+        super(dbSession);
+
+        specialId = id;
+        // retrieving a task should be made from the requester, but the caller
+        // is responsible of this
+        requestedHostId = requested;
+        requesterHostId = Configuration.configuration.getHostId(dbSession,
+                requested);
+        // always itself
+        ownerRequest = Configuration.configuration.HOST_ID;
+
+        select();
+    }
+    /**
      *
      * @return the condition to limit access to the row concerned by the Host
      */
@@ -1153,7 +1178,8 @@ public class DbTaskRunner extends AbstractDbData {
             throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
         String request = "SELECT " + selectAllFields+
                 " FROM " + table + " WHERE " + Columns.UPDATEDINFO.name() +
-                " = " + info.ordinal()+ " AND "+getLimitWhereCondition();
+                " = " + info.ordinal()+ 
+                " AND "+Columns.STARTTRANS.name() + " <= ? AND " +getLimitWhereCondition();
         //FIXME if adding limit after is efficient with Oracle, remove the following code
         /*if (limit > 0) {
             if (DbModelFactory.dbModel instanceof DbModelOracle) {
@@ -2309,7 +2335,8 @@ public class DbTaskRunner extends AbstractDbData {
         return "Run: " + (rule != null? rule.toString() : ruleId) + " on " +
                 filename + " STEP: " + TASKSTEP.values()[globalstep] + "(" +
                 TASKSTEP.values()[globallaststep] + "):" + step + ":" +
-                status.mesg + " Transfer Rank: " + rank + " SpecialId: " +
+                status.mesg + " Transfer Rank: " + rank + " Blocksize: "+blocksize+
+                " SpecialId: " +
                 specialId + " isSender: " + isSender + " isMoved: " +
                 isFileMoved + " Mode: " + TRANSFERMODE.values()[mode] +
                 " Requester: " + requesterHostId + " Requested: " +
@@ -2323,7 +2350,8 @@ public class DbTaskRunner extends AbstractDbData {
         return "Run: " + ruleId + " on " +
                 filename + newline+" STEP: " + TASKSTEP.values()[globalstep] + "(" +
                 TASKSTEP.values()[globallaststep] + "):" + step + ":" +
-                status.mesg + newline+" Transfer Rank: " + rank + " SpecialId: " +
+                status.mesg + newline+" Transfer Rank: " + rank + " Blocksize: "+blocksize+
+                " SpecialId: " +
                 specialId + " isSender: " + isSender + " isMoved: " +
                 isFileMoved + " Mode: " + TRANSFERMODE.values()[mode] +
                 newline+" Requester: " + requesterHostId + " Requested: " +
@@ -2337,7 +2365,8 @@ public class DbTaskRunner extends AbstractDbData {
         return "<RULE>" + ruleId + "</RULE><ID>" + specialId + "</ID><FILE>" +
                 filename + "</FILE>\n    <STEP>" + TASKSTEP.values()[globalstep] +
                 "(" + TASKSTEP.values()[globallaststep] + "):" + step + ":" +
-                status.mesg + "</STEP><RANK>" + rank + "</RANK>\n    <SENDER>" +
+                status.mesg + "</STEP><RANK>" + rank + "</RANK><BLOCKSIZE>"+ blocksize+
+                "</BLOCKSIZE>\n    <SENDER>" +
                 isSender + "</SENDER><MOVED>" + isFileMoved + "</MOVED><MODE>" +
                 TRANSFERMODE.values()[mode] + "</MODE>\n    <REQR>" +
                 requesterHostId + "</REQR><REQD>" + requestedHostId +
@@ -2354,7 +2383,7 @@ public class DbTaskRunner extends AbstractDbData {
     public static String headerHtml() {
         return "<td>SpecialId</td><td>Rule</td><td>Filename</td><td>Info"
                 + "</td><td>Step (LastStep)</td><td>Action</td><td>Status"
-                + "</td><td>Internal</t><td>Transfer Rank</td><td>isMoved"
+                + "</td><td>Internal</t><td>Transfer Rank</td><td>BlockSize</td><td>isMoved"
                 + "</td><td>Requester</td><td>Requested"
                 + "</td><td>Start</td><td>Stop</td><td>Bandwidth (Mbits)</td><td>Free Space(MB)</td>";
     }
@@ -2504,6 +2533,8 @@ public class DbTaskRunner extends AbstractDbData {
                 UpdatedInfo.values()[updatedInfo].name()+" : "+infostatus.mesg +
                 "</td><td>" +
                 rank +
+                "</td><td>" +
+                blocksize +
                 "</td><td>" +
                 isFileMoved +
                 "</td><td>" +
