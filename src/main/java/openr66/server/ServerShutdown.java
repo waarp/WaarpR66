@@ -43,8 +43,6 @@ import openr66.protocol.utils.ChannelUtils;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
 
-import ch.qos.logback.classic.Level;
-
 /**
  * Local client to shutdown the server (using network)
  *
@@ -58,8 +56,7 @@ public class ServerShutdown {
      */
     public static void main(String[] args)
             throws OpenR66ProtocolPacketException {
-        InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
-                Level.WARN));
+        InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(null));
         final GgInternalLogger logger = GgInternalLoggerFactory
                 .getLogger(ServerShutdown.class);
         if (args.length < 1) {

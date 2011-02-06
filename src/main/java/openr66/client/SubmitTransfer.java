@@ -36,8 +36,6 @@ import openr66.protocol.utils.R66Future;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
 
-import ch.qos.logback.classic.Level;
-
 /**
  * Client to submit a transfer
  *
@@ -82,8 +80,7 @@ public class SubmitTransfer extends AbstractTransfer {
      *          and the blocksize if different than default
      */
     public static void main(String[] args) {
-        InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
-                Level.WARN));
+        InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(null));
         if (logger == null) {
             logger = GgInternalLoggerFactory.getLogger(SubmitTransfer.class);
         }

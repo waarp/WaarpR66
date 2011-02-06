@@ -44,8 +44,6 @@ import openr66.protocol.utils.R66Future;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.logging.InternalLoggerFactory;
 
-import ch.qos.logback.classic.Level;
-
 /**
  * This command enables the dynamic change of bandwidth limitation.
  * It does not changed the valuesin the database but only dynamic values while the
@@ -173,8 +171,7 @@ public class ChangeBandwidthLimits implements Runnable {
     }
 
     public static void main(String[] args) {
-        InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
-                Level.WARN));
+        InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(null));
         if (logger == null) {
             logger = GgInternalLoggerFactory.getLogger(ChangeBandwidthLimits.class);
         }

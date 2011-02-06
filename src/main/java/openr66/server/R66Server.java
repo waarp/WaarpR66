@@ -31,8 +31,6 @@ import openr66.protocol.utils.OpenR66SignalHandler;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
 
-import ch.qos.logback.classic.Level;
-
 /**
  * R66Server startup main class
  *
@@ -46,8 +44,7 @@ public class R66Server {
      */
     public static void main(String[] args)
             throws OpenR66ProtocolPacketException {
-        InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
-                Level.WARN));
+        InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(null));
         final GgInternalLogger logger = GgInternalLoggerFactory
                 .getLogger(R66Server.class);
         if (args.length < 1) {

@@ -39,8 +39,6 @@ import openr66.protocol.utils.R66Future;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
 
-import ch.qos.logback.classic.Level;
-
 /**
  * Direct Transfer from a client with or without database connection
  *
@@ -123,8 +121,7 @@ public class DirectTransfer extends AbstractTransfer {
     }
 
     public static void main(String[] args) {
-        InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
-                Level.WARN));
+        InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(null));
         if (logger == null) {
             logger = GgInternalLoggerFactory.getLogger(DirectTransfer.class);
         }

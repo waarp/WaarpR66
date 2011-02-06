@@ -40,8 +40,6 @@ import openr66.protocol.utils.ChannelUtils;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
 
-import ch.qos.logback.classic.Level;
-
 /**
  * Server local configuration export to files
  *
@@ -59,8 +57,7 @@ public class ServerExportConfiguration {
      * @param args as configuration file and the directory where to export
      */
     public static void main(String[] args) {
-        InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
-                Level.WARN));
+        InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(null));
         if (logger == null) {
             logger = GgInternalLoggerFactory.getLogger(ServerExportConfiguration.class);
         }

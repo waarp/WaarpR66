@@ -51,8 +51,6 @@ import openr66.protocol.utils.R66Future;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.logging.InternalLoggerFactory;
 
-import ch.qos.logback.classic.Level;
-
 /**
  * Log Export from a local client without database connection
  *
@@ -250,8 +248,7 @@ public class LogExport implements Runnable {
     }
 
     public static void main(String[] args) {
-        InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
-                Level.WARN));
+        InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(null));
         if (logger == null) {
             logger = GgInternalLoggerFactory.getLogger(LogExport.class);
         }

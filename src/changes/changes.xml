@@ -5,7 +5,7 @@
 		<author email="fredbregier at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
-		<release version="2.0.2" date="2010-02-15" description="Various fixes and new functionalities">
+		<release version="2.0.2" date="2011-02-15" description="Various fixes and new functionalities">
 			<action dev="Frederic Bregier" type="fix">Update Digest functions</action>
 			<action dev="Frederic Bregier" type="fix">Enhance AbstractDbData</action>
 			<action dev="Frederic Bregier" type="fix">Fix Overloaded case</action>

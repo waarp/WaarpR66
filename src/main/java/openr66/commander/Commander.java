@@ -20,9 +20,6 @@
  */
 package openr66.commander;
 
-import java.sql.SQLException;
-import java.sql.Timestamp;
-
 import goldengate.common.database.DbPreparedStatement;
 import goldengate.common.database.data.AbstractDbData;
 import goldengate.common.database.data.AbstractDbData.UpdatedInfo;

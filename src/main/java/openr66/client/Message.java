@@ -44,8 +44,6 @@ import openr66.protocol.utils.R66Future;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.logging.InternalLoggerFactory;
 
-import ch.qos.logback.classic.Level;
-
 /**
  * Message testing between two hosts
  * @author Frederic Bregier
@@ -182,8 +180,7 @@ public class Message implements Runnable {
     }
 
     public static void main(String[] args) {
-        InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
-                Level.WARN));
+        InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(null));
         if (logger == null) {
             logger = GgInternalLoggerFactory.getLogger(Message.class);
         }

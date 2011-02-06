@@ -50,8 +50,6 @@ import openr66.protocol.utils.R66Future;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.logging.InternalLoggerFactory;
 
-import ch.qos.logback.classic.Level;
-
 /**
  * Class to request information or request cancellation or restart
  *
@@ -352,8 +350,7 @@ public class RequestTransfer implements Runnable {
      * @param args
      */
     public static void main(String[] args) {
-        InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
-                Level.WARN));
+        InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(null));
         if (logger == null) {
             logger = GgInternalLoggerFactory.getLogger(RequestTransfer.class);
         }
