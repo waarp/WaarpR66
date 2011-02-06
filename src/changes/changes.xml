@@ -5,6 +5,20 @@
 		<author email="fredbregier at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+		<release version="2.0.2" date="2010-02-15" description="Various fixes and new functionalities">
+			<action dev="Frederic Bregier" type="fix">Update Digest functions</action>
+			<action dev="Frederic Bregier" type="fix">Enhance AbstractDbData</action>
+			<action dev="Frederic Bregier" type="fix">Fix Overloaded case</action>
+			<action dev="Frederic Bregier" type="fix">Fix blocksize testing</action>
+			<action dev="Frederic Bregier" type="add">Fix and Add schedule transfer</action>
+			<action dev="Frederic Bregier" type="fix">Fix transfer submitted through id</action>
+			<action dev="Frederic Bregier" type="add">Add support for client with a progress bar</action>
+		</release>
+		<release version="2.0.1" date="2010-12-25" description="Various fixes">
+			<action dev="Frederic Bregier" type="fix">Database support moved in GGCommon</action>
+			<action dev="Frederic Bregier" type="fix">Some String utility moved in GGCommon</action>
+			<action dev="Frederic Bregier" type="fix">Fix Doc</action>
+		</release>
 		<release version="2.0.0" date="2010-12-12" description="Multiple new functionalities">
 			<action dev="Frederic Bregier" type="fix">Fix xml load configuration with new module</action>
 			<action dev="Frederic Bregier" type="fix">Improve restart by testing length of received file</action>

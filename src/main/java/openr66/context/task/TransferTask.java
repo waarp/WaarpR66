@@ -20,6 +20,11 @@
  */
 package openr66.context.task;
 
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.client.SubmitTransfer;
@@ -36,7 +41,7 @@ import openr66.protocol.utils.R66Future;
  * Result of arguments will be as r66send command.<br>
  * Format is like r66send command in any order except "-info" which should be
  * the last item:<br>
- * "-file filepath -to requestedHost -rule rule [-md5] [-info information]"<br>
+ * "-file filepath -to requestedHost -rule rule [-md5] [-start yyyyMMddHHmmss or -delay (delay or +delay)] [-info information]"<br>
  * <br>
  * INFO is the only one field that can contains blank character.<br>
  *
@@ -83,6 +88,7 @@ public class TransferTask extends AbstractTask {
         String information = null;
         boolean isMD5 = false;
         int blocksize = Configuration.configuration.BLOCKSIZE;
+        Timestamp timestart = null;
         for (int i = 0; i < args.length; i ++) {
             if (args[i].equalsIgnoreCase("-to")) {
                 i ++;
@@ -110,6 +116,23 @@ public class TransferTask extends AbstractTask {
                     logger.warn("Block size is too small: " + blocksize);
                     blocksize = Configuration.configuration.BLOCKSIZE;
                 }
+            } else if (args[i].equalsIgnoreCase("-start")) {
+                i++;
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+                Date date;
+                try {
+                    date = dateFormat.parse(args[i]);
+                    timestart = new Timestamp(date.getTime());
+                } catch (ParseException e) {
+                }
+            } else if (args[i].equalsIgnoreCase("-delay")) {
+                i++;
+                if (args[i].charAt(0) == '+') {
+                    timestart = new Timestamp(System.currentTimeMillis()+
+                            Long.parseLong(args[i].substring(1)));
+                } else {
+                    timestart = new Timestamp(Long.parseLong(args[i]));
+                }
             }
         }
         if (information == null) {
@@ -117,7 +140,8 @@ public class TransferTask extends AbstractTask {
         }
         R66Future future = new R66Future(true);
         SubmitTransfer transaction = new SubmitTransfer(future,
-                requested, filepath, rule, information, isMD5, blocksize, DbConstant.ILLEGALVALUE);
+                requested, filepath, rule, information, isMD5, blocksize, DbConstant.ILLEGALVALUE,
+                timestart);
         transaction.run();
         future.awaitUninterruptibly();
         futureCompletion.setResult(future.getResult());

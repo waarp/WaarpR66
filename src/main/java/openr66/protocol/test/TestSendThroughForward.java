@@ -181,8 +181,9 @@ public class TestSendThroughForward extends SendThroughClient {
         boolean isSender = true;
         try {
             try {
+                // no delay
                 taskRunner =
-                    new DbTaskRunner(DbConstant.admin.session,rule,isSender,request,remoteHost);
+                    new DbTaskRunner(DbConstant.admin.session,rule,isSender,request,remoteHost,null);
             } catch (GoldenGateDatabaseException e) {
                 logger.error("Cannot get task", e);
                 future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,

@@ -23,6 +23,7 @@ package openr66.protocol.test;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
 
+import java.sql.Timestamp;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -61,9 +62,10 @@ public class TestSubmitTransfer extends SubmitTransfer {
     }
 
     public TestSubmitTransfer(R66Future future, String remoteHost,
-            String filename, String rulename, String fileinfo, boolean isMD5, int blocksize) {
+            String filename, String rulename, String fileinfo, boolean isMD5, int blocksize, 
+            Timestamp starttime) {
         super(future, remoteHost, filename, rulename, fileinfo, isMD5, blocksize, 
-                DbConstant.ILLEGALVALUE);
+                DbConstant.ILLEGALVALUE, starttime);
     }
 
     public static void main(String[] args) {
@@ -87,8 +89,13 @@ public class TestSubmitTransfer extends SubmitTransfer {
         logger.warn("Start Test Submit");
         for (int i = 0; i < nb; i ++) {
             arrayFuture[i] = new R66Future(true);
+            Timestamp newstart = ttimestart;
+            if (newstart != null) {
+                // delay of 10 ms between each
+                newstart = new Timestamp(newstart.getTime()+i*10);
+            }
             TestSubmitTransfer transaction = new TestSubmitTransfer(arrayFuture[i],
-                    rhost, localFilename, rule, fileInfo, ismd5, block);
+                    rhost, localFilename, rule, fileInfo, ismd5, block, newstart);
             //executorService.execute(transaction);
             transaction.run();
         }

@@ -53,8 +53,9 @@ public class DirectTransfer extends AbstractTransfer {
     public DirectTransfer(R66Future future, String remoteHost,
             String filename, String rulename, String fileinfo, boolean isMD5, int blocksize, long id,
             NetworkTransaction networkTransaction) {
+        // no starttime since it is direct (blocking request, no delay)
         super(DirectTransfer.class,
-                future, filename, rulename, fileinfo, isMD5, remoteHost, blocksize, id);
+                future, filename, rulename, fileinfo, isMD5, remoteHost, blocksize, id, null);
         this.networkTransaction = networkTransaction;
     }
 

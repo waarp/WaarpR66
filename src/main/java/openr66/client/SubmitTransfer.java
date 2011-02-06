@@ -20,6 +20,8 @@
  */
 package openr66.client;
 
+import java.sql.Timestamp;
+
 import goldengate.common.database.data.AbstractDbData;
 import goldengate.common.database.exception.GoldenGateDatabaseException;
 import goldengate.common.logging.GgInternalLoggerFactory;
@@ -45,9 +47,10 @@ import ch.qos.logback.classic.Level;
 public class SubmitTransfer extends AbstractTransfer {
 
     public SubmitTransfer(R66Future future, String remoteHost,
-            String filename, String rulename, String fileinfo, boolean isMD5, int blocksize, long id) {
+            String filename, String rulename, String fileinfo, boolean isMD5, int blocksize, long id,
+            Timestamp starttime) {
         super(SubmitTransfer.class,
-                future, filename, rulename, fileinfo, isMD5, remoteHost, blocksize, id);
+                future, filename, rulename, fileinfo, isMD5, remoteHost, blocksize, id, starttime);
     }
 
     public void run() {
@@ -94,7 +97,7 @@ public class SubmitTransfer extends AbstractTransfer {
         }
         R66Future future = new R66Future(true);
         SubmitTransfer transaction = new SubmitTransfer(future,
-                rhost, localFilename, rule, fileInfo, ismd5, block, DbConstant.ILLEGALVALUE);
+                rhost, localFilename, rule, fileInfo, ismd5, block, DbConstant.ILLEGALVALUE, ttimestart);
         transaction.run();
         future.awaitUninterruptibly();
         DbTaskRunner runner = future.getResult().runner;

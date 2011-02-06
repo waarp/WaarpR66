@@ -121,7 +121,7 @@ public abstract class SendThroughClient extends AbstractTransfer {
             String filename, String rulename, String fileinfo, boolean isMD5,
             int blocksize, long id, NetworkTransaction networkTransaction) {
         super(SendThroughClient.class,
-                future, filename, rulename, fileinfo, isMD5, remoteHost, blocksize, id);
+                future, filename, rulename, fileinfo, isMD5, remoteHost, blocksize, id, null);
         this.networkTransaction = networkTransaction;
     }
     /**
@@ -162,8 +162,9 @@ public abstract class SendThroughClient extends AbstractTransfer {
         boolean isSender = true;
         try {
             try {
+                // starttime since immediate
                 taskRunner =
-                    new DbTaskRunner(DbConstant.admin.session,rule,isSender,request,remoteHost);
+                    new DbTaskRunner(DbConstant.admin.session,rule,isSender,request,remoteHost, null);
             } catch (GoldenGateDatabaseException e) {
                 logger.error("Cannot get task", e);
                 future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,

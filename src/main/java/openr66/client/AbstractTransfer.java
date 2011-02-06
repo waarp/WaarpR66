@@ -20,6 +20,11 @@
  */
 package openr66.client;
 
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import goldengate.common.database.exception.GoldenGateDatabaseException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
@@ -62,6 +67,7 @@ public abstract class AbstractTransfer implements Runnable {
     
     protected final long id;
 
+    protected final Timestamp startTime;
 
     /**
      * @param clasz Class of Client Transfer
@@ -76,7 +82,7 @@ public abstract class AbstractTransfer implements Runnable {
      */
     public AbstractTransfer(Class<?> clasz, R66Future future, String filename,
             String rulename, String fileinfo,
-            boolean isMD5, String remoteHost, int blocksize, long id) {
+            boolean isMD5, String remoteHost, int blocksize, long id, Timestamp timestart) {
         if (logger == null) {
             logger = GgInternalLoggerFactory.getLogger(clasz);
         }
@@ -88,6 +94,7 @@ public abstract class AbstractTransfer implements Runnable {
         this.remoteHost = remoteHost;
         this.blocksize = blocksize;
         this.id = id;
+        this.startTime = timestart;
     }
     /**
      * Initiate the Request and return a potential DbTaskRunner
@@ -130,7 +137,7 @@ public abstract class AbstractTransfer implements Runnable {
             boolean isRetrieve = ! RequestPacket.isRecvMode(request.getMode());
             try {
                 taskRunner =
-                    new DbTaskRunner(DbConstant.admin.session,rule,isRetrieve,request,remoteHost);
+                    new DbTaskRunner(DbConstant.admin.session,rule,isRetrieve,request,remoteHost, startTime);
             } catch (GoldenGateDatabaseException e) {
                 logger.error("Cannot get task", e);
                 future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
@@ -149,7 +156,9 @@ public abstract class AbstractTransfer implements Runnable {
     static protected int block = 0x10000; // 64K as default
     static protected boolean nolog = false;
     static protected long idt = DbConstant.ILLEGALVALUE;
-    
+    static protected Timestamp ttimestart = null;
+    static protected SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+
     /**
      * Parse the parameter and set current values
      * @param args
@@ -171,7 +180,10 @@ public abstract class AbstractTransfer implements Runnable {
                                 "  '-info' \"information to send\",\n" +
                                 "  '-md5' to force MD5 by packet control,\n" +
                                 "  '-block' size of packet > 1K (prefered is 64K),\n" +
-                                "  '-nolog' to not log locally this action");
+                                "  '-nolog' to not log locally this action\n" +
+                                "  '-start' \"time start\" as yyyyMMddHHmmss (override previous -delay options)\n" +
+                                "  '-delay' \"+delay in ms\" as delay in ms from current time(override previous -start options)\n"+
+                                "  '-delay' \"delay in ms\" as time in ms (override previous -start options)");
             return false;
         }
         if (submitOnly) {
@@ -217,6 +229,22 @@ public abstract class AbstractTransfer implements Runnable {
             } else if (args[i].equalsIgnoreCase("-id")) {
                 i++;
                 idt = Long.parseLong(args[i]);
+            } else if (args[i].equalsIgnoreCase("-start")) {
+                i++;
+                Date date;
+                try {
+                    date = dateFormat.parse(args[i]);
+                    ttimestart = new Timestamp(date.getTime());
+                } catch (ParseException e) {
+                }
+            } else if (args[i].equalsIgnoreCase("-delay")) {
+                i++;
+                if (args[i].charAt(0) == '+') {
+                    ttimestart = new Timestamp(System.currentTimeMillis()+
+                            Long.parseLong(args[i].substring(1)));
+                } else {
+                    ttimestart = new Timestamp(Long.parseLong(args[i]));
+                }
             }
         }
         if (fileInfo == null) {

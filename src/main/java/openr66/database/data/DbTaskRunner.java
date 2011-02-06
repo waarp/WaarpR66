@@ -444,10 +444,11 @@ public class DbTaskRunner extends AbstractDbData {
      * @param isSender
      * @param requestPacket
      * @param requested
+     * @param startTime
      * @throws GoldenGateDatabaseException
      */
     public DbTaskRunner(DbSession dbSession, DbRule rule, boolean isSender,
-            RequestPacket requestPacket, String requested)
+            RequestPacket requestPacket, String requested, Timestamp startTime)
             throws GoldenGateDatabaseException {
         super(dbSession);
         this.session = null;
@@ -470,7 +471,11 @@ public class DbTaskRunner extends AbstractDbData {
         // always itself
         ownerRequest = Configuration.configuration.HOST_ID;
 
-        start = new Timestamp(System.currentTimeMillis());
+        if (startTime != null) {
+            start = startTime;
+        } else {
+            start = new Timestamp(System.currentTimeMillis());
+        }
         setToArray();
         isSaved = false;
         specialId = requestPacket.getSpecialId();
@@ -1194,7 +1199,15 @@ public class DbTaskRunner extends AbstractDbData {
             request =
                 DbModelFactory.dbModel.limitRequest(selectAllFields, request, limit);
         /*}*/
-        return new DbPreparedStatement(session, request);
+        Timestamp start = new Timestamp(System.currentTimeMillis());
+        DbPreparedStatement pstt = new DbPreparedStatement(session, request);
+        try {
+            pstt.getPreparedStatement().setTimestamp(1, start);
+        } catch (SQLException e) {
+            logger.error("Database SQL Error: Cannot set timestamp", e);
+            throw new GoldenGateDatabaseSqlError("Cannot set timestamp",e);
+        }
+        return pstt;
     }
 
     /**
