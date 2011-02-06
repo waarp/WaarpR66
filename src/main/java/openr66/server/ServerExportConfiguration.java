@@ -80,7 +80,7 @@ public class ServerExportConfiguration {
             }
             String directory = args[1];
             String hostname = Configuration.configuration.HOST_ID;
-            logger.warn("Start of Export");
+            logger.info("Start of Export");
             File dir = new File(directory);
             if (! dir.isDirectory()) {
                 dir.mkdirs();
@@ -141,7 +141,7 @@ public class ServerExportConfiguration {
                 ChannelUtils.stopLogger();
                 System.exit(2);
             }
-            logger.warn("End of Export");
+            logger.info("End of Export");
         } finally {
             if (DbConstant.admin != null) {
                 DbConstant.admin.close();

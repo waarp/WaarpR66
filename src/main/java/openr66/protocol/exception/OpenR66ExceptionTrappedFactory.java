@@ -59,7 +59,7 @@ public class OpenR66ExceptionTrappedFactory {
         final Throwable e1 = e.getCause();
         if (e1 instanceof ConnectException) {
             final ConnectException e2 = (ConnectException) e1;
-            logger.info("Connection impossible since {} with Channel {}", e2
+            logger.debug("Connection impossible since {} with Channel {}", e2
                     .getMessage(), channel);
             return new OpenR66ProtocolNoConnectionException(
                     "Connection impossible", e2);
@@ -78,31 +78,31 @@ public class OpenR66ExceptionTrappedFactory {
             // Yes, No action
             return null;
         } else if (e1 instanceof ClosedChannelException) {
-            logger.info("Connection closed before end");
+            logger.debug("Connection closed before end");
             return new OpenR66ProtocolBusinessNoWriteBackException(
                     "Connection closed before end", e1);
         } else if (e1 instanceof OpenR66ProtocolBusinessCancelException) {
             final OpenR66ProtocolBusinessCancelException e2 = (OpenR66ProtocolBusinessCancelException) e1;
-            logger.info("Request is canceled: {}", e2.getMessage());
+            logger.debug("Request is canceled: {}", e2.getMessage());
             return e2;
         } else if (e1 instanceof OpenR66ProtocolBusinessStopException) {
             final OpenR66ProtocolBusinessStopException e2 = (OpenR66ProtocolBusinessStopException) e1;
-            logger.info("Request is stopped: {}", e2.getMessage());
+            logger.debug("Request is stopped: {}", e2.getMessage());
             return e2;
         } else if (e1 instanceof OpenR66ProtocolBusinessQueryAlreadyFinishedException) {
             final OpenR66ProtocolBusinessQueryAlreadyFinishedException e2 =
                 (OpenR66ProtocolBusinessQueryAlreadyFinishedException) e1;
-            logger.info("Request is already finished: {}", e2.getMessage());
+            logger.debug("Request is already finished: {}", e2.getMessage());
             return e2;
         } else if (e1 instanceof OpenR66ProtocolBusinessQueryStillRunningException) {
             final OpenR66ProtocolBusinessQueryStillRunningException e2 =
                 (OpenR66ProtocolBusinessQueryStillRunningException) e1;
-            logger.info("Request is still running: {}", e2.getMessage());
+            logger.debug("Request is still running: {}", e2.getMessage());
             return e2;
         } else if (e1 instanceof OpenR66ProtocolBusinessRemoteFileNotFoundException) {
             final OpenR66ProtocolBusinessRemoteFileNotFoundException e2 =
                 (OpenR66ProtocolBusinessRemoteFileNotFoundException) e1;
-            logger.info("Remote server did not find file: {}", e2.getMessage());
+            logger.debug("Remote server did not find file: {}", e2.getMessage());
             return e2;
         } else if (e1 instanceof OpenR66ProtocolBusinessNoWriteBackException) {
             final OpenR66ProtocolBusinessNoWriteBackException e2 = (OpenR66ProtocolBusinessNoWriteBackException) e1;
@@ -110,20 +110,20 @@ public class OpenR66ExceptionTrappedFactory {
             return e2;
         } else if (e1 instanceof OpenR66ProtocolShutdownException) {
             final OpenR66ProtocolShutdownException e2 = (OpenR66ProtocolShutdownException) e1;
-            logger.info("Command Shutdown {}", e2.getMessage());
+            logger.debug("Command Shutdown {}", e2.getMessage());
             return e2;
         } else if (e1 instanceof OpenR66Exception) {
             final OpenR66Exception e2 = (OpenR66Exception) e1;
-            logger.info("Command Error Reply: {}", e2.getMessage());
+            logger.debug("Command Error Reply: {}", e2.getMessage());
             return e2;
         } else if (e1 instanceof BindException) {
             final BindException e2 = (BindException) e1;
-            logger.info("Address already in use {}", e2.getMessage());
+            logger.debug("Address already in use {}", e2.getMessage());
             return new OpenR66ProtocolNetworkException(
                     "Address already in use", e2);
         } else if (e1 instanceof ConnectException) {
             final ConnectException e2 = (ConnectException) e1;
-            logger.info("Timeout occurs {}", e2.getMessage());
+            logger.debug("Timeout occurs {}", e2.getMessage());
             return new OpenR66ProtocolNetworkException("Timeout occurs", e2);
         } else if (e1 instanceof NullPointerException) {
             final NullPointerException e2 = (NullPointerException) e1;
@@ -137,7 +137,7 @@ public class OpenR66ExceptionTrappedFactory {
             return new OpenR66ProtocolBusinessNoWriteBackException("SSL Connection aborted", e2);
         } else if (e1 instanceof IOException) {
             final IOException e2 = (IOException) e1;
-            logger.info("Connection aborted since {} with Channel {}", e2
+            logger.debug("Connection aborted since {} with Channel {}", e2
                     .getMessage(), channel);
             if (channel.isConnected()) {
                 return new OpenR66ProtocolSystemException("Connection aborted", e2);
@@ -146,7 +146,7 @@ public class OpenR66ExceptionTrappedFactory {
             }
         } else if (e1 instanceof RejectedExecutionException) {
             final RejectedExecutionException e2 = (RejectedExecutionException) e1;
-            logger.info("Connection aborted since {} with Channel {}", e2
+            logger.debug("Connection aborted since {} with Channel {}", e2
                     .getMessage(), channel);
             if (channel.isConnected()) {
                 return new OpenR66ProtocolSystemException("Execution aborted", e2);

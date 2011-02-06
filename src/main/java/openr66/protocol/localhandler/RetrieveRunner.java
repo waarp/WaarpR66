@@ -119,7 +119,7 @@ public class RetrieveRunner extends Thread {
                 localChannelReference.getFutureEndTransfer().await();
             } catch (InterruptedException e1) {
             }
-            logger.info("Await future End Transfer done: " +
+            logger.debug("Await future End Transfer done: " +
                     localChannelReference.getFutureEndTransfer().isSuccess());
             if (localChannelReference.getFutureEndTransfer().isSuccess()) {
                 // send a validation

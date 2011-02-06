@@ -65,7 +65,7 @@ public class DeleteTask extends AbstractTask {
         try {
             session.getFile().delete();
         } catch (CommandAbstractException e1) {
-            logger.info("CANNOT Delete file from session {}",
+            logger.debug("CANNOT Delete file from session {}",
                     session, e1);
             R66Result result = new R66Result(session, false,
                     ErrorCode.FileNotFound, session.getRunner());

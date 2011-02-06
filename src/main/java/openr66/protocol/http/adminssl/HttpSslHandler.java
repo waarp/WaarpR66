@@ -1573,7 +1573,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 getMenu = true;
             }
             if (! getMenu) {
-                logger.info("Name="+name+" vs "+name.equals(Configuration.configuration.ADMINNAME)+
+                logger.debug("Name="+name+" vs "+name.equals(Configuration.configuration.ADMINNAME)+
                         " Passwd="+password+" vs "+Arrays.equals(password.getBytes(),
                                 Configuration.configuration.getSERVERADMINKEY()));
                 if (name.equals(Configuration.configuration.ADMINNAME) &&
@@ -1638,7 +1638,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             }
             checkSession(e.getChannel());
             if (! authentHttp.isAuthenticated()) {
-                logger.info("Not Authent: "+uriRequest+":{}",authentHttp);
+                logger.debug("Not Authent: "+uriRequest+":{}",authentHttp);
                 checkAuthent(e);
                 return;
             }
@@ -1898,7 +1898,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 handshakeFuture.addListener(new ChannelFutureListener() {
                     public void operationComplete(ChannelFuture future)
                             throws Exception {
-                        logger.info("Handshake: "+future.isSuccess(),future.getCause());
+                        logger.debug("Handshake: "+future.isSuccess(),future.getCause());
                         if (future.isSuccess()) {
                             setStatusSslConnectedChannel(future.getChannel(), true);
                         } else {

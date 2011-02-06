@@ -108,7 +108,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) {
         if (NetworkTransaction.getNbLocalChannel(e.getChannel()) > 0) {
-            logger.info("Network Channel Closed: {} LocalChannels Left: {}",
+            logger.debug("Network Channel Closed: {} LocalChannels Left: {}",
                     e.getChannel().getId(),
                     NetworkTransaction.getNbLocalChannel(e.getChannel()));
             // close if necessary the local channel
@@ -153,7 +153,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
             logger.warn("Use default database connection");
             this.dbSession = DbConstant.admin.session;
         }
-        logger.info("Network Channel Connected: {} ", e.getChannel().getId());
+        logger.debug("Network Channel Connected: {} ", e.getChannel().getId());
     }
 
 
@@ -167,7 +167,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
         NetworkPacket response =
             new NetworkPacket(ChannelUtils.NOCHANNEL,
                     ChannelUtils.NOCHANNEL, keepAlivePacket);
-        logger.info("Write KAlive");
+        logger.debug("Write KAlive");
         Channels.write(e.getChannel(), response);
     }
 
@@ -183,7 +183,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) {
         final NetworkPacket packet = (NetworkPacket) e.getMessage();
         if (packet.getCode() == LocalPacketFactory.CONNECTERRORPACKET) {
-            logger.info("NetworkRecv: {}",packet);
+            logger.debug("NetworkRecv: {}",packet);
             // Special code to STOP here
             if (packet.getLocalId() == ChannelUtils.NOCHANNEL) {
                 // No way to know what is wrong: close all connections with
@@ -205,7 +205,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
                     NetworkPacket response =
                         new NetworkPacket(ChannelUtils.NOCHANNEL,
                                 ChannelUtils.NOCHANNEL, keepAlivePacket);
-                    logger.info("Answer KAlive");
+                    logger.debug("Answer KAlive");
                     Channels.write(e.getChannel(), response);
                 }
             } catch (OpenR66ProtocolPacketException e1) {
@@ -214,7 +214,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
         }
         LocalChannelReference localChannelReference = null;
         if (packet.getLocalId() == ChannelUtils.NOCHANNEL) {
-            logger.info("NetworkRecv Create: {} {}",packet,
+            logger.debug("NetworkRecv Create: {} {}",packet,
                     e.getChannel().getId());
             try {
                 localChannelReference =
@@ -246,10 +246,10 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
                 } catch (OpenR66ProtocolSystemException e1) {
                     // do not send anything since the packet is external
                     try {
-                        logger.info("Cannot get LocalChannel while an end of request comes: {}",
+                        logger.debug("Cannot get LocalChannel while an end of request comes: {}",
                                 LocalPacketCodec.decodeNetworkPacket(packet.getBuffer()));
                     } catch (OpenR66ProtocolPacketException e2) {
-                        logger.info("Cannot get LocalChannel while an end of request comes: {}",
+                        logger.debug("Cannot get LocalChannel while an end of request comes: {}",
                                 packet.toString());
                     }
                     return;
@@ -264,10 +264,10 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
                 } catch (OpenR66ProtocolSystemException e1) {
                     // do not send anything since the packet is external
                     try {
-                        logger.info("Cannot get LocalChannel while an external error comes: {}",
+                        logger.debug("Cannot get LocalChannel while an external error comes: {}",
                                 LocalPacketCodec.decodeNetworkPacket(packet.getBuffer()));
                     } catch (OpenR66ProtocolPacketException e2) {
-                        logger.info("Cannot get LocalChannel while an external error comes: {}",
+                        logger.debug("Cannot get LocalChannel while an external error comes: {}",
                                 packet.toString());
                     }
                     return;
@@ -284,7 +284,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
                         // ignore
                         return;
                     }
-                    logger.info("Cannot get LocalChannel: " + packet + " due to " +
+                    logger.debug("Cannot get LocalChannel: " + packet + " due to " +
                             e1.getMessage());
                     final ConnectionErrorPacket error = new ConnectionErrorPacket(
                             "Cannot get localChannel since cannot retrieve it", null);
@@ -308,7 +308,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
      */
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
-        logger.info("Network Channel Exception: {}",e.getChannel().getId(), e
+        logger.debug("Network Channel Exception: {}",e.getChannel().getId(), e
                 .getCause());
         if (e.getCause() instanceof ReadTimeoutException) {
             ReadTimeoutException exception = (ReadTimeoutException) e.getCause();
@@ -319,7 +319,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
         }
         if (e.getCause() instanceof BindException) {
             // received when not yet connected
-            logger.info("BindException");
+            logger.debug("BindException");
             try {
                 Thread.sleep(Configuration.WAITFORNETOP);
             } catch (InterruptedException e1) {
@@ -332,11 +332,11 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
         if (exception != null) {
             if (exception instanceof OpenR66ProtocolBusinessNoWriteBackException) {
                 if (NetworkTransaction.getNbLocalChannel(e.getChannel()) > 0) {
-                    logger.info(
+                    logger.debug(
                             "Network Channel Exception: {} {}", e.getChannel().getId(),
                             exception.getMessage());
                 }
-                logger.info("Will close NETWORK channel");
+                logger.debug("Will close NETWORK channel");
                 try {
                     Thread.sleep(Configuration.WAITFORNETOP);
                 } catch (InterruptedException e1) {
@@ -345,7 +345,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
                 ChannelUtils.close(e.getChannel());
                 return;
             } else if (exception instanceof OpenR66ProtocolNoConnectionException) {
-                logger.info("Connection impossible with NETWORK channel {}",
+                logger.debug("Connection impossible with NETWORK channel {}",
                         exception.getMessage());
                 Channels.close(e.getChannel());
                 return;

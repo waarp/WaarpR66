@@ -317,7 +317,7 @@ public class LocalChannelReference {
             futureEndTransfer.setResult(finalValue);
             futureEndTransfer.setSuccess();
         } else {
-            logger.info("Could not validate since Already validated: " + futureEndTransfer.isSuccess() +
+            logger.debug("Could not validate since Already validated: " + futureEndTransfer.isSuccess() +
                     " " + finalValue);
             if (!futureEndTransfer.getResult().isAnswered) {
                 futureEndTransfer.getResult().isAnswered = finalValue.isAnswered;
@@ -336,7 +336,7 @@ public class LocalChannelReference {
      * @throws OpenR66Exception
      */
     public void waitReadyForSendThrough() throws OpenR66Exception {
-        logger.info("Wait for End of Prepare Transfer");
+        logger.debug("Wait for End of Prepare Transfer");
         try {
             this.futureEndTransfer.await();
         } catch (InterruptedException e) {
@@ -394,7 +394,7 @@ public class LocalChannelReference {
                     futureRequest.cancel();
                 }
             } else {
-                logger.info("Could not invalidate since Already finished: " + futureEndTransfer.getResult());
+                logger.debug("Could not invalidate since Already finished: " + futureEndTransfer.getResult());
             }
         }
         if (this.session != null) {
@@ -412,7 +412,7 @@ public class LocalChannelReference {
      */
     public void validateRequest(R66Result finalValue) {
         if (!futureEndTransfer.isDone()) {
-            logger.info("Will validate EndTransfer");
+            logger.debug("Will validate EndTransfer");
             validateEndTransfer(finalValue);
         }
         if (!futureValidRequest.isDone()) {
@@ -423,7 +423,7 @@ public class LocalChannelReference {
             futureRequest.setResult(finalValue);
             futureRequest.setSuccess();
         } else {
-            logger.info("Already validated: " + futureRequest.isSuccess() +
+            logger.debug("Already validated: " + futureRequest.isSuccess() +
                     " " + finalValue);
             if (!futureRequest.getResult().isAnswered) {
                 futureRequest.getResult().isAnswered = finalValue.isAnswered;

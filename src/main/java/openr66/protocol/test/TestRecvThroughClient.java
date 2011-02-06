@@ -54,7 +54,7 @@ public class TestRecvThroughClient extends RecvThroughClient {
                 throws OpenR66ProtocolBusinessException {
             byte [] array = this.getByte(buffer);
             // FIXME one should use the array for its own goal
-            logger.info("Write {}", array.length);
+            logger.debug("Write {}", array.length);
         }
 
     }

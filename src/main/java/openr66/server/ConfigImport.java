@@ -115,7 +115,7 @@ public class ConfigImport implements Runnable {
         }
         host = null;
         future.awaitUninterruptibly();
-        logger.info("Request done with "+(future.isSuccess()?"success":"error"));
+        logger.debug("Request done with "+(future.isSuccess()?"success":"error"));
         Channels.close(localChannelReference.getLocalChannel());
         localChannelReference = null;
     }
@@ -202,7 +202,7 @@ public class ConfigImport implements Runnable {
                                 "no import")
                             +"\n    delay: "+delay);
                 } else {
-                    logger.warn("SUCCESS on import:\n    " +
+                    logger.info("SUCCESS on import:\n    " +
                             (result.other != null? ((ValidPacket)result.other).getSheader() :
                             "no import")
                             +"\n    delay: "+delay);

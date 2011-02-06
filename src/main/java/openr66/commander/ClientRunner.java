@@ -98,13 +98,13 @@ public class ClientRunner extends Thread {
             logger.error("Protocol Error", e);
             return;
         } catch (OpenR66ProtocolNotYetConnectionException e) {
-            logger.info("No connection warning {}", e.getMessage());
+            logger.debug("No connection warning {}", e.getMessage());
             return;
         }
         R66Result result = transfer.getResult();
         if (result != null) {
             if (result.code == ErrorCode.QueryAlreadyFinished) {
-                logger.info("TRANSFER RESULT:\n    "+(transfer.isSuccess()?"SUCCESS":"FAILURE")+"\n    "+
+                logger.warn("TRANSFER RESULT:\n    "+(transfer.isSuccess()?"SUCCESS":"FAILURE")+"\n    "+
                         ErrorCode.QueryAlreadyFinished.mesg+":"+
                         (result != null ? result.toString() : "no result"));
             } else {
@@ -231,7 +231,7 @@ public class ClientRunner extends Thread {
                 taskRunner.select();
                 this.changeUpdatedInfo(UpdatedInfo.DONE, ErrorCode.CompleteOk);
             } catch (GoldenGateDatabaseException e) {
-                logger.info("Not a problem but cannot find at the end the task");
+                logger.debug("Not a problem but cannot find at the end the task");
             }
         } else {
             try {
@@ -281,7 +281,7 @@ public class ClientRunner extends Thread {
                     }
                 }
             } catch (GoldenGateDatabaseException e) {
-                logger.info("Not a problem but cannot find at the end the task");
+                logger.debug("Not a problem but cannot find at the end the task");
             }
         }
         return transfer;
@@ -306,7 +306,7 @@ public class ClientRunner extends Thread {
             tid = taskRunner.getRuleId()+"_"+taskRunner.getMode()+"_"+id;
         }
         Thread.currentThread().setName(tid);
-        logger.info("Will run {}",this.taskRunner);
+        logger.debug("Will run {}",this.taskRunner);
 
         if (taskRunner.getGloballaststep() == TASKSTEP.POSTTASK.ordinal()) {
             // can finalize locally
@@ -343,7 +343,7 @@ public class ClientRunner extends Thread {
                     taskRunner.getRequested());
         }
         if (host.isClient()) {
-            logger.info("Cannot initiate a connection with a client: {}",
+            logger.debug("Cannot initiate a connection with a client: {}",
                     host);
             this.changeUpdatedInfo(UpdatedInfo.INERROR, ErrorCode.ConnectionImpossible);
             throw new OpenR66ProtocolNoConnectionException("Cannot connect to client "+
@@ -371,7 +371,7 @@ public class ClientRunner extends Thread {
                 throw new OpenR66ProtocolNotYetConnectionException("Cannot connect to server "+
                         host.toString()+retry);
             } else {
-                logger.info("Will not retry since limit of connection attemtps is reached for {}",
+                logger.debug("Will not retry since limit of connection attemtps is reached for {}",
                         host);
                 retry = " and retries limit is reached so stop here";
                 this.changeUpdatedInfo(UpdatedInfo.INERROR, ErrorCode.ConnectionImpossible);

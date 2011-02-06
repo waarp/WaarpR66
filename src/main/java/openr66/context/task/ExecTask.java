@@ -79,7 +79,7 @@ public class ExecTask extends AbstractTask {
          * if OK, else 1 for a warning else as an error. No change should be done
          * in the FILENAME
          */
-        logger.info("Exec with " + argRule + ":" + argTransfer + " and {}",
+        logger.debug("Exec with " + argRule + ":" + argTransfer + " and {}",
                 session);
         String finalname = argRule;
         finalname = getReplacedValue(finalname, argTransfer.split(" "));
@@ -168,7 +168,7 @@ public class ExecTask extends AbstractTask {
         }
         if (status == 0) {
             futureCompletion.setSuccess();
-            logger.warn("Exec OK with {}", commandLine);
+            logger.info("Exec OK with {}", commandLine);
         } else if (status == 1) {
             logger.warn("Exec in warning with " + commandLine.toString());
             futureCompletion.setSuccess();

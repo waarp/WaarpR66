@@ -156,7 +156,7 @@ public abstract class ProgressBarTransfer extends AbstractTransfer {
                 lastCallBack(future.isSuccess(), taskRunner.getRank(), taskRunner.getBlocksize());
                 return;
             } catch (OpenR66ProtocolNotYetConnectionException e) {
-                logger.info("Not Yet Connected", e);
+                logger.debug("Not Yet Connected", e);
                 exc = e;
                 continue;
             }

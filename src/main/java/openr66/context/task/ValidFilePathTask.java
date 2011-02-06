@@ -77,7 +77,7 @@ public class ValidFilePathTask extends AbstractTask {
         for (String base: paths) {
             if (curpath.startsWith(base)) {
                 if (delay > 0) {
-                    logger.warn("Validate File "+curpath+" from " + base + " and\n    " +
+                    logger.info("Validate File "+curpath+" from " + base + " and\n    " +
                         session.toString());
                 }
                 futureCompletion.setSuccess();

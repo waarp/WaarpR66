@@ -130,7 +130,7 @@ public class RecvThroughClient extends AbstractTransfer {
                     future.setFailure(e);
                     return;
                 } catch (OpenR66ProtocolNotYetConnectionException e) {
-                    logger.info("Not Yet Connected", e);
+                    logger.debug("Not Yet Connected", e);
                     exc = e;
                     continue;
                 }

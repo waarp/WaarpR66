@@ -203,7 +203,7 @@ public class ChangeBandwidthLimits implements Runnable {
                                 "no file")
                             +"\n    delay: "+delay);
                 } else {
-                    logger.warn("SUCCESS on Bandwidth:\n    " +
+                    logger.info("SUCCESS on Bandwidth:\n    " +
                             (result.other != null? ((ValidPacket)result.other).getSheader() :
                             "no file")
                             +"\n    delay: "+delay);

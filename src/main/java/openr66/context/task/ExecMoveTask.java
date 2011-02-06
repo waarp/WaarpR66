@@ -282,7 +282,7 @@ public class ExecMoveTask extends AbstractTask {
             }
             session.getRunner().setFileMoved(newname, true);
             futureCompletion.setSuccess();
-            logger.warn("Exec OK with {} returns {}", commandLine,
+            logger.info("Exec OK with {} returns {}", commandLine,
                     newname);
         } else if (status == 1) {
             logger.warn("Exec in warning with " + commandLine+

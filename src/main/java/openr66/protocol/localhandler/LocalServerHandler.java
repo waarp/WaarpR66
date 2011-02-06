@@ -137,7 +137,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
      */
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) {
-        logger.info("Local Server Channel Closed: {} {}",
+        logger.debug("Local Server Channel Closed: {} {}",
                 (localChannelReference != null? localChannelReference
                         : "no LocalChannelReference"), (session.getRunner() != null ?
                             session.getRunner().toShortString() : "no runner"));
@@ -188,7 +188,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         if (localChannelReference != null) {
             if (localChannelReference.getDbSession() != null) {
                 localChannelReference.getDbSession().endUseConnection();
-                logger.info("End Use Connection");
+                logger.debug("End Use Connection");
             }
             NetworkTransaction.removeNetworkChannel(localChannelReference
                     .getNetworkChannel(), e.getChannel());
@@ -674,7 +674,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         }
         R66Result result = new R66Result(session, true, ErrorCode.InitOk, null);
         localChannelReference.validateConnection(true, result);
-        logger.info("Local Server Channel Validated: {} ",
+        logger.debug("Local Server Channel Validated: {} ",
                 (localChannelReference != null? localChannelReference
                         : "no LocalChannelReference"));
         session.setStatus(44);
@@ -847,12 +847,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
             if (runner != null) {
                 if (runner.isSender()) {
                     // In case Wildcard was used
-                    logger.info("New FILENAME: {}", runner.getOriginalFilename());
+                    logger.debug("New FILENAME: {}", runner.getOriginalFilename());
                     packet.setFilename(runner.getOriginalFilename());
-                    logger.info("Rank set: "+runner.getRank());
+                    logger.debug("Rank set: "+runner.getRank());
                     packet.setRank(runner.getRank());
                 } else {
-                    logger.info("Rank set: "+runner.getRank());
+                    logger.debug("Rank set: "+runner.getRank());
                     packet.setRank(runner.getRank());
                 }
             }
@@ -893,7 +893,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         // XXX validLimit only on requested side
         if (packet.isToValidate()) {
             if (Configuration.configuration.constraintLimitHandler.checkConstraints()) {
-                logger.error("Limit exceeded when receive request with Rule: " + packet.getRulename()+" from "+session.getAuth().toString());
+                logger.info("Limit exceeded when receive request with Rule: " + packet.getRulename()+" from "+session.getAuth().toString());
                 session.setStatus(100);
                 endInitRequestInError(channel,
                         ErrorCode.ServerOverloaded, null,
@@ -904,7 +904,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             }
         } else if (packet.getCode() == ErrorCode.ServerOverloaded.code) {
             // XXX unvalid limit on requested host received
-            logger.error("TaskRunner initialisation in error: "+ ErrorCode.ServerOverloaded.mesg);
+            logger.info("TaskRunner initialisation in error: "+ ErrorCode.ServerOverloaded.mesg);
             localChannelReference.invalidateRequest(new R66Result(
                     null, session, true, ErrorCode.ServerOverloaded, null));
             ChannelUtils.close(channel);
@@ -915,7 +915,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         try {
             rule = new DbRule(localChannelReference.getDbSession(), packet.getRulename());
         } catch (GoldenGateDatabaseException e) {
-            logger.error("Rule is unknown: " + packet.getRulename()+" {}", e.getMessage());
+            logger.info("Rule is unknown: " + packet.getRulename()+" {}", e.getMessage());
             session.setStatus(49);
             endInitRequestInError(channel,
                     ErrorCode.QueryRemotelyUnknown, null,
@@ -1068,10 +1068,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
         }
         // Receiver can specify a rank different from database
         if (runner.isSender()) {
-            logger.info("Rank was: "+runner.getRank()+" -> "+packet.getRank());
+            logger.debug("Rank was: "+runner.getRank()+" -> "+packet.getRank());
             runner.setRankAtStartup(packet.getRank());
         } else if (runner.getRank() > packet.getRank()) {
-            logger.info("Recv Rank was: "+runner.getRank()+" -> "+packet.getRank());
+            logger.debug("Recv Rank was: "+runner.getRank()+" -> "+packet.getRank());
             // if receiver, change only if current rank is upper proposed rank
             runner.setRankAtStartup(packet.getRank());
         }
@@ -1109,7 +1109,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             // File was moved during PreTask and very beginning of the transfer
             // and the remote host has already received the request packet
             // => Informs the receiver of the new name
-            logger.info("Will send a modification of filename due to pretask: "+
+            logger.debug("Will send a modification of filename due to pretask: "+
                     runner.getFilename());
             ValidPacket validPacket = new ValidPacket("Change Filename by Pre action on sender",
                     runner.getFilename(), LocalPacketFactory.REQUESTPACKET);
@@ -1122,12 +1122,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
         if (packet.isToValidate()) {
             if (runner.isSender()) {
                 // In case Wildcard was used
-                logger.info("New FILENAME: {}", runner.getOriginalFilename());
+                logger.debug("New FILENAME: {}", runner.getOriginalFilename());
                 packet.setFilename(runner.getOriginalFilename());
-                logger.info("Rank set: "+runner.getRank());
+                logger.debug("Rank set: "+runner.getRank());
                 packet.setRank(runner.getRank());
             } else {
-                logger.info("Rank set: "+runner.getRank());
+                logger.debug("Rank set: "+runner.getRank());
                 packet.setRank(runner.getRank());
             }
             packet.validate();
@@ -1143,7 +1143,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         if (runner.isSender()) {
             if (RequestPacket.isSendThroughMode(packet.getMode())) {
                 // it is legal to send data from now
-                logger.info("Now ready to continue with send through");
+                logger.debug("Now ready to continue with send through");
                 localChannelReference.validateEndTransfer(
                         new R66Result(session, false, ErrorCode.PreProcessingOk, runner));
             } else {
@@ -1199,7 +1199,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         if (packet.getPacketRank() != session.getRunner().getRank()) {
             // Fix the rank if possible
             if (packet.getPacketRank() < session.getRunner().getRank()) {
-                logger.info("Bad RANK: " + packet.getPacketRank() + " : " +
+                logger.debug("Bad RANK: " + packet.getPacketRank() + " : " +
                         session.getRunner().getRank());
                 session.getRunner().setRankAtStartup(packet.getPacketRank());
                 session.getRestart().restartMarker(
@@ -2030,7 +2030,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 break;
             }
             default:
-                logger.warn("Validation is ignored: " + packet.getTypeValid());
+                logger.info("Validation is ignored: " + packet.getTypeValid());
         }
     }
     /**
@@ -2043,7 +2043,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
      */
     private void endRequest(Channel channel, EndRequestPacket packet) {
      // Validate the last post action on a transfer from receiver remote host
-        logger.info("Valid Request {} {}",
+        logger.debug("Valid Request {} {}",
                 localChannelReference,
                 packet);
         if (!localChannelReference.getFutureRequest().isDone()) {

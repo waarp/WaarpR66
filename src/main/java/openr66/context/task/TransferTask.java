@@ -147,7 +147,7 @@ public class TransferTask extends AbstractTask {
         futureCompletion.setResult(future.getResult());
         DbTaskRunner runner = future.getResult().runner;
         if (future.isSuccess()) {
-            logger.warn("Prepare transfer in\n    SUCCESS\n    "+runner.toShortString()+
+            logger.info("Prepare transfer in\n    SUCCESS\n    "+runner.toShortString()+
                             "\n    <REMOTE>"+requested+"</REMOTE>");
             futureCompletion.setSuccess();
         } else {

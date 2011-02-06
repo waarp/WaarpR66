@@ -178,7 +178,7 @@ public class ConfigExport implements Runnable {
                                 "no file")
                             +"\n    delay: "+delay);
                 } else {
-                    logger.warn("SUCCESS on Final files:\n    " +
+                    logger.info("SUCCESS on Final files:\n    " +
                             (result.other != null? ((ValidPacket)result.other).getSheader() :
                             "no file")
                             +"\n    delay: "+delay);

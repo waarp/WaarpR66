@@ -93,7 +93,7 @@ public class TestTransferNoDb extends DirectTransfer {
             ExecutorService executorService = Executors.newCachedThreadPool();
 
             R66Future[] arrayFuture = new R66Future[nb];
-            logger.warn("Start of Test Transfer");
+            logger.info("Start of Test Transfer");
             long time1 = System.currentTimeMillis();
             for (int i = 0; i < nb; i ++) {
                 arrayFuture[i] = new R66Future(true);
@@ -103,7 +103,7 @@ public class TestTransferNoDb extends DirectTransfer {
                         networkTransaction);
                 executorService.execute(transaction);
                 try {
-                    Thread.sleep(1);
+                    Thread.sleep(10);
                 } catch (InterruptedException e) {
                 }
             }

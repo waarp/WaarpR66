@@ -300,11 +300,11 @@ public class ChannelUtils extends Thread {
         Configuration.configuration.getLocalTransaction().debugPrintActiveLocalChannels();
         Configuration.configuration.getGlobalTrafficShapingHandler()
                 .releaseExternalResources();
-        logger.info("Exit Shutdown Command");
+        logger.debug("Exit Shutdown Command");
         terminateCommandChannels();
-        logger.info("Exit Shutdown Local");
+        logger.debug("Exit Shutdown Local");
         Configuration.configuration.getLocalTransaction().closeAll();
-        logger.info("Exit Shutdown Http");
+        logger.debug("Exit Shutdown Http");
         terminateHttpChannels();
         if (Configuration.configuration.useLocalExec) {
             LocalExecClient.releaseResources();

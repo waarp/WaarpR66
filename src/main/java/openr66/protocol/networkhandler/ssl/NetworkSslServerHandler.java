@@ -107,7 +107,7 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
             } catch (InterruptedException e) {
             }
             if (futureSSL.isDone()) {
-                logger.info("Wait For SSL: "+futureSSL.isSuccess());
+                logger.debug("Wait For SSL: "+futureSSL.isSuccess());
                 return futureSSL.isSuccess();
             }
             logger.error("Out of time for wait For SSL");
@@ -149,7 +149,7 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
             handshakeFuture.addListener(new ChannelFutureListener() {
                 public void operationComplete(ChannelFuture future)
                         throws Exception {
-                    logger.info("Handshake: "+future.isSuccess(),future.getCause());
+                    logger.debug("Handshake: "+future.isSuccess(),future.getCause());
                     if (future.isSuccess()) {
                         setStatusSslConnectedChannel(future.getChannel(), true);
                     } else {

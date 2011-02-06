@@ -218,7 +218,7 @@ public class TestSendThroughForward extends SendThroughClient {
                     future.setFailure(e);
                     return false;
                 } catch (OpenR66ProtocolNotYetConnectionException e) {
-                    logger.info("Not Yet Connected", e);
+                    logger.debug("Not Yet Connected", e);
                     exc = e;
                     continue;
                 }

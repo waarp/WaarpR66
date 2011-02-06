@@ -312,7 +312,7 @@ public class R66Session implements SessionInterface {
                 }
                 if (RequestPacket.isSendThroughMode(this.runner.getMode())) {
                     // no test on file since it does not really exist
-                    logger.info("File is in through mode: {}", file);
+                    logger.debug("File is in through mode: {}", file);
                 } else if (!file.canRead()) {
                     // file is not under normal base directory, so is external
                     // File should already exist but cannot use special code ('*?')
@@ -355,7 +355,7 @@ public class R66Session implements SessionInterface {
                 }
                 if (RequestPacket.isSendThroughMode(this.runner.getMode())) {
                     // no test on file since it does not really exist
-                    logger.info("File is in through mode: {}", file);
+                    logger.debug("File is in through mode: {}", file);
                 } else if (!file.canRead()) {
                  // file is not under normal base directory, so is external
                     // File must already exist but cannot used special code ('*?')
@@ -378,7 +378,7 @@ public class R66Session implements SessionInterface {
                             .getFilename(), true);
                     if (RequestPacket.isRecvThroughMode(this.runner.getMode())) {
                         // no test on file since it does not really exist
-                        logger.info("File is in through mode: {}", file);
+                        logger.debug("File is in through mode: {}", file);
                     } else if (!file.canWrite()) {
                         throw new OpenR66RunnerErrorException(
                                 "File cannot be write");
@@ -401,7 +401,7 @@ public class R66Session implements SessionInterface {
                                 this.runner.getFilename());
                         if (RequestPacket.isRecvThroughMode(this.runner.getMode())) {
                             // no test on file since it does not really exist
-                            logger.info("File is in through mode: {}", file);
+                            logger.debug("File is in through mode: {}", file);
                             this.runner.deleteTempFile();
                         } else if (!file.canWrite()) {
                             this.runner.deleteTempFile();
@@ -592,7 +592,7 @@ public class R66Session implements SessionInterface {
             return;
         }
         if (runner.isAllDone()) {
-            logger.info("Transfer already done but " + status + " on " + file+runner.toShortString(),
+            logger.debug("Transfer already done but " + status + " on " + file+runner.toShortString(),
                     new OpenR66RunnerErrorException(finalValue.toString()));
             return;
         }
@@ -610,7 +610,7 @@ public class R66Session implements SessionInterface {
             runner.finishTransferTask(finalValue.code);
         }
         runner.saveStatus();
-        logger.info("Transfer " + status + " on {}", file);
+        logger.debug("Transfer " + status + " on {}", file);
         if (!runner.ready()) {
             // Pre task in error (or even before)
             OpenR66RunnerErrorException runnerErrorException;

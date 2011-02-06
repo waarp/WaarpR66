@@ -358,7 +358,7 @@ public class LocalTransaction {
         ChannelBuffer buffer = null;
         while (iterator.hasNext()) {
             LocalChannelReference localChannelReference = iterator.next();
-            logger.info("Inform Shutdown {}", localChannelReference);
+            logger.debug("Inform Shutdown {}", localChannelReference);
             packet.setSmiddle(null);
             // If a transfer is running, save the current rank and inform remote
             // host
@@ -411,7 +411,7 @@ public class LocalTransaction {
      * Close All Local Channels
      */
     public void closeAll() {
-        logger.info("close All Local Channels");
+        logger.debug("close All Local Channels");
         localChannelGroup.close().awaitUninterruptibly();
         clientBootstrap.releaseExternalResources();
         channelClientFactory.releaseExternalResources();

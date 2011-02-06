@@ -156,7 +156,7 @@ public class LogExport implements Runnable {
                 Date ddate = format.parse(date);
                 tdate = new Timestamp(ddate.getTime());
             } catch (ParseException e) {
-                logger.info("start {}",e.getMessage());
+                logger.debug("start {}",e.getMessage());
             }
         }
         return tdate;
@@ -179,7 +179,7 @@ public class LogExport implements Runnable {
                 }
                 tdate = new Timestamp(ddate.getTime());
             } catch (ParseException e) {
-                logger.info("start {}",e.getMessage());
+                logger.debug("start {}",e.getMessage());
             }
         }
         return tdate;
@@ -280,7 +280,7 @@ public class LogExport implements Runnable {
                                 "no file")
                             +"\n    delay: "+delay);
                 } else {
-                    logger.warn("SUCCESS on Final file:\n    " +
+                    logger.info("SUCCESS on Final file:\n    " +
                             (result.other != null? ((ValidPacket)result.other).getSheader() :
                             "no file")
                             +"\n    delay: "+delay);

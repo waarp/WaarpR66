@@ -198,7 +198,7 @@ public abstract class SendThroughClient extends AbstractTransfer {
                     future.setFailure(e);
                     return false;
                 } catch (OpenR66ProtocolNotYetConnectionException e) {
-                    logger.info("Not Yet Connected", e);
+                    logger.debug("Not Yet Connected", e);
                     exc = e;
                     continue;
                 }
@@ -255,7 +255,7 @@ public abstract class SendThroughClient extends AbstractTransfer {
                 }
             }
             localChannelReference.getFutureEndTransfer().awaitUninterruptibly();
-            logger.info("Await future End Transfer done: " +
+            logger.debug("Await future End Transfer done: " +
                     localChannelReference.getFutureEndTransfer().isSuccess());
             if (localChannelReference.getFutureEndTransfer().isSuccess()) {
                 // send a validation

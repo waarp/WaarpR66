@@ -58,7 +58,7 @@ public class ChannelTrafficHandler extends ChannelTrafficShapingHandler {
      */
     @Override
     protected void doAccounting(TrafficCounter counter) {
-        logger.info(this.toString()+"\n   {}", counter);
+        logger.debug(this.toString()+"\n   {}", counter);
     }
 
 }

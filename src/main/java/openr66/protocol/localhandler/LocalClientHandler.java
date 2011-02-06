@@ -163,7 +163,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
                     thread.setDaemon(true);
                     thread.setName("Shutdown Thread");
                     thread.start();
-                    logger.info("Will close channel");
+                    logger.debug("Will close channel");
                     Channels.close(e.getChannel());
                     return;
                 } else if (exception instanceof OpenR66ProtocolBusinessNoWriteBackException) {
@@ -189,7 +189,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
                 return;
             }
         }
-        logger.info("Will close channel");
+        logger.debug("Will close channel");
         ChannelUtils.close(e.getChannel());
     }
 

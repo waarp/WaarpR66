@@ -104,7 +104,7 @@ public class TestTransaction implements Runnable {
             future.setFailure(lastException);
             return;
         } else if (lastException != null) {
-            logger.warn("Connection retry since ", lastException);
+            logger.info("Connection retry since ", lastException);
         }
         try {
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, testPacket);
@@ -142,7 +142,7 @@ public class TestTransaction implements Runnable {
         int nb = 100;
 
         R66Future[] arrayFuture = new R66Future[nb];
-        logger.warn("Start Test of Transaction");
+        logger.info("Start Test of Transaction");
         long time1 = System.currentTimeMillis();
         for (int i = 0; i < nb; i ++) {
             arrayFuture[i] = new R66Future(true);

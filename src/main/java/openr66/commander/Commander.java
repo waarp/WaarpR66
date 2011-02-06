@@ -224,7 +224,7 @@ public class Commander implements Runnable {
             preparedStatementRunner.executeQuery();
             while (preparedStatementRunner.getNext()) {
                 DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatementRunner);
-                logger.info("get a task: {}",taskRunner);
+                logger.debug("get a task: {}",taskRunner);
                 // Launch if possible this task
                 String key = taskRunner.getRequested()+" "+taskRunner.getRequester()+
                     " "+taskRunner.getSpecialId();

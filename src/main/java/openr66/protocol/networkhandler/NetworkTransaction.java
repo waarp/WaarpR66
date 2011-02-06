@@ -188,9 +188,9 @@ public class NetworkTransaction {
             }
         }
         if (localChannelReference == null) {
-            logger.info("Cannot connect : {}", lastException.getMessage());
+            logger.debug("Cannot connect : {}", lastException.getMessage());
         } else if (lastException != null) {
-            logger.info("Connection retried since {}", lastException.getMessage());
+            logger.debug("Connection retried since {}", lastException.getMessage());
         }
         return localChannelReference;
     }
@@ -283,7 +283,7 @@ public class NetworkTransaction {
             networkChannel = null;
         }
         if (networkChannel != null) {
-            logger.info("Already Connected: {}", networkChannel);
+            logger.debug("Already Connected: {}", networkChannel);
             networkChannel.count++;
             return networkChannel;
         }
@@ -324,13 +324,13 @@ public class NetworkTransaction {
                             "Cannot connect to remote server due to interruption");
                 }
                 if (channelFuture.getCause() instanceof ConnectException) {
-                    logger.info("KO CONNECT:" +
+                    logger.debug("KO CONNECT:" +
                             channelFuture.getCause().getMessage());
                     throw new OpenR66ProtocolNoConnectionException(
                             "Cannot connect to remote server", channelFuture
                                     .getCause());
                 } else {
-                    logger.info("KO CONNECT but retry", channelFuture
+                    logger.debug("KO CONNECT but retry", channelFuture
                             .getCause());
                 }
             }
@@ -367,7 +367,7 @@ public class NetworkTransaction {
                 ChannelUtils.NOCHANNEL, futureRequest);
         } catch (OpenR66ProtocolSystemException e) {
             // check if the channel has other attached local channels
-            logger.warn("Try to Close Network");
+            logger.info("Try to Close Network");
             removeNetworkChannel(networkChannel.channel, null);
             throw new OpenR66ProtocolNetworkException(
                     "Cannot connect to local channel", e);
@@ -432,7 +432,7 @@ public class NetworkTransaction {
             Channels.close(localChannelReference.getLocalChannel());
             throw new OpenR66ProtocolNetworkException(e1);
         }
-        logger.info("Will send request of connection validation");
+        logger.debug("Will send request of connection validation");
         try {
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, authent)
             .awaitUninterruptibly();
@@ -456,7 +456,7 @@ public class NetworkTransaction {
         }
         R66Future future = localChannelReference.getFutureValidateConnection();
         if (future.isFailed()) {
-            logger.info("Will close NETWORK channel since Future cancelled: {}",
+            logger.debug("Will close NETWORK channel since Future cancelled: {}",
                     future);
             R66Result finalValue = new R66Result(
                     new OpenR66ProtocolSystemException("Out of time during Authentication"),
@@ -518,7 +518,7 @@ public class NetworkTransaction {
      * Close all Network Ttransaction
      */
     public void closeAll() {
-        logger.info("close All Network Channels");
+        logger.debug("close All Network Channels");
         closeRetrieveExecutors();
         networkChannelGroup.close().awaitUninterruptibly();
         clientBootstrap.releaseExternalResources();
@@ -529,7 +529,7 @@ public class NetworkTransaction {
         } catch (InterruptedException e) {
         }
         DbAdmin.closeAllConnection();
-        logger.info("Last action before exit");
+        logger.debug("Last action before exit");
         ChannelUtils.stopLogger();
     }
     /**
@@ -738,7 +738,7 @@ public class NetworkTransaction {
                         .remove(address.hashCode());
                     return count;
                 } else {
-                    logger.info("Network not registered");
+                    logger.debug("Network not registered");
                 }
             }
             return 0;
@@ -776,7 +776,7 @@ public class NetworkTransaction {
                     return networkChannel.count;
                 } else {
                     if (channel.isConnected()) {
-                        logger.info("Should not be here",
+                        logger.debug("Should not be here",
                                 new OpenR66ProtocolSystemException());
                     }
                 }
@@ -820,22 +820,22 @@ public class NetworkTransaction {
      */
     private static boolean isAddressValid(SocketAddress address) {
         if (OpenR66SignalHandler.isInShutdown()) {
-            logger.info("IS IN SHUTDOWN");
+            logger.debug("IS IN SHUTDOWN");
             return false;
         }
         if (address == null) {
-            logger.info("ADDRESS IS NULL");
+            logger.debug("ADDRESS IS NULL");
             return false;
         }
         try {
             NetworkChannel networkChannel = getRemoteChannel(address);
-            logger.info("IS IN SHUTDOWN: " + networkChannel.isShuttingDown);
+            logger.debug("IS IN SHUTDOWN: " + networkChannel.isShuttingDown);
             return !networkChannel.isShuttingDown;
         } catch (OpenR66ProtocolRemoteShutdownException e) {
-            logger.info("ALREADY IN SHUTDOWN");
+            logger.debug("ALREADY IN SHUTDOWN");
             return false;
         } catch (OpenR66ProtocolNoDataException e) {
-            logger.info("NOT FOUND SO NO SHUTDOWN");
+            logger.debug("NOT FOUND SO NO SHUTDOWN");
             return true;
         }
     }
@@ -863,7 +863,7 @@ public class NetworkTransaction {
             throws OpenR66ProtocolRemoteShutdownException,
             OpenR66ProtocolNoDataException {
         if (OpenR66SignalHandler.isInShutdown()) {
-            logger.info("IS IN SHUTDOWN");
+            logger.debug("IS IN SHUTDOWN");
             throw new OpenR66ProtocolRemoteShutdownException(
                 "Local Host already in shutdown");
         }
