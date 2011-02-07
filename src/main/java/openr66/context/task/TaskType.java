@@ -34,7 +34,7 @@ import openr66.context.task.exception.OpenR66RunnerErrorException;
  */
 public enum TaskType {
     LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, LINKRENAME, TRANSFER,
-    VALIDFILEPATH, DELETE, TAR, ZIP;
+    VALIDFILEPATH, DELETE, TAR, ZIP, EXECOUTPUT;
 
     public int type;
 
@@ -97,6 +97,9 @@ public enum TaskType {
             case ZIP:
                 return new ZipTask(argRule, delay, session.getRunner()
                         .getFileInformation(), session);
+            case EXECOUTPUT:
+                return new ExecOutputTask(argRule, delay, session.getRunner().
+                        getFileInformation(), session);
             default:
                 throw new OpenR66RunnerErrorException("Unvalid Task: " +
                         type.name);
