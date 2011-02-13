@@ -13,6 +13,12 @@
 			<action dev="Frederic Bregier" type="add">Fix and Add schedule transfer</action>
 			<action dev="Frederic Bregier" type="fix">Fix transfer submitted through id</action>
 			<action dev="Frederic Bregier" type="add">Add support for client with a progress bar</action>
+			<action dev="Frederic Bregier" type="add">Add ExecOuput command to get error message</action>
+			<action dev="Frederic Bregier" type="add">Add #ERRORMSG# support in string substitution</action>
+			<action dev="Frederic Bregier" type="fix">Fix end of request protocol</action>
+			<action dev="Frederic Bregier" type="fix">Fix LimitBandwidth for Client</action>
+			<action dev="Frederic Bregier" type="fix">Fix IdleHandler</action>
+			<action dev="Frederic Bregier" type="fix">Fix Shutdown</action>
 		</release>
 		<release version="2.0.1" date="2010-12-25" description="Various fixes">
 			<action dev="Frederic Bregier" type="fix">Database support moved in GGCommon</action>
