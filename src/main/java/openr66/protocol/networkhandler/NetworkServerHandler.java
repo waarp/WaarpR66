@@ -52,11 +52,12 @@ import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
+import org.jboss.netty.handler.timeout.IdleState;
 import org.jboss.netty.handler.timeout.IdleStateAwareChannelHandler;
 import org.jboss.netty.handler.timeout.IdleStateEvent;
 import org.jboss.netty.handler.timeout.IdleStateHandler;
 import org.jboss.netty.handler.timeout.ReadTimeoutException;
-import org.jboss.netty.handler.timeout.ReadTimeoutHandler;
+import org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler;
 
 /**
  * Network Server Handler (Requester side)
@@ -121,15 +122,15 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
             dbSession.disconnect();
         }
         // terminate KeepAlive handler
-        ReadTimeoutHandler readhandler =
-            (ReadTimeoutHandler) ctx.getPipeline().get(NetworkServerPipelineFactory.READTIMEOUT);
-        if (readhandler != null) {
-            readhandler.releaseExternalResources();
-        }
-        IdleStateHandler handler =
+        /*IdleStateHandler handler =
             (IdleStateHandler) ctx.getPipeline().get(NetworkServerPipelineFactory.TIMEOUT);
         if (handler != null) {
             handler.releaseExternalResources();
+        }*/
+        ChannelTrafficShapingHandler handler2 =
+            (ChannelTrafficShapingHandler) ctx.getPipeline().get(NetworkServerPipelineFactory.LIMITCHANNEL);
+        if (handler2 != null) {
+            handler2.releaseExternalResources();
         }
     }
 
@@ -163,12 +164,17 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
     @Override
     public void channelIdle(ChannelHandlerContext ctx, IdleStateEvent e)
             throws Exception {
-        KeepAlivePacket keepAlivePacket = new KeepAlivePacket();
-        NetworkPacket response =
-            new NetworkPacket(ChannelUtils.NOCHANNEL,
-                    ChannelUtils.NOCHANNEL, keepAlivePacket);
-        logger.debug("Write KAlive");
-        Channels.write(e.getChannel(), response);
+        if (e.getState() == IdleState.READER_IDLE) {
+            logger.error("Not getting KAlive: closing channel");
+            ChannelUtils.close(e.getChannel());
+        } else {
+            KeepAlivePacket keepAlivePacket = new KeepAlivePacket();
+            NetworkPacket response =
+                new NetworkPacket(ChannelUtils.NOCHANNEL,
+                        ChannelUtils.NOCHANNEL, keepAlivePacket);
+            logger.debug("Write KAlive");
+            Channels.write(e.getChannel(), response);
+        }
     }
 
     /*
@@ -207,6 +213,8 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
                                 ChannelUtils.NOCHANNEL, keepAlivePacket);
                     logger.debug("Answer KAlive");
                     Channels.write(e.getChannel(), response);
+                } else {
+                    logger.debug("Get KAlive");
                 }
             } catch (OpenR66ProtocolPacketException e1) {
             }
@@ -340,6 +348,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
                 try {
                     Thread.sleep(Configuration.WAITFORNETOP);
                 } catch (InterruptedException e1) {
+                    ChannelUtils.close(e.getChannel());
                     Thread.currentThread().interrupt();
                 }
                 ChannelUtils.close(e.getChannel());

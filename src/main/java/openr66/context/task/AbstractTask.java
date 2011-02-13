@@ -132,29 +132,33 @@ public abstract class AbstractTask implements Runnable {
     public static final String BLOCKSIZE = "#BLOCKSIZE#";
 
     /**
-     * Block size used
+     * IN Path used
      */
     public static final String INPATH = "#INPATH#";
 
     /**
-     * Block size used
+     * OUT Path used
      */
     public static final String OUTPATH = "#OUTPATH#";
 
     /**
-     * Block size used
+     * WORK Path used
      */
     public static final String WORKPATH = "#WORKPATH#";
 
     /**
-     * Block size used
+     * ARCH Path used
      */
     public static final String ARCHPATH = "#ARCHPATH#";
 
     /**
-     * Block size used
+     * HOME Path used
      */
     public static final String HOMEPATH = "#HOMEPATH#";
+    /**
+     * Last Current Error Message
+     */
+    public static final String ERRORMSG = "#ERRORMSG#";
 
     /**
      * Type of operation
@@ -313,6 +317,7 @@ public abstract class AbstractTask implements Runnable {
         } catch (CommandAbstractException e) {
         }
         GgStringUtils.replaceAll(builder, HOMEPATH, Configuration.configuration.baseDirectory);
+        GgStringUtils.replaceAll(builder, ERRORMSG, session.getLocalChannelReference().getErrorMessage());
         String finalname = String.format(builder.toString(), argFormat);
         return finalname;
     }

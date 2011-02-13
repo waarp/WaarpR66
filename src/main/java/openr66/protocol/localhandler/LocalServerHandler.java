@@ -744,6 +744,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         logger.error(channel.getId() + ": " + packet.toString());
         session.setStatus(46);
         ErrorCode code = ErrorCode.getFromCode(packet.getSmiddle());
+        session.getLocalChannelReference().setErrorMessage(packet.getSheader());
         OpenR66ProtocolBusinessException exception;
         if (code.code == ErrorCode.CanceledTransfer.code) {
             exception =
@@ -1343,6 +1344,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
         // Check end of transfer
         if (packet.isToValidate()) {
             if (!localChannelReference.getFutureRequest().isDone()) {
+                // Finish with post Operation
+                R66Result result = new R66Result(session, false,
+                        ErrorCode.TransferOk, session.getRunner());
+                session.setFinalizeTransfer(true, result);
                 // Now can send validation
                 packet.validate();
                 try {
@@ -1351,10 +1356,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 } catch (OpenR66ProtocolPacketException e) {
                     // ignore
                 }
-                // Finish with post Operation
-                R66Result result = new R66Result(session, false,
-                        ErrorCode.TransferOk, session.getRunner());
-                session.setFinalizeTransfer(true, result);
             } else {
                 // in error due to a previous status (like bad MD5)
                 logger

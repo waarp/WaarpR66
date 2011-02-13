@@ -62,8 +62,10 @@ import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.http.HttpFormattedHandler;
 import openr66.protocol.localhandler.LocalChannelReference;
+import openr66.protocol.localhandler.packet.ErrorPacket;
 import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.localhandler.packet.RequestPacket.TRANSFERMODE;
+import openr66.protocol.utils.ChannelUtils;
 import openr66.protocol.utils.NbAndSpecialId;
 import openr66.protocol.utils.R66Future;
 
@@ -837,6 +839,24 @@ public class DbTaskRunner extends AbstractDbData {
             return;
         }
         super.update();
+    }
+    /**
+     * Partial set from another runner (infostatus, rank, status, step, stop,
+     * filename, globallastep, globalstep, isFileMoved)
+     * @param runner
+     */
+    public void setFrom(DbTaskRunner runner) {
+        if (runner != null) {
+            this.infostatus = runner.infostatus;
+            this.rank = runner.rank;
+            this.status = runner.status;
+            this.step = runner.step;
+            this.stop = runner.stop;
+            this.filename = runner.filename;
+            this.globallaststep = runner.globallaststep;
+            this.globalstep = runner.globalstep;
+            this.isFileMoved = runner.isFileMoved;
+        }
     }
 
     /**
@@ -1974,6 +1994,7 @@ public class DbTaskRunner extends AbstractDbData {
         String arg = tasks[step][1];
         int delay = Integer.parseInt(tasks[step][2]);
         AbstractTask task = TaskType.getTaskFromId(name, arg, delay, session);
+        logger.debug(this.toLogRunStep()+" Task: "+task.getClass().getName());
         task.run();
         try {
             task.getFutureCompletion().await();
@@ -2052,11 +2073,14 @@ public class DbTaskRunner extends AbstractDbData {
      */
     public void run() throws OpenR66RunnerErrorException {
         R66Future future;
+        logger.debug(this.toLogRunStep()+"\nSender: "+this.isSender+" "+this.rule.printTasks(isSender, 
+                TASKSTEP.values()[globalstep]));
         if (status != ErrorCode.Running) {
             throw new OpenR66RunnerErrorException(
                     "Current global STEP not ready to run");
         }
         while (true) {
+            logger.debug(this.toLogRunStep());
             try {
                 future = runNext();
             } catch (OpenR66RunnerEndTasksException e) {
@@ -2117,6 +2141,8 @@ public class DbTaskRunner extends AbstractDbData {
     public void finalizeTransfer(LocalChannelReference localChannelReference, R66File file,
             R66Result finalValue, boolean status)
     throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException {
+        logger.debug("status"+status+":"+finalValue);
+
         if (session == null) {
             this.session = localChannelReference.getSession();
         }
@@ -2139,7 +2165,7 @@ public class DbTaskRunner extends AbstractDbData {
                         try {
                             file.renameTo(this.getRule().setRecvPath(finalpath));
                         } catch (OpenR66ProtocolSystemException e) {
-                            R66Result result = new R66Result(e, null, false,
+                            R66Result result = new R66Result(e, session, false,
                                     ErrorCode.FinalOp, this);
                             result.file = file;
                             result.runner = this;
@@ -2149,7 +2175,7 @@ public class DbTaskRunner extends AbstractDbData {
                             throw e;
                         } catch (CommandAbstractException e) {
                             R66Result result = new R66Result(
-                                    new OpenR66RunnerErrorException(e), null,
+                                    new OpenR66RunnerErrorException(e), session,
                                     false, ErrorCode.FinalOp, this);
                             result.file = file;
                             result.runner = this;
@@ -2195,12 +2221,13 @@ public class DbTaskRunner extends AbstractDbData {
             try {
                 this.run();
             } catch (OpenR66RunnerErrorException e1) {
-                R66Result result = new R66Result(e1, null, false,
+                R66Result result = new R66Result(e1, this.session, false,
                         ErrorCode.ExternalOp, this);
                 result.file = file;
                 result.runner = this;
                 this.changeUpdatedInfo(UpdatedInfo.INERROR);
                 this.saveStatus();
+                errorTransfer(result, file, localChannelReference);
                 if (localChannelReference != null) {
                     localChannelReference.invalidateRequest(result);
                 }
@@ -2214,10 +2241,11 @@ public class DbTaskRunner extends AbstractDbData {
                 localChannelReference.validateEndTransfer(finalValue);
             }
         } else {
-            if (!continueTransfer) {
+            logger.debug("ContinueTransfer: "+continueTransfer+" status:"+status+":"+finalValue);
+            /*if (!continueTransfer) {
                 // already setup
                 return;
-            }
+            }*/
             errorTransfer(finalValue, file, localChannelReference);
         }
     }
@@ -2252,9 +2280,26 @@ public class DbTaskRunner extends AbstractDbData {
             this.changeUpdatedInfo(UpdatedInfo.INERROR);
             this.saveStatus();
         } else {
+            logger.debug("status: "+status+" wasNotError:"+(this.globalstep != TASKSTEP.ERRORTASK.ordinal())+
+                    ":"+finalValue);
             if (this.globalstep != TASKSTEP.ERRORTASK.ordinal()) {
                 // errorstep was not already executed
                 // real error
+                localChannelReference.setErrorMessage(finalValue.getMessage());
+                // First send error mesg
+                if (!finalValue.isAnswered) {
+                    ErrorPacket errorPacket = new ErrorPacket(finalValue
+                            .getMessage(),
+                            finalValue.code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                    try {
+                        ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+                                errorPacket).awaitUninterruptibly();
+                        finalValue.isAnswered = true;
+                    } catch (OpenR66ProtocolPacketException e1) {
+                        // should not be
+                    }
+                }
+                // now run error task
                 this.setErrorTask();
                 this.saveStatus();
                 try {
@@ -2359,6 +2404,12 @@ public class DbTaskRunner extends AbstractDbData {
                 " Fileinfo: "+fileInformation;
     }
 
+    public String toLogRunStep() {
+        return "Run: " + ruleId + " on " +
+        filename + " STEP: " + TASKSTEP.values()[globalstep] + "(" +
+        TASKSTEP.values()[globallaststep] + "):" + step + ":" +
+        status.mesg;
+    }
     public String toShortNoHtmlString(String newline) {
         return "Run: " + ruleId + " on " +
                 filename + newline+" STEP: " + TASKSTEP.values()[globalstep] + "(" +

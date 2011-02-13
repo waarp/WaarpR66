@@ -85,7 +85,7 @@ public class ExecOutputTask extends AbstractTask {
          * send back to the partner with the Error code.
          * No change is made to the file.
          */
-        logger.info("ExecMove with " + argRule + ":" + argTransfer + " and {}",
+        logger.info("ExecOutput with " + argRule + ":" + argTransfer + " and {}",
                 session);
         String finalname = argRule;
         finalname = getReplacedValue(finalname, argTransfer.split(" "));
@@ -159,21 +159,19 @@ public class ExecOutputTask extends AbstractTask {
                 try {
                     status = defaultExecutor.execute(commandLine);
                 } catch (ExecuteException e1) {
-                    try {
-                        outputStream.close();
-                    } catch (IOException e2) {
-                    }
-                    thread.interrupt();
-                    try {
-                        inputStream.close();
-                    } catch (IOException e2) {
-                    }
-                    pumpStreamHandler.stop();
-                    logger.error("ExecuteException: " + e.getMessage() +
-                            " . Exec in error with " + commandLine.toString());
-                    futureCompletion.setFailure(e);
+                    finalizeFromError(outputStream, 
+                            pumpStreamHandler, 
+                            inputStream, 
+                            allLineReader, 
+                            thread, 
+                            status, 
+                            commandLine);
                     return;
                 } catch (IOException e1) {
+                    try {
+                        outputStream.flush();
+                    } catch (IOException e2) {
+                    }
                     try {
                         outputStream.close();
                     } catch (IOException e2) {
@@ -190,19 +188,13 @@ public class ExecOutputTask extends AbstractTask {
                     return;
                 }
             } else {
-                try {
-                    outputStream.close();
-                } catch (IOException e1) {
-                }
-                thread.interrupt();
-                try {
-                    inputStream.close();
-                } catch (IOException e1) {
-                }
-                pumpStreamHandler.stop();
-                logger.error("ExecuteException: " + e.getMessage() +
-                        " . Exec in error with " + commandLine.toString());
-                futureCompletion.setFailure(e);
+                finalizeFromError(outputStream, 
+                        pumpStreamHandler, 
+                        inputStream, 
+                        allLineReader, 
+                        thread, 
+                        status, 
+                        commandLine);
                 return;
             }
         } catch (IOException e) {
@@ -270,9 +262,50 @@ public class ExecOutputTask extends AbstractTask {
                     commandLine + " returns " + newname);
             OpenR66RunnerErrorException exc = 
                 new OpenR66RunnerErrorException("Status: " + status + 
-                        " Exec in error with: " +commandLine + 
-                        "\n" + newname);
+                        "\n<ERROR>" + newname+"</ERROR>");
             futureCompletion.setFailure(exc);
         }
+    }
+    private void finalizeFromError(PipedOutputStream outputStream, 
+            PumpStreamHandler pumpStreamHandler,
+            PipedInputStream inputStream, AllLineReader allLineReader, Thread thread,
+            int status, CommandLine commandLine) {
+        try {
+            Thread.sleep(Configuration.RETRYINMS);
+        } catch (InterruptedException e) {
+        }
+        try {
+            outputStream.flush();
+        } catch (IOException e2) {
+        }
+        try {
+            Thread.sleep(Configuration.RETRYINMS);
+        } catch (InterruptedException e) {
+        }
+        try {
+            outputStream.close();
+        } catch (IOException e1) {
+        }
+        thread.interrupt();
+        try {
+            inputStream.close();
+        } catch (IOException e1) {
+        }
+        try {
+            Thread.sleep(Configuration.RETRYINMS);
+        } catch (InterruptedException e) {
+        }
+        pumpStreamHandler.stop();
+        try {
+            Thread.sleep(Configuration.RETRYINMS);
+        } catch (InterruptedException e) {
+        }
+        String result = allLineReader.lastLine.toString();
+        logger.error("Status: " + status + " Exec in error with " +
+                commandLine + " returns\n" + result);
+        OpenR66RunnerErrorException exc = 
+            new OpenR66RunnerErrorException("Status: " + status + 
+                    "\n<ERROR>" + result+"</ERROR>");
+        futureCompletion.setFailure(exc);
     }
 }

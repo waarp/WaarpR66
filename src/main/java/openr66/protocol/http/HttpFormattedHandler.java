@@ -222,6 +222,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
         QueryStringDecoder queryStringDecoder = new QueryStringDecoder(request
                 .getUri());
         uriRequest = queryStringDecoder.getPath();
+        logger.debug("Msg: "+uriRequest);
         char cval = 'z';
         // check the URI
         if (uriRequest.equalsIgnoreCase("/active")) {
@@ -654,6 +655,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
+        logger.debug("Closed");
         super.channelClosed(ctx, e);
         if (this.isPrivateDbSession && dbSession != null) {
             dbSession.disconnect();
@@ -671,6 +673,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
     @Override
     public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
+        logger.debug("Connected");
         authentHttp.getAuth().specialNoSessionAuth(false, Configuration.configuration.HOST_ID);
         super.channelConnected(ctx, e);
         ChannelGroup group = Configuration.configuration.getHttpChannelGroup();

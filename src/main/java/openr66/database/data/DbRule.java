@@ -44,6 +44,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import openr66.configuration.RuleFileBasedConfiguration;
 import openr66.context.R66Session;
+import openr66.database.data.DbTaskRunner.TASKSTEP;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.packet.RequestPacket;
@@ -951,8 +952,39 @@ public class DbRule extends AbstractDbData {
                 RequestPacket.TRANSFERMODE.values()[mode].toString() +
                 " RECV:" + recvPath + " SEND:" + sendPath + " ARCHIVE:" +
                 archivePath + " WORK:" + workPath +
-                " RPRET:" + rpreTasks + " RPOST:" + rpostTasks + " RERROR:" + rerrorTasks+
-                " SPRET:" + spreTasks + " SPOST:" + spostTasks + " SERROR:" + serrorTasks;
+                "\nRPRET:" + rpreTasks + "\nRPOST:" + rpostTasks + "\nRERROR:" + rerrorTasks+
+                "\nSPRET:" + spreTasks + "\nSPOST:" + spostTasks + "\nSERROR:" + serrorTasks;
+    }
+    /**
+     * 
+     * @param isSender
+     * @param step
+     * @return a string that prints (debug) the tasks to execute
+     */
+    public String printTasks(boolean isSender, TASKSTEP step) {
+        if (isSender) {
+            switch (step) {
+                case PRETASK:
+                    return "S:"+spreTasks;
+                case POSTTASK:
+                    return "S:"+spostTasks;
+                case ERRORTASK:
+                    return "S:"+serrorTasks;
+                default:
+                    return "S:no task";
+            }
+        } else {
+            switch (step) {
+                case PRETASK:
+                    return "R:"+rpreTasks;
+                case POSTTASK:
+                    return "R:"+rpostTasks;
+                case ERRORTASK:
+                    return "R:"+rerrorTasks;
+                default:
+                    return "R:no task";
+            }
+        }
     }
     /**
      * Object to String

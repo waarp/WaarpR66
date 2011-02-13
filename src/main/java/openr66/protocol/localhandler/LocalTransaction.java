@@ -270,7 +270,7 @@ public class LocalTransaction {
             }
             R66Result result = new R66Result(
                     new OpenR66ProtocolSystemException(
-                            "While closing Local Channel"), null, false,
+                            "While closing Local Channel"), localChannelReference.getSession(), false,
                     ErrorCode.ConnectionImpossible, runner);
             localChannelReference.validateConnection(false, result);
             if (localChannelReference.getSession() != null) {

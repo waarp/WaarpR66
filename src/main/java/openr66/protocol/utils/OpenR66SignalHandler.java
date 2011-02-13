@@ -87,12 +87,13 @@ public class OpenR66SignalHandler implements SignalHandler {
      * @param thread
      * @param stacks
      */
-    static private void printStackTrace(Thread thread, StackTraceElement[] stacks) {
+    static public void printStackTrace(Thread thread, StackTraceElement[] stacks) {
         System.err.print(thread.toString() + " : ");
         for (int i = 0; i < stacks.length-1; i++) {
             System.err.print(stacks[i].toString()+" ");
         }
-        System.err.println(stacks[stacks.length-1].toString());
+        if (stacks.length >= 1)
+            System.err.println(stacks[stacks.length-1].toString());
     }
 
     /**

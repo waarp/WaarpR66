@@ -57,9 +57,11 @@ public class GlobalTrafficHandler extends GlobalTrafficShapingHandler {
     /* (non-Javadoc)
      * @see org.jboss.netty.handler.traffic.AbstractTrafficShapingHandler#doAccounting(org.jboss.netty.handler.traffic.TrafficCounter)
      */
+    @SuppressWarnings("unused")
     @Override
     protected void doAccounting(TrafficCounter counter) {
-        logger.info(this.toString()+"\n   {}", counter);
+        if (false)
+            logger.debug(this.toString()+"\n   {}", counter);
     }
 
 }

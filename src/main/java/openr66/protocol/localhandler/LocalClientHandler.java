@@ -182,7 +182,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
                     .awaitUninterruptibly();
                 if (!localChannelReference.getFutureRequest().isDone()) {
                     localChannelReference.invalidateRequest(new R66Result(
-                            exception, null, true, ErrorCode.Internal, null));
+                            exception, localChannelReference.getSession(), true, ErrorCode.Internal, null));
                 }
             } else {
                 // Nothing to do

@@ -583,6 +583,7 @@ public class R66Session implements SessionInterface {
      */
     public void setFinalizeTransfer(boolean status, R66Result finalValue)
             throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException {
+        logger.debug(status+":"+finalValue+":"+runner);
         if (runner == null) {
             if (status) {
                 localChannelReference.validateRequest(finalValue);
@@ -594,9 +595,14 @@ public class R66Session implements SessionInterface {
         if (runner.isAllDone()) {
             logger.debug("Transfer already done but " + status + " on " + file+runner.toShortString(),
                     new OpenR66RunnerErrorException(finalValue.toString()));
+            // FIXME ??
+            /*if (! status)
+                runner.finalizeTransfer(localChannelReference, file, finalValue, status);*/
             return;
         }
         if (localChannelReference.getFutureRequest().isDone()) {
+            logger.debug("Request already done but " + status + " on " + file+runner.toShortString(),
+                    new OpenR66RunnerErrorException(finalValue.toString()));
             // Already finished once so do nothing more
             return;
         }
@@ -610,7 +616,7 @@ public class R66Session implements SessionInterface {
             runner.finishTransferTask(finalValue.code);
         }
         runner.saveStatus();
-        logger.debug("Transfer " + status + " on {}", file);
+        logger.debug("Transfer " + status + " on {} and {}", file, runner);
         if (!runner.ready()) {
             // Pre task in error (or even before)
             OpenR66RunnerErrorException runnerErrorException;

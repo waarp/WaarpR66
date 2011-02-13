@@ -31,7 +31,6 @@ import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.handler.execution.ExecutionHandler;
 import org.jboss.netty.handler.timeout.IdleStateHandler;
-import org.jboss.netty.handler.timeout.ReadTimeoutHandler;
 import org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler;
 import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
 import org.jboss.netty.util.HashedWheelTimer;
@@ -41,9 +40,14 @@ import org.jboss.netty.util.HashedWheelTimer;
  * @author Frederic Bregier
  */
 public class NetworkServerPipelineFactory implements ChannelPipelineFactory {
+    /**
+     * Global HashedWheelTimer
+     */
+    public HashedWheelTimer timer = new HashedWheelTimer();
 
     public static final String TIMEOUT = "timeout";
     public static final String READTIMEOUT = "readTimeout";
+    public static final String LIMITCHANNEL = "LIMITCHANNEL";
 
     private boolean server = false;
     public NetworkServerPipelineFactory(boolean server) {
@@ -57,26 +61,25 @@ public class NetworkServerPipelineFactory implements ChannelPipelineFactory {
             Configuration.configuration.getGlobalTrafficShapingHandler();
         if (handler != null) {
             pipeline.addLast("LIMIT", handler);
-            ChannelTrafficShapingHandler trafficChannel = null;
-            try {
-                trafficChannel =
-                    Configuration.configuration
-                    .newChannelTrafficShapingHandler();
-                if (trafficChannel != null) {
-                    pipeline.addLast("LIMITCHANNEL", trafficChannel);
-                }
-            } catch (OpenR66ProtocolNoDataException e) {
+        }
+        ChannelTrafficShapingHandler trafficChannel = null;
+        try {
+            trafficChannel =
+                Configuration.configuration
+                .newChannelTrafficShapingHandler();
+            if (trafficChannel != null) {
+                pipeline.addLast(LIMITCHANNEL, trafficChannel);
             }
+        } catch (OpenR66ProtocolNoDataException e) {
         }
         pipeline.addLast("pipelineExecutor", new ExecutionHandler(
                 Configuration.configuration.getServerPipelineExecutor()));
-        HashedWheelTimer timer = new HashedWheelTimer();
+        
         pipeline.addLast(TIMEOUT,
                 new IdleStateHandler(timer,
-                0, 0, Configuration.configuration.TIMEOUTCON*2, TimeUnit.MILLISECONDS));
-        pipeline.addLast(READTIMEOUT,
-                new ReadTimeoutHandler(timer,
-                Configuration.configuration.TIMEOUTCON*10, TimeUnit.MILLISECONDS));
+                        Configuration.configuration.TIMEOUTCON*2, 
+                        Configuration.configuration.TIMEOUTCON, 
+                        0, TimeUnit.MILLISECONDS));
         pipeline.addLast("handler", new NetworkServerHandler(this.server));
         return pipeline;
     }

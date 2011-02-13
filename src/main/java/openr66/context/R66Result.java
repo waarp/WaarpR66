@@ -99,4 +99,15 @@ public class R66Result {
                 (runner != null? runner.toShortString() : " no runner") +
                 " isAnswered: " + isAnswered + " Code: " + code.mesg;
     }
+    /**
+     * 
+     * @return the associated message with this Result
+     */
+    public String getMessage() {
+    	if (exception != null) {
+    		return exception.getMessage();
+    	} else {
+    		return code.mesg;
+    	}
+    }
 }

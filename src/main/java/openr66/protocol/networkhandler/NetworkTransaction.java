@@ -134,20 +134,24 @@ public class NetworkTransaction {
             channelClientFactory);
     private final ChannelGroup networkChannelGroup = new DefaultChannelGroup(
             "NetworkChannels");
-
+    private final NetworkServerPipelineFactory networkServerPipelineFactory;
+    private final NetworkSslServerPipelineFactory networkSslServerPipelineFactory;
     public NetworkTransaction() {
-        clientBootstrap.setPipelineFactory(new NetworkServerPipelineFactory(false));
+        networkServerPipelineFactory = new NetworkServerPipelineFactory(false);
+        clientBootstrap.setPipelineFactory(networkServerPipelineFactory);
         clientBootstrap.setOption("tcpNoDelay", true);
         clientBootstrap.setOption("reuseAddress", true);
         clientBootstrap.setOption("connectTimeoutMillis",
                 Configuration.configuration.TIMEOUTCON);
         if (Configuration.configuration.useSSL && Configuration.configuration.HOST_SSLID != null) {
-            clientSslBootstrap.setPipelineFactory(new NetworkSslServerPipelineFactory(true,
-                    execServerWorker));
+            networkSslServerPipelineFactory =
+                new NetworkSslServerPipelineFactory(true, execServerWorker);
+            clientSslBootstrap.setPipelineFactory(networkSslServerPipelineFactory);
             clientSslBootstrap.setOption("tcpNoDelay", true);
             clientSslBootstrap.setOption("reuseAddress", true);
             clientSslBootstrap.setOption("connectTimeoutMillis", Configuration.configuration.TIMEOUTCON);
         } else {
+            networkSslServerPipelineFactory = null;
             logger.warn("No SSL support configured");
         }
     }
@@ -417,7 +421,7 @@ public class NetworkTransaction {
         } catch (OpenR66ProtocolNoSslException e1) {
             R66Result finalValue = new R66Result(
                     new OpenR66ProtocolSystemException("No SSL support", e1),
-                    null, true, ErrorCode.ConnectionImpossible, null);
+                    localChannelReference.getSession(), true, ErrorCode.ConnectionImpossible, null);
             logger.error("Authent is Invalid due to no SSL: {}", e1.getMessage());
             if (localChannelReference.getRemoteId() != ChannelUtils.NOCHANNEL) {
                 ConnectionErrorPacket error = new ConnectionErrorPacket(
@@ -439,7 +443,7 @@ public class NetworkTransaction {
         } catch (OpenR66ProtocolPacketException e) {
             R66Result finalValue = new R66Result(
                     new OpenR66ProtocolSystemException("Wrong Authent Protocol",e),
-                    null, true, ErrorCode.ConnectionImpossible, null);
+                    localChannelReference.getSession(), true, ErrorCode.ConnectionImpossible, null);
             logger.error("Authent is Invalid due to protocol: {}", e.getMessage());
             localChannelReference.invalidateRequest(finalValue);
             if (localChannelReference.getRemoteId() != ChannelUtils.NOCHANNEL) {
@@ -460,7 +464,7 @@ public class NetworkTransaction {
                     future);
             R66Result finalValue = new R66Result(
                     new OpenR66ProtocolSystemException("Out of time during Authentication"),
-                    null, true, ErrorCode.ConnectionImpossible, null);
+                    localChannelReference.getSession(), true, ErrorCode.ConnectionImpossible, null);
             logger.error("Authent is Invalid due to out of time: {}", finalValue.exception.getMessage());
             localChannelReference.invalidateRequest(finalValue);
             if (localChannelReference.getRemoteId() != ChannelUtils.NOCHANNEL) {
@@ -519,6 +523,10 @@ public class NetworkTransaction {
      */
     public void closeAll() {
         logger.debug("close All Network Channels");
+        try {
+            Thread.sleep(Configuration.RETRYINMS*2);
+        } catch (InterruptedException e) {
+        }
         closeRetrieveExecutors();
         networkChannelGroup.close().awaitUninterruptibly();
         clientBootstrap.releaseExternalResources();
@@ -529,6 +537,12 @@ public class NetworkTransaction {
         } catch (InterruptedException e) {
         }
         DbAdmin.closeAllConnection();
+        if (networkServerPipelineFactory != null) {
+            networkServerPipelineFactory.timer.stop();
+        }
+        if (networkSslServerPipelineFactory != null) {
+            networkSslServerPipelineFactory.timer.stop();
+        }
         logger.debug("Last action before exit");
         ChannelUtils.stopLogger();
     }

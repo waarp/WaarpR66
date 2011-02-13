@@ -128,7 +128,7 @@ public class ErrorPacket extends AbstractLocalPacket {
      */
     @Override
     public String toString() {
-        return "ErrorPacket: " + sheader + ":" + smiddle + ":" + code;
+        return "ErrorPacket:("+code+":"+smiddle+") " + sheader;
     }
 
     @Override

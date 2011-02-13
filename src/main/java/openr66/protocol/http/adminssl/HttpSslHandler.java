@@ -1631,6 +1631,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             HttpRequest request = this.request = (HttpRequest) e.getMessage();
             queryStringDecoder = new QueryStringDecoder(request.getUri());
             uriRequest = queryStringDecoder.getPath();
+            logger.debug("Msg: "+uriRequest);
             if (uriRequest.contains("gre/") || uriRequest.contains("img/") ||
                     uriRequest.contains("res/")) {
                 writeFile(e.getChannel(), Configuration.configuration.httpBasePath+uriRequest);
@@ -1886,6 +1887,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
     @Override
     public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
             throws Exception {
+        logger.debug("Connected");
         // Get the SslHandler in the current pipeline.
         // We added it in NetworkSslServerPipelineFactory.
         final SslHandler sslHandler = ctx.getPipeline().get(SslHandler.class);

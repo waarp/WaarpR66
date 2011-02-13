@@ -108,11 +108,11 @@ public class RetrieveRunner extends Thread {
                 session.getFile().retrieveBlocking(running);
             } catch (OpenR66RunnerErrorException e) {
                 transferInError(e);
-                logger.error("End Retrieve in Error");
+                logger.info("End Retrieve in Error");
                 return;
             } catch (OpenR66ProtocolSystemException e) {
                 transferInError(e);
-                logger.error("End Retrieve in Error");
+                logger.info("End Retrieve in Error");
                 return;
             }
             try {
@@ -143,8 +143,9 @@ public class RetrieveRunner extends Thread {
                 if (localChannelReference.getFutureEndTransfer().isDone()) {
                     // Done and Not Success => error
                     if (!localChannelReference.getFutureEndTransfer().getResult().isAnswered) {
-                        ErrorPacket error = new ErrorPacket("Transfer in error",
-                                ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                        ErrorPacket error = new ErrorPacket(localChannelReference.getErrorMessage(),
+                                localChannelReference.getFutureEndTransfer().getResult().code.getCode(), 
+                                ErrorPacket.FORWARDCLOSECODE);
                         try {
                             ChannelUtils.writeAbstractLocalPacket(localChannelReference, error)
                                 .awaitUninterruptibly();
@@ -157,7 +158,7 @@ public class RetrieveRunner extends Thread {
                         .getFutureEndTransfer().getResult());
                 }
                 done = true;
-                logger.error("End Retrieve in Error");
+                logger.info("End Retrieve in Error");
             }
         } finally {
             if (!done) {
@@ -177,8 +178,9 @@ public class RetrieveRunner extends Thread {
                 } else {
                     if (localChannelReference.getFutureEndTransfer().isDone()) {
                         if (!localChannelReference.getFutureEndTransfer().getResult().isAnswered) {
-                            ErrorPacket error = new ErrorPacket("Transfer in error",
-                                    ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                            ErrorPacket error = new ErrorPacket(localChannelReference.getErrorMessage(),
+                                    localChannelReference.getFutureEndTransfer().getResult().code.getCode(), 
+                                    ErrorPacket.FORWARDCLOSECODE);
                             try {
                                 ChannelUtils.writeAbstractLocalPacket(localChannelReference, error)
                                     .awaitUninterruptibly();

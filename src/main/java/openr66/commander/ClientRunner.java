@@ -229,59 +229,61 @@ public class ClientRunner extends Thread {
         if (transfer.isSuccess()) {
             try {
                 taskRunner.select();
-                this.changeUpdatedInfo(UpdatedInfo.DONE, ErrorCode.CompleteOk);
             } catch (GoldenGateDatabaseException e) {
                 logger.debug("Not a problem but cannot find at the end the task");
+                taskRunner.setFrom(transfer.runner);
             }
+            this.changeUpdatedInfo(UpdatedInfo.DONE, ErrorCode.CompleteOk);
         } else {
             try {
                 taskRunner.select();
-                // Case when we were interrupted
-                if (transfer.getResult() == null) {
-                    switch (taskRunner.getUpdatedInfo()) {
-                        case DONE:
-                            R66Result ok =
-                                new R66Result(null, true, ErrorCode.CompleteOk, taskRunner);
-                            transfer.setResult(ok);
-                            transfer.setSuccess();
-                            this.changeUpdatedInfo(UpdatedInfo.DONE, ErrorCode.CompleteOk);
-                            break;
-                        case INERROR:
-                        case INTERRUPTED:
-                        default:
-                            R66Result error =
-                                new R66Result(null, true, ErrorCode.Internal, taskRunner);
-                            transfer.setResult(error);
-                            transfer.cancel();
-                            this.changeUpdatedInfo(UpdatedInfo.INERROR, ErrorCode.Internal);
-                    }
-                    return transfer;
-                }
-                if (transfer.getResult().code == ErrorCode.QueryAlreadyFinished) {
-                    // check if post task to execute
-                    logger.warn("WARN QueryAlreadyFinished:\n    "+transfer.toString()+"\n    "+
-                            taskRunner.toShortString());
-                    try {
-                        TransferUtils.finalizeTaskWithNoSession(taskRunner, localChannelReference);
-                    } catch (OpenR66RunnerErrorException e) {
-                        this.taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);
-                        try {
-                            this.taskRunner.update();
-                        } catch (GoldenGateDatabaseException e1) {
-                        }
-                    }
-                } else {
-                    switch (taskRunner.getUpdatedInfo()) {
-                        case DONE:
-                        case INERROR:
-                        case INTERRUPTED:
-                            break;
-                        default:
-                            this.changeUpdatedInfo(UpdatedInfo.INERROR, transfer.getResult().code);
-                    }
-                }
             } catch (GoldenGateDatabaseException e) {
                 logger.debug("Not a problem but cannot find at the end the task");
+                taskRunner.setFrom(transfer.runner);
+            }
+            // Case when we were interrupted
+            if (transfer.getResult() == null) {
+                switch (taskRunner.getUpdatedInfo()) {
+                    case DONE:
+                        R66Result ok =
+                            new R66Result(null, true, ErrorCode.CompleteOk, taskRunner);
+                        transfer.setResult(ok);
+                        transfer.setSuccess();
+                        this.changeUpdatedInfo(UpdatedInfo.DONE, ErrorCode.CompleteOk);
+                        break;
+                    case INERROR:
+                    case INTERRUPTED:
+                    default:
+                        R66Result error =
+                            new R66Result(null, true, ErrorCode.Internal, taskRunner);
+                        transfer.setResult(error);
+                        transfer.cancel();
+                        this.changeUpdatedInfo(UpdatedInfo.INERROR, ErrorCode.Internal);
+                }
+                return transfer;
+            }
+            if (transfer.getResult().code == ErrorCode.QueryAlreadyFinished) {
+                // check if post task to execute
+                logger.warn("WARN QueryAlreadyFinished:\n    "+transfer.toString()+"\n    "+
+                        taskRunner.toShortString());
+                try {
+                    TransferUtils.finalizeTaskWithNoSession(taskRunner, localChannelReference);
+                } catch (OpenR66RunnerErrorException e) {
+                    this.taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);
+                    try {
+                        this.taskRunner.update();
+                    } catch (GoldenGateDatabaseException e1) {
+                    }
+                }
+            } else {
+                switch (taskRunner.getUpdatedInfo()) {
+                    case DONE:
+                    case INERROR:
+                    case INTERRUPTED:
+                        break;
+                    default:
+                        this.changeUpdatedInfo(UpdatedInfo.INERROR, transfer.getResult().code);
+                }
             }
         }
         return transfer;

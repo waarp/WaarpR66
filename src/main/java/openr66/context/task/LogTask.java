@@ -76,6 +76,8 @@ public class LogTask extends AbstractTask {
             case 1:
                 logger.warn(finalValue+"\n    " + session.toString());
                 break;
+            case 3:
+                logger.warn(finalValue+"\n    " + session.toString());
             case 2:
                 String []args = finalValue.split(" ");
                 String filename = args[args.length-1];
@@ -116,9 +118,6 @@ public class LogTask extends AbstractTask {
                     outputStream.close();
                 } catch (IOException e) {
                 }
-                break;
-            case 3:
-                logger.warn(finalValue+"\n    " + session.toString());
                 break;
             default:
         }

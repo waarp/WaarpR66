@@ -56,9 +56,11 @@ public class ChannelTrafficHandler extends ChannelTrafficShapingHandler {
     /* (non-Javadoc)
      * @see org.jboss.netty.handler.traffic.AbstractTrafficShapingHandler#doAccounting(org.jboss.netty.handler.traffic.TrafficCounter)
      */
+    @SuppressWarnings("unused")
     @Override
     protected void doAccounting(TrafficCounter counter) {
-        logger.debug(this.toString()+"\n   {}", counter);
+        if (false)
+            logger.debug(this.toString()+"\n   {}", counter);
     }
 
 }

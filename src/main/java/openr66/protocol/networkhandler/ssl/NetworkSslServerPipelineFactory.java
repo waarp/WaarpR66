@@ -24,17 +24,21 @@ import goldengate.common.crypto.ssl.GgSecureKeyStore;
 import goldengate.common.crypto.ssl.GgSslContextFactory;
 
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNoDataException;
+import openr66.protocol.networkhandler.NetworkServerPipelineFactory;
 import openr66.protocol.networkhandler.packet.NetworkPacketCodec;
 
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.handler.execution.ExecutionHandler;
+import org.jboss.netty.handler.timeout.IdleStateHandler;
 import org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler;
 import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
+import org.jboss.netty.util.HashedWheelTimer;
 
 /**
  * @author Frederic Bregier
@@ -45,6 +49,10 @@ public class NetworkSslServerPipelineFactory implements ChannelPipelineFactory {
     public static GgSslContextFactory ggSslContextFactory;
     public static GgSecureKeyStore ggSecureKeyStore;
     private final ExecutorService executorService;
+    /**
+     * Global HashedWheelTimer
+     */
+    public HashedWheelTimer timer = new HashedWheelTimer();
 
     /**
      *
@@ -79,17 +87,23 @@ public class NetworkSslServerPipelineFactory implements ChannelPipelineFactory {
                 .getGlobalTrafficShapingHandler();
         if (handler != null) {
             pipeline.addLast("LIMIT", handler);
-            ChannelTrafficShapingHandler trafficChannel = null;
-            try {
-                trafficChannel =
-                    Configuration.configuration
-                    .newChannelTrafficShapingHandler();
-                pipeline.addLast("LIMITCHANNEL", trafficChannel);
-            } catch (OpenR66ProtocolNoDataException e) {
-            }
+        }
+        ChannelTrafficShapingHandler trafficChannel = null;
+        try {
+            trafficChannel =
+                Configuration.configuration
+                .newChannelTrafficShapingHandler();
+            pipeline.addLast(NetworkServerPipelineFactory.LIMITCHANNEL, trafficChannel);
+        } catch (OpenR66ProtocolNoDataException e) {
         }
         pipeline.addLast("pipelineExecutor", new ExecutionHandler(
                 Configuration.configuration.getServerPipelineExecutor()));
+        
+        pipeline.addLast(NetworkServerPipelineFactory.TIMEOUT,
+                new IdleStateHandler(timer,
+                        Configuration.configuration.TIMEOUTCON*2, 
+                        Configuration.configuration.TIMEOUTCON, 
+                        0, TimeUnit.MILLISECONDS));
         pipeline.addLast("handler", new NetworkSslServerHandler(!this.isClient));
         return pipeline;
     }

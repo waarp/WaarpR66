@@ -367,6 +367,15 @@ public class Configuration {
      */
     private ServerBootstrap serverSslBootstrap = null;
     /**
+     * Factory for NON SSL Server
+     */
+    private NetworkServerPipelineFactory networkServerPipelineFactory;
+    /**
+     * Factory for SSL Server
+     */
+    private NetworkSslServerPipelineFactory networkSslServerPipelineFactory;
+
+    /**
      * Bootstrap for Http server
      */
     private ServerBootstrap httpBootstrap = null;
@@ -498,7 +507,8 @@ public class Configuration {
                 execServerBoss, execServerWorker, SERVER_THREAD);
         if (useNOSSL) {
             serverBootstrap = new ServerBootstrap(serverChannelFactory);
-            serverBootstrap.setPipelineFactory(new NetworkServerPipelineFactory(true));
+            networkServerPipelineFactory = new NetworkServerPipelineFactory(true);
+            serverBootstrap.setPipelineFactory(networkServerPipelineFactory);
             serverBootstrap.setOption("child.tcpNoDelay", true);
             serverBootstrap.setOption("child.keepAlive", true);
             serverBootstrap.setOption("child.reuseAddress", true);
@@ -510,13 +520,15 @@ public class Configuration {
             serverChannelGroup.add(serverBootstrap.bind(new InetSocketAddress(
                     SERVER_PORT)));
         } else {
+            networkServerPipelineFactory = null;
             logger.warn("NOSSL mode is desactivated");
         }
 
         if (useSSL && HOST_SSLID != null) {
             serverSslBootstrap = new ServerBootstrap(serverChannelFactory);
-            serverSslBootstrap.setPipelineFactory(new NetworkSslServerPipelineFactory(false,
-                    execServerWorker));
+            networkSslServerPipelineFactory = new NetworkSslServerPipelineFactory(false,
+                    execServerWorker);
+            serverSslBootstrap.setPipelineFactory(networkSslServerPipelineFactory);
             serverSslBootstrap.setOption("child.tcpNoDelay", true);
             serverSslBootstrap.setOption("child.keepAlive", true);
             serverSslBootstrap.setOption("child.reuseAddress", true);
@@ -528,6 +540,7 @@ public class Configuration {
             serverChannelGroup.add(serverSslBootstrap.bind(new InetSocketAddress(
                     SERVER_SSLPORT)));
         } else {
+            networkSslServerPipelineFactory = null;
             logger.warn("SSL mode is desactivated");
         }
 
@@ -602,6 +615,12 @@ public class Configuration {
     public void serverStop() {
         if (internalRunner != null) {
             internalRunner.stopInternalRunner();
+        }
+        if (networkServerPipelineFactory != null) {
+            networkServerPipelineFactory.timer.stop();
+        }
+        if (networkSslServerPipelineFactory != null) {
+            networkSslServerPipelineFactory.timer.stop();
         }
     }
     /**
