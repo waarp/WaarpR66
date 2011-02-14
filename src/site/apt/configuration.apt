@@ -94,6 +94,8 @@ GoldenGateR66 Server and Clients Configuration
     *{{{http://www.slf4j.org/}SLF4J}}
 
     *{{{http://logback.qos.ch/}Logback}}
+    
+    *{{{https://github.com/jezhumble/javasysmon}JavaSysMon}}
 
     *<Database JDBC support> for instance for H2, PostGreSQL, Oracle, MySQL
 

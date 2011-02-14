@@ -143,20 +143,26 @@ Sequential logic
   * Once all DataBlock are sent, the RetrieveRunner sends an EndTransfer Message to the receiver
   host.
 
-  * The receiver host sends back the validated EndTransfer Message.
+  * The receiver host executes first its PostProcessing actions.
 
-    * The Request is in TransferOk status.
+    * The Request is first in TransferOk status for Receiver.
+    
+    * The Request is in PostProcesseingOk status for receiver.
+    
+  * The receiver sends back the validated EndTransfer Message.
+    
+    * The Request is in TransferOk status for Sender.
 
-  * The Request is now on Finalize way. Both hosts executes the Post actions.
+  * The Request is now on Finalize way. Sender host executes the Post actions on its turn.
 
-    * The Request is in PostProcesseingOk status.
+    * The Request is in PostProcesseingOk status for Sender.
 
   * Once the PostProcessing is over, the RetrieveRunner (Sender) sends to the remote host a
   EndRequest Message.
 
-  * The remote host sends back the validated EndRequest Message.
+    * The remote host sends back the validated EndRequest Message.
 
-  * The Request is now totally finished and its status is CompleteOk ALLDONE.
+    * The Request is now totally finished and its status is CompleteOk ALLDONE on both side.
 
   []
 

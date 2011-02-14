@@ -2234,8 +2234,9 @@ public class DbTaskRunner extends AbstractDbData {
                 throw e1;
             }
             this.saveStatus();
-            this.setAllDone();
-            this.saveStatus();
+            /*Done later on after EndRequest
+             * this.setAllDone();
+            this.saveStatus();*/
             logger.info("Transfer done on {} at RANK {}",file != null ? file : "no file", rank);
             if (localChannelReference != null) {
                 localChannelReference.validateEndTransfer(finalValue);

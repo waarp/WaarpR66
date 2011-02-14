@@ -2047,6 +2047,15 @@ public class LocalServerHandler extends SimpleChannelHandler {
         logger.debug("Valid Request {} {}",
                 localChannelReference,
                 packet);
+        DbTaskRunner runner = session.getRunner();
+        if (runner != null) {
+            runner.setAllDone();
+            try {
+                runner.saveStatus();
+            } catch (OpenR66RunnerErrorException e) {
+                // ignore
+            }
+        }
         if (!localChannelReference.getFutureRequest().isDone()) {
             // end of request
             R66Future transfer = localChannelReference.getFutureEndTransfer();
@@ -2067,7 +2076,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
             } catch (OpenR66ProtocolPacketException e) {
             }
         }
-        DbTaskRunner runner = session.getRunner();
         if (runner != null && runner.isSelfRequested()) {
             ChannelUtils.close(channel);
         }

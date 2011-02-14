@@ -132,6 +132,12 @@ public class RetrieveRunner extends Thread {
                 if (!localChannelReference.getFutureRequest().awaitUninterruptibly(
                         Configuration.configuration.TIMEOUTCON)) {
                     // valid it however
+                    session.getRunner().setAllDone();
+                    try {
+                        session.getRunner().saveStatus();
+                    } catch (OpenR66RunnerErrorException e) {
+                        // ignore
+                    }
                     localChannelReference.validateRequest(localChannelReference
                         .getFutureEndTransfer().getResult());
                 }
@@ -169,6 +175,12 @@ public class RetrieveRunner extends Thread {
                             ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket).awaitUninterruptibly();
                         } catch (OpenR66ProtocolPacketException e) {
                         }
+                    }
+                    session.getRunner().setAllDone();
+                    try {
+                        session.getRunner().saveStatus();
+                    } catch (OpenR66RunnerErrorException e) {
+                        // ignore
                     }
                     localChannelReference.validateRequest(localChannelReference
                             .getFutureEndTransfer().getResult());

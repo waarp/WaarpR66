@@ -37,7 +37,7 @@ OpenR66-Command
 
   The first step in installation of an OpenR66 Server or heavy client is to construct the XML
   configuration files and to initiate the database that support file transfers and configurations.
-  This function is an helper for database initialisation.
+  This function is an helper for database initialization.
 
   * The first argument is the JDBC database connection XML file. It will try to create the
   database tables and to initiate the sequence (unique Id by host of runners from runner table).
@@ -115,9 +115,9 @@ OpenR66-Command
 
   * The prefered way is to use the HTTPS Administrator interface.
 
-  * Another prefered way is to use this utility which sends a shutdown request through network
+  * Another preferred way is to use this utility which sends a shutdown request through network
   but using a key shared physically (adminkey). This utility takes the same XML configuration
-  file than the server (where the admin key is refered but not stored in any database) and
+  file than the server (where the admin key is referred but not stored in any database) and
   uses the SSL service.
 
   * If one wants to used the non SSL service, it should create a new utility and changing:
@@ -134,7 +134,7 @@ OpenR66-Command
   No file are transfered, they are just export to a file in the global archive directory.
   To use it, two main ways can be achieved:
 
-  * The local server runs this tool refering the OpenR66 Server using the client configuration
+  * The local server runs this tool referring the OpenR66 Server using the client configuration
   XML file and then running a log request.
 
   * Directly runs a transfer request where the rule execute at pre processing this utility
@@ -158,7 +158,7 @@ OpenR66-Command
 
 **ChangeBandwidthLimits
 
-  This tool enables to change dynamicaly the bandwidth limitations (only in memory, not in
+  This tool enables to change dynamically the bandwidth limitations (only in memory, not in
   database). To use it, it should be used locally with the admin account.
 
   * The First argument is the Client Configuration (eventually without database access).
@@ -194,6 +194,12 @@ OpenR66-Command
     *'-rule' option: specifies the rule to apply (which specifies the transfer mode,
     the pre, post or error operations, ...).
 
+  * Or at least 2 other arguments are necessary:
+
+    *'-to' option: specifies the remote Host Id (either the Id for SSL or not ).
+
+    *'-id' option: specifies the Id of a previous transfer (stopped or in error).
+
   * Other options are:
 
     *'-info' option: specifies the optional information that is send at the same time with
@@ -206,10 +212,16 @@ OpenR66-Command
 
     *'-nolog' option: specifies that this transfer will not be logged (only on requester side).
 
+	*'-start' "time start" as yyyyMMddHHmmss (override previous -delay options)
+	
+    *'-delay' "+delay in ms" as delay in ms from current time(override previous -start options)
+
+	*'-delay' "delay in ms" as time in ms (override previous -start options)
+
 **DirectTransfer
 
   This is the second method to transfer a file. This method is direct, so as a synchronous
-  operation. This time the client will do the real work (transfering the file).
+  operation. This time the client will do the real work (transferring the file).
   The options are exactly the same than with SubmitTransfer. However two cases exist:
 
   *Heavy client: The client XML configuration file includes the database access.
@@ -218,7 +230,7 @@ OpenR66-Command
 
   *Light client: The client XML configuration file does not included the database access.
   All transfer operations will not be logged at all (at client side). This option is useful
-  for "light client" like personal computers where transfering files to or from a data center
+  for "light client" like personal computers where transferring files to or from a data center
   is a necessity.
 
   However, both clients can only be the initiator of the transfer (receive or send), since no service is running once the client is over.
@@ -232,7 +244,7 @@ OpenR66-Command
   (directly write the bytes from the upload to the OpenR66 SendThroughClient interface).
   A simple example is shown in TestSendThroughClient.
 
-  So this method needs some minor developements to be implemented.
+  So this method needs some minor developments to be implemented.
 
 **RecvThroughClient
 
@@ -243,7 +255,15 @@ OpenR66-Command
   file (directly write the bytes from the download from the OpenR66 RecvThroughHandler
   interface). A simple example is shown in TestRecvThroughClient.
 
-  So this method needs some minor developements to be implemented.
+  So this method needs some minor developments to be implemented.
+
+**ProgressBarTransfer
+
+  This method is not a full implemented method. It is a way to implement a file transfer within
+  a Graphical User Interface or to get information on progression during the transfer.
+  Such an example is presented in the R66GUI.
+
+  So this method needs some minor developments to be implemented.
 
 **RequestTransfer
 
@@ -258,14 +278,14 @@ OpenR66-Command
   *'-to' or '-from' option (exclusive): this specifies the way of the request transfer.
   '-to' specifies that the original request was initiated by the current running host to
   the remote specified host. '-from' specifies that the original request was initiated by
-  the remote specifed host.
+  the remote specified host.
 
   * Optional arguments (exclusive): without any of those arguments, the request only returns
   the current information of the runner.
 
-    *'-cancel' option: the runner will be cancelled. Any file currently in writing will be deleted.
+    *'-cancel' option: the runner will be canceled. Any file currently in writing will be deleted.
 
-    *'-stop' option: the runner will be stopped (but not cancelled).
+    *'-stop' option: the runner will be stopped (but not canceled).
 
     *'-restart' option: the runner will be restart (if stopped).
 
