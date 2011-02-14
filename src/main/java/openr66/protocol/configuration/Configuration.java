@@ -62,6 +62,7 @@ import org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler;
 import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.jboss.netty.util.ObjectSizeEstimator;
+import org.jboss.netty.util.internal.ExecutorUtil;
 
 /**
  * Configuration class
@@ -400,7 +401,7 @@ public class Configuration {
     /**
      * ExecutorService for TrafficCounter
      */
-    private final ExecutorService execTrafficCounter = Executors
+    private ExecutorService execTrafficCounter = Executors
             .newCachedThreadPool();
 
     /**
@@ -621,6 +622,38 @@ public class Configuration {
         }
         if (networkSslServerPipelineFactory != null) {
             networkSslServerPipelineFactory.timer.stop();
+        }
+        if (execTrafficCounter != null) {
+            ExecutorUtil.terminate(execTrafficCounter);
+            execTrafficCounter = null;
+        }
+    }
+    /**
+     * To be called after all other stuff are closed for Client
+     */
+    public void clientStop() {
+        if (execTrafficCounter != null) {
+            ExecutorUtil.terminate(execTrafficCounter);
+            execTrafficCounter = null;
+        }
+        if (localTransaction != null) {
+            localTransaction.closeAll();
+            localTransaction = null;
+        }
+        if (serverPipelineExecutor != null) {
+            ExecutorUtil.terminate(serverPipelineExecutor);
+            serverPipelineExecutor = null;
+        }
+        if (localPipelineExecutor != null) {
+            ExecutorUtil.terminate(localPipelineExecutor);
+            localPipelineExecutor = null;
+        }
+        if (httpPipelineExecutor != null) {
+            ExecutorUtil.terminate(httpPipelineExecutor);
+            httpPipelineExecutor = null;
+        }
+        if (useLocalExec) {
+            LocalExecClient.releaseResources();
         }
     }
     /**

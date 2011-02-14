@@ -56,7 +56,6 @@ import org.jboss.netty.handler.timeout.IdleState;
 import org.jboss.netty.handler.timeout.IdleStateAwareChannelHandler;
 import org.jboss.netty.handler.timeout.IdleStateEvent;
 import org.jboss.netty.handler.timeout.ReadTimeoutException;
-import org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler;
 
 /**
  * Network Server Handler (Requester side)
@@ -119,11 +118,6 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
         //Now force the close of the database after a wait
         if (dbSession != null && dbSession.internalId != DbConstant.admin.session.internalId) {
             dbSession.disconnect();
-        }
-        ChannelTrafficShapingHandler handler2 =
-            (ChannelTrafficShapingHandler) ctx.getPipeline().get(NetworkServerPipelineFactory.LIMITCHANNEL);
-        if (handler2 != null) {
-            handler2.releaseExternalResources();
         }
     }
 

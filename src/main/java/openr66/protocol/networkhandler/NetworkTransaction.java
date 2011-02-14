@@ -543,6 +543,7 @@ public class NetworkTransaction {
         if (networkSslServerPipelineFactory != null) {
             networkSslServerPipelineFactory.timer.stop();
         }
+        Configuration.configuration.clientStop();
         logger.debug("Last action before exit");
         ChannelUtils.stopLogger();
     }

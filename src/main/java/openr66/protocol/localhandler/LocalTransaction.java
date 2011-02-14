@@ -320,10 +320,12 @@ public class LocalTransaction {
                 // give a chance for the LocalChannel to stop normally
                 R66Result finalValue = new R66Result(localChannelReference.getSession(),
                         true, ErrorCode.Shutdown, null);
-                try {
-                    localChannelReference.getSession().tryFinalizeRequest(finalValue);
-                } catch (OpenR66RunnerErrorException e) {
-                } catch (OpenR66ProtocolSystemException e) {
+                if (localChannelReference.getSession() != null) {
+                    try {
+                        localChannelReference.getSession().tryFinalizeRequest(finalValue);
+                    } catch (OpenR66RunnerErrorException e) {
+                    } catch (OpenR66ProtocolSystemException e) {
+                    }
                 }
                 logger.debug("Will close local channel");
                 Channels.close(localChannelReference.getLocalChannel()).awaitUninterruptibly();
