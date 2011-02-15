@@ -81,6 +81,7 @@ public class TransferTask extends AbstractTask {
         if (args.length < 6) {
             futureCompletion.setFailure(
                     new OpenR66RunnerErrorException("Not enough argument in Transfer"));
+            return;
         }
         String filepath = null;
         String requested = null;

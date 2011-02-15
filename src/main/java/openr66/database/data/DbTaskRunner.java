@@ -2286,7 +2286,7 @@ public class DbTaskRunner extends AbstractDbData {
             if (this.globalstep != TASKSTEP.ERRORTASK.ordinal()) {
                 // errorstep was not already executed
                 // real error
-                localChannelReference.setErrorMessage(finalValue.getMessage());
+                localChannelReference.setErrorMessage(finalValue.getMessage(),finalValue.code);
                 // First send error mesg
                 if (!finalValue.isAnswered) {
                     ErrorPacket errorPacket = new ErrorPacket(finalValue
@@ -2684,6 +2684,14 @@ public class DbTaskRunner extends AbstractDbData {
      */
     public Timestamp getStart() {
         return start;
+    }
+    /**
+     * @param start new Start time to apply when reschedule
+     * @throws GoldenGateDatabaseException 
+     */
+    public void setStart(Timestamp start) throws GoldenGateDatabaseException {
+        this.start = start;
+        this.update();
     }
 
     /**

@@ -101,9 +101,9 @@ public class NetworkSslServerPipelineFactory implements ChannelPipelineFactory {
         
         pipeline.addLast(NetworkServerPipelineFactory.TIMEOUT,
                 new IdleStateHandler(timer,
-                        Configuration.configuration.TIMEOUTCON*2, 
+                        0, 0, 
                         Configuration.configuration.TIMEOUTCON, 
-                        0, TimeUnit.MILLISECONDS));
+                        TimeUnit.MILLISECONDS));
         pipeline.addLast("handler", new NetworkSslServerHandler(!this.isClient));
         return pipeline;
     }

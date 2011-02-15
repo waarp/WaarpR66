@@ -52,7 +52,6 @@ import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.handler.timeout.IdleState;
 import org.jboss.netty.handler.timeout.IdleStateAwareChannelHandler;
 import org.jboss.netty.handler.timeout.IdleStateEvent;
 import org.jboss.netty.handler.timeout.ReadTimeoutException;
@@ -89,6 +88,10 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
      * Is this Handler a server side
      */
     protected boolean isServer = false;
+    /**
+     * To handle the keep alive
+     */
+    protected volatile boolean keepAlivedSent = false;
     /**
      * 
      * @param isServer
@@ -151,10 +154,11 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
     @Override
     public void channelIdle(ChannelHandlerContext ctx, IdleStateEvent e)
             throws Exception {
-        if (e.getState() == IdleState.READER_IDLE) {
+        if (keepAlivedSent) {
             logger.error("Not getting KAlive: closing channel");
             ChannelUtils.close(e.getChannel());
         } else {
+            keepAlivedSent = true;
             KeepAlivePacket keepAlivePacket = new KeepAlivePacket();
             NetworkPacket response =
                 new NetworkPacket(ChannelUtils.NOCHANNEL,
@@ -190,6 +194,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
                 return;
             }
         } else if (packet.getCode() == LocalPacketFactory.KEEPALIVEPACKET) {
+            keepAlivedSent = false;
             try {
                 KeepAlivePacket keepAlivePacket = (KeepAlivePacket)
                     LocalPacketCodec.decodeNetworkPacket(packet.getBuffer());

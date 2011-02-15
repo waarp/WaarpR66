@@ -107,6 +107,10 @@ public class LocalChannelReference {
      */
     private String errorMessage = "NoError";
     /**
+     * Last error code
+     */
+    private ErrorCode code = null;
+    /**
      * RecvThroughHandler
      */
     private RecvThroughHandler recvThroughHandler;
@@ -235,8 +239,16 @@ public class LocalChannelReference {
     /**
      * @param errorMessage the errorMessage to set
      */
-    public void setErrorMessage(String errorMessage) {
+    public void setErrorMessage(String errorMessage, ErrorCode code) {
             this.errorMessage = errorMessage;
+            this.code = code;
+    }
+    
+    /**
+     * @return the code
+     */
+    public ErrorCode getCurrentCode() {
+        return code;
     }
     /**
      * Validate or not the Startup (before connection)
@@ -286,7 +298,7 @@ public class LocalChannelReference {
             futureConnection.setSuccess();
         } else {
             futureConnection.setResult(result);
-            setErrorMessage(result.getMessage());
+            setErrorMessage(result.getMessage(),result.code);
             futureConnection.cancel();
         }
     }
@@ -404,7 +416,7 @@ public class LocalChannelReference {
         }
         if (finalValue.code != ErrorCode.ServerOverloaded) {
             if (!futureRequest.isDone()) {
-                setErrorMessage(finalValue.getMessage());
+                setErrorMessage(finalValue.getMessage(),finalValue.code);
                 futureRequest.setResult(finalValue);
                 if (finalValue.exception != null) {
                     futureRequest.setFailure(finalValue.exception);
@@ -429,7 +441,7 @@ public class LocalChannelReference {
      * @param finalValue
      */
     public void validateRequest(R66Result finalValue) {
-    	setErrorMessage("NoError");
+    	setErrorMessage("NoError",null);
         if (!futureEndTransfer.isDone()) {
             logger.debug("Will validate EndTransfer");
             validateEndTransfer(finalValue);

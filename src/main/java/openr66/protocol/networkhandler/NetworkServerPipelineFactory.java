@@ -77,9 +77,9 @@ public class NetworkServerPipelineFactory implements ChannelPipelineFactory {
         
         pipeline.addLast(TIMEOUT,
                 new IdleStateHandler(timer,
-                        Configuration.configuration.TIMEOUTCON*2, 
+                        0, 0, 
                         Configuration.configuration.TIMEOUTCON, 
-                        0, TimeUnit.MILLISECONDS));
+                        TimeUnit.MILLISECONDS));
         pipeline.addLast("handler", new NetworkServerHandler(this.server));
         return pipeline;
     }

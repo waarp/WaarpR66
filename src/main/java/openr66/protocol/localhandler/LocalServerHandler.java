@@ -744,7 +744,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         logger.error(channel.getId() + ": " + packet.toString());
         session.setStatus(46);
         ErrorCode code = ErrorCode.getFromCode(packet.getSmiddle());
-        session.getLocalChannelReference().setErrorMessage(packet.getSheader());
+        session.getLocalChannelReference().setErrorMessage(packet.getSheader(),code);
         OpenR66ProtocolBusinessException exception;
         if (code.code == ErrorCode.CanceledTransfer.code) {
             exception =
