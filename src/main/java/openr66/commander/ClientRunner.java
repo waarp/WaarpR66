@@ -339,32 +339,12 @@ public class ClientRunner extends Thread {
         }
         Thread.currentThread().setName(tid);
         logger.debug("Will run {}",this.taskRunner);
-        // FIXME XXX
         boolean restartPost = false;
         if (taskRunner.getGloballaststep() == TASKSTEP.POSTTASK.ordinal()) {
             // Send a validation to requested
             if (! taskRunner.isSelfRequested()) {
                 // restart
                 restartPost = true;
-            }
-            if (false) {
-                // can finalize locally
-                LocalChannelReference localChannelReference =
-                    new LocalChannelReference();
-                try {
-                    TransferUtils.finalizeTaskWithNoSession(taskRunner, localChannelReference);
-                } catch (OpenR66RunnerErrorException e) {
-                    this.taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);
-                    try {
-                        this.taskRunner.update();
-                    } catch (GoldenGateDatabaseException e1) {
-                    }
-                    logger.error("Transfer cannot be finalized when try to Restart: since "+e.getMessage()
-                            +"\n    "+taskRunner.toShortString());
-                    throw new OpenR66ProtocolNoConnectionException("Finalize transfer when try to restart");
-                }
-                logger.warn("Finalized transfer when try to Restart:\n    "+taskRunner.toShortString());
-                throw new OpenR66ProtocolNoConnectionException("Finalize transfer when try to restart");
             }
         }
         if (taskRunner.isSelfRequested()) {
