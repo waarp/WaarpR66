@@ -60,7 +60,7 @@ public class SubmitTransfer extends AbstractTransfer {
         try {
             taskRunner.update();
         } catch (GoldenGateDatabaseException e) {
-            logger.error("Cannot prepare task", e);
+            logger.debug("Cannot prepare task", e);
             R66Result result = new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
                     ErrorCode.Internal, taskRunner);
             future.setResult(result);

@@ -318,13 +318,28 @@ public class LocalTransaction {
             if (localChannelReference.getNetworkChannel().compareTo(
                     networkChannel) == 0) {
                 // give a chance for the LocalChannel to stop normally
-                R66Result finalValue = new R66Result(localChannelReference.getSession(),
-                        true, ErrorCode.Shutdown, null);
-                if (localChannelReference.getSession() != null) {
+                boolean wait = false;
+                if (! localChannelReference.getFutureRequest().isDone()) {
+                    if (localChannelReference.getFutureValidRequest().isDone() &&
+                            localChannelReference.getFutureValidRequest().isFailed()) {
+                        logger.debug("Already currently on finalize");
+                        wait = true;
+                    } else {
+                        R66Result finalValue = new R66Result(localChannelReference.getSession(),
+                                true, ErrorCode.Shutdown, null);
+                        if (localChannelReference.getSession() != null) {
+                            try {
+                                localChannelReference.getSession().tryFinalizeRequest(finalValue);
+                            } catch (OpenR66RunnerErrorException e) {
+                            } catch (OpenR66ProtocolSystemException e) {
+                            }
+                        }
+                    }
+                }
+                if (wait) {
                     try {
-                        localChannelReference.getSession().tryFinalizeRequest(finalValue);
-                    } catch (OpenR66RunnerErrorException e) {
-                    } catch (OpenR66ProtocolSystemException e) {
+                        Thread.sleep(Configuration.RETRYINMS*10);
+                    } catch (InterruptedException e) {
                     }
                 }
                 logger.debug("Will close local channel");

@@ -33,6 +33,7 @@ import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolNotYetConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
+import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.utils.ChannelUtils;
 import openr66.protocol.utils.R66Future;
@@ -74,13 +75,13 @@ public class DirectTransfer extends AbstractTransfer {
                 exc = null;
                 break;
             } catch (OpenR66RunnerErrorException e) {
-                logger.error("Cannot Transfer", e);
+                logger.debug("Cannot Transfer", e);
                 future.setResult(new R66Result(e, null, true,
                         ErrorCode.Internal, taskRunner));
                 future.setFailure(e);
                 return;
             } catch (OpenR66ProtocolNoConnectionException e) {
-                logger.error("Cannot Connect", e);
+                logger.debug("Cannot Connect", e);
                 future.setResult(new R66Result(e, null, true,
                         ErrorCode.ConnectionImpossible, taskRunner));
                 // since no connection : just forget it
@@ -93,7 +94,7 @@ public class DirectTransfer extends AbstractTransfer {
                 future.setFailure(e);
                 return;
             } catch (OpenR66ProtocolPacketException e) {
-                logger.error("Bad Protocol", e);
+                logger.debug("Bad Protocol", e);
                 future.setResult(new R66Result(e, null, true,
                         ErrorCode.TransferError, taskRunner));
                 future.setFailure(e);
@@ -105,7 +106,8 @@ public class DirectTransfer extends AbstractTransfer {
             }
         }
         if (exc!= null) {
-            logger.error("Cannot Connect", exc);
+            taskRunner.setLocalChannelReference(new LocalChannelReference());
+            logger.debug("Cannot Connect", exc);
             future.setResult(new R66Result(exc, null, true,
                     ErrorCode.ConnectionImpossible, taskRunner));
             // since no connection : just forget it
@@ -145,6 +147,7 @@ public class DirectTransfer extends AbstractTransfer {
             transaction.run();
             future.awaitUninterruptibly();
             long time2 = System.currentTimeMillis();
+            logger.debug("finish transfer: "+future.isSuccess());
             long delay = time2 - time1;
             R66Result result = future.getResult();
             if (future.isSuccess()) {
@@ -155,7 +158,7 @@ public class DirectTransfer extends AbstractTransfer {
                             (result.file != null? result.file.toString()+"</FILEFINAL>" : "no file")
                             +"\n    delay: "+delay);
                 } else {
-                    logger.warn("Transfer in status:\nSUCCESS\n    "+result.runner.toShortString()+
+                    logger.info("Transfer in status:\nSUCCESS\n    "+result.runner.toShortString()+
                             "\n    <REMOTE>"+rhost+"</REMOTE>"+
                             "\n    <FILEFINAL>" +
                             (result.file != null? result.file.toString()+"</FILEFINAL>" : "no file")
@@ -187,10 +190,13 @@ public class DirectTransfer extends AbstractTransfer {
                     System.exit(result.code.ordinal());
                 }
             }
+        } catch (Exception e) {
+            logger.debug("exc",e);
         } finally {
+            logger.debug("finish transfer: "+future.isDone()+":"+future.isSuccess());
             networkTransaction.closeAll();
             // In case something wrong append
-            if (future.isSuccess()) {
+            if (future.isDone() && future.isSuccess()) {
                 System.exit(0);
             } else {
                 System.exit(66);

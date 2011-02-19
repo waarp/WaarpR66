@@ -216,7 +216,7 @@ public class NetworkTransaction {
         NetworkChannel networkChannel = null;
         LocalChannelReference localChannelReference = null;
         boolean ok = false;
-        // FIXME check valid limit on server side only (could be the initiator but not a client)
+        // check valid limit on server side only (could be the initiator but not a client)
         if (!Configuration.configuration.HOST_AUTH.isClient()) {
             boolean valid = false;
             for (int i = 0; i < Configuration.RETRYNB*2; i++) {
@@ -248,7 +248,8 @@ public class NetworkTransaction {
             }
             lock.unlock();
         }
-        if (localChannelReference.getFutureValidateStartup().isSuccess()) {
+        if (localChannelReference.getFutureValidateStartup().isDone() &&
+                localChannelReference.getFutureValidateStartup().isSuccess()) {
             sendValidationConnection(localChannelReference);
         } else {
             OpenR66ProtocolNetworkException exc =
@@ -522,10 +523,17 @@ public class NetworkTransaction {
      * Close all Network Ttransaction
      */
     public void closeAll() {
-        logger.debug("close All Network Channels");
+        logger.debug("close All Network Channels",new Exception("Trace for closeAll"));
         try {
             Thread.sleep(Configuration.RETRYINMS*2);
         } catch (InterruptedException e) {
+        }
+        if (!Configuration.configuration.isServer) {
+            Timer timer = null;
+            timer = new Timer(true);
+            final OpenR66SignalHandler.R66TimerTask timerTask = 
+                new OpenR66SignalHandler.R66TimerTask(OpenR66SignalHandler.R66TimerTask.TIMER_EXIT);
+            timer.schedule(timerTask, Configuration.configuration.TIMEOUTCON);
         }
         closeRetrieveExecutors();
         networkChannelGroup.close().awaitUninterruptibly();

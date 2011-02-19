@@ -115,13 +115,15 @@ public class RetrieveRunner extends Thread {
                 logger.info("End Retrieve in Error");
                 return;
             }
+            // XXX FIXME
             try {
                 localChannelReference.getFutureEndTransfer().await();
             } catch (InterruptedException e1) {
             }
             logger.debug("Await future End Transfer done: " +
                     localChannelReference.getFutureEndTransfer().isSuccess());
-            if (localChannelReference.getFutureEndTransfer().isSuccess()) {
+            if (localChannelReference.getFutureEndTransfer().isDone() &&
+                    localChannelReference.getFutureEndTransfer().isSuccess()) {
                 // send a validation
                 requestValidDone = true;
                 EndRequestPacket validPacket = new EndRequestPacket(ErrorCode.CompleteOk.ordinal());
@@ -160,15 +162,20 @@ public class RetrieveRunner extends Thread {
                     }
                 }
                 if (!localChannelReference.getFutureRequest().isDone()) {
-                    localChannelReference.invalidateRequest(localChannelReference
-                        .getFutureEndTransfer().getResult());
+                    R66Result result = localChannelReference.getFutureEndTransfer().getResult();
+                    if (result == null) {
+                        result =
+                            new R66Result(session, false, ErrorCode.TransferError, session.getRunner());
+                    }
+                    localChannelReference.invalidateRequest(result);
                 }
                 done = true;
                 logger.info("End Retrieve in Error");
             }
         } finally {
             if (!done) {
-                if (localChannelReference.getFutureEndTransfer().isSuccess()) {
+                if (localChannelReference.getFutureEndTransfer().isDone() &&
+                        localChannelReference.getFutureEndTransfer().isSuccess()) {
                     if (! requestValidDone) {
                         EndRequestPacket validPacket = new EndRequestPacket(ErrorCode.CompleteOk.ordinal());
                         try {
@@ -200,8 +207,12 @@ public class RetrieveRunner extends Thread {
                             }
                         }
                     } else {
-                        localChannelReference.invalidateRequest(localChannelReference
-                            .getFutureEndTransfer().getResult());
+                        R66Result result = localChannelReference.getFutureEndTransfer().getResult();
+                        if (result == null) {
+                            result =
+                                new R66Result(session, false, ErrorCode.TransferError, session.getRunner());
+                        }
+                        localChannelReference.invalidateRequest(result);
                     }
                 }
             }

@@ -1515,6 +1515,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             }
             if (ldbsession != null) {
                 ldbsession.disconnect();
+                DbAdmin.nbHttpSession--;
             }
         }
     }
@@ -1594,6 +1595,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     try {
                         if (DbConstant.admin.isConnected) {
                             this.dbSession = new DbSession(DbConstant.admin, false);
+                            DbAdmin.nbHttpSession++;
                             this.isPrivateDbSession = true;
                         }
                     } catch (GoldenGateDatabaseNoConnectionError e1) {

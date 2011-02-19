@@ -143,7 +143,7 @@ public class Message implements Runnable {
             host = hostAuth;
         }
         if (host == null) {
-            logger.error("Requested host cannot be found: "+requested);
+            logger.debug("Requested host cannot be found: "+requested);
             R66Result result = new R66Result(null, true, ErrorCode.ConnectionImpossible, null);
             this.future.setResult(result);
             this.future.cancel();
@@ -163,7 +163,7 @@ public class Message implements Runnable {
             .createConnectionWithRetry(socketAddress, isSSL, future);
         socketAddress = null;
         if (localChannelReference == null) {
-            logger.error("Cannot connect to server: "+requested);
+            logger.debug("Cannot connect to server: "+requested);
             R66Result result = new R66Result(null, true, ErrorCode.ConnectionImpossible, null);
             this.future.setResult(result);
             this.future.cancel();

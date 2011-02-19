@@ -28,6 +28,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import openr66.context.ErrorCode;
 import openr66.context.R66Session;
 import openr66.context.filesystem.R66Dir;
 import openr66.context.filesystem.R66File;
@@ -159,7 +160,15 @@ public abstract class AbstractTask implements Runnable {
      * Last Current Error Message
      */
     public static final String ERRORMSG = "#ERRORMSG#";
-
+    /**
+     * Last Current Error Code
+     */
+    public static final String ERRORCODE = "#ERRORCODE#";
+    /**
+     * Last Current Error Code in Full String
+     */
+    public static final String ERRORSTRCODE = "#ERRORSTRCODE#";
+    
     /**
      * Type of operation
      */
@@ -218,6 +227,7 @@ public abstract class AbstractTask implements Runnable {
      * @return True if the operation is in success status
      */
     public boolean isSuccess() {
+        futureCompletion.awaitUninterruptibly();
         return futureCompletion.isSuccess();
     }
 
@@ -278,8 +288,13 @@ public abstract class AbstractTask implements Runnable {
                         Configuration.configuration.HOST_ID);
             }
         }
-        GgStringUtils.replaceAll(builder, REMOTEHOSTADDR, session.getRemoteAddress().toString());
-        GgStringUtils.replaceAll(builder, LOCALHOSTADDR, session.getLocalAddress().toString());
+        if (session.getRemoteAddress() != null) {
+            GgStringUtils.replaceAll(builder, REMOTEHOSTADDR, session.getRemoteAddress().toString());
+            GgStringUtils.replaceAll(builder, LOCALHOSTADDR, session.getLocalAddress().toString());
+        } else {
+            GgStringUtils.replaceAll(builder, REMOTEHOSTADDR, "unknown");
+            GgStringUtils.replaceAll(builder, LOCALHOSTADDR, "unknown");
+        }
         GgStringUtils.replaceAll(builder, TRANSFERID, Long.toString(session
                 .getRunner().getSpecialId()));
         String requester = session.getRunner().getRequester();
@@ -317,7 +332,15 @@ public abstract class AbstractTask implements Runnable {
         } catch (CommandAbstractException e) {
         }
         GgStringUtils.replaceAll(builder, HOMEPATH, Configuration.configuration.baseDirectory);
-        GgStringUtils.replaceAll(builder, ERRORMSG, session.getLocalChannelReference().getErrorMessage());
+        if (session.getLocalChannelReference() == null) {
+            GgStringUtils.replaceAll(builder, ERRORMSG, "NoError");
+            GgStringUtils.replaceAll(builder, ERRORCODE, "-");
+            GgStringUtils.replaceAll(builder, ERRORSTRCODE, ErrorCode.Unknown.name());
+        } else {
+            GgStringUtils.replaceAll(builder, ERRORMSG, session.getLocalChannelReference().getErrorMessage());
+            GgStringUtils.replaceAll(builder, ERRORCODE, session.getLocalChannelReference().getCurrentCode().getCode());
+            GgStringUtils.replaceAll(builder, ERRORSTRCODE, session.getLocalChannelReference().getCurrentCode().name());
+        }
         String finalname = String.format(builder.toString(), argFormat);
         return finalname;
     }

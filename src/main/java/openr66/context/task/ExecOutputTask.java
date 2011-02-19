@@ -46,7 +46,6 @@ import org.apache.commons.exec.PumpStreamHandler;
  * Execute an external command and Use the output if an error occurs.
  *
  * 
- * FIXME add LocalExec support
  *
  * @author Frederic Bregier
  *
@@ -261,8 +260,7 @@ public class ExecOutputTask extends AbstractTask {
             logger.error("Status: " + status + " Exec in error with " +
                     commandLine + " returns " + newname);
             OpenR66RunnerErrorException exc = 
-                new OpenR66RunnerErrorException("Status: " + status + 
-                        "\n<ERROR>" + newname+"</ERROR>");
+                new OpenR66RunnerErrorException("<STATUS>" + status +"</STATUS><ERROR>" + newname+"</ERROR>");
             futureCompletion.setFailure(exc);
         }
     }
@@ -304,8 +302,7 @@ public class ExecOutputTask extends AbstractTask {
         logger.error("Status: " + status + " Exec in error with " +
                 commandLine + " returns\n" + result);
         OpenR66RunnerErrorException exc = 
-            new OpenR66RunnerErrorException("Status: " + status + 
-                    "\n<ERROR>" + result+"</ERROR>");
+            new OpenR66RunnerErrorException("<STATUS>" + status +"</STATUS><ERROR>" + result+"</ERROR>");
         futureCompletion.setFailure(exc);
     }
 }

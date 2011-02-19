@@ -211,6 +211,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
         try {
             if (DbConstant.admin.isConnected) {
                 this.dbSession = new DbSession(DbConstant.admin, false);
+                DbAdmin.nbHttpSession++;
                 this.isPrivateDbSession = true;
             }
         } catch (GoldenGateDatabaseNoConnectionError e1) {
@@ -361,9 +362,11 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
             addRunners(preparedStatement, ErrorCode.Running.mesg, nb);
             preparedStatement = DbTaskRunner.getUpdatedPrepareStament(
                     dbSession, UpdatedInfo.INTERRUPTED, true, nb);
+            DbTaskRunner.finishUpdatedPrepareStament(preparedStatement);
             addRunners(preparedStatement, UpdatedInfo.INTERRUPTED.name(), nb);
             preparedStatement = DbTaskRunner.getUpdatedPrepareStament(
                     dbSession, UpdatedInfo.TOSUBMIT, true, nb);
+            DbTaskRunner.finishUpdatedPrepareStament(preparedStatement);
             addRunners(preparedStatement, UpdatedInfo.TOSUBMIT.name(), nb);
             preparedStatement = DbTaskRunner.getStatusPrepareStament(dbSession,
                     ErrorCode.InitOk, nb);
@@ -401,9 +404,11 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
         try {
             preparedStatement = DbTaskRunner.getUpdatedPrepareStament(
                     dbSession, UpdatedInfo.INERROR, true, nb / 2);
+            DbTaskRunner.finishUpdatedPrepareStament(preparedStatement);
             addRunners(preparedStatement, UpdatedInfo.INERROR.name(), nb / 2);
             preparedStatement = DbTaskRunner.getUpdatedPrepareStament(
                     dbSession, UpdatedInfo.INTERRUPTED, true, nb / 2);
+            DbTaskRunner.finishUpdatedPrepareStament(preparedStatement);
             addRunners(preparedStatement, UpdatedInfo.INTERRUPTED.name(),
                     nb / 2);
             preparedStatement = DbTaskRunner.getStepPrepareStament(dbSession,
@@ -481,6 +486,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
         try {
             preparedStatement = DbTaskRunner.getUpdatedPrepareStament(
                     dbSession, UpdatedInfo.INERROR, true, 1);
+            DbTaskRunner.finishUpdatedPrepareStament(preparedStatement);
             try {
                 preparedStatement.executeQuery();
                 if (preparedStatement.getNext()) {
@@ -494,6 +500,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
             }
             preparedStatement = DbTaskRunner.getUpdatedPrepareStament(
                     dbSession, UpdatedInfo.INTERRUPTED, true, 1);
+            DbTaskRunner.finishUpdatedPrepareStament(preparedStatement);
             try {
                 preparedStatement.executeQuery();
                 if (preparedStatement.getNext()) {
@@ -588,6 +595,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
         }
         if (this.isPrivateDbSession && dbSession != null) {
             dbSession.disconnect();
+            DbAdmin.nbHttpSession--;
             dbSession = null;
         }
     }
@@ -624,6 +632,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
                 if (e.getCause() instanceof IOException) {
                     if (this.isPrivateDbSession && dbSession != null) {
                         dbSession.disconnect();
+                        DbAdmin.nbHttpSession--;
                         dbSession = null;
                     }
                     // Nothing to do
@@ -659,6 +668,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
         super.channelClosed(ctx, e);
         if (this.isPrivateDbSession && dbSession != null) {
             dbSession.disconnect();
+            DbAdmin.nbHttpSession--;
         }
     }
 

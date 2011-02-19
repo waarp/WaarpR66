@@ -204,6 +204,7 @@ public abstract class SendThroughClient extends AbstractTransfer {
                 }
             }
             if (exc!= null) {
+                taskRunner.setLocalChannelReference(new LocalChannelReference());
                 logger.error("Cannot Connect", exc);
                 future.setResult(new R66Result(exc, null, true,
                         ErrorCode.ConnectionImpossible, taskRunner));
@@ -279,7 +280,7 @@ public abstract class SendThroughClient extends AbstractTransfer {
             }
         } finally {
             if (taskRunner != null) {
-                if ((!future.isSuccess()) || nolog) {
+                if ((future.isDone() && (!future.isSuccess())) || nolog) {
                     try {
                         taskRunner.delete();
                     } catch (GoldenGateDatabaseException e) {

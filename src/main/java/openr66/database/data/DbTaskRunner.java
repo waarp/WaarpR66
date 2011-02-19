@@ -206,6 +206,9 @@ public class DbTaskRunner extends AbstractDbData {
 
     private volatile boolean continueTransfer = true;
 
+    private volatile boolean rescheduledTransfer = false;
+    
+    private LocalChannelReference localChannelReference = null;
     /**
      * Special For DbTaskRunner
      */
@@ -509,6 +512,7 @@ public class DbTaskRunner extends AbstractDbData {
             throws GoldenGateDatabaseException {
         super(dbSession);
         this.session = session;
+        this.localChannelReference = session.getLocalChannelReference();
         this.rule = rule;
         ruleId = this.rule.idRule;
         rank = requestPacket.getRank();
@@ -558,6 +562,9 @@ public class DbTaskRunner extends AbstractDbData {
             throws GoldenGateDatabaseException {
         super(dbSession);
         this.session = session;
+        if (this.session != null) {
+            this.localChannelReference = session.getLocalChannelReference();
+        }
         this.rule = rule;
 
         specialId = id;
@@ -868,6 +875,20 @@ public class DbTaskRunner extends AbstractDbData {
         super(dBsession);
         session = null;
         rule = null;
+    }
+    /**
+     * Set a localChannelReference
+     * @param localChannelReference
+     */
+    public void setLocalChannelReference(LocalChannelReference localChannelReference) {
+        this.localChannelReference = localChannelReference;
+    }
+    
+    /**
+     * @return the localChannelReference
+     */
+    public LocalChannelReference getLocalChannelReference() {
+        return localChannelReference;
     }
 
     /**
@@ -1192,7 +1213,7 @@ public class DbTaskRunner extends AbstractDbData {
      *
      * @param session
      * @param info
-     * @param orderByStart
+     * @param orderByStart If true, sort on Start ; If false, does not set the limit on start
      * @param limit
      * @return the DbPreparedStatement for getting Updated Object
      * @throws GoldenGateDatabaseNoConnectionError
@@ -1205,29 +1226,28 @@ public class DbTaskRunner extends AbstractDbData {
                 " FROM " + table + " WHERE " + Columns.UPDATEDINFO.name() +
                 " = " + info.ordinal()+ 
                 " AND "+Columns.STARTTRANS.name() + " <= ? AND " +getLimitWhereCondition();
-        //FIXME if adding limit after is efficient with Oracle, remove the following code
-        /*if (limit > 0) {
-            if (DbModelFactory.dbModel instanceof DbModelOracle) {
-                request += " AND ROWNUM <= "+limit;
-            }
-        }*/
         if (orderByStart) {
             request += " ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
         }
-        /*if (limit > 0 &&
-                (!(DbModelFactory.dbModel instanceof DbModelOracle))) {*/
-            request =
-                DbModelFactory.dbModel.limitRequest(selectAllFields, request, limit);
-        /*}*/
-        Timestamp start = new Timestamp(System.currentTimeMillis());
+        request =
+            DbModelFactory.dbModel.limitRequest(selectAllFields, request, limit);
         DbPreparedStatement pstt = new DbPreparedStatement(session, request);
+        return pstt;
+    }
+    /**
+     * Set the current time in the given updatedPreparedStatement
+     * @param pstt
+     * @throws GoldenGateDatabaseNoConnectionError
+     * @throws GoldenGateDatabaseSqlError
+     */
+    public static void finishUpdatedPrepareStament(DbPreparedStatement pstt) throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
+        Timestamp startlimit = new Timestamp(System.currentTimeMillis());
         try {
-            pstt.getPreparedStatement().setTimestamp(1, start);
+            pstt.getPreparedStatement().setTimestamp(1, startlimit);
         } catch (SQLException e) {
             logger.error("Database SQL Error: Cannot set timestamp", e);
             throw new GoldenGateDatabaseSqlError("Cannot set timestamp",e);
         }
-        return pstt;
     }
 
     /**
@@ -1628,6 +1648,21 @@ public class DbTaskRunner extends AbstractDbData {
     public ErrorCode getErrorInfo() {
         return infostatus;
     }
+    
+    /**
+     * @return the rescheduledTransfer
+     */
+    public boolean isRescheduledTransfer() {
+        return rescheduledTransfer;
+    }
+
+    /**
+     * Set this DbTaskRunner as rescheduled (valid only while still in memory) 
+     */
+    public void setRescheduledTransfer() {
+        this.rescheduledTransfer = true;
+    }
+
     /**
      * To set the rank at startup of the request if the request specify a
      * specific rank
@@ -1944,9 +1979,16 @@ public class DbTaskRunner extends AbstractDbData {
 
     /**
      * Set the Error Task step
-     *
+     * @param localChannelReference (to get session)
      */
-    public void setErrorTask() {
+    public void setErrorTask(LocalChannelReference localChannelReference) {
+        if (this.session == null && localChannelReference != null) {
+            this.session = localChannelReference.getSession();
+        }
+        if (this.session != null) {
+            if (this.session.getRunner() == null)
+                this.session.setNoSessionRunner(this, localChannelReference);
+        }
         globalstep = TASKSTEP.ERRORTASK.ordinal();
         allFields[Columns.GLOBALSTEP.ordinal()].setValue(globalstep);
         this.step = 0;
@@ -1984,8 +2026,25 @@ public class DbTaskRunner extends AbstractDbData {
      */
     private R66Future runNextTask(String[][] tasks)
             throws OpenR66RunnerEndTasksException, OpenR66RunnerErrorException {
+        logger.debug((session==null)+":"+(session==null?"norunner":(this.session.getRunner() == null))+":"+this.toLogRunStep()+":"+step+":"+(tasks==null?"null":tasks.length)+"\nSender: "+this.isSender+" "+this.rule.printTasks(isSender, 
+                TASKSTEP.values()[globalstep]));
         if (tasks == null) {
             throw new OpenR66RunnerEndTasksException("No tasks!");
+        }
+        R66Session tempSession = this.session;
+        if (tempSession == null) {
+            tempSession = new R66Session();
+            if (tempSession.getRunner() == null) {
+                tempSession.setNoSessionRunner(this, localChannelReference);
+            }
+        } else {
+            if (tempSession.getRunner() == null) {
+                tempSession.setNoSessionRunner(this, tempSession.getLocalChannelReference());
+            }
+        }
+        this.session = tempSession;
+        if (this.session.getLocalChannelReference().getCurrentCode() == ErrorCode.Unknown) {
+            this.session.getLocalChannelReference().setErrorMessage(this.infostatus.mesg, this.infostatus);
         }
         if (tasks.length <= step) {
             throw new OpenR66RunnerEndTasksException();
@@ -1993,7 +2052,7 @@ public class DbTaskRunner extends AbstractDbData {
         String name = tasks[step][0];
         String arg = tasks[step][1];
         int delay = Integer.parseInt(tasks[step][2]);
-        AbstractTask task = TaskType.getTaskFromId(name, arg, delay, session);
+        AbstractTask task = TaskType.getTaskFromId(name, arg, delay, tempSession);
         logger.debug(this.toLogRunStep()+" Task: "+task.getClass().getName());
         task.run();
         try {
@@ -2012,6 +2071,8 @@ public class DbTaskRunner extends AbstractDbData {
      */
     private R66Future runNext() throws OpenR66RunnerErrorException,
             OpenR66RunnerEndTasksException {
+        logger.debug(this.toLogRunStep()+"\nSender: "+this.isSender+" "+this.rule.printTasks(isSender, 
+                TASKSTEP.values()[globalstep]));
         if (rule == null) {
             if (ruleId != null) {
                 try {
@@ -2114,7 +2175,6 @@ public class DbTaskRunner extends AbstractDbData {
                 allFields[Columns.INFOSTATUS.ordinal()].setValue(infostatus.getCode());
                 isSaved = false;
                 this.saveStatus();
-                // FIXME
                 logger.info("Future is failed: "+infostatus.mesg);
                 if (future.getCause() != null) {
                     throw new OpenR66RunnerErrorException("Runner is failed: " +
@@ -2251,6 +2311,37 @@ public class DbTaskRunner extends AbstractDbData {
         }
     }
     /**
+     * Quick Finalize on Post on restart
+     * @param localChannelReference
+     * @param finalValue
+     * @throws OpenR66RunnerErrorException
+     */
+    public void quickFinalizeOnPost(LocalChannelReference localChannelReference, R66Result finalValue) throws OpenR66RunnerErrorException {
+        try {
+            this.run();
+        } catch (OpenR66RunnerErrorException e1) {
+            R66Result result = new R66Result(e1, this.session, false,
+                    ErrorCode.ExternalOp, this);
+            result.file = session.getFile();
+            result.runner = this;
+            this.changeUpdatedInfo(UpdatedInfo.INERROR);
+            this.saveStatus();
+            errorTransfer(result, session.getFile(), localChannelReference);
+            if (localChannelReference != null) {
+                localChannelReference.invalidateRequest(result);
+            }
+            throw e1;
+        }
+        this.saveStatus();
+        /*Done later on after EndRequest
+         * this.setAllDone();
+        this.saveStatus();*/
+        logger.info("Transfer done on {} at RANK {}",session.getFile() != null ? session.getFile() : "no file", rank);
+        if (localChannelReference != null) {
+            localChannelReference.validateEndTransfer(finalValue);
+        }
+    }
+    /**
      * Finalize a transfer in error
      * @param finalValue
      * @param file
@@ -2272,59 +2363,61 @@ public class DbTaskRunner extends AbstractDbData {
             this.deleteTempFile();
             this.changeUpdatedInfo(UpdatedInfo.INERROR);
             this.saveStatus();
+            finalValue.isAnswered = true;
         } else if (runnerStatus == ErrorCode.StoppedTransfer) {
             // just save runner and stop
             this.changeUpdatedInfo(UpdatedInfo.INERROR);
             this.saveStatus();
+            finalValue.isAnswered = true;
         } else if (runnerStatus == ErrorCode.Shutdown) {
             // just save runner and stop
             this.changeUpdatedInfo(UpdatedInfo.INERROR);
             this.saveStatus();
-        } else {
-            logger.debug("status: "+status+" wasNotError:"+(this.globalstep != TASKSTEP.ERRORTASK.ordinal())+
-                    ":"+finalValue);
-            if (this.globalstep != TASKSTEP.ERRORTASK.ordinal()) {
-                // errorstep was not already executed
-                // real error
-                localChannelReference.setErrorMessage(finalValue.getMessage(),finalValue.code);
-                // First send error mesg
-                if (!finalValue.isAnswered) {
-                    ErrorPacket errorPacket = new ErrorPacket(finalValue
-                            .getMessage(),
-                            finalValue.code.getCode(), ErrorPacket.FORWARDCLOSECODE);
-                    try {
-                        ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-                                errorPacket).awaitUninterruptibly();
-                        finalValue.isAnswered = true;
-                    } catch (OpenR66ProtocolPacketException e1) {
-                        // should not be
-                    }
-                }
-                // now run error task
-                this.setErrorTask();
-                this.saveStatus();
+            finalValue.isAnswered = true;
+        }
+        logger.debug("status: "+status+" wasNotError:"+(this.globalstep != TASKSTEP.ERRORTASK.ordinal())+
+                ":"+finalValue);
+        if (this.globalstep != TASKSTEP.ERRORTASK.ordinal()) {
+            // errorstep was not already executed
+            // real error
+            localChannelReference.setErrorMessage(finalValue.getMessage(),finalValue.code);
+            // First send error mesg
+            if (!finalValue.isAnswered) {
+                ErrorPacket errorPacket = new ErrorPacket(finalValue
+                        .getMessage(),
+                        finalValue.code.getCode(), ErrorPacket.FORWARDCLOSECODE);
                 try {
-                    this.run();
-                } catch (OpenR66RunnerErrorException e1) {
-                    this.changeUpdatedInfo(UpdatedInfo.INERROR);
-                    this.setErrorExecutionStatus(runnerStatus);
-                    this.saveStatus();
-                    if (localChannelReference != null) {
-                        localChannelReference.invalidateRequest(finalValue);
-                    }
-                    throw e1;
+                    ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+                            errorPacket).awaitUninterruptibly();
+                    finalValue.isAnswered = true;
+                } catch (OpenR66ProtocolPacketException e1) {
+                    // should not be
                 }
             }
-            this.changeUpdatedInfo(UpdatedInfo.INERROR);
-            if (RequestPacket.isRecvThroughMode(this.getMode()) ||
-                    RequestPacket.isSendThroughMode(this.getMode())) {
+            // now run error task
+            this.setErrorTask(localChannelReference);
+            this.saveStatus();
+            try {
+                this.run();
+            } catch (OpenR66RunnerErrorException e1) {
+                this.changeUpdatedInfo(UpdatedInfo.INERROR);
                 this.setErrorExecutionStatus(runnerStatus);
                 this.saveStatus();
                 if (localChannelReference != null) {
                     localChannelReference.invalidateRequest(finalValue);
                 }
-                return;
+                throw e1;
             }
+        }
+        this.changeUpdatedInfo(UpdatedInfo.INERROR);
+        if (RequestPacket.isRecvThroughMode(this.getMode()) ||
+                RequestPacket.isSendThroughMode(this.getMode())) {
+            this.setErrorExecutionStatus(runnerStatus);
+            this.saveStatus();
+            if (localChannelReference != null) {
+                localChannelReference.invalidateRequest(finalValue);
+            }
+            return;
         }
         // re set the original status
         this.setErrorExecutionStatus(runnerStatus);
@@ -2686,12 +2779,12 @@ public class DbTaskRunner extends AbstractDbData {
         return start;
     }
     /**
-     * @param start new Start time to apply when reschedule
-     * @throws GoldenGateDatabaseException 
+     * @param start new Start time to apply when reschedule 
+     * @throws OpenR66RunnerErrorException (in fact a GoldenGateDatabaseException)
      */
-    public void setStart(Timestamp start) throws GoldenGateDatabaseException {
+    public void setStart(Timestamp start) throws OpenR66RunnerErrorException {
         this.start = start;
-        this.update();
+        this.restart(true);
     }
 
     /**

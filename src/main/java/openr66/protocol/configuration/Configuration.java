@@ -309,6 +309,10 @@ public class Configuration {
      * ChannelGroup
      */
     private ChannelGroup serverChannelGroup = null;
+    /**
+     * Does the current program running as Server
+     */
+    public boolean isServer = false;
 
     private class R66ThreadFactory implements ThreadFactory {
         private String GlobalName;
@@ -493,6 +497,7 @@ public class Configuration {
      * @throws GoldenGateDatabaseNoConnectionError
      */
     public void serverStartup() throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
+        isServer = true;
         if ((!useNOSSL) && (!useSSL)) {
             logger.error("OpenR66 has neither NOSSL nor SSL support included! Stop here!");
             System.exit(-1);

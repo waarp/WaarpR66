@@ -136,6 +136,7 @@ public class RecvThroughClient extends AbstractTransfer {
                 }
             }
             if (exc!= null) {
+                taskRunner.setLocalChannelReference(new LocalChannelReference());
                 logger.error("Cannot Connect", exc);
                 future.setResult(new R66Result(exc, null, true,
                         ErrorCode.ConnectionImpossible, taskRunner));

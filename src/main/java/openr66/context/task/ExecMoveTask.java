@@ -47,8 +47,6 @@ import org.apache.commons.exec.PumpStreamHandler;
  *
  * The move of the file (if any) should be done by the external command itself.
  *
- * FIXME add LocalExec support
- *
  * @author Frederic Bregier
  *
  */

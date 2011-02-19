@@ -124,7 +124,7 @@ public class TestProgressBarTransfer extends ProgressBarTransfer {
                             (result.file != null? result.file.toString()+"</FILEFINAL>" : "no file")
                             +"\n    delay: "+delay);
                 } else {
-                    logger.warn("Transfer in status:\nSUCCESS\n    "+result.runner.toShortString()+
+                    logger.info("Transfer in status:\nSUCCESS\n    "+result.runner.toShortString()+
                             "\n    <REMOTE>"+rhost+"</REMOTE>"+
                             "\n    <FILEFINAL>" +
                             (result.file != null? result.file.toString()+"</FILEFINAL>" : "no file")
@@ -159,7 +159,7 @@ public class TestProgressBarTransfer extends ProgressBarTransfer {
         } finally {
             networkTransaction.closeAll();
             // In case something wrong append
-            if (future.isSuccess()) {
+            if (future.isDone() && future.isSuccess()) {
                 System.exit(0);
             } else {
                 System.exit(66);

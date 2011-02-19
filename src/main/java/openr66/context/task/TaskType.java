@@ -20,6 +20,8 @@
  */
 package openr66.context.task;
 
+import goldengate.common.logging.GgInternalLogger;
+import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.context.R66Session;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 
@@ -39,7 +41,12 @@ public enum TaskType {
     public int type;
 
     public String name;
-
+    /**
+     * Internal Logger
+     */
+    private static final GgInternalLogger logger = GgInternalLoggerFactory
+            .getLogger(TaskType.class);
+    
     private TaskType() {
         type = ordinal();
         name = name();
@@ -104,6 +111,7 @@ public enum TaskType {
                 return new RescheduleTransferTask(argRule, delay, session.getRunner().
                         getFileInformation(), session);
             default:
+                logger.error("name unknown: " + type.name);
                 throw new OpenR66RunnerErrorException("Unvalid Task: " +
                         type.name);
         }
@@ -124,9 +132,10 @@ public enum TaskType {
         try {
             type = valueOf(name);
         } catch (NullPointerException e) {
-            System.err.println("name: " + name);
+            logger.error("name empty " + name);
             throw new OpenR66RunnerErrorException("Unvalid Task: " + name);
         } catch (IllegalArgumentException e) {
+            logger.error("name unknown: " + name);
             throw new OpenR66RunnerErrorException("Unvalid Task: " + name);
         }
         return getTaskFromId(type, argRule, delay, session);

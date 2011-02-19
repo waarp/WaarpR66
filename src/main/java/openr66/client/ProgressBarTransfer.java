@@ -132,7 +132,7 @@ public abstract class ProgressBarTransfer extends AbstractTransfer {
                 future.setResult(new R66Result(e, null, true,
                         ErrorCode.Internal, taskRunner));
                 future.setFailure(e);
-                lastCallBack(future.isSuccess(), taskRunner.getRank(), taskRunner.getBlocksize());
+                lastCallBack(false, taskRunner.getRank(), taskRunner.getBlocksize());
                 return;
             } catch (OpenR66ProtocolNoConnectionException e) {
                 logger.error("Cannot Connect", e);
@@ -146,14 +146,14 @@ public abstract class ProgressBarTransfer extends AbstractTransfer {
                     }
                 }
                 future.setFailure(e);
-                lastCallBack(future.isSuccess(), taskRunner.getRank(), taskRunner.getBlocksize());
+                lastCallBack(false, taskRunner.getRank(), taskRunner.getBlocksize());
                 return;
             } catch (OpenR66ProtocolPacketException e) {
                 logger.error("Bad Protocol", e);
                 future.setResult(new R66Result(e, null, true,
                         ErrorCode.TransferError, taskRunner));
                 future.setFailure(e);
-                lastCallBack(future.isSuccess(), taskRunner.getRank(), taskRunner.getBlocksize());
+                lastCallBack(false, taskRunner.getRank(), taskRunner.getBlocksize());
                 return;
             } catch (OpenR66ProtocolNotYetConnectionException e) {
                 logger.debug("Not Yet Connected", e);
@@ -162,10 +162,11 @@ public abstract class ProgressBarTransfer extends AbstractTransfer {
             }
         }
         if (exc!= null) {
+            taskRunner.setLocalChannelReference(new LocalChannelReference());
             logger.error("Cannot Connect", exc);
             future.setResult(new R66Result(exc, null, true,
                     ErrorCode.ConnectionImpossible, taskRunner));
-            lastCallBack(future.isSuccess(), taskRunner.getRank(), taskRunner.getBlocksize());
+            lastCallBack(false, taskRunner.getRank(), taskRunner.getBlocksize());
             // since no connection : just forget it
             if (nolog) {
                 try {

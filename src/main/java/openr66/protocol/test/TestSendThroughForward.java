@@ -42,6 +42,7 @@ import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolNotYetConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
+import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.utils.R66Future;
@@ -224,6 +225,7 @@ public class TestSendThroughForward extends SendThroughClient {
                 }
             }
             if (exc!= null) {
+                taskRunner.setLocalChannelReference(new LocalChannelReference());
                 logger.error("Cannot Connect", exc);
                 future.setResult(new R66Result(exc, null, true,
                         ErrorCode.ConnectionImpossible, taskRunner));
@@ -246,7 +248,7 @@ public class TestSendThroughForward extends SendThroughClient {
             return true;
         } finally {
             if (taskRunner != null) {
-                // FIXME TODO not delete but sourceRunner and taskRunner should be stopped
+                // not delete but sourceRunner and taskRunner should be stopped
                 // and taskRunner not allowed to be restarted alone
                 if (future.isFailed()) {
                     taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);

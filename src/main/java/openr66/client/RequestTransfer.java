@@ -309,7 +309,7 @@ public class RequestTransfer implements Runnable {
             .createConnectionWithRetry(socketAddress,isSSL,future);
         socketAddress = null;
         if (localChannelReference == null) {
-            logger.error("Cannot connect to "+host.toString());
+            logger.debug("Cannot connect to "+host.toString());
             host = null;
             future.setResult(new R66Result(null, true,
                     ErrorCode.ConnectionImpossible, null));
@@ -327,7 +327,7 @@ public class RequestTransfer implements Runnable {
             localChannelReference = null;
             host = null;
             packet = null;
-            logger.error("Bad Protocol", e);
+            logger.debug("Bad Protocol", e);
             future.setResult(new R66Result(e, null, true,
                     ErrorCode.TransferError, null));
             future.setFailure(e);

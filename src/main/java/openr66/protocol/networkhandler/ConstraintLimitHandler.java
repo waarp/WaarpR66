@@ -101,13 +101,13 @@ public class ConstraintLimitHandler {
             }
         }
         if (channelLimit > 0) {
-            int nb = DbAdmin.getNbConnection();
-            if (channelLimit <= nb) {
+            int nb = DbAdmin.getNbConnection()-DbAdmin.nbHttpSession;
+            if (channelLimit < nb) {
                 logger.debug("NW:"+nb+" > "+channelLimit);
                 return true;
             }
             nb = Configuration.configuration.getLocalTransaction().getNumberLocalChannel();
-            if (channelLimit <= nb) {
+            if (channelLimit < nb) {
                 logger.debug("NL:"+nb+" > "+channelLimit);
                 return true;
             }
@@ -159,7 +159,7 @@ public class ConstraintLimitHandler {
      * @return a time below TIMEOUTCON with a random
      */
     public static long getSleepTime() {
-        return (long) (Configuration.configuration.TIMEOUTCON*random.nextFloat())+100;
+        return (long) (Configuration.configuration.TIMEOUTCON*random.nextFloat())+5000;
     }
     /**
      * @return the cpuLimit

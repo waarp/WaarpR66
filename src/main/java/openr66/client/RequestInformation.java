@@ -220,7 +220,6 @@ public class RequestInformation implements Runnable {
                         networkTransaction);
             requestInformation.run();
             result.awaitUninterruptibly();
-            // FIXME use result
             if (result.isSuccess()) {
                 value = 0;
                 R66Result r66result = result.getResult();

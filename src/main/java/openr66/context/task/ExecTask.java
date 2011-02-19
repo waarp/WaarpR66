@@ -41,7 +41,6 @@ import org.apache.commons.exec.PumpStreamHandler;
 /**
  * Execute an external command
  *
- * FIXME add LocalExec support
  *
  * @author Frederic Bregier
  *

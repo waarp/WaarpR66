@@ -29,6 +29,7 @@ import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
 import openr66.context.authentication.R66Auth;
@@ -252,8 +253,12 @@ public class R66Session implements SessionInterface {
             LocalChannelReference localChannelReference) {
         this.localChannelReference = localChannelReference;
         this.localChannelReference.setSession(this);
-        this.raddress = this.localChannelReference.getNetworkChannel().getRemoteAddress();
-        this.laddress = this.localChannelReference.getNetworkChannel().getLocalAddress();
+        if (this.localChannelReference.getNetworkChannel() != null) {
+            this.raddress = this.localChannelReference.getNetworkChannel().getRemoteAddress();
+            this.laddress = this.localChannelReference.getNetworkChannel().getLocalAddress();
+        } else {
+            this.raddress = this.laddress = new InetSocketAddress(0);
+        }
     }
 
     /**
@@ -280,9 +285,29 @@ public class R66Session implements SessionInterface {
     /**
      * To be called in case of No Session not from a valid LocalChannelHandler
      * @param runner
+     * @param localChannelReference
      */
-    public void setNoSessionRunner(DbTaskRunner runner) {
+    public void setNoSessionRunner(DbTaskRunner runner, LocalChannelReference localChannelReference) {
         this.runner = runner;
+        // Warning: the file is not correctly setup
+        try {
+            file = (R66File) dir.setFile(this.runner.getFilename(),
+                    false);
+        } catch (CommandAbstractException e1) {
+        }
+        this.auth.specialNoSessionAuth(false, Configuration.configuration.HOST_ID);
+        this.localChannelReference = localChannelReference;
+        if (this.localChannelReference == null) {
+            if (this.runner.getLocalChannelReference() != null) {
+                this.localChannelReference = this.runner.getLocalChannelReference();
+            } else {
+                this.localChannelReference = new LocalChannelReference();
+            }
+            this.localChannelReference.setErrorMessage(this.runner.getErrorInfo().mesg,
+                    this.runner.getErrorInfo());
+        }
+        runner.setLocalChannelReference(this.localChannelReference);
+        this.localChannelReference.setSession(this);
     }
     /**
      * Set the File from the runner before PRE operation are done
@@ -306,8 +331,6 @@ public class R66Session implements SessionInterface {
                         // file is not under normal base directory, so is external
                         // File should already exist but can be using special code ('*?')
                         file = dir.setFileNoCheck(filename);
-                        // FIXME
-                        //file = new R66File(this, dir, filename);
                     }
                 }
                 if (RequestPacket.isSendThroughMode(this.runner.getMode())) {
@@ -529,7 +552,7 @@ public class R66Session implements SessionInterface {
                             throw new OpenR66RunnerErrorException(e);
                         }
                     } catch (CommandAbstractException e1) {
-                        // FIXME length wrong
+                        // length wrong
                         throw new OpenR66RunnerErrorException("File length is wrong", e1);
                     } catch (NoRestartException e) {
                         // length is not to be changed

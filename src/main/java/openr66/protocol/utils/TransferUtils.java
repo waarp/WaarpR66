@@ -241,8 +241,7 @@ public class TransferUtils {
                 taskRunner.getRequester() :
                     taskRunner.getRequested();
         session.getAuth().specialNoSessionAuth(false, remoteId);
-        session.setNoSessionRunner(taskRunner);
-        session.setLocalChannelReference(localChannelReference);
+        session.setNoSessionRunner(taskRunner, localChannelReference);
         if (taskRunner.isSender()) {
             // Change dir
             try {

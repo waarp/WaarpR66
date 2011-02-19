@@ -31,22 +31,22 @@ public enum ErrorCode {
     /**
      * Code stands for initialization ok (internal connection, authentication)
      */
-    InitOk("Initialization step", 'i'),
+    InitOk("Initialization step ok", 'i'),
     /**
      * Code stands for pre processing ok
      */
     PreProcessingOk(
-            "PreProcessing step",
+            "PreProcessing step ok",
             'B'),
     /**
      * Code stands for transfer OK
      */
-    TransferOk("Transfer step", 'X'),
+    TransferOk("Transfer step ok", 'X'),
     /**
      * Code stands for post processing ok
      */
     PostProcessingOk(
-            "PostProcessing step",
+            "PostProcessing step ok",
             'P'),
     /**
      * Code stands for All action are completed ok
@@ -185,12 +185,11 @@ public enum ErrorCode {
         return String.valueOf(code);
     }
     /**
-     *
+     * Code is either the 1 char code or the exact name in Enum
      * @param code
      * @return the ErrorCode according to the code
      */
     public static ErrorCode getFromCode(String code) {
-        // FIXME if code could longer than 1 char, make an efficient function to retrieve the status
         switch (code.charAt(0)) {
             case 'i':
                 return InitOk;
@@ -253,8 +252,13 @@ public enum ErrorCode {
             case 'l':
                 return ServerOverloaded;
             default:
-                return Unknown;
-
+                ErrorCode ecode = Unknown;
+                try {
+                    ecode = ErrorCode.valueOf(code.trim());
+                } catch (IllegalArgumentException e) {
+                    return Unknown;                    
+                }
+                return ecode;
         }
     }
 }

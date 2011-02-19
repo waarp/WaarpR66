@@ -101,7 +101,7 @@ public class OpenR66SignalHandler implements SignalHandler {
      *
      * @author Frederic Bregier
      */
-    private static class R66TimerTask extends TimerTask {
+    public static class R66TimerTask extends TimerTask {
         /**
          * Internal Logger
          */
@@ -158,7 +158,7 @@ public class OpenR66SignalHandler implements SignalHandler {
         shutdown = true;
         if (immediate) {
             ChannelUtils.exit();
-            // FIXME Force exit!
+            // Force exit!
             try {
                 Thread.sleep(Configuration.configuration.TIMEOUTCON);
             } catch (InterruptedException e) {

@@ -141,7 +141,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 (localChannelReference != null? localChannelReference
                         : "no LocalChannelReference"), (session.getRunner() != null ?
                             session.getRunner().toShortString() : "no runner"));
-        // FIXME clean session objects like files
+        // clean session objects like files
         DbTaskRunner runner = session.getRunner();
         boolean mustFinalize = true;
         if (localChannelReference != null &&
@@ -150,13 +150,20 @@ public class LocalServerHandler extends SimpleChannelHandler {
         } else {
             if (localChannelReference != null) {
                 R66Future fvr = localChannelReference.getFutureValidRequest();
-                if (!fvr.isSuccess()) {
-                    // test if remote server was Overloaded
-                    if (fvr.getResult().code == ErrorCode.ServerOverloaded) {
-                        // ignore
-                        mustFinalize = false;
+                try {
+                    fvr.await();
+                } catch (InterruptedException e1) {
+                }
+                if (fvr.isDone()) {
+                    if (!fvr.isSuccess()) {
+                        // test if remote server was Overloaded
+                        if (fvr.getResult().code == ErrorCode.ServerOverloaded) {
+                            // ignore
+                            mustFinalize = false;
+                        }
                     }
                 }
+                logger.debug("Must Finalize: "+mustFinalize);
                 if (mustFinalize) {
                     R66Result finalValue = new R66Result(
                             new OpenR66ProtocolSystemException("Finalize too early at close time"),
@@ -173,8 +180,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 R66Future transfer = localChannelReference.getFutureRequest();
                 // Since requested : log
                 R66Result result = transfer.getResult();
-                if (transfer.isSuccess()){
-                    logger.warn("TRANSFER REQUESTED RESULT:\n    SUCCESS\n    "+
+                if (transfer.isDone() && transfer.isSuccess()){
+                    logger.info("TRANSFER REQUESTED RESULT:\n    SUCCESS\n    "+
                             (result != null ? result.toString() : "no result"));
                 } else {
                     logger.error("TRANSFER REQUESTED RESULT:\n    FAILURE\n    "+
@@ -546,14 +553,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 .getLocalTransaction().getFromId(packet.getLocalId());
         if (localChannelReference == null) {
             logger.error("Cannot startup");
-            //localChannelReference.validateStartup(false);
-            /*R66Result result = new R66Result(
-                    new OpenR66ProtocolNotAuthenticatedException(), session, true,
-                    ErrorCode.ConnectionImpossible, null);*/
             ErrorPacket error = new ErrorPacket("Cannot startup connection",
                     ErrorCode.ConnectionImpossible.getCode(), ErrorPacket.FORWARDCLOSECODE);
             Channels.write(channel, error).awaitUninterruptibly();
-            //localChannelReference.invalidateRequest(result);
             // Cannot do writeBack(error, true);
             ChannelUtils.close(channel);
             session.setStatus(40);
@@ -693,7 +695,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
      * @param packet
      */
     private void connectionError(Channel channel, ConnectionErrorPacket packet) {
-        // FIXME do something according to the error
+        // do something according to the error
         logger.error(channel.getId() + ": " + packet.toString());
         localChannelReference.invalidateRequest(new R66Result(
                 new OpenR66ProtocolSystemException(packet.getSheader()),
@@ -1136,7 +1138,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
         } else {
             // requester => might be a client
             // Save the runner into the session and validate the request so begin transfer 
-            // FIXME XXX 
             session.getLocalChannelReference().getFutureRequest().runner = runner;
             localChannelReference.getFutureValidRequest().setSuccess();
         }
