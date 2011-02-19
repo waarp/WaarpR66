@@ -32,7 +32,9 @@ import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.data.DbTaskRunner;
 
 /**
- * Reschedule Transfer task:<br>
+ * Reschedule Transfer task to a time delayed by the specified number of milliseconds, 
+ * if the error code is one of the specified codes and the optional intervals of date are 
+ * compatible with the new time schedule<br><br>
  * 
  * Result of arguments will be as following options (the two first are
  * mandatory):<br>
