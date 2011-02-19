@@ -21,6 +21,7 @@
 			<action dev="Frederic Bregier" type="fix">Fix Shutdown</action>
 			<action dev="Frederic Bregier" type="fix">Fix Connection error by running error post operation</action>
 			<action dev="Frederic Bregier" type="add">Add RescheduleTransferTask to enable reschedule of transfer in case of error in post error actions</action>
+			<action dev="Frederic Bregier" type="fix">Check explicit support of last version from H2 V2 and PostgreSQL V9</action>
 		</release>
 		<release version="2.0.1" date="2010-12-25" description="Various fixes">
 			<action dev="Frederic Bregier" type="fix">Database support moved in GGCommon</action>
