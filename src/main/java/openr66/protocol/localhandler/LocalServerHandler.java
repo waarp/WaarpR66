@@ -1674,7 +1674,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     "_runners.xml";
                 try {
                     getValid =
-                        DbTaskRunner.getLogPrepareStament(localChannelReference.getDbSession(),
+                        DbTaskRunner.getLogPrepareStatement(localChannelReference.getDbSession(),
                                 start, stop);
                     DbTaskRunner.writeXMLWriter(getValid, filename);
                 } catch (GoldenGateDatabaseNoConnectionError e1) {
@@ -1692,7 +1692,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     // purge in same interval all runners with globallaststep
                     // as ALLDONETASK or ERRORTASK
                     try {
-                        nb = DbTaskRunner.purgeLogPrepareStament(
+                        nb = DbTaskRunner.purgeLogPrepareStatement(
                                 localChannelReference.getDbSession(),
                                 start, stop);
                     } catch (GoldenGateDatabaseNoConnectionError e) {

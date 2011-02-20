@@ -94,7 +94,7 @@ public class Commander implements Runnable {
             preparedStatementRule =
                 DbRule.getUpdatedPrepareStament(DbConstant.admin.session);
             preparedStatementRunner =
-                DbTaskRunner.getUpdatedPrepareStament(DbConstant.admin.session,
+                DbTaskRunner.getSelectFromInfoPrepareStatement(DbConstant.admin.session,
                         UpdatedInfo.TOSUBMIT, false, LIMITSUBMIT);
             // Clean tasks (CompleteOK and ALLDONE => DONE)
             DbTaskRunner.changeFinishedToDone(DbConstant.admin.session);
@@ -221,7 +221,7 @@ public class Commander implements Runnable {
         logger.debug("start runner");
         // Check TaskRunner
         try {
-            DbTaskRunner.finishUpdatedPrepareStament(preparedStatementRunner);
+            DbTaskRunner.finishSelectOrCountPrepareStatement(preparedStatementRunner);
             preparedStatementRunner.executeQuery();
             while (preparedStatementRunner.getNext()) {
                 DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatementRunner);

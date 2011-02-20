@@ -94,7 +94,8 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
         error("monitoring_header.html","monitoring_end.html"), 
         done("monitoring_header.html","monitoring_end.html"), 
         all("monitoring_header.html","monitoring_end.html"), 
-        status("monitoring_header.html","monitoring_end.html");
+        status("monitoring_header.html","monitoring_end.html"),
+        statusxml("");
         
         private String header;
         private String end;
@@ -104,7 +105,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
          */
         private REQUEST(String uniquefile) {
             this.header = uniquefile;
-            this.end = null;
+            this.end = uniquefile;
         }
         /**
          * @param header
@@ -160,7 +161,8 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
      * Does this dbSession is private and so should be closed
      */
     private boolean isPrivateDbSession = false;
-
+    private boolean isCurrentRequestXml = false;
+    
     private Map<String, List<String>> params = null;
 
     private String readFileHeader(String filename) {
@@ -207,6 +209,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
             throws Exception {
+        isCurrentRequestXml = false;
         status = HttpResponseStatus.OK;
         try {
             if (DbConstant.admin.isConnected) {
@@ -236,6 +239,9 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
             cval = '3';
         } else if (uriRequest.equalsIgnoreCase("/status")) {
             cval = '4';
+        } else if (uriRequest.equalsIgnoreCase("/statusxml")) {
+            cval = '5';
+            isCurrentRequestXml = true;
         }
         // Get the params according to get or post
         if (request.getMethod() == HttpMethod.GET) {
@@ -290,6 +296,9 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
                     break;
                 case '4':
                     status(ctx, nb);
+                    break;
+                case '5':
+                    statusxml(ctx, nb);
                     break;
                 default:
                     responseContent.append(REQUEST.index.readFileUnique(this));
@@ -357,27 +366,27 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
         responseContent.append(REQUEST.active.readHeader(this));
         DbPreparedStatement preparedStatement = null;
         try {
-            preparedStatement = DbTaskRunner.getStatusPrepareStament(dbSession,
+            preparedStatement = DbTaskRunner.getStatusPrepareStatement(dbSession,
                     ErrorCode.Running, nb);
             addRunners(preparedStatement, ErrorCode.Running.mesg, nb);
-            preparedStatement = DbTaskRunner.getUpdatedPrepareStament(
+            preparedStatement = DbTaskRunner.getSelectFromInfoPrepareStatement(
                     dbSession, UpdatedInfo.INTERRUPTED, true, nb);
-            DbTaskRunner.finishUpdatedPrepareStament(preparedStatement);
+            DbTaskRunner.finishSelectOrCountPrepareStatement(preparedStatement);
             addRunners(preparedStatement, UpdatedInfo.INTERRUPTED.name(), nb);
-            preparedStatement = DbTaskRunner.getUpdatedPrepareStament(
+            preparedStatement = DbTaskRunner.getSelectFromInfoPrepareStatement(
                     dbSession, UpdatedInfo.TOSUBMIT, true, nb);
-            DbTaskRunner.finishUpdatedPrepareStament(preparedStatement);
+            DbTaskRunner.finishSelectOrCountPrepareStatement(preparedStatement);
             addRunners(preparedStatement, UpdatedInfo.TOSUBMIT.name(), nb);
-            preparedStatement = DbTaskRunner.getStatusPrepareStament(dbSession,
+            preparedStatement = DbTaskRunner.getStatusPrepareStatement(dbSession,
                     ErrorCode.InitOk, nb);
             addRunners(preparedStatement, ErrorCode.InitOk.mesg, nb);
-            preparedStatement = DbTaskRunner.getStatusPrepareStament(dbSession,
+            preparedStatement = DbTaskRunner.getStatusPrepareStatement(dbSession,
                     ErrorCode.PreProcessingOk, nb);
             addRunners(preparedStatement, ErrorCode.PreProcessingOk.mesg, nb);
-            preparedStatement = DbTaskRunner.getStatusPrepareStament(dbSession,
+            preparedStatement = DbTaskRunner.getStatusPrepareStatement(dbSession,
                     ErrorCode.TransferOk, nb);
             addRunners(preparedStatement, ErrorCode.TransferOk.mesg, nb);
-            preparedStatement = DbTaskRunner.getStatusPrepareStament(dbSession,
+            preparedStatement = DbTaskRunner.getStatusPrepareStatement(dbSession,
                     ErrorCode.PostProcessingOk, nb);
             addRunners(preparedStatement, ErrorCode.PostProcessingOk.mesg, nb);
             preparedStatement = null;
@@ -402,16 +411,16 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
         responseContent.append(REQUEST.error.readHeader(this));
         DbPreparedStatement preparedStatement = null;
         try {
-            preparedStatement = DbTaskRunner.getUpdatedPrepareStament(
+            preparedStatement = DbTaskRunner.getSelectFromInfoPrepareStatement(
                     dbSession, UpdatedInfo.INERROR, true, nb / 2);
-            DbTaskRunner.finishUpdatedPrepareStament(preparedStatement);
+            DbTaskRunner.finishSelectOrCountPrepareStatement(preparedStatement);
             addRunners(preparedStatement, UpdatedInfo.INERROR.name(), nb / 2);
-            preparedStatement = DbTaskRunner.getUpdatedPrepareStament(
+            preparedStatement = DbTaskRunner.getSelectFromInfoPrepareStatement(
                     dbSession, UpdatedInfo.INTERRUPTED, true, nb / 2);
-            DbTaskRunner.finishUpdatedPrepareStament(preparedStatement);
+            DbTaskRunner.finishSelectOrCountPrepareStatement(preparedStatement);
             addRunners(preparedStatement, UpdatedInfo.INTERRUPTED.name(),
                     nb / 2);
-            preparedStatement = DbTaskRunner.getStepPrepareStament(dbSession,
+            preparedStatement = DbTaskRunner.getStepPrepareStatement(dbSession,
                     TASKSTEP.ERRORTASK, nb / 4);
             addRunners(preparedStatement, TASKSTEP.ERRORTASK.name(), nb / 4);
         } catch (GoldenGateDatabaseException e) {
@@ -435,7 +444,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
         responseContent.append(REQUEST.done.readHeader(this));
         DbPreparedStatement preparedStatement = null;
         try {
-            preparedStatement = DbTaskRunner.getStatusPrepareStament(dbSession,
+            preparedStatement = DbTaskRunner.getStatusPrepareStatement(dbSession,
                     ErrorCode.CompleteOk, nb);
             addRunners(preparedStatement, ErrorCode.CompleteOk.mesg, nb);
         } catch (GoldenGateDatabaseException e) {
@@ -459,7 +468,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
         responseContent.append(REQUEST.all.readHeader(this));
         DbPreparedStatement preparedStatement = null;
         try {
-            preparedStatement = DbTaskRunner.getStatusPrepareStament(dbSession,
+            preparedStatement = DbTaskRunner.getStatusPrepareStatement(dbSession,
                     null, nb);// means all
             addRunners(preparedStatement, "ALL RUNNERS: " + nb, nb);
         } catch (GoldenGateDatabaseException e) {
@@ -484,9 +493,9 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
         responseContent.append(REQUEST.status.readHeader(this));
         DbPreparedStatement preparedStatement = null;
         try {
-            preparedStatement = DbTaskRunner.getUpdatedPrepareStament(
+            preparedStatement = DbTaskRunner.getSelectFromInfoPrepareStatement(
                     dbSession, UpdatedInfo.INERROR, true, 1);
-            DbTaskRunner.finishUpdatedPrepareStament(preparedStatement);
+            DbTaskRunner.finishSelectOrCountPrepareStatement(preparedStatement);
             try {
                 preparedStatement.executeQuery();
                 if (preparedStatement.getNext()) {
@@ -498,9 +507,9 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
                     preparedStatement.realClose();
                 }
             }
-            preparedStatement = DbTaskRunner.getUpdatedPrepareStament(
+            preparedStatement = DbTaskRunner.getSelectFromInfoPrepareStatement(
                     dbSession, UpdatedInfo.INTERRUPTED, true, 1);
-            DbTaskRunner.finishUpdatedPrepareStament(preparedStatement);
+            DbTaskRunner.finishSelectOrCountPrepareStatement(preparedStatement);
             try {
                 preparedStatement.executeQuery();
                 if (preparedStatement.getNext()) {
@@ -512,7 +521,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
                     preparedStatement.realClose();
                 }
             }
-            preparedStatement = DbTaskRunner.getStepPrepareStament(dbSession,
+            preparedStatement = DbTaskRunner.getStepPrepareStatement(dbSession,
                     TASKSTEP.ERRORTASK, 1);
             try {
                 preparedStatement.executeQuery();
@@ -538,6 +547,16 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
         }
         responseContent.append(REQUEST.status.readEnd());
     }
+    /**
+     * print only status
+     *
+     * @param ctx
+     * @param nb
+     */
+    private void statusxml(ChannelHandlerContext ctx, int nb) {
+        Configuration.configuration.monitoring.run();
+        responseContent.append(Configuration.configuration.monitoring.exportXml());
+    }
 
     /**
      * Write the response
@@ -559,7 +578,11 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
         HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
                 status);
         response.setContent(buf);
-        response.setHeader(HttpHeaders.Names.CONTENT_TYPE, "text/html");
+        if (isCurrentRequestXml) {
+            response.setHeader(HttpHeaders.Names.CONTENT_TYPE, "text/xml");
+        } else {
+            response.setHeader(HttpHeaders.Names.CONTENT_TYPE, "text/html");
+        }
         if (keepAlive) {
             response.setHeader(HttpHeaders.Names.CONNECTION,
                     HttpHeaders.Values.KEEP_ALIVE);

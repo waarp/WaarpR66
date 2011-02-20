@@ -190,7 +190,7 @@
 		
         <xsd:element name="identity" >
 			<xsd:complexType>
-			  <xsd:sequence>
+			  <xsd:all>
 				<xsd:element name="hostid" type="nonEmptyString">
 					<xsd:annotation>
 						<xsd:appinfo>
@@ -220,7 +220,7 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
-			  </xsd:sequence>
+			  </xsd:all>
 			</xsd:complexType>
 		</xsd:element>
 
@@ -307,13 +307,27 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                   </xsd:element>
+				  <xsd:element name="pastlimit" type="nonNulInteger" default="86400000" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Monitoring: how long in ms to get back in monitoring"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="minimaldelay" type="nonNulInteger" default="5000" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Monitoring: minimal interval in ms before redo real monitoring"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
 			  </xsd:sequence>
 			</xsd:complexType>
 		</xsd:element>
 
 		<xsd:element name="network" >
 			<xsd:complexType>
-			  <xsd:sequence>
+			  <xsd:all>
 				<xsd:element name="serverport"  type="nonNulInteger" default="6666">
                     <xsd:annotation>
                         <xsd:appinfo>
@@ -342,7 +356,7 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
-			  </xsd:sequence>
+			  </xsd:all>
 			</xsd:complexType>
 		</xsd:element>
 
@@ -366,7 +380,7 @@
 		
         <xsd:element name="directory" >
 			<xsd:complexType>
-			  <xsd:sequence>
+			  <xsd:all>
 				  <xsd:element name="serverhome" type="directoryType" >
                     <xsd:annotation>
                         <xsd:appinfo>
@@ -409,7 +423,7 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                   </xsd:element>
-			  </xsd:sequence>
+			  </xsd:all>
 			</xsd:complexType>
 		</xsd:element>
 
@@ -555,7 +569,7 @@
 		
         <xsd:element name="db">
 			<xsd:complexType>
-			  <xsd:sequence>
+			  <xsd:all>
 				  <xsd:element name="dbdriver" type="address" >
                     <xsd:annotation>
                         <xsd:appinfo>
@@ -584,7 +598,7 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                   </xsd:element>
-			  </xsd:sequence>
+			  </xsd:all>
 			</xsd:complexType>
 		</xsd:element>
       </xsd:sequence>

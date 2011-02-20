@@ -168,7 +168,7 @@ public class TransferUtils {
         DbPreparedStatement preparedStatement = null;
         try {
             preparedStatement =
-                DbTaskRunner.getFilterPrepareStament(dbSession, limit, true,
+                DbTaskRunner.getFilterPrepareStatement(dbSession, limit, true,
                         startid, stopid, tstart, tstop, rule, req,
                         pending, transfer, error, false, false);
             preparedStatement.executeQuery();

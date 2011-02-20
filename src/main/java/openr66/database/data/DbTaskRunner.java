@@ -925,7 +925,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @throws GoldenGateDatabaseNoConnectionError
      * @throws GoldenGateDatabaseSqlError
      */
-    public static DbPreparedStatement getStatusPrepareStament(
+    public static DbPreparedStatement getStatusPrepareStatement(
             DbSession session, ErrorCode status, int limit)
             throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
         String request = "SELECT " + selectAllFields + " FROM " + table;
@@ -949,7 +949,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @throws GoldenGateDatabaseNoConnectionError
      * @throws GoldenGateDatabaseSqlError
      */
-    public static DbPreparedStatement getStepPrepareStament(DbSession session,
+    public static DbPreparedStatement getStepPrepareStatement(DbSession session,
             TASKSTEP globalstep, int limit) throws GoldenGateDatabaseNoConnectionError,
             GoldenGateDatabaseSqlError {
         String request = "SELECT " + selectAllFields + " FROM " + table;
@@ -963,6 +963,8 @@ public class DbTaskRunner extends AbstractDbData {
                 request += ") AND ";
             }
             request += getLimitWhereCondition();
+        } else {
+            request += " WHERE "+getLimitWhereCondition();
         }
         request += " ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
         request = DbModelFactory.dbModel.limitRequest(selectAllFields, request, limit);
@@ -1011,7 +1013,8 @@ public class DbTaskRunner extends AbstractDbData {
             return preparedStatement;
         }
         request += " WHERE ";
-        StringBuilder scondition = new StringBuilder();
+        StringBuilder scondition = new StringBuilder(getLimitWhereCondition());
+        scondition.append(" AND ");
         if (start != null & stop != null) {
             scondition.append(Columns.STARTTRANS.name());
             scondition.append(" >= ? AND ");
@@ -1025,32 +1028,20 @@ public class DbTaskRunner extends AbstractDbData {
             scondition.append(" <= ? ");
         }
         if (startid != null) {
-            if (scondition.length() != 0) {
-                scondition.append(" AND ");
-            }
             scondition.append(Columns.SPECIALID.name());
             scondition.append(" >= ? ");
         }
         if (stopid != null) {
-            if (scondition.length() != 0) {
-                scondition.append(" AND ");
-            }
             scondition.append(Columns.SPECIALID.name());
             scondition.append(" <= ? ");
         }
         if (rule != null) {
-            if (scondition.length() != 0) {
-                scondition.append(" AND ");
-            }
             scondition.append(Columns.IDRULE.name());
             scondition.append(" LIKE '%");
             scondition.append(rule);
             scondition.append("%' ");
         }
         if (req != null) {
-            if (scondition.length() != 0) {
-                scondition.append(" AND ");
-            }
             scondition.append("( ");
             scondition.append(Columns.REQUESTED.name());
             scondition.append(" LIKE '%");
@@ -1062,9 +1053,6 @@ public class DbTaskRunner extends AbstractDbData {
             scondition.append("%' )");
         }
         if (!all) {
-            if (scondition.length() != 0) {
-                scondition.append(" AND ");
-            }
             scondition.append("( ");
             boolean hasone = false;
             if (pending) {
@@ -1184,7 +1172,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @throws GoldenGateDatabaseNoConnectionError
      * @throws GoldenGateDatabaseSqlError
      */
-    public static DbPreparedStatement getFilterPrepareStament(
+    public static DbPreparedStatement getFilterPrepareStatement(
             DbSession session, int limit, boolean orderBySpecialId, String startid, String stopid,
             Timestamp start, Timestamp stop, String rule,
             String req, boolean pending, boolean transfer, boolean error,
@@ -1219,7 +1207,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @throws GoldenGateDatabaseNoConnectionError
      * @throws GoldenGateDatabaseSqlError
      */
-    public static DbPreparedStatement getUpdatedPrepareStament(DbSession session,
+    public static DbPreparedStatement getSelectFromInfoPrepareStatement(DbSession session,
             UpdatedInfo info, boolean orderByStart, int limit)
             throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
         String request = "SELECT " + selectAllFields+
@@ -1235,13 +1223,110 @@ public class DbTaskRunner extends AbstractDbData {
         return pstt;
     }
     /**
+    *
+    * @param session
+    * @param info
+    * @return the DbPreparedStatement for getting Updated Object
+    * @throws GoldenGateDatabaseNoConnectionError
+    * @throws GoldenGateDatabaseSqlError
+    */
+   public static DbPreparedStatement getCountStatsPrepareStatement(DbSession session,
+           UpdatedInfo info)
+           throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
+       String request = "SELECT COUNT(" + Columns.SPECIALID.name()+
+               ") FROM " + table + " WHERE " + Columns.UPDATEDINFO.name() +
+               " = " + info.ordinal()+ 
+               " AND "+Columns.STARTTRANS.name() + " >= ? AND " +getLimitWhereCondition();
+       DbPreparedStatement pstt = new DbPreparedStatement(session, request);
+       return pstt;
+   }
+
+   /**
+    * @param session
+    * @param globalstep
+    * @return the DbPreparedStatement for getting Runner according to
+    *         globalstep ordered by start
+    * @throws GoldenGateDatabaseNoConnectionError
+    * @throws GoldenGateDatabaseSqlError
+    */
+   public static DbPreparedStatement getCountStepPrepareStatement(DbSession session,
+           TASKSTEP globalstep) throws GoldenGateDatabaseNoConnectionError,
+           GoldenGateDatabaseSqlError {
+       String request = "SELECT COUNT(" + Columns.SPECIALID.name() + ") FROM " + table;
+       if (globalstep != null) {
+           request += " WHERE (" + Columns.GLOBALSTEP.name() + " = " +
+                   globalstep.ordinal();
+           if (globalstep == TASKSTEP.ERRORTASK) {
+               request += " OR "+Columns.UPDATEDINFO.name() + " = "+
+                   UpdatedInfo.INERROR.ordinal()+") AND ";
+           } else {
+               request += ") AND ";
+           }
+           request += Columns.STARTTRANS.name() + " >= ? AND " + getLimitWhereCondition();
+       } else {
+           request += " "+Columns.STARTTRANS.name() + " >= ? AND " + getLimitWhereCondition();
+       }
+       return new DbPreparedStatement(session, request);
+   }
+   /**
+    * @param session
+    * @param status
+    * @return the DbPreparedStatement for getting Runner according to status ordered by start
+    * @throws GoldenGateDatabaseNoConnectionError
+    * @throws GoldenGateDatabaseSqlError
+    */
+   public static DbPreparedStatement getCountStatusPrepareStatement(
+           DbSession session, ErrorCode status)
+           throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
+       String request = "SELECT COUNT(" + Columns.SPECIALID.name() + ") FROM " + table;
+       if (status != null) {
+           request += " WHERE " + Columns.STEPSTATUS.name() + " = '" +
+                   status.getCode() + "' AND "+getLimitWhereCondition();
+           request += " AND "+Columns.STARTTRANS.name() + " >= ? ";
+       } else {
+           request += " WHERE "+getLimitWhereCondition();
+           request += " AND "+Columns.STARTTRANS.name() + " >= ? ";
+       }
+       return new DbPreparedStatement(session, request);
+   }
+
+   /**
+    * 
+    * @param pstt
+    * @return the number of elements (COUNT) from the statement
+    */
+   public static long getResultCountPrepareStatement(DbPreparedStatement pstt) {
+       long result = 0;
+       try {
+            pstt.executeQuery();
+            if (pstt.getNext()) {
+                result = pstt.getResultSet().getLong(1);
+            }
+        } catch (GoldenGateDatabaseNoConnectionError e) {
+        } catch (GoldenGateDatabaseSqlError e) {
+        } catch (SQLException e) {
+        } finally {
+            pstt.close();
+        }
+       return result;
+   }
+    /**
      * Set the current time in the given updatedPreparedStatement
      * @param pstt
      * @throws GoldenGateDatabaseNoConnectionError
      * @throws GoldenGateDatabaseSqlError
      */
-    public static void finishUpdatedPrepareStament(DbPreparedStatement pstt) throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
-        Timestamp startlimit = new Timestamp(System.currentTimeMillis());
+    public static void finishSelectOrCountPrepareStatement(DbPreparedStatement pstt) throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
+        finishSelectOrCountPrepareStatement(pstt, System.currentTimeMillis());
+    }
+    /**
+     * Set the current time in the given updatedPreparedStatement
+     * @param pstt
+     * @throws GoldenGateDatabaseNoConnectionError
+     * @throws GoldenGateDatabaseSqlError
+     */
+    public static void finishSelectOrCountPrepareStatement(DbPreparedStatement pstt, long time) throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
+        Timestamp startlimit = new Timestamp(time);
         try {
             pstt.getPreparedStatement().setTimestamp(1, startlimit);
         } catch (SQLException e) {
@@ -1259,7 +1344,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @throws GoldenGateDatabaseNoConnectionError
      * @throws GoldenGateDatabaseSqlError
      */
-    public static DbPreparedStatement getLogPrepareStament(DbSession session,
+    public static DbPreparedStatement getLogPrepareStatement(DbSession session,
             Timestamp start, Timestamp stop)
             throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
         DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
@@ -1317,7 +1402,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @throws GoldenGateDatabaseNoConnectionError
      * @throws GoldenGateDatabaseSqlError
      */
-    public static int purgeLogPrepareStament(DbSession session,
+    public static int purgeLogPrepareStatement(DbSession session,
             Timestamp start, Timestamp stop)
             throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
         DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
@@ -1385,7 +1470,7 @@ public class DbTaskRunner extends AbstractDbData {
      * @throws GoldenGateDatabaseNoConnectionError
      * @throws GoldenGateDatabaseSqlError
      */
-    public static int purgeLogPrepareStament(
+    public static int purgeLogPrepareStatement(
             DbSession session, String startid, String stopid,
             Timestamp start, Timestamp stop, String rule,
             String req, boolean pending, boolean transfer, boolean error,

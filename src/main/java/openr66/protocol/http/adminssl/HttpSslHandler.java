@@ -265,9 +265,9 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         TrafficCounter trafficCounter =
             Configuration.configuration.getGlobalTrafficShapingHandler().getTrafficCounter();
         GgStringUtils.replace(builder, REPLACEMENT.XXXBANDWIDTHXXX.toString(),
-                "IN:"+(trafficCounter.getLastReadThroughput()/131072)+
+                "IN:"+(trafficCounter.getLastReadThroughput()>>17)+
                 "Mbits&nbsp;<br>&nbsp;OUT:"+
-                (trafficCounter.getLastWriteThroughput()/131072)+"Mbits");
+                (trafficCounter.getLastWriteThroughput()>>17)+"Mbits");
         return builder.toString();
     }
 
@@ -417,7 +417,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 DbPreparedStatement preparedStatement = null;
                 try {
                     preparedStatement =
-                        DbTaskRunner.getFilterPrepareStament(dbSession, LIMITROW, false,
+                        DbTaskRunner.getFilterPrepareStatement(dbSession, LIMITROW, false,
                                 startid, stopid, tstart, tstop, rule, req,
                                 pending, transfer, error, done, all);
                     preparedStatement.executeQuery();
@@ -521,7 +521,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 DbPreparedStatement preparedStatement = null;
                 try {
                     preparedStatement =
-                        DbTaskRunner.getFilterPrepareStament(dbSession, LIMITROW, false,
+                        DbTaskRunner.getFilterPrepareStatement(dbSession, LIMITROW, false,
                                 startid, stopid, tstart, tstop, rule, req,
                                 pending, transfer, error, done, all);
                     preparedStatement.executeQuery();
@@ -597,7 +597,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     DbPreparedStatement preparedStatement = null;
                     try {
                         preparedStatement =
-                            DbTaskRunner.getFilterPrepareStament(dbSession, LIMITROW, false,
+                            DbTaskRunner.getFilterPrepareStatement(dbSession, LIMITROW, false,
                                     startid, stopid, tstart, tstop, rule, req,
                                     pending, transfer, error, done, all);
                         preparedStatement.executeQuery();
@@ -800,7 +800,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             "_runners.xml";
         try {
             getValid =
-                DbTaskRunner.getFilterPrepareStament(dbSession, 0,// 0 means no limit
+                DbTaskRunner.getFilterPrepareStatement(dbSession, 0,// 0 means no limit
                         true, null, null, tstart, tstop, rule, req,
                         pending, transfer, error, done, all);
             nbAndSpecialId = DbTaskRunner.writeXMLWriter(getValid, filename);
@@ -832,7 +832,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 String stopId = Long.toString(nbAndSpecialId.higherSpecialId);
                 try {
                     purge =
-                        DbTaskRunner.purgeLogPrepareStament(dbSession,
+                        DbTaskRunner.purgeLogPrepareStatement(dbSession,
                                 null,stopId, tstart, tstop, rule, req,
                                 pending, transfer, error, done, all);
                 } catch (GoldenGateDatabaseNoConnectionError e) {

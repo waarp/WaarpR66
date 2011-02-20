@@ -44,6 +44,7 @@ import openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import openr66.protocol.http.HttpPipelineFactory;
 import openr66.protocol.http.adminssl.HttpSslPipelineFactory;
 import openr66.protocol.localhandler.LocalTransaction;
+import openr66.protocol.localhandler.Monitoring;
 import openr66.protocol.networkhandler.ChannelTrafficHandler;
 import openr66.protocol.networkhandler.ConstraintLimitHandler;
 import openr66.protocol.networkhandler.GlobalTrafficHandler;
@@ -455,6 +456,18 @@ public class Configuration {
      * For No Db client, do we saved TaskRunner in a XML
      */
     public boolean saveTaskRunnerWithNoDb = false;
+    /**
+     * Monitoring object
+     */
+    public Monitoring monitoring = null;
+    /**
+     * Monitoring: how long in ms to get back in monitoring
+     */
+    public long pastLimit = 86400000; // 24H
+    /**
+     * Monitoring: minimal interval in ms before redo real monitoring
+     */
+    public long minimalDelay = 5000; // 5 seconds
     
     private volatile boolean configured = false;
 
@@ -599,6 +612,7 @@ public class Configuration {
         // Bind and start to accept incoming connections.
         httpChannelGroup.add(httpsBootstrap.bind(new InetSocketAddress(SERVER_HTTPSPORT)));
 
+        monitoring = new Monitoring(pastLimit, minimalDelay, null);
     }
     public InternalRunner getInternalRunner() {
         return internalRunner;
@@ -631,6 +645,10 @@ public class Configuration {
         if (execTrafficCounter != null) {
             ExecutorUtil.terminate(execTrafficCounter);
             execTrafficCounter = null;
+        }
+        if (monitoring != null) {
+            monitoring.releaseResources();
+            monitoring = null;
         }
     }
     /**

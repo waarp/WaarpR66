@@ -20,6 +20,8 @@
         <admkeypass>testalias</admkeypass>
         <checkaddress>False</checkaddress>
         <checkclientaddress>False</checkclientaddress>
+        <pastlimit>86400000</pastlimit>
+        <minimaldelay>5000</minimaldelay>
     </server>
     <network>
         <serverport>6666</serverport>

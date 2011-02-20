@@ -236,6 +236,14 @@ public class FileBasedConfiguration {
      * Delay between two checks for Limit
      */
     private static final String XML_LIMITDELAY = "delaylimit";
+    /**
+     * Monitoring: how long in ms to get back in monitoring
+     */
+    private static final String XML_MONITOR_PASTLIMIT = "pastlimit";
+    /**
+     * Monitoring: minimal interval in ms before redo real monitoring
+     */
+    private static final String XML_MONITOR_MINIMALDELAY = "minimaldelay";
 
     /**
      * Usage of CPU Limit
@@ -398,7 +406,9 @@ public class FileBasedConfiguration {
         new XmlDecl(XmlType.STRING, XML_HTTPADMINPATH),
         new XmlDecl(XmlType.STRING, XML_PATH_ADMIN_KEYPATH), 
         new XmlDecl(XmlType.STRING, XML_PATH_ADMIN_KEYSTOREPASS), 
-        new XmlDecl(XmlType.STRING, XML_PATH_ADMIN_KEYPASS)
+        new XmlDecl(XmlType.STRING, XML_PATH_ADMIN_KEYPASS),
+        new XmlDecl(XmlType.STRING, XML_MONITOR_PASTLIMIT),
+        new XmlDecl(XmlType.STRING, XML_MONITOR_MINIMALDELAY)
     };
     /**
      * Structure of the Configuration file
@@ -733,6 +743,14 @@ public class FileBasedConfiguration {
             HttpSslPipelineFactory.ggSslContextFactory =
                 new GgSslContextFactory(
                         HttpSslPipelineFactory.ggSecureKeyStore, true);
+        }
+        value = hashConfig.get(XML_MONITOR_PASTLIMIT);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.pastLimit = value.getLong();
+        }
+        value = hashConfig.get(XML_MONITOR_MINIMALDELAY);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.minimalDelay = value.getLong();
         }
         return true;
     }
