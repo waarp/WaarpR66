@@ -1225,20 +1225,44 @@ public class DbTaskRunner extends AbstractDbData {
     /**
     *
     * @param session
-    * @param info
     * @return the DbPreparedStatement for getting Updated Object
     * @throws GoldenGateDatabaseNoConnectionError
     * @throws GoldenGateDatabaseSqlError
     */
-   public static DbPreparedStatement getCountStatsPrepareStatement(DbSession session,
-           UpdatedInfo info)
+   public static DbPreparedStatement getCountInfoPrepareStatement(DbSession session)
            throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
        String request = "SELECT COUNT(" + Columns.SPECIALID.name()+
-               ") FROM " + table + " WHERE " + Columns.UPDATEDINFO.name() +
-               " = " + info.ordinal()+ 
-               " AND "+Columns.STARTTRANS.name() + " >= ? AND " +getLimitWhereCondition();
+               ") FROM " + table + " WHERE " + 
+               Columns.STARTTRANS.name() + " >= ? AND " +getLimitWhereCondition() +
+               " AND " + Columns.UPDATEDINFO.name() +" = ? ";
        DbPreparedStatement pstt = new DbPreparedStatement(session, request);
        return pstt;
+   }
+
+   /**
+    * 
+    * @param pstt
+    * @param info
+    * @param time
+    * @return the number of elements (COUNT) from the statement
+    */
+   public static long getResultCountPrepareStatement(DbPreparedStatement pstt, UpdatedInfo info,
+           long time) {
+       long result = 0;
+       try {
+           finishSelectOrCountPrepareStatement(pstt, time);
+           pstt.getPreparedStatement().setInt(2, info.ordinal());
+           pstt.executeQuery();
+           if (pstt.getNext()) {
+               result = pstt.getResultSet().getLong(1);
+           }
+        } catch (GoldenGateDatabaseNoConnectionError e) {
+        } catch (GoldenGateDatabaseSqlError e) {
+        } catch (SQLException e) {
+        } finally {
+            pstt.close();
+        }
+       return result;
    }
 
    /**
@@ -1254,39 +1278,73 @@ public class DbTaskRunner extends AbstractDbData {
            GoldenGateDatabaseSqlError {
        String request = "SELECT COUNT(" + Columns.SPECIALID.name() + ") FROM " + table;
        if (globalstep != null) {
-           request += " WHERE (" + Columns.GLOBALSTEP.name() + " = " +
-                   globalstep.ordinal();
-           if (globalstep == TASKSTEP.ERRORTASK) {
-               request += " OR "+Columns.UPDATEDINFO.name() + " = "+
-                   UpdatedInfo.INERROR.ordinal()+") AND ";
-           } else {
-               request += ") AND ";
-           }
+           request += " WHERE " + Columns.GLOBALSTEP.name() + " = " +
+                   globalstep.ordinal()+" AND ";
            request += Columns.STARTTRANS.name() + " >= ? AND " + getLimitWhereCondition();
        } else {
-           request += " "+Columns.STARTTRANS.name() + " >= ? AND " + getLimitWhereCondition();
+           request += " WHERE "+Columns.STARTTRANS.name() + " >= ? AND " + getLimitWhereCondition();
        }
        return new DbPreparedStatement(session, request);
    }
    /**
+    * @param session
+    * @return the DbPreparedStatement for getting Runner according to status ordered by start
+    * @throws GoldenGateDatabaseNoConnectionError
+    * @throws GoldenGateDatabaseSqlError
+    */
+   public static DbPreparedStatement getCountStatusPrepareStatement(
+           DbSession session)
+           throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
+       String request = "SELECT COUNT(" + Columns.SPECIALID.name() + ") FROM " + table;
+       request += " WHERE "+Columns.STARTTRANS.name() + " >= ? ";
+       request += " AND " + Columns.STEPSTATUS.name() + " = ? AND "+getLimitWhereCondition();
+       return new DbPreparedStatement(session, request);
+   }
+   /**
+    * 
+    * @param pstt
+    * @param error
+    * @param time
+    * @return the number of elements (COUNT) from the statement
+    */
+   public static long getResultCountPrepareStatement(DbPreparedStatement pstt, ErrorCode error,
+           long time) {
+       long result = 0;
+       try {
+           finishSelectOrCountPrepareStatement(pstt, time);
+           pstt.getPreparedStatement().setString(2, error.getCode());
+           pstt.executeQuery();
+           if (pstt.getNext()) {
+               result = pstt.getResultSet().getLong(1);
+           }
+        } catch (GoldenGateDatabaseNoConnectionError e) {
+        } catch (GoldenGateDatabaseSqlError e) {
+        } catch (SQLException e) {
+        } finally {
+            pstt.close();
+        }
+       return result;
+   }
+   /**
+    * Only running transfers
     * @param session
     * @param status
     * @return the DbPreparedStatement for getting Runner according to status ordered by start
     * @throws GoldenGateDatabaseNoConnectionError
     * @throws GoldenGateDatabaseSqlError
     */
-   public static DbPreparedStatement getCountStatusPrepareStatement(
+   public static DbPreparedStatement getCountStatusRunningPrepareStatement(
            DbSession session, ErrorCode status)
            throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
        String request = "SELECT COUNT(" + Columns.SPECIALID.name() + ") FROM " + table;
        if (status != null) {
            request += " WHERE " + Columns.STEPSTATUS.name() + " = '" +
                    status.getCode() + "' AND "+getLimitWhereCondition();
-           request += " AND "+Columns.STARTTRANS.name() + " >= ? ";
        } else {
            request += " WHERE "+getLimitWhereCondition();
-           request += " AND "+Columns.STARTTRANS.name() + " >= ? ";
        }
+       request += " AND "+Columns.STARTTRANS.name() + " >= ? ";
+       request += " AND "+Columns.UPDATEDINFO.name() + " = " + UpdatedInfo.RUNNING.ordinal();
        return new DbPreparedStatement(session, request);
    }
 

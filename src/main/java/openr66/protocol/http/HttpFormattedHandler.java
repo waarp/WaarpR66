@@ -149,7 +149,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 
     private volatile String uriRequest;
 
-    private static final String sINFO = "INFO", sNB = "NB";
+    private static final String sINFO = "INFO", sNB = "NB", sDETAIL = "DETAIL";
 
     /**
      * The Database connection attached to this NetworkChannel shared among all
@@ -199,7 +199,12 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
     }
 
     private String getTrimValue(String varname) {
-        String value = params.get(varname).get(0).trim();
+        String value = null;
+        try {
+            value = params.get(varname).get(0).trim();
+        } catch (NullPointerException e) {
+            return null;
+        }
         if (value.length() == 0) {
             value = null;
         }
@@ -228,6 +233,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
         uriRequest = queryStringDecoder.getPath();
         logger.debug("Msg: "+uriRequest);
         char cval = 'z';
+        int nb = LIMITROW;
         // check the URI
         if (uriRequest.equalsIgnoreCase("/active")) {
             cval = '0';
@@ -241,6 +247,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
             cval = '4';
         } else if (uriRequest.equalsIgnoreCase("/statusxml")) {
             cval = '5';
+            nb = 0; // since it could be the default or setup by request
             isCurrentRequestXml = true;
         }
         // Get the params according to get or post
@@ -258,8 +265,8 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
             }
             params = queryStringDecoder.getParameters();
         }
-        int nb = LIMITROW;
         boolean getMenu = (cval == 'z');
+        boolean extraBoolean = false;
         if (!params.isEmpty()) {
             // if not uri, from get or post
             if (getMenu) {
@@ -275,6 +282,12 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
             String snb = getTrimValue(sNB);
             if (snb != null) {
                 nb = Integer.parseInt(snb);
+            }
+            // search the detail param
+            String sdetail = getTrimValue(sDETAIL);
+            if (sdetail != null) {
+                if (Integer.parseInt(sdetail) > 0)
+                    extraBoolean = true;
             }
         }
         if (getMenu) {
@@ -298,7 +311,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
                     status(ctx, nb);
                     break;
                 case '5':
-                    statusxml(ctx, nb);
+                    statusxml(ctx, nb, extraBoolean);
                     break;
                 default:
                     responseContent.append(REQUEST.index.readFileUnique(this));
@@ -553,9 +566,9 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
      * @param ctx
      * @param nb
      */
-    private void statusxml(ChannelHandlerContext ctx, int nb) {
-        Configuration.configuration.monitoring.run();
-        responseContent.append(Configuration.configuration.monitoring.exportXml());
+    private void statusxml(ChannelHandlerContext ctx, int nb, boolean detail) {
+        Configuration.configuration.monitoring.run(nb, detail);
+        responseContent.append(Configuration.configuration.monitoring.exportXml(detail));
     }
 
     /**
