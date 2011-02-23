@@ -32,9 +32,6 @@ import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.utility.GgStringUtils;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.sql.Timestamp;
@@ -62,6 +59,7 @@ import openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
+import openr66.protocol.http.HttpWriteCacheEnable;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.ErrorPacket;
 import openr66.protocol.localhandler.packet.RequestPacket;
@@ -1636,7 +1634,9 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             logger.debug("Msg: "+uriRequest);
             if (uriRequest.contains("gre/") || uriRequest.contains("img/") ||
                     uriRequest.contains("res/")) {
-                writeFile(e.getChannel(), Configuration.configuration.httpBasePath+uriRequest);
+                HttpWriteCacheEnable.writeFile(request, 
+                        e.getChannel(), Configuration.configuration.httpBasePath+uriRequest,
+                        R66SESSION);
                 return;
             }
             checkSession(e.getChannel());
@@ -1690,44 +1690,6 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     break;
             }
             writeResponse(e.getChannel());
-    }
-
-    /**
-     * Write a File
-     * @param e
-     */
-    private void writeFile(Channel channel, String filename) {
-        // Convert the response content to a ChannelBuffer.
-        HttpResponse response;
-        File file = new File(filename);
-        byte [] bytes = new byte[(int) file.length()];
-        FileInputStream fileInputStream;
-        try {
-            fileInputStream = new FileInputStream(file);
-        } catch (FileNotFoundException e) {
-            response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
-                    HttpResponseStatus.NOT_FOUND);
-            channel.write(response);
-            return;
-        }
-        try {
-            fileInputStream.read(bytes);
-        } catch (IOException e) {
-            response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
-                    HttpResponseStatus.NOT_FOUND);
-            channel.write(response);
-            return;
-        }
-        ChannelBuffer buf = ChannelBuffers.copiedBuffer(bytes);
-        // Build the response object.
-        response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
-                HttpResponseStatus.OK);
-        response.setContent(buf);
-        response.setHeader(HttpHeaders.Names.CONTENT_LENGTH, String.valueOf(buf.readableBytes()));
-        checkSession(channel);
-        handleCookies(response);
-        // Write the response.
-        channel.write(response);
     }
     private void checkSession(Channel channel) {
         String cookieString = request.getHeader(HttpHeaders.Names.COOKIE);

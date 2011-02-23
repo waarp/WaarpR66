@@ -232,6 +232,13 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
                 .getUri());
         uriRequest = queryStringDecoder.getPath();
         logger.debug("Msg: "+uriRequest);
+        if (uriRequest.contains("gre/") || uriRequest.contains("img/") ||
+                uriRequest.contains("res/")) {
+            HttpWriteCacheEnable.writeFile(request, 
+                    e.getChannel(), Configuration.configuration.httpBasePath+uriRequest,
+                    "XYZR66NOSESSION");
+            return;
+        }
         char cval = 'z';
         int nb = LIMITROW;
         // check the URI
