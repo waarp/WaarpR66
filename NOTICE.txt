@@ -32,9 +32,9 @@ This product depends on 'NETTY', an asynchronous event-driven
 network application framework, which can be obtained at:
 
   * LICENSE:
-    * license/LICENSE.netty.txt (LGPL 2.1)
+    * license/LICENSE.netty.txt (Apache license)
   * HOMEPAGE:
-    * http://www.jboss.org/netty/
+    * http://www.jboss.org/netty
 
 This product contains a modified version of the 'Fast MD5', 
 a fast implementation of RSA's MD5 hash generator, 

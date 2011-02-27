@@ -93,7 +93,7 @@
   	<repository>
   		<id>jboss org</id>
   		<name>Jboss org</name>
-  		<url>http://repository.jboss.org/nexus/content/groups/public</url>
+  		<url>http://repository.jboss.org/nexus/content/groups/public/</url>
   		<snapshots>
   			<enabled>false</enabled>
   		</snapshots>
@@ -147,7 +147,7 @@
     <dependency>
       <groupId>GoldenGate</groupId>
       <artifactId>GoldenGateCommon</artifactId>
-      <version>1.1.1</version>
+      <version>1.1.2</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
