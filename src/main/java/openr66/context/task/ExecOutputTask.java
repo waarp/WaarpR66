@@ -21,6 +21,7 @@
 package openr66.context.task;
 
 import goldengate.commandexec.utils.LocalExecResult;
+import goldengate.common.command.exception.CommandAbstractException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
@@ -43,9 +44,12 @@ import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.PumpStreamHandler;
 
 /**
- * Execute an external command and Use the output if an error occurs.
- *
+ * Execute an external command and Use the output if an error occurs.<br>
  * 
+ * The output is ignored if the command has a correct status.<br>
+ * If the output finishes with <tt>NEWFINALNAME:xxx</tt> then this part is removed from the
+ * output and the xxx is used as the last valid name for the file (meaning the 
+ * file was moved or renamed)
  *
  * @author Frederic Bregier
  *
@@ -57,6 +61,7 @@ public class ExecOutputTask extends AbstractTask {
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(ExecOutputTask.class);
 
+    public static final String DELIMITER = "NEWFINALNAME:";
     /**
      * @param argRule
      * @param delay
@@ -257,6 +262,31 @@ public class ExecOutputTask extends AbstractTask {
             session.getRunner().setErrorExecutionStatus(ErrorCode.Warning);
             futureCompletion.setSuccess();
         } else {
+            int pos = newname.lastIndexOf(DELIMITER);
+            if (pos >= 0) {
+                String newfilename = newname.substring(pos+DELIMITER.length());
+                newname = newname.substring(0, pos);
+                if (newfilename.indexOf(' ') > 0) {
+                    logger.warn("Exec returns a multiple string in final line: " +
+                            newfilename);
+                    String []args = newfilename.split(" ");
+                    newfilename = args[args.length - 1];
+                }
+                // now test if the previous file was deleted (should be)
+                File file = new File(newfilename);
+                if (! file.exists()) {
+                    logger.warn("New file does not exist at the end of the exec: "+newfilename);
+                }
+                // now replace the file with the new one
+                try {
+                    session.getFile().replaceFilename(newfilename, true);
+                } catch (CommandAbstractException e) {
+                    logger
+                            .warn("Exec in warning with " + commandLine,
+                                    e);
+                }
+                session.getRunner().setFileMoved(newfilename, true);
+            }
             logger.error("Status: " + status + " Exec in error with " +
                     commandLine + " returns " + newname);
             OpenR66RunnerErrorException exc = 
