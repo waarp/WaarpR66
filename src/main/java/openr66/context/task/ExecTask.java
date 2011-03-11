@@ -83,10 +83,10 @@ public class ExecTask extends AbstractTask {
         String finalname = argRule;
         finalname = getReplacedValue(finalname, argTransfer.split(" "));
         // Check if the execution will be done through LocalExec daemon
-        if (Configuration.configuration.useLocalExec) {
+        if (Configuration.configuration.useLocalExec && useLocalExec) {
             LocalExecClient localExecClient = new LocalExecClient();
             if (localExecClient.connect()) {
-                localExecClient.runOneCommand(finalname, delay, futureCompletion);
+                localExecClient.runOneCommand(finalname, delay, waitForValidation, futureCompletion);
                 localExecClient.disconnect();
                 return;
             }// else continue 
@@ -115,9 +115,14 @@ public class ExecTask extends AbstractTask {
                 0, 1 };
         defaultExecutor.setExitValues(correctValues);
         ExecuteWatchdog watchdog = null;
-        if (delay > 0) {
+        if (delay > 0 && waitForValidation) {
             watchdog = new ExecuteWatchdog(delay);
             defaultExecutor.setWatchdog(watchdog);
+        }
+        if (! waitForValidation) {
+            // Do not wait for validation
+            futureCompletion.setSuccess();
+            logger.info("Exec will start but no WAIT with {}", commandLine);
         }
         int status = -1;
         try {
@@ -135,27 +140,35 @@ public class ExecTask extends AbstractTask {
                     pumpStreamHandler.stop();
                     logger.error("Exception: " + e.getMessage() +
                             " Exec in error with " + commandLine.toString());
-                    futureCompletion.setFailure(e);
+                    if (waitForValidation) {
+                        futureCompletion.setFailure(e);
+                    }
                     return;
                 } catch (IOException e1) {
                     pumpStreamHandler.stop();
                     logger.error("Exception: " + e.getMessage() +
                             " Exec in error with " + commandLine.toString());
-                    futureCompletion.setFailure(e);
+                    if (waitForValidation) {
+                        futureCompletion.setFailure(e);
+                    }
                     return;
                 }
             } else {
                 pumpStreamHandler.stop();
                 logger.error("Exception: " + e.getMessage() +
                         " Exec in error with " + commandLine.toString());
-                futureCompletion.setFailure(e);
+                if (waitForValidation) {
+                    futureCompletion.setFailure(e);
+                }
                 return;
             }
         } catch (IOException e) {
             pumpStreamHandler.stop();
             logger.error("Exception: " + e.getMessage() +
                     " Exec in error with " + commandLine.toString());
-            futureCompletion.setFailure(e);
+            if (waitForValidation) {
+                futureCompletion.setFailure(e);
+            }
             return;
         }
         pumpStreamHandler.stop();
@@ -166,15 +179,21 @@ public class ExecTask extends AbstractTask {
             status = -1;
         }
         if (status == 0) {
-            futureCompletion.setSuccess();
+            if (waitForValidation) {
+                futureCompletion.setSuccess();
+            }
             logger.info("Exec OK with {}", commandLine);
         } else if (status == 1) {
             logger.warn("Exec in warning with " + commandLine.toString());
-            futureCompletion.setSuccess();
+            if (waitForValidation) {
+                futureCompletion.setSuccess();
+            }
         } else {
             logger.error("Status: " + status + " Exec in error with " +
                     commandLine.toString());
-            futureCompletion.cancel();
+            if (waitForValidation) {
+                futureCompletion.cancel();
+            }
         }
     }
 

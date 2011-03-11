@@ -168,6 +168,15 @@ public abstract class AbstractTask implements Runnable {
      * Last Current Error Code in Full String
      */
     public static final String ERRORSTRCODE = "#ERRORSTRCODE#";
+    /**
+     * If specified, no Wait for Task Validation (default is wait)
+     */
+    public static final String NOWAIT = "#NOWAIT#";
+    /**
+     * If specified, use the LocalExec Daemon specified in the global configuration
+     * (default no usage of LocalExec)
+     */
+    public static final String LOCALEXEC = "#LOCALEXEC#";
     
     /**
      * Type of operation
@@ -198,7 +207,16 @@ public abstract class AbstractTask implements Runnable {
      * R66Future of completion
      */
     final R66Future futureCompletion;
-
+    /**
+     * Do we wait for a validation of the task ?
+     * Default = True
+     */
+    boolean waitForValidation = true;
+    /**
+     * Do we need to use LocalExec for an Exec Task ?
+     * Default = False
+     */
+    boolean useLocalExec = false;
     /**
      * Constructor
      *
@@ -252,6 +270,15 @@ public abstract class AbstractTask implements Runnable {
      */
     protected String getReplacedValue(String arg, Object[] argFormat) {
         StringBuilder builder = new StringBuilder(arg);
+        // check NOWAIT and LOCALEXEC
+        if (arg.contains(NOWAIT)) {
+            waitForValidation = false;
+            GgStringUtils.replaceAll(builder, NOWAIT, "");
+        }
+        if (arg.contains(LOCALEXEC)) {
+            useLocalExec = true;
+            GgStringUtils.replaceAll(builder, LOCALEXEC, "");
+        }
         File trueFile = null;
         if (session.getFile() != null) {
             trueFile = session.getFile().getTrueFile();

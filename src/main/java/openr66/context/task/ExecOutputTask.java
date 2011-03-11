@@ -49,7 +49,10 @@ import org.apache.commons.exec.PumpStreamHandler;
  * The output is ignored if the command has a correct status.<br>
  * If the output finishes with <tt>NEWFINALNAME:xxx</tt> then this part is removed from the
  * output and the xxx is used as the last valid name for the file (meaning the 
- * file was moved or renamed)
+ * file was moved or renamed)<br><br>
+ * 
+ * waitForValidation (#NOWAIT#) must not be set since it will prevent to have 
+ * the feedback in case of error. So it is ignored.
  *
  * @author Frederic Bregier
  *
@@ -93,10 +96,12 @@ public class ExecOutputTask extends AbstractTask {
                 session);
         String finalname = argRule;
         finalname = getReplacedValue(finalname, argTransfer.split(" "));
-        if (Configuration.configuration.useLocalExec) {
+        // Force the WaitForValidation
+        waitForValidation = true;
+        if (Configuration.configuration.useLocalExec && useLocalExec) {
             LocalExecClient localExecClient = new LocalExecClient();
             if (localExecClient.connect()) {
-                localExecClient.runOneCommand(finalname, delay, futureCompletion);
+                localExecClient.runOneCommand(finalname, delay, waitForValidation, futureCompletion);
                 LocalExecResult result = localExecClient.getLocalExecResult();
                 finalize(result.status, result.result, finalname);
                 localExecClient.disconnect();

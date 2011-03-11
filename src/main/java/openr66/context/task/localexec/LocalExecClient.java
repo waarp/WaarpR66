@@ -100,7 +100,7 @@ public class LocalExecClient {
      * @param delay
      * @param futureCompletion
      */
-    public void runOneCommand(String command, long delay, GgFuture futureCompletion) {
+    public void runOneCommand(String command, long delay, boolean waitFor, GgFuture futureCompletion) {
      // Initialize the command context
         LocalExecClientHandler clientHandler =
             (LocalExecClientHandler) channel.getPipeline().getLast();
@@ -112,6 +112,10 @@ public class LocalExecClient {
         // Sends the received line to the server.
         
         lastWriteFuture = channel.write(line);
+        if (!waitFor) {
+            futureCompletion.setSuccess();
+            logger.info("Exec OK with {}", command);
+        }
         // Wait until all messages are flushed before closing the channel.
         if (lastWriteFuture != null) {
             if (delay <= 0) {
@@ -127,15 +131,21 @@ public class LocalExecClient {
             return;
         }
         if (result.status == 0) {
-            futureCompletion.setSuccess();
+            if (waitFor) {
+                futureCompletion.setSuccess();
+            }
             logger.info("Exec OK with {}", command);
         } else if (result.status == 1) {
             logger.warn("Exec in warning with {}", command);
-            futureCompletion.setSuccess();
+            if (waitFor) {
+                futureCompletion.setSuccess();
+            }
         } else {
             logger.error("Status: " + result.status + " Exec in error with " +
                     command+"\n"+result.result);
-            futureCompletion.cancel();
+            if (waitFor) {
+                futureCompletion.cancel();
+            }
         }
     }
 

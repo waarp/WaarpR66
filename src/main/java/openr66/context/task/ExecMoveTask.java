@@ -43,9 +43,12 @@ import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.PumpStreamHandler;
 
 /**
- * Execute an external command and Rename the file (using the new name from the result).
+ * Execute an external command and Rename the file (using the new name from the result).<br>
  *
- * The move of the file (if any) should be done by the external command itself.
+ * The move of the file (if any) should be done by the external command itself.<br><br>
+ * 
+ * waitForValidation (#NOWAIT#) must not be set since it will prevent to have 
+ * the MOVE TASK to occur normally. So even if set, the #NOWAIT# will be ignored.
  *
  * @author Frederic Bregier
  *
@@ -88,10 +91,12 @@ public class ExecMoveTask extends AbstractTask {
                 session);
         String finalname = argRule;
         finalname = getReplacedValue(finalname, argTransfer.split(" "));
-        if (Configuration.configuration.useLocalExec) {
+        // Force the WaitForValidation
+        waitForValidation = true;
+        if (Configuration.configuration.useLocalExec && useLocalExec) {
             LocalExecClient localExecClient = new LocalExecClient();
             if (localExecClient.connect()) {
-                localExecClient.runOneCommand(finalname, delay, futureCompletion);
+                localExecClient.runOneCommand(finalname, delay, waitForValidation, futureCompletion);
                 LocalExecResult result = localExecClient.getLocalExecResult();
                 move(result.status, result.result, finalname);
                 localExecClient.disconnect();
@@ -136,6 +141,7 @@ public class ExecMoveTask extends AbstractTask {
                 0, 1 };
         defaultExecutor.setExitValues(correctValues);
         ExecuteWatchdog watchdog = null;
+        
         if (delay > 0) {
             watchdog = new ExecuteWatchdog(delay);
             defaultExecutor.setWatchdog(watchdog);
