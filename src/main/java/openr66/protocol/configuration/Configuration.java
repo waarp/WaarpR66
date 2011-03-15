@@ -29,7 +29,10 @@ import goldengate.common.digest.FilesystemBasedDigest;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+import goldengate.snmp.GgSnmpAgent;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -51,7 +54,9 @@ import openr66.protocol.networkhandler.GlobalTrafficHandler;
 import openr66.protocol.networkhandler.NetworkServerPipelineFactory;
 import openr66.protocol.networkhandler.packet.NetworkPacketSizeEstimator;
 import openr66.protocol.networkhandler.ssl.NetworkSslServerPipelineFactory;
+import openr66.protocol.snmp.R66PrivateMib;
 import openr66.protocol.utils.OpenR66SignalHandler;
+import openr66.protocol.utils.Version;
 
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.ChannelFactory;
@@ -468,6 +473,18 @@ public class Configuration {
      * Monitoring: minimal interval in ms before redo real monitoring
      */
     public long minimalDelay = 5000; // 5 seconds
+    /**
+     * Monitoring: snmp configuration file (empty means no snmp support)
+     */
+    public String snmpConfig = null;
+    /**
+     * SNMP Agent (if any)
+     */
+    public GgSnmpAgent agentSnmp = null;
+    /**
+     * Associated MIB
+     */
+    public R66PrivateMib r66Mib = null;
     
     private volatile boolean configured = false;
 
@@ -613,6 +630,22 @@ public class Configuration {
         httpChannelGroup.add(httpsBootstrap.bind(new InetSocketAddress(SERVER_HTTPSPORT)));
 
         monitoring = new Monitoring(pastLimit, minimalDelay, null);
+        if (snmpConfig != null) {
+            int snmpPortShow = (useNOSSL ? SERVER_PORT : SERVER_SSLPORT);
+            r66Mib = 
+                new R66PrivateMib("GoldenGate OpenR66 SNMP", snmpPortShow, 
+                        66666, 66, 
+                        "Frederic Bregier",
+                        "GoldenGate OpenR66 "+Version.ID, 
+                        "Paris, France", 
+                    72);
+            agentSnmp = new GgSnmpAgent(new File(snmpConfig), monitoring, r66Mib);
+            try {
+                agentSnmp.start();
+            } catch (IOException e) {
+                throw new GoldenGateDatabaseSqlError("AgentSnmp Error while starting", e);
+            }
+        }
     }
     public InternalRunner getInternalRunner() {
         return internalRunner;
@@ -646,7 +679,9 @@ public class Configuration {
             ExecutorUtil.terminate(execTrafficCounter);
             execTrafficCounter = null;
         }
-        if (monitoring != null) {
+        if (agentSnmp != null) {
+            agentSnmp.stop();
+        } else if (monitoring != null) {
             monitoring.releaseResources();
             monitoring = null;
         }

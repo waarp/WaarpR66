@@ -244,7 +244,10 @@ public class FileBasedConfiguration {
      * Monitoring: minimal interval in ms before redo real monitoring
      */
     private static final String XML_MONITOR_MINIMALDELAY = "minimaldelay";
-
+    /**
+     * Monitoring: snmp configuration file (if empty, no snmp support)
+     */
+    private static final String XML_MONITOR_SNMP_CONFIG= "snmpconfig";
     /**
      * Usage of CPU Limit
      */
@@ -407,8 +410,9 @@ public class FileBasedConfiguration {
         new XmlDecl(XmlType.STRING, XML_PATH_ADMIN_KEYPATH), 
         new XmlDecl(XmlType.STRING, XML_PATH_ADMIN_KEYSTOREPASS), 
         new XmlDecl(XmlType.STRING, XML_PATH_ADMIN_KEYPASS),
-        new XmlDecl(XmlType.STRING, XML_MONITOR_PASTLIMIT),
-        new XmlDecl(XmlType.STRING, XML_MONITOR_MINIMALDELAY)
+        new XmlDecl(XmlType.INTEGER, XML_MONITOR_PASTLIMIT),
+        new XmlDecl(XmlType.INTEGER, XML_MONITOR_MINIMALDELAY),
+        new XmlDecl(XmlType.STRING, XML_MONITOR_SNMP_CONFIG)
     };
     /**
      * Structure of the Configuration file
@@ -746,11 +750,15 @@ public class FileBasedConfiguration {
         }
         value = hashConfig.get(XML_MONITOR_PASTLIMIT);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.pastLimit = value.getLong();
+            Configuration.configuration.pastLimit = value.getInteger();
         }
         value = hashConfig.get(XML_MONITOR_MINIMALDELAY);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.minimalDelay = value.getLong();
+            Configuration.configuration.minimalDelay = value.getInteger();
+        }
+        value = hashConfig.get(XML_MONITOR_SNMP_CONFIG);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.snmpConfig = value.getString();
         }
         return true;
     }

@@ -226,6 +226,13 @@
     	<artifactId>GoldenGateExec</artifactId>
     	<version>1.0.1</version>
     </dependency>
+    <dependency>
+    	<groupId>GoldenGate</groupId>
+    	<artifactId>GoldenGateSnmp</artifactId>
+    	<version>1.0.0</version>
+    	<type>jar</type>
+    	<scope>compile</scope>
+    </dependency>
   </dependencies>
   <properties>
   	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

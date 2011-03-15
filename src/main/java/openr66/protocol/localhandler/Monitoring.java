@@ -30,6 +30,10 @@ import goldengate.common.database.DbSession;
 import goldengate.common.database.data.AbstractDbData.UpdatedInfo;
 import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
 import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
+import goldengate.common.logging.GgInternalLogger;
+import goldengate.common.logging.GgInternalLoggerFactory;
+import goldengate.snmp.GgInterfaceMonitor;
+import goldengate.snmp.GgSnmpAgent;
 import openr66.context.ErrorCode;
 import openr66.database.DbConstant;
 import openr66.database.data.DbTaskRunner;
@@ -42,7 +46,15 @@ import openr66.protocol.configuration.Configuration;
  * @author Frederic Bregier
  *
  */
-public class Monitoring {
+public class Monitoring implements GgInterfaceMonitor {
+    /**
+     * Internal Logger
+     */
+    private static GgInternalLogger logger = GgInternalLoggerFactory
+            .getLogger(Monitoring.class);
+
+    public GgSnmpAgent agent;
+
     // global informations
     public long nbNetworkConnection = 0;
     public long secondsRunning = 0;
@@ -577,5 +589,45 @@ public class Monitoring {
         }
         builder.append("</STATUS>");
         return builder.toString();
+    }
+    /* (non-Javadoc)
+     * @see goldengate.snmp.GgInterfaceMonitor#setAgent(goldengate.snmp.GgSnmpAgent)
+     */
+    @Override
+    public void setAgent(GgSnmpAgent agent) {
+        this.agent = agent;
+    }
+    /* (non-Javadoc)
+     * @see goldengate.snmp.GgInterfaceMonitor#generalValuesUpdate()
+     */
+    @Override
+    public void generalValuesUpdate() {
+        synchronized (agent) {
+            // TODO Auto-generated method stub
+
+            logger.warn("Call");
+        }
+    }
+    /* (non-Javadoc)
+     * @see goldengate.snmp.GgInterfaceMonitor#detailedValuesUpdate()
+     */
+    @Override
+    public void detailedValuesUpdate() {
+        synchronized (agent) {
+            // TODO Auto-generated method stub
+
+            logger.warn("Call");
+        }
+    }
+    /* (non-Javadoc)
+     * @see goldengate.snmp.GgInterfaceMonitor#errorValuesUpdate()
+     */
+    @Override
+    public void errorValuesUpdate() {
+        synchronized (agent) {
+            // TODO Auto-generated method stub
+
+            logger.warn("Call");
+        }
     }
 }
