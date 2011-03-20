@@ -20,13 +20,20 @@
  */
 package openr66.protocol.snmp;
 
+import openr66.protocol.configuration.Configuration;
+import openr66.protocol.utils.Version;
+
+import org.snmp4j.agent.DuplicateRegistrationException;
 import org.snmp4j.agent.MOScope;
-import org.snmp4j.smi.OID;
 
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
-import goldengate.snmp.GgMOScalar;
-import goldengate.snmp.GgPrivateMib;
+import goldengate.snmp.r66.GgPrivateMib;
+import goldengate.snmp.utils.GgMORow;
+import goldengate.snmp.utils.GgMOScalar;
+import goldengate.snmp.utils.GgUptime;
+import goldengate.snmp.utils.MemoryGauge32;
+import goldengate.snmp.utils.MemoryGauge32.MemoryType;
 
 /**
  * GoldenGate OpenR66 Private MIB implementation
@@ -57,26 +64,61 @@ public class R66PrivateMib extends GgPrivateMib {
         super(sysdesc, port, smiPrivateCodeFinal, typeGoldenGateObject,
                 scontactName, stextualName, saddress, iservice);
     }
+    
+    /* (non-Javadoc)
+     * @see goldengate.snmp.GgPrivateMib#agentRegisterGoldenGateMib()
+     */
+    @Override
+    protected void agentRegisterGoldenGateMib()
+            throws DuplicateRegistrationException {
+        logger.debug("registerGGMib");
+        // register Static info
+        rowInfo = new GgMORow(this, rootOIDGoldenGateInfo, goldenGateDefinition, 
+                MibLevel.staticInfo.ordinal());
+        rowInfo.setValue(goldenGateDefinitionIndex.applName.ordinal(), 
+                "GoldenGate OpenR66");
+        rowInfo.setValue(goldenGateDefinitionIndex.applServerName.ordinal(), 
+                Configuration.configuration.HOST_ID);
+        rowInfo.setValue(goldenGateDefinitionIndex.applVersion.ordinal(), 
+                Version.ID);
+        rowInfo.setValue(goldenGateDefinitionIndex.applDescription.ordinal(), 
+                "GoldenGate OpenR66: File Transfer Monitor");
+        rowInfo.setValue(goldenGateDefinitionIndex.applURL.ordinal(), 
+                "http://openr66.free.fr");
+        rowInfo.setValue(goldenGateDefinitionIndex.applApplicationProtocol.ordinal(), 
+                applicationProtocol);
+        
+        rowInfo.registerMOs(agent.getServer(), null);
+        // register General info
+        rowGlobal = new GgMORow(this, rootOIDGoldenGateGlobal, goldenGateGlobalValues, 
+                MibLevel.globalInfo.ordinal());
+        GgMOScalar memoryScalar = rowGlobal.row[goldenGateGlobalValuesIndex.memoryTotal.ordinal()];
+        memoryScalar.setValue(new MemoryGauge32(MemoryType.TotalMemory));
+        memoryScalar = rowGlobal.row[goldenGateGlobalValuesIndex.memoryFree.ordinal()];
+        memoryScalar.setValue(new MemoryGauge32(MemoryType.FreeMemory));
+        memoryScalar = rowGlobal.row[goldenGateGlobalValuesIndex.memoryUsed.ordinal()];
+        memoryScalar.setValue(new MemoryGauge32(MemoryType.UsedMemory));
+        rowGlobal.registerMOs(agent.getServer(), null);
+        // setup UpTime to SysUpTime and change status
+        scalarUptime = rowGlobal.row[goldenGateGlobalValuesIndex.applUptime.ordinal()];
+        scalarUptime.setValue(new GgUptime(upTime));
+        changeStatus(OperStatus.restarting);
+        changeStatus(OperStatus.up);
+        // register Detailed info
+        rowDetailed = new GgMORow(this, rootOIDGoldenGateDetailed, goldenGateDetailedValues, 
+                MibLevel.detailedInfo.ordinal());
+        rowDetailed.registerMOs(agent.getServer(), null);
+        // register Error info
+        rowError = new GgMORow(this, rootOIDGoldenGateError, goldenGateErrorValues, 
+                MibLevel.errorInfo.ordinal());
+        rowError.registerMOs(agent.getServer(), null);
+    }
 
     /* (non-Javadoc)
      * @see goldengate.snmp.GgInterfaceMib#updateServices(goldengate.snmp.GgMOScalar)
      */
     @Override
     public void updateServices(GgMOScalar scalar) {
-        // 3 groups to check
-        OID oid = scalar.getOid();
-        if (oid.startsWith(rootOIDGoldenGateGeneral)) {
-            // UpTime
-            if (oid.equals(rootOIDGoldenGateGeneralUptime)) {
-                scalarUptime.setValue(upTime.get());
-                return;
-            }
-            agent.monitor.generalValuesUpdate();
-        } else if (oid.startsWith(rootOIDGoldenGateDetailed)) {
-            agent.monitor.detailedValuesUpdate();
-        } else if (oid.startsWith(rootOIDGoldenGateError)) {
-            agent.monitor.errorValuesUpdate();
-        }
     }
 
     /* (non-Javadoc)
@@ -84,39 +126,6 @@ public class R66PrivateMib extends GgPrivateMib {
      */
     @Override
     public void updateServices(MOScope range) {
-        // UpTime first
-        OID low = range.getLowerBound();
-        
-        boolean okGeneral = true;
-        boolean okDetailed = true;
-        boolean okError = true;
-        if (low != null) {
-            logger.debug("low: {}:{} "+rootOIDGoldenGateGeneral+":"+
-                    rootOIDGoldenGateDetailed+":"+rootOIDGoldenGateError,
-                    low,range.isLowerIncluded());
-            if (low.size() <= rootOIDGoldenGate.size() && low.startsWith(rootOIDGoldenGate)) {
-                // test for global requests
-                okGeneral = okDetailed = okError = true;
-            } else {
-                // Test for sub requests
-                okGeneral &= low.startsWith(rootOIDGoldenGateGeneral);
-                okDetailed &= low.startsWith(rootOIDGoldenGateDetailed);
-                okError &= low.startsWith(rootOIDGoldenGateError);
-            }
-        }
-        logger.debug("General:"+okGeneral+" Detailed:"+okDetailed+" Error:"+okError);
-        if (okGeneral) {
-            // UpTime
-            if (rootOIDGoldenGateGeneralUptime.compareTo(low) >= 0)
-                scalarUptime.setValue(upTime.get());
-            agent.monitor.generalValuesUpdate();
-        }
-        if (okDetailed) {
-            agent.monitor.detailedValuesUpdate();
-        }
-        if (okError) {
-            agent.monitor.errorValuesUpdate();
-        }
     }
 
 }

@@ -29,6 +29,7 @@ import goldengate.common.digest.FilesystemBasedDigest;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+import goldengate.snmp.GgMOFactory;
 import goldengate.snmp.GgSnmpAgent;
 
 import java.io.File;
@@ -55,6 +56,7 @@ import openr66.protocol.networkhandler.NetworkServerPipelineFactory;
 import openr66.protocol.networkhandler.packet.NetworkPacketSizeEstimator;
 import openr66.protocol.networkhandler.ssl.NetworkSslServerPipelineFactory;
 import openr66.protocol.snmp.R66PrivateMib;
+import openr66.protocol.snmp.R66VariableFactory;
 import openr66.protocol.utils.OpenR66SignalHandler;
 import openr66.protocol.utils.Version;
 
@@ -639,6 +641,7 @@ public class Configuration {
                         "GoldenGate OpenR66 "+Version.ID, 
                         "Paris, France", 
                     72);
+            GgMOFactory.factory = new R66VariableFactory();
             agentSnmp = new GgSnmpAgent(new File(snmpConfig), monitoring, r66Mib);
             try {
                 agentSnmp.start();

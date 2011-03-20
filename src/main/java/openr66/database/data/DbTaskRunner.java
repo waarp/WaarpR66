@@ -1347,7 +1347,76 @@ public class DbTaskRunner extends AbstractDbData {
        request += " AND "+Columns.UPDATEDINFO.name() + " = " + UpdatedInfo.RUNNING.ordinal();
        return new DbPreparedStatement(session, request);
    }
+   /**
+    * Running or not transfers are concerned
+    * @param session
+    * @param in True for Incoming, False for Outgoing
+    * @return the DbPreparedStatement for getting Runner according to in or out going way and Error
+    * @throws GoldenGateDatabaseNoConnectionError
+    * @throws GoldenGateDatabaseSqlError
+    */
+   public static DbPreparedStatement getCountInOutErrorPrepareStatement(
+           DbSession session, boolean in)
+           throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
+       String request = "SELECT COUNT(" + Columns.SPECIALID.name() + ") FROM " + table;
+       String requesterd;
+       String from = Configuration.configuration.HOST_ID;
+       String sfrom = Configuration.configuration.HOST_SSLID;
+       if (in) {
+           requesterd = Columns.REQUESTED.name();
+       } else {
+           requesterd = Columns.REQUESTER.name();
+       }
+       if (from != null & sfrom != null) {
+           request += " WHERE (" + requesterd + " = '" +
+               from + "' OR " + requesterd + " = '" +sfrom+ "') ";
+       } else if (from != null) {
+           request += " WHERE " + requesterd + " = '" + from + "' ";
+       } else {
+           request += " WHERE " + requesterd + " = '" + sfrom+ "') ";
+       }
+       request += " AND "+getLimitWhereCondition();
+       request += " AND "+Columns.STARTTRANS.name() + " >= ? ";
+       request += " AND " + Columns.UPDATEDINFO.name() +" = "+UpdatedInfo.INERROR.ordinal();
+       return new DbPreparedStatement(session, request);
+   }
 
+   /**
+    * Running or not transfers are concerned
+    * @param session
+    * @param in True for Incoming, False for Outgoing
+    * @param running True for Running only, False for all
+    * @return the DbPreparedStatement for getting Runner according to in or out going way
+    * @throws GoldenGateDatabaseNoConnectionError
+    * @throws GoldenGateDatabaseSqlError
+    */
+   public static DbPreparedStatement getCountInOutRunningPrepareStatement(
+           DbSession session, boolean in, boolean running)
+           throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
+       String request = "SELECT COUNT(" + Columns.SPECIALID.name() + ") FROM " + table;
+       String requesterd;
+       String from = Configuration.configuration.HOST_ID;
+       String sfrom = Configuration.configuration.HOST_SSLID;
+       if (in) {
+           requesterd = Columns.REQUESTED.name();
+       } else {
+           requesterd = Columns.REQUESTER.name();
+       }
+       if (from != null & sfrom != null) {
+           request += " WHERE (" + requesterd + " = '" +
+               from + "' OR " + requesterd + " = '" +sfrom+ "') ";
+       } else if (from != null) {
+           request += " WHERE " + requesterd + " = '" + from + "' ";
+       } else {
+           request += " WHERE " + requesterd + " = '" + sfrom+ "') ";
+       }
+       request += " AND "+getLimitWhereCondition();
+       request += " AND "+Columns.STARTTRANS.name() + " >= ? ";
+       if (running) {
+           request += " AND "+Columns.UPDATEDINFO.name() + " = " + UpdatedInfo.RUNNING.ordinal();
+       }
+       return new DbPreparedStatement(session, request);
+   }
    /**
     * 
     * @param pstt

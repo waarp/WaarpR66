@@ -1123,6 +1123,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
         Configuration.configuration.getLocalTransaction().setFromId(runner, localChannelReference);
         // inform back
         if (packet.isToValidate()) {
+            if (Configuration.configuration.monitoring != null) {
+                Configuration.configuration.monitoring.lastInActiveTransfer =
+                    System.currentTimeMillis();
+            }
             if (runner.isSender()) {
                 // In case Wildcard was used
                 logger.debug("New FILENAME: {}", runner.getOriginalFilename());
@@ -1140,6 +1144,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
             // Save the runner into the session and validate the request so begin transfer 
             session.getLocalChannelReference().getFutureRequest().runner = runner;
             localChannelReference.getFutureValidRequest().setSuccess();
+            if (Configuration.configuration.monitoring != null) {
+                Configuration.configuration.monitoring.lastOutActiveTransfer =
+                    System.currentTimeMillis();
+            }
         }
         // if retrieve => START the retrieve operation except if in Send Through mode
         if (runner.isSender()) {
