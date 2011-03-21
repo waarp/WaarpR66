@@ -282,10 +282,6 @@ public class ChannelUtils extends Thread {
      * Exit global ChannelFactory
      */
     public static void exit() {
-        if (Configuration.configuration.r66Mib != null) {
-            Configuration.configuration.r66Mib.notifyStartStop("Shutdown in progress", 
-                    "Effective in "+Configuration.configuration.TIMEOUTCON+" ms");
-        }
         // First try to StopAll
         TransferUtils.stopSelectedTransfers(DbConstant.admin.session, 0,
                 null, null, null, null, null, null, null, null, null, true, true, true);

@@ -2141,7 +2141,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
         if (isAdmin && isKeyValid) {
             if (Configuration.configuration.r66Mib != null) {
                 Configuration.configuration.r66Mib.notifyStartStop(
-                        "Shutdown Order received", session.getAuth().getUser());
+                        "Shutdown Order received effective in "+
+                        Configuration.configuration.TIMEOUTCON+" ms", 
+                        session.getAuth().getUser());
             }
             throw new OpenR66ProtocolShutdownException("Shutdown Type received");
         }
