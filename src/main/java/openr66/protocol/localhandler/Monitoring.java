@@ -117,8 +117,8 @@ public class Monitoring implements GgInterfaceMonitor {
 
     public long nbInActiveTransfer = 0;
     public long nbOutActiveTransfer = 0;
-    public long lastInActiveTransfer = 0;
-    public long lastOutActiveTransfer = 0;
+    public long lastInActiveTransfer = System.currentTimeMillis();
+    public long lastOutActiveTransfer = System.currentTimeMillis();
     public long nbInTotalTransfer = 0;
     public long nbOutTotalTransfer = 0;
     public long nbInErrorTransfer = 0;
@@ -685,6 +685,8 @@ public class Monitoring implements GgInterfaceMonitor {
     @Override
     public void setAgent(GgSnmpAgent agent) {
         this.agent = agent;
+        this.lastInActiveTransfer = this.agent.getUptimeSystemTime();
+        this.lastOutActiveTransfer= this.agent.getUptimeSystemTime();
     }
 
     public void run(int type, int entry) {
@@ -748,10 +750,18 @@ public class Monitoring implements GgInterfaceMonitor {
                         updateGlobalValue(entry.ordinal(), nbOutTotalTransfer);
                         return;
                     case applLastInboundActivity:
-                        updateGlobalValue(entry.ordinal(), lastInActiveTransfer/10);
+                        val = (lastInActiveTransfer-
+                                this.agent.getUptimeSystemTime())/10;
+                        if (val < 0)
+                            val = 0;
+                        updateGlobalValue(entry.ordinal(), val);
                         return;
                     case applLastOutboundActivity:
-                        updateGlobalValue(entry.ordinal(), lastOutActiveTransfer/10);
+                        val = (lastOutActiveTransfer-
+                                this.agent.getUptimeSystemTime())/10;
+                        if (val < 0)
+                            val = 0;
+                        updateGlobalValue(entry.ordinal(), val);
                         return;
                     case applRejectedInboundAssociations:
                         DbTaskRunner.finishSelectOrCountPrepareStatement(countInErrorTransfer, limitDate);

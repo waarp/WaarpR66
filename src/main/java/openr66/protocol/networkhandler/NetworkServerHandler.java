@@ -156,6 +156,10 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
             throws Exception {
         if (keepAlivedSent) {
             logger.error("Not getting KAlive: closing channel");
+            if (Configuration.configuration.r66Mib != null) {
+                Configuration.configuration.r66Mib.notifyWarning(
+                        "KeepAlive get no answer", "Closing network connection");
+            }
             ChannelUtils.close(e.getChannel());
         } else {
             keepAlivedSent = true;

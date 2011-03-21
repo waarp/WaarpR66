@@ -276,6 +276,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
                                 "No LocalChannelReference"), session, true,
                         ErrorCode.ConnectionImpossible, null));
                 ChannelUtils.close(e.getChannel());
+                if (Configuration.configuration.r66Mib != null) {
+                    Configuration.configuration.r66Mib.notifyWarning(
+                            "No LocalChannelReference", packet.getClass().getSimpleName());
+                }
                 return;
             }
             switch (packet.getType()) {
@@ -582,6 +586,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
      */
     private void refusedConnection(Channel channel, AuthentPacket packet, Exception e1) throws OpenR66ProtocolPacketException {
         logger.error("Cannot connect: " + packet.getHostId(), e1);
+        if (Configuration.configuration.r66Mib != null) {
+            Configuration.configuration.r66Mib.notifyError(
+                    "Connection not allowed since "+e1.getMessage(), packet.getHostId());
+        }
         R66Result result = new R66Result(
                 new OpenR66ProtocolSystemException(
                         "Connection not allowed", e1), session, true,
@@ -896,6 +904,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
         // XXX validLimit only on requested side
         if (packet.isToValidate()) {
             if (Configuration.configuration.constraintLimitHandler.checkConstraints()) {
+                if (Configuration.configuration.r66Mib != null) {
+                    Configuration.configuration.r66Mib.
+                        notifyOverloaded("Rule: " + packet.getRulename()+" from "+session.getAuth().toString(), 
+                                Configuration.configuration.constraintLimitHandler.lastAlert);
+                }
                 logger.info("Limit exceeded when receive request with Rule: " + packet.getRulename()+" from "+session.getAuth().toString());
                 session.setStatus(100);
                 endInitRequestInError(channel,
@@ -1699,6 +1712,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 if (isPurge) {
                     // purge in same interval all runners with globallaststep
                     // as ALLDONETASK or ERRORTASK
+                    if (Configuration.configuration.r66Mib != null) {
+                        Configuration.configuration.r66Mib.notifyWarning(
+                                "Purge Log Order received", session.getAuth().getUser());
+                    }
                     try {
                         nb = DbTaskRunner.purgeLogPrepareStatement(
                                 localChannelReference.getDbSession(),
@@ -1723,6 +1740,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 break;
             }
             case LocalPacketFactory.CONFEXPORTPACKET: {
+                if (Configuration.configuration.r66Mib != null) {
+                    Configuration.configuration.r66Mib.notifyWarning(
+                            "Export Configuration Order received", session.getAuth().getUser());
+                }
                 String shost = packet.getSheader();
                 String srule = packet.getSmiddle();
                 boolean bhost = Boolean.parseBoolean(shost);
@@ -1785,6 +1806,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 break;
             }
             case LocalPacketFactory.CONFIMPORTPACKET: {
+                if (Configuration.configuration.r66Mib != null) {
+                    Configuration.configuration.r66Mib.notifyWarning(
+                            "Import Configuration Order received", session.getAuth().getUser());
+                }
                 String shost = packet.getSheader();
                 String srule = packet.getSmiddle();
                 boolean bhostPurge = shost.startsWith("1 ");
@@ -2015,6 +2040,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 if (rsl < 0) {
                     rsl = Configuration.configuration.serverChannelReadLimit;
                 }
+                if (Configuration.configuration.r66Mib != null) {
+                    Configuration.configuration.r66Mib.notifyWarning(
+                            "Change Bandwidth Limit Order received: Global "+
+                            wgl+":"+rgl+" (W:R) Local "+wsl+":"+rsl+" (W:R)", 
+                            session.getAuth().getUser());
+                }
                 Configuration.configuration.changeNetworkLimit(wgl, rgl, wsl, rsl,
                         Configuration.configuration.delayLimit);
                 R66Result result = new R66Result(session, true, ErrorCode.CompleteOk, null);
@@ -2108,6 +2139,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
         boolean isAdmin = session.getAuth().isAdmin();
         boolean isKeyValid = Configuration.configuration.isKeyValid(packet.getKey());
         if (isAdmin && isKeyValid) {
+            if (Configuration.configuration.r66Mib != null) {
+                Configuration.configuration.r66Mib.notifyStartStop(
+                        "Shutdown Order received", session.getAuth().getUser());
+            }
             throw new OpenR66ProtocolShutdownException("Shutdown Type received");
         }
         logger.error("Invalid Shutdown command: from "+session.getAuth().getUser()+" AdmValid: "+isAdmin+" KeyValid: "+isKeyValid);

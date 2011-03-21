@@ -32,6 +32,8 @@ import java.util.concurrent.RejectedExecutionException;
 
 import javax.net.ssl.SSLException;
 
+import openr66.protocol.configuration.Configuration;
+
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelException;
 import org.jboss.netty.channel.ExceptionEvent;
@@ -156,6 +158,10 @@ public class OpenR66ExceptionTrappedFactory {
         } else {
             logger.error("Unexpected exception from downstream" +
                     " Ref Channel: " + channel.toString(), e1);
+        }
+        if (Configuration.configuration.r66Mib != null) {
+            Configuration.configuration.r66Mib.notifyWarning(
+                    "Unexpected exception", e1.getMessage());
         }
         return new OpenR66ProtocolSystemException("Unexpected exception: "+e1.getMessage(), e1);
     }

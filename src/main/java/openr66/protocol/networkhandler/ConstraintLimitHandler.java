@@ -43,6 +43,8 @@ public class ConstraintLimitHandler {
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(ConstraintLimitHandler.class);
+    private static final String NOALERT = "noAlert";
+    public String lastAlert = NOALERT;
     private static Random random = new Random();
     private static CpuManagementInterface cpuManagement;
     private static double cpuLimit = 0.8;
@@ -90,28 +92,33 @@ public class ConstraintLimitHandler {
                 // If last test was wrong, then redo the test
                 if (lastLA <= cpuLimit) {
                     // last test was OK, so Continue
+                    lastAlert = NOALERT;
                     return false;
                 }
             }
             lastTime = newTime;
             lastLA = cpuManagement.getLoadAverage();
             if (lastLA > cpuLimit) {
-                logger.debug("LA: "+lastLA+" > "+cpuLimit);
+                lastAlert = "CPU Constraint: "+lastLA+" > "+cpuLimit;
+                logger.debug(lastAlert);
                 return true;
             }
         }
         if (channelLimit > 0) {
             int nb = DbAdmin.getNbConnection()-DbAdmin.nbHttpSession;
             if (channelLimit < nb) {
-                logger.debug("NW:"+nb+" > "+channelLimit);
+                lastAlert = "Network Constraint: "+nb+" > "+channelLimit;
+                logger.debug(lastAlert);
                 return true;
             }
             nb = Configuration.configuration.getLocalTransaction().getNumberLocalChannel();
             if (channelLimit < nb) {
-                logger.debug("NL:"+nb+" > "+channelLimit);
+                lastAlert = "LocalNetwork Constraint: "+nb+" > "+channelLimit;
+                logger.debug(lastAlert);
                 return true;
             }
         }
+        lastAlert = NOALERT;
         return false;
     }
     /**
@@ -138,6 +145,7 @@ public class ConstraintLimitHandler {
                     }
                 } else {
                     // last test was OK, so Continue
+                    lastAlert = NOALERT;
                     return false;
                 }
             }
@@ -150,6 +158,7 @@ public class ConstraintLimitHandler {
             }
             return true;
         } else {
+            lastAlert = NOALERT;
             return false;
         }
     }

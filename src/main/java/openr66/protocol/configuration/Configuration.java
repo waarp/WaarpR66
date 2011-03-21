@@ -90,6 +90,13 @@ public class Configuration {
      */
     public static final Configuration configuration = new Configuration();
 
+    public static final String SnmpName = "GoldenGate OpenR66 SNMP"; 
+    public static final int SnmpPrivateId = 66666;
+    public static final int SnmpR66Id = 66;
+    public static final String SnmpDefaultAuthor = "Frederic Bregier";
+    public static final String SnmpVersion = "GoldenGate OpenR66 "+Version.ID; 
+    public static final String SnmpDefaultLocalization = "Paris, France";
+    public static final int SnmpService = 72;
     /**
      * True if JDK6 or upper, False if JDK5.
      */
@@ -635,12 +642,14 @@ public class Configuration {
         if (snmpConfig != null) {
             int snmpPortShow = (useNOSSL ? SERVER_PORT : SERVER_SSLPORT);
             r66Mib = 
-                new R66PrivateMib("GoldenGate OpenR66 SNMP", snmpPortShow, 
-                        66666, 66, 
-                        "Frederic Bregier",
-                        "GoldenGate OpenR66 "+Version.ID, 
-                        "Paris, France", 
-                    72);
+                new R66PrivateMib(SnmpName, 
+                        snmpPortShow, 
+                        SnmpPrivateId, 
+                        SnmpR66Id, 
+                        SnmpDefaultAuthor,
+                        SnmpVersion, 
+                        SnmpDefaultLocalization, 
+                        SnmpService);
             GgMOFactory.factory = new R66VariableFactory();
             agentSnmp = new GgSnmpAgent(new File(snmpConfig), monitoring, r66Mib);
             try {

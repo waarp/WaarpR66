@@ -845,6 +845,14 @@ public class DbTaskRunner extends AbstractDbData {
             }
             return;
         }
+        // FIXME SNMP notification
+        if (updatedInfo == UpdatedInfo.INERROR.ordinal() ||
+                updatedInfo == UpdatedInfo.INTERRUPTED.ordinal()) {
+            if (Configuration.configuration.r66Mib != null) {
+                Configuration.configuration.r66Mib.notifyInfoTask(
+                        "Task is "+UpdatedInfo.values()[updatedInfo].name(), this);
+            }
+        }
         super.update();
     }
     /**
@@ -1861,6 +1869,13 @@ public class DbTaskRunner extends AbstractDbData {
         return infostatus;
     }
     
+    /**
+     * @return the step
+     */
+    public int getStep() {
+        return step;
+    }
+
     /**
      * @return the rescheduledTransfer
      */
