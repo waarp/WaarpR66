@@ -132,12 +132,12 @@ public class R66PrivateMib extends GgPrivateMib {
         notify(NotificationElements.TrapError, message, message2);
     }
     public void notifyOverloaded(String message, String message2) {
-        if (!TrapLevel.Alert.isLevelValid(agent.trapLevel))
+        if (!TrapLevel.Warning.isLevelValid(agent.trapLevel))
             return;
         notify(NotificationElements.TrapOverloaded, message, message2);
     }
     public void notifyWarning(String message, String message2) {
-        if (!TrapLevel.All.isLevelValid(agent.trapLevel))
+        if (!TrapLevel.Warning.isLevelValid(agent.trapLevel))
             return;
         notify(NotificationElements.TrapWarning, message, message2);
     }

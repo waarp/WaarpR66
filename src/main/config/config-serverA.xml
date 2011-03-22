@@ -22,6 +22,7 @@
         <checkclientaddress>False</checkclientaddress>
         <pastlimit>86400000</pastlimit>
         <minimaldelay>5000</minimaldelay>
+        <snmpconfig>D:/NEWSOURCE/GoldenGateR66/src/main/config/snmpconfig.xml</snmpconfig>
     </server>
     <network>
         <serverport>6666</serverport>
