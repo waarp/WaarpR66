@@ -42,6 +42,7 @@ import goldengate.common.xml.XmlHash;
 import goldengate.common.xml.XmlType;
 import goldengate.common.xml.XmlUtil;
 import goldengate.common.xml.XmlValue;
+import goldengate.snmp.SnmpConfiguration;
 
 import java.io.File;
 import java.io.IOException;
@@ -759,6 +760,14 @@ public class FileBasedConfiguration {
         value = hashConfig.get(XML_MONITOR_SNMP_CONFIG);
         if (value != null && (!value.isEmpty())) {
             Configuration.configuration.snmpConfig = value.getString();
+            File snmpfile = new File(Configuration.configuration.snmpConfig);
+            if (snmpfile.canRead()) {
+                if (!SnmpConfiguration.setConfigurationFromXml(snmpfile)) {
+                    Configuration.configuration.snmpConfig = null;
+                }
+            } else {
+                Configuration.configuration.snmpConfig = null;
+            }
         }
         return true;
     }

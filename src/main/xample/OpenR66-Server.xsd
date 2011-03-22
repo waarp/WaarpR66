@@ -321,6 +321,13 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                   </xsd:element>
+                  <xsd:element name="snmpconfig" type="XML-File" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Configuration XML File for SNMP¨service"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
 			  </xsd:sequence>
 			</xsd:complexType>
 		</xsd:element>
