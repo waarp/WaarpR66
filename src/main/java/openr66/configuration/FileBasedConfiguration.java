@@ -411,8 +411,8 @@ public class FileBasedConfiguration {
         new XmlDecl(XmlType.STRING, XML_PATH_ADMIN_KEYPATH), 
         new XmlDecl(XmlType.STRING, XML_PATH_ADMIN_KEYSTOREPASS), 
         new XmlDecl(XmlType.STRING, XML_PATH_ADMIN_KEYPASS),
-        new XmlDecl(XmlType.INTEGER, XML_MONITOR_PASTLIMIT),
-        new XmlDecl(XmlType.INTEGER, XML_MONITOR_MINIMALDELAY),
+        new XmlDecl(XmlType.LONG, XML_MONITOR_PASTLIMIT),
+        new XmlDecl(XmlType.LONG, XML_MONITOR_MINIMALDELAY),
         new XmlDecl(XmlType.STRING, XML_MONITOR_SNMP_CONFIG)
     };
     /**
@@ -751,11 +751,11 @@ public class FileBasedConfiguration {
         }
         value = hashConfig.get(XML_MONITOR_PASTLIMIT);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.pastLimit = value.getInteger();
+            Configuration.configuration.pastLimit = value.getLong();
         }
         value = hashConfig.get(XML_MONITOR_MINIMALDELAY);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.minimalDelay = value.getInteger();
+            Configuration.configuration.minimalDelay = value.getLong();
         }
         value = hashConfig.get(XML_MONITOR_SNMP_CONFIG);
         if (value != null && (!value.isEmpty())) {

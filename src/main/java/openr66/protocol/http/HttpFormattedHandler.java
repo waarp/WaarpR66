@@ -240,7 +240,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
             return;
         }
         char cval = 'z';
-        int nb = LIMITROW;
+        long nb = LIMITROW;
         // check the URI
         if (uriRequest.equalsIgnoreCase("/active")) {
             cval = '0';
@@ -288,7 +288,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
             // search the nb param
             String snb = getTrimValue(sNB);
             if (snb != null) {
-                nb = Integer.parseInt(snb);
+                nb = Long.parseLong(snb);
             }
             // search the detail param
             String sdetail = getTrimValue(sDETAIL);
@@ -303,19 +303,19 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
             // Use value 0=Active 1=Error 2=Done 3=All
             switch (cval) {
                 case '0':
-                    active(ctx, nb);
+                    active(ctx, (int)nb);
                     break;
                 case '1':
-                    error(ctx, nb);
+                    error(ctx, (int)nb);
                     break;
                 case '2':
-                    done(ctx, nb);
+                    done(ctx, (int)nb);
                     break;
                 case '3':
-                    all(ctx, nb);
+                    all(ctx, (int)nb);
                     break;
                 case '4':
-                    status(ctx, nb);
+                    status(ctx, (int)nb);
                     break;
                 case '5':
                     statusxml(ctx, nb, extraBoolean);
@@ -573,7 +573,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
      * @param ctx
      * @param nb
      */
-    private void statusxml(ChannelHandlerContext ctx, int nb, boolean detail) {
+    private void statusxml(ChannelHandlerContext ctx, long nb, boolean detail) {
         Configuration.configuration.monitoring.run(nb, detail);
         responseContent.append(Configuration.configuration.monitoring.exportXml(detail));
     }

@@ -70,6 +70,7 @@ public class Monitoring implements GgInterfaceMonitor {
     // Internal data
     private long startMonitor = System.currentTimeMillis();
     private long pastLimit = 0;
+    private long currentLimit = 0;
     private long minimalDelay = 0;
     private long lastTry = 0;
     private DbSession dbSession = null;
@@ -295,7 +296,7 @@ public class Monitoring implements GgInterfaceMonitor {
      * 
      * @param nbSecond as specific PastLimit
      */
-    public void run(int nbSecond) {
+    public void run(long nbSecond) {
         this.run(nbSecond, false);
     }
     /**
@@ -324,7 +325,7 @@ public class Monitoring implements GgInterfaceMonitor {
      * @param nbSecond as specific PastLimit
      * @param detail as to get detailed information
      */
-    public void run(int nbSecond, boolean detail) {
+    public void run(long nbSecond, boolean detail) {
         synchronized (trafficCounter) {
             long limitDate = System.currentTimeMillis();
             long nbMs = pastLimit;
@@ -344,6 +345,7 @@ public class Monitoring implements GgInterfaceMonitor {
                 return;
             }
             limitDate -= nbMs;
+            currentLimit = limitDate;
             // Update value
             try {
                 // Overall status including past, future and current transfers
@@ -482,6 +484,9 @@ public class Monitoring implements GgInterfaceMonitor {
         builder.append("<LastRun>");
         builder.append(new Date(lastTry));
         builder.append("</LastRun>");
+        builder.append("<FromDate>");
+        builder.append(new Date(currentLimit));
+        builder.append("</FromDate>");
         builder.append("<SecondsRunning>");
         builder.append(secondsRunning);
         builder.append("</SecondsRunning>");

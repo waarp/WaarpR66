@@ -6,6 +6,7 @@
 	</properties>
 	<body>
 		<release version="2.1.1" date="2011-03-27" description="Monitoring and Exec improvement">
+			<action dev="Frederic Bregier" type="fix">Fix Index: NEED TO UPDATE THE DATABASE MODEL (-initdb option with ServerInitDatabase command)</action>
 			<action dev="Frederic Bregier" type="add">Cache compatibility added to HTTP and HTTPS</action>
 			<action dev="Frederic Bregier" type="add">NOWAIT and LOCALEXEC option to ExecTask</action>
 			<action dev="Frederic Bregier" type="add">SNMP support added as monitoring option</action>

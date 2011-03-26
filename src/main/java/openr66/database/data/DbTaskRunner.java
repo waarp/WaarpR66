@@ -129,7 +129,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     public static final Columns [] indexes = {
         Columns.STARTTRANS, Columns.OWNERREQ, Columns.STEPSTATUS, Columns.UPDATEDINFO,
-        Columns.GLOBALSTEP, Columns.SPECIALID
+        Columns.GLOBALSTEP, Columns.INFOSTATUS, Columns.SPECIALID
     };
 
     public static final String XMLRUNNERS = "taskrunners";
@@ -1305,7 +1305,7 @@ public class DbTaskRunner extends AbstractDbData {
            throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
        String request = "SELECT COUNT(" + Columns.SPECIALID.name() + ") FROM " + table;
        request += " WHERE "+Columns.STARTTRANS.name() + " >= ? ";
-       request += " AND " + Columns.STEPSTATUS.name() + " = ? AND "+getLimitWhereCondition();
+       request += " AND " + Columns.INFOSTATUS.name() + " = ? AND "+getLimitWhereCondition();
        return new DbPreparedStatement(session, request);
    }
    /**
