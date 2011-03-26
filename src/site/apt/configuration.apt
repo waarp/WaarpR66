@@ -58,7 +58,7 @@ GoldenGateR66 Server and Clients Configuration
 
   *Create keys for SSH and Passwords (see {{{./sslconfig.html}Config OpenR66 OpenSSL and GoldengatePassword GUI project}})
 
-  *Create configurations files (server configuration file, authentication configuration file, rule configuration file) for a server
+  *Create configurations files (server configuration file, authentication configuration file, rule configuration file, snmp configuration file) for a server
   
   *Create configurations files (client configuration file, authentication configuration file, rule configuration file) for a client
   
