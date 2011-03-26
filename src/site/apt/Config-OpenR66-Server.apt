@@ -80,6 +80,18 @@ OpenR66 Server Configuration File
   
    True if R66 will check remote IP address also for remote Client
    
+  *pastlimit:nonNulInteger default="86400000" Optional
+
+   Monitoring: how long in ms to get back in monitoring
+
+  *minimaldelay:nonNulInteger default="5000" Optional
+
+   Monitoring: minimal interval in ms before redo real monitoring
+
+  *snmpconfig:XML-File Optional
+
+   Configuration XML File for SNMP¨service  
+   
 **network
 	
   *serverport:nonNulInteger default="6666"

@@ -98,6 +98,8 @@ GoldenGateR66 Server and Clients Configuration
     
     *{{{https://github.com/jezhumble/javasysmon}JavaSysMon}}
 
+    *{{{http://www.snmp4j.org}SNMP4J}}
+
     *<Database JDBC support> for instance for H2, PostGreSQL, Oracle, MySQL
 
   *Goldengate jars:
@@ -110,6 +112,8 @@ GoldenGateR66 Server and Clients Configuration
 
 	*<GoldenGateExec>
 	
+	*<GoldenGateSnmp>
+
   []
 
   To shutdown the service, either you do if Unix (not under Windows)
