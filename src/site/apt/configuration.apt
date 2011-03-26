@@ -13,8 +13,9 @@ GoldenGateR66 Server and Clients Configuration
   A detailed description of their contents can be found in {{{./Config-OpenR66-Server.html}Config OpenR66 Server}},
   {{{./Config-OpenR66-Client.html}Config OpenR66 Client}}, {{{./Config-OpenR66-ClientNoDB.html}Config OpenR66 Client with No Database}},
   {{{./Config-OpenR66-SubmitClient.html}Config OpenR66 Client for Submit Only}}, {{{./OpenR66-Limit.html}Config OpenR66 Limits}},
-  {{{./OpenR66-Rule.html}Config OpenR66 Rule}}
-  and {{{./OpenR66-Authent.html}Config OpenR66 Authentications}}.
+  {{{./OpenR66-Rule.html}Config OpenR66 Rule}},
+  {{{./OpenR66-Authent.html}Config OpenR66 Authentications}}
+  and {{{./Config-Snmp.html}Config for OpenR66 SNMP support}}.
   
   The first ones (<config-ServerX.xml>) specifies the general behavior for the OpenR66 Server:
 
