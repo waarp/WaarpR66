@@ -129,7 +129,7 @@ public class DbTaskRunner extends AbstractDbData {
 
     public static final Columns [] indexes = {
         Columns.STARTTRANS, Columns.OWNERREQ, Columns.STEPSTATUS, Columns.UPDATEDINFO,
-        Columns.GLOBALSTEP
+        Columns.GLOBALSTEP, Columns.SPECIALID
     };
 
     public static final String XMLRUNNERS = "taskrunners";
@@ -845,7 +845,7 @@ public class DbTaskRunner extends AbstractDbData {
             }
             return;
         }
-        // FIXME SNMP notification
+        // SNMP notification
         if (updatedInfo == UpdatedInfo.INERROR.ordinal() ||
                 updatedInfo == UpdatedInfo.INTERRUPTED.ordinal()) {
             if (Configuration.configuration.r66Mib != null) {
@@ -1376,14 +1376,14 @@ public class DbTaskRunner extends AbstractDbData {
            requesterd = Columns.REQUESTER.name();
        }
        if (from != null & sfrom != null) {
-           request += " WHERE (" + requesterd + " = '" +
+           request += " WHERE ((" + requesterd + " = '" +
                from + "' OR " + requesterd + " = '" +sfrom+ "') ";
        } else if (from != null) {
-           request += " WHERE " + requesterd + " = '" + from + "' ";
+           request += " WHERE (" + requesterd + " = '" + from + "' ";
        } else {
-           request += " WHERE " + requesterd + " = '" + sfrom+ "') ";
+           request += " WHERE (" + requesterd + " = '" + sfrom+ "' ";
        }
-       request += " AND "+getLimitWhereCondition();
+       request += " AND "+getLimitWhereCondition()+") ";
        request += " AND "+Columns.STARTTRANS.name() + " >= ? ";
        request += " AND " + Columns.UPDATEDINFO.name() +" = "+UpdatedInfo.INERROR.ordinal();
        return new DbPreparedStatement(session, request);
@@ -1411,14 +1411,14 @@ public class DbTaskRunner extends AbstractDbData {
            requesterd = Columns.REQUESTER.name();
        }
        if (from != null & sfrom != null) {
-           request += " WHERE (" + requesterd + " = '" +
+           request += " WHERE ((" + requesterd + " = '" +
                from + "' OR " + requesterd + " = '" +sfrom+ "') ";
        } else if (from != null) {
-           request += " WHERE " + requesterd + " = '" + from + "' ";
+           request += " WHERE (" + requesterd + " = '" + from + "' ";
        } else {
-           request += " WHERE " + requesterd + " = '" + sfrom+ "') ";
+           request += " WHERE (" + requesterd + " = '" + sfrom+ "' ";
        }
-       request += " AND "+getLimitWhereCondition();
+       request += " AND "+getLimitWhereCondition()+") ";
        request += " AND "+Columns.STARTTRANS.name() + " >= ? ";
        if (running) {
            request += " AND "+Columns.UPDATEDINFO.name() + " = " + UpdatedInfo.RUNNING.ordinal();
