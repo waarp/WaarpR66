@@ -33,6 +33,8 @@ import org.snmp4j.smi.Variable;
 import goldengate.snmp.interf.GgInterfaceVariableFactory;
 
 /**
+ * R66 implementation of VariableFactory for SNMP support
+ * 
  * @author Frederic Bregier
  *
  */

@@ -46,7 +46,7 @@ import openr66.protocol.configuration.Configuration;
 import openr66.protocol.snmp.R66PrivateMib;
 
 /**
- * Monitoring class as an helper to get values of interest
+ * Monitoring class as an helper to get values of interest. Also used by SNMP support.
  * 
  * @author Frederic Bregier
  *
@@ -688,7 +688,11 @@ public class Monitoring implements GgInterfaceMonitor {
         this.lastInActiveTransfer = this.agent.getUptimeSystemTime();
         this.lastOutActiveTransfer= this.agent.getUptimeSystemTime();
     }
-
+    /**
+     * Update the value for one particular MIB entry
+     * @param type
+     * @param entry
+     */
     public void run(int type, int entry) {
         long nbMs = Configuration.configuration.agentSnmp.getUptime()+100;
         MibLevel level = MibLevel.values()[type];
@@ -707,15 +711,35 @@ public class Monitoring implements GgInterfaceMonitor {
                 return;
         }
     }
+    /**
+     * Update a value in Global MIB part 
+     * @param rank
+     * @param value
+     */
     protected void updateGlobalValue(int rank, long value) {
         ((R66PrivateMib) this.agent.mib).rowGlobal.setValue(rank, value);
     }
+    /**
+     * Update a value in Detailed MIB part
+     * @param rank
+     * @param value
+     */
     protected void updateDetailedValue(int rank, long value) {
         ((R66PrivateMib) this.agent.mib).rowDetailed.setValue(rank, value);
     }
+    /**
+     * Update a value in Error MIB part
+     * @param rank
+     * @param value
+     */
     protected void updateErrorValue(int rank, long value) {
         ((R66PrivateMib) this.agent.mib).rowError.setValue(rank, value);
     }
+    /**
+     * Update a value in Global MIB part
+     * @param nbMs
+     * @param entry
+     */
     protected void run(long nbMs, goldenGateGlobalValuesIndex entry) {
         synchronized (trafficCounter) {
             long val = 0;
@@ -841,7 +865,11 @@ public class Monitoring implements GgInterfaceMonitor {
             }
         }
     }
-    
+    /**
+     * Update a value in Detailed MIB part
+     * @param nbMs
+     * @param entry
+     */
     protected void run(long nbMs, goldenGateDetailedValuesIndex entry) {
         synchronized (trafficCounter) {
             long limitDate = System.currentTimeMillis()-nbMs;
@@ -919,7 +947,11 @@ public class Monitoring implements GgInterfaceMonitor {
             }
         }
     }
-
+    /**
+     * Update a value in Error MIB part
+     * @param nbMs
+     * @param entry
+     */
     protected void run(long nbMs, goldenGateErrorValuesIndex entry) {
         synchronized (trafficCounter) {
             long limitDate = System.currentTimeMillis()-nbMs;

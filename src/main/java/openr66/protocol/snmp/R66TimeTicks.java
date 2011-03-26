@@ -25,13 +25,15 @@ import openr66.protocol.configuration.Configuration;
 import goldengate.snmp.interf.GgTimeTicks;
 
 /**
+ * R66 TimeTicks SNMP implementation
+ * 
  * @author Frederic Bregier
  *
  */
 public class R66TimeTicks extends GgTimeTicks {
 
-    public int type = 1;
-    public int entry = 0;
+    private int type = 1;
+    private int entry = 0;
     /**
      * 
      */

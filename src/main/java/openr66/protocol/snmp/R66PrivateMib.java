@@ -120,28 +120,51 @@ public class R66PrivateMib extends GgPrivateMib {
                 MibLevel.errorInfo.ordinal());
         rowError.registerMOs(agent.getServer(), null);
     }
-    
+    /**
+     * Send a notification (trap or inform) for Start or Stop event
+     * @param message
+     * @param message2
+     */
     public void notifyStartStop(String message, String message2) {
         if (!TrapLevel.StartStop.isLevelValid(agent.trapLevel))
             return;
         notify(NotificationElements.TrapShutdown, message, message2);
     }
+    /**
+     * Send a notification (trap or inform) for Error event
+     * @param message
+     * @param message2
+     */
     public void notifyError(String message, String message2) {
         if (!TrapLevel.Alert.isLevelValid(agent.trapLevel))
             return;
         notify(NotificationElements.TrapError, message, message2);
     }
+    /**
+     * Send a notification (trap or inform) for Server Overloaded event
+     * @param message
+     * @param message2
+     */
     public void notifyOverloaded(String message, String message2) {
         if (!TrapLevel.Warning.isLevelValid(agent.trapLevel))
             return;
         notify(NotificationElements.TrapOverloaded, message, message2);
     }
+    /**
+     * Send a notification (trap or inform) for Warning event
+     * @param message
+     * @param message2
+     */
     public void notifyWarning(String message, String message2) {
         if (!TrapLevel.Warning.isLevelValid(agent.trapLevel))
             return;
         notify(NotificationElements.TrapWarning, message, message2);
     }
-
+    /**
+     * Send a notification (trap or inform) for Warning/Error event on a single Transfer Task
+     * @param message
+     * @param runner
+     */
     public void notifyInfoTask(String message, DbTaskRunner runner) {
         if (!TrapLevel.All.isLevelValid(agent.trapLevel)) return;
         if (logger.isDebugEnabled())

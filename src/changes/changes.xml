@@ -5,8 +5,10 @@
 		<author email="fredbregier at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
-		<release version="2.1.1" date="2011-02-25" description="Http improvement">
+		<release version="2.1.1" date="2011-03-27" description="Http improvement">
 			<action dev="Frederic Bregier" type="add">Cache compatibility added to HTTP and HTTPS</action>
+			<action dev="Frederic Bregier" type="add">SNMP support added as monitoring option</action>
+			<action dev="Frederic Bregier" type="fix">Update versions of used Java libraries like Netty</action>
 		</release>
 		<release version="2.1.0" date="2011-02-15" description="Various fixes and new functionalities">
 			<action dev="Frederic Bregier" type="fix">Update Digest functions</action>

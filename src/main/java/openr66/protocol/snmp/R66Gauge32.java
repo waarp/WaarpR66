@@ -25,13 +25,15 @@ import openr66.protocol.configuration.Configuration;
 import goldengate.snmp.interf.GgGauge32;
 
 /**
+ * R66 Gauge32 SNMP implementation
+ * 
  * @author Frederic Bregier
  *
  */
 public class R66Gauge32 extends GgGauge32 {
 
-    public int type = 1;
-    public int entry = 0;
+    private int type = 1;
+    private int entry = 0;
     /**
      * 
      */
