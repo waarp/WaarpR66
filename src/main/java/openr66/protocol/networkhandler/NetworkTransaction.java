@@ -254,7 +254,7 @@ public class NetworkTransaction {
         } else {
             OpenR66ProtocolNetworkException exc =
                 new OpenR66ProtocolNetworkException("Startup is invalid");
-            logger.error("Startup is Invalid", exc);
+            logger.warn("Startup is Invalid", exc);
             R66Result finalValue = new R66Result(
                     exc, null, true, ErrorCode.ConnectionImpossible, null);
             localChannelReference.invalidateRequest(finalValue);
@@ -311,7 +311,7 @@ public class NetworkTransaction {
                 final Channel channel = channelFuture.getChannel();
                 if (isSSL) {
                     if (! NetworkSslServerHandler.isSslConnectedChannel(channel)) {
-                        logger.error("KO CONNECT since SSL handshake is over");
+                        logger.debug("KO CONNECT since SSL handshake is over");
                         Channels.close(channel);
                         throw new OpenR66ProtocolNoConnectionException(
                                 "Cannot finish connect to remote server");
@@ -464,9 +464,9 @@ public class NetworkTransaction {
             logger.debug("Will close NETWORK channel since Future cancelled: {}",
                     future);
             R66Result finalValue = new R66Result(
-                    new OpenR66ProtocolSystemException("Out of time during Authentication"),
+                    new OpenR66ProtocolSystemException("Out of time or Connection invalid during Authentication"),
                     localChannelReference.getSession(), true, ErrorCode.ConnectionImpossible, null);
-            logger.error("Authent is Invalid due to out of time: {}", finalValue.exception.getMessage());
+            logger.warn("Authent is Invalid due to: {}", finalValue.exception.getMessage());
             localChannelReference.invalidateRequest(finalValue);
             if (localChannelReference.getRemoteId() != ChannelUtils.NOCHANNEL) {
                 ConnectionErrorPacket error = new ConnectionErrorPacket(

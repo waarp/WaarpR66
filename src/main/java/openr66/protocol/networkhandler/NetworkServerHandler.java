@@ -114,6 +114,10 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
                     e.getChannel().getId(),
                     NetworkTransaction.getNbLocalChannel(e.getChannel()));
             // close if necessary the local channel
+            try {
+                Thread.sleep(Configuration.WAITFORNETOP);
+            } catch (InterruptedException e1) {
+            }
             Configuration.configuration.getLocalTransaction()
                     .closeLocalChannelsFromNetworkChannel(e.getChannel());
         }
@@ -233,6 +237,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
                         .getLocalId(), error);
                 return;
             } catch (OpenR66ProtocolRemoteShutdownException e1) {
+                logger.warn("Will Close Local from Network Channel");
                 Configuration.configuration.getLocalTransaction()
                     .closeLocalChannelsFromNetworkChannel(e.getChannel());
                 Channels.close(e.getChannel());
@@ -355,7 +360,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
                 Channels.close(e.getChannel());
                 return;
             } else {
-                logger.error(
+                logger.debug(
                         "Network Channel Exception: {} {}", e.getChannel().getId(),
                         exception.getMessage());
             }
@@ -363,7 +368,11 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
                     exception.getMessage(), null);
             writeError(e.getChannel(), ChannelUtils.NOCHANNEL,
                     ChannelUtils.NOCHANNEL, errorPacket);
-            logger.error("Will close NETWORK channel {}", exception.getMessage());
+            try {
+                Thread.sleep(Configuration.WAITFORNETOP);
+            } catch (InterruptedException e1) {
+            }
+            logger.debug("Will close NETWORK channel: {}", exception.getMessage());
             ChannelUtils.close(e.getChannel());
         } else {
             // Nothing to do

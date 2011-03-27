@@ -99,7 +99,18 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
     public static boolean isSslConnectedChannel(Channel channel) {
         R66Future futureSSL = waitForSsl.get(channel.getId());
         if (futureSSL == null) {
-            logger.error("No wait For SSL found");
+            for (int i = 0; i < Configuration.RETRYNB; i++){
+                futureSSL = waitForSsl.get(channel.getId());
+                if (futureSSL != null)
+                    break;
+                try {
+                    Thread.sleep(Configuration.RETRYINMS);
+                } catch (InterruptedException e) {
+                }
+            }
+        }
+        if (futureSSL == null) {
+            logger.debug("No wait For SSL found");
             return false;
         } else {
             try {

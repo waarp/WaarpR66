@@ -105,9 +105,9 @@ public class LocalClientHandler extends SimpleChannelHandler {
                 if (localChannelReference != null) {
                     return;
                 }
+                Thread.sleep(Configuration.RETRYINMS);
             }
-            throw new OpenR66ProtocolNetworkException(
-                    "Cannot find local connection");
+            logger.warn("Cannot find local connection");
         }
     }
 

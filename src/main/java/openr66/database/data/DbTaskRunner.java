@@ -1021,35 +1021,54 @@ public class DbTaskRunner extends AbstractDbData {
             return preparedStatement;
         }
         request += " WHERE ";
-        StringBuilder scondition = new StringBuilder(getLimitWhereCondition());
-        scondition.append(" AND ");
+        StringBuilder scondition = new StringBuilder();
+        boolean hasCondition = false;
         if (start != null & stop != null) {
             scondition.append(Columns.STARTTRANS.name());
             scondition.append(" >= ? AND ");
             scondition.append(Columns.STARTTRANS.name());
             scondition.append(" <= ? ");
+            hasCondition = true;
         } else if (start != null) {
             scondition.append(Columns.STARTTRANS.name());
             scondition.append(" >= ? ");
+            hasCondition = true;
         } else if (stop != null) {
             scondition.append(Columns.STARTTRANS.name());
             scondition.append(" <= ? ");
+            hasCondition = true;
         }
         if (startid != null) {
+            if (hasCondition) {
+                scondition.append(" AND ");
+            }
+            hasCondition = true;
             scondition.append(Columns.SPECIALID.name());
             scondition.append(" >= ? ");
         }
         if (stopid != null) {
+            if (hasCondition) {
+                scondition.append(" AND ");
+            }
+            hasCondition = true;
             scondition.append(Columns.SPECIALID.name());
             scondition.append(" <= ? ");
         }
         if (rule != null) {
+            if (hasCondition) {
+                scondition.append(" AND ");
+            }
+            hasCondition = true;
             scondition.append(Columns.IDRULE.name());
             scondition.append(" LIKE '%");
             scondition.append(rule);
             scondition.append("%' ");
         }
         if (req != null) {
+            if (hasCondition) {
+                scondition.append(" AND ");
+            }
+            hasCondition = true;
             scondition.append("( ");
             scondition.append(Columns.REQUESTED.name());
             scondition.append(" LIKE '%");
@@ -1061,6 +1080,10 @@ public class DbTaskRunner extends AbstractDbData {
             scondition.append("%' )");
         }
         if (!all) {
+            if (hasCondition) {
+                scondition.append(" AND ");
+            }
+            hasCondition = true;
             scondition.append("( ");
             boolean hasone = false;
             if (pending) {

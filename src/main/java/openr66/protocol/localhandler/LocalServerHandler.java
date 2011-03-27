@@ -417,11 +417,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 session.setStatus(54);
                 return;
             } else {
-                if (localChannelReference.getFutureRequest().isDone()) {
-                    R66Result result = localChannelReference.getFutureRequest()
-                        .getResult();
-                    if (result != null) {
-                        isAnswered = result.isAnswered;
+                if (localChannelReference != null && localChannelReference.getFutureRequest() != null) {
+                    if (localChannelReference.getFutureRequest().isDone()) {
+                        R66Result result = localChannelReference.getFutureRequest()
+                            .getResult();
+                        if (result != null) {
+                            isAnswered = result.isAnswered;
+                        }
                     }
                 }
                 if (exception instanceof OpenR66ProtocolNoConnectionException) {
@@ -519,11 +521,14 @@ public class LocalServerHandler extends SimpleChannelHandler {
                             exception, session, true, code, session.getRunner());
                 try {
                     session.setFinalizeTransfer(false, finalValue);
-                    localChannelReference.invalidateRequest(finalValue);
+                    if (localChannelReference != null)
+                        localChannelReference.invalidateRequest(finalValue);
                 } catch (OpenR66RunnerErrorException e1) {
-                    localChannelReference.invalidateRequest(finalValue);
+                    if (localChannelReference != null)
+                        localChannelReference.invalidateRequest(finalValue);
                 } catch (OpenR66ProtocolSystemException e1) {
-                    localChannelReference.invalidateRequest(finalValue);
+                    if (localChannelReference != null)
+                        localChannelReference.invalidateRequest(finalValue);
                 }
             }
             if (exception instanceof OpenR66ProtocolBusinessNoWriteBackException) {
@@ -1571,6 +1576,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
+                logger.warn("Will Close Local from Network Channel");
                 Configuration.configuration.getLocalTransaction()
                     .closeLocalChannelsFromNetworkChannel(localChannelReference
                             .getNetworkChannel());

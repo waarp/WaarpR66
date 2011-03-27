@@ -608,10 +608,12 @@ public class R66Session implements SessionInterface {
             throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException {
         logger.debug(status+":"+finalValue+":"+runner);
         if (runner == null) {
-            if (status) {
-                localChannelReference.validateRequest(finalValue);
-            } else {
-                localChannelReference.invalidateRequest(finalValue);
+            if (localChannelReference != null) {
+                if (status) {
+                    localChannelReference.validateRequest(finalValue);
+                } else {
+                    localChannelReference.invalidateRequest(finalValue);
+                }
             }
             return;
         }

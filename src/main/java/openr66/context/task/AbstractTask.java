@@ -364,9 +364,21 @@ public abstract class AbstractTask implements Runnable {
             GgStringUtils.replaceAll(builder, ERRORCODE, "-");
             GgStringUtils.replaceAll(builder, ERRORSTRCODE, ErrorCode.Unknown.name());
         } else {
-            GgStringUtils.replaceAll(builder, ERRORMSG, session.getLocalChannelReference().getErrorMessage());
-            GgStringUtils.replaceAll(builder, ERRORCODE, session.getLocalChannelReference().getCurrentCode().getCode());
-            GgStringUtils.replaceAll(builder, ERRORSTRCODE, session.getLocalChannelReference().getCurrentCode().name());
+            try {
+                GgStringUtils.replaceAll(builder, ERRORMSG, session.getLocalChannelReference().getErrorMessage());
+            } catch (NullPointerException e) {
+                GgStringUtils.replaceAll(builder, ERRORMSG, "NoError");
+            }
+            try {
+                GgStringUtils.replaceAll(builder, ERRORCODE, session.getLocalChannelReference().getCurrentCode().getCode());
+            } catch (NullPointerException e) {
+                GgStringUtils.replaceAll(builder, ERRORCODE, "-");
+            }
+            try {
+                GgStringUtils.replaceAll(builder, ERRORSTRCODE, session.getLocalChannelReference().getCurrentCode().name());
+            } catch (NullPointerException e) {
+                GgStringUtils.replaceAll(builder, ERRORSTRCODE, ErrorCode.Unknown.name());
+            }
         }
         String finalname = String.format(builder.toString(), argFormat);
         return finalname;

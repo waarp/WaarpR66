@@ -319,6 +319,10 @@ public class LocalTransaction {
                     networkChannel) == 0) {
                 // give a chance for the LocalChannel to stop normally
                 boolean wait = false;
+                try {
+                    Thread.sleep(Configuration.RETRYINMS*10);
+                } catch (InterruptedException e) {
+                }
                 if (! localChannelReference.getFutureRequest().isDone()) {
                     if (localChannelReference.getFutureValidRequest().isDone() &&
                             localChannelReference.getFutureValidRequest().isFailed()) {

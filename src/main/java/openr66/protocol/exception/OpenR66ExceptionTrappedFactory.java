@@ -134,7 +134,7 @@ public class OpenR66ExceptionTrappedFactory {
                     e2);
         } else if (e1 instanceof SSLException) {
             final SSLException e2 = (SSLException) e1;
-            logger.error("Connection aborted since SSL Error {} with Channel {}", e2
+            logger.debug("Connection aborted since SSL Error {} with Channel {}", e2
                     .getMessage(), channel);
             return new OpenR66ProtocolBusinessNoWriteBackException("SSL Connection aborted", e2);
         } else if (e1 instanceof IOException) {
@@ -142,9 +142,9 @@ public class OpenR66ExceptionTrappedFactory {
             logger.debug("Connection aborted since {} with Channel {}", e2
                     .getMessage(), channel);
             if (channel.isConnected()) {
-                return new OpenR66ProtocolSystemException("Connection aborted", e2);
+                return new OpenR66ProtocolSystemException("Connection aborted due to "+e2.getMessage(), e2);
             } else {
-                return new OpenR66ProtocolBusinessNoWriteBackException("Connection aborted", e2);
+                return new OpenR66ProtocolBusinessNoWriteBackException("Connection aborted due to "+e2.getMessage(), e2);
             }
         } else if (e1 instanceof RejectedExecutionException) {
             final RejectedExecutionException e2 = (RejectedExecutionException) e1;
