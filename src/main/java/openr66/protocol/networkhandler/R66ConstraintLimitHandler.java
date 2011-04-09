@@ -36,6 +36,9 @@ import goldengate.common.cpu.GgConstraintLimitHandler;
  *
  */
 public class R66ConstraintLimitHandler extends GgConstraintLimitHandler {
+    public R66ConstraintLimitHandler() {
+        super();
+    }
 
     /**
      * @param useJdKCpuLimit True to use JDK Cpu native or False for JavaSysMon
@@ -64,7 +67,9 @@ public class R66ConstraintLimitHandler extends GgConstraintLimitHandler {
      */
     public R66ConstraintLimitHandler(boolean useCpuLimit,
             boolean useJdKCpuLimit, double cpulimit, int channellimit) {
-        super(useCpuLimit, useJdKCpuLimit, cpulimit, channellimit);
+        super(Configuration.WAITFORNETOP, Configuration.configuration != null ? 
+                Configuration.configuration.TIMEOUTCON : 30000, 
+                useCpuLimit, useJdKCpuLimit, cpulimit, channellimit);
     }
 
     /**

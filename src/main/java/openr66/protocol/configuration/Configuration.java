@@ -457,7 +457,7 @@ public class Configuration {
      * Constraint Limit Handler on CPU usage and Connection limitation
      */
     public R66ConstraintLimitHandler constraintLimitHandler = 
-        new R66ConstraintLimitHandler(false, false, 1, 0);
+        new R66ConstraintLimitHandler();
     /**
      * Do we check Remote Address from DbHost
      */
