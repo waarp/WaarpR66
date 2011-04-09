@@ -282,6 +282,7 @@ public class ChannelUtils extends Thread {
      * Exit global ChannelFactory
      */
     public static void exit() {
+        Configuration.configuration.constraintLimitHandler.release();
         // First try to StopAll
         TransferUtils.stopSelectedTransfers(DbConstant.admin.session, 0,
                 null, null, null, null, null, null, null, null, null, true, true, true);

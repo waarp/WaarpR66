@@ -59,7 +59,7 @@ import openr66.database.model.DbModelFactory;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.http.adminssl.HttpSslPipelineFactory;
-import openr66.protocol.networkhandler.ConstraintLimitHandler;
+import openr66.protocol.networkhandler.R66ConstraintLimitHandler;
 import openr66.protocol.networkhandler.ssl.NetworkSslServerPipelineFactory;
 import openr66.protocol.utils.FileUtils;
 
@@ -248,7 +248,7 @@ public class FileBasedConfiguration {
     /**
      * Monitoring: snmp configuration file (if empty, no snmp support)
      */
-    private static final String XML_MONITOR_SNMP_CONFIG= "snmpconfig";
+    private static final String XML_MONITOR_SNMP_CONFIG = "snmpconfig";
     /**
      * Usage of CPU Limit
      */
@@ -267,6 +267,26 @@ public class FileBasedConfiguration {
      * Connection limit where 0 stands for no limit
      */
     private static final String XML_CSTRT_CONNLIMIT = "connlimit";
+    /**
+     * CPU LOW limit to apply increase of throttle
+     */
+    private static final String XML_CSTRT_LOWCPULIMIT = "lowcpulimit";
+    /**
+     * CPU HIGH limit to apply decrease of throttle, 0 meaning no throttle activated
+     */
+    private static final String XML_CSTRT_HIGHCPULIMIT = "highcpulimit";
+    /**
+     * PERCENTAGE DECREASE of Bandwidth
+     */
+    private static final String XML_CSTRT_PERCENTDECREASE = "percentdecrease";
+    /**
+     * Delay between 2 checks of throttle test
+     */
+    private static final String XML_CSTRT_DELAYTHROTTLE = "delaythrottle";
+    /**
+     * Bandwidth low limit to not got below
+     */
+    private static final String XML_CSTRT_LIMITLOWBANDWIDTH = "limitlowbandwidth";
     /**
      * Usage of checking remote address with the DbHost definition
      */
@@ -471,6 +491,11 @@ public class FileBasedConfiguration {
         new XmlDecl(XmlType.BOOLEAN, XML_CSTRT_USECPUJDKLIMIT),
         new XmlDecl(XmlType.DOUBLE, XML_CSTRT_CPULIMIT),
         new XmlDecl(XmlType.INTEGER, XML_CSTRT_CONNLIMIT),
+        new XmlDecl(XmlType.DOUBLE, XML_CSTRT_LOWCPULIMIT),
+        new XmlDecl(XmlType.DOUBLE, XML_CSTRT_HIGHCPULIMIT),
+        new XmlDecl(XmlType.DOUBLE, XML_CSTRT_PERCENTDECREASE),
+        new XmlDecl(XmlType.LONG, XML_CSTRT_LIMITLOWBANDWIDTH),
+        new XmlDecl(XmlType.LONG, XML_CSTRT_DELAYTHROTTLE),
         new XmlDecl(XmlType.LONG, XML_TIMEOUTCON),
         new XmlDecl(XmlType.BOOLEAN, XML_USENIO),
         new XmlDecl(XmlType.BOOLEAN, XML_USEFASTMD5), 
@@ -935,8 +960,39 @@ public class FileBasedConfiguration {
         if (value != null && (!value.isEmpty())) {
             connlimit = value.getInteger();
         }
-        Configuration.configuration.constraintLimitHandler =
-            new ConstraintLimitHandler(useCpuLimit, useCpuLimitJDK, cpulimit, connlimit);
+        double lowcpuLimit = 0;
+        double highcpuLimit = 0;
+        double percentageDecrease = 0;
+        long delay = 1000000;
+        long limitLowBandwidth = 4096;
+        value = hashConfig.get(XML_CSTRT_LOWCPULIMIT);
+        if (value != null && (!value.isEmpty())) {
+            lowcpuLimit = value.getDouble();
+        }
+        value = hashConfig.get(XML_CSTRT_HIGHCPULIMIT);
+        if (value != null && (!value.isEmpty())) {
+            highcpuLimit = value.getDouble();
+        }
+        value = hashConfig.get(XML_CSTRT_PERCENTDECREASE);
+        if (value != null && (!value.isEmpty())) {
+            percentageDecrease = value.getDouble();
+        }
+        value = hashConfig.get(XML_CSTRT_DELAYTHROTTLE);
+        if (value != null && (!value.isEmpty())) {
+            delay = value.getLong();
+        }
+        value = hashConfig.get(XML_CSTRT_LIMITLOWBANDWIDTH);
+        if (value != null && (!value.isEmpty())) {
+            limitLowBandwidth = value.getLong();
+        }
+        if (highcpuLimit > 0) {
+            Configuration.configuration.constraintLimitHandler =
+                new R66ConstraintLimitHandler(useCpuLimit, useCpuLimitJDK, cpulimit, connlimit,
+                        lowcpuLimit, highcpuLimit, percentageDecrease, null, delay, limitLowBandwidth);
+        } else {
+            Configuration.configuration.constraintLimitHandler =
+                new R66ConstraintLimitHandler(useCpuLimit, useCpuLimitJDK, cpulimit, connlimit);
+        }
         value = hashConfig.get(XML_SERVER_THREAD);
         if (value != null && (!value.isEmpty())) {
             Configuration.configuration.SERVER_THREAD = value.getInteger();

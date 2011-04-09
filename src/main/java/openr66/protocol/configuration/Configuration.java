@@ -50,9 +50,9 @@ import openr66.protocol.http.adminssl.HttpSslPipelineFactory;
 import openr66.protocol.localhandler.LocalTransaction;
 import openr66.protocol.localhandler.Monitoring;
 import openr66.protocol.networkhandler.ChannelTrafficHandler;
-import openr66.protocol.networkhandler.ConstraintLimitHandler;
 import openr66.protocol.networkhandler.GlobalTrafficHandler;
 import openr66.protocol.networkhandler.NetworkServerPipelineFactory;
+import openr66.protocol.networkhandler.R66ConstraintLimitHandler;
 import openr66.protocol.networkhandler.packet.NetworkPacketSizeEstimator;
 import openr66.protocol.networkhandler.ssl.NetworkSslServerPipelineFactory;
 import openr66.protocol.snmp.R66PrivateMib;
@@ -456,8 +456,8 @@ public class Configuration {
     /**
      * Constraint Limit Handler on CPU usage and Connection limitation
      */
-    public ConstraintLimitHandler constraintLimitHandler = 
-        new ConstraintLimitHandler(false, false, 1, 0);
+    public R66ConstraintLimitHandler constraintLimitHandler = 
+        new R66ConstraintLimitHandler(false, false, 1, 0);
     /**
      * Do we check Remote Address from DbHost
      */
@@ -593,6 +593,7 @@ public class Configuration {
         globalTrafficShapingHandler = new GlobalTrafficHandler(
                 objectSizeEstimator, execTrafficCounter,
                 serverGlobalWriteLimit, serverGlobalReadLimit, delayLimit);
+        this.constraintLimitHandler.setHandler(globalTrafficShapingHandler);
 
         // Now start the InternalRunner
         internalRunner = new InternalRunner();

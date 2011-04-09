@@ -34,8 +34,8 @@ import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolNotYetConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.localhandler.LocalChannelReference;
-import openr66.protocol.networkhandler.ConstraintLimitHandler;
 import openr66.protocol.networkhandler.NetworkTransaction;
+import openr66.protocol.networkhandler.R66ConstraintLimitHandler;
 import openr66.protocol.utils.R66Future;
 
 /**
@@ -106,7 +106,7 @@ public abstract class ProgressBarTransfer extends AbstractTransfer {
                     // redo if possible
                     if (runner.incrementTaskRunerTry(taskRunner, Configuration.RETRYNB)) {
                         try {
-                            Thread.sleep(ConstraintLimitHandler.getSleepTime());
+                            Thread.sleep(R66ConstraintLimitHandler.getSleepTime());
                         } catch (InterruptedException e) {
                         }
                         i--;

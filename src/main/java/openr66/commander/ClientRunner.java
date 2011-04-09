@@ -45,8 +45,8 @@ import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.EndRequestPacket;
 import openr66.protocol.localhandler.packet.RequestPacket;
-import openr66.protocol.networkhandler.ConstraintLimitHandler;
 import openr66.protocol.networkhandler.NetworkTransaction;
+import openr66.protocol.networkhandler.R66ConstraintLimitHandler;
 import openr66.protocol.utils.ChannelUtils;
 import openr66.protocol.utils.R66Future;
 import openr66.protocol.utils.TransferUtils;
@@ -216,7 +216,7 @@ public class ClientRunner extends Thread {
         // redo if possible
         if (retry && incRetry) {
             try {
-                Thread.sleep(ConstraintLimitHandler.getSleepTime());
+                Thread.sleep(R66ConstraintLimitHandler.getSleepTime());
             } catch (InterruptedException e) {
             }
             return runTransfer();

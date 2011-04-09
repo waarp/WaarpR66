@@ -1132,6 +1132,10 @@ public class DbTaskRunner extends AbstractDbData {
                 scondition.append(" = ");
                 scondition.append(UpdatedInfo.DONE.ordinal());
             }
+            if (scondition.length() <= 3) {
+                scondition.append(Columns.UPDATEDINFO.name());
+                scondition.append(" IS NOT NULL ");
+            }
             scondition.append(" )");
         }
         if (limit > 0) {

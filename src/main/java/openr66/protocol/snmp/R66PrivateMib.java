@@ -201,7 +201,7 @@ public class R66PrivateMib extends GgPrivateMib {
                                                 .getOID(rootOIDGoldenGateNotif,
                                                         NotificationTasks.stepInfo
                                                                 .getOID()),
-                                        new Gauge32(runner.getStep())),
+                                        new Gauge32(runner.getStep()+1)),
                                 new VariableBinding(
                                         NotificationElements.InfoTask
                                                 .getOID(rootOIDGoldenGateNotif,

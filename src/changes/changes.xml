@@ -5,6 +5,9 @@
 		<author email="fredbregier at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+		<release version="2.1.2" date="2011-04-28" description="Add new functionality">
+			<action dev="Frederic Bregier" type="add">Add proactive CPU limitation through Bandwidth throttling</action>
+		</release>
 		<release version="2.1.1" date="2011-03-27" description="Monitoring and Exec improvement">
 			<action dev="Frederic Bregier" type="fix">Fix Index: NEED TO UPDATE THE DATABASE MODEL (-initdb option with ServerInitDatabase command)</action>
 			<action dev="Frederic Bregier" type="add">Cache compatibility added to HTTP and HTTPS</action>

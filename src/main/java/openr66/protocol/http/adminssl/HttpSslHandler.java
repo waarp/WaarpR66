@@ -572,6 +572,9 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     all = true;
                 } else if (!(pending || transfer || error || done)) {
                     all = true;
+                    pending = true;
+                    transfer = true;
+                    error = true;
                 }
                 Timestamp tstart = GgStringUtils.fixDate(start);
                 if (tstart != null) {
@@ -631,7 +634,11 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                         logger.warn("OpenR66 Web Error {}",e.getMessage());
                     }
                 }
-                body = builder.toString();
+                if (builder != null) {
+                    body = builder.toString();
+                } else {
+                    body = "";
+                }
                 body1 = REQUEST.CancelRestart.readBodyEnd();
             } else if ("Cancel".equalsIgnoreCase(parm) || "Stop".equalsIgnoreCase(parm)) {
                 // Cancel or Stop
