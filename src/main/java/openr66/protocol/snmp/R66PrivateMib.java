@@ -121,7 +121,7 @@ public class R66PrivateMib extends GgPrivateMib {
         rowError.registerMOs(agent.getServer(), null);
     }
     /**
-     * Send a notification (trap or inform) for Start or Stop event
+     * Send a notification (trap or inform) for Shutdown event
      * @param message
      * @param message2
      */
