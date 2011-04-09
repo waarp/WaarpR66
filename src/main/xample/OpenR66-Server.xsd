@@ -556,6 +556,41 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                   </xsd:element>
+				  <xsd:element name="lowcpulimit" type="decimalType" default="0.0" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Low Limit of CPU usage in percentage from 0 to 1"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="highcpulimit" type="decimalType" default="0.0" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="High Limit of CPU usage in percentage from 0 to 1, 0 meaning no throttle activated"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="percentdecrease" type="decimalType" default="0.25" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Decrease/Increase of bandwidth when limits are reached in percentage from 0 to 1"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="delaythrottle" type="nonNegInteger" default="1000" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Delay in ms, minimal as 500ms, best around 1000ms"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="limitlowbandwidth" type="nonNegInteger" default="4096" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Low Limit of Bandwidth when decreasing from 4096"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
 				  <xsd:element name="usefastmd5" type="booleanType" default="True" >
                     <xsd:annotation>
                         <xsd:appinfo>
