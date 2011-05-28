@@ -20,11 +20,9 @@
  */
 package openr66.database.model;
 
-import goldengate.common.database.DbAdmin;
 import goldengate.common.database.DbPreparedStatement;
 import goldengate.common.database.DbRequest;
 import goldengate.common.database.DbSession;
-import goldengate.common.database.exception.GoldenGateDatabaseException;
 import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
 import goldengate.common.database.exception.GoldenGateDatabaseNoDataException;
 import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
@@ -247,66 +245,4 @@ public class DbModelPostgresql extends goldengate.common.database.model.DbModelP
             preparedStatement.realClose();
         }
     }
-
-    /* (non-Javadoc)
-     * @see openr66.databaseold.model.DbModel#validConnection(DbSession)
-     */
-    @Override
-    public void validConnection(DbSession dbSession) throws GoldenGateDatabaseNoConnectionError {
-        DbRequest request = new DbRequest(dbSession, true);
-        try {
-            request.select("select 1");
-            if (!request.getNext()) {
-                throw new GoldenGateDatabaseNoConnectionError(
-                        "Cannot connect to database");
-            }
-        } catch (GoldenGateDatabaseSqlError e) {
-            try {
-                DbSession newdbSession = new DbSession(dbSession.getAdmin(), false);
-                try {
-                    if (dbSession.conn != null) {
-                        dbSession.conn.close();
-                    }
-                } catch (SQLException e1) {
-                }
-                dbSession.conn = newdbSession.conn;
-                DbAdmin.addConnection(dbSession.internalId, dbSession.conn);
-                DbAdmin.removeConnection(newdbSession.internalId);
-                request.close();
-                request.select("select 1");
-                if (!request.getNext()) {
-                    try {
-                        if (dbSession.conn != null) {
-                            dbSession.conn.close();
-                        }
-                    } catch (SQLException e1) {
-                    }
-                    DbAdmin.removeConnection(dbSession.internalId);
-                    throw new GoldenGateDatabaseNoConnectionError(
-                            "Cannot connect to database");
-                }
-                return;
-            } catch (GoldenGateDatabaseException e1) {
-            }
-            try {
-                if (dbSession.conn != null) {
-                    dbSession.conn.close();
-                }
-            } catch (SQLException e1) {
-            }
-            DbAdmin.removeConnection(dbSession.internalId);
-            throw new GoldenGateDatabaseNoConnectionError(
-                    "Cannot connect to database", e);
-        } finally {
-            request.close();
-        }
-    }
-    /* (non-Javadoc)
-     * @see openr66.databaseold.model.DbModel#limitRequest(java.lang.String, java.lang.String, int)
-     */
-    @Override
-    public String limitRequest(String allfields, String request, int nb) {
-        return request+" LIMIT "+nb;
-    }
-
 }
