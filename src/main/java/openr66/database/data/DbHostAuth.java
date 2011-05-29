@@ -471,7 +471,9 @@ public class DbHostAuth extends AbstractDbData {
        request += " FROM "+table+
            " WHERE "+Columns.UPDATEDINFO.name()+" = "+
            AbstractDbData.UpdatedInfo.TOSUBMIT.ordinal();
-       return new DbPreparedStatement(session, request);
+       DbPreparedStatement prep = new DbPreparedStatement(session, request);
+       session.addLongTermPreparedStatement(prep);
+       return prep;
    }
    /**
     *
