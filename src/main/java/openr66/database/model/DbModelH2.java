@@ -86,7 +86,8 @@ public class DbModelH2 extends goldengate.common.database.model.DbModelH2 {
         DbMultipleMonitor multipleMonitor = new DbMultipleMonitor(session, 
                 Configuration.configuration.HOST_ID,0,0,0);
         try {
-            multipleMonitor.insert();
+            if (!multipleMonitor.exist())
+                multipleMonitor.insert();
         } catch (GoldenGateDatabaseException e1) {
             e1.printStackTrace();
         }

@@ -87,7 +87,8 @@ public class DbModelPostgresql extends goldengate.common.database.model.DbModelP
         DbMultipleMonitor multipleMonitor = new DbMultipleMonitor(session, 
                 Configuration.configuration.HOST_ID,0,0,0);
         try {
-            multipleMonitor.insert();
+            if (!multipleMonitor.exist())
+                multipleMonitor.insert();
         } catch (GoldenGateDatabaseException e1) {
             e1.printStackTrace();
         }
