@@ -471,6 +471,10 @@ public class Configuration {
      */
     public boolean saveTaskRunnerWithNoDb = false;
     /**
+     * In case of Multiple OpenR66 monitor servers behing a load balancer (HA solution)
+     */
+    public int multipleMonitors = 1;
+    /**
      * Monitoring object
      */
     public Monitoring monitoring = null;

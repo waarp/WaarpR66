@@ -38,5 +38,9 @@ public class DbConstant extends goldengate.common.database.DbConstant {
      * The current DbAdmin object
      */
     public static DbAdmin admin = null;
+    /**
+     * The no-commit DbAdmin object
+     */
+    public static DbAdmin noCommitAdmin = null;
 }
 

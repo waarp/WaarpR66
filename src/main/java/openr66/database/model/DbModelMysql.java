@@ -23,6 +23,7 @@ package openr66.database.model;
 import goldengate.common.database.DbPreparedStatement;
 import goldengate.common.database.DbRequest;
 import goldengate.common.database.DbSession;
+import goldengate.common.database.exception.GoldenGateDatabaseException;
 import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
 import goldengate.common.database.exception.GoldenGateDatabaseNoDataException;
 import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
@@ -33,8 +34,10 @@ import java.util.concurrent.locks.ReentrantLock;
 import openr66.database.DbConstant;
 import openr66.database.data.DbConfiguration;
 import openr66.database.data.DbHostAuth;
+import openr66.database.data.DbMultipleMonitor;
 import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
+import openr66.protocol.configuration.Configuration;
 
 /**
  * MySQL Database Model implementation
@@ -58,8 +61,41 @@ public class DbModelMysql extends goldengate.common.database.model.DbModelMysql 
         String primaryKey = " PRIMARY KEY ";
         String notNull = " NOT NULL ";
 
+        // Multiple Mode
+        String action = createTableH2 + DbMultipleMonitor.table + "(";
+        DbMultipleMonitor.Columns[] mcolumns = DbMultipleMonitor.Columns
+                .values();
+        for (int i = 0; i < mcolumns.length - 1; i ++) {
+            action += mcolumns[i].name() +
+                    DBType.getType(DbMultipleMonitor.dbTypes[i]) + notNull +
+                    ", ";
+        }
+        action += mcolumns[mcolumns.length - 1].name() +
+                DBType.getType(DbMultipleMonitor.dbTypes[mcolumns.length - 1]) +
+                primaryKey + ")";
+        System.out.println(action);
+        DbRequest request = new DbRequest(session);
+        try {
+            request.query(action);
+        } catch (GoldenGateDatabaseNoConnectionError e) {
+            e.printStackTrace();
+            return;
+        } catch (GoldenGateDatabaseSqlError e) {
+            e.printStackTrace();
+            return;
+        } finally {
+            request.close();
+        }
+        DbMultipleMonitor multipleMonitor = new DbMultipleMonitor(session, 
+                Configuration.configuration.HOST_ID,0,0,0);
+        try {
+            multipleMonitor.insert();
+        } catch (GoldenGateDatabaseException e1) {
+            e1.printStackTrace();
+        }
+
         // Configuration
-        String action = createTableH2 + DbConfiguration.table + "(";
+        action = createTableH2 + DbConfiguration.table + "(";
         DbConfiguration.Columns[] ccolumns = DbConfiguration.Columns
                 .values();
         for (int i = 0; i < ccolumns.length - 1; i ++) {
@@ -71,7 +107,7 @@ public class DbModelMysql extends goldengate.common.database.model.DbModelMysql 
                 DBType.getType(DbConfiguration.dbTypes[ccolumns.length - 1]) +
                 primaryKey + ")";
         System.out.println(action);
-        DbRequest request = new DbRequest(session);
+        request = new DbRequest(session);
         try {
             request.query(action);
         } catch (GoldenGateDatabaseNoConnectionError e) {

@@ -250,6 +250,10 @@ public class FileBasedConfiguration {
      */
     private static final String XML_MONITOR_SNMP_CONFIG = "snmpconfig";
     /**
+     * In case of multiple OpenR66 Monitors behing a loadbalancer (ha config)
+     */
+    private static final String XML_MULTIPLE_MONITORS = "multiplemonitors";
+    /**
      * Usage of CPU Limit
      */
     private static final String XML_CSTRT_USECPULIMIT = "usecpulimit";
@@ -433,7 +437,8 @@ public class FileBasedConfiguration {
         new XmlDecl(XmlType.STRING, XML_PATH_ADMIN_KEYPASS),
         new XmlDecl(XmlType.LONG, XML_MONITOR_PASTLIMIT),
         new XmlDecl(XmlType.LONG, XML_MONITOR_MINIMALDELAY),
-        new XmlDecl(XmlType.STRING, XML_MONITOR_SNMP_CONFIG)
+        new XmlDecl(XmlType.STRING, XML_MONITOR_SNMP_CONFIG),
+        new XmlDecl(XmlType.INTEGER, XML_MULTIPLE_MONITORS)
     };
     /**
      * Structure of the Configuration file
@@ -793,6 +798,16 @@ public class FileBasedConfiguration {
             } else {
                 Configuration.configuration.snmpConfig = null;
             }
+        }
+        value = hashConfig.get(XML_MULTIPLE_MONITORS);
+        if (value != null && (!value.isEmpty())) {
+            Configuration.configuration.multipleMonitors = value.getInteger();
+            logger.warn("Multiple Monitor configuration active for "
+                    +Configuration.configuration.multipleMonitors
+                    +" servers in HA behind a Load Balancer in TCP");
+        } else {
+            Configuration.configuration.multipleMonitors = 1;
+            logger.warn("Multiple Monitor configuration unactive");
         }
         return true;
     }
@@ -1295,6 +1310,14 @@ public class FileBasedConfiguration {
                 DbConstant.admin = 
                     DbModelFactory.initialize(dbdriver, dbserver, dbuser, dbpasswd,
                         true);
+                DbConstant.noCommitAdmin = 
+                    DbModelFactory.initialize(dbdriver, dbserver, dbuser, dbpasswd,
+                        true);
+                if (Configuration.configuration.multipleMonitors > 1) {
+                    DbConstant.noCommitAdmin.session.setAutoCommit(false);
+                } else {
+                    DbConstant.noCommitAdmin = DbConstant.admin;
+                }
             } catch (GoldenGateDatabaseNoConnectionError e2) {
                 logger.error("Unable to Connect to DB", e2);
                 return false;
