@@ -92,21 +92,21 @@
   <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-access</artifactId>
-      <version>0.9.28</version>
+      <version>0.9.29</version>
       <scope>compile</scope>
       <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>0.9.28</version>
+      <version>0.9.29</version>
       <scope>compile</scope>
       <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-core</artifactId>
-      <version>0.9.28</version>
+      <version>0.9.29</version>
       <scope>compile</scope>
       <optional>true</optional>
     </dependency>
@@ -156,7 +156,7 @@
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
-      <version>1.3.153</version>
+      <version>1.3.157</version>
       <optional>true</optional>
     </dependency>
     <dependency>
@@ -168,7 +168,7 @@
     <dependency>
     	<groupId>mysql</groupId>
     	<artifactId>mysql-connector-java</artifactId>
-    	<version>5.1.15</version>
+    	<version>5.1.17</version>
     	<optional>true</optional>
     </dependency>
     <dependency>
@@ -213,12 +213,12 @@
     <dependency>
     	<groupId>GoldenGate</groupId>
     	<artifactId>GoldenGateExec</artifactId>
-    	<version>1.0.2</version>
+    	<version>1.0.3</version>
     </dependency>
     <dependency>
     	<groupId>GoldenGate</groupId>
     	<artifactId>GoldenGateSnmp</artifactId>
-    	<version>1.0.0</version>
+    	<version>1.0.1</version>
     	<type>jar</type>
     	<scope>compile</scope>
     </dependency>
