@@ -32,6 +32,8 @@ import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
 import java.sql.Types;
 import java.util.concurrent.ConcurrentHashMap;
 
+import openr66.protocol.configuration.Configuration;
+
 /**
  * Configuration Table object
  *
@@ -309,17 +311,62 @@ public class DbMultipleMonitor extends AbstractDbData {
     }
     /**
      *
-     * @return the DbPreparedStatement for getting Updated Object
+     * @return the DbPreparedStatement for getting Updated Object in "FOR UPDATE" mode
      * @throws GoldenGateDatabaseNoConnectionError
      * @throws GoldenGateDatabaseSqlError
      */
     public static DbPreparedStatement getUpdatedPrepareStament(DbSession session) throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
         String request = "SELECT " +selectAllFields;
-        request += " FROM "+table+
+        request += " FROM "+table+ " WHERE "+Columns.HOSTID.name()+" = '"+Configuration.configuration.HOST_ID+"'"+
             " FOR UPDATE ";
         DbPreparedStatement prep = new DbPreparedStatement(session, request);
         session.addLongTermPreparedStatement(prep);
         return prep;
+    }
+    /**
+     * On Commander side
+     * @return True if this is the last update
+     */
+    public boolean checkUpdateConfig(){
+        if (countConfig <= 0) {
+            countConfig = Configuration.configuration.multipleMonitors;
+            countConfig --;
+            this.isSaved = false;
+        } else {
+            countConfig --;
+            this.isSaved = false;
+        }
+        return this.countConfig <= 0;
+    }
+    /**
+     * On Commander side
+     * @return True if this is the last update
+     */
+    public boolean checkUpdateHost(){
+        if (countHost <= 0) {
+            countHost = Configuration.configuration.multipleMonitors;
+            countHost --;
+            this.isSaved = false;
+        } else {
+            countHost --;
+            this.isSaved = false;
+        }
+        return this.countHost <= 0;
+    }
+    /**
+     * On Commander side
+     * @return True if this is the last update
+     */
+    public boolean checkUpdateRule(){
+        if (countRule <= 0) {
+            countRule = Configuration.configuration.multipleMonitors;
+            countRule --;
+            this.isSaved = false;
+        } else {
+            countRule --;
+            this.isSaved = false;
+        }
+        return this.countRule <= 0;
     }
     /*
      * (non-Javadoc)
@@ -328,5 +375,11 @@ public class DbMultipleMonitor extends AbstractDbData {
      */
     @Override
     public void changeUpdatedInfo(UpdatedInfo info) {
+    }
+    /**
+     * return the String representation
+     */
+    public String toString() {
+        return "DbMM "+countConfig+":"+countHost+":"+countRule;
     }
 }

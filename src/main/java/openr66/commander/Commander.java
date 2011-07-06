@@ -177,7 +177,8 @@ public class Commander implements Runnable {
             } catch (GoldenGateDatabaseSqlError e) {
                 logger.error("Database SQL Error: Cannot execute Commander", e);
                 return;
-            }            
+            }
+            logger.debug("Before "+multipleMonitor);
             // First check Configuration
             try {
                 preparedStatementConfig.executeQuery();
@@ -189,13 +190,13 @@ public class Commander implements Runnable {
                     }
                     if (multipleMonitor != null) {
                         // update the configuration in HA mode
-                        if (multipleMonitor.countConfig <= 1) {
-                            multipleMonitor.countConfig = Configuration.configuration.multipleMonitors;
+                        if (multipleMonitor.checkUpdateConfig()) {
                             configuration.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
                             configuration.update();
+                            logger.debug("Config "+multipleMonitor);
                         } else {
                             configuration.update();
-                            multipleMonitor.countConfig --;
+                            logger.debug("Config "+multipleMonitor);
                         }
                     } else {
                         configuration.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
@@ -219,18 +220,27 @@ public class Commander implements Runnable {
             // Check HostAuthent
             try {
                 preparedStatementHost.executeQuery();
+                boolean mm = false;
+                boolean lastUpdate = false;
                 while (preparedStatementHost.getNext()) {
+                    // Maybe multiple
                     DbHostAuth hostAuth = DbHostAuth.getFromStatement(preparedStatementHost);
                     if (multipleMonitor != null) {
+                        if (!mm) {
+                            // not already set from a previous hostAuth
+                            mm = true;
+                            lastUpdate = multipleMonitor.checkUpdateHost();
+                        } // else already set so no action on multipleMonitor
+                        
                         // Update the Host configuration in HA mode
-                        if (multipleMonitor.countHost <= 1) {
-                            multipleMonitor.countHost = Configuration.configuration.multipleMonitors;
+                        if (lastUpdate) {
                             hostAuth.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
                             hostAuth.update();
+                            logger.debug("Host "+multipleMonitor);
                         } else {
                             // Nothing to do except validate
                             hostAuth.update();
-                            multipleMonitor.countHost --;
+                            logger.debug("Host "+multipleMonitor);
                         }
                     } else {
                         // Nothing to do except validate
@@ -254,18 +264,25 @@ public class Commander implements Runnable {
             // Check Rules
             try {
                 preparedStatementRule.executeQuery();
+                boolean mm = false;
+                boolean lastUpdate = false;
                 while (preparedStatementRule.getNext()) {
                     DbRule rule = DbRule.getFromStatement(preparedStatementRule);
                     if (multipleMonitor != null) {
+                        if (!mm) {
+                            // not already set from a previous hostAuth
+                            mm = true;
+                            lastUpdate = multipleMonitor.checkUpdateRule();
+                        } // else already set so no action on multipleMonitor
                         // Update the Rules in HA mode
-                        if (multipleMonitor.countRule <= 1) {
-                            multipleMonitor.countRule = Configuration.configuration.multipleMonitors;
+                        if (lastUpdate) {
                             rule.changeUpdatedInfo(AbstractDbData.UpdatedInfo.NOTUPDATED);
                             rule.update();
+                            logger.debug("Rule "+multipleMonitor);
                         } else {
                             // Nothing to do except validate
                             rule.update();
-                            multipleMonitor.countRule --;
+                            logger.debug("Rule "+multipleMonitor);
                         }
                     } else {
                         // Nothing to do except validate
@@ -332,6 +349,7 @@ public class Commander implements Runnable {
             if (multipleMonitor != null) {
                 try {
                     // Now update and Commit so releasing the lock
+                    logger.debug("Update "+multipleMonitor);
                     multipleMonitor.update();
                     DbConstant.noCommitAdmin.session.commit();
                 } catch (GoldenGateDatabaseException e) {

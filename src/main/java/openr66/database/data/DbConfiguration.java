@@ -359,7 +359,8 @@ public class DbConfiguration extends AbstractDbData {
         String request = "SELECT " +selectAllFields;
         request += " FROM "+table+
             " WHERE "+Columns.UPDATEDINFO.name()+" = "+
-            AbstractDbData.UpdatedInfo.TOSUBMIT.ordinal();
+            AbstractDbData.UpdatedInfo.TOSUBMIT.ordinal()+
+            " AND "+ Columns.HOSTID.name()+" = '"+Configuration.configuration.HOST_ID+"'";
         DbPreparedStatement prep = new DbPreparedStatement(session, request);
         session.addLongTermPreparedStatement(prep);
         return prep;
