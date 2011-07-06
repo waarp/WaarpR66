@@ -12,6 +12,13 @@ GoldenGate OpenR66
   initiate transfers (send or receive) but do not accept a new transfer from external servers
   (heavy clients are using a database connection, while light clients are not using at all
   databases, useful for simple PC for instance).
+  
+  A new possibility of High Availability and horizontal scalability are proposed, 
+  based on an external Load Balancer on
+  TCP basis (as HA-Proxy) and a Shared Storage (like a NAS). The idea is to load-balance
+  the R66 file transfer monitors as a same server (sharing both database, storage and in front
+  through the load balancer, the same IP and port). It does not prevent a transfer to be in error
+  if one of the servers goes down, but does allow a quick restart.
 
 Dependency
 

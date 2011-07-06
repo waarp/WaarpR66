@@ -5,9 +5,11 @@
 		<author email="fredbregier at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
-		<release version="2.1.3" date="2011-05-28" description="Clean Database model">
+		<release version="2.1.3" date="2011-07-06" description="Clean Database model">
 			<action dev="Frederic Bregier" type="fix">Clean Database model by removing double method already implemented into Commons</action>
 			<action dev="Frederic Bregier" type="fix">Add the possibility to have several Monitors on the same database with same name behind a load balancer with shared storage for HA</action>
+			<action dev="Frederic Bregier" type="fix">Update to new dependent Jars</action>
+			<action dev="Frederic Bregier" type="add">Add the support of Multiple Servers acting as One for reliability and scalability</action>
 		</release>
 		<release version="2.1.2" date="2011-04-28" description="Add new functionality">
 			<action dev="Frederic Bregier" type="add">Add proactive CPU limitation through Bandwidth throttling</action>
