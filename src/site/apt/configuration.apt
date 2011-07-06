@@ -63,6 +63,10 @@ GoldenGateR66 Server and Clients Configuration
   *Create configurations files (client configuration file, authentication configuration file, rule configuration file) for a client
   
   *Create the database using the ServerInitDatabase (see {{{./commands.html}Commands detail}})
+
+  A simplified picture of the OpenR66 Database schema is shown here:
+
+[images/OpenR66-database.png] GoldenGate OpenR66 Database Schema
   
   *Make some tests for server using Message command to all declared interface (NOSSL and SSL) (see {{{./commands.html}Commands detail}})
 
