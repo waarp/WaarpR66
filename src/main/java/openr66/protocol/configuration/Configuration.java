@@ -570,7 +570,7 @@ public class Configuration {
                     SERVER_PORT)));
         } else {
             networkServerPipelineFactory = null;
-            logger.warn("NOSSL mode is desactivated");
+            logger.warn("NOSSL mode is deactivated");
         }
 
         if (useSSL && HOST_SSLID != null) {

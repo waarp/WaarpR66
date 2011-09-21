@@ -433,6 +433,15 @@ public class ClientRunner extends Thread {
             host = null;
             return localChannelReference;
         }
+        // If Requester is NOT Sender, then decrease now if possible the rank
+        if (!taskRunner.isSender()) {
+            logger.debug("Requester is not Sender so decrease if possible the rank", 
+                    taskRunner);
+            taskRunner.restartRank();
+            taskRunner.saveStatus();
+            logger.debug("Requester is not Sender so new rank is "+taskRunner.getRank(), 
+                    taskRunner);
+        }
         RequestPacket request = taskRunner.getRequest();
         logger.debug("Will send request {} ",request);
         localChannelReference.setClientRunner(this);

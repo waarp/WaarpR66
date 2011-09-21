@@ -1793,7 +1793,23 @@ public class DbTaskRunner extends AbstractDbData {
             return false;
         }
     }
-
+    /**
+     * Decrease if necessary the rank
+     */
+    public void restartRank() {
+        if (! this.isSender) {
+            int newrank = this.getRank();
+            if (newrank > 0) {
+                logger.debug("Decrease Rank Restart of -"+Configuration.RANKRESTART+
+                        " to "+newrank);
+                newrank -= Configuration.RANKRESTART;
+                if (newrank <= 0) {
+                    newrank = 1;
+                }
+            }
+            this.setTransferTask(newrank);
+        }
+    }
     /**
      * Make this Runner ready for restart
      * @param submit True to resubmit this task, else False to keep it as running (only reset)
@@ -1810,18 +1826,11 @@ public class DbTaskRunner extends AbstractDbData {
         }
         // Restart if already stopped and not finished
         if (reset()) {
+            // if not submit and transfertask and receiver AND not requester
+            // If requester and receiver => rank is already decreased when request is sent
             if ((!submit) && (this.globalstep == TASKSTEP.TRANSFERTASK.ordinal()) &&
-                    (! this.isSender)) {
-                int newrank = this.getRank();
-                if (! this.isSender) {
-                    if (newrank > 0) {
-                        newrank -= Configuration.RANKRESTART;
-                        if (newrank <= 0) {
-                            newrank = 1;
-                        }
-                    }
-                }
-                this.setTransferTask(newrank);
+                    (! this.isSender) && (!this.isSelfRequested())) {
+                this.restartRank();
             }
             if (submit) {
                 this.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
