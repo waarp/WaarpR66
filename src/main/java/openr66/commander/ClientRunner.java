@@ -433,8 +433,9 @@ public class ClientRunner extends Thread {
             host = null;
             return localChannelReference;
         }
-        // If Requester is NOT Sender, then decrease now if possible the rank
-        if (!taskRunner.isSender()) {
+        // If Requester is NOT Sender, and if TransferTask then decrease now if possible the rank
+        if (!taskRunner.isSender() && (taskRunner.getGloballaststep() == 
+            TASKSTEP.TRANSFERTASK.ordinal())) {
             logger.debug("Requester is not Sender so decrease if possible the rank", 
                     taskRunner);
             taskRunner.restartRank();
