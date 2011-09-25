@@ -506,6 +506,7 @@ public class R66Session implements SessionInterface {
             }
         }
         if (runner.getRank() > 0) {
+            logger.debug("restart at "+runner.getRank()+ " {}",runner);
             runner.setTransferTask(runner.getRank());
             restart.restartMarker(runner.getBlocksize() * runner.getRank());
         } else {
@@ -542,6 +543,7 @@ public class R66Session implements SessionInterface {
                             if (newRank <= 0) {
                                 newRank = 1;
                             }
+                            logger.debug("restart at "+newRank+ " {}",runner);
                             runner.setTransferTask(newRank);
                             restart.restartMarker(this.runner.getBlocksize() * this.runner.getRank());
                         }

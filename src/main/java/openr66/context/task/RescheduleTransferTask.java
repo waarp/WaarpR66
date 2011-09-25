@@ -131,6 +131,9 @@ public class RescheduleTransferTask extends AbstractTask {
         }
         if (runner.isSelfRequested()) {
             // Self Requested Request so reschedule is ignored
+            R66Result result = new R66Result(session, false, ErrorCode.LoopSelfRequestedHost,
+                    runner);
+            futureCompletion.setResult(result);
             futureCompletion.setFailure(new OpenR66RunnerErrorException(
                 "No valid runner in Reschedule since Self Requested"));
             return;

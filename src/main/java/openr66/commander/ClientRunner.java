@@ -349,7 +349,7 @@ public class ClientRunner extends Thread {
         if (taskRunner.isSelfRequested()) {
             // Don't have to restart a task for itself (or should use requester)
             logger.warn("Requested host cannot initiate itself the request");
-            this.changeUpdatedInfo(UpdatedInfo.INERROR, ErrorCode.NotKnownHost);
+            this.changeUpdatedInfo(UpdatedInfo.INERROR, ErrorCode.LoopSelfRequestedHost);
             throw new OpenR66ProtocolNoConnectionException("Requested host cannot initiate itself the request");
         }
         DbHostAuth host = R66Auth.getServerAuth(DbConstant.admin.session,
@@ -436,11 +436,11 @@ public class ClientRunner extends Thread {
         // If Requester is NOT Sender, and if TransferTask then decrease now if possible the rank
         if (!taskRunner.isSender() && (taskRunner.getGloballaststep() == 
             TASKSTEP.TRANSFERTASK.ordinal())) {
-            logger.debug("Requester is not Sender so decrease if possible the rank", 
+            logger.debug("Requester is not Sender so decrease if possible the rank {}", 
                     taskRunner);
             taskRunner.restartRank();
             taskRunner.saveStatus();
-            logger.debug("Requester is not Sender so new rank is "+taskRunner.getRank(), 
+            logger.debug("Requester is not Sender so new rank is "+taskRunner.getRank()+ " {}", 
                     taskRunner);
         }
         RequestPacket request = taskRunner.getRequest();

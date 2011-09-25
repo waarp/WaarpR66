@@ -147,6 +147,10 @@ public enum ErrorCode {
      */
     NotKnownHost("Not known remote host", 'N'),
     /**
+     * Code stands for self requested host starting request is invalid
+     */
+    LoopSelfRequestedHost("Host tries to start a self requested transfer", 'N'),
+    /**
      * Code stands for request should exist but is not found on remote host
      */
     QueryRemotelyUnknown("Not known remote asked query", 'u'),
@@ -239,6 +243,8 @@ public enum ErrorCode {
                 return QueryStillRunning;
             case 'N':
                 return NotKnownHost;
+            case 'L':
+                return LoopSelfRequestedHost;
             case 'u':
                 return QueryRemotelyUnknown;
             case 'f':
