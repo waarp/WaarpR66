@@ -543,7 +543,7 @@ public class R66Session implements SessionInterface {
                             if (newRank <= 0) {
                                 newRank = 1;
                             }
-                            logger.debug("restart at "+newRank+ " {}",runner);
+                            logger.warn("Decreased Rank Restart for {} at "+newRank, runner);
                             runner.setTransferTask(newRank);
                             restart.restartMarker(this.runner.getBlocksize() * this.runner.getRank());
                         }

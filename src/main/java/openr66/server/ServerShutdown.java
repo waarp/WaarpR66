@@ -89,7 +89,7 @@ public class ServerShutdown {
         localChannelReference = networkTransaction
             .createConnectionWithRetry(socketServerAddress,true, null);
         if (localChannelReference == null) {
-            logger.error("Cannot connect");
+            logger.error("Cannot connect to "+host.getSocketAddress());
             networkTransaction.closeAll();
             return;
         }

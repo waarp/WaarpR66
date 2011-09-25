@@ -1806,6 +1806,9 @@ public class DbTaskRunner extends AbstractDbData {
                 if (newrank <= 0) {
                     newrank = 1;
                 }
+                if (this.getRank() != newrank) {
+                    logger.warn("Decreased Rank Restart at rank: "+newrank+" for {}", this);
+                }
             }
             this.setTransferTask(newrank);
         }

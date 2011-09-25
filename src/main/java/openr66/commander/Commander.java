@@ -327,6 +327,12 @@ public class Commander implements Runnable {
                         // already running
                         continue;
                     }
+                    if (taskRunner.isSelfRequested()) {
+                        // cannot schedule a request where the host is the requested host
+                        taskRunner.changeUpdatedInfo(UpdatedInfo.INTERRUPTED);
+                        taskRunner.update();
+                        continue;
+                    }
                     taskRunner.changeUpdatedInfo(UpdatedInfo.RUNNING);
                     taskRunner.update();
                     internalRunner.submitTaskRunner(taskRunner);
