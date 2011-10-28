@@ -591,6 +591,13 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                   </xsd:element>
+				  <xsd:element name="digest" type="nonNegInteger" default="0" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Digest to use: CRC32=0, ADLER32=1, MD5=2, MD2=3, SHA1=4, SHA256=5, SHA384=6, SHA512=7"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
 				  <xsd:element name="usefastmd5" type="booleanType" default="True" >
                     <xsd:annotation>
                         <xsd:appinfo>
