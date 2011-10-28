@@ -436,7 +436,8 @@ public class FileUtils {
      **/
     public static String getHash(File f) throws OpenR66ProtocolSystemException {
         try {
-            return FilesystemBasedDigest.getHex(FilesystemBasedDigest.getHashMd5(f));
+            return FilesystemBasedDigest.getHex(FilesystemBasedDigest.getHash(f,
+                    false, Configuration.configuration.digest));
         } catch (IOException e) {
             throw new OpenR66ProtocolSystemException(e);
         }
@@ -449,7 +450,11 @@ public class FileUtils {
      */
     public static ChannelBuffer getHash(ChannelBuffer buffer) {
         byte[] newkey;
-        newkey = FilesystemBasedDigest.getHashMd5(buffer);
+        try {
+            newkey = FilesystemBasedDigest.getHash(buffer, Configuration.configuration.digest);
+        } catch (IOException e) {
+            return ChannelBuffers.EMPTY_BUFFER;
+        }
         return ChannelBuffers.wrappedBuffer(newkey);
     }
 

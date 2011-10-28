@@ -5,6 +5,10 @@
 		<author email="fredbregier at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+		<release version="2.2.0" date="2011-11-01" description="New functions">
+			<action dev="Frederic Bregier" type="add">Add a Finite State machine to LocalServerHandler</action>
+			<action dev="Frederic Bregier" type="add">Add possibility to use MD5 or other Digests</action>
+		</release>
 		<release version="2.1.4" date="2011-10-01" description="Upgrade Jar and fix">
 			<action dev="Frederic Bregier" type="fix">Fix on restart transfered when rule is is RECV mode</action>
 			<action dev="Frederic Bregier" type="fix">Fix on restart automatically transfer only when requester</action>

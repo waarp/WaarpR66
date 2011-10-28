@@ -27,6 +27,7 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import openr66.context.ErrorCode;
+import openr66.context.R66FiniteDualStates;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
@@ -126,6 +127,7 @@ public class RetrieveRunner extends Thread {
                     localChannelReference.getFutureEndTransfer().isSuccess()) {
                 // send a validation
                 requestValidDone = true;
+                localChannelReference.sessionNewState(R66FiniteDualStates.ENDREQUESTS);
                 EndRequestPacket validPacket = new EndRequestPacket(ErrorCode.CompleteOk.ordinal());
                 try {
                     ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket).awaitUninterruptibly();
@@ -151,6 +153,7 @@ public class RetrieveRunner extends Thread {
                 if (localChannelReference.getFutureEndTransfer().isDone()) {
                     // Done and Not Success => error
                     if (!localChannelReference.getFutureEndTransfer().getResult().isAnswered) {
+                        localChannelReference.sessionNewState(R66FiniteDualStates.ERROR);
                         ErrorPacket error = new ErrorPacket(localChannelReference.getErrorMessage(),
                                 localChannelReference.getFutureEndTransfer().getResult().code.getCode(), 
                                 ErrorPacket.FORWARDCLOSECODE);
@@ -177,6 +180,7 @@ public class RetrieveRunner extends Thread {
                 if (localChannelReference.getFutureEndTransfer().isDone() &&
                         localChannelReference.getFutureEndTransfer().isSuccess()) {
                     if (! requestValidDone) {
+                        localChannelReference.sessionNewState(R66FiniteDualStates.ENDREQUESTS);
                         EndRequestPacket validPacket = new EndRequestPacket(ErrorCode.CompleteOk.ordinal());
                         try {
                             ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket).awaitUninterruptibly();
@@ -197,6 +201,7 @@ public class RetrieveRunner extends Thread {
                 } else {
                     if (localChannelReference.getFutureEndTransfer().isDone()) {
                         if (!localChannelReference.getFutureEndTransfer().getResult().isAnswered) {
+                            localChannelReference.sessionNewState(R66FiniteDualStates.ERROR);
                             ErrorPacket error = new ErrorPacket(localChannelReference.getErrorMessage(),
                                     localChannelReference.getFutureEndTransfer().getResult().code.getCode(), 
                                     ErrorPacket.FORWARDCLOSECODE);
@@ -223,6 +228,7 @@ public class RetrieveRunner extends Thread {
         R66Result result = new R66Result(e, session, true,
                 ErrorCode.TransferError, session.getRunner());
         logger.error("Transfer in error", e);
+        session.newState(R66FiniteDualStates.ERROR);
         ErrorPacket error = new ErrorPacket("Transfer in error",
                 ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
         try {

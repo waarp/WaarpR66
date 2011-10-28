@@ -31,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import openr66.client.RecvThroughHandler;
 import openr66.context.ErrorCode;
+import openr66.context.R66FiniteDualStates;
 import openr66.context.R66Result;
 import openr66.context.authentication.R66Auth;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
@@ -408,9 +409,11 @@ public class ClientRunner extends Thread {
             localChannelReference.setClientRunner(this);
             R66Result finalValue = new R66Result(localChannelReference.getSession(), true,
                     ErrorCode.CompleteOk, taskRunner);
+            localChannelReference.sessionNewState(R66FiniteDualStates.ENDREQUESTS);
             taskRunner.quickFinalizeOnPost(localChannelReference, finalValue);
             EndRequestPacket validPacket = new EndRequestPacket(ErrorCode.CompleteOk.ordinal());
             if (! taskRunner.isSender()) {
+                localChannelReference.sessionNewState(R66FiniteDualStates.ENDREQUESTR);
                 validPacket.validate();
             }
             try {
@@ -446,6 +449,7 @@ public class ClientRunner extends Thread {
         RequestPacket request = taskRunner.getRequest();
         logger.debug("Will send request {} ",request);
         localChannelReference.setClientRunner(this);
+        localChannelReference.sessionNewState(R66FiniteDualStates.REQUESTR);
         try {
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, request);
         } catch (OpenR66ProtocolPacketException e) {

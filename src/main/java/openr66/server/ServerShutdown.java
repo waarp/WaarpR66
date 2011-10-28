@@ -29,6 +29,7 @@ import java.net.SocketAddress;
 
 import openr66.configuration.FileBasedConfiguration;
 import openr66.context.ErrorCode;
+import openr66.context.R66FiniteDualStates;
 import openr66.context.R66Result;
 import openr66.database.DbConstant;
 import openr66.database.data.DbHostAuth;
@@ -93,6 +94,7 @@ public class ServerShutdown {
             networkTransaction.closeAll();
             return;
         }
+        localChannelReference.sessionNewState(R66FiniteDualStates.SHUTDOWN);
         ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet);
         localChannelReference.getFutureRequest().awaitUninterruptibly();
         if (localChannelReference.getFutureRequest().isSuccess()) {

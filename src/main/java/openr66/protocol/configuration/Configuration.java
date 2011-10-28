@@ -26,6 +26,7 @@ import goldengate.common.database.exception.GoldenGateDatabaseException;
 import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
 import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
 import goldengate.common.digest.FilesystemBasedDigest;
+import goldengate.common.digest.FilesystemBasedDigest.DigestAlgo;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
@@ -41,6 +42,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import openr66.commander.InternalRunner;
+import openr66.context.R66FiniteDualStates;
 import openr66.context.task.localexec.LocalExecClient;
 import openr66.database.data.DbHostAuth;
 import openr66.protocol.exception.OpenR66ProtocolNoDataException;
@@ -303,6 +305,10 @@ public class Configuration {
      * Does this OpenR66 server will use and accept non SSL connections
      */
     public boolean useNOSSL = true;
+    /**
+     * Algorithm to use for Digest
+     */
+    public FilesystemBasedDigest.DigestAlgo digest = DigestAlgo.MD5;
 
     /**
      * Does this OpenR66 server will try to compress HTTP connections
@@ -505,6 +511,8 @@ public class Configuration {
         // Init signal handler
         OpenR66SignalHandler.initSignalHandler();
         computeNbThreads();
+        // Init FiniteStates
+        R66FiniteDualStates.initR66FiniteStates();
     }
 
     /**

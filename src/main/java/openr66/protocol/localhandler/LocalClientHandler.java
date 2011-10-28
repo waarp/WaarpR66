@@ -20,6 +20,7 @@
  */
 package openr66.protocol.localhandler;
 
+import static openr66.context.R66FiniteDualStates.ERROR;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.context.ErrorCode;
@@ -157,6 +158,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
         if (localChannelReference != null) {
             OpenR66Exception exception = OpenR66ExceptionTrappedFactory
                     .getExceptionFromTrappedException(e.getChannel(), e);
+            localChannelReference.sessionNewState(ERROR);
             if (exception != null) {
                 if (exception instanceof OpenR66ProtocolShutdownException) {
                     Thread thread = new Thread(new ChannelUtils());

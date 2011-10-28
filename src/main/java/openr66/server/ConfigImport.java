@@ -28,6 +28,7 @@ import java.net.SocketAddress;
 
 import openr66.configuration.FileBasedConfiguration;
 import openr66.context.ErrorCode;
+import openr66.context.R66FiniteDualStates;
 import openr66.context.R66Result;
 import openr66.database.DbConstant;
 import openr66.database.data.DbHostAuth;
@@ -100,6 +101,7 @@ public class ConfigImport implements Runnable {
             future.setFailure(future.getResult().exception);
             return;
         }
+        localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
         try {
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, valid);
         } catch (OpenR66ProtocolPacketException e) {
@@ -202,7 +204,7 @@ public class ConfigImport implements Runnable {
                                 "no import")
                             +"\n    delay: "+delay);
                 } else {
-                    logger.info("SUCCESS on import:\n    " +
+                    logger.warn("SUCCESS on import:\n    " +
                             (result.other != null? ((ValidPacket)result.other).getSheader() :
                             "no import")
                             +"\n    delay: "+delay);

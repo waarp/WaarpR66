@@ -20,6 +20,7 @@
  */
 package openr66.protocol.networkhandler;
 
+import static openr66.context.R66FiniteDualStates.AUTHENTR;
 import goldengate.common.database.DbAdmin;
 import goldengate.common.digest.FilesystemBasedDigest;
 import goldengate.common.logging.GgInternalLogger;
@@ -438,6 +439,7 @@ public class NetworkTransaction {
             throw new OpenR66ProtocolNetworkException(e1);
         }
         logger.debug("Will send request of connection validation");
+        localChannelReference.sessionNewState(AUTHENTR);
         try {
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, authent)
             .awaitUninterruptibly();

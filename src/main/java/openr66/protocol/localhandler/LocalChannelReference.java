@@ -25,6 +25,7 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.client.RecvThroughHandler;
 import openr66.commander.ClientRunner;
 import openr66.context.ErrorCode;
+import openr66.context.R66FiniteDualStates;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
@@ -545,6 +546,16 @@ public class LocalChannelReference {
      */
     public void setClientRunner(ClientRunner clientRunner) {
         this.clientRunner = clientRunner;
+    }
+
+    /**
+     * Shortcut to set a new state in Session
+     * @param desiredState
+     */
+    public void sessionNewState(R66FiniteDualStates desiredState) {
+        if (session != null) {
+            session.newState(desiredState);
+        }
     }
 
 }

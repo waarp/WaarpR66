@@ -29,6 +29,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import openr66.configuration.FileBasedConfiguration;
+import openr66.context.R66FiniteDualStates;
 import openr66.database.data.DbHostAuth;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66Exception;
@@ -106,6 +107,7 @@ public class TestTransaction implements Runnable {
         } else if (lastException != null) {
             logger.info("Connection retry since ", lastException);
         }
+        localChannelReference.sessionNewState(R66FiniteDualStates.TEST);
         try {
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, testPacket);
         } catch (OpenR66ProtocolPacketException e) {

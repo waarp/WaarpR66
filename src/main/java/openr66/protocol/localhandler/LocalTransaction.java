@@ -28,6 +28,7 @@ import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
 import openr66.context.ErrorCode;
+import openr66.context.R66FiniteDualStates;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
@@ -404,6 +405,7 @@ public class LocalTransaction {
                         buffer = packet.getLocalPacket();
                     } catch (OpenR66ProtocolPacketException e1) {
                     }
+                    localChannelReference.sessionNewState(R66FiniteDualStates.SHUTDOWN);
                     NetworkPacket message = new NetworkPacket(localChannelReference
                             .getLocalId(), localChannelReference.getRemoteId(), packet
                             .getType(), buffer);

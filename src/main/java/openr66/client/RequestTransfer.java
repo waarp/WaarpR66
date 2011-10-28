@@ -30,6 +30,7 @@ import java.net.SocketAddress;
 
 import openr66.configuration.FileBasedConfiguration;
 import openr66.context.ErrorCode;
+import openr66.context.R66FiniteDualStates;
 import openr66.context.R66Result;
 import openr66.context.authentication.R66Auth;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
@@ -319,6 +320,7 @@ public class RequestTransfer implements Runnable {
         ValidPacket packet = new ValidPacket("Request on Transfer",
                 this.requested+" "+this.requester+" "+this.specialId,
                 code);
+        localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
         try {
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet);
         } catch (OpenR66ProtocolPacketException e) {

@@ -25,6 +25,7 @@ import goldengate.common.file.DataBlock;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.commander.ClientRunner;
 import openr66.context.ErrorCode;
+import openr66.context.R66FiniteDualStates;
 import openr66.context.R66Result;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.database.DbConstant;
@@ -260,6 +261,7 @@ public abstract class SendThroughClient extends AbstractTransfer {
                     localChannelReference.getFutureEndTransfer().isSuccess());
             if (localChannelReference.getFutureEndTransfer().isSuccess()) {
                 // send a validation
+                localChannelReference.sessionNewState(R66FiniteDualStates.ENDREQUESTS);
                 EndRequestPacket validPacket = new EndRequestPacket(ErrorCode.CompleteOk.ordinal());
                 try {
                     ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket)
@@ -298,6 +300,7 @@ public abstract class SendThroughClient extends AbstractTransfer {
             R66Result result = new R66Result(e, localChannelReference.getSession(), true,
                     ErrorCode.TransferError, taskRunner);
             logger.error("Transfer in error", e);
+            localChannelReference.sessionNewState(R66FiniteDualStates.ERROR);
             ErrorPacket error = new ErrorPacket("Transfer in error",
                     ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
             try {

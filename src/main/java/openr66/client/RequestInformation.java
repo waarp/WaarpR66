@@ -28,6 +28,7 @@ import java.net.SocketAddress;
 
 import openr66.configuration.FileBasedConfiguration;
 import openr66.context.ErrorCode;
+import openr66.context.R66FiniteDualStates;
 import openr66.context.R66Result;
 import openr66.context.authentication.R66Auth;
 import openr66.database.DbConstant;
@@ -179,7 +180,7 @@ public class RequestInformation implements Runnable {
             this.future.cancel();
             return;
         }
-
+        localChannelReference.sessionNewState(R66FiniteDualStates.INFORMATION);
         try {
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, request);
         } catch (OpenR66ProtocolPacketException e) {

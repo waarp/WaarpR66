@@ -29,6 +29,7 @@ import goldengate.common.logging.GgSlf4JLoggerFactory;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
+import openr66.context.R66FiniteDualStates;
 import openr66.context.task.localexec.LocalExecClient;
 import openr66.database.DbConstant;
 import openr66.database.data.DbTaskRunner;
@@ -224,6 +225,7 @@ public class ChannelUtils extends Thread {
         if (RequestPacket.isMD5Mode(runner.getMode())) {
             md5 = FileUtils.getHash(block.getBlock());
         }
+        localChannelReference.sessionNewState(R66FiniteDualStates.DATAS);
         DataPacket data = new DataPacket(runner.getRank(), block.getBlock()
                 .copy(), md5);
         ChannelFuture future = writeAbstractLocalPacket(localChannelReference, data);
@@ -242,6 +244,7 @@ public class ChannelUtils extends Thread {
     throws OpenR66ProtocolPacketException {
         EndTransferPacket packet = new EndTransferPacket(
                 LocalPacketFactory.REQUESTPACKET);
+        localChannelReference.sessionNewState(R66FiniteDualStates.ENDTRANSFERS);
         writeAbstractLocalPacket(localChannelReference, packet);
     }
     /**

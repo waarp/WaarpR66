@@ -45,6 +45,7 @@ import java.sql.Types;
 import java.util.TreeSet;
 
 import openr66.context.ErrorCode;
+import openr66.context.R66FiniteDualStates;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
 import openr66.context.filesystem.R66Dir;
@@ -2662,6 +2663,7 @@ public class DbTaskRunner extends AbstractDbData {
             localChannelReference.setErrorMessage(finalValue.getMessage(),finalValue.code);
             // First send error mesg
             if (!finalValue.isAnswered) {
+                localChannelReference.sessionNewState(R66FiniteDualStates.ERROR);
                 ErrorPacket errorPacket = new ErrorPacket(finalValue
                         .getMessage(),
                         finalValue.code.getCode(), ErrorPacket.FORWARDCLOSECODE);

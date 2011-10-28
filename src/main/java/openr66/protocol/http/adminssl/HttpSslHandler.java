@@ -46,6 +46,7 @@ import openr66.client.Message;
 import openr66.configuration.AuthenticationFileBasedConfiguration;
 import openr66.configuration.RuleFileBasedConfiguration;
 import openr66.context.ErrorCode;
+import openr66.context.R66FiniteDualStates;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
 import openr66.context.filesystem.R66Dir;
@@ -670,6 +671,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                         ErrorCode.StoppedTransfer : ErrorCode.CanceledTransfer;
                 if (lcr != null) {
                     int rank = taskRunner.getRank();
+                    lcr.sessionNewState(R66FiniteDualStates.ERROR);
                     ErrorPacket error = new ErrorPacket("Transfer "+parm+" "+rank,
                             code.getCode(), ErrorPacket.FORWARDCLOSECODE);
                     try {

@@ -29,6 +29,7 @@ import goldengate.common.database.data.AbstractDbData.UpdatedInfo;
 import goldengate.common.database.exception.GoldenGateDatabaseException;
 import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
 import goldengate.common.digest.FilesystemBasedDigest;
+import goldengate.common.digest.FilesystemBasedDigest.DigestAlgo;
 import goldengate.common.exception.CryptoException;
 import goldengate.common.file.DirInterface;
 import goldengate.common.file.filesystembased.FilesystemBasedDirImpl;
@@ -361,6 +362,11 @@ public class FileBasedConfiguration {
     private static final String XML_USENIO = "usenio";
 
     /**
+     * What Digest to use: CRC32=0, ADLER32=1,  
+        MD5=2, MD2=3, SHA1=4, SHA256=5, SHA384=6, SHA512=7
+     */
+    private static final String XML_DIGEST = "digest";
+    /**
      * Should a file MD5 be computed using FastMD5
      */
     private static final String XML_USEFASTMD5 = "usefastmd5";
@@ -503,6 +509,7 @@ public class FileBasedConfiguration {
         new XmlDecl(XmlType.LONG, XML_CSTRT_DELAYTHROTTLE),
         new XmlDecl(XmlType.LONG, XML_TIMEOUTCON),
         new XmlDecl(XmlType.BOOLEAN, XML_USENIO),
+        new XmlDecl(XmlType.INTEGER, XML_DIGEST), 
         new XmlDecl(XmlType.BOOLEAN, XML_USEFASTMD5), 
         new XmlDecl(XmlType.STRING, XML_FASTMD5), 
         new XmlDecl(XmlType.INTEGER, XML_GAPRESTART),
@@ -1024,6 +1031,14 @@ public class FileBasedConfiguration {
         value = hashConfig.get(XML_USENIO);
         if (value != null && (!value.isEmpty())) {
             FilesystemBasedFileParameterImpl.useNio = value.getBoolean();
+        }
+        value = hashConfig.get(XML_DIGEST);
+        if (value != null && (!value.isEmpty())) {
+            int val = value.getInteger();
+            if (val < 0 || val >= DigestAlgo.values().length) {
+                val = 0;
+            }
+            Configuration.configuration.digest = DigestAlgo.values()[val];
         }
         value = hashConfig.get(XML_USEFASTMD5);
         if (value != null && (!value.isEmpty())) {

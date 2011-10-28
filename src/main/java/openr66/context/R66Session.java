@@ -23,11 +23,13 @@ package openr66.context;
 import goldengate.common.command.exception.CommandAbstractException;
 import goldengate.common.database.data.AbstractDbData.UpdatedInfo;
 import goldengate.common.database.exception.GoldenGateDatabaseException;
+import goldengate.common.exception.IllegalFiniteStateException;
 import goldengate.common.exception.NoRestartException;
 import goldengate.common.file.SessionInterface;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+import goldengate.common.state.MachineState;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -101,22 +103,42 @@ public class R66Session implements SessionInterface {
      */
     private DbTaskRunner runner = null;
 
-    private int status = -1;
+    private String status = "NoStatus";
+    
+    /**
+     * The Finite Machine State
+     */
+    private final MachineState<R66FiniteDualStates> state;
 
     /**
+     * Create the session
      */
     public R66Session() {
         isReady = false;
         auth = new R66Auth(this);
         dir = new R66Dir(this);
         restart = new R66Restart(this);
+        state = R66FiniteDualStates.newSessionMachineState();
+    }
+    /**
+     * Propose a new State
+     * @param desiredstate
+     * @throws IllegalFiniteStateException if the new status if not ok
+     */
+    public void newState(R66FiniteDualStates desiredstate) {
+        try {
+            state.setCurrent(desiredstate);
+        } catch (IllegalFiniteStateException e) {
+            logger.error("Cannot change of State: {}", this, e);
+        }
     }
     /**
      * Debugging purpose
      * @param stat
      */
     public void setStatus(int stat) {
-        this.status = stat;
+        StackTraceElement elt = Thread.currentThread().getStackTrace()[2];
+        this.status = "("+elt.getFileName()+":"+elt.getLineNumber()+"):"+stat;
     }
     /*
      * (non-Javadoc)
@@ -149,6 +171,9 @@ public class R66Session implements SessionInterface {
         }
         if (runner != null) {
             runner.clear();
+        }
+        if (state != null) {
+            R66FiniteDualStates.endSessionMachineSate(state);
         }
         // No clean of file since it can be used after channel is closed
         isReady = false;
@@ -748,7 +773,8 @@ public class R66Session implements SessionInterface {
 
     @Override
     public String toString() {
-        return "Session: " + status+" "+(auth != null? auth.toString() : "no Auth") + "\n    " +
+        return "Session: FS[" + state.getCurrent()+"] "+status+"\n "+
+                (auth != null? auth.toString() : "no Auth") + "\n    " +
                 (dir != null? dir.toString() : "no Dir") + "\n    " +
                 (file != null? file.toString() : "no File") + "\n    " +
                 (runner != null? runner.toShortString() : "no Runner");

@@ -32,6 +32,7 @@ import java.sql.Timestamp;
 
 import openr66.client.RequestTransfer;
 import openr66.context.ErrorCode;
+import openr66.context.R66FiniteDualStates;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
 import openr66.context.filesystem.R66File;
@@ -183,6 +184,7 @@ public class TransferUtils {
                 ErrorCode code = ErrorCode.StoppedTransfer;
                 if (lcr != null) {
                     int rank = taskRunner.getRank();
+                    lcr.sessionNewState(R66FiniteDualStates.ERROR);
                     ErrorPacket perror = new ErrorPacket("Transfer Stopped at "+rank,
                             code.getCode(), ErrorPacket.FORWARDCLOSECODE);
                     try {
