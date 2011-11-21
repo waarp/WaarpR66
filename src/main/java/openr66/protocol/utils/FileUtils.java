@@ -22,6 +22,7 @@ package openr66.protocol.utils;
 
 import goldengate.common.digest.FilesystemBasedDigest;
 import goldengate.common.file.DirInterface;
+import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -437,7 +438,7 @@ public class FileUtils {
     public static String getHash(File f) throws OpenR66ProtocolSystemException {
         try {
             return FilesystemBasedDigest.getHex(FilesystemBasedDigest.getHash(f,
-                    Configuration.USENIO, Configuration.configuration.digest));
+                    FilesystemBasedFileParameterImpl.useNio, Configuration.configuration.digest));
         } catch (IOException e) {
             throw new OpenR66ProtocolSystemException(e);
         }
