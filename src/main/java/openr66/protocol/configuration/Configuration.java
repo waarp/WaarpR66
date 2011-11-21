@@ -104,6 +104,10 @@ public class Configuration {
      */
     public static final boolean USEJDK6 = true;
     /**
+     * True if using NIO support.
+     */
+    public static final boolean USENIO = true;
+    /**
      * Time elapse for retry in ms
      */
     public static final long RETRYINMS = 10;

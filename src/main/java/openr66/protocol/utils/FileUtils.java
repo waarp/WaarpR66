@@ -437,7 +437,7 @@ public class FileUtils {
     public static String getHash(File f) throws OpenR66ProtocolSystemException {
         try {
             return FilesystemBasedDigest.getHex(FilesystemBasedDigest.getHash(f,
-                    false, Configuration.configuration.digest));
+                    Configuration.USENIO, Configuration.configuration.digest));
         } catch (IOException e) {
             throw new OpenR66ProtocolSystemException(e);
         }
