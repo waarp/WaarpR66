@@ -5,6 +5,9 @@
 		<author email="fredbregier at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+		<release version="2.2.1" date="2012-02-12" description="Fix release">
+			<action dev="Frederic Bregier" type="fix">Update Dependencies</action>
+		</release>
 		<release version="2.2.0" date="2011-11-01" description="New functions">
 			<action dev="Frederic Bregier" type="add">Add a Finite State machine to LocalServerHandler</action>
 			<action dev="Frederic Bregier" type="add">Add possibility to use MD5 or other Digests</action>
