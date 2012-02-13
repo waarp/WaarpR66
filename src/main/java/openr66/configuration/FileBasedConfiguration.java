@@ -1040,6 +1040,7 @@ public class FileBasedConfiguration {
             }
             Configuration.configuration.digest = DigestAlgo.values()[val];
         }
+        logger.warn("DigestAlgo used: {}", Configuration.configuration.digest);
         value = hashConfig.get(XML_USEFASTMD5);
         if (value != null && (!value.isEmpty())) {
             FilesystemBasedDigest.useFastMd5 = value.getBoolean();

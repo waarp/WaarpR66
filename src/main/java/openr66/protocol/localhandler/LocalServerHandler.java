@@ -1316,6 +1316,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         if (RequestPacket.isMD5Mode(session.getRunner().getMode())) {
             if (!packet.isKeyValid()) {
                 // Wrong packet
+                logger.error("Wrong MD5 Packet: {}", packet);
                 session.newState(ERROR);
                 try {
                     session.setFinalizeTransfer(false, new R66Result(
