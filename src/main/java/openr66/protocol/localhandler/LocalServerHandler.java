@@ -420,9 +420,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     }
                 }
                 // dont'close, thread will do
-                Thread thread = new Thread(new ChannelUtils());
+                Thread thread = new Thread(new ChannelUtils(), "R66 Shutdown Thread");
                 thread.setDaemon(true);
-                thread.setName("Shutdown Thread");
                 thread.start();
                 // set global shutdown info and before close, send a valid
                 // shutdown to all

@@ -834,7 +834,7 @@ public class DbRule extends AbstractDbData {
                 builder.append('<').append(TASK_DELAY).append('>');
                 builder.append(tasksArray[i][2]);
                 builder.append("</").append(TASK_DELAY).append('>');
-                builder.append(XMLENDTASK).append("\n");
+                builder.append(XMLENDTASK).append('\n');
             }
             builder.append(XMLENDTASKS);
         }

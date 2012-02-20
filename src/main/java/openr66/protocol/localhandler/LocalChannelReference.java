@@ -428,9 +428,10 @@ public class LocalChannelReference {
     /**
      * Invalidate the current request
      * 
-     * @param finalValue
+     * @param finalvalue
      */
-    public void invalidateRequest(R66Result finalValue) {
+    public void invalidateRequest(R66Result finalvalue) {
+        R66Result finalValue = finalvalue;
         if (finalValue == null) {
             finalValue = new R66Result(session, false, ErrorCode.Unknown, this.session.getRunner());
         }

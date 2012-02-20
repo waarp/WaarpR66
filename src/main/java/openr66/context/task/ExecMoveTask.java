@@ -263,7 +263,8 @@ public class ExecMoveTask extends AbstractTask {
         move(status, newname, commandLine.toString());
     }
 
-    private void move(int status, String newname, String commandLine) {
+    private void move(int status, String newName, String commandLine) {
+        String newname = newName;
         if (status == 0) {
             if (newname.indexOf(' ') > 0) {
                 logger.warn("Exec returns a multiple string in final line: " +

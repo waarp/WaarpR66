@@ -146,9 +146,9 @@ public class LogExport implements Runnable {
     protected static boolean sclean = false;
 
     private static SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmssSSS");
-    private static Timestamp fixDate(String date) {
+    private static Timestamp fixDate(String sdate) {
         Timestamp tdate = null;
-        date = date.replaceAll("/|:|\\.| |-", "");
+        String date = sdate.replaceAll("/|:|\\.| |-", "");
         if (date.length() > 0) {
             if (date.length() < 15) {
                 int len = date.length();
@@ -163,9 +163,9 @@ public class LogExport implements Runnable {
         }
         return tdate;
     }
-    private static Timestamp fixDate(String date, Timestamp before) {
+    private static Timestamp fixDate(String sdate, Timestamp before) {
         Timestamp tdate = null;
-        date = date.replaceAll("/|:|\\.| |-", "");
+        String date = sdate.replaceAll("/|:|\\.| |-", "");
         if (date.length() > 0) {
             if (date.length() < 15) {
                 int len = date.length();

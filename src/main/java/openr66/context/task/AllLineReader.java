@@ -54,7 +54,7 @@ class AllLineReader implements Runnable {
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
                 if (line.length() > 0) {
-                    lastLine.append(line).append("\n");
+                    lastLine.append(line).append('\n');
                 }
             }
         } catch (IOException e) {

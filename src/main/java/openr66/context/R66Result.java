@@ -66,13 +66,13 @@ public class R66Result {
     public R66Result(OpenR66Exception exception, R66Session session,
             boolean isAnswered, ErrorCode code, DbTaskRunner runner) {
         this.exception = exception;
+        this.runner = runner;
         if (session != null) {
             file = session.getFile();
-            runner = session.getRunner();
+            this.runner = session.getRunner();
         }
         this.isAnswered = isAnswered;
         this.code = code;
-        this.runner = runner;
     }
 
     /**
@@ -83,13 +83,13 @@ public class R66Result {
      */
     public R66Result(R66Session session, boolean isAnswered, ErrorCode code,
             DbTaskRunner runner) {
+        this.runner = runner;
         if (session != null) {
             file = session.getFile();
-            runner = session.getRunner();
+            this.runner = session.getRunner();
         }
         this.isAnswered = isAnswered;
         this.code = code;
-        this.runner = runner;
     }
 
     @Override

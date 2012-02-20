@@ -48,7 +48,7 @@ public enum R66FiniteDualStates {
     
     private enum R66Transition {
         tOPENEDCHANNEL(OPENEDCHANNEL, EnumSet.of(STARTUP, ERROR)),
-        tSTARTUP(STARTUP, EnumSet.of(AUTHENTR, ERROR)),
+        tSTARTUP(STARTUP, EnumSet.of(AUTHENTR, AUTHENTD, ERROR)),
         tAUTHENTR(AUTHENTR, EnumSet.of(AUTHENTD, ERROR)),
         tAUTHENTD(AUTHENTD, EnumSet.of(REQUESTR, VALIDOTHER, INFORMATION, SHUTDOWN, TEST, ERROR)),
         tREQUESTR(REQUESTR, EnumSet.of(VALID, REQUESTD, ERROR)),
@@ -98,6 +98,5 @@ public enum R66FiniteDualStates {
      */
     public static void endSessionMachineSate(MachineState<R66FiniteDualStates> machine) {
         machine.release();
-        machine = null;
     }
 }

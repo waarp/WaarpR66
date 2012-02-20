@@ -1808,9 +1808,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             future.addListener(ChannelFutureListener.CLOSE);
         }
         if (shutdown) {
-            Thread thread = new Thread(new ChannelUtils());
+            Thread thread = new Thread(new ChannelUtils(), "R66 Shutdown Thread");
             thread.setDaemon(true);
-            thread.setName("Shutdown Thread");
             thread.start();
         }
     }

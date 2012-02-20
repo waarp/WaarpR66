@@ -380,7 +380,7 @@ public abstract class AbstractTask implements Runnable {
                 GgStringUtils.replaceAll(builder, ERRORSTRCODE, ErrorCode.Unknown.name());
             }
         }
-        String finalname = String.format(builder.toString(), argFormat);
-        return finalname;
+        // finalname
+        return String.format(builder.toString(), argFormat);
     }
 }

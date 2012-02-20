@@ -256,7 +256,8 @@ public class ExecOutputTask extends AbstractTask {
         finalize(status, newname, commandLine.toString());
     }
 
-    private void finalize(int status, String newname, String commandLine) {
+    private void finalize(int status, String newName, String commandLine) {
+        String newname = newName;
         if (status == 0) {
             futureCompletion.setSuccess();
             logger.info("Exec OK with {} returns {}", commandLine,

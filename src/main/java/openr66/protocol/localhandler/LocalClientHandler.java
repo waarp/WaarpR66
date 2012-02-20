@@ -161,9 +161,8 @@ public class LocalClientHandler extends SimpleChannelHandler {
             localChannelReference.sessionNewState(ERROR);
             if (exception != null) {
                 if (exception instanceof OpenR66ProtocolShutdownException) {
-                    Thread thread = new Thread(new ChannelUtils());
+                    Thread thread = new Thread(new ChannelUtils(), "R66 Shutdown Thread");
                     thread.setDaemon(true);
-                    thread.setName("Shutdown Thread");
                     thread.start();
                     logger.debug("Will close channel");
                     Channels.close(e.getChannel());

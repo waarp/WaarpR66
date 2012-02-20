@@ -89,6 +89,5 @@ public enum R66FiniteStates {
      */
     public static void endSessionMachineSate(MachineState<R66FiniteStates> machine) {
         machine.release();
-        machine = null;
     }
 }
