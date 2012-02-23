@@ -129,7 +129,8 @@ public class R66Session implements SessionInterface {
         try {
             state.setCurrent(desiredstate);
         } catch (IllegalFiniteStateException e) {
-            logger.error("Cannot change of State: {}", this, e);
+            logger.info("Cannot change of State: {}", this, e);
+            state.setDryCurrent(desiredstate);
         }
     }
     /**
