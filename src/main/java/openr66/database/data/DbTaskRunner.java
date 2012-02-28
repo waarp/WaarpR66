@@ -2414,11 +2414,11 @@ public class DbTaskRunner extends AbstractDbData {
      */
     public void run() throws OpenR66RunnerErrorException {
         R66Future future;
-        logger.debug(this.toLogRunStep()+"\nSender: "+this.isSender+" "+this.rule.printTasks(isSender, 
+        logger.debug(this.toLogRunStep()+" Status: "+status+"\nSender: "+this.isSender+" "+this.rule.printTasks(isSender, 
                 TASKSTEP.values()[globalstep]));
         if (status != ErrorCode.Running) {
             throw new OpenR66RunnerErrorException(
-                    "Current global STEP not ready to run");
+                    "Current global STEP not ready to run: "+ this.toString());
         }
         while (true) {
             logger.debug(this.toLogRunStep());
@@ -2595,13 +2595,16 @@ public class DbTaskRunner extends AbstractDbData {
      * @param localChannelReference
      * @param finalValue
      * @throws OpenR66RunnerErrorException
+     * @deprecated proposal to remove this as it seems not functional
      */
     public void quickFinalizeOnPost(LocalChannelReference localChannelReference, R66Result finalValue) throws OpenR66RunnerErrorException {
         try {
             this.run();
         } catch (OpenR66RunnerErrorException e1) {
+            logger.warn("RunnerError: ",e1);
             R66Result result = new R66Result(e1, this.session, false,
                     ErrorCode.ExternalOp, this);
+            logger.debug("Exc {}", session);
             result.file = session.getFile();
             result.runner = this;
             this.changeUpdatedInfo(UpdatedInfo.INERROR);

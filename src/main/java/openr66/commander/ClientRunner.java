@@ -44,7 +44,6 @@ import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolNotYetConnectionException;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.localhandler.LocalChannelReference;
-import openr66.protocol.localhandler.packet.EndRequestPacket;
 import openr66.protocol.localhandler.packet.RequestPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.utils.ChannelUtils;
@@ -406,6 +405,28 @@ public class ClientRunner extends Thread {
             localChannelReference.setRecvThroughHandler(handler);
         }
         if (restartPost) {
+            RequestPacket request = taskRunner.getRequest();
+            logger.debug("Will send request {} ",request);
+            localChannelReference.setClientRunner(this);
+            localChannelReference.sessionNewState(R66FiniteDualStates.REQUESTR);
+            try {
+                ChannelUtils.writeAbstractLocalPacket(localChannelReference, request);
+            } catch (OpenR66ProtocolPacketException e) {
+                // propose to redo
+                logger.warn("Cannot transfer request to "+host.toString());
+                this.changeUpdatedInfo(UpdatedInfo.INTERRUPTED, ErrorCode.Internal);
+                Channels.close(localChannelReference.getLocalChannel());
+                localChannelReference = null;
+                host = null;
+                request = null;
+                throw e;
+            }
+            logger.debug("Wait for request to {}",host);
+            request = null;
+            host = null;
+            return localChannelReference;
+            // XX Proposal to remove this for Post restart
+            /*
             localChannelReference.setClientRunner(this);
             R66Result finalValue = new R66Result(localChannelReference.getSession(), true,
                     ErrorCode.CompleteOk, taskRunner);
@@ -435,6 +456,7 @@ public class ClientRunner extends Thread {
             logger.debug("Wait for request to {}",host);
             host = null;
             return localChannelReference;
+            */
         }
         // If Requester is NOT Sender, and if TransferTask then decrease now if possible the rank
         if (!taskRunner.isSender() && (taskRunner.getGloballaststep() == 
