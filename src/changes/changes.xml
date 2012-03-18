@@ -5,6 +5,9 @@
 		<author email="fredbregier at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+		<release version="2.2.4" date="2012-04-01" description="Fix release">
+			<action dev="Frederic Bregier" type="fix">Database init connection fix</action>
+		</release>
 		<release version="2.2.3" date="2012-03-01" description="Fix release">
 			<action dev="Frederic Bregier" type="fix">Small fix on Best practices</action>
 			<action dev="Frederic Bregier" type="fix">NPE and issue on restart while post actions on going</action>

@@ -1326,10 +1326,10 @@ public class FileBasedConfiguration {
                 DbConstant.admin = 
                     DbModelFactory.initialize(dbdriver, dbserver, dbuser, dbpasswd,
                         true);
-                DbConstant.noCommitAdmin = 
-                    DbModelFactory.initialize(dbdriver, dbserver, dbuser, dbpasswd,
-                        true);
                 if (Configuration.configuration.multipleMonitors > 1) {
+                    DbConstant.noCommitAdmin = 
+                        DbModelFactory.initialize(dbdriver, dbserver, dbuser, dbpasswd,
+                            true);
                     DbConstant.noCommitAdmin.session.setAutoCommit(false);
                 } else {
                     DbConstant.noCommitAdmin = DbConstant.admin;
