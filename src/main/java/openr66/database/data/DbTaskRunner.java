@@ -266,7 +266,7 @@ public class DbTaskRunner extends AbstractDbData {
                 new DbValue(rank, Columns.RANK.name()),
                 new DbValue(ErrorCode.Unknown.getCode(), Columns.STEPSTATUS.name()), // status.getCode()
                 new DbValue(isSender, Columns.RETRIEVEMODE.name()),
-                new DbValue(filename, Columns.FILENAME.name()),
+                new DbValue(filename, Columns.FILENAME.name(), true),
                 new DbValue(isFileMoved, Columns.ISMOVED.name()),
                 new DbValue(ruleId, Columns.IDRULE.name()),
                 new DbValue(blocksize, Columns.BLOCKSZ.name()),
