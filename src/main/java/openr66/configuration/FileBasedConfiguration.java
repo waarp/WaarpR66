@@ -1295,6 +1295,7 @@ public class FileBasedConfiguration {
         if (value == null || (value.isEmpty())) {
             logger.error("Unable to find DBDriver in Config file");
             DbConstant.admin = new DbAdmin(); // no database support
+            DbConstant.noCommitAdmin = DbConstant.admin;
         } else {
             String dbdriver = value.getString();
             value = hashConfig.get(XML_DBSERVER);
@@ -1334,6 +1335,7 @@ public class FileBasedConfiguration {
                 } else {
                     DbConstant.noCommitAdmin = DbConstant.admin;
                 }
+                logger.info("Database connection: "+(DbConstant.admin == null)+":"+(DbConstant.noCommitAdmin == null));
             } catch (GoldenGateDatabaseNoConnectionError e2) {
                 logger.error("Unable to Connect to DB", e2);
                 return false;

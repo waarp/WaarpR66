@@ -20,8 +20,6 @@
  */
 package openr66.database;
 
-import goldengate.common.database.DbAdmin;
-
 
 /**
  * Constants value for database
@@ -30,17 +28,5 @@ import goldengate.common.database.DbAdmin;
  *
  */
 public class DbConstant extends goldengate.common.database.DbConstant {
-    /**
-     * Illegal value as SpecialId of transfer (any value above is valid)
-     */
-    public static final long ILLEGALVALUE = Long.MIN_VALUE;
-    /**
-     * The current DbAdmin object
-     */
-    public static DbAdmin admin = null;
-    /**
-     * The no-commit DbAdmin object
-     */
-    public static DbAdmin noCommitAdmin = null;
 }
 

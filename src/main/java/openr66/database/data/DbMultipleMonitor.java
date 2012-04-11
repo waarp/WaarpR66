@@ -320,7 +320,6 @@ public class DbMultipleMonitor extends AbstractDbData {
         request += " FROM "+table+ " WHERE "+Columns.HOSTID.name()+" = '"+Configuration.configuration.HOST_ID+"'"+
             " FOR UPDATE ";
         DbPreparedStatement prep = new DbPreparedStatement(session, request);
-        session.addLongTermPreparedStatement(prep);
         return prep;
     }
     /**

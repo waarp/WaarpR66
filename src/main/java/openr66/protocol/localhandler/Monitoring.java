@@ -30,6 +30,7 @@ import goldengate.common.database.DbSession;
 import goldengate.common.database.data.AbstractDbData.UpdatedInfo;
 import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
 import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
+import goldengate.common.database.model.DbModelFactory;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.snmp.GgSnmpAgent;
@@ -948,7 +949,15 @@ public class Monitoring implements GgInterfaceMonitor {
                         return;
                 }
             } catch (GoldenGateDatabaseNoConnectionError e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(dbSession);
+                } catch (GoldenGateDatabaseNoConnectionError e1) {
+                }
             } catch (GoldenGateDatabaseSqlError e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(dbSession);
+                } catch (GoldenGateDatabaseNoConnectionError e1) {
+                }
             }
         }
     }

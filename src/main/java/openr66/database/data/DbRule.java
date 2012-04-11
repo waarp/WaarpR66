@@ -716,7 +716,6 @@ public class DbRule extends AbstractDbData {
            " WHERE "+Columns.UPDATEDINFO.name()+" = "+
            AbstractDbData.UpdatedInfo.TOSUBMIT.ordinal();
        DbPreparedStatement prep = new DbPreparedStatement(session, request);
-       session.addLongTermPreparedStatement(prep);
        return prep;
    }
     /*

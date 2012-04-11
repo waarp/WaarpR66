@@ -362,7 +362,6 @@ public class DbConfiguration extends AbstractDbData {
             AbstractDbData.UpdatedInfo.TOSUBMIT.ordinal()+
             " AND "+ Columns.HOSTID.name()+" = '"+Configuration.configuration.HOST_ID+"'";
         DbPreparedStatement prep = new DbPreparedStatement(session, request);
-        session.addLongTermPreparedStatement(prep);
         return prep;
     }
     /*

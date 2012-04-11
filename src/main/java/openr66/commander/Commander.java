@@ -27,6 +27,7 @@ import goldengate.common.database.exception.GoldenGateDatabaseException;
 import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
 import goldengate.common.database.exception.GoldenGateDatabaseNoDataException;
 import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
+import goldengate.common.database.model.DbModelFactory;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.database.DbConstant;
@@ -126,6 +127,22 @@ public class Commander implements Runnable {
                 if (preparedStatementRunner != null) {
                     preparedStatementRunner.realClose();
                 }
+            } else {
+                if (preparedStatementLock != null) {
+                    DbConstant.noCommitAdmin.session.addLongTermPreparedStatement(preparedStatementLock);
+                }
+                if (preparedStatementConfig != null) {
+                    DbConstant.admin.session.addLongTermPreparedStatement(preparedStatementConfig);
+                }
+                if (preparedStatementHost != null) {
+                    DbConstant.admin.session.addLongTermPreparedStatement(preparedStatementHost);
+                }
+                if (preparedStatementRule != null) {
+                    DbConstant.admin.session.addLongTermPreparedStatement(preparedStatementRule);
+                }
+                if (preparedStatementRunner != null) {
+                    DbConstant.admin.session.addLongTermPreparedStatement(preparedStatementRunner);
+                }
             }
         }
     }
@@ -140,6 +157,7 @@ public class Commander implements Runnable {
             } catch (GoldenGateDatabaseNoConnectionError e) {
             }
             preparedStatementLock.realClose();
+            DbConstant.noCommitAdmin.session.removeLongTermPreparedStatements();
         }
         if (preparedStatementConfig != null) {
             preparedStatementConfig.realClose();
@@ -153,7 +171,9 @@ public class Commander implements Runnable {
         if (preparedStatementRunner != null) {
             preparedStatementRunner.realClose();
         }
+        DbConstant.admin.session.removeLongTermPreparedStatements();
     }
+
     /* (non-Javadoc)
      * @see java.lang.Runnable#run()
      */
@@ -173,9 +193,17 @@ public class Commander implements Runnable {
                 }
             } catch (GoldenGateDatabaseNoConnectionError e) {
                 logger.error("Database No Connection Error: Cannot execute Commander", e);
+                try {
+                    DbModelFactory.dbModel.validConnection(preparedStatementLock.getDbSession());
+                } catch (GoldenGateDatabaseNoConnectionError e1) {
+                }
                 return;
             } catch (GoldenGateDatabaseSqlError e) {
                 logger.error("Database SQL Error: Cannot execute Commander", e);
+                try {
+                    DbModelFactory.dbModel.validConnection(preparedStatementLock.getDbSession());
+                } catch (GoldenGateDatabaseNoConnectionError e1) {
+                }
                 return;
             }
             logger.debug("Before "+multipleMonitor);
@@ -206,12 +234,24 @@ public class Commander implements Runnable {
                 }
                 preparedStatementConfig.close();
             } catch (GoldenGateDatabaseNoConnectionError e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (GoldenGateDatabaseNoConnectionError e1) {
+                }
                 logger.error("Database No Connection Error: Cannot execute Commander", e);
                 return;
             } catch (GoldenGateDatabaseSqlError e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (GoldenGateDatabaseNoConnectionError e1) {
+                }
                 logger.error("Database SQL Error: Cannot execute Commander", e);
                 return;
             } catch (GoldenGateDatabaseException e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (GoldenGateDatabaseNoConnectionError e1) {
+                }
                 logger.error("Database Error: Cannot execute Commander", e);
                 return;
             } finally {
@@ -250,12 +290,24 @@ public class Commander implements Runnable {
                     hostAuth = null;
                 }
             } catch (GoldenGateDatabaseNoConnectionError e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (GoldenGateDatabaseNoConnectionError e1) {
+                }
                 logger.error("Database No Connection Error: Cannot execute Commander", e);
                 return;
             } catch (GoldenGateDatabaseSqlError e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (GoldenGateDatabaseNoConnectionError e1) {
+                }
                 logger.error("Database SQL Error: Cannot execute Commander", e);
                 return;
             } catch (GoldenGateDatabaseException e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (GoldenGateDatabaseNoConnectionError e1) {
+                }
                 logger.error("Database Error: Cannot execute Commander", e);
                 return;
             } finally {
@@ -292,15 +344,31 @@ public class Commander implements Runnable {
                     rule = null;
                 }
             } catch (GoldenGateDatabaseNoConnectionError e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (GoldenGateDatabaseNoConnectionError e1) {
+                }
                 logger.error("Database No Connection Error: Cannot execute Commander", e);
                 return;
             } catch (GoldenGateDatabaseSqlError e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (GoldenGateDatabaseNoConnectionError e1) {
+                }
                 logger.error("Database SQL Error: Cannot execute Commander", e);
                 return;
             } catch (GoldenGateDatabaseNoDataException e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (GoldenGateDatabaseNoConnectionError e1) {
+                }
                 logger.error("Database Error: Cannot execute Commander", e);
                 return;
             } catch (GoldenGateDatabaseException e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (GoldenGateDatabaseNoConnectionError e1) {
+                }
                 logger.error("Database Error: Cannot execute Commander", e);
                 return;
             } finally {
@@ -339,12 +407,24 @@ public class Commander implements Runnable {
                     taskRunner = null;
                 }
             } catch (GoldenGateDatabaseNoConnectionError e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (GoldenGateDatabaseNoConnectionError e1) {
+                }
                 logger.error("Database No Connection Error: Cannot execute Commander", e);
                 return;
             } catch (GoldenGateDatabaseSqlError e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (GoldenGateDatabaseNoConnectionError e1) {
+                }
                 logger.error("Database SQL Error: Cannot execute Commander", e);
                 return;
             } catch (GoldenGateDatabaseException e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (GoldenGateDatabaseNoConnectionError e1) {
+                }
                 logger.error("Database Error: Cannot execute Commander", e);
                 return;
             } finally {
@@ -359,6 +439,10 @@ public class Commander implements Runnable {
                     multipleMonitor.update();
                     DbConstant.noCommitAdmin.session.commit();
                 } catch (GoldenGateDatabaseException e) {
+                    try {
+                        DbModelFactory.dbModel.validConnection(DbConstant.noCommitAdmin.session);
+                    } catch (GoldenGateDatabaseNoConnectionError e1) {
+                    }
                 }
                 multipleMonitor = null;
             }
