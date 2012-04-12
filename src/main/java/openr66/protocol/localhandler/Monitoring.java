@@ -949,11 +949,13 @@ public class Monitoring implements GgInterfaceMonitor {
                         return;
                 }
             } catch (GoldenGateDatabaseNoConnectionError e) {
+                logger.info("Database No Connection Error: Cannot execute Monitoring", e);
                 try {
                     DbModelFactory.dbModel.validConnection(dbSession);
                 } catch (GoldenGateDatabaseNoConnectionError e1) {
                 }
             } catch (GoldenGateDatabaseSqlError e) {
+                logger.info("Database No Connection Error: Cannot execute Monitoring", e);
                 try {
                     DbModelFactory.dbModel.validConnection(dbSession);
                 } catch (GoldenGateDatabaseNoConnectionError e1) {

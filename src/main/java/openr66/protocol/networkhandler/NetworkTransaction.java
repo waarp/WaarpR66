@@ -564,20 +564,15 @@ public class NetworkTransaction {
      */
     public static void addNetworkChannel(Channel channel)
             throws OpenR66ProtocolRemoteShutdownException {
-        lock.lock();
-        try {
-            if (!isAddressValid(channel.getRemoteAddress())) {
-                throw new OpenR66ProtocolRemoteShutdownException(
-                        "Channel is already in shutdown");
-            }
-            try {
-                putRemoteChannel(channel);
-            } catch (OpenR66ProtocolNoConnectionException e) {
-                throw new OpenR66ProtocolRemoteShutdownException(
+        if (!isAddressValid(channel.getRemoteAddress())) {
+            throw new OpenR66ProtocolRemoteShutdownException(
                     "Channel is already in shutdown");
-            }
-        } finally {
-            lock.unlock();
+        }
+        try {
+            putRemoteChannel(channel);
+        } catch (OpenR66ProtocolNoConnectionException e) {
+            throw new OpenR66ProtocolRemoteShutdownException(
+                "Channel is already in shutdown");
         }
     }
     /**

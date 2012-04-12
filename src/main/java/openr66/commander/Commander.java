@@ -194,14 +194,14 @@ public class Commander implements Runnable {
             } catch (GoldenGateDatabaseNoConnectionError e) {
                 logger.error("Database No Connection Error: Cannot execute Commander", e);
                 try {
-                    DbModelFactory.dbModel.validConnection(preparedStatementLock.getDbSession());
+                    DbModelFactory.dbModel.validConnection(DbConstant.noCommitAdmin.session);
                 } catch (GoldenGateDatabaseNoConnectionError e1) {
                 }
                 return;
             } catch (GoldenGateDatabaseSqlError e) {
                 logger.error("Database SQL Error: Cannot execute Commander", e);
                 try {
-                    DbModelFactory.dbModel.validConnection(preparedStatementLock.getDbSession());
+                    DbModelFactory.dbModel.validConnection(DbConstant.noCommitAdmin.session);
                 } catch (GoldenGateDatabaseNoConnectionError e1) {
                 }
                 return;
