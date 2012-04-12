@@ -157,21 +157,26 @@ public class Commander implements Runnable {
             } catch (GoldenGateDatabaseNoConnectionError e) {
             }
             preparedStatementLock.realClose();
-            DbConstant.noCommitAdmin.session.removeLongTermPreparedStatements();
+            DbConstant.noCommitAdmin.session.removeLongTermPreparedStatements(preparedStatementLock);
+            //DbConstant.noCommitAdmin.session.removeLongTermPreparedStatements();
         }
         if (preparedStatementConfig != null) {
             preparedStatementConfig.realClose();
+            DbConstant.admin.session.removeLongTermPreparedStatements(preparedStatementConfig);
         }
         if (preparedStatementHost != null) {
             preparedStatementHost.realClose();
+            DbConstant.admin.session.removeLongTermPreparedStatements(preparedStatementHost);
         }
         if (preparedStatementRule != null) {
             preparedStatementRule.realClose();
+            DbConstant.admin.session.removeLongTermPreparedStatements(preparedStatementRule);
         }
         if (preparedStatementRunner != null) {
             preparedStatementRunner.realClose();
+            DbConstant.admin.session.removeLongTermPreparedStatements(preparedStatementRunner);
         }
-        DbConstant.admin.session.removeLongTermPreparedStatements();
+        //DbConstant.admin.session.removeLongTermPreparedStatements();
     }
 
     /* (non-Javadoc)
