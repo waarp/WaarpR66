@@ -381,6 +381,8 @@ public abstract class AbstractTask implements Runnable {
             }
         }
         // finalname
-        return String.format(builder.toString(), argFormat);
+        if (argFormat != null && argFormat.length > 0)
+            return String.format(builder.toString(), argFormat);
+        return builder.toString();
     }
 }

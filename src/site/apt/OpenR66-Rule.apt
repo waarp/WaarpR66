@@ -68,7 +68,7 @@ Where List of tasks is
       	
   *type:nonEmptyString
          
-   Type of Task: LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, LINKRENAME, VALIDFILEPATH, DELETE, TAR, ZIP
+   Type of Task: LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, EXECJAVA, EXECOUTPUT, LINKRENAME, VALIDFILEPATH, DELETE, TAR, ZIP
          	
   *path:nonEmptyString
    

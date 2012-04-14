@@ -50,6 +50,7 @@ import openr66.context.R66Session;
 import openr66.context.authentication.R66Auth;
 import openr66.context.filesystem.R66Dir;
 import openr66.context.filesystem.R66File;
+import openr66.context.task.ExecJavaTask;
 import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.context.task.exception.OpenR66RunnerException;
 import openr66.database.DbConstant;
@@ -79,6 +80,7 @@ import openr66.protocol.exception.OpenR66ProtocolShutdownException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.packet.AbstractLocalPacket;
 import openr66.protocol.localhandler.packet.AuthentPacket;
+import openr66.protocol.localhandler.packet.BusinessRequestPacket;
 import openr66.protocol.localhandler.packet.ConnectionErrorPacket;
 import openr66.protocol.localhandler.packet.DataPacket;
 import openr66.protocol.localhandler.packet.EndRequestPacket;
@@ -357,6 +359,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 }
                 case LocalPacketFactory.ENDREQUESTPACKET: {
                     endRequest(e.getChannel(), (EndRequestPacket) packet);
+                    break;
+                }
+                case LocalPacketFactory.BUSINESSREQUESTPACKET: {
+                    businessRequest(e.getChannel(), (BusinessRequestPacket) packet);
                     break;
                 }
                 default: {
@@ -2218,6 +2224,50 @@ public class LocalServerHandler extends SimpleChannelHandler {
         }
         logger.error("Invalid Shutdown command: from "+session.getAuth().getUser()+" AdmValid: "+isAdmin+" KeyValid: "+isKeyValid);
         throw new OpenR66ProtocolBusinessException("Invalid Shutdown comand");
+    }
+    /**
+     * Business Request (channel should stay open)
+     * 
+     * Note: the thread called should manage all writeback informations, as well as 
+     * status, channel closing if needed or not.
+     * 
+     * @param channel
+     * @param packet
+     * @throws OpenR66ProtocolNotAuthenticatedException
+     * @throws OpenR66ProtocolPacketException
+     */
+    private void businessRequest(Channel channel, BusinessRequestPacket packet)
+            throws OpenR66ProtocolNotAuthenticatedException,
+            OpenR66ProtocolPacketException {
+        if (!session.isAuthenticated()) {
+            throw new OpenR66ProtocolNotAuthenticatedException(
+                    "Not authenticated");
+        }
+        session.setStatus(200);
+        String argRule = packet.getSheader();
+        int delay = packet.getDelay();
+        boolean argTransfer  = packet.isToValidate();
+        ExecJavaTask task = new ExecJavaTask(argRule+" "+argTransfer, delay, null, session);
+        task.run();
+        session.setStatus(201);
+        if (task.isSuccess()) {
+            session.setStatus(202);
+            logger.info("Task done: "+argRule);
+        } else {
+            R66Result result = task.getFutureCompletion().getResult();
+            logger.warn("Task in Error:"+argRule+"\n"+result);
+            if (! result.isAnswered) {
+                packet.invalidate();
+                session.newState(ERROR);
+                ErrorPacket error = new ErrorPacket(
+                    "BusinessRequest in error: for "+packet.toString()+" since "+
+                    result.getMessage(),
+                    result.code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+                ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
+                session.setStatus(203);
+            }
+            session.setStatus(204);
+        }
     }
 
     /**

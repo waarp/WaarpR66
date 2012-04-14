@@ -72,6 +72,8 @@ public class LocalPacketFactory {
 
     public static final byte KEEPALIVEPACKET = 21;
 
+    public static final byte BUSINESSREQUESTPACKET = 22;
+
     /**
      * This method create a Packet from the ChannelBuffer.
      *
@@ -136,6 +138,9 @@ public class LocalPacketFactory {
                         middleLength, endLength, buf);
             case KEEPALIVEPACKET:
                 return KeepAlivePacket.createFromBuffer(headerLength,
+                        middleLength, endLength, buf);
+            case BUSINESSREQUESTPACKET:
+                return BusinessRequestPacket.createFromBuffer(headerLength,
                         middleLength, endLength, buf);
             default:
                 throw new OpenR66ProtocolPacketException(
