@@ -335,7 +335,7 @@ public class Configuration {
      */
     public boolean isServer = false;
 
-    private class R66ThreadFactory implements ThreadFactory {
+    private static class R66ThreadFactory implements ThreadFactory {
         private String GlobalName;
         public R66ThreadFactory(String globalName) {
             GlobalName = globalName;
