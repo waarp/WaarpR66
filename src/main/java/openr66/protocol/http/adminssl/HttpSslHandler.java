@@ -1624,7 +1624,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             String index = index();
             responseContent.append(index);
             clearSession();
-            admin = new DefaultCookie(R66SESSION, Long.toHexString(new Random().nextLong()));
+            admin = new DefaultCookie(R66SESSION, Configuration.configuration.HOST_ID+
+                    Long.toHexString(new Random().nextLong()));
             sessions.put(admin.getValue(), this.authentHttp);
             authentHttp.setStatus(72);
             if (this.isPrivateDbSession) {
