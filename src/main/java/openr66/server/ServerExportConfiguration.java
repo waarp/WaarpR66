@@ -68,7 +68,7 @@ public class ServerExportConfiguration {
         }
         try {
             if (! FileBasedConfiguration
-                    .setConfigurationServerMinimalFromXml(args[0])) {
+                    .setConfigurationServerMinimalFromXml(Configuration.configuration, args[0])) {
                 logger
                         .error("Needs a correct configuration file as first argument");
                 if (DbConstant.admin != null){
@@ -124,7 +124,8 @@ public class ServerExportConfiguration {
             }
             filename = dir.getAbsolutePath()+File.separator+hostname+"_Authentications.xml";
             try {
-                AuthenticationFileBasedConfiguration.writeXML(filename);
+                AuthenticationFileBasedConfiguration.writeXML(Configuration.configuration, 
+                        filename);
             } catch (GoldenGateDatabaseNoConnectionError e) {
                 logger.error("Error",e);
                 DbConstant.admin.close();

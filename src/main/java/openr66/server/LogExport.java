@@ -206,7 +206,7 @@ public class LogExport implements Runnable {
             return false;
         }
         if (! FileBasedConfiguration
-                .setClientConfigurationFromXml(args[0])) {
+                .setClientConfigurationFromXml(Configuration.configuration, args[0])) {
             logger.error("Need at least the configuration file as first argument then optionally\n" +
                     "    -purge\n" +
                     "    -clean\n" +

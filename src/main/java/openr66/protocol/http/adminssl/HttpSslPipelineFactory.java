@@ -20,8 +20,6 @@
  */
 package openr66.protocol.http.adminssl;
 
-import goldengate.common.crypto.ssl.GgSecureKeyStore;
-import goldengate.common.crypto.ssl.GgSslContextFactory;
 
 import java.util.concurrent.ExecutorService;
 
@@ -41,8 +39,6 @@ import org.jboss.netty.handler.execution.ExecutionHandler;
  *
  */
 public class HttpSslPipelineFactory implements ChannelPipelineFactory {
-    public static GgSslContextFactory ggSslContextFactory;
-    public static GgSecureKeyStore ggSecureKeyStore;
     private final ExecutorService executorService;
     public boolean useHttpCompression = false;
     public boolean enableRenegotiation = false;
@@ -60,7 +56,7 @@ public class HttpSslPipelineFactory implements ChannelPipelineFactory {
         final ChannelPipeline pipeline = Channels.pipeline();
         // Add SSL handler first to encrypt and decrypt everything.
         pipeline.addLast("ssl",
-                ggSslContextFactory.initPipelineFactory(true,
+                Configuration.ggSslContextFactory.initPipelineFactory(true,
                         false,
                         enableRenegotiation, executorService));
 

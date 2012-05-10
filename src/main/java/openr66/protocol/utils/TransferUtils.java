@@ -31,6 +31,7 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import java.sql.Timestamp;
 
 import openr66.client.RequestTransfer;
+import openr66.commander.ClientRunner;
 import openr66.context.ErrorCode;
 import openr66.context.R66FiniteDualStates;
 import openr66.context.R66Result;
@@ -144,6 +145,48 @@ public class TransferUtils {
         return finalResult;
     }
 
+    private static void stopOneTransfer(DbTaskRunner taskRunner,
+            StringBuilder builder, R66Session session, String body) {
+        LocalChannelReference lcr =
+            Configuration.configuration.getLocalTransaction().
+            getFromRequest(taskRunner.getKey());
+        ErrorCode result;
+        ErrorCode code = ErrorCode.StoppedTransfer;
+        if (lcr != null) {
+            int rank = taskRunner.getRank();
+            lcr.sessionNewState(R66FiniteDualStates.ERROR);
+            ErrorPacket perror = new ErrorPacket("Transfer Stopped at "+rank,
+                    code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+            try {
+                //XXX ChannelUtils.writeAbstractLocalPacket(lcr, perror);
+                // inform local instead of remote
+                ChannelUtils.writeAbstractLocalPacketToLocal(lcr, perror);
+            } catch (Exception e) {
+            }
+            result = ErrorCode.StoppedTransfer;
+        } else {
+            // Transfer is not running
+            // if in ERROR already just ignore it
+            if (taskRunner.getUpdatedInfo() == UpdatedInfo.INERROR) {
+                result = ErrorCode.TransferError;
+            } else {
+                // the database saying it is not stopped
+                result = ErrorCode.TransferError;
+                if (taskRunner != null) {
+                    if (taskRunner.stopOrCancelRunner(code)) {
+                        result = ErrorCode.StoppedTransfer;
+                    }
+                }
+            }
+        }
+        ErrorCode last = taskRunner.getErrorInfo();
+        taskRunner.setErrorExecutionStatus(result);
+        if (builder != null) {
+            builder.append(taskRunner.toSpecializedHtml(session, body,
+                lcr != null ? "Active" : "NotActive"));
+        }
+        taskRunner.setErrorExecutionStatus(last);
+    }
     /**
      * Stop all selected transfers
      * @param dbSession
@@ -166,6 +209,16 @@ public class TransferUtils {
             StringBuilder builder, R66Session session, String body,
             String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,
             String req, boolean pending, boolean transfer, boolean error) {
+        if (dbSession == null || dbSession.isDisconnected) {
+            // do it without DB
+            if (ClientRunner.activeRunners != null) {
+                for (ClientRunner runner: ClientRunner.activeRunners) {
+                    DbTaskRunner taskRunner = runner.getTaskRunner();
+                    stopOneTransfer(taskRunner, builder, session, body);
+                }
+            }
+            return builder;
+        }
         DbPreparedStatement preparedStatement = null;
         try {
             preparedStatement =
@@ -177,45 +230,7 @@ public class TransferUtils {
             while (preparedStatement.getNext()) {
                 i++;
                 DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatement);
-                LocalChannelReference lcr =
-                    Configuration.configuration.getLocalTransaction().
-                    getFromRequest(taskRunner.getKey());
-                ErrorCode result;
-                ErrorCode code = ErrorCode.StoppedTransfer;
-                if (lcr != null) {
-                    int rank = taskRunner.getRank();
-                    lcr.sessionNewState(R66FiniteDualStates.ERROR);
-                    ErrorPacket perror = new ErrorPacket("Transfer Stopped at "+rank,
-                            code.getCode(), ErrorPacket.FORWARDCLOSECODE);
-                    try {
-                        //XXX ChannelUtils.writeAbstractLocalPacket(lcr, perror);
-                        // inform local instead of remote
-                        ChannelUtils.writeAbstractLocalPacketToLocal(lcr, perror);
-                    } catch (Exception e) {
-                    }
-                    result = ErrorCode.StoppedTransfer;
-                } else {
-                    // Transfer is not running
-                    // if in ERROR already just ignore it
-                    if (taskRunner.getUpdatedInfo() == UpdatedInfo.INERROR) {
-                        result = ErrorCode.TransferError;
-                    } else {
-                        // the database saying it is not stopped
-                        result = ErrorCode.TransferError;
-                        if (taskRunner != null) {
-                            if (taskRunner.stopOrCancelRunner(code)) {
-                                result = ErrorCode.StoppedTransfer;
-                            }
-                        }
-                    }
-                }
-                ErrorCode last = taskRunner.getErrorInfo();
-                taskRunner.setErrorExecutionStatus(result);
-                if (builder != null) {
-                    builder.append(taskRunner.toSpecializedHtml(session, body,
-                        lcr != null ? "Active" : "NotActive"));
-                }
-                taskRunner.setErrorExecutionStatus(last);
+                stopOneTransfer(taskRunner, builder, session, body);
             }
             preparedStatement.realClose();
             return builder;

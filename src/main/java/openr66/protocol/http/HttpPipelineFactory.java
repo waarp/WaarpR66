@@ -36,8 +36,7 @@ import org.jboss.netty.handler.execution.ExecutionHandler;
  * @author Frederic Bregier
  *
  */
-public class HttpPipelineFactory
-    implements ChannelPipelineFactory {
+public class HttpPipelineFactory implements ChannelPipelineFactory {
     public boolean useHttpCompression = false;
     public HttpPipelineFactory(boolean useHttpCompression) {
         this.useHttpCompression = useHttpCompression;

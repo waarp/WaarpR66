@@ -32,6 +32,7 @@ import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
 import java.sql.Types;
 import java.util.concurrent.ConcurrentHashMap;
 
+import openr66.commander.CommanderNoDb;
 import openr66.protocol.configuration.Configuration;
 
 /**
@@ -274,6 +275,10 @@ public class DbConfiguration extends AbstractDbData {
         if (dbSession == null) {
             dbR66ConfigurationHashMap.put(this.hostid, this);
             isSaved = true;
+            if (this.updatedInfo == UpdatedInfo.TOSUBMIT.ordinal()) {
+                // XXX FIXME add to todoList in CommanderNoDb
+                CommanderNoDb.todoList.add(this);
+            }
             return;
         }
         super.insert();
@@ -325,6 +330,10 @@ public class DbConfiguration extends AbstractDbData {
         if (dbSession == null) {
             dbR66ConfigurationHashMap.put(this.hostid, this);
             isSaved = true;
+            if (this.updatedInfo == UpdatedInfo.TOSUBMIT.ordinal()) {
+                // XXX FIXME add to todoList in CommanderNoDb
+                CommanderNoDb.todoList.add(this);
+            }
             return;
         }
         super.update();

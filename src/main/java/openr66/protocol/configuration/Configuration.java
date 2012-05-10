@@ -21,6 +21,8 @@
 package openr66.protocol.configuration;
 
 import goldengate.common.crypto.Des;
+import goldengate.common.crypto.ssl.GgSecureKeyStore;
+import goldengate.common.crypto.ssl.GgSslContextFactory;
 import goldengate.common.database.DbSession;
 import goldengate.common.database.exception.GoldenGateDatabaseException;
 import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
@@ -90,7 +92,7 @@ public class Configuration {
     /**
      * General Configuration object
      */
-    public static final Configuration configuration = new Configuration();
+    public static Configuration configuration = new Configuration();
 
     public static final String SnmpName = "GoldenGate OpenR66 SNMP"; 
     public static final int SnmpPrivateId = 66666;
@@ -354,13 +356,13 @@ public class Configuration {
     /**
      * ExecutorService Server Boss
      */
-    private final ExecutorService execServerBoss = Executors
+    protected ExecutorService execServerBoss = Executors
             .newCachedThreadPool();
 
     /**
      * ExecutorService Server Worker
      */
-    private final ExecutorService execServerWorker = Executors
+    protected ExecutorService execServerWorker = Executors
             .newCachedThreadPool();
 
     /**
@@ -404,24 +406,24 @@ public class Configuration {
     /**
      * Bootstrap for Http server
      */
-    private ServerBootstrap httpBootstrap = null;
+    protected ServerBootstrap httpBootstrap = null;
     /**
      * Bootstrap for Https server
      */
-    private ServerBootstrap httpsBootstrap = null;
+    protected ServerBootstrap httpsBootstrap = null;
     /**
      * ChannelFactory for HttpServer part
      */
-    private ChannelFactory httpChannelFactory = null;
+    protected ChannelFactory httpChannelFactory = null;
     /**
      * ChannelFactory for HttpsServer part
      */
-    private ChannelFactory httpsChannelFactory = null;
+    protected ChannelFactory httpsChannelFactory = null;
     /**
      * List of all Http Channels to enable the close call on them using Netty
      * ChannelGroup
      */
-    private ChannelGroup httpChannelGroup = null;
+    protected ChannelGroup httpChannelGroup = null;
 
     /**
      * ExecutorService for TrafficCounter
@@ -507,6 +509,10 @@ public class Configuration {
     
     private volatile boolean configured = false;
 
+    public static GgSecureKeyStore ggSecureKeyStore;
+
+    public static GgSslContextFactory ggSslContextFactory;
+
     public Configuration() {
         // Init signal handler
         OpenR66SignalHandler.initSignalHandler();
@@ -523,8 +529,7 @@ public class Configuration {
             return;
         }
         localTransaction = new LocalTransaction();
-        InternalLoggerFactory.setDefaultFactory(InternalLoggerFactory
-                .getDefaultFactory());
+        httpPipelineInit();
         objectSizeEstimator = new NetworkPacketSizeEstimator();
         serverPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
                 CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory, 500,
@@ -533,15 +538,20 @@ public class Configuration {
                 CLIENT_THREAD * 100, maxGlobalMemory / 10, maxGlobalMemory,
                 500, TimeUnit.MILLISECONDS,
                 new R66ThreadFactory("LocalExecutor"));
-        httpPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
-                CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory, 500,
-                TimeUnit.MILLISECONDS, new R66ThreadFactory("HttpExecutor"));
         if (useLocalExec) {
             LocalExecClient.initialize();
         }
         configured = true;
     }
 
+    public void httpPipelineInit() {
+        InternalLoggerFactory.setDefaultFactory(InternalLoggerFactory
+                .getDefaultFactory());
+        httpPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
+                CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory, 500,
+                TimeUnit.MILLISECONDS, new R66ThreadFactory("HttpExecutor"));
+    }
+    
     /**
      * Startup the server
      * @throws GoldenGateDatabaseSqlError
@@ -554,11 +564,16 @@ public class Configuration {
             System.exit(-1);
         }
         pipelineInit();
+        r66Startup();
+        startHttpSupport();
+        startMonitoring();
+    }
+    
+    public void r66Startup() throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
         // add into configuration
         this.constraintLimitHandler.setServer(true);
         // Global Server
         serverChannelGroup = new DefaultChannelGroup("OpenR66");
-        httpChannelGroup = new DefaultChannelGroup("HttpOpenR66");
 
         serverChannelFactory = new NioServerSocketChannelFactory(
                 execServerBoss, execServerWorker, SERVER_THREAD);
@@ -609,12 +624,15 @@ public class Configuration {
 
         // Now start the InternalRunner
         internalRunner = new InternalRunner();
-
+    }
+    
+    public void startHttpSupport() {
         // Now start the HTTP support
+        httpChannelGroup = new DefaultChannelGroup("HttpOpenR66");
         // Configure the server.
         httpChannelFactory = new NioServerSocketChannelFactory(
-                Executors.newCachedThreadPool(),
-                Executors.newCachedThreadPool(),
+                execServerBoss,
+                execServerWorker,
                 SERVER_THREAD);
         httpBootstrap = new ServerBootstrap(
                 httpChannelFactory);
@@ -633,8 +651,8 @@ public class Configuration {
         // Now start the HTTPS support
         // Configure the server.
         httpsChannelFactory = new NioServerSocketChannelFactory(
-                Executors.newCachedThreadPool(),
-                Executors.newCachedThreadPool(),
+                execServerBoss,
+                execServerWorker,
                 SERVER_THREAD);
         httpsBootstrap = new ServerBootstrap(
                 httpsChannelFactory);
@@ -650,7 +668,9 @@ public class Configuration {
         httpsBootstrap.setOption("connectTimeoutMillis", TIMEOUTCON);
         // Bind and start to accept incoming connections.
         httpChannelGroup.add(httpsBootstrap.bind(new InetSocketAddress(SERVER_HTTPSPORT)));
-
+    }
+    
+    public void startMonitoring() throws GoldenGateDatabaseSqlError {
         monitoring = new Monitoring(pastLimit, minimalDelay, null);
         if (snmpConfig != null) {
             int snmpPortShow = (useNOSSL ? SERVER_PORT : SERVER_SSLPORT);
@@ -709,6 +729,14 @@ public class Configuration {
         } else if (monitoring != null) {
             monitoring.releaseResources();
             monitoring = null;
+        }
+        if (execServerBoss != null) {
+            ExecutorUtil.terminate(execServerBoss);
+            execServerBoss = null;
+        }
+        if (execServerWorker != null) {
+            ExecutorUtil.terminate(execServerWorker);
+            execServerWorker = null;
         }
     }
     /**

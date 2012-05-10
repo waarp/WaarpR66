@@ -44,6 +44,7 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.TreeSet;
 
+import openr66.commander.CommanderNoDb;
 import openr66.context.ErrorCode;
 import openr66.context.R66FiniteDualStates;
 import openr66.context.R66Result;
@@ -681,6 +682,10 @@ public class DbTaskRunner extends AbstractDbData {
                     // Ignore
                 }
             }
+            if (this.updatedInfo == UpdatedInfo.TOSUBMIT.ordinal()) {
+                // XXX FIXME add to todoList in CommanderNoDb
+                CommanderNoDb.todoList.add(this);
+            }
             return;
         }
         // First need to find a new id if id is not ok
@@ -715,6 +720,10 @@ public class DbTaskRunner extends AbstractDbData {
                 } catch (OpenR66ProtocolBusinessException e) {
                     // Ignore
                 }
+            }
+            if (this.updatedInfo == UpdatedInfo.TOSUBMIT.ordinal()) {
+                // XXX FIXME add to todoList in CommanderNoDb
+                CommanderNoDb.todoList.add(this);
             }
             return;
         }
@@ -843,6 +852,10 @@ public class DbTaskRunner extends AbstractDbData {
                 } catch (OpenR66ProtocolBusinessException e) {
                     // Ignore
                 }
+            }
+            if (this.updatedInfo == UpdatedInfo.TOSUBMIT.ordinal()) {
+                // XXX FIXME add to todoList in CommanderNoDb
+                CommanderNoDb.todoList.add(this);
             }
             return;
         }
@@ -2588,40 +2601,6 @@ public class DbTaskRunner extends AbstractDbData {
                 return;
             }*/
             errorTransfer(finalValue, file, localChannelReference);
-        }
-    }
-    /**
-     * Quick Finalize on Post on restart
-     * @param localChannelReference
-     * @param finalValue
-     * @throws OpenR66RunnerErrorException
-     * @deprecated proposal to remove this as it seems not functional
-     */
-    public void quickFinalizeOnPost(LocalChannelReference localChannelReference, R66Result finalValue) throws OpenR66RunnerErrorException {
-        try {
-            this.run();
-        } catch (OpenR66RunnerErrorException e1) {
-            logger.warn("RunnerError: ",e1);
-            R66Result result = new R66Result(e1, this.session, false,
-                    ErrorCode.ExternalOp, this);
-            logger.debug("Exc {}", session);
-            result.file = session.getFile();
-            result.runner = this;
-            this.changeUpdatedInfo(UpdatedInfo.INERROR);
-            this.saveStatus();
-            errorTransfer(result, session.getFile(), localChannelReference);
-            if (localChannelReference != null) {
-                localChannelReference.invalidateRequest(result);
-            }
-            throw e1;
-        }
-        this.saveStatus();
-        /*Done later on after EndRequest
-         * this.setAllDone();
-        this.saveStatus();*/
-        logger.info("Transfer done on {} at RANK {}",session.getFile() != null ? session.getFile() : "no file", rank);
-        if (localChannelReference != null) {
-            localChannelReference.validateEndTransfer(finalValue);
         }
     }
     /**

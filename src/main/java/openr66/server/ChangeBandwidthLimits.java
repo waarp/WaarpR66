@@ -137,7 +137,7 @@ public class ChangeBandwidthLimits implements Runnable {
             return false;
         }
         if (! FileBasedConfiguration
-                .setClientConfigurationFromXml(args[0])) {
+                .setClientConfigurationFromXml(Configuration.configuration, args[0])) {
             logger.error("Need the configuration file as first argument then at least one of\n" +
                     "   -wglob limitGlobalWrite\n" +
                     "   -rglob limitGlobalRead\n" +

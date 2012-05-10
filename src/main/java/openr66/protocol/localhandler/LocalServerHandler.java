@@ -1818,7 +1818,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 if (bhost) {
                     String filename = dir+File.separator+hostname+"_Authentications.xml";
                     try {
-                        AuthenticationFileBasedConfiguration.writeXML(filename);
+                        AuthenticationFileBasedConfiguration.writeXML(Configuration.configuration, 
+                                filename);
                         shost = filename;
                     } catch (GoldenGateDatabaseNoConnectionError e) {
                         logger.error("Error",e);
@@ -1894,7 +1895,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         }
                     }
                     String filename = shost;
-                    if (AuthenticationFileBasedConfiguration.loadAuthentication(filename)) {
+                    if (AuthenticationFileBasedConfiguration.loadAuthentication(Configuration.configuration, 
+                            filename)) {
                         shost = "Host:OK";
                     } else {
                         logger.error("Error in Load Hosts");

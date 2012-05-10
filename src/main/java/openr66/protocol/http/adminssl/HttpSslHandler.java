@@ -1416,7 +1416,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                             "_Authentications.xml";
                     extraInformation += "-Authent are exported.<br>";
                     try {
-                        AuthenticationFileBasedConfiguration.writeXML(filename);
+                        AuthenticationFileBasedConfiguration.writeXML(Configuration.configuration, 
+                                filename);
                     } catch (GoldenGateDatabaseNoConnectionError e) {
                     } catch (GoldenGateDatabaseSqlError e) {
                     } catch (OpenR66ProtocolSystemException e) {

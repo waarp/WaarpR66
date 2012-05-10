@@ -6,6 +6,7 @@
 	</properties>
 	<body>
 		<release version="2.2.5" date="2012-05-01" description="New functions">
+			<action dev="Frederic Bregier" type="add">Add support for extension of R66 (ARK)</action>
 			<action dev="Frederic Bregier" type="add">Add support for EXECJAVA</action>
 			<action dev="Frederic Bregier" type="add">Add support for BusinessRequest and EXECJAVA</action>
 			<action dev="Frederic Bregier" type="fix">Fix closing issue on File</action>

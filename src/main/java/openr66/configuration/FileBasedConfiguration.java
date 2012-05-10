@@ -59,7 +59,6 @@ import openr66.database.data.DbConfiguration;
 import openr66.database.model.DbModelFactory;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
-import openr66.protocol.http.adminssl.HttpSslPipelineFactory;
 import openr66.protocol.networkhandler.R66ConstraintLimitHandler;
 import openr66.protocol.networkhandler.ssl.NetworkSslServerPipelineFactory;
 import openr66.protocol.utils.FileUtils;
@@ -590,34 +589,34 @@ public class FileBasedConfiguration {
     private static XmlValue[] configuration = null;
     private static XmlHash hashConfig = null; 
     
-    private static boolean loadIdentity() {
+    private static boolean loadIdentity(Configuration config) {
         XmlValue value = hashConfig.get(XML_SERVER_HOSTID);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.HOST_ID = value.getString();
+            config.HOST_ID = value.getString();
         } else {
             logger.error("Unable to find Host ID in Config file");
             return false;
         }
         value = hashConfig.get(XML_SERVER_SSLHOSTID);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.HOST_SSLID = value.getString();
+            config.HOST_SSLID = value.getString();
         } else {
             logger
                     .warn("Unable to find Host SSL ID in Config file so no SSL support will be used");
-            Configuration.configuration.useSSL = false;
-            Configuration.configuration.HOST_SSLID = null;
+            config.useSSL = false;
+            config.HOST_SSLID = null;
         }
-        return setCryptoKey();
+        return setCryptoKey(config);
     }
     
-    private static boolean loadAuthentication() {
+    private static boolean loadAuthentication(Configuration config) {
         if (!DbConstant.admin.isConnected) {
             // if no database, must load authentication from file
             XmlValue value = hashConfig.get(XML_AUTHENTIFICATION_FILE);
             if (value != null && (!value.isEmpty())) {
                 String fileauthent = value.getString();
                 if (!AuthenticationFileBasedConfiguration
-                        .loadAuthentication(fileauthent)) {
+                        .loadAuthentication(config, fileauthent)) {
                     return false;
                 }
             } else {
@@ -628,23 +627,23 @@ public class FileBasedConfiguration {
         return true;
     }
     
-    private static boolean loadServerParam() {
+    private static boolean loadServerParam(Configuration config) {
         XmlValue value = hashConfig.get(XML_USESSL);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.useSSL = value.getBoolean();
+            config.useSSL = value.getBoolean();
         }
         value = hashConfig.get(XML_USENOSSL);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.useNOSSL = value.getBoolean();
+            config.useNOSSL = value.getBoolean();
         }
         value = hashConfig.get(XML_USEHTTPCOMP);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.useHttpCompression = value.getBoolean();
+            config.useHttpCompression = value.getBoolean();
         }
         value = hashConfig.get(XML_USELOCALEXEC);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.useLocalExec = value.getBoolean();
-            if (Configuration.configuration.useLocalExec) {
+            config.useLocalExec = value.getBoolean();
+            if (config.useLocalExec) {
                 value = hashConfig.get(XML_LEXECADDR);
                 String saddr;
                 InetAddress addr;
@@ -677,21 +676,21 @@ public class FileBasedConfiguration {
         }
         value = hashConfig.get(XML_CHECK_ADDRESS);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.checkRemoteAddress = value.getBoolean();
+            config.checkRemoteAddress = value.getBoolean();
         }
         value = hashConfig.get(XML_CHECK_CLIENTADDRESS);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.checkClientAddress = value.getBoolean();
+            config.checkClientAddress = value.getBoolean();
         }
         value = hashConfig.get(XML_SERVER_ADMIN);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.ADMINNAME = value.getString();
+            config.ADMINNAME = value.getString();
         } else {
             logger.error("Unable to find Administrator name in Config file");
             return false;
         }
-        if (Configuration.configuration.cryptoKey == null) {
-            if (! setCryptoKey()) {
+        if (config.cryptoKey == null) {
+            if (! setCryptoKey(config)) {
                 logger.error("Unable to find Crypto Key in Config file");
                 return false;
             }
@@ -707,14 +706,14 @@ public class FileBasedConfiguration {
         byte[] decodedByteKeys = null;
         try {
             decodedByteKeys =
-                Configuration.configuration.cryptoKey.decryptHexInBytes(passwd);
+                config.cryptoKey.decryptHexInBytes(passwd);
         } catch (Exception e) {
             logger.error(
                     "Unable to Decrypt Server Password in Config file from: " +
                             passwd, e);
             return false;
         }
-        Configuration.configuration.setSERVERKEY(decodedByteKeys);
+        config.setSERVERKEY(decodedByteKeys);
         value = hashConfig.get(XML_HTTPADMINPATH);
         if (value == null || (value.isEmpty())) {
             logger.error("Unable to find Http Admin Base in Config file");
@@ -731,7 +730,7 @@ public class FileBasedConfiguration {
             return false;
         }
         try {
-            Configuration.configuration.httpBasePath =
+            config.httpBasePath =
                 FilesystemBasedDirImpl.normalizePath(file.getCanonicalPath())+ 
                 DirInterface.SEPARATOR;
         } catch (IOException e1) {
@@ -768,7 +767,7 @@ public class FileBasedConfiguration {
                 return false;
             }
             try {
-                HttpSslPipelineFactory.ggSecureKeyStore =
+                Configuration.ggSecureKeyStore =
                     new GgSecureKeyStore(keypath, keystorepass,
                             keypass);
             } catch (CryptoException e) {
@@ -777,55 +776,55 @@ public class FileBasedConfiguration {
             }
             // No client authentication
             try {
-                HttpSslPipelineFactory.ggSecureKeyStore.initEmptyTrustStore();
+                Configuration.ggSecureKeyStore.initEmptyTrustStore();
             } catch (CryptoException e) {
                 logger.error("Bad TrustKeyStore construction");
                 return false;
             }
-            HttpSslPipelineFactory.ggSslContextFactory =
+            Configuration.ggSslContextFactory =
                 new GgSslContextFactory(
-                        HttpSslPipelineFactory.ggSecureKeyStore, true);
+                        Configuration.ggSecureKeyStore, true);
         }
         value = hashConfig.get(XML_MONITOR_PASTLIMIT);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.pastLimit = value.getLong();
+            config.pastLimit = value.getLong();
         }
         value = hashConfig.get(XML_MONITOR_MINIMALDELAY);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.minimalDelay = value.getLong();
+            config.minimalDelay = value.getLong();
         }
         value = hashConfig.get(XML_MONITOR_SNMP_CONFIG);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.snmpConfig = value.getString();
-            File snmpfile = new File(Configuration.configuration.snmpConfig);
+            config.snmpConfig = value.getString();
+            File snmpfile = new File(config.snmpConfig);
             if (snmpfile.canRead()) {
                 if (!SnmpConfiguration.setConfigurationFromXml(snmpfile)) {
-                    Configuration.configuration.snmpConfig = null;
+                    config.snmpConfig = null;
                 }
             } else {
-                Configuration.configuration.snmpConfig = null;
+                config.snmpConfig = null;
             }
         }
         value = hashConfig.get(XML_MULTIPLE_MONITORS);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.multipleMonitors = value.getInteger();
+            config.multipleMonitors = value.getInteger();
             logger.warn("Multiple Monitor configuration active for "
-                    +Configuration.configuration.multipleMonitors
+                    +config.multipleMonitors
                     +" servers in HA behind a Load Balancer in TCP");
         } else {
-            Configuration.configuration.multipleMonitors = 1;
+            config.multipleMonitors = 1;
             logger.warn("Multiple Monitor configuration unactive");
         }
         return true;
     }
-    private static boolean loadClientParam() {
+    private static boolean loadClientParam(Configuration config) {
         XmlValue value = hashConfig.get(XML_SAVE_TASKRUNNERNODB);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.saveTaskRunnerWithNoDb = value.getBoolean();
+            config.saveTaskRunnerWithNoDb = value.getBoolean();
         }
         return true;
     }
-    private static boolean loadDirectory() {
+    private static boolean loadDirectory(Configuration config) {
         XmlValue value = hashConfig.get(XML_SERVER_HOME);
         if (value == null || (value.isEmpty())) {
             logger.error("Unable to find Home in Config file");
@@ -838,119 +837,123 @@ public class FileBasedConfiguration {
             return false;
         }
         try {
-            Configuration.configuration.baseDirectory = FilesystemBasedDirImpl
+            config.baseDirectory = FilesystemBasedDirImpl
                     .normalizePath(file.getCanonicalPath());
         } catch (IOException e1) {
             logger.error("Unable to set Home in Config file");
             return false;
         }
         try {
-            Configuration.configuration.configPath = FilesystemBasedDirImpl
-                    .normalizePath(getSubPath(XML_CONFIGPATH));
+            config.configPath = FilesystemBasedDirImpl
+                    .normalizePath(getSubPath(config, XML_CONFIGPATH));
         } catch (OpenR66ProtocolSystemException e2) {
             logger.error("Unable to set Config in Config file");
             return false;
         }
         try {
-            Configuration.configuration.inPath = FilesystemBasedDirImpl
-                    .normalizePath(getSubPath(XML_INPATH));
+            config.inPath = FilesystemBasedDirImpl
+                    .normalizePath(getSubPath(config, XML_INPATH));
         } catch (OpenR66ProtocolSystemException e2) {
             logger.error("Unable to set In in Config file");
             return false;
         }
         try {
-            Configuration.configuration.outPath = FilesystemBasedDirImpl
-                    .normalizePath(getSubPath(XML_OUTPATH));
+            config.outPath = FilesystemBasedDirImpl
+                    .normalizePath(getSubPath(config, XML_OUTPATH));
         } catch (OpenR66ProtocolSystemException e2) {
             logger.error("Unable to set Out in Config file");
             return false;
         }
         try {
-            Configuration.configuration.workingPath = FilesystemBasedDirImpl
-                    .normalizePath(getSubPath(XML_WORKINGPATH));
+            config.workingPath = FilesystemBasedDirImpl
+                    .normalizePath(getSubPath(config, XML_WORKINGPATH));
         } catch (OpenR66ProtocolSystemException e2) {
             logger.error("Unable to set Working in Config file");
             return false;
         }
         try {
-            Configuration.configuration.archivePath = FilesystemBasedDirImpl
-                    .normalizePath(getSubPath(XML_ARCHIVEPATH));
+            config.archivePath = FilesystemBasedDirImpl
+                    .normalizePath(getSubPath(config, XML_ARCHIVEPATH));
         } catch (OpenR66ProtocolSystemException e2) {
             logger.error("Unable to set Archive in Config file");
             return false;
         }
         return true;
     }
-    private static boolean loadLimit(boolean updateLimit) {
+    private static boolean alreadySetLimit = false;
+    private static boolean loadLimit(Configuration config, boolean updateLimit) {
+        if (alreadySetLimit) {
+            return true;
+        }
         XmlValue value = hashConfig.get(XML_LIMITGLOBAL);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.serverGlobalReadLimit = value.getLong();
-            if (Configuration.configuration.serverGlobalReadLimit <= 0) {
-                Configuration.configuration.serverGlobalReadLimit = 0;
+            config.serverGlobalReadLimit = value.getLong();
+            if (config.serverGlobalReadLimit <= 0) {
+                config.serverGlobalReadLimit = 0;
             }
-            Configuration.configuration.serverGlobalWriteLimit = Configuration.configuration.serverGlobalReadLimit;
+            config.serverGlobalWriteLimit = config.serverGlobalReadLimit;
             logger.info("Global Limit: {}",
-                    Configuration.configuration.serverGlobalReadLimit);
+                    config.serverGlobalReadLimit);
         }
         value = hashConfig.get(XML_LIMITSESSION);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.serverChannelReadLimit = value.getLong();
-            if (Configuration.configuration.serverChannelReadLimit <= 0) {
-                Configuration.configuration.serverChannelReadLimit = 0;
+            config.serverChannelReadLimit = value.getLong();
+            if (config.serverChannelReadLimit <= 0) {
+                config.serverChannelReadLimit = 0;
             }
-            Configuration.configuration.serverChannelWriteLimit = Configuration.configuration.serverChannelReadLimit;
+            config.serverChannelWriteLimit = config.serverChannelReadLimit;
             logger.info("SessionInterface Limit: {}",
-                    Configuration.configuration.serverChannelReadLimit);
+                    config.serverChannelReadLimit);
         }
-        Configuration.configuration.delayLimit = AbstractTrafficShapingHandler.DEFAULT_CHECK_INTERVAL;
+        config.delayLimit = AbstractTrafficShapingHandler.DEFAULT_CHECK_INTERVAL;
         value = hashConfig.get(XML_LIMITDELAY);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.delayLimit = value.getLong();
-            if (Configuration.configuration.delayLimit <= 0) {
-                Configuration.configuration.delayLimit = 0;
+            config.delayLimit = value.getLong();
+            if (config.delayLimit <= 0) {
+                config.delayLimit = 0;
             }
             logger.info("Delay Limit: {}",
-                    Configuration.configuration.delayLimit);
+                    config.delayLimit);
         }
         value = hashConfig.get(XML_LIMITRUNNING);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.RUNNER_THREAD = value.getInteger();
+            config.RUNNER_THREAD = value.getInteger();
         }
-        if (Configuration.configuration.RUNNER_THREAD < 10) {
-            Configuration.configuration.RUNNER_THREAD = 10;
+        if (config.RUNNER_THREAD < 10) {
+            config.RUNNER_THREAD = 10;
         }
         logger.info("Limit of Runner: {}",
-                Configuration.configuration.RUNNER_THREAD);
+                config.RUNNER_THREAD);
         value = hashConfig.get(XML_DELAYCOMMANDER);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.delayCommander = value.getLong();
-            if (Configuration.configuration.delayCommander <= 100) {
-                Configuration.configuration.delayCommander = 100;
+            config.delayCommander = value.getLong();
+            if (config.delayCommander <= 100) {
+                config.delayCommander = 100;
             }
             logger.info("Delay Commander: {}",
-                    Configuration.configuration.delayCommander);
+                    config.delayCommander);
         }
         value = hashConfig.get(XML_DELAYRETRY);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.delayRetry = value.getLong();
-            if (Configuration.configuration.delayRetry <= 1000) {
-                Configuration.configuration.delayRetry = 1000;
+            config.delayRetry = value.getLong();
+            if (config.delayRetry <= 1000) {
+                config.delayRetry = 1000;
             }
             logger.info("Delay Retry: {}",
-                    Configuration.configuration.delayRetry);
+                    config.delayRetry);
         }
         if (DbConstant.admin.isConnected && updateLimit) {
             value = hashConfig.get(XML_SERVER_HOSTID);
             if (value != null && (!value.isEmpty())) {
-                Configuration.configuration.HOST_ID = value.getString();
+                config.HOST_ID = value.getString();
                 DbConfiguration configuration = new DbConfiguration(
                         DbConstant.admin.session,
-                        Configuration.configuration.HOST_ID,
-                        Configuration.configuration.serverGlobalReadLimit,
-                        Configuration.configuration.serverGlobalWriteLimit,
-                        Configuration.configuration.serverChannelReadLimit,
-                        Configuration.configuration.serverChannelWriteLimit,
-                        Configuration.configuration.delayLimit);
+                        config.HOST_ID,
+                        config.serverGlobalReadLimit,
+                        config.serverGlobalWriteLimit,
+                        config.serverChannelReadLimit,
+                        config.serverChannelWriteLimit,
+                        config.delayLimit);
                 configuration.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
                 try {
                     if (configuration.exist()) {
@@ -1008,24 +1011,24 @@ public class FileBasedConfiguration {
             limitLowBandwidth = value.getLong();
         }
         if (highcpuLimit > 0) {
-            Configuration.configuration.constraintLimitHandler =
+            config.constraintLimitHandler =
                 new R66ConstraintLimitHandler(useCpuLimit, useCpuLimitJDK, cpulimit, connlimit,
                         lowcpuLimit, highcpuLimit, percentageDecrease, null, delay, limitLowBandwidth);
         } else {
-            Configuration.configuration.constraintLimitHandler =
+            config.constraintLimitHandler =
                 new R66ConstraintLimitHandler(useCpuLimit, useCpuLimitJDK, cpulimit, connlimit);
         }
         value = hashConfig.get(XML_SERVER_THREAD);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.SERVER_THREAD = value.getInteger();
+            config.SERVER_THREAD = value.getInteger();
         }
         value = hashConfig.get(XML_CLIENT_THREAD);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.CLIENT_THREAD = value.getInteger();
+            config.CLIENT_THREAD = value.getInteger();
         }
         value = hashConfig.get(XML_MEMORY_LIMIT);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.maxGlobalMemory = value.getLong();
+            config.maxGlobalMemory = value.getLong();
         }
         Configuration.getFileParameter().deleteOnAbort = false;
         value = hashConfig.get(XML_USENIO);
@@ -1038,9 +1041,9 @@ public class FileBasedConfiguration {
             if (val < 0 || val >= DigestAlgo.values().length) {
                 val = 0;
             }
-            Configuration.configuration.digest = DigestAlgo.values()[val];
+            config.digest = DigestAlgo.values()[val];
         }
-        logger.warn("DigestAlgo used: {}", Configuration.configuration.digest);
+        logger.warn("DigestAlgo used: {}", config.digest);
         value = hashConfig.get(XML_USEFASTMD5);
         if (value != null && (!value.isEmpty())) {
             FilesystemBasedDigest.useFastMd5 = value.getBoolean();
@@ -1075,20 +1078,21 @@ public class FileBasedConfiguration {
         }
         value = hashConfig.get(XML_BLOCKSIZE);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.BLOCKSIZE = value.getInteger();
+            config.BLOCKSIZE = value.getInteger();
         }
         value = hashConfig.get(XML_TIMEOUTCON);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.TIMEOUTCON = value.getLong();
+            config.TIMEOUTCON = value.getLong();
         }
         if (Configuration.USEJDK6) {
             R66Dir.initJdkDependent(new FilesystemBasedDirJdk6());
         } else {
             R66Dir.initJdkDependent(new FilesystemBasedDirJdk5());
         }
+        alreadySetLimit = true;
         return true;
     }
-    private static boolean loadSsl() {
+    private static boolean loadSsl(Configuration config) {
         // StoreKey for Server
         XmlValue value = hashConfig.get(XML_PATH_KEYPATH);
         if (value == null || (value.isEmpty())) {
@@ -1180,7 +1184,7 @@ public class FileBasedConfiguration {
                     NetworkSslServerPipelineFactory.ggSecureKeyStore);
         return true;
     }
-    private static boolean loadNetworkServer() {
+    private static boolean loadNetworkServer(Configuration config) {
         XmlValue value = hashConfig.get(XML_SERVER_PORT);
         int port = 6666;
         if (value != null && (!value.isEmpty())) {
@@ -1188,7 +1192,7 @@ public class FileBasedConfiguration {
         } else {
             port = 6666;
         }
-        Configuration.configuration.SERVER_PORT = port;
+        config.SERVER_PORT = port;
         value = hashConfig.get(XML_SERVER_SSLPORT);
         int sslport = 6667;
         if (value != null && (!value.isEmpty())) {
@@ -1196,19 +1200,19 @@ public class FileBasedConfiguration {
         } else {
             sslport = 6667;
         }
-        Configuration.configuration.SERVER_SSLPORT = sslport;
+        config.SERVER_SSLPORT = sslport;
         value = hashConfig.get(XML_SERVER_HTTPPORT);
         int httpport = 8066;
         if (value != null && (!value.isEmpty())) {
             httpport = value.getInteger();
         }
-        Configuration.configuration.SERVER_HTTPPORT = httpport;
+        config.SERVER_HTTPPORT = httpport;
         value = hashConfig.get(XML_SERVER_HTTPSPORT);
         int httpsport = 8067;
         if (value != null && (!value.isEmpty())) {
             httpsport = value.getInteger();
         }
-        Configuration.configuration.SERVER_HTTPSPORT = httpsport;
+        config.SERVER_HTTPSPORT = httpsport;
         return true;
     }
     /**
@@ -1216,7 +1220,7 @@ public class FileBasedConfiguration {
      * @param document
      * @return True if OK
      */
-    private static boolean setCryptoKey() {
+    private static boolean setCryptoKey(Configuration config) {
         XmlValue value = hashConfig.get(XML_PATH_CRYPTOKEY);
         if (value == null || (value.isEmpty())) {
             logger.error("Unable to find CryptoKey in Config file");
@@ -1234,7 +1238,7 @@ public class FileBasedConfiguration {
             logger.error("Unable to load CryptoKey from Config file");
             return false;
         }
-        Configuration.configuration.cryptoKey = des;
+        config.cryptoKey = des;
         return true;
     }
     /**
@@ -1243,24 +1247,24 @@ public class FileBasedConfiguration {
      * @param document
      * @return True if OK
      */
-    private static boolean loadFromDatabase() {
+    private static boolean loadFromDatabase(Configuration config) {
         if (DbConstant.admin.isConnected) {
             // load from database the limit to apply
             try {
                 DbConfiguration configuration = new DbConfiguration(
                         DbConstant.admin.session,
-                        Configuration.configuration.HOST_ID);
+                        config.HOST_ID);
                 configuration.updateConfiguration();
             } catch (GoldenGateDatabaseException e) {
                 logger.warn("Cannot load configuration from database", e);
             }
         } else {
-            if (Configuration.configuration.baseDirectory != null &&
-                    Configuration.configuration.configPath != null) {
+            if (config.baseDirectory != null &&
+                    config.configPath != null) {
                 // load Rules from files
                 File dirConfig = new File(
-                        Configuration.configuration.baseDirectory +
-                                Configuration.configuration.configPath);
+                        config.baseDirectory +
+                                config.configPath);
                 if (dirConfig.isDirectory()) {
                     try {
                         RuleFileBasedConfiguration.importRules(dirConfig);
@@ -1273,13 +1277,13 @@ public class FileBasedConfiguration {
                     }
                 } else {
                     logger.error("Config Directory is not a directory: " +
-                            Configuration.configuration.baseDirectory +
-                            Configuration.configuration.configPath);
+                            config.baseDirectory +
+                            config.configPath);
                     return false;
                 }
             }
             // load if possible the limit to apply
-            loadLimit(false);
+            loadLimit(config, false);
         }
         return true;
     }
@@ -1290,7 +1294,7 @@ public class FileBasedConfiguration {
      * @param document
      * @return True if OK
      */
-    private static boolean loadDatabase() {
+    private static boolean loadDatabase(Configuration config) {
         XmlValue value = hashConfig.get(XML_DBDRIVER);
         if (value == null || (value.isEmpty())) {
             logger.error("Unable to find DBDriver in Config file");
@@ -1327,7 +1331,7 @@ public class FileBasedConfiguration {
                 DbConstant.admin = 
                     DbModelFactory.initialize(dbdriver, dbserver, dbuser, dbpasswd,
                         true);
-                if (Configuration.configuration.multipleMonitors > 1) {
+                if (config.multipleMonitors > 1) {
                     DbConstant.noCommitAdmin = 
                         DbModelFactory.initialize(dbdriver, dbserver, dbuser, dbpasswd,
                             true);
@@ -1350,7 +1354,7 @@ public class FileBasedConfiguration {
      * @return the new subpath
      * @throws OpenR66ProtocolSystemException
      */
-    private static String getSubPath(String fromXML)
+    private static String getSubPath(Configuration config, String fromXML)
             throws OpenR66ProtocolSystemException {
         XmlValue value = hashConfig.get(fromXML);
         if (value == null || (value.isEmpty())) {
@@ -1365,7 +1369,7 @@ public class FileBasedConfiguration {
                     "Unable to find a correct Path in Config file: " + fromXML);
         }
         path = DirInterface.SEPARATOR + path;
-        String newpath = Configuration.configuration.baseDirectory + path;
+        String newpath = config.baseDirectory + path;
         File file = new File(newpath);
         if (!file.isDirectory()) {
             FileUtils.createDir(file);
@@ -1377,7 +1381,7 @@ public class FileBasedConfiguration {
      * @param filename
      * @return True if OK
      */
-    public static boolean setConfigurationLoadLimitFromXml(String filename) {
+    public static boolean setConfigurationLoadLimitFromXml(Configuration config, String filename) {
         Document document = null;
         // Open config file
         try {
@@ -1392,7 +1396,7 @@ public class FileBasedConfiguration {
         }
         configuration = XmlUtil.read(document, configServer);
         hashConfig = new XmlHash(configuration);
-        if (! loadLimit(true)) {
+        if (! loadLimit(config, true)) {
             logger.error("Unable to read Limitation config file: " + filename);
             return false;
         }
@@ -1406,7 +1410,7 @@ public class FileBasedConfiguration {
      * @param filename
      * @return True if OK
      */
-    public static boolean setConfigurationInitDatabase(String filename) {
+    public static boolean setConfigurationInitDatabase(Configuration config, String filename) {
         Document document = null;
         // Open config file
         try {
@@ -1421,25 +1425,25 @@ public class FileBasedConfiguration {
         }
         configuration = XmlUtil.read(document, configServer);
         hashConfig = new XmlHash(configuration);
-        if (! loadIdentity()) {
+        if (! loadIdentity(config)) {
             logger.error("Cannot load Identity");
             return false;
         }
-        if (!loadDatabase()) {
+        if (!loadDatabase(config)) {
             logger.error("Cannot load Database configuration");
             return false;
         }
-        if (! loadDirectory()) {
+        if (! loadDirectory(config)) {
             logger.error("Cannot load Directory configuration");
             return false;
         }
-        if (! loadLimit(false)) {
+        if (! loadLimit(config, false)) {
             logger.error("Cannot load Limit configuration");
             return false;
         }
         if (!DbConstant.admin.isConnected) {
             // if no database, must load authentication from file
-            if (! loadAuthentication()) {
+            if (! loadAuthentication(config)) {
                 logger.error("Cannot load Authentication configuration");
                 return false;
             }
@@ -1454,7 +1458,7 @@ public class FileBasedConfiguration {
      * @param filename
      * @return True if OK
      */
-    public static boolean setConfigurationServerMinimalFromXml(String filename) {
+    public static boolean setConfigurationServerMinimalFromXml(Configuration config, String filename) {
         Document document = null;
         // Open config file
         try {
@@ -1469,42 +1473,42 @@ public class FileBasedConfiguration {
         }
         configuration = XmlUtil.read(document, configServer);
         hashConfig = new XmlHash(configuration);
-        if (! loadIdentity()) {
+        if (! loadIdentity(config)) {
             logger.error("Cannot load Identity");
             return false;
         }
-        if (!loadDatabase()) {
+        if (!loadDatabase(config)) {
             logger.error("Cannot load Database configuration");
             return false;
         }
-        if (! loadDirectory()) {
+        if (! loadDirectory(config)) {
             logger.error("Cannot load Directory configuration");
             return false;
         }
-        if (! loadLimit(false)) {
+        if (! loadLimit(config, false)) {
             logger.error("Cannot load Limit configuration");
             return false;
         }
         if (!DbConstant.admin.isConnected) {
             // if no database, must load authentication from file
-            if (! loadAuthentication()) {
+            if (! loadAuthentication(config)) {
                 logger.error("Cannot load Authentication configuration");
                 return false;
             }
         }
-        Configuration.configuration.HOST_AUTH = R66Auth.getServerAuth(
-                DbConstant.admin.session, Configuration.configuration.HOST_ID);
-        if (Configuration.configuration.HOST_AUTH == null &&
-                Configuration.configuration.useNOSSL) {
+        config.HOST_AUTH = R66Auth.getServerAuth(
+                DbConstant.admin.session, config.HOST_ID);
+        if (config.HOST_AUTH == null &&
+                config.useNOSSL) {
             logger.error("Cannot find Authentication for current host");
             return false;
         }
-        if (Configuration.configuration.HOST_SSLID != null) {
-            Configuration.configuration.HOST_SSLAUTH = R66Auth.getServerAuth(
+        if (config.HOST_SSLID != null) {
+            config.HOST_SSLAUTH = R66Auth.getServerAuth(
                     DbConstant.admin.session,
-                    Configuration.configuration.HOST_SSLID);
-            if (Configuration.configuration.HOST_SSLAUTH == null &&
-                    Configuration.configuration.useSSL) {
+                    config.HOST_SSLID);
+            if (config.HOST_SSLAUTH == null &&
+                    config.useSSL) {
                 logger.error("Cannot find SSL Authentication for current host");
                 return false;
             }
@@ -1521,7 +1525,7 @@ public class FileBasedConfiguration {
      * @param filename
      * @return True if OK
      */
-    public static boolean setConfigurationServerShutdownFromXml(String filename) {
+    public static boolean setConfigurationServerShutdownFromXml(Configuration config, String filename) {
         Document document = null;
         // Open config file
         try {
@@ -1537,56 +1541,56 @@ public class FileBasedConfiguration {
         configuration = XmlUtil.read(document, configServer);
         hashConfig = new XmlHash(configuration);
         // Now read the configuration
-        if (! loadIdentity()) {
+        if (! loadIdentity(config)) {
             logger.error("Cannot load Identity");
             return false;
         }
-        if (!loadDatabase()) {
+        if (!loadDatabase(config)) {
             logger.error("Cannot load Database configuration");
             return false;
         }
-        if (! loadServerParam()) {
+        if (! loadServerParam(config)) {
             logger.error("Cannot load Server Parameters");
             return false;
         }
-        if (! loadDirectory()) {
+        if (! loadDirectory(config)) {
             logger.error("Cannot load Directory configuration");
             return false;
         }
-        if (! loadLimit(false)) {
+        if (! loadLimit(config, false)) {
             logger.error("Cannot load Limit configuration");
             return false;
         }
-        if (Configuration.configuration.useSSL) {
-            if (!loadSsl()) {
+        if (config.useSSL) {
+            if (!loadSsl(config)) {
                 logger.error("Cannot load SSL configuration");
                 return false;
             }
         }
-        if (! loadNetworkServer()) {
+        if (! loadNetworkServer(config)) {
             logger.error("Cannot load Network configuration");
             return false;
         }
         if (!DbConstant.admin.isConnected) {
             // if no database, must load authentication from file
-            if (! loadAuthentication()) {
+            if (! loadAuthentication(config)) {
                 logger.error("Cannot load Authentication configuration");
                 return false;
             }
         }
-        Configuration.configuration.HOST_AUTH = R66Auth.getServerAuth(
-                DbConstant.admin.session, Configuration.configuration.HOST_ID);
-        if (Configuration.configuration.HOST_AUTH == null &&
-                Configuration.configuration.useNOSSL) {
+        config.HOST_AUTH = R66Auth.getServerAuth(
+                DbConstant.admin.session, config.HOST_ID);
+        if (config.HOST_AUTH == null &&
+                config.useNOSSL) {
             logger.error("Cannot find Authentication for current host");
             return false;
         }
-        if (Configuration.configuration.HOST_SSLID != null) {
-            Configuration.configuration.HOST_SSLAUTH = R66Auth.getServerAuth(
+        if (config.HOST_SSLID != null) {
+            config.HOST_SSLAUTH = R66Auth.getServerAuth(
                     DbConstant.admin.session,
-                    Configuration.configuration.HOST_SSLID);
-            if (Configuration.configuration.HOST_SSLAUTH == null &&
-                    Configuration.configuration.useSSL) {
+                    config.HOST_SSLID);
+            if (config.HOST_SSLAUTH == null &&
+                    config.useSSL) {
                 logger.error("Cannot find SSL Authentication for current host");
                 return false;
             }
@@ -1602,7 +1606,7 @@ public class FileBasedConfiguration {
      * @param filename
      * @return True if OK
      */
-    public static boolean setConfigurationServerFromXml(String filename) {
+    public static boolean setConfigurationServerFromXml(Configuration config, String filename) {
         Document document = null;
         // Open config file
         try {
@@ -1618,60 +1622,60 @@ public class FileBasedConfiguration {
         configuration = XmlUtil.read(document, configServer);
         hashConfig = new XmlHash(configuration);
         // Now read the configuration
-        if (! loadIdentity()) {
+        if (! loadIdentity(config)) {
             logger.error("Cannot load Identity");
             return false;
         }
-        if (!loadDatabase()) {
+        if (!loadDatabase(config)) {
             logger.error("Cannot load Database configuration");
             return false;
         }
-        if (! loadServerParam()) {
+        if (! loadServerParam(config)) {
             logger.error("Cannot load Server Parameters");
             return false;
         }
-        if (! loadDirectory()) {
+        if (! loadDirectory(config)) {
             logger.error("Cannot load Directory configuration");
             return false;
         }
-        if (! loadLimit(false)) {
+        if (! loadLimit(config, false)) {
             logger.error("Cannot load Limit configuration");
             return false;
         }
-        if (Configuration.configuration.useSSL) {
-            if (!loadSsl()) {
+        if (config.useSSL) {
+            if (!loadSsl(config)) {
                 logger.error("Cannot load SSL configuration");
                 return false;
             }
         }
-        if (! loadNetworkServer()) {
+        if (! loadNetworkServer(config)) {
             logger.error("Cannot load Network configuration");
             return false;
         }
-        if (!loadFromDatabase()) {
+        if (!loadFromDatabase(config)) {
             logger.error("Cannot load configuration from Database");
             return false;
         }
         if (!DbConstant.admin.isConnected) {
             // if no database, must load authentication from file
-            if (! loadAuthentication()) {
+            if (! loadAuthentication(config)) {
                 logger.error("Cannot load Authentication configuration");
                 return false;
             }
         }
-        Configuration.configuration.HOST_AUTH = R66Auth.getServerAuth(
-                DbConstant.admin.session, Configuration.configuration.HOST_ID);
-        if (Configuration.configuration.HOST_AUTH == null &&
-                Configuration.configuration.useNOSSL) {
+        config.HOST_AUTH = R66Auth.getServerAuth(
+                DbConstant.admin.session, config.HOST_ID);
+        if (config.HOST_AUTH == null &&
+                config.useNOSSL) {
             logger.error("Cannot find Authentication for current host");
             return false;
         }
-        if (Configuration.configuration.HOST_SSLID != null) {
-            Configuration.configuration.HOST_SSLAUTH = R66Auth.getServerAuth(
+        if (config.HOST_SSLID != null) {
+            config.HOST_SSLAUTH = R66Auth.getServerAuth(
                     DbConstant.admin.session,
-                    Configuration.configuration.HOST_SSLID);
-            if (Configuration.configuration.HOST_SSLAUTH == null &&
-                    Configuration.configuration.useSSL) {
+                    config.HOST_SSLID);
+            if (config.HOST_SSLAUTH == null &&
+                    config.useSSL) {
                 logger.error("Cannot find SSL Authentication for current host");
                 return false;
             }
@@ -1688,7 +1692,7 @@ public class FileBasedConfiguration {
      * @param filename
      * @return True if OK
      */
-    public static boolean setClientConfigurationFromXml(String filename) {
+    public static boolean setClientConfigurationFromXml(Configuration config, String filename) {
         Document document = null;
         // Open config file
         try {
@@ -1704,55 +1708,55 @@ public class FileBasedConfiguration {
         configuration = XmlUtil.read(document, configClient);
         hashConfig = new XmlHash(configuration);
         // Client enables SSL by default but could be reverted later on
-        Configuration.configuration.useSSL = true;
-        if (! loadIdentity()) {
+        config.useSSL = true;
+        if (! loadIdentity(config)) {
             logger.error("Cannot load Identity");
             return false;
         }
-        if (!loadDatabase()) {
+        if (!loadDatabase(config)) {
             logger.error("Cannot load Database configuration");
             return false;
         }
-        if (! loadClientParam()) {
+        if (! loadClientParam(config)) {
             logger.error("Cannot load Client Parameters");
             return false;
         }
-        if (! loadDirectory()) {
+        if (! loadDirectory(config)) {
             logger.error("Cannot load Directory configuration");
             return false;
         }
-        if (! loadLimit(false)) {
+        if (! loadLimit(config, false)) {
             logger.error("Cannot load Limit configuration");
             return false;
         }
-        if (Configuration.configuration.useSSL) {
-            if (!loadSsl()) {
+        if (config.useSSL) {
+            if (!loadSsl(config)) {
                 logger.error("Cannot load SSL configuration");
                 return false;
             }
         }
-        if (!loadFromDatabase()) {
+        if (!loadFromDatabase(config)) {
             logger.error("Cannot load configuration from Database");
             return false;
         }
         if (!DbConstant.admin.isConnected) {
             // if no database, must load authentication from file
-            if (! loadAuthentication()) {
+            if (! loadAuthentication(config)) {
                 logger.error("Cannot load Authentication configuration");
                 return false;
             }
         }
-        Configuration.configuration.HOST_AUTH = R66Auth.getServerAuth(
-                DbConstant.admin.session, Configuration.configuration.HOST_ID);
-        if (Configuration.configuration.HOST_AUTH == null) {
+        config.HOST_AUTH = R66Auth.getServerAuth(
+                DbConstant.admin.session, config.HOST_ID);
+        if (config.HOST_AUTH == null) {
             logger.error("Cannot find Authentication for current host");
             return false;
         }
-        if (Configuration.configuration.HOST_SSLID != null) {
-            Configuration.configuration.HOST_SSLAUTH = R66Auth.getServerAuth(
+        if (config.HOST_SSLID != null) {
+            config.HOST_SSLAUTH = R66Auth.getServerAuth(
                     DbConstant.admin.session,
-                    Configuration.configuration.HOST_SSLID);
-            if (Configuration.configuration.HOST_SSLAUTH == null) {
+                    config.HOST_SSLID);
+            if (config.HOST_SSLAUTH == null) {
                 logger.error("Cannot find SSL Authentication for current host");
                 return false;
             }
@@ -1765,10 +1769,11 @@ public class FileBasedConfiguration {
     /**
      * Initiate the configuration from the xml file for submit database client
      *
+     * @param configuration
      * @param filename
      * @return True if OK
      */
-    public static boolean setSubmitClientConfigurationFromXml(String filename) {
+    public static boolean setSubmitClientConfigurationFromXml(Configuration config, String filename) {
         Document document = null;
         // Open config file
         try {
@@ -1784,30 +1789,30 @@ public class FileBasedConfiguration {
         configuration = XmlUtil.read(document, configSubmitClient);
         hashConfig = new XmlHash(configuration);
         // Client enables SSL by default but could be reverted later on
-        Configuration.configuration.useSSL = true;
-        if (! loadIdentity()) {
+        config.useSSL = true;
+        if (! loadIdentity(config)) {
             logger.error("Cannot load Identity");
             return false;
         }
-        if (!loadDatabase()) {
+        if (!loadDatabase(config)) {
             logger.error("Cannot load Database configuration");
             return false;
         }
         XmlValue value = hashConfig.get(XML_BLOCKSIZE);
         if (value != null && (!value.isEmpty())) {
-            Configuration.configuration.BLOCKSIZE = value.getInteger();
+            config.BLOCKSIZE = value.getInteger();
         }
-        Configuration.configuration.HOST_AUTH = R66Auth.getServerAuth(
-                DbConstant.admin.session, Configuration.configuration.HOST_ID);
-        if (Configuration.configuration.HOST_AUTH == null) {
+        config.HOST_AUTH = R66Auth.getServerAuth(
+                DbConstant.admin.session, config.HOST_ID);
+        if (config.HOST_AUTH == null) {
             logger.error("Cannot find Authentication for current host");
             return false;
         }
-        if (Configuration.configuration.HOST_SSLID != null) {
-            Configuration.configuration.HOST_SSLAUTH = R66Auth.getServerAuth(
+        if (config.HOST_SSLID != null) {
+            config.HOST_SSLAUTH = R66Auth.getServerAuth(
                     DbConstant.admin.session,
-                    Configuration.configuration.HOST_SSLID);
-            if (Configuration.configuration.HOST_SSLAUTH == null) {
+                    config.HOST_SSLID);
+            if (config.HOST_SSLAUTH == null) {
                 logger.error("Cannot find SSL Authentication for current host");
                 return false;
             }

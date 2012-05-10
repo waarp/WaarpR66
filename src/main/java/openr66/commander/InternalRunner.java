@@ -20,7 +20,6 @@
  */
 package openr66.commander;
 
-import goldengate.common.database.exception.GoldenGateDatabaseException;
 import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
 import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
 import goldengate.common.logging.GgInternalLogger;
@@ -34,6 +33,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import openr66.database.DbConstant;
 import openr66.database.data.DbTaskRunner;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.networkhandler.NetworkTransaction;
@@ -53,7 +53,7 @@ public class InternalRunner {
 
     private final ScheduledExecutorService scheduledExecutorService;
     private ScheduledFuture<?> scheduledFuture;
-    private Commander commander = null;
+    private CommanderInterface commander = null;
     private volatile boolean isRunning = true;
     private final ThreadPoolExecutor threadPoolExecutor;
     private final BlockingQueue<Runnable> workQueue;
@@ -65,7 +65,11 @@ public class InternalRunner {
      * @throws GoldenGateDatabaseSqlError
      */
     public InternalRunner() throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
-        commander = new Commander(this, true);
+        if (DbConstant.admin.isConnected) {
+            commander = new Commander(this, true);
+        } else {
+            commander = new CommanderNoDb(this, true);
+        }
         scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
         isRunning = true;
         workQueue = new ArrayBlockingQueue<Runnable>(10);
@@ -82,9 +86,8 @@ public class InternalRunner {
     /**
      * Submit a task
      * @param taskRunner
-     * @throws GoldenGateDatabaseException
      */
-    public void submitTaskRunner(DbTaskRunner taskRunner) throws GoldenGateDatabaseException {
+    public void submitTaskRunner(DbTaskRunner taskRunner) {
         if (isRunning) {
             logger.debug("Will run {}",taskRunner);
             ClientRunner runner = new ClientRunner(networkTransaction, taskRunner, null);
@@ -115,13 +118,20 @@ public class InternalRunner {
         threadPoolExecutor.shutdownNow();
         networkTransaction.closeAll();
     }
+    public int nbInternalRunner() {
+        return threadPoolExecutor.getActiveCount();
+    }
     public void reloadInternalRunner()
     throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
         scheduledFuture.cancel(false);
         if (commander != null) {
             commander.finalize();
         }
-        commander = new Commander(this);
+        if (DbConstant.admin.isConnected) {
+            commander = new Commander(this);
+        } else {
+            commander = new CommanderNoDb(this);
+        }
         scheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(commander,
                 Configuration.configuration.delayCommander,
                 Configuration.configuration.delayCommander, TimeUnit.MILLISECONDS);

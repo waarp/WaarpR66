@@ -33,6 +33,7 @@ import openr66.configuration.FileBasedConfiguration;
 import openr66.configuration.RuleFileBasedConfiguration;
 import openr66.database.DbConstant;
 import openr66.database.model.DbModelFactory;
+import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.utils.ChannelUtils;
 
@@ -108,7 +109,7 @@ public class ServerInitDatabase {
 
         try {
             if (! FileBasedConfiguration
-                    .setConfigurationInitDatabase(args[0])) {
+                    .setConfigurationInitDatabase(Configuration.configuration, args[0])) {
                 logger
                         .error("Needs a correct configuration file as first argument");
                 if (DbConstant.admin != null){
@@ -146,7 +147,8 @@ public class ServerInitDatabase {
             if (slimitconfig != null) {
                 // Load configuration
                 if (args.length > 3) {
-                    FileBasedConfiguration.setConfigurationLoadLimitFromXml(slimitconfig);
+                    FileBasedConfiguration.setConfigurationLoadLimitFromXml(Configuration.configuration, 
+                            slimitconfig);
                 }
             }
             System.out.println("Load done");
@@ -172,6 +174,7 @@ public class ServerInitDatabase {
         }
     }
     public static void loadHostAuth(String filename) {
-        AuthenticationFileBasedConfiguration.loadAuthentication(filename);
+        AuthenticationFileBasedConfiguration.loadAuthentication(Configuration.configuration, 
+                filename);
     }
 }

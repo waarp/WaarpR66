@@ -140,7 +140,7 @@ public class AuthenticationFileBasedConfiguration {
      * @return True if OK
      */
     @SuppressWarnings("unchecked")
-    public static boolean loadAuthentication(String filename) {
+    public static boolean loadAuthentication(Configuration config, String filename) {
         Document document = null;
         try {
             document = new SAXReader().read(filename);
@@ -180,7 +180,7 @@ public class AuthenticationFileBasedConfiguration {
                     // key is crypted
                     if (skey.length() > 0) {
                         try {
-                            byteKeys = Configuration.configuration.cryptoKey.decryptHexInBytes(skey);
+                            byteKeys = config.cryptoKey.decryptHexInBytes(skey);
                         } catch (Exception e) {
                             logger.error("Cannot read key for hostId " + refHostId+":"+skey);
                             continue;
@@ -198,7 +198,7 @@ public class AuthenticationFileBasedConfiguration {
                     continue;
                 }
                 try {
-                    byteKeys = Configuration.configuration.cryptoKey.decryptHexFile(key);
+                    byteKeys = config.cryptoKey.decryptHexFile(key);
                 } catch (Exception e2) {
                     logger.error("Cannot read key for hostId " + refHostId, e2);
                     continue;
@@ -268,7 +268,7 @@ public class AuthenticationFileBasedConfiguration {
      * @throws GoldenGateDatabaseNoConnectionError
      * @throws GoldenGateDatabaseSqlError
      */
-    public static void writeXML(String filename) throws OpenR66ProtocolSystemException, GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
+    public static void writeXML(Configuration config, String filename) throws OpenR66ProtocolSystemException, GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
         Document document = DocumentHelper.createDocument();
         Element root = document.addElement(XML_AUTHENTIFICATION_ROOT);
         DbHostAuth []hosts = DbHostAuth.getAllHosts(DbConstant.admin.session);
@@ -278,7 +278,7 @@ public class AuthenticationFileBasedConfiguration {
             byte [] key = auth.getHostkey();
             String encode;
             try {
-                encode = Configuration.configuration.cryptoKey.cryptToHex(key);
+                encode = config.cryptoKey.cryptToHex(key);
             } catch (Exception e) {
                encode = "";
             }

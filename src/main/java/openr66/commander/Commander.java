@@ -46,7 +46,7 @@ import openr66.protocol.utils.OpenR66SignalHandler;
  * @author Frederic Bregier
  *
  */
-public class Commander implements Runnable {
+public class Commander implements CommanderInterface {
     /**
      * Internal Logger
      */

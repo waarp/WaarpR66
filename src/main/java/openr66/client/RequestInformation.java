@@ -89,7 +89,7 @@ public class RequestInformation implements Runnable {
             return false;
         }
         if (! FileBasedConfiguration
-                .setClientConfigurationFromXml(args[0])) {
+                .setClientConfigurationFromXml(Configuration.configuration, args[0])) {
             logger
                     .error("Needs a correct configuration file as first argument");
             return false;

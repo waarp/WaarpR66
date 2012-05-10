@@ -188,13 +188,13 @@ public abstract class AbstractTransfer implements Runnable {
         }
         if (submitOnly) {
             if (! FileBasedConfiguration
-                    .setSubmitClientConfigurationFromXml(args[0])) {
+                    .setSubmitClientConfigurationFromXml(Configuration.configuration, args[0])) {
                 logger
                         .error("Needs a correct configuration file as first argument");
                 return false;
             }
         } else if (! FileBasedConfiguration
-                .setClientConfigurationFromXml(args[0])) {
+                .setClientConfigurationFromXml(Configuration.configuration, args[0])) {
             logger
                     .error("Needs a correct configuration file as first argument");
             return false;
