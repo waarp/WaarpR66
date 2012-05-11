@@ -105,8 +105,9 @@ public class RetrieveRunner extends Thread {
                         logger.error("End Retrieve in Error");
                         return;
                     }
+                } else {
+                    session.getFile().retrieveBlocking(running);
                 }
-                session.getFile().retrieveBlocking(running);
             } catch (OpenR66RunnerErrorException e) {
                 transferInError(e);
                 logger.info("End Retrieve in Error");

@@ -101,7 +101,7 @@ public class TestSendThroughForward extends SendThroughClient {
         public void writeChannelBuffer(ChannelBuffer buffer)
                 throws OpenR66ProtocolBusinessException {
             DataBlock block = new DataBlock();
-            if (buffer.readableBytes() > 0) {
+            if (buffer.readableBytes() <= 0) {
              // last block
                 block.setEOF(true);
             } else {
