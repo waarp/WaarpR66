@@ -525,7 +525,7 @@ public class NetworkTransaction {
      * Close all Network Ttransaction
      */
     public void closeAll() {
-        logger.debug("close All Network Channels",new Exception("Trace for closeAll"));
+        logger.debug("close All Network Channels");
         try {
             Thread.sleep(Configuration.RETRYINMS*2);
         } catch (InterruptedException e) {

@@ -34,5 +34,5 @@ public interface R66BusinessInterface {
     public void checkAfterPost(R66Session session) throws OpenR66RunnerErrorException;
     public void checkAtError(R66Session session) throws OpenR66RunnerErrorException;
     public void checkAtChangeFilename(R66Session session) throws OpenR66RunnerErrorException;
-
+    public void releaseResources();
 }
