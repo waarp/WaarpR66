@@ -44,6 +44,8 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import openr66.commander.InternalRunner;
+import openr66.context.R66BusinessFactoryInterface;
+import openr66.context.R66DefaultBusinessFactory;
 import openr66.context.R66FiniteDualStates;
 import openr66.context.task.localexec.LocalExecClient;
 import openr66.database.data.DbHostAuth;
@@ -146,6 +148,8 @@ public class Configuration {
     private static final FilesystemBasedFileParameterImpl fileParameter =
         new FilesystemBasedFileParameterImpl();
 
+    public R66BusinessFactoryInterface r66BusinessFactory
+        = new R66DefaultBusinessFactory();
     // Global Dynamic values
     /**
      * Actual Host ID

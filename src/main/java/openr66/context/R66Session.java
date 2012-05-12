@@ -122,6 +122,7 @@ public class R66Session implements SessionInterface {
         dir = new R66Dir(this);
         restart = new R66Restart(this);
         state = R66FiniteDualStates.newSessionMachineState();
+        setBusinessObject(Configuration.configuration.r66BusinessFactory.getBusinessInterface(this));
     }
     
     /**
@@ -134,7 +135,7 @@ public class R66Session implements SessionInterface {
     /**
      * @param businessObject the businessObject to set
      */
-    public void setBusinessObject(R66BusinessInterface businessObject) {
+    private void setBusinessObject(R66BusinessInterface businessObject) {
         this.businessObject = businessObject;
     }
 
