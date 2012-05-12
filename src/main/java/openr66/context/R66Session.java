@@ -109,7 +109,10 @@ public class R66Session implements SessionInterface {
      * The Finite Machine State
      */
     private final MachineState<R66FiniteDualStates> state;
-
+    /**
+     * Business Object if used
+     */
+    private R66BusinessInterface businessObject = null;
     /**
      * Create the session
      */
@@ -120,6 +123,21 @@ public class R66Session implements SessionInterface {
         restart = new R66Restart(this);
         state = R66FiniteDualStates.newSessionMachineState();
     }
+    
+    /**
+     * @return the businessObject
+     */
+    public R66BusinessInterface getBusinessObject() {
+        return businessObject;
+    }
+
+    /**
+     * @param businessObject the businessObject to set
+     */
+    public void setBusinessObject(R66BusinessInterface businessObject) {
+        this.businessObject = businessObject;
+    }
+
     /**
      * Propose a new State
      * @param desiredstate
@@ -388,6 +406,9 @@ public class R66Session implements SessionInterface {
      * @throws OpenR66RunnerErrorException
      */
     public void setFileAfterPreRunner(boolean createFile) throws OpenR66RunnerErrorException {
+        if (this.businessObject != null) {
+            this.businessObject.checkAtChangeFilename(this);
+        }
         // Now create the associated file
         if (this.runner.isSender()) {
             try {
@@ -499,6 +520,12 @@ public class R66Session implements SessionInterface {
                 } catch (CommandAbstractException e) {
                 }
             }
+            if (this.businessObject != null) {
+                try {
+                    this.businessObject.checkAtError(this);
+                } catch (OpenR66RunnerErrorException e) {
+                }
+            }
             this.runner.setPostTask();
             try {
                 setFileAfterPreRunner(false);
@@ -516,19 +543,41 @@ public class R66Session implements SessionInterface {
     public void setRunner(DbTaskRunner runner)
             throws OpenR66RunnerErrorException {
         this.runner = runner;
+        if (this.businessObject != null) {
+            this.businessObject.checkAtStartup(this);
+        }
         if (this.runner.isSender()) {
-            // Change dir
-            try {
-                dir.changeDirectory(this.runner.getRule().sendPath);
-            } catch (CommandAbstractException e) {
-                throw new OpenR66RunnerErrorException(e);
+            if (RequestPacket.isSendThroughMode(this.runner.getMode())) {
+                // May not change dir as needed
+                // Change dir
+                try {
+                    dir.changeDirectory(this.runner.getRule().sendPath);
+                } catch (CommandAbstractException e) {
+                    // ignore
+                }
+            } else {
+                // Change dir
+                try {
+                    dir.changeDirectory(this.runner.getRule().sendPath);
+                } catch (CommandAbstractException e) {
+                    throw new OpenR66RunnerErrorException(e);
+                }
             }
         } else {
-            // Change dir
-            try {
-                dir.changeDirectory(this.runner.getRule().workPath);
-            } catch (CommandAbstractException e) {
-                throw new OpenR66RunnerErrorException(e);
+            if (RequestPacket.isRecvThroughMode(this.runner.getMode())) {
+                // May not change dir as needed
+                // Change dir
+                try {
+                    dir.changeDirectory(this.runner.getRule().workPath);
+                } catch (CommandAbstractException e) {
+                }
+            } else {
+                // Change dir
+                try {
+                    dir.changeDirectory(this.runner.getRule().workPath);
+                } catch (CommandAbstractException e) {
+                    throw new OpenR66RunnerErrorException(e);
+                }
             }
         }
         if (runner.getRank() > 0) {
@@ -554,6 +603,9 @@ public class R66Session implements SessionInterface {
         // Now create the associated file
         setFileAfterPreRunner(true);
         if (runner.getGloballaststep() == TASKSTEP.TRANSFERTASK.ordinal()) {
+            if (this.businessObject != null) {
+                this.businessObject.checkAfterPreCommand(this);
+            }
             if (!this.runner.isSender()) {
                 // Check file length according to rank
                 if (RequestPacket.isRecvThroughMode(this.runner.getMode())) {
@@ -643,7 +695,23 @@ public class R66Session implements SessionInterface {
                     localChannelReference.invalidateRequest(finalValue);
                 }
             }
+            if (this.businessObject != null) {
+                if (status) {
+                    this.businessObject.checkAfterTransfer(this);
+                } else {
+                    this.businessObject.checkAtError(this);
+                }
+            }
             return;
+        }
+        if (this.businessObject != null) {
+            if (this.businessObject != null) {
+                if (status) {
+                    this.businessObject.checkAfterTransfer(this);
+                } else {
+                    this.businessObject.checkAtError(this);
+                }
+            }
         }
         if (runner.isAllDone()) {
             logger.debug("Transfer already done but " + status + " on " + file+runner.toShortString(),
@@ -701,6 +769,9 @@ public class R66Session implements SessionInterface {
             throw (OpenR66RunnerErrorException) result.exception;
         }
         runner.finalizeTransfer(localChannelReference, file, finalValue, status);
+        if (this.businessObject != null) {
+            this.businessObject.checkAfterPost(this);
+        }
     }
 
     /**
