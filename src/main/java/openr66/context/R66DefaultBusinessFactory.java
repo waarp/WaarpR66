@@ -35,4 +35,11 @@ public class R66DefaultBusinessFactory implements R66BusinessFactoryInterface {
         return null;
     }
 
+    /* (non-Javadoc)
+     * @see openr66.context.R66BusinessFactoryInterface#releaseResources()
+     */
+    @Override
+    public void releaseResources() {
+    }
+
 }

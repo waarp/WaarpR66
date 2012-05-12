@@ -770,6 +770,7 @@ public class Configuration {
         if (useLocalExec) {
             LocalExecClient.releaseResources();
         }
+        r66BusinessFactory.releaseResources();
     }
     /**
      * Try to reload the Commander
