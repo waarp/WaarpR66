@@ -90,6 +90,16 @@ public class RequestPacket extends AbstractLocalPacket {
                 mode == TRANSFERMODE.RECVMD5THROUGHMODE.ordinal());
     }
     /**
+    *
+    * @param mode
+    * @param isRequester
+    * @return True if this mode is a THROUGH (MD5) mode
+    */
+   public static boolean isSendThroughMode(int mode, boolean isRequester) {
+       return ((isRequester && isSendThroughMode(mode)) ||
+               (!isRequester && isRecvThroughMode(mode)));
+   }
+    /**
      *
      * @param mode
      * @return True if this mode is a SEND THROUGH (MD5) mode
@@ -101,11 +111,25 @@ public class RequestPacket extends AbstractLocalPacket {
     /**
     *
     * @param mode
+    * @param isRequester
+    * @return True if this mode is a THROUGH (MD5) mode
+    */
+   public static boolean isRecvThroughMode(int mode, boolean isRequester) {
+       return ((isRequester && isRecvThroughMode(mode)) ||
+               (!isRequester && isSendThroughMode(mode)));
+   }
+    /**
+    *
+    * @param mode
     * @return True if this mode is a RECV THROUGH (MD5) mode
     */
    public static boolean isRecvThroughMode(int mode) {
        return (mode == TRANSFERMODE.RECVTHROUGHMODE.ordinal() ||
                mode == TRANSFERMODE.RECVMD5THROUGHMODE.ordinal());
+   }
+   public static boolean isThroughMode(int mode) {
+       return mode >= TRANSFERMODE.SENDTHROUGHMODE.ordinal() &&
+           mode <= TRANSFERMODE.RECVMD5THROUGHMODE.ordinal();
    }
     /**
      *
@@ -128,10 +152,6 @@ public class RequestPacket extends AbstractLocalPacket {
         return ((RequestPacket.isRecvMode(mode1) && RequestPacket.isRecvMode(mode2))
                 || ((!RequestPacket.isRecvMode(mode1)) &&
                         (!RequestPacket.isRecvMode(mode2))));
-        /* Was
-         * return ((RequestPacket.isRecvMode(mode1) && RequestPacket.isRecvThroughMode(mode2))
-                || ((!RequestPacket.isRecvMode(mode1)) &&
-                        (!RequestPacket.isRecvThroughMode(mode2))));*/
     }
     /**
      * @param headerLength

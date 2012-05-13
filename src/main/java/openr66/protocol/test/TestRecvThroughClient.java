@@ -35,8 +35,6 @@ import openr66.protocol.utils.R66Future;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.logging.InternalLoggerFactory;
 
-import ch.qos.logback.classic.Level;
-
 /**
  * Test class for Recv Through client
  *
@@ -80,8 +78,7 @@ public class TestRecvThroughClient extends RecvThroughClient {
      * @param args
      */
     public static void main(String[] args) {
-        InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
-                Level.WARN));
+        InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(null));
         if (logger == null) {
             logger = GgInternalLoggerFactory.getLogger(TestRecvThroughHandler.class);
         }

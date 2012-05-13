@@ -1206,7 +1206,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         }
         // if retrieve => START the retrieve operation except if in Send Through mode
         if (runner.isSender()) {
-            if (RequestPacket.isSendThroughMode(packet.getMode())) {
+            if (runner.isSendThrough()) {
                 // it is legal to send data from now
                 logger.debug("Now ready to continue with send through");
                 localChannelReference.validateEndTransfer(
@@ -1340,7 +1340,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 return;
             }
         }
-        if (RequestPacket.isRecvThroughMode(session.getRunner().getMode())) {
+        if (session.getRunner().isRecvThrough() && localChannelReference.getRecvThroughHandler() != null) {
             localChannelReference.getRecvThroughHandler().writeChannelBuffer(packet.getData());
             session.getRunner().incrementRank();
         } else {

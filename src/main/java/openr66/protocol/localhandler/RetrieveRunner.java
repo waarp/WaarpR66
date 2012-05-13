@@ -66,8 +66,14 @@ public class RetrieveRunner extends Thread {
 
     private boolean done = false;
 
-    private AtomicBoolean running = new AtomicBoolean(true);
+    protected AtomicBoolean running = new AtomicBoolean(true);
 
+    protected RetrieveRunner() {
+        // empty constructor
+        this.session = null;
+        this.localChannelReference = null;
+        this.channel = null;
+    }
     /**
      *
      * @param session

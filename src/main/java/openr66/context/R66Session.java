@@ -44,7 +44,6 @@ import openr66.database.data.DbTaskRunner.TASKSTEP;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.LocalChannelReference;
-import openr66.protocol.localhandler.packet.RequestPacket;
 
 /**
  * The global object session in OpenR66, a session by local channel
@@ -378,7 +377,7 @@ public class R66Session implements SessionInterface {
                         file = dir.setFileNoCheck(filename);
                     }
                 }
-                if (RequestPacket.isSendThroughMode(this.runner.getMode())) {
+                if (runner.isSendThrough()) {
                     // no test on file since it does not really exist
                     logger.debug("File is in through mode: {}", file);
                 } else if (!file.canRead()) {
@@ -424,7 +423,7 @@ public class R66Session implements SessionInterface {
                         // file = new R66File(this, dir, this.runner.getFilename());
                     }
                 }
-                if (RequestPacket.isSendThroughMode(this.runner.getMode())) {
+                if (runner.isSendThrough()) {
                     // no test on file since it does not really exist
                     logger.debug("File is in through mode: {}", file);
                 } else if (!file.canRead()) {
@@ -447,7 +446,7 @@ public class R66Session implements SessionInterface {
                 try {
                     file = (R66File) dir.setFile(this.runner
                             .getFilename(), true);
-                    if (RequestPacket.isRecvThroughMode(this.runner.getMode())) {
+                    if (runner.isRecvThrough()) {
                         // no test on file since it does not really exist
                         logger.debug("File is in through mode: {}", file);
                     } else if (!file.canWrite()) {
@@ -470,7 +469,7 @@ public class R66Session implements SessionInterface {
                     try {
                         file = dir.setUniqueFile(this.runner.getSpecialId(),
                                 this.runner.getFilename());
-                        if (RequestPacket.isRecvThroughMode(this.runner.getMode())) {
+                        if (runner.isRecvThrough()) {
                             // no test on file since it does not really exist
                             logger.debug("File is in through mode: {}", file);
                             this.runner.deleteTempFile();
@@ -548,7 +547,7 @@ public class R66Session implements SessionInterface {
             this.businessObject.checkAtStartup(this);
         }
         if (this.runner.isSender()) {
-            if (RequestPacket.isSendThroughMode(this.runner.getMode())) {
+            if (runner.isSendThrough()) {
                 // May not change dir as needed
                 // Change dir
                 try {
@@ -565,7 +564,7 @@ public class R66Session implements SessionInterface {
                 }
             }
         } else {
-            if (RequestPacket.isRecvThroughMode(this.runner.getMode())) {
+            if (runner.isRecvThrough()) {
                 // May not change dir as needed
                 // Change dir
                 try {
@@ -609,7 +608,7 @@ public class R66Session implements SessionInterface {
             }
             if (!this.runner.isSender()) {
                 // Check file length according to rank
-                if (RequestPacket.isRecvThroughMode(this.runner.getMode())) {
+                if (runner.isRecvThrough()) {
                     // no size can be checked
                 } else {
                     try {
@@ -668,7 +667,7 @@ public class R66Session implements SessionInterface {
             // Not correct
             throw new OpenR66RunnerErrorException("Renaming file not correct since transfer already started");
         }
-        if (!RequestPacket.isRecvThroughMode(this.runner.getMode())) {
+        if (!runner.isRecvThrough()) {
             this.runner.deleteTempFile();
         }
         // Now rename it

@@ -44,7 +44,6 @@ import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.ErrorPacket;
-import openr66.protocol.localhandler.packet.RequestPacket;
 
 /**
  * Utility class for transfers
@@ -71,8 +70,7 @@ public class TransferUtils {
             finalResult.code = ErrorCode.QueryStillRunning;
             finalResult.other = "Transfer is still running so not restartable";
         } else {
-            if (RequestPacket.isRecvThroughMode(taskRunner.getMode()) ||
-                    RequestPacket.isSendThroughMode(taskRunner.getMode())) {
+            if (taskRunner.isSendThrough()) {
                 // cannot be restarted
                 finalResult.code = ErrorCode.PassThroughMode;
                 finalResult.other = "Transfer cannot be restarted since it is in PassThrough mode";

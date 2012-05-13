@@ -211,6 +211,10 @@ public class DbTaskRunner extends AbstractDbData {
     private volatile boolean rescheduledTransfer = false;
     
     private LocalChannelReference localChannelReference = null;
+    
+    private boolean isRecvThrough = false;
+    private boolean isSendThrough = false;
+    
     /**
      * Special For DbTaskRunner
      */
@@ -442,6 +446,20 @@ public class DbTaskRunner extends AbstractDbData {
         }
     }
 
+    public void checkThroughMode() {
+        isRecvThrough = RequestPacket.isRecvThroughMode(this.mode, !isSelfRequested());
+        isSendThrough = RequestPacket.isSendThroughMode(this.mode, !isSelfRequested());
+        if (localChannelReference != null) {
+            if (isRecvThrough && localChannelReference.getRecvThroughHandler() == null) {
+                // Cannot be a RecvThrough
+                isRecvThrough = false;
+            }
+            if (isSendThrough && !localChannelReference.isSendThroughMode()) {
+                isSendThrough = false;
+            }
+        }
+        logger.info("DbTask "+mode+" isRecvThrough: "+isRecvThrough+" isSendThrough: "+isSendThrough);
+    }
     /**
      * Constructor for submission (no transfer session), from database. It is
      * created, so with a new specialId if necessary
@@ -496,6 +514,7 @@ public class DbTaskRunner extends AbstractDbData {
                 mode = rule.mode;
             }
         }
+        checkThroughMode();
         create();
     }
 
@@ -545,6 +564,7 @@ public class DbTaskRunner extends AbstractDbData {
                 mode = rule.mode;
             }
         }
+        checkThroughMode();
         insert();
     }
 
@@ -578,7 +598,6 @@ public class DbTaskRunner extends AbstractDbData {
         ownerRequest = Configuration.configuration.HOST_ID;
 
         select();
-
         if (rule != null) {
             if (!ruleId.equals(rule.idRule)) {
                 throw new GoldenGateDatabaseNoDataException(
@@ -823,6 +842,7 @@ public class DbTaskRunner extends AbstractDbData {
                     rule = new DbRule(this.dbSession, ruleId);
                 }
                 isSaved = true;
+                checkThroughMode();
                 return;
             }
             throw new GoldenGateDatabaseNoDataException("No row found");
@@ -831,6 +851,7 @@ public class DbTaskRunner extends AbstractDbData {
         if (rule == null) {
             rule = new DbRule(this.dbSession, ruleId);
         }
+        checkThroughMode();
     }
 
     /*
@@ -887,6 +908,13 @@ public class DbTaskRunner extends AbstractDbData {
             this.isFileMoved = runner.isFileMoved;
         }
     }
+    
+    public boolean isRecvThrough() {
+        return isRecvThrough;
+    }
+    public boolean isSendThrough() {
+        return isSendThrough;
+    }
 
     /**
      * Private constructor for Commander only
@@ -935,6 +963,7 @@ public class DbTaskRunner extends AbstractDbData {
                 throw new GoldenGateDatabaseSqlError(e);
             }
         }
+        dbTaskRunner.checkThroughMode();
         dbTaskRunner.isSaved = true;
         return dbTaskRunner;
     }
@@ -2508,7 +2537,7 @@ public class DbTaskRunner extends AbstractDbData {
                 int poststep = this.step;
                 this.setPostTask();
                 this.saveStatus();
-                if (!RequestPacket.isRecvThroughMode(this.getMode())) {
+                if (!isRecvThrough()) {
                     if (this.globalstep == TASKSTEP.TRANSFERTASK.ordinal() ||
                             (this.globalstep == TASKSTEP.POSTTASK.ordinal() &&
                                     poststep == 0)) {
@@ -2546,8 +2575,7 @@ public class DbTaskRunner extends AbstractDbData {
                 }
             }
             this.saveStatus();
-            if (RequestPacket.isSendThroughMode(this.getMode()) ||
-                    RequestPacket.isRecvThroughMode(this.getMode())) {
+            if (isRecvThrough() || isSendThrough()) {
                 // File could not exist
             } else if (this.step == 0) {
                 // File must exist
@@ -2673,8 +2701,7 @@ public class DbTaskRunner extends AbstractDbData {
             }
         }
         this.changeUpdatedInfo(UpdatedInfo.INERROR);
-        if (RequestPacket.isRecvThroughMode(this.getMode()) ||
-                RequestPacket.isSendThroughMode(this.getMode())) {
+        if (RequestPacket.isThroughMode(this.getMode())) {
             this.setErrorExecutionStatus(runnerStatus);
             this.saveStatus();
             if (localChannelReference != null) {

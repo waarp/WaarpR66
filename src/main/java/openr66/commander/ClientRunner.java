@@ -76,6 +76,8 @@ public class ClientRunner extends Thread {
     private final R66Future futureRequest;
 
     private RecvThroughHandler handler = null;
+    
+    private boolean isSendThroughMode = false;
 
     private LocalChannelReference localChannelReference = null;
 
@@ -487,6 +489,7 @@ public class ClientRunner extends Thread {
         if (handler != null) {
             localChannelReference.setRecvThroughHandler(handler);
         }
+        localChannelReference.setSendThroughMode(isSendThroughMode);
         if (restartPost) {
             RequestPacket request = taskRunner.getRequest();
             logger.debug("Will send request {} ", request);
@@ -569,5 +572,11 @@ public class ClientRunner extends Thread {
      */
     public void setRecvThroughHandler(RecvThroughHandler handler) {
         this.handler = handler;
+    }
+    public void setSendThroughMode() {
+        isSendThroughMode = true;
+    }
+    public boolean getSendThroughMode() {
+        return isSendThroughMode;
     }
 }

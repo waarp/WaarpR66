@@ -41,8 +41,6 @@ import openr66.protocol.utils.R66Future;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.logging.InternalLoggerFactory;
 
-import ch.qos.logback.classic.Level;
-
 /**
  * Test class for Send Through client
  *
@@ -136,7 +134,7 @@ public class TestSendThroughClient extends SendThroughClient {
      */
     public static void main(String[] args) {
         InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
-                Level.WARN));
+                null));
         if (logger == null) {
             logger = GgInternalLoggerFactory.getLogger(TestSendThroughClient.class);
         }

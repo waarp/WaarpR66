@@ -128,7 +128,8 @@ public class LocalChannelReference {
      * RecvThroughHandler
      */
     private RecvThroughHandler recvThroughHandler;
-
+    
+    private boolean isSendThroughMode = false;
     /**
      * Thread for ClientRunner if any
      */
@@ -532,6 +533,20 @@ public class LocalChannelReference {
      */
     public void setRecvThroughHandler(RecvThroughHandler recvThroughHandler) {
         this.recvThroughHandler = recvThroughHandler;
+    }
+
+    /**
+     * @return the isSendThroughMode
+     */
+    public boolean isSendThroughMode() {
+        return isSendThroughMode;
+    }
+
+    /**
+     * @param isSendThroughMode the isSendThroughMode to set
+     */
+    public void setSendThroughMode(boolean isSendThroughMode) {
+        this.isSendThroughMode = isSendThroughMode;
     }
 
     /**

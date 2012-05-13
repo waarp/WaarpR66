@@ -91,6 +91,11 @@ public class InternalRunner {
         if (isRunning) {
             logger.debug("Will run {}",taskRunner);
             ClientRunner runner = new ClientRunner(networkTransaction, taskRunner, null);
+            if (taskRunner.isSendThrough() && (taskRunner.isRescheduledTransfer()
+                    || taskRunner.isPreTaskStarting())) {
+                runner.setSendThroughMode();
+                taskRunner.checkThroughMode();
+            }
             runner.setDaemon(true);
             // create the client, connect and run
             threadPoolExecutor.execute(runner);

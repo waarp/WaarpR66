@@ -485,6 +485,12 @@ public class NetworkTransaction {
                             .getCause());
         }
     }
+    public static ExecutorService getRetrieveExecutor() {
+        return retrieveExecutor;
+    }
+    public static ConcurrentHashMap<Integer, RetrieveRunner> getRetrieveRunnerConcurrentHashMap() {
+        return retrieveRunnerConcurrentHashMap;
+    }
     /**
      * Start retrieve operation
      * @param session

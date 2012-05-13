@@ -194,6 +194,7 @@ public class TestSendThroughForward extends SendThroughClient {
             }
             ClientRunner runner = new ClientRunner(networkTransaction, taskRunner, future);
             runner.setRecvThroughHandler(handler);
+            runner.setSendThroughMode();
             OpenR66ProtocolNotYetConnectionException exc = null;
             for (int i = 0; i < Configuration.RETRYNB; i++) {
                 try {

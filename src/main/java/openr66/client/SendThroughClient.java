@@ -163,7 +163,7 @@ public abstract class SendThroughClient extends AbstractTransfer {
         boolean isSender = true;
         try {
             try {
-                // starttime since immediate
+                // no starttime since immediate
                 taskRunner =
                     new DbTaskRunner(DbConstant.admin.session,rule,isSender,request,remoteHost, null);
             } catch (GoldenGateDatabaseException e) {
@@ -174,6 +174,7 @@ public abstract class SendThroughClient extends AbstractTransfer {
                 return false;
             }
             ClientRunner runner = new ClientRunner(networkTransaction, taskRunner, future);
+            runner.setSendThroughMode();
             OpenR66ProtocolNotYetConnectionException exc = null;
             for (int i = 0; i < Configuration.RETRYNB; i++) {
                 try {
