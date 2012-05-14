@@ -193,14 +193,14 @@ public class Configuration {
     public int CLIENT_THREAD = 80;
 
     /**
-     * Default session limit 64Mbit, so up to 8 full simultaneous clients
+     * Default session limit 64Mbit, so up to 16 full simultaneous clients
      */
-    public long DEFAULT_SESSION_LIMIT = 0x800000L;
+    public final long DEFAULT_SESSION_LIMIT = 0x800000L;
 
     /**
-     * Default global limit 512Mbit
+     * Default global limit 1024Mbit
      */
-    public long DEFAULT_GLOBAL_LIMIT = 0x4000000L;
+    public final long DEFAULT_GLOBAL_LIMIT = 0x8000000L;
 
     /**
      * Default server port

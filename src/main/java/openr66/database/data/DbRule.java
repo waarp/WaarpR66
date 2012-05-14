@@ -390,6 +390,41 @@ public class DbRule extends AbstractDbData {
         serrorTasksArray = getTasksRule(serrorTasks);
     }
 
+    protected void setFromArrayClone(DbRule source) throws GoldenGateDatabaseSqlError {
+        ids = (String) allFields[Columns.HOSTIDS.ordinal()].getValue();
+        mode = (Integer) allFields[Columns.MODETRANS.ordinal()].getValue();
+        recvPath = (String) allFields[Columns.RECVPATH.ordinal()].getValue();
+        sendPath = (String) allFields[Columns.SENDPATH.ordinal()].getValue();
+        archivePath = (String) allFields[Columns.ARCHIVEPATH.ordinal()]
+                .getValue();
+        workPath = (String) allFields[Columns.WORKPATH.ordinal()].getValue();
+        rpreTasks = (String) allFields[Columns.RPRETASKS.ordinal()].getValue();
+        rpostTasks = (String) allFields[Columns.RPOSTTASKS.ordinal()].getValue();
+        rerrorTasks = (String) allFields[Columns.RERRORTASKS.ordinal()]
+                .getValue();
+        spreTasks = (String) allFields[Columns.SPRETASKS.ordinal()].getValue();
+        spostTasks = (String) allFields[Columns.SPOSTTASKS.ordinal()].getValue();
+        serrorTasks = (String) allFields[Columns.SERRORTASKS.ordinal()]
+                .getValue();
+        updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()]
+                .getValue();
+        idRule = (String) allFields[Columns.IDRULE.ordinal()].getValue();
+        if (source.ids == null) {
+            //No ids so setting to the default!
+            ids = null;
+            idsArray = null;
+        } else {
+            ids = source.ids;
+            idsArray = source.idsArray;
+        }
+        rpreTasksArray = source.rpreTasksArray;
+        rpostTasksArray = source.rpostTasksArray;
+        rerrorTasksArray = source.rerrorTasksArray;
+        spreTasksArray = source.spreTasksArray;
+        spostTasksArray = source.spostTasksArray;
+        serrorTasksArray = source.serrorTasksArray;
+    }
+
     /* (non-Javadoc)
      * @see goldengate.common.database.data.AbstractDbData#getWherePrimaryKey()
      */
@@ -468,6 +503,7 @@ public class DbRule extends AbstractDbData {
         this.idRule = idRule;
         // load from DB
         select();
+        /*
         getIdsRule(ids);
         rpreTasksArray = getTasksRule(this.rpreTasks);
         rpostTasksArray = getTasksRule(this.rpostTasks);
@@ -475,6 +511,7 @@ public class DbRule extends AbstractDbData {
         spreTasksArray = getTasksRule(this.spreTasks);
         spostTasksArray = getTasksRule(this.spostTasks);
         serrorTasksArray = getTasksRule(this.serrorTasks);
+        */
     }
 
     /**
@@ -531,8 +568,8 @@ public class DbRule extends AbstractDbData {
      */
     public static DbRule[] deleteAll(DbSession dbSession) throws GoldenGateDatabaseException {
         DbRule[] result = getAllRules(dbSession);
+        dbR66RuleHashMap.clear();
         if (dbSession == null) {
-            dbR66RuleHashMap.clear();
             return result;
         }
         DbPreparedStatement preparedStatement = new DbPreparedStatement(
@@ -552,8 +589,8 @@ public class DbRule extends AbstractDbData {
      */
     @Override
     public void delete() throws GoldenGateDatabaseException {
+        dbR66RuleHashMap.remove(this.idRule);
         if (dbSession == null) {
-            dbR66RuleHashMap.remove(this.idRule);
             isSaved = false;
             return;
         }
@@ -570,8 +607,8 @@ public class DbRule extends AbstractDbData {
         if (isSaved) {
             return;
         }
+        dbR66RuleHashMap.put(this.idRule, this);
         if (dbSession == null) {
-            dbR66RuleHashMap.put(this.idRule, this);
             isSaved = true;
             return;
         }
@@ -583,8 +620,11 @@ public class DbRule extends AbstractDbData {
      */
     @Override
     public boolean exist() throws GoldenGateDatabaseException {
+        boolean result = dbR66RuleHashMap.containsKey(idRule);
+        if (result) {
+            return result;
+        }
         if (dbSession == null) {
-            boolean result = dbR66RuleHashMap.containsKey(idRule);
             if (! result) {
                 isSaved = false;
             }
@@ -600,30 +640,31 @@ public class DbRule extends AbstractDbData {
      */
     @Override
     public void select() throws GoldenGateDatabaseException {
+        DbRule rule = dbR66RuleHashMap.get(this.idRule);
+        if (rule != null) {
+            // copy info
+            for (int i = 0; i < allFields.length; i++){
+                allFields[i].value = rule.allFields[i].value;
+            }
+            setFromArrayClone(rule);
+            if (recvPath == null) {
+                recvPath = Configuration.configuration.inPath;
+            }
+            if (sendPath == null) {
+                sendPath = Configuration.configuration.outPath;
+            }
+            if (archivePath == null) {
+                archivePath = Configuration.configuration.archivePath;
+            }
+            if (workPath == null) {
+                workPath = Configuration.configuration.workingPath;
+            }
+            isSaved = true;
+            return;
+        }
         if (dbSession == null) {
-            DbRule rule = dbR66RuleHashMap.get(this.idRule);
             if (rule == null) {
                 throw new GoldenGateDatabaseNoDataException("No row found");
-            } else {
-                // copy info
-                for (int i = 0; i < allFields.length; i++){
-                    allFields[i].value = rule.allFields[i].value;
-                }
-                setFromArray();
-                if (recvPath == null) {
-                    recvPath = Configuration.configuration.inPath;
-                }
-                if (sendPath == null) {
-                    sendPath = Configuration.configuration.outPath;
-                }
-                if (archivePath == null) {
-                    archivePath = Configuration.configuration.archivePath;
-                }
-                if (workPath == null) {
-                    workPath = Configuration.configuration.workingPath;
-                }
-                isSaved = true;
-                return;
             }
         }
         super.select();
@@ -639,6 +680,7 @@ public class DbRule extends AbstractDbData {
         if (workPath == null) {
             workPath = Configuration.configuration.workingPath;
         }
+        setFromArray();
     }
 
     /*
@@ -651,8 +693,8 @@ public class DbRule extends AbstractDbData {
         if (isSaved) {
             return;
         }
+        dbR66RuleHashMap.put(this.idRule, this);
         if (dbSession == null) {
-            dbR66RuleHashMap.put(this.idRule, this);
             isSaved = true;
             return;
         }
@@ -672,8 +714,8 @@ public class DbRule extends AbstractDbData {
      * @throws GoldenGateDatabaseSqlError
      */
     public static DbRule[] getAllRules(DbSession dbSession) throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
-        if (dbSession == null) {
-            DbRule [] result = new DbRule[0];
+        DbRule [] result = new DbRule[0];
+        if (! dbR66RuleHashMap.isEmpty() || dbSession == null) {
             return dbR66RuleHashMap.values().toArray(result);
         }
         String request = "SELECT " +selectAllFields;
@@ -686,7 +728,6 @@ public class DbRule extends AbstractDbData {
             dbArrayList.add(hostAuth);
         }
         preparedStatement.realClose();
-        DbRule [] result = new DbRule[0];
         dbArrayList.toArray(result);
         return result;
     }

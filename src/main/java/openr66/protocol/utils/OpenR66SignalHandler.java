@@ -172,6 +172,7 @@ public class OpenR66SignalHandler implements SignalHandler {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
             }
+            System.err.println("Halt System");
             Runtime.getRuntime().halt(0);
         } else {
             Timer timer = null;
@@ -180,7 +181,8 @@ public class OpenR66SignalHandler implements SignalHandler {
             timer.schedule(timerTask, Configuration.configuration.TIMEOUTCON * 3);
             immediate = true;
             ChannelUtils.exit();
-            System.exit(0);
+            System.err.println("Exit System");
+            //System.exit(0);
         }
     }
 
