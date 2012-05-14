@@ -20,18 +20,26 @@
  */
 package openr66.context;
 
+import goldengate.common.logging.GgInternalLogger;
+import goldengate.common.logging.GgInternalLoggerFactory;
+
 /**
  * Empty Business factory
  * @author Frederic Bregier
  *
  */
 public class R66DefaultBusinessFactory implements R66BusinessFactoryInterface {
-
+    /**
+     * Internal Logger
+     */
+    private static final GgInternalLogger logger = GgInternalLoggerFactory
+            .getLogger(R66DefaultBusinessFactory.class);
     /* (non-Javadoc)
      * @see openr66.context.R66BusinessFactoryInterface#getBusinessInterface(openr66.context.R66Session)
      */
     @Override
     public R66BusinessInterface getBusinessInterface(R66Session session) {
+        logger.debug("No Business");
         return null;
     }
 

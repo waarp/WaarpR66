@@ -121,7 +121,6 @@ public class R66Session implements SessionInterface {
         dir = new R66Dir(this);
         restart = new R66Restart(this);
         state = R66FiniteDualStates.newSessionMachineState();
-        setBusinessObject(Configuration.configuration.r66BusinessFactory.getBusinessInterface(this));
     }
     
     /**
@@ -543,6 +542,8 @@ public class R66Session implements SessionInterface {
     public void setRunner(DbTaskRunner runner)
             throws OpenR66RunnerErrorException {
         this.runner = runner;
+        setBusinessObject(Configuration.configuration.r66BusinessFactory.getBusinessInterface(this));
+        this.runner.checkThroughMode();
         if (this.businessObject != null) {
             this.businessObject.checkAtStartup(this);
         }

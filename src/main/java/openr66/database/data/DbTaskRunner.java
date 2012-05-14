@@ -42,6 +42,8 @@ import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.Collections;
+import java.util.SortedSet;
 import java.util.TreeSet;
 
 import openr66.commander.CommanderNoDb;
@@ -246,7 +248,8 @@ public class DbTaskRunner extends AbstractDbData {
 
     protected static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
 
-    private static final TreeSet<Long> clientNoDbSpecialId = new TreeSet<Long>();
+    private static final SortedSet<Long> clientNoDbSpecialId = 
+        Collections.synchronizedSortedSet(new TreeSet<Long>());
     
 
     /* (non-Javadoc)
@@ -643,6 +646,10 @@ public class DbTaskRunner extends AbstractDbData {
     private void createNoDbSpecialId() {
         synchronized (clientNoDbSpecialId) {
             // New SpecialId is not possible with No Database Model
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException e) {
+            }
             specialId = System.currentTimeMillis();
             Long newOne = specialId;
             while (clientNoDbSpecialId.contains(newOne)) {

@@ -574,6 +574,7 @@ public class Configuration {
     }
     
     public void r66Startup() throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
+        logger.debug("Start R66: "+SERVER_PORT+":"+useNOSSL+" "+SERVER_SSLPORT+":"+useSSL+":"+HOST_SSLID);
         // add into configuration
         this.constraintLimitHandler.setServer(true);
         // Global Server

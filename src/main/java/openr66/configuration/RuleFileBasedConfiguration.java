@@ -464,7 +464,7 @@ public class RuleFileBasedConfiguration {
      * @param value
      * @return the new Element
      */
-    private static Element newElement(String name, String value) {
+    private static final Element newElement(String name, String value) {
         Element node = new DefaultElement(name);
         node.addText(value);
         return node;
@@ -589,7 +589,7 @@ public class RuleFileBasedConfiguration {
      * @param rule
      * @throws OpenR66ProtocolSystemException
      */
-    private static void writeXML(String filename, DbRule rule) throws OpenR66ProtocolSystemException {
+    private static final void writeXML(String filename, DbRule rule) throws OpenR66ProtocolSystemException {
         Document document = DocumentHelper.createDocument();
         Element root = document.addElement(ROOT);
         addToElement(root, rule);
@@ -607,7 +607,7 @@ public class RuleFileBasedConfiguration {
      * @throws GoldenGateDatabaseSqlError
      * @throws OpenR66ProtocolSystemException
      */
-    public static void writeXml(String directory, String hostname) throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError, OpenR66ProtocolSystemException {
+    public static final void writeXml(String directory, String hostname) throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError, OpenR66ProtocolSystemException {
         File dir = new File(directory);
         if (! dir.isDirectory()) {
             dir.mkdirs();
