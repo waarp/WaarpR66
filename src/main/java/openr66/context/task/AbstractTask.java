@@ -335,28 +335,54 @@ public abstract class AbstractTask implements Runnable {
         GgStringUtils.replaceAll(builder, BLOCKSIZE, Integer.toString(session
                 .getBlockSize()));
         R66Dir dir = new R66Dir(session);
-        try {
-            dir.changeDirectory(session.getRunner().getRule().recvPath);
-            GgStringUtils.replaceAll(builder, INPATH, dir.getFullPath());
-        } catch (CommandAbstractException e) {
-        }
-        dir = new R66Dir(session);
-        try {
-            dir.changeDirectory(session.getRunner().getRule().sendPath);
-            GgStringUtils.replaceAll(builder, OUTPATH, dir.getFullPath());
-        } catch (CommandAbstractException e) {
-        }
-        dir = new R66Dir(session);
-        try {
-            dir.changeDirectory(session.getRunner().getRule().workPath);
-            GgStringUtils.replaceAll(builder, WORKPATH, dir.getFullPath());
-        } catch (CommandAbstractException e) {
-        }
-        dir = new R66Dir(session);
-        try {
-            dir.changeDirectory(session.getRunner().getRule().archivePath);
-            GgStringUtils.replaceAll(builder, ARCHPATH, dir.getFullPath());
-        } catch (CommandAbstractException e) {
+        if (session.getRunner().isRecvThrough() || session.getRunner().isSendThrough()) {
+            try {
+                dir.changeDirectoryNotChecked(session.getRunner().getRule().recvPath);
+                GgStringUtils.replaceAll(builder, INPATH, dir.getFullPath());
+            } catch (CommandAbstractException e) {
+            }
+            dir = new R66Dir(session);
+            try {
+                dir.changeDirectoryNotChecked(session.getRunner().getRule().sendPath);
+                GgStringUtils.replaceAll(builder, OUTPATH, dir.getFullPath());
+            } catch (CommandAbstractException e) {
+            }
+            dir = new R66Dir(session);
+            try {
+                dir.changeDirectoryNotChecked(session.getRunner().getRule().workPath);
+                GgStringUtils.replaceAll(builder, WORKPATH, dir.getFullPath());
+            } catch (CommandAbstractException e) {
+            }
+            dir = new R66Dir(session);
+            try {
+                dir.changeDirectoryNotChecked(session.getRunner().getRule().archivePath);
+                GgStringUtils.replaceAll(builder, ARCHPATH, dir.getFullPath());
+            } catch (CommandAbstractException e) {
+            }
+        } else {
+            try {
+                dir.changeDirectoryNotChecked(session.getRunner().getRule().recvPath);
+                GgStringUtils.replaceAll(builder, INPATH, dir.getFullPath());
+            } catch (CommandAbstractException e) {
+            }
+            dir = new R66Dir(session);
+            try {
+                dir.changeDirectory(session.getRunner().getRule().sendPath);
+                GgStringUtils.replaceAll(builder, OUTPATH, dir.getFullPath());
+            } catch (CommandAbstractException e) {
+            }
+            dir = new R66Dir(session);
+            try {
+                dir.changeDirectory(session.getRunner().getRule().workPath);
+                GgStringUtils.replaceAll(builder, WORKPATH, dir.getFullPath());
+            } catch (CommandAbstractException e) {
+            }
+            dir = new R66Dir(session);
+            try {
+                dir.changeDirectory(session.getRunner().getRule().archivePath);
+                GgStringUtils.replaceAll(builder, ARCHPATH, dir.getFullPath());
+            } catch (CommandAbstractException e) {
+            }
         }
         GgStringUtils.replaceAll(builder, HOMEPATH, Configuration.configuration.baseDirectory);
         if (session.getLocalChannelReference() == null) {

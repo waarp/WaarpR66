@@ -417,8 +417,9 @@ public class LocalTransaction {
                     } catch (OpenR66ProtocolSystemException e) {
                     }
                 }
-                ChannelUtils.close(localChannelReference.getLocalChannel());
-                return;
+                Channels.close(localChannelReference.getLocalChannel());
+                // XXX FIXME return;
+                continue;
             }
             try {
                 buffer = packet.getLocalPacket();
