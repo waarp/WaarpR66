@@ -43,7 +43,6 @@ import openr66.protocol.localhandler.packet.StartupPacket;
 import openr66.protocol.localhandler.packet.ValidPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
-import openr66.protocol.utils.ChannelUtils;
 import openr66.protocol.utils.R66Future;
 
 import org.jboss.netty.bootstrap.ClientBootstrap;
