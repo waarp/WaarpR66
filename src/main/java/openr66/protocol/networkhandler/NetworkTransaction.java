@@ -28,8 +28,11 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 
 import java.net.ConnectException;
 import java.net.SocketAddress;
+import java.util.Collections;
+import java.util.SortedSet;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -244,7 +247,7 @@ public class NetworkTransaction {
         } finally {
             if (!ok) {
                 if (networkChannel != null) {
-                    removeNetworkChannel(networkChannel.channel, null);
+                    removeNetworkChannel(networkChannel.channel, null, null);
                 }
             }
             lock.unlock();
@@ -255,7 +258,7 @@ public class NetworkTransaction {
         } else {
             OpenR66ProtocolNetworkException exc =
                 new OpenR66ProtocolNetworkException("Startup is invalid");
-            logger.warn("Startup is Invalid", exc);
+            logger.debug("Startup is Invalid", exc);
             R66Result finalValue = new R66Result(
                     exc, null, true, ErrorCode.ConnectionImpossible, null);
             localChannelReference.invalidateRequest(finalValue);
@@ -291,6 +294,7 @@ public class NetworkTransaction {
         if (networkChannel != null) {
             logger.debug("Already Connected: {}", networkChannel);
             networkChannel.count++;
+            logger.debug("New con: "+networkChannel.count);
             return networkChannel;
         }
         ChannelFuture channelFuture = null;
@@ -373,8 +377,11 @@ public class NetworkTransaction {
                 ChannelUtils.NOCHANNEL, futureRequest);
         } catch (OpenR66ProtocolSystemException e) {
             // check if the channel has other attached local channels
+            // NO since done in caller (createConnection)
+            /*
             logger.info("Try to Close Network");
             removeNetworkChannel(networkChannel.channel, null);
+            */
             throw new OpenR66ProtocolNetworkException(
                     "Cannot connect to local channel", e);
         }
@@ -468,7 +475,9 @@ public class NetworkTransaction {
             R66Result finalValue = new R66Result(
                     new OpenR66ProtocolSystemException("Out of time or Connection invalid during Authentication"),
                     localChannelReference.getSession(), true, ErrorCode.ConnectionImpossible, null);
-            logger.warn("Authent is Invalid due to: {}", finalValue.exception.getMessage());
+            logger.warn("Authent is Invalid due to: {} {}", finalValue.exception.getMessage(),
+                    future.toString());
+            logger.warn("DEBUG ", future.getResult().exception);
             localChannelReference.invalidateRequest(finalValue);
             if (localChannelReference.getRemoteId() != ChannelUtils.NOCHANNEL) {
                 ConnectionErrorPacket error = new ConnectionErrorPacket(
@@ -541,7 +550,7 @@ public class NetworkTransaction {
             timer = new Timer(true);
             final OpenR66SignalHandler.R66TimerTask timerTask = 
                 new OpenR66SignalHandler.R66TimerTask(OpenR66SignalHandler.R66TimerTask.TIMER_EXIT);
-            timer.schedule(timerTask, Configuration.configuration.TIMEOUTCON);
+            timer.schedule(timerTask, Configuration.configuration.TIMEOUTCON*3/2);
         }
         closeRetrieveExecutors();
         networkChannelGroup.close().awaitUninterruptibly();
@@ -772,46 +781,110 @@ public class NetworkTransaction {
             lock.unlock();
         }
     }
+    
     /**
+     * Class to close the Network Channel if after some delays it has really
+     * no Local Channel attached
+     * @author Frederic Bregier
      *
-     * @param channel networkChannel
-     * @param localChannel localChannel
-     * @return the number of local channel still connected to this channel
      */
-    public static int removeNetworkChannel(Channel channel, Channel localChannel) {
-        lock.lock();
-        try {
-            SocketAddress address = channel.getRemoteAddress();
-            if (address != null) {
-                NetworkChannel networkChannel = networkChannelOnSocketAddressConcurrentHashMap
-                        .get(address.hashCode());
-                if (networkChannel != null) {
-                    networkChannel.count--;
-                    if (localChannel != null) {
-                        networkChannel.remove(localChannel);
-                    }
-                    if (networkChannel.count <= 0) {
-                        networkChannelOnSocketAddressConcurrentHashMap
-                                .remove(address.hashCode());
-                        logger
-                                .info("Will close NETWORK channel");
-                        Channels.close(channel).awaitUninterruptibly();
-                        return 0;
-                    }
-                    logger.debug("NC left: {}", networkChannel);
-                    return networkChannel.count;
-                } else {
-                    if (channel.isConnected()) {
-                        logger.debug("Should not be here",
-                                new OpenR66ProtocolSystemException());
-                    }
-                }
-            }
-            return 0;
-        } finally {
-            lock.unlock();
+    static class CloseFutureChannel extends Thread {
+
+        private static SortedSet<String> inCloseRunning =
+            Collections.synchronizedSortedSet(new TreeSet<String>());
+        private NetworkChannel networkChannel;
+        private String requester;
+        private Channel channel;
+        private SocketAddress address;
+        
+        
+        /**
+         * @param networkChannel
+         * @param requester
+         * @param channel
+         * @param address
+         */
+        CloseFutureChannel(NetworkChannel networkChannel, String requester,
+                Channel channel, SocketAddress address) {
+            this.networkChannel = networkChannel;
+            this.requester = requester;
+            this.channel = channel;
+            this.address = address;
         }
+
+
+        @Override
+        public void run() {
+            if (! inCloseRunning.add(address.toString()))
+                return;
+            try {
+                Thread.sleep((Configuration.configuration.TIMEOUTCON)/2);
+            } catch (InterruptedException e) {
+            }
+            if (networkChannel.count <= 0) {
+                if (requester != null)
+                    NetworkTransaction.removeClient(requester, networkChannel);
+                networkChannelOnSocketAddressConcurrentHashMap
+                        .remove(address.hashCode());
+                logger.info("Will close NETWORK channel");
+                Channels.close(channel);
+            }
+            inCloseRunning.remove(address.toString());
+        }
+        
     }
+    /**
+    *
+    * @param channel networkChannel
+    * @param localChannel localChannel
+    * @param requester Requester since call from LocalChannel close 
+    * @return the number of local channel still connected to this channel
+    */
+   public static int removeNetworkChannel(Channel channel, Channel localChannel, 
+           String requester) {
+       if (localChannel != null)
+           lock.lock();
+       try {
+           SocketAddress address = channel.getRemoteAddress();
+           if (address != null) {
+               NetworkChannel networkChannel = networkChannelOnSocketAddressConcurrentHashMap
+                       .get(address.hashCode());
+               if (networkChannel != null) {
+                   networkChannel.count--;
+                   logger.debug("Close con: "+networkChannel.count);
+                   if (localChannel != null) {
+                       networkChannel.remove(localChannel);
+                   }
+                   if (networkChannel.count <= 0) {
+                       CloseFutureChannel cfc = 
+                           new CloseFutureChannel(networkChannel, requester, channel, address);
+                       cfc.start();
+                       /*
+                       if (requester != null)
+                           NetworkTransaction.removeClient(requester, networkChannel);
+                       networkChannelOnSocketAddressConcurrentHashMap
+                               .remove(address.hashCode());
+                       logger
+                               .info("Will close NETWORK channel");
+                       Channels.close(channel).awaitUninterruptibly();
+                       return 0;
+                       */
+                   }
+                   logger.debug("NC left: {}", networkChannel);
+                   return networkChannel.count;
+               } else {
+                   if (channel.isConnected()) {
+                       logger.debug("Should not be here",
+                               new OpenR66ProtocolSystemException());
+                   }
+               }
+           }
+           return 0;
+       } finally {
+           if (localChannel != null)
+               lock.unlock();
+       }
+   }
     /**
      *
      * @param address
@@ -925,6 +998,7 @@ public class NetworkTransaction {
             try {
                 networkChannel = getRemoteChannel(address);
                 networkChannel.count ++;
+                logger.debug("New con: "+networkChannel.count);
                 logger.debug("NC active: {}", networkChannel);
                 return networkChannel;
             } catch (OpenR66ProtocolRemoteShutdownException e) {

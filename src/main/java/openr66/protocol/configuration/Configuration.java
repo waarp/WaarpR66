@@ -369,6 +369,13 @@ public class Configuration {
     protected ExecutorService execServerWorker = Executors
             .newCachedThreadPool();
 
+
+    /**
+     * ExecutorService Other Worker
+     */
+    protected ExecutorService execOtherWorker = Executors
+            .newCachedThreadPool();
+    
     /**
      * ChannelFactory for Server part
      */
@@ -535,6 +542,7 @@ public class Configuration {
         localTransaction = new LocalTransaction();
         httpPipelineInit();
         objectSizeEstimator = new NetworkPacketSizeEstimator();
+        logger.warn("Client Thread: "+CLIENT_THREAD);
         serverPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
                 CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory, 500,
                 TimeUnit.MILLISECONDS, new R66ThreadFactory("ServerExecutor"));
@@ -743,6 +751,10 @@ public class Configuration {
             ExecutorUtil.terminate(execServerWorker);
             execServerWorker = null;
         }
+        if (execOtherWorker != null) {
+            execOtherWorker.shutdownNow();
+            execOtherWorker = null;
+        }
     }
     /**
      * To be called after all other stuff are closed for Client
@@ -860,7 +872,13 @@ public class Configuration {
                 execTrafficCounter, serverChannelWriteLimit,
                 serverChannelReadLimit, delayLimit);
     }
-
+    /**
+     * 
+     * @return an executorService to be used for any thread
+     */
+    public ExecutorService getExecutorService() {
+        return execOtherWorker;
+    }
     /**
      * @return the globalTrafficShapingHandler
      */

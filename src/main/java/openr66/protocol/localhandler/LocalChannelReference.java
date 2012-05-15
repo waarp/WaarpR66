@@ -319,7 +319,6 @@ public class LocalChannelReference {
                     futureConnection.isSuccess());
             return;
         }
-        logger.debug("LocalChannelReference validate: " + validate);
         if (validate) {
             futureConnection.setResult(result);
             futureConnection.setSuccess();
@@ -335,35 +334,41 @@ public class LocalChannelReference {
      * @return the futureValidateConnection
      */
     public R66Future getFutureValidateConnection() {
+        R66Result result;
         try {
-            if (!futureConnection.await(Configuration.configuration.TIMEOUTCON)) {
-                R66Result result;
-                if (futureConnection.isDone()) {
-                    if (futureRequest.isDone()) {
-                        result = futureRequest.getResult();
+            for (int i = 0; i < Configuration.RETRYNB; i++) {
+                if (!futureConnection.await(Configuration.configuration.TIMEOUTCON/(i+1))) {
+                    if (futureConnection.isDone()) {
+                        return futureConnection;
                     } else {
+                        if (this.networkChannel.isConnected()) {
+                            continue;
+                        }
                         result = new R66Result(
                                 new OpenR66ProtocolNoConnectionException(
-                                        "Connection was impossible"), session,
-                                false, ErrorCode.ConnectionImpossible, null);
+                                        "Out of time"), session, false,
+                                ErrorCode.ConnectionImpossible, null);
+                        validateConnection(false, result);
+                        return futureConnection;
                     }
                 } else {
-                    result = new R66Result(
-                            new OpenR66ProtocolNoConnectionException(
-                                    "Out of time"), session, false,
-                            ErrorCode.ConnectionImpossible, null);
+                    return futureConnection;
                 }
-                validateConnection(false, result);
-                return futureConnection;
             }
         } catch (InterruptedException e) {
-            R66Result result = new R66Result(
+            result = new R66Result(
                     new OpenR66ProtocolNoConnectionException(
                             "Interrupted connection"), session, false,
                     ErrorCode.ConnectionImpossible, null);
             validateConnection(false, result);
             return futureConnection;
         }
+        logger.warn("Cannot get Connection due to out of Time: {}",this);
+        result = new R66Result(
+                new OpenR66ProtocolNoConnectionException(
+                        "Out of time"), session, false,
+                ErrorCode.ConnectionImpossible, null);
+        validateConnection(false, result);
         return futureConnection;
     }
 
@@ -517,7 +522,12 @@ public class LocalChannelReference {
 
     @Override
     public String toString() {
-        return "LCR: L: " + localId + " R: " + remoteId;
+        return "LCR: L: " + localId + " R: " + remoteId + "\nConn["+
+        (futureConnection != null ? futureConnection : "noConn")+ "]\nStartup[" +
+        (futureStartup != null ? futureStartup : "noStartup")+ "]\nRequest[" +
+        (futureRequest != null ? futureRequest : "noRequest")+ "]\nValidRequest[" +
+        (futureValidRequest != null ? futureValidRequest : "noValidRequest")+ "]\nEndTransfer[" +
+        (futureEndTransfer != null ? futureEndTransfer : "noEndTransfer")+"]";
     }
 
     /**

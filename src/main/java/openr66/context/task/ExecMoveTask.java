@@ -150,7 +150,7 @@ public class ExecMoveTask extends AbstractTask {
         Thread thread = new Thread(lastLineReader);
         thread.setDaemon(true);
         thread.setName("ExecRename" + session.getRunner().getSpecialId());
-        thread.start();
+        Configuration.configuration.getExecutorService().execute(thread);
         int status = -1;
         try {
             status = defaultExecutor.execute(commandLine);

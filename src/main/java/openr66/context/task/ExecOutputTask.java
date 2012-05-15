@@ -154,7 +154,7 @@ public class ExecOutputTask extends AbstractTask {
         Thread thread = new Thread(allLineReader);
         thread.setDaemon(true);
         thread.setName("ExecRename" + session.getRunner().getSpecialId());
-        thread.start();
+        Configuration.configuration.getExecutorService().execute(thread);
         int status = -1;
         try {
             status = defaultExecutor.execute(commandLine);

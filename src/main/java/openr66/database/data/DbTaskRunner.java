@@ -461,7 +461,7 @@ public class DbTaskRunner extends AbstractDbData {
                 isSendThrough = false;
             }
         }
-        logger.info("DbTask "+mode+" isRecvThrough: "+isRecvThrough+" isSendThrough: "+isSendThrough);
+        logger.debug("DbTask "+mode+" isRecvThrough: "+isRecvThrough+" isSendThrough: "+isSendThrough);
     }
     /**
      * Constructor for submission (no transfer session), from database. It is

@@ -181,6 +181,8 @@ public class LocalTransaction {
                         localChannelReference);
                 channel.getCloseFuture().addListener(remover);
                 localChannelHashMap.put(channel.getId(), localChannelReference);
+                // FIXME ADD channel ?
+                //validLocalChannelHashMap.put(channel.getId(), validLCR);
                 try {
                     NetworkTransaction.addLocalChannelToNetworkChannel(networkChannel, channel);
                 } catch (OpenR66ProtocolRemoteShutdownException e) {
@@ -225,30 +227,45 @@ public class LocalTransaction {
      * @return  the LocalChannelReference
      */
     public LocalChannelReference getFromId(Integer id) {
-        LocalChannelReference lcr = localChannelHashMap.get(id);
-        if (lcr == null){
-            R66Future future = validLocalChannelHashMap.get(id);
-            if (future != null) {
+        for (int i = 0; i < Configuration.RETRYNB*4; i++) {
+            LocalChannelReference lcr = localChannelHashMap.get(id);
+            if (lcr == null){
+                /*
+                    R66Future future = validLocalChannelHashMap.get(id);
+                    logger.debug("DEBUG Future ValidLocalChannel: not found: " +
+                            id + (future != null));
+                    if (future != null) {
+                        try {
+                            future.await(Configuration.configuration.TIMEOUTCON);
+                        } catch (InterruptedException e) {
+                            return localChannelHashMap.get(id);
+                        }
+                        logger.debug("DEBUG Future ValidLocalChannel: " + id +
+                                future.isDone() + ":" + future.isSuccess());
+                        if (future.isSuccess()) {
+                            return localChannelHashMap.get(id);
+                        } else if (future.isFailed()) {
+                            return null;
+                        }
+                    } else {
+                        logger.debug("DEBUG Future ValidLocalChannel: Sleep" +
+                                id);
+                        try {
+                            Thread.sleep(Configuration.RETRYINMS);
+                        } catch (InterruptedException e) {
+                        }
+                        continue;
+                    }
+                */
                 try {
-                    future.await(Configuration.configuration.TIMEOUTCON);
+                    Thread.sleep(Configuration.RETRYINMS * 2);
                 } catch (InterruptedException e) {
-                    return localChannelHashMap.get(id);
-                }
-                if (future.isSuccess()) {
-                    return localChannelHashMap.get(id);
-                } else if (future.isFailed()) {
-                    return null;
                 }
             } else {
-                try {
-                    Thread.sleep(Configuration.RETRYINMS);
-                } catch (InterruptedException e) {
-                }
+                return lcr;
             }
-            return localChannelHashMap.get(id);
-        } else {
-            return lcr;
         }
+        return localChannelHashMap.get(id);
     }
     /**
      * Remove one local channel

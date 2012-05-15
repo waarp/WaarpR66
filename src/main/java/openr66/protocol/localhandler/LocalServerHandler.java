@@ -202,8 +202,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 localChannelReference.getDbSession().endUseConnection();
                 logger.debug("End Use Connection");
             }
+            String requester = 
+                (runner != null && runner.isSelfRequested() &&
+                        localChannelReference.getNetworkChannelObject() != null) ?
+                                runner.getRequester() : null;
             NetworkTransaction.removeNetworkChannel(localChannelReference
-                    .getNetworkChannel(), e.getChannel());
+                    .getNetworkChannel(), e.getChannel(), requester);
+            /*
             // Only requested can has a remote client
             if (runner != null && runner.isSelfRequested() &&
                     localChannelReference.getNetworkChannelObject() != null
@@ -211,6 +216,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 NetworkTransaction.removeClient(runner.getRequester(),
                         localChannelReference.getNetworkChannelObject());
             }
+            */
             session.setStatus(52);
             Configuration.configuration.getLocalTransaction().remove(e.getChannel());
         } else {
@@ -933,7 +939,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         if (!session.isAuthenticated()) {
             session.setStatus(48);
             throw new OpenR66ProtocolNotAuthenticatedException(
-                    "Not authenticated");
+                    "Not authenticated while Request received");
         }
         // XXX validLimit only on requested side
         if (packet.isToValidate()) {
@@ -1231,7 +1237,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             OpenR66ProtocolBusinessException, OpenR66ProtocolPacketException {
         if (!session.isAuthenticated()) {
             throw new OpenR66ProtocolNotAuthenticatedException(
-                    "Not authenticated");
+                    "Not authenticated while Data received");
         }
         if (!session.isReady()) {
             throw new OpenR66ProtocolBusinessException("No request prepared");
@@ -1378,7 +1384,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             OpenR66ProtocolPacketException {
         if (!session.isAuthenticated()) {
             throw new OpenR66ProtocolNotAuthenticatedException(
-                    "Not authenticated");
+                    "Not authenticated while Test received");
         }
         // simply write back after+1
         packet.update();
@@ -1410,7 +1416,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             OpenR66ProtocolNotAuthenticatedException {
         if (!session.isAuthenticated()) {
             throw new OpenR66ProtocolNotAuthenticatedException(
-                    "Not authenticated");
+                    "Not authenticated while EndTransfer received");
         }
         // Check end of transfer
         if (packet.isToValidate()) {
@@ -1461,7 +1467,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             OpenR66ProtocolNoDataException, OpenR66ProtocolPacketException {
         if (!session.isAuthenticated()) {
             throw new OpenR66ProtocolNotAuthenticatedException(
-                    "Not authenticated");
+                    "Not authenticated while Information received");
         }
         byte request = packet.getRequest();
         DbRule rule;
@@ -1579,7 +1585,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             logger.warn("Valid packet received while not authenticated: {} {}",packet, session);
             session.newState(ERROR);
             throw new OpenR66ProtocolNotAuthenticatedException(
-                    "Not authenticated");
+                    "Not authenticated while Valid received");
         }
         switch (packet.getTypeValid()) {
             case LocalPacketFactory.SHUTDOWNPACKET: {
@@ -2211,7 +2217,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             OpenR66ProtocolBusinessException {
         if (!session.isAuthenticated()) {
             throw new OpenR66ProtocolNotAuthenticatedException(
-                    "Not authenticated");
+                    "Not authenticated while Shutdown received");
         }
         boolean isAdmin = session.getAuth().isAdmin();
         boolean isKeyValid = Configuration.configuration.isKeyValid(packet.getKey());
@@ -2243,7 +2249,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             OpenR66ProtocolPacketException {
         if (!session.isAuthenticated()) {
             throw new OpenR66ProtocolNotAuthenticatedException(
-                    "Not authenticated");
+                    "Not authenticated while BusinessRequest received");
         }
         session.setStatus(200);
         String argRule = packet.getSheader();
