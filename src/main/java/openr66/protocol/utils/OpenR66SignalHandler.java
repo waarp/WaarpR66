@@ -24,7 +24,6 @@ import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
 import java.util.Map;
-import java.util.Timer;
 import java.util.TimerTask;
 
 import openr66.protocol.configuration.Configuration;
@@ -175,10 +174,8 @@ public class OpenR66SignalHandler implements SignalHandler {
             System.err.println("Halt System");
             Runtime.getRuntime().halt(0);
         } else {
-            Timer timer = null;
-            timer = new Timer(true);
             final R66TimerTask timerTask = new R66TimerTask(R66TimerTask.TIMER_EXIT);
-            timer.schedule(timerTask, Configuration.configuration.TIMEOUTCON * 3);
+            Configuration.configuration.getTimer().schedule(timerTask, Configuration.configuration.TIMEOUTCON * 3);
             immediate = true;
             ChannelUtils.exit();
             System.err.println("Exit System");

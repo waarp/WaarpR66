@@ -38,6 +38,7 @@ import goldengate.snmp.GgSnmpAgent;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Timer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -375,7 +376,10 @@ public class Configuration {
      */
     protected ExecutorService execOtherWorker = Executors
             .newCachedThreadPool();
-    
+    /**
+     * Timer used to schedule task later on
+     */
+    protected Timer timer = new Timer("R66Timer", true);
     /**
      * ChannelFactory for Server part
      */
@@ -784,6 +788,10 @@ public class Configuration {
             LocalExecClient.releaseResources();
         }
         r66BusinessFactory.releaseResources();
+        if (timer != null) {
+            timer.cancel();
+            timer = null;
+        }
     }
     /**
      * Try to reload the Commander
@@ -879,6 +887,14 @@ public class Configuration {
     public ExecutorService getExecutorService() {
         return execOtherWorker;
     }
+    
+    /**
+     * @return the timer
+     */
+    public Timer getTimer() {
+        return timer;
+    }
+
     /**
      * @return the globalTrafficShapingHandler
      */

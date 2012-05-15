@@ -30,7 +30,6 @@ import java.net.ConnectException;
 import java.net.SocketAddress;
 import java.util.Collections;
 import java.util.SortedSet;
-import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,6 +40,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
 import openr66.context.R66Session;
+import openr66.context.task.exception.OpenR66RunnerErrorException;
 import openr66.protocol.configuration.Configuration;
 import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolNetworkException;
@@ -477,7 +477,6 @@ public class NetworkTransaction {
                     localChannelReference.getSession(), true, ErrorCode.ConnectionImpossible, null);
             logger.warn("Authent is Invalid due to: {} {}", finalValue.exception.getMessage(),
                     future.toString());
-            logger.warn("DEBUG ", future.getResult().exception);
             localChannelReference.invalidateRequest(finalValue);
             if (localChannelReference.getRemoteId() != ChannelUtils.NOCHANNEL) {
                 ConnectionErrorPacket error = new ConnectionErrorPacket(
@@ -546,11 +545,9 @@ public class NetworkTransaction {
         } catch (InterruptedException e) {
         }
         if (!Configuration.configuration.isServer) {
-            Timer timer = null;
-            timer = new Timer(true);
             final OpenR66SignalHandler.R66TimerTask timerTask = 
                 new OpenR66SignalHandler.R66TimerTask(OpenR66SignalHandler.R66TimerTask.TIMER_EXIT);
-            timer.schedule(timerTask, Configuration.configuration.TIMEOUTCON*3/2);
+            Configuration.configuration.getTimer().schedule(timerTask, Configuration.configuration.TIMEOUTCON*3/2);
         }
         closeRetrieveExecutors();
         networkChannelGroup.close().awaitUninterruptibly();
@@ -650,9 +647,8 @@ public class NetworkTransaction {
                         return false;
                     }
                     networkChannel.shutdownAllLocalChannels();
-                    Timer timer = new Timer(true);
                     final R66TimerTask timerTask = new R66TimerTask(address.hashCode());
-                    timer.schedule(timerTask,
+                    Configuration.configuration.getTimer().schedule(timerTask,
                             Configuration.configuration.TIMEOUTCON * 2);
                     return true;
                 }
@@ -788,10 +784,10 @@ public class NetworkTransaction {
      * @author Frederic Bregier
      *
      */
-    static class CloseFutureChannel extends Thread {
+    static class CloseFutureChannel extends TimerTask {
 
-        private static SortedSet<String> inCloseRunning =
-            Collections.synchronizedSortedSet(new TreeSet<String>());
+        private static SortedSet<Integer> inCloseRunning =
+            Collections.synchronizedSortedSet(new TreeSet<Integer>());
         private NetworkChannel networkChannel;
         private String requester;
         private Channel channel;
@@ -803,9 +799,12 @@ public class NetworkTransaction {
          * @param requester
          * @param channel
          * @param address
+         * @throws OpenR66RunnerErrorException 
          */
         CloseFutureChannel(NetworkChannel networkChannel, String requester,
-                Channel channel, SocketAddress address) {
+                Channel channel, SocketAddress address) throws OpenR66RunnerErrorException {
+            if (! inCloseRunning.add(channel.getId()))
+                throw new OpenR66RunnerErrorException("Already scheduled");
             this.networkChannel = networkChannel;
             this.requester = requester;
             this.channel = channel;
@@ -815,12 +814,12 @@ public class NetworkTransaction {
 
         @Override
         public void run() {
-            if (! inCloseRunning.add(address.toString()))
+            /*if (! inCloseRunning.add(address.toString()))
                 return;
             try {
                 Thread.sleep((Configuration.configuration.TIMEOUTCON)/2);
             } catch (InterruptedException e) {
-            }
+            }*/
             if (networkChannel.count <= 0) {
                 if (requester != null)
                     NetworkTransaction.removeClient(requester, networkChannel);
@@ -829,7 +828,7 @@ public class NetworkTransaction {
                 logger.info("Will close NETWORK channel");
                 Channels.close(channel);
             }
-            inCloseRunning.remove(address.toString());
+            inCloseRunning.remove(channel.getId());
         }
         
     }
@@ -856,19 +855,13 @@ public class NetworkTransaction {
                        networkChannel.remove(localChannel);
                    }
                    if (networkChannel.count <= 0) {
-                       CloseFutureChannel cfc = 
-                           new CloseFutureChannel(networkChannel, requester, channel, address);
-                       cfc.start();
-                       /*
-                       if (requester != null)
-                           NetworkTransaction.removeClient(requester, networkChannel);
-                       networkChannelOnSocketAddressConcurrentHashMap
-                               .remove(address.hashCode());
-                       logger
-                               .info("Will close NETWORK channel");
-                       Channels.close(channel).awaitUninterruptibly();
-                       return 0;
-                       */
+                       CloseFutureChannel cfc;
+                       try {
+                           cfc = new CloseFutureChannel(networkChannel, requester, channel, address);
+                           Configuration.configuration.getTimer().
+                               schedule(cfc, Configuration.configuration.TIMEOUTCON);
+                       } catch (OpenR66RunnerErrorException e) {
+                       }
                    }
                    logger.debug("NC left: {}", networkChannel);
                    return networkChannel.count;
