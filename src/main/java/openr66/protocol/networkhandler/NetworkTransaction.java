@@ -790,45 +790,51 @@ public class NetworkTransaction {
             Collections.synchronizedSortedSet(new TreeSet<Integer>());
         private NetworkChannel networkChannel;
         private String requester;
-        private Channel channel;
         private SocketAddress address;
-        
         
         /**
          * @param networkChannel
          * @param requester
-         * @param channel
-         * @param address
          * @throws OpenR66RunnerErrorException 
          */
-        CloseFutureChannel(NetworkChannel networkChannel, String requester,
-                Channel channel, SocketAddress address) throws OpenR66RunnerErrorException {
-            if (! inCloseRunning.add(channel.getId()))
+        CloseFutureChannel(NetworkChannel networkChannel, SocketAddress address, String requester) 
+            throws OpenR66RunnerErrorException {
+            if (! inCloseRunning.add(networkChannel.channel.getId()))
                 throw new OpenR66RunnerErrorException("Already scheduled");
             this.networkChannel = networkChannel;
             this.requester = requester;
-            this.channel = channel;
             this.address = address;
         }
 
+        /**
+         * Empty constructor
+         */
+        private CloseFutureChannel(CloseFutureChannel src) {
+            networkChannel = src.networkChannel;
+            requester = src.requester;
+            address = src.address;
+        }
 
         @Override
         public void run() {
-            /*if (! inCloseRunning.add(address.toString()))
-                return;
-            try {
-                Thread.sleep((Configuration.configuration.TIMEOUTCON)/2);
-            } catch (InterruptedException e) {
-            }*/
             if (networkChannel.count <= 0) {
+                long time = networkChannel.lastTimeUsed + 
+                    Configuration.configuration.TIMEOUTCON - 
+                    System.currentTimeMillis();
+                if (time > Configuration.RETRYINMS) {
+                    // will re execute this request later on
+                    CloseFutureChannel cfc = new CloseFutureChannel(this);
+                    Configuration.configuration.getTimer().schedule(cfc, time);
+                    return;
+                }
                 if (requester != null)
                     NetworkTransaction.removeClient(requester, networkChannel);
                 networkChannelOnSocketAddressConcurrentHashMap
                         .remove(address.hashCode());
                 logger.info("Will close NETWORK channel");
-                Channels.close(channel);
+                Channels.close(networkChannel.channel);
             }
-            inCloseRunning.remove(channel.getId());
+            inCloseRunning.remove(networkChannel.channel.getId());
         }
         
     }
@@ -836,7 +842,7 @@ public class NetworkTransaction {
     *
     * @param channel networkChannel
     * @param localChannel localChannel
-    * @param requester Requester since call from LocalChannel close 
+    * @param requester Requester since call from LocalChannel close (might be null)
     * @return the number of local channel still connected to this channel
     */
    public static int removeNetworkChannel(Channel channel, Channel localChannel, 
@@ -857,7 +863,7 @@ public class NetworkTransaction {
                    if (networkChannel.count <= 0) {
                        CloseFutureChannel cfc;
                        try {
-                           cfc = new CloseFutureChannel(networkChannel, requester, channel, address);
+                           cfc = new CloseFutureChannel(networkChannel, address, requester);
                            Configuration.configuration.getTimer().
                                schedule(cfc, Configuration.configuration.TIMEOUTCON);
                        } catch (OpenR66RunnerErrorException e) {

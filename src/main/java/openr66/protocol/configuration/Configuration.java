@@ -546,7 +546,7 @@ public class Configuration {
         localTransaction = new LocalTransaction();
         httpPipelineInit();
         objectSizeEstimator = new NetworkPacketSizeEstimator();
-        logger.warn("Client Thread: "+CLIENT_THREAD);
+        logger.warn("Client Thread: "+CLIENT_THREAD+" Runner Thread: "+RUNNER_THREAD);
         serverPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
                 CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory, 500,
                 TimeUnit.MILLISECONDS, new R66ThreadFactory("ServerExecutor"));

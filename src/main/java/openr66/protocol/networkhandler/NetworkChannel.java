@@ -52,7 +52,11 @@ public class NetworkChannel {
      * Network Channel
      */
     public final Channel channel;
-
+    /**
+     * Last Time in ms this channel was used by a LocalChannel
+     */
+    public long lastTimeUsed;
+    
     public NetworkChannel(Channel networkChannel) {
         this.channel = networkChannel;
     }
@@ -62,6 +66,7 @@ public class NetworkChannel {
         if (isShuttingDown) {
             throw new OpenR66ProtocolRemoteShutdownException("Current NetworkChannel is closed");
         }
+        lastTimeUsed = System.currentTimeMillis();
         localChannels.add(localChannel);
     }
 
