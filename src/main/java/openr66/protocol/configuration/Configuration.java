@@ -342,7 +342,7 @@ public class Configuration {
      */
     public boolean isServer = false;
 
-    private static class R66ThreadFactory implements ThreadFactory {
+    protected static class R66ThreadFactory implements ThreadFactory {
         private String GlobalName;
         public R66ThreadFactory(String globalName) {
             GlobalName = globalName;
@@ -398,7 +398,7 @@ public class Configuration {
     /**
      * ThreadPoolExecutor for Http and Https Server
      */
-    private volatile OrderedMemoryAwareThreadPoolExecutor httpPipelineExecutor;
+    protected volatile OrderedMemoryAwareThreadPoolExecutor httpPipelineExecutor;
 
     /**
      * Bootstrap for server
@@ -544,6 +544,8 @@ public class Configuration {
             return;
         }
         localTransaction = new LocalTransaction();
+        InternalLoggerFactory.setDefaultFactory(InternalLoggerFactory
+                .getDefaultFactory());
         httpPipelineInit();
         objectSizeEstimator = new NetworkPacketSizeEstimator();
         logger.warn("Client Thread: "+CLIENT_THREAD+" Runner Thread: "+RUNNER_THREAD);
@@ -561,8 +563,6 @@ public class Configuration {
     }
 
     public void httpPipelineInit() {
-        InternalLoggerFactory.setDefaultFactory(InternalLoggerFactory
-                .getDefaultFactory());
         httpPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
                 CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory, 500,
                 TimeUnit.MILLISECONDS, new R66ThreadFactory("HttpExecutor"));

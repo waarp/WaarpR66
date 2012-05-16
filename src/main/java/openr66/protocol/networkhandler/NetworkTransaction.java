@@ -130,7 +130,7 @@ public class NetworkTransaction {
 
     private final ChannelFactory channelClientFactory = new NioClientSocketChannelFactory(
             execServerBoss, execServerWorker,
-            Configuration.configuration.SERVER_THREAD);
+            Configuration.configuration.CLIENT_THREAD);
 
     private final ClientBootstrap clientBootstrap = new ClientBootstrap(
             channelClientFactory);

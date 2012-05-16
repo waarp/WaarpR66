@@ -86,7 +86,7 @@ public class TestTransferNoDb extends DirectTransfer {
             System.exit(1);
         }
         getSpecialParams(args, 1);
-
+        Configuration.configuration.CLIENT_THREAD = nb;
         Configuration.configuration.pipelineInit();
         NetworkTransaction networkTransaction = new NetworkTransaction();
         try {
