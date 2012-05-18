@@ -333,7 +333,7 @@ public class NetworkTransaction {
         }
         if (networkChannel != null) {
             networkChannel.count.incrementAndGet();
-            logger.debug("Already Connected: {}", networkChannel);
+            logger.info("Already Connected: {}", networkChannel);
             return networkChannel;
         }
         ChannelFuture channelFuture = null;
@@ -905,7 +905,7 @@ public class NetworkTransaction {
                        .get(address.hashCode());
                if (networkChannel != null) {
                    int count = networkChannel.count.decrementAndGet();
-                   logger.debug("Close con: "+networkChannel);
+                   logger.info("Close con: "+networkChannel);
                    if (localChannel != null) {
                        networkChannel.remove(localChannel);
                    }
@@ -1045,7 +1045,7 @@ public class NetworkTransaction {
             try {
                 networkChannel = getRemoteChannel(address);
                 networkChannel.count.incrementAndGet();
-                logger.debug("NC active: {}", networkChannel);
+                logger.info("NC active: {}", networkChannel);
                 return networkChannel;
             } catch (OpenR66ProtocolRemoteShutdownException e) {
                 throw e;

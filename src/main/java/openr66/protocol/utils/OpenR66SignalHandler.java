@@ -175,7 +175,7 @@ public class OpenR66SignalHandler implements SignalHandler {
             Runtime.getRuntime().halt(0);
         } else {
             final R66TimerTask timerTask = new R66TimerTask(R66TimerTask.TIMER_EXIT);
-            Configuration.configuration.getTimer().schedule(timerTask, Configuration.configuration.TIMEOUTCON * 3);
+            Configuration.configuration.getTimer().schedule(timerTask, Configuration.configuration.TIMEOUTCON * 2);
             immediate = true;
             ChannelUtils.exit();
             System.err.println("Exit System");
