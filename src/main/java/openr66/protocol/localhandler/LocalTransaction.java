@@ -434,7 +434,6 @@ public class LocalTransaction {
                     }
                 }
                 Channels.close(localChannelReference.getLocalChannel());
-                // XXX FIXME return;
                 continue;
             }
             try {

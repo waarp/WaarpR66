@@ -21,6 +21,7 @@
 package openr66.protocol.networkhandler;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import openr66.protocol.exception.OpenR66ProtocolRemoteShutdownException;
 
@@ -38,7 +39,7 @@ public class NetworkChannel {
     /**
      * Number of active Local Channel referencing this Network Channel
      */
-    public volatile int count = 1;
+    public volatile AtomicInteger count = new AtomicInteger(1);
     /**
      * Does this Network Channel is in shutdown
      */
@@ -79,7 +80,7 @@ public class NetworkChannel {
 
     synchronized public void shutdownAllLocalChannels() {
         isShuttingDown = true;
-        count = 0;
+        count.set(0);
         Channel localChannel = localChannels.poll();
         while (localChannel != null) {
             Channels.close(localChannel);

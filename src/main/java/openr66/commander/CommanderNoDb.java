@@ -139,6 +139,10 @@ public class CommanderNoDb implements CommanderInterface {
                     taskRunner.changeUpdatedInfo(UpdatedInfo.RUNNING);
                     taskRunner.update();
                     internalRunner.submitTaskRunner(taskRunner);
+                    try {
+                        Thread.sleep(Configuration.RETRYINMS);
+                    } catch (InterruptedException e) {
+                    }
                     taskRunner = null;
                 }
                 if (OpenR66SignalHandler.isInShutdown()) {

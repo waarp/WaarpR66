@@ -276,7 +276,6 @@ public class DbConfiguration extends AbstractDbData {
             dbR66ConfigurationHashMap.put(this.hostid, this);
             isSaved = true;
             if (this.updatedInfo == UpdatedInfo.TOSUBMIT.ordinal()) {
-                // XXX FIXME add to todoList in CommanderNoDb
                 CommanderNoDb.todoList.add(this);
             }
             return;
@@ -331,7 +330,6 @@ public class DbConfiguration extends AbstractDbData {
             dbR66ConfigurationHashMap.put(this.hostid, this);
             isSaved = true;
             if (this.updatedInfo == UpdatedInfo.TOSUBMIT.ordinal()) {
-                // XXX FIXME add to todoList in CommanderNoDb
                 CommanderNoDb.todoList.add(this);
             }
             return;

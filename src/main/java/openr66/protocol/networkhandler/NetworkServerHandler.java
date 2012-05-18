@@ -26,6 +26,7 @@ import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
 import java.net.BindException;
+import java.net.SocketAddress;
 
 import openr66.database.DbConstant;
 import openr66.protocol.configuration.Configuration;
@@ -76,6 +77,10 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
      */
     private volatile Channel networkChannel;
     /**
+     * The associated Remote Address
+     */
+    private volatile SocketAddress remoteAddress;
+    /**
      * The Database connection attached to this NetworkChannel
      * shared among all associated LocalChannels
      */
@@ -121,7 +126,10 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
             Configuration.configuration.getLocalTransaction()
                     .closeLocalChannelsFromNetworkChannel(e.getChannel());
         }
-        NetworkTransaction.removeForceNetworkChannel(e.getChannel());
+        if (remoteAddress == null) {
+            remoteAddress = e.getChannel().getRemoteAddress();
+        }
+        NetworkTransaction.removeForceNetworkChannel(remoteAddress);
         //Now force the close of the database after a wait
         if (dbSession != null && dbSession.internalId != DbConstant.admin.session.internalId) {
             dbSession.disconnect();
@@ -139,6 +147,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
     @Override
     public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) throws OpenR66ProtocolNetworkException {
         this.networkChannel = e.getChannel();
+        this.remoteAddress = this.networkChannel.getRemoteAddress();
         try {
             if (DbConstant.admin.isConnected) {
                 this.dbSession = new DbSession(DbConstant.admin, false);
@@ -288,8 +297,10 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
                             .getLocalTransaction().getClient(packet.getRemoteId(),
                                     packet.getLocalId());
                 } catch (OpenR66ProtocolSystemException e1) {
-                    if (NetworkTransaction.isShuttingdownNetworkChannel(e
-                            .getChannel())) {
+                    if (remoteAddress == null) {
+                        remoteAddress = e.getChannel().getRemoteAddress();
+                    }
+                    if (NetworkTransaction.isShuttingdownNetworkChannel(remoteAddress)) {
                         // ignore
                         return;
                     }

@@ -683,6 +683,24 @@ public class DbTaskRunner extends AbstractDbData {
         }
         super.delete();
     }
+    
+    private void addNoDb() {
+        DbTaskRunner runner = new DbTaskRunner(null);
+        this.setToArray();
+        DbValue []temp = runner.allFields;
+        runner.allFields = this.allFields;
+        try {
+            runner.setFromArray();
+        } catch (GoldenGateDatabaseSqlError e) {
+        }
+        runner.allFields = temp;
+        runner.setToArray();
+        runner.isRecvThrough = this.isRecvThrough;
+        runner.isSendThrough = this.isSendThrough;
+        runner.rule = this.rule;
+        runner.isSaved = true;
+        CommanderNoDb.todoList.add(runner);
+    }
 
     /*
      * (non-Javadoc)
@@ -709,8 +727,7 @@ public class DbTaskRunner extends AbstractDbData {
                 }
             }
             if (this.updatedInfo == UpdatedInfo.TOSUBMIT.ordinal()) {
-                // XXX FIXME add to todoList in CommanderNoDb
-                CommanderNoDb.todoList.add(this);
+                addNoDb();
             }
             return;
         }
@@ -748,8 +765,7 @@ public class DbTaskRunner extends AbstractDbData {
                 }
             }
             if (this.updatedInfo == UpdatedInfo.TOSUBMIT.ordinal()) {
-                // XXX FIXME add to todoList in CommanderNoDb
-                CommanderNoDb.todoList.add(this);
+                addNoDb();
             }
             return;
         }
@@ -882,8 +898,7 @@ public class DbTaskRunner extends AbstractDbData {
                 }
             }
             if (this.updatedInfo == UpdatedInfo.TOSUBMIT.ordinal()) {
-                // XXX FIXME add to todoList in CommanderNoDb
-                CommanderNoDb.todoList.add(this);
+                addNoDb();
             }
             return;
         }

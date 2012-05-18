@@ -123,7 +123,6 @@ public class RetrieveRunner extends Thread {
                 logger.info("End Retrieve in Error");
                 return;
             }
-            // XXX FIXME
             try {
                 localChannelReference.getFutureEndTransfer().await();
             } catch (InterruptedException e1) {
