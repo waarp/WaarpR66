@@ -2102,10 +2102,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 }
                 String []splitglobal  = packet.getSheader().split(" ");
                 String []splitsession = packet.getSmiddle().split(" ");
-                long wgl  = Long.parseLong(splitglobal[0]);
-                long rgl  = Long.parseLong(splitglobal[1]);
-                long wsl  = Long.parseLong(splitsession[0]);
-                long rsl  = Long.parseLong(splitsession[1]);
+                long wgl  = (Long.parseLong(splitglobal[0])/10)*10;
+                long rgl  = (Long.parseLong(splitglobal[1])/10)*10;
+                long wsl  = (Long.parseLong(splitsession[0])/10)*10;
+                long rsl  = (Long.parseLong(splitsession[1])/10)*10;
                 if (wgl < 0) {
                     wgl = Configuration.configuration.serverGlobalWriteLimit;
                 }

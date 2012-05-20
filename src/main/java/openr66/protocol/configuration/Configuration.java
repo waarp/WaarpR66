@@ -76,6 +76,7 @@ import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
 import org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler;
 import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
 import org.jboss.netty.logging.InternalLoggerFactory;
+import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.ObjectSizeEstimator;
 import org.jboss.netty.util.internal.ExecutorUtil;
 
@@ -441,11 +442,10 @@ public class Configuration {
     protected ChannelGroup httpChannelGroup = null;
 
     /**
-     * ExecutorService for TrafficCounter
+     * Timer for TrafficCounter
      */
-    private ExecutorService execTrafficCounter = Executors
-            .newCachedThreadPool();
-
+    private org.jboss.netty.util.Timer timerTrafficCounter = 
+        new HashedWheelTimer(20, TimeUnit.MILLISECONDS, 1024);
     /**
      * Global TrafficCounter (set from global configuration)
      */
@@ -454,7 +454,7 @@ public class Configuration {
     /**
      * ObjectSizeEstimator
      */
-    private ObjectSizeEstimator objectSizeEstimator = null;
+    protected ObjectSizeEstimator objectSizeEstimator = null;
 
     /**
      * LocalTransaction
@@ -546,8 +546,8 @@ public class Configuration {
         localTransaction = new LocalTransaction();
         InternalLoggerFactory.setDefaultFactory(InternalLoggerFactory
                 .getDefaultFactory());
-        httpPipelineInit();
         objectSizeEstimator = new NetworkPacketSizeEstimator();
+        httpPipelineInit();
         logger.warn("Client Thread: "+CLIENT_THREAD+" Runner Thread: "+RUNNER_THREAD);
         serverPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
                 CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory, 500,
@@ -635,7 +635,7 @@ public class Configuration {
 
         // Factory for TrafficShapingHandler
         globalTrafficShapingHandler = new GlobalTrafficHandler(
-                objectSizeEstimator, execTrafficCounter,
+                objectSizeEstimator, timerTrafficCounter,
                 serverGlobalWriteLimit, serverGlobalReadLimit, delayLimit);
         this.constraintLimitHandler.setHandler(globalTrafficShapingHandler);
 
@@ -737,9 +737,9 @@ public class Configuration {
         if (networkSslServerPipelineFactory != null) {
             networkSslServerPipelineFactory.timer.stop();
         }
-        if (execTrafficCounter != null) {
-            ExecutorUtil.terminate(execTrafficCounter);
-            execTrafficCounter = null;
+        if (timerTrafficCounter != null) {
+            timerTrafficCounter.stop();
+            timerTrafficCounter = null;
         }
         if (agentSnmp != null) {
             agentSnmp.stop();
@@ -764,9 +764,9 @@ public class Configuration {
      * To be called after all other stuff are closed for Client
      */
     public void clientStop() {
-        if (execTrafficCounter != null) {
-            ExecutorUtil.terminate(execTrafficCounter);
-            execTrafficCounter = null;
+        if (timerTrafficCounter != null) {
+            timerTrafficCounter.stop();
+            timerTrafficCounter = null;
         }
         if (localTransaction != null) {
             localTransaction.closeAll();
@@ -877,7 +877,7 @@ public class Configuration {
             throw new OpenR66ProtocolNoDataException("No limit for channel");
         }
         return new ChannelTrafficHandler(objectSizeEstimator,
-                execTrafficCounter, serverChannelWriteLimit,
+                timerTrafficCounter, serverChannelWriteLimit,
                 serverChannelReadLimit, delayLimit);
     }
     /**

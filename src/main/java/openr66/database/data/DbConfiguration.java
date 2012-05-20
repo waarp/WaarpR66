@@ -165,13 +165,13 @@ public class DbConfiguration extends AbstractDbData {
     @Override
     protected void setToArray() {
         allFields[Columns.HOSTID.ordinal()].setValue(hostid);
-        allFields[Columns.READGLOBALLIMIT.ordinal()].setValue(readgloballimit);
+        allFields[Columns.READGLOBALLIMIT.ordinal()].setValue((readgloballimit/10)*10);
         allFields[Columns.WRITEGLOBALLIMIT.ordinal()]
-                .setValue(writegloballimit);
+                .setValue((writegloballimit/10)*10);
         allFields[Columns.READSESSIONLIMIT.ordinal()]
-                .setValue(readsessionlimit);
+                .setValue((readsessionlimit/10)*10);
         allFields[Columns.WRITESESSIONLIMIT.ordinal()]
-                .setValue(writesessionlimit);
+                .setValue((writesessionlimit/10)*10);
         allFields[Columns.DELAYLIMIT.ordinal()].setValue(delayllimit);
         allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
     }
@@ -179,14 +179,14 @@ public class DbConfiguration extends AbstractDbData {
     @Override
     protected void setFromArray() throws GoldenGateDatabaseSqlError {
         hostid = (String) allFields[Columns.HOSTID.ordinal()].getValue();
-        readgloballimit = (Long) allFields[Columns.READGLOBALLIMIT.ordinal()]
-                .getValue();
-        writegloballimit = (Long) allFields[Columns.WRITEGLOBALLIMIT.ordinal()]
-                .getValue();
-        readsessionlimit = (Long) allFields[Columns.READSESSIONLIMIT.ordinal()]
-                .getValue();
-        writesessionlimit = (Long) allFields[Columns.WRITESESSIONLIMIT
-                .ordinal()].getValue();
+        readgloballimit = (((Long) allFields[Columns.READGLOBALLIMIT.ordinal()]
+                .getValue())/10)*10;
+        writegloballimit = (((Long) allFields[Columns.WRITEGLOBALLIMIT.ordinal()]
+                .getValue())/10)*10;
+        readsessionlimit = (((Long) allFields[Columns.READSESSIONLIMIT.ordinal()]
+                .getValue())/10)*10;
+        writesessionlimit = (((Long) allFields[Columns.WRITESESSIONLIMIT
+                .ordinal()].getValue())/10)*10;
         delayllimit = (Long) allFields[Columns.DELAYLIMIT.ordinal()].getValue();
         updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()]
                 .getValue();
@@ -226,10 +226,10 @@ public class DbConfiguration extends AbstractDbData {
             long ws, long del) {
         super(dbSession);
         this.hostid = hostid;
-        readgloballimit = rg;
-        writegloballimit = wg;
-        readsessionlimit = rs;
-        writesessionlimit = ws;
+        readgloballimit = (rg/10)*10;
+        writegloballimit = (wg/10)*10;
+        readsessionlimit = (rs/10)*10;
+        writesessionlimit = (ws/10)*10;
         delayllimit = del;
         setToArray();
         isSaved = false;

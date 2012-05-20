@@ -6,6 +6,7 @@
 	</properties>
 	<body>
 		<release version="2.2.5" date="2012-05-01" description="New functions">
+			<action dev="Frederic Bregier" type="fix">Fix Sleep issue and Traffic Handler</action>
 			<action dev="Frederic Bregier" type="fix">Fix Huge Concurrent connections</action>
 			<action dev="Frederic Bregier" type="fix">Fix SendThrough and RecvThrough</action>
 			<action dev="Frederic Bregier" type="add">Add support for R66Business Interface</action>

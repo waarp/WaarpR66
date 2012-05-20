@@ -42,9 +42,7 @@ import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
-import java.util.Collections;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicLong;
 
 import openr66.commander.CommanderNoDb;
 import openr66.context.ErrorCode;
@@ -248,9 +246,8 @@ public class DbTaskRunner extends AbstractDbData {
 
     protected static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
 
-    private static final SortedSet<Long> clientNoDbSpecialId = 
-        Collections.synchronizedSortedSet(new TreeSet<Long>());
-    
+    private static final AtomicLong clientNoDbSpecialIdLast =
+        new AtomicLong(System.currentTimeMillis());
 
     /* (non-Javadoc)
      * @see goldengate.common.database.data.AbstractDbData#initObject()
@@ -644,28 +641,21 @@ public class DbTaskRunner extends AbstractDbData {
      * Create a Special Id for NoDb client
      */
     private void createNoDbSpecialId() {
-        synchronized (clientNoDbSpecialId) {
+        synchronized (clientNoDbSpecialIdLast) {
             // New SpecialId is not possible with No Database Model
-            try {
-                Thread.sleep(1);
-            } catch (InterruptedException e) {
-            }
             specialId = System.currentTimeMillis();
-            Long newOne = specialId;
-            while (clientNoDbSpecialId.contains(newOne)) {
-                newOne = specialId++;
+            if (clientNoDbSpecialIdLast.get() >= specialId) {
+                specialId = clientNoDbSpecialIdLast.incrementAndGet();
+            } else {
+                clientNoDbSpecialIdLast.set(specialId);
             }
-            clientNoDbSpecialId.add(newOne);
+            return;
         }
     }
     /**
      * Remove a Spcieal Id for NoDb Client
      */
     private void removeNoDbSpecialId() {
-        synchronized (clientNoDbSpecialId) {
-            Long oldOne = specialId;
-            clientNoDbSpecialId.remove(oldOne);
-        }
     }
     /*
      * (non-Javadoc)

@@ -23,11 +23,10 @@ package openr66.protocol.networkhandler;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
-import java.util.concurrent.Executor;
-
 import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
 import org.jboss.netty.handler.traffic.TrafficCounter;
 import org.jboss.netty.util.ObjectSizeEstimator;
+import org.jboss.netty.util.Timer;
 
 /**
  * Global function
@@ -40,17 +39,18 @@ public class GlobalTrafficHandler extends GlobalTrafficShapingHandler {
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(GlobalTrafficHandler.class);
+
     /**
      * @param objectSizeEstimator
-     * @param executor
+     * @param timer
      * @param writeLimit
      * @param readLimit
      * @param checkInterval
      */
     public GlobalTrafficHandler(ObjectSizeEstimator objectSizeEstimator,
-            Executor executor, long writeLimit, long readLimit,
+            Timer timer, long writeLimit, long readLimit,
             long checkInterval) {
-        super(objectSizeEstimator, executor, writeLimit, readLimit,
+        super(objectSizeEstimator, timer, writeLimit, readLimit,
                 checkInterval);
     }
 

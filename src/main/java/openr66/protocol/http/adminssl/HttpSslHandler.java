@@ -1439,22 +1439,22 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     String bsessionr = getTrimValue("BSESSR");
                     long lsessionr = Configuration.configuration.serverChannelReadLimit;
                     if (bsessionr != null) {
-                        lsessionr = Long.parseLong(bsessionr);
+                        lsessionr = (Long.parseLong(bsessionr)/10)*10;
                     }
                     String bglobalr = getTrimValue("BGLOBR");
                     long lglobalr = Configuration.configuration.serverGlobalReadLimit;
                     if (bglobalr != null) {
-                        lglobalr = Long.parseLong(bglobalr);
+                        lglobalr = (Long.parseLong(bglobalr)/10)*10;
                     }
                     String bsessionw = getTrimValue("BSESSW");
                     long lsessionw = Configuration.configuration.serverChannelWriteLimit;
                     if (bsessionw !=null) {
-                        lsessionw = Long.parseLong(bsessionw);
+                        lsessionw = (Long.parseLong(bsessionw)/10)*10;
                     }
                     String bglobalw = getTrimValue("BGLOBW");
                     long lglobalw = Configuration.configuration.serverGlobalWriteLimit;
                     if (bglobalw != null) {
-                        lglobalw = Long.parseLong(bglobalw);
+                        lglobalw = (Long.parseLong(bglobalw)/10)*10;
                     }
                     Configuration.configuration.changeNetworkLimit(
                             lglobalw, lglobalr, lsessionw, lsessionr,

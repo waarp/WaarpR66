@@ -787,11 +787,11 @@ public class FileBasedConfiguration {
         }
         value = hashConfig.get(XML_MONITOR_PASTLIMIT);
         if (value != null && (!value.isEmpty())) {
-            config.pastLimit = value.getLong();
+            config.pastLimit = (value.getLong()/10)*10;
         }
         value = hashConfig.get(XML_MONITOR_MINIMALDELAY);
         if (value != null && (!value.isEmpty())) {
-            config.minimalDelay = value.getLong();
+            config.minimalDelay = (value.getLong()/10)*10;
         }
         value = hashConfig.get(XML_MONITOR_SNMP_CONFIG);
         if (value != null && (!value.isEmpty())) {
@@ -908,7 +908,7 @@ public class FileBasedConfiguration {
         config.delayLimit = AbstractTrafficShapingHandler.DEFAULT_CHECK_INTERVAL;
         value = hashConfig.get(XML_LIMITDELAY);
         if (value != null && (!value.isEmpty())) {
-            config.delayLimit = value.getLong();
+            config.delayLimit = (value.getLong()/10)*10;
             if (config.delayLimit <= 0) {
                 config.delayLimit = 0;
             }
@@ -926,7 +926,7 @@ public class FileBasedConfiguration {
                 config.RUNNER_THREAD);
         value = hashConfig.get(XML_DELAYCOMMANDER);
         if (value != null && (!value.isEmpty())) {
-            config.delayCommander = value.getLong();
+            config.delayCommander = (value.getLong()/10)*10;
             if (config.delayCommander <= 100) {
                 config.delayCommander = 100;
             }
@@ -935,7 +935,7 @@ public class FileBasedConfiguration {
         }
         value = hashConfig.get(XML_DELAYRETRY);
         if (value != null && (!value.isEmpty())) {
-            config.delayRetry = value.getLong();
+            config.delayRetry = (value.getLong()/10)*10;
             if (config.delayRetry <= 1000) {
                 config.delayRetry = 1000;
             }
@@ -1004,7 +1004,7 @@ public class FileBasedConfiguration {
         }
         value = hashConfig.get(XML_CSTRT_DELAYTHROTTLE);
         if (value != null && (!value.isEmpty())) {
-            delay = value.getLong();
+            delay = (value.getLong()/10)*10;
         }
         value = hashConfig.get(XML_CSTRT_LIMITLOWBANDWIDTH);
         if (value != null && (!value.isEmpty())) {
@@ -1082,7 +1082,7 @@ public class FileBasedConfiguration {
         }
         value = hashConfig.get(XML_TIMEOUTCON);
         if (value != null && (!value.isEmpty())) {
-            config.TIMEOUTCON = value.getLong();
+            config.TIMEOUTCON = (value.getLong()/10)*10;
         }
         if (Configuration.USEJDK6) {
             R66Dir.initJdkDependent(new FilesystemBasedDirJdk6());
