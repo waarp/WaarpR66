@@ -45,6 +45,7 @@ import openr66.protocol.localhandler.packet.KeepAlivePacket;
 import openr66.protocol.localhandler.packet.LocalPacketCodec;
 import openr66.protocol.localhandler.packet.LocalPacketFactory;
 import openr66.protocol.networkhandler.packet.NetworkPacket;
+import openr66.protocol.utils.ChannelCloseTimer;
 import openr66.protocol.utils.ChannelUtils;
 
 import org.jboss.netty.channel.Channel;
@@ -173,7 +174,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
                 Configuration.configuration.r66Mib.notifyWarning(
                         "KeepAlive get no answer", "Closing network connection");
             }
-            ChannelUtils.close(e.getChannel());
+            ChannelCloseTimer.closeFutureChannel(e.getChannel());
         } else {
             keepAlivedSent = true;
             KeepAlivePacket keepAlivePacket = new KeepAlivePacket();
@@ -334,17 +335,13 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
             ReadTimeoutException exception = (ReadTimeoutException) e.getCause();
             // No read for too long
             logger.error("ReadTimeout so Will close NETWORK channel {}", exception.getMessage());
-            ChannelUtils.close(e.getChannel());
+            ChannelCloseTimer.closeFutureChannel(e.getChannel());
             return;
         }
         if (e.getCause() instanceof BindException) {
             // received when not yet connected
             logger.debug("BindException");
-            try {
-                Thread.sleep(Configuration.WAITFORNETOP);
-            } catch (InterruptedException e1) {
-            }
-            ChannelUtils.close(e.getChannel());
+            ChannelCloseTimer.closeFutureChannel(e.getChannel());
             return;
         }
         OpenR66Exception exception = OpenR66ExceptionTrappedFactory
@@ -357,13 +354,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
                             exception.getMessage());
                 }
                 logger.debug("Will close NETWORK channel");
-                try {
-                    Thread.sleep(Configuration.WAITFORNETOP);
-                } catch (InterruptedException e1) {
-                    ChannelUtils.close(e.getChannel());
-                    Thread.currentThread().interrupt();
-                }
-                ChannelUtils.close(e.getChannel());
+                ChannelCloseTimer.closeFutureChannel(e.getChannel());
                 return;
             } else if (exception instanceof OpenR66ProtocolNoConnectionException) {
                 logger.debug("Connection impossible with NETWORK channel {}",
@@ -379,12 +370,8 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
                     exception.getMessage(), null);
             writeError(e.getChannel(), ChannelUtils.NOCHANNEL,
                     ChannelUtils.NOCHANNEL, errorPacket);
-            try {
-                Thread.sleep(Configuration.WAITFORNETOP);
-            } catch (InterruptedException e1) {
-            }
             logger.debug("Will close NETWORK channel: {}", exception.getMessage());
-            ChannelUtils.close(e.getChannel());
+            ChannelCloseTimer.closeFutureChannel(e.getChannel());
         } else {
             // Nothing to do
             return;

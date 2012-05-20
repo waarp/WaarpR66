@@ -24,10 +24,12 @@ import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
 import java.util.Map;
-import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 import openr66.protocol.configuration.Configuration;
 
+import org.jboss.netty.util.Timeout;
+import org.jboss.netty.util.TimerTask;
 import org.jboss.netty.util.internal.SystemPropertyUtil;
 
 import sun.misc.Signal;
@@ -100,7 +102,7 @@ public class OpenR66SignalHandler implements SignalHandler {
      *
      * @author Frederic Bregier
      */
-    public static class R66TimerTask extends TimerTask {
+    public static class R66TimerTask implements TimerTask {
         /**
          * Internal Logger
          */
@@ -123,17 +125,14 @@ public class OpenR66SignalHandler implements SignalHandler {
          * @param type
          */
         public R66TimerTask(int type) {
-            super();
             this.type = type;
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see java.util.TimerTask#run()
+        /* (non-Javadoc)
+         * @see org.jboss.netty.util.TimerTask#run(org.jboss.netty.util.Timeout)
          */
         @Override
-        public void run() {
+        public void run(Timeout timeout) throws Exception {
             switch (type) {
                 case TIMER_EXIT:
                     logger.error("System will force EXIT");
@@ -174,8 +173,8 @@ public class OpenR66SignalHandler implements SignalHandler {
             System.err.println("Halt System");
             Runtime.getRuntime().halt(0);
         } else {
-            final R66TimerTask timerTask = new R66TimerTask(R66TimerTask.TIMER_EXIT);
-            Configuration.configuration.getTimer().schedule(timerTask, Configuration.configuration.TIMEOUTCON * 2);
+            R66TimerTask timerTask = new R66TimerTask(R66TimerTask.TIMER_EXIT);
+            Configuration.configuration.getTimerClose().newTimeout(timerTask, Configuration.configuration.TIMEOUTCON * 2, TimeUnit.MILLISECONDS);
             immediate = true;
             ChannelUtils.exit();
             System.err.println("Exit System");

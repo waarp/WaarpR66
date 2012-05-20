@@ -38,7 +38,6 @@ import goldengate.snmp.GgSnmpAgent;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.Timer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -78,6 +77,7 @@ import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.ObjectSizeEstimator;
+import org.jboss.netty.util.Timer;
 import org.jboss.netty.util.internal.ExecutorUtil;
 
 /**
@@ -377,10 +377,7 @@ public class Configuration {
      */
     protected ExecutorService execOtherWorker = Executors
             .newCachedThreadPool();
-    /**
-     * Timer used to schedule task later on
-     */
-    protected Timer timer = new Timer("R66Timer", true);
+
     /**
      * ChannelFactory for Server part
      */
@@ -442,9 +439,15 @@ public class Configuration {
     protected ChannelGroup httpChannelGroup = null;
 
     /**
+     * Timer for CloseOpertations
+     */
+    private Timer timerCloseOperations = 
+        new HashedWheelTimer(100, TimeUnit.MILLISECONDS, 1024);
+
+    /**
      * Timer for TrafficCounter
      */
-    private org.jboss.netty.util.Timer timerTrafficCounter = 
+    private Timer timerTrafficCounter = 
         new HashedWheelTimer(20, TimeUnit.MILLISECONDS, 1024);
     /**
      * Global TrafficCounter (set from global configuration)
@@ -737,10 +740,6 @@ public class Configuration {
         if (networkSslServerPipelineFactory != null) {
             networkSslServerPipelineFactory.timer.stop();
         }
-        if (timerTrafficCounter != null) {
-            timerTrafficCounter.stop();
-            timerTrafficCounter = null;
-        }
         if (agentSnmp != null) {
             agentSnmp.stop();
         } else if (monitoring != null) {
@@ -759,15 +758,17 @@ public class Configuration {
             execOtherWorker.shutdownNow();
             execOtherWorker = null;
         }
+        if (timerTrafficCounter != null) {
+            timerTrafficCounter.stop();
+        }
+        if (timerCloseOperations != null) {
+            timerCloseOperations.stop();
+        }
     }
     /**
      * To be called after all other stuff are closed for Client
      */
     public void clientStop() {
-        if (timerTrafficCounter != null) {
-            timerTrafficCounter.stop();
-            timerTrafficCounter = null;
-        }
         if (localTransaction != null) {
             localTransaction.closeAll();
             localTransaction = null;
@@ -787,11 +788,13 @@ public class Configuration {
         if (useLocalExec) {
             LocalExecClient.releaseResources();
         }
-        r66BusinessFactory.releaseResources();
-        if (timer != null) {
-            timer.cancel();
-            timer = null;
+        if (timerTrafficCounter != null) {
+            timerTrafficCounter.stop();
         }
+        if (timerCloseOperations != null) {
+            timerCloseOperations.stop();
+        }
+        r66BusinessFactory.releaseResources();
     }
     /**
      * Try to reload the Commander
@@ -891,10 +894,14 @@ public class Configuration {
     /**
      * @return the timer
      */
-    public Timer getTimer() {
-        return timer;
+    public Timer getTimerTraffic() {
+        return timerTrafficCounter;
     }
 
+    public Timer getTimerClose() {
+        return timerCloseOperations;
+    }
+    
     /**
      * @return the globalTrafficShapingHandler
      */

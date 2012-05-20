@@ -30,11 +30,11 @@ import java.net.ConnectException;
 import java.net.SocketAddress;
 import java.util.Collections;
 import java.util.SortedSet;
-import java.util.TimerTask;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import openr66.context.ErrorCode;
@@ -69,6 +69,8 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
+import org.jboss.netty.util.Timeout;
+import org.jboss.netty.util.TimerTask;
 
 /**
  * This class handles Network Transaction connections
@@ -587,7 +589,7 @@ public class NetworkTransaction {
         if (!Configuration.configuration.isServer) {
             final OpenR66SignalHandler.R66TimerTask timerTask = 
                 new OpenR66SignalHandler.R66TimerTask(OpenR66SignalHandler.R66TimerTask.TIMER_EXIT);
-            Configuration.configuration.getTimer().schedule(timerTask, Configuration.configuration.TIMEOUTCON*3/2);
+            Configuration.configuration.getTimerClose().newTimeout(timerTask, Configuration.configuration.TIMEOUTCON*3/2, TimeUnit.MILLISECONDS);
         }
         closeRetrieveExecutors();
         networkChannelGroup.close().awaitUninterruptibly();
@@ -688,9 +690,9 @@ public class NetworkTransaction {
                         return false;
                     }
                     networkChannel.shutdownAllLocalChannels();
-                    final R66TimerTask timerTask = new R66TimerTask(address.hashCode());
-                    Configuration.configuration.getTimer().schedule(timerTask,
-                            Configuration.configuration.TIMEOUTCON * 2);
+                    R66TimerTask timerTask = new R66TimerTask(address.hashCode());
+                    Configuration.configuration.getTimerClose().newTimeout(timerTask,
+                            Configuration.configuration.TIMEOUTCON * 2, TimeUnit.MILLISECONDS);
                     return true;
                 }
             } finally {
@@ -827,7 +829,7 @@ public class NetworkTransaction {
      * @author Frederic Bregier
      *
      */
-    static class CloseFutureChannel extends TimerTask {
+    static class CloseFutureChannel implements TimerTask {
 
         private static SortedSet<Integer> inCloseRunning =
             Collections.synchronizedSortedSet(new TreeSet<Integer>());
@@ -849,17 +851,11 @@ public class NetworkTransaction {
             this.address = address;
         }
 
-        /**
-         * Empty constructor
+        /* (non-Javadoc)
+         * @see org.jboss.netty.util.TimerTask#run(org.jboss.netty.util.Timeout)
          */
-        private CloseFutureChannel(CloseFutureChannel src) {
-            networkChannel = src.networkChannel;
-            requester = src.requester;
-            address = src.address;
-        }
-
         @Override
-        public void run() {
+        public void run(Timeout timeout) throws Exception {
             ReentrantLock socketLock = getChannelLock(address);
             socketLock.lock();
             try {
@@ -869,16 +865,15 @@ public class NetworkTransaction {
                         System.currentTimeMillis();
                     if (time > Configuration.RETRYINMS) {
                         // will re execute this request later on
-                        CloseFutureChannel cfc = new CloseFutureChannel(this);
-                        Configuration.configuration.getTimer().schedule(cfc, time);
+                        Configuration.configuration.getTimerClose().newTimeout(this, time, TimeUnit.MILLISECONDS);
                         return;
                     }
-                        if (requester != null)
-                            NetworkTransaction.removeClient(requester, networkChannel);
-                        networkChannelOnSocketAddressConcurrentHashMap
-                                .remove(address.hashCode());
-                        logger.info("Will close NETWORK channel");
-                        Channels.close(networkChannel.channel);
+                    if (requester != null)
+                        NetworkTransaction.removeClient(requester, networkChannel);
+                    networkChannelOnSocketAddressConcurrentHashMap
+                            .remove(address.hashCode());
+                    logger.info("Will close NETWORK channel");
+                    Channels.close(networkChannel.channel);
                 }
                 inCloseRunning.remove(networkChannel.channel.getId());
             } finally {
@@ -913,8 +908,8 @@ public class NetworkTransaction {
                        CloseFutureChannel cfc;
                        try {
                            cfc = new CloseFutureChannel(networkChannel, address, requester);
-                           Configuration.configuration.getTimer().
-                               schedule(cfc, Configuration.configuration.TIMEOUTCON*2);
+                           Configuration.configuration.getTimerClose().
+                               newTimeout(cfc, Configuration.configuration.TIMEOUTCON*2, TimeUnit.MILLISECONDS);
                        } catch (OpenR66RunnerErrorException e) {
                        }
                    }
@@ -1066,7 +1061,7 @@ public class NetworkTransaction {
      * @author Frederic Bregier
      *
      */
-    private static class R66TimerTask extends TimerTask {
+    private static class R66TimerTask implements TimerTask {
         /**
          * href to remove
          */
@@ -1082,8 +1077,11 @@ public class NetworkTransaction {
             this.href = href;
         }
 
+        /* (non-Javadoc)
+         * @see org.jboss.netty.util.TimerTask#run(org.jboss.netty.util.Timeout)
+         */
         @Override
-        public void run() {
+        public void run(Timeout timeout) throws Exception {
             NetworkChannel networkChannel =
                 networkChannelShutdownOnSocketAddressConcurrentHashMap.remove(href);
             if (networkChannel != null && networkChannel.channel != null

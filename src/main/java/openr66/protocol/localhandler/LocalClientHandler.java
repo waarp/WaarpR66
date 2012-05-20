@@ -21,6 +21,7 @@
 package openr66.protocol.localhandler;
 
 import static openr66.context.R66FiniteDualStates.ERROR;
+
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.context.ErrorCode;
@@ -36,6 +37,7 @@ import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.packet.AbstractLocalPacket;
 import openr66.protocol.localhandler.packet.ErrorPacket;
 import openr66.protocol.localhandler.packet.LocalPacketFactory;
+import openr66.protocol.utils.ChannelCloseTimer;
 import openr66.protocol.utils.ChannelUtils;
 
 import org.jboss.netty.channel.Channel;
@@ -191,7 +193,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
             }
         }
         logger.debug("Will close channel");
-        ChannelUtils.close(e.getChannel());
+        ChannelCloseTimer.closeFutureChannel(e.getChannel());
     }
 
 }
