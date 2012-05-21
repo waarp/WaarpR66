@@ -20,10 +20,7 @@
  */
 package openr66.protocol.networkhandler.packet;
 
-import goldengate.common.logging.GgInternalLogger;
-import goldengate.common.logging.GgInternalLoggerFactory;
-import openr66.protocol.configuration.Configuration;
-
+import org.jboss.netty.util.DefaultObjectSizeEstimator;
 import org.jboss.netty.util.ObjectSizeEstimator;
 
 /**
@@ -33,11 +30,7 @@ import org.jboss.netty.util.ObjectSizeEstimator;
  *
  */
 public class NetworkPacketSizeEstimator implements ObjectSizeEstimator {
-    /**
-     * Internal Logger
-     */
-    private static final GgInternalLogger logger = GgInternalLoggerFactory
-            .getLogger(NetworkPacketSizeEstimator.class);
+    private DefaultObjectSizeEstimator internal = new DefaultObjectSizeEstimator();
     /*
      * (non-Javadoc)
      *
@@ -48,8 +41,7 @@ public class NetworkPacketSizeEstimator implements ObjectSizeEstimator {
     public int estimateSize(Object o) {
         if (!(o instanceof NetworkPacket)) {
             // Type unimplemented
-            logger.error("Not NetworkPacket: "+o.getClass().getName());
-            return Configuration.configuration.BLOCKSIZE+13;
+            return internal.estimateSize(o);
         }
         NetworkPacket packet = (NetworkPacket) o;
         int size = packet.getBuffer().readableBytes()+13;

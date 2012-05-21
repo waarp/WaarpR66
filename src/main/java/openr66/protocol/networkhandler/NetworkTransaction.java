@@ -385,12 +385,12 @@ public class NetworkTransaction {
                             .getCause());
                 }
             }
-            try {
+            /*try {
                 Thread.sleep(Configuration.WAITFORNETOP);
             } catch (InterruptedException e) {
                 throw new OpenR66ProtocolNetworkException(
                         "Cannot connect to remote server", e);
-            }
+            }*/
         }
         throw new OpenR66ProtocolNetworkException(
                 "Cannot connect to remote server", channelFuture.getCause());
@@ -690,9 +690,9 @@ public class NetworkTransaction {
                         return false;
                     }
                     networkChannel.shutdownAllLocalChannels();
-                    R66TimerTask timerTask = new R66TimerTask(address.hashCode());
+                    R66ShutdownNetworkChannelTimerTask timerTask = new R66ShutdownNetworkChannelTimerTask(address.hashCode());
                     Configuration.configuration.getTimerClose().newTimeout(timerTask,
-                            Configuration.configuration.TIMEOUTCON * 2, TimeUnit.MILLISECONDS);
+                            Configuration.configuration.TIMEOUTCON * 3, TimeUnit.MILLISECONDS);
                     return true;
                 }
             } finally {
@@ -1061,7 +1061,7 @@ public class NetworkTransaction {
      * @author Frederic Bregier
      *
      */
-    private static class R66TimerTask implements TimerTask {
+    private static class R66ShutdownNetworkChannelTimerTask implements TimerTask {
         /**
          * href to remove
          */
@@ -1072,7 +1072,7 @@ public class NetworkTransaction {
          *
          * @param href
          */
-        public R66TimerTask(int href) {
+        public R66ShutdownNetworkChannelTimerTask(int href) {
             super();
             this.href = href;
         }
@@ -1082,6 +1082,7 @@ public class NetworkTransaction {
          */
         @Override
         public void run(Timeout timeout) throws Exception {
+            logger.debug("DEBUG: Will remove shutdown for : "+href);
             NetworkChannel networkChannel =
                 networkChannelShutdownOnSocketAddressConcurrentHashMap.remove(href);
             if (networkChannel != null && networkChannel.channel != null

@@ -20,6 +20,8 @@
  */
 package openr66.commander;
 
+import goldengate.common.database.data.AbstractDbData.UpdatedInfo;
+import goldengate.common.database.exception.GoldenGateDatabaseException;
 import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
 import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
 import goldengate.common.logging.GgInternalLogger;
@@ -89,6 +91,15 @@ public class InternalRunner {
      */
     public void submitTaskRunner(DbTaskRunner taskRunner) {
         if (isRunning) {
+            if (threadPoolExecutor.getActiveCount()+5 > Configuration.configuration.RUNNER_THREAD) {
+                // too many current active threads
+                taskRunner.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
+                try {
+                    taskRunner.update();
+                } catch (GoldenGateDatabaseException e) {
+                }
+                return;
+            }
             logger.debug("Will run {}",taskRunner);
             ClientRunner runner = new ClientRunner(networkTransaction, taskRunner, null);
             if (taskRunner.isSendThrough() && (taskRunner.isRescheduledTransfer()

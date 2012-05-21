@@ -147,7 +147,7 @@ public class ClientRunner extends Thread {
                 logger.error("Protocol Error", e);
                 return;
             } catch (OpenR66ProtocolNotYetConnectionException e) {
-                logger.debug("No connection warning {}", e.getMessage());
+                logger.warn("No connection warning {}", e.getMessage());
                 return;
             }
             R66Result result = transfer.getResult();
@@ -462,7 +462,7 @@ public class ClientRunner extends Thread {
             // See if reprogramming is ok (not too many tries)
             String retry;
             if (incrementTaskRunerTry(taskRunner, Configuration.RETRYNB)) {
-                logger.warn("Will retry since Cannot connect to {}", host);
+                logger.debug("Will retry since Cannot connect to {}", host);
                 retry = " but will retry";
                 // now wait
                 try {

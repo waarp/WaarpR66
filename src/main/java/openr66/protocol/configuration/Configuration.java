@@ -470,7 +470,7 @@ public class Configuration {
     /**
      * Maximum number of concurrent active transfer by submission.
      */
-    public int RUNNER_THREAD = 10000;
+    public int RUNNER_THREAD = 1000;
     /**
      * Delay in ms between two steps of Commander
      */
@@ -554,7 +554,7 @@ public class Configuration {
         logger.warn("Client Thread: "+CLIENT_THREAD+" Runner Thread: "+RUNNER_THREAD);
         serverPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
                 CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory, 500,
-                TimeUnit.MILLISECONDS, new R66ThreadFactory("ServerExecutor"));
+                TimeUnit.MILLISECONDS, objectSizeEstimator, new R66ThreadFactory("ServerExecutor"));
         localPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
                 CLIENT_THREAD * 100, maxGlobalMemory / 10, maxGlobalMemory,
                 500, TimeUnit.MILLISECONDS,
@@ -568,7 +568,7 @@ public class Configuration {
     public void httpPipelineInit() {
         httpPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
                 CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory, 500,
-                TimeUnit.MILLISECONDS, new R66ThreadFactory("HttpExecutor"));
+                TimeUnit.MILLISECONDS, objectSizeEstimator, new R66ThreadFactory("HttpExecutor"));
     }
     
     /**

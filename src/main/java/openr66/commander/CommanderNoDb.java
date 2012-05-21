@@ -66,13 +66,13 @@ public class CommanderNoDb implements CommanderInterface {
      * @param fromStartup True if call from startup of the server
      */
     public CommanderNoDb(InternalRunner runner, boolean fromStartup) {
-        this.internalConstructor(runner);
         if (fromStartup) {
             // Change RUNNING or INTERRUPTED to TOSUBMIT since they should be ready
             // XXX FIXME TO BE DONE
             //DbTaskRunner.resetToSubmit(DbConstant.admin.session);
             ClientRunner.activeRunners = new LinkedList<ClientRunner>();
         }
+        this.internalConstructor(runner);
     }
     private void internalConstructor(InternalRunner runner) {
         internalRunner = runner;
