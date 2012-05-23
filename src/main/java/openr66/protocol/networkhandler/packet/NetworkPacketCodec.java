@@ -23,7 +23,6 @@ package openr66.protocol.networkhandler.packet;
 import goldengate.common.exception.InvalidArgumentException;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelDownstreamHandler;
 import org.jboss.netty.channel.ChannelEvent;
@@ -69,8 +68,9 @@ public class NetworkPacketCodec extends FrameDecoder implements
         final int localId = buf.readInt();
         final int remoteId = buf.readInt();
         final byte code = buf.readByte();
-        final ChannelBuffer buffer = ChannelBuffers.buffer(length - 9);
-        buf.readBytes(buffer, length - 9);
+        int readerInder = buf.readerIndex();
+        ChannelBuffer buffer = buf.slice(readerInder, length-9);
+        buf.readerIndex(readerInder+length-9);
         return new NetworkPacket(localId, remoteId, code, buffer);
     }
 

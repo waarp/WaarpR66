@@ -116,6 +116,14 @@ public class ClientRunner extends Thread {
      */
     @Override
     public void run() {
+        if (Configuration.configuration.isShutdown) {
+            taskRunner.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
+            try {
+                taskRunner.update();
+            } catch (GoldenGateDatabaseException e) {
+            }
+            return;
+        }
         try {
             if (activeRunners != null) {
                 activeRunners.add(this);
