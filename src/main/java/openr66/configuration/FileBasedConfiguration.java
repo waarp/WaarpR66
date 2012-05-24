@@ -1339,7 +1339,7 @@ public class FileBasedConfiguration {
                 } else {
                     DbConstant.noCommitAdmin = DbConstant.admin;
                 }
-                logger.info("Database connection: "+(DbConstant.admin == null)+":"+(DbConstant.noCommitAdmin == null));
+                logger.info("Database connection: "+(DbConstant.admin != null)+":"+(DbConstant.noCommitAdmin != null));
             } catch (GoldenGateDatabaseNoConnectionError e2) {
                 logger.error("Unable to Connect to DB", e2);
                 return false;

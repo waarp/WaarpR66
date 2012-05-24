@@ -32,6 +32,7 @@ import goldengate.common.digest.FilesystemBasedDigest.DigestAlgo;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+import goldengate.common.utility.GgThreadFactory;
 import goldengate.snmp.GgMOFactory;
 import goldengate.snmp.GgSnmpAgent;
 
@@ -40,7 +41,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import openr66.commander.InternalRunner;
@@ -55,6 +55,7 @@ import openr66.protocol.http.HttpPipelineFactory;
 import openr66.protocol.http.adminssl.HttpSslPipelineFactory;
 import openr66.protocol.localhandler.LocalTransaction;
 import openr66.protocol.localhandler.Monitoring;
+import openr66.protocol.localhandler.packet.LocalPacketSizeEstimator;
 import openr66.protocol.networkhandler.ChannelTrafficHandler;
 import openr66.protocol.networkhandler.GlobalTrafficHandler;
 import openr66.protocol.networkhandler.NetworkServerPipelineFactory;
@@ -343,22 +344,6 @@ public class Configuration {
      */
     public boolean isServer = false;
 
-    protected static class R66ThreadFactory implements ThreadFactory {
-        private String GlobalName;
-        public R66ThreadFactory(String globalName) {
-            GlobalName = globalName;
-        }
-        /* (non-Javadoc)
-         * @see java.util.concurrent.ThreadFactory#newThread(java.lang.Runnable)
-         */
-        @Override
-        public Thread newThread(Runnable arg0) {
-            Thread thread = new Thread(arg0);
-            thread.setName(GlobalName+thread.getName());
-            return thread;
-        }
-
-    }
     /**
      * ExecutorService Server Boss
      */
@@ -442,13 +427,13 @@ public class Configuration {
      * Timer for CloseOpertations
      */
     private Timer timerCloseOperations = 
-        new HashedWheelTimer(100, TimeUnit.MILLISECONDS, 1024);
+        new HashedWheelTimer(new GgThreadFactory("TimerClose"), 100, TimeUnit.MILLISECONDS, 1024);
 
     /**
      * Timer for TrafficCounter
      */
     private Timer timerTrafficCounter = 
-        new HashedWheelTimer(20, TimeUnit.MILLISECONDS, 1024);
+        new HashedWheelTimer(new GgThreadFactory("TimerTraffic"), 20, TimeUnit.MILLISECONDS, 1024);
     /**
      * Global TrafficCounter (set from global configuration)
      */
@@ -551,14 +536,14 @@ public class Configuration {
                 .getDefaultFactory());
         objectSizeEstimator = new NetworkPacketSizeEstimator();
         httpPipelineInit();
-        logger.warn("Client Thread: "+CLIENT_THREAD+" Runner Thread: "+RUNNER_THREAD);
+        logger.warn("Server Thread: "+SERVER_THREAD+" Client Thread: "+CLIENT_THREAD+" Runner Thread: "+RUNNER_THREAD);
         serverPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
-                CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory, 500,
-                TimeUnit.MILLISECONDS, objectSizeEstimator, new R66ThreadFactory("ServerExecutor"));
+                CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory, 1000,
+                TimeUnit.MILLISECONDS, objectSizeEstimator, new GgThreadFactory("ServerExecutor"));
         localPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
                 CLIENT_THREAD * 100, maxGlobalMemory / 10, maxGlobalMemory,
-                500, TimeUnit.MILLISECONDS,
-                new R66ThreadFactory("LocalExecutor"));
+                1000, TimeUnit.MILLISECONDS, new LocalPacketSizeEstimator(),
+                new GgThreadFactory("LocalExecutor"));
         if (useLocalExec) {
             LocalExecClient.initialize();
         }
@@ -567,8 +552,8 @@ public class Configuration {
 
     public void httpPipelineInit() {
         httpPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
-                CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory, 500,
-                TimeUnit.MILLISECONDS, objectSizeEstimator, new R66ThreadFactory("HttpExecutor"));
+                CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory, 1000,
+                TimeUnit.MILLISECONDS, objectSizeEstimator, new GgThreadFactory("HttpExecutor"));
     }
     
     /**
@@ -733,12 +718,6 @@ public class Configuration {
     public void serverStop() {
         if (internalRunner != null) {
             internalRunner.stopInternalRunner();
-        }
-        if (networkServerPipelineFactory != null) {
-            networkServerPipelineFactory.timer.stop();
-        }
-        if (networkSslServerPipelineFactory != null) {
-            networkSslServerPipelineFactory.timer.stop();
         }
         if (agentSnmp != null) {
             agentSnmp.stop();

@@ -52,7 +52,7 @@ public class NetworkSslServerPipelineFactory implements ChannelPipelineFactory {
     /**
      * Global HashedWheelTimer
      */
-    public HashedWheelTimer timer = new HashedWheelTimer();
+    public HashedWheelTimer timer = (HashedWheelTimer) Configuration.configuration.getTimerClose();
 
     /**
      *

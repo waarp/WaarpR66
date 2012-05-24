@@ -60,12 +60,8 @@ public class DataPacket extends AbstractLocalPacket {
             throw new OpenR66ProtocolPacketException("Not enough data");
         }
         int packetRank = buf.readInt();
-        // optimization to prevent multiple reading of byte array
-        byte [] bdata = new byte[middleLength];
+	ChannelBuffer data = buf.readBytes(middleLength);
         int readerIndex = buf.readerIndex();
-        buf.getBytes(readerIndex, bdata, 0, middleLength);
-        ChannelBuffer data = ChannelBuffers.wrappedBuffer(bdata);
-        readerIndex += middleLength;
         ChannelBuffer key;
         if (endLength > 0) {
             key = buf.slice(readerIndex, endLength);
@@ -74,7 +70,6 @@ public class DataPacket extends AbstractLocalPacket {
         } else {
             key = ChannelBuffers.EMPTY_BUFFER;
         }
-        
         return new DataPacket(packetRank, data, key);
     }
 

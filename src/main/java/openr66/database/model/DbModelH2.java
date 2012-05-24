@@ -46,10 +46,13 @@ import openr66.protocol.configuration.Configuration;
 public class DbModelH2 extends goldengate.common.database.model.DbModelH2 {
     /**
      * Create the object and initialize if necessary the driver
+     * @param dbserver
+     * @param dbuser
+     * @param dbpasswd
      * @throws GoldenGateDatabaseNoConnectionError
      */
-    public DbModelH2() throws GoldenGateDatabaseNoConnectionError {
-        super();
+    public DbModelH2(String dbserver, String dbuser, String dbpasswd) throws GoldenGateDatabaseNoConnectionError {
+        super(dbserver, dbuser, dbpasswd);
     }
     @Override
     public void createTables(DbSession session) throws GoldenGateDatabaseNoConnectionError {

@@ -987,7 +987,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                         Configuration.configuration.getInternalRunner().getNetworkTransaction(),
                         result, dbhost, packet);
                 transaction.run();
-                result.awaitUninterruptibly();
+                result.awaitUninterruptibly(Configuration.configuration.TIMEOUTCON);
                 body = REQUEST.Hosts.readBody();
                 if (result.isSuccess()) {
                     body = dbhost.toSpecializedHtml(authentHttp, body, false);

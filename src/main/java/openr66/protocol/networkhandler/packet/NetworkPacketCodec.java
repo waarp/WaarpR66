@@ -22,6 +22,13 @@ package openr66.protocol.networkhandler.packet;
 
 import goldengate.common.exception.InvalidArgumentException;
 
+import openr66.protocol.localhandler.packet.KeepAlivePacket;
+import openr66.protocol.localhandler.packet.LocalPacketCodec;
+import openr66.protocol.localhandler.packet.LocalPacketFactory;
+import openr66.protocol.localhandler.packet.NoOpPacket;
+import openr66.protocol.networkhandler.NetworkServerHandler;
+import openr66.protocol.utils.ChannelUtils;
+
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelDownstreamHandler;
@@ -69,9 +76,25 @@ public class NetworkPacketCodec extends FrameDecoder implements
         final int remoteId = buf.readInt();
         final byte code = buf.readByte();
         int readerInder = buf.readerIndex();
-        ChannelBuffer buffer = buf.slice(readerInder, length-9);
+        ChannelBuffer bufferxxx = buf.slice(readerInder, length-9);
         buf.readerIndex(readerInder+length-9);
-        return new NetworkPacket(localId, remoteId, code, buffer);
+        NetworkPacket networkPacket = new NetworkPacket(localId, remoteId, code, bufferxxx);
+        if (code == LocalPacketFactory.KEEPALIVEPACKET) {
+            KeepAlivePacket keepAlivePacket = (KeepAlivePacket)
+                LocalPacketCodec.decodeNetworkPacket(networkPacket.getBuffer());
+            if (keepAlivePacket.isToValidate()) {
+                keepAlivePacket.validate();
+                NetworkPacket response =
+                    new NetworkPacket(ChannelUtils.NOCHANNEL,
+                            ChannelUtils.NOCHANNEL, keepAlivePacket);
+                Channels.write(channel, response);
+            }
+            // Replaced by a NoOp packet
+            networkPacket = new NetworkPacket(localId, remoteId, new NoOpPacket());
+            NetworkServerHandler nsh = (NetworkServerHandler)ctx.getPipeline().getLast();
+            nsh.setKeepAlivedSent();
+        }
+        return networkPacket;
     }
 
     @Override

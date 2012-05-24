@@ -168,6 +168,8 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
     @Override
     public void channelIdle(ChannelHandlerContext ctx, IdleStateEvent e)
             throws Exception {
+        if (Configuration.configuration.isShutdown)
+            return;
         if (keepAlivedSent) {
             logger.error("Not getting KAlive: closing channel");
             if (Configuration.configuration.r66Mib != null) {
@@ -181,9 +183,13 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
             NetworkPacket response =
                 new NetworkPacket(ChannelUtils.NOCHANNEL,
                         ChannelUtils.NOCHANNEL, keepAlivePacket);
-            logger.debug("Write KAlive");
+            logger.info("Write KAlive");
             Channels.write(e.getChannel(), response);
         }
+    }
+    
+    public void setKeepAlivedSent() {
+        keepAlivedSent = false;
     }
 
     /*
@@ -197,7 +203,10 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) {
         final NetworkPacket packet = (NetworkPacket) e.getMessage();
-        if (packet.getCode() == LocalPacketFactory.CONNECTERRORPACKET) {
+        if (packet.getCode() == LocalPacketFactory.NOOPPACKET) {
+            // Do nothing
+            return;
+        } else if (packet.getCode() == LocalPacketFactory.CONNECTERRORPACKET) {
             logger.debug("NetworkRecv: {}",packet);
             // Special code to STOP here
             if (packet.getLocalId() == ChannelUtils.NOCHANNEL) {
@@ -221,10 +230,10 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
                     NetworkPacket response =
                         new NetworkPacket(ChannelUtils.NOCHANNEL,
                                 ChannelUtils.NOCHANNEL, keepAlivePacket);
-                    logger.debug("Answer KAlive");
+                    logger.info("Answer KAlive");
                     Channels.write(e.getChannel(), response);
                 } else {
-                    logger.debug("Get KAlive");
+                    logger.info("Get KAlive");
                 }
             } catch (OpenR66ProtocolPacketException e1) {
             }

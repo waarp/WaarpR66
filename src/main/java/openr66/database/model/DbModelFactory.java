@@ -48,16 +48,16 @@ public class DbModelFactory extends goldengate.common.database.model.DbModelFact
         DbType type = DbType.getFromDriver(dbdriver);
         switch (type) {
             case H2:
-                dbModel = new DbModelH2();
+                dbModel = new DbModelH2(dbserver, dbuser, dbpasswd);
                 break;
             case Oracle:
-                dbModel = new DbModelOracle();
+                dbModel = new DbModelOracle(dbserver, dbuser, dbpasswd);
                 break;
             case PostGreSQL:
                 dbModel = new DbModelPostgresql();
                 break;
             case MySQL:
-                dbModel = new DbModelMysql();
+                dbModel = new DbModelMysql(dbserver, dbuser, dbpasswd);
                 break;
             default:
                 throw new GoldenGateDatabaseNoConnectionError(

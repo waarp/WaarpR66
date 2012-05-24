@@ -47,10 +47,13 @@ import openr66.protocol.configuration.Configuration;
 public class DbModelMysql extends goldengate.common.database.model.DbModelMysql {
     /**
      * Create the object and initialize if necessary the driver
+     * @param dbserver
+     * @param dbuser
+     * @param dbpasswd
      * @throws GoldenGateDatabaseNoConnectionError
      */
-    public DbModelMysql() throws GoldenGateDatabaseNoConnectionError {
-        super();
+    public DbModelMysql(String dbserver, String dbuser, String dbpasswd) throws GoldenGateDatabaseNoConnectionError {
+        super(dbserver, dbuser, dbpasswd);
     }
     private final ReentrantLock lock = new ReentrantLock();
 

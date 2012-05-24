@@ -24,12 +24,11 @@ import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import openr66.protocol.configuration.Configuration;
 
-import org.jboss.netty.util.Timeout;
-import org.jboss.netty.util.TimerTask;
 import org.jboss.netty.util.internal.SystemPropertyUtil;
 
 import sun.misc.Signal;
@@ -102,7 +101,7 @@ public class OpenR66SignalHandler implements SignalHandler {
      *
      * @author Frederic Bregier
      */
-    public static class R66TimerTask implements TimerTask {
+    public static class R66TimerTask extends TimerTask {
         /**
          * Internal Logger
          */
@@ -128,11 +127,8 @@ public class OpenR66SignalHandler implements SignalHandler {
             this.type = type;
         }
 
-        /* (non-Javadoc)
-         * @see org.jboss.netty.util.TimerTask#run(org.jboss.netty.util.Timeout)
-         */
         @Override
-        public void run(Timeout timeout) throws Exception {
+        public void run() {
             switch (type) {
                 case TIMER_EXIT:
                     logger.error("System will force EXIT");
@@ -173,13 +169,18 @@ public class OpenR66SignalHandler implements SignalHandler {
             System.err.println("Halt System");
             Runtime.getRuntime().halt(0);
         } else {
-            R66TimerTask timerTask = new R66TimerTask(R66TimerTask.TIMER_EXIT);
-            Configuration.configuration.getTimerClose().newTimeout(timerTask, Configuration.configuration.TIMEOUTCON * 2, TimeUnit.MILLISECONDS);
+            launchFinalExit();
             immediate = true;
             ChannelUtils.exit();
             System.err.println("Exit System");
             //System.exit(0);
         }
+    }
+    
+    public static void launchFinalExit() {
+        Timer timer = new Timer("R66FinalExit", true);
+        R66TimerTask timerTask = new R66TimerTask(R66TimerTask.TIMER_EXIT);
+        timer.schedule(timerTask, Configuration.configuration.TIMEOUTCON * 3);
     }
 
     /**

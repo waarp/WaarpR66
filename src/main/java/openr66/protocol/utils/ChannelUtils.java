@@ -139,6 +139,7 @@ public class ChannelUtils extends Thread {
 
         public void operationComplete(ChannelGroupFuture future)
                 throws Exception {
+            logger.info("Start with shutdown external resources for "+name);
             if (pool != null) {
                 pool.shutdownNow();
             }
@@ -157,7 +158,7 @@ public class ChannelUtils extends Thread {
     private static int terminateCommandChannels() {
         final int result = Configuration.configuration.getServerChannelGroup()
                 .size();
-        logger.debug("ServerChannelGroup: " + result);
+        logger.info("ServerChannelGroup: " + result);
         Configuration.configuration.getServerChannelGroup().close()
                 .addListener(
                         new R66ChannelGroupFutureListener(

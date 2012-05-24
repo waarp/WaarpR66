@@ -337,22 +337,26 @@ public class LocalChannelReference {
         R66Result result;
         try {
             for (int i = 0; i < Configuration.RETRYNB; i++) {
-                if (!futureConnection.await(Configuration.configuration.TIMEOUTCON/(i+1))) {
-                    if (futureConnection.isDone()) {
-                        return futureConnection;
-                    } else {
-                        if (this.networkChannel.isConnected()) {
-                            continue;
+                if (this.networkChannel.isConnected()) {
+                    if (!futureConnection.await(Configuration.configuration.TIMEOUTCON)) {
+                        if (futureConnection.isDone()) {
+                            return futureConnection;
+                        } else {
+                            if (this.networkChannel.isConnected()) {
+                                continue;
+                            }
+                            result = new R66Result(
+                                    new OpenR66ProtocolNoConnectionException(
+                                            "Out of time"), session, false,
+                                    ErrorCode.ConnectionImpossible, null);
+                            validateConnection(false, result);
+                            return futureConnection;
                         }
-                        result = new R66Result(
-                                new OpenR66ProtocolNoConnectionException(
-                                        "Out of time"), session, false,
-                                ErrorCode.ConnectionImpossible, null);
-                        validateConnection(false, result);
+                    } else {
                         return futureConnection;
                     }
                 } else {
-                    return futureConnection;
+                    break;
                 }
             }
         } catch (InterruptedException e) {

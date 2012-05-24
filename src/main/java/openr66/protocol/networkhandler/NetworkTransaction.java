@@ -146,6 +146,7 @@ public class NetworkTransaction {
             "NetworkChannels");
     private final NetworkServerPipelineFactory networkServerPipelineFactory;
     private final NetworkSslServerPipelineFactory networkSslServerPipelineFactory;
+    
     public NetworkTransaction() {
         networkServerPipelineFactory = new NetworkServerPipelineFactory(false);
         clientBootstrap.setPipelineFactory(networkServerPipelineFactory);
@@ -280,8 +281,6 @@ public class NetworkTransaction {
                         "Cannot connect to remote server due to local overload");
             }
         }
-        ReentrantLock socketLock = getChannelLock(socketAddress);
-        socketLock.lock();
         try {
             networkChannel = createNewConnection(socketAddress, isSSL);
             localChannelReference = createNewClient(networkChannel, futureRequest);
@@ -292,7 +291,6 @@ public class NetworkTransaction {
                     removeNetworkChannel(networkChannel.channel, null, null);
                 }
             }
-            socketLock.unlock();
         }
         if (localChannelReference.getFutureValidateStartup().isDone() &&
                 localChannelReference.getFutureValidateStartup().isSuccess()) {
@@ -323,6 +321,9 @@ public class NetworkTransaction {
             throws OpenR66ProtocolNetworkException,
             OpenR66ProtocolRemoteShutdownException,
             OpenR66ProtocolNoConnectionException {
+        ReentrantLock socketLock = getChannelLock(socketServerAddress);
+        socketLock.lock();
+        try {
         if (!isAddressValid(socketServerAddress)) {
             throw new OpenR66ProtocolRemoteShutdownException(
                     "Cannot connect to remote server since it is shutting down");
@@ -385,15 +386,12 @@ public class NetworkTransaction {
                             .getCause());
                 }
             }
-            /*try {
-                Thread.sleep(Configuration.WAITFORNETOP);
-            } catch (InterruptedException e) {
-                throw new OpenR66ProtocolNetworkException(
-                        "Cannot connect to remote server", e);
-            }*/
         }
         throw new OpenR66ProtocolNetworkException(
                 "Cannot connect to remote server", channelFuture.getCause());
+        } finally {
+            socketLock.unlock();
+        }
     }
    /**
      *
@@ -439,17 +437,11 @@ public class NetworkTransaction {
     public static LocalChannelReference createConnectionFromNetworkChannelStartup(Channel channel,
             NetworkPacket packet)
     throws OpenR66ProtocolRemoteShutdownException, OpenR66ProtocolSystemException {
-        ReentrantLock socketLock = getChannelLock(channel.getRemoteAddress());
-        socketLock.lock();
-        try {
-            NetworkTransaction.addNetworkChannel(channel);
-            LocalChannelReference localChannelReference = Configuration.configuration
-                    .getLocalTransaction().createNewClient(channel,
-                            packet.getRemoteId(), null);
-            return localChannelReference;
-        } finally {
-            socketLock.unlock();
-        }
+        NetworkTransaction.addNetworkChannel(channel);
+        LocalChannelReference localChannelReference = Configuration.configuration
+            .getLocalTransaction().createNewClient(channel,
+                packet.getRemoteId(), null);
+        return localChannelReference;
     }
     /**
      * Send a validation of connection with Authentication
@@ -587,9 +579,7 @@ public class NetworkTransaction {
         } catch (InterruptedException e) {
         }
         if (!Configuration.configuration.isServer) {
-            final OpenR66SignalHandler.R66TimerTask timerTask = 
-                new OpenR66SignalHandler.R66TimerTask(OpenR66SignalHandler.R66TimerTask.TIMER_EXIT);
-            Configuration.configuration.getTimerClose().newTimeout(timerTask, Configuration.configuration.TIMEOUTCON*3/2, TimeUnit.MILLISECONDS);
+            OpenR66SignalHandler.launchFinalExit();
         }
         closeRetrieveExecutors();
         networkChannelGroup.close().awaitUninterruptibly();
@@ -601,12 +591,6 @@ public class NetworkTransaction {
         } catch (InterruptedException e) {
         }
         DbAdmin.closeAllConnection();
-        if (networkServerPipelineFactory != null) {
-            networkServerPipelineFactory.timer.stop();
-        }
-        if (networkSslServerPipelineFactory != null) {
-            networkSslServerPipelineFactory.timer.stop();
-        }
         Configuration.configuration.clientStop();
         logger.debug("Last action before exit");
         ChannelUtils.stopLogger();

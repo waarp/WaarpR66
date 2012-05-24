@@ -43,7 +43,7 @@ public class NetworkServerPipelineFactory implements ChannelPipelineFactory {
     /**
      * Global HashedWheelTimer
      */
-    public HashedWheelTimer timer = new HashedWheelTimer();
+    public HashedWheelTimer timer = (HashedWheelTimer) Configuration.configuration.getTimerClose();
 
     public static final String TIMEOUT = "timeout";
     public static final String READTIMEOUT = "readTimeout";
