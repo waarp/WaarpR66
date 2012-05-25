@@ -26,8 +26,8 @@ import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
 import java.net.SocketAddress;
-import java.util.LinkedList;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import openr66.client.RecvThroughHandler;
 import openr66.context.ErrorCode;
@@ -67,7 +67,7 @@ public class ClientRunner extends Thread {
 
     private static final ConcurrentHashMap<String, Integer> taskRunnerRetryHashMap = new ConcurrentHashMap<String, Integer>();
 
-    public static LinkedList<ClientRunner> activeRunners = null;
+    public static ConcurrentLinkedQueue<ClientRunner> activeRunners = null;
 
     private final NetworkTransaction networkTransaction;
 

@@ -20,7 +20,7 @@
  */
 package openr66.commander;
 
-import java.util.LinkedList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import goldengate.common.database.data.AbstractDbData;
 import goldengate.common.database.data.AbstractDbData.UpdatedInfo;
@@ -51,7 +51,7 @@ public class CommanderNoDb implements CommanderInterface {
             .getLogger(CommanderNoDb.class);
 
     private InternalRunner internalRunner = null;
-    public static final LinkedList<AbstractDbData> todoList = new LinkedList<AbstractDbData>();
+    public static final ConcurrentLinkedQueue<AbstractDbData> todoList = new ConcurrentLinkedQueue<AbstractDbData>();
 
     /**
      * Prepare requests that will be executed from time to time
@@ -70,7 +70,7 @@ public class CommanderNoDb implements CommanderInterface {
             // Change RUNNING or INTERRUPTED to TOSUBMIT since they should be ready
             // XXX FIXME TO BE DONE
             //DbTaskRunner.resetToSubmit(DbConstant.admin.session);
-            ClientRunner.activeRunners = new LinkedList<ClientRunner>();
+            ClientRunner.activeRunners = new ConcurrentLinkedQueue<ClientRunner>();
         }
         this.internalConstructor(runner);
     }

@@ -32,6 +32,7 @@ import java.sql.Timestamp;
 
 import openr66.client.RequestTransfer;
 import openr66.commander.ClientRunner;
+import openr66.commander.CommanderNoDb;
 import openr66.context.ErrorCode;
 import openr66.context.R66FiniteDualStates;
 import openr66.context.R66Result;
@@ -214,6 +215,9 @@ public class TransferUtils {
                     DbTaskRunner taskRunner = runner.getTaskRunner();
                     stopOneTransfer(taskRunner, builder, session, body);
                 }
+            }
+            if (CommanderNoDb.todoList != null) {
+                CommanderNoDb.todoList.clear();
             }
             return builder;
         }
