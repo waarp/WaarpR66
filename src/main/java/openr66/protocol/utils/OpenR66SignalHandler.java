@@ -196,6 +196,7 @@ public class OpenR66SignalHandler implements SignalHandler {
         // Not on WINDOWS ?
         Configuration.ISUNIX = (!System.getProperty("os.name")
                 .toLowerCase().startsWith("win"));
+        System.out.println("ISUNIX: "+Configuration.ISUNIX);
         if (Configuration.ISUNIX) {
             String vendor = SystemPropertyUtil.get("java.vm.vendor");
             vendor = vendor.toLowerCase();

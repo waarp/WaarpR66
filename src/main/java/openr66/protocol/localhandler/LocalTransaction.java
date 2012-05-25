@@ -188,8 +188,6 @@ public class LocalTransaction {
                         localChannelReference);
                 channel.getCloseFuture().addListener(remover);
                 localChannelHashMap.put(channel.getId(), localChannelReference);
-                // FIXME ADD channel ?
-                // validLocalChannelHashMap.put(channel.getId(), validLCR);
                 try {
                     NetworkTransaction.addLocalChannelToNetworkChannel(
                             networkChannel, channel);
