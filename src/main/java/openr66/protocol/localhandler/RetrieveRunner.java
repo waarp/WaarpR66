@@ -123,9 +123,11 @@ public class RetrieveRunner extends Thread {
                 logger.info("End Retrieve in Error");
                 return;
             }
-            try {
-                localChannelReference.getFutureEndTransfer().await();
-            } catch (InterruptedException e1) {
+            if (running.get()) {
+                try {
+                    localChannelReference.getFutureEndTransfer().await();
+                } catch (InterruptedException e1) {
+                }
             }
             logger.debug("Await future End Transfer done: " +
                     localChannelReference.getFutureEndTransfer().isSuccess());
