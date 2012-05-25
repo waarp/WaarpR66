@@ -24,26 +24,17 @@ import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.logging.GgSlf4JLoggerFactory;
 
-import java.net.SocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import openr66.client.AbstractBusinessRequest;
 import openr66.configuration.FileBasedConfiguration;
-import openr66.context.R66FiniteDualStates;
 import openr66.database.data.DbHostAuth;
 import openr66.protocol.configuration.Configuration;
-import openr66.protocol.exception.OpenR66Exception;
-import openr66.protocol.exception.OpenR66ProtocolNetworkException;
-import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
-import openr66.protocol.exception.OpenR66ProtocolPacketException;
-import openr66.protocol.exception.OpenR66ProtocolRemoteShutdownException;
-import openr66.protocol.localhandler.LocalChannelReference;
 import openr66.protocol.localhandler.packet.BusinessRequestPacket;
 import openr66.protocol.networkhandler.NetworkTransaction;
-import openr66.protocol.utils.ChannelUtils;
 import openr66.protocol.utils.R66Future;
 
-import org.jboss.netty.channel.Channels;
 import org.jboss.netty.logging.InternalLoggerFactory;
 
 import ch.qos.logback.classic.Level;
@@ -53,69 +44,15 @@ import ch.qos.logback.classic.Level;
  * @author Frederic Bregier
  *
  */
-public class TestBusinessRequest implements Runnable {
+public class TestBusinessRequest extends AbstractBusinessRequest {
     /**
      * Internal Logger
      */
     private static GgInternalLogger logger;
 
-    final private NetworkTransaction networkTransaction;
-
-    final private R66Future future;
-
-    private final SocketAddress socketAddress;
-
-    final private BusinessRequestPacket testPacket;
-
     public TestBusinessRequest(NetworkTransaction networkTransaction,
-            R66Future future, SocketAddress socketAddress, BusinessRequestPacket packet) {
-        if (logger == null) {
-            logger = GgInternalLoggerFactory.getLogger(TestBusinessRequest.class);
-        }
-        this.networkTransaction = networkTransaction;
-        this.future = future;
-        this.socketAddress = socketAddress;
-        testPacket = packet;
-    }
-
-    public void run() {
-        LocalChannelReference localChannelReference = null;
-        OpenR66Exception lastException = null;
-        for (int i = 0; i < Configuration.RETRYNB; i ++) {
-            try {
-                localChannelReference = networkTransaction
-                        .createConnection(socketAddress, false, future);
-                break;
-            } catch (OpenR66ProtocolNetworkException e1) {
-                lastException = e1;
-                localChannelReference = null;
-            } catch (OpenR66ProtocolRemoteShutdownException e1) {
-                lastException = e1;
-                localChannelReference = null;
-                break;
-            } catch (OpenR66ProtocolNoConnectionException e1) {
-                lastException = e1;
-                localChannelReference = null;
-                break;
-            }
-        }
-        if (localChannelReference == null) {
-            logger.error("Cannot connect: " + lastException.getMessage());
-            future.setResult(null);
-            future.setFailure(lastException);
-            return;
-        } else if (lastException != null) {
-            logger.info("Connection retry since ", lastException);
-        }
-        localChannelReference.sessionNewState(R66FiniteDualStates.TEST);
-        try {
-            ChannelUtils.writeAbstractLocalPacket(localChannelReference, testPacket);
-        } catch (OpenR66ProtocolPacketException e) {
-            future.setResult(null);
-            future.setFailure(e);
-            Channels.close(localChannelReference.getLocalChannel());
-            return;
-        }
+            R66Future future, String remoteHost, BusinessRequestPacket packet) {
+        super(TestBusinessRequest.class, future, remoteHost, networkTransaction, packet);
     }
 
     public static void main(String[] args) {
@@ -139,7 +76,6 @@ public class TestBusinessRequest implements Runnable {
 
         final NetworkTransaction networkTransaction = new NetworkTransaction();
         DbHostAuth host = Configuration.configuration.HOST_AUTH;
-        final SocketAddress socketServerAddress = host.getSocketAddress();
         ExecutorService executorService = Executors.newCachedThreadPool();
         int nb = 100;
 
@@ -150,7 +86,7 @@ public class TestBusinessRequest implements Runnable {
             arrayFuture[i] = new R66Future(true);
             BusinessRequestPacket packet = new BusinessRequestPacket(TestExecJavaTask.class.getName()+" business 0 other arguments", 0);
             TestBusinessRequest transaction = new TestBusinessRequest(
-                    networkTransaction, arrayFuture[i], socketServerAddress,
+                    networkTransaction, arrayFuture[i], host.getHostid(),
                     packet);
             executorService.execute(transaction);
         }

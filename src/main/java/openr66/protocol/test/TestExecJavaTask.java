@@ -25,9 +25,8 @@ import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
-import openr66.context.R66Session;
 import openr66.context.filesystem.R66File;
-import openr66.context.task.R66Runnable;
+import openr66.context.task.AbstractExecJavaTask;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.localhandler.packet.BusinessRequestPacket;
 import openr66.protocol.utils.ChannelUtils;
@@ -36,20 +35,13 @@ import openr66.protocol.utils.ChannelUtils;
  * @author Frederic Bregier
  *
  */
-public class TestExecJavaTask implements R66Runnable {
+public class TestExecJavaTask extends AbstractExecJavaTask {
     /**
      * Internal Logger
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(TestExecJavaTask.class);
     
-    int delay;
-    String[] args = null;
-    int status = -1;
-    R66Session session;
-    boolean waitForValidation;
-    boolean useLocalExec;
-
     @Override
     public void run() {
         if (args.length > 1 && args[1].contains("business")) {
@@ -100,32 +92,4 @@ public class TestExecJavaTask implements R66Runnable {
             this.status = 0;
         }
     }
-
-    @Override
-    public void setArgs(R66Session session, boolean waitForValidation, 
-            boolean useLocalExec, int delay, String []args) {
-        this.session = session;
-        this.waitForValidation = waitForValidation;
-        this.useLocalExec = useLocalExec;
-        this.delay = delay;
-        this.args = args;
-    }
-
-    @Override
-    public int getFinalStatus() {
-        return status;
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder("JavaExec: [");
-        builder.append(args[0]);
-        builder.append("]");
-        for (int i = 1; i < args.length ; i++) {
-            builder.append(' ');
-            builder.append(args[i]);
-        }
-        return builder.toString();
-    }
-
 }

@@ -99,36 +99,41 @@ public class ExecJavaTask extends AbstractTask {
             futureCompletion.setSuccess();
             logger.info("Exec will start but no WAIT with {}", runnable);
         }
-        ExecutorService executorService = Executors.newFixedThreadPool(1);
-        executorService.execute(runnable);
         int status = -1;
-        try {
-            Thread.yield();
-            executorService.shutdown();
-            if (waitForValidation) {
-                if (delay > 0) {
-                    if (! executorService.awaitTermination(delay, TimeUnit.MILLISECONDS)) {
-                        executorService.shutdownNow();
-                        logger.error("Exec is in Time Out");
-                        status = -1;
+        if (waitForValidation && delay <= 0) {
+            runnable.run();
+            status = runnable.getFinalStatus();
+        } else {
+            ExecutorService executorService = Executors.newFixedThreadPool(1);
+            executorService.execute(runnable);
+            try {
+                Thread.yield();
+                executorService.shutdown();
+                if (waitForValidation) {
+                    if (delay > 0) {
+                        if (! executorService.awaitTermination(delay, TimeUnit.MILLISECONDS)) {
+                            executorService.shutdownNow();
+                            logger.error("Exec is in Time Out");
+                            status = -1;
+                        } else {
+                            status = runnable.getFinalStatus();
+                        }
                     } else {
+                        while (!executorService.awaitTermination(30, TimeUnit.SECONDS)) ;
                         status = runnable.getFinalStatus();
                     }
                 } else {
                     while (!executorService.awaitTermination(30, TimeUnit.SECONDS)) ;
                     status = runnable.getFinalStatus();
                 }
-            } else {
-                while (!executorService.awaitTermination(30, TimeUnit.SECONDS)) ;
-                status = runnable.getFinalStatus();
+            } catch (InterruptedException e) {
+                logger.error("Status: " + e.getMessage() + "\n\t Exec in error with " +
+                        runnable);
+                if (waitForValidation) {
+                    futureCompletion.cancel();
+                }
+                return;
             }
-        } catch (InterruptedException e) {
-            logger.error("Status: " + e.getMessage() + "\n\t Exec in error with " +
-                    runnable);
-            if (waitForValidation) {
-                futureCompletion.cancel();
-            }
-            return;
         }
         if (status == 0) {
             if (waitForValidation) {
