@@ -40,6 +40,7 @@ import java.net.UnknownHostException;
 import java.sql.Timestamp;
 import java.util.List;
 
+import openr66.client.AbstractBusinessRequest;
 import openr66.commander.ClientRunner;
 import openr66.configuration.AuthenticationFileBasedConfiguration;
 import openr66.configuration.RuleFileBasedConfiguration;
@@ -2256,7 +2257,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
         String argRule = packet.getSheader();
         int delay = packet.getDelay();
         boolean argTransfer  = packet.isToValidate();
-        ExecJavaTask task = new ExecJavaTask(argRule+" "+argTransfer, delay, null, session);
+        ExecJavaTask task = new ExecJavaTask(argRule+" "+
+                AbstractBusinessRequest.BUSINESSREQUEST+" "+argTransfer, 
+                delay, null, session);
         task.run();
         session.setStatus(201);
         if (task.isSuccess()) {
@@ -2264,7 +2267,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
             logger.info("Task done: "+argRule);
         } else {
             R66Result result = task.getFutureCompletion().getResult();
-            logger.warn("Task in Error:"+argRule+"\n"+result);
+            if (result == null) {
+                result = new R66Result(session, false, ErrorCode.ExternalOp, session.getRunner());
+            }
+            logger.info("Task in Error:"+argRule+"\n"+result);
             if (! result.isAnswered) {
                 packet.invalidate();
                 session.newState(ERROR);

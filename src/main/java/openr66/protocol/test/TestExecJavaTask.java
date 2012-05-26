@@ -23,8 +23,6 @@ package openr66.protocol.test;
 import goldengate.common.command.exception.CommandAbstractException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
-import openr66.context.ErrorCode;
-import openr66.context.R66Result;
 import openr66.context.filesystem.R66File;
 import openr66.context.task.AbstractExecJavaTask;
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
@@ -44,19 +42,15 @@ public class TestExecJavaTask extends AbstractExecJavaTask {
     
     @Override
     public void run() {
-        if (args.length > 1 && args[1].contains("business")) {
+        if (callFromBusiness) {
             // Business Request to validate?
-            boolean isToValidate = Boolean.parseBoolean(this.args[this.args.length-1]);
             if (isToValidate) {
                 int rank = Integer.parseInt(args[2]);
                 rank++;
                 BusinessRequestPacket packet = 
                     new BusinessRequestPacket(this.getClass().getName()+" business "+rank+" final return", 0);
                 if (rank > 100) {
-                    packet.validate();
-                    R66Result result = new R66Result(session, true,
-                            ErrorCode.CompleteOk, null);
-                    session.getLocalChannelReference().validateRequest(result);
+                    validate(packet);
                     logger.info("Will NOT close the channel: "+rank);
                 } else {
                     logger.info("Continue: "+rank);
@@ -69,12 +63,7 @@ public class TestExecJavaTask extends AbstractExecJavaTask {
                 this.status = 0;
                 return;
             }
-            this.status = 0;
-            logger.info("Will close the channel");
-            R66Result result = new R66Result(session, true,
-                    ErrorCode.CompleteOk, null);
-            session.getLocalChannelReference().validateRequest(result);
-            ChannelUtils.close(session.getLocalChannelReference().getLocalChannel());
+            finalValidate();
             return;
         } else {
             // Rule EXECJAVA based

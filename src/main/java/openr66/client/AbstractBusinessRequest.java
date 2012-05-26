@@ -56,6 +56,8 @@ public abstract class AbstractBusinessRequest implements Runnable {
      * Internal Logger
      */
     static protected volatile GgInternalLogger logger;
+    
+    public static final String BUSINESSREQUEST = "BusinessRequest";
 
     protected final R66Future future;
 
@@ -108,6 +110,7 @@ public abstract class AbstractBusinessRequest implements Runnable {
     }
     
     public void sendRequest() {
+        businessPacket.validate();
         try {
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, businessPacket);
         } catch (OpenR66ProtocolPacketException e) {
