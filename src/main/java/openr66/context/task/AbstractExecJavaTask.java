@@ -65,25 +65,31 @@ public class AbstractExecJavaTask implements R66Runnable {
     public void validate(BusinessRequestPacket packet) {
         this.status = 0;
         packet.validate();
-        R66Result result = new R66Result(session, true,
+        if (callFromBusiness) {
+            R66Result result = new R66Result(session, true,
                 ErrorCode.CompleteOk, null);
-        session.getLocalChannelReference().validateRequest(result);
-        try {
-            ChannelUtils.writeAbstractLocalPacket(session.getLocalChannelReference(),
-                    packet).awaitUninterruptibly();
-        } catch (OpenR66ProtocolPacketException e) {
+            session.getLocalChannelReference().validateRequest(result);
+            try {
+                ChannelUtils.writeAbstractLocalPacket(session.getLocalChannelReference(),
+                        packet).awaitUninterruptibly();
+            } catch (OpenR66ProtocolPacketException e) {
+            }
         }
     }
     
     /**
      * To be called by the requester when finished
+     * @param object special object to get back
      */
-    public void finalValidate() {
+    public void finalValidate(Object object) {
         this.status = 0;
-        R66Result result = new R66Result(session, true,
-                ErrorCode.CompleteOk, null);
-        session.getLocalChannelReference().validateRequest(result);
-        ChannelUtils.close(session.getLocalChannelReference().getLocalChannel());
+        if (callFromBusiness) {
+            R66Result result = new R66Result(session, true,
+                    ErrorCode.CompleteOk, null);
+            result.other = object;
+            session.getLocalChannelReference().validateRequest(result);
+            ChannelUtils.close(session.getLocalChannelReference().getLocalChannel());
+        }
     }
 
     /**

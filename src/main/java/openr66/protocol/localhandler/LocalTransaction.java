@@ -25,6 +25,8 @@ import goldengate.common.logging.GgInternalLoggerFactory;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import openr66.context.ErrorCode;
 import openr66.context.R66FiniteDualStates;
@@ -57,6 +59,8 @@ import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.local.DefaultLocalClientChannelFactory;
 import org.jboss.netty.channel.local.DefaultLocalServerChannelFactory;
 import org.jboss.netty.channel.local.LocalAddress;
+import org.jboss.netty.util.Timeout;
+import org.jboss.netty.util.TimerTask;
 
 /**
  * This class handles Local Transaction connections
@@ -325,25 +329,27 @@ public class LocalTransaction {
         return localChannelHashMap.size();
     }
 
-    /**
-     * Close all Local Channels from the NetworkChannel
-     * 
-     * @param networkChannel
-     */
-    public void closeLocalChannelsFromNetworkChannel(Channel networkChannel) {
-        Collection<LocalChannelReference> collection = localChannelHashMap
-                .values();
-        Iterator<LocalChannelReference> iterator = collection.iterator();
-        while (iterator.hasNext()) {
-            LocalChannelReference localChannelReference = iterator.next();
-            if (localChannelReference.getNetworkChannel().compareTo(
-                    networkChannel) == 0) {
-                // give a chance for the LocalChannel to stop normally
+    private static class CloseLocalChannelsFromNetworkChannelTast implements TimerTask {
+
+        LocalTransaction localTransaction;
+        AtomicInteger semaphore;
+        LocalChannelReference localChannelReference;
+        boolean analysis;
+        
+        public CloseLocalChannelsFromNetworkChannelTast(
+                LocalTransaction localTransaction,
+                AtomicInteger semaphore,
+                LocalChannelReference localChannelReference) {
+            this.localTransaction = localTransaction;
+            this.semaphore = semaphore;
+            this.localChannelReference = localChannelReference;
+            analysis = true;
+        }
+        
+        public void run(Timeout timeout) throws Exception {
+            // give a chance for the LocalChannel to stop normally
+            if (analysis) {
                 boolean wait = false;
-                try {
-                    Thread.sleep(Configuration.RETRYINMS * 10);
-                } catch (InterruptedException e) {
-                }
                 if (!localChannelReference.getFutureRequest().isDone()) {
                     if (localChannelReference.getFutureValidRequest().isDone() &&
                             localChannelReference.getFutureValidRequest()
@@ -365,15 +371,50 @@ public class LocalTransaction {
                     }
                 }
                 if (wait) {
-                    try {
-                        Thread.sleep(Configuration.RETRYINMS * 10);
-                    } catch (InterruptedException e) {
-                    }
+                    this.analysis = false;
+                    Configuration.configuration.getTimerClose().newTimeout(this, 
+                            Configuration.RETRYINMS * 10, TimeUnit.MILLISECONDS);
+                    return;
                 }
-                logger.debug("Will close local channel");
-                Channels.close(localChannelReference.getLocalChannel())
-                        .awaitUninterruptibly();
-                remove(localChannelReference.getLocalChannel());
+            }
+            logger.debug("Will close local channel");
+            Channels.close(localChannelReference.getLocalChannel())
+                    .awaitUninterruptibly();
+            localTransaction.remove(localChannelReference.getLocalChannel());
+            semaphore.decrementAndGet();
+        }
+        
+    }
+    /**
+     * Close all Local Channels from the NetworkChannel
+     * 
+     * @param networkChannel
+     */
+    public void closeLocalChannelsFromNetworkChannel(Channel networkChannel) {
+        Collection<LocalChannelReference> collection = localChannelHashMap
+                .values();
+        AtomicInteger semaphore = new AtomicInteger();
+        Iterator<LocalChannelReference> iterator = collection.iterator();
+        while (iterator.hasNext()) {
+            LocalChannelReference localChannelReference = iterator.next();
+            if (localChannelReference.getNetworkChannel().compareTo(
+                    networkChannel) == 0) {
+                semaphore.incrementAndGet();
+                CloseLocalChannelsFromNetworkChannelTast task = 
+                    new CloseLocalChannelsFromNetworkChannelTast(this, 
+                            semaphore, localChannelReference);
+                Configuration.configuration.getTimerClose().newTimeout(task, 
+                        Configuration.RETRYINMS * 10, TimeUnit.MILLISECONDS);
+            }
+        }
+        while (true) {
+            if (semaphore.get() == 0) {
+                break;
+            }
+            try {
+                Thread.sleep(Configuration.RETRYINMS*2);
+            } catch (InterruptedException e) {
+                break;
             }
         }
     }

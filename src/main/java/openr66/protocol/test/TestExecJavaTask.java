@@ -63,7 +63,7 @@ public class TestExecJavaTask extends AbstractExecJavaTask {
                 this.status = 0;
                 return;
             }
-            finalValidate();
+            finalValidate("Validated");
             return;
         } else {
             // Rule EXECJAVA based

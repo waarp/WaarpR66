@@ -94,6 +94,7 @@ public class ExecJavaTask extends AbstractTask {
         }
         runnable.setArgs(this.session, this.waitForValidation, this.useLocalExec, 
                 this.delay, args);
+        logger.debug(className+" "+runnable.getClass().getName());
         if (! waitForValidation) {
             // Do not wait for validation
             futureCompletion.setSuccess();

@@ -110,7 +110,6 @@ public abstract class AbstractBusinessRequest implements Runnable {
     }
     
     public void sendRequest() {
-        businessPacket.validate();
         try {
             ChannelUtils.writeAbstractLocalPacket(localChannelReference, businessPacket);
         } catch (OpenR66ProtocolPacketException e) {

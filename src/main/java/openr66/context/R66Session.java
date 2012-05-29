@@ -133,7 +133,7 @@ public class R66Session implements SessionInterface {
     /**
      * @param businessObject the businessObject to set
      */
-    private void setBusinessObject(R66BusinessInterface businessObject) {
+    public void setBusinessObject(R66BusinessInterface businessObject) {
         this.businessObject = businessObject;
     }
 

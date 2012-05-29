@@ -112,7 +112,7 @@ public class TestRecvThroughClient extends RecvThroughClient {
                             (result.file != null? result.file.toString() : "no file")
                             +" delay: "+delay);
                 } else {
-                    logger.info("Success with Id: " +
+                    logger.warn("Success with Id: " +
                             result.runner.getSpecialId()+" on Final file: " +
                             (result.file != null? result.file.toString() : "no file")
                             +" delay: "+delay);
