@@ -25,9 +25,9 @@ import goldengate.common.database.DbSession;
 import goldengate.common.database.data.AbstractDbData;
 import goldengate.common.database.data.DbValue;
 import goldengate.common.database.exception.GoldenGateDatabaseException;
-import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
+import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionException;
 import goldengate.common.database.exception.GoldenGateDatabaseNoDataException;
-import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
+import goldengate.common.database.exception.GoldenGateDatabaseSqlException;
 
 import java.sql.Types;
 import java.util.concurrent.ConcurrentHashMap;
@@ -148,7 +148,7 @@ public class DbMultipleMonitor extends AbstractDbData {
     }
 
     @Override
-    protected void setFromArray() throws GoldenGateDatabaseSqlError {
+    protected void setFromArray() throws GoldenGateDatabaseSqlException {
         hostid = (String) allFields[Columns.HOSTID.ordinal()].getValue();
         countConfig = (Integer) allFields[Columns.COUNTCONFIG.ordinal()]
                 .getValue();
@@ -299,10 +299,10 @@ public class DbMultipleMonitor extends AbstractDbData {
      * For instance from Commander when getting updated information
      * @param preparedStatement
      * @return the next updated Configuration
-     * @throws GoldenGateDatabaseNoConnectionError
-     * @throws GoldenGateDatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionException
+     * @throws GoldenGateDatabaseSqlException
      */
-    public static DbMultipleMonitor getFromStatement(DbPreparedStatement preparedStatement) throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
+    public static DbMultipleMonitor getFromStatement(DbPreparedStatement preparedStatement) throws GoldenGateDatabaseNoConnectionException, GoldenGateDatabaseSqlException {
         DbMultipleMonitor dbMm = new DbMultipleMonitor(preparedStatement.getDbSession());
         dbMm.getValues(preparedStatement, dbMm.allFields);
         dbMm.setFromArray();
@@ -312,10 +312,10 @@ public class DbMultipleMonitor extends AbstractDbData {
     /**
      *
      * @return the DbPreparedStatement for getting Updated Object in "FOR UPDATE" mode
-     * @throws GoldenGateDatabaseNoConnectionError
-     * @throws GoldenGateDatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionException
+     * @throws GoldenGateDatabaseSqlException
      */
-    public static DbPreparedStatement getUpdatedPrepareStament(DbSession session) throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
+    public static DbPreparedStatement getUpdatedPrepareStament(DbSession session) throws GoldenGateDatabaseNoConnectionException, GoldenGateDatabaseSqlException {
         String request = "SELECT " +selectAllFields;
         request += " FROM "+table+ " WHERE "+Columns.HOSTID.name()+" = '"+Configuration.configuration.HOST_ID+"'"+
             " FOR UPDATE ";

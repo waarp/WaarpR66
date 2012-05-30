@@ -176,7 +176,7 @@ public abstract class AbstractExecJavaTask implements R66Runnable {
     public String toString() {
         StringBuilder builder = new StringBuilder(this.getClass().getSimpleName()+": [");
         builder.append(args[0]);
-        builder.append("]");
+        builder.append(']');
         for (int i = 1; i < args.length ; i++) {
             builder.append(' ');
             builder.append(args[i]);

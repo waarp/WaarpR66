@@ -28,8 +28,8 @@ import goldengate.common.database.DbAdmin;
 import goldengate.common.database.DbPreparedStatement;
 import goldengate.common.database.DbSession;
 import goldengate.common.database.data.AbstractDbData.UpdatedInfo;
-import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
-import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
+import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionException;
+import goldengate.common.database.exception.GoldenGateDatabaseSqlException;
 import goldengate.common.database.model.DbModelFactory;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
@@ -242,8 +242,8 @@ public class Monitoring implements GgInterfaceMonitor {
             
             // Error Status on all transfers
             countStatus = DbTaskRunner.getCountStatusPrepareStatement(dbSession);
-        } catch (GoldenGateDatabaseNoConnectionError e) {
-        } catch (GoldenGateDatabaseSqlError e) {
+        } catch (GoldenGateDatabaseNoConnectionException e) {
+        } catch (GoldenGateDatabaseSqlException e) {
         }
     }
     /**
@@ -493,8 +493,8 @@ public class Monitoring implements GgInterfaceMonitor {
                         nbCountStatusUnknown = DbTaskRunner.getResultCountPrepareStatement(countStatus,
                                 ErrorCode.Unknown, limitDate);
                     }
-                } catch (GoldenGateDatabaseNoConnectionError e) {
-                } catch (GoldenGateDatabaseSqlError e) {
+                } catch (GoldenGateDatabaseNoConnectionException e) {
+                } catch (GoldenGateDatabaseSqlException e) {
                 }
             }
         }
@@ -990,8 +990,8 @@ public class Monitoring implements GgInterfaceMonitor {
                         updateGlobalValue(entry.ordinal(), nbNetworkConnection);
                         return;
                 }
-            } catch (GoldenGateDatabaseNoConnectionError e) {
-            } catch (GoldenGateDatabaseSqlError e) {
+            } catch (GoldenGateDatabaseNoConnectionException e) {
+            } catch (GoldenGateDatabaseSqlException e) {
             }
         }
     }
@@ -1117,17 +1117,17 @@ public class Monitoring implements GgInterfaceMonitor {
                         updateDetailedValue(entry.ordinal(), nbCountCompleteOkStep);
                         return;
                 }
-            } catch (GoldenGateDatabaseNoConnectionError e) {
+            } catch (GoldenGateDatabaseNoConnectionException e) {
                 logger.info("Database No Connection Error: Cannot execute Monitoring", e);
                 try {
                     DbModelFactory.dbModel.validConnection(dbSession);
-                } catch (GoldenGateDatabaseNoConnectionError e1) {
+                } catch (GoldenGateDatabaseNoConnectionException e1) {
                 }
-            } catch (GoldenGateDatabaseSqlError e) {
+            } catch (GoldenGateDatabaseSqlException e) {
                 logger.info("Database No Connection Error: Cannot execute Monitoring", e);
                 try {
                     DbModelFactory.dbModel.validConnection(dbSession);
-                } catch (GoldenGateDatabaseNoConnectionError e1) {
+                } catch (GoldenGateDatabaseNoConnectionException e1) {
                 }
             }
         }

@@ -24,8 +24,8 @@ import goldengate.common.database.DbAdmin;
 import goldengate.common.database.DbPreparedStatement;
 import goldengate.common.database.DbSession;
 import goldengate.common.database.exception.GoldenGateDatabaseException;
-import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
-import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
+import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionException;
+import goldengate.common.database.exception.GoldenGateDatabaseSqlException;
 import goldengate.common.exception.FileTransferException;
 import goldengate.common.exception.InvalidArgumentException;
 import goldengate.common.logging.GgInternalLogger;
@@ -795,7 +795,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
         // clean a bit the database before exporting
         try {
             DbTaskRunner.changeFinishedToDone(dbSession);
-        } catch (GoldenGateDatabaseNoConnectionError e2) {
+        } catch (GoldenGateDatabaseNoConnectionException e2) {
             // should not be
         }
         // create export of log and optionally purge them from database
@@ -811,10 +811,10 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                         true, null, null, tstart, tstop, rule, req,
                         pending, transfer, error, done, all);
             nbAndSpecialId = DbTaskRunner.writeXMLWriter(getValid, filename);
-        } catch (GoldenGateDatabaseNoConnectionError e1) {
+        } catch (GoldenGateDatabaseNoConnectionException e1) {
             isexported = false;
             toPurge = false;
-        } catch (GoldenGateDatabaseSqlError e1) {
+        } catch (GoldenGateDatabaseSqlException e1) {
             isexported = false;
             toPurge = false;
         } catch (OpenR66ProtocolBusinessException e) {
@@ -842,8 +842,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                         DbTaskRunner.purgeLogPrepareStatement(dbSession,
                                 null,stopId, tstart, tstop, rule, req,
                                 pending, transfer, error, done, all);
-                } catch (GoldenGateDatabaseNoConnectionError e) {
-                } catch (GoldenGateDatabaseSqlError e) {
+                } catch (GoldenGateDatabaseNoConnectionException e) {
+                } catch (GoldenGateDatabaseSqlException e) {
                 }
             }
         }
@@ -1407,8 +1407,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                         RuleFileBasedConfiguration.writeXml(directory,
                             Configuration.configuration.HOST_ID);
                         extraInformation += "-Rule are exported.<br>";
-                    } catch (GoldenGateDatabaseNoConnectionError e1) {
-                    } catch (GoldenGateDatabaseSqlError e1) {
+                    } catch (GoldenGateDatabaseNoConnectionException e1) {
+                    } catch (GoldenGateDatabaseSqlException e1) {
                     } catch (OpenR66ProtocolSystemException e1) {
                     }
                     String filename =
@@ -1418,8 +1418,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     try {
                         AuthenticationFileBasedConfiguration.writeXML(Configuration.configuration, 
                                 filename);
-                    } catch (GoldenGateDatabaseNoConnectionError e) {
-                    } catch (GoldenGateDatabaseSqlError e) {
+                    } catch (GoldenGateDatabaseNoConnectionException e) {
+                    } catch (GoldenGateDatabaseSqlException e) {
                     } catch (OpenR66ProtocolSystemException e) {
                     }
                 } else if (act.equalsIgnoreCase("Disconnect")) {
@@ -1606,7 +1606,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                             DbAdmin.nbHttpSession++;
                             this.isPrivateDbSession = true;
                         }
-                    } catch (GoldenGateDatabaseNoConnectionError e1) {
+                    } catch (GoldenGateDatabaseNoConnectionException e1) {
                         // Cannot connect so use default connection
                         logger.warn("Use default database connection");
                         this.dbSession = DbConstant.admin.session;

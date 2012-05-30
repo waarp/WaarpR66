@@ -25,8 +25,8 @@ import goldengate.common.crypto.ssl.GgSecureKeyStore;
 import goldengate.common.crypto.ssl.GgSslContextFactory;
 import goldengate.common.database.DbSession;
 import goldengate.common.database.exception.GoldenGateDatabaseException;
-import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
-import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
+import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionException;
+import goldengate.common.database.exception.GoldenGateDatabaseSqlException;
 import goldengate.common.digest.FilesystemBasedDigest;
 import goldengate.common.digest.FilesystemBasedDigest.DigestAlgo;
 import goldengate.common.file.filesystembased.FilesystemBasedFileParameterImpl;
@@ -562,10 +562,10 @@ public class Configuration {
     
     /**
      * Startup the server
-     * @throws GoldenGateDatabaseSqlError
-     * @throws GoldenGateDatabaseNoConnectionError
+     * @throws GoldenGateDatabaseSqlException
+     * @throws GoldenGateDatabaseNoConnectionException
      */
-    public void serverStartup() throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
+    public void serverStartup() throws GoldenGateDatabaseNoConnectionException, GoldenGateDatabaseSqlException {
         isServer = true;
         if ((!useNOSSL) && (!useSSL)) {
             logger.error("OpenR66 has neither NOSSL nor SSL support included! Stop here!");
@@ -577,7 +577,7 @@ public class Configuration {
         startMonitoring();
     }
     
-    public void r66Startup() throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
+    public void r66Startup() throws GoldenGateDatabaseNoConnectionException, GoldenGateDatabaseSqlException {
         logger.debug("Start R66: "+SERVER_PORT+":"+useNOSSL+" "+SERVER_SSLPORT+":"+useSSL+":"+HOST_SSLID);
         // add into configuration
         this.constraintLimitHandler.setServer(true);
@@ -679,7 +679,7 @@ public class Configuration {
         httpChannelGroup.add(httpsBootstrap.bind(new InetSocketAddress(SERVER_HTTPSPORT)));
     }
     
-    public void startMonitoring() throws GoldenGateDatabaseSqlError {
+    public void startMonitoring() throws GoldenGateDatabaseSqlException {
         monitoring = new Monitoring(pastLimit, minimalDelay, null);
         if (snmpConfig != null) {
             int snmpPortShow = (useNOSSL ? SERVER_PORT : SERVER_SSLPORT);
@@ -697,7 +697,7 @@ public class Configuration {
             try {
                 agentSnmp.start();
             } catch (IOException e) {
-                throw new GoldenGateDatabaseSqlError("AgentSnmp Error while starting", e);
+                throw new GoldenGateDatabaseSqlException("AgentSnmp Error while starting", e);
             }
         }
     }
@@ -788,8 +788,8 @@ public class Configuration {
             try {
                 internalRunner.reloadInternalRunner();
                 return true;
-            } catch (GoldenGateDatabaseNoConnectionError e) {
-            } catch (GoldenGateDatabaseSqlError e) {
+            } catch (GoldenGateDatabaseNoConnectionException e) {
+            } catch (GoldenGateDatabaseSqlException e) {
             }
         }
         return false;

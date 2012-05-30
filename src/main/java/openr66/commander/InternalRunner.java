@@ -22,8 +22,8 @@ package openr66.commander;
 
 import goldengate.common.database.data.AbstractDbData.UpdatedInfo;
 import goldengate.common.database.exception.GoldenGateDatabaseException;
-import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
-import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
+import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionException;
+import goldengate.common.database.exception.GoldenGateDatabaseSqlException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 
@@ -63,10 +63,10 @@ public class InternalRunner {
 
     /**
      * Create the structure to enable submission by database
-     * @throws GoldenGateDatabaseNoConnectionError
-     * @throws GoldenGateDatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionException
+     * @throws GoldenGateDatabaseSqlException
      */
-    public InternalRunner() throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
+    public InternalRunner() throws GoldenGateDatabaseNoConnectionException, GoldenGateDatabaseSqlException {
         if (DbConstant.admin.isConnected) {
             commander = new Commander(this, true);
         } else {
@@ -138,7 +138,7 @@ public class InternalRunner {
         return threadPoolExecutor.getActiveCount();
     }
     public void reloadInternalRunner()
-    throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
+    throws GoldenGateDatabaseNoConnectionException, GoldenGateDatabaseSqlException {
         scheduledFuture.cancel(false);
         if (commander != null) {
             commander.finalize();

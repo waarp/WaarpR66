@@ -21,7 +21,7 @@
 package openr66.database.model;
 
 import goldengate.common.database.DbAdmin;
-import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
+import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionException;
 import goldengate.common.database.model.DbType;
 
 
@@ -40,11 +40,11 @@ public class DbModelFactory extends goldengate.common.database.model.DbModelFact
      * @param dbuser
      * @param dbpasswd
      * @param write
-     * @throws GoldenGateDatabaseNoConnectionError
+     * @throws GoldenGateDatabaseNoConnectionException
      */
     public static DbAdmin initialize(String dbdriver, String dbserver,
             String dbuser, String dbpasswd, boolean write)
-            throws GoldenGateDatabaseNoConnectionError {
+            throws GoldenGateDatabaseNoConnectionException {
         DbType type = DbType.getFromDriver(dbdriver);
         switch (type) {
             case H2:
@@ -60,7 +60,7 @@ public class DbModelFactory extends goldengate.common.database.model.DbModelFact
                 dbModel = new DbModelMysql(dbserver, dbuser, dbpasswd);
                 break;
             default:
-                throw new GoldenGateDatabaseNoConnectionError(
+                throw new GoldenGateDatabaseNoConnectionException(
                         "TypeDriver unknown: " + type);
         }
         return new DbAdmin(type, dbserver, dbuser, dbpasswd,

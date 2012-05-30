@@ -25,9 +25,9 @@ import goldengate.common.database.DbSession;
 import goldengate.common.database.data.AbstractDbData;
 import goldengate.common.database.data.DbValue;
 import goldengate.common.database.exception.GoldenGateDatabaseException;
-import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
+import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionException;
 import goldengate.common.database.exception.GoldenGateDatabaseNoDataException;
-import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
+import goldengate.common.database.exception.GoldenGateDatabaseSqlException;
 
 import java.sql.Types;
 import java.util.concurrent.ConcurrentHashMap;
@@ -177,7 +177,7 @@ public class DbConfiguration extends AbstractDbData {
     }
 
     @Override
-    protected void setFromArray() throws GoldenGateDatabaseSqlError {
+    protected void setFromArray() throws GoldenGateDatabaseSqlException {
         hostid = (String) allFields[Columns.HOSTID.ordinal()].getValue();
         readgloballimit = (((Long) allFields[Columns.READGLOBALLIMIT.ordinal()]
                 .getValue())/10)*10;
@@ -346,10 +346,10 @@ public class DbConfiguration extends AbstractDbData {
      * For instance from Commander when getting updated information
      * @param preparedStatement
      * @return the next updated Configuration
-     * @throws GoldenGateDatabaseNoConnectionError
-     * @throws GoldenGateDatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionException
+     * @throws GoldenGateDatabaseSqlException
      */
-    public static DbConfiguration getFromStatement(DbPreparedStatement preparedStatement) throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
+    public static DbConfiguration getFromStatement(DbPreparedStatement preparedStatement) throws GoldenGateDatabaseNoConnectionException, GoldenGateDatabaseSqlException {
         DbConfiguration dbConfiguration = new DbConfiguration(preparedStatement.getDbSession());
         dbConfiguration.getValues(preparedStatement, dbConfiguration.allFields);
         dbConfiguration.setFromArray();
@@ -359,10 +359,10 @@ public class DbConfiguration extends AbstractDbData {
     /**
      *
      * @return the DbPreparedStatement for getting Updated Object
-     * @throws GoldenGateDatabaseNoConnectionError
-     * @throws GoldenGateDatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionException
+     * @throws GoldenGateDatabaseSqlException
      */
-    public static DbPreparedStatement getUpdatedPrepareStament(DbSession session) throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
+    public static DbPreparedStatement getUpdatedPrepareStament(DbSession session) throws GoldenGateDatabaseNoConnectionException, GoldenGateDatabaseSqlException {
         String request = "SELECT " +selectAllFields;
         request += " FROM "+table+
             " WHERE "+Columns.UPDATEDINFO.name()+" = "+

@@ -25,9 +25,9 @@ import goldengate.common.command.exception.Reply421Exception;
 import goldengate.common.command.exception.Reply530Exception;
 import goldengate.common.database.DbPreparedStatement;
 import goldengate.common.database.exception.GoldenGateDatabaseException;
-import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
+import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionException;
 import goldengate.common.database.exception.GoldenGateDatabaseNoDataException;
-import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
+import goldengate.common.database.exception.GoldenGateDatabaseSqlException;
 import goldengate.common.exception.FileTransferException;
 import goldengate.common.file.DataBlock;
 import goldengate.common.logging.GgInternalLogger;
@@ -1769,9 +1769,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         DbTaskRunner.getLogPrepareStatement(localChannelReference.getDbSession(),
                                 start, stop);
                     DbTaskRunner.writeXMLWriter(getValid, filename);
-                } catch (GoldenGateDatabaseNoConnectionError e1) {
+                } catch (GoldenGateDatabaseNoConnectionException e1) {
                     throw new OpenR66ProtocolBusinessException(e1);
-                } catch (GoldenGateDatabaseSqlError e1) {
+                } catch (GoldenGateDatabaseSqlException e1) {
                     throw new OpenR66ProtocolBusinessException(e1);
                 } finally {
                     if (getValid != null) {
@@ -1791,9 +1791,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         nb = DbTaskRunner.purgeLogPrepareStatement(
                                 localChannelReference.getDbSession(),
                                 start, stop);
-                    } catch (GoldenGateDatabaseNoConnectionError e) {
+                    } catch (GoldenGateDatabaseNoConnectionException e) {
                         throw new OpenR66ProtocolBusinessException(e);
-                    } catch (GoldenGateDatabaseSqlError e) {
+                    } catch (GoldenGateDatabaseSqlException e) {
                         throw new OpenR66ProtocolBusinessException(e);
                     }
                 }
@@ -1829,11 +1829,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         AuthenticationFileBasedConfiguration.writeXML(Configuration.configuration, 
                                 filename);
                         shost = filename;
-                    } catch (GoldenGateDatabaseNoConnectionError e) {
+                    } catch (GoldenGateDatabaseNoConnectionException e) {
                         logger.error("Error",e);
                         shost = "#";
                         bhost = false;
-                    } catch (GoldenGateDatabaseSqlError e) {
+                    } catch (GoldenGateDatabaseSqlException e) {
                         logger.error("Error",e);
                         shost = "#";
                         bhost = false;
@@ -1846,11 +1846,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 if (brule) {
                     try {
                         srule = RuleFileBasedConfiguration.writeOneXml(dir, hostname);
-                    } catch (GoldenGateDatabaseNoConnectionError e1) {
+                    } catch (GoldenGateDatabaseNoConnectionException e1) {
                         logger.error("Error",e1);
                         srule = "#";
                         brule = false;
-                    } catch (GoldenGateDatabaseSqlError e1) {
+                    } catch (GoldenGateDatabaseSqlException e1) {
                         logger.error("Error",e1);
                         srule = "#";
                         brule = false;
@@ -1940,11 +1940,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         RuleFileBasedConfiguration.getMultipleFromFile(file);
                         srule = "Rule:OK";
                         brule = true;
-                    } catch (GoldenGateDatabaseNoConnectionError e) {
+                    } catch (GoldenGateDatabaseNoConnectionException e) {
                         logger.error("Error",e);
                         srule = "Rule:KO";
                         brule = false;
-                    } catch (GoldenGateDatabaseSqlError e) {
+                    } catch (GoldenGateDatabaseSqlException e) {
                         logger.error("Error",e);
                         srule = "Rule:KO";
                         brule = false;

@@ -25,9 +25,9 @@ import goldengate.common.database.DbSession;
 import goldengate.common.database.data.AbstractDbData;
 import goldengate.common.database.data.DbValue;
 import goldengate.common.database.exception.GoldenGateDatabaseException;
-import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
+import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionException;
 import goldengate.common.database.exception.GoldenGateDatabaseNoDataException;
-import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
+import goldengate.common.database.exception.GoldenGateDatabaseSqlException;
 import goldengate.common.digest.FilesystemBasedDigest;
 import goldengate.common.utility.GgStringUtils;
 
@@ -165,7 +165,7 @@ public class DbHostAuth extends AbstractDbData {
     }
 
     @Override
-    protected void setFromArray() throws GoldenGateDatabaseSqlError {
+    protected void setFromArray() throws GoldenGateDatabaseSqlException {
         address = (String) allFields[Columns.ADDRESS.ordinal()].getValue();
         port = (Integer) allFields[Columns.PORT.ordinal()].getValue();
         isSsl = (Boolean) allFields[Columns.ISSSL.ordinal()].getValue();
@@ -424,10 +424,10 @@ public class DbHostAuth extends AbstractDbData {
      * Get All DbHostAuth from database or from internal hashMap in case of no database support
      * @param dbSession may be null
      * @return the array of DbHostAuth
-     * @throws GoldenGateDatabaseNoConnectionError
-     * @throws GoldenGateDatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionException
+     * @throws GoldenGateDatabaseSqlException
      */
-    public static DbHostAuth[] getAllHosts(DbSession dbSession) throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
+    public static DbHostAuth[] getAllHosts(DbSession dbSession) throws GoldenGateDatabaseNoConnectionException, GoldenGateDatabaseSqlException {
         if (dbSession == null) {
             DbHostAuth [] result = new DbHostAuth[0];
             return dbR66HostAuthHashMap.values().toArray(result);
@@ -450,10 +450,10 @@ public class DbHostAuth extends AbstractDbData {
      * For instance from Commander when getting updated information
      * @param preparedStatement
      * @return the next updated DbHostAuth
-     * @throws GoldenGateDatabaseNoConnectionError
-     * @throws GoldenGateDatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionException
+     * @throws GoldenGateDatabaseSqlException
      */
-    public static DbHostAuth getFromStatement(DbPreparedStatement preparedStatement) throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
+    public static DbHostAuth getFromStatement(DbPreparedStatement preparedStatement) throws GoldenGateDatabaseNoConnectionException, GoldenGateDatabaseSqlException {
         DbHostAuth dbHostAuth = new DbHostAuth(preparedStatement.getDbSession());
         dbHostAuth.getValues(preparedStatement, dbHostAuth.allFields);
         dbHostAuth.setFromArray();
@@ -463,10 +463,10 @@ public class DbHostAuth extends AbstractDbData {
     /**
     *
     * @return the DbPreparedStatement for getting Updated Object
-    * @throws GoldenGateDatabaseNoConnectionError
-    * @throws GoldenGateDatabaseSqlError
+    * @throws GoldenGateDatabaseNoConnectionException
+    * @throws GoldenGateDatabaseSqlException
     */
-   public static DbPreparedStatement getUpdatedPrepareStament(DbSession session) throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
+   public static DbPreparedStatement getUpdatedPrepareStament(DbSession session) throws GoldenGateDatabaseNoConnectionException, GoldenGateDatabaseSqlException {
        String request = "SELECT " +selectAllFields;
        request += " FROM "+table+
            " WHERE "+Columns.UPDATEDINFO.name()+" = "+
@@ -481,12 +481,12 @@ public class DbHostAuth extends AbstractDbData {
     * @param addr
     * @param ssl
     * @return the DbPreparedStatement according to the filter
-    * @throws GoldenGateDatabaseNoConnectionError
-    * @throws GoldenGateDatabaseSqlError
+    * @throws GoldenGateDatabaseNoConnectionException
+    * @throws GoldenGateDatabaseSqlException
     */
    public static DbPreparedStatement getFilterPrepareStament(DbSession session,
            String host, String addr, boolean ssl)
-       throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
+       throws GoldenGateDatabaseNoConnectionException, GoldenGateDatabaseSqlException {
        DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
        String request = "SELECT " +selectAllFields+" FROM "+table+" WHERE ";
        String condition = null;
@@ -513,7 +513,7 @@ public class DbHostAuth extends AbstractDbData {
            preparedStatement.getPreparedStatement().setBoolean(1, ssl);
        } catch (SQLException e) {
            preparedStatement.realClose();
-           throw new GoldenGateDatabaseSqlError(e);
+           throw new GoldenGateDatabaseSqlException(e);
        }
        return preparedStatement;
    }

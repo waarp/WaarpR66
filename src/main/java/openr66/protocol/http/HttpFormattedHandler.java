@@ -25,8 +25,8 @@ import goldengate.common.database.DbPreparedStatement;
 import goldengate.common.database.DbSession;
 import goldengate.common.database.data.AbstractDbData.UpdatedInfo;
 import goldengate.common.database.exception.GoldenGateDatabaseException;
-import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
-import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
+import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionException;
+import goldengate.common.database.exception.GoldenGateDatabaseSqlException;
 import goldengate.common.exception.FileTransferException;
 import goldengate.common.exception.InvalidArgumentException;
 import goldengate.common.logging.GgInternalLogger;
@@ -222,7 +222,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
                 DbAdmin.nbHttpSession++;
                 this.isPrivateDbSession = true;
             }
-        } catch (GoldenGateDatabaseNoConnectionError e1) {
+        } catch (GoldenGateDatabaseNoConnectionException e1) {
             // Cannot connect so use default connection
             logger.warn("Use default database connection");
             this.dbSession = DbConstant.admin.session;
@@ -333,12 +333,12 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
      * @param preparedStatement
      * @param type
      * @param nb
-     * @throws GoldenGateDatabaseNoConnectionError
-     * @throws GoldenGateDatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionException
+     * @throws GoldenGateDatabaseSqlException
      */
     private void addRunners(DbPreparedStatement preparedStatement, String type,
-            int nb) throws GoldenGateDatabaseNoConnectionError,
-            GoldenGateDatabaseSqlError {
+            int nb) throws GoldenGateDatabaseNoConnectionException,
+            GoldenGateDatabaseSqlException {
         try {
             preparedStatement.executeQuery();
             responseContent

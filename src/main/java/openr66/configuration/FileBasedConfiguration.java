@@ -27,7 +27,7 @@ import goldengate.common.crypto.ssl.GgSslContextFactory;
 import goldengate.common.database.DbAdmin;
 import goldengate.common.database.data.AbstractDbData.UpdatedInfo;
 import goldengate.common.database.exception.GoldenGateDatabaseException;
-import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
+import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionException;
 import goldengate.common.digest.FilesystemBasedDigest;
 import goldengate.common.digest.FilesystemBasedDigest.DigestAlgo;
 import goldengate.common.exception.CryptoException;
@@ -780,12 +780,7 @@ public class FileBasedConfiguration {
                 return false;
             }
             // No client authentication
-            try {
-                Configuration.ggSecureKeyStore.initEmptyTrustStore();
-            } catch (CryptoException e) {
-                logger.error("Bad TrustKeyStore construction");
-                return false;
-            }
+            Configuration.ggSecureKeyStore.initEmptyTrustStore();
             Configuration.ggSslContextFactory =
                 new GgSslContextFactory(
                         Configuration.ggSecureKeyStore, true);
@@ -1154,12 +1149,7 @@ public class FileBasedConfiguration {
         value = hashConfig.get(XML_PATH_TRUSTKEYPATH);
         if (value == null || (value.isEmpty())) {
             logger.info("Unable to find TRUST Key Path");
-            try {
-                NetworkSslServerPipelineFactory.ggSecureKeyStore.initEmptyTrustStore();
-            } catch (CryptoException e) {
-                logger.error("Bad TrustKeyStore construction");
-                return false;
-            }
+            NetworkSslServerPipelineFactory.ggSecureKeyStore.initEmptyTrustStore();
         } else {
             String keypath = value.getString();
             if ((keypath == null) || (keypath.length() == 0)) {
@@ -1350,7 +1340,7 @@ public class FileBasedConfiguration {
                     DbConstant.noCommitAdmin = DbConstant.admin;
                 }
                 logger.info("Database connection: "+(DbConstant.admin != null)+":"+(DbConstant.noCommitAdmin != null));
-            } catch (GoldenGateDatabaseNoConnectionError e2) {
+            } catch (GoldenGateDatabaseNoConnectionException e2) {
                 logger.error("Unable to Connect to DB", e2);
                 return false;
             }

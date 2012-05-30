@@ -20,6 +20,7 @@
  */
 package openr66.commander;
 
+import java.io.File;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import goldengate.common.database.data.AbstractDbData;
@@ -27,11 +28,13 @@ import goldengate.common.database.data.AbstractDbData.UpdatedInfo;
 import goldengate.common.database.exception.GoldenGateDatabaseException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
+import openr66.configuration.ExtensionFilter;
 import openr66.database.data.DbConfiguration;
 import openr66.database.data.DbHostAuth;
 import openr66.database.data.DbRule;
 import openr66.database.data.DbTaskRunner;
 import openr66.protocol.configuration.Configuration;
+import openr66.protocol.utils.FileUtils;
 import openr66.protocol.utils.OpenR66SignalHandler;
 
 /**
@@ -66,13 +69,47 @@ public class CommanderNoDb implements CommanderInterface {
      * @param fromStartup True if call from startup of the server
      */
     public CommanderNoDb(InternalRunner runner, boolean fromStartup) {
-        if (fromStartup) {
-            // Change RUNNING or INTERRUPTED to TOSUBMIT since they should be ready
-            // XXX FIXME TO BE DONE
-            //DbTaskRunner.resetToSubmit(DbConstant.admin.session);
-            ClientRunner.activeRunners = new ConcurrentLinkedQueue<ClientRunner>();
-        }
         this.internalConstructor(runner);
+        if (fromStartup) {
+            ClientRunner.activeRunners = new ConcurrentLinkedQueue<ClientRunner>();
+            // Change RUNNING or INTERRUPTED to TOSUBMIT since they should be ready
+            /*
+            Configuration.configuration.baseDirectory+
+            Configuration.configuration.archivePath+R66Dir.SEPARATOR+
+            this.requesterHostId+"_"+this.requestedHostId+"_"+this.ruleId+"_"+this.specialId
+            +XMLEXTENSION;
+             */
+            File directory = new File(Configuration.configuration.baseDirectory+
+                    Configuration.configuration.archivePath);
+            File[] files = FileUtils.getFiles(directory,
+                    new ExtensionFilter(DbTaskRunner.XMLEXTENSION));
+            for (File file: files) {
+                String shortname = file.getName();
+                String []info = shortname.split("_");
+                if (info.length < 5) {
+                    continue;
+                }
+                DbRule rule;
+                try {
+                    rule = new DbRule(null, info[2]);
+                } catch (GoldenGateDatabaseException e) {
+                    logger.warn("Cannot find the rule named: "+info[2]);
+                    continue;
+                }
+                long id = Long.parseLong(info[3]);
+                try {
+                    DbTaskRunner task = new DbTaskRunner(null, null, rule, id, info[0], info[1]);
+                    UpdatedInfo status = task.getUpdatedInfo();
+                    if (status == UpdatedInfo.RUNNING || status == UpdatedInfo.INTERRUPTED) {
+                        task.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
+                        task.update();
+                    }
+                } catch (GoldenGateDatabaseException e) {
+                    logger.warn("Cannot reload the task named: "+shortname);
+                    continue;
+                }
+            }
+        }
     }
     private void internalConstructor(InternalRunner runner) {
         internalRunner = runner;

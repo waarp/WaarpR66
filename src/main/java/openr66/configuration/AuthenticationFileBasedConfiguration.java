@@ -21,8 +21,8 @@
 package openr66.configuration;
 
 import goldengate.common.database.exception.GoldenGateDatabaseException;
-import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
-import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
+import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionException;
+import goldengate.common.database.exception.GoldenGateDatabaseSqlException;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
 import goldengate.common.xml.XmlDecl;
@@ -265,10 +265,10 @@ public class AuthenticationFileBasedConfiguration {
      * Write all authentication to a file with filename
      * @param filename
      * @throws OpenR66ProtocolSystemException
-     * @throws GoldenGateDatabaseNoConnectionError
-     * @throws GoldenGateDatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionException
+     * @throws GoldenGateDatabaseSqlException
      */
-    public static void writeXML(Configuration config, String filename) throws OpenR66ProtocolSystemException, GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
+    public static void writeXML(Configuration config, String filename) throws OpenR66ProtocolSystemException, GoldenGateDatabaseNoConnectionException, GoldenGateDatabaseSqlException {
         Document document = DocumentHelper.createDocument();
         Element root = document.addElement(XML_AUTHENTIFICATION_ROOT);
         DbHostAuth []hosts = DbHostAuth.getAllHosts(DbConstant.admin.session);

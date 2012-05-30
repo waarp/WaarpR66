@@ -151,9 +151,8 @@ public class ExecOutputTask extends AbstractTask {
             defaultExecutor.setWatchdog(watchdog);
         }
         AllLineReader allLineReader = new AllLineReader(inputStream);
-        Thread thread = new Thread(allLineReader);
+        Thread thread = new Thread(allLineReader, "ExecRename" + session.getRunner().getSpecialId());
         thread.setDaemon(true);
-        thread.setName("ExecRename" + session.getRunner().getSpecialId());
         Configuration.configuration.getExecutorService().execute(thread);
         int status = -1;
         try {

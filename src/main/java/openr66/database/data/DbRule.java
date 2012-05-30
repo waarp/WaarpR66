@@ -25,9 +25,9 @@ import goldengate.common.database.DbSession;
 import goldengate.common.database.data.AbstractDbData;
 import goldengate.common.database.data.DbValue;
 import goldengate.common.database.exception.GoldenGateDatabaseException;
-import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionError;
+import goldengate.common.database.exception.GoldenGateDatabaseNoConnectionException;
 import goldengate.common.database.exception.GoldenGateDatabaseNoDataException;
-import goldengate.common.database.exception.GoldenGateDatabaseSqlError;
+import goldengate.common.database.exception.GoldenGateDatabaseSqlException;
 import goldengate.common.file.DirInterface;
 import goldengate.common.logging.GgInternalLogger;
 import goldengate.common.logging.GgInternalLoggerFactory;
@@ -362,7 +362,7 @@ public class DbRule extends AbstractDbData {
     }
 
     @Override
-    protected void setFromArray() throws GoldenGateDatabaseSqlError {
+    protected void setFromArray() throws GoldenGateDatabaseSqlException {
         ids = (String) allFields[Columns.HOSTIDS.ordinal()].getValue();
         mode = (Integer) allFields[Columns.MODETRANS.ordinal()].getValue();
         recvPath = (String) allFields[Columns.RECVPATH.ordinal()].getValue();
@@ -390,7 +390,7 @@ public class DbRule extends AbstractDbData {
         serrorTasksArray = getTasksRule(serrorTasks);
     }
 
-    protected void setFromArrayClone(DbRule source) throws GoldenGateDatabaseSqlError {
+    protected void setFromArrayClone(DbRule source) throws GoldenGateDatabaseSqlException {
         ids = (String) allFields[Columns.HOSTIDS.ordinal()].getValue();
         mode = (Integer) allFields[Columns.MODETRANS.ordinal()].getValue();
         recvPath = (String) allFields[Columns.RECVPATH.ordinal()].getValue();
@@ -710,10 +710,10 @@ public class DbRule extends AbstractDbData {
      * Get All DbRule from database or from internal hashMap in case of no database support
      * @param dbSession may be null
      * @return the array of DbRule
-     * @throws GoldenGateDatabaseNoConnectionError
-     * @throws GoldenGateDatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionException
+     * @throws GoldenGateDatabaseSqlException
      */
-    public static DbRule[] getAllRules(DbSession dbSession) throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
+    public static DbRule[] getAllRules(DbSession dbSession) throws GoldenGateDatabaseNoConnectionException, GoldenGateDatabaseSqlException {
         DbRule [] result = new DbRule[0];
         if (! dbR66RuleHashMap.isEmpty() || dbSession == null) {
             return dbR66RuleHashMap.values().toArray(result);
@@ -735,10 +735,10 @@ public class DbRule extends AbstractDbData {
      * For instance from Commander when getting updated information
      * @param preparedStatement
      * @return the next updated DbRule
-     * @throws GoldenGateDatabaseNoConnectionError
-     * @throws GoldenGateDatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionException
+     * @throws GoldenGateDatabaseSqlException
      */
-    public static DbRule getFromStatement(DbPreparedStatement preparedStatement) throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
+    public static DbRule getFromStatement(DbPreparedStatement preparedStatement) throws GoldenGateDatabaseNoConnectionException, GoldenGateDatabaseSqlException {
         DbRule dbRule = new DbRule(preparedStatement.getDbSession());
         dbRule.getValues(preparedStatement, dbRule.allFields);
         dbRule.setFromArray();
@@ -748,10 +748,10 @@ public class DbRule extends AbstractDbData {
     /**
     *
     * @return the DbPreparedStatement for getting Updated Object
-    * @throws GoldenGateDatabaseNoConnectionError
-    * @throws GoldenGateDatabaseSqlError
+    * @throws GoldenGateDatabaseNoConnectionException
+    * @throws GoldenGateDatabaseSqlException
     */
-   public static DbPreparedStatement getUpdatedPrepareStament(DbSession session) throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
+   public static DbPreparedStatement getUpdatedPrepareStament(DbSession session) throws GoldenGateDatabaseNoConnectionException, GoldenGateDatabaseSqlException {
        String request = "SELECT " +selectAllFields;
        request += " FROM "+table+
            " WHERE "+Columns.UPDATEDINFO.name()+" = "+
@@ -1044,12 +1044,12 @@ public class DbRule extends AbstractDbData {
      * @param rule
      * @param mode
      * @return the DbPreparedStatement according to the filter
-     * @throws GoldenGateDatabaseNoConnectionError
-     * @throws GoldenGateDatabaseSqlError
+     * @throws GoldenGateDatabaseNoConnectionException
+     * @throws GoldenGateDatabaseSqlException
      */
     public static DbPreparedStatement getFilterPrepareStament(DbSession session,
             String rule, int mode)
-        throws GoldenGateDatabaseNoConnectionError, GoldenGateDatabaseSqlError {
+        throws GoldenGateDatabaseNoConnectionException, GoldenGateDatabaseSqlException {
         DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
         String request = "SELECT " +selectAllFields+" FROM "+table;
         String condition = null;
@@ -1073,7 +1073,7 @@ public class DbRule extends AbstractDbData {
                 preparedStatement.getPreparedStatement().setInt(1, mode);
             } catch (SQLException e) {
                 preparedStatement.realClose();
-                throw new GoldenGateDatabaseSqlError(e);
+                throw new GoldenGateDatabaseSqlException(e);
             }
         }
         return preparedStatement;

@@ -147,9 +147,8 @@ public class ExecMoveTask extends AbstractTask {
             defaultExecutor.setWatchdog(watchdog);
         }
         LastLineReader lastLineReader = new LastLineReader(inputStream);
-        Thread thread = new Thread(lastLineReader);
+        Thread thread = new Thread(lastLineReader, "ExecRename" + session.getRunner().getSpecialId());
         thread.setDaemon(true);
-        thread.setName("ExecRename" + session.getRunner().getSpecialId());
         Configuration.configuration.getExecutorService().execute(thread);
         int status = -1;
         try {
