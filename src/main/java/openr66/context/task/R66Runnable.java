@@ -46,6 +46,7 @@ public interface R66Runnable extends Runnable {
      * @return the final status where 0 is OK, 1 is Warning, 2 is Error
      */
     public int getFinalStatus();
+
     /**
      * 
      * @return Information on task

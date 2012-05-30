@@ -76,9 +76,9 @@ public class NetworkPacketCodec extends FrameDecoder implements
         final int remoteId = buf.readInt();
         final byte code = buf.readByte();
         int readerInder = buf.readerIndex();
-        ChannelBuffer bufferxxx = buf.slice(readerInder, length-9);
-        buf.readerIndex(readerInder+length-9);
-        NetworkPacket networkPacket = new NetworkPacket(localId, remoteId, code, bufferxxx);
+        ChannelBuffer buffer = buf.slice(readerInder, length-9);
+        buf.skipBytes(length-9);
+        NetworkPacket networkPacket = new NetworkPacket(localId, remoteId, code, buffer);
         if (code == LocalPacketFactory.KEEPALIVEPACKET) {
             KeepAlivePacket keepAlivePacket = (KeepAlivePacket)
                 LocalPacketCodec.decodeNetworkPacket(networkPacket.getBuffer());

@@ -65,8 +65,7 @@ public class DataPacket extends AbstractLocalPacket {
         ChannelBuffer key;
         if (endLength > 0) {
             key = buf.slice(readerIndex, endLength);
-            readerIndex += endLength;
-            buf.readerIndex(readerIndex);
+            buf.skipBytes(endLength);
         } else {
             key = ChannelBuffers.EMPTY_BUFFER;
         }

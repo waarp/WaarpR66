@@ -172,7 +172,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 if (mustFinalize) {
                     session.newState(ERROR);
                     R66Result finalValue = new R66Result(
-                            new OpenR66ProtocolSystemException("Finalize too early at close time"),
+                            new OpenR66ProtocolSystemException("Finalize too early at close time But Must Finalize"),
                             session, true, ErrorCode.FinalOp, runner); // True since closed
                     try {
                         tryFinalizeRequest(finalValue);
@@ -229,7 +229,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         // Now if runner is not yet finished, finish it by force
         if (mustFinalize && localChannelReference != null && (!localChannelReference.getFutureRequest().isDone())) {
             R66Result finalValue = new R66Result(
-                    new OpenR66ProtocolSystemException("Finalize too early at close time"),
+                    new OpenR66ProtocolSystemException("Finalize too early at close time while Request not yet finished"),
                     session, true, ErrorCode.FinalOp, runner);
             localChannelReference.invalidateRequest(finalValue);
             // In case stop the attached thread if any
@@ -495,7 +495,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     DbTaskRunner runner = session.getRunner();
                     if (runner != null) {
                         R66Result finalValue = new R66Result(
-                                new OpenR66ProtocolSystemException("Finalize too early at close time"),
+                                new OpenR66ProtocolSystemException("Finalize too early at close time with Network Exception"),
                                 session, true, code, session.getRunner());
                         try {
                             tryFinalizeRequest(finalValue);
@@ -2165,7 +2165,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
      */
     private void endRequest(Channel channel, EndRequestPacket packet) {
      // Validate the last post action on a transfer from receiver remote host
-        logger.debug("Valid Request {} {}",
+        logger.info("Valid Request {}\nPacket {}",
                 localChannelReference,
                 packet);
         DbTaskRunner runner = session.getRunner();
@@ -2177,6 +2177,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 // ignore
             }
         }
+        String optional = null;
+        if (session.getExtendedProtocol()) {
+            optional = packet.getOptional();
+        }
         if (!localChannelReference.getFutureRequest().isDone()) {
             // end of request
             R66Future transfer = localChannelReference.getFutureEndTransfer();
@@ -2185,6 +2189,18 @@ public class LocalServerHandler extends SimpleChannelHandler {
             } catch (InterruptedException e) {
             }
             if (transfer.isSuccess()) {
+                if (session.getExtendedProtocol() && session.getBusinessObject() != null) {
+                    if (session.getBusinessObject().getInfo() == null) {
+                        session.getBusinessObject().setInfo(optional);
+                    } else {
+                        String temp = session.getBusinessObject().getInfo();
+                        session.getBusinessObject().setInfo(optional);
+                        optional = temp;
+                    }
+                } else if (session.getExtendedProtocol() && 
+                        transfer.getResult().other == null && optional != null) {
+                    transfer.getResult().other = optional;
+                }
                 localChannelReference.validateRequest(transfer.getResult());
             }
         }
@@ -2192,6 +2208,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
         if (packet.isToValidate()) {
             session.newState(ENDREQUESTS);
             packet.validate();
+            if (session.getExtendedProtocol()) {
+                packet.setOptional(optional);
+            }
             session.newState(ENDREQUESTR);
             try {
                 ChannelUtils.writeAbstractLocalPacket(localChannelReference,

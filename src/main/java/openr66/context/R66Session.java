@@ -113,6 +113,11 @@ public class R66Session implements SessionInterface {
      */
     private R66BusinessInterface businessObject = null;
     /**
+     * Extended protocol or not
+     */
+    private boolean extendedProtocol = Configuration.configuration.extendedProtocol;
+    
+    /**
      * Create the session
      */
     public R66Session() {
@@ -122,7 +127,14 @@ public class R66Session implements SessionInterface {
         restart = new R66Restart(this);
         state = R66FiniteDualStates.newSessionMachineState();
     }
-    
+
+    /**
+     * @return extendedProtocol
+     */
+    public boolean getExtendedProtocol() {
+        return extendedProtocol;
+    }
+
     /**
      * @return the businessObject
      */

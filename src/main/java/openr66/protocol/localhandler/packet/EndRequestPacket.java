@@ -20,6 +20,8 @@
  */
 package openr66.protocol.localhandler.packet;
 
+import java.nio.charset.Charset;
+
 import openr66.protocol.exception.OpenR66ProtocolPacketException;
 
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -28,7 +30,7 @@ import org.jboss.netty.buffer.ChannelBuffers;
 /**
  * End of Request class
  *
- * header = Error.code middle = way end = empty
+ * header = Error.code middle = way end = might be empty
  *
  * @author frederic bregier
  */
@@ -40,6 +42,8 @@ public class EndRequestPacket extends AbstractLocalPacket {
     private final int code;
 
     private byte way;
+    
+    private String optional;
 
     /**
      * @param headerLength
@@ -60,7 +64,25 @@ public class EndRequestPacket extends AbstractLocalPacket {
         }
         final int bheader = buf.readInt();
         byte valid = buf.readByte();
+        String optional;
+        if (endLength > 0) {
+            optional = buf.toString(buf.readerIndex(), endLength, Charset.defaultCharset());
+            buf.skipBytes(endLength);
+            return new EndRequestPacket(bheader, valid, optional);
+        }
         return new EndRequestPacket(bheader, valid);
+    }
+
+
+    /**
+     * @param code
+     * @param valid
+     * @param optional
+     */
+    private EndRequestPacket(int code, byte valid, String optional) {
+        this.code = code;
+        way = valid;
+        this.optional = optional;
     }
 
     /**
@@ -87,7 +109,11 @@ public class EndRequestPacket extends AbstractLocalPacket {
      */
     @Override
     public void createEnd() {
-        end = ChannelBuffers.EMPTY_BUFFER;
+        if (optional == null) {
+            end = ChannelBuffers.EMPTY_BUFFER;
+        } else {
+            end = ChannelBuffers.copiedBuffer(optional, Charset.defaultCharset());
+        }
     }
 
     /*
@@ -127,7 +153,7 @@ public class EndRequestPacket extends AbstractLocalPacket {
      */
     @Override
     public String toString() {
-        return "EndRequestPacket: " + code + " " + way;
+        return "EndRequestPacket: " + code + " " + way + (optional != null ? " "+optional : "");
     }
 
     /**
@@ -153,4 +179,21 @@ public class EndRequestPacket extends AbstractLocalPacket {
         middle = null;
         end = null;
     }
+
+
+    /**
+     * @return the optional
+     */
+    public String getOptional() {
+        return optional;
+    }
+
+
+    /**
+     * @param optional the optional to set
+     */
+    public void setOptional(String optional) {
+        this.optional = optional;
+    }
+    
 }

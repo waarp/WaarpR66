@@ -155,6 +155,10 @@ public class Configuration {
         = new R66DefaultBusinessFactory();
     // Global Dynamic values
     /**
+     * Version validation
+     */
+    public boolean extendedProtocol = true;
+    /**
      * Actual Host ID
      */
     public String HOST_ID;
@@ -523,7 +527,7 @@ public class Configuration {
         // Init FiniteStates
         R66FiniteDualStates.initR66FiniteStates();
     }
-
+    
     /**
      * Configure the pipeline for client (to be called ony once)
      */

@@ -513,10 +513,15 @@ public class LocalChannelReference {
         }
         logger.debug("Validate Request");
         if (!futureRequest.isDone()) {
+            if (finalValue.other == null && 
+                    session.getBusinessObject() != null && 
+                    session.getBusinessObject().getInfo() != null) {
+                finalValue.other = session.getBusinessObject().getInfo();
+            }
             futureRequest.setResult(finalValue);
             futureRequest.setSuccess();
         } else {
-            logger.debug("Already validated: " + futureRequest.isSuccess() +
+            logger.info("Already validated: " + futureRequest.isSuccess() +
                     " " + finalValue);
             if (!futureRequest.getResult().isAnswered) {
                 futureRequest.getResult().isAnswered = finalValue.isAnswered;
@@ -528,10 +533,10 @@ public class LocalChannelReference {
     public String toString() {
         return "LCR: L: " + localId + " R: " + remoteId + "\nStartup["+
         (futureStartup != null ? futureStartup : "noStartup")+ "]\nConn[" +
-        (futureConnection != null ? futureConnection : "noConn")+ "]\nRequest[" +
-        (futureRequest != null ? futureRequest : "noRequest")+ "]\nValidRequest[" +
+        (futureConnection != null ? futureConnection : "noConn")+ "]\nValidRequestRequest[" +
         (futureValidRequest != null ? futureValidRequest : "noValidRequest")+ "]\nEndTransfer[" +
-        (futureEndTransfer != null ? futureEndTransfer : "noEndTransfer")+"]";
+        (futureEndTransfer != null ? futureEndTransfer : "noEndTransfer")+"]\nRequest["+
+        (futureRequest != null ? futureRequest : "noRequest")+ "]";
     }
 
     /**

@@ -410,6 +410,10 @@ public class FileBasedConfiguration {
     private static final String XML_DBPASSWD = "dbpasswd";
     
     /**
+     * Check version in protocol
+     */
+    private static final String XML_CHECKVERSION = "checkversion";
+    /**
      * Structure of the Configuration file
      *
      */
@@ -512,7 +516,8 @@ public class FileBasedConfiguration {
         new XmlDecl(XmlType.BOOLEAN, XML_USEFASTMD5), 
         new XmlDecl(XmlType.STRING, XML_FASTMD5), 
         new XmlDecl(XmlType.INTEGER, XML_GAPRESTART),
-        new XmlDecl(XmlType.INTEGER, XML_BLOCKSIZE)
+        new XmlDecl(XmlType.INTEGER, XML_BLOCKSIZE),
+        new XmlDecl(XmlType.BOOLEAN, XML_CHECKVERSION)
     };
     /**
      * Structure of the Configuration file
@@ -1088,6 +1093,11 @@ public class FileBasedConfiguration {
             R66Dir.initJdkDependent(new FilesystemBasedDirJdk6());
         } else {
             R66Dir.initJdkDependent(new FilesystemBasedDirJdk5());
+        }
+        value = hashConfig.get(XML_CHECKVERSION);
+        if (value != null && (!value.isEmpty())) {
+            config.extendedProtocol = value.getBoolean();
+            logger.warn("ExtendedProtocol= "+config.extendedProtocol);
         }
         alreadySetLimit = true;
         return true;

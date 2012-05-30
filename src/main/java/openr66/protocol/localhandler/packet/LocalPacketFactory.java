@@ -71,7 +71,7 @@ public class LocalPacketFactory {
     public static final byte ENDREQUESTPACKET = 20;
 
     public static final byte KEEPALIVEPACKET = 21;
-
+    // New Protocol message => Extended protocol
     public static final byte BUSINESSREQUESTPACKET = 22;
     
     public static final byte NOOPPACKET = 23;

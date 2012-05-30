@@ -137,6 +137,11 @@ public class RetrieveRunner extends Thread {
                 requestValidDone = true;
                 localChannelReference.sessionNewState(R66FiniteDualStates.ENDREQUESTS);
                 EndRequestPacket validPacket = new EndRequestPacket(ErrorCode.CompleteOk.ordinal());
+                if (session.getExtendedProtocol() &&
+                        session.getBusinessObject() != null && 
+                        session.getBusinessObject().getInfo() != null) {
+                    validPacket.setOptional(session.getBusinessObject().getInfo());
+                }
                 try {
                     ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket).awaitUninterruptibly();
                 } catch (OpenR66ProtocolPacketException e) {
@@ -150,8 +155,7 @@ public class RetrieveRunner extends Thread {
                     } catch (OpenR66RunnerErrorException e) {
                         // ignore
                     }
-                    localChannelReference.validateRequest(localChannelReference
-                        .getFutureEndTransfer().getResult());
+                    localChannelReference.validateRequest(localChannelReference.getFutureEndTransfer().getResult());
                 }
                 if (session.getRunner() != null && session.getRunner().isSelfRequested()) {
                     ChannelUtils.close(localChannelReference.getLocalChannel());
@@ -190,6 +194,11 @@ public class RetrieveRunner extends Thread {
                     if (! requestValidDone) {
                         localChannelReference.sessionNewState(R66FiniteDualStates.ENDREQUESTS);
                         EndRequestPacket validPacket = new EndRequestPacket(ErrorCode.CompleteOk.ordinal());
+                        if (session.getExtendedProtocol() &&
+                                session.getBusinessObject() != null && 
+                                session.getBusinessObject().getInfo() != null) {
+                            validPacket.setOptional(session.getBusinessObject().getInfo());
+                        }
                         try {
                             ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket).awaitUninterruptibly();
                         } catch (OpenR66ProtocolPacketException e) {

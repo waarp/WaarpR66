@@ -264,6 +264,11 @@ public abstract class SendThroughClient extends AbstractTransfer {
                 // send a validation
                 localChannelReference.sessionNewState(R66FiniteDualStates.ENDREQUESTS);
                 EndRequestPacket validPacket = new EndRequestPacket(ErrorCode.CompleteOk.ordinal());
+                if (localChannelReference.getSession().getExtendedProtocol() &&
+                        localChannelReference.getSession().getBusinessObject() != null &&
+                        localChannelReference.getSession().getBusinessObject().getInfo() != null && localChannelReference.getSession().getBusinessObject().getInfo() != null) {
+                    validPacket.setOptional(localChannelReference.getSession().getBusinessObject().getInfo());
+                }
                 try {
                     ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket)
                         .awaitUninterruptibly();
@@ -272,8 +277,7 @@ public abstract class SendThroughClient extends AbstractTransfer {
                 if (!localChannelReference.getFutureRequest().awaitUninterruptibly(
                     Configuration.configuration.TIMEOUTCON)) {
                     // valid it however
-                    localChannelReference.validateRequest(localChannelReference
-                        .getFutureEndTransfer().getResult());
+                    localChannelReference.validateRequest(localChannelReference.getFutureEndTransfer().getResult());
                 }
                 if (taskRunner != null && taskRunner.isSelfRequested()) {
                     ChannelUtils.close(localChannelReference.getLocalChannel());

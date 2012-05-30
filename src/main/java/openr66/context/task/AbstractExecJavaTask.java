@@ -40,7 +40,7 @@ import openr66.protocol.utils.ChannelUtils;
  * @author Frederic Bregier
  *
  */
-public class AbstractExecJavaTask implements R66Runnable {
+public abstract class AbstractExecJavaTask implements R66Runnable {
     /**
      * Internal Logger
      */
@@ -54,6 +54,7 @@ public class AbstractExecJavaTask implements R66Runnable {
     protected boolean waitForValidation;
     protected boolean useLocalExec;
 
+    protected String classname;
     protected String fullarg;
     protected boolean isToValidate;
     protected boolean callFromBusiness;
@@ -122,7 +123,7 @@ public class AbstractExecJavaTask implements R66Runnable {
             // Business Request to validate?
             if (isToValidate) {
                 BusinessRequestPacket packet = 
-                    new BusinessRequestPacket(this.fullarg, 0);
+                    new BusinessRequestPacket(this.classname+" "+this.fullarg, 0);
                 validate(packet);
             }
         }
@@ -143,21 +144,22 @@ public class AbstractExecJavaTask implements R66Runnable {
         this.useLocalExec = useLocalExec;
         this.delay = delay;
         this.args = args;
+        this.classname = args[0];
         if (args.length > 2) {
             callFromBusiness = this.args[this.args.length-2].
                 equals(AbstractBusinessRequest.BUSINESSREQUEST);
         }
         if (callFromBusiness) {
             isToValidate = Boolean.parseBoolean(this.args[this.args.length-1]);
-            StringBuilder builder = new StringBuilder(args[0]);
-            for (int i = 1; i < args.length-2; i++) {
+            StringBuilder builder = new StringBuilder(args[1]);
+            for (int i = 2; i < args.length-2; i++) {
                 builder.append(' ');
                 builder.append(args[i]);
             }
             fullarg = builder.toString();
         } else {
-            StringBuilder builder = new StringBuilder(args[0]);
-            for (int i = 1; i < args.length; i++) {
+            StringBuilder builder = new StringBuilder(args[1]);
+            for (int i = 2; i < args.length; i++) {
                 builder.append(' ');
                 builder.append(args[i]);
             }
