@@ -37,8 +37,6 @@ import openr66.protocol.utils.R66Future;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
 
-import ch.qos.logback.classic.Level;
-
 /**
  * Test class for multiple DirectTransfer
  *
@@ -74,7 +72,7 @@ public class TestTransferNoDb extends DirectTransfer {
 
     public static void main(String[] args) {
         InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
-                Level.WARN));
+                null));
         if (logger == null) {
             logger = GgInternalLoggerFactory.getLogger(DirectTransfer.class);
         }

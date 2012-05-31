@@ -44,8 +44,6 @@ import openr66.protocol.utils.R66Future;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.logging.InternalLoggerFactory;
 
-import ch.qos.logback.classic.Level;
-
 /**
  * Abstract class for internal Business Request
  * @author Frederic Bregier
@@ -106,7 +104,7 @@ public abstract class AbstractBusinessRequest implements Runnable {
             future.setFailure(e);
             throw e;
         }
-        localChannelReference.sessionNewState(R66FiniteDualStates.TEST);
+        localChannelReference.sessionNewState(R66FiniteDualStates.BUSINESSR);
     }
     
     public void sendRequest() {
@@ -127,7 +125,7 @@ public abstract class AbstractBusinessRequest implements Runnable {
      */
     public static void main(String[] args) {
         InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
-                Level.WARN));
+                null));
         if (logger == null) {
             logger = GgInternalLoggerFactory.getLogger(AbstractBusinessRequest.class);
         }

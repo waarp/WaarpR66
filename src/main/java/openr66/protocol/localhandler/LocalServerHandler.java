@@ -1348,7 +1348,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 return;
             }
         }
-        if (session.getRunner().isRecvThrough() && localChannelReference.getRecvThroughHandler() != null) {
+        if (session.getRunner().isRecvThrough() && localChannelReference.isRecvThroughMode()) {
             localChannelReference.getRecvThroughHandler().writeChannelBuffer(packet.getData());
             session.getRunner().incrementRank();
         } else {
@@ -2276,6 +2276,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
         String argRule = packet.getSheader();
         int delay = packet.getDelay();
         boolean argTransfer  = packet.isToValidate();
+        if (argTransfer) {
+            session.newState(BUSINESSD);
+        }
         ExecJavaTask task = new ExecJavaTask(argRule+" "+
                 AbstractBusinessRequest.BUSINESSREQUEST+" "+argTransfer, 
                 delay, null, session);

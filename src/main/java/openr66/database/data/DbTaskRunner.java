@@ -448,10 +448,16 @@ public class DbTaskRunner extends AbstractDbData {
     }
 
     public void checkThroughMode() {
-        isRecvThrough = RequestPacket.isRecvThroughMode(this.mode, !isSelfRequested());
-        isSendThrough = RequestPacket.isSendThroughMode(this.mode, !isSelfRequested());
+        isRecvThrough = RequestPacket.isRecvThroughMode(this.mode, isSelfRequested());
+        isSendThrough = RequestPacket.isSendThroughMode(this.mode, isSelfRequested());
         if (localChannelReference != null) {
-            if (isRecvThrough && localChannelReference.getRecvThroughHandler() == null) {
+            if (localChannelReference.isRecvThroughMode()) {
+                isRecvThrough = true;
+            }
+            if (localChannelReference.isSendThroughMode()) {
+                isSendThrough = true;
+            }
+            if (isRecvThrough && !localChannelReference.isRecvThroughMode()) {
                 // Cannot be a RecvThrough
                 isRecvThrough = false;
             }

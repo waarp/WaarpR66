@@ -72,10 +72,12 @@ public class TransferUtils {
             finalResult.other = "Transfer is still running so not restartable";
         } else {
             if (taskRunner.isSendThrough()) {
-                // cannot be restarted
-                finalResult.code = ErrorCode.PassThroughMode;
-                finalResult.other = "Transfer cannot be restarted since it is in PassThrough mode";
-                return finalResult;
+                // XXX FIXME TODO cannot be restarted... Really?
+                if (false) {
+                    finalResult.code = ErrorCode.PassThroughMode;
+                    finalResult.other = "Transfer cannot be restarted since it is in PassThrough mode";
+                    return finalResult;
+                }
             }
             // Transfer is not running
             // but maybe need action on database

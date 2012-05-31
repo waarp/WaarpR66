@@ -92,12 +92,12 @@ public class RequestPacket extends AbstractLocalPacket {
     /**
     *
     * @param mode
-    * @param isRequester
+    * @param isRequested
     * @return True if this mode is a THROUGH (MD5) mode
     */
-   public static boolean isSendThroughMode(int mode, boolean isRequester) {
-       return ((isRequester && isSendThroughMode(mode)) ||
-               (!isRequester && isRecvThroughMode(mode)));
+   public static boolean isSendThroughMode(int mode, boolean isRequested) {
+       return ((!isRequested && isSendThroughMode(mode)) ||
+               (isRequested && isRecvThroughMode(mode)));
    }
     /**
      *
@@ -111,12 +111,12 @@ public class RequestPacket extends AbstractLocalPacket {
     /**
     *
     * @param mode
-    * @param isRequester
+    * @param isRequested
     * @return True if this mode is a THROUGH (MD5) mode
     */
-   public static boolean isRecvThroughMode(int mode, boolean isRequester) {
-       return ((isRequester && isRecvThroughMode(mode)) ||
-               (!isRequester && isSendThroughMode(mode)));
+   public static boolean isRecvThroughMode(int mode, boolean isRequested) {
+       return ((!isRequested && isRecvThroughMode(mode)) ||
+               (isRequested && isSendThroughMode(mode)));
    }
     /**
     *
@@ -127,6 +127,11 @@ public class RequestPacket extends AbstractLocalPacket {
        return (mode == TRANSFERMODE.RECVTHROUGHMODE.ordinal() ||
                mode == TRANSFERMODE.RECVMD5THROUGHMODE.ordinal());
    }
+   /**
+    * 
+    * @param mode
+    * @return True if this mode is a THROUGH mode (with or without MD5)
+    */
    public static boolean isThroughMode(int mode) {
        return mode >= TRANSFERMODE.SENDTHROUGHMODE.ordinal() &&
            mode <= TRANSFERMODE.RECVMD5THROUGHMODE.ordinal();

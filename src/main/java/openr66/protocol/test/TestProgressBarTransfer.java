@@ -26,7 +26,6 @@ import goldengate.common.logging.GgSlf4JLoggerFactory;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
 
-import ch.qos.logback.classic.Level;
 import openr66.client.ProgressBarTransfer;
 import openr66.context.ErrorCode;
 import openr66.context.R66Result;
@@ -90,7 +89,7 @@ public class TestProgressBarTransfer extends ProgressBarTransfer {
 
     public static void main(String[] args) {
         InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
-                Level.WARN));
+                null));
         if (logger == null) {
             logger = GgInternalLoggerFactory.getLogger(ProgressBarTransfer.class);
         }

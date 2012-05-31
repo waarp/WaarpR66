@@ -33,8 +33,6 @@ import openr66.protocol.utils.R66Future;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
 
-import ch.qos.logback.classic.Level;
-
 /**
  * Test class for multiple SubmitTransfer
  *
@@ -70,7 +68,7 @@ public class TestSubmitTransfer extends SubmitTransfer {
 
     public static void main(String[] args) {
         InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
-                Level.WARN));
+                null));
         if (logger == null) {
             logger = GgInternalLoggerFactory.getLogger(SubmitTransfer.class);
         }

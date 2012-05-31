@@ -37,8 +37,6 @@ import openr66.protocol.utils.R66Future;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
 
-import ch.qos.logback.classic.Level;
-
 /**
  * Test class for internal Business test
  * @author Frederic Bregier
@@ -57,7 +55,7 @@ public class TestBusinessRequest extends AbstractBusinessRequest {
 
     public static void main(String[] args) {
         InternalLoggerFactory.setDefaultFactory(new GgSlf4JLoggerFactory(
-                Level.WARN));
+                null));
         if (logger == null) {
             logger = GgInternalLoggerFactory.getLogger(TestBusinessRequest.class);
         }

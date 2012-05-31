@@ -69,10 +69,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
      */
     private static final GgInternalLogger logger = GgInternalLoggerFactory
             .getLogger(NetworkServerHandler.class);
-    /**
-     * Used by retriever to be able to prevent OOME
-     */
-    private volatile boolean isWriteReady = true;
+
     /**
      * The underlying Network Channel
      */
@@ -387,38 +384,6 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
         }
     }
 
-    /**
-     * To enable continues of Retrieve operation (prevent OOM)
-     *
-     * @see org.jboss.netty.channel.SimpleChannelHandler#channelInterestChanged(org.jboss.netty.channel.ChannelHandlerContext,
-     *      org.jboss.netty.channel.ChannelStateEvent)
-     */
-    @Override
-    public void channelInterestChanged(ChannelHandlerContext arg0,
-            ChannelStateEvent arg1) {
-        int op = arg1.getChannel().getInterestOps();
-        if (op == Channel.OP_NONE || op == Channel.OP_READ) {
-            isWriteReady = true;
-        }
-    }
-    /**
-     *
-     * @return True if the networkChannel is writable
-     */
-    public boolean isWritable() {
-        if (!networkChannel.isWritable()) {
-            isWriteReady = false;
-        }
-        return isWriteReady;
-    }
-    /**
-     * Channel is reday
-     * @return True if the networkChannel is writable again
-     */
-    public boolean isWriteReady() {
-        return isWriteReady;
-
-    }
     /**
      * Write error back to remote client
      * @param channel

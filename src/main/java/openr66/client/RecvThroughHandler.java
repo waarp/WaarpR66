@@ -47,7 +47,7 @@ public abstract class RecvThroughHandler {
      */
     protected byte[] getByte(ChannelBuffer buffer) {
         byte [] dst = new byte[buffer.readableBytes()];
-        buffer.readBytes(dst);
+        buffer.readBytes(dst, 0, dst.length);
         return dst;
     }
 }

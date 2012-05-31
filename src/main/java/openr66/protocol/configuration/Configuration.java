@@ -306,6 +306,10 @@ public class Configuration {
     public long serverChannelReadLimit = DEFAULT_SESSION_LIMIT;
 
     /**
+     * Any limitation on bandwidth active?
+     */
+    public boolean anyBandwidthLimitation = false;
+    /**
      * Delay in ms between two checks
      */
     public long delayLimit = 10000;
@@ -431,13 +435,13 @@ public class Configuration {
      * Timer for CloseOpertations
      */
     private Timer timerCloseOperations = 
-        new HashedWheelTimer(new GgThreadFactory("TimerClose"), 100, TimeUnit.MILLISECONDS, 1024);
+        new HashedWheelTimer(new GgThreadFactory("TimerClose"), 50, TimeUnit.MILLISECONDS, 1024);
 
     /**
      * Timer for TrafficCounter
      */
     private Timer timerTrafficCounter = 
-        new HashedWheelTimer(new GgThreadFactory("TimerTraffic"), 20, TimeUnit.MILLISECONDS, 1024);
+        new HashedWheelTimer(new GgThreadFactory("TimerTraffic"), 10, TimeUnit.MILLISECONDS, 1024);
     /**
      * Global TrafficCounter (set from global configuration)
      */
@@ -835,6 +839,8 @@ public class Configuration {
         }
         serverChannelReadLimit = newReadLimit;
         serverChannelWriteLimit = newWriteLimit;
+        anyBandwidthLimitation = (serverGlobalReadLimit > 0 || serverGlobalWriteLimit > 0 || 
+                serverChannelReadLimit > 0 || serverChannelWriteLimit > 0);
     }
 
     /**

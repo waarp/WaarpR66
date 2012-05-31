@@ -48,7 +48,6 @@ import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.utils.R66Future;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.channel.ChannelFuture;
 
 /**
  * <b>WARNING: This class is not functional neither integrated</b><br>
@@ -107,9 +106,8 @@ public class TestSendThroughForward extends SendThroughClient {
             } else {
                 block.setBlock(buffer);
             }
-            ChannelFuture future = null;
             try {
-                future = client.writeWhenPossible(block);
+                client.writeWhenPossible(block).awaitUninterruptibly();
             } catch (OpenR66RunnerErrorException e) {
                 client.transferInError(e);
             } catch (OpenR66ProtocolPacketException e) {
@@ -118,9 +116,6 @@ public class TestSendThroughForward extends SendThroughClient {
                 client.transferInError(e);
             }
             if (block.isEOF()) {
-                if (future != null) {
-                    future.awaitUninterruptibly();
-                }
                 client.finalizeRequest();
                 client.foundEOF = true;
             }

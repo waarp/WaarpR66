@@ -47,6 +47,7 @@ public class NetworkServerPipelineFactory implements ChannelPipelineFactory {
 
     public static final String TIMEOUT = "timeout";
     public static final String READTIMEOUT = "readTimeout";
+    public static final String LIMIT = "LIMIT";
     public static final String LIMITCHANNEL = "LIMITCHANNEL";
 
     private boolean server = false;
@@ -60,7 +61,7 @@ public class NetworkServerPipelineFactory implements ChannelPipelineFactory {
         GlobalTrafficShapingHandler handler =
             Configuration.configuration.getGlobalTrafficShapingHandler();
         if (handler != null) {
-            pipeline.addLast("LIMIT", handler);
+            pipeline.addLast(LIMIT, handler);
         }
         ChannelTrafficShapingHandler trafficChannel = null;
         try {

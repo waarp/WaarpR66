@@ -86,7 +86,7 @@ public class NetworkSslServerPipelineFactory implements ChannelPipelineFactory {
         GlobalTrafficShapingHandler handler = Configuration.configuration
                 .getGlobalTrafficShapingHandler();
         if (handler != null) {
-            pipeline.addLast("LIMIT", handler);
+            pipeline.addLast(NetworkServerPipelineFactory.LIMIT, handler);
         }
         ChannelTrafficShapingHandler trafficChannel = null;
         try {

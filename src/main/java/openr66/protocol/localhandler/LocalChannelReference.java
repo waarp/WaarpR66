@@ -545,6 +545,14 @@ public class LocalChannelReference {
     public RecvThroughHandler getRecvThroughHandler() {
         return recvThroughHandler;
     }
+    
+    /**
+     * 
+     * @return True if in RecvThrough Mode
+     */
+    public boolean isRecvThroughMode() {
+        return recvThroughHandler != null;
+    }
 
     /**
      * @param recvThroughHandler
@@ -555,7 +563,7 @@ public class LocalChannelReference {
     }
 
     /**
-     * @return the isSendThroughMode
+     * @return True if in SendThrough Mode
      */
     public boolean isSendThroughMode() {
         return isSendThroughMode;

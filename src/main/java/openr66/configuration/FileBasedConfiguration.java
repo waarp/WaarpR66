@@ -905,6 +905,9 @@ public class FileBasedConfiguration {
             logger.info("SessionInterface Limit: {}",
                     config.serverChannelReadLimit);
         }
+        config.anyBandwidthLimitation = 
+            (config.serverGlobalReadLimit > 0 || config.serverGlobalWriteLimit > 0 || 
+                    config.serverChannelReadLimit > 0 || config.serverChannelWriteLimit > 0);
         config.delayLimit = AbstractTrafficShapingHandler.DEFAULT_CHECK_INTERVAL;
         value = hashConfig.get(XML_LIMITDELAY);
         if (value != null && (!value.isEmpty())) {
