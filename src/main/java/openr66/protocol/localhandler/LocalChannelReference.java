@@ -36,10 +36,12 @@ import openr66.protocol.exception.OpenR66Exception;
 import openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import openr66.protocol.networkhandler.NetworkChannel;
 import openr66.protocol.networkhandler.NetworkServerHandler;
+import openr66.protocol.networkhandler.NetworkServerPipelineFactory;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.utils.R66Future;
 
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler;
 
 /**
  * Reference of one object using Local Channel localId and containing local
@@ -63,6 +65,11 @@ public class LocalChannelReference {
      * Network Channel
      */
     private final Channel networkChannel;
+    
+    /**
+     * Traffic handler associated if any
+     */
+    private ChannelTrafficShapingHandler cts;
 
     /**
      * Associated NetworkChannel
@@ -155,6 +162,7 @@ public class LocalChannelReference {
         } else {
             this.futureRequest = futureRequest;
         }
+        cts = (ChannelTrafficShapingHandler) networkChannel.getPipeline().get(NetworkServerPipelineFactory.LIMITCHANNEL);
     }
 
     /**
@@ -194,6 +202,13 @@ public class LocalChannelReference {
      */
     public Integer getRemoteId() {
         return remoteId;
+    }
+
+    /**
+     * @return the ChannelTrafficShapingHandler
+     */
+    public ChannelTrafficShapingHandler getChannelTrafficShapingHandler() {
+        return cts;
     }
 
     /**

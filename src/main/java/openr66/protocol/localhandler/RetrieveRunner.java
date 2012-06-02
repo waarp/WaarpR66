@@ -38,17 +38,12 @@ import openr66.protocol.exception.OpenR66ProtocolPacketException;
 import openr66.protocol.exception.OpenR66ProtocolSystemException;
 import openr66.protocol.localhandler.packet.EndRequestPacket;
 import openr66.protocol.localhandler.packet.ErrorPacket;
-import openr66.protocol.networkhandler.NetworkServerPipelineFactory;
 import openr66.protocol.networkhandler.NetworkTransaction;
 import openr66.protocol.utils.ChannelUtils;
 
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.Channels;
-import org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler;
-import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
-import org.jboss.netty.handler.traffic.TrafficCounter;
 
 /**
  * Retrieve transfer runner
@@ -260,16 +255,6 @@ public class RetrieveRunner extends Thread {
         ChannelUtils.close(channel);
         done = true;
     }
-
-    private static final boolean waitTraffic(long limit, long bytes, long lastTime,
-            long curtime) {
-        long interval = curtime - lastTime;
-        if (interval == 0) {
-            // Time is too short, so just lets continue
-            return false;
-        }
-        return (bytes * 1000 / limit - interval) >= 10;
-    }
     /**
      * Write the next block when the channel is ready to prevent OOM
      * @param block
@@ -283,46 +268,26 @@ public class RetrieveRunner extends Thread {
             DataBlock block, LocalChannelReference localChannelReference)
         throws OpenR66ProtocolPacketException, OpenR66RunnerErrorException,
             OpenR66ProtocolSystemException {
+        return ChannelUtils.writeBackDataBlock(localChannelReference, block);
+        // XXX Keep this in case the bug comes back
+        /*
         // Test if channel is writable in order to prevent OOM
         if (! localChannelReference.getNetworkChannel().isWritable()) {
             return ChannelUtils.writeBackDataBlock(localChannelReference, block);
         } else if (Configuration.configuration.anyBandwidthLimitation) {
             // Patch to limit the impact when no real reason to wait for writing
             // double computation of traffic but ok
-            long currentTime = System.currentTimeMillis();
-            if (Configuration.configuration.serverGlobalWriteLimit > 0) {
-                GlobalTrafficShapingHandler gts = Configuration.configuration.getGlobalTrafficShapingHandler();
-                if (gts != null) {
-                    TrafficCounter tc = gts.getTrafficCounter();
-                    if (tc != null) {
-                        if (! waitTraffic(Configuration.configuration.serverGlobalWriteLimit, 
-                                tc.getCurrentWrittenBytes(), 
-                                tc.getLastTime(), currentTime)) {
-                            ChannelUtils.writeBackDataBlock(localChannelReference, block);
-                            return Channels.succeededFuture(localChannelReference.getNetworkChannel());
-                        }
-                    }
-                }
-            }
-            if (Configuration.configuration.serverChannelWriteLimit > 0) {
-                ChannelTrafficShapingHandler cts = (ChannelTrafficShapingHandler) localChannelReference.getNetworkChannel().getPipeline().get(NetworkServerPipelineFactory.LIMITCHANNEL);
-                if (cts != null) {
-                    TrafficCounter tc = cts.getTrafficCounter();
-                    if (tc != null) {
-                        if (! waitTraffic(Configuration.configuration.serverChannelWriteLimit, 
-                                tc.getCurrentWrittenBytes(), 
-                                tc.getLastTime(), currentTime)) {
-                            ChannelUtils.writeBackDataBlock(localChannelReference, block);
-                            return Channels.succeededFuture(localChannelReference.getNetworkChannel());
-                        }
-                    }
-                }
+            long wait = ChannelUtils.willBeWaitingWriting(localChannelReference, block.getByteCount());
+            if (wait == 0) {
+                ChannelUtils.writeBackDataBlock(localChannelReference, block);
+                return Channels.succeededFuture(localChannelReference.getNetworkChannel());
             }
             return ChannelUtils.writeBackDataBlock(localChannelReference, block);
         } else {
             ChannelUtils.writeBackDataBlock(localChannelReference, block);
             return Channels.succeededFuture(localChannelReference.getNetworkChannel());
         }
+        */
     }
 
     /**

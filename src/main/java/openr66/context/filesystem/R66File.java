@@ -121,36 +121,39 @@ public class R66File extends FilesystemBasedFileImpl {
                 retrieveDone = true;
                 return;
             }
+            ChannelFuture future1 = null, future2 = null;
+            if ((block != null && (running.get()))) {
+                future1 = RetrieveRunner.writeWhenPossible(
+                        block, localChannelReference);
+            }
             // While not last block
-            ChannelFuture future = null;
             while (block != null && (!block.isEOF()) && (running.get())) {
-                future = RetrieveRunner.writeWhenPossible(
-                        block, localChannelReference).awaitUninterruptibly();
-                if (future.isCancelled()) {
-                    return;
-                }
                 try {
                     block = readDataBlock();
                 } catch (FileEndOfTransferException e) {
                     // Wait for last write
-                    if (future.isSuccess()) {
+                    future1.awaitUninterruptibly();
+                    if (future1.isSuccess()) {
                         retrieveDone = true;
                     }
                     return;
                 }
+                future2 = RetrieveRunner.writeWhenPossible(
+                        block, localChannelReference);
+                future1.awaitUninterruptibly();
+                if (future1.isCancelled()) {
+                    return;
+                }
+                future1 = future2;
             }
             if (!running.get()) {
                 // stopped
                 return;
             }
-            // Last block
-            if (block != null) {
-                future = RetrieveRunner.writeWhenPossible(
-                        block, localChannelReference).awaitUninterruptibly();
-            }
             // Wait for last write
-            if (future != null) {
-                if (future.isCancelled()) {
+            if (future1 != null) {
+                future1.awaitUninterruptibly();
+                if (future1.isCancelled()) {
                     return;
                 }
             }

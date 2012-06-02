@@ -53,6 +53,9 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.group.ChannelGroupFuture;
 import org.jboss.netty.channel.group.ChannelGroupFutureListener;
 import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
+import org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler;
+import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
+import org.jboss.netty.handler.traffic.TrafficCounter;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.LoggerContext;
@@ -282,6 +285,65 @@ public class ChannelUtils extends Thread {
     throws OpenR66ProtocolPacketException {
         return Channels.write(localChannelReference.getLocalChannel(), packet);
     }
+    
+
+    /**
+     * Compute Wait for Traffic in Write (ugly turn around)
+     * @param localChannelReference
+     * @param size
+     * @return the wait in ms
+     */
+    public static final long willBeWaitingWriting(LocalChannelReference localChannelReference, int size) {
+        ChannelTrafficShapingHandler cts = localChannelReference.getChannelTrafficShapingHandler();
+        return willBeWaitingWriting(cts, size);
+    }
+
+    /**
+     * Compute Wait for Traffic in Write (ugly turn around)
+     * @param cts
+     * @param size
+     * @return the wait in ms
+     */
+    public static final long willBeWaitingWriting(ChannelTrafficShapingHandler cts, int size) {
+        long currentTime = System.currentTimeMillis();
+        if (cts != null && Configuration.configuration.serverChannelWriteLimit > 0) {
+            TrafficCounter tc = cts.getTrafficCounter();
+            if (tc != null) {
+                long wait = waitTraffic(Configuration.configuration.serverChannelWriteLimit, 
+                        tc.getCurrentWrittenBytes()+size, 
+                        tc.getLastTime(), currentTime);
+                if (wait > 0) {
+                    return wait;
+                }
+            }
+        }
+        if (Configuration.configuration.serverGlobalWriteLimit > 0) {
+            GlobalTrafficShapingHandler gts = Configuration.configuration.getGlobalTrafficShapingHandler();
+            if (gts != null) {
+                TrafficCounter tc = gts.getTrafficCounter();
+                if (tc != null) {
+                    long wait = waitTraffic(Configuration.configuration.serverGlobalWriteLimit, 
+                                tc.getCurrentWrittenBytes()+size, 
+                                tc.getLastTime(), currentTime);
+                    if (wait > 0) {
+                        return wait;
+                    }
+                }
+            }
+        }
+        return 0;
+    }
+    
+    private static final long waitTraffic(long limit, long bytes, long lastTime,
+            long curtime) {
+        long interval = curtime - lastTime;
+        if (interval == 0) {
+            // Time is too short, so just lets continue
+            return 0;
+        }
+        return ((bytes * 1000 / limit - interval) / 10 ) * 10;
+    }
+
     /**
      * Exit global ChannelFactory
      */
