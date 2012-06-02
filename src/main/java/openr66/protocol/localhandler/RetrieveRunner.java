@@ -44,6 +44,7 @@ import openr66.protocol.utils.ChannelUtils;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.channel.Channels;
 
 /**
  * Retrieve transfer runner
@@ -268,9 +269,9 @@ public class RetrieveRunner extends Thread {
             DataBlock block, LocalChannelReference localChannelReference)
         throws OpenR66ProtocolPacketException, OpenR66RunnerErrorException,
             OpenR66ProtocolSystemException {
-        return ChannelUtils.writeBackDataBlock(localChannelReference, block);
+        //return ChannelUtils.writeBackDataBlock(localChannelReference, block);
         // XXX Keep this in case the bug comes back
-        /*
+        
         // Test if channel is writable in order to prevent OOM
         if (! localChannelReference.getNetworkChannel().isWritable()) {
             return ChannelUtils.writeBackDataBlock(localChannelReference, block);
@@ -287,7 +288,7 @@ public class RetrieveRunner extends Thread {
             ChannelUtils.writeBackDataBlock(localChannelReference, block);
             return Channels.succeededFuture(localChannelReference.getNetworkChannel());
         }
-        */
+        
     }
 
     /**
