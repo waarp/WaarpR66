@@ -211,6 +211,10 @@ public class R66Session implements SessionInterface {
         }
         // No clean of file since it can be used after channel is closed
         isReady = false;
+        if (businessObject != null) {
+            businessObject.releaseResources();
+            businessObject = null;
+        }
     }
 
     /*
