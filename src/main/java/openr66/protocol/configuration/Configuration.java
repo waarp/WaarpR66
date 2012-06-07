@@ -671,7 +671,7 @@ public class Configuration {
                 httpsChannelFactory);
         // Set up the event pipeline factory.
         httpsBootstrap.setPipelineFactory(new HttpSslPipelineFactory(useHttpCompression,
-                true, execServerWorker));
+                false, execServerWorker));
         httpsBootstrap.setOption("child.tcpNoDelay", true);
         httpsBootstrap.setOption("child.keepAlive", true);
         httpsBootstrap.setOption("child.reuseAddress", true);
