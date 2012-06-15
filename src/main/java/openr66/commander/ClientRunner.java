@@ -505,7 +505,7 @@ public class ClientRunner extends Thread {
             localChannelReference.sessionNewState(R66FiniteDualStates.REQUESTR);
             try {
                 ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-                        request);
+                        request, false);
             } catch (OpenR66ProtocolPacketException e) {
                 // propose to redo
                 logger.warn("Cannot transfer request to " + host.toString());
@@ -542,7 +542,7 @@ public class ClientRunner extends Thread {
         localChannelReference.sessionNewState(R66FiniteDualStates.REQUESTR);
         try {
             ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-                    request);
+                    request, false);
         } catch (OpenR66ProtocolPacketException e) {
             // propose to redo
             logger.warn("Cannot transfer request to " + host.toString());

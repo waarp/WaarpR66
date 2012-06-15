@@ -121,7 +121,7 @@ public class LogExport implements Runnable {
         }
         localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
         try {
-            ChannelUtils.writeAbstractLocalPacket(localChannelReference, valid);
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, valid, false);
         } catch (OpenR66ProtocolPacketException e) {
             logger.error("Bad Protocol", e);
             Channels.close(localChannelReference.getLocalChannel());

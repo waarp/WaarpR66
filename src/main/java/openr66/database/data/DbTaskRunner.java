@@ -2698,7 +2698,7 @@ public class DbTaskRunner extends AbstractDbData {
                         finalValue.code.getCode(), ErrorPacket.FORWARDCLOSECODE);
                 try {
                     ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-                            errorPacket).awaitUninterruptibly();
+                            errorPacket, true);
                     finalValue.isAnswered = true;
                 } catch (OpenR66ProtocolPacketException e1) {
                     // should not be

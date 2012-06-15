@@ -387,6 +387,11 @@ public class Configuration {
     private volatile OrderedMemoryAwareThreadPoolExecutor localPipelineExecutor;
 
     /**
+     * ThreadPoolExecutor for LocalClient
+     */
+    private volatile OrderedMemoryAwareThreadPoolExecutor localClientPipelineExecutor;
+
+    /**
      * ThreadPoolExecutor for Http and Https Server
      */
     protected volatile OrderedMemoryAwareThreadPoolExecutor httpPipelineExecutor;
@@ -552,6 +557,10 @@ public class Configuration {
                 CLIENT_THREAD * 100, maxGlobalMemory / 10, maxGlobalMemory,
                 1000, TimeUnit.MILLISECONDS, new LocalPacketSizeEstimator(),
                 new GgThreadFactory("LocalExecutor"));
+        localClientPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
+                CLIENT_THREAD * 100, maxGlobalMemory / 10, maxGlobalMemory,
+                1000, TimeUnit.MILLISECONDS, new LocalPacketSizeEstimator(),
+                new GgThreadFactory("LocalClientExecutor"));
         if (useLocalExec) {
             LocalExecClient.initialize();
         }
@@ -768,6 +777,10 @@ public class Configuration {
             ExecutorUtil.terminate(localPipelineExecutor);
             localPipelineExecutor = null;
         }
+        if (localClientPipelineExecutor != null) {
+            ExecutorUtil.terminate(localClientPipelineExecutor);
+            localClientPipelineExecutor = null;
+        }
         if (httpPipelineExecutor != null) {
             ExecutorUtil.terminate(httpPipelineExecutor);
             httpPipelineExecutor = null;
@@ -942,6 +955,13 @@ public class Configuration {
      */
     public OrderedMemoryAwareThreadPoolExecutor getLocalPipelineExecutor() {
         return localPipelineExecutor;
+    }
+
+    /**
+     * @return the localPipelineExecutor
+     */
+    public OrderedMemoryAwareThreadPoolExecutor getLocalClientPipelineExecutor() {
+        return localClientPipelineExecutor;
     }
 
     /**

@@ -132,7 +132,10 @@ public class R66File extends FilesystemBasedFileImpl {
                     block = readDataBlock();
                 } catch (FileEndOfTransferException e) {
                     // Wait for last write
-                    future1.awaitUninterruptibly();
+                    try {
+                        future1.await();
+                    } catch (InterruptedException e1) {
+                    }
                     if (future1.isSuccess()) {
                         retrieveDone = true;
                     }
@@ -140,8 +143,11 @@ public class R66File extends FilesystemBasedFileImpl {
                 }
                 future2 = RetrieveRunner.writeWhenPossible(
                         block, localChannelReference);
-                future1.awaitUninterruptibly();
-                if (future1.isCancelled()) {
+                try {
+                    future1.await();
+                } catch (InterruptedException e) {
+                }
+                if (! future1.isSuccess()) {
                     return;
                 }
                 future1 = future2;
@@ -152,8 +158,11 @@ public class R66File extends FilesystemBasedFileImpl {
             }
             // Wait for last write
             if (future1 != null) {
-                future1.awaitUninterruptibly();
-                if (future1.isCancelled()) {
+                try {
+                    future1.await();
+                } catch (InterruptedException e) {
+                }
+                if (! future1.isSuccess()) {
                     return;
                 }
             }

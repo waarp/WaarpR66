@@ -95,7 +95,7 @@ public class ServerShutdown {
             return;
         }
         localChannelReference.sessionNewState(R66FiniteDualStates.SHUTDOWN);
-        ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet);
+        ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false);
         localChannelReference.getFutureRequest().awaitUninterruptibly();
         if (localChannelReference.getFutureRequest().isSuccess()) {
             logger.warn("Shutdown OK");

@@ -72,7 +72,7 @@ public abstract class AbstractExecJavaTask implements R66Runnable {
             session.getLocalChannelReference().validateRequest(result);
             try {
                 ChannelUtils.writeAbstractLocalPacket(session.getLocalChannelReference(),
-                        packet).awaitUninterruptibly();
+                        packet, true);
             } catch (OpenR66ProtocolPacketException e) {
             }
         }
@@ -109,7 +109,7 @@ public abstract class AbstractExecJavaTask implements R66Runnable {
             ErrorPacket error = new ErrorPacket("Command Incompatible",
                 ErrorCode.ExternalOp.getCode(), ErrorPacket.FORWARDCLOSECODE);
             try {
-                ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
+                ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
             } catch (OpenR66ProtocolPacketException e1) {
             }
             localChannelReference.invalidateRequest(result);

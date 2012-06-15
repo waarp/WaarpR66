@@ -470,8 +470,7 @@ public class NetworkTransaction {
                 ConnectionErrorPacket error = new ConnectionErrorPacket(
                         "Cannot connect to localChannel since no SSL is supported", null);
                 try {
-                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, error)
-                        .awaitUninterruptibly();
+                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
                 } catch (OpenR66ProtocolPacketException e) {
                 }
             }
@@ -482,8 +481,7 @@ public class NetworkTransaction {
         logger.debug("Will send request of connection validation");
         localChannelReference.sessionNewState(AUTHENTR);
         try {
-            ChannelUtils.writeAbstractLocalPacket(localChannelReference, authent)
-            .awaitUninterruptibly();
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, authent, true);
         } catch (OpenR66ProtocolPacketException e) {
             R66Result finalValue = new R66Result(
                     new OpenR66ProtocolSystemException("Wrong Authent Protocol",e),
@@ -494,8 +492,7 @@ public class NetworkTransaction {
                 ConnectionErrorPacket error = new ConnectionErrorPacket(
                         "Cannot connect to localChannel since Authent Protocol is invalid", null);
                 try {
-                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, error)
-                        .awaitUninterruptibly();
+                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
                 } catch (OpenR66ProtocolPacketException e1) {
                 }
             }
@@ -516,8 +513,7 @@ public class NetworkTransaction {
                 ConnectionErrorPacket error = new ConnectionErrorPacket(
                         "Cannot connect to localChannel with Out of Time", null);
                 try {
-                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, error)
-                        .awaitUninterruptibly();
+                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
                 } catch (OpenR66ProtocolPacketException e) {
                 }
             }

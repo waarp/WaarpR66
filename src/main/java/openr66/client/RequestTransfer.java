@@ -322,7 +322,7 @@ public class RequestTransfer implements Runnable {
                 code);
         localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
         try {
-            ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet);
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false);
         } catch (OpenR66ProtocolPacketException e) {
             logger.error("Cannot transfer request to "+host.toString());
             Channels.close(localChannelReference.getLocalChannel());

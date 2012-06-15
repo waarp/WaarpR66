@@ -142,7 +142,7 @@ public class RetrieveRunner extends Thread {
                     validPacket.setOptional(session.getBusinessObject().getInfo());
                 }
                 try {
-                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket).awaitUninterruptibly();
+                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket, true);
                 } catch (OpenR66ProtocolPacketException e) {
                 }
                 if (!localChannelReference.getFutureRequest().awaitUninterruptibly(
@@ -169,8 +169,7 @@ public class RetrieveRunner extends Thread {
                                 localChannelReference.getFutureEndTransfer().getResult().code.getCode(), 
                                 ErrorPacket.FORWARDCLOSECODE);
                         try {
-                            ChannelUtils.writeAbstractLocalPacket(localChannelReference, error)
-                                .awaitUninterruptibly();
+                            ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
                         } catch (OpenR66ProtocolPacketException e) {
                         }
                     }
@@ -199,7 +198,7 @@ public class RetrieveRunner extends Thread {
                             validPacket.setOptional(session.getBusinessObject().getInfo());
                         }
                         try {
-                            ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket).awaitUninterruptibly();
+                            ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket, true);
                         } catch (OpenR66ProtocolPacketException e) {
                         }
                     }
@@ -222,8 +221,7 @@ public class RetrieveRunner extends Thread {
                                     localChannelReference.getFutureEndTransfer().getResult().code.getCode(), 
                                     ErrorPacket.FORWARDCLOSECODE);
                             try {
-                                ChannelUtils.writeAbstractLocalPacket(localChannelReference, error)
-                                    .awaitUninterruptibly();
+                                ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
                             } catch (OpenR66ProtocolPacketException e) {
                             }
                         }
@@ -248,7 +246,7 @@ public class RetrieveRunner extends Thread {
         ErrorPacket error = new ErrorPacket("Transfer in error",
                 ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
         try {
-            ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
         } catch (OpenR66ProtocolPacketException e1) {
         }
         localChannelReference.invalidateRequest(result);

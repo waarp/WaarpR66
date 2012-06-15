@@ -398,7 +398,10 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
             networkPacket = new NetworkPacket(localId, remoteId, error);
         } catch (OpenR66ProtocolPacketException e) {
         }
-        Channels.write(channel, networkPacket).awaitUninterruptibly();
+        try {
+            Channels.write(channel, networkPacket).await();
+        } catch (InterruptedException e) {
+        }
     }
 
     /**

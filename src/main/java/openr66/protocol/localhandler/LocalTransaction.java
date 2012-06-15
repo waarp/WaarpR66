@@ -205,7 +205,15 @@ public class LocalTransaction {
                 // Now send first a Startup message
                 StartupPacket startup = new StartupPacket(
                         localChannelReference.getLocalId());
-                Channels.write(channel, startup).awaitUninterruptibly();
+                try {
+                    Channels.write(channel, startup).await();
+                } catch (InterruptedException e) {
+                    logger.error("Can't connect to local server due to interruption" + i);
+                    validLCR.cancel();
+                    validLocalChannelHashMap.remove(remoteId);
+                    throw new OpenR66ProtocolSystemException(
+                            "Cannot connect to local handler", e);
+                }
                 validLCR.setSuccess();
                 return localChannelReference;
             } else {
@@ -346,7 +354,7 @@ public class LocalTransaction {
             analysis = true;
         }
         
-        public void run(Timeout timeout) throws Exception {
+        public void run(Timeout timeout) {
             // give a chance for the LocalChannel to stop normally
             if (analysis) {
                 boolean wait = false;
@@ -378,8 +386,10 @@ public class LocalTransaction {
                 }
             }
             logger.debug("Will close local channel");
-            Channels.close(localChannelReference.getLocalChannel())
-                    .awaitUninterruptibly();
+            try {
+                Channels.close(localChannelReference.getLocalChannel()).await();
+            } catch (InterruptedException e) {
+            }
             localTransaction.remove(localChannelReference.getLocalChannel());
             semaphore.decrementAndGet();
         }
@@ -479,8 +489,11 @@ public class LocalTransaction {
                             localChannelReference.getLocalId(),
                             localChannelReference.getRemoteId(),
                             packet.getType(), buffer);
-                    Channels.write(localChannelReference.getNetworkChannel(),
-                            message).awaitUninterruptibly();
+                    try {
+                        Channels.write(localChannelReference.getNetworkChannel(),
+                                message).await();
+                    } catch (InterruptedException e1) {
+                    }
                     try {
                         session.setFinalizeTransfer(false, result);
                     } catch (OpenR66RunnerErrorException e) {

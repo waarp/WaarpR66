@@ -182,7 +182,7 @@ public class RequestInformation implements Runnable {
         }
         localChannelReference.sessionNewState(R66FiniteDualStates.INFORMATION);
         try {
-            ChannelUtils.writeAbstractLocalPacket(localChannelReference, request);
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, request, false);
         } catch (OpenR66ProtocolPacketException e) {
             logger.error("Cannot write request");
             R66Result result = new R66Result(null, true, ErrorCode.TransferError, null);

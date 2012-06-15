@@ -490,10 +490,15 @@ public class FileUtils {
         long size = 0;
         long transfert = 0;
         try {
-            long position = fileChannelOut.position();
+            transfert = fileChannelOut.position();
             size = fileChannelIn.size();
-            transfert = fileChannelOut.transferFrom(fileChannelIn, position,
-                    size);
+            int chunkSize = 8192;
+            while (transfert < size) {
+                if (chunkSize < size - transfert) {
+                    chunkSize = (int) (size - transfert);
+                }
+                transfert += fileChannelOut.transferFrom(fileChannelIn, transfert, chunkSize);
+            }
         } catch (IOException e) {
             try {
                 fileChannelOut.close();

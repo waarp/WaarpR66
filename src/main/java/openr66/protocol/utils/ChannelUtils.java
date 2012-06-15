@@ -232,7 +232,7 @@ public class ChannelUtils extends Thread {
         localChannelReference.sessionNewState(R66FiniteDualStates.DATAS);
         DataPacket data = new DataPacket(runner.getRank(), block.getBlock()
                 .copy(), md5);
-        ChannelFuture future = writeAbstractLocalPacket(localChannelReference, data);
+        ChannelFuture future = writeAbstractLocalPacket(localChannelReference, data, false);
         runner.incrementRank();
         return future;
     }
@@ -249,17 +249,19 @@ public class ChannelUtils extends Thread {
         EndTransferPacket packet = new EndTransferPacket(
                 LocalPacketFactory.REQUESTPACKET);
         localChannelReference.sessionNewState(R66FiniteDualStates.ENDTRANSFERS);
-        writeAbstractLocalPacket(localChannelReference, packet);
+        writeAbstractLocalPacket(localChannelReference, packet, false);
     }
     /**
      * Write an AbstractLocalPacket to the network Channel
      * @param localChannelReference
      * @param packet
+     * @param wait
      * @return the ChannelFuture on write operation
      * @throws OpenR66ProtocolPacketException
      */
     public static ChannelFuture writeAbstractLocalPacket(
-            LocalChannelReference localChannelReference, AbstractLocalPacket packet)
+            LocalChannelReference localChannelReference, AbstractLocalPacket packet,
+            boolean wait)
     throws OpenR66ProtocolPacketException {
         NetworkPacket networkPacket;
         try {
@@ -270,7 +272,16 @@ public class ChannelUtils extends Thread {
                     e);
             throw e;
         }
-        return Channels.write(localChannelReference.getNetworkChannel(), networkPacket);
+        if (wait) {
+            ChannelFuture future = Channels.write(localChannelReference.getNetworkChannel(), networkPacket);
+            try {
+                return future.await();
+            } catch (InterruptedException e) {
+                return future;
+            }
+        } else {
+            return Channels.write(localChannelReference.getNetworkChannel(), networkPacket);
+        }
     }
 
     /**

@@ -181,8 +181,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
                 final ErrorPacket errorPacket = new ErrorPacket(exception
                         .getMessage(),
                         ErrorCode.RemoteError.getCode(), ErrorPacket.FORWARDCLOSECODE);
-                ChannelUtils.writeAbstractLocalPacket(localChannelReference, errorPacket)
-                    .awaitUninterruptibly();
+                ChannelUtils.writeAbstractLocalPacket(localChannelReference, errorPacket, true);
                 if (!localChannelReference.getFutureRequest().isDone()) {
                     localChannelReference.invalidateRequest(new R66Result(
                             exception, localChannelReference.getSession(), true, ErrorCode.Internal, null));

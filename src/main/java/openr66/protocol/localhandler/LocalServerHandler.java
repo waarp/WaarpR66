@@ -283,8 +283,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
                                 packet.getClass().getName(),
                                 ErrorCode.ConnectionImpossible.getCode(),
                         ErrorPacket.FORWARDCLOSECODE);
-                Channels.write(e.getChannel(), errorPacket)
-                        .awaitUninterruptibly();
+                try {
+                    Channels.write(e.getChannel(), errorPacket).await();
+                } catch (InterruptedException e1) {
+                }
                 localChannelReference.invalidateRequest(new R66Result(
                         new OpenR66ProtocolSystemException(
                                 "No LocalChannelReference"), session, true,
@@ -347,7 +349,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                                     packet.getClass().getName(),
                                     ErrorCode.Unimplemented.getCode(),
                             ErrorPacket.FORWARDCLOSECODE);
-                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, errorPacket).awaitUninterruptibly();
+                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, errorPacket, true);
                     ChannelUtils.close(e.getChannel());
                     break;
                 }
@@ -385,7 +387,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     final ErrorPacket errorPacket = new ErrorPacket(
                             "Unkown Mesg: " + packet.getClass().getName(),
                             ErrorCode.Unimplemented.getCode(), ErrorPacket.FORWARDCLOSECODE);
-                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, errorPacket).awaitUninterruptibly();
+                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, errorPacket, true);
                     ChannelUtils.close(e.getChannel());
                 }
             }
@@ -536,7 +538,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                             code.getCode(), ErrorPacket.FORWARDCLOSECODE);
                     try {
                         ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-                                errorPacket).awaitUninterruptibly();
+                                errorPacket, true);
                     } catch (OpenR66ProtocolPacketException e1) {
                         // should not be
                     }
@@ -590,7 +592,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
             logger.error("Cannot startup");
             ErrorPacket error = new ErrorPacket("Cannot startup connection",
                     ErrorCode.ConnectionImpossible.getCode(), ErrorPacket.FORWARDCLOSECODE);
-            Channels.write(channel, error).awaitUninterruptibly();
+            try {
+                Channels.write(channel, error).await();
+            } catch (InterruptedException e) {
+            }
             // Cannot do writeBack(error, true);
             session.setStatus(40);
             ChannelCloseTimer.closeFutureChannel(channel);
@@ -631,7 +636,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
         ErrorPacket error = new ErrorPacket("Connection not allowed",
                 ErrorCode.BadAuthent.getCode(),
                 ErrorPacket.FORWARDCLOSECODE);
-        ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
+        ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
         localChannelReference.validateConnection(false, result);
         ChannelCloseTimer.closeFutureChannel(channel);
     }
@@ -668,7 +673,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             ErrorPacket error = new ErrorPacket("Service unavailable",
                     ErrorCode.ConnectionImpossible.getCode(),
                     ErrorPacket.FORWARDCLOSECODE);
-            ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
             localChannelReference.validateConnection(false, result);
             ChannelCloseTimer.closeFutureChannel(channel);
             session.setStatus(43);
@@ -732,7 +737,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             NetworkTransaction.addClient(localChannelReference.getNetworkChannel(),
                     packet.getHostId());
             packet.validate(session.getAuth().isSsl());
-            ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet);
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false);
             session.setStatus(98);
         }
     }
@@ -809,7 +814,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     true, code, runner);
             // now try to inform other
             try {
-                ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet).
+                ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false).
                     addListener(new RunnerChannelFutureListener(localChannelReference, result));
             } catch (OpenR66ProtocolPacketException e) {
             }
@@ -832,7 +837,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     true, code, runner);
             // now try to inform other
             try {
-                ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet).
+                ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false).
                     addListener(new RunnerChannelFutureListener(localChannelReference, result));
             } catch (OpenR66ProtocolPacketException e) {
             }
@@ -910,14 +915,14 @@ public class LocalServerHandler extends SimpleChannelHandler {
             packet.validate();
             packet.setCode(code.code);
             session.newState(ERROR);
-            ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet).awaitUninterruptibly();
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, true);
         } else {
             session.newState(ERROR);
             ErrorPacket error = new ErrorPacket(
                 "TaskRunner initialisation in error: "+e1
                         .getMessage()+" for "+packet.toString()+" since "+code.mesg,
                         code.getCode(), ErrorPacket.FORWARDCLOSECODE);
-            ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
         }
         session.setStatus(47);
         ChannelCloseTimer.closeFutureChannel(channel);
@@ -1151,7 +1156,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             session.newState(ERROR);
             ErrorPacket error = new ErrorPacket("PreTask in error: "+e
                     .getMessage(), runner.getErrorInfo().getCode(), ErrorPacket.FORWARDCLOSECODE);
-            ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
             localChannelReference.invalidateRequest(new R66Result(e, session,
                     true, runner.getErrorInfo(), runner));
             try {
@@ -1178,7 +1183,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             ValidPacket validPacket = new ValidPacket("Change Filename by Pre action on sender",
                     runner.getFilename(), LocalPacketFactory.REQUESTPACKET);
             ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-                    validPacket).awaitUninterruptibly();
+                    validPacket, true);
         }
         session.setReady(true);
         Configuration.configuration.getLocalTransaction().setFromId(runner, localChannelReference);
@@ -1200,7 +1205,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             }
             packet.validate();
             session.newState(REQUESTD);
-            ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet).awaitUninterruptibly();
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, true);
         } else {
             session.newState(REQUESTD);
             // requester => might be a client
@@ -1257,7 +1262,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             session.newState(ERROR);
             ErrorPacket error = new ErrorPacket("Transfer in error due previously aborted transmission",
                     ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
-            ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
             try {
                 session.setFinalizeTransfer(false, new R66Result(
                         new OpenR66ProtocolPacketException(
@@ -1296,7 +1301,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     }
                     ErrorPacket error = new ErrorPacket("Transfer in error due to bad rank transmission",
                             ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
-                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
+                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
                     session.setStatus(96);
                     ChannelCloseTimer.closeFutureChannel(channel);
                     return;
@@ -1318,7 +1323,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 }
                 ErrorPacket error = new ErrorPacket("Transfer in error due to bad rank transmission",
                         ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
-                ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
+                ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
                 session.setStatus(20);
                 ChannelCloseTimer.closeFutureChannel(channel);
                 return;
@@ -1342,7 +1347,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 ErrorPacket error = new ErrorPacket(
                         "Transfer in error due to bad MD5",
                         ErrorCode.MD5Error.getCode(), ErrorPacket.FORWARDCLOSECODE);
-                ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
+                ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
                 session.setStatus(21);
                 ChannelCloseTimer.closeFutureChannel(channel);
                 return;
@@ -1367,7 +1372,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 }
                 ErrorPacket error = new ErrorPacket("Transfer in error",
                         ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
-                ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
+                ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
                 session.setStatus(22);
                 ChannelCloseTimer.closeFutureChannel(channel);
                 return;
@@ -1398,11 +1403,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
             result.other = validPacket;
             session.newState(VALIDOTHER);
             localChannelReference.validateRequest(result);
-            ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket).awaitUninterruptibly();
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket, true);
             logger.warn("Valid TEST MESSAGE: " +packet.toString());
             ChannelCloseTimer.closeFutureChannel(channel);
         } else {
-            ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet);
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false);
         }
     }
     /**
@@ -1433,7 +1438,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 packet.validate();
                 try {
                     ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-                            packet).awaitUninterruptibly();
+                            packet, false);
                 } catch (OpenR66ProtocolPacketException e) {
                     // ignore
                 }
@@ -1510,7 +1515,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 localChannelReference.validateEndTransfer(result);
                 localChannelReference.validateRequest(result);
                 ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-                        validPacket).awaitUninterruptibly();
+                        validPacket, true);
                 Channels.close(channel);
             } else {
                 // ls pr mls from current directory and filename
@@ -1526,8 +1531,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     session.newState(ERROR);
                     ErrorPacket error = new ErrorPacket("Unknown Request "+request,
                             ErrorCode.Warning.getCode(), ErrorPacket.FORWARDCLOSECODE);
-                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).
-                        awaitUninterruptibly();
+                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
                     ChannelCloseTimer.closeFutureChannel(channel);
                     return;
                 }
@@ -1540,15 +1544,14 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 localChannelReference.validateEndTransfer(result);
                 localChannelReference.validateRequest(result);
                 ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-                        validPacket).awaitUninterruptibly();
+                        validPacket, true);
                 ChannelCloseTimer.closeFutureChannel(channel);
             }
         } catch (CommandAbstractException e) {
             session.newState(ERROR);
             ErrorPacket error = new ErrorPacket("Error while Request "+request+" "+e.getMessage(),
                     ErrorCode.Internal.getCode(), ErrorPacket.FORWARDCLOSECODE);
-            ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).
-                awaitUninterruptibly();
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
             ChannelCloseTimer.closeFutureChannel(channel);
         }
     }
@@ -1621,8 +1624,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                         }
                         session.setFinalizeTransfer(false, result);
                         try {
-                            ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet)
-                                .awaitUninterruptibly();
+                            ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, true);
                         } catch (OpenR66ProtocolPacketException e) {
                         }
                     } else {
@@ -1708,7 +1710,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 localChannelReference.validateRequest(resulttest);
                 try {
                     ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-                            valid).awaitUninterruptibly();
+                            valid, true);
                 } catch (OpenR66ProtocolPacketException e) {
                 }
                 session.setStatus(27);
@@ -1804,7 +1806,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 localChannelReference.validateRequest(result);
                 try {
                     ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-                            valid).awaitUninterruptibly();
+                            valid, true);
                 } catch (OpenR66ProtocolPacketException e) {
                 }
                 Channels.close(channel);
@@ -1872,7 +1874,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 localChannelReference.validateRequest(result);
                 try {
                     ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-                            valid).awaitUninterruptibly();
+                            valid, true);
                 } catch (OpenR66ProtocolPacketException e) {
                 }
                 Channels.close(channel);
@@ -1983,7 +1985,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 localChannelReference.validateRequest(result);
                 try {
                     ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-                            valid).awaitUninterruptibly();
+                            valid, true);
                 } catch (OpenR66ProtocolPacketException e) {
                 }
                 Channels.close(channel);
@@ -2017,7 +2019,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     // inform back the requester
                     try {
                         ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-                                valid).awaitUninterruptibly();
+                                valid, true);
                     } catch (OpenR66ProtocolPacketException e) {
                     }
                     Channels.close(channel);
@@ -2052,7 +2054,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 // inform back the requester
                 try {
                     ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-                            valid).awaitUninterruptibly();
+                            valid, true);
                 } catch (OpenR66ProtocolPacketException e) {
                 }
                 Channels.close(channel);
@@ -2077,7 +2079,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                             ErrorPacket.FORWARDCLOSECODE);
                     try {
                         ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-                                error).awaitUninterruptibly();
+                                error, true);
                     } catch (OpenR66ProtocolPacketException e2) {
                     }
                     localChannelReference.invalidateRequest(new R66Result(e, session,
@@ -2135,7 +2137,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                 localChannelReference.validateRequest(result);
                 try {
                     ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-                            valid).awaitUninterruptibly();
+                            valid, true);
                 } catch (OpenR66ProtocolPacketException e) {
                 }
                 Channels.close(channel);
@@ -2214,7 +2216,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
             session.newState(ENDREQUESTR);
             try {
                 ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-                        packet).awaitUninterruptibly();
+                        packet, true);
             } catch (OpenR66ProtocolPacketException e) {
             }
         } else {
@@ -2300,7 +2302,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
                     "BusinessRequest in error: for "+packet.toString()+" since "+
                     result.getMessage(),
                     result.code.getCode(), ErrorPacket.FORWARDCLOSECODE);
-                ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
+                ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
                 session.setStatus(203);
             }
             session.setStatus(204);

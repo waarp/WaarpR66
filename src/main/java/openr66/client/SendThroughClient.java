@@ -270,8 +270,7 @@ public abstract class SendThroughClient extends AbstractTransfer {
                     validPacket.setOptional(localChannelReference.getSession().getBusinessObject().getInfo());
                 }
                 try {
-                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket)
-                        .awaitUninterruptibly();
+                    ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket, true);
                 } catch (OpenR66ProtocolPacketException e) {
                 }
                 if (!localChannelReference.getFutureRequest().awaitUninterruptibly(
@@ -309,7 +308,7 @@ public abstract class SendThroughClient extends AbstractTransfer {
             ErrorPacket error = new ErrorPacket("Transfer in error",
                     ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
             try {
-                ChannelUtils.writeAbstractLocalPacket(localChannelReference, error).awaitUninterruptibly();
+                ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
             } catch (OpenR66ProtocolPacketException e1) {
             }
             localChannelReference.invalidateRequest(result);
