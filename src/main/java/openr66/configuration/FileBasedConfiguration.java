@@ -50,6 +50,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.util.List;
 
 import openr66.context.authentication.R66Auth;
 import openr66.context.filesystem.R66Dir;
@@ -414,6 +415,15 @@ public class FileBasedConfiguration {
      */
     private static final String XML_CHECKVERSION = "checkversion";
     /**
+     * Check version in protocol
+     */
+    private static final String XML_BUSINESS = "business";
+    /**
+     * Check version in protocol
+     */
+    private static final String XML_BUSINESSID = "businessid";
+    
+    /**
      * Structure of the Configuration file
      *
      */
@@ -483,7 +493,8 @@ public class FileBasedConfiguration {
         new XmlDecl(XmlType.STRING, XML_DBDRIVER), 
         new XmlDecl(XmlType.STRING, XML_DBSERVER),
         new XmlDecl(XmlType.STRING, XML_DBUSER), 
-        new XmlDecl(XmlType.STRING, XML_DBPASSWD)
+        new XmlDecl(XmlType.STRING, XML_DBPASSWD),
+        new XmlDecl(XmlType.BOOLEAN, XML_SAVE_TASKRUNNERNODB)
     };
  
     /**
@@ -548,6 +559,7 @@ public class FileBasedConfiguration {
         new XmlDecl(XmlType.STRING, XML_WORKINGPATH),
         new XmlDecl(XmlType.STRING, XML_CONFIGPATH)
     };
+
     /**
      * Overall structure of the Configuration file
      */
@@ -560,6 +572,7 @@ public class FileBasedConfiguration {
     private static final String XML_NETWORK = "network";
     private static final String XML_SSL = "ssl";
     private static final String XML_DB = "db";
+    
     /**
      * Global Structure for Server Configuration
      */
@@ -570,7 +583,8 @@ public class FileBasedConfiguration {
         new XmlDecl(XML_SSL, XmlType.XVAL, XML_ROOT+XML_SSL, configSslDecls, false),
         new XmlDecl(XML_DIRECTORY, XmlType.XVAL, XML_ROOT+XML_DIRECTORY, configDirectoryDecls, false),
         new XmlDecl(XML_LIMIT, XmlType.XVAL, XML_ROOT+XML_LIMIT, configLimitDecls, false),
-        new XmlDecl(XML_DB, XmlType.XVAL, XML_ROOT+XML_DB, configDbDecls, false)
+        new XmlDecl(XML_DB, XmlType.XVAL, XML_ROOT+XML_DB, configDbDecls, false),
+        new XmlDecl(XML_BUSINESS, XmlType.STRING, XML_ROOT+XML_BUSINESS+"/"+XML_BUSINESSID, true)
     };
     /**
      * Global Structure for Client Configuration
@@ -581,7 +595,8 @@ public class FileBasedConfiguration {
         new XmlDecl(XML_SSL, XmlType.XVAL, XML_ROOT+XML_SSL, configSslDecls, false),
         new XmlDecl(XML_DIRECTORY, XmlType.XVAL, XML_ROOT+XML_DIRECTORY, configDirectoryDecls, false),
         new XmlDecl(XML_LIMIT, XmlType.XVAL, XML_ROOT+XML_LIMIT, configLimitDecls, false),
-        new XmlDecl(XML_DB, XmlType.XVAL, XML_ROOT+XML_DB, configDbDecls, false)
+        new XmlDecl(XML_DB, XmlType.XVAL, XML_ROOT+XML_DB, configDbDecls, false),
+        new XmlDecl(XML_BUSINESS, XmlType.STRING, XML_ROOT+XML_BUSINESS+"/"+XML_BUSINESSID, true)
     };
     /**
      * Global Structure for Submit only Client Configuration
@@ -1348,7 +1363,34 @@ public class FileBasedConfiguration {
                 return false;
             }
         }
+        value = hashConfig.get(XML_SAVE_TASKRUNNERNODB);
+        if (value != null && (!value.isEmpty())) {
+            config.saveTaskRunnerWithNoDb = value.getBoolean();
+        }
         return true;
+    }
+    /**
+     * Load white list for Business if any
+     *
+     * @param document
+     */
+    private static void loadBusinessWhiteList(Configuration config) {
+        XmlValue value = hashConfig.get(XML_BUSINESS);
+        if (value != null && (value.getList() != null)) {
+            @SuppressWarnings("unchecked")
+            List<String> ids = (List<String>) value.getList();
+            if (ids != null) {
+                for (String sval: ids) {
+                    if (sval.isEmpty()) {
+                        continue;
+                    }
+                    logger.warn("Business Allow: "+sval);
+                    config.businessWhiteSet.add(sval.trim());
+                }
+                ids.clear();
+                ids = null;
+            }
+        }
     }
     /**
      *
@@ -1683,6 +1725,7 @@ public class FileBasedConfiguration {
                 return false;
             }
         }
+        loadBusinessWhiteList(config);
         hashConfig.clear();
         hashConfig = null;
         configuration = null;
@@ -1764,6 +1807,7 @@ public class FileBasedConfiguration {
                 return false;
             }
         }
+        loadBusinessWhiteList(config);
         hashConfig.clear();
         hashConfig = null;
         configuration = null;

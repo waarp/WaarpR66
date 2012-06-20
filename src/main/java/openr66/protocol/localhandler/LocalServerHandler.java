@@ -2274,6 +2274,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
             throw new OpenR66ProtocolNotAuthenticatedException(
                     "Not authenticated while BusinessRequest received");
         }
+        if (!Configuration.configuration.businessWhiteSet.contains(session.getAuth().getUser())) {
+            throw new OpenR66ProtocolNotAuthenticatedException(
+                    "Not allow to execute a BusinessRequest");
+        }
         session.setStatus(200);
         String argRule = packet.getSheader();
         int delay = packet.getDelay();

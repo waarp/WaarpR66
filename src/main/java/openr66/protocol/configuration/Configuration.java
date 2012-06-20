@@ -39,6 +39,7 @@ import goldengate.snmp.GgSnmpAgent;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.HashSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -158,6 +159,10 @@ public class Configuration {
      * Version validation
      */
     public boolean extendedProtocol = true;
+    /**
+     * White List of allowed Partners to use Business Requests
+     */
+    public HashSet<String> businessWhiteSet = new HashSet<String>();
     /**
      * Actual Host ID
      */

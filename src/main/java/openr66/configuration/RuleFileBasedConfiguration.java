@@ -216,7 +216,7 @@ public class RuleFileBasedConfiguration {
      */
     public static String[] getHostIds(XmlValue value) {
         String []idsArray = null;
-        if (value == null || (value.isEmpty()) || value.getList().isEmpty()) {
+        if (value == null || (value.getList() == null) || value.getList().isEmpty()) {
             logger
             .info("Unable to find the id for Rule, setting to the default");
         } else {
