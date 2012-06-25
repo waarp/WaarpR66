@@ -5,7 +5,15 @@
 		<author email="fredbregier at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
-		<release version="2.2.5" date="2012-05-01" description="New functions">
+		<release version="2.3.1" date="2012-06-25" description="Last release with New functions">
+			<action dev="Frederic Bregier" type="add">Update jar dependencies</action>
+			<action dev="Frederic Bregier" type="add">Fix Http with 1 by 1 cookie handling from Netty 3.5.1</action>
+			<action dev="Frederic Bregier" type="add">Add host white list for Business Requests</action>
+			<action dev="Frederic Bregier" type="add">Handling await() instead of awaitUninterruptibly()</action>
+			<action dev="Frederic Bregier" type="add">Fix issue on FileChannel.transferTo or transferFrom</action>
+			<action dev="Frederic Bregier" type="add">No more SSL Renegotiation for HTTPS</action>
+			<action dev="Frederic Bregier" type="add">Move KeepAlive message response higher in the pipeline</action>
+			<action dev="Frederic Bregier" type="add">Optimization plus Pool DB Connection support</action>
 			<action dev="Frederic Bregier" type="add">Add support for Extended Protocol</action>
 			<action dev="Frederic Bregier" type="fix">Fix Sleep issue and Traffic Handler</action>
 			<action dev="Frederic Bregier" type="fix">Fix Huge Concurrent connections</action>
