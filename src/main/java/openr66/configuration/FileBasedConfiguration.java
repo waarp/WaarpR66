@@ -1816,7 +1816,7 @@ public class FileBasedConfiguration {
     /**
      * Initiate the configuration from the xml file for submit database client
      *
-     * @param configuration
+     * @param config
      * @param filename
      * @return True if OK
      */
