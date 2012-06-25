@@ -1737,7 +1737,6 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
             Set<Cookie> cookies = cookieDecoder.decode(cookieString);
             if(!cookies.isEmpty()) {
                 // Reset the sessions if necessary.
-                int nb = 0;
                 CookieEncoder cookieEncoder = new CookieEncoder(true);
                 boolean findSession = false;
                 for (Cookie cookie : cookies) {
@@ -1747,23 +1746,22 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                         } else {
                             findSession = true;
                             cookieEncoder.addCookie(cookie);
-                            nb++;
+                            response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+                            cookieEncoder = new CookieEncoder(true);
                         }
                     } else {
                         cookieEncoder.addCookie(cookie);
-                        nb++;
+                        response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+                        cookieEncoder = new CookieEncoder(true);
                     }
                 }
                 newSession = false;
                 if (! findSession) {
                     if (admin != null) {
                         cookieEncoder.addCookie(admin);
-                        nb++;
+                        response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
                         logger.debug("AddSession: "+uriRequest+":{}",admin);
                     }
-                }
-                if (nb > 0) {
-                    response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
                 }
             }
         } else if (admin != null) {

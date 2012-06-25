@@ -115,18 +115,15 @@ public class HttpWriteCacheEnable {
             Set<Cookie> cookies = cookieDecoder.decode(cookieString);
             if(!cookies.isEmpty()) {
                 // Reset the sessions if necessary.
-                int nb = 0;
                 CookieEncoder cookieEncoder = new CookieEncoder(true);
                 // Remove all Session for images
                 for (Cookie cookie : cookies) {
                     if (cookie.getName().equalsIgnoreCase(cookieNameToRemove)) {
                     } else {
                         cookieEncoder.addCookie(cookie);
-                        nb++;
+                        response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+                        cookieEncoder = new CookieEncoder(true);
                     }
-                }
-                if (nb > 0) {
-                    response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
                 }
             }
         }
