@@ -1,25 +1,24 @@
 /**
-   This file is part of Waarp Project.
-
-   Copyright 2009, Frederic Bregier, and individual contributors by the @author
-   tags. See the COPYRIGHT.txt in the distribution for a full listing of
-   individual contributors.
-
-   All Waarp Project is free software: you can redistribute it and/or 
-   modify it under the terms of the GNU General Public License as published 
-   by the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-
-   Waarp is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with Waarp .  If not, see <http://www.gnu.org/licenses/>.
+ * This file is part of Waarp Project.
+ * 
+ * Copyright 2009, Frederic Bregier, and individual contributors by the @author tags. See the
+ * COPYRIGHT.txt in the distribution for a full listing of individual contributors.
+ * 
+ * All Waarp Project is free software: you can redistribute it and/or modify it under the terms of
+ * the GNU General Public License as published by the Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ * 
+ * Waarp is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with Waarp . If not, see
+ * <http://www.gnu.org/licenses/>.
  */
 package org.waarp.openr66.client;
 
+import org.waarp.common.database.exception.WaarpDatabaseException;
+import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.openr66.commander.ClientRunner;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
@@ -31,18 +30,16 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolNotYetConnectionExcep
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
+import org.waarp.openr66.protocol.test.TestRecvThroughClient;
 import org.waarp.openr66.protocol.utils.R66Future;
-
-import org.waarp.common.database.exception.WaarpDatabaseException;
-import org.waarp.common.logging.WaarpInternalLoggerFactory;
 
 /**
  * Class for Recv Through client
- *
- * This class does not included the real file transfer since it is up to the business project
- * to implement how to write new data received from the remote host. If an error occurs,
- * no transfer log is kept.
- *
+ * 
+ * This class does not included the real file transfer since it is up to the business project to
+ * implement how to write new data received from the remote host. If an error occurs, no transfer
+ * log is kept.
+ * 
  * 1) Configuration must have been loaded<br>
  * <br>
  * 2) Pipeline and NetworkTransaction must have been initiated:<br>
@@ -64,95 +61,98 @@ import org.waarp.common.logging.WaarpInternalLoggerFactory;
  * <tt>     networkTransaction.closeAll();</tt><br>
  * <br>
  * <br>
+ * 
  * @see TestRecvThroughClient {@link TestRecvThroughClient} Class as example of usage
- *
+ * 
  * @author Frederic Bregier
- *
+ * 
  */
 public class RecvThroughClient extends AbstractTransfer {
-    protected final NetworkTransaction networkTransaction;
-    protected LocalChannelReference localChannelReference;
-    protected final RecvThroughHandler handler;
-    /**
-     * @param future
-     * @param remoteHost
-     * @param filename
-     * @param rulename
-     * @param fileinfo
-     * @param isMD5
-     * @param blocksize
-     * @param id
-     * @param networkTransaction
-     */
-    public RecvThroughClient(R66Future future, RecvThroughHandler handler, String remoteHost,
-            String filename, String rulename, String fileinfo, boolean isMD5,
-            int blocksize, long id, NetworkTransaction networkTransaction) {
-        // timestart since immediate
-        super(RecvThroughClient.class,
-                future, filename, rulename, fileinfo, isMD5, remoteHost, blocksize, id, null);
-        this.networkTransaction = networkTransaction;
-        this.handler = handler;
-    }
-    /**
-     * Prior to call this method, the pipeline and NetworkTransaction must have been initialized.
-     * It is the responsibility of the caller to finish all network resources.
-     */
-    public void run() {
-        if (logger == null) {
-            logger = WaarpInternalLoggerFactory.getLogger(RecvThroughClient.class);
-        }
-        DbTaskRunner taskRunner = this.initRequest();
-        try {
-            ClientRunner runner = new ClientRunner(networkTransaction, taskRunner, future);
-            runner.setRecvThroughHandler(handler);
-            OpenR66ProtocolNotYetConnectionException exc = null;
-            for (int i = 0; i < Configuration.RETRYNB; i++) {
-                try {
-                    runner.runTransfer();
-                    exc = null;
-                    break;
-                } catch (OpenR66RunnerErrorException e) {
-                    logger.error("Cannot Transfer", e);
-                    future.setResult(new R66Result(e, null, true,
-                            ErrorCode.Internal, taskRunner));
-                    future.setFailure(e);
-                    return;
-                } catch (OpenR66ProtocolNoConnectionException e) {
-                    logger.error("Cannot Connect", e);
-                    future.setResult(new R66Result(e, null, true,
-                            ErrorCode.ConnectionImpossible, taskRunner));
-                    future.setFailure(e);
-                    return;
-                } catch (OpenR66ProtocolPacketException e) {
-                    logger.error("Bad Protocol", e);
-                    future.setResult(new R66Result(e, null, true,
-                            ErrorCode.TransferError, taskRunner));
-                    future.setFailure(e);
-                    return;
-                } catch (OpenR66ProtocolNotYetConnectionException e) {
-                    logger.debug("Not Yet Connected", e);
-                    exc = e;
-                    continue;
-                }
-            }
-            if (exc!= null) {
-                taskRunner.setLocalChannelReference(new LocalChannelReference());
-                logger.error("Cannot Connect", exc);
-                future.setResult(new R66Result(exc, null, true,
-                        ErrorCode.ConnectionImpossible, taskRunner));
-                future.setFailure(exc);
-                return;
-            }
-        } finally {
-            if (taskRunner != null) {
-                if (future.isFailed() || nolog) {
-                    try {
-                        taskRunner.delete();
-                    } catch (WaarpDatabaseException e) {
-                    }
-                }
-            }
-        }
-    }
+	protected final NetworkTransaction	networkTransaction;
+	protected LocalChannelReference		localChannelReference;
+	protected final RecvThroughHandler	handler;
+
+	/**
+	 * @param future
+	 * @param remoteHost
+	 * @param filename
+	 * @param rulename
+	 * @param fileinfo
+	 * @param isMD5
+	 * @param blocksize
+	 * @param id
+	 * @param networkTransaction
+	 */
+	public RecvThroughClient(R66Future future, RecvThroughHandler handler, String remoteHost,
+			String filename, String rulename, String fileinfo, boolean isMD5,
+			int blocksize, long id, NetworkTransaction networkTransaction) {
+		// timestart since immediate
+		super(RecvThroughClient.class,
+				future, filename, rulename, fileinfo, isMD5, remoteHost, blocksize, id, null);
+		this.networkTransaction = networkTransaction;
+		this.handler = handler;
+	}
+
+	/**
+	 * Prior to call this method, the pipeline and NetworkTransaction must have been initialized. It
+	 * is the responsibility of the caller to finish all network resources.
+	 */
+	public void run() {
+		if (logger == null) {
+			logger = WaarpInternalLoggerFactory.getLogger(RecvThroughClient.class);
+		}
+		DbTaskRunner taskRunner = this.initRequest();
+		try {
+			ClientRunner runner = new ClientRunner(networkTransaction, taskRunner, future);
+			runner.setRecvThroughHandler(handler);
+			OpenR66ProtocolNotYetConnectionException exc = null;
+			for (int i = 0; i < Configuration.RETRYNB; i++) {
+				try {
+					runner.runTransfer();
+					exc = null;
+					break;
+				} catch (OpenR66RunnerErrorException e) {
+					logger.error("Cannot Transfer", e);
+					future.setResult(new R66Result(e, null, true,
+							ErrorCode.Internal, taskRunner));
+					future.setFailure(e);
+					return;
+				} catch (OpenR66ProtocolNoConnectionException e) {
+					logger.error("Cannot Connect", e);
+					future.setResult(new R66Result(e, null, true,
+							ErrorCode.ConnectionImpossible, taskRunner));
+					future.setFailure(e);
+					return;
+				} catch (OpenR66ProtocolPacketException e) {
+					logger.error("Bad Protocol", e);
+					future.setResult(new R66Result(e, null, true,
+							ErrorCode.TransferError, taskRunner));
+					future.setFailure(e);
+					return;
+				} catch (OpenR66ProtocolNotYetConnectionException e) {
+					logger.debug("Not Yet Connected", e);
+					exc = e;
+					continue;
+				}
+			}
+			if (exc != null) {
+				taskRunner.setLocalChannelReference(new LocalChannelReference());
+				logger.error("Cannot Connect", exc);
+				future.setResult(new R66Result(exc, null, true,
+						ErrorCode.ConnectionImpossible, taskRunner));
+				future.setFailure(exc);
+				return;
+			}
+		} finally {
+			if (taskRunner != null) {
+				if (future.isFailed() || nolog) {
+					try {
+						taskRunner.delete();
+					} catch (WaarpDatabaseException e) {
+					}
+				}
+			}
+		}
+	}
 
 }
