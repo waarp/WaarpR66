@@ -1,10 +1,10 @@
-GoldenGateR66 Server and Clients Configuration
+WaarpR66 Server and Clients Configuration
 
-*How to configure GoldenGate OpenR66
+*How to configure Waarp OpenR66
 
 **Configuration files
 
-  In the zip distribution <GoldenGateR66-X.Y.Z-dist.zip> (available at sourceforge for download),
+  In the zip distribution <WaarpR66-X.Y.Z-dist.zip> (available at Github for download),
   you will find an extra directory named: <src/main/config> where several examples files are located as:
   <config-serverA.xml>, <config-serverB.xml>. Other files like <config-clientA.xml> are for clients, and
   <config-serverInitA.xml>, <OpenR66-authent-A.xml>, <limitConfiga.xml>, <*.rule.xml>, certs/*.cer/*.jks/*.ggp 
@@ -56,7 +56,7 @@ GoldenGateR66 Server and Clients Configuration
 
 **Steps
 
-  *Create keys for SSH and Passwords (see {{{./sslconfig.html}Config OpenR66 OpenSSL and GoldengatePassword GUI project}})
+  *Create keys for SSH and Passwords (see {{{./sslconfig.html}Config OpenR66 OpenSSL and WaarpPassword GUI project}})
 
   *Create configurations files (server configuration file, authentication configuration file, rule configuration file, snmp configuration file) for a server
   
@@ -66,23 +66,23 @@ GoldenGateR66 Server and Clients Configuration
 
   A simplified picture of the OpenR66 Database schema is shown here:
 
-[images/OpenR66-database.png] GoldenGate OpenR66 Database Schema
+[images/OpenR66-database.png] Waarp OpenR66 Database Schema
   
   *Make some tests for server using Message command to all declared interface (NOSSL and SSL) (see {{{./commands.html}Commands detail}})
 
-*How to run GoldenGate OpenR66
+*How to run Waarp OpenR66
 
   It can be started like:
 
 ----------------------------------------
-  java ... classpath and jvm settings ... <openr66.server.R66Server> <src/main/config/configX.xml>
+  java ... classpath and jvm settings ... <org.waarp.openr66.server.R66Server> <src/main/config/configX.xml>
 ----------------------------------------
 
   Note that in the classpath you need :
 
   *External jars:
 
-    *{{{http://www.jboss.org/netty/index.html}Netty}}
+    *{{{http://netty.io}Netty}}
 
     *{{{http://commons.apache.org/io/}Apache-Commons-IO}}
 
@@ -106,17 +106,17 @@ GoldenGateR66 Server and Clients Configuration
 
     *<Database JDBC support> for instance for H2, PostGreSQL, Oracle, MySQL
 
-  *Goldengate jars:
+  *Waarp jars:
 
     *<NettyExtension>
 
-    *<GoldenGateDigest>
+    *<WaarpDigest>
 
-    *<GoldenGateCommon>
+    *<WaarpCommon>
 
-	*<GoldenGateExec>
+	*<WaarpExec>
 	
-	*<GoldenGateSnmp>
+	*<WaarpSnmp>
 
   []
 
