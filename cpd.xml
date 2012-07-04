@@ -1,0 +1,1994 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pmd-cpd>
+<duplication lines="174" tokens="963">
+<file line="65" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="60" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<codefragment>
+<![CDATA[
+        String primaryKey = " PRIMARY KEY ";
+        String notNull = " NOT NULL ";
+
+        // Multiple Mode
+        String action = createTableH2 + DbMultipleMonitor.table + "(";
+        DbMultipleMonitor.Columns[] mcolumns = DbMultipleMonitor.Columns
+                .values();
+        for (int i = 0; i < mcolumns.length - 1; i ++) {
+            action += mcolumns[i].name() +
+                    DBType.getType(DbMultipleMonitor.dbTypes[i]) + notNull +
+                    ", ";
+        }
+        action += mcolumns[mcolumns.length - 1].name() +
+                DBType.getType(DbMultipleMonitor.dbTypes[mcolumns.length - 1]) +
+                primaryKey + ")";
+        System.out.println(action);
+        DbRequest request = new DbRequest(session);
+        try {
+            request.query(action);
+        } catch (WaarpDatabaseNoConnectionException e) {
+            e.printStackTrace();
+            return;
+        } catch (WaarpDatabaseSqlException e) {
+            e.printStackTrace();
+            return;
+        } finally {
+            request.close();
+        }
+        DbMultipleMonitor multipleMonitor = new DbMultipleMonitor(session, 
+                Configuration.configuration.HOST_ID,0,0,0);
+        try {
+            if (!multipleMonitor.exist())
+                multipleMonitor.insert();
+        } catch (WaarpDatabaseException e1) {
+            e1.printStackTrace();
+        }
+
+        // Configuration
+        action = createTableH2 + DbConfiguration.table + "(";
+        DbConfiguration.Columns[] ccolumns = DbConfiguration.Columns
+                .values();
+        for (int i = 0; i < ccolumns.length - 1; i ++) {
+            action += ccolumns[i].name() +
+                    DBType.getType(DbConfiguration.dbTypes[i]) + notNull +
+                    ", ";
+        }
+        action += ccolumns[ccolumns.length - 1].name() +
+                DBType.getType(DbConfiguration.dbTypes[ccolumns.length - 1]) +
+                primaryKey + ")";
+        System.out.println(action);
+        request = new DbRequest(session);
+        try {
+            request.query(action);
+        } catch (WaarpDatabaseNoConnectionException e) {
+            e.printStackTrace();
+            return;
+        } catch (WaarpDatabaseSqlException e) {
+            e.printStackTrace();
+            return;
+        } finally {
+            request.close();
+        }
+
+        // hosts
+        action = createTableH2 + DbHostAuth.table + "(";
+        DbHostAuth.Columns[] hcolumns = DbHostAuth.Columns.values();
+        for (int i = 0; i < hcolumns.length - 1; i ++) {
+            action += hcolumns[i].name() +
+                    DBType.getType(DbHostAuth.dbTypes[i]) + notNull + ", ";
+        }
+        action += hcolumns[hcolumns.length - 1].name() +
+                DBType.getType(DbHostAuth.dbTypes[hcolumns.length - 1]) +
+                primaryKey + ")";
+        System.out.println(action);
+        try {
+            request.query(action);
+        } catch (WaarpDatabaseNoConnectionException e) {
+            e.printStackTrace();
+            return;
+        } catch (WaarpDatabaseSqlException e) {
+            e.printStackTrace();
+            return;
+        } finally {
+            request.close();
+        }
+
+        // rules
+        action = createTableH2 + DbRule.table + "(";
+        DbRule.Columns[] rcolumns = DbRule.Columns.values();
+        for (int i = 0; i < rcolumns.length - 1; i ++) {
+            action += rcolumns[i].name() +
+                    DBType.getType(DbRule.dbTypes[i]) + ", ";
+        }
+        action += rcolumns[rcolumns.length - 1].name() +
+                DBType.getType(DbRule.dbTypes[rcolumns.length - 1]) +
+                primaryKey + ")";
+        System.out.println(action);
+        try {
+            request.query(action);
+        } catch (WaarpDatabaseNoConnectionException e) {
+            e.printStackTrace();
+            return;
+        } catch (WaarpDatabaseSqlException e) {
+            e.printStackTrace();
+            return;
+        } finally {
+            request.close();
+        }
+
+        // runner
+        action = createTableH2 + DbTaskRunner.table + "(";
+        DbTaskRunner.Columns[] acolumns = DbTaskRunner.Columns.values();
+        for (int i = 0; i < acolumns.length; i ++) {
+            action += acolumns[i].name() +
+                    DBType.getType(DbTaskRunner.dbTypes[i]) + notNull + ", ";
+        }
+        // Several columns for primary key
+        action += " CONSTRAINT runner_pk " + primaryKey + "(";
+        for (int i = DbTaskRunner.NBPRKEY; i > 1; i--) {
+            action += acolumns[acolumns.length - i].name() + ",";
+        }
+        action += acolumns[acolumns.length - 1].name() + "))";
+        System.out.println(action);
+        try {
+            request.query(action);
+        } catch (WaarpDatabaseNoConnectionException e) {
+            e.printStackTrace();
+            return;
+        } catch (WaarpDatabaseSqlException e) {
+            e.printStackTrace();
+            return;
+        } finally {
+            request.close();
+        }
+        // Index Runner
+        action = "CREATE INDEX IDX_RUNNER ON "+ DbTaskRunner.table + "(";
+        DbTaskRunner.Columns[] icolumns = DbTaskRunner.indexes;
+        for (int i = 0; i < icolumns.length-1; i ++) {
+            action += icolumns[i].name()+ ", ";
+        }
+        action += icolumns[icolumns.length-1].name()+ ")";
+        System.out.println(action);
+        try {
+            request.query(action);
+        } catch (WaarpDatabaseNoConnectionException e) {
+            e.printStackTrace();
+            return;
+        } catch (WaarpDatabaseSqlException e) {
+            return;
+        } finally {
+            request.close();
+        }
+
+        // cptrunner
+        /*
+         * # Table to handle any number of sequences:
+            CREATE TABLE Sequences (
+              name VARCHAR(22) NOT NULL,
+              seq INT UNSIGNED NOT NULL,  # (or BIGINT)
+              PRIMARY KEY name
+            );
+
+            # Create a Sequence:
+            INSERT INTO Sequences (name, seq) VALUES (?, 0);
+            # Drop a Sequence:
+            DELETE FROM Sequences WHERE name = ?;
+
+            # Get a sequence number:
+            UPDATE Sequences
+              SET seq = LAST_INSERT_ID(seq + 1)
+              WHERE name = ?;
+            $seq = $db->LastInsertId();
+         */
+        action = "CREATE TABLE Sequences (name VARCHAR(22) NOT NULL PRIMARY KEY,"+
+]]>
+</codefragment>
+</duplication>
+<duplication lines="140" tokens="868">
+<file line="58" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="61" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<codefragment>
+<![CDATA[
+    @Override
+    public void createTables(DbSession session) throws WaarpDatabaseNoConnectionException {
+        // Create tables: configuration, hosts, rules, runner, cptrunner
+        String createTableH2 = "CREATE TABLE IF NOT EXISTS ";
+        String primaryKey = " PRIMARY KEY ";
+        String notNull = " NOT NULL ";
+
+        // Multiple Mode
+        String action = createTableH2 + DbMultipleMonitor.table + "(";
+        DbMultipleMonitor.Columns[] mcolumns = DbMultipleMonitor.Columns
+                .values();
+        for (int i = 0; i < mcolumns.length - 1; i ++) {
+            action += mcolumns[i].name() +
+                    DBType.getType(DbMultipleMonitor.dbTypes[i]) + notNull +
+                    ", ";
+        }
+        action += mcolumns[mcolumns.length - 1].name() +
+                DBType.getType(DbMultipleMonitor.dbTypes[mcolumns.length - 1]) +
+                primaryKey + ")";
+        System.out.println(action);
+        DbRequest request = new DbRequest(session);
+        try {
+            request.query(action);
+        } catch (WaarpDatabaseNoConnectionException e) {
+            e.printStackTrace();
+            return;
+        } catch (WaarpDatabaseSqlException e) {
+            e.printStackTrace();
+            return;
+        } finally {
+            request.close();
+        }
+        DbMultipleMonitor multipleMonitor = new DbMultipleMonitor(session, 
+                Configuration.configuration.HOST_ID,0,0,0);
+        try {
+            if (!multipleMonitor.exist())
+                multipleMonitor.insert();
+        } catch (WaarpDatabaseException e1) {
+            e1.printStackTrace();
+        }
+
+        // Configuration
+        action = createTableH2 + DbConfiguration.table + "(";
+        DbConfiguration.Columns[] ccolumns = DbConfiguration.Columns
+                .values();
+        for (int i = 0; i < ccolumns.length - 1; i ++) {
+            action += ccolumns[i].name() +
+                    DBType.getType(DbConfiguration.dbTypes[i]) + notNull +
+                    ", ";
+        }
+        action += ccolumns[ccolumns.length - 1].name() +
+                DBType.getType(DbConfiguration.dbTypes[ccolumns.length - 1]) +
+                primaryKey + ")";
+        System.out.println(action);
+        request = new DbRequest(session);
+        try {
+            request.query(action);
+        } catch (WaarpDatabaseNoConnectionException e) {
+            e.printStackTrace();
+            return;
+        } catch (WaarpDatabaseSqlException e) {
+            e.printStackTrace();
+            return;
+        } finally {
+            request.close();
+        }
+
+        // hosts
+        action = createTableH2 + DbHostAuth.table + "(";
+        DbHostAuth.Columns[] hcolumns = DbHostAuth.Columns.values();
+        for (int i = 0; i < hcolumns.length - 1; i ++) {
+            action += hcolumns[i].name() +
+                    DBType.getType(DbHostAuth.dbTypes[i]) + notNull + ", ";
+        }
+        action += hcolumns[hcolumns.length - 1].name() +
+                DBType.getType(DbHostAuth.dbTypes[hcolumns.length - 1]) +
+                primaryKey + ")";
+        System.out.println(action);
+        try {
+            request.query(action);
+        } catch (WaarpDatabaseNoConnectionException e) {
+            e.printStackTrace();
+            return;
+        } catch (WaarpDatabaseSqlException e) {
+            e.printStackTrace();
+            return;
+        } finally {
+            request.close();
+        }
+
+        // rules
+        action = createTableH2 + DbRule.table + "(";
+        DbRule.Columns[] rcolumns = DbRule.Columns.values();
+        for (int i = 0; i < rcolumns.length - 1; i ++) {
+            action += rcolumns[i].name() +
+                    DBType.getType(DbRule.dbTypes[i]) + ", ";
+        }
+        action += rcolumns[rcolumns.length - 1].name() +
+                DBType.getType(DbRule.dbTypes[rcolumns.length - 1]) +
+                primaryKey + ")";
+        System.out.println(action);
+        try {
+            request.query(action);
+        } catch (WaarpDatabaseNoConnectionException e) {
+            e.printStackTrace();
+            return;
+        } catch (WaarpDatabaseSqlException e) {
+            e.printStackTrace();
+            return;
+        } finally {
+            request.close();
+        }
+
+        // runner
+        action = createTableH2 + DbTaskRunner.table + "(";
+        DbTaskRunner.Columns[] acolumns = DbTaskRunner.Columns.values();
+        for (int i = 0; i < acolumns.length; i ++) {
+            action += acolumns[i].name() +
+                    DBType.getType(DbTaskRunner.dbTypes[i]) + notNull + ", ";
+        }
+        // Several columns for primary key
+        action += " CONSTRAINT runner_pk " + primaryKey + "(";
+        for (int i = DbTaskRunner.NBPRKEY; i > 1; i--) {
+            action += acolumns[acolumns.length - i].name() + ",";
+        }
+        action += acolumns[acolumns.length - 1].name() + "))";
+        System.out.println(action);
+        try {
+            request.query(action);
+        } catch (WaarpDatabaseNoConnectionException e) {
+            e.printStackTrace();
+            return;
+        } catch (WaarpDatabaseSqlException e) {
+            e.printStackTrace();
+            return;
+        } finally {
+            request.close();
+        }
+        // Index Runner
+        action = "CREATE INDEX IF NOT EXISTS IDX_RUNNER ON "+ DbTaskRunner.table + "(";
+]]>
+</codefragment>
+</duplication>
+<duplication lines="136" tokens="852">
+<file line="62" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="60" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<codefragment>
+<![CDATA[
+        String primaryKey = " PRIMARY KEY ";
+        String notNull = " NOT NULL ";
+
+        // Multiple Mode
+        String action = createTableH2 + DbMultipleMonitor.table + "(";
+        DbMultipleMonitor.Columns[] mcolumns = DbMultipleMonitor.Columns
+                .values();
+        for (int i = 0; i < mcolumns.length - 1; i ++) {
+            action += mcolumns[i].name() +
+                    DBType.getType(DbMultipleMonitor.dbTypes[i]) + notNull +
+                    ", ";
+        }
+        action += mcolumns[mcolumns.length - 1].name() +
+                DBType.getType(DbMultipleMonitor.dbTypes[mcolumns.length - 1]) +
+                primaryKey + ")";
+        System.out.println(action);
+        DbRequest request = new DbRequest(session);
+        try {
+            request.query(action);
+        } catch (WaarpDatabaseNoConnectionException e) {
+            e.printStackTrace();
+            return;
+        } catch (WaarpDatabaseSqlException e) {
+            e.printStackTrace();
+            return;
+        } finally {
+            request.close();
+        }
+        DbMultipleMonitor multipleMonitor = new DbMultipleMonitor(session, 
+                Configuration.configuration.HOST_ID,0,0,0);
+        try {
+            if (!multipleMonitor.exist())
+                multipleMonitor.insert();
+        } catch (WaarpDatabaseException e1) {
+            e1.printStackTrace();
+        }
+
+        // Configuration
+        action = createTableH2 + DbConfiguration.table + "(";
+        DbConfiguration.Columns[] ccolumns = DbConfiguration.Columns
+                .values();
+        for (int i = 0; i < ccolumns.length - 1; i ++) {
+            action += ccolumns[i].name() +
+                    DBType.getType(DbConfiguration.dbTypes[i]) + notNull +
+                    ", ";
+        }
+        action += ccolumns[ccolumns.length - 1].name() +
+                DBType.getType(DbConfiguration.dbTypes[ccolumns.length - 1]) +
+                primaryKey + ")";
+        System.out.println(action);
+        request = new DbRequest(session);
+        try {
+            request.query(action);
+        } catch (WaarpDatabaseNoConnectionException e) {
+            e.printStackTrace();
+            return;
+        } catch (WaarpDatabaseSqlException e) {
+            e.printStackTrace();
+            return;
+        } finally {
+            request.close();
+        }
+
+        // hosts
+        action = createTableH2 + DbHostAuth.table + "(";
+        DbHostAuth.Columns[] hcolumns = DbHostAuth.Columns.values();
+        for (int i = 0; i < hcolumns.length - 1; i ++) {
+            action += hcolumns[i].name() +
+                    DBType.getType(DbHostAuth.dbTypes[i]) + notNull + ", ";
+        }
+        action += hcolumns[hcolumns.length - 1].name() +
+                DBType.getType(DbHostAuth.dbTypes[hcolumns.length - 1]) +
+                primaryKey + ")";
+        System.out.println(action);
+        try {
+            request.query(action);
+        } catch (WaarpDatabaseNoConnectionException e) {
+            e.printStackTrace();
+            return;
+        } catch (WaarpDatabaseSqlException e) {
+            e.printStackTrace();
+            return;
+        } finally {
+            request.close();
+        }
+
+        // rules
+        action = createTableH2 + DbRule.table + "(";
+        DbRule.Columns[] rcolumns = DbRule.Columns.values();
+        for (int i = 0; i < rcolumns.length - 1; i ++) {
+            action += rcolumns[i].name() +
+                    DBType.getType(DbRule.dbTypes[i]) + ", ";
+        }
+        action += rcolumns[rcolumns.length - 1].name() +
+                DBType.getType(DbRule.dbTypes[rcolumns.length - 1]) +
+                primaryKey + ")";
+        System.out.println(action);
+        try {
+            request.query(action);
+        } catch (WaarpDatabaseNoConnectionException e) {
+            e.printStackTrace();
+            return;
+        } catch (WaarpDatabaseSqlException e) {
+            e.printStackTrace();
+            return;
+        } finally {
+            request.close();
+        }
+
+        // runner
+        action = createTableH2 + DbTaskRunner.table + "(";
+        DbTaskRunner.Columns[] acolumns = DbTaskRunner.Columns.values();
+        for (int i = 0; i < acolumns.length; i ++) {
+            action += acolumns[i].name() +
+                    DBType.getType(DbTaskRunner.dbTypes[i]) + notNull + ", ";
+        }
+        // Several columns for primary key
+        action += " CONSTRAINT runner_pk " + primaryKey + "(";
+        for (int i = DbTaskRunner.NBPRKEY; i > 1; i--) {
+            action += acolumns[acolumns.length - i].name() + ",";
+        }
+        action += acolumns[acolumns.length - 1].name() + "))";
+        System.out.println(action);
+        try {
+            request.query(action);
+        } catch (WaarpDatabaseNoConnectionException e) {
+            e.printStackTrace();
+            return;
+        } catch (WaarpDatabaseSqlException e) {
+            e.printStackTrace();
+            return;
+        } finally {
+            request.close();
+        }
+        // Index Runner
+        action = "CREATE INDEX IF NOT EXISTS IDX_RUNNER ON "+ DbTaskRunner.table + "(";
+]]>
+</codefragment>
+</duplication>
+<duplication lines="39" tokens="317">
+<file line="377" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="481" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<codefragment>
+<![CDATA[
+            body0 = REQUEST.Listing.readBodyHeader();
+            String parm = parms.get(0);
+            if ("Filter".equalsIgnoreCase(parm)) {
+                String startid = getTrimValue("startid");
+                String stopid = getTrimValue("stopid");
+                if (startid != null && stopid == null) {
+                    stopid = Long.toString(Long.parseLong(startid)+(LIMITROW/2));
+                }
+                if (stopid != null && startid == null) {
+                    startid = Long.toString(Long.parseLong(stopid)-(LIMITROW/2));
+                }
+                String start = getValue("start");
+                String stop = getValue("stop");
+                String rule = getTrimValue("rule");
+                String req = getTrimValue("req");
+                boolean pending, transfer, error, done, all;
+                pending = params.containsKey("pending");
+                transfer = params.containsKey("transfer");
+                error = params.containsKey("error");
+                done = params.containsKey("done");
+                all = params.containsKey("all");
+                if (pending && transfer && error && done) {
+                    all = true;
+                } else if (!(pending || transfer || error || done)) {
+                    all = true;
+                }
+                Timestamp tstart = WaarpStringUtils.fixDate(start);
+                if (tstart != null) {
+                    start = tstart.toString();
+                }
+                Timestamp tstop = WaarpStringUtils.fixDate(stop, tstart);
+                if (tstop != null) {
+                    stop = tstop.toString();
+                }
+                head = resetOptionTransfer(head, startid == null ? "":startid,
+                        stopid == null ? "":stopid, start, stop,
+                        rule == null ? "":rule, req == null ? "":req,
+                        pending, transfer, error, done, all);
+                body = REQUEST.Listing.readBody();
+]]>
+</codefragment>
+</duplication>
+<duplication lines="48" tokens="274">
+<file line="101" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecMoveTask.java"/>
+<file line="106" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecOutputTask.java"/>
+<codefragment>
+<![CDATA[
+                move(result.status, result.result, finalname);
+                localExecClient.disconnect();
+                return;
+            } // else continue
+        }
+        String[] args = finalname.split(" ");
+        File exec = new File(args[0]);
+        if (exec.isAbsolute()) {
+            if (! exec.canExecute()) {
+                logger.error("Exec command is not executable: " + finalname);
+                R66Result result = new R66Result(session, false,
+                        ErrorCode.CommandNotFound, session.getRunner());
+                futureCompletion.setResult(result);
+                futureCompletion.cancel();
+                return;
+            }
+        }
+        CommandLine commandLine = new CommandLine(args[0]);
+        for (int i = 1; i < args.length; i ++) {
+            commandLine.addArgument(args[i]);
+        }
+        DefaultExecutor defaultExecutor = new DefaultExecutor();
+        PipedInputStream inputStream = new PipedInputStream();
+        PipedOutputStream outputStream = null;
+        try {
+            outputStream = new PipedOutputStream(inputStream);
+        } catch (IOException e1) {
+            try {
+                inputStream.close();
+            } catch (IOException e) {
+            }
+            logger.error("Exception: " + e1.getMessage() +
+                    " Exec in error with " + commandLine.toString(), e1);
+            futureCompletion.setFailure(e1);
+            return;
+        }
+        PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(
+                outputStream, null);
+        defaultExecutor.setStreamHandler(pumpStreamHandler);
+        int[] correctValues = {
+                0, 1 };
+        defaultExecutor.setExitValues(correctValues);
+        ExecuteWatchdog watchdog = null;
+        
+        if (delay > 0) {
+            watchdog = new ExecuteWatchdog(delay);
+            defaultExecutor.setWatchdog(watchdog);
+        }
+]]>
+</codefragment>
+</duplication>
+<duplication lines="19" tokens="270">
+<file line="365" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbRule.java"/>
+<file line="393" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbRule.java"/>
+<codefragment>
+<![CDATA[
+    protected void setFromArray() throws WaarpDatabaseSqlException {
+        ids = (String) allFields[Columns.HOSTIDS.ordinal()].getValue();
+        mode = (Integer) allFields[Columns.MODETRANS.ordinal()].getValue();
+        recvPath = (String) allFields[Columns.RECVPATH.ordinal()].getValue();
+        sendPath = (String) allFields[Columns.SENDPATH.ordinal()].getValue();
+        archivePath = (String) allFields[Columns.ARCHIVEPATH.ordinal()]
+                .getValue();
+        workPath = (String) allFields[Columns.WORKPATH.ordinal()].getValue();
+        rpreTasks = (String) allFields[Columns.RPRETASKS.ordinal()].getValue();
+        rpostTasks = (String) allFields[Columns.RPOSTTASKS.ordinal()].getValue();
+        rerrorTasks = (String) allFields[Columns.RERRORTASKS.ordinal()]
+                .getValue();
+        spreTasks = (String) allFields[Columns.SPRETASKS.ordinal()].getValue();
+        spostTasks = (String) allFields[Columns.SPOSTTASKS.ordinal()].getValue();
+        serrorTasks = (String) allFields[Columns.SERRORTASKS.ordinal()]
+                .getValue();
+        updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()]
+                .getValue();
+        idRule = (String) allFields[Columns.IDRULE.ordinal()].getValue();
+]]>
+</codefragment>
+</duplication>
+<duplication lines="72" tokens="260">
+<file line="217" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="215" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<codefragment>
+<![CDATA[
+                " START WITH " + (DbConstant.ILLEGALVALUE + 1);
+        System.out.println(action);
+        try {
+            request.query(action);
+        } catch (WaarpDatabaseNoConnectionException e) {
+            e.printStackTrace();
+            return;
+        } catch (WaarpDatabaseSqlException e) {
+            e.printStackTrace();
+            return;
+        } finally {
+            request.close();
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.waarp.openr66.databaseold.model.DbModel#resetSequence()
+     */
+    @Override
+    public void resetSequence(DbSession session, long newvalue) throws WaarpDatabaseNoConnectionException {
+        String action = "ALTER SEQUENCE " + DbTaskRunner.fieldseq +
+                " RESTART WITH " + newvalue;
+        DbRequest request = new DbRequest(session);
+        try {
+            request.query(action);
+        } catch (WaarpDatabaseNoConnectionException e) {
+            e.printStackTrace();
+            return;
+        } catch (WaarpDatabaseSqlException e) {
+            e.printStackTrace();
+            return;
+        } finally {
+            request.close();
+        }
+        System.out.println(action);
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.waarp.openr66.databaseold.model.DbModel#nextSequence()
+     */
+    @Override
+    public long nextSequence(DbSession dbSession)
+        throws WaarpDatabaseNoConnectionException,
+            WaarpDatabaseSqlException, WaarpDatabaseNoDataException {
+        long result = DbConstant.ILLEGALVALUE;
+        String action = "SELECT NEXTVAL('" + DbTaskRunner.fieldseq + "')";
+        DbPreparedStatement preparedStatement = new DbPreparedStatement(
+                dbSession);
+        try {
+            preparedStatement.createPrepareStatement(action);
+            // Limit the search
+            preparedStatement.executeQuery();
+            if (preparedStatement.getNext()) {
+                try {
+                    result = preparedStatement.getResultSet().getLong(1);
+                } catch (SQLException e) {
+                    throw new WaarpDatabaseSqlException(e);
+                }
+                return result;
+            } else {
+                throw new WaarpDatabaseNoDataException(
+                        "No sequence found. Must be initialized first");
+            }
+        } finally {
+            preparedStatement.realClose();
+        }
+    }
+}
+]]>
+</codefragment>
+</duplication>
+<duplication lines="47" tokens="219">
+<file line="1554" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1635" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<codefragment>
+<![CDATA[
+    public static boolean setConfigurationServerShutdownFromXml(Configuration config, String filename) {
+        Document document = null;
+        // Open config file
+        try {
+            document = new SAXReader().read(filename);
+        } catch (DocumentException e) {
+            logger.error("Unable to read the XML Config file: " + filename, e);
+            return false;
+        }
+        if (document == null) {
+            logger.error("Unable to read the XML Config file: " + filename);
+            return false;
+        }
+        configuration = XmlUtil.read(document, configServer);
+        hashConfig = new XmlHash(configuration);
+        // Now read the configuration
+        if (! loadIdentity(config)) {
+            logger.error("Cannot load Identity");
+            return false;
+        }
+        if (!loadDatabase(config)) {
+            logger.error("Cannot load Database configuration");
+            return false;
+        }
+        if (! loadServerParam(config)) {
+            logger.error("Cannot load Server Parameters");
+            return false;
+        }
+        if (! loadDirectory(config)) {
+            logger.error("Cannot load Directory configuration");
+            return false;
+        }
+        if (! loadLimit(config, false)) {
+            logger.error("Cannot load Limit configuration");
+            return false;
+        }
+        if (config.useSSL) {
+            if (!loadSsl(config)) {
+                logger.error("Cannot load SSL configuration");
+                return false;
+            }
+        }
+        if (! loadNetworkServer(config)) {
+            logger.error("Cannot load Network configuration");
+            return false;
+        }
+        if (!DbConstant.admin.isConnected) {
+]]>
+</codefragment>
+</duplication>
+<duplication lines="38" tokens="219">
+<file line="88" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ChangeBandwidthLimits.java"/>
+<file line="81" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigExport.java"/>
+<codefragment>
+<![CDATA[
+                writeSessionLimit+" "+readSessionLimit, LocalPacketFactory.BANDWIDTHPACKET);
+        DbHostAuth host = Configuration.configuration.HOST_SSLAUTH;
+        SocketAddress socketAddress = host.getSocketAddress();
+        boolean isSSL = host.isSsl();
+        LocalChannelReference localChannelReference = networkTransaction
+            .createConnectionWithRetry(socketAddress, isSSL, future);
+        socketAddress = null;
+        if (localChannelReference == null) {
+            host = null;
+            logger.error("Cannot Connect");
+            future.setResult(new R66Result(
+                    new OpenR66ProtocolNoConnectionException("Cannot connect to server"),
+                    null, true, ErrorCode.Internal, null));
+            future.setFailure(future.getResult().exception);
+            return;
+        }
+        localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
+        try {
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, valid, false);
+        } catch (OpenR66ProtocolPacketException e) {
+            logger.error("Bad Protocol", e);
+            Channels.close(localChannelReference.getLocalChannel());
+            localChannelReference = null;
+            host = null;
+            valid = null;
+            future.setResult(new R66Result(e, null, true,
+                    ErrorCode.TransferError, null));
+            future.setFailure(e);
+            return;
+        }
+        host = null;
+        future.awaitUninterruptibly();
+        logger.info("Request done with "+(future.isSuccess()?"success":"error"));
+        Channels.close(localChannelReference.getLocalChannel());
+        localChannelReference = null;
+    }
+
+    protected static long swriteGlobalLimit = -1;
+]]>
+</codefragment>
+</duplication>
+<duplication lines="40" tokens="207">
+<file line="3244" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="3351" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<codefragment>
+<![CDATA[
+        } catch (FileNotFoundException e) {
+            logger.error("Cannot write XML file", e);
+            throw new OpenR66ProtocolBusinessException("File not found");
+        } catch (UnsupportedEncodingException e) {
+            logger.error("Cannot write XML file", e);
+            throw new OpenR66ProtocolBusinessException("Unsupported Encoding");
+        } finally {
+            if (xmlWriter != null) {
+                try {
+                    xmlWriter.endDocument();
+                    xmlWriter.flush();
+                    xmlWriter.close();
+                } catch (SAXException e) {
+                    try {
+                        outputStream.close();
+                    } catch (IOException e2) {
+                    }
+                    File file = new File(filename);
+                    file.delete();
+                    logger.error("Cannot write XML file", e);
+                    throw new OpenR66ProtocolBusinessException("Unsupported Encoding");
+                } catch (IOException e) {
+                    try {
+                        outputStream.close();
+                    } catch (IOException e2) {
+                    }
+                    File file = new File(filename);
+                    file.delete();
+                    logger.error("Cannot write XML file", e);
+                    throw new OpenR66ProtocolBusinessException("Unsupported Encoding");
+                }
+            } else if (outputStream != null){
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                }
+                File file = new File(filename);
+                file.delete();
+            }
+        }
+]]>
+</codefragment>
+</duplication>
+<duplication lines="33" tokens="206">
+<file line="77" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="80" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="80" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="75" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<codefragment>
+<![CDATA[
+        System.out.println(action);
+        DbRequest request = new DbRequest(session);
+        try {
+            request.query(action);
+        } catch (WaarpDatabaseNoConnectionException e) {
+            e.printStackTrace();
+            return;
+        } catch (WaarpDatabaseSqlException e) {
+            e.printStackTrace();
+            return;
+        } finally {
+            request.close();
+        }
+        DbMultipleMonitor multipleMonitor = new DbMultipleMonitor(session, 
+                Configuration.configuration.HOST_ID,0,0,0);
+        try {
+            if (!multipleMonitor.exist())
+                multipleMonitor.insert();
+        } catch (WaarpDatabaseException e1) {
+            e1.printStackTrace();
+        }
+
+        // Configuration
+        action = createTableH2 + DbConfiguration.table + "(";
+        DbConfiguration.Columns[] ccolumns = DbConfiguration.Columns
+                .values();
+        for (int i = 0; i < ccolumns.length - 1; i ++) {
+            action += ccolumns[i].name() +
+                    DBType.getType(DbConfiguration.dbTypes[i]) + notNull +
+                    ", ";
+        }
+        action += ccolumns[ccolumns.length - 1].name() +
+                DBType.getType(DbConfiguration.dbTypes[ccolumns.length - 1]) +
+]]>
+</codefragment>
+</duplication>
+<duplication lines="49" tokens="205">
+<file line="209" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecMoveTask.java"/>
+<file line="205" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecOutputTask.java"/>
+<codefragment>
+<![CDATA[
+                futureCompletion.setFailure(e);
+                return;
+            }
+        } catch (IOException e) {
+            try {
+                outputStream.close();
+            } catch (IOException e1) {
+            }
+            thread.interrupt();
+            try {
+                inputStream.close();
+            } catch (IOException e1) {
+            }
+            pumpStreamHandler.stop();
+            logger.error("IOException: " + e.getMessage() +
+                    " . Exec in error with " + commandLine.toString());
+            futureCompletion.setFailure(e);
+            return;
+        }
+        try {
+            outputStream.flush();
+        } catch (IOException e) {
+        }
+        try {
+            outputStream.close();
+        } catch (IOException e) {
+        }
+        pumpStreamHandler.stop();
+        try {
+            if (delay > 0) {
+                thread.join(delay);
+            } else {
+                thread.join();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        try {
+            inputStream.close();
+        } catch (IOException e1) {
+        }
+        String newname = null;
+        if (defaultExecutor.isFailure(status) && watchdog != null &&
+                watchdog.killedProcess()) {
+            // kill by the watchdoc (time out)
+            status = -1;
+            newname = "TimeOut";
+        } else {
+            newname = lastLineReader.lastLine;
+]]>
+</codefragment>
+</duplication>
+<duplication lines="37" tokens="198">
+<file line="415" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="519" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<codefragment>
+<![CDATA[
+                body = REQUEST.Listing.readBody();
+                DbPreparedStatement preparedStatement = null;
+                try {
+                    preparedStatement =
+                        DbTaskRunner.getFilterPrepareStatement(dbSession, LIMITROW, false,
+                                startid, stopid, tstart, tstop, rule, req,
+                                pending, transfer, error, done, all);
+                    preparedStatement.executeQuery();
+                    StringBuilder builder = new StringBuilder();
+                    int i = 0;
+                    while (preparedStatement.getNext()) {
+                        try {
+                            i++;
+                            DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatement);
+                            LocalChannelReference lcr =
+                                Configuration.configuration.getLocalTransaction().
+                                getFromRequest(taskRunner.getKey());
+                            builder.append(taskRunner.toSpecializedHtml(authentHttp, body,
+                                    lcr != null ? "Active" : "NotActive"));
+                            if (i > LIMITROW) {
+                                break;
+                            }
+                        } catch (WaarpDatabaseException e) {
+                            // try to continue if possible
+                            logger.warn("An error occurs while accessing a Runner: {}",
+                                    e.getMessage());
+                            continue;
+                        }
+                    }
+                    preparedStatement.realClose();
+                    body = builder.toString();
+                } catch (WaarpDatabaseException e) {
+                    if (preparedStatement != null) {
+                        preparedStatement.realClose();
+                    }
+                    logger.warn("OpenR66 Web Error {}",e.getMessage());
+                }
+]]>
+</codefragment>
+</duplication>
+<duplication lines="34" tokens="195">
+<file line="86" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigExport.java"/>
+<file line="110" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExport.java"/>
+<codefragment>
+<![CDATA[
+        LocalChannelReference localChannelReference = networkTransaction
+            .createConnectionWithRetry(socketAddress, isSSL, future);
+        socketAddress = null;
+        if (localChannelReference == null) {
+            host = null;
+            logger.error("Cannot Connect");
+            future.setResult(new R66Result(
+                    new OpenR66ProtocolNoConnectionException("Cannot connect to server"),
+                    null, true, ErrorCode.Internal, null));
+            future.setFailure(future.getResult().exception);
+            return;
+        }
+        localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
+        try {
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, valid, false);
+        } catch (OpenR66ProtocolPacketException e) {
+            logger.error("Bad Protocol", e);
+            Channels.close(localChannelReference.getLocalChannel());
+            localChannelReference = null;
+            host = null;
+            valid = null;
+            future.setResult(new R66Result(e, null, true,
+                    ErrorCode.TransferError, null));
+            future.setFailure(e);
+            return;
+        }
+        host = null;
+        future.awaitUninterruptibly();
+        logger.info("Request done with "+(future.isSuccess()?"success":"error"));
+        Channels.close(localChannelReference.getLocalChannel());
+        localChannelReference = null;
+    }
+
+    protected static boolean shost = false;
+]]>
+</codefragment>
+</duplication>
+<duplication lines="34" tokens="194">
+<file line="92" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ChangeBandwidthLimits.java"/>
+<file line="110" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExport.java"/>
+<codefragment>
+<![CDATA[
+        LocalChannelReference localChannelReference = networkTransaction
+            .createConnectionWithRetry(socketAddress, isSSL, future);
+        socketAddress = null;
+        if (localChannelReference == null) {
+            host = null;
+            logger.error("Cannot Connect");
+            future.setResult(new R66Result(
+                    new OpenR66ProtocolNoConnectionException("Cannot connect to server"),
+                    null, true, ErrorCode.Internal, null));
+            future.setFailure(future.getResult().exception);
+            return;
+        }
+        localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
+        try {
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, valid, false);
+        } catch (OpenR66ProtocolPacketException e) {
+            logger.error("Bad Protocol", e);
+            Channels.close(localChannelReference.getLocalChannel());
+            localChannelReference = null;
+            host = null;
+            valid = null;
+            future.setResult(new R66Result(e, null, true,
+                    ErrorCode.TransferError, null));
+            future.setFailure(e);
+            return;
+        }
+        host = null;
+        future.awaitUninterruptibly();
+        logger.info("Request done with "+(future.isSuccess()?"success":"error"));
+        Channels.close(localChannelReference.getLocalChannel());
+        localChannelReference = null;
+    }
+
+    protected static long swriteGlobalLimit = -1;
+]]>
+</codefragment>
+</duplication>
+<duplication lines="33" tokens="187">
+<file line="88" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ChangeBandwidthLimits.java"/>
+<file line="81" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigExport.java"/>
+<file line="87" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigImport.java"/>
+<codefragment>
+<![CDATA[
+                writeSessionLimit+" "+readSessionLimit, LocalPacketFactory.BANDWIDTHPACKET);
+        DbHostAuth host = Configuration.configuration.HOST_SSLAUTH;
+        SocketAddress socketAddress = host.getSocketAddress();
+        boolean isSSL = host.isSsl();
+        LocalChannelReference localChannelReference = networkTransaction
+            .createConnectionWithRetry(socketAddress, isSSL, future);
+        socketAddress = null;
+        if (localChannelReference == null) {
+            host = null;
+            logger.error("Cannot Connect");
+            future.setResult(new R66Result(
+                    new OpenR66ProtocolNoConnectionException("Cannot connect to server"),
+                    null, true, ErrorCode.Internal, null));
+            future.setFailure(future.getResult().exception);
+            return;
+        }
+        localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
+        try {
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, valid, false);
+        } catch (OpenR66ProtocolPacketException e) {
+            logger.error("Bad Protocol", e);
+            Channels.close(localChannelReference.getLocalChannel());
+            localChannelReference = null;
+            host = null;
+            valid = null;
+            future.setResult(new R66Result(e, null, true,
+                    ErrorCode.TransferError, null));
+            future.setFailure(e);
+            return;
+        }
+        host = null;
+        future.awaitUninterruptibly();
+        logger.info("Request done with "+(future.isSuccess()?"success":"error"));
+]]>
+</codefragment>
+</duplication>
+<duplication lines="38" tokens="183">
+<file line="1439" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1487" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<codefragment>
+<![CDATA[
+    public static boolean setConfigurationInitDatabase(Configuration config, String filename) {
+        Document document = null;
+        // Open config file
+        try {
+            document = new SAXReader().read(filename);
+        } catch (DocumentException e) {
+            logger.error("Unable to read the XML Config file: " + filename, e);
+            return false;
+        }
+        if (document == null) {
+            logger.error("Unable to read the XML Config file: " + filename);
+            return false;
+        }
+        configuration = XmlUtil.read(document, configServer);
+        hashConfig = new XmlHash(configuration);
+        if (! loadIdentity(config)) {
+            logger.error("Cannot load Identity");
+            return false;
+        }
+        if (!loadDatabase(config)) {
+            logger.error("Cannot load Database configuration");
+            return false;
+        }
+        if (! loadDirectory(config)) {
+            logger.error("Cannot load Directory configuration");
+            return false;
+        }
+        if (! loadLimit(config, false)) {
+            logger.error("Cannot load Limit configuration");
+            return false;
+        }
+        if (!DbConstant.admin.isConnected) {
+            // if no database, must load authentication from file
+            if (! loadAuthentication(config)) {
+                logger.error("Cannot load Authentication configuration");
+                return false;
+            }
+        }
+]]>
+</codefragment>
+</duplication>
+<duplication lines="14" tokens="169">
+<file line="1386" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="1485" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<codefragment>
+<![CDATA[
+            String system = REQUEST.System.readFileUnique(this);
+            StringBuilder builder = new StringBuilder(system);
+            WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITWXXX.toString(),
+                    Long.toString(Configuration.configuration.serverChannelWriteLimit));
+            WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITRXXX.toString(),
+                    Long.toString(Configuration.configuration.serverChannelReadLimit));
+            WaarpStringUtils.replace(builder, REPLACEMENT.XXXXDELAYCOMMDXXX.toString(),
+                    Long.toString(Configuration.configuration.delayCommander));
+            WaarpStringUtils.replace(builder, REPLACEMENT.XXXXDELAYRETRYXXX.toString(),
+                    Long.toString(Configuration.configuration.delayRetry));
+            WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITWXXX.toString(),
+                    Long.toString(Configuration.configuration.serverGlobalWriteLimit));
+            WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITRXXX.toString(),
+                    Long.toString(Configuration.configuration.serverGlobalReadLimit));
+]]>
+</codefragment>
+</duplication>
+<duplication lines="29" tokens="162">
+<file line="92" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigImport.java"/>
+<file line="110" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExport.java"/>
+<codefragment>
+<![CDATA[
+        LocalChannelReference localChannelReference = networkTransaction
+            .createConnectionWithRetry(socketAddress, isSSL, future);
+        socketAddress = null;
+        if (localChannelReference == null) {
+            host = null;
+            logger.error("Cannot Connect");
+            future.setResult(new R66Result(
+                    new OpenR66ProtocolNoConnectionException("Cannot connect to server"),
+                    null, true, ErrorCode.Internal, null));
+            future.setFailure(future.getResult().exception);
+            return;
+        }
+        localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
+        try {
+            ChannelUtils.writeAbstractLocalPacket(localChannelReference, valid, false);
+        } catch (OpenR66ProtocolPacketException e) {
+            logger.error("Bad Protocol", e);
+            Channels.close(localChannelReference.getLocalChannel());
+            localChannelReference = null;
+            host = null;
+            valid = null;
+            future.setResult(new R66Result(e, null, true,
+                    ErrorCode.TransferError, null));
+            future.setFailure(e);
+            return;
+        }
+        host = null;
+        future.awaitUninterruptibly();
+        logger.debug("Request done with "+(future.isSuccess()?"success":"error"));
+]]>
+</codefragment>
+</duplication>
+<duplication lines="21" tokens="154">
+<file line="1463" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="1500" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<codefragment>
+<![CDATA[
+           DbSession session, boolean in)
+           throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
+       String request = "SELECT COUNT(" + Columns.SPECIALID.name() + ") FROM " + table;
+       String requesterd;
+       String from = Configuration.configuration.HOST_ID;
+       String sfrom = Configuration.configuration.HOST_SSLID;
+       if (in) {
+           requesterd = Columns.REQUESTED.name();
+       } else {
+           requesterd = Columns.REQUESTER.name();
+       }
+       if (from != null & sfrom != null) {
+           request += " WHERE ((" + requesterd + " = '" +
+               from + "' OR " + requesterd + " = '" +sfrom+ "') ";
+       } else if (from != null) {
+           request += " WHERE (" + requesterd + " = '" + from + "' ";
+       } else {
+           request += " WHERE (" + requesterd + " = '" + sfrom+ "' ";
+       }
+       request += " AND "+getLimitWhereCondition()+") ";
+       request += " AND "+Columns.STARTTRANS.name() + " >= ? ";
+]]>
+</codefragment>
+</duplication>
+<duplication lines="40" tokens="140">
+<file line="1515" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1597" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<codefragment>
+<![CDATA[
+            logger.error("Cannot load Limit configuration");
+            return false;
+        }
+        if (!DbConstant.admin.isConnected) {
+            // if no database, must load authentication from file
+            if (! loadAuthentication(config)) {
+                logger.error("Cannot load Authentication configuration");
+                return false;
+            }
+        }
+        config.HOST_AUTH = R66Auth.getServerAuth(
+                DbConstant.admin.session, config.HOST_ID);
+        if (config.HOST_AUTH == null &&
+                config.useNOSSL) {
+            logger.error("Cannot find Authentication for current host");
+            return false;
+        }
+        if (config.HOST_SSLID != null) {
+            config.HOST_SSLAUTH = R66Auth.getServerAuth(
+                    DbConstant.admin.session,
+                    config.HOST_SSLID);
+            if (config.HOST_SSLAUTH == null &&
+                    config.useSSL) {
+                logger.error("Cannot find SSL Authentication for current host");
+                return false;
+            }
+        }
+        hashConfig.clear();
+        hashConfig = null;
+        configuration = null;
+        return true;
+    }
+    
+    /**
+     * Initiate the configuration from the xml file for server shutdown
+     *
+     * @param filename
+     * @return True if OK
+     */
+    public static boolean setConfigurationServerShutdownFromXml(Configuration config, String filename) {
+]]>
+</codefragment>
+</duplication>
+<duplication lines="26" tokens="138">
+<file line="194" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="190" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<codefragment>
+<![CDATA[
+            return;
+        } finally {
+            request.close();
+        }
+        // Index Runner
+        action = "CREATE INDEX IDX_RUNNER ON "+ DbTaskRunner.table + "(";
+        DbTaskRunner.Columns[] icolumns = DbTaskRunner.indexes;
+        for (int i = 0; i < icolumns.length-1; i ++) {
+            action += icolumns[i].name()+ ", ";
+        }
+        action += icolumns[icolumns.length-1].name()+ ")";
+        System.out.println(action);
+        try {
+            request.query(action);
+        } catch (WaarpDatabaseNoConnectionException e) {
+            e.printStackTrace();
+            return;
+        } catch (WaarpDatabaseSqlException e) {
+            return;
+        } finally {
+            request.close();
+        }
+
+        // cptrunner
+        action = "CREATE SEQUENCE " + DbTaskRunner.fieldseq +
+                " MINVALUE " + (DbConstant.ILLEGALVALUE + 1)+
+]]>
+</codefragment>
+</duplication>
+<duplication lines="12" tokens="136">
+<file line="695" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="726" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<codefragment>
+<![CDATA[
+                    body = REQUEST.CancelRestart.readBody();
+                    body = taskRunner.toSpecializedHtml(authentHttp, body,
+                            lcr != null ? "Active" : "NotActive");
+                    String tstart = taskRunner.getStart().toString();
+                    tstart = tstart.substring(0, tstart.length());
+                    String tstop = taskRunner.getStop().toString();
+                    tstop = tstop.substring(0, tstop.length());
+                    head = resetOptionTransfer(head, (taskRunner.getSpecialId()-1)+"",
+                            (taskRunner.getSpecialId()+1)+"", tstart, tstop,
+                            taskRunner.getRuleId(), taskRunner.getRequested(),
+                            false, false, false, false, true);
+                }
+]]>
+</codefragment>
+</duplication>
+<duplication lines="22" tokens="135">
+<file line="101" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecMoveTask.java"/>
+<file line="106" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecOutputTask.java"/>
+<file line="89" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecTask.java"/>
+<codefragment>
+<![CDATA[
+                move(result.status, result.result, finalname);
+                localExecClient.disconnect();
+                return;
+            } // else continue
+        }
+        String[] args = finalname.split(" ");
+        File exec = new File(args[0]);
+        if (exec.isAbsolute()) {
+            if (! exec.canExecute()) {
+                logger.error("Exec command is not executable: " + finalname);
+                R66Result result = new R66Result(session, false,
+                        ErrorCode.CommandNotFound, session.getRunner());
+                futureCompletion.setResult(result);
+                futureCompletion.cancel();
+                return;
+            }
+        }
+        CommandLine commandLine = new CommandLine(args[0]);
+        for (int i = 1; i < args.length; i ++) {
+            commandLine.addArgument(args[i]);
+        }
+        DefaultExecutor defaultExecutor = new DefaultExecutor();
+]]>
+</codefragment>
+</duplication>
+<duplication lines="27" tokens="123">
+<file line="1515" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1597" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1682" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<codefragment>
+<![CDATA[
+            logger.error("Cannot load Limit configuration");
+            return false;
+        }
+        if (!DbConstant.admin.isConnected) {
+            // if no database, must load authentication from file
+            if (! loadAuthentication(config)) {
+                logger.error("Cannot load Authentication configuration");
+                return false;
+            }
+        }
+        config.HOST_AUTH = R66Auth.getServerAuth(
+                DbConstant.admin.session, config.HOST_ID);
+        if (config.HOST_AUTH == null &&
+                config.useNOSSL) {
+            logger.error("Cannot find Authentication for current host");
+            return false;
+        }
+        if (config.HOST_SSLID != null) {
+            config.HOST_SSLAUTH = R66Auth.getServerAuth(
+                    DbConstant.admin.session,
+                    config.HOST_SSLID);
+            if (config.HOST_SSLAUTH == null &&
+                    config.useSSL) {
+                logger.error("Cannot find SSL Authentication for current host");
+                return false;
+            }
+        }
+]]>
+</codefragment>
+</duplication>
+<duplication lines="44" tokens="123">
+<file line="195" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="194" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<codefragment>
+<![CDATA[
+            return;
+        } finally {
+            request.close();
+        }
+        // Index Runner
+        action = "CREATE INDEX IDX_RUNNER ON "+ DbTaskRunner.table + "(";
+        DbTaskRunner.Columns[] icolumns = DbTaskRunner.indexes;
+        for (int i = 0; i < icolumns.length-1; i ++) {
+            action += icolumns[i].name()+ ", ";
+        }
+        action += icolumns[icolumns.length-1].name()+ ")";
+        System.out.println(action);
+        try {
+            request.query(action);
+        } catch (WaarpDatabaseNoConnectionException e) {
+            e.printStackTrace();
+            return;
+        } catch (WaarpDatabaseSqlException e) {
+            return;
+        } finally {
+            request.close();
+        }
+
+        // cptrunner
+        /*
+         * # Table to handle any number of sequences:
+            CREATE TABLE Sequences (
+              name VARCHAR(22) NOT NULL,
+              seq INT UNSIGNED NOT NULL,  # (or BIGINT)
+              PRIMARY KEY name
+            );
+
+            # Create a Sequence:
+            INSERT INTO Sequences (name, seq) VALUES (?, 0);
+            # Drop a Sequence:
+            DELETE FROM Sequences WHERE name = ?;
+
+            # Get a sequence number:
+            UPDATE Sequences
+              SET seq = LAST_INSERT_ID(seq + 1)
+              WHERE name = ?;
+            $seq = $db->LastInsertId();
+         */
+        action = "CREATE TABLE Sequences (name VARCHAR(22) NOT NULL PRIMARY KEY,"+
+]]>
+</codefragment>
+</duplication>
+<duplication lines="24" tokens="120">
+<file line="296" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\commander\Commander.java"/>
+<file line="413" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\commander\Commander.java"/>
+<codefragment>
+<![CDATA[
+                    hostAuth = null;
+                }
+            } catch (WaarpDatabaseNoConnectionException e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (WaarpDatabaseNoConnectionException e1) {
+                }
+                logger.error("Database No Connection Error: Cannot execute Commander", e);
+                return;
+            } catch (WaarpDatabaseSqlException e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (WaarpDatabaseNoConnectionException e1) {
+                }
+                logger.error("Database SQL Error: Cannot execute Commander", e);
+                return;
+            } catch (WaarpDatabaseException e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (WaarpDatabaseNoConnectionException e1) {
+                }
+                logger.error("Database Error: Cannot execute Commander", e);
+                return;
+            } finally {
+]]>
+</codefragment>
+</duplication>
+<duplication lines="24" tokens="119">
+<file line="1439" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1487" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1554" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1635" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<codefragment>
+<![CDATA[
+    public static boolean setConfigurationInitDatabase(Configuration config, String filename) {
+        Document document = null;
+        // Open config file
+        try {
+            document = new SAXReader().read(filename);
+        } catch (DocumentException e) {
+            logger.error("Unable to read the XML Config file: " + filename, e);
+            return false;
+        }
+        if (document == null) {
+            logger.error("Unable to read the XML Config file: " + filename);
+            return false;
+        }
+        configuration = XmlUtil.read(document, configServer);
+        hashConfig = new XmlHash(configuration);
+        if (! loadIdentity(config)) {
+            logger.error("Cannot load Identity");
+            return false;
+        }
+        if (!loadDatabase(config)) {
+            logger.error("Cannot load Database configuration");
+            return false;
+        }
+        if (! loadDirectory(config)) {
+]]>
+</codefragment>
+</duplication>
+<duplication lines="22" tokens="117">
+<file line="242" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\commander\Commander.java"/>
+<file line="298" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\commander\Commander.java"/>
+<file line="415" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\commander\Commander.java"/>
+<codefragment>
+<![CDATA[
+            } catch (WaarpDatabaseNoConnectionException e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (WaarpDatabaseNoConnectionException e1) {
+                }
+                logger.error("Database No Connection Error: Cannot execute Commander", e);
+                return;
+            } catch (WaarpDatabaseSqlException e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (WaarpDatabaseNoConnectionException e1) {
+                }
+                logger.error("Database SQL Error: Cannot execute Commander", e);
+                return;
+            } catch (WaarpDatabaseException e) {
+                try {
+                    DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+                } catch (WaarpDatabaseNoConnectionException e1) {
+                }
+                logger.error("Database Error: Cannot execute Commander", e);
+                return;
+            } finally {
+]]>
+</codefragment>
+</duplication>
+<duplication lines="22" tokens="117">
+<file line="183" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigExport.java"/>
+<file line="285" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExport.java"/>
+<codefragment>
+<![CDATA[
+                    logger.warn("SUCCESS on Final files:\n    " +
+                            (result.other != null? ((ValidPacket)result.other).getSheader() :
+                            "no file")
+                            +"\n    delay: "+delay);
+                }
+            } else {
+                if (result.code == ErrorCode.Warning) {
+                    logger.warn("Transfer is\n    WARNED", future.getCause());
+                    networkTransaction.closeAll();
+                    System.exit(result.code.ordinal());
+                } else {
+                    logger.error("Transfer in\n    FAILURE", future.getCause());
+                    networkTransaction.closeAll();
+                    System.exit(result.code.ordinal());
+                }
+            }
+        } finally {
+            networkTransaction.closeAll();
+        }
+    }
+
+}
+]]>
+</codefragment>
+</duplication>
+<duplication lines="15" tokens="114">
+<file line="505" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="578" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<codefragment>
+<![CDATA[
+                    all = true;
+                }
+                Timestamp tstart = WaarpStringUtils.fixDate(start);
+                if (tstart != null) {
+                    start = tstart.toString();
+                }
+                Timestamp tstop = WaarpStringUtils.fixDate(stop, tstart);
+                if (tstop != null) {
+                    stop = tstop.toString();
+                }
+                head = resetOptionTransfer(head, startid == null ? "":startid,
+                        stopid == null ? "":stopid, start, stop,
+                        rule == null ? "":rule, req == null ? "":req,
+                        pending, transfer, error, done, all);
+                body = REQUEST.CancelRestart.readBody();
+]]>
+</codefragment>
+</duplication>
+<duplication lines="25" tokens="113">
+<file line="472" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\filesystem\R66File.java"/>
+<file line="526" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\filesystem\R66File.java"/>
+<codefragment>
+<![CDATA[
+            File newFile = getFileFromPath(path);
+            if (newFile.getParentFile().canWrite()) {
+                if (!file.renameTo(newFile)) {
+                    FileOutputStream fileOutputStream;
+                    try {
+                        fileOutputStream = new FileOutputStream(newFile);
+                    } catch (FileNotFoundException e) {
+                        logger
+                                .warn("Cannot find file: " + newFile.getName(),
+                                        e);
+                        return false;
+                    }
+                    FileChannel fileChannelOut = fileOutputStream.getChannel();
+                    if (get(fileChannelOut)) {
+                        delete();
+                    } else {
+                        try {
+                            fileChannelOut.close();
+                        } catch (IOException e) {
+                        }
+                        logger.error("Cannot write file: {}", newFile);
+                        return false;
+                    }
+                }
+                currentFile = getRelativePath(newFile);
+]]>
+</codefragment>
+</duplication>
+<duplication lines="13" tokens="112">
+<file line="971" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="1014" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<codefragment>
+<![CDATA[
+            } else if ("TestConn".equalsIgnoreCase(parm)) {
+                String host = getTrimValue("host");
+                String addr = getTrimValue("address");
+                String port = getTrimValue("port");
+                String key = getTrimValue("hostkey");
+                boolean ssl, admin, isclient;
+                ssl = params.containsKey("ssl");
+                admin = params.containsKey("admin");
+                isclient = params.containsKey("isclient");
+                head = resetOptionHosts(head, host, addr, ssl);
+                int iport = Integer.parseInt(port);
+                DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
+                        ssl, key.getBytes(), admin, isclient);
+]]>
+</codefragment>
+</duplication>
+<duplication lines="12" tokens="111">
+<file line="481" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="495" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="509" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="523" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="537" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<codefragment>
+<![CDATA[
+        if (array != null) {
+            for (rank = 0; rank < array.length; rank++) {
+                Element task = new DefaultElement(XTASK);
+                task.add(newElement(DbRule.TASK_TYPE, array[rank][0]));
+                task.add(newElement(DbRule.TASK_PATH, array[rank][1]));
+                task.add(newElement(DbRule.TASK_DELAY, array[rank][2]));
+                roottasks.add(task);
+            }
+        }
+        tasks.add(roottasks);
+        root.add(tasks);
+        tasks = new DefaultElement(XRPOSTTASKS);
+]]>
+</codefragment>
+</duplication>
+<duplication lines="20" tokens="110">
+<file line="197" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="200" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="199" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="195" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<codefragment>
+<![CDATA[
+        action = "CREATE INDEX IF NOT EXISTS IDX_RUNNER ON "+ DbTaskRunner.table + "(";
+        DbTaskRunner.Columns[] icolumns = DbTaskRunner.indexes;
+        for (int i = 0; i < icolumns.length-1; i ++) {
+            action += icolumns[i].name()+ ", ";
+        }
+        action += icolumns[icolumns.length-1].name()+ ")";
+        System.out.println(action);
+        try {
+            request.query(action);
+        } catch (WaarpDatabaseNoConnectionException e) {
+            e.printStackTrace();
+            return;
+        } catch (WaarpDatabaseSqlException e) {
+            return;
+        } finally {
+            request.close();
+        }
+
+        // cptrunner
+        action = "CREATE SEQUENCE IF NOT EXISTS " + DbTaskRunner.fieldseq +
+]]>
+</codefragment>
+</duplication>
+<duplication lines="15" tokens="109">
+<file line="401" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="578" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<codefragment>
+<![CDATA[
+                    all = true;
+                }
+                Timestamp tstart = WaarpStringUtils.fixDate(start);
+                if (tstart != null) {
+                    start = tstart.toString();
+                }
+                Timestamp tstop = WaarpStringUtils.fixDate(stop, tstart);
+                if (tstop != null) {
+                    stop = tstop.toString();
+                }
+                head = resetOptionTransfer(head, startid == null ? "":startid,
+                        stopid == null ? "":stopid, start, stop,
+                        rule == null ? "":rule, req == null ? "":req,
+                        pending, transfer, error, done, all);
+                body = REQUEST.Listing.readBody();
+]]>
+</codefragment>
+</duplication>
+<duplication lines="14" tokens="108">
+<file line="120" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="123" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="123" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="118" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<codefragment>
+<![CDATA[
+            return;
+        } finally {
+            request.close();
+        }
+
+        // hosts
+        action = createTableH2 + DbHostAuth.table + "(";
+        DbHostAuth.Columns[] hcolumns = DbHostAuth.Columns.values();
+        for (int i = 0; i < hcolumns.length - 1; i ++) {
+            action += hcolumns[i].name() +
+                    DBType.getType(DbHostAuth.dbTypes[i]) + notNull + ", ";
+        }
+        action += hcolumns[hcolumns.length - 1].name() +
+                DBType.getType(DbHostAuth.dbTypes[hcolumns.length - 1]) +
+]]>
+</codefragment>
+</duplication>
+<duplication lines="21" tokens="108">
+<file line="1863" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="1974" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<codefragment>
+<![CDATA[
+                    }
+                }
+                R66Result result = null;
+                if (brule || bhost) {
+                    result = new R66Result(session, true, ErrorCode.CompleteOk, null);
+                } else {
+                    result = new R66Result(session, true, ErrorCode.TransferError, null);
+                }
+                // Now answer
+                ValidPacket valid = new ValidPacket(shost+" "+srule, result.code.getCode(),
+                        LocalPacketFactory.REQUESTUSERPACKET);
+                localChannelReference.validateRequest(result);
+                try {
+                    ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+                            valid, true);
+                } catch (OpenR66ProtocolPacketException e) {
+                }
+                Channels.close(channel);
+                break;
+            }
+            case LocalPacketFactory.CONFIMPORTPACKET: {
+]]>
+</codefragment>
+</duplication>
+<duplication lines="16" tokens="107">
+<file line="147" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\Message.java"/>
+<file line="157" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\RequestInformation.java"/>
+<codefragment>
+<![CDATA[
+            logger.debug("Requested host cannot be found: "+requested);
+            R66Result result = new R66Result(null, true, ErrorCode.ConnectionImpossible, null);
+            this.future.setResult(result);
+            this.future.cancel();
+            return;
+        }
+        if (host.isClient()) {
+            logger.error("Requested host is a client and cannot be requested: "+requested);
+            R66Result result = new R66Result(null, true, ErrorCode.ConnectionImpossible, null);
+            this.future.setResult(result);
+            this.future.cancel();
+            return;
+        }
+        SocketAddress socketAddress = host.getSocketAddress();
+        boolean isSSL = host.isSsl();
+        LocalChannelReference localChannelReference = null;
+]]>
+</codefragment>
+</duplication>
+<duplication lines="18" tokens="107">
+<file line="225" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\RescheduleTransferTask.java"/>
+<file line="268" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\RescheduleTransferTask.java"/>
+<codefragment>
+<![CDATA[
+                String[] elmts = args[i].split(";");
+                boolean startModified = false;
+                String[] values = elmts[0].split(":");
+                Calendar start = getCalendar(values);
+                if (start != null) {
+                    startModified = true;
+                } else {
+                    start = Calendar.getInstance();
+                }
+                boolean stopModified = false;
+                values = elmts[1].split(":");
+                Calendar stop = getCalendar(values);
+                if (stop != null) {
+                    stopModified = true;
+                } else {
+                    stop = Calendar.getInstance();
+                }
+                logger.debug("Dates before check: Not between "+start.getTime()+" and "+stop.getTime());
+]]>
+</codefragment>
+</duplication>
+<duplication lines="14" tokens="107">
+<file line="62" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="65" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="64" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="60" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<codefragment>
+<![CDATA[
+        String primaryKey = " PRIMARY KEY ";
+        String notNull = " NOT NULL ";
+
+        // Multiple Mode
+        String action = createTableH2 + DbMultipleMonitor.table + "(";
+        DbMultipleMonitor.Columns[] mcolumns = DbMultipleMonitor.Columns
+                .values();
+        for (int i = 0; i < mcolumns.length - 1; i ++) {
+            action += mcolumns[i].name() +
+                    DBType.getType(DbMultipleMonitor.dbTypes[i]) + notNull +
+                    ", ";
+        }
+        action += mcolumns[mcolumns.length - 1].name() +
+                DBType.getType(DbMultipleMonitor.dbTypes[mcolumns.length - 1]) +
+]]>
+</codefragment>
+</duplication>
+<duplication lines="11" tokens="106">
+<file line="481" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="495" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="509" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="523" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="537" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="551" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<codefragment>
+<![CDATA[
+        if (array != null) {
+            for (rank = 0; rank < array.length; rank++) {
+                Element task = new DefaultElement(XTASK);
+                task.add(newElement(DbRule.TASK_TYPE, array[rank][0]));
+                task.add(newElement(DbRule.TASK_PATH, array[rank][1]));
+                task.add(newElement(DbRule.TASK_DELAY, array[rank][2]));
+                roottasks.add(task);
+            }
+        }
+        tasks.add(roottasks);
+        root.add(tasks);
+]]>
+</codefragment>
+</duplication>
+<duplication lines="14" tokens="106">
+<file line="143" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="146" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="146" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="141" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<codefragment>
+<![CDATA[
+            return;
+        } finally {
+            request.close();
+        }
+
+        // rules
+        action = createTableH2 + DbRule.table + "(";
+        DbRule.Columns[] rcolumns = DbRule.Columns.values();
+        for (int i = 0; i < rcolumns.length - 1; i ++) {
+            action += rcolumns[i].name() +
+                    DBType.getType(DbRule.dbTypes[i]) + ", ";
+        }
+        action += rcolumns[rcolumns.length - 1].name() +
+                DBType.getType(DbRule.dbTypes[rcolumns.length - 1]) +
+]]>
+</codefragment>
+</duplication>
+<duplication lines="27" tokens="105">
+<file line="708" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="746" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<codefragment>
+<![CDATA[
+    public void insert() throws WaarpDatabaseException {
+        if (isSaved) {
+            return;
+        }
+        if (dbSession == null) {
+            if (specialId == DbConstant.ILLEGALVALUE) {
+                // New SpecialId is not possible with No Database Model
+                createNoDbSpecialId();
+            }
+            isSaved = true;
+            if (Configuration.configuration.saveTaskRunnerWithNoDb) {
+                try {
+                    setToArray();
+                    this.writeXmlWorkNoDb();
+                } catch (OpenR66ProtocolBusinessException e) {
+                    // Ignore
+                }
+            }
+            if (this.updatedInfo == UpdatedInfo.TOSUBMIT.ordinal()) {
+                addNoDb();
+            }
+            return;
+        }
+        // First need to find a new id if id is not ok
+        if (specialId == DbConstant.ILLEGALVALUE) {
+            specialId = DbModelFactory.dbModel.nextSequence(dbSession);
+            logger.debug("Try Insert create a new Id from sequence: " +
+]]>
+</codefragment>
+</duplication>
+<duplication lines="11" tokens="102">
+<file line="582" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="594" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<codefragment>
+<![CDATA[
+        new XmlDecl(XML_NETWORK, XmlType.XVAL, XML_ROOT+XML_NETWORK, configNetworkServerDecls, false),
+        new XmlDecl(XML_SSL, XmlType.XVAL, XML_ROOT+XML_SSL, configSslDecls, false),
+        new XmlDecl(XML_DIRECTORY, XmlType.XVAL, XML_ROOT+XML_DIRECTORY, configDirectoryDecls, false),
+        new XmlDecl(XML_LIMIT, XmlType.XVAL, XML_ROOT+XML_LIMIT, configLimitDecls, false),
+        new XmlDecl(XML_DB, XmlType.XVAL, XML_ROOT+XML_DB, configDbDecls, false),
+        new XmlDecl(XML_BUSINESS, XmlType.STRING, XML_ROOT+XML_BUSINESS+"/"+XML_BUSINESSID, true)
+    };
+    /**
+     * Global Structure for Client Configuration
+     */
+    private static final XmlDecl[] configClient = {
+]]>
+</codefragment>
+</duplication>
+<duplication lines="16" tokens="100">
+<file line="150" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecMoveTask.java"/>
+<file line="154" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecOutputTask.java"/>
+<codefragment>
+<![CDATA[
+        Thread thread = new Thread(lastLineReader, "ExecRename" + session.getRunner().getSpecialId());
+        thread.setDaemon(true);
+        Configuration.configuration.getExecutorService().execute(thread);
+        int status = -1;
+        try {
+            status = defaultExecutor.execute(commandLine);
+        } catch (ExecuteException e) {
+            if (e.getExitValue() == -559038737) {
+                // Cannot run immediately so retry once
+                try {
+                    Thread.sleep(Configuration.RETRYINMS);
+                } catch (InterruptedException e1) {
+                }
+                try {
+                    status = defaultExecutor.execute(commandLine);
+                } catch (ExecuteException e1) {
+]]>
+</codefragment>
+</duplication>
+</pmd-cpd>
