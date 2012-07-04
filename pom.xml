@@ -1,9 +1,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>GoldenGate</groupId>
-  <artifactId>GoldenGateR66</artifactId>
-  <name>GoldenGate OpenR66</name>
-  <version>2.3.1</version>
+  <artifactId>WaarpR66</artifactId>
+  <name>Waarp OpenR66</name>
+  <version>2.4.0</version>
   <description>
   OpenR66 is a File Transfer Monitor to be used in real production to transfer files between servers.
   It allows to start/restart a transfer, check the remote MD5, check status, make pre or post
@@ -11,17 +10,21 @@
   When multiple transfers occurs between two hosts, they use the same network channel and
   multiplex their other transfers on this channel.
   </description>
-  <url>http://openr66.free.fr/GoldenGateR66</url>
+  <url>http://waarp.github.com/WaarpDigest</url>
   <inceptionYear>2009</inceptionYear>
   <parent>
-    <groupId>GoldenGate</groupId>
+    <groupId>Waarp</groupId>
     <artifactId>persistence-deps</artifactId>
-    <version>1.0</version>
+    <version>1.2</version>
   </parent>
+  <issueManagement>
+	<system>GitHub</system>
+  	<url>https://github.com/waarp/WaarpDigest/issues/</url>
+  </issueManagement>
   <scm>
-  	<connection>scm:svn:http://goldengate.svn.sourceforge.net/svnroot/goldengate/GoldenGateR66/trunk</connection>
-  	<developerConnection>scm:svn:https://goldengate.svn.sourceforge.net/svnroot/goldengate/GoldenGateR66/trunk</developerConnection>
-  	<url>http://goldengate.svn.sourceforge.net/svnroot/goldengate/GoldenGateR66/trunk</url>
+  	<connection>scm:git:git://github.com/waarp/WaarpDigest.git</connection>
+  	<developerConnection>scm:git:git@github.com:YourID/WaarpDigest.git</developerConnection>
+  	<url>https://github.com/waarp/WaarpDigest</url>
   </scm>
   <licenses>
   	<license>
@@ -31,9 +34,9 @@
   </licenses>
   <repositories>
   	<repository>
-  		<id>goldengate.releases</id>
-  		<name>GoldenGate releases</name>
-  		<url>http://openr66.free.fr/maven2</url>
+  		<id>waarp.releases</id>
+  		<name>Waarp releases</name>
+  		<url>http://waarp.github.com/Waarp/maven2</url>
   		<releases>
   			<enabled>true</enabled>
   		</releases>
@@ -44,9 +47,9 @@
   </repositories>
   <dependencies>
     <dependency>
-      <groupId>GoldenGate</groupId>
-      <artifactId>GoldenGateCommon</artifactId>
-      <version>1.1.11</version>
+      <groupId>Waarp</groupId>
+      <artifactId>WaarpCommon</artifactId>
+      <version>1.2.0</version>
     </dependency>
     <dependency>
     	<groupId>javasysmon</groupId>
@@ -89,14 +92,14 @@
     	<version>1.6</version>
     </dependency>
     <dependency>
-    	<groupId>GoldenGate</groupId>
-    	<artifactId>GoldenGateExec</artifactId>
-    	<version>1.0.6</version>
+    	<groupId>Waarp</groupId>
+    	<artifactId>WaarpExec</artifactId>
+    	<version>1.1.0</version>
     </dependency>
     <dependency>
-    	<groupId>GoldenGate</groupId>
-    	<artifactId>GoldenGateSnmp</artifactId>
-    	<version>1.0.5</version>
+    	<groupId>Waarp</groupId>
+    	<artifactId>WaarpSnmp</artifactId>
+    	<version>1.1.0</version>
     </dependency>
     <dependency>
     	<groupId>ch.qos.logback</groupId>
@@ -136,11 +139,11 @@
                 <mkdir dir="${project.build.directory}"/>
                 <mkdir dir="${project.build.directory}/classes"/>
                 <echo message="${project.version}" file="${project.build.directory}/version.txt" />
-                <echo message="// DO NOT MODIFY - WILL BE OVERWRITTEN DURING THE BUILD PROCESS${line.separator}package openr66.protocol.utils;${line.separator}/** Provides the version information of GoldenGate OpenR66. */${line.separator}public final class Version {${line.separator} /** The version identifier. */${line.separator} public static final String ID = &quot;${project.version}&quot;;${line.separator} /** Prints out the version identifier to stdout. */${line.separator} public static void main(String[] args) { System.out.println(ID); }${line.separator} private Version() { super(); }${line.separator}}${line.separator}" file="${basedir}/src/main/java/openr66/protocol/utils/Version.java" />
+                <echo message="// DO NOT MODIFY - WILL BE OVERWRITTEN DURING THE BUILD PROCESS${line.separator}package org.waarp.openr66.protocol.utils;${line.separator}/** Provides the version information of Waarp OpenR66. */${line.separator}public final class Version {${line.separator} /** The version identifier. */${line.separator} public static final String ID = &quot;${project.version}&quot;;${line.separator} /** Prints out the version identifier to stdout. */${line.separator} public static void main(String[] args) { System.out.println(ID); }${line.separator} private Version() { super(); }${line.separator}}${line.separator}" file="${basedir}/src/main/java/org/waarp/openr66/protocol/utils/Version.java" />
                 <echo message="${project.artifactId}" />
                 <taskdef resource="net/sf/antcontrib/antlib.xml" />
                 <if>
-                <equals arg1="${project.artifactId}" arg2="GoldenGateR66"/>
+                <equals arg1="${project.artifactId}" arg2="WaarpR66"/>
                 <then>
                 	<mkdir dir="${project.build.directory}/site"/>
                 </then>
@@ -238,21 +241,21 @@
 	          <windowtitle>${project.name} ${project.version} API Reference</windowtitle>
 	          <additionalparam>
 	            -link http://java.sun.com/javase/6/docs/api/
-	            -link http://jboss.org/file-access/default/members/netty/freezone/api/3.1/
+	            -link http://static.netty.io/3.5/api/
 
-				-group "OpenR66 Server package" "openr66.server*"
-				-group "OpenR66 Client package" "openr66.client*"
-				-group "OpenR66 Protocol package" "openr66.protocol*"
-				-group "OpenR66 Database package" "openr66.database*"
-				-group "OpenR66 Configuration file based loaders package" "openr66.configuration*"
-				-group "OpenR66 Context package" "openr66.context*"
-				-group "OpenR66 Commander package" "openr66.commander*"
+				-group "Waarp R66 Server package" "org.waarp.openr66.server*"
+				-group "Waarp R66 Client package" "org.waarp.openr66.client*"
+				-group "Waarp R66 Protocol package" "org.waarp.openr66.protocol*"
+				-group "Waarp R66 Database package" "org.waarp.openr66.database*"
+				-group "Waarp R66 Configuration file based loaders package" "org.waarp.openr66.configuration*"
+				-group "Waarp R66 Context package" "org.waarp.openr66.context*"
+				-group "Waarp R66 Commander package" "org.waarp.openr66.commander*"
 
 	            -sourceclasspath ${basedir}/target/classes
 	          </additionalparam>
 	          <encoding>UTF-8</encoding>
 	          <locale>en_US</locale>
-	          <excludePackageNames>${project.groupId}.example*:${project.groupId}.util.internal*</excludePackageNames>
+	          <excludePackageNames>${project.groupId}.test*:${project.groupId}.example*:${project.groupId}.util.internal*</excludePackageNames>
           </configuration>
           <reports>
            <report>aggregate</report>
