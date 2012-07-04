@@ -1,9 +1,0 @@
-- db : load at startup, export to XML files, import from XML files
-  H2: "jdbc:h2:/data/test;AUTO_SERVER=TRUE"
-  	;USER=sa;PASSWORD=123
-	;IFEXISTS=TRUE ??
-	;MODE=Oracle
-
-benchmark: 100 fichiers en parallele de 1174036 o = 32/s => 286 Mbits (idem avec ou sans MD5)
-benchmark: 1000 submission en parallele idem = 59/s => 527 Mbits
-benchmark: 10*100 fichiers en parallele idem = 70/s => 627 Mbits

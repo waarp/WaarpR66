@@ -1,6 +1,6 @@
 OpenR66 SSL configuration
 
-*How to configure GoldenGate OpenR66 SSL
+*How to configure Waarp OpenR66 SSL
 
 	To generate the stores for OpenR66 , you need to create 2 JKS keyStore. 
 	To generate those files, you can use the "keytool" command from the JDK or using 
@@ -77,4 +77,4 @@ OpenR66 SSL configuration
 	For Host passwords, admin passwords, OpenR66 uses encrypted password using private DES key.
 	We provide a GUI to generate the DES key (*.des file) and those passwords in files (*.ggp files).
 	
-	It can be found in the subproject GoldenGatePassword Gui project.
+	It can be found in the subproject WaarpPassword Gui project.

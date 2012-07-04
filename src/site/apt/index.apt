@@ -1,6 +1,6 @@
-GoldenGate OpenR66
+Waarp OpenR66
 
-  The GoldenGate OpenR66 project is a proposal of a file transfer monitor for real production
+  The Waarp OpenR66 project is a proposal of a file transfer monitor for real production
   environment. It supports send and receive file transfer, multiple simultaneous file transfer,
   transfer through support (for instance from a web server routed through OpenR66 to another server),
   multiplexing network connection (only one network socket is used between two servers), pre-
@@ -22,7 +22,7 @@ GoldenGate OpenR66
 
 Dependency
 
-  It is based mainly on the NETTY framework (NIO great framework support at {{http://www.jboss.org/netty}}
+  It is based mainly on the NETTY framework (NIO great framework support at {{http://netty.io}}
   and is tend to be really efficient, both in term of memory, threads and network bandwidth.
 
 Specificities
@@ -37,10 +37,10 @@ Specificities
   The specificity of this project is you can adapt this software to your particular needs by
   changing the pre or post action (even error actions) on transfers (not only transfer).
 
-[images/goldengatesmall.jpg] GoldenGate Main Project Logo
+[images/waarp.jpg] Waarp Main Project Logo
 
-  See global GoldenGate project at {{http://openr66.free.fr/}} and particular OpenR66 project at
-  {{http://openr66.free.fr/OpenR66.html}}
+  See global Waarp project at {{http://waarp.github.com/Waarp/}} and particular OpenR66 project at
+  {{http://github.com/WaarpR66/}}
 
 Benchmarks
 
