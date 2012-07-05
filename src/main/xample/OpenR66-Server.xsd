@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:fg="http://www.FGolubov.com/XMLEditor" elementFormDefault="qualified">
-
+  <xs:notation name="version" public="2.4.0"/>
   <xsd:simpleType name="booleanType">
 		<xsd:annotation>
 			<xsd:appinfo>
@@ -324,7 +324,14 @@
                   <xsd:element name="snmpconfig" type="XML-File" minOccurs="0" maxOccurs="1">
                     <xsd:annotation>
                         <xsd:appinfo>
-                            <fg:node-info message="Configuration XML File for SNMPÂ¨service"/>
+                            <fg:node-info message="Configuration XML File for SNMP¨service"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+				  <xsd:element name="multiplemonitors" type="nonNulInteger" default="1" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="Set the number of servers that act in the same group as a single instance of a OpenR66 File Transfer Monitor"/>
                         </xsd:appinfo>
                     </xsd:annotation>
                   </xsd:element>
@@ -605,13 +612,6 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                   </xsd:element>
-				  <xsd:element name="fastmd5" type="SODLL-File" minOccurs="0" maxOccurs="1">
-                    <xsd:annotation>
-                        <xsd:appinfo>
-                            <fg:node-info message="Library JNI Filepath. If the path is empty, the pure Java version will be used"/>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                  </xsd:element>
 			  </xsd:all>
 			</xsd:complexType>
 		</xsd:element>
@@ -647,9 +647,31 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                   </xsd:element>
+				  <xsd:element name="taskrunnernodb" type="booleanType" default="False" minOccurs="0" maxOccurs="1">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="When a server with no DB, do R66 will use XML files as permanent information on Transfer Tasks"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
 			  </xsd:all>
 			</xsd:complexType>
 		</xsd:element>
+		
+        <xsd:element name="business" minOccurs="0" maxOccurs="1">
+			<xsd:complexType>
+			  <xsd:sequence>
+				<xsd:element name="businessids" type="nonEmptyString" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="The host ids (1 by 1) that will be allow to use Business Requests (>= 2.3)"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+			  </xsd:sequence>
+			</xsd:complexType>
+		</xsd:element>
+
       </xsd:sequence>
     </xsd:complexType>
   </xsd:element>

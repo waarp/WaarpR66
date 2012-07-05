@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:fg="http://www.FGolubov.com/XMLEditor" elementFormDefault="qualified">
 
+  <xs:notation name="version" public="2.4.0"/>
   <xsd:simpleType name="booleanType">
 		<xsd:annotation>
 			<xsd:appinfo>
@@ -441,13 +442,6 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                   </xsd:element>
-				  <xsd:element name="fastmd5" type="SODLL-File" minOccurs="0" maxOccurs="1">
-                    <xsd:annotation>
-                        <xsd:appinfo>
-                            <fg:node-info message="Library JNI Filepath. If the path is empty, the pure Java version will be used"/>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                  </xsd:element>
 			  </xsd:all>
 			</xsd:complexType>
 		</xsd:element>
@@ -486,6 +480,21 @@
 			  </xsd:sequence>
 			</xsd:complexType>
 		</xsd:element>
+		
+        <xsd:element name="business" minOccurs="0" maxOccurs="1">
+			<xsd:complexType>
+			  <xsd:sequence>
+				<xsd:element name="businessids" type="nonEmptyString" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <fg:node-info message="The host ids (1 by 1) that will be allow to use Business Requests (>= 2.3)"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+			  </xsd:sequence>
+			</xsd:complexType>
+		</xsd:element>
+
       </xsd:sequence>
     </xsd:complexType>
   </xsd:element>
