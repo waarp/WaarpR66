@@ -10,7 +10,7 @@
   When multiple transfers occurs between two hosts, they use the same network channel and
   multiplex their other transfers on this channel.
   </description>
-  <url>http://waarp.github.com/WaarpDigest</url>
+  <url>http://waarp.github.com/WaarpR66</url>
   <inceptionYear>2009</inceptionYear>
   <parent>
     <groupId>Waarp</groupId>
@@ -19,12 +19,12 @@
   </parent>
   <issueManagement>
 	<system>GitHub</system>
-  	<url>https://github.com/waarp/WaarpDigest/issues/</url>
+  	<url>https://github.com/waarp/WaarpR66/issues/</url>
   </issueManagement>
   <scm>
-  	<connection>scm:git:git://github.com/waarp/WaarpDigest.git</connection>
-  	<developerConnection>scm:git:git@github.com:YourID/WaarpDigest.git</developerConnection>
-  	<url>https://github.com/waarp/WaarpDigest</url>
+  	<connection>scm:git:git://github.com/waarp/WaarpR66.git</connection>
+  	<developerConnection>scm:git:git@github.com:YourID/WaarpR66.git</developerConnection>
+  	<url>https://github.com/waarp/WaarpR66</url>
   </scm>
   <licenses>
   	<license>
