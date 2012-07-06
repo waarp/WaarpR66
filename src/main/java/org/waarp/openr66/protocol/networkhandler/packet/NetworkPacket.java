@@ -30,13 +30,13 @@ import org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket;
  * @author Frederic Bregier
  */
 public class NetworkPacket {
-	private final ChannelBuffer	buffer;
+	private final ChannelBuffer buffer;
 
-	private final int			remoteId;
+	private final int remoteId;
 
-	private final int			localId;
+	private final int localId;
 
-	private final byte			code;
+	private final byte code;
 
 	/**
 	 * @param localId

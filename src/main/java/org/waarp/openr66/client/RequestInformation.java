@@ -49,19 +49,19 @@ public class RequestInformation implements Runnable {
 	/**
 	 * Internal Logger
 	 */
-	static volatile WaarpInternalLogger	logger;
+	static volatile WaarpInternalLogger logger;
 
-	protected final NetworkTransaction	networkTransaction;
-	final R66Future						future;
-	String								requested	= null;
-	String								filename	= null;
-	String								rulename	= null;
-	byte								code;
+	protected final NetworkTransaction networkTransaction;
+	final R66Future future;
+	String requested = null;
+	String filename = null;
+	String rulename = null;
+	byte code;
 
-	static String						srequested	= null;
-	static String						sfilename	= null;
-	static String						srulename	= null;
-	static byte							scode		= 0;
+	static String srequested = null;
+	static String sfilename = null;
+	static String srulename = null;
+	static byte scode = 0;
 
 	/**
 	 * Parse the parameter and set current values

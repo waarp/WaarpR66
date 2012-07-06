@@ -67,15 +67,15 @@ public enum R66FiniteDualStates {
 		tBUSINESSR(BUSINESSR, EnumSet.of(ERROR, BUSINESSD, CLOSEDCHANNEL, VALIDOTHER)),
 		tBUSINESSD(BUSINESSD, EnumSet.of(ERROR, BUSINESSD, BUSINESSR, CLOSEDCHANNEL, VALIDOTHER));
 
-		public Transition<R66FiniteDualStates>	elt;
+		public Transition<R66FiniteDualStates> elt;
 
 		private R66Transition(R66FiniteDualStates state, EnumSet<R66FiniteDualStates> set) {
 			this.elt = new Transition<R66FiniteDualStates>(state, set);
 		}
 	}
 
-	private static ConcurrentHashMap<R66FiniteDualStates, EnumSet<?>>	stateMap	=
-																							new ConcurrentHashMap<R66FiniteDualStates, EnumSet<?>>();
+	private static ConcurrentHashMap<R66FiniteDualStates, EnumSet<?>> stateMap =
+			new ConcurrentHashMap<R66FiniteDualStates, EnumSet<?>>();
 
 	/**
 	 * This method should be called once at startup to initialize the Finite States association.

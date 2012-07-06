@@ -35,7 +35,7 @@ import org.waarp.openr66.protocol.configuration.Configuration;
  * 
  */
 public class HttpPipelineFactory implements ChannelPipelineFactory {
-	public boolean	useHttpCompression	= false;
+	public boolean useHttpCompression = false;
 
 	public HttpPipelineFactory(boolean useHttpCompression) {
 		this.useHttpCompression = useHttpCompression;

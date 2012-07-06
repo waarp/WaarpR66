@@ -50,94 +50,94 @@ public class LocalChannelReference {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger				= WaarpInternalLoggerFactory
-																			.getLogger(LocalChannelReference.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(LocalChannelReference.class);
 
 	/**
 	 * Local Channel
 	 */
-	private final Channel						localChannel;
+	private final Channel localChannel;
 
 	/**
 	 * Network Channel
 	 */
-	private final Channel						networkChannel;
+	private final Channel networkChannel;
 
 	/**
 	 * Traffic handler associated if any
 	 */
-	private ChannelTrafficShapingHandler		cts;
+	private ChannelTrafficShapingHandler cts;
 
 	/**
 	 * Associated NetworkChannel
 	 */
-	private NetworkChannel						networkChannelObject;
+	private NetworkChannel networkChannelObject;
 
 	/**
 	 * Network Server Handler
 	 */
-	private final NetworkServerHandler			networkServerHandler;
+	private final NetworkServerHandler networkServerHandler;
 
 	/**
 	 * Local Id
 	 */
-	private final Integer						localId;
+	private final Integer localId;
 
 	/**
 	 * Remote Id
 	 */
-	private Integer								remoteId;
+	private Integer remoteId;
 
 	/**
 	 * Future on Request
 	 */
-	private final R66Future						futureRequest;
+	private final R66Future futureRequest;
 
 	/**
 	 * Future on Valid Starting Request
 	 */
-	private R66Future							futureValidRequest	= new R66Future(true);
+	private R66Future futureValidRequest = new R66Future(true);
 
 	/**
 	 * Future on Transfer
 	 */
-	private R66Future							futureEndTransfer	= new R66Future(true);
+	private R66Future futureEndTransfer = new R66Future(true);
 
 	/**
 	 * Future on Connection
 	 */
-	private final R66Future						futureConnection	= new R66Future(true);
+	private final R66Future futureConnection = new R66Future(true);
 
 	/**
 	 * Future on Startup
 	 */
-	private final R66Future						futureStartup		= new R66Future(true);
+	private final R66Future futureStartup = new R66Future(true);
 
 	/**
 	 * Session
 	 */
-	private R66Session							session;
+	private R66Session session;
 
 	/**
 	 * Last error message
 	 */
-	private String								errorMessage		= "NoError";
+	private String errorMessage = "NoError";
 
 	/**
 	 * Last error code
 	 */
-	private ErrorCode							code				= ErrorCode.Unknown;
+	private ErrorCode code = ErrorCode.Unknown;
 
 	/**
 	 * RecvThroughHandler
 	 */
-	private RecvThroughHandler					recvThroughHandler;
+	private RecvThroughHandler recvThroughHandler;
 
-	private boolean								isSendThroughMode	= false;
+	private boolean isSendThroughMode = false;
 	/**
 	 * Thread for ClientRunner if any
 	 */
-	private ClientRunner						clientRunner		= null;
+	private ClientRunner clientRunner = null;
 
 	/**
 	 * 

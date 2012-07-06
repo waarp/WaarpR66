@@ -50,20 +50,20 @@ public class Message implements Runnable {
 	/**
 	 * Internal Logger
 	 */
-	private static WaarpInternalLogger	logger;
+	private static WaarpInternalLogger logger;
 
-	final private NetworkTransaction	networkTransaction;
+	final private NetworkTransaction networkTransaction;
 
-	final private R66Future				future;
+	final private R66Future future;
 
-	private final String				requested;
+	private final String requested;
 
-	private final DbHostAuth			hostAuth;
+	private final DbHostAuth hostAuth;
 
-	final private TestPacket			testPacket;
+	final private TestPacket testPacket;
 
-	static String						srequested	= null;
-	static String						smessage	= "MESSAGE";
+	static String srequested = null;
+	static String smessage = "MESSAGE";
 
 	/**
 	 * Parse the parameter and set current values

@@ -43,7 +43,7 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * 
  */
 public class DirectTransfer extends AbstractTransfer {
-	protected final NetworkTransaction	networkTransaction;
+	protected final NetworkTransaction networkTransaction;
 
 	public DirectTransfer(R66Future future, String remoteHost,
 			String filename, String rulename, String fileinfo, boolean isMD5, int blocksize,

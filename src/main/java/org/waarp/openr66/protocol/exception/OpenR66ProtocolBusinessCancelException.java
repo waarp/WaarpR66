@@ -27,7 +27,7 @@ public class OpenR66ProtocolBusinessCancelException extends OpenR66ProtocolBusin
 	/**
      *
      */
-	private static final long	serialVersionUID	= 2339971663355797702L;
+	private static final long serialVersionUID = 2339971663355797702L;
 
 	/**
 	 *

@@ -51,13 +51,13 @@ public class LocalClientHandler extends SimpleChannelHandler {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger					= WaarpInternalLoggerFactory
-																				.getLogger(LocalClientHandler.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(LocalClientHandler.class);
 
 	/**
 	 * Local Channel Reference
 	 */
-	private volatile LocalChannelReference		localChannelReference	= null;
+	private volatile LocalChannelReference localChannelReference = null;
 
 	/*
 	 * (non-Javadoc)

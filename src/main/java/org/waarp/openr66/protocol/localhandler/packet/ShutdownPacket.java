@@ -29,7 +29,7 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
  * @author frederic bregier
  */
 public class ShutdownPacket extends AbstractLocalPacket {
-	private final byte[]	key;
+	private final byte[] key;
 
 	/**
 	 * @param headerLength

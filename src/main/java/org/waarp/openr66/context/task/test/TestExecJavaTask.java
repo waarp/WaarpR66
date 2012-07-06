@@ -37,8 +37,8 @@ public class TestExecJavaTask extends AbstractExecJavaTask {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger	= WaarpInternalLoggerFactory
-																.getLogger(TestExecJavaTask.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(TestExecJavaTask.class);
 
 	@Override
 	public void run() {

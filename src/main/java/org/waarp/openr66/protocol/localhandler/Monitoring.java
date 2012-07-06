@@ -53,121 +53,121 @@ public class Monitoring implements WaarpInterfaceMonitor {
 	/**
 	 * Internal Logger
 	 */
-	private static WaarpInternalLogger	logger								= WaarpInternalLoggerFactory
-																					.getLogger(Monitoring.class);
+	private static WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(Monitoring.class);
 
-	public WaarpSnmpAgent				agent;
+	public WaarpSnmpAgent agent;
 
 	// global informations
-	public long							nbNetworkConnection					= 0;
-	public long							secondsRunning						= 0;
-	public long							nbThread							= 0;
-	public long							bandwidthIn							= 0;
-	public long							bandwidthOut						= 0;
+	public long nbNetworkConnection = 0;
+	public long secondsRunning = 0;
+	public long nbThread = 0;
+	public long bandwidthIn = 0;
+	public long bandwidthOut = 0;
 
 	// Internal data
-	private long						startMonitor						= System.currentTimeMillis();
-	private long						pastLimit							= 0;
-	private long						currentLimit						= 0;
-	private long						minimalDelay						= 0;
-	private long						lastTry								= 0;
-	private DbSession					dbSession							= null;
-	private TrafficCounter				trafficCounter						=
-																					Configuration.configuration
-																							.getGlobalTrafficShapingHandler()
-																							.getTrafficCounter();
+	private long startMonitor = System.currentTimeMillis();
+	private long pastLimit = 0;
+	private long currentLimit = 0;
+	private long minimalDelay = 0;
+	private long lastTry = 0;
+	private DbSession dbSession = null;
+	private TrafficCounter trafficCounter =
+			Configuration.configuration
+					.getGlobalTrafficShapingHandler()
+					.getTrafficCounter();
 
 	// Overall status including past, future and current transfers
-	private DbPreparedStatement			countInfo							= null;
+	private DbPreparedStatement countInfo = null;
 
 	// Current situation of all transfers, running or not
-	private DbPreparedStatement			countInActiveTransfer				= null;
-	private DbPreparedStatement			countOutActiveTransfer				= null;
-	private DbPreparedStatement			countInTotalTransfer				= null;
-	private DbPreparedStatement			countOutTotalTransfer				= null;
-	private DbPreparedStatement			countInErrorTransfer				= null;
-	private DbPreparedStatement			countOutErrorTransfer				= null;
-	private DbPreparedStatement			countStepAllTransfer				= null;
-	private DbPreparedStatement			countStepNotask						= null;
-	private DbPreparedStatement			countStepPretask					= null;
-	private DbPreparedStatement			countStepTransfer					= null;
-	private DbPreparedStatement			countStepPosttask					= null;
-	private DbPreparedStatement			countStepAllDone					= null;
-	private DbPreparedStatement			countStepError						= null;
+	private DbPreparedStatement countInActiveTransfer = null;
+	private DbPreparedStatement countOutActiveTransfer = null;
+	private DbPreparedStatement countInTotalTransfer = null;
+	private DbPreparedStatement countOutTotalTransfer = null;
+	private DbPreparedStatement countInErrorTransfer = null;
+	private DbPreparedStatement countOutErrorTransfer = null;
+	private DbPreparedStatement countStepAllTransfer = null;
+	private DbPreparedStatement countStepNotask = null;
+	private DbPreparedStatement countStepPretask = null;
+	private DbPreparedStatement countStepTransfer = null;
+	private DbPreparedStatement countStepPosttask = null;
+	private DbPreparedStatement countStepAllDone = null;
+	private DbPreparedStatement countStepError = null;
 
 	// First on Running Transfers only
-	private DbPreparedStatement			countAllRunningStep					= null;
-	private DbPreparedStatement			countRunningStep					= null;
-	private DbPreparedStatement			countInitOkStep						= null;
-	private DbPreparedStatement			countPreProcessingOkStep			= null;
-	private DbPreparedStatement			countTransferOkStep					= null;
-	private DbPreparedStatement			countPostProcessingOkStep			= null;
-	private DbPreparedStatement			countCompleteOkStep					= null;
+	private DbPreparedStatement countAllRunningStep = null;
+	private DbPreparedStatement countRunningStep = null;
+	private DbPreparedStatement countInitOkStep = null;
+	private DbPreparedStatement countPreProcessingOkStep = null;
+	private DbPreparedStatement countTransferOkStep = null;
+	private DbPreparedStatement countPostProcessingOkStep = null;
+	private DbPreparedStatement countCompleteOkStep = null;
 
 	// Error Status on all transfers
-	private DbPreparedStatement			countStatus							= null;
+	private DbPreparedStatement countStatus = null;
 
 	// Overall status including past, future and current transfers
-	public long							nbCountInfoUnknown					= 0;
-	public long							nbCountInfoNotUpdated				= 0;
-	public long							nbCountInfoInterrupted				= 0;
-	public long							nbCountInfoToSubmit					= 0;
-	public long							nbCountInfoError					= 0;
-	public long							nbCountInfoRunning					= 0;
-	public long							nbCountInfoDone						= 0;
+	public long nbCountInfoUnknown = 0;
+	public long nbCountInfoNotUpdated = 0;
+	public long nbCountInfoInterrupted = 0;
+	public long nbCountInfoToSubmit = 0;
+	public long nbCountInfoError = 0;
+	public long nbCountInfoRunning = 0;
+	public long nbCountInfoDone = 0;
 
-	public long							nbInActiveTransfer					= 0;
-	public long							nbOutActiveTransfer					= 0;
-	public long							lastInActiveTransfer				= System.currentTimeMillis();
-	public long							lastOutActiveTransfer				= System.currentTimeMillis();
-	public long							nbInTotalTransfer					= 0;
-	public long							nbOutTotalTransfer					= 0;
-	public long							nbInErrorTransfer					= 0;
-	public long							nbOutErrorTransfer					= 0;
+	public long nbInActiveTransfer = 0;
+	public long nbOutActiveTransfer = 0;
+	public long lastInActiveTransfer = System.currentTimeMillis();
+	public long lastOutActiveTransfer = System.currentTimeMillis();
+	public long nbInTotalTransfer = 0;
+	public long nbOutTotalTransfer = 0;
+	public long nbInErrorTransfer = 0;
+	public long nbOutErrorTransfer = 0;
 
 	// Current situation of all transfers, running or not
-	public long							nbCountStepAllTransfer				= 0;
-	public long							nbCountStepNotask					= 0;
-	public long							nbCountStepPretask					= 0;
-	public long							nbCountStepTransfer					= 0;
-	public long							nbCountStepPosttask					= 0;
-	public long							nbCountStepAllDone					= 0;
-	public long							nbCountStepError					= 0;
+	public long nbCountStepAllTransfer = 0;
+	public long nbCountStepNotask = 0;
+	public long nbCountStepPretask = 0;
+	public long nbCountStepTransfer = 0;
+	public long nbCountStepPosttask = 0;
+	public long nbCountStepAllDone = 0;
+	public long nbCountStepError = 0;
 
 	// First on Running Transfers only
-	public long							nbCountAllRunningStep				= 0;
-	public long							nbCountRunningStep					= 0;
-	public long							nbCountInitOkStep					= 0;
-	public long							nbCountPreProcessingOkStep			= 0;
-	public long							nbCountTransferOkStep				= 0;
-	public long							nbCountPostProcessingOkStep			= 0;
-	public long							nbCountCompleteOkStep				= 0;
+	public long nbCountAllRunningStep = 0;
+	public long nbCountRunningStep = 0;
+	public long nbCountInitOkStep = 0;
+	public long nbCountPreProcessingOkStep = 0;
+	public long nbCountTransferOkStep = 0;
+	public long nbCountPostProcessingOkStep = 0;
+	public long nbCountCompleteOkStep = 0;
 
 	// Error Status on all transfers
-	public long							nbCountStatusConnectionImpossible	= 0;
-	public long							nbCountStatusServerOverloaded		= 0;
-	public long							nbCountStatusBadAuthent				= 0;
-	public long							nbCountStatusExternalOp				= 0;
-	public long							nbCountStatusTransferError			= 0;
-	public long							nbCountStatusMD5Error				= 0;
-	public long							nbCountStatusDisconnection			= 0;
-	public long							nbCountStatusFinalOp				= 0;
-	public long							nbCountStatusUnimplemented			= 0;
-	public long							nbCountStatusInternal				= 0;
-	public long							nbCountStatusWarning				= 0;
-	public long							nbCountStatusQueryAlreadyFinished	= 0;
-	public long							nbCountStatusQueryStillRunning		= 0;
-	public long							nbCountStatusNotKnownHost			= 0;
-	public long							nbCountStatusQueryRemotelyUnknown	= 0;
-	public long							nbCountStatusCommandNotFound		= 0;
-	public long							nbCountStatusPassThroughMode		= 0;
-	public long							nbCountStatusRemoteShutdown			= 0;
-	public long							nbCountStatusShutdown				= 0;
-	public long							nbCountStatusRemoteError			= 0;
-	public long							nbCountStatusStopped				= 0;
-	public long							nbCountStatusCanceled				= 0;
-	public long							nbCountStatusFileNotFound			= 0;
-	public long							nbCountStatusUnknown				= 0;
+	public long nbCountStatusConnectionImpossible = 0;
+	public long nbCountStatusServerOverloaded = 0;
+	public long nbCountStatusBadAuthent = 0;
+	public long nbCountStatusExternalOp = 0;
+	public long nbCountStatusTransferError = 0;
+	public long nbCountStatusMD5Error = 0;
+	public long nbCountStatusDisconnection = 0;
+	public long nbCountStatusFinalOp = 0;
+	public long nbCountStatusUnimplemented = 0;
+	public long nbCountStatusInternal = 0;
+	public long nbCountStatusWarning = 0;
+	public long nbCountStatusQueryAlreadyFinished = 0;
+	public long nbCountStatusQueryStillRunning = 0;
+	public long nbCountStatusNotKnownHost = 0;
+	public long nbCountStatusQueryRemotelyUnknown = 0;
+	public long nbCountStatusCommandNotFound = 0;
+	public long nbCountStatusPassThroughMode = 0;
+	public long nbCountStatusRemoteShutdown = 0;
+	public long nbCountStatusShutdown = 0;
+	public long nbCountStatusRemoteError = 0;
+	public long nbCountStatusStopped = 0;
+	public long nbCountStatusCanceled = 0;
+	public long nbCountStatusFileNotFound = 0;
+	public long nbCountStatusUnknown = 0;
 
 	/**
 	 * @param pastLimit

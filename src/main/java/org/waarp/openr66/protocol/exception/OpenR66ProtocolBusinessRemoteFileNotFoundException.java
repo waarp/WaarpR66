@@ -28,7 +28,7 @@ public class OpenR66ProtocolBusinessRemoteFileNotFoundException extends
 	/**
      *
      */
-	private static final long	serialVersionUID	= -1515420982161281552L;
+	private static final long serialVersionUID = -1515420982161281552L;
 
 	/**
 	 *

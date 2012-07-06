@@ -81,12 +81,12 @@ public class RescheduleTransferTask extends AbstractTask {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger	= WaarpInternalLoggerFactory
-																.getLogger(RescheduleTransferTask.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(RescheduleTransferTask.class);
 
-	protected long								newdate	= 0;
+	protected long newdate = 0;
 
-	protected Calendar							newDate	= null;
+	protected Calendar newDate = null;
 
 	/**
 	 * @param argRule

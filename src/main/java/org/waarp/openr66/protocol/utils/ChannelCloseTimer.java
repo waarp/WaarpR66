@@ -33,7 +33,7 @@ import org.waarp.openr66.protocol.configuration.Configuration;
  */
 public class ChannelCloseTimer implements TimerTask {
 
-	private Channel	channel;
+	private Channel channel;
 
 	public ChannelCloseTimer(Channel channel) {
 		this.channel = channel;

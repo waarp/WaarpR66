@@ -29,7 +29,7 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
  * @author frederic bregier
  */
 public class StartupPacket extends AbstractLocalPacket {
-	private final Integer	localId;
+	private final Integer localId;
 
 	/**
 	 * @param headerLength

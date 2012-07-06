@@ -50,18 +50,18 @@ public class RetrieveRunner extends Thread {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger	= WaarpInternalLoggerFactory
-																.getLogger(RetrieveRunner.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(RetrieveRunner.class);
 
-	private final R66Session					session;
+	private final R66Session session;
 
-	private final LocalChannelReference			localChannelReference;
+	private final LocalChannelReference localChannelReference;
 
-	private final Channel						channel;
+	private final Channel channel;
 
-	private boolean								done	= false;
+	private boolean done = false;
 
-	protected AtomicBoolean						running	= new AtomicBoolean(true);
+	protected AtomicBoolean running = new AtomicBoolean(true);
 
 	protected RetrieveRunner() {
 		// empty constructor

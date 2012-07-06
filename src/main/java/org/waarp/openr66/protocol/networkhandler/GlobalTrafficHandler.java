@@ -34,8 +34,8 @@ public class GlobalTrafficHandler extends GlobalTrafficShapingHandler {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger	= WaarpInternalLoggerFactory
-																.getLogger(GlobalTrafficHandler.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(GlobalTrafficHandler.class);
 
 	/**
 	 * @param objectSizeEstimator

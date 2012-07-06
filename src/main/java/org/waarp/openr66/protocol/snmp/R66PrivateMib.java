@@ -47,8 +47,8 @@ public class R66PrivateMib extends WaarpPrivateMib {
 	/**
 	 * Internal Logger
 	 */
-	private static WaarpInternalLogger	logger	= WaarpInternalLoggerFactory
-														.getLogger(R66PrivateMib.class);
+	private static WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(R66PrivateMib.class);
 
 	/**
 	 * @param sysdesc

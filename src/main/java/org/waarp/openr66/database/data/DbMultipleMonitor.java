@@ -44,62 +44,62 @@ public class DbMultipleMonitor extends AbstractDbData {
 		HOSTID
 	}
 
-	public static final int[]											dbTypes			= {
-			Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.VARCHAR					};
+	public static final int[] dbTypes = {
+			Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.VARCHAR };
 
-	public static final String											table			= " MULTIPLEMONITOR ";
+	public static final String table = " MULTIPLEMONITOR ";
 
 	/**
 	 * HashTable in case of lack of database
 	 */
-	private static final ConcurrentHashMap<String, DbMultipleMonitor>	dbR66MMHashMap	=
-																								new ConcurrentHashMap<String, DbMultipleMonitor>();
+	private static final ConcurrentHashMap<String, DbMultipleMonitor> dbR66MMHashMap =
+			new ConcurrentHashMap<String, DbMultipleMonitor>();
 
-	private String														hostid;
+	private String hostid;
 
-	public int															countConfig;
+	public int countConfig;
 
-	public int															countHost;
+	public int countHost;
 
-	public int															countRule;
+	public int countRule;
 
 	// ALL TABLE SHOULD IMPLEMENT THIS
-	public static final int												NBPRKEY			= 1;
+	public static final int NBPRKEY = 1;
 
-	protected static final String										selectAllFields	= Columns.COUNTCONFIG
-																								.name()
-																								+
-																								","
-																								+
-																								Columns.COUNTHOST
-																										.name()
-																								+
-																								","
-																								+
-																								Columns.COUNTRULE
-																										.name()
-																								+
-																								","
-																								+
-																								Columns.HOSTID
-																										.name();
+	protected static final String selectAllFields = Columns.COUNTCONFIG
+			.name()
+			+
+			","
+			+
+			Columns.COUNTHOST
+					.name()
+			+
+			","
+			+
+			Columns.COUNTRULE
+					.name()
+			+
+			","
+			+
+			Columns.HOSTID
+					.name();
 
-	protected static final String										updateAllFields	= Columns.COUNTCONFIG
-																								.name()
-																								+
-																								"=?,"
-																								+
-																								Columns.COUNTHOST
-																										.name()
-																								+
-																								"=?,"
-																								+
-																								Columns.COUNTRULE
-																										.name()
-																								+
-																								"=?";
+	protected static final String updateAllFields = Columns.COUNTCONFIG
+			.name()
+			+
+			"=?,"
+			+
+			Columns.COUNTHOST
+					.name()
+			+
+			"=?,"
+			+
+			Columns.COUNTRULE
+					.name()
+			+
+			"=?";
 
-	protected static final String										insertAllValues	= " (?,?,?,?) ";
+	protected static final String insertAllValues = " (?,?,?,?) ";
 
 	/*
 	 * (non-Javadoc)

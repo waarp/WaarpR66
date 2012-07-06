@@ -58,44 +58,44 @@ public class RuleFileBasedConfiguration {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger				= WaarpInternalLoggerFactory
-																			.getLogger(RuleFileBasedConfiguration.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(RuleFileBasedConfiguration.class);
 
-	private static final String					MULTIPLEROOT		= "rules";
-	private static final String					ROOT				= "rule";
-	private static final String					XIDRULE				= "idrule";
-	public static final String					XHOSTIDS			= "hostids";
-	public static final String					XHOSTID				= "hostid";
-	private static final String					XMODE				= "mode";
-	private static final String					XRECVPATH			= "recvpath";
-	private static final String					XSENDPATH			= "sendpath";
-	private static final String					XARCHIVEPATH		= "archivepath";
-	private static final String					XWORKPATH			= "workpath";
-	private static final String					XRPRETASKS			= "rpretasks";
-	private static final String					XRPOSTTASKS			= "rposttasks";
-	private static final String					XRERRORTASKS		= "rerrortasks";
-	private static final String					XSPRETASKS			= "spretasks";
-	private static final String					XSPOSTTASKS			= "sposttasks";
-	private static final String					XSERRORTASKS		= "serrortasks";
-	public static final String					XTASKS				= "tasks";
-	public static final String					XTASK				= "task";
+	private static final String MULTIPLEROOT = "rules";
+	private static final String ROOT = "rule";
+	private static final String XIDRULE = "idrule";
+	public static final String XHOSTIDS = "hostids";
+	public static final String XHOSTID = "hostid";
+	private static final String XMODE = "mode";
+	private static final String XRECVPATH = "recvpath";
+	private static final String XSENDPATH = "sendpath";
+	private static final String XARCHIVEPATH = "archivepath";
+	private static final String XWORKPATH = "workpath";
+	private static final String XRPRETASKS = "rpretasks";
+	private static final String XRPOSTTASKS = "rposttasks";
+	private static final String XRERRORTASKS = "rerrortasks";
+	private static final String XSPRETASKS = "spretasks";
+	private static final String XSPOSTTASKS = "sposttasks";
+	private static final String XSERRORTASKS = "serrortasks";
+	public static final String XTASKS = "tasks";
+	public static final String XTASK = "task";
 
-	private static final String					HOSTIDS_HOSTID		= "/" + XHOSTIDS + "/"
-																			+ XHOSTID;
+	private static final String HOSTIDS_HOSTID = "/" + XHOSTIDS + "/"
+			+ XHOSTID;
 
-	private static final String					TASK				= "/tasks/task";
+	private static final String TASK = "/tasks/task";
 
-	private static final XmlDecl[]				taskDecl			= {
+	private static final XmlDecl[] taskDecl = {
 			new XmlDecl(XmlType.STRING, DbRule.TASK_TYPE),
 			new XmlDecl(XmlType.STRING, DbRule.TASK_PATH),
 			new XmlDecl(XmlType.LONG, DbRule.TASK_DELAY),
-																	};
-	public static final XmlDecl[]				tasksDecl			= {
-																	new XmlDecl(XTASK,
-																			XmlType.XVAL, TASK,
-																			taskDecl, true)
-																	};
-	private static final XmlDecl[]				subruleDecls		= {
+	};
+	public static final XmlDecl[] tasksDecl = {
+			new XmlDecl(XTASK,
+					XmlType.XVAL, TASK,
+					taskDecl, true)
+	};
+	private static final XmlDecl[] subruleDecls = {
 			new XmlDecl(XmlType.STRING, XIDRULE),
 			new XmlDecl(XHOSTIDS, XmlType.STRING, HOSTIDS_HOSTID, true),
 			new XmlDecl(XmlType.INTEGER, XMODE),
@@ -109,33 +109,33 @@ public class RuleFileBasedConfiguration {
 			new XmlDecl(XSPRETASKS, XmlType.XVAL, XSPRETASKS, tasksDecl, false),
 			new XmlDecl(XSPOSTTASKS, XmlType.XVAL, XSPOSTTASKS, tasksDecl, false),
 			new XmlDecl(XSERRORTASKS, XmlType.XVAL, XSERRORTASKS, tasksDecl, false)
-																	};
-	private static final XmlDecl[]				ruleDecls			= {
-																	new XmlDecl(ROOT, XmlType.XVAL,
-																			ROOT, subruleDecls,
-																			false)
-																	};
-	private static final XmlDecl[]				multipleruleDecls	= {
-																	new XmlDecl(MULTIPLEROOT,
-																			XmlType.XVAL, "/"
-																					+ MULTIPLEROOT
-																					+ "/" + ROOT,
-																			subruleDecls, true)
-																	};
-	public static final XmlDecl[]				hostsDecls			= {
-																	new XmlDecl(XHOSTIDS,
-																			XmlType.STRING,
-																			HOSTIDS_HOSTID, true),
-																	};
+	};
+	private static final XmlDecl[] ruleDecls = {
+			new XmlDecl(ROOT, XmlType.XVAL,
+					ROOT, subruleDecls,
+					false)
+	};
+	private static final XmlDecl[] multipleruleDecls = {
+			new XmlDecl(MULTIPLEROOT,
+					XmlType.XVAL, "/"
+							+ MULTIPLEROOT
+							+ "/" + ROOT,
+					subruleDecls, true)
+	};
+	public static final XmlDecl[] hostsDecls = {
+			new XmlDecl(XHOSTIDS,
+					XmlType.STRING,
+					HOSTIDS_HOSTID, true),
+	};
 
 	/**
 	 * Extension of rule files
 	 */
-	public static final String					EXT_RULE			= ".rule.xml";
+	public static final String EXT_RULE = ".rule.xml";
 	/**
 	 * Extension of multiple rules in one file
 	 */
-	public static final String					EXT_RULES			= ".rules.xml";
+	public static final String EXT_RULES = ".rules.xml";
 
 	/**
 	 * Import all Rule files into the HashTable of Rules

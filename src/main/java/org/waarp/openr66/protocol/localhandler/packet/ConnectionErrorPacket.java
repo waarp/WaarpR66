@@ -30,9 +30,9 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
  */
 public class ConnectionErrorPacket extends AbstractLocalPacket {
 
-	private final String	sheader;
+	private final String sheader;
 
-	private final String	smiddle;
+	private final String smiddle;
 
 	/**
 	 * @param headerLength

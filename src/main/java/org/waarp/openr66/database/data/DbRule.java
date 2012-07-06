@@ -59,8 +59,8 @@ public class DbRule extends AbstractDbData {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger	= WaarpInternalLoggerFactory
-																.getLogger(DbRule.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(DbRule.class);
 
 	public static enum Columns {
 		HOSTIDS,
@@ -79,298 +79,298 @@ public class DbRule extends AbstractDbData {
 		IDRULE
 	}
 
-	public static final int[]								dbTypes				= {
-																				Types.LONGVARCHAR,
+	public static final int[] dbTypes = {
+			Types.LONGVARCHAR,
 			Types.INTEGER, Types.VARCHAR, Types.VARCHAR,
 			Types.VARCHAR, Types.VARCHAR,
 			Types.LONGVARCHAR, Types.LONGVARCHAR, Types.LONGVARCHAR,
 			Types.LONGVARCHAR, Types.LONGVARCHAR, Types.LONGVARCHAR,
-			Types.INTEGER, Types.VARCHAR										};
+			Types.INTEGER, Types.VARCHAR };
 
-	public static final String								table				= " RULES ";
+	public static final String table = " RULES ";
 
 	/**
 	 * HashTable in case of lack of database
 	 */
-	private static final ConcurrentHashMap<String, DbRule>	dbR66RuleHashMap	=
-																						new ConcurrentHashMap<String, DbRule>();
+	private static final ConcurrentHashMap<String, DbRule> dbR66RuleHashMap =
+			new ConcurrentHashMap<String, DbRule>();
 
 	/**
 	 * Internal context XML fields
 	 */
-	private static final String								XMLHOSTIDS			= "<"
-																						+ RuleFileBasedConfiguration.XHOSTIDS
-																						+ ">";
+	private static final String XMLHOSTIDS = "<"
+			+ RuleFileBasedConfiguration.XHOSTIDS
+			+ ">";
 
 	/**
 	 * Internal context XML fields
 	 */
-	private static final String								XMLENDHOSTIDS		= "</"
-																						+ RuleFileBasedConfiguration.XHOSTIDS
-																						+ ">";
+	private static final String XMLENDHOSTIDS = "</"
+			+ RuleFileBasedConfiguration.XHOSTIDS
+			+ ">";
 
 	/**
 	 * Internal context XML fields
 	 */
-	private static final String								XMLHOSTID			= "<"
-																						+ RuleFileBasedConfiguration.XHOSTID
-																						+ ">";
+	private static final String XMLHOSTID = "<"
+			+ RuleFileBasedConfiguration.XHOSTID
+			+ ">";
 
 	/**
 	 * Internal context XML fields
 	 */
-	private static final String								XMLENDHOSTID		= "</"
-																						+ RuleFileBasedConfiguration.XHOSTID
-																						+ ">";
+	private static final String XMLENDHOSTID = "</"
+			+ RuleFileBasedConfiguration.XHOSTID
+			+ ">";
 
 	/**
 	 * Internal context XML fields
 	 */
-	private static final String								XMLTASKS			= "<"
-																						+ RuleFileBasedConfiguration.XTASKS
-																						+ ">";
+	private static final String XMLTASKS = "<"
+			+ RuleFileBasedConfiguration.XTASKS
+			+ ">";
 
 	/**
 	 * Internal context XML fields
 	 */
-	private static final String								XMLENDTASKS			= "</"
-																						+ RuleFileBasedConfiguration.XTASKS
-																						+ ">";
+	private static final String XMLENDTASKS = "</"
+			+ RuleFileBasedConfiguration.XTASKS
+			+ ">";
 
 	/**
 	 * Internal context XML fields
 	 */
-	private static final String								XMLTASK				= "<"
-																						+ RuleFileBasedConfiguration.XTASK
-																						+ ">";
+	private static final String XMLTASK = "<"
+			+ RuleFileBasedConfiguration.XTASK
+			+ ">";
 
 	/**
 	 * Internal context XML fields
 	 */
-	private static final String								XMLENDTASK			= "</"
-																						+ RuleFileBasedConfiguration.XTASK
-																						+ ">";
+	private static final String XMLENDTASK = "</"
+			+ RuleFileBasedConfiguration.XTASK
+			+ ">";
 
 	/**
 	 * Internal context XML fields
 	 */
-	public static final String								TASK_TYPE			= "type";
+	public static final String TASK_TYPE = "type";
 
 	/**
 	 * Internal context XML fields
 	 */
-	public static final String								TASK_PATH			= "path";
+	public static final String TASK_PATH = "path";
 
 	/**
 	 * Internal context XML fields
 	 */
-	public static final String								TASK_DELAY			= "delay";
+	public static final String TASK_DELAY = "delay";
 
 	/**
 	 * Global Id
 	 */
-	public String											idRule				= null;
+	public String idRule = null;
 
 	/**
 	 * The Name addresses (serverIds)
 	 */
-	public String											ids					= null;
+	public String ids = null;
 
 	/**
 	 * Supported Mode for this rule (SENDMODE => SENDMD5MODE, RECVMODE => RECVMD5MODE)
 	 */
-	public int												mode;
+	public int mode;
 
 	/**
 	 * The associated Recv Path
 	 */
-	public String											recvPath			= null;
+	public String recvPath = null;
 
 	/**
 	 * The associated Send Path
 	 */
-	public String											sendPath			= null;
+	public String sendPath = null;
 
 	/**
 	 * The associated Archive Path
 	 */
-	public String											archivePath			= null;
+	public String archivePath = null;
 
 	/**
 	 * The associated Work Path
 	 */
-	public String											workPath			= null;
+	public String workPath = null;
 
 	/**
 	 * The associated Pre Tasks for Receiver
 	 */
-	public String											rpreTasks			= null;
+	public String rpreTasks = null;
 
 	/**
 	 * The associated Post Tasks for Receiver
 	 */
-	public String											rpostTasks			= null;
+	public String rpostTasks = null;
 
 	/**
 	 * The associated Error Tasks for Receiver
 	 */
-	public String											rerrorTasks			= null;
+	public String rerrorTasks = null;
 
 	/**
 	 * The associated Pre Tasks for Sender
 	 */
-	public String											spreTasks			= null;
+	public String spreTasks = null;
 
 	/**
 	 * The associated Post Tasks for Sender
 	 */
-	public String											spostTasks			= null;
+	public String spostTasks = null;
 
 	/**
 	 * The associated Error Tasks for Sender
 	 */
-	public String											serrorTasks			= null;
+	public String serrorTasks = null;
 
 	/**
 	 * The Ids as an array
 	 */
-	public String[]											idsArray			= null;
+	public String[] idsArray = null;
 
 	/**
 	 * The associated Pre Tasks as an array for Receiver
 	 */
-	public String[][]										rpreTasksArray		= null;
+	public String[][] rpreTasksArray = null;
 
 	/**
 	 * The associated Post Tasks as an array for Receiver
 	 */
-	public String[][]										rpostTasksArray		= null;
+	public String[][] rpostTasksArray = null;
 
 	/**
 	 * The associated Error Tasks as an array for Receiver
 	 */
-	public String[][]										rerrorTasksArray	= null;
+	public String[][] rerrorTasksArray = null;
 
 	/**
 	 * The associated Pre Tasks as an array for Sender
 	 */
-	public String[][]										spreTasksArray		= null;
+	public String[][] spreTasksArray = null;
 
 	/**
 	 * The associated Post Tasks as an array for Sender
 	 */
-	public String[][]										spostTasksArray		= null;
+	public String[][] spostTasksArray = null;
 
 	/**
 	 * The associated Error Tasks as an array for Sender
 	 */
-	public String[][]										serrorTasksArray	= null;
+	public String[][] serrorTasksArray = null;
 
-	private int												updatedInfo			= UpdatedInfo.UNKNOWN
-																						.ordinal();
+	private int updatedInfo = UpdatedInfo.UNKNOWN
+			.ordinal();
 
 	// ALL TABLE SHOULD IMPLEMENT THIS
-	public static final int									NBPRKEY				= 1;
+	public static final int NBPRKEY = 1;
 
-	protected static final String							selectAllFields		= Columns.HOSTIDS
-																						.name()
-																						+ ","
-																						+
-																						Columns.MODETRANS
-																								.name()
-																						+ ","
-																						+ Columns.RECVPATH
-																								.name()
-																						+ ","
-																						+
-																						Columns.SENDPATH
-																								.name()
-																						+ ","
-																						+ Columns.ARCHIVEPATH
-																								.name()
-																						+ ","
-																						+
-																						Columns.WORKPATH
-																								.name()
-																						+ ","
-																						+
-																						Columns.RPRETASKS
-																								.name()
-																						+ ","
-																						+
-																						Columns.RPOSTTASKS
-																								.name()
-																						+ ","
-																						+ Columns.RERRORTASKS
-																								.name()
-																						+ ","
-																						+
-																						Columns.SPRETASKS
-																								.name()
-																						+ ","
-																						+
-																						Columns.SPOSTTASKS
-																								.name()
-																						+ ","
-																						+ Columns.SERRORTASKS
-																								.name()
-																						+ ","
-																						+
-																						Columns.UPDATEDINFO
-																								.name()
-																						+ ","
-																						+ Columns.IDRULE
-																								.name();
+	protected static final String selectAllFields = Columns.HOSTIDS
+			.name()
+			+ ","
+			+
+			Columns.MODETRANS
+					.name()
+			+ ","
+			+ Columns.RECVPATH
+					.name()
+			+ ","
+			+
+			Columns.SENDPATH
+					.name()
+			+ ","
+			+ Columns.ARCHIVEPATH
+					.name()
+			+ ","
+			+
+			Columns.WORKPATH
+					.name()
+			+ ","
+			+
+			Columns.RPRETASKS
+					.name()
+			+ ","
+			+
+			Columns.RPOSTTASKS
+					.name()
+			+ ","
+			+ Columns.RERRORTASKS
+					.name()
+			+ ","
+			+
+			Columns.SPRETASKS
+					.name()
+			+ ","
+			+
+			Columns.SPOSTTASKS
+					.name()
+			+ ","
+			+ Columns.SERRORTASKS
+					.name()
+			+ ","
+			+
+			Columns.UPDATEDINFO
+					.name()
+			+ ","
+			+ Columns.IDRULE
+					.name();
 
-	protected static final String							updateAllFields		= Columns.HOSTIDS
-																						.name()
-																						+
-																						"=?,"
-																						+ Columns.MODETRANS
-																								.name()
-																						+ "=?,"
-																						+ Columns.RECVPATH
-																								.name()
-																						+
-																						"=?,"
-																						+ Columns.SENDPATH
-																								.name()
-																						+ "=?,"
-																						+
-																						Columns.ARCHIVEPATH
-																								.name()
-																						+ "=?,"
-																						+ Columns.WORKPATH
-																								.name()
-																						+
-																						"=?,"
-																						+ Columns.RPRETASKS
-																								.name()
-																						+ "=?,"
-																						+ Columns.RPOSTTASKS
-																								.name()
-																						+
-																						"=?,"
-																						+ Columns.RERRORTASKS
-																								.name()
-																						+ "=?,"
-																						+
-																						Columns.SPRETASKS
-																								.name()
-																						+ "=?,"
-																						+ Columns.SPOSTTASKS
-																								.name()
-																						+
-																						"=?,"
-																						+ Columns.SERRORTASKS
-																								.name()
-																						+ "=?,"
-																						+
-																						Columns.UPDATEDINFO
-																								.name()
-																						+ "=?";
+	protected static final String updateAllFields = Columns.HOSTIDS
+			.name()
+			+
+			"=?,"
+			+ Columns.MODETRANS
+					.name()
+			+ "=?,"
+			+ Columns.RECVPATH
+					.name()
+			+
+			"=?,"
+			+ Columns.SENDPATH
+					.name()
+			+ "=?,"
+			+
+			Columns.ARCHIVEPATH
+					.name()
+			+ "=?,"
+			+ Columns.WORKPATH
+					.name()
+			+
+			"=?,"
+			+ Columns.RPRETASKS
+					.name()
+			+ "=?,"
+			+ Columns.RPOSTTASKS
+					.name()
+			+
+			"=?,"
+			+ Columns.RERRORTASKS
+					.name()
+			+ "=?,"
+			+
+			Columns.SPRETASKS
+					.name()
+			+ "=?,"
+			+ Columns.SPOSTTASKS
+					.name()
+			+
+			"=?,"
+			+ Columns.SERRORTASKS
+					.name()
+			+ "=?,"
+			+
+			Columns.UPDATEDINFO
+					.name()
+			+ "=?";
 
-	protected static final String							insertAllValues		= " (?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
+	protected static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
 
 	/*
 	 * (non-Javadoc)

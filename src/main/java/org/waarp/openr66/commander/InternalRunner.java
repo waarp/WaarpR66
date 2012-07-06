@@ -46,16 +46,16 @@ public class InternalRunner {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger		= WaarpInternalLoggerFactory
-																	.getLogger(InternalRunner.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(InternalRunner.class);
 
-	private final ScheduledExecutorService		scheduledExecutorService;
-	private ScheduledFuture<?>					scheduledFuture;
-	private CommanderInterface					commander	= null;
-	private volatile boolean					isRunning	= true;
-	private final ThreadPoolExecutor			threadPoolExecutor;
-	private final BlockingQueue<Runnable>		workQueue;
-	private final NetworkTransaction			networkTransaction;
+	private final ScheduledExecutorService scheduledExecutorService;
+	private ScheduledFuture<?> scheduledFuture;
+	private CommanderInterface commander = null;
+	private volatile boolean isRunning = true;
+	private final ThreadPoolExecutor threadPoolExecutor;
+	private final BlockingQueue<Runnable> workQueue;
+	private final NetworkTransaction networkTransaction;
 
 	/**
 	 * Create the structure to enable submission by database

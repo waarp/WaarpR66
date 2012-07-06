@@ -56,10 +56,10 @@ public class ExecOutputTask extends AbstractTask {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger		= WaarpInternalLoggerFactory
-																	.getLogger(ExecOutputTask.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(ExecOutputTask.class);
 
-	public static final String					DELIMITER	= "NEWFINALNAME:";
+	public static final String DELIMITER = "NEWFINALNAME:";
 
 	/**
 	 * @param argRule

@@ -27,7 +27,7 @@ public class OpenR66RunnerEndTasksException extends OpenR66RunnerException {
 	/**
      *
      */
-	private static final long	serialVersionUID	= -5410909604328960778L;
+	private static final long serialVersionUID = -5410909604328960778L;
 
 	/**
     *

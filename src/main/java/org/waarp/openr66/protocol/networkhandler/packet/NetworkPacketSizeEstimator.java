@@ -27,7 +27,7 @@ import org.jboss.netty.util.ObjectSizeEstimator;
  * 
  */
 public class NetworkPacketSizeEstimator implements ObjectSizeEstimator {
-	private DefaultObjectSizeEstimator	internal	= new DefaultObjectSizeEstimator();
+	private DefaultObjectSizeEstimator internal = new DefaultObjectSizeEstimator();
 
 	/*
 	 * (non-Javadoc)

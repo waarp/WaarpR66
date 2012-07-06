@@ -28,7 +28,7 @@ public class OpenR66ProtocolBusinessQueryStillRunningException extends
 	/**
      *
      */
-	private static final long	serialVersionUID	= -2795883096275770203L;
+	private static final long serialVersionUID = -2795883096275770203L;
 
 	/**
 	 *

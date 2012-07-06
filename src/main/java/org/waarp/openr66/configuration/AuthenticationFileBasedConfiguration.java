@@ -53,69 +53,69 @@ public class AuthenticationFileBasedConfiguration {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger							= WaarpInternalLoggerFactory
-																						.getLogger(AuthenticationFileBasedConfiguration.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(AuthenticationFileBasedConfiguration.class);
 
 	/**
 	 * Authentication Fields
 	 */
-	private static final String					XML_AUTHENTIFICATION_ROOT		= "authent";
+	private static final String XML_AUTHENTIFICATION_ROOT = "authent";
 	/**
 	 * Authentication Fields
 	 */
-	private static final String					XML_AUTHENTIFICATION_ENTRY		= "entry";
+	private static final String XML_AUTHENTIFICATION_ENTRY = "entry";
 	/**
 	 * Authentication Fields
 	 */
-	private static final String					XML_AUTHENTIFICATION_BASED		= "/"
-																						+
-																						XML_AUTHENTIFICATION_ROOT
-																						+ "/"
-																						+ XML_AUTHENTIFICATION_ENTRY;
+	private static final String XML_AUTHENTIFICATION_BASED = "/"
+			+
+			XML_AUTHENTIFICATION_ROOT
+			+ "/"
+			+ XML_AUTHENTIFICATION_ENTRY;
 
 	/**
 	 * Authentication Fields
 	 */
-	private static final String					XML_AUTHENTIFICATION_HOSTID		= "hostid";
+	private static final String XML_AUTHENTIFICATION_HOSTID = "hostid";
 
 	/**
 	 * Authentication Fields
 	 */
-	private static final String					XML_AUTHENTIFICATION_KEYFILE	= "keyfile";
+	private static final String XML_AUTHENTIFICATION_KEYFILE = "keyfile";
 
 	/**
 	 * Authentication Fields
 	 */
-	private static final String					XML_AUTHENTIFICATION_KEY		= "key";
+	private static final String XML_AUTHENTIFICATION_KEY = "key";
 
 	/**
 	 * Authentication Fields
 	 */
-	private static final String					XML_AUTHENTIFICATION_ADMIN		= "admin";
+	private static final String XML_AUTHENTIFICATION_ADMIN = "admin";
 
 	/**
 	 * Authentication Fields
 	 */
-	private static final String					XML_AUTHENTIFICATION_ADDRESS	= "address";
+	private static final String XML_AUTHENTIFICATION_ADDRESS = "address";
 	/**
 	 * Authentication Fields
 	 */
-	private static final String					XML_AUTHENTIFICATION_PORT		= "port";
+	private static final String XML_AUTHENTIFICATION_PORT = "port";
 	/**
 	 * Authentication Fields
 	 */
-	private static final String					XML_AUTHENTIFICATION_ISSSL		= "isssl";
+	private static final String XML_AUTHENTIFICATION_ISSSL = "isssl";
 	/**
 	 * Authentication Fields
 	 */
-	private static final String					XML_AUTHENTIFICATION_ISCLIENT	= "isclient";
+	private static final String XML_AUTHENTIFICATION_ISCLIENT = "isclient";
 
 	/**
 	 * Structure of the Configuration file
 	 * 
 	 */
-	private static final XmlDecl[]				configAuthenticationDecls		= {
-																				// identity
+	private static final XmlDecl[] configAuthenticationDecls = {
+			// identity
 			new XmlDecl(XmlType.STRING, XML_AUTHENTIFICATION_HOSTID),
 			new XmlDecl(XmlType.STRING, XML_AUTHENTIFICATION_KEYFILE),
 			new XmlDecl(XmlType.STRING, XML_AUTHENTIFICATION_KEY),
@@ -124,18 +124,18 @@ public class AuthenticationFileBasedConfiguration {
 			new XmlDecl(XmlType.INTEGER, XML_AUTHENTIFICATION_PORT),
 			new XmlDecl(XmlType.BOOLEAN, XML_AUTHENTIFICATION_ISSSL),
 			new XmlDecl(XmlType.BOOLEAN, XML_AUTHENTIFICATION_ISCLIENT)
-																				};
+	};
 	/**
 	 * Global Structure for Server Configuration
 	 */
-	private static final XmlDecl[]				authentElements					= {
-																				new XmlDecl(
-																						XML_AUTHENTIFICATION_ENTRY,
-																						XmlType.XVAL,
-																						XML_AUTHENTIFICATION_BASED,
-																						configAuthenticationDecls,
-																						true)
-																				};
+	private static final XmlDecl[] authentElements = {
+			new XmlDecl(
+					XML_AUTHENTIFICATION_ENTRY,
+					XmlType.XVAL,
+					XML_AUTHENTIFICATION_BASED,
+					configAuthenticationDecls,
+					true)
+	};
 
 	/**
 	 * Load Authentication from File

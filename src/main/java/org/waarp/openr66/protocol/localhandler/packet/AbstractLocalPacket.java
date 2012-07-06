@@ -31,11 +31,11 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
  * @author frederic bregier
  */
 public abstract class AbstractLocalPacket {
-	protected ChannelBuffer	header;
+	protected ChannelBuffer header;
 
-	protected ChannelBuffer	middle;
+	protected ChannelBuffer middle;
 
-	protected ChannelBuffer	end;
+	protected ChannelBuffer end;
 
 	public AbstractLocalPacket(ChannelBuffer header, ChannelBuffer middle,
 			ChannelBuffer end) {

@@ -29,7 +29,7 @@ public class OpenR66RunnerException extends OpenR66Exception {
 	/**
      *
      */
-	private static final long	serialVersionUID	= 5701631625487838804L;
+	private static final long serialVersionUID = 5701631625487838804L;
 
 	/**
 	 *

@@ -27,7 +27,7 @@ public class OpenR66ProtocolBusinessQueryAlreadyFinishedException extends
 	/**
      *
      */
-	private static final long	serialVersionUID	= 1014687763768508552L;
+	private static final long serialVersionUID = 1014687763768508552L;
 
 	/**
 	 *

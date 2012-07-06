@@ -29,19 +29,19 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
  * @author frederic bregier
  */
 public class ErrorPacket extends AbstractLocalPacket {
-	public static final int	IGNORECODE			= 0;
+	public static final int IGNORECODE = 0;
 
-	public static final int	CLOSECODE			= 1;
+	public static final int CLOSECODE = 1;
 
-	public static final int	FORWARDCODE			= 2;
+	public static final int FORWARDCODE = 2;
 
-	public static final int	FORWARDCLOSECODE	= 3;
+	public static final int FORWARDCLOSECODE = 3;
 
-	private final String	sheader;
+	private final String sheader;
 
-	private final String	smiddle;
+	private final String smiddle;
 
-	private final int		code;
+	private final int code;
 
 	/**
 	 * @param headerLength

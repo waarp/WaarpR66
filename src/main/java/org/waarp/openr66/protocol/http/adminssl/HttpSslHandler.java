@@ -102,30 +102,30 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger					logger			= WaarpInternalLoggerFactory
-																						.getLogger(HttpSslHandler.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(HttpSslHandler.class);
 	/**
 	 * Waiter for SSL handshake is finished
 	 */
-	private static final ConcurrentHashMap<Integer, R66Future>	waitForSsl		= new ConcurrentHashMap<Integer, R66Future>();
+	private static final ConcurrentHashMap<Integer, R66Future> waitForSsl = new ConcurrentHashMap<Integer, R66Future>();
 	/**
 	 * Session Management
 	 */
-	private static final ConcurrentHashMap<String, R66Session>	sessions		= new ConcurrentHashMap<String, R66Session>();
-	private static final ConcurrentHashMap<String, DbSession>	dbSessions		= new ConcurrentHashMap<String, DbSession>();
-	private volatile R66Session									authentHttp		= new R66Session();
+	private static final ConcurrentHashMap<String, R66Session> sessions = new ConcurrentHashMap<String, R66Session>();
+	private static final ConcurrentHashMap<String, DbSession> dbSessions = new ConcurrentHashMap<String, DbSession>();
+	private volatile R66Session authentHttp = new R66Session();
 
-	private volatile HttpRequest								request;
-	private volatile boolean									newSession		= false;
-	private volatile Cookie										admin			= null;
-	private final StringBuilder									responseContent	= new StringBuilder();
-	private volatile String										uriRequest;
-	private volatile Map<String, List<String>>					params;
-	private volatile QueryStringDecoder							queryStringDecoder;
-	private volatile boolean									forceClose		= false;
-	private volatile boolean									shutdown		= false;
+	private volatile HttpRequest request;
+	private volatile boolean newSession = false;
+	private volatile Cookie admin = null;
+	private final StringBuilder responseContent = new StringBuilder();
+	private volatile String uriRequest;
+	private volatile Map<String, List<String>> params;
+	private volatile QueryStringDecoder queryStringDecoder;
+	private volatile boolean forceClose = false;
+	private volatile boolean shutdown = false;
 
-	private static final String									R66SESSION		= "R66SESSION";
+	private static final String R66SESSION = "R66SESSION";
 
 	private static enum REQUEST {
 		Logon("Logon.html"),
@@ -143,11 +143,11 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				"Rules_end.html"),
 		System("System.html");
 
-		private String	header;
-		private String	headerBody;
-		private String	body;
-		private String	endBody;
-		private String	end;
+		private String header;
+		private String headerBody;
+		private String body;
+		private String endBody;
+		private String end;
 
 		/**
 		 * Constructor for a unique file
@@ -219,32 +219,32 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		XXXERRORMESGXXX;
 	}
 
-	public static final int						LIMITROW			= 48;		// better if it can
-																				// be divided by 4
+	public static final int LIMITROW = 48; // better if it can
+											// be divided by 4
 
 	/**
 	 * The Database connection attached to this NetworkChannel shared among all associated
 	 * LocalChannels in the session
 	 */
-	private volatile DbSession					dbSession			= null;
+	private volatile DbSession dbSession = null;
 	/**
 	 * Does this dbSession is private and so should be closed
 	 */
-	private volatile boolean					isPrivateDbSession	= false;
+	private volatile boolean isPrivateDbSession = false;
 
 	/**
 	 * Remover from SSL HashMap
 	 */
-	private static final ChannelFutureListener	remover				= new ChannelFutureListener() {
-																		public void operationComplete(
-																				ChannelFuture future) {
-																			logger.debug("SSL remover");
-																			waitForSsl
-																					.remove(future
-																							.getChannel()
-																							.getId());
-																		}
-																	};
+	private static final ChannelFutureListener remover = new ChannelFutureListener() {
+		public void operationComplete(
+				ChannelFuture future) {
+			logger.debug("SSL remover");
+			waitForSsl
+					.remove(future
+							.getChannel()
+							.getId());
+		}
+	};
 
 	private String readFileHeader(String filename) {
 		String value;

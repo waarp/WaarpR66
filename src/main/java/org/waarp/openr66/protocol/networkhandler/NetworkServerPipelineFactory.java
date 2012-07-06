@@ -40,15 +40,15 @@ public class NetworkServerPipelineFactory implements ChannelPipelineFactory {
 	/**
 	 * Global HashedWheelTimer
 	 */
-	public HashedWheelTimer		timer			= (HashedWheelTimer) Configuration.configuration
-														.getTimerClose();
+	public HashedWheelTimer timer = (HashedWheelTimer) Configuration.configuration
+			.getTimerClose();
 
-	public static final String	TIMEOUT			= "timeout";
-	public static final String	READTIMEOUT		= "readTimeout";
-	public static final String	LIMIT			= "LIMIT";
-	public static final String	LIMITCHANNEL	= "LIMITCHANNEL";
+	public static final String TIMEOUT = "timeout";
+	public static final String READTIMEOUT = "readTimeout";
+	public static final String LIMIT = "LIMIT";
+	public static final String LIMITCHANNEL = "LIMITCHANNEL";
 
-	private boolean				server			= false;
+	private boolean server = false;
 
 	public NetworkServerPipelineFactory(boolean server) {
 		this.server = server;

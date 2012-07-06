@@ -39,22 +39,22 @@ public class OpenR66SignalHandler implements SignalHandler {
 	/**
 	 * Set if the program is in shutdown
 	 */
-	private static volatile boolean	shutdown	= false;
+	private static volatile boolean shutdown = false;
 
 	/**
 	 * Set if the program is in shutdown
 	 */
-	private static volatile boolean	immediate	= false;
+	private static volatile boolean immediate = false;
 
 	/**
 	 * Set if the Handler is initialized
 	 */
-	private static boolean			initialized	= false;
+	private static boolean initialized = false;
 
 	/**
 	 * Previous Handler
 	 */
-	private SignalHandler			oldHandler	= null;
+	private SignalHandler oldHandler = null;
 
 	/**
 	 * Says if the Process is currently in shutdown
@@ -101,18 +101,18 @@ public class OpenR66SignalHandler implements SignalHandler {
 		/**
 		 * Internal Logger
 		 */
-		private static final WaarpInternalLogger	logger		= WaarpInternalLoggerFactory
-																		.getLogger(R66TimerTask.class);
+		private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+				.getLogger(R66TimerTask.class);
 
 		/**
 		 * EXIT type (System.exit(1))
 		 */
-		public static final int						TIMER_EXIT	= 1;
+		public static final int TIMER_EXIT = 1;
 
 		/**
 		 * Type of execution in run() method
 		 */
-		private final int							type;
+		private final int type;
 
 		/**
 		 * Constructor from type
