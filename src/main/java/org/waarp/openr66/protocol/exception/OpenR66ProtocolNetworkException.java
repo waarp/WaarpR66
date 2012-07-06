@@ -26,7 +26,7 @@ public class OpenR66ProtocolNetworkException extends OpenR66Exception {
 	/**
 	 *
 	 */
-	private static final long	serialVersionUID	= -623368703701931176L;
+	private static final long serialVersionUID = -623368703701931176L;
 
 	/**
 	 *

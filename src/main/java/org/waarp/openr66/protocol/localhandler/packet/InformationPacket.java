@@ -34,11 +34,11 @@ public class InformationPacket extends AbstractLocalPacket {
 		ASKEXIST, ASKMLSDETAIL, ASKLIST, ASKMLSLIST;
 	}
 
-	private final String	rulename;
+	private final String rulename;
 
-	private final byte		requestedInfo;
+	private final byte requestedInfo;
 
-	private final String	filename;
+	private final String filename;
 
 	/**
 	 * @param headerLength

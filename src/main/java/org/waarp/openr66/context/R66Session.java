@@ -51,67 +51,67 @@ public class R66Session implements SessionInterface {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger		logger				= WaarpInternalLoggerFactory
-																				.getLogger(R66Session.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(R66Session.class);
 
 	/**
 	 * Block size used during file transfer
 	 */
-	private int										blockSize			= Configuration.configuration.BLOCKSIZE;
+	private int blockSize = Configuration.configuration.BLOCKSIZE;
 	/**
 	 * The local channel reference
 	 */
-	private LocalChannelReference					localChannelReference;
+	private LocalChannelReference localChannelReference;
 	/**
 	 * Authentication
 	 */
-	private final R66Auth							auth;
+	private final R66Auth auth;
 	/**
 	 * Remote Address
 	 */
-	private SocketAddress							raddress;
+	private SocketAddress raddress;
 	/**
 	 * Local Address
 	 */
-	private SocketAddress							laddress;
+	private SocketAddress laddress;
 
 	/**
 	 * Current directory
 	 */
-	private final R66Dir							dir;
+	private final R66Dir dir;
 	/**
 	 * Current file
 	 */
-	private R66File									file;
+	private R66File file;
 	/**
 	 * Does this session is Ready to server a request
 	 */
-	private volatile boolean						isReady				= false;
+	private volatile boolean isReady = false;
 
 	/**
 	 * Current Restart information
 	 */
-	private final R66Restart						restart;
+	private final R66Restart restart;
 
 	/**
 	 * DbTaskRunner
 	 */
-	private DbTaskRunner							runner				= null;
+	private DbTaskRunner runner = null;
 
-	private String									status				= "NoStatus";
+	private String status = "NoStatus";
 
 	/**
 	 * The Finite Machine State
 	 */
-	private final MachineState<R66FiniteDualStates>	state;
+	private final MachineState<R66FiniteDualStates> state;
 	/**
 	 * Business Object if used
 	 */
-	private R66BusinessInterface					businessObject		= null;
+	private R66BusinessInterface businessObject = null;
 	/**
 	 * Extended protocol or not
 	 */
-	private boolean									extendedProtocol	= Configuration.configuration.extendedProtocol;
+	private boolean extendedProtocol = Configuration.configuration.extendedProtocol;
 
 	/**
 	 * Create the session

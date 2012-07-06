@@ -38,8 +38,8 @@ public class LinkRenameTask extends AbstractTask {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger	= WaarpInternalLoggerFactory
-																.getLogger(LinkRenameTask.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(LinkRenameTask.class);
 
 	/**
 	 * @param argRule

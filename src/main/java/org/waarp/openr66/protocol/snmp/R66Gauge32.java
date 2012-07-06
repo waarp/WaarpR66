@@ -28,12 +28,12 @@ import org.waarp.snmp.interf.WaarpGauge32;
  */
 public class R66Gauge32 extends WaarpGauge32 {
 
-	private int					type				= 1;
-	private int					entry				= 0;
+	private int type = 1;
+	private int entry = 0;
 	/**
      * 
      */
-	private static final long	serialVersionUID	= -5850987508703222927L;
+	private static final long serialVersionUID = -5850987508703222927L;
 
 	public R66Gauge32(int type, int entry) {
 		this.type = type;

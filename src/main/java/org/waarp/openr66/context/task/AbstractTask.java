@@ -42,175 +42,175 @@ public abstract class AbstractTask implements Runnable {
 	/**
 	 * Current full path of current FILENAME
 	 */
-	public static final String	TRUEFULLPATH		= "#TRUEFULLPATH#";
+	public static final String TRUEFULLPATH = "#TRUEFULLPATH#";
 
 	/**
 	 * Current FILENAME (basename) (change in retrieval part)
 	 */
-	public static final String	TRUEFILENAME		= "#TRUEFILENAME#";
+	public static final String TRUEFILENAME = "#TRUEFILENAME#";
 	/**
 	 * Current full path of Original FILENAME (as transmitted) (before changing in retrieval part)
 	 */
-	public static final String	ORIGINALFULLPATH	= "#ORIGINALFULLPATH#";
+	public static final String ORIGINALFULLPATH = "#ORIGINALFULLPATH#";
 
 	/**
 	 * Original FILENAME (basename) (before changing in retrieval part)
 	 */
-	public static final String	ORIGINALFILENAME	= "#ORIGINALFILENAME#";
+	public static final String ORIGINALFILENAME = "#ORIGINALFILENAME#";
 
 	/**
 	 * Size of the current FILE
 	 */
-	public static final String	FILESIZE			= "#FILESIZE#";
+	public static final String FILESIZE = "#FILESIZE#";
 
 	/**
 	 * Current full path of current RULE
 	 */
-	public static final String	RULE				= "#RULE#";
+	public static final String RULE = "#RULE#";
 
 	/**
 	 * Date in yyyyMMdd format
 	 */
-	public static final String	DATE				= "#DATE#";
+	public static final String DATE = "#DATE#";
 
 	/**
 	 * Hour in HHmmss format
 	 */
-	public static final String	HOUR				= "#HOUR#";
+	public static final String HOUR = "#HOUR#";
 
 	/**
 	 * Remote host id (if not the initiator of the call)
 	 */
-	public static final String	REMOTEHOST			= "#REMOTEHOST#";
+	public static final String REMOTEHOST = "#REMOTEHOST#";
 
 	/**
 	 * Remote host address
 	 */
-	public static final String	REMOTEHOSTADDR		= "#REMOTEHOSTADDR#";
+	public static final String REMOTEHOSTADDR = "#REMOTEHOSTADDR#";
 
 	/**
 	 * Local host id
 	 */
-	public static final String	LOCALHOST			= "#LOCALHOST#";
+	public static final String LOCALHOST = "#LOCALHOST#";
 
 	/**
 	 * Local host address
 	 */
-	public static final String	LOCALHOSTADDR		= "#LOCALHOSTADDR#";
+	public static final String LOCALHOSTADDR = "#LOCALHOSTADDR#";
 
 	/**
 	 * Transfer id
 	 */
-	public static final String	TRANSFERID			= "#TRANSFERID#";
+	public static final String TRANSFERID = "#TRANSFERID#";
 
 	/**
 	 * Requester Host
 	 */
-	public static final String	REQUESTERHOST		= "#REQUESTERHOST#";
+	public static final String REQUESTERHOST = "#REQUESTERHOST#";
 
 	/**
 	 * Requested Host
 	 */
-	public static final String	REQUESTEDHOST		= "#REQUESTEDHOST#";
+	public static final String REQUESTEDHOST = "#REQUESTEDHOST#";
 
 	/**
 	 * Full Transfer id (TRANSFERID_REQUESTERHOST_REQUESTEDHOST)
 	 */
-	public static final String	FULLTRANSFERID		= "#FULLTRANSFERID#";
+	public static final String FULLTRANSFERID = "#FULLTRANSFERID#";
 
 	/**
 	 * Current or final RANK of block
 	 */
-	public static final String	RANKTRANSFER		= "#RANKTRANSFER#";
+	public static final String RANKTRANSFER = "#RANKTRANSFER#";
 
 	/**
 	 * Block size used
 	 */
-	public static final String	BLOCKSIZE			= "#BLOCKSIZE#";
+	public static final String BLOCKSIZE = "#BLOCKSIZE#";
 
 	/**
 	 * IN Path used
 	 */
-	public static final String	INPATH				= "#INPATH#";
+	public static final String INPATH = "#INPATH#";
 
 	/**
 	 * OUT Path used
 	 */
-	public static final String	OUTPATH				= "#OUTPATH#";
+	public static final String OUTPATH = "#OUTPATH#";
 
 	/**
 	 * WORK Path used
 	 */
-	public static final String	WORKPATH			= "#WORKPATH#";
+	public static final String WORKPATH = "#WORKPATH#";
 
 	/**
 	 * ARCH Path used
 	 */
-	public static final String	ARCHPATH			= "#ARCHPATH#";
+	public static final String ARCHPATH = "#ARCHPATH#";
 
 	/**
 	 * HOME Path used
 	 */
-	public static final String	HOMEPATH			= "#HOMEPATH#";
+	public static final String HOMEPATH = "#HOMEPATH#";
 	/**
 	 * Last Current Error Message
 	 */
-	public static final String	ERRORMSG			= "#ERRORMSG#";
+	public static final String ERRORMSG = "#ERRORMSG#";
 	/**
 	 * Last Current Error Code
 	 */
-	public static final String	ERRORCODE			= "#ERRORCODE#";
+	public static final String ERRORCODE = "#ERRORCODE#";
 	/**
 	 * Last Current Error Code in Full String
 	 */
-	public static final String	ERRORSTRCODE		= "#ERRORSTRCODE#";
+	public static final String ERRORSTRCODE = "#ERRORSTRCODE#";
 	/**
 	 * If specified, no Wait for Task Validation (default is wait)
 	 */
-	public static final String	NOWAIT				= "#NOWAIT#";
+	public static final String NOWAIT = "#NOWAIT#";
 	/**
 	 * If specified, use the LocalExec Daemon specified in the global configuration (default no
 	 * usage of LocalExec)
 	 */
-	public static final String	LOCALEXEC			= "#LOCALEXEC#";
+	public static final String LOCALEXEC = "#LOCALEXEC#";
 
 	/**
 	 * Type of operation
 	 */
-	final TaskType				type;
+	final TaskType type;
 
 	/**
 	 * Argument from Rule
 	 */
-	final String				argRule;
+	final String argRule;
 
 	/**
 	 * Delay from Rule (if applicable)
 	 */
-	final int					delay;
+	final int delay;
 
 	/**
 	 * Argument from Transfer
 	 */
-	final String				argTransfer;
+	final String argTransfer;
 
 	/**
 	 * Current session
 	 */
-	final R66Session			session;
+	final R66Session session;
 
 	/**
 	 * R66Future of completion
 	 */
-	final R66Future				futureCompletion;
+	final R66Future futureCompletion;
 	/**
 	 * Do we wait for a validation of the task ? Default = True
 	 */
-	boolean						waitForValidation	= true;
+	boolean waitForValidation = true;
 	/**
 	 * Do we need to use LocalExec for an Exec Task ? Default = False
 	 */
-	boolean						useLocalExec		= false;
+	boolean useLocalExec = false;
 
 	/**
 	 * Constructor

@@ -64,10 +64,10 @@ public class ChannelUtils extends Thread {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger		= WaarpInternalLoggerFactory
-																	.getLogger(ChannelUtils.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(ChannelUtils.class);
 
-	public static final Integer					NOCHANNEL	= Integer.MIN_VALUE;
+	public static final Integer NOCHANNEL = Integer.MIN_VALUE;
 
 	/**
 	 * Get the Remote InetAddress
@@ -123,9 +123,9 @@ public class ChannelUtils extends Thread {
 	 */
 	private static class R66ChannelGroupFutureListener implements
 			ChannelGroupFutureListener {
-		OrderedMemoryAwareThreadPoolExecutor	pool;
-		String									name;
-		ChannelFactory							channelFactory;
+		OrderedMemoryAwareThreadPoolExecutor pool;
+		String name;
+		ChannelFactory channelFactory;
 
 		public R66ChannelGroupFutureListener(
 				String name,

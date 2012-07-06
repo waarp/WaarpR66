@@ -40,20 +40,20 @@ public abstract class AbstractExecJavaTask implements R66Runnable {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger	= WaarpInternalLoggerFactory
-																.getLogger(AbstractExecJavaTask.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(AbstractExecJavaTask.class);
 
-	protected int								delay;
-	protected String[]							args	= null;
-	protected int								status	= -1;
-	protected R66Session						session;
-	protected boolean							waitForValidation;
-	protected boolean							useLocalExec;
+	protected int delay;
+	protected String[] args = null;
+	protected int status = -1;
+	protected R66Session session;
+	protected boolean waitForValidation;
+	protected boolean useLocalExec;
 
-	protected String							classname;
-	protected String							fullarg;
-	protected boolean							isToValidate;
-	protected boolean							callFromBusiness;
+	protected String classname;
+	protected String fullarg;
+	protected boolean isToValidate;
+	protected boolean callFromBusiness;
 
 	/**
 	 * Server side methode to validate the request

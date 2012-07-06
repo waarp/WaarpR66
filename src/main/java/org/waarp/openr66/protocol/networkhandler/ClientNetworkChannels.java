@@ -34,8 +34,8 @@ import java.util.HashSet;
  */
 public class ClientNetworkChannels {
 
-	private final String					hostId;
-	private final HashSet<NetworkChannel>	networkChannels	= new HashSet<NetworkChannel>();
+	private final String hostId;
+	private final HashSet<NetworkChannel> networkChannels = new HashSet<NetworkChannel>();
 
 	public ClientNetworkChannels(String hostId) {
 		this.hostId = hostId;

@@ -77,72 +77,72 @@ public class NetworkTransaction {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger								logger													= WaarpInternalLoggerFactory
-																																			.getLogger(NetworkTransaction.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(NetworkTransaction.class);
 
 	/**
 	 * Hashmap for Currently Shutdown remote host
 	 */
-	private static final ConcurrentHashMap<Integer, NetworkChannel>			networkChannelShutdownOnSocketAddressConcurrentHashMap	= new ConcurrentHashMap<Integer, NetworkChannel>();
+	private static final ConcurrentHashMap<Integer, NetworkChannel> networkChannelShutdownOnSocketAddressConcurrentHashMap = new ConcurrentHashMap<Integer, NetworkChannel>();
 
 	/**
 	 * Hashmap for currently active remote host
 	 */
-	private static final ConcurrentHashMap<Integer, NetworkChannel>			networkChannelOnSocketAddressConcurrentHashMap			= new ConcurrentHashMap<Integer, NetworkChannel>();
+	private static final ConcurrentHashMap<Integer, NetworkChannel> networkChannelOnSocketAddressConcurrentHashMap = new ConcurrentHashMap<Integer, NetworkChannel>();
 	/**
 	 * Hashmap for lock based on remote address
 	 */
-	private static final ConcurrentHashMap<Integer, ReentrantLock>			reentrantLockOnSocketAddressConcurrentHashMap			= new ConcurrentHashMap<Integer, ReentrantLock>();
+	private static final ConcurrentHashMap<Integer, ReentrantLock> reentrantLockOnSocketAddressConcurrentHashMap = new ConcurrentHashMap<Integer, ReentrantLock>();
 	/**
 	 * Remote Client NetworkChannels
 	 */
-	private static final ConcurrentHashMap<String, ClientNetworkChannels>	remoteClients											= new ConcurrentHashMap<String, ClientNetworkChannels>();
+	private static final ConcurrentHashMap<String, ClientNetworkChannels> remoteClients = new ConcurrentHashMap<String, ClientNetworkChannels>();
 	/**
 	 * Lock for Client NetworkChannels operations
 	 */
-	private static final ReentrantLock										lockClient												= new ReentrantLock();
+	private static final ReentrantLock lockClient = new ReentrantLock();
 	/**
 	 * Hashmap for currently active Retrieve Runner (sender)
 	 */
-	private static final ConcurrentHashMap<Integer, RetrieveRunner>			retrieveRunnerConcurrentHashMap							=
-																																			new ConcurrentHashMap<Integer, RetrieveRunner>();
+	private static final ConcurrentHashMap<Integer, RetrieveRunner> retrieveRunnerConcurrentHashMap =
+			new ConcurrentHashMap<Integer, RetrieveRunner>();
 
 	/**
 	 * Lock for NetworkChannel operations
 	 */
-	private static final ReentrantLock										lock													= new ReentrantLock();
+	private static final ReentrantLock lock = new ReentrantLock();
 
 	/**
 	 * ExecutorService for RetrieveOperation
 	 */
-	private static final ExecutorService									retrieveExecutor										= Executors
-																																			.newCachedThreadPool();
+	private static final ExecutorService retrieveExecutor = Executors
+			.newCachedThreadPool();
 
 	/**
 	 * ExecutorService Server Boss
 	 */
-	private final ExecutorService											execServerBoss											= Executors
-																																			.newCachedThreadPool();
+	private final ExecutorService execServerBoss = Executors
+			.newCachedThreadPool();
 
 	/**
 	 * ExecutorService Server Worker
 	 */
-	private final ExecutorService											execServerWorker										= Executors
-																																			.newCachedThreadPool();
+	private final ExecutorService execServerWorker = Executors
+			.newCachedThreadPool();
 
-	private final ChannelFactory											channelClientFactory									= new NioClientSocketChannelFactory(
-																																			execServerBoss,
-																																			execServerWorker,
-																																			Configuration.configuration.CLIENT_THREAD);
+	private final ChannelFactory channelClientFactory = new NioClientSocketChannelFactory(
+			execServerBoss,
+			execServerWorker,
+			Configuration.configuration.CLIENT_THREAD);
 
-	private final ClientBootstrap											clientBootstrap											= new ClientBootstrap(
-																																			channelClientFactory);
-	private final ClientBootstrap											clientSslBootstrap										= new ClientBootstrap(
-																																			channelClientFactory);
-	private final ChannelGroup												networkChannelGroup										= new DefaultChannelGroup(
-																																			"NetworkChannels");
-	private final NetworkServerPipelineFactory								networkServerPipelineFactory;
-	private final NetworkSslServerPipelineFactory							networkSslServerPipelineFactory;
+	private final ClientBootstrap clientBootstrap = new ClientBootstrap(
+			channelClientFactory);
+	private final ClientBootstrap clientSslBootstrap = new ClientBootstrap(
+			channelClientFactory);
+	private final ChannelGroup networkChannelGroup = new DefaultChannelGroup(
+			"NetworkChannels");
+	private final NetworkServerPipelineFactory networkServerPipelineFactory;
+	private final NetworkSslServerPipelineFactory networkSslServerPipelineFactory;
 
 	public NetworkTransaction() {
 		networkServerPipelineFactory = new NetworkServerPipelineFactory(false);
@@ -851,12 +851,12 @@ public class NetworkTransaction {
 	 */
 	static class CloseFutureChannel implements TimerTask {
 
-		private static SortedSet<Integer>	inCloseRunning	=
-																	Collections
-																			.synchronizedSortedSet(new TreeSet<Integer>());
-		private NetworkChannel				networkChannel;
-		private String						requester;
-		private SocketAddress				address;
+		private static SortedSet<Integer> inCloseRunning =
+				Collections
+						.synchronizedSortedSet(new TreeSet<Integer>());
+		private NetworkChannel networkChannel;
+		private String requester;
+		private SocketAddress address;
 
 		/**
 		 * @param networkChannel
@@ -1099,7 +1099,7 @@ public class NetworkTransaction {
 		/**
 		 * href to remove
 		 */
-		private final int	href;
+		private final int href;
 
 		/**
 		 * Constructor from type

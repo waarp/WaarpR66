@@ -56,23 +56,23 @@ public class RequestTransfer implements Runnable {
 	/**
 	 * Internal Logger
 	 */
-	static volatile WaarpInternalLogger	logger;
+	static volatile WaarpInternalLogger logger;
 
-	protected final NetworkTransaction	networkTransaction;
-	final R66Future						future;
-	final long							specialId;
-	String								requested	= null;
-	String								requester	= null;
-	boolean								cancel		= false;
-	boolean								stop		= false;
-	boolean								restart		= false;
+	protected final NetworkTransaction networkTransaction;
+	final R66Future future;
+	final long specialId;
+	String requested = null;
+	String requester = null;
+	boolean cancel = false;
+	boolean stop = false;
+	boolean restart = false;
 
-	static long							sspecialId;
-	static String						srequested	= null;
-	static String						srequester	= null;
-	static boolean						scancel		= false;
-	static boolean						sstop		= false;
-	static boolean						srestart	= false;
+	static long sspecialId;
+	static String srequested = null;
+	static String srequester = null;
+	static boolean scancel = false;
+	static boolean sstop = false;
+	static boolean srestart = false;
 
 	/**
 	 * Parse the parameter and set current values

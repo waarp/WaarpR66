@@ -47,11 +47,11 @@ public class CommanderNoDb implements CommanderInterface {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger					logger			= WaarpInternalLoggerFactory
-																						.getLogger(CommanderNoDb.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(CommanderNoDb.class);
 
-	private InternalRunner										internalRunner	= null;
-	public static final ConcurrentLinkedQueue<AbstractDbData>	todoList		= new ConcurrentLinkedQueue<AbstractDbData>();
+	private InternalRunner internalRunner = null;
+	public static final ConcurrentLinkedQueue<AbstractDbData> todoList = new ConcurrentLinkedQueue<AbstractDbData>();
 
 	/**
 	 * Prepare requests that will be executed from time to time

@@ -172,11 +172,11 @@ public enum ErrorCode {
 	/**
 	 * Literal for this code
 	 */
-	public String	mesg;
+	public String mesg;
 	/**
 	 * Code could be used to switch case operations
 	 */
-	public char		code;
+	public char code;
 
 	private ErrorCode(String mesg, char code) {
 		this.mesg = mesg;

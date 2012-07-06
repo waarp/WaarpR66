@@ -86,454 +86,454 @@ public class Configuration {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger				logger						= WaarpInternalLoggerFactory
-																								.getLogger(Configuration.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(Configuration.class);
 
 	// Static values
 	/**
 	 * General Configuration object
 	 */
-	public static Configuration								configuration				= new Configuration();
+	public static Configuration configuration = new Configuration();
 
-	public static final String								SnmpName					= "Waarp OpenR66 SNMP";
-	public static final int									SnmpPrivateId				= 66666;
-	public static final int									SnmpR66Id					= 66;
-	public static final String								SnmpDefaultAuthor			= "Frederic Bregier";
-	public static final String								SnmpVersion					= "Waarp OpenR66 "
-																								+ Version.ID;
-	public static final String								SnmpDefaultLocalization		= "Paris, France";
-	public static final int									SnmpService					= 72;
+	public static final String SnmpName = "Waarp OpenR66 SNMP";
+	public static final int SnmpPrivateId = 66666;
+	public static final int SnmpR66Id = 66;
+	public static final String SnmpDefaultAuthor = "Frederic Bregier";
+	public static final String SnmpVersion = "Waarp OpenR66 "
+			+ Version.ID;
+	public static final String SnmpDefaultLocalization = "Paris, France";
+	public static final int SnmpService = 72;
 	/**
 	 * True if JDK6 or upper, False if JDK5.
 	 */
-	public static final boolean								USEJDK6						= true;
+	public static final boolean USEJDK6 = true;
 	/**
 	 * Time elapse for retry in ms
 	 */
-	public static final long								RETRYINMS					= 10;
+	public static final long RETRYINMS = 10;
 
 	/**
 	 * Number of retry before error
 	 */
-	public static final int									RETRYNB						= 3;
+	public static final int RETRYNB = 3;
 
 	/**
 	 * Hack to say Windows or Unix (USR1 not OK on Windows)
 	 */
-	public static boolean									ISUNIX;
+	public static boolean ISUNIX;
 
 	/**
 	 * Default size for buffers (NIO)
 	 */
-	public static final int									BUFFERSIZEDEFAULT			= 0x10000;										// 64K
+	public static final int BUFFERSIZEDEFAULT = 0x10000; // 64K
 
 	/**
 	 * Time elapse for WRITE OR CLOSE WAIT elaps in ms
 	 */
-	public static final long								WAITFORNETOP				= 1000;
+	public static final long WAITFORNETOP = 1000;
 
 	/**
 	 * Extension of file during transfer
 	 */
-	public static final String								EXT_R66						= ".r66";
+	public static final String EXT_R66 = ".r66";
 
 	/**
 	 * Rank to redo when a restart occurs
 	 */
-	public static int										RANKRESTART					= 30;
+	public static int RANKRESTART = 30;
 
 	/**
 	 * FileParameter
 	 */
-	private static final FilesystemBasedFileParameterImpl	fileParameter				=
-																								new FilesystemBasedFileParameterImpl();
+	private static final FilesystemBasedFileParameterImpl fileParameter =
+			new FilesystemBasedFileParameterImpl();
 
-	public R66BusinessFactoryInterface						r66BusinessFactory			= new R66DefaultBusinessFactory();
+	public R66BusinessFactoryInterface r66BusinessFactory = new R66DefaultBusinessFactory();
 	// Global Dynamic values
 	/**
 	 * Version validation
 	 */
-	public boolean											extendedProtocol			= true;
+	public boolean extendedProtocol = true;
 	/**
 	 * White List of allowed Partners to use Business Requests
 	 */
-	public HashSet<String>									businessWhiteSet			= new HashSet<String>();
+	public HashSet<String> businessWhiteSet = new HashSet<String>();
 	/**
 	 * Actual Host ID
 	 */
-	public String											HOST_ID;
+	public String HOST_ID;
 	/**
 	 * Actual SSL Host ID
 	 */
-	public String											HOST_SSLID;
+	public String HOST_SSLID;
 
 	/**
 	 * Server Administration user name
 	 */
-	public String											ADMINNAME					= null;
+	public String ADMINNAME = null;
 	/**
 	 * Server Administration Key
 	 */
-	private byte[]											SERVERADMINKEY				= null;
+	private byte[] SERVERADMINKEY = null;
 	/**
 	 * Server Actual Authentication
 	 */
-	public DbHostAuth										HOST_AUTH;
+	public DbHostAuth HOST_AUTH;
 	/**
 	 * Server Actual SSL Authentication
 	 */
-	public DbHostAuth										HOST_SSLAUTH;
+	public DbHostAuth HOST_SSLAUTH;
 
 	/**
 	 * Default number of threads in pool for Server (true network listeners). Server will change
 	 * this value on startup if not set. The value should be closed to the number of CPU.
 	 */
-	public int												SERVER_THREAD				= 8;
+	public int SERVER_THREAD = 8;
 
 	/**
 	 * Default number of threads in pool for Client. The value is for true client for Executor in
 	 * the Pipeline for Business logic. The value does not indicate a limit of concurrent clients,
 	 * but a limit on truly packet concurrent actions.
 	 */
-	public int												CLIENT_THREAD				= 80;
+	public int CLIENT_THREAD = 80;
 
 	/**
 	 * Default session limit 64Mbit, so up to 16 full simultaneous clients
 	 */
-	public final long										DEFAULT_SESSION_LIMIT		= 0x800000L;
+	public final long DEFAULT_SESSION_LIMIT = 0x800000L;
 
 	/**
 	 * Default global limit 1024Mbit
 	 */
-	public final long										DEFAULT_GLOBAL_LIMIT		= 0x8000000L;
+	public final long DEFAULT_GLOBAL_LIMIT = 0x8000000L;
 
 	/**
 	 * Default server port
 	 */
-	public int												SERVER_PORT					= 6666;
+	public int SERVER_PORT = 6666;
 
 	/**
 	 * Default SSL server port
 	 */
-	public int												SERVER_SSLPORT				= 6667;
+	public int SERVER_SSLPORT = 6667;
 
 	/**
 	 * Default HTTP server port
 	 */
-	public int												SERVER_HTTPPORT				= 8066;
+	public int SERVER_HTTPPORT = 8066;
 
 	/**
 	 * Default HTTP server port
 	 */
-	public int												SERVER_HTTPSPORT			= 8067;
+	public int SERVER_HTTPSPORT = 8067;
 
 	/**
 	 * Nb of milliseconds after connection is in timeout
 	 */
-	public long												TIMEOUTCON					= 30000;
+	public long TIMEOUTCON = 30000;
 
 	/**
 	 * Size by default of block size for receive/sending files. Should be a multiple of 8192
 	 * (maximum = 2^30K due to block limitation to 4 bytes)
 	 */
-	public int												BLOCKSIZE					= 0x10000;										// 64K
+	public int BLOCKSIZE = 0x10000; // 64K
 
 	/**
 	 * Max global memory limit: default is 4GB
 	 */
-	public long												maxGlobalMemory				= 0x100000000L;
+	public long maxGlobalMemory = 0x100000000L;
 
 	/**
 	 * Base Directory
 	 */
-	public String											baseDirectory;
+	public String baseDirectory;
 
 	/**
 	 * In path (receive)
 	 */
-	public String											inPath						= null;
+	public String inPath = null;
 
 	/**
 	 * Out path (send, copy, pending)
 	 */
-	public String											outPath						= null;
+	public String outPath = null;
 
 	/**
 	 * Archive path
 	 */
-	public String											archivePath					= null;
+	public String archivePath = null;
 
 	/**
 	 * Working path
 	 */
-	public String											workingPath					= null;
+	public String workingPath = null;
 
 	/**
 	 * Config path
 	 */
-	public String											configPath					= null;
+	public String configPath = null;
 
 	/**
 	 * Http Admin base
 	 */
-	public String											httpBasePath				= "src/main/admin/";
+	public String httpBasePath = "src/main/admin/";
 
 	/**
 	 * True if the service is going to shutdown
 	 */
-	public volatile boolean									isShutdown					= false;
+	public volatile boolean isShutdown = false;
 
 	/**
 	 * Limit in Write byte/s to apply globally to the FTP Server
 	 */
-	public long												serverGlobalWriteLimit		= DEFAULT_GLOBAL_LIMIT;
+	public long serverGlobalWriteLimit = DEFAULT_GLOBAL_LIMIT;
 
 	/**
 	 * Limit in Read byte/s to apply globally to the FTP Server
 	 */
-	public long												serverGlobalReadLimit		= DEFAULT_GLOBAL_LIMIT;
+	public long serverGlobalReadLimit = DEFAULT_GLOBAL_LIMIT;
 
 	/**
 	 * Limit in Write byte/s to apply by session to the FTP Server
 	 */
-	public long												serverChannelWriteLimit		= DEFAULT_SESSION_LIMIT;
+	public long serverChannelWriteLimit = DEFAULT_SESSION_LIMIT;
 
 	/**
 	 * Limit in Read byte/s to apply by session to the FTP Server
 	 */
-	public long												serverChannelReadLimit		= DEFAULT_SESSION_LIMIT;
+	public long serverChannelReadLimit = DEFAULT_SESSION_LIMIT;
 
 	/**
 	 * Any limitation on bandwidth active?
 	 */
-	public boolean											anyBandwidthLimitation		= false;
+	public boolean anyBandwidthLimitation = false;
 	/**
 	 * Delay in ms between two checks
 	 */
-	public long												delayLimit					= 10000;
+	public long delayLimit = 10000;
 
 	/**
 	 * Does this OpenR66 server will use and accept SSL connections
 	 */
-	public boolean											useSSL						= false;
+	public boolean useSSL = false;
 	/**
 	 * Does this OpenR66 server will use and accept non SSL connections
 	 */
-	public boolean											useNOSSL					= true;
+	public boolean useNOSSL = true;
 	/**
 	 * Algorithm to use for Digest
 	 */
-	public FilesystemBasedDigest.DigestAlgo					digest						= DigestAlgo.MD5;
+	public FilesystemBasedDigest.DigestAlgo digest = DigestAlgo.MD5;
 
 	/**
 	 * Does this OpenR66 server will try to compress HTTP connections
 	 */
-	public boolean											useHttpCompression			= false;
+	public boolean useHttpCompression = false;
 
 	/**
 	 * Does this OpenR66 server will use Waarp LocalExec Daemon for ExecTask and ExecMoveTask
 	 */
-	public boolean											useLocalExec				= false;
+	public boolean useLocalExec = false;
 
 	/**
 	 * Crypto Key
 	 */
-	public Des												cryptoKey					= null;
+	public Des cryptoKey = null;
 
 	/**
 	 * List of all Server Channels to enable the close call on them using Netty ChannelGroup
 	 */
-	private ChannelGroup									serverChannelGroup			= null;
+	private ChannelGroup serverChannelGroup = null;
 	/**
 	 * Does the current program running as Server
 	 */
-	public boolean											isServer					= false;
+	public boolean isServer = false;
 
 	/**
 	 * ExecutorService Server Boss
 	 */
-	protected ExecutorService								execServerBoss				= Executors
-																								.newCachedThreadPool();
+	protected ExecutorService execServerBoss = Executors
+			.newCachedThreadPool();
 
 	/**
 	 * ExecutorService Server Worker
 	 */
-	protected ExecutorService								execServerWorker			= Executors
-																								.newCachedThreadPool();
+	protected ExecutorService execServerWorker = Executors
+			.newCachedThreadPool();
 
 	/**
 	 * ExecutorService Other Worker
 	 */
-	protected ExecutorService								execOtherWorker				= Executors
-																								.newCachedThreadPool();
+	protected ExecutorService execOtherWorker = Executors
+			.newCachedThreadPool();
 
 	/**
 	 * ChannelFactory for Server part
 	 */
-	private ChannelFactory									serverChannelFactory		= null;
+	private ChannelFactory serverChannelFactory = null;
 
 	/**
 	 * ThreadPoolExecutor for Server
 	 */
-	private volatile OrderedMemoryAwareThreadPoolExecutor	serverPipelineExecutor;
+	private volatile OrderedMemoryAwareThreadPoolExecutor serverPipelineExecutor;
 
 	/**
 	 * ThreadPoolExecutor for LocalServer
 	 */
-	private volatile OrderedMemoryAwareThreadPoolExecutor	localPipelineExecutor;
+	private volatile OrderedMemoryAwareThreadPoolExecutor localPipelineExecutor;
 
 	/**
 	 * ThreadPoolExecutor for LocalClient
 	 */
-	private volatile OrderedMemoryAwareThreadPoolExecutor	localClientPipelineExecutor;
+	private volatile OrderedMemoryAwareThreadPoolExecutor localClientPipelineExecutor;
 
 	/**
 	 * ThreadPoolExecutor for Http and Https Server
 	 */
-	protected volatile OrderedMemoryAwareThreadPoolExecutor	httpPipelineExecutor;
+	protected volatile OrderedMemoryAwareThreadPoolExecutor httpPipelineExecutor;
 
 	/**
 	 * Bootstrap for server
 	 */
-	private ServerBootstrap									serverBootstrap				= null;
+	private ServerBootstrap serverBootstrap = null;
 
 	/**
 	 * Bootstrap for SSL server
 	 */
-	private ServerBootstrap									serverSslBootstrap			= null;
+	private ServerBootstrap serverSslBootstrap = null;
 	/**
 	 * Factory for NON SSL Server
 	 */
-	private NetworkServerPipelineFactory					networkServerPipelineFactory;
+	private NetworkServerPipelineFactory networkServerPipelineFactory;
 	/**
 	 * Factory for SSL Server
 	 */
-	private NetworkSslServerPipelineFactory					networkSslServerPipelineFactory;
+	private NetworkSslServerPipelineFactory networkSslServerPipelineFactory;
 
 	/**
 	 * Bootstrap for Http server
 	 */
-	protected ServerBootstrap								httpBootstrap				= null;
+	protected ServerBootstrap httpBootstrap = null;
 	/**
 	 * Bootstrap for Https server
 	 */
-	protected ServerBootstrap								httpsBootstrap				= null;
+	protected ServerBootstrap httpsBootstrap = null;
 	/**
 	 * ChannelFactory for HttpServer part
 	 */
-	protected ChannelFactory								httpChannelFactory			= null;
+	protected ChannelFactory httpChannelFactory = null;
 	/**
 	 * ChannelFactory for HttpsServer part
 	 */
-	protected ChannelFactory								httpsChannelFactory			= null;
+	protected ChannelFactory httpsChannelFactory = null;
 	/**
 	 * List of all Http Channels to enable the close call on them using Netty ChannelGroup
 	 */
-	protected ChannelGroup									httpChannelGroup			= null;
+	protected ChannelGroup httpChannelGroup = null;
 
 	/**
 	 * Timer for CloseOpertations
 	 */
-	private Timer											timerCloseOperations		=
-																								new HashedWheelTimer(
-																										new WaarpThreadFactory(
-																												"TimerClose"),
-																										50,
-																										TimeUnit.MILLISECONDS,
-																										1024);
+	private Timer timerCloseOperations =
+			new HashedWheelTimer(
+					new WaarpThreadFactory(
+							"TimerClose"),
+					50,
+					TimeUnit.MILLISECONDS,
+					1024);
 
 	/**
 	 * Timer for TrafficCounter
 	 */
-	private Timer											timerTrafficCounter			=
-																								new HashedWheelTimer(
-																										new WaarpThreadFactory(
-																												"TimerTraffic"),
-																										10,
-																										TimeUnit.MILLISECONDS,
-																										1024);
+	private Timer timerTrafficCounter =
+			new HashedWheelTimer(
+					new WaarpThreadFactory(
+							"TimerTraffic"),
+					10,
+					TimeUnit.MILLISECONDS,
+					1024);
 	/**
 	 * Global TrafficCounter (set from global configuration)
 	 */
-	private volatile GlobalTrafficHandler					globalTrafficShapingHandler	= null;
+	private volatile GlobalTrafficHandler globalTrafficShapingHandler = null;
 
 	/**
 	 * ObjectSizeEstimator
 	 */
-	protected ObjectSizeEstimator							objectSizeEstimator			= null;
+	protected ObjectSizeEstimator objectSizeEstimator = null;
 
 	/**
 	 * LocalTransaction
 	 */
-	private LocalTransaction								localTransaction;
+	private LocalTransaction localTransaction;
 	/**
 	 * InternalRunner
 	 */
-	private InternalRunner									internalRunner;
+	private InternalRunner internalRunner;
 	/**
 	 * Maximum number of concurrent active transfer by submission.
 	 */
-	public int												RUNNER_THREAD				= 1000;
+	public int RUNNER_THREAD = 1000;
 	/**
 	 * Delay in ms between two steps of Commander
 	 */
-	public long												delayCommander				= 5000;
+	public long delayCommander = 5000;
 	/**
 	 * Delay in ms between two retries
 	 */
-	public long												delayRetry					= 30000;
+	public long delayRetry = 30000;
 	/**
 	 * Constraint Limit Handler on CPU usage and Connection limitation
 	 */
-	public R66ConstraintLimitHandler						constraintLimitHandler		=
-																								new R66ConstraintLimitHandler();
+	public R66ConstraintLimitHandler constraintLimitHandler =
+			new R66ConstraintLimitHandler();
 	/**
 	 * Do we check Remote Address from DbHost
 	 */
-	public boolean											checkRemoteAddress			= false;
+	public boolean checkRemoteAddress = false;
 	/**
 	 * Do we check address even for Client
 	 */
-	public boolean											checkClientAddress			= false;
+	public boolean checkClientAddress = false;
 	/**
 	 * For No Db client, do we saved TaskRunner in a XML
 	 */
-	public boolean											saveTaskRunnerWithNoDb		= false;
+	public boolean saveTaskRunnerWithNoDb = false;
 	/**
 	 * In case of Multiple OpenR66 monitor servers behing a load balancer (HA solution)
 	 */
-	public int												multipleMonitors			= 1;
+	public int multipleMonitors = 1;
 	/**
 	 * Monitoring object
 	 */
-	public Monitoring										monitoring					= null;
+	public Monitoring monitoring = null;
 	/**
 	 * Monitoring: how long in ms to get back in monitoring
 	 */
-	public long												pastLimit					= 86400000;									// 24H
+	public long pastLimit = 86400000; // 24H
 	/**
 	 * Monitoring: minimal interval in ms before redo real monitoring
 	 */
-	public long												minimalDelay				= 5000;										// 5
-																																		// seconds
+	public long minimalDelay = 5000; // 5
+										// seconds
 	/**
 	 * Monitoring: snmp configuration file (empty means no snmp support)
 	 */
-	public String											snmpConfig					= null;
+	public String snmpConfig = null;
 	/**
 	 * SNMP Agent (if any)
 	 */
-	public WaarpSnmpAgent									agentSnmp					= null;
+	public WaarpSnmpAgent agentSnmp = null;
 	/**
 	 * Associated MIB
 	 */
-	public R66PrivateMib									r66Mib						= null;
+	public R66PrivateMib r66Mib = null;
 
-	private volatile boolean								configured					= false;
+	private volatile boolean configured = false;
 
-	public static WaarpSecureKeyStore						WaarpSecureKeyStore;
+	public static WaarpSecureKeyStore WaarpSecureKeyStore;
 
-	public static WaarpSslContextFactory					waarpSslContextFactory;
+	public static WaarpSslContextFactory waarpSslContextFactory;
 
 	public Configuration() {
 		// Init signal handler

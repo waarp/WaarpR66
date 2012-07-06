@@ -42,8 +42,8 @@ public class ValidFilePathTask extends AbstractTask {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger	= WaarpInternalLoggerFactory
-																.getLogger(ValidFilePathTask.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(ValidFilePathTask.class);
 
 	/**
 	 * @param argRule

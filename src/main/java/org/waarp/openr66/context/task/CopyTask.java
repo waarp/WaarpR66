@@ -35,8 +35,8 @@ public class CopyTask extends AbstractTask {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger	= WaarpInternalLoggerFactory
-																.getLogger(CopyTask.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(CopyTask.class);
 
 	/**
 	 * @param argRule

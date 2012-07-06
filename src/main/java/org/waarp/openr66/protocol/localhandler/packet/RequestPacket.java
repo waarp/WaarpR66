@@ -37,27 +37,27 @@ public class RequestPacket extends AbstractLocalPacket {
 		SENDTHROUGHMODE, RECVTHROUGHMODE, SENDMD5THROUGHMODE, RECVMD5THROUGHMODE;
 	}
 
-	private static final byte	REQVALIDATE			= 0;
+	private static final byte REQVALIDATE = 0;
 
-	private static final byte	REQANSWERVALIDATE	= 1;
+	private static final byte REQANSWERVALIDATE = 1;
 
-	private final String		rulename;
+	private final String rulename;
 
-	private final int			mode;
+	private final int mode;
 
-	private String				filename;
+	private String filename;
 
-	private final int			blocksize;
+	private final int blocksize;
 
-	private int					rank;
+	private int rank;
 
-	private long				specialId;
+	private long specialId;
 
-	private byte				way;
+	private byte way;
 
-	private char				code;
+	private char code;
 
-	private final String		fileInformation;
+	private final String fileInformation;
 
 	/**
 	 * 

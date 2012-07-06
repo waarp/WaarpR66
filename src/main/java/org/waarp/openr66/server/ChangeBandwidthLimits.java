@@ -51,14 +51,14 @@ public class ChangeBandwidthLimits implements Runnable {
 	/**
 	 * Internal Logger
 	 */
-	static volatile WaarpInternalLogger	logger;
+	static volatile WaarpInternalLogger logger;
 
-	protected final R66Future			future;
-	protected final long				writeGlobalLimit;
-	protected final long				readGlobalLimit;
-	protected final long				writeSessionLimit;
-	protected final long				readSessionLimit;
-	protected final NetworkTransaction	networkTransaction;
+	protected final R66Future future;
+	protected final long writeGlobalLimit;
+	protected final long readGlobalLimit;
+	protected final long writeSessionLimit;
+	protected final long readSessionLimit;
+	protected final NetworkTransaction networkTransaction;
 
 	public ChangeBandwidthLimits(R66Future future, long wgl, long rgl, long wsl, long rsl,
 			NetworkTransaction networkTransaction) {
@@ -116,10 +116,10 @@ public class ChangeBandwidthLimits implements Runnable {
 		localChannelReference = null;
 	}
 
-	protected static long	swriteGlobalLimit	= -1;
-	protected static long	sreadGlobalLimit	= -1;
-	protected static long	swriteSessionLimit	= -1;
-	protected static long	sreadSessionLimit	= -1;
+	protected static long swriteGlobalLimit = -1;
+	protected static long sreadGlobalLimit = -1;
+	protected static long swriteSessionLimit = -1;
+	protected static long sreadSessionLimit = -1;
 
 	protected static boolean getParams(String[] args) {
 		if (args.length < 3) {

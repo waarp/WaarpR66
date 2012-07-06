@@ -38,8 +38,8 @@ public class TarTask extends AbstractTask {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger	= WaarpInternalLoggerFactory
-																.getLogger(TarTask.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(TarTask.class);
 
 	/**
 	 * @param argRule

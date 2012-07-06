@@ -42,8 +42,8 @@ public class OpenR66ExceptionTrappedFactory {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger	= WaarpInternalLoggerFactory
-																.getLogger(OpenR66ExceptionTrappedFactory.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(OpenR66ExceptionTrappedFactory.class);
 
 	/**
 	 * @param channel

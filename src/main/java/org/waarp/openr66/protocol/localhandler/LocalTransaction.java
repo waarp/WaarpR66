@@ -67,52 +67,52 @@ public class LocalTransaction {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger				logger						= WaarpInternalLoggerFactory
-																								.getLogger(LocalTransaction.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(LocalTransaction.class);
 
 	/**
 	 * HashMap of LocalChannelReference using LocalChannelId
 	 */
-	final ConcurrentHashMap<Integer, LocalChannelReference>	localChannelHashMap			= new ConcurrentHashMap<Integer, LocalChannelReference>();
+	final ConcurrentHashMap<Integer, LocalChannelReference> localChannelHashMap = new ConcurrentHashMap<Integer, LocalChannelReference>();
 
 	/**
 	 * HashMap of Validation of LocalChannelReference using LocalChannelId
 	 */
-	final ConcurrentHashMap<Integer, R66Future>				validLocalChannelHashMap	= new ConcurrentHashMap<Integer, R66Future>();
+	final ConcurrentHashMap<Integer, R66Future> validLocalChannelHashMap = new ConcurrentHashMap<Integer, R66Future>();
 
 	/**
 	 * HashMap of LocalChannelReference using requested_requester_specialId
 	 */
-	final ConcurrentHashMap<String, LocalChannelReference>	localChannelHashMapExternal	= new ConcurrentHashMap<String, LocalChannelReference>();
+	final ConcurrentHashMap<String, LocalChannelReference> localChannelHashMapExternal = new ConcurrentHashMap<String, LocalChannelReference>();
 
 	/**
 	 * Remover from HashMap
 	 */
-	private final ChannelFutureListener						remover						= new ChannelFutureListener() {
-																							public void operationComplete(
-																									ChannelFuture future) {
-																								remove(future
-																										.getChannel());
-																							}
-																						};
+	private final ChannelFutureListener remover = new ChannelFutureListener() {
+		public void operationComplete(
+				ChannelFuture future) {
+			remove(future
+					.getChannel());
+		}
+	};
 
-	private final ChannelFactory							channelServerFactory		= new DefaultLocalServerChannelFactory();
+	private final ChannelFactory channelServerFactory = new DefaultLocalServerChannelFactory();
 
-	private final ServerBootstrap							serverBootstrap				= new ServerBootstrap(
-																								channelServerFactory);
+	private final ServerBootstrap serverBootstrap = new ServerBootstrap(
+			channelServerFactory);
 
-	private final Channel									serverChannel;
+	private final Channel serverChannel;
 
-	private final LocalAddress								socketLocalServerAddress	= new LocalAddress(
-																								"0");
+	private final LocalAddress socketLocalServerAddress = new LocalAddress(
+			"0");
 
-	private final ChannelFactory							channelClientFactory		= new DefaultLocalClientChannelFactory();
+	private final ChannelFactory channelClientFactory = new DefaultLocalClientChannelFactory();
 
-	private final ClientBootstrap							clientBootstrap				= new ClientBootstrap(
-																								channelClientFactory);
+	private final ClientBootstrap clientBootstrap = new ClientBootstrap(
+			channelClientFactory);
 
-	private final ChannelGroup								localChannelGroup			= new DefaultChannelGroup(
-																								"LocalChannels");
+	private final ChannelGroup localChannelGroup = new DefaultChannelGroup(
+			"LocalChannels");
 
 	/**
 	 * Constructor
@@ -336,10 +336,10 @@ public class LocalTransaction {
 
 	private static class CloseLocalChannelsFromNetworkChannelTast implements TimerTask {
 
-		LocalTransaction		localTransaction;
-		AtomicInteger			semaphore;
-		LocalChannelReference	localChannelReference;
-		boolean					analysis;
+		LocalTransaction localTransaction;
+		AtomicInteger semaphore;
+		LocalChannelReference localChannelReference;
+		boolean analysis;
 
 		public CloseLocalChannelsFromNetworkChannelTast(
 				LocalTransaction localTransaction,

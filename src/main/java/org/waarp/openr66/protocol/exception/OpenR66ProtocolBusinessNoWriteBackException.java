@@ -28,7 +28,7 @@ public class OpenR66ProtocolBusinessNoWriteBackException extends
 	/**
      *
      */
-	private static final long	serialVersionUID	= -9088521827450885700L;
+	private static final long serialVersionUID = -9088521827450885700L;
 
 	/**
 	 *

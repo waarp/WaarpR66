@@ -34,24 +34,24 @@ public class NetworkChannel {
 	/**
 	 * Number of active Local Channel referencing this Network Channel
 	 */
-	public volatile AtomicInteger			count			= new AtomicInteger(1);
+	public volatile AtomicInteger count = new AtomicInteger(1);
 	/**
 	 * Does this Network Channel is in shutdown
 	 */
-	public volatile boolean					isShuttingDown	= false;
+	public volatile boolean isShuttingDown = false;
 	/**
 	 * Associated LocalChannel
 	 */
-	public ConcurrentLinkedQueue<Channel>	localChannels	=
-																	new ConcurrentLinkedQueue<Channel>();
+	public ConcurrentLinkedQueue<Channel> localChannels =
+			new ConcurrentLinkedQueue<Channel>();
 	/**
 	 * Network Channel
 	 */
-	public final Channel					channel;
+	public final Channel channel;
 	/**
 	 * Last Time in ms this channel was used by a LocalChannel
 	 */
-	public long								lastTimeUsed;
+	public long lastTimeUsed;
 
 	public NetworkChannel(Channel networkChannel) {
 		this.channel = networkChannel;

@@ -49,8 +49,8 @@ public class TransferTask extends AbstractTask {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger	= WaarpInternalLoggerFactory
-																.getLogger(TransferTask.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(TransferTask.class);
 
 	/**
 	 * @param argRule

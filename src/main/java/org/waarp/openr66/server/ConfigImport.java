@@ -50,14 +50,14 @@ public class ConfigImport implements Runnable {
 	/**
 	 * Internal Logger
 	 */
-	static volatile WaarpInternalLogger	logger;
+	static volatile WaarpInternalLogger logger;
 
-	protected final R66Future			future;
-	protected final String				host;
-	protected final boolean				hostPurge;
-	protected final String				rule;
-	protected final boolean				rulePurge;
-	protected final NetworkTransaction	networkTransaction;
+	protected final R66Future future;
+	protected final String host;
+	protected final boolean hostPurge;
+	protected final String rule;
+	protected final boolean rulePurge;
+	protected final NetworkTransaction networkTransaction;
 
 	public ConfigImport(R66Future future, boolean hostPurge, boolean rulePurge,
 			String host, String rule,
@@ -118,10 +118,10 @@ public class ConfigImport implements Runnable {
 		localChannelReference = null;
 	}
 
-	protected static String		shost		= null;
-	protected static String		srule		= null;
-	protected static boolean	shostpurge	= false;
-	protected static boolean	srulepurge	= false;
+	protected static String shost = null;
+	protected static String srule = null;
+	protected static boolean shostpurge = false;
+	protected static boolean srulepurge = false;
 
 	protected static boolean getParams(String[] args) {
 		if (args.length < 3) {

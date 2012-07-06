@@ -30,11 +30,11 @@ import java.io.PipedInputStream;
  * 
  */
 class LastLineReader implements Runnable {
-	private final BufferedReader	reader;
+	private final BufferedReader reader;
 	/**
 	 * This will be the result at the end
 	 */
-	public String					lastLine	= null;
+	public String lastLine = null;
 
 	public LastLineReader(PipedInputStream inputStream) {
 		reader = new BufferedReader(new InputStreamReader(inputStream));

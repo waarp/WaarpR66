@@ -48,97 +48,97 @@ public class DbConfiguration extends AbstractDbData {
 		HOSTID
 	}
 
-	public static final int[]										dbTypes						= {
+	public static final int[] dbTypes = {
 			Types.BIGINT, Types.BIGINT, Types.BIGINT, Types.BIGINT,
-			Types.BIGINT, Types.INTEGER, Types.VARCHAR											};
+			Types.BIGINT, Types.INTEGER, Types.VARCHAR };
 
-	public static final String										table						= " CONFIGURATION ";
+	public static final String table = " CONFIGURATION ";
 
 	/**
 	 * HashTable in case of lack of database
 	 */
-	private static final ConcurrentHashMap<String, DbConfiguration>	dbR66ConfigurationHashMap	=
-																										new ConcurrentHashMap<String, DbConfiguration>();
+	private static final ConcurrentHashMap<String, DbConfiguration> dbR66ConfigurationHashMap =
+			new ConcurrentHashMap<String, DbConfiguration>();
 
-	private String													hostid;
+	private String hostid;
 
-	private long													readgloballimit;
+	private long readgloballimit;
 
-	private long													writegloballimit;
+	private long writegloballimit;
 
-	private long													readsessionlimit;
+	private long readsessionlimit;
 
-	private long													writesessionlimit;
+	private long writesessionlimit;
 
-	private long													delayllimit;
+	private long delayllimit;
 
-	private int														updatedInfo					= UpdatedInfo.UNKNOWN
-																										.ordinal();
+	private int updatedInfo = UpdatedInfo.UNKNOWN
+			.ordinal();
 
 	// ALL TABLE SHOULD IMPLEMENT THIS
-	public static final int											NBPRKEY						= 1;
+	public static final int NBPRKEY = 1;
 
-	protected static final String									selectAllFields				= Columns.READGLOBALLIMIT
-																										.name()
-																										+
-																										","
-																										+
-																										Columns.WRITEGLOBALLIMIT
-																												.name()
-																										+
-																										","
-																										+
-																										Columns.READSESSIONLIMIT
-																												.name()
-																										+
-																										","
-																										+
-																										Columns.WRITESESSIONLIMIT
-																												.name()
-																										+
-																										","
-																										+
-																										Columns.DELAYLIMIT
-																												.name()
-																										+
-																										","
-																										+ Columns.UPDATEDINFO
-																												.name()
-																										+ ","
-																										+ Columns.HOSTID
-																												.name();
+	protected static final String selectAllFields = Columns.READGLOBALLIMIT
+			.name()
+			+
+			","
+			+
+			Columns.WRITEGLOBALLIMIT
+					.name()
+			+
+			","
+			+
+			Columns.READSESSIONLIMIT
+					.name()
+			+
+			","
+			+
+			Columns.WRITESESSIONLIMIT
+					.name()
+			+
+			","
+			+
+			Columns.DELAYLIMIT
+					.name()
+			+
+			","
+			+ Columns.UPDATEDINFO
+					.name()
+			+ ","
+			+ Columns.HOSTID
+					.name();
 
-	protected static final String									updateAllFields				= Columns.READGLOBALLIMIT
-																										.name()
-																										+
-																										"=?,"
-																										+
-																										Columns.WRITEGLOBALLIMIT
-																												.name()
-																										+
-																										"=?,"
-																										+
-																										Columns.READSESSIONLIMIT
-																												.name()
-																										+
-																										"=?,"
-																										+
-																										Columns.WRITESESSIONLIMIT
-																												.name()
-																										+
-																										"=?,"
-																										+
-																										Columns.DELAYLIMIT
-																												.name()
-																										+
-																										"=?,"
-																										+
-																										Columns.UPDATEDINFO
-																												.name()
-																										+
-																										"=?";
+	protected static final String updateAllFields = Columns.READGLOBALLIMIT
+			.name()
+			+
+			"=?,"
+			+
+			Columns.WRITEGLOBALLIMIT
+					.name()
+			+
+			"=?,"
+			+
+			Columns.READSESSIONLIMIT
+					.name()
+			+
+			"=?,"
+			+
+			Columns.WRITESESSIONLIMIT
+					.name()
+			+
+			"=?,"
+			+
+			Columns.DELAYLIMIT
+					.name()
+			+
+			"=?,"
+			+
+			Columns.UPDATEDINFO
+					.name()
+			+
+			"=?";
 
-	protected static final String									insertAllValues				= " (?,?,?,?,?,?,?) ";
+	protected static final String insertAllValues = " (?,?,?,?,?,?,?) ";
 
 	/*
 	 * (non-Javadoc)

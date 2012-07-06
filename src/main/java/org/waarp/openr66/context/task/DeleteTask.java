@@ -36,8 +36,8 @@ public class DeleteTask extends AbstractTask {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger	= WaarpInternalLoggerFactory
-																.getLogger(DeleteTask.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(DeleteTask.class);
 
 	/**
 	 * @param argRule

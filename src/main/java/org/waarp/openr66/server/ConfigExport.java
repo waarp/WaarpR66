@@ -50,12 +50,12 @@ public class ConfigExport implements Runnable {
 	/**
 	 * Internal Logger
 	 */
-	static volatile WaarpInternalLogger	logger;
+	static volatile WaarpInternalLogger logger;
 
-	protected final R66Future			future;
-	protected final boolean				host;
-	protected final boolean				rule;
-	protected final NetworkTransaction	networkTransaction;
+	protected final R66Future future;
+	protected final boolean host;
+	protected final boolean rule;
+	protected final NetworkTransaction networkTransaction;
 
 	public ConfigExport(R66Future future, boolean host, boolean rule,
 			NetworkTransaction networkTransaction) {
@@ -112,8 +112,8 @@ public class ConfigExport implements Runnable {
 		localChannelReference = null;
 	}
 
-	protected static boolean	shost	= false;
-	protected static boolean	srule	= false;
+	protected static boolean shost = false;
+	protected static boolean srule = false;
 
 	protected static boolean getParams(String[] args) {
 		if (args.length < 2) {

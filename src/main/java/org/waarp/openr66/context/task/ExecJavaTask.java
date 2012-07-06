@@ -39,8 +39,8 @@ public class ExecJavaTask extends AbstractTask {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger	= WaarpInternalLoggerFactory
-																.getLogger(ExecJavaTask.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(ExecJavaTask.class);
 
 	/**
 	 * @param argRule

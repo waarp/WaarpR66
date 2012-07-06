@@ -55,7 +55,7 @@ public class DbModelMysql extends org.waarp.common.database.model.DbModelMysql {
 		super(dbserver, dbuser, dbpasswd);
 	}
 
-	private final ReentrantLock	lock	= new ReentrantLock();
+	private final ReentrantLock lock = new ReentrantLock();
 
 	@Override
 	public void createTables(DbSession session) throws WaarpDatabaseNoConnectionException {

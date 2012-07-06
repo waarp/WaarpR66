@@ -27,8 +27,8 @@ import java.util.zip.Deflater;
  * 
  */
 public class DetectionUtils {
-	private static final int		JAVA_VERSION	= javaVersion0();
-	private static final boolean	IS_WINDOWS;
+	private static final int JAVA_VERSION = javaVersion0();
+	private static final boolean IS_WINDOWS;
 	static {
 		String os = System.getProperty("os.name").toLowerCase();
 		// windows

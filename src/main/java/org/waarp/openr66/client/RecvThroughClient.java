@@ -68,9 +68,9 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * 
  */
 public class RecvThroughClient extends AbstractTransfer {
-	protected final NetworkTransaction	networkTransaction;
-	protected LocalChannelReference		localChannelReference;
-	protected final RecvThroughHandler	handler;
+	protected final NetworkTransaction networkTransaction;
+	protected LocalChannelReference localChannelReference;
+	protected final RecvThroughHandler handler;
 
 	/**
 	 * @param future

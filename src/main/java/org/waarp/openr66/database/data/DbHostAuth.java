@@ -49,95 +49,95 @@ public class DbHostAuth extends AbstractDbData {
 		ADDRESS, PORT, ISSSL, HOSTKEY, ADMINROLE, ISCLIENT, UPDATEDINFO, HOSTID
 	}
 
-	public static final int[]									dbTypes					= {
+	public static final int[] dbTypes = {
 			Types.VARCHAR, Types.INTEGER, Types.BIT,
-			Types.VARBINARY, Types.BIT, Types.BIT, Types.INTEGER, Types.VARCHAR		};
+			Types.VARBINARY, Types.BIT, Types.BIT, Types.INTEGER, Types.VARCHAR };
 
-	public static final String									table					= " HOSTS ";
+	public static final String table = " HOSTS ";
 
 	/**
 	 * HashTable in case of lack of database
 	 */
-	private static final ConcurrentHashMap<String, DbHostAuth>	dbR66HostAuthHashMap	=
-																								new ConcurrentHashMap<String, DbHostAuth>();
+	private static final ConcurrentHashMap<String, DbHostAuth> dbR66HostAuthHashMap =
+			new ConcurrentHashMap<String, DbHostAuth>();
 
-	private String												hostid;
+	private String hostid;
 
-	private String												address;
+	private String address;
 
-	private int													port;
+	private int port;
 
-	private boolean												isSsl;
+	private boolean isSsl;
 
-	private byte[]												hostkey;
+	private byte[] hostkey;
 
-	private boolean												adminrole;
+	private boolean adminrole;
 
-	private boolean												isClient;
+	private boolean isClient;
 
-	private int													updatedInfo				= UpdatedInfo.UNKNOWN
-																								.ordinal();
+	private int updatedInfo = UpdatedInfo.UNKNOWN
+			.ordinal();
 
 	// ALL TABLE SHOULD IMPLEMENT THIS
-	public static final int										NBPRKEY					= 1;
+	public static final int NBPRKEY = 1;
 
-	protected static final String								selectAllFields			= Columns.ADDRESS
-																								.name()
-																								+ ","
-																								+
-																								Columns.PORT
-																										.name()
-																								+ ","
-																								+ Columns.ISSSL
-																										.name()
-																								+ ","
-																								+
-																								Columns.HOSTKEY
-																										.name()
-																								+ ","
-																								+
-																								Columns.ADMINROLE
-																										.name()
-																								+ ","
-																								+ Columns.ISCLIENT
-																										.name()
-																								+ ","
-																								+
-																								Columns.UPDATEDINFO
-																										.name()
-																								+ ","
-																								+
-																								Columns.HOSTID
-																										.name();
+	protected static final String selectAllFields = Columns.ADDRESS
+			.name()
+			+ ","
+			+
+			Columns.PORT
+					.name()
+			+ ","
+			+ Columns.ISSSL
+					.name()
+			+ ","
+			+
+			Columns.HOSTKEY
+					.name()
+			+ ","
+			+
+			Columns.ADMINROLE
+					.name()
+			+ ","
+			+ Columns.ISCLIENT
+					.name()
+			+ ","
+			+
+			Columns.UPDATEDINFO
+					.name()
+			+ ","
+			+
+			Columns.HOSTID
+					.name();
 
-	protected static final String								updateAllFields			=
-																								Columns.ADDRESS
-																										.name()
-																										+ "=?,"
-																										+ Columns.PORT
-																												.name()
-																										+
-																										"=?,"
-																										+ Columns.ISSSL
-																												.name()
-																										+ "=?,"
-																										+ Columns.HOSTKEY
-																												.name()
-																										+
-																										"=?,"
-																										+ Columns.ADMINROLE
-																												.name()
-																										+ "=?,"
-																										+
-																										Columns.ISCLIENT
-																												.name()
-																										+ "=?,"
-																										+
-																										Columns.UPDATEDINFO
-																												.name()
-																										+ "=?";
+	protected static final String updateAllFields =
+			Columns.ADDRESS
+					.name()
+					+ "=?,"
+					+ Columns.PORT
+							.name()
+					+
+					"=?,"
+					+ Columns.ISSSL
+							.name()
+					+ "=?,"
+					+ Columns.HOSTKEY
+							.name()
+					+
+					"=?,"
+					+ Columns.ADMINROLE
+							.name()
+					+ "=?,"
+					+
+					Columns.ISCLIENT
+							.name()
+					+ "=?,"
+					+
+					Columns.UPDATEDINFO
+							.name()
+					+ "=?";
 
-	protected static final String								insertAllValues			= " (?,?,?,?,?,?,?,?) ";
+	protected static final String insertAllValues = " (?,?,?,?,?,?,?,?) ";
 
 	/*
 	 * (non-Javadoc)

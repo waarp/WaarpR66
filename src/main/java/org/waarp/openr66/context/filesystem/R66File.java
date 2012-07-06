@@ -55,13 +55,13 @@ public class R66File extends FilesystemBasedFileImpl {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger		= WaarpInternalLoggerFactory
-																	.getLogger(R66File.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(R66File.class);
 
 	/**
 	 * Does the current file is external (i.e. out of R66 base directory)
 	 */
-	private boolean								isExternal	= false;
+	private boolean isExternal = false;
 
 	/**
 	 * @param session

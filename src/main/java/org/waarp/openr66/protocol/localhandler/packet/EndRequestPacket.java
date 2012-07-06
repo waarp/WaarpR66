@@ -31,15 +31,15 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
  * @author frederic bregier
  */
 public class EndRequestPacket extends AbstractLocalPacket {
-	private static final byte	ASKVALIDATE		= 0;
+	private static final byte ASKVALIDATE = 0;
 
-	private static final byte	ANSWERVALIDATE	= 1;
+	private static final byte ANSWERVALIDATE = 1;
 
-	private final int			code;
+	private final int code;
 
-	private byte				way;
+	private byte way;
 
-	private String				optional;
+	private String optional;
 
 	/**
 	 * @param headerLength

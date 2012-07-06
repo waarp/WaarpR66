@@ -44,13 +44,13 @@ public class ServerInitDatabase {
 	/**
 	 * Internal Logger
 	 */
-	static volatile WaarpInternalLogger	logger;
+	static volatile WaarpInternalLogger logger;
 
-	static String						sxml			= null;
-	static boolean						database		= false;
-	static String						sdirconfig		= null;
-	static String						shostauth		= null;
-	static String						slimitconfig	= null;
+	static String sxml = null;
+	static boolean database = false;
+	static String sdirconfig = null;
+	static String shostauth = null;
+	static String slimitconfig = null;
 
 	protected static boolean getParams(String[] args) {
 		if (args.length < 1) {

@@ -30,8 +30,8 @@ public class R66DefaultBusinessFactory implements R66BusinessFactoryInterface {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger	= WaarpInternalLoggerFactory
-																.getLogger(R66DefaultBusinessFactory.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(R66DefaultBusinessFactory.class);
 
 	/*
 	 * (non-Javadoc)

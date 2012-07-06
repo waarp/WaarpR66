@@ -57,14 +57,14 @@ public class LogExport implements Runnable {
 	/**
 	 * Internal Logger
 	 */
-	static volatile WaarpInternalLogger	logger;
+	static volatile WaarpInternalLogger logger;
 
-	protected final R66Future			future;
-	protected final boolean				purgeLog;
-	protected final Timestamp			start;
-	protected final Timestamp			stop;
-	protected final boolean				clean;
-	protected final NetworkTransaction	networkTransaction;
+	protected final R66Future future;
+	protected final boolean purgeLog;
+	protected final Timestamp start;
+	protected final Timestamp stop;
+	protected final boolean clean;
+	protected final NetworkTransaction networkTransaction;
 
 	public LogExport(R66Future future, boolean purgeLog, boolean clean,
 			Timestamp start, Timestamp stop,
@@ -136,12 +136,12 @@ public class LogExport implements Runnable {
 		localChannelReference = null;
 	}
 
-	protected static boolean		spurgeLog	= false;
-	protected static Timestamp		sstart		= null;
-	protected static Timestamp		sstop		= null;
-	protected static boolean		sclean		= false;
+	protected static boolean spurgeLog = false;
+	protected static Timestamp sstart = null;
+	protected static Timestamp sstop = null;
+	protected static boolean sclean = false;
 
-	private static SimpleDateFormat	format		= new SimpleDateFormat("yyyyMMddHHmmssSSS");
+	private static SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmssSSS");
 
 	private static Timestamp fixDate(String sdate) {
 		Timestamp tdate = null;

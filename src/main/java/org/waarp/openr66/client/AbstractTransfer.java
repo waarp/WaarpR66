@@ -46,25 +46,25 @@ public abstract class AbstractTransfer implements Runnable {
 	/**
 	 * Internal Logger
 	 */
-	static protected volatile WaarpInternalLogger	logger;
+	static protected volatile WaarpInternalLogger logger;
 
-	protected final R66Future						future;
+	protected final R66Future future;
 
-	protected final String							filename;
+	protected final String filename;
 
-	protected final String							rulename;
+	protected final String rulename;
 
-	protected final String							fileinfo;
+	protected final String fileinfo;
 
-	protected final boolean							isMD5;
+	protected final boolean isMD5;
 
-	protected final String							remoteHost;
+	protected final String remoteHost;
 
-	protected final int								blocksize;
+	protected final int blocksize;
 
-	protected final long							id;
+	protected final long id;
 
-	protected final Timestamp						startTime;
+	protected final Timestamp startTime;
 
 	/**
 	 * @param clasz
@@ -150,18 +150,18 @@ public abstract class AbstractTransfer implements Runnable {
 		return taskRunner;
 	}
 
-	static protected String				rhost			= null;
-	static protected String				localFilename	= null;
-	static protected String				rule			= null;
-	static protected String				fileInfo		= null;
-	static protected boolean			ismd5			= false;
-	static protected int				block			= 0x10000;									// 64K
-																									// as
-																									// default
-	static protected boolean			nolog			= false;
-	static protected long				idt				= DbConstant.ILLEGALVALUE;
-	static protected Timestamp			ttimestart		= null;
-	static protected SimpleDateFormat	dateFormat		= new SimpleDateFormat("yyyyMMddHHmmss");
+	static protected String rhost = null;
+	static protected String localFilename = null;
+	static protected String rule = null;
+	static protected String fileInfo = null;
+	static protected boolean ismd5 = false;
+	static protected int block = 0x10000; // 64K
+											// as
+											// default
+	static protected boolean nolog = false;
+	static protected long idt = DbConstant.ILLEGALVALUE;
+	static protected Timestamp ttimestart = null;
+	static protected SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 
 	/**
 	 * Parse the parameter and set current values

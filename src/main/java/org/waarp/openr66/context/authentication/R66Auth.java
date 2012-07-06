@@ -41,17 +41,17 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger		= WaarpInternalLoggerFactory
-																	.getLogger(R66Auth.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(R66Auth.class);
 
 	/**
 	 * Current authentication
 	 */
-	private DbHostAuth							currentAuth	= null;
+	private DbHostAuth currentAuth = null;
 	/**
 	 * is Admin role
 	 */
-	private boolean								isAdmin		= false;
+	private boolean isAdmin = false;
 
 	/**
 	 * @param session
