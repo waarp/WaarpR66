@@ -43,7 +43,6 @@ import org.waarp.openr66.protocol.localhandler.packet.EndRequestPacket;
 import org.waarp.openr66.protocol.localhandler.packet.ErrorPacket;
 import org.waarp.openr66.protocol.localhandler.packet.RequestPacket;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
-import org.waarp.openr66.protocol.test.TestSendThroughClient;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
 
@@ -98,7 +97,7 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * <br>
  * <br>
  * 
- * @see TestSendThroughClient {@link TestSendThroughClient} Class as example of usage
+ * @see TestSendThroughClient Class as example of usage in test part
  * 
  * @author Frederic Bregier
  * 
