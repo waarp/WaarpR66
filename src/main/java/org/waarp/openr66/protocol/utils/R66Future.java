@@ -29,12 +29,12 @@ import org.waarp.openr66.database.data.DbTaskRunner;
  */
 public class R66Future extends WaarpFuture {
 
-	private R66Result	result		= null;
+	private R66Result result = null;
 	/**
 	 * Used in some specific occasion, such as client submission in API mode
 	 */
-	public DbTaskRunner	runner		= null;
-	public long			filesize	= 0;
+	public DbTaskRunner runner = null;
+	public long filesize = 0;
 
 	/**
      *

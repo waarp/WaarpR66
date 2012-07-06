@@ -41,9 +41,9 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * 
  */
 public abstract class ProgressBarTransfer extends AbstractTransfer {
-	protected final NetworkTransaction	networkTransaction;
-	protected long						INTERVALCALLBACK	= 100;
-	protected long						filesize			= 0;
+	protected final NetworkTransaction networkTransaction;
+	protected long INTERVALCALLBACK = 100;
+	protected long filesize = 0;
 
 	public ProgressBarTransfer(R66Future future, String remoteHost,
 			String filename, String rulename, String fileinfo, boolean isMD5, int blocksize,

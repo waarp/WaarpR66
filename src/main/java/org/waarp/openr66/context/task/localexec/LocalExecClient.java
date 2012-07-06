@@ -41,14 +41,14 @@ public class LocalExecClient {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger		logger	= WaarpInternalLoggerFactory
-																	.getLogger(LocalExecClient.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(LocalExecClient.class);
 
-	static public InetSocketAddress					address;
+	static public InetSocketAddress address;
 	// Configure the client.
-	static private ClientBootstrap					bootstrapLocalExec;
+	static private ClientBootstrap bootstrapLocalExec;
 	// Configure the pipeline factory.
-	static private LocalExecClientPipelineFactory	localExecClientPipelineFactory;
+	static private LocalExecClientPipelineFactory localExecClientPipelineFactory;
 
 	/**
 	 * Initialize the LocalExec Client context
@@ -77,8 +77,8 @@ public class LocalExecClient {
 		localExecClientPipelineFactory.releaseResources();
 	}
 
-	private Channel			channel;
-	private LocalExecResult	result;
+	private Channel channel;
+	private LocalExecResult result;
 
 	public LocalExecClient() {
 

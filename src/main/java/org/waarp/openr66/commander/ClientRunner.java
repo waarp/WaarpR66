@@ -58,24 +58,24 @@ public class ClientRunner extends Thread {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger				logger					= WaarpInternalLoggerFactory
-																							.getLogger(ClientRunner.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(ClientRunner.class);
 
-	private static final ConcurrentHashMap<String, Integer>	taskRunnerRetryHashMap	= new ConcurrentHashMap<String, Integer>();
+	private static final ConcurrentHashMap<String, Integer> taskRunnerRetryHashMap = new ConcurrentHashMap<String, Integer>();
 
-	public static ConcurrentLinkedQueue<ClientRunner>		activeRunners			= null;
+	public static ConcurrentLinkedQueue<ClientRunner> activeRunners = null;
 
-	private final NetworkTransaction						networkTransaction;
+	private final NetworkTransaction networkTransaction;
 
-	private final DbTaskRunner								taskRunner;
+	private final DbTaskRunner taskRunner;
 
-	private final R66Future									futureRequest;
+	private final R66Future futureRequest;
 
-	private RecvThroughHandler								handler					= null;
+	private RecvThroughHandler handler = null;
 
-	private boolean											isSendThroughMode		= false;
+	private boolean isSendThroughMode = false;
 
-	private LocalChannelReference							localChannelReference	= null;
+	private LocalChannelReference localChannelReference = null;
 
 	public ClientRunner(NetworkTransaction networkTransaction,
 			DbTaskRunner taskRunner, R66Future futureRequest) {

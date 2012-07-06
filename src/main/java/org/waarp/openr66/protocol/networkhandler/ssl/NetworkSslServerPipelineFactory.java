@@ -40,15 +40,15 @@ import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacketCodec;
  * 
  */
 public class NetworkSslServerPipelineFactory implements ChannelPipelineFactory {
-	private final boolean					isClient;
-	public static WaarpSslContextFactory	waarpSslContextFactory;
-	public static WaarpSecureKeyStore		WaarpSecureKeyStore;
-	private final ExecutorService			executorService;
+	private final boolean isClient;
+	public static WaarpSslContextFactory waarpSslContextFactory;
+	public static WaarpSecureKeyStore WaarpSecureKeyStore;
+	private final ExecutorService executorService;
 	/**
 	 * Global HashedWheelTimer
 	 */
-	public HashedWheelTimer					timer	= (HashedWheelTimer) Configuration.configuration
-															.getTimerClose();
+	public HashedWheelTimer timer = (HashedWheelTimer) Configuration.configuration
+			.getTimerClose();
 
 	/**
 	 * 

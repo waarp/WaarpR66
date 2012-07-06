@@ -85,8 +85,8 @@ public class DbTaskRunner extends AbstractDbData {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger	= WaarpInternalLoggerFactory
-																.getLogger(DbTaskRunner.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(DbTaskRunner.class);
 
 	public static enum Columns {
 		GLOBALSTEP,
@@ -112,27 +112,27 @@ public class DbTaskRunner extends AbstractDbData {
 		SPECIALID;
 	}
 
-	public static final int[]		dbTypes			= {
-													Types.INTEGER, Types.INTEGER, Types.INTEGER,
+	public static final int[] dbTypes = {
+			Types.INTEGER, Types.INTEGER, Types.INTEGER,
 			Types.INTEGER,
 			Types.CHAR, Types.BIT, Types.VARCHAR, Types.BIT, Types.VARCHAR,
 			Types.INTEGER, Types.VARCHAR, Types.LONGVARCHAR, Types.INTEGER,
 			Types.TIMESTAMP, Types.TIMESTAMP, Types.CHAR, Types.INTEGER,
 			Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BIGINT };
 
-	public static final String		table			= " RUNNER ";
+	public static final String table = " RUNNER ";
 
-	public static final String		fieldseq		= "RUNSEQ";
+	public static final String fieldseq = "RUNSEQ";
 
-	public static final Columns[]	indexes			= {
-													Columns.STARTTRANS, Columns.OWNERREQ,
+	public static final Columns[] indexes = {
+			Columns.STARTTRANS, Columns.OWNERREQ,
 			Columns.STEPSTATUS, Columns.UPDATEDINFO,
 			Columns.GLOBALSTEP, Columns.INFOSTATUS, Columns.SPECIALID
-													};
+	};
 
-	public static final String		XMLRUNNERS		= "taskrunners";
-	public static final String		XMLRUNNER		= "runner";
-	public static final String		XMLEXTENSION	= "_singlerunner.xml";
+	public static final String XMLRUNNERS = "taskrunners";
+	public static final String XMLRUNNER = "runner";
+	public static final String XMLEXTENSION = "_singlerunner.xml";
 
 	/**
 	 * GlobalStep Value
@@ -142,148 +142,148 @@ public class DbTaskRunner extends AbstractDbData {
 	}
 
 	// Values
-	private DbRule					rule;
+	private DbRule rule;
 
-	private R66Session				session;
+	private R66Session session;
 
 	/**
 	 * Last step
 	 */
-	private int						globalstep				= TASKSTEP.NOTASK.ordinal();
+	private int globalstep = TASKSTEP.NOTASK.ordinal();
 	/**
 	 * Last global step (only changes in case of success)
 	 */
-	private int						globallaststep			= TASKSTEP.NOTASK.ordinal();
+	private int globallaststep = TASKSTEP.NOTASK.ordinal();
 	/**
 	 * Step in the current globalstep
 	 */
-	private int						step					= -1;
+	private int step = -1;
 
-	private int						rank					= 0;
+	private int rank = 0;
 
 	/**
 	 * Last step action status error code
 	 */
-	private ErrorCode				status					= ErrorCode.Unknown;
+	private ErrorCode status = ErrorCode.Unknown;
 
-	private long					specialId;
+	private long specialId;
 
-	private boolean					isSender;
+	private boolean isSender;
 
-	private String					filename;
+	private String filename;
 
-	private boolean					isFileMoved				= false;
+	private boolean isFileMoved = false;
 
-	private String					ruleId;
+	private String ruleId;
 
-	private int						blocksize;
+	private int blocksize;
 
-	private String					originalFilename;
+	private String originalFilename;
 
-	private String					fileInformation;
+	private String fileInformation;
 
-	private int						mode;
+	private int mode;
 
-	private String					ownerRequest;
+	private String ownerRequest;
 
-	private String					requesterHostId;
+	private String requesterHostId;
 
-	private String					requestedHostId;
+	private String requestedHostId;
 
-	private Timestamp				start;
+	private Timestamp start;
 
-	private Timestamp				stop;
+	private Timestamp stop;
 
 	/**
 	 * Info status error code
 	 */
-	private ErrorCode				infostatus				= ErrorCode.Unknown;
+	private ErrorCode infostatus = ErrorCode.Unknown;
 
 	/**
 	 * The global status for running
 	 */
-	private int						updatedInfo				= UpdatedInfo.UNKNOWN.ordinal();
+	private int updatedInfo = UpdatedInfo.UNKNOWN.ordinal();
 
-	private volatile boolean		continueTransfer		= true;
+	private volatile boolean continueTransfer = true;
 
-	private volatile boolean		rescheduledTransfer		= false;
+	private volatile boolean rescheduledTransfer = false;
 
-	private LocalChannelReference	localChannelReference	= null;
+	private LocalChannelReference localChannelReference = null;
 
-	private boolean					isRecvThrough			= false;
-	private boolean					isSendThrough			= false;
+	private boolean isRecvThrough = false;
+	private boolean isSendThrough = false;
 
 	/**
 	 * Special For DbTaskRunner
 	 */
-	public static final int			NBPRKEY					= 4;
+	public static final int NBPRKEY = 4;
 	// ALL TABLE SHOULD IMPLEMENT THIS
 
-	protected static final String	selectAllFields			= Columns.GLOBALSTEP.name() +
-																	","
-																	+ Columns.GLOBALLASTSTEP.name()
-																	+ "," + Columns.STEP.name() +
-																	"," + Columns.RANK.name() + ","
-																	+ Columns.STEPSTATUS.name()
-																	+ "," +
-																	Columns.RETRIEVEMODE.name()
-																	+ "," + Columns.FILENAME.name()
-																	+ "," +
-																	Columns.ISMOVED.name() + ","
-																	+ Columns.IDRULE.name() + "," +
-																	Columns.BLOCKSZ.name() + ","
-																	+ Columns.ORIGINALNAME.name()
-																	+ "," +
-																	Columns.FILEINFO.name() + ","
-																	+ Columns.MODETRANS.name()
-																	+ "," +
-																	Columns.STARTTRANS.name() + ","
-																	+ Columns.STOPTRANS.name()
-																	+ "," +
-																	Columns.INFOSTATUS.name() + ","
-																	+ Columns.UPDATEDINFO.name()
-																	+ "," +
-																	Columns.OWNERREQ.name() + ","
-																	+ Columns.REQUESTER.name()
-																	+ "," +
-																	Columns.REQUESTED.name() + ","
-																	+ Columns.SPECIALID.name();
+	protected static final String selectAllFields = Columns.GLOBALSTEP.name() +
+			","
+			+ Columns.GLOBALLASTSTEP.name()
+			+ "," + Columns.STEP.name() +
+			"," + Columns.RANK.name() + ","
+			+ Columns.STEPSTATUS.name()
+			+ "," +
+			Columns.RETRIEVEMODE.name()
+			+ "," + Columns.FILENAME.name()
+			+ "," +
+			Columns.ISMOVED.name() + ","
+			+ Columns.IDRULE.name() + "," +
+			Columns.BLOCKSZ.name() + ","
+			+ Columns.ORIGINALNAME.name()
+			+ "," +
+			Columns.FILEINFO.name() + ","
+			+ Columns.MODETRANS.name()
+			+ "," +
+			Columns.STARTTRANS.name() + ","
+			+ Columns.STOPTRANS.name()
+			+ "," +
+			Columns.INFOSTATUS.name() + ","
+			+ Columns.UPDATEDINFO.name()
+			+ "," +
+			Columns.OWNERREQ.name() + ","
+			+ Columns.REQUESTER.name()
+			+ "," +
+			Columns.REQUESTED.name() + ","
+			+ Columns.SPECIALID.name();
 
-	protected static final String	updateAllFields			= Columns.GLOBALSTEP.name() +
-																	"=?,"
-																	+ Columns.GLOBALLASTSTEP.name()
-																	+ "=?," +
-																	Columns.STEP.name() + "=?,"
-																	+ Columns.RANK.name() + "=?," +
-																	Columns.STEPSTATUS.name()
-																	+ "=?,"
-																	+ Columns.RETRIEVEMODE.name() +
-																	"=?," + Columns.FILENAME.name()
-																	+ "=?,"
-																	+ Columns.ISMOVED.name() +
-																	"=?," + Columns.IDRULE.name()
-																	+ "=?,"
-																	+ Columns.BLOCKSZ.name() +
-																	"=?,"
-																	+ Columns.ORIGINALNAME.name()
-																	+ "=?," +
-																	Columns.FILEINFO.name() + "=?,"
-																	+ Columns.MODETRANS.name()
-																	+ "=?," +
-																	Columns.STARTTRANS.name()
-																	+ "=?,"
-																	+ Columns.STOPTRANS.name() +
-																	"=?,"
-																	+ Columns.INFOSTATUS.name()
-																	+ "=?,"
-																	+ Columns.UPDATEDINFO.name()
-																	+ "=?";
+	protected static final String updateAllFields = Columns.GLOBALSTEP.name() +
+			"=?,"
+			+ Columns.GLOBALLASTSTEP.name()
+			+ "=?," +
+			Columns.STEP.name() + "=?,"
+			+ Columns.RANK.name() + "=?," +
+			Columns.STEPSTATUS.name()
+			+ "=?,"
+			+ Columns.RETRIEVEMODE.name() +
+			"=?," + Columns.FILENAME.name()
+			+ "=?,"
+			+ Columns.ISMOVED.name() +
+			"=?," + Columns.IDRULE.name()
+			+ "=?,"
+			+ Columns.BLOCKSZ.name() +
+			"=?,"
+			+ Columns.ORIGINALNAME.name()
+			+ "=?," +
+			Columns.FILEINFO.name() + "=?,"
+			+ Columns.MODETRANS.name()
+			+ "=?," +
+			Columns.STARTTRANS.name()
+			+ "=?,"
+			+ Columns.STOPTRANS.name() +
+			"=?,"
+			+ Columns.INFOSTATUS.name()
+			+ "=?,"
+			+ Columns.UPDATEDINFO.name()
+			+ "=?";
 
-	protected static final String	insertAllValues			= " (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
+	protected static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
 
-	private static final AtomicLong	clientNoDbSpecialIdLast	=
-																	new AtomicLong(
-																			System.currentTimeMillis());
+	private static final AtomicLong clientNoDbSpecialIdLast =
+			new AtomicLong(
+					System.currentTimeMillis());
 
 	/*
 	 * (non-Javadoc)

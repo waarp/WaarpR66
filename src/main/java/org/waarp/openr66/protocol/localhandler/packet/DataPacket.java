@@ -30,13 +30,13 @@ import org.waarp.openr66.protocol.utils.FileUtils;
  * @author frederic bregier
  */
 public class DataPacket extends AbstractLocalPacket {
-	private final int			packetRank;
+	private final int packetRank;
 
-	private final int			lengthPacket;
+	private final int lengthPacket;
 
-	private final ChannelBuffer	data;
+	private final ChannelBuffer data;
 
-	private final ChannelBuffer	key;
+	private final ChannelBuffer key;
 
 	/**
 	 * @param headerLength

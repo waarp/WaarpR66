@@ -45,7 +45,7 @@ public class ServerExportConfiguration {
 	/**
 	 * Internal Logger
 	 */
-	private static WaarpInternalLogger	logger;
+	private static WaarpInternalLogger logger;
 
 	/**
 	 * 

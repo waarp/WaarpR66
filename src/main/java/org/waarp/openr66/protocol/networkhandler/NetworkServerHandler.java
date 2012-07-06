@@ -63,34 +63,34 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger			= WaarpInternalLoggerFactory
-																		.getLogger(NetworkServerHandler.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(NetworkServerHandler.class);
 
 	/**
 	 * The underlying Network Channel
 	 */
-	private volatile Channel					networkChannel;
+	private volatile Channel networkChannel;
 	/**
 	 * The associated Remote Address
 	 */
-	private volatile SocketAddress				remoteAddress;
+	private volatile SocketAddress remoteAddress;
 	/**
 	 * The Database connection attached to this NetworkChannel shared among all associated
 	 * LocalChannels
 	 */
-	protected volatile DbSession				dbSession;
+	protected volatile DbSession dbSession;
 	/**
 	 * Does this Handler is for SSL
 	 */
-	protected volatile boolean					isSSL			= false;
+	protected volatile boolean isSSL = false;
 	/**
 	 * Is this Handler a server side
 	 */
-	protected boolean							isServer		= false;
+	protected boolean isServer = false;
 	/**
 	 * To handle the keep alive
 	 */
-	protected volatile boolean					keepAlivedSent	= false;
+	protected volatile boolean keepAlivedSent = false;
 
 	/**
 	 * 

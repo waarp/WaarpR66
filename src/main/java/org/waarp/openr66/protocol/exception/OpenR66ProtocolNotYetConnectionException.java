@@ -27,7 +27,7 @@ public class OpenR66ProtocolNotYetConnectionException extends OpenR66Exception {
 	/**
      *
      */
-	private static final long	serialVersionUID	= -4985652825229717572L;
+	private static final long serialVersionUID = -4985652825229717572L;
 
 	/**
 	 *

@@ -27,7 +27,7 @@ public class OpenR66ProtocolNotAuthenticatedException extends OpenR66ProtocolBus
 	/**
      *
      */
-	private static final long	serialVersionUID	= 5671796883262590190L;
+	private static final long serialVersionUID = 5671796883262590190L;
 
 	/**
 	 *

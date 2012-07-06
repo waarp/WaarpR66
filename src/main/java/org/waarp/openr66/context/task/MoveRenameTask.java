@@ -33,8 +33,8 @@ public class MoveRenameTask extends AbstractTask {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger	= WaarpInternalLoggerFactory
-																.getLogger(MoveRenameTask.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(MoveRenameTask.class);
 
 	/**
 	 * @param argRule

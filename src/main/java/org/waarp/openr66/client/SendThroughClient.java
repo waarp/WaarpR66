@@ -104,9 +104,9 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * 
  */
 public abstract class SendThroughClient extends AbstractTransfer {
-	protected final NetworkTransaction	networkTransaction;
-	protected LocalChannelReference		localChannelReference;
-	protected DbTaskRunner				taskRunner	= null;
+	protected final NetworkTransaction networkTransaction;
+	protected LocalChannelReference localChannelReference;
+	protected DbTaskRunner taskRunner = null;
 
 	/**
 	 * @param future

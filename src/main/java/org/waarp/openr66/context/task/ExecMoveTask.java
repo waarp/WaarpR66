@@ -53,8 +53,8 @@ public class ExecMoveTask extends AbstractTask {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger	= WaarpInternalLoggerFactory
-																.getLogger(ExecMoveTask.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(ExecMoveTask.class);
 
 	/**
 	 * @param argRule

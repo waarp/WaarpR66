@@ -73,362 +73,362 @@ public class FileBasedConfiguration {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger						= WaarpInternalLoggerFactory
-																					.getLogger(FileBasedConfiguration.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(FileBasedConfiguration.class);
 
 	/**
 	 * SERVER HOSTID
 	 */
-	private static final String					XML_SERVER_HOSTID			= "hostid";
+	private static final String XML_SERVER_HOSTID = "hostid";
 
 	/**
 	 * SERVER SSL HOSTID
 	 */
-	private static final String					XML_SERVER_SSLHOSTID		= "sslhostid";
+	private static final String XML_SERVER_SSLHOSTID = "sslhostid";
 
 	/**
 	 * ADMINISTRATOR SERVER NAME (shutdown)
 	 */
-	private static final String					XML_SERVER_ADMIN			= "serveradmin";
+	private static final String XML_SERVER_ADMIN = "serveradmin";
 
 	/**
 	 * SERVER PASSWORD (shutdown)
 	 */
-	private static final String					XML_SERVER_PASSWD			= "serverpasswd";
+	private static final String XML_SERVER_PASSWD = "serverpasswd";
 	/**
 	 * Authentication
 	 */
-	private static final String					XML_AUTHENTIFICATION_FILE	= "authentfile";
+	private static final String XML_AUTHENTIFICATION_FILE = "authentfile";
 
 	/**
 	 * SERVER PORT
 	 */
-	private static final String					XML_SERVER_PORT				= "serverport";
+	private static final String XML_SERVER_PORT = "serverport";
 
 	/**
 	 * SERVER SSL PORT
 	 */
-	private static final String					XML_SERVER_SSLPORT			= "serversslport";
+	private static final String XML_SERVER_SSLPORT = "serversslport";
 
 	/**
 	 * SERVER HTTP PORT
 	 */
-	private static final String					XML_SERVER_HTTPPORT			= "serverhttpport";
+	private static final String XML_SERVER_HTTPPORT = "serverhttpport";
 
 	/**
 	 * SERVER HTTP PORT
 	 */
-	private static final String					XML_SERVER_HTTPSPORT		= "serverhttpsport";
+	private static final String XML_SERVER_HTTPSPORT = "serverhttpsport";
 
 	/**
 	 * SERVER SSL STOREKEY PATH
 	 */
-	private static final String					XML_PATH_KEYPATH			= "keypath";
+	private static final String XML_PATH_KEYPATH = "keypath";
 
 	/**
 	 * SERVER SSL KEY PASS
 	 */
-	private static final String					XML_PATH_KEYPASS			= "keypass";
+	private static final String XML_PATH_KEYPASS = "keypass";
 
 	/**
 	 * SERVER SSL STOREKEY PASS
 	 */
-	private static final String					XML_PATH_KEYSTOREPASS		= "keystorepass";
+	private static final String XML_PATH_KEYSTOREPASS = "keystorepass";
 
 	/**
 	 * SERVER SSL TRUSTSTOREKEY PATH
 	 */
-	private static final String					XML_PATH_TRUSTKEYPATH		= "trustkeypath";
+	private static final String XML_PATH_TRUSTKEYPATH = "trustkeypath";
 
 	/**
 	 * SERVER SSL TRUSTSTOREKEY PASS
 	 */
-	private static final String					XML_PATH_TRUSTKEYSTOREPASS	= "trustkeystorepass";
+	private static final String XML_PATH_TRUSTKEYSTOREPASS = "trustkeystorepass";
 
 	/**
 	 * SERVER SSL STOREKEY PATH ADMIN
 	 */
-	private static final String					XML_PATH_ADMIN_KEYPATH		= "admkeypath";
+	private static final String XML_PATH_ADMIN_KEYPATH = "admkeypath";
 
 	/**
 	 * SERVER SSL KEY PASS ADMIN
 	 */
-	private static final String					XML_PATH_ADMIN_KEYPASS		= "admkeypass";
+	private static final String XML_PATH_ADMIN_KEYPASS = "admkeypass";
 
 	/**
 	 * SERVER SSL STOREKEY PASS ADMIN
 	 */
-	private static final String					XML_PATH_ADMIN_KEYSTOREPASS	= "admkeystorepass";
+	private static final String XML_PATH_ADMIN_KEYSTOREPASS = "admkeystorepass";
 
 	/**
 	 * SERVER CRYPTO for Password
 	 */
-	private static final String					XML_PATH_CRYPTOKEY			= "cryptokey";
+	private static final String XML_PATH_CRYPTOKEY = "cryptokey";
 	/**
 	 * Base Directory
 	 */
-	private static final String					XML_SERVER_HOME				= "serverhome";
+	private static final String XML_SERVER_HOME = "serverhome";
 
 	/**
 	 * IN Directory
 	 */
-	private static final String					XML_INPATH					= "in";
+	private static final String XML_INPATH = "in";
 
 	/**
 	 * OUT Directory
 	 */
-	private static final String					XML_OUTPATH					= "out";
+	private static final String XML_OUTPATH = "out";
 
 	/**
 	 * ARCHIVE Directory
 	 */
-	private static final String					XML_ARCHIVEPATH				= "arch";
+	private static final String XML_ARCHIVEPATH = "arch";
 
 	/**
 	 * WORKING Directory
 	 */
-	private static final String					XML_WORKINGPATH				= "work";
+	private static final String XML_WORKINGPATH = "work";
 
 	/**
 	 * CONFIG Directory
 	 */
-	private static final String					XML_CONFIGPATH				= "conf";
+	private static final String XML_CONFIGPATH = "conf";
 
 	/**
 	 * HTTP Admin Directory
 	 */
-	private static final String					XML_HTTPADMINPATH			= "httpadmin";
+	private static final String XML_HTTPADMINPATH = "httpadmin";
 	/**
 	 * Use SSL for R66 connection
 	 */
-	private static final String					XML_USESSL					= "usessl";
+	private static final String XML_USESSL = "usessl";
 
 	/**
 	 * Use non SSL for R66 connection
 	 */
-	private static final String					XML_USENOSSL				= "usenossl";
+	private static final String XML_USENOSSL = "usenossl";
 
 	/**
 	 * Use HTTP compression for R66 HTTP connection
 	 */
-	private static final String					XML_USEHTTPCOMP				= "usehttpcomp";
+	private static final String XML_USEHTTPCOMP = "usehttpcomp";
 
 	/**
 	 * SERVER SSL Use TrustStore for Client Authentication
 	 */
-	private static final String					XML_USECLIENT_AUTHENT		= "trustuseclientauthenticate";
+	private static final String XML_USECLIENT_AUTHENT = "trustuseclientauthenticate";
 
 	/**
 	 * Limit per session
 	 */
-	private static final String					XML_LIMITSESSION			= "sessionlimit";
+	private static final String XML_LIMITSESSION = "sessionlimit";
 
 	/**
 	 * Limit global
 	 */
-	private static final String					XML_LIMITGLOBAL				= "globallimit";
+	private static final String XML_LIMITGLOBAL = "globallimit";
 
 	/**
 	 * Delay between two checks for Limit
 	 */
-	private static final String					XML_LIMITDELAY				= "delaylimit";
+	private static final String XML_LIMITDELAY = "delaylimit";
 	/**
 	 * Monitoring: how long in ms to get back in monitoring
 	 */
-	private static final String					XML_MONITOR_PASTLIMIT		= "pastlimit";
+	private static final String XML_MONITOR_PASTLIMIT = "pastlimit";
 	/**
 	 * Monitoring: minimal interval in ms before redo real monitoring
 	 */
-	private static final String					XML_MONITOR_MINIMALDELAY	= "minimaldelay";
+	private static final String XML_MONITOR_MINIMALDELAY = "minimaldelay";
 	/**
 	 * Monitoring: snmp configuration file (if empty, no snmp support)
 	 */
-	private static final String					XML_MONITOR_SNMP_CONFIG		= "snmpconfig";
+	private static final String XML_MONITOR_SNMP_CONFIG = "snmpconfig";
 	/**
 	 * In case of multiple OpenR66 Monitors behing a loadbalancer (ha config)
 	 */
-	private static final String					XML_MULTIPLE_MONITORS		= "multiplemonitors";
+	private static final String XML_MULTIPLE_MONITORS = "multiplemonitors";
 	/**
 	 * Usage of CPU Limit
 	 */
-	private static final String					XML_CSTRT_USECPULIMIT		= "usecpulimit";
+	private static final String XML_CSTRT_USECPULIMIT = "usecpulimit";
 
 	/**
 	 * Usage of JDK CPU Limit (True) or SysMon CPU Limit
 	 */
-	private static final String					XML_CSTRT_USECPUJDKLIMIT	= "usejdkcpulimit";
+	private static final String XML_CSTRT_USECPUJDKLIMIT = "usejdkcpulimit";
 
 	/**
 	 * CPU LIMIT between 0 and 1, where 1 stands for no limit
 	 */
-	private static final String					XML_CSTRT_CPULIMIT			= "cpulimit";
+	private static final String XML_CSTRT_CPULIMIT = "cpulimit";
 	/**
 	 * Connection limit where 0 stands for no limit
 	 */
-	private static final String					XML_CSTRT_CONNLIMIT			= "connlimit";
+	private static final String XML_CSTRT_CONNLIMIT = "connlimit";
 	/**
 	 * CPU LOW limit to apply increase of throttle
 	 */
-	private static final String					XML_CSTRT_LOWCPULIMIT		= "lowcpulimit";
+	private static final String XML_CSTRT_LOWCPULIMIT = "lowcpulimit";
 	/**
 	 * CPU HIGH limit to apply decrease of throttle, 0 meaning no throttle activated
 	 */
-	private static final String					XML_CSTRT_HIGHCPULIMIT		= "highcpulimit";
+	private static final String XML_CSTRT_HIGHCPULIMIT = "highcpulimit";
 	/**
 	 * PERCENTAGE DECREASE of Bandwidth
 	 */
-	private static final String					XML_CSTRT_PERCENTDECREASE	= "percentdecrease";
+	private static final String XML_CSTRT_PERCENTDECREASE = "percentdecrease";
 	/**
 	 * Delay between 2 checks of throttle test
 	 */
-	private static final String					XML_CSTRT_DELAYTHROTTLE		= "delaythrottle";
+	private static final String XML_CSTRT_DELAYTHROTTLE = "delaythrottle";
 	/**
 	 * Bandwidth low limit to not got below
 	 */
-	private static final String					XML_CSTRT_LIMITLOWBANDWIDTH	= "limitlowbandwidth";
+	private static final String XML_CSTRT_LIMITLOWBANDWIDTH = "limitlowbandwidth";
 	/**
 	 * Usage of checking remote address with the DbHost definition
 	 */
-	private static final String					XML_CHECK_ADDRESS			= "checkaddress";
+	private static final String XML_CHECK_ADDRESS = "checkaddress";
 	/**
 	 * Usage of checking remote address also for Client
 	 */
-	private static final String					XML_CHECK_CLIENTADDRESS		= "checkclientaddress";
+	private static final String XML_CHECK_CLIENTADDRESS = "checkclientaddress";
 
 	/**
 	 * In case of No Db Client, Usage of saving TaskRunner into independent XML file
 	 */
-	private static final String					XML_SAVE_TASKRUNNERNODB		= "taskrunnernodb";
+	private static final String XML_SAVE_TASKRUNNERNODB = "taskrunnernodb";
 
 	/**
 	 * Use external Waarp Local Exec for ExecTask and ExecMoveTask
 	 */
-	private static final String					XML_USELOCALEXEC			= "uselocalexec";
+	private static final String XML_USELOCALEXEC = "uselocalexec";
 
 	/**
 	 * Address of Waarp Local Exec for ExecTask and ExecMoveTask
 	 */
-	private static final String					XML_LEXECADDR				= "lexecaddr";
+	private static final String XML_LEXECADDR = "lexecaddr";
 
 	/**
 	 * Port of Waarp Local Exec for ExecTask and ExecMoveTask
 	 */
-	private static final String					XML_LEXECPORT				= "lexecport";
+	private static final String XML_LEXECPORT = "lexecport";
 
 	/**
 	 * Default number of threads in pool for Server.
 	 */
-	private static final String					XML_SERVER_THREAD			= "serverthread";
+	private static final String XML_SERVER_THREAD = "serverthread";
 
 	/**
 	 * Default number of threads in pool for Client (truly concurrent).
 	 */
-	private static final String					XML_CLIENT_THREAD			= "clientthread";
+	private static final String XML_CLIENT_THREAD = "clientthread";
 
 	/**
 	 * Memory Limit to use.
 	 */
-	private static final String					XML_MEMORY_LIMIT			= "memorylimit";
+	private static final String XML_MEMORY_LIMIT = "memorylimit";
 
 	/**
 	 * Limit of number of active Runner from Commander
 	 */
-	private static final String					XML_LIMITRUNNING			= "runlimit";
+	private static final String XML_LIMITRUNNING = "runlimit";
 
 	/**
 	 * Delay between two checks for Commander
 	 */
-	private static final String					XML_DELAYCOMMANDER			= "delaycommand";
+	private static final String XML_DELAYCOMMANDER = "delaycommand";
 
 	/**
 	 * Delay between two checks for Commander
 	 */
-	private static final String					XML_DELAYRETRY				= "delayretry";
+	private static final String XML_DELAYRETRY = "delayretry";
 
 	/**
 	 * Nb of milliseconds after connection is in timeout
 	 */
-	private static final String					XML_TIMEOUTCON				= "timeoutcon";
+	private static final String XML_TIMEOUTCON = "timeoutcon";
 
 	/**
 	 * Should a file MD5 SHA1 be computed using NIO
 	 */
-	private static final String					XML_USENIO					= "usenio";
+	private static final String XML_USENIO = "usenio";
 
 	/**
 	 * What Digest to use: CRC32=0, ADLER32=1, MD5=2, MD2=3, SHA1=4, SHA256=5, SHA384=6, SHA512=7
 	 */
-	private static final String					XML_DIGEST					= "digest";
+	private static final String XML_DIGEST = "digest";
 	/**
 	 * Should a file MD5 be computed using FastMD5
 	 */
-	private static final String					XML_USEFASTMD5				= "usefastmd5";
+	private static final String XML_USEFASTMD5 = "usefastmd5";
 
 	/**
 	 * If using Fast MD5, should we used the binary JNI library, empty meaning no
 	 */
-	private static final String					XML_FASTMD5					= "fastmd5";
+	private static final String XML_FASTMD5 = "fastmd5";
 
 	/**
 	 * number of rank to go back when a transfer is restarted. restart is gaprestart*blocksize
 	 */
-	private static final String					XML_GAPRESTART				= "gaprestart";
+	private static final String XML_GAPRESTART = "gaprestart";
 	/**
 	 * Size by default of block size for receive/sending files. Should be a multiple of 8192
 	 * (maximum = 64K due to block limitation to 2 bytes)
 	 */
-	private static final String					XML_BLOCKSIZE				= "blocksize";
+	private static final String XML_BLOCKSIZE = "blocksize";
 	/**
 	 * Database Driver as of oracle, mysql, postgresql, h2
 	 */
-	private static final String					XML_DBDRIVER				= "dbdriver";
+	private static final String XML_DBDRIVER = "dbdriver";
 
 	/**
 	 * Database Server connection string as of jdbc:type://[host:port],[failoverhost:port]
 	 * .../[database][?propertyName1][ =propertyValue1][&propertyName2][=propertyValue2]...
 	 */
-	private static final String					XML_DBSERVER				= "dbserver";
+	private static final String XML_DBSERVER = "dbserver";
 
 	/**
 	 * Database User
 	 */
-	private static final String					XML_DBUSER					= "dbuser";
+	private static final String XML_DBUSER = "dbuser";
 
 	/**
 	 * Database Password
 	 */
-	private static final String					XML_DBPASSWD				= "dbpasswd";
+	private static final String XML_DBPASSWD = "dbpasswd";
 
 	/**
 	 * Check version in protocol
 	 */
-	private static final String					XML_CHECKVERSION			= "checkversion";
+	private static final String XML_CHECKVERSION = "checkversion";
 	/**
 	 * Check version in protocol
 	 */
-	private static final String					XML_BUSINESS				= "business";
+	private static final String XML_BUSINESS = "business";
 	/**
 	 * Check version in protocol
 	 */
-	private static final String					XML_BUSINESSID				= "businessid";
+	private static final String XML_BUSINESSID = "businessid";
 
 	/**
 	 * Structure of the Configuration file
 	 * 
 	 */
-	private static final XmlDecl[]				configIdentityDecls			= {
-																			// identity
+	private static final XmlDecl[] configIdentityDecls = {
+			// identity
 			new XmlDecl(XmlType.STRING, XML_SERVER_HOSTID),
 			new XmlDecl(XmlType.STRING, XML_SERVER_SSLHOSTID),
 			new XmlDecl(XmlType.STRING, XML_PATH_CRYPTOKEY),
 			new XmlDecl(XmlType.STRING, XML_AUTHENTIFICATION_FILE)
-																			};
+	};
 	/**
 	 * Structure of the Configuration file
 	 * 
 	 */
-	private static final XmlDecl[]				configServerParamDecls		= {
-																			// server
+	private static final XmlDecl[] configServerParamDecls = {
+			// server
 			new XmlDecl(XmlType.BOOLEAN, XML_USESSL),
 			new XmlDecl(XmlType.BOOLEAN, XML_USENOSSL),
 			new XmlDecl(XmlType.BOOLEAN, XML_USEHTTPCOMP),
@@ -447,51 +447,51 @@ public class FileBasedConfiguration {
 			new XmlDecl(XmlType.LONG, XML_MONITOR_MINIMALDELAY),
 			new XmlDecl(XmlType.STRING, XML_MONITOR_SNMP_CONFIG),
 			new XmlDecl(XmlType.INTEGER, XML_MULTIPLE_MONITORS)
-																			};
+	};
 	/**
 	 * Structure of the Configuration file
 	 * 
 	 */
-	private static final XmlDecl[]				configNetworkServerDecls	= {
-																			// network
+	private static final XmlDecl[] configNetworkServerDecls = {
+			// network
 			new XmlDecl(XmlType.INTEGER, XML_SERVER_PORT),
 			new XmlDecl(XmlType.INTEGER, XML_SERVER_SSLPORT),
 			new XmlDecl(XmlType.INTEGER, XML_SERVER_HTTPPORT),
 			new XmlDecl(XmlType.INTEGER, XML_SERVER_HTTPSPORT)
-																			};
+	};
 
 	/**
 	 * Structure of the Configuration file
 	 * 
 	 */
-	private static final XmlDecl[]				configSslDecls				= {
-																			// ssl
+	private static final XmlDecl[] configSslDecls = {
+			// ssl
 			new XmlDecl(XmlType.STRING, XML_PATH_KEYPATH),
 			new XmlDecl(XmlType.STRING, XML_PATH_KEYSTOREPASS),
 			new XmlDecl(XmlType.STRING, XML_PATH_KEYPASS),
 			new XmlDecl(XmlType.STRING, XML_PATH_TRUSTKEYPATH),
 			new XmlDecl(XmlType.STRING, XML_PATH_TRUSTKEYSTOREPASS),
 			new XmlDecl(XmlType.BOOLEAN, XML_USECLIENT_AUTHENT)
-																			};
+	};
 	/**
 	 * Structure of the Configuration file
 	 * 
 	 */
-	private static final XmlDecl[]				configDbDecls				= {
-																			// db
+	private static final XmlDecl[] configDbDecls = {
+			// db
 			new XmlDecl(XmlType.STRING, XML_DBDRIVER),
 			new XmlDecl(XmlType.STRING, XML_DBSERVER),
 			new XmlDecl(XmlType.STRING, XML_DBUSER),
 			new XmlDecl(XmlType.STRING, XML_DBPASSWD),
 			new XmlDecl(XmlType.BOOLEAN, XML_SAVE_TASKRUNNERNODB)
-																			};
+	};
 
 	/**
 	 * Structure of the Configuration file
 	 * 
 	 */
-	private static final XmlDecl[]				configLimitDecls			= {
-																			// limit
+	private static final XmlDecl[] configLimitDecls = {
+			// limit
 			new XmlDecl(XmlType.LONG, XML_LIMITSESSION),
 			new XmlDecl(XmlType.LONG, XML_LIMITGLOBAL),
 			new XmlDecl(XmlType.LONG, XML_LIMITDELAY),
@@ -518,58 +518,58 @@ public class FileBasedConfiguration {
 			new XmlDecl(XmlType.INTEGER, XML_GAPRESTART),
 			new XmlDecl(XmlType.INTEGER, XML_BLOCKSIZE),
 			new XmlDecl(XmlType.BOOLEAN, XML_CHECKVERSION)
-																			};
+	};
 	/**
 	 * Structure of the Configuration file
 	 * 
 	 */
-	private static final XmlDecl[]				configSubmitLimitDecls		= {
-																			// limit
-																			new XmlDecl(
-																					XmlType.INTEGER,
-																					XML_BLOCKSIZE)
-																			};
+	private static final XmlDecl[] configSubmitLimitDecls = {
+			// limit
+			new XmlDecl(
+					XmlType.INTEGER,
+					XML_BLOCKSIZE)
+	};
 	/**
 	 * Structure of the Configuration file
 	 * 
 	 */
-	private static final XmlDecl[]				configClientParamDecls		= {
-																			// client
-																			new XmlDecl(
-																					XmlType.BOOLEAN,
-																					XML_SAVE_TASKRUNNERNODB),
-																			};
+	private static final XmlDecl[] configClientParamDecls = {
+			// client
+			new XmlDecl(
+					XmlType.BOOLEAN,
+					XML_SAVE_TASKRUNNERNODB),
+	};
 	/**
 	 * Structure of the Configuration file
 	 * 
 	 */
-	private static final XmlDecl[]				configDirectoryDecls		= {
-																			// directory
+	private static final XmlDecl[] configDirectoryDecls = {
+			// directory
 			new XmlDecl(XmlType.STRING, XML_SERVER_HOME),
 			new XmlDecl(XmlType.STRING, XML_INPATH),
 			new XmlDecl(XmlType.STRING, XML_OUTPATH),
 			new XmlDecl(XmlType.STRING, XML_ARCHIVEPATH),
 			new XmlDecl(XmlType.STRING, XML_WORKINGPATH),
 			new XmlDecl(XmlType.STRING, XML_CONFIGPATH)
-																			};
+	};
 
 	/**
 	 * Overall structure of the Configuration file
 	 */
-	private static final String					XML_ROOT					= "/config/";
-	private static final String					XML_IDENTITY				= "identity";
-	private static final String					XML_SERVER					= "server";
-	private static final String					XML_CLIENT					= "client";
-	private static final String					XML_DIRECTORY				= "directory";
-	private static final String					XML_LIMIT					= "limit";
-	private static final String					XML_NETWORK					= "network";
-	private static final String					XML_SSL						= "ssl";
-	private static final String					XML_DB						= "db";
+	private static final String XML_ROOT = "/config/";
+	private static final String XML_IDENTITY = "identity";
+	private static final String XML_SERVER = "server";
+	private static final String XML_CLIENT = "client";
+	private static final String XML_DIRECTORY = "directory";
+	private static final String XML_LIMIT = "limit";
+	private static final String XML_NETWORK = "network";
+	private static final String XML_SSL = "ssl";
+	private static final String XML_DB = "db";
 
 	/**
 	 * Global Structure for Server Configuration
 	 */
-	private static final XmlDecl[]				configServer				= {
+	private static final XmlDecl[] configServer = {
 			new XmlDecl(XML_IDENTITY, XmlType.XVAL, XML_ROOT + XML_IDENTITY, configIdentityDecls,
 					false),
 			new XmlDecl(XML_SERVER, XmlType.XVAL, XML_ROOT + XML_SERVER, configServerParamDecls,
@@ -583,11 +583,11 @@ public class FileBasedConfiguration {
 			new XmlDecl(XML_DB, XmlType.XVAL, XML_ROOT + XML_DB, configDbDecls, false),
 			new XmlDecl(XML_BUSINESS, XmlType.STRING, XML_ROOT + XML_BUSINESS + "/"
 					+ XML_BUSINESSID, true)
-																			};
+	};
 	/**
 	 * Global Structure for Client Configuration
 	 */
-	private static final XmlDecl[]				configClient				= {
+	private static final XmlDecl[] configClient = {
 			new XmlDecl(XML_IDENTITY, XmlType.XVAL, XML_ROOT + XML_IDENTITY, configIdentityDecls,
 					false),
 			new XmlDecl(XML_CLIENT, XmlType.XVAL, XML_ROOT + XML_CLIENT, configClientParamDecls,
@@ -599,19 +599,19 @@ public class FileBasedConfiguration {
 			new XmlDecl(XML_DB, XmlType.XVAL, XML_ROOT + XML_DB, configDbDecls, false),
 			new XmlDecl(XML_BUSINESS, XmlType.STRING, XML_ROOT + XML_BUSINESS + "/"
 					+ XML_BUSINESSID, true)
-																			};
+	};
 	/**
 	 * Global Structure for Submit only Client Configuration
 	 */
-	private static final XmlDecl[]				configSubmitClient			= {
+	private static final XmlDecl[] configSubmitClient = {
 			new XmlDecl(XML_IDENTITY, XmlType.XVAL, XML_ROOT + XML_IDENTITY, configIdentityDecls,
 					false),
 			new XmlDecl(XML_LIMIT, XmlType.XVAL, XML_ROOT + XML_LIMIT, configSubmitLimitDecls,
 					false),
 			new XmlDecl(XML_DB, XmlType.XVAL, XML_ROOT + XML_DB, configDbDecls, false)
-																			};
-	private static XmlValue[]					configuration				= null;
-	private static XmlHash						hashConfig					= null;
+	};
+	private static XmlValue[] configuration = null;
+	private static XmlHash hashConfig = null;
 
 	private static boolean loadIdentity(Configuration config) {
 		XmlValue value = hashConfig.get(XML_SERVER_HOSTID);
@@ -902,7 +902,7 @@ public class FileBasedConfiguration {
 		return true;
 	}
 
-	private static boolean	alreadySetLimit	= false;
+	private static boolean alreadySetLimit = false;
 
 	private static boolean loadLimit(Configuration config, boolean updateLimit) {
 		if (alreadySetLimit) {

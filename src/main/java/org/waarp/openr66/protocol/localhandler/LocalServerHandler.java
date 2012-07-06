@@ -133,17 +133,17 @@ public class LocalServerHandler extends SimpleChannelHandler {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger	= WaarpInternalLoggerFactory
-																.getLogger(LocalServerHandler.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(LocalServerHandler.class);
 
 	/**
 	 * Session
 	 */
-	private volatile R66Session					session;
+	private volatile R66Session session;
 	/**
 	 * Local Channel Reference
 	 */
-	private volatile LocalChannelReference		localChannelReference;
+	private volatile LocalChannelReference localChannelReference;
 
 	/*
 	 * (non-Javadoc)
@@ -781,8 +781,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
 	 * 
 	 */
 	private class RunnerChannelFutureListener implements ChannelFutureListener {
-		private LocalChannelReference	localChannelReference;
-		private R66Result				result;
+		private LocalChannelReference localChannelReference;
+		private R66Result result;
 
 		public RunnerChannelFutureListener(LocalChannelReference localChannelReference,
 				R66Result result) {

@@ -49,19 +49,19 @@ public abstract class AbstractBusinessRequest implements Runnable {
 	/**
 	 * Internal Logger
 	 */
-	static protected volatile WaarpInternalLogger	logger;
+	static protected volatile WaarpInternalLogger logger;
 
-	public static final String						BUSINESSREQUEST	= "BusinessRequest";
+	public static final String BUSINESSREQUEST = "BusinessRequest";
 
-	protected final R66Future						future;
+	protected final R66Future future;
 
-	protected final String							remoteHost;
+	protected final String remoteHost;
 
-	protected final NetworkTransaction				networkTransaction;
+	protected final NetworkTransaction networkTransaction;
 
-	private final BusinessRequestPacket				businessPacket;
+	private final BusinessRequestPacket businessPacket;
 
-	private LocalChannelReference					localChannelReference;
+	private LocalChannelReference localChannelReference;
 
 	public AbstractBusinessRequest(Class<?> clasz,
 			R66Future future,
@@ -169,10 +169,10 @@ public abstract class AbstractBusinessRequest implements Runnable {
 		networkTransaction.closeAll();
 	}
 
-	static protected String		rhost		= null;
-	static protected String		classname	= null;
-	static protected String		classarg	= null;
-	static protected boolean	nolog		= false;
+	static protected String rhost = null;
+	static protected String classname = null;
+	static protected String classarg = null;
+	static protected boolean nolog = false;
 
 	/**
 	 * Parse the parameter and set current values

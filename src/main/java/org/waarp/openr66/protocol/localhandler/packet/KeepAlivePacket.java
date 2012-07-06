@@ -29,11 +29,11 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
  * @author frederic bregier
  */
 public class KeepAlivePacket extends AbstractLocalPacket {
-	private static final byte	ASKVALIDATE		= 0;
+	private static final byte ASKVALIDATE = 0;
 
-	private static final byte	ANSWERVALIDATE	= 1;
+	private static final byte ANSWERVALIDATE = 1;
 
-	private byte				way;
+	private byte way;
 
 	/**
 	 * @param headerLength

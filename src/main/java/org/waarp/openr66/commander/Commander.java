@@ -47,17 +47,17 @@ public class Commander implements CommanderInterface {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger					= WaarpInternalLoggerFactory
-																				.getLogger(Commander.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(Commander.class);
 
-	private static final int					LIMITSUBMIT				= 100;
+	private static final int LIMITSUBMIT = 100;
 
-	private InternalRunner						internalRunner			= null;
-	private DbPreparedStatement					preparedStatementLock	= null;
-	private DbPreparedStatement					preparedStatementConfig	= null;
-	private DbPreparedStatement					preparedStatementHost	= null;
-	private DbPreparedStatement					preparedStatementRule	= null;
-	private DbPreparedStatement					preparedStatementRunner	= null;
+	private InternalRunner internalRunner = null;
+	private DbPreparedStatement preparedStatementLock = null;
+	private DbPreparedStatement preparedStatementConfig = null;
+	private DbPreparedStatement preparedStatementHost = null;
+	private DbPreparedStatement preparedStatementRule = null;
+	private DbPreparedStatement preparedStatementRunner = null;
 
 	/**
 	 * Prepare requests that will be executed from time to time

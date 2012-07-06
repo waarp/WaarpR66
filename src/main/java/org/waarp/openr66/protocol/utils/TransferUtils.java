@@ -52,8 +52,8 @@ public class TransferUtils {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger	= WaarpInternalLoggerFactory
-																.getLogger(TransferUtils.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(TransferUtils.class);
 
 	/**
 	 * Try to restart one Transfer Runner Task

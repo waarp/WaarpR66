@@ -29,11 +29,11 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
  * @author frederic bregier
  */
 public class ValidPacket extends AbstractLocalPacket {
-	private final String	sheader;
+	private final String sheader;
 
-	private String			smiddle;
+	private String smiddle;
 
-	private final byte		send;
+	private final byte send;
 
 	/**
 	 * @param headerLength

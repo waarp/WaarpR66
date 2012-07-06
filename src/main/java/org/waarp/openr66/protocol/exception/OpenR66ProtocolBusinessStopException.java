@@ -27,7 +27,7 @@ public class OpenR66ProtocolBusinessStopException extends OpenR66ProtocolBusines
 	/**
      *
      */
-	private static final long	serialVersionUID	= 8865871263523164597L;
+	private static final long serialVersionUID = 8865871263523164597L;
 
 	/**
 	 *

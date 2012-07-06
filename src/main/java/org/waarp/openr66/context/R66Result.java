@@ -31,27 +31,27 @@ public class R66Result {
 	/**
 	 * The exception associated in case of error (if any exception)
 	 */
-	public OpenR66Exception	exception	= null;
+	public OpenR66Exception exception = null;
 	/**
 	 * The file if any
 	 */
-	public R66File			file		= null;
+	public R66File file = null;
 	/**
 	 * The runner if any
 	 */
-	public DbTaskRunner		runner		= null;
+	public DbTaskRunner runner = null;
 	/**
 	 * Does this result already have been transfered to the remote server
 	 */
-	public boolean			isAnswered	= false;
+	public boolean isAnswered = false;
 	/**
 	 * The code (error or not)
 	 */
-	public ErrorCode		code;
+	public ErrorCode code;
 	/**
 	 * Any other object for special operations (test or shutdown for instance)
 	 */
-	public Object			other		= null;
+	public Object other = null;
 
 	/**
 	 * @param exception

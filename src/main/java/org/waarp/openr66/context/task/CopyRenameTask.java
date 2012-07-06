@@ -35,8 +35,8 @@ public class CopyRenameTask extends AbstractTask {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger	= WaarpInternalLoggerFactory
-																.getLogger(CopyRenameTask.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(CopyRenameTask.class);
 
 	/**
 	 * @param argRule

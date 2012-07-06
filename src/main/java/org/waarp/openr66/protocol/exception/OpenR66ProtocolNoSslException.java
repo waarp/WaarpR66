@@ -26,7 +26,7 @@ public class OpenR66ProtocolNoSslException extends OpenR66Exception {
 	/**
      *
      */
-	private static final long	serialVersionUID	= 765327612922240252L;
+	private static final long serialVersionUID = 765327612922240252L;
 
 	/**
 	 *

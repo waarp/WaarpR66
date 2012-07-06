@@ -30,16 +30,16 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
  * @author frederic bregier
  */
 public class BusinessRequestPacket extends AbstractLocalPacket {
-	private static final byte	ASKVALIDATE			= 0;
+	private static final byte ASKVALIDATE = 0;
 
-	private static final byte	ANSWERVALIDATE		= 1;
-	private static final byte	ANSWERINVALIDATE	= 2;
+	private static final byte ANSWERVALIDATE = 1;
+	private static final byte ANSWERINVALIDATE = 2;
 
-	private String				sheader;
+	private String sheader;
 
-	private int					delay				= 0;
+	private int delay = 0;
 
-	private byte				way;
+	private byte way;
 
 	public static BusinessRequestPacket createFromBuffer(int headerLength,
 			int middleLength, int endLength, ChannelBuffer buf)

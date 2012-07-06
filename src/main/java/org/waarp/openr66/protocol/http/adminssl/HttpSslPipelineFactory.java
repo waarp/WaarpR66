@@ -34,9 +34,9 @@ import org.waarp.openr66.protocol.configuration.Configuration;
  * 
  */
 public class HttpSslPipelineFactory implements ChannelPipelineFactory {
-	private final ExecutorService	executorService;
-	public boolean					useHttpCompression	= false;
-	public boolean					enableRenegotiation	= false;
+	private final ExecutorService executorService;
+	public boolean useHttpCompression = false;
+	public boolean enableRenegotiation = false;
 
 	public HttpSslPipelineFactory(boolean useHttpCompression,
 			boolean enableRenegotiation,

@@ -80,8 +80,8 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger	= WaarpInternalLoggerFactory
-																.getLogger(HttpFormattedHandler.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(HttpFormattedHandler.class);
 
 	private static enum REQUEST {
 		index("index.html"),
@@ -92,8 +92,8 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 		status("monitoring_header.html", "monitoring_end.html"),
 		statusxml("");
 
-		private String	header;
-		private String	end;
+		private String header;
+		private String end;
 
 		/**
 		 * Constructor for a unique file
@@ -139,43 +139,43 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 		XXXHOSTIDXXX, XXXLOCACTIVEXXX, XXXNETACTIVEXXX, XXXBANDWIDTHXXX, XXXDATEXXX;
 	}
 
-	public static final int									LIMITROW			= 60;										// better
-																															// if
-																															// it
-																															// can
-																															// be
-																															// divided
-																															// by
-																															// 4
+	public static final int LIMITROW = 60; // better
+											// if
+											// it
+											// can
+											// be
+											// divided
+											// by
+											// 4
 
-	public final R66Session									authentHttp			= new R66Session();
+	public final R66Session authentHttp = new R66Session();
 
-	public static final ConcurrentHashMap<String, R66Dir>	usedDir				= new ConcurrentHashMap<String, R66Dir>();
+	public static final ConcurrentHashMap<String, R66Dir> usedDir = new ConcurrentHashMap<String, R66Dir>();
 
-	private volatile HttpRequest							request;
+	private volatile HttpRequest request;
 
-	private final StringBuilder								responseContent		= new StringBuilder();
+	private final StringBuilder responseContent = new StringBuilder();
 
-	private volatile HttpResponseStatus						status;
+	private volatile HttpResponseStatus status;
 
-	private volatile String									uriRequest;
+	private volatile String uriRequest;
 
-	private static final String								sINFO				= "INFO",
+	private static final String sINFO = "INFO",
 			sNB = "NB", sDETAIL = "DETAIL";
 
 	/**
 	 * The Database connection attached to this NetworkChannel shared among all associated
 	 * LocalChannels
 	 */
-	private DbSession										dbSession;
+	private DbSession dbSession;
 
 	/**
 	 * Does this dbSession is private and so should be closed
 	 */
-	private boolean											isPrivateDbSession	= false;
-	private boolean											isCurrentRequestXml	= false;
+	private boolean isPrivateDbSession = false;
+	private boolean isCurrentRequestXml = false;
 
-	private Map<String, List<String>>						params				= null;
+	private Map<String, List<String>> params = null;
 
 	private String readFileHeader(String filename) {
 		String value;

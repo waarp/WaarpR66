@@ -28,7 +28,7 @@ public class OpenR66DatabaseGlobalException extends OpenR66Exception {
 	/**
      * 
      */
-	private static final long	serialVersionUID	= -9185582146820950696L;
+	private static final long serialVersionUID = -9185582146820950696L;
 
 	/**
         *

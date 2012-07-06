@@ -47,25 +47,25 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger					logger		= WaarpInternalLoggerFactory
-																					.getLogger(NetworkSslServerHandler.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(NetworkSslServerHandler.class);
 	/**
 	 * Waiter for SSL handshake is finished
 	 */
-	private static final ConcurrentHashMap<Integer, R66Future>	waitForSsl	= new ConcurrentHashMap<Integer, R66Future>();
+	private static final ConcurrentHashMap<Integer, R66Future> waitForSsl = new ConcurrentHashMap<Integer, R66Future>();
 	/**
 	 * Remover from SSL HashMap
 	 */
-	private static final ChannelFutureListener					remover		= new ChannelFutureListener() {
-																				public void operationComplete(
-																						ChannelFuture future) {
-																					logger.debug("SSL remover");
-																					waitForSsl
-																							.remove(future
-																									.getChannel()
-																									.getId());
-																				}
-																			};
+	private static final ChannelFutureListener remover = new ChannelFutureListener() {
+		public void operationComplete(
+				ChannelFuture future) {
+			logger.debug("SSL remover");
+			waitForSsl
+					.remove(future
+							.getChannel()
+							.getId());
+		}
+	};
 
 	/**
 	 * Add the Channel as SSL handshake is over

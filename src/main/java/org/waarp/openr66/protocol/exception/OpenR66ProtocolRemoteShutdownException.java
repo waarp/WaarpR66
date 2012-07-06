@@ -27,7 +27,7 @@ public class OpenR66ProtocolRemoteShutdownException extends OpenR66Exception {
 	/**
      *
      */
-	private static final long	serialVersionUID	= 5871418368412513994L;
+	private static final long serialVersionUID = 5871418368412513994L;
 
 	/**
 	 *

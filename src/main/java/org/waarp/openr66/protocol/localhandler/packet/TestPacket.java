@@ -29,13 +29,13 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
  * @author frederic bregier
  */
 public class TestPacket extends AbstractLocalPacket {
-	public static final int	pingpong	= 100;
+	public static final int pingpong = 100;
 
-	private final String	sheader;
+	private final String sheader;
 
-	private final String	smiddle;
+	private final String smiddle;
 
-	private int				code		= 0;
+	private int code = 0;
 
 	public static TestPacket createFromBuffer(int headerLength,
 			int middleLength, int endLength, ChannelBuffer buf) {

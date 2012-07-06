@@ -34,14 +34,14 @@ public enum TaskType {
 	LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, LINKRENAME, TRANSFER,
 	VALIDFILEPATH, DELETE, TAR, ZIP, EXECOUTPUT, RESCHEDULE, EXECJAVA;
 
-	public int									type;
+	public int type;
 
-	public String								name;
+	public String name;
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger	= WaarpInternalLoggerFactory
-																.getLogger(TaskType.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(TaskType.class);
 
 	private TaskType() {
 		type = ordinal();

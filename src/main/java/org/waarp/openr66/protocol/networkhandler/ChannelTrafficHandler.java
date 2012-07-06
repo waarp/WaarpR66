@@ -32,8 +32,8 @@ public class ChannelTrafficHandler extends ChannelTrafficShapingHandler {
 	/**
 	 * Internal Logger
 	 */
-	private static final WaarpInternalLogger	logger	= WaarpInternalLoggerFactory
-																.getLogger(ChannelTrafficHandler.class);
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(ChannelTrafficHandler.class);
 
 	/**
 	 * @param objectSizeEstimator
