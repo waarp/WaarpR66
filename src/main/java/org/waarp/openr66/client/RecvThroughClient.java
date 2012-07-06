@@ -30,7 +30,6 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolNotYetConnectionExcep
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
-import org.waarp.openr66.protocol.test.TestRecvThroughClient;
 import org.waarp.openr66.protocol.utils.R66Future;
 
 /**
@@ -62,7 +61,7 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * <br>
  * <br>
  * 
- * @see TestRecvThroughClient {@link TestRecvThroughClient} Class as example of usage
+ * @see TestRecvThroughClient Class as example of usage in test part
  * 
  * @author Frederic Bregier
  * 
