@@ -104,10 +104,6 @@ public class Configuration {
 	public static final String SnmpDefaultLocalization = "Paris, France";
 	public static final int SnmpService = 72;
 	/**
-	 * True if JDK6 or upper, False if JDK5.
-	 */
-	public static final boolean USEJDK6 = true;
-	/**
 	 * Time elapse for retry in ms
 	 */
 	public static final long RETRYINMS = 10;

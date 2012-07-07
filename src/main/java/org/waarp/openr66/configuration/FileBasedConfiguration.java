@@ -41,8 +41,6 @@ import org.waarp.common.exception.CryptoException;
 import org.waarp.common.file.DirInterface;
 import org.waarp.common.file.filesystembased.FilesystemBasedDirImpl;
 import org.waarp.common.file.filesystembased.FilesystemBasedFileParameterImpl;
-import org.waarp.common.file.filesystembased.specific.FilesystemBasedDirJdk5;
-import org.waarp.common.file.filesystembased.specific.FilesystemBasedDirJdk6;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.xml.XmlDecl;
@@ -51,7 +49,6 @@ import org.waarp.common.xml.XmlType;
 import org.waarp.common.xml.XmlUtil;
 import org.waarp.common.xml.XmlValue;
 import org.waarp.openr66.context.authentication.R66Auth;
-import org.waarp.openr66.context.filesystem.R66Dir;
 import org.waarp.openr66.context.task.localexec.LocalExecClient;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbConfiguration;
@@ -1091,11 +1088,6 @@ public class FileBasedConfiguration {
 		value = hashConfig.get(XML_TIMEOUTCON);
 		if (value != null && (!value.isEmpty())) {
 			config.TIMEOUTCON = (value.getLong() / 10) * 10;
-		}
-		if (Configuration.USEJDK6) {
-			R66Dir.initJdkDependent(new FilesystemBasedDirJdk6());
-		} else {
-			R66Dir.initJdkDependent(new FilesystemBasedDirJdk5());
 		}
 		value = hashConfig.get(XML_CHECKVERSION);
 		if (value != null && (!value.isEmpty())) {

@@ -87,7 +87,7 @@ public class R66PrivateMib extends WaarpPrivateMib {
 		rowInfo.setValue(WaarpDefinitionIndex.applDescription.ordinal(),
 				"Waarp OpenR66: File Transfer Monitor");
 		rowInfo.setValue(WaarpDefinitionIndex.applURL.ordinal(),
-				"http://org.waarp.openr66.free.fr");
+				"http://waarp.github.com/Waarp");
 		rowInfo.setValue(WaarpDefinitionIndex.applApplicationProtocol.ordinal(),
 				applicationProtocol);
 
