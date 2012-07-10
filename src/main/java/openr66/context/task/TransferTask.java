@@ -128,11 +128,14 @@ public class TransferTask extends AbstractTask {
                 }
             } else if (args[i].equalsIgnoreCase("-delay")) {
                 i++;
-                if (args[i].charAt(0) == '+') {
-                    timestart = new Timestamp(System.currentTimeMillis()+
-                            Long.parseLong(args[i].substring(1)));
-                } else {
-                    timestart = new Timestamp(Long.parseLong(args[i]));
+                try {
+                   if (args[i].charAt(0) == '+') {
+	                    timestart = new Timestamp(System.currentTimeMillis()+
+	                            Long.parseLong(args[i].substring(1)));
+	                } else {
+	                    timestart = new Timestamp(Long.parseLong(args[i]));
+	                }
+                } catch (NumberFormatException e) {
                 }
             }
         }
