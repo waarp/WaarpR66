@@ -42,7 +42,7 @@ import openr66.context.R66Session;
  * - if delay is 3, will echo both in the normal log and in the file
  * (last deduced argument will be the full path for the file output)<br>
  * <br>
- * If first word for logging is one of debug, info, warning, error, then the corresponding
+ * If first word for logging is one of debug, info, warn, error, then the corresponding
  * level of log will be used.
  * 
  * @author Frederic Bregier
