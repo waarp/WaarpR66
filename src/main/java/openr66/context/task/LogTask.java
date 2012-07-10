@@ -31,7 +31,7 @@ import java.io.IOException;
 import openr66.context.ErrorCode;
 import openr66.context.R66Session;
 
-/**
+/** 
  * This class is for logging or write to an external file some info:<br>
  * - if delay is 0, no echo at all will be done<br>
  * - if delay is 1, will echo some information in the normal log<br>

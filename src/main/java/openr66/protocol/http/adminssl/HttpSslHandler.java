@@ -101,7 +101,7 @@ import org.jboss.netty.handler.traffic.TrafficCounter;
 
 /**
  * @author Frederic Bregier
- *
+ * 
  */
 public class HttpSslHandler extends SimpleChannelUpstreamHandler {
     /**

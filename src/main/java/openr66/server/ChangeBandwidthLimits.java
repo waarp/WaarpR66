@@ -49,7 +49,7 @@ import org.jboss.netty.logging.InternalLoggerFactory;
  * This command enables the dynamic change of bandwidth limitation.
  * It does not changed the valuesin the database but only dynamic values while the
  * server is running and until it is shutdown.
- *
+ * 
  * @author Frederic Bregier
  *
  */

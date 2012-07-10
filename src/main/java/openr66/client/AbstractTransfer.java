@@ -41,7 +41,7 @@ import openr66.protocol.utils.R66Future;
 
 /**
  * Abstract class for Transfer operation
- *
+ * 
  * @author Frederic Bregier
  *
  */

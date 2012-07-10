@@ -53,7 +53,7 @@ import org.jboss.netty.logging.InternalLoggerFactory;
 
 /**
  * Class to request information or request cancellation or restart
- *
+ * 
  * @author Frederic Bregier
  *
  */

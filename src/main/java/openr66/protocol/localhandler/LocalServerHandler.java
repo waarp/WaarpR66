@@ -109,7 +109,7 @@ import org.jboss.netty.channel.SimpleChannelHandler;
 
 /**
  * The local server handler handles real end file operations.
- *
+ * 
  * @author frederic bregier
  */
 public class LocalServerHandler extends SimpleChannelHandler {

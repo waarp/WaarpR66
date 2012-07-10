@@ -77,7 +77,7 @@ import org.jboss.netty.handler.traffic.TrafficCounter;
 
 /**
  * Handler for HTTP information support
- *
+ * 
  * @author Frederic Bregier
  *
  */
