@@ -112,7 +112,11 @@ public class TransferTask extends AbstractTask {
                 isMD5 = true;
             } else if (args[i].equalsIgnoreCase("-block")) {
                 i ++;
-                blocksize = Integer.parseInt(args[i]);
+                try {
+                	blocksize = Integer.parseInt(args[i]);
+                } catch (NumberFormatException e) {
+                	blocksize = 0;
+                }
                 if (blocksize < 100) {
                     logger.warn("Block size is too small: " + blocksize);
                     blocksize = Configuration.configuration.BLOCKSIZE;
@@ -128,11 +132,14 @@ public class TransferTask extends AbstractTask {
                 }
             } else if (args[i].equalsIgnoreCase("-delay")) {
                 i++;
-                if (args[i].charAt(0) == '+') {
-                    timestart = new Timestamp(System.currentTimeMillis()+
-                            Long.parseLong(args[i].substring(1)));
-                } else {
-                    timestart = new Timestamp(Long.parseLong(args[i]));
+                try {
+	                if (args[i].charAt(0) == '+') {
+	                    timestart = new Timestamp(System.currentTimeMillis()+
+	                            Long.parseLong(args[i].substring(1)));
+	                } else {
+	                    timestart = new Timestamp(Long.parseLong(args[i]));
+	                }
+                } catch (NumberFormatException e) {
                 }
             }
         }
