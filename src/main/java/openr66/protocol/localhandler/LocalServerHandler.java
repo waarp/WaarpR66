@@ -603,7 +603,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
      * @throws OpenR66ProtocolPacketException
      */
     private void refusedConnection(Channel channel, AuthentPacket packet, Exception e1) throws OpenR66ProtocolPacketException {
-        logger.error("Cannot connect: " + packet.getHostId(), e1);
+        logger.error("Cannot connect from "+
+                    		localChannelReference.getNetworkChannel().getRemoteAddress()+
+                    		" : " + packet.getHostId(), e1);
         if (Configuration.configuration.r66Mib != null) {
             Configuration.configuration.r66Mib.notifyError(
                     "Connection not allowed from "+
