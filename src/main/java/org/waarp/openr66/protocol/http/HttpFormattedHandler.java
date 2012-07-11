@@ -300,13 +300,19 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 			// search the nb param
 			String snb = getTrimValue(sNB);
 			if (snb != null) {
-				nb = Long.parseLong(snb);
+				try {
+					nb = Long.parseLong(snb);
+				} catch (Exception e1) {
+				}
 			}
 			// search the detail param
 			String sdetail = getTrimValue(sDETAIL);
 			if (sdetail != null) {
-				if (Integer.parseInt(sdetail) > 0)
-					extraBoolean = true;
+				try {
+					if (Integer.parseInt(sdetail) > 0)
+						extraBoolean = true;
+				} catch (Exception e1) {
+				}
 			}
 		}
 		if (getMenu) {
