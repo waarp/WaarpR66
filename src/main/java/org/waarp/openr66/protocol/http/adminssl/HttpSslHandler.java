@@ -403,10 +403,20 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				String startid = getTrimValue("startid");
 				String stopid = getTrimValue("stopid");
 				if (startid != null && stopid == null) {
-					stopid = Long.toString(Long.parseLong(startid) + (LIMITROW / 2));
+					try {
+                 		stopid = Long.toString(Long.parseLong(startid)+(LIMITROW/2));
+                    } catch (NumberFormatException e) {
+                     	stopid = null;
+                     	startid = null;
+                    }
 				}
 				if (stopid != null && startid == null) {
-					startid = Long.toString(Long.parseLong(stopid) - (LIMITROW / 2));
+					try {
+						startid = Long.toString(Long.parseLong(stopid) - (LIMITROW / 2));
+                    } catch (NumberFormatException e) {
+                     	stopid = null;
+                     	startid = null;
+                    }
 				}
 				String start = getValue("start");
 				String stop = getValue("stop");
@@ -508,10 +518,20 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				String startid = getTrimValue("startid");
 				String stopid = getTrimValue("stopid");
 				if (startid != null && stopid == null) {
-					stopid = Long.toString(Long.parseLong(startid) + (LIMITROW / 2));
+					try {
+                 		stopid = Long.toString(Long.parseLong(startid)+(LIMITROW/2));
+                    } catch (NumberFormatException e) {
+                     	stopid = null;
+                     	startid = null;
+                    }
 				}
 				if (stopid != null && startid == null) {
-					startid = Long.toString(Long.parseLong(stopid) - (LIMITROW / 2));
+					try {
+						startid = Long.toString(Long.parseLong(stopid) - (LIMITROW / 2));
+                    } catch (NumberFormatException e) {
+                     	stopid = null;
+                     	startid = null;
+                    }
 				}
 				String start = getValue("start");
 				String stop = getValue("stop");
@@ -680,7 +700,17 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 								getFromRequest(reqd + " " + reqr + " " + specid);
 				// stop the current transfer
 				ErrorCode result;
-				long lspecid = Long.parseLong(specid);
+                long lspecid;
+                try {
+                 	lspecid = Long.parseLong(specid);
+                } catch (NumberFormatException e) {
+                 	body = "";
+                    body1 = REQUEST.CancelRestart.readBodyEnd();
+                    body1 += "<br><b>"+parm+" aborted since Transfer is not found</b>";
+                    String end;
+                    end = REQUEST.CancelRestart.readEnd();
+                    return head+body0+body+body1+end;
+                }
 				DbTaskRunner taskRunner = null;
 				try {
 					taskRunner = new DbTaskRunner(dbSession, authentHttp, null,
@@ -740,7 +770,17 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				String specid = getValue("specid");
 				String reqd = getValue("reqd");
 				String reqr = getValue("reqr");
-				long lspecid = Long.parseLong(specid);
+                long lspecid;
+                try {
+	                 lspecid = Long.parseLong(specid);
+                } catch (NumberFormatException e) {
+    	             body = "";
+                    body1 = REQUEST.CancelRestart.readBodyEnd();
+                    body1 += "<br><b>"+parm+" aborted since Transfer is not found</b>";
+                    String end;
+                    end = REQUEST.CancelRestart.readEnd();
+                    return head+body0+body+body1+end;
+                }
 				DbTaskRunner taskRunner;
 				String comment;
 				try {
@@ -923,7 +963,15 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					return head + body0 + body + body1 + end;
 				}
 				head = resetOptionHosts(head, host, addr, ssl);
-				int iport = Integer.parseInt(port);
+                int iport;
+				try {
+					iport = Integer.parseInt(port);
+				} catch (NumberFormatException e1) {
+					body0 = body1 = body = "";
+                    body = "<p><center><b>Cannot create a Host: "+e1.getMessage()+"</b></center></p>";
+                    head = resetOptionHosts(head, "", "", false);
+                    return head+body0+body+body1+end;
+				}
 				DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
 						ssl, key.getBytes(), admin, isclient);
 				try {
@@ -985,7 +1033,15 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					return head + body0 + body + body1 + end;
 				}
 				head = resetOptionHosts(head, host, addr, ssl);
-				int iport = Integer.parseInt(port);
+                int iport;
+				try {
+					iport = Integer.parseInt(port);
+				} catch (NumberFormatException e1) {
+					body0 = body1 = body = "";
+                    body = "<p><center><b>Cannot Update a Host: "+e1.getMessage()+"</b></center></p>";
+                    head = resetOptionHosts(head, "", "", false);
+                    return head+body0+body+body1+end;
+				}
 				DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
 						ssl, key.getBytes(), admin, isclient);
 				try {
@@ -1014,6 +1070,15 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				isclient = params.containsKey("isclient");
 				head = resetOptionHosts(head, host, addr, ssl);
 				int iport = Integer.parseInt(port);
+                int iport;
+				try {
+					iport = Integer.parseInt(port);
+				} catch (NumberFormatException e1) {
+					body0 = body1 = body = "";
+                    body = "<p><center><b>Cannot find a Host: "+e1.getMessage()+"</b></center></p>";
+                    head = resetOptionHosts(head, "", "", false);
+                    return head+body0+body+body1+end;
+				}
 				DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
 						ssl, key.getBytes(), admin, isclient);
 				R66Future result = new R66Future(true);
@@ -1057,7 +1122,15 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				admin = params.containsKey("admin");
 				isclient = params.containsKey("isclient");
 				head = resetOptionHosts(head, host, addr, ssl);
-				int iport = Integer.parseInt(port);
+                int iport;
+				try {
+					iport = Integer.parseInt(port);
+				} catch (NumberFormatException e1) {
+					body0 = body1 = body = "";
+                    body = "<p><center><b>Cannot find a Host: "+e1.getMessage()+"</b></center></p>";
+                    head = resetOptionHosts(head, "", "", false);
+                    return head+body0+body+body1+end;
+				}
 				DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
 						ssl, key.getBytes(), admin, isclient);
 				body = REQUEST.Hosts.readBody();
@@ -1488,43 +1561,50 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				} else if (act.equalsIgnoreCase("Validate")) {
 					String bsessionr = getTrimValue("BSESSR");
 					long lsessionr = Configuration.configuration.serverChannelReadLimit;
-					if (bsessionr != null) {
-						lsessionr = (Long.parseLong(bsessionr) / 10) * 10;
-					}
-					String bglobalr = getTrimValue("BGLOBR");
-					long lglobalr = Configuration.configuration.serverGlobalReadLimit;
-					if (bglobalr != null) {
-						lglobalr = (Long.parseLong(bglobalr) / 10) * 10;
-					}
-					String bsessionw = getTrimValue("BSESSW");
-					long lsessionw = Configuration.configuration.serverChannelWriteLimit;
-					if (bsessionw != null) {
-						lsessionw = (Long.parseLong(bsessionw) / 10) * 10;
-					}
-					String bglobalw = getTrimValue("BGLOBW");
-					long lglobalw = Configuration.configuration.serverGlobalWriteLimit;
-					if (bglobalw != null) {
-						lglobalw = (Long.parseLong(bglobalw) / 10) * 10;
-					}
-					Configuration.configuration.changeNetworkLimit(
-							lglobalw, lglobalr, lsessionw, lsessionr,
-							Configuration.configuration.delayLimit);
-					String dcomm = getTrimValue("DCOM");
-					if (dcomm != null) {
-						Configuration.configuration.delayCommander = Long.parseLong(dcomm);
-						if (Configuration.configuration.delayCommander <= 100) {
-							Configuration.configuration.delayCommander = 100;
+                    long lglobalr;
+					long lsessionw;
+					long lglobalw;
+					try {
+						if (bsessionr != null) {
+							lsessionr = (Long.parseLong(bsessionr) / 10) * 10;
 						}
-						Configuration.configuration.reloadCommanderDelay();
-					}
-					String dret = getTrimValue("DRET");
-					if (dret != null) {
-						Configuration.configuration.delayRetry = Long.parseLong(dret);
-						if (Configuration.configuration.delayRetry <= 1000) {
-							Configuration.configuration.delayRetry = 1000;
+						String bglobalr = getTrimValue("BGLOBR");
+						lglobalr = Configuration.configuration.serverGlobalReadLimit;
+						if (bglobalr != null) {
+							lglobalr = (Long.parseLong(bglobalr) / 10) * 10;
 						}
+						String bsessionw = getTrimValue("BSESSW");
+						lsessionw = Configuration.configuration.serverChannelWriteLimit;
+						if (bsessionw != null) {
+							lsessionw = (Long.parseLong(bsessionw) / 10) * 10;
+						}
+						String bglobalw = getTrimValue("BGLOBW");
+						lglobalw = Configuration.configuration.serverGlobalWriteLimit;
+						if (bglobalw != null) {
+							lglobalw = (Long.parseLong(bglobalw) / 10) * 10;
+						}
+						Configuration.configuration.changeNetworkLimit(
+								lglobalw, lglobalr, lsessionw, lsessionr,
+								Configuration.configuration.delayLimit);
+						String dcomm = getTrimValue("DCOM");
+						if (dcomm != null) {
+							Configuration.configuration.delayCommander = Long.parseLong(dcomm);
+							if (Configuration.configuration.delayCommander <= 100) {
+								Configuration.configuration.delayCommander = 100;
+							}
+							Configuration.configuration.reloadCommanderDelay();
+						}
+						String dret = getTrimValue("DRET");
+						if (dret != null) {
+							Configuration.configuration.delayRetry = Long.parseLong(dret);
+							if (Configuration.configuration.delayRetry <= 1000) {
+								Configuration.configuration.delayRetry = 1000;
+							}
+						}
+						extraInformation = "Configuration Saved";
+					} catch (NumberFormatException e) {
+						extraInformation = "Configuration cannot be Saved due to Format error";
 					}
-					extraInformation = "Configuration Saved";
 				}
 			}
 		}
