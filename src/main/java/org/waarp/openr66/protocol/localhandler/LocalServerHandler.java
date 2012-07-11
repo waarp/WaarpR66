@@ -631,14 +631,20 @@ public class LocalServerHandler extends SimpleChannelHandler {
 	 */
 	private void refusedConnection(Channel channel, AuthentPacket packet, Exception e1)
 			throws OpenR66ProtocolPacketException {
-		logger.error("Cannot connect: " + packet.getHostId(), e1);
+		logger.error("Cannot connect from "+
+			localChannelReference.getNetworkChannel().getRemoteAddress()+
+			" : " + packet.getHostId(), e1);
 		if (Configuration.configuration.r66Mib != null) {
 			Configuration.configuration.r66Mib.notifyError(
-					"Connection not allowed since " + e1.getMessage(), packet.getHostId());
+					"Connection not allowed from "+
+					localChannelReference.getNetworkChannel().getRemoteAddress()
+					+" since "+e1.getMessage(), packet.getHostId());
 		}
 		R66Result result = new R66Result(
 				new OpenR66ProtocolSystemException(
-						"Connection not allowed", e1), session, true,
+						"Connection not allowed from "+
+						localChannelReference.getNetworkChannel().getRemoteAddress(),
+						e1), session, true,
 				ErrorCode.BadAuthent, null);
 		localChannelReference.invalidateRequest(result);
 		session.newState(ERROR);
@@ -1449,7 +1455,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			session.newState(VALIDOTHER);
 			localChannelReference.validateRequest(result);
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference, validPacket, true);
-			logger.warn("Valid TEST MESSAGE: " + packet.toString());
+			logger.warn("Valid TEST MESSAGE from "+
+					session.getAuth().getUser()+
+					" ["+localChannelReference.getNetworkChannel().getRemoteAddress()+
+					"] Msg=" +packet.toString());
 			ChannelCloseTimer.closeFutureChannel(channel);
 		} else {
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false);
@@ -2205,7 +2214,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			}
 			case LocalPacketFactory.TESTPACKET: {
 				session.newState(VALIDOTHER);
-				logger.warn("Valid TEST MESSAGE: " + packet.toString());
+				logger.info("Valid TEST MESSAGE: " + packet.toString());
 				R66Result resulttest = new R66Result(session, true,
 						ErrorCode.CompleteOk, null);
 				resulttest.other = packet;

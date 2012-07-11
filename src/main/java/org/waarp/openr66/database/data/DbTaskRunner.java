@@ -1281,13 +1281,23 @@ public class DbTaskRunner extends AbstractDbData {
 				rank++;
 			}
 			if (startid != null) {
-				long value = Long.parseLong(startid);
+				long value = 0L;
+				try {
+					value = Long.parseLong(startid);
+				} catch (NumberFormatException e) { 
+					// ignore then
+				}
 				preparedStatement.getPreparedStatement().setLong(rank,
 						value);
 				rank++;
 			}
 			if (stopid != null) {
-				long value = Long.parseLong(stopid);
+				long value = 0L;
+				try {
+					value = Long.parseLong(stopid);
+				} catch (NumberFormatException e) { 
+					// ignore then
+				}
 				preparedStatement.getPreparedStatement().setLong(rank,
 						value);
 				rank++;

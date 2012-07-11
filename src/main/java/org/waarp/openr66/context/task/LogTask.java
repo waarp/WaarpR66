@@ -22,6 +22,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import org.jboss.netty.logging.InternalLogLevel;
+
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.openr66.context.ErrorCode;
@@ -35,6 +37,9 @@ import org.waarp.openr66.context.R66Session;
  * path for the file output)<br>
  * - if delay is 3, will echo both in the normal log and in the file (last deduced argument will be
  * the full path for the file output)<br>
+ * <br>
+ * If first word for logging is one of debug, info, warn, error, then the corresponding
+ * level of log will be used.
  * 
  * @author Frederic Bregier
  * 
@@ -65,14 +70,22 @@ public class LogTask extends AbstractTask {
 	public void run() {
 		String finalValue = argRule;
 		finalValue = getReplacedValue(finalValue, argTransfer.split(" "));
+		String tempValue = finalValue.toUpperCase();
+		InternalLogLevel finalLevel = InternalLogLevel.WARN;
+		for (InternalLogLevel level : InternalLogLevel.values()) {
+			if (tempValue.startsWith(level.name())) {
+				finalLevel = level;
+				break;
+			}
+		}
 		switch (delay) {
 			case 0:
 				break;
 			case 1:
-				logger.warn(finalValue + "\n    " + session.toString());
+				logger.log(finalLevel, finalValue + "\n    " + session.toString());
 				break;
 			case 3:
-				logger.warn(finalValue + "\n    " + session.toString());
+				logger.log(finalLevel, finalValue + "\n    " + session.toString());
 			case 2:
 				String[] args = finalValue.split(" ");
 				String filename = args[args.length - 1];
@@ -81,7 +94,9 @@ public class LogTask extends AbstractTask {
 						(!file.canWrite())) {
 					// File cannot be written so revert to log
 					session.getRunner().setErrorExecutionStatus(ErrorCode.Warning);
-					logger.warn(finalValue + "\n    " + session.toString());
+					if (delay == 2) {
+						logger.log(finalLevel, finalValue + "\n    " + session.toString());
+					}
 					futureCompletion.setSuccess();
 					return;
 				}
@@ -91,7 +106,9 @@ public class LogTask extends AbstractTask {
 				} catch (FileNotFoundException e) {
 					// File cannot be written so revert to log
 					session.getRunner().setErrorExecutionStatus(ErrorCode.Warning);
-					logger.warn(finalValue + "\n    " + session.toString());
+					if (delay == 2) {
+						logger.log(finalLevel, finalValue + "\n    " + session.toString());
+					}
 					futureCompletion.setSuccess();
 					return;
 				}
@@ -105,7 +122,9 @@ public class LogTask extends AbstractTask {
 					}
 					file.delete();
 					session.getRunner().setErrorExecutionStatus(ErrorCode.Warning);
-					logger.warn(finalValue + "\n    " + session.toString());
+					if (delay == 2) {
+						logger.log(finalLevel, finalValue + "\n    " + session.toString());
+					}
 					futureCompletion.setSuccess();
 					return;
 				}
