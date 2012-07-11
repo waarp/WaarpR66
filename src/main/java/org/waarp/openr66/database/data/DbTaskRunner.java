@@ -1281,7 +1281,7 @@ public class DbTaskRunner extends AbstractDbData {
 				rank++;
 			}
 			if (startid != null) {
-				long value = 0L;
+				long value = DbConstant.ILLEGALVALUE;
 				try {
 					value = Long.parseLong(startid);
 				} catch (NumberFormatException e) { 
@@ -1292,7 +1292,7 @@ public class DbTaskRunner extends AbstractDbData {
 				rank++;
 			}
 			if (stopid != null) {
-				long value = 0L;
+				long value = Long.MAX_VALUE;
 				try {
 					value = Long.parseLong(stopid);
 				} catch (NumberFormatException e) { 
