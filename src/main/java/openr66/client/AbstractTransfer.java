@@ -201,51 +201,57 @@ public abstract class AbstractTransfer implements Runnable {
         }
         // Now set default values from configuration
         block = Configuration.configuration.BLOCKSIZE;
-        for (int i = 1; i < args.length; i++) {
-            if (args[i].equalsIgnoreCase("-to")) {
-                i++;
-                rhost = args[i];
-            } else if (args[i].equalsIgnoreCase("-file")) {
-                i++;
-                localFilename = args[i];
-            } else if (args[i].equalsIgnoreCase("-rule")) {
-                i++;
-                rule = args[i];
-            } else if (args[i].equalsIgnoreCase("-info")) {
-                i++;
-                fileInfo = args[i];
-            } else if (args[i].equalsIgnoreCase("-md5")) {
-                ismd5 = true;
-            } else if (args[i].equalsIgnoreCase("-block")) {
-                i++;
-                block = Integer.parseInt(args[i]);
-                if (block < 100) {
-                    logger.error("Block size is too small: "+block);
-                    return false;
-                }
-            } else if (args[i].equalsIgnoreCase("-nolog")) {
-                nolog = true;
-                i++;
-            } else if (args[i].equalsIgnoreCase("-id")) {
-                i++;
-                idt = Long.parseLong(args[i]);
-            } else if (args[i].equalsIgnoreCase("-start")) {
-                i++;
-                Date date;
-                try {
-                    date = dateFormat.parse(args[i]);
-                    ttimestart = new Timestamp(date.getTime());
-                } catch (ParseException e) {
-                }
-            } else if (args[i].equalsIgnoreCase("-delay")) {
-                i++;
-                if (args[i].charAt(0) == '+') {
-                    ttimestart = new Timestamp(System.currentTimeMillis()+
-                            Long.parseLong(args[i].substring(1)));
-                } else {
-                    ttimestart = new Timestamp(Long.parseLong(args[i]));
-                }
-            }
+        int i = 1;
+        try {
+           for (i = 1; i < args.length; i++) {
+	            if (args[i].equalsIgnoreCase("-to")) {
+	                i++;
+	                rhost = args[i];
+	            } else if (args[i].equalsIgnoreCase("-file")) {
+	                i++;
+	                localFilename = args[i];
+	            } else if (args[i].equalsIgnoreCase("-rule")) {
+	                i++;
+	                rule = args[i];
+	            } else if (args[i].equalsIgnoreCase("-info")) {
+	                i++;
+	                fileInfo = args[i];
+	            } else if (args[i].equalsIgnoreCase("-md5")) {
+	                ismd5 = true;
+	            } else if (args[i].equalsIgnoreCase("-block")) {
+	                i++;
+	                block = Integer.parseInt(args[i]);
+	                if (block < 100) {
+	                    logger.error("Block size is too small: "+block);
+	                    return false;
+	                }
+	            } else if (args[i].equalsIgnoreCase("-nolog")) {
+	                nolog = true;
+	                i++;
+	            } else if (args[i].equalsIgnoreCase("-id")) {
+	                i++;
+	                idt = Long.parseLong(args[i]);
+	            } else if (args[i].equalsIgnoreCase("-start")) {
+	                i++;
+	                Date date;
+	                try {
+	                    date = dateFormat.parse(args[i]);
+	                    ttimestart = new Timestamp(date.getTime());
+	                } catch (ParseException e) {
+	                }
+	            } else if (args[i].equalsIgnoreCase("-delay")) {
+	                i++;
+	                if (args[i].charAt(0) == '+') {
+	                    ttimestart = new Timestamp(System.currentTimeMillis()+
+	                            Long.parseLong(args[i].substring(1)));
+	                } else {
+	                    ttimestart = new Timestamp(Long.parseLong(args[i]));
+	                }
+	            }
+	        }
+        } catch (NumberFormatException e) {
+        	logger.error("Number Format exception at Rank "+i);
+            return false;
         }
         if (fileInfo == null) {
             fileInfo = "noinfo";

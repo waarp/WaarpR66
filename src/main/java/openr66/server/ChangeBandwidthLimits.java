@@ -146,19 +146,22 @@ public class ChangeBandwidthLimits implements Runnable {
             return false;
         }
         for (int i = 1; i < args.length; i++) {
-            if (args[i].equalsIgnoreCase("-wglob")) {
-                i++;
-                swriteGlobalLimit = Long.parseLong(args[i]);
-            } else if (args[i].equalsIgnoreCase("-rglob")) {
-                i++;
-                sreadGlobalLimit = Long.parseLong(args[i]);
-            } else if (args[i].equalsIgnoreCase("-wsess")) {
-                i++;
-                swriteSessionLimit = Long.parseLong(args[i]);
-            } else if (args[i].equalsIgnoreCase("-rsess")) {
-                i++;
-                sreadSessionLimit = Long.parseLong(args[i]);
-            }
+            try {
+      			if (args[i].equalsIgnoreCase("-wglob")) {
+   				    i++;
+   				    swriteGlobalLimit = Long.parseLong(args[i]);
+   				} else if (args[i].equalsIgnoreCase("-rglob")) {
+   				    i++;
+   				    sreadGlobalLimit = Long.parseLong(args[i]);
+   				} else if (args[i].equalsIgnoreCase("-wsess")) {
+   				    i++;
+   				    swriteSessionLimit = Long.parseLong(args[i]);
+   				} else if (args[i].equalsIgnoreCase("-rsess")) {
+   				    i++;
+   				    sreadSessionLimit = Long.parseLong(args[i]);
+   				}
+   			} catch (NumberFormatException e) {
+	   		}
         }
         if (swriteGlobalLimit == -1 && sreadGlobalLimit == -1 &&
                 swriteSessionLimit == -1 && sreadSessionLimit == -1) {

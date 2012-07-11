@@ -107,7 +107,12 @@ public class RequestTransfer implements Runnable {
         for (int i = 1; i < args.length; i++) {
             if (args[i].equalsIgnoreCase("-id")) {
                 i++;
-                sspecialId = Long.parseLong(args[i]);
+                try {
+                   sspecialId = Long.parseLong(args[i]);
+                } catch (NumberFormatException e) {
+                	logger.error("Cannot value Id: "+args[i],e);
+                    return false;
+                }
             } else if (args[i].equalsIgnoreCase("-to")) {
                 i++;
                 srequested = args[i];
