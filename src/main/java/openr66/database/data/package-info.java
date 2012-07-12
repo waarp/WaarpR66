@@ -1,6 +1,6 @@
 /**
  * Classes implementing Database Data model
- *
+ * 
  * @apiviz.landmark
  * @apiviz.uses {@link openr66.database}
  */
