@@ -1069,7 +1069,6 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				admin = params.containsKey("admin");
 				isclient = params.containsKey("isclient");
 				head = resetOptionHosts(head, host, addr, ssl);
-				int iport = Integer.parseInt(port);
                 int iport;
 				try {
 					iport = Integer.parseInt(port);
