@@ -40,6 +40,7 @@ import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.util.Timeout;
 import org.jboss.netty.util.TimerTask;
+import org.waarp.common.crypto.ssl.WaarpSslUtility;
 import org.waarp.common.database.DbAdmin;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.logging.WaarpInternalLogger;
@@ -896,7 +897,7 @@ public class NetworkTransaction {
 					networkChannelOnSocketAddressConcurrentHashMap
 							.remove(address.hashCode());
 					logger.info("Will close NETWORK channel");
-					Channels.close(networkChannel.channel);
+					WaarpSslUtility.closingSslChannel(networkChannel.channel);
 				}
 				inCloseRunning.remove(networkChannel.channel.getId());
 			} finally {
@@ -1122,7 +1123,7 @@ public class NetworkTransaction {
 					networkChannelShutdownOnSocketAddressConcurrentHashMap.remove(href);
 			if (networkChannel != null && networkChannel.channel != null
 					&& networkChannel.channel.isConnected()) {
-				Channels.close(networkChannel.channel);
+				WaarpSslUtility.closingSslChannel(networkChannel.channel);
 			}
 		}
 	}

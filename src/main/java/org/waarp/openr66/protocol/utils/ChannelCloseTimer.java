@@ -20,9 +20,9 @@ package org.waarp.openr66.protocol.utils;
 import java.util.concurrent.TimeUnit;
 
 import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.Channels;
 import org.jboss.netty.util.Timeout;
 import org.jboss.netty.util.TimerTask;
+import org.waarp.common.crypto.ssl.WaarpSslUtility;
 import org.waarp.openr66.protocol.configuration.Configuration;
 
 /**
@@ -41,7 +41,7 @@ public class ChannelCloseTimer implements TimerTask {
 
 	@Override
 	public void run(Timeout timeout) throws Exception {
-		Channels.close(channel);
+		WaarpSslUtility.closingSslChannel(channel);
 	}
 
 	/**
