@@ -29,6 +29,7 @@ import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.timeout.IdleStateAwareChannelHandler;
 import org.jboss.netty.handler.timeout.IdleStateEvent;
 import org.jboss.netty.handler.timeout.ReadTimeoutException;
+import org.waarp.common.crypto.ssl.WaarpSslUtility;
 import org.waarp.common.database.DbSession;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.logging.WaarpInternalLogger;
@@ -207,7 +208,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 								packet.toString() +
 								" : " +
 								e.getChannel().getRemoteAddress());
-				Channels.close(e.getChannel());
+				WaarpSslUtility.closingSslChannel(e.getChannel());
 				return;
 			}
 		} else if (packet.getCode() == LocalPacketFactory.KEEPALIVEPACKET) {
@@ -250,7 +251,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 				logger.warn("Will Close Local from Network Channel");
 				Configuration.configuration.getLocalTransaction()
 						.closeLocalChannelsFromNetworkChannel(e.getChannel());
-				Channels.close(e.getChannel());
+				WaarpSslUtility.closingSslChannel(e.getChannel());
 				// NetworkTransaction.removeForceNetworkChannel(e.getChannel());
 				// ignore since no more valid
 				return;
