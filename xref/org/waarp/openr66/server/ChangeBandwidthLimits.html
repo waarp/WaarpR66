@@ -150,87 +150,90 @@
 <a class="jxr_linenumber" name="140" href="#140">140</a> 			<strong class="jxr_keyword">return</strong> false;
 <a class="jxr_linenumber" name="141" href="#141">141</a> 		}
 <a class="jxr_linenumber" name="142" href="#142">142</a> 		<strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 1; i &lt; args.length; i++) {
-<a class="jxr_linenumber" name="143" href="#143">143</a> 			<strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-wglob"</span>)) {
-<a class="jxr_linenumber" name="144" href="#144">144</a> 				i++;
-<a class="jxr_linenumber" name="145" href="#145">145</a> 				swriteGlobalLimit = Long.parseLong(args[i]);
-<a class="jxr_linenumber" name="146" href="#146">146</a> 			} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-rglob"</span>)) {
-<a class="jxr_linenumber" name="147" href="#147">147</a> 				i++;
-<a class="jxr_linenumber" name="148" href="#148">148</a> 				sreadGlobalLimit = Long.parseLong(args[i]);
-<a class="jxr_linenumber" name="149" href="#149">149</a> 			} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-wsess"</span>)) {
-<a class="jxr_linenumber" name="150" href="#150">150</a> 				i++;
-<a class="jxr_linenumber" name="151" href="#151">151</a> 				swriteSessionLimit = Long.parseLong(args[i]);
-<a class="jxr_linenumber" name="152" href="#152">152</a> 			} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-rsess"</span>)) {
-<a class="jxr_linenumber" name="153" href="#153">153</a> 				i++;
-<a class="jxr_linenumber" name="154" href="#154">154</a> 				sreadSessionLimit = Long.parseLong(args[i]);
-<a class="jxr_linenumber" name="155" href="#155">155</a> 			}
-<a class="jxr_linenumber" name="156" href="#156">156</a> 		}
-<a class="jxr_linenumber" name="157" href="#157">157</a> 		<strong class="jxr_keyword">if</strong> (swriteGlobalLimit == -1 &amp;&amp; sreadGlobalLimit == -1 &amp;&amp;
-<a class="jxr_linenumber" name="158" href="#158">158</a> 				swriteSessionLimit == -1 &amp;&amp; sreadSessionLimit == -1) {
-<a class="jxr_linenumber" name="159" href="#159">159</a> 			logger.error(<span class="jxr_string">"Need the configuration file as first argument then at least one of\n"</span> +
-<a class="jxr_linenumber" name="160" href="#160">160</a> 					<span class="jxr_string">"   -wglob limitGlobalWrite\n"</span> +
-<a class="jxr_linenumber" name="161" href="#161">161</a> 					<span class="jxr_string">"   -rglob limitGlobalRead\n"</span> +
-<a class="jxr_linenumber" name="162" href="#162">162</a> 					<span class="jxr_string">"   -wsess limitSessionWrite\n"</span> +
-<a class="jxr_linenumber" name="163" href="#163">163</a> 					<span class="jxr_string">"   -rsess limitSessionWrite"</span>);
-<a class="jxr_linenumber" name="164" href="#164">164</a> 			<strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="165" href="#165">165</a> 		}
-<a class="jxr_linenumber" name="166" href="#166">166</a> 		<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="167" href="#167">167</a> 	}
-<a class="jxr_linenumber" name="168" href="#168">168</a> 
-<a class="jxr_linenumber" name="169" href="#169">169</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> main(String[] args) {
-<a class="jxr_linenumber" name="170" href="#170">170</a> 		InternalLoggerFactory.setDefaultFactory(<strong class="jxr_keyword">new</strong> WaarpSlf4JLoggerFactory(<strong class="jxr_keyword">null</strong>));
-<a class="jxr_linenumber" name="171" href="#171">171</a> 		<strong class="jxr_keyword">if</strong> (logger == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="172" href="#172">172</a> 			logger = WaarpInternalLoggerFactory.getLogger(ChangeBandwidthLimits.<strong class="jxr_keyword">class</strong>);
-<a class="jxr_linenumber" name="173" href="#173">173</a> 		}
-<a class="jxr_linenumber" name="174" href="#174">174</a> 		<strong class="jxr_keyword">if</strong> (!getParams(args)) {
-<a class="jxr_linenumber" name="175" href="#175">175</a> 			logger.error(<span class="jxr_string">"Wrong initialization"</span>);
-<a class="jxr_linenumber" name="176" href="#176">176</a> 			<strong class="jxr_keyword">if</strong> (DbConstant.admin != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.isConnected) {
-<a class="jxr_linenumber" name="177" href="#177">177</a> 				DbConstant.admin.close();
-<a class="jxr_linenumber" name="178" href="#178">178</a> 			}
-<a class="jxr_linenumber" name="179" href="#179">179</a> 			System.exit(1);
-<a class="jxr_linenumber" name="180" href="#180">180</a> 		}
-<a class="jxr_linenumber" name="181" href="#181">181</a> 		<strong class="jxr_keyword">long</strong> time1 = System.currentTimeMillis();
-<a class="jxr_linenumber" name="182" href="#182">182</a> 		R66Future future = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/utils/R66Future.html">R66Future</a>(<strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="183" href="#183">183</a> 
-<a class="jxr_linenumber" name="184" href="#184">184</a> 		Configuration.configuration.pipelineInit();
-<a class="jxr_linenumber" name="185" href="#185">185</a> 		NetworkTransaction networkTransaction = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/networkhandler/NetworkTransaction.html">NetworkTransaction</a>();
-<a class="jxr_linenumber" name="186" href="#186">186</a> 		<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="187" href="#187">187</a> 			ChangeBandwidthLimits transaction = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/server/ChangeBandwidthLimits.html">ChangeBandwidthLimits</a>(future,
-<a class="jxr_linenumber" name="188" href="#188">188</a> 					swriteGlobalLimit, sreadGlobalLimit, swriteSessionLimit, sreadSessionLimit,
-<a class="jxr_linenumber" name="189" href="#189">189</a> 					networkTransaction);
-<a class="jxr_linenumber" name="190" href="#190">190</a> 			transaction.run();
-<a class="jxr_linenumber" name="191" href="#191">191</a> 			future.awaitUninterruptibly();
-<a class="jxr_linenumber" name="192" href="#192">192</a> 			<strong class="jxr_keyword">long</strong> time2 = System.currentTimeMillis();
-<a class="jxr_linenumber" name="193" href="#193">193</a> 			<strong class="jxr_keyword">long</strong> delay = time2 - time1;
-<a class="jxr_linenumber" name="194" href="#194">194</a> 			R66Result result = future.getResult();
-<a class="jxr_linenumber" name="195" href="#195">195</a> 			<strong class="jxr_keyword">if</strong> (future.isSuccess()) {
-<a class="jxr_linenumber" name="196" href="#196">196</a> 				<strong class="jxr_keyword">if</strong> (result.code == ErrorCode.Warning) {
-<a class="jxr_linenumber" name="197" href="#197">197</a> 					logger.warn(<span class="jxr_string">"WARNED on bandwidth:\n    "</span> +
-<a class="jxr_linenumber" name="198" href="#198">198</a> 							(result.other != <strong class="jxr_keyword">null</strong> ? ((ValidPacket) result.other).getSheader() :
-<a class="jxr_linenumber" name="199" href="#199">199</a> 									<span class="jxr_string">"no file"</span>)
-<a class="jxr_linenumber" name="200" href="#200">200</a> 							+ <span class="jxr_string">"\n    delay: "</span> + delay);
-<a class="jxr_linenumber" name="201" href="#201">201</a> 				} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="202" href="#202">202</a> 					logger.warn(<span class="jxr_string">"SUCCESS on Bandwidth:\n    "</span> +
-<a class="jxr_linenumber" name="203" href="#203">203</a> 							(result.other != <strong class="jxr_keyword">null</strong> ? ((ValidPacket) result.other).getSheader() :
-<a class="jxr_linenumber" name="204" href="#204">204</a> 									<span class="jxr_string">"no file"</span>)
-<a class="jxr_linenumber" name="205" href="#205">205</a> 							+ <span class="jxr_string">"\n    delay: "</span> + delay);
-<a class="jxr_linenumber" name="206" href="#206">206</a> 				}
-<a class="jxr_linenumber" name="207" href="#207">207</a> 			} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="208" href="#208">208</a> 				<strong class="jxr_keyword">if</strong> (result.code == ErrorCode.Warning) {
-<a class="jxr_linenumber" name="209" href="#209">209</a> 					logger.warn(<span class="jxr_string">"Bandwidth is\n    WARNED"</span>, future.getCause());
-<a class="jxr_linenumber" name="210" href="#210">210</a> 					networkTransaction.closeAll();
-<a class="jxr_linenumber" name="211" href="#211">211</a> 					System.exit(result.code.ordinal());
-<a class="jxr_linenumber" name="212" href="#212">212</a> 				} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="213" href="#213">213</a> 					logger.error(<span class="jxr_string">"Bandwidth in\n    FAILURE"</span>, future.getCause());
-<a class="jxr_linenumber" name="214" href="#214">214</a> 					networkTransaction.closeAll();
-<a class="jxr_linenumber" name="215" href="#215">215</a> 					System.exit(result.code.ordinal());
-<a class="jxr_linenumber" name="216" href="#216">216</a> 				}
-<a class="jxr_linenumber" name="217" href="#217">217</a> 			}
-<a class="jxr_linenumber" name="218" href="#218">218</a> 		} <strong class="jxr_keyword">finally</strong> {
-<a class="jxr_linenumber" name="219" href="#219">219</a> 			networkTransaction.closeAll();
-<a class="jxr_linenumber" name="220" href="#220">220</a> 		}
-<a class="jxr_linenumber" name="221" href="#221">221</a> 	}
-<a class="jxr_linenumber" name="222" href="#222">222</a> 
-<a class="jxr_linenumber" name="223" href="#223">223</a> }
+<a class="jxr_linenumber" name="143" href="#143">143</a> 			<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="144" href="#144">144</a> 				<strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-wglob"</span>)) {
+<a class="jxr_linenumber" name="145" href="#145">145</a> 					i++;
+<a class="jxr_linenumber" name="146" href="#146">146</a> 					swriteGlobalLimit = Long.parseLong(args[i]);
+<a class="jxr_linenumber" name="147" href="#147">147</a> 				} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-rglob"</span>)) {
+<a class="jxr_linenumber" name="148" href="#148">148</a> 					i++;
+<a class="jxr_linenumber" name="149" href="#149">149</a> 					sreadGlobalLimit = Long.parseLong(args[i]);
+<a class="jxr_linenumber" name="150" href="#150">150</a> 				} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-wsess"</span>)) {
+<a class="jxr_linenumber" name="151" href="#151">151</a> 					i++;
+<a class="jxr_linenumber" name="152" href="#152">152</a> 					swriteSessionLimit = Long.parseLong(args[i]);
+<a class="jxr_linenumber" name="153" href="#153">153</a> 				} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-rsess"</span>)) {
+<a class="jxr_linenumber" name="154" href="#154">154</a> 					i++;
+<a class="jxr_linenumber" name="155" href="#155">155</a> 					sreadSessionLimit = Long.parseLong(args[i]);
+<a class="jxr_linenumber" name="156" href="#156">156</a> 				}
+<a class="jxr_linenumber" name="157" href="#157">157</a> 			} <strong class="jxr_keyword">catch</strong> (NumberFormatException e) {
+<a class="jxr_linenumber" name="158" href="#158">158</a> 			}
+<a class="jxr_linenumber" name="159" href="#159">159</a> 		}
+<a class="jxr_linenumber" name="160" href="#160">160</a> 		<strong class="jxr_keyword">if</strong> (swriteGlobalLimit == -1 &amp;&amp; sreadGlobalLimit == -1 &amp;&amp;
+<a class="jxr_linenumber" name="161" href="#161">161</a> 				swriteSessionLimit == -1 &amp;&amp; sreadSessionLimit == -1) {
+<a class="jxr_linenumber" name="162" href="#162">162</a> 			logger.error(<span class="jxr_string">"Need the configuration file as first argument then at least one of\n"</span> +
+<a class="jxr_linenumber" name="163" href="#163">163</a> 					<span class="jxr_string">"   -wglob limitGlobalWrite\n"</span> +
+<a class="jxr_linenumber" name="164" href="#164">164</a> 					<span class="jxr_string">"   -rglob limitGlobalRead\n"</span> +
+<a class="jxr_linenumber" name="165" href="#165">165</a> 					<span class="jxr_string">"   -wsess limitSessionWrite\n"</span> +
+<a class="jxr_linenumber" name="166" href="#166">166</a> 					<span class="jxr_string">"   -rsess limitSessionWrite"</span>);
+<a class="jxr_linenumber" name="167" href="#167">167</a> 			<strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="168" href="#168">168</a> 		}
+<a class="jxr_linenumber" name="169" href="#169">169</a> 		<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="170" href="#170">170</a> 	}
+<a class="jxr_linenumber" name="171" href="#171">171</a> 
+<a class="jxr_linenumber" name="172" href="#172">172</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> main(String[] args) {
+<a class="jxr_linenumber" name="173" href="#173">173</a> 		InternalLoggerFactory.setDefaultFactory(<strong class="jxr_keyword">new</strong> WaarpSlf4JLoggerFactory(<strong class="jxr_keyword">null</strong>));
+<a class="jxr_linenumber" name="174" href="#174">174</a> 		<strong class="jxr_keyword">if</strong> (logger == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="175" href="#175">175</a> 			logger = WaarpInternalLoggerFactory.getLogger(ChangeBandwidthLimits.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="176" href="#176">176</a> 		}
+<a class="jxr_linenumber" name="177" href="#177">177</a> 		<strong class="jxr_keyword">if</strong> (!getParams(args)) {
+<a class="jxr_linenumber" name="178" href="#178">178</a> 			logger.error(<span class="jxr_string">"Wrong initialization"</span>);
+<a class="jxr_linenumber" name="179" href="#179">179</a> 			<strong class="jxr_keyword">if</strong> (DbConstant.admin != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.isConnected) {
+<a class="jxr_linenumber" name="180" href="#180">180</a> 				DbConstant.admin.close();
+<a class="jxr_linenumber" name="181" href="#181">181</a> 			}
+<a class="jxr_linenumber" name="182" href="#182">182</a> 			System.exit(1);
+<a class="jxr_linenumber" name="183" href="#183">183</a> 		}
+<a class="jxr_linenumber" name="184" href="#184">184</a> 		<strong class="jxr_keyword">long</strong> time1 = System.currentTimeMillis();
+<a class="jxr_linenumber" name="185" href="#185">185</a> 		R66Future future = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/utils/R66Future.html">R66Future</a>(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="186" href="#186">186</a> 
+<a class="jxr_linenumber" name="187" href="#187">187</a> 		Configuration.configuration.pipelineInit();
+<a class="jxr_linenumber" name="188" href="#188">188</a> 		NetworkTransaction networkTransaction = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/networkhandler/NetworkTransaction.html">NetworkTransaction</a>();
+<a class="jxr_linenumber" name="189" href="#189">189</a> 		<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="190" href="#190">190</a> 			ChangeBandwidthLimits transaction = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/server/ChangeBandwidthLimits.html">ChangeBandwidthLimits</a>(future,
+<a class="jxr_linenumber" name="191" href="#191">191</a> 					swriteGlobalLimit, sreadGlobalLimit, swriteSessionLimit, sreadSessionLimit,
+<a class="jxr_linenumber" name="192" href="#192">192</a> 					networkTransaction);
+<a class="jxr_linenumber" name="193" href="#193">193</a> 			transaction.run();
+<a class="jxr_linenumber" name="194" href="#194">194</a> 			future.awaitUninterruptibly();
+<a class="jxr_linenumber" name="195" href="#195">195</a> 			<strong class="jxr_keyword">long</strong> time2 = System.currentTimeMillis();
+<a class="jxr_linenumber" name="196" href="#196">196</a> 			<strong class="jxr_keyword">long</strong> delay = time2 - time1;
+<a class="jxr_linenumber" name="197" href="#197">197</a> 			R66Result result = future.getResult();
+<a class="jxr_linenumber" name="198" href="#198">198</a> 			<strong class="jxr_keyword">if</strong> (future.isSuccess()) {
+<a class="jxr_linenumber" name="199" href="#199">199</a> 				<strong class="jxr_keyword">if</strong> (result.code == ErrorCode.Warning) {
+<a class="jxr_linenumber" name="200" href="#200">200</a> 					logger.warn(<span class="jxr_string">"WARNED on bandwidth:\n    "</span> +
+<a class="jxr_linenumber" name="201" href="#201">201</a> 							(result.other != <strong class="jxr_keyword">null</strong> ? ((ValidPacket) result.other).getSheader() :
+<a class="jxr_linenumber" name="202" href="#202">202</a> 									<span class="jxr_string">"no file"</span>)
+<a class="jxr_linenumber" name="203" href="#203">203</a> 							+ <span class="jxr_string">"\n    delay: "</span> + delay);
+<a class="jxr_linenumber" name="204" href="#204">204</a> 				} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="205" href="#205">205</a> 					logger.warn(<span class="jxr_string">"SUCCESS on Bandwidth:\n    "</span> +
+<a class="jxr_linenumber" name="206" href="#206">206</a> 							(result.other != <strong class="jxr_keyword">null</strong> ? ((ValidPacket) result.other).getSheader() :
+<a class="jxr_linenumber" name="207" href="#207">207</a> 									<span class="jxr_string">"no file"</span>)
+<a class="jxr_linenumber" name="208" href="#208">208</a> 							+ <span class="jxr_string">"\n    delay: "</span> + delay);
+<a class="jxr_linenumber" name="209" href="#209">209</a> 				}
+<a class="jxr_linenumber" name="210" href="#210">210</a> 			} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="211" href="#211">211</a> 				<strong class="jxr_keyword">if</strong> (result.code == ErrorCode.Warning) {
+<a class="jxr_linenumber" name="212" href="#212">212</a> 					logger.warn(<span class="jxr_string">"Bandwidth is\n    WARNED"</span>, future.getCause());
+<a class="jxr_linenumber" name="213" href="#213">213</a> 					networkTransaction.closeAll();
+<a class="jxr_linenumber" name="214" href="#214">214</a> 					System.exit(result.code.ordinal());
+<a class="jxr_linenumber" name="215" href="#215">215</a> 				} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="216" href="#216">216</a> 					logger.error(<span class="jxr_string">"Bandwidth in\n    FAILURE"</span>, future.getCause());
+<a class="jxr_linenumber" name="217" href="#217">217</a> 					networkTransaction.closeAll();
+<a class="jxr_linenumber" name="218" href="#218">218</a> 					System.exit(result.code.ordinal());
+<a class="jxr_linenumber" name="219" href="#219">219</a> 				}
+<a class="jxr_linenumber" name="220" href="#220">220</a> 			}
+<a class="jxr_linenumber" name="221" href="#221">221</a> 		} <strong class="jxr_keyword">finally</strong> {
+<a class="jxr_linenumber" name="222" href="#222">222</a> 			networkTransaction.closeAll();
+<a class="jxr_linenumber" name="223" href="#223">223</a> 		}
+<a class="jxr_linenumber" name="224" href="#224">224</a> 	}
+<a class="jxr_linenumber" name="225" href="#225">225</a> 
+<a class="jxr_linenumber" name="226" href="#226">226</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>
