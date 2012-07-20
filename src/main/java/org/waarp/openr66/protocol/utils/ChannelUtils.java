@@ -200,7 +200,7 @@ public class ChannelUtils extends Thread {
 	}
 
 	/**
-	 * 
+	 * To be used only with LocalChannel (NetworkChannel could be using SSL)
 	 * @param channel
 	 */
 	public static void close(Channel channel) {
