@@ -17,20 +17,19 @@
  */
 package org.waarp.openr66.protocol.networkhandler.ssl;
 
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelFutureListener;
+import org.jboss.netty.channel.ChannelHandler;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.handler.ssl.SslHandler;
+import org.waarp.common.crypto.ssl.WaarpSslUtility;
+import org.waarp.common.future.WaarpFuture;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import org.waarp.openr66.protocol.networkhandler.NetworkServerHandler;
-import org.waarp.openr66.protocol.utils.R66Future;
 
 /**
  * @author Frederic Bregier
@@ -49,51 +48,6 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
 	 */
 	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
 			.getLogger(NetworkSslServerHandler.class);
-	/**
-	 * Waiter for SSL handshake is finished
-	 */
-	private static final ConcurrentHashMap<Integer, R66Future> waitForSsl = new ConcurrentHashMap<Integer, R66Future>();
-	/**
-	 * Remover from SSL HashMap
-	 */
-	private static final ChannelFutureListener remover = new ChannelFutureListener() {
-		public void operationComplete(
-				ChannelFuture future) {
-			logger.debug("SSL remover");
-			waitForSsl
-					.remove(future
-							.getChannel()
-							.getId());
-		}
-	};
-
-	/**
-	 * Add the Channel as SSL handshake is over
-	 * 
-	 * @param channel
-	 */
-	private static void addSslConnectedChannel(Channel channel) {
-		R66Future futureSSL = new R66Future(true);
-		waitForSsl.put(channel.getId(), futureSSL);
-		channel.getCloseFuture().addListener(remover);
-	}
-
-	/**
-	 * Set the future of SSL handshake to status
-	 * 
-	 * @param channel
-	 * @param status
-	 */
-	private static void setStatusSslConnectedChannel(Channel channel, boolean status) {
-		R66Future futureSSL = waitForSsl.get(channel.getId());
-		if (futureSSL != null) {
-			if (status) {
-				futureSSL.setSuccess();
-			} else {
-				futureSSL.cancel();
-			}
-		}
-	}
 
 	/**
 	 * 
@@ -101,10 +55,11 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
 	 * @return True if the SSL handshake is over and OK, else False
 	 */
 	public static boolean isSslConnectedChannel(Channel channel) {
-		R66Future futureSSL = waitForSsl.get(channel.getId());
+		
+		WaarpFuture futureSSL = WaarpSslUtility.getFutureSslHandshake(channel);
 		if (futureSSL == null) {
 			for (int i = 0; i < Configuration.RETRYNB; i++) {
-				futureSSL = waitForSsl.get(channel.getId());
+				futureSSL = WaarpSslUtility.getFutureSslHandshake(channel);
 				if (futureSSL != null)
 					break;
 				try {
@@ -140,7 +95,7 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
 			throws Exception {
 		Channel channel = e.getChannel();
 		logger.debug("Add channel to ssl");
-		addSslConnectedChannel(channel);
+		WaarpSslUtility.addSslOpenedChannel(channel);
 		isSSL = true;
 		super.channelOpen(ctx, e);
 	}
@@ -155,30 +110,21 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
 			throws OpenR66ProtocolNetworkException {
 		// Get the SslHandler in the current pipeline.
 		// We added it in NetworkSslServerPipelineFactory.
-		final SslHandler sslHandler = ctx.getPipeline().get(SslHandler.class);
-		if (sslHandler != null) {
-			// Get the SslHandler and begin handshake ASAP.
-			// Get notified when SSL handshake is done.
-			ChannelFuture handshakeFuture;
-			handshakeFuture = sslHandler.handshake();
-			handshakeFuture.addListener(new ChannelFutureListener() {
-				public void operationComplete(ChannelFuture future)
-						throws Exception {
-					logger.debug("Handshake: " + future.isSuccess(), future.getCause());
-					if (future.isSuccess()) {
-						setStatusSslConnectedChannel(future.getChannel(), true);
-					} else {
-						if (Configuration.configuration.r66Mib != null) {
-							String error2 = future.getCause() != null ?
-									future.getCause().getMessage() : "During Handshake";
-							Configuration.configuration.r66Mib.notifyError(
-									"SSL Connection Error", error2);
-						}
-						setStatusSslConnectedChannel(future.getChannel(), false);
-						future.getChannel().close();
-					}
+		final ChannelHandler handler = ctx.getPipeline().getFirst();
+		if (handler instanceof SslHandler) {
+			final SslHandler sslHandler = (SslHandler) handler;
+			if (sslHandler.isIssueHandshake()) {
+				// client side
+				WaarpSslUtility.setStatusSslConnectedChannel(ctx.getChannel(), true);
+			} else {
+				// server side
+				// Get the SslHandler and begin handshake ASAP.
+				// Get notified when SSL handshake is done.
+				if (! WaarpSslUtility.runHandshake(ctx.getChannel())) {
+					Configuration.configuration.r66Mib.notifyError(
+							"SSL Connection Error", "During Handshake");
 				}
-			});
+			}				
 		} else {
 			logger.error("SSL Not found");
 		}

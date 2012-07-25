@@ -41,6 +41,7 @@ import org.jboss.netty.util.internal.ExecutorUtil;
 import org.waarp.common.crypto.Des;
 import org.waarp.common.crypto.ssl.WaarpSecureKeyStore;
 import org.waarp.common.crypto.ssl.WaarpSslContextFactory;
+import org.waarp.common.crypto.ssl.WaarpSslUtility;
 import org.waarp.common.database.DbSession;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
@@ -743,6 +744,7 @@ public class Configuration {
 	 * To be called after all other stuff are closed (channels, connections)
 	 */
 	public void serverStop() {
+		WaarpSslUtility.forceCloseAllSslChannels();
 		if (internalRunner != null) {
 			internalRunner.stopInternalRunner();
 		}
@@ -776,6 +778,7 @@ public class Configuration {
 	 * To be called after all other stuff are closed for Client
 	 */
 	public void clientStop() {
+		WaarpSslUtility.forceCloseAllSslChannels();
 		if (localTransaction != null) {
 			localTransaction.closeAll();
 			localTransaction = null;
