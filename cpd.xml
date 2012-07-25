@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <pmd-cpd>
 <duplication lines="162" tokens="963">
-<file line="64" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
-<file line="57" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<file line="64" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="57" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
 <codefragment>
 <![CDATA[
 		String primaryKey = " PRIMARY KEY ";
@@ -171,8 +171,8 @@
 </codefragment>
 </duplication>
 <duplication lines="140" tokens="868">
-<file line="57" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
-<file line="60" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="57" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="60" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
 <codefragment>
 <![CDATA[
 	@Override
@@ -319,8 +319,8 @@
 </codefragment>
 </duplication>
 <duplication lines="136" tokens="852">
-<file line="61" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
-<file line="57" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<file line="61" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="57" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
 <codefragment>
 <![CDATA[
 		String primaryKey = " PRIMARY KEY ";
@@ -463,8 +463,8 @@
 </codefragment>
 </duplication>
 <duplication lines="49" tokens="349">
-<file line="400" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<file line="515" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="336" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="451" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
 <codefragment>
 <![CDATA[
 			body0 = REQUEST.Listing.readBodyHeader();
@@ -520,8 +520,8 @@
 </codefragment>
 </duplication>
 <duplication lines="48" tokens="274">
-<file line="96" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecMoveTask.java"/>
-<file line="100" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecOutputTask.java"/>
+<file line="96" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecMoveTask.java"/>
+<file line="100" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecOutputTask.java"/>
 <codefragment>
 <![CDATA[
 				move(result.status, result.result, finalname);
@@ -576,8 +576,8 @@
 </codefragment>
 </duplication>
 <duplication lines="19" tokens="270">
-<file line="461" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbRule.java"/>
-<file line="489" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbRule.java"/>
+<file line="461" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbRule.java"/>
+<file line="489" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbRule.java"/>
 <codefragment>
 <![CDATA[
 	protected void setFromArray() throws WaarpDatabaseSqlException {
@@ -603,8 +603,8 @@
 </codefragment>
 </duplication>
 <duplication lines="71" tokens="260">
-<file line="216" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
-<file line="212" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<file line="216" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="212" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
 <codefragment>
 <![CDATA[
 				" START WITH " + (DbConstant.ILLEGALVALUE + 1);
@@ -682,8 +682,8 @@
 </codefragment>
 </duplication>
 <duplication lines="48" tokens="219">
-<file line="1569" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1652" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1569" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1652" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 	public static boolean setConfigurationServerShutdownFromXml(Configuration config,
@@ -738,8 +738,8 @@
 </codefragment>
 </duplication>
 <duplication lines="38" tokens="219">
-<file line="82" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\server\ChangeBandwidthLimits.java"/>
-<file line="77" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigExport.java"/>
+<file line="82" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ChangeBandwidthLimits.java"/>
+<file line="77" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigExport.java"/>
 <codefragment>
 <![CDATA[
 				writeSessionLimit + " " + readSessionLimit, LocalPacketFactory.BANDWIDTHPACKET);
@@ -784,8 +784,8 @@
 </codefragment>
 </duplication>
 <duplication lines="40" tokens="207">
-<file line="3357" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
-<file line="3468" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="3357" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="3468" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
 <codefragment>
 <![CDATA[
 		} catch (FileNotFoundException e) {
@@ -832,10 +832,10 @@
 </codefragment>
 </duplication>
 <duplication lines="33" tokens="206">
-<file line="76" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
-<file line="79" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
-<file line="79" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
-<file line="72" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<file line="76" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="79" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="79" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="72" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
 <codefragment>
 <![CDATA[
 		System.out.println(action);
@@ -875,8 +875,8 @@
 </codefragment>
 </duplication>
 <duplication lines="49" tokens="205">
-<file line="205" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecMoveTask.java"/>
-<file line="199" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecOutputTask.java"/>
+<file line="205" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecMoveTask.java"/>
+<file line="199" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecOutputTask.java"/>
 <codefragment>
 <![CDATA[
 				futureCompletion.setFailure(e);
@@ -932,8 +932,8 @@
 </codefragment>
 </duplication>
 <duplication lines="38" tokens="198">
-<file line="448" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<file line="563" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="384" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="499" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
 <codefragment>
 <![CDATA[
 				body = REQUEST.Listing.readBody();
@@ -978,8 +978,8 @@
 </codefragment>
 </duplication>
 <duplication lines="34" tokens="195">
-<file line="82" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigExport.java"/>
-<file line="106" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\server\LogExport.java"/>
+<file line="82" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigExport.java"/>
+<file line="106" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExport.java"/>
 <codefragment>
 <![CDATA[
 		LocalChannelReference localChannelReference = networkTransaction
@@ -1020,8 +1020,8 @@
 </codefragment>
 </duplication>
 <duplication lines="34" tokens="194">
-<file line="86" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\server\ChangeBandwidthLimits.java"/>
-<file line="106" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\server\LogExport.java"/>
+<file line="86" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ChangeBandwidthLimits.java"/>
+<file line="106" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExport.java"/>
 <codefragment>
 <![CDATA[
 		LocalChannelReference localChannelReference = networkTransaction
@@ -1062,9 +1062,9 @@
 </codefragment>
 </duplication>
 <duplication lines="33" tokens="187">
-<file line="82" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\server\ChangeBandwidthLimits.java"/>
-<file line="77" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigExport.java"/>
-<file line="83" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigImport.java"/>
+<file line="82" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ChangeBandwidthLimits.java"/>
+<file line="77" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigExport.java"/>
+<file line="83" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigImport.java"/>
 <codefragment>
 <![CDATA[
 				writeSessionLimit + " " + readSessionLimit, LocalPacketFactory.BANDWIDTHPACKET);
@@ -1104,8 +1104,8 @@
 </codefragment>
 </duplication>
 <duplication lines="38" tokens="183">
-<file line="1452" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1502" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1452" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1502" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 	public static boolean setConfigurationInitDatabase(Configuration config, String filename) {
@@ -1150,8 +1150,8 @@
 </codefragment>
 </duplication>
 <duplication lines="14" tokens="169">
-<file line="1504" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<file line="1610" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="1440" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="1546" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
 <codefragment>
 <![CDATA[
 			String system = REQUEST.System.readFileUnique(this);
@@ -1172,8 +1172,8 @@
 </codefragment>
 </duplication>
 <duplication lines="21" tokens="163">
-<file line="1062" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<file line="1114" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="998" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="1050" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
 <codefragment>
 <![CDATA[
 			} else if ("TestConn".equalsIgnoreCase(parm)) {
@@ -1201,8 +1201,8 @@
 </codefragment>
 </duplication>
 <duplication lines="29" tokens="162">
-<file line="88" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigImport.java"/>
-<file line="106" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\server\LogExport.java"/>
+<file line="88" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigImport.java"/>
+<file line="106" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExport.java"/>
 <codefragment>
 <![CDATA[
 		LocalChannelReference localChannelReference = networkTransaction
@@ -1238,8 +1238,8 @@
 </codefragment>
 </duplication>
 <duplication lines="21" tokens="154">
-<file line="1532" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
-<file line="1572" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="1532" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="1572" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
 <codefragment>
 <![CDATA[
 			DbSession session, boolean in)
@@ -1267,8 +1267,8 @@
 </codefragment>
 </duplication>
 <duplication lines="40" tokens="140">
-<file line="1530" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1613" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1530" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1613" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 			logger.error("Cannot load Limit configuration");
@@ -1315,8 +1315,8 @@
 </codefragment>
 </duplication>
 <duplication lines="26" tokens="138">
-<file line="196" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
-<file line="187" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<file line="196" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="187" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
 <codefragment>
 <![CDATA[
 			return;
@@ -1349,8 +1349,8 @@
 </codefragment>
 </duplication>
 <duplication lines="12" tokens="136">
-<file line="753" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<file line="794" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="689" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="730" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
 <codefragment>
 <![CDATA[
 					body = REQUEST.CancelRestart.readBody();
@@ -1369,9 +1369,9 @@
 </codefragment>
 </duplication>
 <duplication lines="22" tokens="135">
-<file line="96" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecMoveTask.java"/>
-<file line="100" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecOutputTask.java"/>
-<file line="83" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecTask.java"/>
+<file line="96" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecMoveTask.java"/>
+<file line="100" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecOutputTask.java"/>
+<file line="83" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecTask.java"/>
 <codefragment>
 <![CDATA[
 				move(result.status, result.result, finalname);
@@ -1400,9 +1400,9 @@
 </codefragment>
 </duplication>
 <duplication lines="27" tokens="123">
-<file line="1530" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1613" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1699" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1530" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1613" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1699" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 			logger.error("Cannot load Limit configuration");
@@ -1436,8 +1436,8 @@
 </codefragment>
 </duplication>
 <duplication lines="32" tokens="123">
-<file line="194" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
-<file line="196" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="194" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="196" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
 <codefragment>
 <![CDATA[
 			return;
@@ -1476,8 +1476,8 @@
 </codefragment>
 </duplication>
 <duplication lines="24" tokens="120">
-<file line="303" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\commander\Commander.java"/>
-<file line="421" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\commander\Commander.java"/>
+<file line="303" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\commander\Commander.java"/>
+<file line="421" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\commander\Commander.java"/>
 <codefragment>
 <![CDATA[
 					hostAuth = null;
@@ -1508,10 +1508,10 @@
 </codefragment>
 </duplication>
 <duplication lines="24" tokens="119">
-<file line="1452" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1502" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1569" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1652" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1452" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1502" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1569" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1652" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 	public static boolean setConfigurationInitDatabase(Configuration config, String filename) {
@@ -1542,9 +1542,9 @@
 </codefragment>
 </duplication>
 <duplication lines="22" tokens="117">
-<file line="249" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\commander\Commander.java"/>
-<file line="305" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\commander\Commander.java"/>
-<file line="423" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\commander\Commander.java"/>
+<file line="249" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\commander\Commander.java"/>
+<file line="305" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\commander\Commander.java"/>
+<file line="423" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\commander\Commander.java"/>
 <codefragment>
 <![CDATA[
 			} catch (WaarpDatabaseNoConnectionException e) {
@@ -1573,8 +1573,8 @@
 </codefragment>
 </duplication>
 <duplication lines="22" tokens="117">
-<file line="181" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigExport.java"/>
-<file line="293" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\server\LogExport.java"/>
+<file line="181" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigExport.java"/>
+<file line="293" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExport.java"/>
 <codefragment>
 <![CDATA[
 					logger.warn("SUCCESS on Final files:\n    " +
@@ -1603,8 +1603,8 @@
 </codefragment>
 </duplication>
 <duplication lines="15" tokens="114">
-<file line="549" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<file line="623" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="485" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="559" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
 <codefragment>
 <![CDATA[
 					all = true;
@@ -1626,8 +1626,8 @@
 </codefragment>
 </duplication>
 <duplication lines="25" tokens="113">
-<file line="456" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\context\filesystem\R66File.java"/>
-<file line="510" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\context\filesystem\R66File.java"/>
+<file line="456" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\filesystem\R66File.java"/>
+<file line="510" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\filesystem\R66File.java"/>
 <codefragment>
 <![CDATA[
 			File newFile = getFileFromPath(path);
@@ -1659,11 +1659,11 @@
 </codefragment>
 </duplication>
 <duplication lines="12" tokens="111">
-<file line="503" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
-<file line="517" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
-<file line="531" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
-<file line="545" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
-<file line="559" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="503" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="517" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="531" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="545" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="559" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 		if (array != null) {
@@ -1682,10 +1682,10 @@
 </codefragment>
 </duplication>
 <duplication lines="20" tokens="110">
-<file line="196" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
-<file line="199" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
-<file line="201" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
-<file line="192" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<file line="196" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="199" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="201" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="192" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
 <codefragment>
 <![CDATA[
 		action = "CREATE INDEX IF NOT EXISTS IDX_RUNNER ON " + DbTaskRunner.table + "(";
@@ -1712,8 +1712,8 @@
 </codefragment>
 </duplication>
 <duplication lines="15" tokens="109">
-<file line="434" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<file line="623" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="370" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="559" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
 <codefragment>
 <![CDATA[
 					all = true;
@@ -1735,10 +1735,10 @@
 </codefragment>
 </duplication>
 <duplication lines="14" tokens="108">
-<file line="119" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
-<file line="122" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
-<file line="123" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
-<file line="115" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<file line="119" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="122" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="123" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="115" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
 <codefragment>
 <![CDATA[
 			return;
@@ -1759,8 +1759,8 @@
 </codefragment>
 </duplication>
 <duplication lines="21" tokens="108">
-<file line="1929" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="2041" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="1929" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="2041" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
 <codefragment>
 <![CDATA[
 					}
@@ -1788,8 +1788,8 @@
 </codefragment>
 </duplication>
 <duplication lines="16" tokens="107">
-<file line="143" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\client\Message.java"/>
-<file line="151" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\client\RequestInformation.java"/>
+<file line="143" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\Message.java"/>
+<file line="151" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\RequestInformation.java"/>
 <codefragment>
 <![CDATA[
 			logger.debug("Requested host cannot be found: " + requested);
@@ -1812,8 +1812,8 @@
 </codefragment>
 </duplication>
 <duplication lines="18" tokens="107">
-<file line="217" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\context\task\RescheduleTransferTask.java"/>
-<file line="264" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\context\task\RescheduleTransferTask.java"/>
+<file line="217" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\RescheduleTransferTask.java"/>
+<file line="264" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\RescheduleTransferTask.java"/>
 <codefragment>
 <![CDATA[
 				String[] elmts = args[i].split(";");
@@ -1838,10 +1838,10 @@
 </codefragment>
 </duplication>
 <duplication lines="14" tokens="107">
-<file line="61" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
-<file line="64" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
-<file line="62" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
-<file line="57" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<file line="61" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="64" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="62" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="57" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
 <codefragment>
 <![CDATA[
 		String primaryKey = " PRIMARY KEY ";
@@ -1862,12 +1862,12 @@
 </codefragment>
 </duplication>
 <duplication lines="11" tokens="106">
-<file line="503" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
-<file line="517" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
-<file line="531" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
-<file line="545" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
-<file line="559" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
-<file line="573" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="503" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="517" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="531" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="545" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="559" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="573" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 		if (array != null) {
@@ -1885,10 +1885,10 @@
 </codefragment>
 </duplication>
 <duplication lines="14" tokens="106">
-<file line="142" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
-<file line="145" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
-<file line="147" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
-<file line="138" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<file line="142" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="145" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="147" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="138" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
 <codefragment>
 <![CDATA[
 			return;
@@ -1909,8 +1909,8 @@
 </codefragment>
 </duplication>
 <duplication lines="27" tokens="105">
-<file line="755" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
-<file line="793" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="755" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="793" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
 <codefragment>
 <![CDATA[
 	public void insert() throws WaarpDatabaseException {
@@ -1944,8 +1944,8 @@
 </codefragment>
 </duplication>
 <duplication lines="13" tokens="102">
-<file line="575" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="590" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="575" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="590" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 					configNetworkServerDecls, false),
@@ -1965,8 +1965,8 @@
 </codefragment>
 </duplication>
 <duplication lines="17" tokens="100">
-<file line="145" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecMoveTask.java"/>
-<file line="148" path="J:\Git\fredericBregier\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecOutputTask.java"/>
+<file line="145" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecMoveTask.java"/>
+<file line="148" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecOutputTask.java"/>
 <codefragment>
 <![CDATA[
 		Thread thread = new Thread(lastLineReader, "ExecRename"
