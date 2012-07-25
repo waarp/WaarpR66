@@ -24,6 +24,7 @@ import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.handler.execution.ExecutionHandler;
+import org.jboss.netty.handler.ssl.SslHandler;
 import org.jboss.netty.handler.timeout.IdleStateHandler;
 import org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler;
 import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
@@ -65,18 +66,21 @@ public class NetworkSslServerPipelineFactory implements ChannelPipelineFactory {
 	public ChannelPipeline getPipeline() {
 		final ChannelPipeline pipeline = Channels.pipeline();
 		// Add SSL handler first to encrypt and decrypt everything.
+		SslHandler sslHandler = null;
 		if (isClient) {
 			// Not server: no clientAuthent, no renegotiation
-			pipeline.addLast("ssl",
+			sslHandler = 
 					waarpSslContextFactory.initPipelineFactory(false,
-							false, false, executorService));
+							false, false, executorService);
+			sslHandler.setIssueHandshake(true);
 		} else {
 			// Server: no renegotiation still, but possible clientAuthent
-			pipeline.addLast("ssl",
+			sslHandler = 
 					waarpSslContextFactory.initPipelineFactory(true,
 							waarpSslContextFactory.needClientAuthentication(),
-							true, executorService));
+							true, executorService);
 		}
+		pipeline.addLast("ssl", sslHandler);
 
 		pipeline.addLast("codec", new NetworkPacketCodec());
 		GlobalTrafficShapingHandler handler = Configuration.configuration
