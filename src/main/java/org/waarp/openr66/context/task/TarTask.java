@@ -63,8 +63,14 @@ public class TarTask extends AbstractTask {
 		String finalname = argRule;
 		finalname = getReplacedValue(finalname, argTransfer.split(" "));
 		boolean tar = false;
-		if ((delay > 2)) {
-			if (delay > 3) {
+		switch (delay) {
+			case 2: {
+				// directory: tar finalname where finalname="target directory"
+				String[] args = finalname.split(" ");
+				tar = TarUtility.createTarFromDirectory(args[1], args[0], false);
+				break;
+			}
+			case 3: {
 				// list of files: tar finalname where finalname="target file1 file2..."
 				String[] args = finalname.split(" ");
 				List<File> files = new ArrayList<File>(args.length - 1);
@@ -72,23 +78,21 @@ public class TarTask extends AbstractTask {
 					files.add(new File(args[i]));
 				}
 				tar = TarUtility.createTarFromFiles(files, args[0]);
-			} else {
-				// directory: tar finalname where finalname="target directory"
+				break;
+			}
+			default:
+				// untar
+				// directory: untar finalname where finalname="source directory"
 				String[] args = finalname.split(" ");
-				tar = TarUtility.createTarFromDirectory(args[1], args[0], false);
-			}
-		} else {
-			// untar
-			// directory: untar finalname where finalname="source directory"
-			String[] args = finalname.split(" ");
-			File tarFile = new File(args[0]);
-			File directory = new File(args[1]);
-			try {
-				TarUtility.unTar(tarFile, directory);
-			} catch (IOException e) {
-				logger.warn("Error while untar", e);
-				tar = false;
-			}
+				File tarFile = new File(args[0]);
+				File directory = new File(args[1]);
+				try {
+					TarUtility.unTar(tarFile, directory);
+				} catch (IOException e) {
+					logger.warn("Error while untar", e);
+					tar = false;
+				}
+				break;
 		}
 		if (!tar) {
 			logger.error("Tar error with " + argRule + ":" + argTransfer + ":" + delay + " and " +
