@@ -63,8 +63,14 @@ public class ZipTask extends AbstractTask {
 		String finalname = argRule;
 		finalname = getReplacedValue(finalname, argTransfer.split(" "));
 		boolean zip = false;
-		if ((delay > 2)) {
-			if (delay > 3) {
+		switch (delay) {
+			case 2: {
+				// directory: zip finalname where finalname="target directory"
+				String[] args = finalname.split(" ");
+				zip = ZipUtility.createZipFromDirectory(args[1], args[0], false);
+				break;
+			}
+			case 3: {
 				// list of files: zip finalname where finalname="target file1 file2..."
 				String[] args = finalname.split(" ");
 				List<File> files = new ArrayList<File>(args.length - 1);
@@ -72,22 +78,21 @@ public class ZipTask extends AbstractTask {
 					files.add(new File(args[i]));
 				}
 				zip = ZipUtility.createZipFromFiles(files, args[0]);
-			} else {
-				// directory: zip finalname where finalname="target directory"
-				String[] args = finalname.split(" ");
-				zip = ZipUtility.createZipFromDirectory(args[1], args[0], false);
+				break;
 			}
-		} else {
-			// unzip
-			// directory: unzip finalname where finalname="source directory"
-			String[] args = finalname.split(" ");
-			File zipFile = new File(args[0]);
-			File directory = new File(args[1]);
-			try {
-				ZipUtility.unZip(zipFile, directory);
-			} catch (IOException e) {
-				logger.warn("Error while unzip", e);
-				zip = false;
+			default: {
+				// unzip
+				// directory: unzip finalname where finalname="source directory"
+				String[] args = finalname.split(" ");
+				File zipFile = new File(args[0]);
+				File directory = new File(args[1]);
+				try {
+					ZipUtility.unZip(zipFile, directory);
+				} catch (IOException e) {
+					logger.warn("Error while unzip", e);
+					zip = false;
+				}
+				break;
 			}
 		}
 		if (!zip) {
