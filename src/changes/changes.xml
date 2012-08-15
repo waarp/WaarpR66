@@ -8,6 +8,7 @@
 		<release version="2.4.5" date="2012-08-25" description="Fix release">
 			<action dev="Frederic Bregier" type="fix">Tar and Zip tasks fix</action>
 			<action dev="Frederic Bregier" type="fix">Http get simple file fix</action>
+			<action dev="Frederic Bregier" type="fix">URL acceptance for filename argument</action>
 		</release>
    		<release version="2.4.4" date="2012-07-25" description="Fix release">
 			<action dev="Frederic Bregier" type="fix">Ssl Fix</action>
