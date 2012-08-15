@@ -26,6 +26,7 @@ import org.jboss.netty.handler.codec.http.HttpContentCompressor;
 import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
 import org.jboss.netty.handler.execution.ExecutionHandler;
+import org.jboss.netty.handler.stream.ChunkedWriteHandler;
 import org.waarp.openr66.protocol.configuration.Configuration;
 
 /**
@@ -50,6 +51,7 @@ public class HttpPipelineFactory implements ChannelPipelineFactory {
 		pipeline.addLast("encoder", new HttpResponseEncoder());
 		pipeline.addLast("pipelineExecutor", new ExecutionHandler(
 				Configuration.configuration.getHttpPipelineExecutor()));
+		pipeline.addLast("streamer", new ChunkedWriteHandler());
 		if (useHttpCompression) {
 			pipeline.addLast("deflater", new HttpContentCompressor());
 		}
