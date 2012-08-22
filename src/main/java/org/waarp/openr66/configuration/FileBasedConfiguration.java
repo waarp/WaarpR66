@@ -1420,6 +1420,7 @@ public class FileBasedConfiguration {
 	 */
 	public static boolean setConfigurationLoadLimitFromXml(Configuration config, String filename) {
 		Document document = null;
+		alreadySetLimit = false;
 		// Open config file
 		try {
 			document = new SAXReader().read(filename);

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:fg="http://www.FGolubov.com/XMLEditor" elementFormDefault="qualified">
-	<xsd:notation name="version" value="2.4.0">
+	<xsd:notation name="version" system="2.4.0" public="2.4.0"/>
   <xsd:simpleType name="booleanType">
 		<xsd:annotation>
 			<xsd:appinfo>
