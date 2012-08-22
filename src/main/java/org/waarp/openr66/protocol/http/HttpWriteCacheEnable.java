@@ -18,14 +18,10 @@
 package org.waarp.openr66.protocol.http;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Set;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.handler.codec.http.Cookie;
 import org.jboss.netty.handler.codec.http.CookieDecoder;
@@ -36,6 +32,7 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.HttpVersion;
+import org.jboss.netty.handler.stream.ChunkedNioFile;
 
 /**
  * 
@@ -57,57 +54,47 @@ public class HttpWriteCacheEnable {
 	public static void writeFile(HttpRequest request, Channel channel, String filename,
 			String cookieNameToRemove) {
 		// Convert the response content to a ChannelBuffer.
-		HttpResponse response;
-		if (request.containsHeader(HttpHeaders.Names.IF_MODIFIED_SINCE)) {
-			response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
-					HttpResponseStatus.NOT_MODIFIED);
-			handleCookies(request, response, cookieNameToRemove);
-			channel.write(response);
-			return;
-		}
-		File file = new File(filename);
-		byte[] bytes = new byte[(int) file.length()];
-		FileInputStream fileInputStream;
+        HttpResponse response;
+        if (request.containsHeader(HttpHeaders.Names.IF_MODIFIED_SINCE)) {
+            response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
+                    HttpResponseStatus.NOT_MODIFIED);
+            handleCookies(request, response, cookieNameToRemove);
+            channel.write(response);
+            return;
+        }
+        File file = new File(filename);
+        if (!file.isFile() || !file.canRead()) {
+            response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
+                    HttpResponseStatus.NOT_FOUND);
+            handleCookies(request, response, cookieNameToRemove);
+            channel.write(response);
+            return;
+        }
+        long size = file.length();
+        ChunkedNioFile nioFile;
 		try {
-			fileInputStream = new FileInputStream(file);
-		} catch (FileNotFoundException e) {
-			response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
-					HttpResponseStatus.NOT_FOUND);
-			handleCookies(request, response, cookieNameToRemove);
-			channel.write(response);
-			return;
-		}
-		try {
-			fileInputStream.read(bytes);
+			nioFile = new ChunkedNioFile(file);
 		} catch (IOException e) {
-			try {
-				fileInputStream.close();
-			} catch (IOException e1) {
-			}
-			response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
-					HttpResponseStatus.NOT_FOUND);
-			handleCookies(request, response, cookieNameToRemove);
-			channel.write(response);
-			return;
+            response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
+                    HttpResponseStatus.NOT_FOUND);
+            handleCookies(request, response, cookieNameToRemove);
+            channel.write(response);
+            return;
 		}
-		try {
-			fileInputStream.close();
-		} catch (IOException e1) {
-		}
-		ChannelBuffer buf = ChannelBuffers.copiedBuffer(bytes);
-		// Build the response object.
-		response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
-				HttpResponseStatus.OK);
-		response.setContent(buf);
-		response.setHeader(HttpHeaders.Names.CONTENT_LENGTH, String.valueOf(buf.readableBytes()));
-		ArrayList<String> cache_control = new ArrayList<String>(2);
-		cache_control.add(HttpHeaders.Values.PUBLIC);
-		cache_control.add(HttpHeaders.Values.MAX_AGE + "=" + 31536000);// 1 year
-		response.setHeader(HttpHeaders.Names.CACHE_CONTROL, cache_control);
-		response.setHeader(HttpHeaders.Names.LAST_MODIFIED, "Tue, 15 Nov 1994 12:45:26 GMT");
-		handleCookies(request, response, cookieNameToRemove);
-		// Write the response.
-		channel.write(response);
+        response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
+                HttpResponseStatus.OK);
+        response.setHeader(HttpHeaders.Names.CONTENT_LENGTH,
+                String.valueOf(size));
+        ArrayList<String> cache_control = new ArrayList<String>(2);
+        cache_control.add(HttpHeaders.Values.PUBLIC);
+        cache_control.add(HttpHeaders.Values.MAX_AGE + "=" + 31536000);// 1 year
+        response.setHeader(HttpHeaders.Names.CACHE_CONTROL, cache_control);
+        response.setHeader(HttpHeaders.Names.LAST_MODIFIED,
+                "Tue, 15 Nov 1994 12:45:26 GMT");
+        handleCookies(request, response, cookieNameToRemove);
+        // Write the response.
+        channel.write(response);
+        channel.write(nioFile);
 	}
 
 	/**

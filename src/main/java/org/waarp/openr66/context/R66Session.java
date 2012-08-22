@@ -17,8 +17,10 @@
  */
 package org.waarp.openr66.context;
 
+import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.net.URLDecoder;
 
 import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
@@ -382,6 +384,16 @@ public class R66Session implements SessionInterface {
 		String filename;
 		if (this.runner.isPreTaskStarting()) {
 			filename = R66Dir.normalizePath(this.runner.getOriginalFilename());
+			if (filename.startsWith("file:/")) {
+				filename = filename.substring("file:/".length());
+				try {
+					filename = URLDecoder.decode(filename, "UTF-8");
+				} catch (UnsupportedEncodingException e) {
+					this.runner.setErrorExecutionStatus(ErrorCode.FileNotFound);
+					throw new OpenR66RunnerErrorException("File cannot be read: " +
+							filename);
+				}
+			}
 			this.runner.setOriginalFilename(filename);
 		} else {
 			filename = this.runner.getFilename();

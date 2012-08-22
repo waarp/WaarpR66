@@ -142,7 +142,7 @@ public class ServerInitDatabase {
 			}
 			if (slimitconfig != null) {
 				// Load configuration
-				if (args.length > 3) {
+				if (args.length > 2) {
 					FileBasedConfiguration.setConfigurationLoadLimitFromXml(
 							Configuration.configuration,
 							slimitconfig);
