@@ -292,30 +292,32 @@
 <a class="jxr_linenumber" name="282" href="#282">282</a> 		Document document = DocumentHelper.createDocument();
 <a class="jxr_linenumber" name="283" href="#283">283</a> 		Element root = document.addElement(XML_AUTHENTIFICATION_ROOT);
 <a class="jxr_linenumber" name="284" href="#284">284</a> 		DbHostAuth[] hosts = DbHostAuth.getAllHosts(DbConstant.admin.session);
-<a class="jxr_linenumber" name="285" href="#285">285</a> 		<strong class="jxr_keyword">for</strong> (DbHostAuth auth : hosts) {
-<a class="jxr_linenumber" name="286" href="#286">286</a> 			Element entry = <strong class="jxr_keyword">new</strong> DefaultElement(XML_AUTHENTIFICATION_ENTRY);
-<a class="jxr_linenumber" name="287" href="#287">287</a> 			entry.add(newElement(XML_AUTHENTIFICATION_HOSTID, auth.getHostid()));
-<a class="jxr_linenumber" name="288" href="#288">288</a> 			byte[] key = auth.getHostkey();
-<a class="jxr_linenumber" name="289" href="#289">289</a> 			String encode;
-<a class="jxr_linenumber" name="290" href="#290">290</a> 			<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="291" href="#291">291</a> 				encode = config.cryptoKey.cryptToHex(key);
-<a class="jxr_linenumber" name="292" href="#292">292</a> 			} <strong class="jxr_keyword">catch</strong> (Exception e) {
-<a class="jxr_linenumber" name="293" href="#293">293</a> 				encode = <span class="jxr_string">""</span>;
-<a class="jxr_linenumber" name="294" href="#294">294</a> 			}
-<a class="jxr_linenumber" name="295" href="#295">295</a> 			entry.add(newElement(XML_AUTHENTIFICATION_KEY, encode));
-<a class="jxr_linenumber" name="296" href="#296">296</a> 			entry.add(newElement(XML_AUTHENTIFICATION_ADMIN, Boolean.toString(auth.isAdminrole())));
-<a class="jxr_linenumber" name="297" href="#297">297</a> 			entry.add(newElement(XML_AUTHENTIFICATION_ADDRESS, auth.getAddress()));
-<a class="jxr_linenumber" name="298" href="#298">298</a> 			entry.add(newElement(XML_AUTHENTIFICATION_PORT, Integer.toString(auth.getPort())));
-<a class="jxr_linenumber" name="299" href="#299">299</a> 			entry.add(newElement(XML_AUTHENTIFICATION_ISSSL, Boolean.toString(auth.isSsl())));
-<a class="jxr_linenumber" name="300" href="#300">300</a> 			root.add(entry);
-<a class="jxr_linenumber" name="301" href="#301">301</a> 		}
-<a class="jxr_linenumber" name="302" href="#302">302</a> 		<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="303" href="#303">303</a> 			XmlUtil.writeXML(filename, <strong class="jxr_keyword">null</strong>, document);
-<a class="jxr_linenumber" name="304" href="#304">304</a> 		} <strong class="jxr_keyword">catch</strong> (IOException e) {
-<a class="jxr_linenumber" name="305" href="#305">305</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(<span class="jxr_string">"Cannot write file: "</span> + filename, e);
-<a class="jxr_linenumber" name="306" href="#306">306</a> 		}
-<a class="jxr_linenumber" name="307" href="#307">307</a> 	}
-<a class="jxr_linenumber" name="308" href="#308">308</a> }
+<a class="jxr_linenumber" name="285" href="#285">285</a> 		logger.debug(<span class="jxr_string">"Will write DbHostAuth: "</span>+hosts.length+<span class="jxr_string">" in "</span>+filename);
+<a class="jxr_linenumber" name="286" href="#286">286</a> 		<strong class="jxr_keyword">for</strong> (DbHostAuth auth : hosts) {
+<a class="jxr_linenumber" name="287" href="#287">287</a> 			logger.debug(<span class="jxr_string">"Will write DbHostAuth: "</span>+auth.getHostid());
+<a class="jxr_linenumber" name="288" href="#288">288</a> 			Element entry = <strong class="jxr_keyword">new</strong> DefaultElement(XML_AUTHENTIFICATION_ENTRY);
+<a class="jxr_linenumber" name="289" href="#289">289</a> 			entry.add(newElement(XML_AUTHENTIFICATION_HOSTID, auth.getHostid()));
+<a class="jxr_linenumber" name="290" href="#290">290</a> 			byte[] key = auth.getHostkey();
+<a class="jxr_linenumber" name="291" href="#291">291</a> 			String encode;
+<a class="jxr_linenumber" name="292" href="#292">292</a> 			<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="293" href="#293">293</a> 				encode = config.cryptoKey.cryptToHex(key);
+<a class="jxr_linenumber" name="294" href="#294">294</a> 			} <strong class="jxr_keyword">catch</strong> (Exception e) {
+<a class="jxr_linenumber" name="295" href="#295">295</a> 				encode = <span class="jxr_string">""</span>;
+<a class="jxr_linenumber" name="296" href="#296">296</a> 			}
+<a class="jxr_linenumber" name="297" href="#297">297</a> 			entry.add(newElement(XML_AUTHENTIFICATION_KEY, encode));
+<a class="jxr_linenumber" name="298" href="#298">298</a> 			entry.add(newElement(XML_AUTHENTIFICATION_ADMIN, Boolean.toString(auth.isAdminrole())));
+<a class="jxr_linenumber" name="299" href="#299">299</a> 			entry.add(newElement(XML_AUTHENTIFICATION_ADDRESS, auth.getAddress()));
+<a class="jxr_linenumber" name="300" href="#300">300</a> 			entry.add(newElement(XML_AUTHENTIFICATION_PORT, Integer.toString(auth.getPort())));
+<a class="jxr_linenumber" name="301" href="#301">301</a> 			entry.add(newElement(XML_AUTHENTIFICATION_ISSSL, Boolean.toString(auth.isSsl())));
+<a class="jxr_linenumber" name="302" href="#302">302</a> 			root.add(entry);
+<a class="jxr_linenumber" name="303" href="#303">303</a> 		}
+<a class="jxr_linenumber" name="304" href="#304">304</a> 		<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="305" href="#305">305</a> 			XmlUtil.writeXML(filename, <strong class="jxr_keyword">null</strong>, document);
+<a class="jxr_linenumber" name="306" href="#306">306</a> 		} <strong class="jxr_keyword">catch</strong> (IOException e) {
+<a class="jxr_linenumber" name="307" href="#307">307</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(<span class="jxr_string">"Cannot write file: "</span> + filename, e);
+<a class="jxr_linenumber" name="308" href="#308">308</a> 		}
+<a class="jxr_linenumber" name="309" href="#309">309</a> 	}
+<a class="jxr_linenumber" name="310" href="#310">310</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>

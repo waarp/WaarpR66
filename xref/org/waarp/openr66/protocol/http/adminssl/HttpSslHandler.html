@@ -1482,10 +1482,10 @@
 <a class="jxr_linenumber" name="1472" href="#1472">1472</a> 					String filename =
 <a class="jxr_linenumber" name="1473" href="#1473">1473</a> 							directory + R66Dir.SEPARATOR + Configuration.configuration.HOST_ID +
 <a class="jxr_linenumber" name="1474" href="#1474">1474</a> 									<span class="jxr_string">"_Authentications.xml"</span>;
-<a class="jxr_linenumber" name="1475" href="#1475">1475</a> 					extraInformation += <span class="jxr_string">"-Authent are exported.&lt;br&gt;"</span>;
-<a class="jxr_linenumber" name="1476" href="#1476">1476</a> 					<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="1477" href="#1477">1477</a> 						AuthenticationFileBasedConfiguration.writeXML(Configuration.configuration,
-<a class="jxr_linenumber" name="1478" href="#1478">1478</a> 								filename);
+<a class="jxr_linenumber" name="1475" href="#1475">1475</a> 					<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="1476" href="#1476">1476</a> 						AuthenticationFileBasedConfiguration.writeXML(Configuration.configuration,
+<a class="jxr_linenumber" name="1477" href="#1477">1477</a> 								filename);
+<a class="jxr_linenumber" name="1478" href="#1478">1478</a> 						extraInformation += <span class="jxr_string">"-Authent are exported.&lt;br&gt;"</span>;
 <a class="jxr_linenumber" name="1479" href="#1479">1479</a> 					} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e) {
 <a class="jxr_linenumber" name="1480" href="#1480">1480</a> 					} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseSqlException e) {
 <a class="jxr_linenumber" name="1481" href="#1481">1481</a> 					} <strong class="jxr_keyword">catch</strong> (OpenR66ProtocolSystemException e) {

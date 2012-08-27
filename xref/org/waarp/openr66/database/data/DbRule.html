@@ -787,456 +787,461 @@
 <a class="jxr_linenumber" name="777" href="#777">777</a> 			workPath = Configuration.configuration.workingPath;
 <a class="jxr_linenumber" name="778" href="#778">778</a> 		}
 <a class="jxr_linenumber" name="779" href="#779">779</a> 		setFromArray();
-<a class="jxr_linenumber" name="780" href="#780">780</a> 	}
-<a class="jxr_linenumber" name="781" href="#781">781</a> 
-<a class="jxr_linenumber" name="782" href="#782">782</a> 	<em class="jxr_comment">/*</em>
-<a class="jxr_linenumber" name="783" href="#783">783</a> <em class="jxr_comment">	 * (non-Javadoc)</em>
-<a class="jxr_linenumber" name="784" href="#784">784</a> <em class="jxr_comment">	 * @see org.waarp.openr66.databaseold.data.AbstractDbData#update()</em>
-<a class="jxr_linenumber" name="785" href="#785">785</a> <em class="jxr_comment">	 */</em>
-<a class="jxr_linenumber" name="786" href="#786">786</a> 	@Override
-<a class="jxr_linenumber" name="787" href="#787">787</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> update() <strong class="jxr_keyword">throws</strong> WaarpDatabaseException {
-<a class="jxr_linenumber" name="788" href="#788">788</a> 		<strong class="jxr_keyword">if</strong> (isSaved) {
-<a class="jxr_linenumber" name="789" href="#789">789</a> 			<strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="790" href="#790">790</a> 		}
-<a class="jxr_linenumber" name="791" href="#791">791</a> 		dbR66RuleHashMap.put(<strong class="jxr_keyword">this</strong>.idRule, <strong class="jxr_keyword">this</strong>);
-<a class="jxr_linenumber" name="792" href="#792">792</a> 		<strong class="jxr_keyword">if</strong> (dbSession == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="793" href="#793">793</a> 			isSaved = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="794" href="#794">794</a> 			<strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="795" href="#795">795</a> 		}
-<a class="jxr_linenumber" name="796" href="#796">796</a> 		<strong class="jxr_keyword">super</strong>.update();
-<a class="jxr_linenumber" name="797" href="#797">797</a> 	}
-<a class="jxr_linenumber" name="798" href="#798">798</a> 
-<a class="jxr_linenumber" name="799" href="#799">799</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="800" href="#800">800</a> <em class="jxr_javadoccomment">	 * Private constructor for Commander only</em>
-<a class="jxr_linenumber" name="801" href="#801">801</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="802" href="#802">802</a> 	<strong class="jxr_keyword">private</strong> <a href="../../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>(DbSession session) {
-<a class="jxr_linenumber" name="803" href="#803">803</a> 		<strong class="jxr_keyword">super</strong>(session);
-<a class="jxr_linenumber" name="804" href="#804">804</a> 	}
-<a class="jxr_linenumber" name="805" href="#805">805</a> 
-<a class="jxr_linenumber" name="806" href="#806">806</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="807" href="#807">807</a> <em class="jxr_javadoccomment">	 * Get All DbRule from database or from internal hashMap in case of no database support</em>
-<a class="jxr_linenumber" name="808" href="#808">808</a> <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="809" href="#809">809</a> <em class="jxr_javadoccomment">	 * @param dbSession</em>
-<a class="jxr_linenumber" name="810" href="#810">810</a> <em class="jxr_javadoccomment">	 *            may be null</em>
-<a class="jxr_linenumber" name="811" href="#811">811</a> <em class="jxr_javadoccomment">	 * @return the array of DbRule</em>
-<a class="jxr_linenumber" name="812" href="#812">812</a> <em class="jxr_javadoccomment">	 * @throws WaarpDatabaseNoConnectionException</em>
-<a class="jxr_linenumber" name="813" href="#813">813</a> <em class="jxr_javadoccomment">	 * @throws WaarpDatabaseSqlException</em>
-<a class="jxr_linenumber" name="814" href="#814">814</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="815" href="#815">815</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <a href="../../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>[] getAllRules(DbSession dbSession)
-<a class="jxr_linenumber" name="816" href="#816">816</a> 			<strong class="jxr_keyword">throws</strong> WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
-<a class="jxr_linenumber" name="817" href="#817">817</a> 		DbRule[] result = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>[0];
-<a class="jxr_linenumber" name="818" href="#818">818</a> 		<strong class="jxr_keyword">if</strong> (!dbR66RuleHashMap.isEmpty() || dbSession == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="819" href="#819">819</a> 			<strong class="jxr_keyword">return</strong> dbR66RuleHashMap.values().toArray(result);
-<a class="jxr_linenumber" name="820" href="#820">820</a> 		}
-<a class="jxr_linenumber" name="821" href="#821">821</a> 		String request = <span class="jxr_string">"SELECT "</span> + selectAllFields;
-<a class="jxr_linenumber" name="822" href="#822">822</a> 		request += <span class="jxr_string">" FROM "</span> + table;
-<a class="jxr_linenumber" name="823" href="#823">823</a> 		DbPreparedStatement preparedStatement = <strong class="jxr_keyword">new</strong> DbPreparedStatement(dbSession, request);
-<a class="jxr_linenumber" name="824" href="#824">824</a> 		ArrayList&lt;DbRule&gt; dbArrayList = <strong class="jxr_keyword">new</strong> ArrayList&lt;DbRule&gt;();
-<a class="jxr_linenumber" name="825" href="#825">825</a> 		preparedStatement.executeQuery();
-<a class="jxr_linenumber" name="826" href="#826">826</a> 		<strong class="jxr_keyword">while</strong> (preparedStatement.getNext()) {
-<a class="jxr_linenumber" name="827" href="#827">827</a> 			DbRule hostAuth = getFromStatement(preparedStatement);
-<a class="jxr_linenumber" name="828" href="#828">828</a> 			dbArrayList.add(hostAuth);
-<a class="jxr_linenumber" name="829" href="#829">829</a> 		}
-<a class="jxr_linenumber" name="830" href="#830">830</a> 		preparedStatement.realClose();
-<a class="jxr_linenumber" name="831" href="#831">831</a> 		dbArrayList.toArray(result);
-<a class="jxr_linenumber" name="832" href="#832">832</a> 		<strong class="jxr_keyword">return</strong> result;
-<a class="jxr_linenumber" name="833" href="#833">833</a> 	}
-<a class="jxr_linenumber" name="834" href="#834">834</a> 
-<a class="jxr_linenumber" name="835" href="#835">835</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="836" href="#836">836</a> <em class="jxr_javadoccomment">	 * For instance from Commander when getting updated information</em>
-<a class="jxr_linenumber" name="837" href="#837">837</a> <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="838" href="#838">838</a> <em class="jxr_javadoccomment">	 * @param preparedStatement</em>
-<a class="jxr_linenumber" name="839" href="#839">839</a> <em class="jxr_javadoccomment">	 * @return the next updated DbRule</em>
-<a class="jxr_linenumber" name="840" href="#840">840</a> <em class="jxr_javadoccomment">	 * @throws WaarpDatabaseNoConnectionException</em>
-<a class="jxr_linenumber" name="841" href="#841">841</a> <em class="jxr_javadoccomment">	 * @throws WaarpDatabaseSqlException</em>
-<a class="jxr_linenumber" name="842" href="#842">842</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="843" href="#843">843</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <a href="../../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a> getFromStatement(DbPreparedStatement preparedStatement)
-<a class="jxr_linenumber" name="844" href="#844">844</a> 			<strong class="jxr_keyword">throws</strong> WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
-<a class="jxr_linenumber" name="845" href="#845">845</a> 		DbRule dbRule = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>(preparedStatement.getDbSession());
-<a class="jxr_linenumber" name="846" href="#846">846</a> 		dbRule.getValues(preparedStatement, dbRule.allFields);
-<a class="jxr_linenumber" name="847" href="#847">847</a> 		dbRule.setFromArray();
-<a class="jxr_linenumber" name="848" href="#848">848</a> 		dbRule.isSaved = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="849" href="#849">849</a> 		<strong class="jxr_keyword">return</strong> dbRule;
-<a class="jxr_linenumber" name="850" href="#850">850</a> 	}
-<a class="jxr_linenumber" name="851" href="#851">851</a> 
-<a class="jxr_linenumber" name="852" href="#852">852</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="853" href="#853">853</a> <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="854" href="#854">854</a> <em class="jxr_javadoccomment">	 * @return the DbPreparedStatement for getting Updated Object</em>
-<a class="jxr_linenumber" name="855" href="#855">855</a> <em class="jxr_javadoccomment">	 * @throws WaarpDatabaseNoConnectionException</em>
-<a class="jxr_linenumber" name="856" href="#856">856</a> <em class="jxr_javadoccomment">	 * @throws WaarpDatabaseSqlException</em>
-<a class="jxr_linenumber" name="857" href="#857">857</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="858" href="#858">858</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> DbPreparedStatement getUpdatedPrepareStament(DbSession session)
-<a class="jxr_linenumber" name="859" href="#859">859</a> 			<strong class="jxr_keyword">throws</strong> WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
-<a class="jxr_linenumber" name="860" href="#860">860</a> 		String request = <span class="jxr_string">"SELECT "</span> + selectAllFields;
-<a class="jxr_linenumber" name="861" href="#861">861</a> 		request += <span class="jxr_string">" FROM "</span> + table +
-<a class="jxr_linenumber" name="862" href="#862">862</a> 				<span class="jxr_string">" WHERE "</span> + Columns.UPDATEDINFO.name() + <span class="jxr_string">" = "</span> +
-<a class="jxr_linenumber" name="863" href="#863">863</a> 				AbstractDbData.UpdatedInfo.TOSUBMIT.ordinal();
-<a class="jxr_linenumber" name="864" href="#864">864</a> 		DbPreparedStatement prep = <strong class="jxr_keyword">new</strong> DbPreparedStatement(session, request);
-<a class="jxr_linenumber" name="865" href="#865">865</a> 		<strong class="jxr_keyword">return</strong> prep;
-<a class="jxr_linenumber" name="866" href="#866">866</a> 	}
-<a class="jxr_linenumber" name="867" href="#867">867</a> 
-<a class="jxr_linenumber" name="868" href="#868">868</a> 	<em class="jxr_comment">/*</em>
-<a class="jxr_linenumber" name="869" href="#869">869</a> <em class="jxr_comment">	 * (non-Javadoc)</em>
-<a class="jxr_linenumber" name="870" href="#870">870</a> <em class="jxr_comment">	 * @see org.waarp.openr66.databaseold.data.AbstractDbData#changeUpdatedInfo(UpdatedInfo)</em>
-<a class="jxr_linenumber" name="871" href="#871">871</a> <em class="jxr_comment">	 */</em>
-<a class="jxr_linenumber" name="872" href="#872">872</a> 	@Override
-<a class="jxr_linenumber" name="873" href="#873">873</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> changeUpdatedInfo(UpdatedInfo info) {
-<a class="jxr_linenumber" name="874" href="#874">874</a> 		<strong class="jxr_keyword">if</strong> (updatedInfo != info.ordinal()) {
-<a class="jxr_linenumber" name="875" href="#875">875</a> 			updatedInfo = info.ordinal();
-<a class="jxr_linenumber" name="876" href="#876">876</a> 			allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
-<a class="jxr_linenumber" name="877" href="#877">877</a> 			isSaved = false;
-<a class="jxr_linenumber" name="878" href="#878">878</a> 		}
-<a class="jxr_linenumber" name="879" href="#879">879</a> 	}
-<a class="jxr_linenumber" name="880" href="#880">880</a> 
-<a class="jxr_linenumber" name="881" href="#881">881</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="882" href="#882">882</a> <em class="jxr_javadoccomment">	 * Get Ids from String. If it is not ok, then it sets the default values and return False, else</em>
-<a class="jxr_linenumber" name="883" href="#883">883</a> <em class="jxr_javadoccomment">	 * returns True.</em>
-<a class="jxr_linenumber" name="884" href="#884">884</a> <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="885" href="#885">885</a> <em class="jxr_javadoccomment">	 * @param idsref</em>
-<a class="jxr_linenumber" name="886" href="#886">886</a> <em class="jxr_javadoccomment">	 * @return True if ok, else False (default values).</em>
-<a class="jxr_linenumber" name="887" href="#887">887</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="888" href="#888">888</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> getIdsRule(String idsref) {
-<a class="jxr_linenumber" name="889" href="#889">889</a> 		<strong class="jxr_keyword">if</strong> (idsref == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="890" href="#890">890</a> 			<em class="jxr_comment">// No ids so setting to the default!</em>
-<a class="jxr_linenumber" name="891" href="#891">891</a> 			ids = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="892" href="#892">892</a> 			idsArray = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="893" href="#893">893</a> 			<strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="894" href="#894">894</a> 		}
-<a class="jxr_linenumber" name="895" href="#895">895</a> 		ids = idsref;
-<a class="jxr_linenumber" name="896" href="#896">896</a> 		StringReader reader = <strong class="jxr_keyword">new</strong> StringReader(idsref);
-<a class="jxr_linenumber" name="897" href="#897">897</a> 		Document document = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="898" href="#898">898</a> 		<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="899" href="#899">899</a> 			document = <strong class="jxr_keyword">new</strong> SAXReader().read(reader);
-<a class="jxr_linenumber" name="900" href="#900">900</a> 		} <strong class="jxr_keyword">catch</strong> (DocumentException e) {
-<a class="jxr_linenumber" name="901" href="#901">901</a> 			logger.warn(<span class="jxr_string">"Unable to read the ids for Rule: "</span> + idsref, e);
-<a class="jxr_linenumber" name="902" href="#902">902</a> 			<em class="jxr_comment">// No ids so setting to the default!</em>
-<a class="jxr_linenumber" name="903" href="#903">903</a> 			ids = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="904" href="#904">904</a> 			idsArray = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="905" href="#905">905</a> 			reader.close();
-<a class="jxr_linenumber" name="906" href="#906">906</a> 			<strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="907" href="#907">907</a> 		}
-<a class="jxr_linenumber" name="908" href="#908">908</a> 		XmlValue[] values = XmlUtil.read(document,
-<a class="jxr_linenumber" name="909" href="#909">909</a> 				RuleFileBasedConfiguration.hostsDecls);
-<a class="jxr_linenumber" name="910" href="#910">910</a> 		idsArray = RuleFileBasedConfiguration.getHostIds(values[0]);
-<a class="jxr_linenumber" name="911" href="#911">911</a> 		reader.close();
-<a class="jxr_linenumber" name="912" href="#912">912</a> 		<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="913" href="#913">913</a> 	}
-<a class="jxr_linenumber" name="914" href="#914">914</a> 
-<a class="jxr_linenumber" name="915" href="#915">915</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="916" href="#916">916</a> <em class="jxr_javadoccomment">	 * Get Tasks from String. If it is not ok, then it sets the default values and return new array</em>
-<a class="jxr_linenumber" name="917" href="#917">917</a> <em class="jxr_javadoccomment">	 * of Tasks or null if in error.</em>
-<a class="jxr_linenumber" name="918" href="#918">918</a> <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="919" href="#919">919</a> <em class="jxr_javadoccomment">	 * @param tasks</em>
-<a class="jxr_linenumber" name="920" href="#920">920</a> <em class="jxr_javadoccomment">	 * @return Array of tasks or empty array if in error.</em>
-<a class="jxr_linenumber" name="921" href="#921">921</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="922" href="#922">922</a> 	<strong class="jxr_keyword">private</strong> String[][] getTasksRule(String tasks) {
-<a class="jxr_linenumber" name="923" href="#923">923</a> 		<strong class="jxr_keyword">if</strong> (tasks == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="924" href="#924">924</a> 			<em class="jxr_comment">// No tasks so setting to the default!</em>
-<a class="jxr_linenumber" name="925" href="#925">925</a> 			<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> String[0][0];
-<a class="jxr_linenumber" name="926" href="#926">926</a> 		}
-<a class="jxr_linenumber" name="927" href="#927">927</a> 		StringReader reader = <strong class="jxr_keyword">new</strong> StringReader(tasks);
-<a class="jxr_linenumber" name="928" href="#928">928</a> 		Document document = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="929" href="#929">929</a> 		<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="930" href="#930">930</a> 			document = <strong class="jxr_keyword">new</strong> SAXReader().read(reader);
-<a class="jxr_linenumber" name="931" href="#931">931</a> 		} <strong class="jxr_keyword">catch</strong> (DocumentException e) {
-<a class="jxr_linenumber" name="932" href="#932">932</a> 			logger.warn(<span class="jxr_string">"Unable to read the tasks for Rule: "</span> + tasks, e);
-<a class="jxr_linenumber" name="933" href="#933">933</a> 			<em class="jxr_comment">// No tasks so setting to the default!</em>
-<a class="jxr_linenumber" name="934" href="#934">934</a> 			reader.close();
-<a class="jxr_linenumber" name="935" href="#935">935</a> 			<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> String[0][0];
-<a class="jxr_linenumber" name="936" href="#936">936</a> 		}
-<a class="jxr_linenumber" name="937" href="#937">937</a> 		XmlValue[] values = XmlUtil.read(document, RuleFileBasedConfiguration.tasksDecl);
-<a class="jxr_linenumber" name="938" href="#938">938</a> 		String[][] result = RuleFileBasedConfiguration.getTasksRule(values[0]);
-<a class="jxr_linenumber" name="939" href="#939">939</a> 		reader.close();
-<a class="jxr_linenumber" name="940" href="#940">940</a> 		<strong class="jxr_keyword">return</strong> result;
-<a class="jxr_linenumber" name="941" href="#941">941</a> 	}
-<a class="jxr_linenumber" name="942" href="#942">942</a> 
-<a class="jxr_linenumber" name="943" href="#943">943</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="944" href="#944">944</a> <em class="jxr_javadoccomment">	 * Initialized a ids String from args</em>
-<a class="jxr_linenumber" name="945" href="#945">945</a> <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="946" href="#946">946</a> <em class="jxr_javadoccomment">	 * @param idsArray</em>
-<a class="jxr_linenumber" name="947" href="#947">947</a> <em class="jxr_javadoccomment">	 * @return the new ids string</em>
-<a class="jxr_linenumber" name="948" href="#948">948</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="949" href="#949">949</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> String setIdsRule(String[] idsArray) {
-<a class="jxr_linenumber" name="950" href="#950">950</a> 		String ids = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="951" href="#951">951</a> 		<strong class="jxr_keyword">if</strong> (idsArray != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="952" href="#952">952</a> 			ids = XMLHOSTIDS;
-<a class="jxr_linenumber" name="953" href="#953">953</a> 			<strong class="jxr_keyword">for</strong> (String element : idsArray) {
-<a class="jxr_linenumber" name="954" href="#954">954</a> 				ids += XMLHOSTID + element + XMLENDHOSTID + <span class="jxr_string">"\n"</span>;
-<a class="jxr_linenumber" name="955" href="#955">955</a> 			}
-<a class="jxr_linenumber" name="956" href="#956">956</a> 			ids += XMLENDHOSTIDS;
-<a class="jxr_linenumber" name="957" href="#957">957</a> 		}
-<a class="jxr_linenumber" name="958" href="#958">958</a> 		<strong class="jxr_keyword">return</strong> ids;
-<a class="jxr_linenumber" name="959" href="#959">959</a> 	}
-<a class="jxr_linenumber" name="960" href="#960">960</a> 
-<a class="jxr_linenumber" name="961" href="#961">961</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="962" href="#962">962</a> <em class="jxr_javadoccomment">	 * Initialized a tasks String from args</em>
-<a class="jxr_linenumber" name="963" href="#963">963</a> <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="964" href="#964">964</a> <em class="jxr_javadoccomment">	 * @param tasksArray</em>
-<a class="jxr_linenumber" name="965" href="#965">965</a> <em class="jxr_javadoccomment">	 * @return the new tasks string</em>
-<a class="jxr_linenumber" name="966" href="#966">966</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="967" href="#967">967</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> String setTasksRule(String[][] tasksArray) {
-<a class="jxr_linenumber" name="968" href="#968">968</a> 		StringBuilder builder = <strong class="jxr_keyword">new</strong> StringBuilder();
-<a class="jxr_linenumber" name="969" href="#969">969</a> 		<strong class="jxr_keyword">if</strong> (tasksArray != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="970" href="#970">970</a> 			builder.append(XMLTASKS);
-<a class="jxr_linenumber" name="971" href="#971">971</a> 			<strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; tasksArray.length; i++) {
-<a class="jxr_linenumber" name="972" href="#972">972</a> 				builder.append(XMLTASK);
-<a class="jxr_linenumber" name="973" href="#973">973</a> 				builder.append('&lt;').append(TASK_TYPE).append('&gt;');
-<a class="jxr_linenumber" name="974" href="#974">974</a> 				builder.append(tasksArray[i][0]);
-<a class="jxr_linenumber" name="975" href="#975">975</a> 				builder.append(<span class="jxr_string">"&lt;/"</span>).append(TASK_TYPE).append(<span class="jxr_string">"&gt;\n"</span>);
-<a class="jxr_linenumber" name="976" href="#976">976</a> 				builder.append('&lt;').append(TASK_PATH).append('&gt;');
-<a class="jxr_linenumber" name="977" href="#977">977</a> 				builder.append(tasksArray[i][1]);
-<a class="jxr_linenumber" name="978" href="#978">978</a> 				builder.append(<span class="jxr_string">"&lt;/"</span>).append(TASK_PATH).append(<span class="jxr_string">"&gt;\n"</span>);
-<a class="jxr_linenumber" name="979" href="#979">979</a> 				builder.append('&lt;').append(TASK_DELAY).append('&gt;');
-<a class="jxr_linenumber" name="980" href="#980">980</a> 				builder.append(tasksArray[i][2]);
-<a class="jxr_linenumber" name="981" href="#981">981</a> 				builder.append(<span class="jxr_string">"&lt;/"</span>).append(TASK_DELAY).append('&gt;');
-<a class="jxr_linenumber" name="982" href="#982">982</a> 				builder.append(XMLENDTASK).append('\n');
-<a class="jxr_linenumber" name="983" href="#983">983</a> 			}
-<a class="jxr_linenumber" name="984" href="#984">984</a> 			builder.append(XMLENDTASKS);
-<a class="jxr_linenumber" name="985" href="#985">985</a> 		}
-<a class="jxr_linenumber" name="986" href="#986">986</a> 		<strong class="jxr_keyword">return</strong> builder.toString();
-<a class="jxr_linenumber" name="987" href="#987">987</a> 	}
-<a class="jxr_linenumber" name="988" href="#988">988</a> 
-<a class="jxr_linenumber" name="989" href="#989">989</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="990" href="#990">990</a> <em class="jxr_javadoccomment">	 * Get the full path from RecvPath (used only in copy MODETRANS)</em>
-<a class="jxr_linenumber" name="991" href="#991">991</a> <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="992" href="#992">992</a> <em class="jxr_javadoccomment">	 * @param filename</em>
-<a class="jxr_linenumber" name="993" href="#993">993</a> <em class="jxr_javadoccomment">	 * @return the full String path</em>
-<a class="jxr_linenumber" name="994" href="#994">994</a> <em class="jxr_javadoccomment">	 * @throws OpenR66ProtocolSystemException</em>
-<a class="jxr_linenumber" name="995" href="#995">995</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="996" href="#996">996</a> 	<strong class="jxr_keyword">public</strong> String setRecvPath(String filename)
-<a class="jxr_linenumber" name="997" href="#997">997</a> 			<strong class="jxr_keyword">throws</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a> {
-<a class="jxr_linenumber" name="998" href="#998">998</a> 		<strong class="jxr_keyword">if</strong> (recvPath != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="999" href="#999">999</a> 			<strong class="jxr_keyword">return</strong> recvPath + DirInterface.SEPARATOR + filename;
-<a class="jxr_linenumber" name="1000" href="#1000">1000</a> 		}
-<a class="jxr_linenumber" name="1001" href="#1001">1001</a> 		<strong class="jxr_keyword">return</strong> FileUtils.consolidatePath(Configuration.configuration.inPath,
-<a class="jxr_linenumber" name="1002" href="#1002">1002</a> 				filename);
-<a class="jxr_linenumber" name="1003" href="#1003">1003</a> 	}
-<a class="jxr_linenumber" name="1004" href="#1004">1004</a> 
-<a class="jxr_linenumber" name="1005" href="#1005">1005</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="1006" href="#1006">1006</a> <em class="jxr_javadoccomment">	 * Get the full path from sendPath</em>
-<a class="jxr_linenumber" name="1007" href="#1007">1007</a> <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="1008" href="#1008">1008</a> <em class="jxr_javadoccomment">	 * @param filename</em>
-<a class="jxr_linenumber" name="1009" href="#1009">1009</a> <em class="jxr_javadoccomment">	 * @return the full String path</em>
-<a class="jxr_linenumber" name="1010" href="#1010">1010</a> <em class="jxr_javadoccomment">	 * @throws OpenR66ProtocolSystemException</em>
-<a class="jxr_linenumber" name="1011" href="#1011">1011</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="1012" href="#1012">1012</a> 	<strong class="jxr_keyword">public</strong> String setSendPath(String filename)
-<a class="jxr_linenumber" name="1013" href="#1013">1013</a> 			<strong class="jxr_keyword">throws</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a> {
-<a class="jxr_linenumber" name="1014" href="#1014">1014</a> 		<strong class="jxr_keyword">if</strong> (sendPath != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="1015" href="#1015">1015</a> 			File file = <strong class="jxr_keyword">new</strong> File(filename);
-<a class="jxr_linenumber" name="1016" href="#1016">1016</a> 			String basename = file.getName();
-<a class="jxr_linenumber" name="1017" href="#1017">1017</a> 			<strong class="jxr_keyword">return</strong> sendPath + DirInterface.SEPARATOR + basename;
-<a class="jxr_linenumber" name="1018" href="#1018">1018</a> 		}
-<a class="jxr_linenumber" name="1019" href="#1019">1019</a> 		<strong class="jxr_keyword">return</strong> FileUtils.consolidatePath(Configuration.configuration.outPath,
-<a class="jxr_linenumber" name="1020" href="#1020">1020</a> 				filename);
-<a class="jxr_linenumber" name="1021" href="#1021">1021</a> 	}
-<a class="jxr_linenumber" name="1022" href="#1022">1022</a> 
-<a class="jxr_linenumber" name="1023" href="#1023">1023</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="1024" href="#1024">1024</a> <em class="jxr_javadoccomment">	 * Get the full path from archivePath</em>
-<a class="jxr_linenumber" name="1025" href="#1025">1025</a> <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="1026" href="#1026">1026</a> <em class="jxr_javadoccomment">	 * @param filename</em>
-<a class="jxr_linenumber" name="1027" href="#1027">1027</a> <em class="jxr_javadoccomment">	 * @return the full String path</em>
-<a class="jxr_linenumber" name="1028" href="#1028">1028</a> <em class="jxr_javadoccomment">	 * @throws OpenR66ProtocolSystemException</em>
-<a class="jxr_linenumber" name="1029" href="#1029">1029</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="1030" href="#1030">1030</a> 	<strong class="jxr_keyword">public</strong> String setArchivePath(String filename)
-<a class="jxr_linenumber" name="1031" href="#1031">1031</a> 			<strong class="jxr_keyword">throws</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a> {
-<a class="jxr_linenumber" name="1032" href="#1032">1032</a> 		<strong class="jxr_keyword">if</strong> (archivePath != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="1033" href="#1033">1033</a> 			<strong class="jxr_keyword">return</strong> archivePath + DirInterface.SEPARATOR + filename;
-<a class="jxr_linenumber" name="1034" href="#1034">1034</a> 		}
-<a class="jxr_linenumber" name="1035" href="#1035">1035</a> 		<strong class="jxr_keyword">return</strong> FileUtils.consolidatePath(
-<a class="jxr_linenumber" name="1036" href="#1036">1036</a> 				Configuration.configuration.archivePath, filename);
-<a class="jxr_linenumber" name="1037" href="#1037">1037</a> 	}
-<a class="jxr_linenumber" name="1038" href="#1038">1038</a> 
-<a class="jxr_linenumber" name="1039" href="#1039">1039</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="1040" href="#1040">1040</a> <em class="jxr_javadoccomment">	 * Get the full path from workPath</em>
-<a class="jxr_linenumber" name="1041" href="#1041">1041</a> <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="1042" href="#1042">1042</a> <em class="jxr_javadoccomment">	 * @param filename</em>
-<a class="jxr_linenumber" name="1043" href="#1043">1043</a> <em class="jxr_javadoccomment">	 * @return the full String path</em>
-<a class="jxr_linenumber" name="1044" href="#1044">1044</a> <em class="jxr_javadoccomment">	 * @throws OpenR66ProtocolSystemException</em>
-<a class="jxr_linenumber" name="1045" href="#1045">1045</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="1046" href="#1046">1046</a> 	<strong class="jxr_keyword">public</strong> String setWorkingPath(String filename)
-<a class="jxr_linenumber" name="1047" href="#1047">1047</a> 			<strong class="jxr_keyword">throws</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a> {
-<a class="jxr_linenumber" name="1048" href="#1048">1048</a> 		<strong class="jxr_keyword">if</strong> (workPath != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="1049" href="#1049">1049</a> 			<strong class="jxr_keyword">return</strong> workPath + DirInterface.SEPARATOR + filename +
-<a class="jxr_linenumber" name="1050" href="#1050">1050</a> 					Configuration.EXT_R66;
-<a class="jxr_linenumber" name="1051" href="#1051">1051</a> 		}
-<a class="jxr_linenumber" name="1052" href="#1052">1052</a> 		<strong class="jxr_keyword">return</strong> FileUtils.consolidatePath(
-<a class="jxr_linenumber" name="1053" href="#1053">1053</a> 				Configuration.configuration.workingPath, filename);
-<a class="jxr_linenumber" name="1054" href="#1054">1054</a> 	}
-<a class="jxr_linenumber" name="1055" href="#1055">1055</a> 
-<a class="jxr_linenumber" name="1056" href="#1056">1056</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="1057" href="#1057">1057</a> <em class="jxr_javadoccomment">	 * Check if the given hostTo is in the allowed list</em>
-<a class="jxr_linenumber" name="1058" href="#1058">1058</a> <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="1059" href="#1059">1059</a> <em class="jxr_javadoccomment">	 * @param hostId</em>
-<a class="jxr_linenumber" name="1060" href="#1060">1060</a> <em class="jxr_javadoccomment">	 * @return True if allow, else False</em>
-<a class="jxr_linenumber" name="1061" href="#1061">1061</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="1062" href="#1062">1062</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> checkHostAllow(String hostId) {
-<a class="jxr_linenumber" name="1063" href="#1063">1063</a> 		<strong class="jxr_keyword">if</strong> (idsArray == <strong class="jxr_keyword">null</strong> || idsArray.length == 0) {
-<a class="jxr_linenumber" name="1064" href="#1064">1064</a> 			<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>; <em class="jxr_comment">// always true in this case</em>
-<a class="jxr_linenumber" name="1065" href="#1065">1065</a> 		}
-<a class="jxr_linenumber" name="1066" href="#1066">1066</a> 		<strong class="jxr_keyword">for</strong> (String element : idsArray) {
-<a class="jxr_linenumber" name="1067" href="#1067">1067</a> 			<strong class="jxr_keyword">if</strong> (element.equalsIgnoreCase(hostId)) {
-<a class="jxr_linenumber" name="1068" href="#1068">1068</a> 				<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="1069" href="#1069">1069</a> 			}
+<a class="jxr_linenumber" name="780" href="#780">780</a> 		dbR66RuleHashMap.put(<strong class="jxr_keyword">this</strong>.idRule, <strong class="jxr_keyword">this</strong>);
+<a class="jxr_linenumber" name="781" href="#781">781</a> 	}
+<a class="jxr_linenumber" name="782" href="#782">782</a> 
+<a class="jxr_linenumber" name="783" href="#783">783</a> 	<em class="jxr_comment">/*</em>
+<a class="jxr_linenumber" name="784" href="#784">784</a> <em class="jxr_comment">	 * (non-Javadoc)</em>
+<a class="jxr_linenumber" name="785" href="#785">785</a> <em class="jxr_comment">	 * @see org.waarp.openr66.databaseold.data.AbstractDbData#update()</em>
+<a class="jxr_linenumber" name="786" href="#786">786</a> <em class="jxr_comment">	 */</em>
+<a class="jxr_linenumber" name="787" href="#787">787</a> 	@Override
+<a class="jxr_linenumber" name="788" href="#788">788</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> update() <strong class="jxr_keyword">throws</strong> WaarpDatabaseException {
+<a class="jxr_linenumber" name="789" href="#789">789</a> 		<strong class="jxr_keyword">if</strong> (isSaved) {
+<a class="jxr_linenumber" name="790" href="#790">790</a> 			<strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="791" href="#791">791</a> 		}
+<a class="jxr_linenumber" name="792" href="#792">792</a> 		dbR66RuleHashMap.put(<strong class="jxr_keyword">this</strong>.idRule, <strong class="jxr_keyword">this</strong>);
+<a class="jxr_linenumber" name="793" href="#793">793</a> 		<strong class="jxr_keyword">if</strong> (dbSession == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="794" href="#794">794</a> 			isSaved = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="795" href="#795">795</a> 			<strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="796" href="#796">796</a> 		}
+<a class="jxr_linenumber" name="797" href="#797">797</a> 		<strong class="jxr_keyword">super</strong>.update();
+<a class="jxr_linenumber" name="798" href="#798">798</a> 	}
+<a class="jxr_linenumber" name="799" href="#799">799</a> 
+<a class="jxr_linenumber" name="800" href="#800">800</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="801" href="#801">801</a> <em class="jxr_javadoccomment">	 * Private constructor for Commander only</em>
+<a class="jxr_linenumber" name="802" href="#802">802</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="803" href="#803">803</a> 	<strong class="jxr_keyword">private</strong> <a href="../../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>(DbSession session) {
+<a class="jxr_linenumber" name="804" href="#804">804</a> 		<strong class="jxr_keyword">super</strong>(session);
+<a class="jxr_linenumber" name="805" href="#805">805</a> 	}
+<a class="jxr_linenumber" name="806" href="#806">806</a> 
+<a class="jxr_linenumber" name="807" href="#807">807</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="808" href="#808">808</a> <em class="jxr_javadoccomment">	 * Get All DbRule from database or from internal hashMap in case of no database support</em>
+<a class="jxr_linenumber" name="809" href="#809">809</a> <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="810" href="#810">810</a> <em class="jxr_javadoccomment">	 * @param dbSession</em>
+<a class="jxr_linenumber" name="811" href="#811">811</a> <em class="jxr_javadoccomment">	 *            may be null</em>
+<a class="jxr_linenumber" name="812" href="#812">812</a> <em class="jxr_javadoccomment">	 * @return the array of DbRule</em>
+<a class="jxr_linenumber" name="813" href="#813">813</a> <em class="jxr_javadoccomment">	 * @throws WaarpDatabaseNoConnectionException</em>
+<a class="jxr_linenumber" name="814" href="#814">814</a> <em class="jxr_javadoccomment">	 * @throws WaarpDatabaseSqlException</em>
+<a class="jxr_linenumber" name="815" href="#815">815</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="816" href="#816">816</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <a href="../../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>[] getAllRules(DbSession dbSession)
+<a class="jxr_linenumber" name="817" href="#817">817</a> 			<strong class="jxr_keyword">throws</strong> WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
+<a class="jxr_linenumber" name="818" href="#818">818</a> 		DbRule[] result = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>[0];
+<a class="jxr_linenumber" name="819" href="#819">819</a> 		<strong class="jxr_keyword">if</strong> (!dbR66RuleHashMap.isEmpty()) {
+<a class="jxr_linenumber" name="820" href="#820">820</a> 			<strong class="jxr_keyword">return</strong> dbR66RuleHashMap.values().toArray(result);
+<a class="jxr_linenumber" name="821" href="#821">821</a> 		}
+<a class="jxr_linenumber" name="822" href="#822">822</a> 		<strong class="jxr_keyword">if</strong> (dbSession == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="823" href="#823">823</a> 			<strong class="jxr_keyword">return</strong> result;
+<a class="jxr_linenumber" name="824" href="#824">824</a> 		}
+<a class="jxr_linenumber" name="825" href="#825">825</a> 		String request = <span class="jxr_string">"SELECT "</span> + selectAllFields;
+<a class="jxr_linenumber" name="826" href="#826">826</a> 		request += <span class="jxr_string">" FROM "</span> + table;
+<a class="jxr_linenumber" name="827" href="#827">827</a> 		DbPreparedStatement preparedStatement = <strong class="jxr_keyword">new</strong> DbPreparedStatement(dbSession, request);
+<a class="jxr_linenumber" name="828" href="#828">828</a> 		ArrayList&lt;DbRule&gt; dbArrayList = <strong class="jxr_keyword">new</strong> ArrayList&lt;DbRule&gt;();
+<a class="jxr_linenumber" name="829" href="#829">829</a> 		preparedStatement.executeQuery();
+<a class="jxr_linenumber" name="830" href="#830">830</a> 		<strong class="jxr_keyword">while</strong> (preparedStatement.getNext()) {
+<a class="jxr_linenumber" name="831" href="#831">831</a> 			DbRule dbrule = getFromStatement(preparedStatement);
+<a class="jxr_linenumber" name="832" href="#832">832</a> 			dbArrayList.add(dbrule);
+<a class="jxr_linenumber" name="833" href="#833">833</a> 		}
+<a class="jxr_linenumber" name="834" href="#834">834</a> 		preparedStatement.realClose();
+<a class="jxr_linenumber" name="835" href="#835">835</a> 		<strong class="jxr_keyword">return</strong> dbArrayList.toArray(result);
+<a class="jxr_linenumber" name="836" href="#836">836</a> 	}
+<a class="jxr_linenumber" name="837" href="#837">837</a> 
+<a class="jxr_linenumber" name="838" href="#838">838</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="839" href="#839">839</a> <em class="jxr_javadoccomment">	 * For instance from Commander when getting updated information</em>
+<a class="jxr_linenumber" name="840" href="#840">840</a> <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="841" href="#841">841</a> <em class="jxr_javadoccomment">	 * @param preparedStatement</em>
+<a class="jxr_linenumber" name="842" href="#842">842</a> <em class="jxr_javadoccomment">	 * @return the next updated DbRule</em>
+<a class="jxr_linenumber" name="843" href="#843">843</a> <em class="jxr_javadoccomment">	 * @throws WaarpDatabaseNoConnectionException</em>
+<a class="jxr_linenumber" name="844" href="#844">844</a> <em class="jxr_javadoccomment">	 * @throws WaarpDatabaseSqlException</em>
+<a class="jxr_linenumber" name="845" href="#845">845</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="846" href="#846">846</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <a href="../../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a> getFromStatement(DbPreparedStatement preparedStatement)
+<a class="jxr_linenumber" name="847" href="#847">847</a> 			<strong class="jxr_keyword">throws</strong> WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
+<a class="jxr_linenumber" name="848" href="#848">848</a> 		DbRule dbRule = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>(preparedStatement.getDbSession());
+<a class="jxr_linenumber" name="849" href="#849">849</a> 		dbRule.getValues(preparedStatement, dbRule.allFields);
+<a class="jxr_linenumber" name="850" href="#850">850</a> 		dbRule.setFromArray();
+<a class="jxr_linenumber" name="851" href="#851">851</a> 		dbRule.isSaved = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="852" href="#852">852</a> 		logger.debug(<span class="jxr_string">"Get one Rule from Db: "</span>+dbRule.idRule);
+<a class="jxr_linenumber" name="853" href="#853">853</a> 		dbR66RuleHashMap.put(dbRule.idRule, dbRule);
+<a class="jxr_linenumber" name="854" href="#854">854</a> 		<strong class="jxr_keyword">return</strong> dbRule;
+<a class="jxr_linenumber" name="855" href="#855">855</a> 	}
+<a class="jxr_linenumber" name="856" href="#856">856</a> 
+<a class="jxr_linenumber" name="857" href="#857">857</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="858" href="#858">858</a> <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="859" href="#859">859</a> <em class="jxr_javadoccomment">	 * @return the DbPreparedStatement for getting Updated Object</em>
+<a class="jxr_linenumber" name="860" href="#860">860</a> <em class="jxr_javadoccomment">	 * @throws WaarpDatabaseNoConnectionException</em>
+<a class="jxr_linenumber" name="861" href="#861">861</a> <em class="jxr_javadoccomment">	 * @throws WaarpDatabaseSqlException</em>
+<a class="jxr_linenumber" name="862" href="#862">862</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="863" href="#863">863</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> DbPreparedStatement getUpdatedPrepareStament(DbSession session)
+<a class="jxr_linenumber" name="864" href="#864">864</a> 			<strong class="jxr_keyword">throws</strong> WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
+<a class="jxr_linenumber" name="865" href="#865">865</a> 		String request = <span class="jxr_string">"SELECT "</span> + selectAllFields;
+<a class="jxr_linenumber" name="866" href="#866">866</a> 		request += <span class="jxr_string">" FROM "</span> + table +
+<a class="jxr_linenumber" name="867" href="#867">867</a> 				<span class="jxr_string">" WHERE "</span> + Columns.UPDATEDINFO.name() + <span class="jxr_string">" = "</span> +
+<a class="jxr_linenumber" name="868" href="#868">868</a> 				AbstractDbData.UpdatedInfo.TOSUBMIT.ordinal();
+<a class="jxr_linenumber" name="869" href="#869">869</a> 		DbPreparedStatement prep = <strong class="jxr_keyword">new</strong> DbPreparedStatement(session, request);
+<a class="jxr_linenumber" name="870" href="#870">870</a> 		<strong class="jxr_keyword">return</strong> prep;
+<a class="jxr_linenumber" name="871" href="#871">871</a> 	}
+<a class="jxr_linenumber" name="872" href="#872">872</a> 
+<a class="jxr_linenumber" name="873" href="#873">873</a> 	<em class="jxr_comment">/*</em>
+<a class="jxr_linenumber" name="874" href="#874">874</a> <em class="jxr_comment">	 * (non-Javadoc)</em>
+<a class="jxr_linenumber" name="875" href="#875">875</a> <em class="jxr_comment">	 * @see org.waarp.openr66.databaseold.data.AbstractDbData#changeUpdatedInfo(UpdatedInfo)</em>
+<a class="jxr_linenumber" name="876" href="#876">876</a> <em class="jxr_comment">	 */</em>
+<a class="jxr_linenumber" name="877" href="#877">877</a> 	@Override
+<a class="jxr_linenumber" name="878" href="#878">878</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> changeUpdatedInfo(UpdatedInfo info) {
+<a class="jxr_linenumber" name="879" href="#879">879</a> 		<strong class="jxr_keyword">if</strong> (updatedInfo != info.ordinal()) {
+<a class="jxr_linenumber" name="880" href="#880">880</a> 			updatedInfo = info.ordinal();
+<a class="jxr_linenumber" name="881" href="#881">881</a> 			allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
+<a class="jxr_linenumber" name="882" href="#882">882</a> 			isSaved = false;
+<a class="jxr_linenumber" name="883" href="#883">883</a> 		}
+<a class="jxr_linenumber" name="884" href="#884">884</a> 	}
+<a class="jxr_linenumber" name="885" href="#885">885</a> 
+<a class="jxr_linenumber" name="886" href="#886">886</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="887" href="#887">887</a> <em class="jxr_javadoccomment">	 * Get Ids from String. If it is not ok, then it sets the default values and return False, else</em>
+<a class="jxr_linenumber" name="888" href="#888">888</a> <em class="jxr_javadoccomment">	 * returns True.</em>
+<a class="jxr_linenumber" name="889" href="#889">889</a> <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="890" href="#890">890</a> <em class="jxr_javadoccomment">	 * @param idsref</em>
+<a class="jxr_linenumber" name="891" href="#891">891</a> <em class="jxr_javadoccomment">	 * @return True if ok, else False (default values).</em>
+<a class="jxr_linenumber" name="892" href="#892">892</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="893" href="#893">893</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">boolean</strong> getIdsRule(String idsref) {
+<a class="jxr_linenumber" name="894" href="#894">894</a> 		<strong class="jxr_keyword">if</strong> (idsref == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="895" href="#895">895</a> 			<em class="jxr_comment">// No ids so setting to the default!</em>
+<a class="jxr_linenumber" name="896" href="#896">896</a> 			ids = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="897" href="#897">897</a> 			idsArray = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="898" href="#898">898</a> 			<strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="899" href="#899">899</a> 		}
+<a class="jxr_linenumber" name="900" href="#900">900</a> 		ids = idsref;
+<a class="jxr_linenumber" name="901" href="#901">901</a> 		StringReader reader = <strong class="jxr_keyword">new</strong> StringReader(idsref);
+<a class="jxr_linenumber" name="902" href="#902">902</a> 		Document document = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="903" href="#903">903</a> 		<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="904" href="#904">904</a> 			document = <strong class="jxr_keyword">new</strong> SAXReader().read(reader);
+<a class="jxr_linenumber" name="905" href="#905">905</a> 		} <strong class="jxr_keyword">catch</strong> (DocumentException e) {
+<a class="jxr_linenumber" name="906" href="#906">906</a> 			logger.warn(<span class="jxr_string">"Unable to read the ids for Rule: "</span> + idsref, e);
+<a class="jxr_linenumber" name="907" href="#907">907</a> 			<em class="jxr_comment">// No ids so setting to the default!</em>
+<a class="jxr_linenumber" name="908" href="#908">908</a> 			ids = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="909" href="#909">909</a> 			idsArray = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="910" href="#910">910</a> 			reader.close();
+<a class="jxr_linenumber" name="911" href="#911">911</a> 			<strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="912" href="#912">912</a> 		}
+<a class="jxr_linenumber" name="913" href="#913">913</a> 		XmlValue[] values = XmlUtil.read(document,
+<a class="jxr_linenumber" name="914" href="#914">914</a> 				RuleFileBasedConfiguration.hostsDecls);
+<a class="jxr_linenumber" name="915" href="#915">915</a> 		idsArray = RuleFileBasedConfiguration.getHostIds(values[0]);
+<a class="jxr_linenumber" name="916" href="#916">916</a> 		reader.close();
+<a class="jxr_linenumber" name="917" href="#917">917</a> 		<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="918" href="#918">918</a> 	}
+<a class="jxr_linenumber" name="919" href="#919">919</a> 
+<a class="jxr_linenumber" name="920" href="#920">920</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="921" href="#921">921</a> <em class="jxr_javadoccomment">	 * Get Tasks from String. If it is not ok, then it sets the default values and return new array</em>
+<a class="jxr_linenumber" name="922" href="#922">922</a> <em class="jxr_javadoccomment">	 * of Tasks or null if in error.</em>
+<a class="jxr_linenumber" name="923" href="#923">923</a> <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="924" href="#924">924</a> <em class="jxr_javadoccomment">	 * @param tasks</em>
+<a class="jxr_linenumber" name="925" href="#925">925</a> <em class="jxr_javadoccomment">	 * @return Array of tasks or empty array if in error.</em>
+<a class="jxr_linenumber" name="926" href="#926">926</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="927" href="#927">927</a> 	<strong class="jxr_keyword">private</strong> String[][] getTasksRule(String tasks) {
+<a class="jxr_linenumber" name="928" href="#928">928</a> 		<strong class="jxr_keyword">if</strong> (tasks == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="929" href="#929">929</a> 			<em class="jxr_comment">// No tasks so setting to the default!</em>
+<a class="jxr_linenumber" name="930" href="#930">930</a> 			<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> String[0][0];
+<a class="jxr_linenumber" name="931" href="#931">931</a> 		}
+<a class="jxr_linenumber" name="932" href="#932">932</a> 		StringReader reader = <strong class="jxr_keyword">new</strong> StringReader(tasks);
+<a class="jxr_linenumber" name="933" href="#933">933</a> 		Document document = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="934" href="#934">934</a> 		<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="935" href="#935">935</a> 			document = <strong class="jxr_keyword">new</strong> SAXReader().read(reader);
+<a class="jxr_linenumber" name="936" href="#936">936</a> 		} <strong class="jxr_keyword">catch</strong> (DocumentException e) {
+<a class="jxr_linenumber" name="937" href="#937">937</a> 			logger.warn(<span class="jxr_string">"Unable to read the tasks for Rule: "</span> + tasks, e);
+<a class="jxr_linenumber" name="938" href="#938">938</a> 			<em class="jxr_comment">// No tasks so setting to the default!</em>
+<a class="jxr_linenumber" name="939" href="#939">939</a> 			reader.close();
+<a class="jxr_linenumber" name="940" href="#940">940</a> 			<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> String[0][0];
+<a class="jxr_linenumber" name="941" href="#941">941</a> 		}
+<a class="jxr_linenumber" name="942" href="#942">942</a> 		XmlValue[] values = XmlUtil.read(document, RuleFileBasedConfiguration.tasksDecl);
+<a class="jxr_linenumber" name="943" href="#943">943</a> 		String[][] result = RuleFileBasedConfiguration.getTasksRule(values[0]);
+<a class="jxr_linenumber" name="944" href="#944">944</a> 		reader.close();
+<a class="jxr_linenumber" name="945" href="#945">945</a> 		<strong class="jxr_keyword">return</strong> result;
+<a class="jxr_linenumber" name="946" href="#946">946</a> 	}
+<a class="jxr_linenumber" name="947" href="#947">947</a> 
+<a class="jxr_linenumber" name="948" href="#948">948</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="949" href="#949">949</a> <em class="jxr_javadoccomment">	 * Initialized a ids String from args</em>
+<a class="jxr_linenumber" name="950" href="#950">950</a> <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="951" href="#951">951</a> <em class="jxr_javadoccomment">	 * @param idsArray</em>
+<a class="jxr_linenumber" name="952" href="#952">952</a> <em class="jxr_javadoccomment">	 * @return the new ids string</em>
+<a class="jxr_linenumber" name="953" href="#953">953</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="954" href="#954">954</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> String setIdsRule(String[] idsArray) {
+<a class="jxr_linenumber" name="955" href="#955">955</a> 		String ids = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="956" href="#956">956</a> 		<strong class="jxr_keyword">if</strong> (idsArray != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="957" href="#957">957</a> 			ids = XMLHOSTIDS;
+<a class="jxr_linenumber" name="958" href="#958">958</a> 			<strong class="jxr_keyword">for</strong> (String element : idsArray) {
+<a class="jxr_linenumber" name="959" href="#959">959</a> 				ids += XMLHOSTID + element + XMLENDHOSTID + <span class="jxr_string">"\n"</span>;
+<a class="jxr_linenumber" name="960" href="#960">960</a> 			}
+<a class="jxr_linenumber" name="961" href="#961">961</a> 			ids += XMLENDHOSTIDS;
+<a class="jxr_linenumber" name="962" href="#962">962</a> 		}
+<a class="jxr_linenumber" name="963" href="#963">963</a> 		<strong class="jxr_keyword">return</strong> ids;
+<a class="jxr_linenumber" name="964" href="#964">964</a> 	}
+<a class="jxr_linenumber" name="965" href="#965">965</a> 
+<a class="jxr_linenumber" name="966" href="#966">966</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="967" href="#967">967</a> <em class="jxr_javadoccomment">	 * Initialized a tasks String from args</em>
+<a class="jxr_linenumber" name="968" href="#968">968</a> <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="969" href="#969">969</a> <em class="jxr_javadoccomment">	 * @param tasksArray</em>
+<a class="jxr_linenumber" name="970" href="#970">970</a> <em class="jxr_javadoccomment">	 * @return the new tasks string</em>
+<a class="jxr_linenumber" name="971" href="#971">971</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="972" href="#972">972</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> String setTasksRule(String[][] tasksArray) {
+<a class="jxr_linenumber" name="973" href="#973">973</a> 		StringBuilder builder = <strong class="jxr_keyword">new</strong> StringBuilder();
+<a class="jxr_linenumber" name="974" href="#974">974</a> 		<strong class="jxr_keyword">if</strong> (tasksArray != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="975" href="#975">975</a> 			builder.append(XMLTASKS);
+<a class="jxr_linenumber" name="976" href="#976">976</a> 			<strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; tasksArray.length; i++) {
+<a class="jxr_linenumber" name="977" href="#977">977</a> 				builder.append(XMLTASK);
+<a class="jxr_linenumber" name="978" href="#978">978</a> 				builder.append('&lt;').append(TASK_TYPE).append('&gt;');
+<a class="jxr_linenumber" name="979" href="#979">979</a> 				builder.append(tasksArray[i][0]);
+<a class="jxr_linenumber" name="980" href="#980">980</a> 				builder.append(<span class="jxr_string">"&lt;/"</span>).append(TASK_TYPE).append(<span class="jxr_string">"&gt;\n"</span>);
+<a class="jxr_linenumber" name="981" href="#981">981</a> 				builder.append('&lt;').append(TASK_PATH).append('&gt;');
+<a class="jxr_linenumber" name="982" href="#982">982</a> 				builder.append(tasksArray[i][1]);
+<a class="jxr_linenumber" name="983" href="#983">983</a> 				builder.append(<span class="jxr_string">"&lt;/"</span>).append(TASK_PATH).append(<span class="jxr_string">"&gt;\n"</span>);
+<a class="jxr_linenumber" name="984" href="#984">984</a> 				builder.append('&lt;').append(TASK_DELAY).append('&gt;');
+<a class="jxr_linenumber" name="985" href="#985">985</a> 				builder.append(tasksArray[i][2]);
+<a class="jxr_linenumber" name="986" href="#986">986</a> 				builder.append(<span class="jxr_string">"&lt;/"</span>).append(TASK_DELAY).append('&gt;');
+<a class="jxr_linenumber" name="987" href="#987">987</a> 				builder.append(XMLENDTASK).append('\n');
+<a class="jxr_linenumber" name="988" href="#988">988</a> 			}
+<a class="jxr_linenumber" name="989" href="#989">989</a> 			builder.append(XMLENDTASKS);
+<a class="jxr_linenumber" name="990" href="#990">990</a> 		}
+<a class="jxr_linenumber" name="991" href="#991">991</a> 		<strong class="jxr_keyword">return</strong> builder.toString();
+<a class="jxr_linenumber" name="992" href="#992">992</a> 	}
+<a class="jxr_linenumber" name="993" href="#993">993</a> 
+<a class="jxr_linenumber" name="994" href="#994">994</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="995" href="#995">995</a> <em class="jxr_javadoccomment">	 * Get the full path from RecvPath (used only in copy MODETRANS)</em>
+<a class="jxr_linenumber" name="996" href="#996">996</a> <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="997" href="#997">997</a> <em class="jxr_javadoccomment">	 * @param filename</em>
+<a class="jxr_linenumber" name="998" href="#998">998</a> <em class="jxr_javadoccomment">	 * @return the full String path</em>
+<a class="jxr_linenumber" name="999" href="#999">999</a> <em class="jxr_javadoccomment">	 * @throws OpenR66ProtocolSystemException</em>
+<a class="jxr_linenumber" name="1000" href="#1000">1000</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="1001" href="#1001">1001</a> 	<strong class="jxr_keyword">public</strong> String setRecvPath(String filename)
+<a class="jxr_linenumber" name="1002" href="#1002">1002</a> 			<strong class="jxr_keyword">throws</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a> {
+<a class="jxr_linenumber" name="1003" href="#1003">1003</a> 		<strong class="jxr_keyword">if</strong> (recvPath != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1004" href="#1004">1004</a> 			<strong class="jxr_keyword">return</strong> recvPath + DirInterface.SEPARATOR + filename;
+<a class="jxr_linenumber" name="1005" href="#1005">1005</a> 		}
+<a class="jxr_linenumber" name="1006" href="#1006">1006</a> 		<strong class="jxr_keyword">return</strong> FileUtils.consolidatePath(Configuration.configuration.inPath,
+<a class="jxr_linenumber" name="1007" href="#1007">1007</a> 				filename);
+<a class="jxr_linenumber" name="1008" href="#1008">1008</a> 	}
+<a class="jxr_linenumber" name="1009" href="#1009">1009</a> 
+<a class="jxr_linenumber" name="1010" href="#1010">1010</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="1011" href="#1011">1011</a> <em class="jxr_javadoccomment">	 * Get the full path from sendPath</em>
+<a class="jxr_linenumber" name="1012" href="#1012">1012</a> <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="1013" href="#1013">1013</a> <em class="jxr_javadoccomment">	 * @param filename</em>
+<a class="jxr_linenumber" name="1014" href="#1014">1014</a> <em class="jxr_javadoccomment">	 * @return the full String path</em>
+<a class="jxr_linenumber" name="1015" href="#1015">1015</a> <em class="jxr_javadoccomment">	 * @throws OpenR66ProtocolSystemException</em>
+<a class="jxr_linenumber" name="1016" href="#1016">1016</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="1017" href="#1017">1017</a> 	<strong class="jxr_keyword">public</strong> String setSendPath(String filename)
+<a class="jxr_linenumber" name="1018" href="#1018">1018</a> 			<strong class="jxr_keyword">throws</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a> {
+<a class="jxr_linenumber" name="1019" href="#1019">1019</a> 		<strong class="jxr_keyword">if</strong> (sendPath != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1020" href="#1020">1020</a> 			File file = <strong class="jxr_keyword">new</strong> File(filename);
+<a class="jxr_linenumber" name="1021" href="#1021">1021</a> 			String basename = file.getName();
+<a class="jxr_linenumber" name="1022" href="#1022">1022</a> 			<strong class="jxr_keyword">return</strong> sendPath + DirInterface.SEPARATOR + basename;
+<a class="jxr_linenumber" name="1023" href="#1023">1023</a> 		}
+<a class="jxr_linenumber" name="1024" href="#1024">1024</a> 		<strong class="jxr_keyword">return</strong> FileUtils.consolidatePath(Configuration.configuration.outPath,
+<a class="jxr_linenumber" name="1025" href="#1025">1025</a> 				filename);
+<a class="jxr_linenumber" name="1026" href="#1026">1026</a> 	}
+<a class="jxr_linenumber" name="1027" href="#1027">1027</a> 
+<a class="jxr_linenumber" name="1028" href="#1028">1028</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="1029" href="#1029">1029</a> <em class="jxr_javadoccomment">	 * Get the full path from archivePath</em>
+<a class="jxr_linenumber" name="1030" href="#1030">1030</a> <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="1031" href="#1031">1031</a> <em class="jxr_javadoccomment">	 * @param filename</em>
+<a class="jxr_linenumber" name="1032" href="#1032">1032</a> <em class="jxr_javadoccomment">	 * @return the full String path</em>
+<a class="jxr_linenumber" name="1033" href="#1033">1033</a> <em class="jxr_javadoccomment">	 * @throws OpenR66ProtocolSystemException</em>
+<a class="jxr_linenumber" name="1034" href="#1034">1034</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="1035" href="#1035">1035</a> 	<strong class="jxr_keyword">public</strong> String setArchivePath(String filename)
+<a class="jxr_linenumber" name="1036" href="#1036">1036</a> 			<strong class="jxr_keyword">throws</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a> {
+<a class="jxr_linenumber" name="1037" href="#1037">1037</a> 		<strong class="jxr_keyword">if</strong> (archivePath != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1038" href="#1038">1038</a> 			<strong class="jxr_keyword">return</strong> archivePath + DirInterface.SEPARATOR + filename;
+<a class="jxr_linenumber" name="1039" href="#1039">1039</a> 		}
+<a class="jxr_linenumber" name="1040" href="#1040">1040</a> 		<strong class="jxr_keyword">return</strong> FileUtils.consolidatePath(
+<a class="jxr_linenumber" name="1041" href="#1041">1041</a> 				Configuration.configuration.archivePath, filename);
+<a class="jxr_linenumber" name="1042" href="#1042">1042</a> 	}
+<a class="jxr_linenumber" name="1043" href="#1043">1043</a> 
+<a class="jxr_linenumber" name="1044" href="#1044">1044</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="1045" href="#1045">1045</a> <em class="jxr_javadoccomment">	 * Get the full path from workPath</em>
+<a class="jxr_linenumber" name="1046" href="#1046">1046</a> <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="1047" href="#1047">1047</a> <em class="jxr_javadoccomment">	 * @param filename</em>
+<a class="jxr_linenumber" name="1048" href="#1048">1048</a> <em class="jxr_javadoccomment">	 * @return the full String path</em>
+<a class="jxr_linenumber" name="1049" href="#1049">1049</a> <em class="jxr_javadoccomment">	 * @throws OpenR66ProtocolSystemException</em>
+<a class="jxr_linenumber" name="1050" href="#1050">1050</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="1051" href="#1051">1051</a> 	<strong class="jxr_keyword">public</strong> String setWorkingPath(String filename)
+<a class="jxr_linenumber" name="1052" href="#1052">1052</a> 			<strong class="jxr_keyword">throws</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a> {
+<a class="jxr_linenumber" name="1053" href="#1053">1053</a> 		<strong class="jxr_keyword">if</strong> (workPath != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1054" href="#1054">1054</a> 			<strong class="jxr_keyword">return</strong> workPath + DirInterface.SEPARATOR + filename +
+<a class="jxr_linenumber" name="1055" href="#1055">1055</a> 					Configuration.EXT_R66;
+<a class="jxr_linenumber" name="1056" href="#1056">1056</a> 		}
+<a class="jxr_linenumber" name="1057" href="#1057">1057</a> 		<strong class="jxr_keyword">return</strong> FileUtils.consolidatePath(
+<a class="jxr_linenumber" name="1058" href="#1058">1058</a> 				Configuration.configuration.workingPath, filename);
+<a class="jxr_linenumber" name="1059" href="#1059">1059</a> 	}
+<a class="jxr_linenumber" name="1060" href="#1060">1060</a> 
+<a class="jxr_linenumber" name="1061" href="#1061">1061</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="1062" href="#1062">1062</a> <em class="jxr_javadoccomment">	 * Check if the given hostTo is in the allowed list</em>
+<a class="jxr_linenumber" name="1063" href="#1063">1063</a> <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="1064" href="#1064">1064</a> <em class="jxr_javadoccomment">	 * @param hostId</em>
+<a class="jxr_linenumber" name="1065" href="#1065">1065</a> <em class="jxr_javadoccomment">	 * @return True if allow, else False</em>
+<a class="jxr_linenumber" name="1066" href="#1066">1066</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="1067" href="#1067">1067</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> checkHostAllow(String hostId) {
+<a class="jxr_linenumber" name="1068" href="#1068">1068</a> 		<strong class="jxr_keyword">if</strong> (idsArray == <strong class="jxr_keyword">null</strong> || idsArray.length == 0) {
+<a class="jxr_linenumber" name="1069" href="#1069">1069</a> 			<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>; <em class="jxr_comment">// always true in this case</em>
 <a class="jxr_linenumber" name="1070" href="#1070">1070</a> 		}
-<a class="jxr_linenumber" name="1071" href="#1071">1071</a> 		<strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="1072" href="#1072">1072</a> 	}
-<a class="jxr_linenumber" name="1073" href="#1073">1073</a> 
-<a class="jxr_linenumber" name="1074" href="#1074">1074</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="1075" href="#1075">1075</a> <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="1076" href="#1076">1076</a> <em class="jxr_javadoccomment">	 * @return True if this rule is adapted for SENDMODE</em>
-<a class="jxr_linenumber" name="1077" href="#1077">1077</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="1078" href="#1078">1078</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isSendMode() {
-<a class="jxr_linenumber" name="1079" href="#1079">1079</a> 		<strong class="jxr_keyword">return</strong> (!RequestPacket.isRecvMode(mode));
-<a class="jxr_linenumber" name="1080" href="#1080">1080</a> 	}
-<a class="jxr_linenumber" name="1081" href="#1081">1081</a> 
-<a class="jxr_linenumber" name="1082" href="#1082">1082</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="1083" href="#1083">1083</a> <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="1084" href="#1084">1084</a> <em class="jxr_javadoccomment">	 * @return True if this rule is adapted for RECVMODE</em>
-<a class="jxr_linenumber" name="1085" href="#1085">1085</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="1086" href="#1086">1086</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isRecvMode() {
-<a class="jxr_linenumber" name="1087" href="#1087">1087</a> 		<strong class="jxr_keyword">return</strong> RequestPacket.isRecvMode(mode);
-<a class="jxr_linenumber" name="1088" href="#1088">1088</a> 	}
-<a class="jxr_linenumber" name="1089" href="#1089">1089</a> 
-<a class="jxr_linenumber" name="1090" href="#1090">1090</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="1091" href="#1091">1091</a> <em class="jxr_javadoccomment">	 * Object to String</em>
-<a class="jxr_linenumber" name="1092" href="#1092">1092</a> <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="1093" href="#1093">1093</a> <em class="jxr_javadoccomment">	 * @return the string that displays this object</em>
-<a class="jxr_linenumber" name="1094" href="#1094">1094</a> <em class="jxr_javadoccomment">	 * @see java.lang.Object#toString()</em>
-<a class="jxr_linenumber" name="1095" href="#1095">1095</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="1096" href="#1096">1096</a> 	@Override
-<a class="jxr_linenumber" name="1097" href="#1097">1097</a> 	<strong class="jxr_keyword">public</strong> String toString() {
-<a class="jxr_linenumber" name="1098" href="#1098">1098</a> 		<strong class="jxr_keyword">return</strong> <span class="jxr_string">"Rule Name:"</span> + idRule + <span class="jxr_string">" IDS:"</span> + ids + <span class="jxr_string">" MODETRANS: "</span> +
-<a class="jxr_linenumber" name="1099" href="#1099">1099</a> 				RequestPacket.TRANSFERMODE.values()[mode].toString() +
-<a class="jxr_linenumber" name="1100" href="#1100">1100</a> 				<span class="jxr_string">" RECV:"</span> + recvPath + <span class="jxr_string">" SEND:"</span> + sendPath + <span class="jxr_string">" ARCHIVE:"</span> +
-<a class="jxr_linenumber" name="1101" href="#1101">1101</a> 				archivePath + <span class="jxr_string">" WORK:"</span> + workPath +
-<a class="jxr_linenumber" name="1102" href="#1102">1102</a> 				<span class="jxr_string">"\nRPRET:"</span> + rpreTasks + <span class="jxr_string">"\nRPOST:"</span> + rpostTasks + <span class="jxr_string">"\nRERROR:"</span> + rerrorTasks +
-<a class="jxr_linenumber" name="1103" href="#1103">1103</a> 				<span class="jxr_string">"\nSPRET:"</span> + spreTasks + <span class="jxr_string">"\nSPOST:"</span> + spostTasks + <span class="jxr_string">"\nSERROR:"</span> + serrorTasks;
-<a class="jxr_linenumber" name="1104" href="#1104">1104</a> 	}
-<a class="jxr_linenumber" name="1105" href="#1105">1105</a> 
-<a class="jxr_linenumber" name="1106" href="#1106">1106</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="1107" href="#1107">1107</a> <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="1108" href="#1108">1108</a> <em class="jxr_javadoccomment">	 * @param isSender</em>
-<a class="jxr_linenumber" name="1109" href="#1109">1109</a> <em class="jxr_javadoccomment">	 * @param step</em>
-<a class="jxr_linenumber" name="1110" href="#1110">1110</a> <em class="jxr_javadoccomment">	 * @return a string that prints (debug) the tasks to execute</em>
-<a class="jxr_linenumber" name="1111" href="#1111">1111</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="1112" href="#1112">1112</a> 	<strong class="jxr_keyword">public</strong> String printTasks(<strong class="jxr_keyword">boolean</strong> isSender, <a href="../../../../../org/waarp/openr66/database/data/DbTaskRunner.html">TASKSTEP</a> step) {
-<a class="jxr_linenumber" name="1113" href="#1113">1113</a> 		<strong class="jxr_keyword">if</strong> (isSender) {
-<a class="jxr_linenumber" name="1114" href="#1114">1114</a> 			<strong class="jxr_keyword">switch</strong> (step) {
-<a class="jxr_linenumber" name="1115" href="#1115">1115</a> 				<strong class="jxr_keyword">case</strong> PRETASK:
-<a class="jxr_linenumber" name="1116" href="#1116">1116</a> 					<strong class="jxr_keyword">return</strong> <span class="jxr_string">"S:"</span> + spreTasks;
-<a class="jxr_linenumber" name="1117" href="#1117">1117</a> 				<strong class="jxr_keyword">case</strong> POSTTASK:
-<a class="jxr_linenumber" name="1118" href="#1118">1118</a> 					<strong class="jxr_keyword">return</strong> <span class="jxr_string">"S:"</span> + spostTasks;
-<a class="jxr_linenumber" name="1119" href="#1119">1119</a> 				<strong class="jxr_keyword">case</strong> ERRORTASK:
-<a class="jxr_linenumber" name="1120" href="#1120">1120</a> 					<strong class="jxr_keyword">return</strong> <span class="jxr_string">"S:"</span> + serrorTasks;
-<a class="jxr_linenumber" name="1121" href="#1121">1121</a> 				<strong class="jxr_keyword">default</strong>:
-<a class="jxr_linenumber" name="1122" href="#1122">1122</a> 					<strong class="jxr_keyword">return</strong> <span class="jxr_string">"S:no task"</span>;
-<a class="jxr_linenumber" name="1123" href="#1123">1123</a> 			}
-<a class="jxr_linenumber" name="1124" href="#1124">1124</a> 		} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="1125" href="#1125">1125</a> 			<strong class="jxr_keyword">switch</strong> (step) {
-<a class="jxr_linenumber" name="1126" href="#1126">1126</a> 				<strong class="jxr_keyword">case</strong> PRETASK:
-<a class="jxr_linenumber" name="1127" href="#1127">1127</a> 					<strong class="jxr_keyword">return</strong> <span class="jxr_string">"R:"</span> + rpreTasks;
-<a class="jxr_linenumber" name="1128" href="#1128">1128</a> 				<strong class="jxr_keyword">case</strong> POSTTASK:
-<a class="jxr_linenumber" name="1129" href="#1129">1129</a> 					<strong class="jxr_keyword">return</strong> <span class="jxr_string">"R:"</span> + rpostTasks;
-<a class="jxr_linenumber" name="1130" href="#1130">1130</a> 				<strong class="jxr_keyword">case</strong> ERRORTASK:
-<a class="jxr_linenumber" name="1131" href="#1131">1131</a> 					<strong class="jxr_keyword">return</strong> <span class="jxr_string">"R:"</span> + rerrorTasks;
-<a class="jxr_linenumber" name="1132" href="#1132">1132</a> 				<strong class="jxr_keyword">default</strong>:
-<a class="jxr_linenumber" name="1133" href="#1133">1133</a> 					<strong class="jxr_keyword">return</strong> <span class="jxr_string">"R:no task"</span>;
-<a class="jxr_linenumber" name="1134" href="#1134">1134</a> 			}
-<a class="jxr_linenumber" name="1135" href="#1135">1135</a> 		}
-<a class="jxr_linenumber" name="1136" href="#1136">1136</a> 	}
-<a class="jxr_linenumber" name="1137" href="#1137">1137</a> 
-<a class="jxr_linenumber" name="1138" href="#1138">1138</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="1139" href="#1139">1139</a> <em class="jxr_javadoccomment">	 * Object to String</em>
-<a class="jxr_linenumber" name="1140" href="#1140">1140</a> <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="1141" href="#1141">1141</a> <em class="jxr_javadoccomment">	 * @return the string that displays this object</em>
-<a class="jxr_linenumber" name="1142" href="#1142">1142</a> <em class="jxr_javadoccomment">	 * @see java.lang.Object#toString()</em>
-<a class="jxr_linenumber" name="1143" href="#1143">1143</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="1144" href="#1144">1144</a> 	<strong class="jxr_keyword">public</strong> String toShortString() {
-<a class="jxr_linenumber" name="1145" href="#1145">1145</a> 		<strong class="jxr_keyword">return</strong> <span class="jxr_string">"Rule Name:"</span> + idRule + <span class="jxr_string">" MODETRANS: "</span> +
-<a class="jxr_linenumber" name="1146" href="#1146">1146</a> 				RequestPacket.TRANSFERMODE.values()[mode].toString();
-<a class="jxr_linenumber" name="1147" href="#1147">1147</a> 	}
-<a class="jxr_linenumber" name="1148" href="#1148">1148</a> 
-<a class="jxr_linenumber" name="1149" href="#1149">1149</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="1150" href="#1150">1150</a> <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="1151" href="#1151">1151</a> <em class="jxr_javadoccomment">	 * @param session</em>
-<a class="jxr_linenumber" name="1152" href="#1152">1152</a> <em class="jxr_javadoccomment">	 * @param rule</em>
-<a class="jxr_linenumber" name="1153" href="#1153">1153</a> <em class="jxr_javadoccomment">	 * @param mode</em>
-<a class="jxr_linenumber" name="1154" href="#1154">1154</a> <em class="jxr_javadoccomment">	 * @return the DbPreparedStatement according to the filter</em>
-<a class="jxr_linenumber" name="1155" href="#1155">1155</a> <em class="jxr_javadoccomment">	 * @throws WaarpDatabaseNoConnectionException</em>
-<a class="jxr_linenumber" name="1156" href="#1156">1156</a> <em class="jxr_javadoccomment">	 * @throws WaarpDatabaseSqlException</em>
-<a class="jxr_linenumber" name="1157" href="#1157">1157</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="1158" href="#1158">1158</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> DbPreparedStatement getFilterPrepareStament(DbSession session,
-<a class="jxr_linenumber" name="1159" href="#1159">1159</a> 			String rule, <strong class="jxr_keyword">int</strong> mode)
-<a class="jxr_linenumber" name="1160" href="#1160">1160</a> 			<strong class="jxr_keyword">throws</strong> WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
-<a class="jxr_linenumber" name="1161" href="#1161">1161</a> 		DbPreparedStatement preparedStatement = <strong class="jxr_keyword">new</strong> DbPreparedStatement(session);
-<a class="jxr_linenumber" name="1162" href="#1162">1162</a> 		String request = <span class="jxr_string">"SELECT "</span> + selectAllFields + <span class="jxr_string">" FROM "</span> + table;
-<a class="jxr_linenumber" name="1163" href="#1163">1163</a> 		String condition = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="1164" href="#1164">1164</a> 		<strong class="jxr_keyword">if</strong> (rule != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="1165" href="#1165">1165</a> 			condition = <span class="jxr_string">" WHERE "</span> + Columns.IDRULE.name() + <span class="jxr_string">" LIKE '%"</span> + rule + <span class="jxr_string">"%' "</span>;
-<a class="jxr_linenumber" name="1166" href="#1166">1166</a> 		}
-<a class="jxr_linenumber" name="1167" href="#1167">1167</a> 		<strong class="jxr_keyword">if</strong> (mode &gt;= 0) {
-<a class="jxr_linenumber" name="1168" href="#1168">1168</a> 			<strong class="jxr_keyword">if</strong> (condition != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="1169" href="#1169">1169</a> 				condition += <span class="jxr_string">" AND "</span>;
-<a class="jxr_linenumber" name="1170" href="#1170">1170</a> 			} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="1171" href="#1171">1171</a> 				condition = <span class="jxr_string">" WHERE "</span>;
-<a class="jxr_linenumber" name="1172" href="#1172">1172</a> 			}
-<a class="jxr_linenumber" name="1173" href="#1173">1173</a> 			condition += Columns.MODETRANS.name() + <span class="jxr_string">" = ?"</span>;
-<a class="jxr_linenumber" name="1174" href="#1174">1174</a> 		} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="1175" href="#1175">1175</a> 			condition = <span class="jxr_string">""</span>;
-<a class="jxr_linenumber" name="1176" href="#1176">1176</a> 		}
-<a class="jxr_linenumber" name="1177" href="#1177">1177</a> 		preparedStatement.createPrepareStatement(request + condition +
-<a class="jxr_linenumber" name="1178" href="#1178">1178</a> 				<span class="jxr_string">" ORDER BY "</span> + Columns.IDRULE.name());
-<a class="jxr_linenumber" name="1179" href="#1179">1179</a> 		<strong class="jxr_keyword">if</strong> (mode &gt;= 0) {
-<a class="jxr_linenumber" name="1180" href="#1180">1180</a> 			<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="1181" href="#1181">1181</a> 				preparedStatement.getPreparedStatement().setInt(1, mode);
-<a class="jxr_linenumber" name="1182" href="#1182">1182</a> 			} <strong class="jxr_keyword">catch</strong> (SQLException e) {
-<a class="jxr_linenumber" name="1183" href="#1183">1183</a> 				preparedStatement.realClose();
-<a class="jxr_linenumber" name="1184" href="#1184">1184</a> 				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> WaarpDatabaseSqlException(e);
-<a class="jxr_linenumber" name="1185" href="#1185">1185</a> 			}
-<a class="jxr_linenumber" name="1186" href="#1186">1186</a> 		}
-<a class="jxr_linenumber" name="1187" href="#1187">1187</a> 		<strong class="jxr_keyword">return</strong> preparedStatement;
-<a class="jxr_linenumber" name="1188" href="#1188">1188</a> 	}
-<a class="jxr_linenumber" name="1189" href="#1189">1189</a> 
-<a class="jxr_linenumber" name="1190" href="#1190">1190</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="1191" href="#1191">1191</a> <em class="jxr_javadoccomment">	 * @param session</em>
-<a class="jxr_linenumber" name="1192" href="#1192">1192</a> <em class="jxr_javadoccomment">	 * @param body</em>
-<a class="jxr_linenumber" name="1193" href="#1193">1193</a> <em class="jxr_javadoccomment">	 * @return the runner in Html format specified by body by replacing all instance of fields</em>
-<a class="jxr_linenumber" name="1194" href="#1194">1194</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="1195" href="#1195">1195</a> 	<strong class="jxr_keyword">public</strong> String toSpecializedHtml(<a href="../../../../../org/waarp/openr66/context/R66Session.html">R66Session</a> session, String body) {
-<a class="jxr_linenumber" name="1196" href="#1196">1196</a> 		StringBuilder builder = <strong class="jxr_keyword">new</strong> StringBuilder(body);
-<a class="jxr_linenumber" name="1197" href="#1197">1197</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXRULEXXX"</span>, idRule);
-<a class="jxr_linenumber" name="1198" href="#1198">1198</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXIDSXXX"</span>, ids == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">""</span> : ids);
-<a class="jxr_linenumber" name="1199" href="#1199">1199</a> 		<strong class="jxr_keyword">if</strong> (mode == RequestPacket.TRANSFERMODE.RECVMODE.ordinal()) {
-<a class="jxr_linenumber" name="1200" href="#1200">1200</a> 			WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXRECVXXX"</span>, <span class="jxr_string">"checked"</span>);
-<a class="jxr_linenumber" name="1201" href="#1201">1201</a> 		} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (mode == RequestPacket.TRANSFERMODE.SENDMODE.ordinal()) {
-<a class="jxr_linenumber" name="1202" href="#1202">1202</a> 			WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXSENDXXX"</span>, <span class="jxr_string">"checked"</span>);
-<a class="jxr_linenumber" name="1203" href="#1203">1203</a> 		} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (mode == RequestPacket.TRANSFERMODE.RECVMD5MODE.ordinal()) {
-<a class="jxr_linenumber" name="1204" href="#1204">1204</a> 			WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXRECVMXXX"</span>, <span class="jxr_string">"checked"</span>);
-<a class="jxr_linenumber" name="1205" href="#1205">1205</a> 		} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (mode == RequestPacket.TRANSFERMODE.SENDMD5MODE.ordinal()) {
-<a class="jxr_linenumber" name="1206" href="#1206">1206</a> 			WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXSENDMXXX"</span>, <span class="jxr_string">"checked"</span>);
-<a class="jxr_linenumber" name="1207" href="#1207">1207</a> 		} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (mode == RequestPacket.TRANSFERMODE.RECVTHROUGHMODE.ordinal()) {
-<a class="jxr_linenumber" name="1208" href="#1208">1208</a> 			WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXRECVTXXX"</span>, <span class="jxr_string">"checked"</span>);
-<a class="jxr_linenumber" name="1209" href="#1209">1209</a> 		} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (mode == RequestPacket.TRANSFERMODE.SENDTHROUGHMODE.ordinal()) {
-<a class="jxr_linenumber" name="1210" href="#1210">1210</a> 			WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXSENDTXXX"</span>, <span class="jxr_string">"checked"</span>);
-<a class="jxr_linenumber" name="1211" href="#1211">1211</a> 		} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (mode == RequestPacket.TRANSFERMODE.RECVMD5THROUGHMODE.ordinal()) {
-<a class="jxr_linenumber" name="1212" href="#1212">1212</a> 			WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXRECVMTXXX"</span>, <span class="jxr_string">"checked"</span>);
-<a class="jxr_linenumber" name="1213" href="#1213">1213</a> 		} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (mode == RequestPacket.TRANSFERMODE.SENDMD5THROUGHMODE.ordinal()) {
-<a class="jxr_linenumber" name="1214" href="#1214">1214</a> 			WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXSENDMTXXX"</span>, <span class="jxr_string">"checked"</span>);
-<a class="jxr_linenumber" name="1215" href="#1215">1215</a> 		}
-<a class="jxr_linenumber" name="1216" href="#1216">1216</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXRPXXX"</span>, recvPath == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">""</span> : recvPath);
-<a class="jxr_linenumber" name="1217" href="#1217">1217</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXSPXXX"</span>, sendPath == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">""</span> : sendPath);
-<a class="jxr_linenumber" name="1218" href="#1218">1218</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXAPXXX"</span>, archivePath == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">""</span> : archivePath);
-<a class="jxr_linenumber" name="1219" href="#1219">1219</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXWPXXX"</span>, workPath == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">""</span> : workPath);
-<a class="jxr_linenumber" name="1220" href="#1220">1220</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXRPTXXX"</span>, rpreTasks == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">""</span> : rpreTasks);
-<a class="jxr_linenumber" name="1221" href="#1221">1221</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXRSTXXX"</span>, rpostTasks == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">""</span> : rpostTasks);
-<a class="jxr_linenumber" name="1222" href="#1222">1222</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXRETXXX"</span>, rerrorTasks == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">""</span> : rerrorTasks);
-<a class="jxr_linenumber" name="1223" href="#1223">1223</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXSPTXXX"</span>, spreTasks == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">""</span> : spreTasks);
-<a class="jxr_linenumber" name="1224" href="#1224">1224</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXSSTXXX"</span>, spostTasks == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">""</span> : spostTasks);
-<a class="jxr_linenumber" name="1225" href="#1225">1225</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXSETXXX"</span>, serrorTasks == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">""</span> : serrorTasks);
-<a class="jxr_linenumber" name="1226" href="#1226">1226</a> 		<strong class="jxr_keyword">return</strong> builder.toString();
-<a class="jxr_linenumber" name="1227" href="#1227">1227</a> 	}
-<a class="jxr_linenumber" name="1228" href="#1228">1228</a> 
-<a class="jxr_linenumber" name="1229" href="#1229">1229</a> }
+<a class="jxr_linenumber" name="1071" href="#1071">1071</a> 		<strong class="jxr_keyword">for</strong> (String element : idsArray) {
+<a class="jxr_linenumber" name="1072" href="#1072">1072</a> 			<strong class="jxr_keyword">if</strong> (element.equalsIgnoreCase(hostId)) {
+<a class="jxr_linenumber" name="1073" href="#1073">1073</a> 				<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="1074" href="#1074">1074</a> 			}
+<a class="jxr_linenumber" name="1075" href="#1075">1075</a> 		}
+<a class="jxr_linenumber" name="1076" href="#1076">1076</a> 		<strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="1077" href="#1077">1077</a> 	}
+<a class="jxr_linenumber" name="1078" href="#1078">1078</a> 
+<a class="jxr_linenumber" name="1079" href="#1079">1079</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="1080" href="#1080">1080</a> <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="1081" href="#1081">1081</a> <em class="jxr_javadoccomment">	 * @return True if this rule is adapted for SENDMODE</em>
+<a class="jxr_linenumber" name="1082" href="#1082">1082</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="1083" href="#1083">1083</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isSendMode() {
+<a class="jxr_linenumber" name="1084" href="#1084">1084</a> 		<strong class="jxr_keyword">return</strong> (!RequestPacket.isRecvMode(mode));
+<a class="jxr_linenumber" name="1085" href="#1085">1085</a> 	}
+<a class="jxr_linenumber" name="1086" href="#1086">1086</a> 
+<a class="jxr_linenumber" name="1087" href="#1087">1087</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="1088" href="#1088">1088</a> <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="1089" href="#1089">1089</a> <em class="jxr_javadoccomment">	 * @return True if this rule is adapted for RECVMODE</em>
+<a class="jxr_linenumber" name="1090" href="#1090">1090</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="1091" href="#1091">1091</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isRecvMode() {
+<a class="jxr_linenumber" name="1092" href="#1092">1092</a> 		<strong class="jxr_keyword">return</strong> RequestPacket.isRecvMode(mode);
+<a class="jxr_linenumber" name="1093" href="#1093">1093</a> 	}
+<a class="jxr_linenumber" name="1094" href="#1094">1094</a> 
+<a class="jxr_linenumber" name="1095" href="#1095">1095</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="1096" href="#1096">1096</a> <em class="jxr_javadoccomment">	 * Object to String</em>
+<a class="jxr_linenumber" name="1097" href="#1097">1097</a> <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="1098" href="#1098">1098</a> <em class="jxr_javadoccomment">	 * @return the string that displays this object</em>
+<a class="jxr_linenumber" name="1099" href="#1099">1099</a> <em class="jxr_javadoccomment">	 * @see java.lang.Object#toString()</em>
+<a class="jxr_linenumber" name="1100" href="#1100">1100</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="1101" href="#1101">1101</a> 	@Override
+<a class="jxr_linenumber" name="1102" href="#1102">1102</a> 	<strong class="jxr_keyword">public</strong> String toString() {
+<a class="jxr_linenumber" name="1103" href="#1103">1103</a> 		<strong class="jxr_keyword">return</strong> <span class="jxr_string">"Rule Name:"</span> + idRule + <span class="jxr_string">" IDS:"</span> + ids + <span class="jxr_string">" MODETRANS: "</span> +
+<a class="jxr_linenumber" name="1104" href="#1104">1104</a> 				RequestPacket.TRANSFERMODE.values()[mode].toString() +
+<a class="jxr_linenumber" name="1105" href="#1105">1105</a> 				<span class="jxr_string">" RECV:"</span> + recvPath + <span class="jxr_string">" SEND:"</span> + sendPath + <span class="jxr_string">" ARCHIVE:"</span> +
+<a class="jxr_linenumber" name="1106" href="#1106">1106</a> 				archivePath + <span class="jxr_string">" WORK:"</span> + workPath +
+<a class="jxr_linenumber" name="1107" href="#1107">1107</a> 				<span class="jxr_string">"\nRPRET:"</span> + rpreTasks + <span class="jxr_string">"\nRPOST:"</span> + rpostTasks + <span class="jxr_string">"\nRERROR:"</span> + rerrorTasks +
+<a class="jxr_linenumber" name="1108" href="#1108">1108</a> 				<span class="jxr_string">"\nSPRET:"</span> + spreTasks + <span class="jxr_string">"\nSPOST:"</span> + spostTasks + <span class="jxr_string">"\nSERROR:"</span> + serrorTasks;
+<a class="jxr_linenumber" name="1109" href="#1109">1109</a> 	}
+<a class="jxr_linenumber" name="1110" href="#1110">1110</a> 
+<a class="jxr_linenumber" name="1111" href="#1111">1111</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="1112" href="#1112">1112</a> <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="1113" href="#1113">1113</a> <em class="jxr_javadoccomment">	 * @param isSender</em>
+<a class="jxr_linenumber" name="1114" href="#1114">1114</a> <em class="jxr_javadoccomment">	 * @param step</em>
+<a class="jxr_linenumber" name="1115" href="#1115">1115</a> <em class="jxr_javadoccomment">	 * @return a string that prints (debug) the tasks to execute</em>
+<a class="jxr_linenumber" name="1116" href="#1116">1116</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="1117" href="#1117">1117</a> 	<strong class="jxr_keyword">public</strong> String printTasks(<strong class="jxr_keyword">boolean</strong> isSender, <a href="../../../../../org/waarp/openr66/database/data/DbTaskRunner.html">TASKSTEP</a> step) {
+<a class="jxr_linenumber" name="1118" href="#1118">1118</a> 		<strong class="jxr_keyword">if</strong> (isSender) {
+<a class="jxr_linenumber" name="1119" href="#1119">1119</a> 			<strong class="jxr_keyword">switch</strong> (step) {
+<a class="jxr_linenumber" name="1120" href="#1120">1120</a> 				<strong class="jxr_keyword">case</strong> PRETASK:
+<a class="jxr_linenumber" name="1121" href="#1121">1121</a> 					<strong class="jxr_keyword">return</strong> <span class="jxr_string">"S:"</span> + spreTasks;
+<a class="jxr_linenumber" name="1122" href="#1122">1122</a> 				<strong class="jxr_keyword">case</strong> POSTTASK:
+<a class="jxr_linenumber" name="1123" href="#1123">1123</a> 					<strong class="jxr_keyword">return</strong> <span class="jxr_string">"S:"</span> + spostTasks;
+<a class="jxr_linenumber" name="1124" href="#1124">1124</a> 				<strong class="jxr_keyword">case</strong> ERRORTASK:
+<a class="jxr_linenumber" name="1125" href="#1125">1125</a> 					<strong class="jxr_keyword">return</strong> <span class="jxr_string">"S:"</span> + serrorTasks;
+<a class="jxr_linenumber" name="1126" href="#1126">1126</a> 				<strong class="jxr_keyword">default</strong>:
+<a class="jxr_linenumber" name="1127" href="#1127">1127</a> 					<strong class="jxr_keyword">return</strong> <span class="jxr_string">"S:no task"</span>;
+<a class="jxr_linenumber" name="1128" href="#1128">1128</a> 			}
+<a class="jxr_linenumber" name="1129" href="#1129">1129</a> 		} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="1130" href="#1130">1130</a> 			<strong class="jxr_keyword">switch</strong> (step) {
+<a class="jxr_linenumber" name="1131" href="#1131">1131</a> 				<strong class="jxr_keyword">case</strong> PRETASK:
+<a class="jxr_linenumber" name="1132" href="#1132">1132</a> 					<strong class="jxr_keyword">return</strong> <span class="jxr_string">"R:"</span> + rpreTasks;
+<a class="jxr_linenumber" name="1133" href="#1133">1133</a> 				<strong class="jxr_keyword">case</strong> POSTTASK:
+<a class="jxr_linenumber" name="1134" href="#1134">1134</a> 					<strong class="jxr_keyword">return</strong> <span class="jxr_string">"R:"</span> + rpostTasks;
+<a class="jxr_linenumber" name="1135" href="#1135">1135</a> 				<strong class="jxr_keyword">case</strong> ERRORTASK:
+<a class="jxr_linenumber" name="1136" href="#1136">1136</a> 					<strong class="jxr_keyword">return</strong> <span class="jxr_string">"R:"</span> + rerrorTasks;
+<a class="jxr_linenumber" name="1137" href="#1137">1137</a> 				<strong class="jxr_keyword">default</strong>:
+<a class="jxr_linenumber" name="1138" href="#1138">1138</a> 					<strong class="jxr_keyword">return</strong> <span class="jxr_string">"R:no task"</span>;
+<a class="jxr_linenumber" name="1139" href="#1139">1139</a> 			}
+<a class="jxr_linenumber" name="1140" href="#1140">1140</a> 		}
+<a class="jxr_linenumber" name="1141" href="#1141">1141</a> 	}
+<a class="jxr_linenumber" name="1142" href="#1142">1142</a> 
+<a class="jxr_linenumber" name="1143" href="#1143">1143</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="1144" href="#1144">1144</a> <em class="jxr_javadoccomment">	 * Object to String</em>
+<a class="jxr_linenumber" name="1145" href="#1145">1145</a> <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="1146" href="#1146">1146</a> <em class="jxr_javadoccomment">	 * @return the string that displays this object</em>
+<a class="jxr_linenumber" name="1147" href="#1147">1147</a> <em class="jxr_javadoccomment">	 * @see java.lang.Object#toString()</em>
+<a class="jxr_linenumber" name="1148" href="#1148">1148</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="1149" href="#1149">1149</a> 	<strong class="jxr_keyword">public</strong> String toShortString() {
+<a class="jxr_linenumber" name="1150" href="#1150">1150</a> 		<strong class="jxr_keyword">return</strong> <span class="jxr_string">"Rule Name:"</span> + idRule + <span class="jxr_string">" MODETRANS: "</span> +
+<a class="jxr_linenumber" name="1151" href="#1151">1151</a> 				RequestPacket.TRANSFERMODE.values()[mode].toString();
+<a class="jxr_linenumber" name="1152" href="#1152">1152</a> 	}
+<a class="jxr_linenumber" name="1153" href="#1153">1153</a> 
+<a class="jxr_linenumber" name="1154" href="#1154">1154</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="1155" href="#1155">1155</a> <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="1156" href="#1156">1156</a> <em class="jxr_javadoccomment">	 * @param session</em>
+<a class="jxr_linenumber" name="1157" href="#1157">1157</a> <em class="jxr_javadoccomment">	 * @param rule</em>
+<a class="jxr_linenumber" name="1158" href="#1158">1158</a> <em class="jxr_javadoccomment">	 * @param mode</em>
+<a class="jxr_linenumber" name="1159" href="#1159">1159</a> <em class="jxr_javadoccomment">	 * @return the DbPreparedStatement according to the filter</em>
+<a class="jxr_linenumber" name="1160" href="#1160">1160</a> <em class="jxr_javadoccomment">	 * @throws WaarpDatabaseNoConnectionException</em>
+<a class="jxr_linenumber" name="1161" href="#1161">1161</a> <em class="jxr_javadoccomment">	 * @throws WaarpDatabaseSqlException</em>
+<a class="jxr_linenumber" name="1162" href="#1162">1162</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="1163" href="#1163">1163</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> DbPreparedStatement getFilterPrepareStament(DbSession session,
+<a class="jxr_linenumber" name="1164" href="#1164">1164</a> 			String rule, <strong class="jxr_keyword">int</strong> mode)
+<a class="jxr_linenumber" name="1165" href="#1165">1165</a> 			<strong class="jxr_keyword">throws</strong> WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
+<a class="jxr_linenumber" name="1166" href="#1166">1166</a> 		DbPreparedStatement preparedStatement = <strong class="jxr_keyword">new</strong> DbPreparedStatement(session);
+<a class="jxr_linenumber" name="1167" href="#1167">1167</a> 		String request = <span class="jxr_string">"SELECT "</span> + selectAllFields + <span class="jxr_string">" FROM "</span> + table;
+<a class="jxr_linenumber" name="1168" href="#1168">1168</a> 		String condition = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="1169" href="#1169">1169</a> 		<strong class="jxr_keyword">if</strong> (rule != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1170" href="#1170">1170</a> 			condition = <span class="jxr_string">" WHERE "</span> + Columns.IDRULE.name() + <span class="jxr_string">" LIKE '%"</span> + rule + <span class="jxr_string">"%' "</span>;
+<a class="jxr_linenumber" name="1171" href="#1171">1171</a> 		}
+<a class="jxr_linenumber" name="1172" href="#1172">1172</a> 		<strong class="jxr_keyword">if</strong> (mode &gt;= 0) {
+<a class="jxr_linenumber" name="1173" href="#1173">1173</a> 			<strong class="jxr_keyword">if</strong> (condition != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1174" href="#1174">1174</a> 				condition += <span class="jxr_string">" AND "</span>;
+<a class="jxr_linenumber" name="1175" href="#1175">1175</a> 			} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="1176" href="#1176">1176</a> 				condition = <span class="jxr_string">" WHERE "</span>;
+<a class="jxr_linenumber" name="1177" href="#1177">1177</a> 			}
+<a class="jxr_linenumber" name="1178" href="#1178">1178</a> 			condition += Columns.MODETRANS.name() + <span class="jxr_string">" = ?"</span>;
+<a class="jxr_linenumber" name="1179" href="#1179">1179</a> 		} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="1180" href="#1180">1180</a> 			condition = <span class="jxr_string">""</span>;
+<a class="jxr_linenumber" name="1181" href="#1181">1181</a> 		}
+<a class="jxr_linenumber" name="1182" href="#1182">1182</a> 		preparedStatement.createPrepareStatement(request + condition +
+<a class="jxr_linenumber" name="1183" href="#1183">1183</a> 				<span class="jxr_string">" ORDER BY "</span> + Columns.IDRULE.name());
+<a class="jxr_linenumber" name="1184" href="#1184">1184</a> 		<strong class="jxr_keyword">if</strong> (mode &gt;= 0) {
+<a class="jxr_linenumber" name="1185" href="#1185">1185</a> 			<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="1186" href="#1186">1186</a> 				preparedStatement.getPreparedStatement().setInt(1, mode);
+<a class="jxr_linenumber" name="1187" href="#1187">1187</a> 			} <strong class="jxr_keyword">catch</strong> (SQLException e) {
+<a class="jxr_linenumber" name="1188" href="#1188">1188</a> 				preparedStatement.realClose();
+<a class="jxr_linenumber" name="1189" href="#1189">1189</a> 				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> WaarpDatabaseSqlException(e);
+<a class="jxr_linenumber" name="1190" href="#1190">1190</a> 			}
+<a class="jxr_linenumber" name="1191" href="#1191">1191</a> 		}
+<a class="jxr_linenumber" name="1192" href="#1192">1192</a> 		<strong class="jxr_keyword">return</strong> preparedStatement;
+<a class="jxr_linenumber" name="1193" href="#1193">1193</a> 	}
+<a class="jxr_linenumber" name="1194" href="#1194">1194</a> 
+<a class="jxr_linenumber" name="1195" href="#1195">1195</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="1196" href="#1196">1196</a> <em class="jxr_javadoccomment">	 * @param session</em>
+<a class="jxr_linenumber" name="1197" href="#1197">1197</a> <em class="jxr_javadoccomment">	 * @param body</em>
+<a class="jxr_linenumber" name="1198" href="#1198">1198</a> <em class="jxr_javadoccomment">	 * @return the runner in Html format specified by body by replacing all instance of fields</em>
+<a class="jxr_linenumber" name="1199" href="#1199">1199</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="1200" href="#1200">1200</a> 	<strong class="jxr_keyword">public</strong> String toSpecializedHtml(<a href="../../../../../org/waarp/openr66/context/R66Session.html">R66Session</a> session, String body) {
+<a class="jxr_linenumber" name="1201" href="#1201">1201</a> 		StringBuilder builder = <strong class="jxr_keyword">new</strong> StringBuilder(body);
+<a class="jxr_linenumber" name="1202" href="#1202">1202</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXRULEXXX"</span>, idRule);
+<a class="jxr_linenumber" name="1203" href="#1203">1203</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXIDSXXX"</span>, ids == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">""</span> : ids);
+<a class="jxr_linenumber" name="1204" href="#1204">1204</a> 		<strong class="jxr_keyword">if</strong> (mode == RequestPacket.TRANSFERMODE.RECVMODE.ordinal()) {
+<a class="jxr_linenumber" name="1205" href="#1205">1205</a> 			WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXRECVXXX"</span>, <span class="jxr_string">"checked"</span>);
+<a class="jxr_linenumber" name="1206" href="#1206">1206</a> 		} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (mode == RequestPacket.TRANSFERMODE.SENDMODE.ordinal()) {
+<a class="jxr_linenumber" name="1207" href="#1207">1207</a> 			WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXSENDXXX"</span>, <span class="jxr_string">"checked"</span>);
+<a class="jxr_linenumber" name="1208" href="#1208">1208</a> 		} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (mode == RequestPacket.TRANSFERMODE.RECVMD5MODE.ordinal()) {
+<a class="jxr_linenumber" name="1209" href="#1209">1209</a> 			WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXRECVMXXX"</span>, <span class="jxr_string">"checked"</span>);
+<a class="jxr_linenumber" name="1210" href="#1210">1210</a> 		} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (mode == RequestPacket.TRANSFERMODE.SENDMD5MODE.ordinal()) {
+<a class="jxr_linenumber" name="1211" href="#1211">1211</a> 			WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXSENDMXXX"</span>, <span class="jxr_string">"checked"</span>);
+<a class="jxr_linenumber" name="1212" href="#1212">1212</a> 		} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (mode == RequestPacket.TRANSFERMODE.RECVTHROUGHMODE.ordinal()) {
+<a class="jxr_linenumber" name="1213" href="#1213">1213</a> 			WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXRECVTXXX"</span>, <span class="jxr_string">"checked"</span>);
+<a class="jxr_linenumber" name="1214" href="#1214">1214</a> 		} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (mode == RequestPacket.TRANSFERMODE.SENDTHROUGHMODE.ordinal()) {
+<a class="jxr_linenumber" name="1215" href="#1215">1215</a> 			WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXSENDTXXX"</span>, <span class="jxr_string">"checked"</span>);
+<a class="jxr_linenumber" name="1216" href="#1216">1216</a> 		} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (mode == RequestPacket.TRANSFERMODE.RECVMD5THROUGHMODE.ordinal()) {
+<a class="jxr_linenumber" name="1217" href="#1217">1217</a> 			WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXRECVMTXXX"</span>, <span class="jxr_string">"checked"</span>);
+<a class="jxr_linenumber" name="1218" href="#1218">1218</a> 		} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (mode == RequestPacket.TRANSFERMODE.SENDMD5THROUGHMODE.ordinal()) {
+<a class="jxr_linenumber" name="1219" href="#1219">1219</a> 			WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXSENDMTXXX"</span>, <span class="jxr_string">"checked"</span>);
+<a class="jxr_linenumber" name="1220" href="#1220">1220</a> 		}
+<a class="jxr_linenumber" name="1221" href="#1221">1221</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXRPXXX"</span>, recvPath == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">""</span> : recvPath);
+<a class="jxr_linenumber" name="1222" href="#1222">1222</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXSPXXX"</span>, sendPath == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">""</span> : sendPath);
+<a class="jxr_linenumber" name="1223" href="#1223">1223</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXAPXXX"</span>, archivePath == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">""</span> : archivePath);
+<a class="jxr_linenumber" name="1224" href="#1224">1224</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXWPXXX"</span>, workPath == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">""</span> : workPath);
+<a class="jxr_linenumber" name="1225" href="#1225">1225</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXRPTXXX"</span>, rpreTasks == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">""</span> : rpreTasks);
+<a class="jxr_linenumber" name="1226" href="#1226">1226</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXRSTXXX"</span>, rpostTasks == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">""</span> : rpostTasks);
+<a class="jxr_linenumber" name="1227" href="#1227">1227</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXRETXXX"</span>, rerrorTasks == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">""</span> : rerrorTasks);
+<a class="jxr_linenumber" name="1228" href="#1228">1228</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXSPTXXX"</span>, spreTasks == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">""</span> : spreTasks);
+<a class="jxr_linenumber" name="1229" href="#1229">1229</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXSSTXXX"</span>, spostTasks == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">""</span> : spostTasks);
+<a class="jxr_linenumber" name="1230" href="#1230">1230</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXSETXXX"</span>, serrorTasks == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">""</span> : serrorTasks);
+<a class="jxr_linenumber" name="1231" href="#1231">1231</a> 		<strong class="jxr_keyword">return</strong> builder.toString();
+<a class="jxr_linenumber" name="1232" href="#1232">1232</a> 	}
+<a class="jxr_linenumber" name="1233" href="#1233">1233</a> 
+<a class="jxr_linenumber" name="1234" href="#1234">1234</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>

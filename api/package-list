@@ -24,3 +24,4 @@ org.waarp.openr66.protocol.networkhandler.ssl
 org.waarp.openr66.protocol.snmp
 org.waarp.openr66.protocol.utils
 org.waarp.openr66.server
+org.waarp.openr66.thrift

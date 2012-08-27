@@ -633,44 +633,45 @@
 <a class="jxr_linenumber" name="623" href="#623">623</a> 			String filename = dir.getAbsolutePath() + File.separator + hostname + <span class="jxr_string">"_"</span> + rule.idRule
 <a class="jxr_linenumber" name="624" href="#624">624</a> 					+
 <a class="jxr_linenumber" name="625" href="#625">625</a> 					RuleFileBasedConfiguration.EXT_RULE;
-<a class="jxr_linenumber" name="626" href="#626">626</a> 			RuleFileBasedConfiguration.writeXML(filename, rule);
-<a class="jxr_linenumber" name="627" href="#627">627</a> 		}
-<a class="jxr_linenumber" name="628" href="#628">628</a> 	}
-<a class="jxr_linenumber" name="629" href="#629">629</a> 
-<a class="jxr_linenumber" name="630" href="#630">630</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="631" href="#631">631</a> <em class="jxr_javadoccomment">	 * Write to directory 1 file prefixed by hostname all Rules from database</em>
-<a class="jxr_linenumber" name="632" href="#632">632</a> <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="633" href="#633">633</a> <em class="jxr_javadoccomment">	 * @param directory</em>
-<a class="jxr_linenumber" name="634" href="#634">634</a> <em class="jxr_javadoccomment">	 * @param hostname</em>
-<a class="jxr_linenumber" name="635" href="#635">635</a> <em class="jxr_javadoccomment">	 * @return the filename</em>
-<a class="jxr_linenumber" name="636" href="#636">636</a> <em class="jxr_javadoccomment">	 * @throws WaarpDatabaseNoConnectionException</em>
-<a class="jxr_linenumber" name="637" href="#637">637</a> <em class="jxr_javadoccomment">	 * @throws WaarpDatabaseSqlException</em>
-<a class="jxr_linenumber" name="638" href="#638">638</a> <em class="jxr_javadoccomment">	 * @throws OpenR66ProtocolSystemException</em>
-<a class="jxr_linenumber" name="639" href="#639">639</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="640" href="#640">640</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String writeOneXml(String directory, String hostname)
-<a class="jxr_linenumber" name="641" href="#641">641</a> 			<strong class="jxr_keyword">throws</strong> WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException,
-<a class="jxr_linenumber" name="642" href="#642">642</a> 			OpenR66ProtocolSystemException {
-<a class="jxr_linenumber" name="643" href="#643">643</a> 		File dir = <strong class="jxr_keyword">new</strong> File(directory);
-<a class="jxr_linenumber" name="644" href="#644">644</a> 		<strong class="jxr_keyword">if</strong> (!dir.isDirectory()) {
-<a class="jxr_linenumber" name="645" href="#645">645</a> 			dir.mkdirs();
-<a class="jxr_linenumber" name="646" href="#646">646</a> 		}
-<a class="jxr_linenumber" name="647" href="#647">647</a> 		DbRule[] rules = DbRule.getAllRules(DbConstant.admin.session);
-<a class="jxr_linenumber" name="648" href="#648">648</a> 		String filename = dir.getAbsolutePath() + File.separator + hostname +
-<a class="jxr_linenumber" name="649" href="#649">649</a> 				RuleFileBasedConfiguration.EXT_RULES;
-<a class="jxr_linenumber" name="650" href="#650">650</a> 		Document document = DocumentHelper.createDocument();
-<a class="jxr_linenumber" name="651" href="#651">651</a> 		Element root = document.addElement(MULTIPLEROOT);
-<a class="jxr_linenumber" name="652" href="#652">652</a> 		<strong class="jxr_keyword">for</strong> (DbRule rule : rules) {
-<a class="jxr_linenumber" name="653" href="#653">653</a> 			Element element = root.addElement(ROOT);
-<a class="jxr_linenumber" name="654" href="#654">654</a> 			addToElement(element, rule);
-<a class="jxr_linenumber" name="655" href="#655">655</a> 		}
-<a class="jxr_linenumber" name="656" href="#656">656</a> 		<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="657" href="#657">657</a> 			XmlUtil.writeXML(filename, <strong class="jxr_keyword">null</strong>, document);
-<a class="jxr_linenumber" name="658" href="#658">658</a> 		} <strong class="jxr_keyword">catch</strong> (IOException e) {
-<a class="jxr_linenumber" name="659" href="#659">659</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(<span class="jxr_string">"Cannot write file: "</span> + filename, e);
-<a class="jxr_linenumber" name="660" href="#660">660</a> 		}
-<a class="jxr_linenumber" name="661" href="#661">661</a> 		<strong class="jxr_keyword">return</strong> filename;
-<a class="jxr_linenumber" name="662" href="#662">662</a> 	}
-<a class="jxr_linenumber" name="663" href="#663">663</a> }
+<a class="jxr_linenumber" name="626" href="#626">626</a> 			logger.debug(<span class="jxr_string">"Will write Rule: "</span>+rule.idRule+<span class="jxr_string">" in "</span>+filename);
+<a class="jxr_linenumber" name="627" href="#627">627</a> 			RuleFileBasedConfiguration.writeXML(filename, rule);
+<a class="jxr_linenumber" name="628" href="#628">628</a> 		}
+<a class="jxr_linenumber" name="629" href="#629">629</a> 	}
+<a class="jxr_linenumber" name="630" href="#630">630</a> 
+<a class="jxr_linenumber" name="631" href="#631">631</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="632" href="#632">632</a> <em class="jxr_javadoccomment">	 * Write to directory 1 file prefixed by hostname all Rules from database</em>
+<a class="jxr_linenumber" name="633" href="#633">633</a> <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="634" href="#634">634</a> <em class="jxr_javadoccomment">	 * @param directory</em>
+<a class="jxr_linenumber" name="635" href="#635">635</a> <em class="jxr_javadoccomment">	 * @param hostname</em>
+<a class="jxr_linenumber" name="636" href="#636">636</a> <em class="jxr_javadoccomment">	 * @return the filename</em>
+<a class="jxr_linenumber" name="637" href="#637">637</a> <em class="jxr_javadoccomment">	 * @throws WaarpDatabaseNoConnectionException</em>
+<a class="jxr_linenumber" name="638" href="#638">638</a> <em class="jxr_javadoccomment">	 * @throws WaarpDatabaseSqlException</em>
+<a class="jxr_linenumber" name="639" href="#639">639</a> <em class="jxr_javadoccomment">	 * @throws OpenR66ProtocolSystemException</em>
+<a class="jxr_linenumber" name="640" href="#640">640</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="641" href="#641">641</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String writeOneXml(String directory, String hostname)
+<a class="jxr_linenumber" name="642" href="#642">642</a> 			<strong class="jxr_keyword">throws</strong> WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException,
+<a class="jxr_linenumber" name="643" href="#643">643</a> 			OpenR66ProtocolSystemException {
+<a class="jxr_linenumber" name="644" href="#644">644</a> 		File dir = <strong class="jxr_keyword">new</strong> File(directory);
+<a class="jxr_linenumber" name="645" href="#645">645</a> 		<strong class="jxr_keyword">if</strong> (!dir.isDirectory()) {
+<a class="jxr_linenumber" name="646" href="#646">646</a> 			dir.mkdirs();
+<a class="jxr_linenumber" name="647" href="#647">647</a> 		}
+<a class="jxr_linenumber" name="648" href="#648">648</a> 		DbRule[] rules = DbRule.getAllRules(DbConstant.admin.session);
+<a class="jxr_linenumber" name="649" href="#649">649</a> 		String filename = dir.getAbsolutePath() + File.separator + hostname +
+<a class="jxr_linenumber" name="650" href="#650">650</a> 				RuleFileBasedConfiguration.EXT_RULES;
+<a class="jxr_linenumber" name="651" href="#651">651</a> 		Document document = DocumentHelper.createDocument();
+<a class="jxr_linenumber" name="652" href="#652">652</a> 		Element root = document.addElement(MULTIPLEROOT);
+<a class="jxr_linenumber" name="653" href="#653">653</a> 		<strong class="jxr_keyword">for</strong> (DbRule rule : rules) {
+<a class="jxr_linenumber" name="654" href="#654">654</a> 			Element element = root.addElement(ROOT);
+<a class="jxr_linenumber" name="655" href="#655">655</a> 			addToElement(element, rule);
+<a class="jxr_linenumber" name="656" href="#656">656</a> 		}
+<a class="jxr_linenumber" name="657" href="#657">657</a> 		<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="658" href="#658">658</a> 			XmlUtil.writeXML(filename, <strong class="jxr_keyword">null</strong>, document);
+<a class="jxr_linenumber" name="659" href="#659">659</a> 		} <strong class="jxr_keyword">catch</strong> (IOException e) {
+<a class="jxr_linenumber" name="660" href="#660">660</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(<span class="jxr_string">"Cannot write file: "</span> + filename, e);
+<a class="jxr_linenumber" name="661" href="#661">661</a> 		}
+<a class="jxr_linenumber" name="662" href="#662">662</a> 		<strong class="jxr_keyword">return</strong> filename;
+<a class="jxr_linenumber" name="663" href="#663">663</a> 	}
+<a class="jxr_linenumber" name="664" href="#664">664</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>
