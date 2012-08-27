@@ -623,6 +623,7 @@ public class RuleFileBasedConfiguration {
 			String filename = dir.getAbsolutePath() + File.separator + hostname + "_" + rule.idRule
 					+
 					RuleFileBasedConfiguration.EXT_RULE;
+			logger.debug("Will write Rule: "+rule.idRule+" in "+filename);
 			RuleFileBasedConfiguration.writeXML(filename, rule);
 		}
 	}

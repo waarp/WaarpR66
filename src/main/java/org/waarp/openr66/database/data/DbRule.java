@@ -777,6 +777,7 @@ public class DbRule extends AbstractDbData {
 			workPath = Configuration.configuration.workingPath;
 		}
 		setFromArray();
+		dbR66RuleHashMap.put(this.idRule, this);
 	}
 
 	/*
@@ -815,8 +816,11 @@ public class DbRule extends AbstractDbData {
 	public static DbRule[] getAllRules(DbSession dbSession)
 			throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
 		DbRule[] result = new DbRule[0];
-		if (!dbR66RuleHashMap.isEmpty() || dbSession == null) {
+		if (!dbR66RuleHashMap.isEmpty()) {
 			return dbR66RuleHashMap.values().toArray(result);
+		}
+		if (dbSession == null) {
+			return result;
 		}
 		String request = "SELECT " + selectAllFields;
 		request += " FROM " + table;
@@ -824,12 +828,11 @@ public class DbRule extends AbstractDbData {
 		ArrayList<DbRule> dbArrayList = new ArrayList<DbRule>();
 		preparedStatement.executeQuery();
 		while (preparedStatement.getNext()) {
-			DbRule hostAuth = getFromStatement(preparedStatement);
-			dbArrayList.add(hostAuth);
+			DbRule dbrule = getFromStatement(preparedStatement);
+			dbArrayList.add(dbrule);
 		}
 		preparedStatement.realClose();
-		dbArrayList.toArray(result);
-		return result;
+		return dbArrayList.toArray(result);
 	}
 
 	/**
@@ -846,6 +849,8 @@ public class DbRule extends AbstractDbData {
 		dbRule.getValues(preparedStatement, dbRule.allFields);
 		dbRule.setFromArray();
 		dbRule.isSaved = true;
+		logger.debug("Get one Rule from Db: "+dbRule.idRule);
+		dbR66RuleHashMap.put(dbRule.idRule, dbRule);
 		return dbRule;
 	}
 
