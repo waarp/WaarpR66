@@ -376,6 +376,11 @@ public class FileBasedConfiguration {
 	 */
 	private static final String XML_BLOCKSIZE = "blocksize";
 	/**
+	 * If set to <=0, will not use Thrift support, if set >0 (preferably > 1024) will enable
+	 * Thrift support on the TCP port specified by this number 
+	 */
+	private static final String XML_USETHRIFT = "usethrift";
+	/**
 	 * Database Driver as of oracle, mysql, postgresql, h2
 	 */
 	private static final String XML_DBDRIVER = "dbdriver";
@@ -514,6 +519,7 @@ public class FileBasedConfiguration {
 			new XmlDecl(XmlType.STRING, XML_FASTMD5),
 			new XmlDecl(XmlType.INTEGER, XML_GAPRESTART),
 			new XmlDecl(XmlType.INTEGER, XML_BLOCKSIZE),
+			new XmlDecl(XmlType.INTEGER, XML_USETHRIFT),
 			new XmlDecl(XmlType.BOOLEAN, XML_CHECKVERSION)
 	};
 	/**
@@ -1084,6 +1090,10 @@ public class FileBasedConfiguration {
 		value = hashConfig.get(XML_BLOCKSIZE);
 		if (value != null && (!value.isEmpty())) {
 			config.BLOCKSIZE = value.getInteger();
+		}
+		value = hashConfig.get(XML_USETHRIFT);
+		if (value != null && (!value.isEmpty())) {
+			config.thriftport = value.getInteger();
 		}
 		value = hashConfig.get(XML_TIMEOUTCON);
 		if (value != null && (!value.isEmpty())) {

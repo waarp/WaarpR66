@@ -282,7 +282,9 @@ public class AuthenticationFileBasedConfiguration {
 		Document document = DocumentHelper.createDocument();
 		Element root = document.addElement(XML_AUTHENTIFICATION_ROOT);
 		DbHostAuth[] hosts = DbHostAuth.getAllHosts(DbConstant.admin.session);
+		logger.debug("Will write DbHostAuth: "+hosts.length+" in "+filename);
 		for (DbHostAuth auth : hosts) {
+			logger.debug("Will write DbHostAuth: "+auth.getHostid());
 			Element entry = new DefaultElement(XML_AUTHENTIFICATION_ENTRY);
 			entry.add(newElement(XML_AUTHENTIFICATION_HOSTID, auth.getHostid()));
 			byte[] key = auth.getHostkey();
