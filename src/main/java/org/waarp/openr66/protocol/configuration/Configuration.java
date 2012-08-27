@@ -49,6 +49,7 @@ import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.digest.FilesystemBasedDigest.DigestAlgo;
 import org.waarp.common.file.filesystembased.FilesystemBasedFileParameterImpl;
+import org.waarp.common.future.WaarpFuture;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.utility.WaarpThreadFactory;
@@ -75,6 +76,7 @@ import org.waarp.openr66.protocol.snmp.R66PrivateMib;
 import org.waarp.openr66.protocol.snmp.R66VariableFactory;
 import org.waarp.openr66.protocol.utils.OpenR66SignalHandler;
 import org.waarp.openr66.protocol.utils.Version;
+import org.waarp.openr66.thrift.R66ThriftServerService;
 import org.waarp.snmp.WaarpMOFactory;
 import org.waarp.snmp.WaarpSnmpAgent;
 
@@ -531,6 +533,9 @@ public class Configuration {
 	public static WaarpSecureKeyStore WaarpSecureKeyStore;
 
 	public static WaarpSslContextFactory waarpSslContextFactory;
+	
+	public R66ThriftServerService thriftService;
+	public int thriftport = -1;
 
 	public Configuration() {
 		// Init signal handler
@@ -654,6 +659,14 @@ public class Configuration {
 
 		// Now start the InternalRunner
 		internalRunner = new InternalRunner();
+		
+		if (thriftport > 0) {
+			thriftService = new R66ThriftServerService(new WaarpFuture(true), thriftport);
+			execServerWorker.execute(thriftService);
+			thriftService.awaitInitialization();
+		} else {
+			thriftService = null;
+		}
 	}
 
 	public void startHttpSupport() {
@@ -733,6 +746,9 @@ public class Configuration {
 	 * To be called early before other stuff will be closed
 	 */
 	public void prepareServerStop() {
+		if (thriftService != null) {
+			thriftService.releaseResources();
+		}
 		if (internalRunner != null) {
 			internalRunner.prepareStopInternalRunner();
 		}

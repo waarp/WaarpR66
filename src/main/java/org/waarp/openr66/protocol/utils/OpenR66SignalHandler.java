@@ -128,10 +128,12 @@ public class OpenR66SignalHandler implements SignalHandler {
 			switch (type) {
 				case TIMER_EXIT:
 					logger.error("System will force EXIT");
-					Map<Thread, StackTraceElement[]> map = Thread
-							.getAllStackTraces();
-					for (Thread thread : map.keySet()) {
-						printStackTrace(thread, map.get(thread));
+					if (logger.isDebugEnabled()) {
+						Map<Thread, StackTraceElement[]> map = Thread
+								.getAllStackTraces();
+						for (Thread thread : map.keySet()) {
+							printStackTrace(thread, map.get(thread));
+						}
 					}
 					System.exit(0);
 					break;
@@ -153,10 +155,12 @@ public class OpenR66SignalHandler implements SignalHandler {
 				Thread.sleep(Configuration.configuration.TIMEOUTCON);
 			} catch (InterruptedException e) {
 			}
-			Map<Thread, StackTraceElement[]> map = Thread
-					.getAllStackTraces();
-			for (Thread thread : map.keySet()) {
-				printStackTrace(thread, map.get(thread));
+			if (R66TimerTask.logger.isDebugEnabled()) {
+				Map<Thread, StackTraceElement[]> map = Thread
+						.getAllStackTraces();
+				for (Thread thread : map.keySet()) {
+					printStackTrace(thread, map.get(thread));
+				}
 			}
 			try {
 				Thread.sleep(1000);
@@ -176,7 +180,7 @@ public class OpenR66SignalHandler implements SignalHandler {
 	public static void launchFinalExit() {
 		Timer timer = new Timer("R66FinalExit", true);
 		R66TimerTask timerTask = new R66TimerTask(R66TimerTask.TIMER_EXIT);
-		timer.schedule(timerTask, Configuration.configuration.TIMEOUTCON * 3);
+		timer.schedule(timerTask, Configuration.configuration.TIMEOUTCON * 4);
 	}
 
 	/**

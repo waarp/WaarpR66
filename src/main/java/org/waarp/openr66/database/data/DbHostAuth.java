@@ -495,8 +495,7 @@ public class DbHostAuth extends AbstractDbData {
 		}
 		preparedStatement.realClose();
 		DbHostAuth[] result = new DbHostAuth[0];
-		dbArrayList.toArray(result);
-		return result;
+		return dbArrayList.toArray(result);
 	}
 
 	/**

@@ -1472,10 +1472,10 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					String filename =
 							directory + R66Dir.SEPARATOR + Configuration.configuration.HOST_ID +
 									"_Authentications.xml";
-					extraInformation += "-Authent are exported.<br>";
 					try {
 						AuthenticationFileBasedConfiguration.writeXML(Configuration.configuration,
 								filename);
+						extraInformation += "-Authent are exported.<br>";
 					} catch (WaarpDatabaseNoConnectionException e) {
 					} catch (WaarpDatabaseSqlException e) {
 					} catch (OpenR66ProtocolSystemException e) {
