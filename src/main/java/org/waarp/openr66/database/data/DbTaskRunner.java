@@ -2565,6 +2565,9 @@ public class DbTaskRunner extends AbstractDbData {
 						return runNextTask(rule.rerrorTasksArray);
 					}
 				} catch (OpenR66RunnerEndTasksException e) {
+					if (status == ErrorCode.Running) {
+						status = infostatus;
+					}
 					throw e;
 				}
 			default:

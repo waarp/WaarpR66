@@ -38,11 +38,11 @@ import org.waarp.thrift.r66.RequestMode;
  */
 public class TestThriftClientExample  {
 	private static final int PORT = 4266;
-	private static final int tries = 100000;
+	private static final int tries = 100;
 
 	public static void main(String[] args) {
+		TTransport transport = null;
 		try {
-			TTransport transport = null;
 			transport = new TSocket("localhost", PORT);
 			TProtocol protocol = new TBinaryProtocol(transport);
 			R66Service.Client client = new R66Service.Client(protocol);
@@ -105,12 +105,38 @@ public class TestThriftClientExample  {
 				System.out.println(slist);
 			}
 
-			transport.close();
+			request = new R66Request(RequestMode.ASYNCTRANSFER);
+			request.setDestuid("hostbs");
+			request.setRule("rule3");
+			request.setFile("Documents2.rar");
+			request.setInfo("Submitted from Thrift");
+			result = client.transferRequestQuery(request);
+			System.out.println("RESULT4: " + result);
+
+			request = new R66Request(RequestMode.SYNCTRANSFER);
+			request.setDestuid("hostbs");
+			request.setRule("rule3");
+			request.setFile("Documents2.rar");
+			request.setInfo("Submitted from Thrift");
+			result = client.transferRequestQuery(request);
+			System.out.println("RESULT5: " + result);
+
+			// Wrong request
+			request = new R66Request(RequestMode.INFOFILE);
+
+			System.out.println("REQUEST1: " + request.toString());
+			list = client.infoListQuery(request);
+			System.out.println("RESULT1: " + list.size());
+			for (String slist :list) {
+				System.out.println(slist);
+			}
+			
 		} catch (TTransportException e) {
 			e.printStackTrace();
 		} catch (TException e) {
 			e.printStackTrace();
 		}
+		transport.close();
 	}
 
 }
