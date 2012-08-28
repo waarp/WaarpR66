@@ -115,22 +115,20 @@ public abstract class AbstractTransfer implements Runnable {
 		if (isMD5) {
 			mode = RequestPacket.getModeMD5(mode);
 		}
-		RequestPacket request;
 		DbTaskRunner taskRunner = null;
 		if (id != DbConstant.ILLEGALVALUE) {
 			try {
 				taskRunner = new DbTaskRunner(DbConstant.admin.session, id,
 						remoteHost);
-				request = new RequestPacket(rulename,
-						mode, filename, taskRunner.getBlocksize(), taskRunner.getRank(),
-						id, fileinfo);
 			} catch (WaarpDatabaseException e) {
-				request = new RequestPacket(rulename,
-						mode, filename, blocksize, 0,
-						id, fileinfo);
+				logger.error("Cannot get task", e);
+				future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
+						ErrorCode.QueryRemotelyUnknown, null));
+				future.setFailure(e);
+				return null;
 			}
 		} else {
-			request = new RequestPacket(rulename,
+			RequestPacket request = new RequestPacket(rulename,
 					mode, filename, blocksize, 0,
 					id, fileinfo);
 			// Not isRecv since it is the requester, so send => isRetrieve is true

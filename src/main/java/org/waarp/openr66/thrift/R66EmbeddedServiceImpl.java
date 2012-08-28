@@ -29,6 +29,7 @@ import java.util.List;
 
 import org.apache.thrift.TException;
 import org.waarp.common.command.exception.CommandAbstractException;
+import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
@@ -85,25 +86,30 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 		try {
 			rule = new DbRule(DbConstant.admin.session, request.getRule());
 		} catch (WaarpDatabaseException e) {
-			logger.error("Cannot get Rule: " + request.getRule(), e);
+			logger.warn("Cannot get Rule: " + request.getRule(), e);
 			return null;
 		}
 		int mode = rule.mode;
 		if (request.isMd5()) {
 			mode = RequestPacket.getModeMD5(mode);
 		}
-		RequestPacket requestPacket;
 		DbTaskRunner taskRunner = null;
-		if (request.getTid() != DbConstant.ILLEGALVALUE) {
+		long tid = DbConstant.ILLEGALVALUE;
+		if (request.isSetTid()) {
+			tid = request.getTid();
+		}
+		if (tid != DbConstant.ILLEGALVALUE) {
 			try {
-				taskRunner = new DbTaskRunner(DbConstant.admin.session, request.getTid(),
+				taskRunner = new DbTaskRunner(DbConstant.admin.session, tid,
 						request.getDestuid());
 			} catch (WaarpDatabaseException e) {
+				logger.warn("Cannot get task", e);
+				return null;
 			}
 		} else {
-			requestPacket = new RequestPacket(request.getRule(),
+			RequestPacket requestPacket = new RequestPacket(request.getRule(),
 					mode, request.getFile(), request.getBlocksize(), 0,
-					request.getTid(), request.getInfo());
+					tid, request.getInfo());
 			// Not isRecv since it is the requester, so send => isRetrieve is true
 			boolean isRetrieve = !RequestPacket.isRecvMode(requestPacket.getMode());
 			try {
@@ -111,7 +117,7 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 						new DbTaskRunner(DbConstant.admin.session, rule, isRetrieve, requestPacket,
 								request.getDestuid(), ttimestart);
 			} catch (WaarpDatabaseException e) {
-				logger.error("Cannot get task", e);
+				logger.warn("Cannot get task", e);
 				return null;
 			}
 		}
@@ -122,18 +128,32 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 	public R66Result transferRequestQuery(R66Request request) throws TException {
 		DbTaskRunner runner = initRequest(request);
 		if (runner != null) {
+			runner.changeUpdatedInfo(AbstractDbData.UpdatedInfo.TOSUBMIT);
+			try {
+				runner.update();
+			} catch (WaarpDatabaseException e) {
+				logger.warn("Cannot prepare task", e);
+				return new R66Result(request.getMode(), ErrorCode.CommandNotFound, 
+						"ERROR: Cannot prepare transfer");
+			}
+
 			R66Result result = new R66Result(request.getMode(), ErrorCode.InitOk, 
 					"Transfer Scheduled");
-			setResultFromRunner(runner, result);
 			if (request.getMode() == RequestMode.SYNCTRANSFER) {
-				// now need to wait
-				while (! runner.isFinished()) {
-					try {
-						Thread.sleep(100);
-					} catch (InterruptedException e) {
-						break;
+				// now need to wait but first, reload the runner
+				try {
+					runner.select();
+					while (! runner.isFinished()) {
+						try {
+							Thread.sleep(1000);
+							runner.select();
+						} catch (InterruptedException e) {
+							break;
+						}
 					}
+				} catch (WaarpDatabaseException e1) {
 				}
+				setResultFromRunner(runner, result);
 				if (runner.isAllDone()) {
 					result.setCode(ErrorCode.CompleteOk);
 					result.setResultinfo("Transfer Done");
@@ -141,9 +161,16 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 					result.setCode(ErrorCode.valueOf(runner.getErrorInfo().name()));
 					result.setResultinfo(runner.getErrorInfo().mesg);
 				}
+			} else {
+				try {
+					runner.select();
+				} catch (WaarpDatabaseException e) {
+				}
+				setResultFromRunner(runner, result);
 			}
 			return result;
 		} else {
+			logger.warn("ERROR: Transfer NOT scheduled");
 			R66Result result = new R66Result(request.getMode(), ErrorCode.Internal, 
 					"ERROR: Transfer NOT scheduled");
 			return result;
@@ -185,15 +212,16 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 		}
 	}
 	
-	private boolean stopOrCancelRunner(long id, String reqd, String reqr, org.waarp.openr66.context.ErrorCode code) {
+	private int stopOrCancelRunner(long id, String reqd, String reqr, org.waarp.openr66.context.ErrorCode code) {
 		try {
 			DbTaskRunner taskRunner =
 					new DbTaskRunner(DbConstant.admin.session, null,
 							null, id, reqr, reqd);
-			return taskRunner.stopOrCancelRunner(code);
+			return taskRunner.stopOrCancelRunner(code) ? 1 : 0;
 		} catch (WaarpDatabaseException e) {
 		}
-		return false;
+		logger.warn("Cannot accomplished action on task: "+id+" "+code.name());
+		return -1;
 	}
 
 	private R66Result stopOrCancel(R66Request request, LocalChannelReference lcr,
@@ -221,12 +249,16 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 		} else {
 			// Transfer is not running
 			// but maybe need action on database
-			if (stopOrCancelRunner(request.getTid(), request.getDestuid(), request.getFromuid(), r66code)) {
+			int test = stopOrCancelRunner(request.getTid(), request.getDestuid(), request.getFromuid(), r66code);
+			if (test > 0) {
 				resulttest = new R66Result(request.getMode(), ErrorCode.CompleteOk, 
 						r66code.name());
-			} else {
+			} else if (test == 0) {
 				resulttest = new R66Result(request.getMode(), ErrorCode.TransferOk, 
 						r66code.name());
+			} else {
+				resulttest = new R66Result(request.getMode(), ErrorCode.CommandNotFound, 
+						"Error: cannot accomplished task on transfer");
 			}
 		}
 		return resulttest;
@@ -236,7 +268,7 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 		// Try to validate a restarting transfer
 		// validLimit on requested side
 		if (Configuration.configuration.constraintLimitHandler.checkConstraints()) {
-			logger.error("Limit exceeded while asking to relaunch a task "
+			logger.warn("Limit exceeded while asking to relaunch a task "
 					+ request.toString());
 			return new R66Result(request.getMode(), ErrorCode.ServerOverloaded, 
 					"Limit exceeded while asking to relaunch a task");
@@ -249,10 +281,11 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 					null, request.getTid(), request.getFromuid(), request.getDestuid());
 			org.waarp.openr66.context.R66Result resulttest = TransferUtils.restartTransfer(taskRunner, lcr);
 			return new R66Result(request.getMode(), ErrorCode.valueOf(resulttest.code.name()), 
-					"Limit exceeded while asking to relaunch a task");
+					"Restart asked correctly");
 		} catch (WaarpDatabaseException e1) {
+			logger.warn("Exception while trying to restart transfer", e1);
 			return new R66Result(request.getMode(), ErrorCode.Internal, 
-					"Limit exceeded while asking to relaunch a task");
+					"Exception while trying to restart transfer");
 		}
 	}
 	
@@ -261,8 +294,17 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 		RequestMode mode = request.getMode();
 		if (mode != RequestMode.INFOREQUEST) {
 			// error
+			logger.warn("Mode is uncompatible with infoTransferQuery");
 			return new R66Result(request.getMode(), ErrorCode.Unimplemented, 
 					"Mode is uncompatible with infoTransferQuery");
+		}
+		// now check if enough arguments are provided
+		if ((!request.isSetTid()) || (!request.isSetDestuid() && !request.isSetFromuid()) ||
+				(!request.isSetAction())) {
+			// error
+			logger.warn("Not enough arguments");
+			return new R66Result(request.getMode(), ErrorCode.RemoteError, 
+					"Not enough arguments");
 		}
 		// requested+blank+requester+blank+specialId
 		LocalChannelReference lcr =
@@ -272,7 +314,7 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 		switch (request.getAction()) {
 			case Detail: {
 				R66Result result = new R66Result(request.getMode(), ErrorCode.CompleteOk, 
-						"Existence test");
+						"Existence test OK");
 				result.setAction(Action.Exist);
 				result.setDestuid(request.getDestuid());
 				result.setFromuid(request.getFromuid());
@@ -302,6 +344,7 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 				r66code = org.waarp.openr66.context.ErrorCode.StoppedTransfer;
 				return stopOrCancel(request, lcr, r66code);
 			default:
+				logger.warn("Uncompatible with "+request.getAction().name());
 				return new R66Result(request.getMode(), ErrorCode.Unimplemented, 
 						"Uncompatible with "+request.getAction().name());
 		}
@@ -309,6 +352,12 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 
 	@Override
 	public boolean isStillRunning(String fromuid, String touid, long tid) throws TException {
+		// now check if enough arguments are provided
+		if (fromuid == null || touid == null || tid == DbConstant.ILLEGALVALUE) {
+			// error
+			logger.warn("Not enough arguments");
+			return false;
+		}
 		// header = ?; middle = requested+blank+requester+blank+specialId
 		LocalChannelReference lcr =
 				Configuration.configuration.getLocalTransaction().
@@ -322,6 +371,15 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 		RequestMode mode = request.getMode();
 		if (mode != RequestMode.INFOFILE) {
 			// error
+			logger.warn("Not correct mode for infoListQuery");
+			list.add("Not correct mode for infoListQuery");
+			return list;
+		}
+		// now check if enough arguments are provided
+		if ((!request.isSetRule()) || (!request.isSetAction())) {
+			// error
+			logger.warn("Not enough arguments");
+			list.add("Not enough arguments");
 			return list;
 		}
 		R66Session session = new R66Session();
@@ -330,7 +388,8 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 		try {
 			rule = new DbRule(DbConstant.admin.session, request.getRule());
 		} catch (WaarpDatabaseException e) {
-			logger.error("Rule is unknown: " + request.getRule(), e);
+			logger.warn("Rule is unknown: " + request.getRule());
+			list.add("Rule is unknown: " + request.getRule());
 			return list;
 		}
 		try {
@@ -351,6 +410,11 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 				return list;
 			} else {
 				// ls pr mls from current directory and filename
+				if (! request.isSetFile()) {
+					logger.warn("File missing");
+					list.add("File missing");
+					return list;
+				}
 				R66File file = (R66File) session.getDir().setFile(request.getFile(), false);
 				String sresult = null;
 				if (request.getAction() == Action.Exist) {
@@ -365,7 +429,8 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 				return list;
 			}
 		} catch (CommandAbstractException e) {
-			logger.error("Error occurs during: " + request.toString(), e);
+			logger.warn("Error occurs during: " + request.toString(), e);
+			list.add("Error occurs during: " + request.toString());
 			return list;
 		}
 	}

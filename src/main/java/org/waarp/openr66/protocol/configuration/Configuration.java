@@ -662,7 +662,7 @@ public class Configuration {
 		
 		if (thriftport > 0) {
 			thriftService = new R66ThriftServerService(new WaarpFuture(true), thriftport);
-			execServerWorker.execute(thriftService);
+			execOtherWorker.execute(thriftService);
 			thriftService.awaitInitialization();
 		} else {
 			thriftService = null;
