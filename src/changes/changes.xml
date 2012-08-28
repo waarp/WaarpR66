@@ -5,6 +5,15 @@
 		<author email="waarp1 at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+		<release version="2.4.7" date="2012-09-02" description="Fix release">
+			<action dev="Frederic Bregier" type="fix">Thrift first stable release</action>
+			<action dev="Frederic Bregier" type="fix">Netty version</action>
+		</release>
+	    <release version="2.4.6" date="2012-08-27" description="Fix release">
+			<action dev="Frederic Bregier" type="fix">Export configuration</action>
+			<action dev="Frederic Bregier" type="fix">Netty version</action>
+			<action dev="Frederic Bregier" type="fix">First Beta Thrift version</action>
+		</release>
 		<release version="2.4.5" date="2012-08-25" description="Fix release">
 			<action dev="Frederic Bregier" type="fix">Tar and Zip tasks fix</action>
 			<action dev="Frederic Bregier" type="fix">Http get simple file fix</action>
