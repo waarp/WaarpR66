@@ -53,6 +53,14 @@ public class SubmitTransfer extends AbstractTransfer {
 			logger = WaarpInternalLoggerFactory.getLogger(SubmitTransfer.class);
 		}
 		DbTaskRunner taskRunner = this.initRequest();
+		if (taskRunner == null) {
+			logger.debug("Cannot prepare task");
+			R66Result result = new R66Result(new OpenR66DatabaseGlobalException(), null, true,
+					ErrorCode.Internal, taskRunner);
+			future.setResult(result);
+			future.setFailure(result.exception);
+			return;
+		}
 		taskRunner.changeUpdatedInfo(AbstractDbData.UpdatedInfo.TOSUBMIT);
 		try {
 			taskRunner.update();
