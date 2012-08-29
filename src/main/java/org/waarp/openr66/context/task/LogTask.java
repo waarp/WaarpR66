@@ -91,7 +91,7 @@ public class LogTask extends AbstractTask {
 				String filename = args[args.length - 1];
 				File file = new File(filename);
 				if (file.getParentFile() == null ||
-						(!file.canWrite())) {
+						(file.exists() && !file.canWrite())) {
 					// File cannot be written so revert to log
 					session.getRunner().setErrorExecutionStatus(ErrorCode.Warning);
 					if (delay == 2) {
@@ -102,7 +102,7 @@ public class LogTask extends AbstractTask {
 				}
 				FileOutputStream outputStream = null;
 				try {
-					outputStream = new FileOutputStream(file);
+					outputStream = new FileOutputStream(file, true);
 				} catch (FileNotFoundException e) {
 					// File cannot be written so revert to log
 					session.getRunner().setErrorExecutionStatus(ErrorCode.Warning);
@@ -114,6 +114,7 @@ public class LogTask extends AbstractTask {
 				}
 				try {
 					outputStream.write(finalValue.getBytes());
+					outputStream.write("\n".getBytes());
 				} catch (IOException e) {
 					// File cannot be written so revert to log
 					try {

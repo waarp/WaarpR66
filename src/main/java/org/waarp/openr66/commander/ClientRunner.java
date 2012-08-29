@@ -468,6 +468,16 @@ public class ClientRunner extends Thread {
 				try {
 					Thread.sleep(Configuration.configuration.delayRetry);
 				} catch (InterruptedException e) {
+					logger.debug(
+							"Will not retry since limit of connection attemtps is reached for {}",
+							host);
+					retry = " and retries limit is reached so stop here";
+					this.changeUpdatedInfo(UpdatedInfo.INERROR,
+							ErrorCode.ConnectionImpossible);
+					taskRunner
+							.setLocalChannelReference(new LocalChannelReference());
+					throw new OpenR66ProtocolNoConnectionException(
+							"Cannot connect to server " + host.toString() + retry);
 				}
 				this.changeUpdatedInfo(UpdatedInfo.TOSUBMIT,
 						ErrorCode.ConnectionImpossible);
