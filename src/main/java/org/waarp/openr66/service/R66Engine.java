@@ -20,7 +20,10 @@
  */
 package org.waarp.openr66.service;
 
+import org.jboss.netty.util.internal.SystemPropertyUtil;
 import org.waarp.common.future.WaarpFuture;
+import org.waarp.common.logging.WaarpInternalLogger;
+import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.service.EngineAbstract;
 
 /**
@@ -29,17 +32,32 @@ import org.waarp.common.service.EngineAbstract;
  *
  */
 public class R66Engine extends EngineAbstract {
+	/**
+	 * Internal Logger
+	 */
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(R66Engine.class);
+	
 	protected WaarpFuture closeFurure = new WaarpFuture(true);
+	
+	public static final String CONFIGFILE = "org.waarp.r66.config.file";
 	
 	@Override
 	public void run() {
-		System.err.println("Service started");
+		String []args = { "" };
+		args[0] = SystemPropertyUtil.get(CONFIGFILE);
+		if (args[0] == null) {
+			logger.error("Cannot find "+CONFIGFILE+" parameter");
+			shutdown();
+			return;
+		}
+		logger.warn("Service started with "+args[0]);
 	}
 
 	@Override
 	public void shutdown() {
 		closeFurure.setSuccess();
-		System.err.println("Service stopped");
+		logger.info("Service stopped");
 	}
 
 	@Override
@@ -48,7 +66,8 @@ public class R66Engine extends EngineAbstract {
 	}
 
 	@Override
-	public WaarpFuture getShutdownFuture() {
-		return closeFurure;
+	public boolean waitShutdown() throws InterruptedException {
+		closeFurure.await();
+		return closeFurure.isSuccess();
 	}
 }

@@ -29,13 +29,18 @@ import org.waarp.common.service.ServiceLauncher;
  */
 public class R66ServiceLauncher extends ServiceLauncher {
 
-	/**
-	 * Must be set
-	 */
-	{
-		engineLauncherInstance = new R66ServiceLauncher();
-    }
-	
+	public static void main(String[] args) {
+		_main(args);
+	}
+	public static void windowsService(String args[]) {
+		_windowsService(args);
+	}
+	public static void windowsStart(String args[]) {
+		_windowsStart(args);
+	}
+	public static void windowsStop(String args[]) {
+		_windowsStop(args);
+	}
 	/**
 	 * 
 	 */

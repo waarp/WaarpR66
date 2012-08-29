@@ -54,8 +54,11 @@ set LOGBACK_CONF=%EXEC_PATH%\..\conf\logback.xml
 rem -- Various Java options
 set JAVA_OPTS=--JvmMs=%JAVAxMS% --JvmMx=%JAVAxMX% %JAVASERVER% ++JvmOptions=-Dlogback.configurationFile=%LOGBACK_CONF%
 
+rem -- Loglevel of Daemon between debug, info, warn, error
+set LOGLEVEL=info
+
 rem ---------------------------------------------------------------------------
-set SERVICE_OPTIONS=%JAVA_OPTS% --Description=%SERVICE_DESCRIPTION% --Jvm=auto --Classpath=%SERVICE_CLASSPATH% --StartMode=jvm --StartClass=%MAIN_SERVICE_CLASS% --StartMethod=start --StopMode=jvm --StopClass=%MAIN_SERVICE_CLASS% --StopMethod=stop --LogPath=%LOG_PATH% --StdOutput=%OUT_LOG_FILE% --StdError=%ERR_LOG_FILE% --Startup=%SERVICE_STARTUP%
+set SERVICE_OPTIONS=%JAVA_OPTS% --Description=%SERVICE_DESCRIPTION% --Jvm=auto --Classpath=%SERVICE_CLASSPATH% --StartMode=jvm --StartClass=%MAIN_SERVICE_CLASS% --StartMethod=windowsStart --StopMode=jvm --StopClass=%MAIN_SERVICE_CLASS% --StopMethod=windowsStop --LogPath=%LOG_PATH% --StdOutput=%OUT_LOG_FILE% --StdError=%ERR_LOG_FILE% --Startup=%SERVICE_STARTUP% --PidFile=service.pid --LogLevel=%LOGLEVEL%
 
 set RESTART=0
 
