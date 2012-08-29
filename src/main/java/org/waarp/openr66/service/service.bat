@@ -51,8 +51,11 @@ set JAVASERVER=++JvmOptions=-server
 rem -- Logback configuration file
 set LOGBACK_CONF=%EXEC_PATH%\..\conf\logback.xml
 
+rem -- R66 configuration file
+set R66_CONF=%EXEC_PATH%\..\conf\config-serverA2-2.xml
+
 rem -- Various Java options
-set JAVA_OPTS=--JvmMs=%JAVAxMS% --JvmMx=%JAVAxMX% %JAVASERVER% ++JvmOptions=-Dlogback.configurationFile=%LOGBACK_CONF%
+set JAVA_OPTS=--JvmMs=%JAVAxMS% --JvmMx=%JAVAxMX% %JAVASERVER% ++JvmOptions=-Dlogback.configurationFile=%LOGBACK_CONF% ++JvmOptions=-Dorg.waarp.r66.config.file=%R66_CONF%
 
 rem -- Loglevel of Daemon between debug, info, warn, error
 set LOGLEVEL=info

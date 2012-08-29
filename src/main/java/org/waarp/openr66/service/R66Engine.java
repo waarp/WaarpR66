@@ -25,6 +25,9 @@ import org.waarp.common.future.WaarpFuture;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.service.EngineAbstract;
+import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
+import org.waarp.openr66.protocol.utils.ChannelUtils;
+import org.waarp.openr66.server.R66Server;
 
 /**
  * Engine used to start and stop the real R66 service
@@ -51,11 +54,21 @@ public class R66Engine extends EngineAbstract {
 			shutdown();
 			return;
 		}
+		try {
+			R66Server.main(args);
+		} catch (OpenR66ProtocolPacketException e) {
+			logger.error("Cannot start R66", e);
+			shutdown();
+			return;
+		}
 		logger.warn("Service started with "+args[0]);
 	}
 
 	@Override
 	public void shutdown() {
+		Thread thread = new Thread(new ChannelUtils(), "R66 Shutdown Thread");
+		thread.setDaemon(true);
+		thread.start();
 		closeFurure.setSuccess();
 		logger.info("Service stopped");
 	}
