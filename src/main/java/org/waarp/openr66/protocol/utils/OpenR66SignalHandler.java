@@ -129,16 +129,18 @@ public class OpenR66SignalHandler implements SignalHandler {
 			switch (type) {
 				case TIMER_EXIT:
 					logger.error("System will force EXIT");
-					if (logger.isDebugEnabled() || Configuration.configuration.isStartedAsService) {
+					if (logger.isDebugEnabled()) {
 						Map<Thread, StackTraceElement[]> map = Thread
 								.getAllStackTraces();
 						for (Thread thread : map.keySet()) {
 							printStackTrace(thread, map.get(thread));
 						}
 					}
-					// XXX FIXME
 					if (Configuration.configuration.isStartedAsService) {
 						R66Engine.closeFuture.setSuccess();
+						try {
+							Thread.sleep(100);
+						} catch (InterruptedException e) {}
 					}
 					System.exit(0);
 					break;
@@ -160,7 +162,7 @@ public class OpenR66SignalHandler implements SignalHandler {
 				Thread.sleep(Configuration.configuration.TIMEOUTCON);
 			} catch (InterruptedException e) {
 			}
-			if (R66TimerTask.logger.isDebugEnabled() || Configuration.configuration.isStartedAsService) {
+			if (R66TimerTask.logger.isDebugEnabled()) {
 				Map<Thread, StackTraceElement[]> map = Thread
 						.getAllStackTraces();
 				for (Thread thread : map.keySet()) {
@@ -172,9 +174,11 @@ public class OpenR66SignalHandler implements SignalHandler {
 			} catch (InterruptedException e) {
 			}
 			System.err.println("Halt System");
-			// XXX FIXME
 			if (Configuration.configuration.isStartedAsService) {
 				R66Engine.closeFuture.setSuccess();
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {}
 			}
 			Runtime.getRuntime().halt(0);
 		} else {
@@ -234,9 +238,11 @@ public class OpenR66SignalHandler implements SignalHandler {
 		}
 		// ChannelUtils.stopLogger();
 		System.err.println("Signal: " + signal.getNumber());
-		// XXX FIXME
 		if (Configuration.configuration.isStartedAsService) {
 			R66Engine.closeFuture.setSuccess();
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {}
 		}
 		System.exit(0);
 	}

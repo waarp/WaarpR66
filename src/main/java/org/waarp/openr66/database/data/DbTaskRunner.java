@@ -2525,7 +2525,7 @@ public class DbTaskRunner extends AbstractDbData {
 		} catch (InterruptedException e) {
 		}
 		if (name.equals(TaskType.RESCHEDULE.name)) {
-			// Special case : must test if exec is OK
+			// Special case : must test if exec is OK since it must be the last
 			if (this.isRescheduledTransfer()) {
 				throw new OpenR66RunnerEndTasksException();
 			}
