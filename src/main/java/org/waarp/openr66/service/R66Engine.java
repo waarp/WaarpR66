@@ -25,6 +25,7 @@ import org.waarp.common.future.WaarpFuture;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.service.EngineAbstract;
+import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.server.R66Server;
@@ -41,7 +42,7 @@ public class R66Engine extends EngineAbstract {
 	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
 			.getLogger(R66Engine.class);
 	
-	protected WaarpFuture closeFurure = new WaarpFuture(true);
+	public static WaarpFuture closeFuture = new WaarpFuture(true);
 	
 	public static final String CONFIGFILE = "org.waarp.r66.config.file";
 	
@@ -54,6 +55,7 @@ public class R66Engine extends EngineAbstract {
 			shutdown();
 			return;
 		}
+		Configuration.configuration.isStartedAsService = true;
 		try {
 			R66Server.main(args);
 		} catch (OpenR66ProtocolPacketException e) {
@@ -66,21 +68,20 @@ public class R66Engine extends EngineAbstract {
 
 	@Override
 	public void shutdown() {
-		Thread thread = new Thread(new ChannelUtils(), "R66 Shutdown Thread");
-		thread.setDaemon(true);
-		thread.start();
-		closeFurure.setSuccess();
+		ChannelUtils stop = new ChannelUtils();
+		stop.run();
+		closeFuture.setSuccess();
 		logger.info("Service stopped");
 	}
 
 	@Override
 	public boolean isShutdown() {
-		return closeFurure.isDone();
+		return closeFuture.isDone();
 	}
 
 	@Override
 	public boolean waitShutdown() throws InterruptedException {
-		closeFurure.await();
-		return closeFurure.isSuccess();
+		closeFuture.await();
+		return closeFuture.isSuccess();
 	}
 }

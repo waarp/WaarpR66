@@ -382,6 +382,7 @@ public class ClientRunner extends Thread {
 					case DONE:
 					case INERROR:
 					case INTERRUPTED:
+					case TOSUBMIT:
 						break;
 					default:
 						this.changeUpdatedInfo(UpdatedInfo.INERROR,

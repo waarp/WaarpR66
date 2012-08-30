@@ -38,6 +38,7 @@ import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.ObjectSizeEstimator;
 import org.jboss.netty.util.Timer;
 import org.jboss.netty.util.internal.ExecutorUtil;
+import org.jboss.netty.util.internal.SystemPropertyUtil;
 import org.waarp.common.crypto.Des;
 import org.waarp.common.crypto.ssl.WaarpSecureKeyStore;
 import org.waarp.common.crypto.ssl.WaarpSslContextFactory;
@@ -533,9 +534,18 @@ public class Configuration {
 	public static WaarpSecureKeyStore WaarpSecureKeyStore;
 
 	public static WaarpSslContextFactory waarpSslContextFactory;
-	
+	/**
+	 * Thrift support
+	 */
 	public R66ThriftServerService thriftService;
 	public int thriftport = -1;
+	
+	/**
+	 * Commons Daemon support
+	 */
+	public boolean isStartedAsService = false;
+	
+	public boolean isExecuteErrorBeforeTransferAllowed = true;
 
 	public Configuration() {
 		// Init signal handler
@@ -543,6 +553,8 @@ public class Configuration {
 		computeNbThreads();
 		// Init FiniteStates
 		R66FiniteDualStates.initR66FiniteStates();
+		int value = SystemPropertyUtil.get("openr66.executebeforetransferred", 1);
+		isExecuteErrorBeforeTransferAllowed = (value > 0);
 	}
 
 	/**

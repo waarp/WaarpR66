@@ -52,6 +52,7 @@ import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 import org.waarp.openr66.protocol.localhandler.packet.RequestPacket;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacket;
+import org.waarp.openr66.service.R66Engine;
 
 import ch.qos.logback.classic.LoggerContext;
 
@@ -383,18 +384,24 @@ public class ChannelUtils extends Thread {
 		Configuration.configuration.getLocalTransaction().debugPrintActiveLocalChannels();
 		Configuration.configuration.getGlobalTrafficShapingHandler()
 				.releaseExternalResources();
-		logger.debug("Exit Shutdown Command");
-		terminateCommandChannels();
-		logger.debug("Exit Shutdown Local");
-		Configuration.configuration.getLocalTransaction().closeAll();
-		logger.debug("Exit Shutdown Http");
+		logger.info("Exit Shutdown Http");
 		terminateHttpChannels();
+		logger.info("Exit Shutdown Local");
+		Configuration.configuration.getLocalTransaction().closeAll();
+		logger.info("Exit Shutdown Command");
+		terminateCommandChannels();
+		logger.info("Exit Shutdown LocalExec");
 		if (Configuration.configuration.useLocalExec) {
 			LocalExecClient.releaseResources();
 		}
+		logger.info("Exit Shutdown Db Connection");
 		DbAdmin.closeAllConnection();
+		logger.info("Exit Shutdown ServerStop");
 		Configuration.configuration.serverStop();
 		System.err.println("Exit end of Shutdown");
+		if (Configuration.configuration.isStartedAsService) {
+			R66Engine.closeFuture.setSuccess();
+		}
 		Thread.currentThread().interrupt();
 	}
 

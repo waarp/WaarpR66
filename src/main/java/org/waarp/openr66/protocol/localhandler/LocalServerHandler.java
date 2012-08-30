@@ -407,7 +407,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
 		// inform clients
+		logger.debug("Exception and isFinished: "+
+				(localChannelReference != null && localChannelReference.getFutureRequest().isDone()), e);
 		if (localChannelReference != null && localChannelReference.getFutureRequest().isDone()) {
+			Channels.close(e.getChannel());
 			return;
 		}
 		OpenR66Exception exception = OpenR66ExceptionTrappedFactory
@@ -552,8 +555,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
 								exception, session, true, code, session.getRunner());
 				try {
 					session.setFinalizeTransfer(false, finalValue);
-					if (localChannelReference != null)
+					if (localChannelReference != null) {
 						localChannelReference.invalidateRequest(finalValue);
+					}
 				} catch (OpenR66RunnerErrorException e1) {
 					if (localChannelReference != null)
 						localChannelReference.invalidateRequest(finalValue);
@@ -1201,13 +1205,15 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			ErrorPacket error = new ErrorPacket("PreTask in error: " + e
 					.getMessage(), runner.getErrorInfo().getCode(), ErrorPacket.FORWARDCLOSECODE);
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
-			localChannelReference.invalidateRequest(new R66Result(e, session,
-					true, runner.getErrorInfo(), runner));
 			try {
 				session.setFinalizeTransfer(false, new R66Result(e, session,
 						true, runner.getErrorInfo(), runner));
 			} catch (OpenR66RunnerErrorException e1) {
+				localChannelReference.invalidateRequest(new R66Result(e, session,
+						true, runner.getErrorInfo(), runner));
 			} catch (OpenR66ProtocolSystemException e1) {
+				localChannelReference.invalidateRequest(new R66Result(e, session,
+						true, runner.getErrorInfo(), runner));
 			}
 			session.setStatus(38);
 			ChannelCloseTimer.closeFutureChannel(channel);
@@ -2151,13 +2157,15 @@ public class LocalServerHandler extends SimpleChannelHandler {
 								error, true);
 					} catch (OpenR66ProtocolPacketException e2) {
 					}
-					localChannelReference.invalidateRequest(new R66Result(e, session,
-							true, runner.getErrorInfo(), runner));
 					try {
 						session.setFinalizeTransfer(false, new R66Result(e, session,
 								true, runner.getErrorInfo(), runner));
 					} catch (OpenR66RunnerErrorException e1) {
+						localChannelReference.invalidateRequest(new R66Result(e, session,
+								true, runner.getErrorInfo(), runner));
 					} catch (OpenR66ProtocolSystemException e1) {
+						localChannelReference.invalidateRequest(new R66Result(e, session,
+								true, runner.getErrorInfo(), runner));
 					}
 					session.setStatus(97);
 					ChannelCloseTimer.closeFutureChannel(channel);
