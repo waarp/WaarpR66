@@ -12,6 +12,7 @@
 			<action dev="Frederic Bregier" type="fix">Fix Log Task for File output (append mode)</action>
 			<action dev="Frederic Bregier" type="fix">Fix Netty Exception catching when starting connection</action>
 			<action dev="Frederic Bregier" type="fix">Fix execution of error tasks after any error, including pre condition before pre-tasks</action>
+			<action dev="Frederic Bregier" type="fix">Add -count option and #CPTLIMIT# to RESCHEDULE task in order to limit the number of reschedule</action>
 			<action dev="Frederic Bregier" type="fix">Netty version</action>
 		</release>
 	    <release version="2.4.6" date="2012-08-27" description="Fix release">

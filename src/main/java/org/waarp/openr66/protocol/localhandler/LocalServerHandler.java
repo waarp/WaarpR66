@@ -1093,7 +1093,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					}
 					// ok to restart
 					try {
-						runner.restart(false);
+						if (runner.restart(false)) {
+							runner.saveStatus();
+						}
 					} catch (OpenR66RunnerErrorException e) {
 					}
 				} catch (WaarpDatabaseNoDataException e) {
@@ -1123,7 +1125,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
 							session, rule, packet.getSpecialId(),
 							requester, requested);
 					try {
-						runner.restart(false);
+						if (runner.restart(false)) {
+							runner.saveStatus();
+						}
 					} catch (OpenR66RunnerErrorException e) {
 					}
 				} catch (WaarpDatabaseException e) {

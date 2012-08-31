@@ -82,6 +82,7 @@ public class TransferUtils {
 			// but maybe need action on database
 			try {
 				if (taskRunner.restart(true)) {
+					taskRunner.saveStatus();
 					finalResult.code = ErrorCode.PreProcessingOk;
 					finalResult.other = "Transfer is restarted";
 				} else {

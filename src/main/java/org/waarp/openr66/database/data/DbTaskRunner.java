@@ -1971,9 +1971,8 @@ public class DbTaskRunner extends AbstractDbData {
 	 *            True to resubmit this task, else False to keep it as running (only reset)
 	 * @return True if OK or False if Already finished or if submitted and the request is a
 	 *         selfRequested and is not ready to restart locally
-	 * @throws OpenR66RunnerErrorException
 	 */
-	public boolean restart(boolean submit) throws OpenR66RunnerErrorException {
+	public boolean restart(boolean submit) {
 		// Restart if not Requested
 		if (submit) {
 			if (isSelfRequested() && (this.globallaststep < TASKSTEP.POSTTASK.ordinal())) {
@@ -1995,7 +1994,6 @@ public class DbTaskRunner extends AbstractDbData {
 			} else {
 				this.changeUpdatedInfo(UpdatedInfo.RUNNING);
 			}
-			this.saveStatus();
 			return true;
 		} else {
 			// Already finished so DONE
@@ -2221,6 +2219,16 @@ public class DbTaskRunner extends AbstractDbData {
 		return fileInformation;
 	}
 
+	/**
+	 * Set a new File information for this transfer
+	 * @param newFileInformation
+	 */
+	public void setFileInformation(String newFileInformation) {
+		fileInformation = newFileInformation;
+		allFields[Columns.FILEINFO.ordinal()].setValue(this.fileInformation);
+		isSaved = false;
+	}
+	
 	/**
 	 * @return the specialId
 	 */
@@ -3234,12 +3242,11 @@ public class DbTaskRunner extends AbstractDbData {
 	/**
 	 * @param start
 	 *            new Start time to apply when reschedule
-	 * @throws OpenR66RunnerErrorException
-	 *             (in fact a WaarpDatabaseException)
+	 * @return true if restart is OK
 	 */
-	public void setStart(Timestamp start) throws OpenR66RunnerErrorException {
+	public boolean setStart(Timestamp start) {
 		this.start = start;
-		this.restart(true);
+		return this.restart(true);
 	}
 
 	/**

@@ -20,6 +20,10 @@
  */
 package org.waarp.openr66.thrift;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
+
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TServerSocket;
@@ -66,7 +70,22 @@ public class R66ThriftServerService implements Runnable {
 	public void run() {
 		try {
 			logger.warn("Will start Thrift service on port: " + port);
-			serverTransport = new TServerSocket(port);
+			byte [] local = {127,0,0,1};
+			InetAddress addr;
+			try {
+				addr = InetAddress.getByAddress(local);
+			} catch (UnknownHostException e) {
+				try {
+					addr = InetAddress.getLocalHost();
+				} catch (UnknownHostException e1) {
+					logger.error("Cannot start the Thrift service", e1);
+					serviceReady.setFailure(e);
+					releaseResources();
+					return;
+				}
+			}
+			InetSocketAddress address = new InetSocketAddress(addr, port);
+			serverTransport = new TServerSocket(address);
 			R66Service.Processor<R66EmbeddedServiceImpl> processor = 
 					new R66Service.Processor<R66EmbeddedServiceImpl>(
 					new R66EmbeddedServiceImpl());

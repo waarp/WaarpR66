@@ -113,8 +113,12 @@ public class LogTask extends AbstractTask {
 					return;
 				}
 				try {
-					outputStream.write(finalValue.getBytes());
-					outputStream.write("\n".getBytes());
+					int len = args.length -1;
+					for (int i = 0; i < len; i++) {
+						outputStream.write(args[i].getBytes());
+						outputStream.write(' ');
+					}
+					outputStream.write('\n');
 				} catch (IOException e) {
 					// File cannot be written so revert to log
 					try {
