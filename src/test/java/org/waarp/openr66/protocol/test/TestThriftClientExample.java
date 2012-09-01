@@ -124,9 +124,9 @@ public class TestThriftClientExample  {
 			// Wrong request
 			request = new R66Request(RequestMode.INFOFILE);
 
-			System.out.println("REQUEST1: " + request.toString());
+			System.out.println("WRONG REQUEST: " + request.toString());
 			list = client.infoListQuery(request);
-			System.out.println("RESULT1: " + list.size());
+			System.out.println("RESULT of Wrong Request: " + list.size());
 			for (String slist :list) {
 				System.out.println(slist);
 			}

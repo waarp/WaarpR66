@@ -1928,6 +1928,8 @@ public class DbTaskRunner extends AbstractDbData {
 				case ERRORTASK:
 					break;
 				case NOTASK:
+					setInitialTask();
+					this.setExecutionStatus(ErrorCode.Unknown);
 					break;
 				default:
 					break;
@@ -1969,9 +1971,8 @@ public class DbTaskRunner extends AbstractDbData {
 	 *            True to resubmit this task, else False to keep it as running (only reset)
 	 * @return True if OK or False if Already finished or if submitted and the request is a
 	 *         selfRequested and is not ready to restart locally
-	 * @throws OpenR66RunnerErrorException
 	 */
-	public boolean restart(boolean submit) throws OpenR66RunnerErrorException {
+	public boolean restart(boolean submit) {
 		// Restart if not Requested
 		if (submit) {
 			if (isSelfRequested() && (this.globallaststep < TASKSTEP.POSTTASK.ordinal())) {
@@ -1993,7 +1994,6 @@ public class DbTaskRunner extends AbstractDbData {
 			} else {
 				this.changeUpdatedInfo(UpdatedInfo.RUNNING);
 			}
-			this.saveStatus();
 			return true;
 		} else {
 			// Already finished so DONE
@@ -2220,6 +2220,16 @@ public class DbTaskRunner extends AbstractDbData {
 	}
 
 	/**
+	 * Set a new File information for this transfer
+	 * @param newFileInformation
+	 */
+	public void setFileInformation(String newFileInformation) {
+		fileInformation = newFileInformation;
+		allFields[Columns.FILEINFO.ordinal()].setValue(this.fileInformation);
+		isSaved = false;
+	}
+	
+	/**
 	 * @return the specialId
 	 */
 	public long getSpecialId() {
@@ -2313,6 +2323,25 @@ public class DbTaskRunner extends AbstractDbData {
 			return (step - 1 <= 0);
 		}
 		return false;
+	}
+
+
+	/**
+	 * Set the Initial Task step (before Pre task)
+	 * 
+	 */
+	public void setInitialTask() {
+		globalstep = TASKSTEP.NOTASK.ordinal();
+		globallaststep = TASKSTEP.NOTASK.ordinal();
+		allFields[Columns.GLOBALSTEP.ordinal()].setValue(globalstep);
+		allFields[Columns.GLOBALLASTSTEP.ordinal()].setValue(globallaststep);
+		step = -1;
+		allFields[Columns.STEP.ordinal()].setValue(this.step);
+		status = ErrorCode.Running;
+		allFields[Columns.STEPSTATUS.ordinal()].setValue(status.getCode());
+		this.changeUpdatedInfo(UpdatedInfo.RUNNING);
+		this.setErrorExecutionStatus(ErrorCode.Unknown);
+		isSaved = false;
 	}
 
 	/**
@@ -2502,6 +2531,12 @@ public class DbTaskRunner extends AbstractDbData {
 		try {
 			task.getFutureCompletion().await();
 		} catch (InterruptedException e) {
+		}
+		if (name.equals(TaskType.RESCHEDULE.name)) {
+			// Special case : must test if exec is OK since it must be the last
+			if (this.isRescheduledTransfer()) {
+				throw new OpenR66RunnerEndTasksException();
+			}
 		}
 		return task.getFutureCompletion();
 	}
@@ -2831,7 +2866,9 @@ public class DbTaskRunner extends AbstractDbData {
 				throw e1;
 			}
 		}
-		this.changeUpdatedInfo(UpdatedInfo.INERROR);
+		if (! this.isRescheduledTransfer()) {
+			this.changeUpdatedInfo(UpdatedInfo.INERROR);
+		}
 		if (RequestPacket.isThroughMode(this.getMode())) {
 			this.setErrorExecutionStatus(runnerStatus);
 			this.saveStatus();
@@ -3205,12 +3242,11 @@ public class DbTaskRunner extends AbstractDbData {
 	/**
 	 * @param start
 	 *            new Start time to apply when reschedule
-	 * @throws OpenR66RunnerErrorException
-	 *             (in fact a WaarpDatabaseException)
+	 * @return true if restart is OK
 	 */
-	public void setStart(Timestamp start) throws OpenR66RunnerErrorException {
+	public boolean setStart(Timestamp start) {
 		this.start = start;
-		this.restart(true);
+		return this.restart(true);
 	}
 
 	/**

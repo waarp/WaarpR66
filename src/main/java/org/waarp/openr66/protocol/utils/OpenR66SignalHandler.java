@@ -25,6 +25,7 @@ import org.jboss.netty.util.internal.SystemPropertyUtil;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.service.R66Engine;
 
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
@@ -135,6 +136,12 @@ public class OpenR66SignalHandler implements SignalHandler {
 							printStackTrace(thread, map.get(thread));
 						}
 					}
+					if (Configuration.configuration.isStartedAsService) {
+						R66Engine.closeFuture.setSuccess();
+						try {
+							Thread.sleep(100);
+						} catch (InterruptedException e) {}
+					}
 					System.exit(0);
 					break;
 				default:
@@ -167,6 +174,12 @@ public class OpenR66SignalHandler implements SignalHandler {
 			} catch (InterruptedException e) {
 			}
 			System.err.println("Halt System");
+			if (Configuration.configuration.isStartedAsService) {
+				R66Engine.closeFuture.setSuccess();
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {}
+			}
 			Runtime.getRuntime().halt(0);
 		} else {
 			launchFinalExit();
@@ -225,6 +238,12 @@ public class OpenR66SignalHandler implements SignalHandler {
 		}
 		// ChannelUtils.stopLogger();
 		System.err.println("Signal: " + signal.getNumber());
+		if (Configuration.configuration.isStartedAsService) {
+			R66Engine.closeFuture.setSuccess();
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {}
+		}
 		System.exit(0);
 	}
 }
