@@ -2336,6 +2336,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
 								Configuration.configuration.TIMEOUTCON + " ms",
 						session.getAuth().getUser());
 			}
+			if (Configuration.configuration.isStartedAsService) {
+				logger.warn("R66 started as a service, Windows Services might not shown it as stopped");
+			}
 			throw new OpenR66ProtocolShutdownException("Shutdown Type received");
 		}
 		logger.error("Invalid Shutdown command: from " + session.getAuth().getUser()

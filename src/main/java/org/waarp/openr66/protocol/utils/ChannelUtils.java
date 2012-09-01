@@ -156,6 +156,9 @@ public class ChannelUtils extends Thread {
 	 * @return the number of previously registered network channels
 	 */
 	private static int terminateCommandChannels() {
+		if (Configuration.configuration.getServerChannelGroup() == null) {
+			return 0;
+		}
 		final int result = Configuration.configuration.getServerChannelGroup()
 				.size();
 		logger.info("ServerChannelGroup: " + result);
@@ -176,6 +179,9 @@ public class ChannelUtils extends Thread {
 	 * @return the number of previously registered http network channels
 	 */
 	private static int terminateHttpChannels() {
+		if (Configuration.configuration.getHttpChannelGroup() == null) {
+			return 0;
+		}
 		final int result = Configuration.configuration.getHttpChannelGroup()
 				.size();
 		logger.debug("HttpChannelGroup: " + result);
@@ -365,7 +371,9 @@ public class ChannelUtils extends Thread {
 	 * Exit global ChannelFactory
 	 */
 	public static void exit() {
-		Configuration.configuration.constraintLimitHandler.release();
+		if (Configuration.configuration.constraintLimitHandler != null) {
+			Configuration.configuration.constraintLimitHandler.release();
+		}
 		// First try to StopAll
 		TransferUtils.stopSelectedTransfers(DbConstant.admin.session, 0,
 				null, null, null, null, null, null, null, null, null, true, true, true);
@@ -373,21 +381,29 @@ public class ChannelUtils extends Thread {
 		Configuration.configuration.prepareServerStop();
 		final long delay = Configuration.configuration.TIMEOUTCON;
 		// Inform others that shutdown
-		Configuration.configuration.getLocalTransaction()
+		if (Configuration.configuration.getLocalTransaction() != null) {
+			Configuration.configuration.getLocalTransaction()
 				.shutdownLocalChannels();
+		}
 		logger.warn("Exit: Give a delay of " + delay + " ms");
 		try {
 			Thread.sleep(delay);
 		} catch (final InterruptedException e) {
 		}
 		NetworkTransaction.closeRetrieveExecutors();
-		Configuration.configuration.getLocalTransaction().debugPrintActiveLocalChannels();
-		Configuration.configuration.getGlobalTrafficShapingHandler()
+		if (Configuration.configuration.getLocalTransaction() != null) {
+			Configuration.configuration.getLocalTransaction().debugPrintActiveLocalChannels();
+		}
+		if (Configuration.configuration.getGlobalTrafficShapingHandler() != null) {
+			Configuration.configuration.getGlobalTrafficShapingHandler()
 				.releaseExternalResources();
+		}
 		logger.info("Exit Shutdown Http");
 		terminateHttpChannels();
 		logger.info("Exit Shutdown Local");
-		Configuration.configuration.getLocalTransaction().closeAll();
+		if (Configuration.configuration.getLocalTransaction() != null) {
+			Configuration.configuration.getLocalTransaction().closeAll();
+		}
 		logger.info("Exit Shutdown Command");
 		terminateCommandChannels();
 		logger.info("Exit Shutdown LocalExec");
@@ -398,6 +414,7 @@ public class ChannelUtils extends Thread {
 		DbAdmin.closeAllConnection();
 		logger.info("Exit Shutdown ServerStop");
 		Configuration.configuration.serverStop();
+		logger.warn("Exit end of Shutdown");
 		System.err.println("Exit end of Shutdown");
 		if (Configuration.configuration.isStartedAsService) {
 			R66Engine.closeFuture.setSuccess();

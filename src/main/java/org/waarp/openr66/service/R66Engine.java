@@ -26,8 +26,7 @@ import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.service.EngineAbstract;
 import org.waarp.openr66.protocol.configuration.Configuration;
-import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
-import org.waarp.openr66.protocol.utils.ChannelUtils;
+import org.waarp.openr66.protocol.utils.OpenR66SignalHandler;
 import org.waarp.openr66.server.R66Server;
 
 /**
@@ -48,28 +47,30 @@ public class R66Engine extends EngineAbstract {
 	
 	@Override
 	public void run() {
-		String []args = { "" };
-		args[0] = SystemPropertyUtil.get(CONFIGFILE);
-		if (args[0] == null) {
+		String config = SystemPropertyUtil.get(CONFIGFILE);
+		if (config == null) {
 			logger.error("Cannot find "+CONFIGFILE+" parameter");
+			closeFuture.cancel();
 			shutdown();
 			return;
 		}
 		Configuration.configuration.isStartedAsService = true;
 		try {
-			R66Server.main(args);
-		} catch (OpenR66ProtocolPacketException e) {
+			if (! R66Server.initialize(config)) {
+				throw new Exception("Initialization in error");
+			}
+		} catch (Throwable e) {
 			logger.error("Cannot start R66", e);
+			closeFuture.cancel();
 			shutdown();
 			return;
 		}
-		logger.warn("Service started with "+args[0]);
+		logger.warn("Service started with "+config);
 	}
 
 	@Override
 	public void shutdown() {
-		ChannelUtils stop = new ChannelUtils();
-		stop.run();
+		OpenR66SignalHandler.terminate(false);
 		closeFuture.setSuccess();
 		logger.info("Service stopped");
 	}

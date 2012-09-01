@@ -24,7 +24,7 @@ rem -- Service name
 set SERVICE_NAME=WaarpR66
 
 rem -- Service CLASSPATH
-set SERVICE_CLASSPATH=%DAEMON_ROOT%\commons-codec-1.6.jar;%DAEMON_ROOT%\commons-compress-1.4.1.jar;%DAEMON_ROOT%\commons-exec-1.1.jar;%DAEMON_ROOT%\commons-io-2.4.jar;%DAEMON_ROOT%\dom4j-1.6.1.jar;%DAEMON_ROOT%\h2-1.3.167.jar;%DAEMON_ROOT%\javasysmon-0.3.3.jar;%DAEMON_ROOT%\jaxen-1.1.3.jar;%DAEMON_ROOT%\log4j-1.2.14.jar;%DAEMON_ROOT%\logback-access-1.0.6.jar;%DAEMON_ROOT%\logback-classic-1.0.6.jar;%DAEMON_ROOT%\logback-core-1.0.6.jar;%DAEMON_ROOT%\netty-3.5.5.Final.jar;%DAEMON_ROOT%\slf4j-api-1.6.6.jar;%DAEMON_ROOT%\snmp4j-2.1.0.jar;%DAEMON_ROOT%\snmp4j-agent-2.0.6.jar;%DAEMON_ROOT%\WaarpCommon-1.2.6.jar;%DAEMON_ROOT%\WaarpDigest-1.1.5.jar;%DAEMON_ROOT%\WaarpExec-1.1.3.jar;%DAEMON_ROOT%\WaarpPassword-1.1.1.jar;%DAEMON_ROOT%\WaarpR66-2.4.7-beta.jar;%DAEMON_ROOT%\WaarpR66Gui-2.1.2.jar;%DAEMON_ROOT%\WaarpSnmp-1.1.1.jar;%DAEMON_ROOT%\WaarpThrift-1.0.0.jar;%DAEMON_ROOT%\WaarpXmlEditor-1.0.0.jar;%DAEMON_ROOT%\xercesImpl.jar;%DAEMON_ROOT%\xml-apis.jar;%DAEMON_ROOT%\xmleditor.jar;%DAEMON_ROOT%\commons-daemon-1.0.10.jar
+set SERVICE_CLASSPATH=%DAEMON_ROOT%\commons-codec-1.6.jar;%DAEMON_ROOT%\commons-compress-1.4.1.jar;%DAEMON_ROOT%\commons-exec-1.1.jar;%DAEMON_ROOT%\commons-io-2.4.jar;%DAEMON_ROOT%\dom4j-1.6.1.jar;%DAEMON_ROOT%\h2-1.3.167.jar;%DAEMON_ROOT%\javasysmon-0.3.3.jar;%DAEMON_ROOT%\jaxen-1.1.3.jar;%DAEMON_ROOT%\log4j-1.2.14.jar;%DAEMON_ROOT%\logback-access-1.0.6.jar;%DAEMON_ROOT%\logback-classic-1.0.6.jar;%DAEMON_ROOT%\logback-core-1.0.6.jar;%DAEMON_ROOT%\netty-3.5.5.Final.jar;%DAEMON_ROOT%\slf4j-api-1.6.6.jar;%DAEMON_ROOT%\snmp4j-2.1.0.jar;%DAEMON_ROOT%\snmp4j-agent-2.0.6.jar;%DAEMON_ROOT%\WaarpCommon-1.2.6.jar;%DAEMON_ROOT%\WaarpDigest-1.1.5.jar;%DAEMON_ROOT%\WaarpExec-1.1.3.jar;%DAEMON_ROOT%\WaarpPassword-1.1.1.jar;%DAEMON_ROOT%\WaarpR66-2.4.7-beta.jar;%DAEMON_ROOT%\WaarpR66Gui-2.1.2.jar;%DAEMON_ROOT%\WaarpSnmp-1.1.1.jar;%DAEMON_ROOT%\WaarpThrift-1.0.0.jar;%DAEMON_ROOT%\WaarpXmlEditor-1.0.0.jar;%DAEMON_ROOT%\xercesImpl.jar;%DAEMON_ROOT%\xml-apis.jar;%DAEMON_ROOT%\xmleditor.jar;%DAEMON_ROOT%\commons-daemon-1.0.10.jar;%DAEMON_ROOT%\libthrift-0.8.0.jar
 
 rem -- Service main class
 set MAIN_SERVICE_CLASS=org.waarp.openr66.service.R66ServiceLauncher
@@ -42,7 +42,7 @@ rem -- Startup mode (manual or auto)
 set SERVICE_STARTUP=auto
 
 rem -- JVM option (auto or full path to jvm.dll, if possible pointing to server version)
-rem example: C:\Program Files\Java\jdk1.7.0_05\jre\bin\server\jvm.dll
+rem example: set JVMMODE=--JVM=C:\Java\jdk1.7.0_05\jre\bin\server\jvm.dll
 set JVMMODE=--Jvm=auto
 
 rem -- Java memory options
@@ -63,9 +63,9 @@ set LOGLEVEL=info
 
 rem ---------------------------------------------------------------------------
 rem -- Various Java options
-set JAVA_OPTS=--JvmMs=%JAVAxMS% --JvmMx=%JAVAxMX% %JAVASERVER% ++JvmOptions=-Dlogback.configurationFile=%LOGBACK_CONF% ++JvmOptions=-Dorg.waarp.r66.config.file=%R66_CONF%
+set JAVA_OPTS=%JVMMODE% --JvmMs=%JAVAxMS% --JvmMx=%JAVAxMX% ++JvmOptions=-Dlogback.configurationFile=%LOGBACK_CONF% ++JvmOptions=-Dorg.waarp.r66.config.file=%R66_CONF%
 
-set SERVICE_OPTIONS=%JAVA_OPTS% --Description=%SERVICE_DESCRIPTION% %JVMMODE% --Classpath=%SERVICE_CLASSPATH% --StartMode=jvm --StartClass=%MAIN_SERVICE_CLASS% --StartMethod=windowsStart --StopMode=jvm --StopClass=%MAIN_SERVICE_CLASS% --StopMethod=windowsStop --LogPath=%LOG_PATH% --StdOutput=%OUT_LOG_FILE% --StdError=%ERR_LOG_FILE% --Startup=%SERVICE_STARTUP% --PidFile=service.pid --LogLevel=%LOGLEVEL%
+set SERVICE_OPTIONS=%JAVA_OPTS% --Description=%SERVICE_DESCRIPTION% --Classpath=%SERVICE_CLASSPATH% --StartMode=jvm --StartClass=%MAIN_SERVICE_CLASS% --StartMethod=windowsStart --StopMode=jvm --StopClass=%MAIN_SERVICE_CLASS% --StopMethod=windowsStop --LogPath=%LOG_PATH% --StdOutput=%OUT_LOG_FILE% --StdError=%ERR_LOG_FILE% --Startup=%SERVICE_STARTUP% --PidFile=service.pid --LogLevel=%LOGLEVEL%
 
 set RESTART=0
 
