@@ -22,6 +22,7 @@ import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.openr66.context.filesystem.R66File;
 import org.waarp.openr66.context.task.AbstractExecJavaTask;
+import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.packet.BusinessRequestPacket;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
@@ -69,15 +70,19 @@ public class TestExecJavaTask extends AbstractExecJavaTask {
 		} else {
 			// Rule EXECJAVA based
 			R66File file = session.getFile();
+			DbTaskRunner runner = session.getRunner();
 			if (file == null) {
 				logger.info("TestExecJavaTask No File");
 			} else {
 				try {
 					logger.info("TestExecJavaTask File: " + file.getFile());
 				} catch (CommandAbstractException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				}
+			}
+			if (runner == null) {
+				logger.info("TestExecJavaTask No Runner");
+			} else {
+				logger.info("TestExecJavaTask Runner: " + runner.toShortString());
 			}
 			this.status = 0;
 		}

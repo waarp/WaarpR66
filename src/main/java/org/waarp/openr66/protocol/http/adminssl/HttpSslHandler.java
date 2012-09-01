@@ -1487,7 +1487,12 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					forceClose = true;
 					return logon;
 				} else if (act.equalsIgnoreCase("Shutdown")) {
-					String error = error("Shutdown in progress");
+					String error;
+					if (Configuration.configuration.isStartedAsService) {
+						error = error("Shutdown in progress but WARNING: R66 started as a service might not be correctly shown as stopped under Windows Services");
+					} else {
+						error = error("Shutdown in progress");
+					}
 					newSession = true;
 					clearSession();
 					forceClose = true;

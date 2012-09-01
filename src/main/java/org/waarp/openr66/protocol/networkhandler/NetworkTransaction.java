@@ -34,6 +34,7 @@ import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFactory;
 import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.channel.ChannelPipelineException;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
@@ -218,6 +219,14 @@ public class NetworkTransaction {
 				localChannelReference =
 						createConnection(socketAddress, isSSL, futureRequest);
 				break;
+			} catch (OpenR66ProtocolRemoteShutdownException e1) {
+				lastException = e1;
+				localChannelReference = null;
+				break;
+			} catch (OpenR66ProtocolNoConnectionException e1) {
+				lastException = e1;
+				localChannelReference = null;
+				break;
 			} catch (OpenR66ProtocolNetworkException e1) {
 				// Can retry
 				lastException = e1;
@@ -227,14 +236,6 @@ public class NetworkTransaction {
 				} catch (InterruptedException e) {
 					break;
 				}
-			} catch (OpenR66ProtocolRemoteShutdownException e1) {
-				lastException = e1;
-				localChannelReference = null;
-				break;
-			} catch (OpenR66ProtocolNoConnectionException e1) {
-				lastException = e1;
-				localChannelReference = null;
-				break;
 			}
 		}
 		if (localChannelReference == null) {
@@ -343,14 +344,19 @@ public class NetworkTransaction {
 			}
 			ChannelFuture channelFuture = null;
 			for (int i = 0; i < Configuration.RETRYNB; i++) {
-				if (isSSL) {
-					if (Configuration.configuration.HOST_SSLID != null) {
-						channelFuture = clientSslBootstrap.connect(socketServerAddress);
+				try {
+					if (isSSL) {
+						if (Configuration.configuration.HOST_SSLID != null) {
+							channelFuture = clientSslBootstrap.connect(socketServerAddress);
+						} else {
+							throw new OpenR66ProtocolNoConnectionException("No SSL support");
+						}
 					} else {
-						throw new OpenR66ProtocolNoConnectionException("No SSL support");
+						channelFuture = clientBootstrap.connect(socketServerAddress);
 					}
-				} else {
-					channelFuture = clientBootstrap.connect(socketServerAddress);
+				} catch (ChannelPipelineException e) {
+					throw new OpenR66ProtocolNoConnectionException(
+							"Cannot connect to remote server due to a channel exception");
 				}
 				try {
 					channelFuture.await();

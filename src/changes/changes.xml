@@ -6,13 +6,19 @@
 	</properties>
 	<body>
 		<release version="2.4.7" date="2012-09-02" description="Fix release">
-			<action dev="Frederic Bregier" type="fix">Thrift first stable release</action>
+			<action dev="Frederic Bregier" type="add">Thrift first stable release</action>
+			<action dev="Frederic Bregier" type="add">Add support for Windows Service through Apache Commons Daemon</action>
+			<action dev="Frederic Bregier" type="fix">Fix Zip Task identification</action>
+			<action dev="Frederic Bregier" type="fix">Fix Log Task for File output (append mode)</action>
+			<action dev="Frederic Bregier" type="fix">Fix Netty Exception catching when starting connection</action>
+			<action dev="Frederic Bregier" type="fix">Fix execution of error tasks after any error, including pre condition before pre-tasks</action>
+			<action dev="Frederic Bregier" type="fix">Add -count option and #CPTLIMIT# to RESCHEDULE task in order to limit the number of reschedule</action>
 			<action dev="Frederic Bregier" type="fix">Netty version</action>
 		</release>
 	    <release version="2.4.6" date="2012-08-27" description="Fix release">
 			<action dev="Frederic Bregier" type="fix">Export configuration</action>
 			<action dev="Frederic Bregier" type="fix">Netty version</action>
-			<action dev="Frederic Bregier" type="fix">First Beta Thrift version</action>
+			<action dev="Frederic Bregier" type="add">First Beta Thrift version</action>
 		</release>
 		<release version="2.4.5" date="2012-08-25" description="Fix release">
 			<action dev="Frederic Bregier" type="fix">Tar and Zip tasks fix</action>

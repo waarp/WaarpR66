@@ -49,7 +49,7 @@ public class ZipTask extends AbstractTask {
 	 */
 	public ZipTask(String argRule, int delay, String argTransfer,
 			R66Session session) {
-		super(TaskType.COPY, delay, argRule, argTransfer, session);
+		super(TaskType.ZIP, delay, argRule, argTransfer, session);
 	}
 
 	/*

@@ -407,7 +407,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
 		// inform clients
+		logger.debug("Exception and isFinished: "+
+				(localChannelReference != null && localChannelReference.getFutureRequest().isDone()), e);
 		if (localChannelReference != null && localChannelReference.getFutureRequest().isDone()) {
+			Channels.close(e.getChannel());
 			return;
 		}
 		OpenR66Exception exception = OpenR66ExceptionTrappedFactory
@@ -552,8 +555,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
 								exception, session, true, code, session.getRunner());
 				try {
 					session.setFinalizeTransfer(false, finalValue);
-					if (localChannelReference != null)
+					if (localChannelReference != null) {
 						localChannelReference.invalidateRequest(finalValue);
+					}
 				} catch (OpenR66RunnerErrorException e1) {
 					if (localChannelReference != null)
 						localChannelReference.invalidateRequest(finalValue);
@@ -1089,7 +1093,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					}
 					// ok to restart
 					try {
-						runner.restart(false);
+						if (runner.restart(false)) {
+							runner.saveStatus();
+						}
 					} catch (OpenR66RunnerErrorException e) {
 					}
 				} catch (WaarpDatabaseNoDataException e) {
@@ -1119,7 +1125,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
 							session, rule, packet.getSpecialId(),
 							requester, requested);
 					try {
-						runner.restart(false);
+						if (runner.restart(false)) {
+							runner.saveStatus();
+						}
 					} catch (OpenR66RunnerErrorException e) {
 					}
 				} catch (WaarpDatabaseException e) {
@@ -1201,13 +1209,15 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			ErrorPacket error = new ErrorPacket("PreTask in error: " + e
 					.getMessage(), runner.getErrorInfo().getCode(), ErrorPacket.FORWARDCLOSECODE);
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
-			localChannelReference.invalidateRequest(new R66Result(e, session,
-					true, runner.getErrorInfo(), runner));
 			try {
 				session.setFinalizeTransfer(false, new R66Result(e, session,
 						true, runner.getErrorInfo(), runner));
 			} catch (OpenR66RunnerErrorException e1) {
+				localChannelReference.invalidateRequest(new R66Result(e, session,
+						true, runner.getErrorInfo(), runner));
 			} catch (OpenR66ProtocolSystemException e1) {
+				localChannelReference.invalidateRequest(new R66Result(e, session,
+						true, runner.getErrorInfo(), runner));
 			}
 			session.setStatus(38);
 			ChannelCloseTimer.closeFutureChannel(channel);
@@ -2151,13 +2161,15 @@ public class LocalServerHandler extends SimpleChannelHandler {
 								error, true);
 					} catch (OpenR66ProtocolPacketException e2) {
 					}
-					localChannelReference.invalidateRequest(new R66Result(e, session,
-							true, runner.getErrorInfo(), runner));
 					try {
 						session.setFinalizeTransfer(false, new R66Result(e, session,
 								true, runner.getErrorInfo(), runner));
 					} catch (OpenR66RunnerErrorException e1) {
+						localChannelReference.invalidateRequest(new R66Result(e, session,
+								true, runner.getErrorInfo(), runner));
 					} catch (OpenR66ProtocolSystemException e1) {
+						localChannelReference.invalidateRequest(new R66Result(e, session,
+								true, runner.getErrorInfo(), runner));
 					}
 					session.setStatus(97);
 					ChannelCloseTimer.closeFutureChannel(channel);
@@ -2323,6 +2335,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
 						"Shutdown Order received effective in " +
 								Configuration.configuration.TIMEOUTCON + " ms",
 						session.getAuth().getUser());
+			}
+			if (Configuration.configuration.isStartedAsService) {
+				logger.warn("R66 started as a service, Windows Services might not shown it as stopped");
 			}
 			throw new OpenR66ProtocolShutdownException("Shutdown Type received");
 		}

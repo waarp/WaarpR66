@@ -797,8 +797,11 @@ public class R66Session implements SessionInterface {
 						"Pre task in error (or even before)");
 			}
 			finalValue.exception = runnerErrorException;
-			logger.error("Pre task in error (or even before) : " +
+			logger.debug("Pre task in error (or even before) : " +
 					runnerErrorException.getMessage());
+			if (Configuration.configuration.isExecuteErrorBeforeTransferAllowed) {
+				runner.finalizeTransfer(localChannelReference, file, finalValue, status);
+			}
 			localChannelReference.invalidateRequest(finalValue);
 			throw runnerErrorException;
 		}

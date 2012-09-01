@@ -39,6 +39,7 @@ import org.waarp.openr66.database.data.DbTaskRunner;
  * <br>
  * 
  * "-delay ms" where ms is the added number of ms on current time before retry on schedule<br>
+ * <br>
  * "-case errorCode,errorCode,..." where errorCode is one of the following error of the current
  * transfer (either literal or code in 1 character:<br>
  * ConnectionImpossible(C), ServerOverloaded(l), BadAuthent(A), ExternalOp(E), TransferError(T),
@@ -55,6 +56,18 @@ import org.waarp.openr66.database.data.DbTaskRunner;
  * while X=n or Xn means setting exact value<br>
  * If one time specification is not set, it is based on the current date.<br>
  * <br>
+ * "-count limit" will be the limit of retry. The value limit is taken from the "info on transfer" and not from the rule
+ * as "#CPTLIMIT#newlimit#CPTLIMIT#". Each time this function is called, the 
+ * limit value will be replaced as newlimit = limit - 1 in the "info of transfer" as "#CPTLIMIT#newlimit#CPTLIMIT#".<br>
+ * To ensure correctness, the value must be in the "info of transfer" since this value will be
+ * changed statically in the "info of transfer". If taken from the rule, it will be wrong since 
+ * the value will never decrease. However, a value must be setup in the rule in order to reset the value
+ * when the count reach 0.
+ * <br>So in the rule, "-count resetlimit" must be present, where resetlimit will be
+ * the new value set when the limit reach 0, and in the "info on transfer",
+ * "#CPTLIMIT#limit#CPTLIMIT#" must be present. If one is missing, the condition is not applied.
+ * <br>
+ * <br>
  * If "-notbetween" is specified, the planned date must not be in the area.<br>
  * If "-between" is specified, the planned date must be found in any such specified areas (could be
  * in any of the occurrence). If not specified, it only depends on "-notbetween".<br>
@@ -64,7 +77,8 @@ import org.waarp.openr66.database.data.DbTaskRunner;
  * Note that if a previous called to a reschedule was done for this attempt and was successful, the
  * following calls will be ignored.<br>
  * <br>
- * 
+ * <B>Important note: any subsequent task will be ignored and not executed once the reschedule is accepted.</B><br>
+ * <br>
  * In case start > end, end will be +1 day<br>
  * In case start and end < current planned date, both will have +1 day.<br>
  * <br>
@@ -87,7 +101,13 @@ public class RescheduleTransferTask extends AbstractTask {
 	protected long newdate = 0;
 
 	protected Calendar newDate = null;
-
+	
+	protected boolean countUsed = false;
+	
+	protected int limitCount = -1;
+	
+	protected int resetCount = -1;
+	
 	/**
 	 * @param argRule
 	 * @param delay
@@ -150,9 +170,35 @@ public class RescheduleTransferTask extends AbstractTask {
 			futureCompletion.setSuccess();
 			return;
 		}
+		String newFileInformation = null;
+		if (countUsed) {
+			limitCount --;
+			if (limitCount >= 0) {
+				// restart is allowed so resetting to new limitCount 
+				resetCount = limitCount;
+			}
+			newFileInformation = resetInformation(runner, resetCount);
+			if (limitCount < 0) {
+				// Must not reschedule since limit is reached
+				runner.setFileInformation(newFileInformation);
+				try {
+					runner.saveStatus();
+				} catch (OpenR66RunnerErrorException e) {
+				}
+				R66Result result = new R66Result(session, false, ErrorCode.Warning,
+						runner);
+				futureCompletion.setResult(result);
+				logger.warn("Reschedule unallowed due to limit reached: " + runner.toShortString());
+				futureCompletion.setSuccess();
+				return;
+			}
+		}
 		Timestamp start = new Timestamp(newdate);
 		try {
-			runner.setStart(start);
+			if (runner.setStart(start)) {
+				runner.setFileInformation(newFileInformation);
+				runner.saveStatus();
+			}
 		} catch (OpenR66RunnerErrorException e) {
 			logger.error(
 					"Prepare transfer in\n    FAILURE\n     " +
@@ -170,6 +216,21 @@ public class RescheduleTransferTask extends AbstractTask {
 				runner.toShortString() + "\n    <AT>" +
 				(new Date(newdate)).toString() + "</AT>");
 		futureCompletion.setSuccess();
+	}
+	
+	protected String resetInformation(DbTaskRunner runner, int value) {
+		String info = runner.getFileInformation();
+		int pos = info.indexOf(CPTLIMIT);
+		if (pos >= 0) {
+			pos += CPTLIMIT.length();
+			int endpos = info.indexOf(CPTLIMIT, pos);
+			if (endpos >= 0) {
+				// now string replace
+				String limit = info.substring(pos, endpos);
+				return info.replaceFirst(CPTLIMIT+limit+CPTLIMIT, CPTLIMIT+value+CPTLIMIT);
+			}
+		}
+		return info;
 	}
 
 	protected boolean validateArgs(String[] args) {
@@ -195,6 +256,27 @@ public class RescheduleTransferTask extends AbstractTask {
 						}
 					}
 				}
+			} else if (args[i].equalsIgnoreCase("-count")) {
+				i++;
+				try {
+					resetCount = Integer.parseInt(args[i]);
+				} catch (NumberFormatException e) {
+					logger.warn("ResetLimit is not an integer: "+args[i]);
+					countUsed = false;
+					return false;
+				}
+				String []find = argTransfer.split(CPTLIMIT);
+				if (find.length > 1) {
+					// should be 2nd value
+					try {
+						limitCount = Integer.parseInt(find[1]);
+					} catch (NumberFormatException e) {
+						logger.warn("Limit is not an integer: "+find[1]);
+						countUsed = false;
+						return false;
+					}
+				}
+				countUsed = true;
 			}
 		}
 		// now we have new delay plus code
