@@ -553,6 +553,7 @@ public class Configuration {
 		computeNbThreads();
 		// Init FiniteStates
 		R66FiniteDualStates.initR66FiniteStates();
+		//int value = SystemPropertyUtil.getInt("openr66.executebeforetransferred", 1);
 		int value = SystemPropertyUtil.get("openr66.executebeforetransferred", 1);
 		isExecuteErrorBeforeTransferAllowed = (value > 0);
 	}
