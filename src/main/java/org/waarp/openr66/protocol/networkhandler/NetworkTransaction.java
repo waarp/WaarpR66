@@ -67,8 +67,8 @@ import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacket;
 import org.waarp.openr66.protocol.networkhandler.ssl.NetworkSslServerHandler;
 import org.waarp.openr66.protocol.networkhandler.ssl.NetworkSslServerPipelineFactory;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
-import org.waarp.openr66.protocol.utils.OpenR66SignalHandler;
 import org.waarp.openr66.protocol.utils.R66Future;
+import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 
 /**
  * This class handles Network Transaction connections
@@ -599,7 +599,7 @@ public class NetworkTransaction {
 		} catch (InterruptedException e) {
 		}
 		if (!Configuration.configuration.isServer) {
-			OpenR66SignalHandler.launchFinalExit();
+			R66ShutdownHook.shutdownHook.launchFinalExit();
 		}
 		closeRetrieveExecutors();
 		networkChannelGroup.close().awaitUninterruptibly();
@@ -998,7 +998,7 @@ public class NetworkTransaction {
 	 * @return True if this socket Address is currently valid for connection
 	 */
 	private static boolean isAddressValid(SocketAddress address) {
-		if (OpenR66SignalHandler.isInShutdown()) {
+		if (R66ShutdownHook.isInShutdown()) {
 			logger.debug("IS IN SHUTDOWN");
 			return false;
 		}
@@ -1043,7 +1043,7 @@ public class NetworkTransaction {
 	private static NetworkChannel getRemoteChannel(SocketAddress address)
 			throws OpenR66ProtocolRemoteShutdownException,
 			OpenR66ProtocolNoDataException {
-		if (OpenR66SignalHandler.isInShutdown()) {
+		if (R66ShutdownHook.isInShutdown()) {
 			logger.debug("IS IN SHUTDOWN");
 			throw new OpenR66ProtocolRemoteShutdownException(
 					"Local Host already in shutdown");

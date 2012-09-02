@@ -1098,6 +1098,7 @@ public class FileBasedConfiguration {
 		value = hashConfig.get(XML_TIMEOUTCON);
 		if (value != null && (!value.isEmpty())) {
 			config.TIMEOUTCON = (value.getLong() / 10) * 10;
+			config.shutdownConfiguration.timeout = config.TIMEOUTCON;
 		}
 		value = hashConfig.get(XML_CHECKVERSION);
 		if (value != null && (!value.isEmpty())) {

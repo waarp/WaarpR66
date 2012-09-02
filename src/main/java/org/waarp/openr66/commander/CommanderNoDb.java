@@ -32,7 +32,7 @@ import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.utils.FileUtils;
-import org.waarp.openr66.protocol.utils.OpenR66SignalHandler;
+import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 
 /**
  * Commander is responsible to read list of updated data from time to time in order to achieve new
@@ -186,7 +186,7 @@ public class CommanderNoDb implements CommanderInterface {
 					}
 					taskRunner = null;
 				}
-				if (OpenR66SignalHandler.isInShutdown()) {
+				if (R66ShutdownHook.isInShutdown()) {
 					// no more task to submit
 					return;
 				}

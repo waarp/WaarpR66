@@ -34,7 +34,7 @@ import org.waarp.openr66.database.data.DbMultipleMonitor;
 import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
-import org.waarp.openr66.protocol.utils.OpenR66SignalHandler;
+import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 
 /**
  * Commander is responsible to read from database updated data from time to time in order to achieve
@@ -387,7 +387,7 @@ public class Commander implements CommanderInterface {
 			} finally {
 				preparedStatementRule.close();
 			}
-			if (OpenR66SignalHandler.isInShutdown()) {
+			if (R66ShutdownHook.isInShutdown()) {
 				// no more task to submit
 				return;
 			}

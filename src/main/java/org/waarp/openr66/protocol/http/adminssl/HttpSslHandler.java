@@ -1488,7 +1488,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					return logon;
 				} else if (act.equalsIgnoreCase("Shutdown")) {
 					String error;
-					if (Configuration.configuration.isStartedAsService) {
+					if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
 						error = error("Shutdown in progress but WARNING: R66 started as a service might not be correctly shown as stopped under Windows Services");
 					} else {
 						error = error("Shutdown in progress");
@@ -1888,9 +1888,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 			future.addListener(WaarpSslUtility.SSLCLOSE);
 		}
 		if (shutdown) {
-			Thread thread = new Thread(new ChannelUtils(), "R66 Shutdown Thread");
-			thread.setDaemon(true);
-			thread.start();
+			ChannelUtils.startShutdown();
 		}
 	}
 
