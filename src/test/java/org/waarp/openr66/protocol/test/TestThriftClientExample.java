@@ -38,7 +38,7 @@ import org.waarp.thrift.r66.RequestMode;
  */
 public class TestThriftClientExample  {
 	private static final int PORT = 4266;
-	private static final int tries = 100;
+	private static final int tries = 10000;
 
 	public static void main(String[] args) {
 		TTransport transport = null;
