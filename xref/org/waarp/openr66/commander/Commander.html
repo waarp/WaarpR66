@@ -44,7 +44,7 @@
 <a class="jxr_linenumber" name="34" href="#34">34</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.database.data.DbRule;
 <a class="jxr_linenumber" name="35" href="#35">35</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.database.data.DbTaskRunner;
 <a class="jxr_linenumber" name="36" href="#36">36</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.protocol.configuration.Configuration;
-<a class="jxr_linenumber" name="37" href="#37">37</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.protocol.utils.OpenR66SignalHandler;
+<a class="jxr_linenumber" name="37" href="#37">37</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.protocol.utils.R66ShutdownHook;
 <a class="jxr_linenumber" name="38" href="#38">38</a>  
 <a class="jxr_linenumber" name="39" href="#39">39</a>  <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="40" href="#40">40</a>  <em class="jxr_javadoccomment"> * Commander is responsible to read from database updated data from time to time in order to achieve</em>
@@ -397,7 +397,7 @@
 <a class="jxr_linenumber" name="387" href="#387">387</a> 			} <strong class="jxr_keyword">finally</strong> {
 <a class="jxr_linenumber" name="388" href="#388">388</a> 				preparedStatementRule.close();
 <a class="jxr_linenumber" name="389" href="#389">389</a> 			}
-<a class="jxr_linenumber" name="390" href="#390">390</a> 			<strong class="jxr_keyword">if</strong> (OpenR66SignalHandler.isInShutdown()) {
+<a class="jxr_linenumber" name="390" href="#390">390</a> 			<strong class="jxr_keyword">if</strong> (R66ShutdownHook.isInShutdown()) {
 <a class="jxr_linenumber" name="391" href="#391">391</a> 				<em class="jxr_comment">// no more task to submit</em>
 <a class="jxr_linenumber" name="392" href="#392">392</a> 				<strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="393" href="#393">393</a> 			}

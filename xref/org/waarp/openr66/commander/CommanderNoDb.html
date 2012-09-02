@@ -42,7 +42,7 @@
 <a class="jxr_linenumber" name="32" href="#32">32</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.database.data.DbTaskRunner;
 <a class="jxr_linenumber" name="33" href="#33">33</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.protocol.configuration.Configuration;
 <a class="jxr_linenumber" name="34" href="#34">34</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.protocol.utils.FileUtils;
-<a class="jxr_linenumber" name="35" href="#35">35</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.protocol.utils.OpenR66SignalHandler;
+<a class="jxr_linenumber" name="35" href="#35">35</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.protocol.utils.R66ShutdownHook;
 <a class="jxr_linenumber" name="36" href="#36">36</a>  
 <a class="jxr_linenumber" name="37" href="#37">37</a>  <em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="38" href="#38">38</a>  <em class="jxr_javadoccomment"> * Commander is responsible to read list of updated data from time to time in order to achieve new</em>
@@ -196,7 +196,7 @@
 <a class="jxr_linenumber" name="186" href="#186">186</a> 					}
 <a class="jxr_linenumber" name="187" href="#187">187</a> 					taskRunner = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="188" href="#188">188</a> 				}
-<a class="jxr_linenumber" name="189" href="#189">189</a> 				<strong class="jxr_keyword">if</strong> (OpenR66SignalHandler.isInShutdown()) {
+<a class="jxr_linenumber" name="189" href="#189">189</a> 				<strong class="jxr_keyword">if</strong> (R66ShutdownHook.isInShutdown()) {
 <a class="jxr_linenumber" name="190" href="#190">190</a> 					<em class="jxr_comment">// no more task to submit</em>
 <a class="jxr_linenumber" name="191" href="#191">191</a> 					<strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="192" href="#192">192</a> 				}

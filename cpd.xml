@@ -682,8 +682,8 @@
 </codefragment>
 </duplication>
 <duplication lines="48" tokens="219">
-<file line="1580" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1663" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1581" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1664" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 	public static boolean setConfigurationServerShutdownFromXml(Configuration config,
@@ -784,8 +784,8 @@
 </codefragment>
 </duplication>
 <duplication lines="40" tokens="207">
-<file line="3357" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
-<file line="3468" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="3396" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="3507" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
 <codefragment>
 <![CDATA[
 		} catch (FileNotFoundException e) {
@@ -1104,8 +1104,8 @@
 </codefragment>
 </duplication>
 <duplication lines="38" tokens="183">
-<file line="1463" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1513" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1464" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1514" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 	public static boolean setConfigurationInitDatabase(Configuration config, String filename) {
@@ -1151,7 +1151,7 @@
 </duplication>
 <duplication lines="14" tokens="169">
 <file line="1440" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<file line="1546" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="1551" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
 <codefragment>
 <![CDATA[
 			String system = REQUEST.System.readFileUnique(this);
@@ -1267,8 +1267,8 @@
 </codefragment>
 </duplication>
 <duplication lines="40" tokens="140">
-<file line="1541" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1624" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1542" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1625" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 			logger.error("Cannot load Limit configuration");
@@ -1400,9 +1400,9 @@
 </codefragment>
 </duplication>
 <duplication lines="27" tokens="123">
-<file line="1541" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1624" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1710" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1542" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1625" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1711" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 			logger.error("Cannot load Limit configuration");
@@ -1508,10 +1508,10 @@
 </codefragment>
 </duplication>
 <duplication lines="24" tokens="119">
-<file line="1463" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1513" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1580" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1663" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1464" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1514" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1581" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1664" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 	public static boolean setConfigurationInitDatabase(Configuration config, String filename) {
@@ -1759,8 +1759,8 @@
 </codefragment>
 </duplication>
 <duplication lines="21" tokens="108">
-<file line="1929" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="2041" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="1937" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="2049" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
 <codefragment>
 <![CDATA[
 					}
@@ -1812,8 +1812,8 @@
 </codefragment>
 </duplication>
 <duplication lines="18" tokens="107">
-<file line="217" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\RescheduleTransferTask.java"/>
-<file line="264" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\RescheduleTransferTask.java"/>
+<file line="299" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\RescheduleTransferTask.java"/>
+<file line="346" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\RescheduleTransferTask.java"/>
 <codefragment>
 <![CDATA[
 				String[] elmts = args[i].split(";");

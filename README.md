@@ -25,6 +25,8 @@ Packages
  * [Waarp R66 Client GUI](http://waarp.github.com/WaarpR66Gui)
  * [Waarp FTP](http://waarp.github.com/WaarpFtp)
  * [Waarp Gateway FTP (R66 linked)](http://waarp.github.com/WaarpGatewayFtp) 	
+ * [Waarp Gateway Kernel](http://waarp.github.com/WaarpGatewayKernel) 	
+ * [Waarp Thrift](http://waarp.github.com/WaarpThrift) 	
 
 Support
 -------

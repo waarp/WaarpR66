@@ -1497,464 +1497,467 @@
 <a class="jxr_linenumber" name="1487" href="#1487">1487</a> 					forceClose = <strong class="jxr_keyword">true</strong>;
 <a class="jxr_linenumber" name="1488" href="#1488">1488</a> 					<strong class="jxr_keyword">return</strong> logon;
 <a class="jxr_linenumber" name="1489" href="#1489">1489</a> 				} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (act.equalsIgnoreCase(<span class="jxr_string">"Shutdown"</span>)) {
-<a class="jxr_linenumber" name="1490" href="#1490">1490</a> 					String error = error(<span class="jxr_string">"Shutdown in progress"</span>);
-<a class="jxr_linenumber" name="1491" href="#1491">1491</a> 					newSession = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="1492" href="#1492">1492</a> 					clearSession();
-<a class="jxr_linenumber" name="1493" href="#1493">1493</a> 					forceClose = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="1494" href="#1494">1494</a> 					shutdown = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="1495" href="#1495">1495</a> 					<strong class="jxr_keyword">return</strong> error;
-<a class="jxr_linenumber" name="1496" href="#1496">1496</a> 				} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (act.equalsIgnoreCase(<span class="jxr_string">"Validate"</span>)) {
-<a class="jxr_linenumber" name="1497" href="#1497">1497</a> 					String bsessionr = getTrimValue(<span class="jxr_string">"BSESSR"</span>);
-<a class="jxr_linenumber" name="1498" href="#1498">1498</a> 					<strong class="jxr_keyword">long</strong> lsessionr = Configuration.configuration.serverChannelReadLimit;
-<a class="jxr_linenumber" name="1499" href="#1499">1499</a>                     <strong class="jxr_keyword">long</strong> lglobalr;
-<a class="jxr_linenumber" name="1500" href="#1500">1500</a> 					<strong class="jxr_keyword">long</strong> lsessionw;
-<a class="jxr_linenumber" name="1501" href="#1501">1501</a> 					<strong class="jxr_keyword">long</strong> lglobalw;
-<a class="jxr_linenumber" name="1502" href="#1502">1502</a> 					<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="1503" href="#1503">1503</a> 						<strong class="jxr_keyword">if</strong> (bsessionr != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="1504" href="#1504">1504</a> 							lsessionr = (Long.parseLong(bsessionr) / 10) * 10;
-<a class="jxr_linenumber" name="1505" href="#1505">1505</a> 						}
-<a class="jxr_linenumber" name="1506" href="#1506">1506</a> 						String bglobalr = getTrimValue(<span class="jxr_string">"BGLOBR"</span>);
-<a class="jxr_linenumber" name="1507" href="#1507">1507</a> 						lglobalr = Configuration.configuration.serverGlobalReadLimit;
-<a class="jxr_linenumber" name="1508" href="#1508">1508</a> 						<strong class="jxr_keyword">if</strong> (bglobalr != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="1509" href="#1509">1509</a> 							lglobalr = (Long.parseLong(bglobalr) / 10) * 10;
+<a class="jxr_linenumber" name="1490" href="#1490">1490</a> 					String error;
+<a class="jxr_linenumber" name="1491" href="#1491">1491</a> 					<strong class="jxr_keyword">if</strong> (Configuration.configuration.shutdownConfiguration.serviceFuture != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1492" href="#1492">1492</a> 						error = error(<span class="jxr_string">"Shutdown in progress but WARNING: R66 started as a service might not be correctly shown as stopped under Windows Services"</span>);
+<a class="jxr_linenumber" name="1493" href="#1493">1493</a> 					} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="1494" href="#1494">1494</a> 						error = error(<span class="jxr_string">"Shutdown in progress"</span>);
+<a class="jxr_linenumber" name="1495" href="#1495">1495</a> 					}
+<a class="jxr_linenumber" name="1496" href="#1496">1496</a> 					newSession = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="1497" href="#1497">1497</a> 					clearSession();
+<a class="jxr_linenumber" name="1498" href="#1498">1498</a> 					forceClose = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="1499" href="#1499">1499</a> 					shutdown = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="1500" href="#1500">1500</a> 					<strong class="jxr_keyword">return</strong> error;
+<a class="jxr_linenumber" name="1501" href="#1501">1501</a> 				} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (act.equalsIgnoreCase(<span class="jxr_string">"Validate"</span>)) {
+<a class="jxr_linenumber" name="1502" href="#1502">1502</a> 					String bsessionr = getTrimValue(<span class="jxr_string">"BSESSR"</span>);
+<a class="jxr_linenumber" name="1503" href="#1503">1503</a> 					<strong class="jxr_keyword">long</strong> lsessionr = Configuration.configuration.serverChannelReadLimit;
+<a class="jxr_linenumber" name="1504" href="#1504">1504</a>                     <strong class="jxr_keyword">long</strong> lglobalr;
+<a class="jxr_linenumber" name="1505" href="#1505">1505</a> 					<strong class="jxr_keyword">long</strong> lsessionw;
+<a class="jxr_linenumber" name="1506" href="#1506">1506</a> 					<strong class="jxr_keyword">long</strong> lglobalw;
+<a class="jxr_linenumber" name="1507" href="#1507">1507</a> 					<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="1508" href="#1508">1508</a> 						<strong class="jxr_keyword">if</strong> (bsessionr != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1509" href="#1509">1509</a> 							lsessionr = (Long.parseLong(bsessionr) / 10) * 10;
 <a class="jxr_linenumber" name="1510" href="#1510">1510</a> 						}
-<a class="jxr_linenumber" name="1511" href="#1511">1511</a> 						String bsessionw = getTrimValue(<span class="jxr_string">"BSESSW"</span>);
-<a class="jxr_linenumber" name="1512" href="#1512">1512</a> 						lsessionw = Configuration.configuration.serverChannelWriteLimit;
-<a class="jxr_linenumber" name="1513" href="#1513">1513</a> 						<strong class="jxr_keyword">if</strong> (bsessionw != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="1514" href="#1514">1514</a> 							lsessionw = (Long.parseLong(bsessionw) / 10) * 10;
+<a class="jxr_linenumber" name="1511" href="#1511">1511</a> 						String bglobalr = getTrimValue(<span class="jxr_string">"BGLOBR"</span>);
+<a class="jxr_linenumber" name="1512" href="#1512">1512</a> 						lglobalr = Configuration.configuration.serverGlobalReadLimit;
+<a class="jxr_linenumber" name="1513" href="#1513">1513</a> 						<strong class="jxr_keyword">if</strong> (bglobalr != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1514" href="#1514">1514</a> 							lglobalr = (Long.parseLong(bglobalr) / 10) * 10;
 <a class="jxr_linenumber" name="1515" href="#1515">1515</a> 						}
-<a class="jxr_linenumber" name="1516" href="#1516">1516</a> 						String bglobalw = getTrimValue(<span class="jxr_string">"BGLOBW"</span>);
-<a class="jxr_linenumber" name="1517" href="#1517">1517</a> 						lglobalw = Configuration.configuration.serverGlobalWriteLimit;
-<a class="jxr_linenumber" name="1518" href="#1518">1518</a> 						<strong class="jxr_keyword">if</strong> (bglobalw != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="1519" href="#1519">1519</a> 							lglobalw = (Long.parseLong(bglobalw) / 10) * 10;
+<a class="jxr_linenumber" name="1516" href="#1516">1516</a> 						String bsessionw = getTrimValue(<span class="jxr_string">"BSESSW"</span>);
+<a class="jxr_linenumber" name="1517" href="#1517">1517</a> 						lsessionw = Configuration.configuration.serverChannelWriteLimit;
+<a class="jxr_linenumber" name="1518" href="#1518">1518</a> 						<strong class="jxr_keyword">if</strong> (bsessionw != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1519" href="#1519">1519</a> 							lsessionw = (Long.parseLong(bsessionw) / 10) * 10;
 <a class="jxr_linenumber" name="1520" href="#1520">1520</a> 						}
-<a class="jxr_linenumber" name="1521" href="#1521">1521</a> 						Configuration.configuration.changeNetworkLimit(
-<a class="jxr_linenumber" name="1522" href="#1522">1522</a> 								lglobalw, lglobalr, lsessionw, lsessionr,
-<a class="jxr_linenumber" name="1523" href="#1523">1523</a> 								Configuration.configuration.delayLimit);
-<a class="jxr_linenumber" name="1524" href="#1524">1524</a> 						String dcomm = getTrimValue(<span class="jxr_string">"DCOM"</span>);
-<a class="jxr_linenumber" name="1525" href="#1525">1525</a> 						<strong class="jxr_keyword">if</strong> (dcomm != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="1526" href="#1526">1526</a> 							Configuration.configuration.delayCommander = Long.parseLong(dcomm);
-<a class="jxr_linenumber" name="1527" href="#1527">1527</a> 							<strong class="jxr_keyword">if</strong> (Configuration.configuration.delayCommander &lt;= 100) {
-<a class="jxr_linenumber" name="1528" href="#1528">1528</a> 								Configuration.configuration.delayCommander = 100;
-<a class="jxr_linenumber" name="1529" href="#1529">1529</a> 							}
-<a class="jxr_linenumber" name="1530" href="#1530">1530</a> 							Configuration.configuration.reloadCommanderDelay();
-<a class="jxr_linenumber" name="1531" href="#1531">1531</a> 						}
-<a class="jxr_linenumber" name="1532" href="#1532">1532</a> 						String dret = getTrimValue(<span class="jxr_string">"DRET"</span>);
-<a class="jxr_linenumber" name="1533" href="#1533">1533</a> 						<strong class="jxr_keyword">if</strong> (dret != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="1534" href="#1534">1534</a> 							Configuration.configuration.delayRetry = Long.parseLong(dret);
-<a class="jxr_linenumber" name="1535" href="#1535">1535</a> 							<strong class="jxr_keyword">if</strong> (Configuration.configuration.delayRetry &lt;= 1000) {
-<a class="jxr_linenumber" name="1536" href="#1536">1536</a> 								Configuration.configuration.delayRetry = 1000;
-<a class="jxr_linenumber" name="1537" href="#1537">1537</a> 							}
-<a class="jxr_linenumber" name="1538" href="#1538">1538</a> 						}
-<a class="jxr_linenumber" name="1539" href="#1539">1539</a> 						extraInformation = <span class="jxr_string">"Configuration Saved"</span>;
-<a class="jxr_linenumber" name="1540" href="#1540">1540</a> 					} <strong class="jxr_keyword">catch</strong> (NumberFormatException e) {
-<a class="jxr_linenumber" name="1541" href="#1541">1541</a> 						extraInformation = <span class="jxr_string">"Configuration cannot be Saved due to Format error"</span>;
-<a class="jxr_linenumber" name="1542" href="#1542">1542</a> 					}
-<a class="jxr_linenumber" name="1543" href="#1543">1543</a> 				}
-<a class="jxr_linenumber" name="1544" href="#1544">1544</a> 			}
-<a class="jxr_linenumber" name="1545" href="#1545">1545</a> 		}
-<a class="jxr_linenumber" name="1546" href="#1546">1546</a> 		String system = REQUEST.System.readFileUnique(<strong class="jxr_keyword">this</strong>);
-<a class="jxr_linenumber" name="1547" href="#1547">1547</a> 		StringBuilder builder = <strong class="jxr_keyword">new</strong> StringBuilder(system);
-<a class="jxr_linenumber" name="1548" href="#1548">1548</a> 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITWXXX.toString(),
-<a class="jxr_linenumber" name="1549" href="#1549">1549</a> 				Long.toString(Configuration.configuration.serverChannelWriteLimit));
-<a class="jxr_linenumber" name="1550" href="#1550">1550</a> 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITRXXX.toString(),
-<a class="jxr_linenumber" name="1551" href="#1551">1551</a> 				Long.toString(Configuration.configuration.serverChannelReadLimit));
-<a class="jxr_linenumber" name="1552" href="#1552">1552</a> 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXDELAYCOMMDXXX.toString(),
-<a class="jxr_linenumber" name="1553" href="#1553">1553</a> 				Long.toString(Configuration.configuration.delayCommander));
-<a class="jxr_linenumber" name="1554" href="#1554">1554</a> 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXDELAYRETRYXXX.toString(),
-<a class="jxr_linenumber" name="1555" href="#1555">1555</a> 				Long.toString(Configuration.configuration.delayRetry));
-<a class="jxr_linenumber" name="1556" href="#1556">1556</a> 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITWXXX.toString(),
-<a class="jxr_linenumber" name="1557" href="#1557">1557</a> 				Long.toString(Configuration.configuration.serverGlobalWriteLimit));
-<a class="jxr_linenumber" name="1558" href="#1558">1558</a> 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITRXXX.toString(),
-<a class="jxr_linenumber" name="1559" href="#1559">1559</a> 				Long.toString(Configuration.configuration.serverGlobalReadLimit));
-<a class="jxr_linenumber" name="1560" href="#1560">1560</a> 		<strong class="jxr_keyword">if</strong> (extraInformation != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="1561" href="#1561">1561</a> 			builder.append(extraInformation);
-<a class="jxr_linenumber" name="1562" href="#1562">1562</a> 		}
-<a class="jxr_linenumber" name="1563" href="#1563">1563</a> 		<strong class="jxr_keyword">return</strong> builder.toString();
-<a class="jxr_linenumber" name="1564" href="#1564">1564</a> 	}
-<a class="jxr_linenumber" name="1565" href="#1565">1565</a> 
-<a class="jxr_linenumber" name="1566" href="#1566">1566</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> getParams() {
-<a class="jxr_linenumber" name="1567" href="#1567">1567</a> 		<strong class="jxr_keyword">if</strong> (request.getMethod() == HttpMethod.GET) {
-<a class="jxr_linenumber" name="1568" href="#1568">1568</a> 			params = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="1569" href="#1569">1569</a> 		} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (request.getMethod() == HttpMethod.POST) {
-<a class="jxr_linenumber" name="1570" href="#1570">1570</a> 			ChannelBuffer content = request.getContent();
-<a class="jxr_linenumber" name="1571" href="#1571">1571</a> 			<strong class="jxr_keyword">if</strong> (content.readable()) {
-<a class="jxr_linenumber" name="1572" href="#1572">1572</a> 				String param = content.toString(WaarpStringUtils.UTF8);
-<a class="jxr_linenumber" name="1573" href="#1573">1573</a> 				QueryStringDecoder queryStringDecoder2 = <strong class="jxr_keyword">new</strong> QueryStringDecoder(<span class="jxr_string">"/?"</span> + param);
-<a class="jxr_linenumber" name="1574" href="#1574">1574</a> 				params = queryStringDecoder2.getParameters();
-<a class="jxr_linenumber" name="1575" href="#1575">1575</a> 			} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="1576" href="#1576">1576</a> 				params = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="1577" href="#1577">1577</a> 			}
-<a class="jxr_linenumber" name="1578" href="#1578">1578</a> 		}
-<a class="jxr_linenumber" name="1579" href="#1579">1579</a> 	}
-<a class="jxr_linenumber" name="1580" href="#1580">1580</a> 
-<a class="jxr_linenumber" name="1581" href="#1581">1581</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> clearSession() {
-<a class="jxr_linenumber" name="1582" href="#1582">1582</a> 		<strong class="jxr_keyword">if</strong> (admin != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="1583" href="#1583">1583</a> 			R66Session lsession = sessions.remove(admin.getValue());
-<a class="jxr_linenumber" name="1584" href="#1584">1584</a> 			DbSession ldbsession = dbSessions.remove(admin.getValue());
-<a class="jxr_linenumber" name="1585" href="#1585">1585</a> 			admin = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="1586" href="#1586">1586</a> 			<strong class="jxr_keyword">if</strong> (lsession != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="1587" href="#1587">1587</a> 				lsession.setStatus(75);
-<a class="jxr_linenumber" name="1588" href="#1588">1588</a> 				lsession.clear();
-<a class="jxr_linenumber" name="1589" href="#1589">1589</a> 			}
-<a class="jxr_linenumber" name="1590" href="#1590">1590</a> 			<strong class="jxr_keyword">if</strong> (ldbsession != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="1591" href="#1591">1591</a> 				ldbsession.disconnect();
-<a class="jxr_linenumber" name="1592" href="#1592">1592</a> 				DbAdmin.nbHttpSession--;
-<a class="jxr_linenumber" name="1593" href="#1593">1593</a> 			}
-<a class="jxr_linenumber" name="1594" href="#1594">1594</a> 		}
-<a class="jxr_linenumber" name="1595" href="#1595">1595</a> 	}
-<a class="jxr_linenumber" name="1596" href="#1596">1596</a> 
-<a class="jxr_linenumber" name="1597" href="#1597">1597</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> checkAuthent(MessageEvent e) {
-<a class="jxr_linenumber" name="1598" href="#1598">1598</a> 		newSession = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="1599" href="#1599">1599</a> 		<strong class="jxr_keyword">if</strong> (request.getMethod() == HttpMethod.GET) {
-<a class="jxr_linenumber" name="1600" href="#1600">1600</a> 			String logon = Logon();
-<a class="jxr_linenumber" name="1601" href="#1601">1601</a> 			responseContent.append(logon);
-<a class="jxr_linenumber" name="1602" href="#1602">1602</a> 			clearSession();
-<a class="jxr_linenumber" name="1603" href="#1603">1603</a> 			writeResponse(e.getChannel());
-<a class="jxr_linenumber" name="1604" href="#1604">1604</a> 			<strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="1605" href="#1605">1605</a> 		} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (request.getMethod() == HttpMethod.POST) {
-<a class="jxr_linenumber" name="1606" href="#1606">1606</a> 			getParams();
-<a class="jxr_linenumber" name="1607" href="#1607">1607</a> 			<strong class="jxr_keyword">if</strong> (params == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="1608" href="#1608">1608</a> 				String logon = Logon();
-<a class="jxr_linenumber" name="1609" href="#1609">1609</a> 				responseContent.append(logon);
-<a class="jxr_linenumber" name="1610" href="#1610">1610</a> 				clearSession();
-<a class="jxr_linenumber" name="1611" href="#1611">1611</a> 				writeResponse(e.getChannel());
-<a class="jxr_linenumber" name="1612" href="#1612">1612</a> 				<strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="1613" href="#1613">1613</a> 			}
-<a class="jxr_linenumber" name="1614" href="#1614">1614</a> 		}
-<a class="jxr_linenumber" name="1615" href="#1615">1615</a> 		<strong class="jxr_keyword">boolean</strong> getMenu = false;
-<a class="jxr_linenumber" name="1616" href="#1616">1616</a> 		<strong class="jxr_keyword">if</strong> (params.containsKey(<span class="jxr_string">"Logon"</span>)) {
-<a class="jxr_linenumber" name="1617" href="#1617">1617</a> 			String name = <strong class="jxr_keyword">null</strong>, password = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="1618" href="#1618">1618</a> 			List&lt;String&gt; values = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="1619" href="#1619">1619</a> 			<strong class="jxr_keyword">if</strong> (!params.isEmpty()) {
-<a class="jxr_linenumber" name="1620" href="#1620">1620</a> 				<em class="jxr_comment">// get values</em>
-<a class="jxr_linenumber" name="1621" href="#1621">1621</a> 				<strong class="jxr_keyword">if</strong> (params.containsKey(<span class="jxr_string">"name"</span>)) {
-<a class="jxr_linenumber" name="1622" href="#1622">1622</a> 					values = params.get(<span class="jxr_string">"name"</span>);
-<a class="jxr_linenumber" name="1623" href="#1623">1623</a> 					<strong class="jxr_keyword">if</strong> (values != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="1624" href="#1624">1624</a> 						name = values.get(0);
-<a class="jxr_linenumber" name="1625" href="#1625">1625</a> 						<strong class="jxr_keyword">if</strong> (name == <strong class="jxr_keyword">null</strong> || name.length() == 0) {
-<a class="jxr_linenumber" name="1626" href="#1626">1626</a> 							getMenu = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="1627" href="#1627">1627</a> 						}
-<a class="jxr_linenumber" name="1628" href="#1628">1628</a> 					}
-<a class="jxr_linenumber" name="1629" href="#1629">1629</a> 				} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="1630" href="#1630">1630</a> 					getMenu = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="1631" href="#1631">1631</a> 				}
-<a class="jxr_linenumber" name="1632" href="#1632">1632</a> 				<em class="jxr_comment">// search the nb param</em>
-<a class="jxr_linenumber" name="1633" href="#1633">1633</a> 				<strong class="jxr_keyword">if</strong> ((!getMenu) &amp;&amp; params.containsKey(<span class="jxr_string">"passwd"</span>)) {
-<a class="jxr_linenumber" name="1634" href="#1634">1634</a> 					values = params.get(<span class="jxr_string">"passwd"</span>);
-<a class="jxr_linenumber" name="1635" href="#1635">1635</a> 					<strong class="jxr_keyword">if</strong> (values != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="1636" href="#1636">1636</a> 						password = values.get(0);
-<a class="jxr_linenumber" name="1637" href="#1637">1637</a> 						<strong class="jxr_keyword">if</strong> (password == <strong class="jxr_keyword">null</strong> || password.length() == 0) {
-<a class="jxr_linenumber" name="1638" href="#1638">1638</a> 							getMenu = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="1639" href="#1639">1639</a> 						} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="1640" href="#1640">1640</a> 							getMenu = false;
-<a class="jxr_linenumber" name="1641" href="#1641">1641</a> 						}
-<a class="jxr_linenumber" name="1642" href="#1642">1642</a> 					} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="1643" href="#1643">1643</a> 						getMenu = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="1644" href="#1644">1644</a> 					}
-<a class="jxr_linenumber" name="1645" href="#1645">1645</a> 				} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="1646" href="#1646">1646</a> 					getMenu = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="1647" href="#1647">1647</a> 				}
-<a class="jxr_linenumber" name="1648" href="#1648">1648</a> 			} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="1649" href="#1649">1649</a> 				getMenu = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="1650" href="#1650">1650</a> 			}
-<a class="jxr_linenumber" name="1651" href="#1651">1651</a> 			<strong class="jxr_keyword">if</strong> (!getMenu) {
-<a class="jxr_linenumber" name="1652" href="#1652">1652</a> 				logger.debug(<span class="jxr_string">"Name="</span> + name + <span class="jxr_string">" vs "</span>
-<a class="jxr_linenumber" name="1653" href="#1653">1653</a> 						+ name.equals(Configuration.configuration.ADMINNAME) +
-<a class="jxr_linenumber" name="1654" href="#1654">1654</a> 						<span class="jxr_string">" Passwd="</span> + password + <span class="jxr_string">" vs "</span> + Arrays.equals(password.getBytes(),
-<a class="jxr_linenumber" name="1655" href="#1655">1655</a> 								Configuration.configuration.getSERVERADMINKEY()));
-<a class="jxr_linenumber" name="1656" href="#1656">1656</a> 				<strong class="jxr_keyword">if</strong> (name.equals(Configuration.configuration.ADMINNAME) &amp;&amp;
-<a class="jxr_linenumber" name="1657" href="#1657">1657</a> 						Arrays.equals(password.getBytes(),
-<a class="jxr_linenumber" name="1658" href="#1658">1658</a> 								Configuration.configuration.getSERVERADMINKEY())) {
-<a class="jxr_linenumber" name="1659" href="#1659">1659</a> 					authentHttp.getAuth().specialNoSessionAuth(<strong class="jxr_keyword">true</strong>,
-<a class="jxr_linenumber" name="1660" href="#1660">1660</a> 							Configuration.configuration.HOST_ID);
-<a class="jxr_linenumber" name="1661" href="#1661">1661</a> 					authentHttp.setStatus(70);
-<a class="jxr_linenumber" name="1662" href="#1662">1662</a> 				} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="1663" href="#1663">1663</a> 					getMenu = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="1664" href="#1664">1664</a> 				}
-<a class="jxr_linenumber" name="1665" href="#1665">1665</a> 				<strong class="jxr_keyword">if</strong> (!authentHttp.isAuthenticated()) {
-<a class="jxr_linenumber" name="1666" href="#1666">1666</a> 					authentHttp.setStatus(71);
-<a class="jxr_linenumber" name="1667" href="#1667">1667</a> 					logger.debug(<span class="jxr_string">"Still not authenticated: {}"</span>, authentHttp);
+<a class="jxr_linenumber" name="1521" href="#1521">1521</a> 						String bglobalw = getTrimValue(<span class="jxr_string">"BGLOBW"</span>);
+<a class="jxr_linenumber" name="1522" href="#1522">1522</a> 						lglobalw = Configuration.configuration.serverGlobalWriteLimit;
+<a class="jxr_linenumber" name="1523" href="#1523">1523</a> 						<strong class="jxr_keyword">if</strong> (bglobalw != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1524" href="#1524">1524</a> 							lglobalw = (Long.parseLong(bglobalw) / 10) * 10;
+<a class="jxr_linenumber" name="1525" href="#1525">1525</a> 						}
+<a class="jxr_linenumber" name="1526" href="#1526">1526</a> 						Configuration.configuration.changeNetworkLimit(
+<a class="jxr_linenumber" name="1527" href="#1527">1527</a> 								lglobalw, lglobalr, lsessionw, lsessionr,
+<a class="jxr_linenumber" name="1528" href="#1528">1528</a> 								Configuration.configuration.delayLimit);
+<a class="jxr_linenumber" name="1529" href="#1529">1529</a> 						String dcomm = getTrimValue(<span class="jxr_string">"DCOM"</span>);
+<a class="jxr_linenumber" name="1530" href="#1530">1530</a> 						<strong class="jxr_keyword">if</strong> (dcomm != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1531" href="#1531">1531</a> 							Configuration.configuration.delayCommander = Long.parseLong(dcomm);
+<a class="jxr_linenumber" name="1532" href="#1532">1532</a> 							<strong class="jxr_keyword">if</strong> (Configuration.configuration.delayCommander &lt;= 100) {
+<a class="jxr_linenumber" name="1533" href="#1533">1533</a> 								Configuration.configuration.delayCommander = 100;
+<a class="jxr_linenumber" name="1534" href="#1534">1534</a> 							}
+<a class="jxr_linenumber" name="1535" href="#1535">1535</a> 							Configuration.configuration.reloadCommanderDelay();
+<a class="jxr_linenumber" name="1536" href="#1536">1536</a> 						}
+<a class="jxr_linenumber" name="1537" href="#1537">1537</a> 						String dret = getTrimValue(<span class="jxr_string">"DRET"</span>);
+<a class="jxr_linenumber" name="1538" href="#1538">1538</a> 						<strong class="jxr_keyword">if</strong> (dret != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1539" href="#1539">1539</a> 							Configuration.configuration.delayRetry = Long.parseLong(dret);
+<a class="jxr_linenumber" name="1540" href="#1540">1540</a> 							<strong class="jxr_keyword">if</strong> (Configuration.configuration.delayRetry &lt;= 1000) {
+<a class="jxr_linenumber" name="1541" href="#1541">1541</a> 								Configuration.configuration.delayRetry = 1000;
+<a class="jxr_linenumber" name="1542" href="#1542">1542</a> 							}
+<a class="jxr_linenumber" name="1543" href="#1543">1543</a> 						}
+<a class="jxr_linenumber" name="1544" href="#1544">1544</a> 						extraInformation = <span class="jxr_string">"Configuration Saved"</span>;
+<a class="jxr_linenumber" name="1545" href="#1545">1545</a> 					} <strong class="jxr_keyword">catch</strong> (NumberFormatException e) {
+<a class="jxr_linenumber" name="1546" href="#1546">1546</a> 						extraInformation = <span class="jxr_string">"Configuration cannot be Saved due to Format error"</span>;
+<a class="jxr_linenumber" name="1547" href="#1547">1547</a> 					}
+<a class="jxr_linenumber" name="1548" href="#1548">1548</a> 				}
+<a class="jxr_linenumber" name="1549" href="#1549">1549</a> 			}
+<a class="jxr_linenumber" name="1550" href="#1550">1550</a> 		}
+<a class="jxr_linenumber" name="1551" href="#1551">1551</a> 		String system = REQUEST.System.readFileUnique(<strong class="jxr_keyword">this</strong>);
+<a class="jxr_linenumber" name="1552" href="#1552">1552</a> 		StringBuilder builder = <strong class="jxr_keyword">new</strong> StringBuilder(system);
+<a class="jxr_linenumber" name="1553" href="#1553">1553</a> 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITWXXX.toString(),
+<a class="jxr_linenumber" name="1554" href="#1554">1554</a> 				Long.toString(Configuration.configuration.serverChannelWriteLimit));
+<a class="jxr_linenumber" name="1555" href="#1555">1555</a> 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITRXXX.toString(),
+<a class="jxr_linenumber" name="1556" href="#1556">1556</a> 				Long.toString(Configuration.configuration.serverChannelReadLimit));
+<a class="jxr_linenumber" name="1557" href="#1557">1557</a> 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXDELAYCOMMDXXX.toString(),
+<a class="jxr_linenumber" name="1558" href="#1558">1558</a> 				Long.toString(Configuration.configuration.delayCommander));
+<a class="jxr_linenumber" name="1559" href="#1559">1559</a> 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXDELAYRETRYXXX.toString(),
+<a class="jxr_linenumber" name="1560" href="#1560">1560</a> 				Long.toString(Configuration.configuration.delayRetry));
+<a class="jxr_linenumber" name="1561" href="#1561">1561</a> 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITWXXX.toString(),
+<a class="jxr_linenumber" name="1562" href="#1562">1562</a> 				Long.toString(Configuration.configuration.serverGlobalWriteLimit));
+<a class="jxr_linenumber" name="1563" href="#1563">1563</a> 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITRXXX.toString(),
+<a class="jxr_linenumber" name="1564" href="#1564">1564</a> 				Long.toString(Configuration.configuration.serverGlobalReadLimit));
+<a class="jxr_linenumber" name="1565" href="#1565">1565</a> 		<strong class="jxr_keyword">if</strong> (extraInformation != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1566" href="#1566">1566</a> 			builder.append(extraInformation);
+<a class="jxr_linenumber" name="1567" href="#1567">1567</a> 		}
+<a class="jxr_linenumber" name="1568" href="#1568">1568</a> 		<strong class="jxr_keyword">return</strong> builder.toString();
+<a class="jxr_linenumber" name="1569" href="#1569">1569</a> 	}
+<a class="jxr_linenumber" name="1570" href="#1570">1570</a> 
+<a class="jxr_linenumber" name="1571" href="#1571">1571</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> getParams() {
+<a class="jxr_linenumber" name="1572" href="#1572">1572</a> 		<strong class="jxr_keyword">if</strong> (request.getMethod() == HttpMethod.GET) {
+<a class="jxr_linenumber" name="1573" href="#1573">1573</a> 			params = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="1574" href="#1574">1574</a> 		} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (request.getMethod() == HttpMethod.POST) {
+<a class="jxr_linenumber" name="1575" href="#1575">1575</a> 			ChannelBuffer content = request.getContent();
+<a class="jxr_linenumber" name="1576" href="#1576">1576</a> 			<strong class="jxr_keyword">if</strong> (content.readable()) {
+<a class="jxr_linenumber" name="1577" href="#1577">1577</a> 				String param = content.toString(WaarpStringUtils.UTF8);
+<a class="jxr_linenumber" name="1578" href="#1578">1578</a> 				QueryStringDecoder queryStringDecoder2 = <strong class="jxr_keyword">new</strong> QueryStringDecoder(<span class="jxr_string">"/?"</span> + param);
+<a class="jxr_linenumber" name="1579" href="#1579">1579</a> 				params = queryStringDecoder2.getParameters();
+<a class="jxr_linenumber" name="1580" href="#1580">1580</a> 			} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="1581" href="#1581">1581</a> 				params = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="1582" href="#1582">1582</a> 			}
+<a class="jxr_linenumber" name="1583" href="#1583">1583</a> 		}
+<a class="jxr_linenumber" name="1584" href="#1584">1584</a> 	}
+<a class="jxr_linenumber" name="1585" href="#1585">1585</a> 
+<a class="jxr_linenumber" name="1586" href="#1586">1586</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> clearSession() {
+<a class="jxr_linenumber" name="1587" href="#1587">1587</a> 		<strong class="jxr_keyword">if</strong> (admin != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1588" href="#1588">1588</a> 			R66Session lsession = sessions.remove(admin.getValue());
+<a class="jxr_linenumber" name="1589" href="#1589">1589</a> 			DbSession ldbsession = dbSessions.remove(admin.getValue());
+<a class="jxr_linenumber" name="1590" href="#1590">1590</a> 			admin = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="1591" href="#1591">1591</a> 			<strong class="jxr_keyword">if</strong> (lsession != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1592" href="#1592">1592</a> 				lsession.setStatus(75);
+<a class="jxr_linenumber" name="1593" href="#1593">1593</a> 				lsession.clear();
+<a class="jxr_linenumber" name="1594" href="#1594">1594</a> 			}
+<a class="jxr_linenumber" name="1595" href="#1595">1595</a> 			<strong class="jxr_keyword">if</strong> (ldbsession != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1596" href="#1596">1596</a> 				ldbsession.disconnect();
+<a class="jxr_linenumber" name="1597" href="#1597">1597</a> 				DbAdmin.nbHttpSession--;
+<a class="jxr_linenumber" name="1598" href="#1598">1598</a> 			}
+<a class="jxr_linenumber" name="1599" href="#1599">1599</a> 		}
+<a class="jxr_linenumber" name="1600" href="#1600">1600</a> 	}
+<a class="jxr_linenumber" name="1601" href="#1601">1601</a> 
+<a class="jxr_linenumber" name="1602" href="#1602">1602</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> checkAuthent(MessageEvent e) {
+<a class="jxr_linenumber" name="1603" href="#1603">1603</a> 		newSession = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="1604" href="#1604">1604</a> 		<strong class="jxr_keyword">if</strong> (request.getMethod() == HttpMethod.GET) {
+<a class="jxr_linenumber" name="1605" href="#1605">1605</a> 			String logon = Logon();
+<a class="jxr_linenumber" name="1606" href="#1606">1606</a> 			responseContent.append(logon);
+<a class="jxr_linenumber" name="1607" href="#1607">1607</a> 			clearSession();
+<a class="jxr_linenumber" name="1608" href="#1608">1608</a> 			writeResponse(e.getChannel());
+<a class="jxr_linenumber" name="1609" href="#1609">1609</a> 			<strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="1610" href="#1610">1610</a> 		} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (request.getMethod() == HttpMethod.POST) {
+<a class="jxr_linenumber" name="1611" href="#1611">1611</a> 			getParams();
+<a class="jxr_linenumber" name="1612" href="#1612">1612</a> 			<strong class="jxr_keyword">if</strong> (params == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1613" href="#1613">1613</a> 				String logon = Logon();
+<a class="jxr_linenumber" name="1614" href="#1614">1614</a> 				responseContent.append(logon);
+<a class="jxr_linenumber" name="1615" href="#1615">1615</a> 				clearSession();
+<a class="jxr_linenumber" name="1616" href="#1616">1616</a> 				writeResponse(e.getChannel());
+<a class="jxr_linenumber" name="1617" href="#1617">1617</a> 				<strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="1618" href="#1618">1618</a> 			}
+<a class="jxr_linenumber" name="1619" href="#1619">1619</a> 		}
+<a class="jxr_linenumber" name="1620" href="#1620">1620</a> 		<strong class="jxr_keyword">boolean</strong> getMenu = false;
+<a class="jxr_linenumber" name="1621" href="#1621">1621</a> 		<strong class="jxr_keyword">if</strong> (params.containsKey(<span class="jxr_string">"Logon"</span>)) {
+<a class="jxr_linenumber" name="1622" href="#1622">1622</a> 			String name = <strong class="jxr_keyword">null</strong>, password = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="1623" href="#1623">1623</a> 			List&lt;String&gt; values = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="1624" href="#1624">1624</a> 			<strong class="jxr_keyword">if</strong> (!params.isEmpty()) {
+<a class="jxr_linenumber" name="1625" href="#1625">1625</a> 				<em class="jxr_comment">// get values</em>
+<a class="jxr_linenumber" name="1626" href="#1626">1626</a> 				<strong class="jxr_keyword">if</strong> (params.containsKey(<span class="jxr_string">"name"</span>)) {
+<a class="jxr_linenumber" name="1627" href="#1627">1627</a> 					values = params.get(<span class="jxr_string">"name"</span>);
+<a class="jxr_linenumber" name="1628" href="#1628">1628</a> 					<strong class="jxr_keyword">if</strong> (values != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1629" href="#1629">1629</a> 						name = values.get(0);
+<a class="jxr_linenumber" name="1630" href="#1630">1630</a> 						<strong class="jxr_keyword">if</strong> (name == <strong class="jxr_keyword">null</strong> || name.length() == 0) {
+<a class="jxr_linenumber" name="1631" href="#1631">1631</a> 							getMenu = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="1632" href="#1632">1632</a> 						}
+<a class="jxr_linenumber" name="1633" href="#1633">1633</a> 					}
+<a class="jxr_linenumber" name="1634" href="#1634">1634</a> 				} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="1635" href="#1635">1635</a> 					getMenu = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="1636" href="#1636">1636</a> 				}
+<a class="jxr_linenumber" name="1637" href="#1637">1637</a> 				<em class="jxr_comment">// search the nb param</em>
+<a class="jxr_linenumber" name="1638" href="#1638">1638</a> 				<strong class="jxr_keyword">if</strong> ((!getMenu) &amp;&amp; params.containsKey(<span class="jxr_string">"passwd"</span>)) {
+<a class="jxr_linenumber" name="1639" href="#1639">1639</a> 					values = params.get(<span class="jxr_string">"passwd"</span>);
+<a class="jxr_linenumber" name="1640" href="#1640">1640</a> 					<strong class="jxr_keyword">if</strong> (values != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1641" href="#1641">1641</a> 						password = values.get(0);
+<a class="jxr_linenumber" name="1642" href="#1642">1642</a> 						<strong class="jxr_keyword">if</strong> (password == <strong class="jxr_keyword">null</strong> || password.length() == 0) {
+<a class="jxr_linenumber" name="1643" href="#1643">1643</a> 							getMenu = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="1644" href="#1644">1644</a> 						} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="1645" href="#1645">1645</a> 							getMenu = false;
+<a class="jxr_linenumber" name="1646" href="#1646">1646</a> 						}
+<a class="jxr_linenumber" name="1647" href="#1647">1647</a> 					} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="1648" href="#1648">1648</a> 						getMenu = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="1649" href="#1649">1649</a> 					}
+<a class="jxr_linenumber" name="1650" href="#1650">1650</a> 				} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="1651" href="#1651">1651</a> 					getMenu = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="1652" href="#1652">1652</a> 				}
+<a class="jxr_linenumber" name="1653" href="#1653">1653</a> 			} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="1654" href="#1654">1654</a> 				getMenu = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="1655" href="#1655">1655</a> 			}
+<a class="jxr_linenumber" name="1656" href="#1656">1656</a> 			<strong class="jxr_keyword">if</strong> (!getMenu) {
+<a class="jxr_linenumber" name="1657" href="#1657">1657</a> 				logger.debug(<span class="jxr_string">"Name="</span> + name + <span class="jxr_string">" vs "</span>
+<a class="jxr_linenumber" name="1658" href="#1658">1658</a> 						+ name.equals(Configuration.configuration.ADMINNAME) +
+<a class="jxr_linenumber" name="1659" href="#1659">1659</a> 						<span class="jxr_string">" Passwd="</span> + password + <span class="jxr_string">" vs "</span> + Arrays.equals(password.getBytes(),
+<a class="jxr_linenumber" name="1660" href="#1660">1660</a> 								Configuration.configuration.getSERVERADMINKEY()));
+<a class="jxr_linenumber" name="1661" href="#1661">1661</a> 				<strong class="jxr_keyword">if</strong> (name.equals(Configuration.configuration.ADMINNAME) &amp;&amp;
+<a class="jxr_linenumber" name="1662" href="#1662">1662</a> 						Arrays.equals(password.getBytes(),
+<a class="jxr_linenumber" name="1663" href="#1663">1663</a> 								Configuration.configuration.getSERVERADMINKEY())) {
+<a class="jxr_linenumber" name="1664" href="#1664">1664</a> 					authentHttp.getAuth().specialNoSessionAuth(<strong class="jxr_keyword">true</strong>,
+<a class="jxr_linenumber" name="1665" href="#1665">1665</a> 							Configuration.configuration.HOST_ID);
+<a class="jxr_linenumber" name="1666" href="#1666">1666</a> 					authentHttp.setStatus(70);
+<a class="jxr_linenumber" name="1667" href="#1667">1667</a> 				} <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="1668" href="#1668">1668</a> 					getMenu = <strong class="jxr_keyword">true</strong>;
 <a class="jxr_linenumber" name="1669" href="#1669">1669</a> 				}
-<a class="jxr_linenumber" name="1670" href="#1670">1670</a> 				<em class="jxr_comment">// load DbSession</em>
-<a class="jxr_linenumber" name="1671" href="#1671">1671</a> 				<strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.dbSession == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="1672" href="#1672">1672</a> 					<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="1673" href="#1673">1673</a> 						<strong class="jxr_keyword">if</strong> (DbConstant.admin.isConnected) {
-<a class="jxr_linenumber" name="1674" href="#1674">1674</a> 							<strong class="jxr_keyword">this</strong>.dbSession = <strong class="jxr_keyword">new</strong> DbSession(DbConstant.admin, false);
-<a class="jxr_linenumber" name="1675" href="#1675">1675</a> 							DbAdmin.nbHttpSession++;
-<a class="jxr_linenumber" name="1676" href="#1676">1676</a> 							<strong class="jxr_keyword">this</strong>.isPrivateDbSession = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="1677" href="#1677">1677</a> 						}
-<a class="jxr_linenumber" name="1678" href="#1678">1678</a> 					} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
-<a class="jxr_linenumber" name="1679" href="#1679">1679</a> 						<em class="jxr_comment">// Cannot connect so use default connection</em>
-<a class="jxr_linenumber" name="1680" href="#1680">1680</a> 						logger.warn(<span class="jxr_string">"Use default database connection"</span>);
-<a class="jxr_linenumber" name="1681" href="#1681">1681</a> 						<strong class="jxr_keyword">this</strong>.dbSession = DbConstant.admin.session;
-<a class="jxr_linenumber" name="1682" href="#1682">1682</a> 					}
-<a class="jxr_linenumber" name="1683" href="#1683">1683</a> 				}
-<a class="jxr_linenumber" name="1684" href="#1684">1684</a> 			}
-<a class="jxr_linenumber" name="1685" href="#1685">1685</a> 		} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="1686" href="#1686">1686</a> 			getMenu = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="1687" href="#1687">1687</a> 		}
-<a class="jxr_linenumber" name="1688" href="#1688">1688</a> 		<strong class="jxr_keyword">if</strong> (getMenu) {
-<a class="jxr_linenumber" name="1689" href="#1689">1689</a> 			String logon = Logon();
-<a class="jxr_linenumber" name="1690" href="#1690">1690</a> 			responseContent.append(logon);
-<a class="jxr_linenumber" name="1691" href="#1691">1691</a> 			clearSession();
-<a class="jxr_linenumber" name="1692" href="#1692">1692</a> 			writeResponse(e.getChannel());
-<a class="jxr_linenumber" name="1693" href="#1693">1693</a> 		} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="1694" href="#1694">1694</a> 			String index = index();
-<a class="jxr_linenumber" name="1695" href="#1695">1695</a> 			responseContent.append(index);
+<a class="jxr_linenumber" name="1670" href="#1670">1670</a> 				<strong class="jxr_keyword">if</strong> (!authentHttp.isAuthenticated()) {
+<a class="jxr_linenumber" name="1671" href="#1671">1671</a> 					authentHttp.setStatus(71);
+<a class="jxr_linenumber" name="1672" href="#1672">1672</a> 					logger.debug(<span class="jxr_string">"Still not authenticated: {}"</span>, authentHttp);
+<a class="jxr_linenumber" name="1673" href="#1673">1673</a> 					getMenu = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="1674" href="#1674">1674</a> 				}
+<a class="jxr_linenumber" name="1675" href="#1675">1675</a> 				<em class="jxr_comment">// load DbSession</em>
+<a class="jxr_linenumber" name="1676" href="#1676">1676</a> 				<strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.dbSession == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1677" href="#1677">1677</a> 					<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="1678" href="#1678">1678</a> 						<strong class="jxr_keyword">if</strong> (DbConstant.admin.isConnected) {
+<a class="jxr_linenumber" name="1679" href="#1679">1679</a> 							<strong class="jxr_keyword">this</strong>.dbSession = <strong class="jxr_keyword">new</strong> DbSession(DbConstant.admin, false);
+<a class="jxr_linenumber" name="1680" href="#1680">1680</a> 							DbAdmin.nbHttpSession++;
+<a class="jxr_linenumber" name="1681" href="#1681">1681</a> 							<strong class="jxr_keyword">this</strong>.isPrivateDbSession = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="1682" href="#1682">1682</a> 						}
+<a class="jxr_linenumber" name="1683" href="#1683">1683</a> 					} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
+<a class="jxr_linenumber" name="1684" href="#1684">1684</a> 						<em class="jxr_comment">// Cannot connect so use default connection</em>
+<a class="jxr_linenumber" name="1685" href="#1685">1685</a> 						logger.warn(<span class="jxr_string">"Use default database connection"</span>);
+<a class="jxr_linenumber" name="1686" href="#1686">1686</a> 						<strong class="jxr_keyword">this</strong>.dbSession = DbConstant.admin.session;
+<a class="jxr_linenumber" name="1687" href="#1687">1687</a> 					}
+<a class="jxr_linenumber" name="1688" href="#1688">1688</a> 				}
+<a class="jxr_linenumber" name="1689" href="#1689">1689</a> 			}
+<a class="jxr_linenumber" name="1690" href="#1690">1690</a> 		} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="1691" href="#1691">1691</a> 			getMenu = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="1692" href="#1692">1692</a> 		}
+<a class="jxr_linenumber" name="1693" href="#1693">1693</a> 		<strong class="jxr_keyword">if</strong> (getMenu) {
+<a class="jxr_linenumber" name="1694" href="#1694">1694</a> 			String logon = Logon();
+<a class="jxr_linenumber" name="1695" href="#1695">1695</a> 			responseContent.append(logon);
 <a class="jxr_linenumber" name="1696" href="#1696">1696</a> 			clearSession();
-<a class="jxr_linenumber" name="1697" href="#1697">1697</a> 			admin = <strong class="jxr_keyword">new</strong> DefaultCookie(R66SESSION, Configuration.configuration.HOST_ID +
-<a class="jxr_linenumber" name="1698" href="#1698">1698</a> 					Long.toHexString(<strong class="jxr_keyword">new</strong> Random().nextLong()));
-<a class="jxr_linenumber" name="1699" href="#1699">1699</a> 			sessions.put(admin.getValue(), <strong class="jxr_keyword">this</strong>.authentHttp);
-<a class="jxr_linenumber" name="1700" href="#1700">1700</a> 			authentHttp.setStatus(72);
-<a class="jxr_linenumber" name="1701" href="#1701">1701</a> 			<strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.isPrivateDbSession) {
-<a class="jxr_linenumber" name="1702" href="#1702">1702</a> 				dbSessions.put(admin.getValue(), dbSession);
-<a class="jxr_linenumber" name="1703" href="#1703">1703</a> 			}
-<a class="jxr_linenumber" name="1704" href="#1704">1704</a> 			logger.debug(<span class="jxr_string">"CreateSession: "</span> + uriRequest + <span class="jxr_string">":{}"</span>, admin);
-<a class="jxr_linenumber" name="1705" href="#1705">1705</a> 			writeResponse(e.getChannel());
-<a class="jxr_linenumber" name="1706" href="#1706">1706</a> 		}
-<a class="jxr_linenumber" name="1707" href="#1707">1707</a> 	}
-<a class="jxr_linenumber" name="1708" href="#1708">1708</a> 
-<a class="jxr_linenumber" name="1709" href="#1709">1709</a> 	@Override
-<a class="jxr_linenumber" name="1710" href="#1710">1710</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> messageReceived(ChannelHandlerContext ctx, MessageEvent e) <strong class="jxr_keyword">throws</strong> Exception {
-<a class="jxr_linenumber" name="1711" href="#1711">1711</a> 		HttpRequest request = <strong class="jxr_keyword">this</strong>.request = (HttpRequest) e.getMessage();
-<a class="jxr_linenumber" name="1712" href="#1712">1712</a> 		queryStringDecoder = <strong class="jxr_keyword">new</strong> QueryStringDecoder(request.getUri());
-<a class="jxr_linenumber" name="1713" href="#1713">1713</a> 		uriRequest = queryStringDecoder.getPath();
-<a class="jxr_linenumber" name="1714" href="#1714">1714</a> 		logger.debug(<span class="jxr_string">"Msg: "</span> + uriRequest);
-<a class="jxr_linenumber" name="1715" href="#1715">1715</a> 		<strong class="jxr_keyword">if</strong> (uriRequest.contains(<span class="jxr_string">"gre/"</span>) || uriRequest.contains(<span class="jxr_string">"img/"</span>) ||
-<a class="jxr_linenumber" name="1716" href="#1716">1716</a> 				uriRequest.contains(<span class="jxr_string">"res/"</span>)) {
-<a class="jxr_linenumber" name="1717" href="#1717">1717</a> 			HttpWriteCacheEnable.writeFile(request,
-<a class="jxr_linenumber" name="1718" href="#1718">1718</a> 					e.getChannel(), Configuration.configuration.httpBasePath + uriRequest,
-<a class="jxr_linenumber" name="1719" href="#1719">1719</a> 					R66SESSION);
-<a class="jxr_linenumber" name="1720" href="#1720">1720</a> 			<strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="1721" href="#1721">1721</a> 		}
-<a class="jxr_linenumber" name="1722" href="#1722">1722</a> 		checkSession(e.getChannel());
-<a class="jxr_linenumber" name="1723" href="#1723">1723</a> 		<strong class="jxr_keyword">if</strong> (!authentHttp.isAuthenticated()) {
-<a class="jxr_linenumber" name="1724" href="#1724">1724</a> 			logger.debug(<span class="jxr_string">"Not Authent: "</span> + uriRequest + <span class="jxr_string">":{}"</span>, authentHttp);
-<a class="jxr_linenumber" name="1725" href="#1725">1725</a> 			checkAuthent(e);
-<a class="jxr_linenumber" name="1726" href="#1726">1726</a> 			<strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="1727" href="#1727">1727</a> 		}
-<a class="jxr_linenumber" name="1728" href="#1728">1728</a> 		String find = uriRequest;
-<a class="jxr_linenumber" name="1729" href="#1729">1729</a> 		<strong class="jxr_keyword">if</strong> (uriRequest.charAt(0) == '/') {
-<a class="jxr_linenumber" name="1730" href="#1730">1730</a> 			find = uriRequest.substring(1);
-<a class="jxr_linenumber" name="1731" href="#1731">1731</a> 		}
-<a class="jxr_linenumber" name="1732" href="#1732">1732</a> 		find = find.substring(0, find.indexOf(<span class="jxr_string">"."</span>));
-<a class="jxr_linenumber" name="1733" href="#1733">1733</a> 		REQUEST req = REQUEST.index;
-<a class="jxr_linenumber" name="1734" href="#1734">1734</a> 		<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="1735" href="#1735">1735</a> 			req = REQUEST.valueOf(find);
-<a class="jxr_linenumber" name="1736" href="#1736">1736</a> 		} <strong class="jxr_keyword">catch</strong> (IllegalArgumentException e1) {
-<a class="jxr_linenumber" name="1737" href="#1737">1737</a> 			req = REQUEST.index;
-<a class="jxr_linenumber" name="1738" href="#1738">1738</a> 			logger.debug(<span class="jxr_string">"NotFound: "</span> + find + <span class="jxr_string">":"</span> + uriRequest);
-<a class="jxr_linenumber" name="1739" href="#1739">1739</a> 		}
-<a class="jxr_linenumber" name="1740" href="#1740">1740</a> 		<strong class="jxr_keyword">switch</strong> (req) {
-<a class="jxr_linenumber" name="1741" href="#1741">1741</a> 			<strong class="jxr_keyword">case</strong> CancelRestart:
-<a class="jxr_linenumber" name="1742" href="#1742">1742</a> 				responseContent.append(CancelRestart());
-<a class="jxr_linenumber" name="1743" href="#1743">1743</a> 				<strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="1744" href="#1744">1744</a> 			<strong class="jxr_keyword">case</strong> Export:
-<a class="jxr_linenumber" name="1745" href="#1745">1745</a> 				responseContent.append(Export());
-<a class="jxr_linenumber" name="1746" href="#1746">1746</a> 				<strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="1747" href="#1747">1747</a> 			<strong class="jxr_keyword">case</strong> Hosts:
-<a class="jxr_linenumber" name="1748" href="#1748">1748</a> 				responseContent.append(Hosts());
-<a class="jxr_linenumber" name="1749" href="#1749">1749</a> 				<strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="1750" href="#1750">1750</a> 			<strong class="jxr_keyword">case</strong> index:
-<a class="jxr_linenumber" name="1751" href="#1751">1751</a> 				responseContent.append(index());
-<a class="jxr_linenumber" name="1752" href="#1752">1752</a> 				<strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="1753" href="#1753">1753</a> 			<strong class="jxr_keyword">case</strong> Listing:
-<a class="jxr_linenumber" name="1754" href="#1754">1754</a> 				responseContent.append(Listing());
-<a class="jxr_linenumber" name="1755" href="#1755">1755</a> 				<strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="1756" href="#1756">1756</a> 			<strong class="jxr_keyword">case</strong> Logon:
-<a class="jxr_linenumber" name="1757" href="#1757">1757</a> 				responseContent.append(index());
-<a class="jxr_linenumber" name="1758" href="#1758">1758</a> 				<strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="1759" href="#1759">1759</a> 			<strong class="jxr_keyword">case</strong> Rules:
-<a class="jxr_linenumber" name="1760" href="#1760">1760</a> 				responseContent.append(Rules());
-<a class="jxr_linenumber" name="1761" href="#1761">1761</a> 				<strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="1762" href="#1762">1762</a> 			<strong class="jxr_keyword">case</strong> System:
-<a class="jxr_linenumber" name="1763" href="#1763">1763</a> 				responseContent.append(System());
-<a class="jxr_linenumber" name="1764" href="#1764">1764</a> 				<strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="1765" href="#1765">1765</a> 			<strong class="jxr_keyword">case</strong> Transfers:
-<a class="jxr_linenumber" name="1766" href="#1766">1766</a> 				responseContent.append(Transfers());
-<a class="jxr_linenumber" name="1767" href="#1767">1767</a> 				<strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="1768" href="#1768">1768</a> 			<strong class="jxr_keyword">default</strong>:
-<a class="jxr_linenumber" name="1769" href="#1769">1769</a> 				responseContent.append(index());
-<a class="jxr_linenumber" name="1770" href="#1770">1770</a> 				<strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="1771" href="#1771">1771</a> 		}
-<a class="jxr_linenumber" name="1772" href="#1772">1772</a> 		writeResponse(e.getChannel());
-<a class="jxr_linenumber" name="1773" href="#1773">1773</a> 	}
-<a class="jxr_linenumber" name="1774" href="#1774">1774</a> 
-<a class="jxr_linenumber" name="1775" href="#1775">1775</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> checkSession(Channel channel) {
-<a class="jxr_linenumber" name="1776" href="#1776">1776</a> 		String cookieString = request.getHeader(HttpHeaders.Names.COOKIE);
-<a class="jxr_linenumber" name="1777" href="#1777">1777</a> 		<strong class="jxr_keyword">if</strong> (cookieString != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="1778" href="#1778">1778</a> 			CookieDecoder cookieDecoder = <strong class="jxr_keyword">new</strong> CookieDecoder();
-<a class="jxr_linenumber" name="1779" href="#1779">1779</a> 			Set&lt;Cookie&gt; cookies = cookieDecoder.decode(cookieString);
-<a class="jxr_linenumber" name="1780" href="#1780">1780</a> 			<strong class="jxr_keyword">if</strong> (!cookies.isEmpty()) {
-<a class="jxr_linenumber" name="1781" href="#1781">1781</a> 				<strong class="jxr_keyword">for</strong> (Cookie elt : cookies) {
-<a class="jxr_linenumber" name="1782" href="#1782">1782</a> 					<strong class="jxr_keyword">if</strong> (elt.getName().equalsIgnoreCase(R66SESSION)) {
-<a class="jxr_linenumber" name="1783" href="#1783">1783</a> 						admin = elt;
-<a class="jxr_linenumber" name="1784" href="#1784">1784</a> 						<strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="1785" href="#1785">1785</a> 					}
-<a class="jxr_linenumber" name="1786" href="#1786">1786</a> 				}
-<a class="jxr_linenumber" name="1787" href="#1787">1787</a> 			}
-<a class="jxr_linenumber" name="1788" href="#1788">1788</a> 		}
-<a class="jxr_linenumber" name="1789" href="#1789">1789</a> 		<strong class="jxr_keyword">if</strong> (admin != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="1790" href="#1790">1790</a> 			R66Session session = sessions.get(admin.getValue());
-<a class="jxr_linenumber" name="1791" href="#1791">1791</a> 			<strong class="jxr_keyword">if</strong> (session != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="1792" href="#1792">1792</a> 				authentHttp = session;
-<a class="jxr_linenumber" name="1793" href="#1793">1793</a> 				authentHttp.setStatus(73);
-<a class="jxr_linenumber" name="1794" href="#1794">1794</a> 			}
-<a class="jxr_linenumber" name="1795" href="#1795">1795</a> 			DbSession dbSession = dbSessions.get(admin.getValue());
-<a class="jxr_linenumber" name="1796" href="#1796">1796</a> 			<strong class="jxr_keyword">if</strong> (dbSession != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="1797" href="#1797">1797</a> 				<strong class="jxr_keyword">this</strong>.dbSession = dbSession;
-<a class="jxr_linenumber" name="1798" href="#1798">1798</a> 			}
-<a class="jxr_linenumber" name="1799" href="#1799">1799</a> 		} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="1800" href="#1800">1800</a> 			logger.debug(<span class="jxr_string">"NoSession: "</span> + uriRequest + <span class="jxr_string">":{}"</span>, admin);
-<a class="jxr_linenumber" name="1801" href="#1801">1801</a> 		}
-<a class="jxr_linenumber" name="1802" href="#1802">1802</a> 	}
-<a class="jxr_linenumber" name="1803" href="#1803">1803</a> 
-<a class="jxr_linenumber" name="1804" href="#1804">1804</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> handleCookies(HttpResponse response) {
-<a class="jxr_linenumber" name="1805" href="#1805">1805</a> 		String cookieString = request.getHeader(HttpHeaders.Names.COOKIE);
-<a class="jxr_linenumber" name="1806" href="#1806">1806</a> 		<strong class="jxr_keyword">if</strong> (cookieString != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="1807" href="#1807">1807</a> 			CookieDecoder cookieDecoder = <strong class="jxr_keyword">new</strong> CookieDecoder();
-<a class="jxr_linenumber" name="1808" href="#1808">1808</a> 			Set&lt;Cookie&gt; cookies = cookieDecoder.decode(cookieString);
-<a class="jxr_linenumber" name="1809" href="#1809">1809</a> 			<strong class="jxr_keyword">if</strong> (!cookies.isEmpty()) {
-<a class="jxr_linenumber" name="1810" href="#1810">1810</a> 				<em class="jxr_comment">// Reset the sessions if necessary.</em>
-<a class="jxr_linenumber" name="1811" href="#1811">1811</a> 				CookieEncoder cookieEncoder = <strong class="jxr_keyword">new</strong> CookieEncoder(<strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="1812" href="#1812">1812</a> 				<strong class="jxr_keyword">boolean</strong> findSession = false;
-<a class="jxr_linenumber" name="1813" href="#1813">1813</a> 				<strong class="jxr_keyword">for</strong> (Cookie cookie : cookies) {
-<a class="jxr_linenumber" name="1814" href="#1814">1814</a> 					<strong class="jxr_keyword">if</strong> (cookie.getName().equalsIgnoreCase(R66SESSION)) {
-<a class="jxr_linenumber" name="1815" href="#1815">1815</a> 						<strong class="jxr_keyword">if</strong> (newSession) {
-<a class="jxr_linenumber" name="1816" href="#1816">1816</a> 							findSession = false;
-<a class="jxr_linenumber" name="1817" href="#1817">1817</a> 						} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="1818" href="#1818">1818</a> 							findSession = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="1819" href="#1819">1819</a> 							cookieEncoder.addCookie(cookie);
-<a class="jxr_linenumber" name="1820" href="#1820">1820</a> 							response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
-<a class="jxr_linenumber" name="1821" href="#1821">1821</a> 							cookieEncoder = <strong class="jxr_keyword">new</strong> CookieEncoder(<strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="1822" href="#1822">1822</a> 						}
-<a class="jxr_linenumber" name="1823" href="#1823">1823</a> 					} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="1824" href="#1824">1824</a> 						cookieEncoder.addCookie(cookie);
-<a class="jxr_linenumber" name="1825" href="#1825">1825</a> 						response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
-<a class="jxr_linenumber" name="1826" href="#1826">1826</a> 						cookieEncoder = <strong class="jxr_keyword">new</strong> CookieEncoder(<strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="1827" href="#1827">1827</a> 					}
-<a class="jxr_linenumber" name="1828" href="#1828">1828</a> 				}
-<a class="jxr_linenumber" name="1829" href="#1829">1829</a> 				newSession = false;
-<a class="jxr_linenumber" name="1830" href="#1830">1830</a> 				<strong class="jxr_keyword">if</strong> (!findSession) {
-<a class="jxr_linenumber" name="1831" href="#1831">1831</a> 					<strong class="jxr_keyword">if</strong> (admin != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="1832" href="#1832">1832</a> 						cookieEncoder.addCookie(admin);
-<a class="jxr_linenumber" name="1833" href="#1833">1833</a> 						response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
-<a class="jxr_linenumber" name="1834" href="#1834">1834</a> 						logger.debug(<span class="jxr_string">"AddSession: "</span> + uriRequest + <span class="jxr_string">":{}"</span>, admin);
-<a class="jxr_linenumber" name="1835" href="#1835">1835</a> 					}
-<a class="jxr_linenumber" name="1836" href="#1836">1836</a> 				}
-<a class="jxr_linenumber" name="1837" href="#1837">1837</a> 			}
-<a class="jxr_linenumber" name="1838" href="#1838">1838</a> 		} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (admin != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="1839" href="#1839">1839</a> 			CookieEncoder cookieEncoder = <strong class="jxr_keyword">new</strong> CookieEncoder(<strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="1840" href="#1840">1840</a> 			cookieEncoder.addCookie(admin);
-<a class="jxr_linenumber" name="1841" href="#1841">1841</a> 			logger.debug(<span class="jxr_string">"AddSession: "</span> + uriRequest + <span class="jxr_string">":{}"</span>, admin);
-<a class="jxr_linenumber" name="1842" href="#1842">1842</a> 			response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
-<a class="jxr_linenumber" name="1843" href="#1843">1843</a> 		}
-<a class="jxr_linenumber" name="1844" href="#1844">1844</a> 	}
-<a class="jxr_linenumber" name="1845" href="#1845">1845</a> 
-<a class="jxr_linenumber" name="1846" href="#1846">1846</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="1847" href="#1847">1847</a> <em class="jxr_javadoccomment">	 * Write the response</em>
-<a class="jxr_linenumber" name="1848" href="#1848">1848</a> <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="1849" href="#1849">1849</a> <em class="jxr_javadoccomment">	 * @param e</em>
-<a class="jxr_linenumber" name="1850" href="#1850">1850</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="1851" href="#1851">1851</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> writeResponse(Channel channel) {
-<a class="jxr_linenumber" name="1852" href="#1852">1852</a> 		<em class="jxr_comment">// Convert the response content to a ChannelBuffer.</em>
-<a class="jxr_linenumber" name="1853" href="#1853">1853</a> 		ChannelBuffer buf = ChannelBuffers.copiedBuffer(responseContent.toString(),
-<a class="jxr_linenumber" name="1854" href="#1854">1854</a> 				WaarpStringUtils.UTF8);
-<a class="jxr_linenumber" name="1855" href="#1855">1855</a> 		responseContent.setLength(0);
-<a class="jxr_linenumber" name="1856" href="#1856">1856</a> 
-<a class="jxr_linenumber" name="1857" href="#1857">1857</a> 		<em class="jxr_comment">// Decide whether to close the connection or not.</em>
-<a class="jxr_linenumber" name="1858" href="#1858">1858</a> 		<strong class="jxr_keyword">boolean</strong> keepAlive = HttpHeaders.isKeepAlive(request);
-<a class="jxr_linenumber" name="1859" href="#1859">1859</a> 		<strong class="jxr_keyword">boolean</strong> close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(request
-<a class="jxr_linenumber" name="1860" href="#1860">1860</a> 				.getHeader(HttpHeaders.Names.CONNECTION)) ||
-<a class="jxr_linenumber" name="1861" href="#1861">1861</a> 				(!keepAlive) || forceClose;
-<a class="jxr_linenumber" name="1862" href="#1862">1862</a> 
-<a class="jxr_linenumber" name="1863" href="#1863">1863</a> 		<em class="jxr_comment">// Build the response object.</em>
-<a class="jxr_linenumber" name="1864" href="#1864">1864</a> 		HttpResponse response = <strong class="jxr_keyword">new</strong> DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-<a class="jxr_linenumber" name="1865" href="#1865">1865</a> 		response.setContent(buf);
-<a class="jxr_linenumber" name="1866" href="#1866">1866</a> 		response.setHeader(HttpHeaders.Names.CONTENT_TYPE, <span class="jxr_string">"text/html"</span>);
-<a class="jxr_linenumber" name="1867" href="#1867">1867</a> 		<strong class="jxr_keyword">if</strong> (keepAlive) {
-<a class="jxr_linenumber" name="1868" href="#1868">1868</a> 			response.setHeader(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-<a class="jxr_linenumber" name="1869" href="#1869">1869</a> 		}
-<a class="jxr_linenumber" name="1870" href="#1870">1870</a> 		<strong class="jxr_keyword">if</strong> (!close) {
-<a class="jxr_linenumber" name="1871" href="#1871">1871</a> 			<em class="jxr_comment">// There's no need to add 'Content-Length' header</em>
-<a class="jxr_linenumber" name="1872" href="#1872">1872</a> 			<em class="jxr_comment">// if this is the last response.</em>
-<a class="jxr_linenumber" name="1873" href="#1873">1873</a> 			response.setHeader(HttpHeaders.Names.CONTENT_LENGTH,
-<a class="jxr_linenumber" name="1874" href="#1874">1874</a> 					String.valueOf(buf.readableBytes()));
-<a class="jxr_linenumber" name="1875" href="#1875">1875</a> 		}
-<a class="jxr_linenumber" name="1876" href="#1876">1876</a> 
-<a class="jxr_linenumber" name="1877" href="#1877">1877</a> 		handleCookies(response);
-<a class="jxr_linenumber" name="1878" href="#1878">1878</a> 
-<a class="jxr_linenumber" name="1879" href="#1879">1879</a> 		<em class="jxr_comment">// Write the response.</em>
-<a class="jxr_linenumber" name="1880" href="#1880">1880</a> 		ChannelFuture future = channel.write(response);
-<a class="jxr_linenumber" name="1881" href="#1881">1881</a> 		<em class="jxr_comment">// Close the connection after the write operation is done if necessary.</em>
-<a class="jxr_linenumber" name="1882" href="#1882">1882</a> 		<strong class="jxr_keyword">if</strong> (close) {
-<a class="jxr_linenumber" name="1883" href="#1883">1883</a> 			future.addListener(WaarpSslUtility.SSLCLOSE);
-<a class="jxr_linenumber" name="1884" href="#1884">1884</a> 		}
-<a class="jxr_linenumber" name="1885" href="#1885">1885</a> 		<strong class="jxr_keyword">if</strong> (shutdown) {
-<a class="jxr_linenumber" name="1886" href="#1886">1886</a> 			Thread thread = <strong class="jxr_keyword">new</strong> Thread(<strong class="jxr_keyword">new</strong> <a href="../../../../../../org/waarp/openr66/protocol/utils/ChannelUtils.html">ChannelUtils</a>(), <span class="jxr_string">"R66 Shutdown Thread"</span>);
-<a class="jxr_linenumber" name="1887" href="#1887">1887</a> 			thread.setDaemon(<strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="1888" href="#1888">1888</a> 			thread.start();
+<a class="jxr_linenumber" name="1697" href="#1697">1697</a> 			writeResponse(e.getChannel());
+<a class="jxr_linenumber" name="1698" href="#1698">1698</a> 		} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="1699" href="#1699">1699</a> 			String index = index();
+<a class="jxr_linenumber" name="1700" href="#1700">1700</a> 			responseContent.append(index);
+<a class="jxr_linenumber" name="1701" href="#1701">1701</a> 			clearSession();
+<a class="jxr_linenumber" name="1702" href="#1702">1702</a> 			admin = <strong class="jxr_keyword">new</strong> DefaultCookie(R66SESSION, Configuration.configuration.HOST_ID +
+<a class="jxr_linenumber" name="1703" href="#1703">1703</a> 					Long.toHexString(<strong class="jxr_keyword">new</strong> Random().nextLong()));
+<a class="jxr_linenumber" name="1704" href="#1704">1704</a> 			sessions.put(admin.getValue(), <strong class="jxr_keyword">this</strong>.authentHttp);
+<a class="jxr_linenumber" name="1705" href="#1705">1705</a> 			authentHttp.setStatus(72);
+<a class="jxr_linenumber" name="1706" href="#1706">1706</a> 			<strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.isPrivateDbSession) {
+<a class="jxr_linenumber" name="1707" href="#1707">1707</a> 				dbSessions.put(admin.getValue(), dbSession);
+<a class="jxr_linenumber" name="1708" href="#1708">1708</a> 			}
+<a class="jxr_linenumber" name="1709" href="#1709">1709</a> 			logger.debug(<span class="jxr_string">"CreateSession: "</span> + uriRequest + <span class="jxr_string">":{}"</span>, admin);
+<a class="jxr_linenumber" name="1710" href="#1710">1710</a> 			writeResponse(e.getChannel());
+<a class="jxr_linenumber" name="1711" href="#1711">1711</a> 		}
+<a class="jxr_linenumber" name="1712" href="#1712">1712</a> 	}
+<a class="jxr_linenumber" name="1713" href="#1713">1713</a> 
+<a class="jxr_linenumber" name="1714" href="#1714">1714</a> 	@Override
+<a class="jxr_linenumber" name="1715" href="#1715">1715</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> messageReceived(ChannelHandlerContext ctx, MessageEvent e) <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="1716" href="#1716">1716</a> 		HttpRequest request = <strong class="jxr_keyword">this</strong>.request = (HttpRequest) e.getMessage();
+<a class="jxr_linenumber" name="1717" href="#1717">1717</a> 		queryStringDecoder = <strong class="jxr_keyword">new</strong> QueryStringDecoder(request.getUri());
+<a class="jxr_linenumber" name="1718" href="#1718">1718</a> 		uriRequest = queryStringDecoder.getPath();
+<a class="jxr_linenumber" name="1719" href="#1719">1719</a> 		logger.debug(<span class="jxr_string">"Msg: "</span> + uriRequest);
+<a class="jxr_linenumber" name="1720" href="#1720">1720</a> 		<strong class="jxr_keyword">if</strong> (uriRequest.contains(<span class="jxr_string">"gre/"</span>) || uriRequest.contains(<span class="jxr_string">"img/"</span>) ||
+<a class="jxr_linenumber" name="1721" href="#1721">1721</a> 				uriRequest.contains(<span class="jxr_string">"res/"</span>)) {
+<a class="jxr_linenumber" name="1722" href="#1722">1722</a> 			HttpWriteCacheEnable.writeFile(request,
+<a class="jxr_linenumber" name="1723" href="#1723">1723</a> 					e.getChannel(), Configuration.configuration.httpBasePath + uriRequest,
+<a class="jxr_linenumber" name="1724" href="#1724">1724</a> 					R66SESSION);
+<a class="jxr_linenumber" name="1725" href="#1725">1725</a> 			<strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="1726" href="#1726">1726</a> 		}
+<a class="jxr_linenumber" name="1727" href="#1727">1727</a> 		checkSession(e.getChannel());
+<a class="jxr_linenumber" name="1728" href="#1728">1728</a> 		<strong class="jxr_keyword">if</strong> (!authentHttp.isAuthenticated()) {
+<a class="jxr_linenumber" name="1729" href="#1729">1729</a> 			logger.debug(<span class="jxr_string">"Not Authent: "</span> + uriRequest + <span class="jxr_string">":{}"</span>, authentHttp);
+<a class="jxr_linenumber" name="1730" href="#1730">1730</a> 			checkAuthent(e);
+<a class="jxr_linenumber" name="1731" href="#1731">1731</a> 			<strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="1732" href="#1732">1732</a> 		}
+<a class="jxr_linenumber" name="1733" href="#1733">1733</a> 		String find = uriRequest;
+<a class="jxr_linenumber" name="1734" href="#1734">1734</a> 		<strong class="jxr_keyword">if</strong> (uriRequest.charAt(0) == '/') {
+<a class="jxr_linenumber" name="1735" href="#1735">1735</a> 			find = uriRequest.substring(1);
+<a class="jxr_linenumber" name="1736" href="#1736">1736</a> 		}
+<a class="jxr_linenumber" name="1737" href="#1737">1737</a> 		find = find.substring(0, find.indexOf(<span class="jxr_string">"."</span>));
+<a class="jxr_linenumber" name="1738" href="#1738">1738</a> 		REQUEST req = REQUEST.index;
+<a class="jxr_linenumber" name="1739" href="#1739">1739</a> 		<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="1740" href="#1740">1740</a> 			req = REQUEST.valueOf(find);
+<a class="jxr_linenumber" name="1741" href="#1741">1741</a> 		} <strong class="jxr_keyword">catch</strong> (IllegalArgumentException e1) {
+<a class="jxr_linenumber" name="1742" href="#1742">1742</a> 			req = REQUEST.index;
+<a class="jxr_linenumber" name="1743" href="#1743">1743</a> 			logger.debug(<span class="jxr_string">"NotFound: "</span> + find + <span class="jxr_string">":"</span> + uriRequest);
+<a class="jxr_linenumber" name="1744" href="#1744">1744</a> 		}
+<a class="jxr_linenumber" name="1745" href="#1745">1745</a> 		<strong class="jxr_keyword">switch</strong> (req) {
+<a class="jxr_linenumber" name="1746" href="#1746">1746</a> 			<strong class="jxr_keyword">case</strong> CancelRestart:
+<a class="jxr_linenumber" name="1747" href="#1747">1747</a> 				responseContent.append(CancelRestart());
+<a class="jxr_linenumber" name="1748" href="#1748">1748</a> 				<strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="1749" href="#1749">1749</a> 			<strong class="jxr_keyword">case</strong> Export:
+<a class="jxr_linenumber" name="1750" href="#1750">1750</a> 				responseContent.append(Export());
+<a class="jxr_linenumber" name="1751" href="#1751">1751</a> 				<strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="1752" href="#1752">1752</a> 			<strong class="jxr_keyword">case</strong> Hosts:
+<a class="jxr_linenumber" name="1753" href="#1753">1753</a> 				responseContent.append(Hosts());
+<a class="jxr_linenumber" name="1754" href="#1754">1754</a> 				<strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="1755" href="#1755">1755</a> 			<strong class="jxr_keyword">case</strong> index:
+<a class="jxr_linenumber" name="1756" href="#1756">1756</a> 				responseContent.append(index());
+<a class="jxr_linenumber" name="1757" href="#1757">1757</a> 				<strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="1758" href="#1758">1758</a> 			<strong class="jxr_keyword">case</strong> Listing:
+<a class="jxr_linenumber" name="1759" href="#1759">1759</a> 				responseContent.append(Listing());
+<a class="jxr_linenumber" name="1760" href="#1760">1760</a> 				<strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="1761" href="#1761">1761</a> 			<strong class="jxr_keyword">case</strong> Logon:
+<a class="jxr_linenumber" name="1762" href="#1762">1762</a> 				responseContent.append(index());
+<a class="jxr_linenumber" name="1763" href="#1763">1763</a> 				<strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="1764" href="#1764">1764</a> 			<strong class="jxr_keyword">case</strong> Rules:
+<a class="jxr_linenumber" name="1765" href="#1765">1765</a> 				responseContent.append(Rules());
+<a class="jxr_linenumber" name="1766" href="#1766">1766</a> 				<strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="1767" href="#1767">1767</a> 			<strong class="jxr_keyword">case</strong> System:
+<a class="jxr_linenumber" name="1768" href="#1768">1768</a> 				responseContent.append(System());
+<a class="jxr_linenumber" name="1769" href="#1769">1769</a> 				<strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="1770" href="#1770">1770</a> 			<strong class="jxr_keyword">case</strong> Transfers:
+<a class="jxr_linenumber" name="1771" href="#1771">1771</a> 				responseContent.append(Transfers());
+<a class="jxr_linenumber" name="1772" href="#1772">1772</a> 				<strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="1773" href="#1773">1773</a> 			<strong class="jxr_keyword">default</strong>:
+<a class="jxr_linenumber" name="1774" href="#1774">1774</a> 				responseContent.append(index());
+<a class="jxr_linenumber" name="1775" href="#1775">1775</a> 				<strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="1776" href="#1776">1776</a> 		}
+<a class="jxr_linenumber" name="1777" href="#1777">1777</a> 		writeResponse(e.getChannel());
+<a class="jxr_linenumber" name="1778" href="#1778">1778</a> 	}
+<a class="jxr_linenumber" name="1779" href="#1779">1779</a> 
+<a class="jxr_linenumber" name="1780" href="#1780">1780</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> checkSession(Channel channel) {
+<a class="jxr_linenumber" name="1781" href="#1781">1781</a> 		String cookieString = request.getHeader(HttpHeaders.Names.COOKIE);
+<a class="jxr_linenumber" name="1782" href="#1782">1782</a> 		<strong class="jxr_keyword">if</strong> (cookieString != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1783" href="#1783">1783</a> 			CookieDecoder cookieDecoder = <strong class="jxr_keyword">new</strong> CookieDecoder();
+<a class="jxr_linenumber" name="1784" href="#1784">1784</a> 			Set&lt;Cookie&gt; cookies = cookieDecoder.decode(cookieString);
+<a class="jxr_linenumber" name="1785" href="#1785">1785</a> 			<strong class="jxr_keyword">if</strong> (!cookies.isEmpty()) {
+<a class="jxr_linenumber" name="1786" href="#1786">1786</a> 				<strong class="jxr_keyword">for</strong> (Cookie elt : cookies) {
+<a class="jxr_linenumber" name="1787" href="#1787">1787</a> 					<strong class="jxr_keyword">if</strong> (elt.getName().equalsIgnoreCase(R66SESSION)) {
+<a class="jxr_linenumber" name="1788" href="#1788">1788</a> 						admin = elt;
+<a class="jxr_linenumber" name="1789" href="#1789">1789</a> 						<strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="1790" href="#1790">1790</a> 					}
+<a class="jxr_linenumber" name="1791" href="#1791">1791</a> 				}
+<a class="jxr_linenumber" name="1792" href="#1792">1792</a> 			}
+<a class="jxr_linenumber" name="1793" href="#1793">1793</a> 		}
+<a class="jxr_linenumber" name="1794" href="#1794">1794</a> 		<strong class="jxr_keyword">if</strong> (admin != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1795" href="#1795">1795</a> 			R66Session session = sessions.get(admin.getValue());
+<a class="jxr_linenumber" name="1796" href="#1796">1796</a> 			<strong class="jxr_keyword">if</strong> (session != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1797" href="#1797">1797</a> 				authentHttp = session;
+<a class="jxr_linenumber" name="1798" href="#1798">1798</a> 				authentHttp.setStatus(73);
+<a class="jxr_linenumber" name="1799" href="#1799">1799</a> 			}
+<a class="jxr_linenumber" name="1800" href="#1800">1800</a> 			DbSession dbSession = dbSessions.get(admin.getValue());
+<a class="jxr_linenumber" name="1801" href="#1801">1801</a> 			<strong class="jxr_keyword">if</strong> (dbSession != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1802" href="#1802">1802</a> 				<strong class="jxr_keyword">this</strong>.dbSession = dbSession;
+<a class="jxr_linenumber" name="1803" href="#1803">1803</a> 			}
+<a class="jxr_linenumber" name="1804" href="#1804">1804</a> 		} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="1805" href="#1805">1805</a> 			logger.debug(<span class="jxr_string">"NoSession: "</span> + uriRequest + <span class="jxr_string">":{}"</span>, admin);
+<a class="jxr_linenumber" name="1806" href="#1806">1806</a> 		}
+<a class="jxr_linenumber" name="1807" href="#1807">1807</a> 	}
+<a class="jxr_linenumber" name="1808" href="#1808">1808</a> 
+<a class="jxr_linenumber" name="1809" href="#1809">1809</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> handleCookies(HttpResponse response) {
+<a class="jxr_linenumber" name="1810" href="#1810">1810</a> 		String cookieString = request.getHeader(HttpHeaders.Names.COOKIE);
+<a class="jxr_linenumber" name="1811" href="#1811">1811</a> 		<strong class="jxr_keyword">if</strong> (cookieString != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1812" href="#1812">1812</a> 			CookieDecoder cookieDecoder = <strong class="jxr_keyword">new</strong> CookieDecoder();
+<a class="jxr_linenumber" name="1813" href="#1813">1813</a> 			Set&lt;Cookie&gt; cookies = cookieDecoder.decode(cookieString);
+<a class="jxr_linenumber" name="1814" href="#1814">1814</a> 			<strong class="jxr_keyword">if</strong> (!cookies.isEmpty()) {
+<a class="jxr_linenumber" name="1815" href="#1815">1815</a> 				<em class="jxr_comment">// Reset the sessions if necessary.</em>
+<a class="jxr_linenumber" name="1816" href="#1816">1816</a> 				CookieEncoder cookieEncoder = <strong class="jxr_keyword">new</strong> CookieEncoder(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="1817" href="#1817">1817</a> 				<strong class="jxr_keyword">boolean</strong> findSession = false;
+<a class="jxr_linenumber" name="1818" href="#1818">1818</a> 				<strong class="jxr_keyword">for</strong> (Cookie cookie : cookies) {
+<a class="jxr_linenumber" name="1819" href="#1819">1819</a> 					<strong class="jxr_keyword">if</strong> (cookie.getName().equalsIgnoreCase(R66SESSION)) {
+<a class="jxr_linenumber" name="1820" href="#1820">1820</a> 						<strong class="jxr_keyword">if</strong> (newSession) {
+<a class="jxr_linenumber" name="1821" href="#1821">1821</a> 							findSession = false;
+<a class="jxr_linenumber" name="1822" href="#1822">1822</a> 						} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="1823" href="#1823">1823</a> 							findSession = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="1824" href="#1824">1824</a> 							cookieEncoder.addCookie(cookie);
+<a class="jxr_linenumber" name="1825" href="#1825">1825</a> 							response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+<a class="jxr_linenumber" name="1826" href="#1826">1826</a> 							cookieEncoder = <strong class="jxr_keyword">new</strong> CookieEncoder(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="1827" href="#1827">1827</a> 						}
+<a class="jxr_linenumber" name="1828" href="#1828">1828</a> 					} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="1829" href="#1829">1829</a> 						cookieEncoder.addCookie(cookie);
+<a class="jxr_linenumber" name="1830" href="#1830">1830</a> 						response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+<a class="jxr_linenumber" name="1831" href="#1831">1831</a> 						cookieEncoder = <strong class="jxr_keyword">new</strong> CookieEncoder(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="1832" href="#1832">1832</a> 					}
+<a class="jxr_linenumber" name="1833" href="#1833">1833</a> 				}
+<a class="jxr_linenumber" name="1834" href="#1834">1834</a> 				newSession = false;
+<a class="jxr_linenumber" name="1835" href="#1835">1835</a> 				<strong class="jxr_keyword">if</strong> (!findSession) {
+<a class="jxr_linenumber" name="1836" href="#1836">1836</a> 					<strong class="jxr_keyword">if</strong> (admin != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1837" href="#1837">1837</a> 						cookieEncoder.addCookie(admin);
+<a class="jxr_linenumber" name="1838" href="#1838">1838</a> 						response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+<a class="jxr_linenumber" name="1839" href="#1839">1839</a> 						logger.debug(<span class="jxr_string">"AddSession: "</span> + uriRequest + <span class="jxr_string">":{}"</span>, admin);
+<a class="jxr_linenumber" name="1840" href="#1840">1840</a> 					}
+<a class="jxr_linenumber" name="1841" href="#1841">1841</a> 				}
+<a class="jxr_linenumber" name="1842" href="#1842">1842</a> 			}
+<a class="jxr_linenumber" name="1843" href="#1843">1843</a> 		} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (admin != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1844" href="#1844">1844</a> 			CookieEncoder cookieEncoder = <strong class="jxr_keyword">new</strong> CookieEncoder(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="1845" href="#1845">1845</a> 			cookieEncoder.addCookie(admin);
+<a class="jxr_linenumber" name="1846" href="#1846">1846</a> 			logger.debug(<span class="jxr_string">"AddSession: "</span> + uriRequest + <span class="jxr_string">":{}"</span>, admin);
+<a class="jxr_linenumber" name="1847" href="#1847">1847</a> 			response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+<a class="jxr_linenumber" name="1848" href="#1848">1848</a> 		}
+<a class="jxr_linenumber" name="1849" href="#1849">1849</a> 	}
+<a class="jxr_linenumber" name="1850" href="#1850">1850</a> 
+<a class="jxr_linenumber" name="1851" href="#1851">1851</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="1852" href="#1852">1852</a> <em class="jxr_javadoccomment">	 * Write the response</em>
+<a class="jxr_linenumber" name="1853" href="#1853">1853</a> <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="1854" href="#1854">1854</a> <em class="jxr_javadoccomment">	 * @param e</em>
+<a class="jxr_linenumber" name="1855" href="#1855">1855</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="1856" href="#1856">1856</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> writeResponse(Channel channel) {
+<a class="jxr_linenumber" name="1857" href="#1857">1857</a> 		<em class="jxr_comment">// Convert the response content to a ChannelBuffer.</em>
+<a class="jxr_linenumber" name="1858" href="#1858">1858</a> 		ChannelBuffer buf = ChannelBuffers.copiedBuffer(responseContent.toString(),
+<a class="jxr_linenumber" name="1859" href="#1859">1859</a> 				WaarpStringUtils.UTF8);
+<a class="jxr_linenumber" name="1860" href="#1860">1860</a> 		responseContent.setLength(0);
+<a class="jxr_linenumber" name="1861" href="#1861">1861</a> 
+<a class="jxr_linenumber" name="1862" href="#1862">1862</a> 		<em class="jxr_comment">// Decide whether to close the connection or not.</em>
+<a class="jxr_linenumber" name="1863" href="#1863">1863</a> 		<strong class="jxr_keyword">boolean</strong> keepAlive = HttpHeaders.isKeepAlive(request);
+<a class="jxr_linenumber" name="1864" href="#1864">1864</a> 		<strong class="jxr_keyword">boolean</strong> close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(request
+<a class="jxr_linenumber" name="1865" href="#1865">1865</a> 				.getHeader(HttpHeaders.Names.CONNECTION)) ||
+<a class="jxr_linenumber" name="1866" href="#1866">1866</a> 				(!keepAlive) || forceClose;
+<a class="jxr_linenumber" name="1867" href="#1867">1867</a> 
+<a class="jxr_linenumber" name="1868" href="#1868">1868</a> 		<em class="jxr_comment">// Build the response object.</em>
+<a class="jxr_linenumber" name="1869" href="#1869">1869</a> 		HttpResponse response = <strong class="jxr_keyword">new</strong> DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+<a class="jxr_linenumber" name="1870" href="#1870">1870</a> 		response.setContent(buf);
+<a class="jxr_linenumber" name="1871" href="#1871">1871</a> 		response.setHeader(HttpHeaders.Names.CONTENT_TYPE, <span class="jxr_string">"text/html"</span>);
+<a class="jxr_linenumber" name="1872" href="#1872">1872</a> 		<strong class="jxr_keyword">if</strong> (keepAlive) {
+<a class="jxr_linenumber" name="1873" href="#1873">1873</a> 			response.setHeader(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+<a class="jxr_linenumber" name="1874" href="#1874">1874</a> 		}
+<a class="jxr_linenumber" name="1875" href="#1875">1875</a> 		<strong class="jxr_keyword">if</strong> (!close) {
+<a class="jxr_linenumber" name="1876" href="#1876">1876</a> 			<em class="jxr_comment">// There's no need to add 'Content-Length' header</em>
+<a class="jxr_linenumber" name="1877" href="#1877">1877</a> 			<em class="jxr_comment">// if this is the last response.</em>
+<a class="jxr_linenumber" name="1878" href="#1878">1878</a> 			response.setHeader(HttpHeaders.Names.CONTENT_LENGTH,
+<a class="jxr_linenumber" name="1879" href="#1879">1879</a> 					String.valueOf(buf.readableBytes()));
+<a class="jxr_linenumber" name="1880" href="#1880">1880</a> 		}
+<a class="jxr_linenumber" name="1881" href="#1881">1881</a> 
+<a class="jxr_linenumber" name="1882" href="#1882">1882</a> 		handleCookies(response);
+<a class="jxr_linenumber" name="1883" href="#1883">1883</a> 
+<a class="jxr_linenumber" name="1884" href="#1884">1884</a> 		<em class="jxr_comment">// Write the response.</em>
+<a class="jxr_linenumber" name="1885" href="#1885">1885</a> 		ChannelFuture future = channel.write(response);
+<a class="jxr_linenumber" name="1886" href="#1886">1886</a> 		<em class="jxr_comment">// Close the connection after the write operation is done if necessary.</em>
+<a class="jxr_linenumber" name="1887" href="#1887">1887</a> 		<strong class="jxr_keyword">if</strong> (close) {
+<a class="jxr_linenumber" name="1888" href="#1888">1888</a> 			future.addListener(WaarpSslUtility.SSLCLOSE);
 <a class="jxr_linenumber" name="1889" href="#1889">1889</a> 		}
-<a class="jxr_linenumber" name="1890" href="#1890">1890</a> 	}
-<a class="jxr_linenumber" name="1891" href="#1891">1891</a> 
-<a class="jxr_linenumber" name="1892" href="#1892">1892</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="1893" href="#1893">1893</a> <em class="jxr_javadoccomment">	 * Send an error and close</em>
-<a class="jxr_linenumber" name="1894" href="#1894">1894</a> <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="1895" href="#1895">1895</a> <em class="jxr_javadoccomment">	 * @param ctx</em>
-<a class="jxr_linenumber" name="1896" href="#1896">1896</a> <em class="jxr_javadoccomment">	 * @param status</em>
-<a class="jxr_linenumber" name="1897" href="#1897">1897</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="1898" href="#1898">1898</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
-<a class="jxr_linenumber" name="1899" href="#1899">1899</a> 		HttpResponse response = <strong class="jxr_keyword">new</strong> DefaultHttpResponse(
-<a class="jxr_linenumber" name="1900" href="#1900">1900</a> 				HttpVersion.HTTP_1_1, status);
-<a class="jxr_linenumber" name="1901" href="#1901">1901</a> 		response.setHeader(
-<a class="jxr_linenumber" name="1902" href="#1902">1902</a> 				HttpHeaders.Names.CONTENT_TYPE, <span class="jxr_string">"text/html"</span>);
-<a class="jxr_linenumber" name="1903" href="#1903">1903</a> 		responseContent.setLength(0);
-<a class="jxr_linenumber" name="1904" href="#1904">1904</a> 		responseContent.append(error(status.toString()));
-<a class="jxr_linenumber" name="1905" href="#1905">1905</a> 		response.setContent(ChannelBuffers.copiedBuffer(responseContent.toString(),
-<a class="jxr_linenumber" name="1906" href="#1906">1906</a> 				WaarpStringUtils.UTF8));
-<a class="jxr_linenumber" name="1907" href="#1907">1907</a> 		clearSession();
-<a class="jxr_linenumber" name="1908" href="#1908">1908</a> 		<em class="jxr_comment">// Close the connection as soon as the error message is sent.</em>
-<a class="jxr_linenumber" name="1909" href="#1909">1909</a> 		ctx.getChannel().write(response).addListener(WaarpSslUtility.SSLCLOSE);
-<a class="jxr_linenumber" name="1910" href="#1910">1910</a> 	}
-<a class="jxr_linenumber" name="1911" href="#1911">1911</a> 
-<a class="jxr_linenumber" name="1912" href="#1912">1912</a> 	@Override
-<a class="jxr_linenumber" name="1913" href="#1913">1913</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
-<a class="jxr_linenumber" name="1914" href="#1914">1914</a> 			<strong class="jxr_keyword">throws</strong> Exception {
-<a class="jxr_linenumber" name="1915" href="#1915">1915</a> 		OpenR66Exception exception = <a href="../../../../../../org/waarp/openr66/protocol/exception/OpenR66ExceptionTrappedFactory.html">OpenR66ExceptionTrappedFactory</a>
-<a class="jxr_linenumber" name="1916" href="#1916">1916</a> 				.getExceptionFromTrappedException(e.getChannel(), e);
-<a class="jxr_linenumber" name="1917" href="#1917">1917</a> 		<strong class="jxr_keyword">if</strong> (exception != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="1918" href="#1918">1918</a> 			<strong class="jxr_keyword">if</strong> (!(exception instanceof OpenR66ProtocolBusinessNoWriteBackException)) {
-<a class="jxr_linenumber" name="1919" href="#1919">1919</a> 				<strong class="jxr_keyword">if</strong> (e.getCause() instanceof IOException) {
-<a class="jxr_linenumber" name="1920" href="#1920">1920</a> 					<em class="jxr_comment">// Nothing to do</em>
-<a class="jxr_linenumber" name="1921" href="#1921">1921</a> 					<strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="1922" href="#1922">1922</a> 				}
-<a class="jxr_linenumber" name="1923" href="#1923">1923</a> 				logger.warn(<span class="jxr_string">"Exception in HttpSslHandler {}"</span>, exception.getMessage());
-<a class="jxr_linenumber" name="1924" href="#1924">1924</a> 			}
-<a class="jxr_linenumber" name="1925" href="#1925">1925</a> 			<strong class="jxr_keyword">if</strong> (e.getChannel().isConnected()) {
-<a class="jxr_linenumber" name="1926" href="#1926">1926</a> 				sendError(ctx, HttpResponseStatus.BAD_REQUEST);
+<a class="jxr_linenumber" name="1890" href="#1890">1890</a> 		<strong class="jxr_keyword">if</strong> (shutdown) {
+<a class="jxr_linenumber" name="1891" href="#1891">1891</a> 			ChannelUtils.startShutdown();
+<a class="jxr_linenumber" name="1892" href="#1892">1892</a> 		}
+<a class="jxr_linenumber" name="1893" href="#1893">1893</a> 	}
+<a class="jxr_linenumber" name="1894" href="#1894">1894</a> 
+<a class="jxr_linenumber" name="1895" href="#1895">1895</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="1896" href="#1896">1896</a> <em class="jxr_javadoccomment">	 * Send an error and close</em>
+<a class="jxr_linenumber" name="1897" href="#1897">1897</a> <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="1898" href="#1898">1898</a> <em class="jxr_javadoccomment">	 * @param ctx</em>
+<a class="jxr_linenumber" name="1899" href="#1899">1899</a> <em class="jxr_javadoccomment">	 * @param status</em>
+<a class="jxr_linenumber" name="1900" href="#1900">1900</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="1901" href="#1901">1901</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
+<a class="jxr_linenumber" name="1902" href="#1902">1902</a> 		HttpResponse response = <strong class="jxr_keyword">new</strong> DefaultHttpResponse(
+<a class="jxr_linenumber" name="1903" href="#1903">1903</a> 				HttpVersion.HTTP_1_1, status);
+<a class="jxr_linenumber" name="1904" href="#1904">1904</a> 		response.setHeader(
+<a class="jxr_linenumber" name="1905" href="#1905">1905</a> 				HttpHeaders.Names.CONTENT_TYPE, <span class="jxr_string">"text/html"</span>);
+<a class="jxr_linenumber" name="1906" href="#1906">1906</a> 		responseContent.setLength(0);
+<a class="jxr_linenumber" name="1907" href="#1907">1907</a> 		responseContent.append(error(status.toString()));
+<a class="jxr_linenumber" name="1908" href="#1908">1908</a> 		response.setContent(ChannelBuffers.copiedBuffer(responseContent.toString(),
+<a class="jxr_linenumber" name="1909" href="#1909">1909</a> 				WaarpStringUtils.UTF8));
+<a class="jxr_linenumber" name="1910" href="#1910">1910</a> 		clearSession();
+<a class="jxr_linenumber" name="1911" href="#1911">1911</a> 		<em class="jxr_comment">// Close the connection as soon as the error message is sent.</em>
+<a class="jxr_linenumber" name="1912" href="#1912">1912</a> 		ctx.getChannel().write(response).addListener(WaarpSslUtility.SSLCLOSE);
+<a class="jxr_linenumber" name="1913" href="#1913">1913</a> 	}
+<a class="jxr_linenumber" name="1914" href="#1914">1914</a> 
+<a class="jxr_linenumber" name="1915" href="#1915">1915</a> 	@Override
+<a class="jxr_linenumber" name="1916" href="#1916">1916</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
+<a class="jxr_linenumber" name="1917" href="#1917">1917</a> 			<strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="1918" href="#1918">1918</a> 		OpenR66Exception exception = <a href="../../../../../../org/waarp/openr66/protocol/exception/OpenR66ExceptionTrappedFactory.html">OpenR66ExceptionTrappedFactory</a>
+<a class="jxr_linenumber" name="1919" href="#1919">1919</a> 				.getExceptionFromTrappedException(e.getChannel(), e);
+<a class="jxr_linenumber" name="1920" href="#1920">1920</a> 		<strong class="jxr_keyword">if</strong> (exception != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1921" href="#1921">1921</a> 			<strong class="jxr_keyword">if</strong> (!(exception instanceof OpenR66ProtocolBusinessNoWriteBackException)) {
+<a class="jxr_linenumber" name="1922" href="#1922">1922</a> 				<strong class="jxr_keyword">if</strong> (e.getCause() instanceof IOException) {
+<a class="jxr_linenumber" name="1923" href="#1923">1923</a> 					<em class="jxr_comment">// Nothing to do</em>
+<a class="jxr_linenumber" name="1924" href="#1924">1924</a> 					<strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="1925" href="#1925">1925</a> 				}
+<a class="jxr_linenumber" name="1926" href="#1926">1926</a> 				logger.warn(<span class="jxr_string">"Exception in HttpSslHandler {}"</span>, exception.getMessage());
 <a class="jxr_linenumber" name="1927" href="#1927">1927</a> 			}
-<a class="jxr_linenumber" name="1928" href="#1928">1928</a> 		} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="1929" href="#1929">1929</a> 			<em class="jxr_comment">// Nothing to do</em>
-<a class="jxr_linenumber" name="1930" href="#1930">1930</a> 			<strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="1931" href="#1931">1931</a> 		}
-<a class="jxr_linenumber" name="1932" href="#1932">1932</a> 	}
-<a class="jxr_linenumber" name="1933" href="#1933">1933</a> 
-<a class="jxr_linenumber" name="1934" href="#1934">1934</a> 	<em class="jxr_comment">/*</em>
-<a class="jxr_linenumber" name="1935" href="#1935">1935</a> <em class="jxr_comment">	 * (non-Javadoc)</em>
-<a class="jxr_linenumber" name="1936" href="#1936">1936</a> <em class="jxr_comment">	 * @see</em>
-<a class="jxr_linenumber" name="1937" href="#1937">1937</a> <em class="jxr_comment">	 * org.jboss.netty.channel.SimpleChannelUpstreamHandler#channelOpen(org.jboss.netty.channel.</em>
-<a class="jxr_linenumber" name="1938" href="#1938">1938</a> <em class="jxr_comment">	 * ChannelHandlerContext, org.jboss.netty.channel.ChannelStateEvent)</em>
-<a class="jxr_linenumber" name="1939" href="#1939">1939</a> <em class="jxr_comment">	 */</em>
-<a class="jxr_linenumber" name="1940" href="#1940">1940</a> 	@Override
-<a class="jxr_linenumber" name="1941" href="#1941">1941</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e)
-<a class="jxr_linenumber" name="1942" href="#1942">1942</a> 			<strong class="jxr_keyword">throws</strong> Exception {
-<a class="jxr_linenumber" name="1943" href="#1943">1943</a> 		Channel channel = e.getChannel();
-<a class="jxr_linenumber" name="1944" href="#1944">1944</a> 		Configuration.configuration.getHttpChannelGroup().add(channel);
-<a class="jxr_linenumber" name="1945" href="#1945">1945</a> 		<strong class="jxr_keyword">super</strong>.channelOpen(ctx, e);
-<a class="jxr_linenumber" name="1946" href="#1946">1946</a> 	}
-<a class="jxr_linenumber" name="1947" href="#1947">1947</a> }
+<a class="jxr_linenumber" name="1928" href="#1928">1928</a> 			<strong class="jxr_keyword">if</strong> (e.getChannel().isConnected()) {
+<a class="jxr_linenumber" name="1929" href="#1929">1929</a> 				sendError(ctx, HttpResponseStatus.BAD_REQUEST);
+<a class="jxr_linenumber" name="1930" href="#1930">1930</a> 			}
+<a class="jxr_linenumber" name="1931" href="#1931">1931</a> 		} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="1932" href="#1932">1932</a> 			<em class="jxr_comment">// Nothing to do</em>
+<a class="jxr_linenumber" name="1933" href="#1933">1933</a> 			<strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="1934" href="#1934">1934</a> 		}
+<a class="jxr_linenumber" name="1935" href="#1935">1935</a> 	}
+<a class="jxr_linenumber" name="1936" href="#1936">1936</a> 
+<a class="jxr_linenumber" name="1937" href="#1937">1937</a> 	<em class="jxr_comment">/*</em>
+<a class="jxr_linenumber" name="1938" href="#1938">1938</a> <em class="jxr_comment">	 * (non-Javadoc)</em>
+<a class="jxr_linenumber" name="1939" href="#1939">1939</a> <em class="jxr_comment">	 * @see</em>
+<a class="jxr_linenumber" name="1940" href="#1940">1940</a> <em class="jxr_comment">	 * org.jboss.netty.channel.SimpleChannelUpstreamHandler#channelOpen(org.jboss.netty.channel.</em>
+<a class="jxr_linenumber" name="1941" href="#1941">1941</a> <em class="jxr_comment">	 * ChannelHandlerContext, org.jboss.netty.channel.ChannelStateEvent)</em>
+<a class="jxr_linenumber" name="1942" href="#1942">1942</a> <em class="jxr_comment">	 */</em>
+<a class="jxr_linenumber" name="1943" href="#1943">1943</a> 	@Override
+<a class="jxr_linenumber" name="1944" href="#1944">1944</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e)
+<a class="jxr_linenumber" name="1945" href="#1945">1945</a> 			<strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="1946" href="#1946">1946</a> 		Channel channel = e.getChannel();
+<a class="jxr_linenumber" name="1947" href="#1947">1947</a> 		Configuration.configuration.getHttpChannelGroup().add(channel);
+<a class="jxr_linenumber" name="1948" href="#1948">1948</a> 		<strong class="jxr_keyword">super</strong>.channelOpen(ctx, e);
+<a class="jxr_linenumber" name="1949" href="#1949">1949</a> 	}
+<a class="jxr_linenumber" name="1950" href="#1950">1950</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>
