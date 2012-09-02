@@ -20,11 +20,11 @@
  */
 package org.waarp.openr66.service;
 
-import org.jboss.netty.util.internal.SystemPropertyUtil;
 import org.waarp.common.future.WaarpFuture;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.service.EngineAbstract;
+import org.waarp.common.utility.SystemPropertyUtil;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.utils.OpenR66SignalHandler;
 import org.waarp.openr66.server.R66Server;

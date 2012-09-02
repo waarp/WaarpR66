@@ -38,7 +38,6 @@ import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.ObjectSizeEstimator;
 import org.jboss.netty.util.Timer;
 import org.jboss.netty.util.internal.ExecutorUtil;
-import org.jboss.netty.util.internal.SystemPropertyUtil;
 import org.waarp.common.crypto.Des;
 import org.waarp.common.crypto.ssl.WaarpSecureKeyStore;
 import org.waarp.common.crypto.ssl.WaarpSslContextFactory;
@@ -53,6 +52,7 @@ import org.waarp.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 import org.waarp.common.future.WaarpFuture;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.utility.SystemPropertyUtil;
 import org.waarp.common.utility.WaarpThreadFactory;
 import org.waarp.openr66.commander.InternalRunner;
 import org.waarp.openr66.context.R66BusinessFactoryInterface;
@@ -553,9 +553,8 @@ public class Configuration {
 		computeNbThreads();
 		// Init FiniteStates
 		R66FiniteDualStates.initR66FiniteStates();
-		//int value = SystemPropertyUtil.getInt("openr66.executebeforetransferred", 1);
-		int value = SystemPropertyUtil.get("openr66.executebeforetransferred", 1);
-		isExecuteErrorBeforeTransferAllowed = (value > 0);
+		boolean value = SystemPropertyUtil.getBoolean("openr66.executebeforetransferred", true);
+		isExecuteErrorBeforeTransferAllowed = value;
 	}
 
 	/**

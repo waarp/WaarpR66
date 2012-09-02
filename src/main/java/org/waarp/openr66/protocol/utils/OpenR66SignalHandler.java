@@ -21,9 +21,9 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.jboss.netty.util.internal.SystemPropertyUtil;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.utility.DetectionUtils;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.service.R66Engine;
 
@@ -207,13 +207,10 @@ public class OpenR66SignalHandler implements SignalHandler {
 		OpenR66SignalHandler diagHandler = new OpenR66SignalHandler();
 		diagHandler.oldHandler = Signal.handle(diagSignal, diagHandler);
 		// Not on WINDOWS ?
-		Configuration.ISUNIX = (!System.getProperty("os.name")
-				.toLowerCase().startsWith("win"));
+		Configuration.ISUNIX = ! DetectionUtils.isWindows();
 		System.out.println("ISUNIX: " + Configuration.ISUNIX);
 		if (Configuration.ISUNIX) {
-			String vendor = SystemPropertyUtil.get("java.vm.vendor");
-			vendor = vendor.toLowerCase();
-			if (vendor.indexOf("ibm") >= 0) {
+			if (DetectionUtils.isUnixIBM()) {
 				diagSignal = new Signal("USR1");
 				diagHandler = new OpenR66SignalHandler();
 				diagHandler.oldHandler = Signal.handle(diagSignal, diagHandler);
