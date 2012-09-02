@@ -20,13 +20,13 @@
  */
 package org.waarp.openr66.service;
 
-import org.jboss.netty.util.internal.SystemPropertyUtil;
 import org.waarp.common.future.WaarpFuture;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.service.EngineAbstract;
+import org.waarp.common.utility.SystemPropertyUtil;
 import org.waarp.openr66.protocol.configuration.Configuration;
-import org.waarp.openr66.protocol.utils.OpenR66SignalHandler;
+import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 import org.waarp.openr66.server.R66Server;
 
 /**
@@ -54,7 +54,7 @@ public class R66Engine extends EngineAbstract {
 			shutdown();
 			return;
 		}
-		Configuration.configuration.isStartedAsService = true;
+		Configuration.configuration.shutdownConfiguration.serviceFuture = closeFuture;
 		try {
 			if (! R66Server.initialize(config)) {
 				throw new Exception("Initialization in error");
@@ -70,7 +70,7 @@ public class R66Engine extends EngineAbstract {
 
 	@Override
 	public void shutdown() {
-		OpenR66SignalHandler.terminate(false);
+		R66ShutdownHook.terminate(false);
 		closeFuture.setSuccess();
 		logger.info("Service stopped");
 	}

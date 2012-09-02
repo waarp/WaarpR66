@@ -52,7 +52,6 @@ import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 import org.waarp.openr66.protocol.localhandler.packet.RequestPacket;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacket;
-import org.waarp.openr66.service.R66Engine;
 
 import ch.qos.logback.classic.LoggerContext;
 
@@ -416,10 +415,7 @@ public class ChannelUtils extends Thread {
 		Configuration.configuration.serverStop();
 		logger.warn("Exit end of Shutdown");
 		System.err.println("Exit end of Shutdown");
-		if (Configuration.configuration.isStartedAsService) {
-			R66Engine.closeFuture.setSuccess();
-		}
-		Thread.currentThread().interrupt();
+		//Thread.currentThread().interrupt();
 	}
 
 	public static void stopLogger() {
@@ -434,6 +430,15 @@ public class ChannelUtils extends Thread {
 	 */
 	@Override
 	public void run() {
-		OpenR66SignalHandler.terminate(false);
+		R66ShutdownHook.terminate(false);
+	}
+
+	/**
+	 * Start Shutdown
+	 */
+	public static void startShutdown() {
+		Thread thread = new Thread(new ChannelUtils(), "R66 Shutdown Thread");
+		thread.setDaemon(true);
+		thread.start();
 	}
 }

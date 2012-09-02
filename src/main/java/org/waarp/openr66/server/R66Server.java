@@ -24,7 +24,7 @@ import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
-import org.waarp.openr66.protocol.utils.OpenR66SignalHandler;
+import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 
 /**
  * R66Server startup main class
@@ -75,7 +75,7 @@ public class R66Server {
 		} catch (Throwable e) {
 			logger
 					.error("Startup of server is in error", e);
-			OpenR66SignalHandler.terminate(false);
+			R66ShutdownHook.terminate(false);
 			return false;
 		}
 		return true;

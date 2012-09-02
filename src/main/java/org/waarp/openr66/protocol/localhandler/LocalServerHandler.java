@@ -441,9 +441,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					}
 				}
 				// dont'close, thread will do
-				Thread thread = new Thread(new ChannelUtils(), "R66 Shutdown Thread");
-				thread.setDaemon(true);
-				thread.start();
+				ChannelUtils.startShutdown();
 				// set global shutdown info and before close, send a valid
 				// shutdown to all
 				session.setStatus(54);
@@ -2336,7 +2334,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 								Configuration.configuration.TIMEOUTCON + " ms",
 						session.getAuth().getUser());
 			}
-			if (Configuration.configuration.isStartedAsService) {
+			if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
 				logger.warn("R66 started as a service, Windows Services might not shown it as stopped");
 			}
 			throw new OpenR66ProtocolShutdownException("Shutdown Type received");

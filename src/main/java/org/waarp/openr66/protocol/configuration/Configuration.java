@@ -38,7 +38,6 @@ import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.ObjectSizeEstimator;
 import org.jboss.netty.util.Timer;
 import org.jboss.netty.util.internal.ExecutorUtil;
-import org.jboss.netty.util.internal.SystemPropertyUtil;
 import org.waarp.common.crypto.Des;
 import org.waarp.common.crypto.ssl.WaarpSecureKeyStore;
 import org.waarp.common.crypto.ssl.WaarpSslContextFactory;
@@ -53,6 +52,8 @@ import org.waarp.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 import org.waarp.common.future.WaarpFuture;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.utility.SystemPropertyUtil;
+import org.waarp.common.utility.WaarpShutdownHook.ShutdownConfiguration;
 import org.waarp.common.utility.WaarpThreadFactory;
 import org.waarp.openr66.commander.InternalRunner;
 import org.waarp.openr66.context.R66BusinessFactoryInterface;
@@ -75,7 +76,7 @@ import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacketSizeEstimat
 import org.waarp.openr66.protocol.networkhandler.ssl.NetworkSslServerPipelineFactory;
 import org.waarp.openr66.protocol.snmp.R66PrivateMib;
 import org.waarp.openr66.protocol.snmp.R66VariableFactory;
-import org.waarp.openr66.protocol.utils.OpenR66SignalHandler;
+import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 import org.waarp.openr66.protocol.utils.Version;
 import org.waarp.openr66.thrift.R66ThriftServerService;
 import org.waarp.snmp.WaarpMOFactory;
@@ -540,21 +541,19 @@ public class Configuration {
 	public R66ThriftServerService thriftService;
 	public int thriftport = -1;
 	
-	/**
-	 * Commons Daemon support
-	 */
-	public boolean isStartedAsService = false;
-	
 	public boolean isExecuteErrorBeforeTransferAllowed = true;
 
+	public ShutdownConfiguration shutdownConfiguration = new ShutdownConfiguration();
+	
 	public Configuration() {
 		// Init signal handler
-		OpenR66SignalHandler.initSignalHandler();
+		shutdownConfiguration.timeout = TIMEOUTCON;
+		new R66ShutdownHook(shutdownConfiguration);
 		computeNbThreads();
 		// Init FiniteStates
 		R66FiniteDualStates.initR66FiniteStates();
-		int value = SystemPropertyUtil.get("openr66.executebeforetransferred", 1);
-		isExecuteErrorBeforeTransferAllowed = (value > 0);
+		boolean value = SystemPropertyUtil.getBoolean("openr66.executebeforetransferred", true);
+		isExecuteErrorBeforeTransferAllowed = value;
 	}
 
 	/**
@@ -604,6 +603,8 @@ public class Configuration {
 	public void serverStartup() throws WaarpDatabaseNoConnectionException,
 			WaarpDatabaseSqlException {
 		isServer = true;
+		shutdownConfiguration.timeout = TIMEOUTCON;
+		R66ShutdownHook.addShutdownHook();
 		if ((!useNOSSL) && (!useSSL)) {
 			logger.error("OpenR66 has neither NOSSL nor SSL support included! Stop here!");
 			System.exit(-1);
