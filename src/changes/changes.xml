@@ -5,6 +5,9 @@
 		<author email="waarp1 at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+		<release version="2.4.8" date="2012-09-08" description="Fix release">
+			<action dev="Frederic Bregier" type="add">Add TRANSCODE task</action>
+		</release>
 		<release version="2.4.7" date="2012-09-02" description="Fix release">
 			<action dev="Frederic Bregier" type="add">Thrift first stable release</action>
 			<action dev="Frederic Bregier" type="add">Add support for Windows Service through Apache Commons Daemon</action>
