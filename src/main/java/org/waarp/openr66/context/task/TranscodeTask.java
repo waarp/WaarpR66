@@ -18,16 +18,10 @@
 package org.waarp.openr66.context.task;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.transcode.CharsetsUtil;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.context.R66Session;
@@ -41,6 +35,18 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
  * Arguments are:<br>
  * -from charset<br>
  * -to charset<br>
+ * -newfile newfilename ; optional argument ; if not used, will be current filename.extension ; 
+ * if used, extension is ignored<br>
+ * -extension extension ; optional argument ; if not used, will be filename.transcode<br>
+ * <br>
+ * A convenient method (from Waarp Common) allows to list in html (-html), csv (-csv) or text format (-text) 
+ * all the supported Charsets from your JVM. To use it, run the following command:<br>
+ * java -cp WaarpCommon-1.2.7.jar org.waarp.common.transcode.CharsetsUtil [-csv | -html | -text ]<br>
+ * <br>
+ * It could also be used as a test of transcode outside R66:<br>
+ * java -cp WaarpCommon-1.2.7.jar org.waarp.common.transcode.CharsetsUtil -from fromFilename fromCharset -to toFilename toCharset<br>
+ * 
+ * The current file is not touched and is not marked as moved.
  * 
  * @author Frederic Bregier
  * 
@@ -85,13 +91,29 @@ public class TranscodeTask extends AbstractTask {
 		}
 		String fromCharset = null;
 		String toCharset = null;
+		String newfilename = null;
+		String extension = null;
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].equalsIgnoreCase("-from")) {
 				i++;
-				fromCharset = args[i];
+				if (i < args.length) {
+					fromCharset = args[i];
+				}
 			} else if (args[i].equalsIgnoreCase("-to")) {
 				i++;
-				toCharset = args[i];
+				if (i < args.length) {
+					toCharset = args[i];
+				}
+			} else if (args[i].equalsIgnoreCase("-newfile")) {
+				i++;
+				if (i < args.length) {
+					newfilename = args[i];
+				}
+			} else if (args[i].equalsIgnoreCase("-extension")) {
+				i++;
+				if (i < args.length) {
+					extension = args[i];
+				}
 			}
 		}
 		if (fromCharset == null || toCharset == null) {
@@ -104,37 +126,20 @@ public class TranscodeTask extends AbstractTask {
 			return;
 		}
 		File from = session.getFile().getTrueFile();
-		File to = new File(from.getAbsolutePath()+".transcode");
-		FileInputStream fileInputStream;
-		try {
-			fileInputStream = new FileInputStream(from);
-			InputStreamReader reader = new InputStreamReader(fileInputStream, fromCharset);
-			FileOutputStream fileOutputStream = new FileOutputStream(to);
-			OutputStreamWriter writer = new OutputStreamWriter(fileOutputStream, toCharset);
-			char []cbuf = new char[Configuration.BUFFERSIZEDEFAULT];
-			int read = reader.read(cbuf);
-			while (read > 0) {
-				writer.write(cbuf, 0, read);
-				read = reader.read(cbuf);
-			}
-			try {
-				reader.close();
-			} catch (IOException e) {
-			}
-			try {
-				writer.close();
-			} catch (IOException e) {
-			}
-			success = true;
-		} catch (FileNotFoundException e) {
-			logger.warn("File not found", e);
-		} catch (UnsupportedEncodingException e) {
-			logger.warn("Unsupported Encoding", e);
-		} catch (IOException e) {
-			logger.warn("File IOException", e);
+		if (newfilename != null) {
+			success = CharsetsUtil.transcode(from.getAbsolutePath(), fromCharset, 
+					newfilename, toCharset, 
+					Configuration.BUFFERSIZEDEFAULT);
+		} else if (extension != null) {
+			success = CharsetsUtil.transcode(from.getAbsolutePath(), fromCharset, 
+					from.getAbsolutePath()+"."+extension, toCharset, 
+					Configuration.BUFFERSIZEDEFAULT);
+		} else {
+			success = CharsetsUtil.transcode(from.getAbsolutePath(), fromCharset, 
+					from.getAbsolutePath()+".transcode", toCharset, 
+					Configuration.BUFFERSIZEDEFAULT);
 		}
 		if (success) {
-			session.getRunner().setFileMoved(to.getAbsolutePath(), success);
 			futureCompletion.setSuccess();
 		} else {
 			logger.error("Cannot Transcode from " + fromCharset + " to " + toCharset+" with " +
