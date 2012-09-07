@@ -195,7 +195,8 @@ public class RescheduleTransferTask extends AbstractTask {
 		}
 		Timestamp start = new Timestamp(newdate);
 		try {
-			if (runner.setStart(start)) {
+			runner.setStart(start);
+			if (runner.restart(true)) {
 				runner.setFileInformation(newFileInformation);
 				runner.saveStatus();
 			}

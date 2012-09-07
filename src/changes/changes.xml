@@ -7,6 +7,9 @@
 	<body>
 		<release version="2.4.8" date="2012-09-08" description="Fix release">
 			<action dev="Frederic Bregier" type="add">Add TRANSCODE task</action>
+			<action dev="Frederic Bregier" type="add">Add restart time support to RequestTransfer</action>
+			<action dev="Frederic Bregier" type="fix">Fix restart of one transfer through ID in SubmitTransfer</action>
+			<action dev="Frederic Bregier" type="add">Improve Admin GUI with Rule setting Helper</action>
 		</release>
 		<release version="2.4.7" date="2012-09-02" description="Fix release">
 			<action dev="Frederic Bregier" type="add">Thrift first stable release</action>

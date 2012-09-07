@@ -1125,7 +1125,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		return head + body0 + body + body1 + end;
 	}
 
-	private void createExport(String body, StringBuilder builder, String rule, int mode, int limit) {
+	private void createExport(String body, StringBuilder builder, String rule, int mode, int limit, int start) {
 		DbPreparedStatement preparedStatement = null;
 		try {
 			preparedStatement =
@@ -1134,9 +1134,11 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 			preparedStatement.executeQuery();
 			int i = 0;
 			while (preparedStatement.getNext()) {
-				i++;
 				DbRule dbrule = DbRule.getFromStatement(preparedStatement);
-				builder.append(dbrule.toSpecializedHtml(authentHttp, body));
+				String temp = dbrule.toSpecializedHtml(authentHttp, body);
+				temp = temp.replaceAll("XXXRANKXXX", ""+(start+i));
+				builder.append(temp);
+				i++;
 				if (i > limit) {
 					break;
 				}
@@ -1298,13 +1300,15 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				body = REQUEST.Rules.readBody();
 				StringBuilder builder = new StringBuilder();
 				boolean specific = false;
+				int start = 1;
 				if (params.containsKey("send")) {
 					tmode = RequestPacket.TRANSFERMODE.SENDMODE;
 					head = resetOptionRules(head, rule == null ? "" : rule,
 							tmode, gmode);
 					specific = true;
 					createExport(body, builder, rule,
-							RequestPacket.TRANSFERMODE.SENDMODE.ordinal(), LIMITROW / 4);
+							RequestPacket.TRANSFERMODE.SENDMODE.ordinal(), LIMITROW / 4, start);
+					start += LIMITROW / 4 + 1;
 				}
 				if (params.containsKey("recv")) {
 					tmode = RequestPacket.TRANSFERMODE.RECVMODE;
@@ -1312,7 +1316,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 							tmode, gmode);
 					specific = true;
 					createExport(body, builder, rule,
-							RequestPacket.TRANSFERMODE.RECVMODE.ordinal(), LIMITROW / 4);
+							RequestPacket.TRANSFERMODE.RECVMODE.ordinal(), LIMITROW / 4, start);
+					start += LIMITROW / 4 + 1;
 				}
 				if (params.containsKey("sendmd5")) {
 					tmode = RequestPacket.TRANSFERMODE.SENDMD5MODE;
@@ -1320,7 +1325,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 							tmode, gmode);
 					specific = true;
 					createExport(body, builder, rule,
-							RequestPacket.TRANSFERMODE.SENDMD5MODE.ordinal(), LIMITROW / 4);
+							RequestPacket.TRANSFERMODE.SENDMD5MODE.ordinal(), LIMITROW / 4, start);
+					start += LIMITROW / 4 + 1;
 				}
 				if (params.containsKey("recvmd5")) {
 					tmode = RequestPacket.TRANSFERMODE.RECVMD5MODE;
@@ -1328,7 +1334,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 							tmode, gmode);
 					specific = true;
 					createExport(body, builder, rule,
-							RequestPacket.TRANSFERMODE.RECVMD5MODE.ordinal(), LIMITROW / 4);
+							RequestPacket.TRANSFERMODE.RECVMD5MODE.ordinal(), LIMITROW / 4, start);
+					start += LIMITROW / 4 + 1;
 				}
 				if (params.containsKey("sendth")) {
 					tmode = RequestPacket.TRANSFERMODE.SENDTHROUGHMODE;
@@ -1336,7 +1343,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 							tmode, gmode);
 					specific = true;
 					createExport(body, builder, rule,
-							RequestPacket.TRANSFERMODE.SENDTHROUGHMODE.ordinal(), LIMITROW / 4);
+							RequestPacket.TRANSFERMODE.SENDTHROUGHMODE.ordinal(), LIMITROW / 4, start);
+					start += LIMITROW / 4 + 1;
 				}
 				if (params.containsKey("recvth")) {
 					tmode = RequestPacket.TRANSFERMODE.RECVTHROUGHMODE;
@@ -1344,7 +1352,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 							tmode, gmode);
 					specific = true;
 					createExport(body, builder, rule,
-							RequestPacket.TRANSFERMODE.RECVTHROUGHMODE.ordinal(), LIMITROW / 4);
+							RequestPacket.TRANSFERMODE.RECVTHROUGHMODE.ordinal(), LIMITROW / 4, start);
+					start += LIMITROW / 4 + 1;
 				}
 				if (params.containsKey("sendthmd5")) {
 					tmode = RequestPacket.TRANSFERMODE.SENDMD5THROUGHMODE;
@@ -1352,7 +1361,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 							tmode, gmode);
 					specific = true;
 					createExport(body, builder, rule,
-							RequestPacket.TRANSFERMODE.SENDMD5THROUGHMODE.ordinal(), LIMITROW / 4);
+							RequestPacket.TRANSFERMODE.SENDMD5THROUGHMODE.ordinal(), LIMITROW / 4, start);
+					start += LIMITROW / 4 + 1;
 				}
 				if (params.containsKey("recvthmd5")) {
 					tmode = RequestPacket.TRANSFERMODE.RECVMD5THROUGHMODE;
@@ -1360,35 +1370,45 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 							tmode, gmode);
 					specific = true;
 					createExport(body, builder, rule,
-							RequestPacket.TRANSFERMODE.RECVMD5THROUGHMODE.ordinal(), LIMITROW / 4);
+							RequestPacket.TRANSFERMODE.RECVMD5THROUGHMODE.ordinal(), LIMITROW / 4, start);
+					start += LIMITROW / 4 + 1;
 				}
 				if (!specific) {
 					if (gmode == -1) {
 						// recv
 						createExport(body, builder, rule,
-								RequestPacket.TRANSFERMODE.RECVMODE.ordinal(), LIMITROW / 4);
+								RequestPacket.TRANSFERMODE.RECVMODE.ordinal(), LIMITROW / 4, start);
+						start += LIMITROW / 4 + 1;
 						createExport(body, builder, rule,
-								RequestPacket.TRANSFERMODE.RECVMD5MODE.ordinal(), LIMITROW / 4);
+								RequestPacket.TRANSFERMODE.RECVMD5MODE.ordinal(), LIMITROW / 4, start);
+						start += LIMITROW / 4 + 1;
 						createExport(body, builder, rule,
-								RequestPacket.TRANSFERMODE.RECVTHROUGHMODE.ordinal(), LIMITROW / 4);
+								RequestPacket.TRANSFERMODE.RECVTHROUGHMODE.ordinal(), LIMITROW / 4, start);
+						start += LIMITROW / 4 + 1;
 						createExport(body, builder, rule,
 								RequestPacket.TRANSFERMODE.RECVMD5THROUGHMODE.ordinal(),
-								LIMITROW / 4);
+								LIMITROW / 4, start);
+						start += LIMITROW / 4 + 1;
 					} else if (gmode == -2) {
 						// send
 						createExport(body, builder, rule,
-								RequestPacket.TRANSFERMODE.SENDMODE.ordinal(), LIMITROW / 4);
+								RequestPacket.TRANSFERMODE.SENDMODE.ordinal(), LIMITROW / 4, start);
+						start += LIMITROW / 4 + 1;
 						createExport(body, builder, rule,
-								RequestPacket.TRANSFERMODE.SENDMD5MODE.ordinal(), LIMITROW / 4);
+								RequestPacket.TRANSFERMODE.SENDMD5MODE.ordinal(), LIMITROW / 4, start);
+						start += LIMITROW / 4 + 1;
 						createExport(body, builder, rule,
-								RequestPacket.TRANSFERMODE.SENDTHROUGHMODE.ordinal(), LIMITROW / 4);
+								RequestPacket.TRANSFERMODE.SENDTHROUGHMODE.ordinal(), LIMITROW / 4, start);
+						start += LIMITROW / 4 + 1;
 						createExport(body, builder, rule,
 								RequestPacket.TRANSFERMODE.SENDMD5THROUGHMODE.ordinal(),
-								LIMITROW / 4);
+								LIMITROW / 4, start);
+						start += LIMITROW / 4 + 1;
 					} else {
 						// all
 						createExport(body, builder, rule,
-								-1, LIMITROW);
+								-1, LIMITROW, start);
+						start += LIMITROW + 1;
 					}
 				}
 				body = builder.toString();

@@ -2524,7 +2524,13 @@ public class DbTaskRunner extends AbstractDbData {
 		}
 		String name = tasks[step][0];
 		String arg = tasks[step][1];
-		int delay = Integer.parseInt(tasks[step][2]);
+		int delay = 0;
+		try {
+			delay = Integer.parseInt(tasks[step][2]);
+		} catch (NumberFormatException e) {
+			logger.warn("Malformed task so stop the execution: " + this.toShortString());
+			throw new OpenR66RunnerErrorException("Malformed task so stop the execution");
+		}
 		AbstractTask task = TaskType.getTaskFromId(name, arg, delay, tempSession);
 		logger.debug(this.toLogRunStep() + " Task: " + task.getClass().getName());
 		task.run();
@@ -3242,11 +3248,10 @@ public class DbTaskRunner extends AbstractDbData {
 	/**
 	 * @param start
 	 *            new Start time to apply when reschedule
-	 * @return true if restart is OK
 	 */
-	public boolean setStart(Timestamp start) {
+	public void setStart(Timestamp start) {
 		this.start = start;
-		return this.restart(true);
+		allFields[Columns.STARTTRANS.ordinal()].setValue(this.start);
 	}
 
 	/**
