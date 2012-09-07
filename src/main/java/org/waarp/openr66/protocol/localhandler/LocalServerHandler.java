@@ -41,6 +41,9 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import org.jboss.netty.channel.Channel;
@@ -2103,30 +2106,56 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				}
 				// Try to validate a restarting transfer
 				// header = ?; middle = requested+blank+requester+blank+specialId
+				// note: might contains one more argument = time to reschedule in yyyyMMddHHmmss format
 				String[] keys = packet.getSmiddle().split(" ");
-				long id = Long.parseLong(keys[2]);
-				DbTaskRunner taskRunner = null;
 				ValidPacket valid;
-				try {
-					taskRunner = new DbTaskRunner(localChannelReference.getDbSession(), session,
-							null, id, keys[1], keys[0]);
-					LocalChannelReference lcr =
-							Configuration.configuration.getLocalTransaction().
-									getFromRequest(packet.getSmiddle());
-					R66Result resulttest = TransferUtils.restartTransfer(taskRunner, lcr);
-					valid = new ValidPacket(packet.getSmiddle(), resulttest.code.getCode(),
-							LocalPacketFactory.REQUESTUSERPACKET);
-					resulttest.other = packet;
-					localChannelReference.validateRequest(resulttest);
-				} catch (WaarpDatabaseException e1) {
+				if (keys.length < 3) {
+					// not enough args
 					valid = new ValidPacket(packet.getSmiddle(),
 							ErrorCode.Internal.getCode(),
 							LocalPacketFactory.REQUESTUSERPACKET);
-					R66Result resulttest = new R66Result(new OpenR66DatabaseGlobalException(e1),
+					R66Result resulttest = new R66Result(
+							new OpenR66ProtocolBusinessRemoteFileNotFoundException("Not enough arguments"),
 							session, true,
-							ErrorCode.Internal, taskRunner);
+							ErrorCode.Internal, null);
 					resulttest.other = packet;
 					localChannelReference.invalidateRequest(resulttest);
+				} else {
+					long id = Long.parseLong(keys[2]);
+					DbTaskRunner taskRunner = null;
+					try {
+						taskRunner = new DbTaskRunner(localChannelReference.getDbSession(), session,
+								null, id, keys[1], keys[0]);
+						Timestamp timestart = null;
+						if (keys.length > 3) {
+							// time to reschedule in yyyyMMddHHmmss format
+							logger.debug("Debug: restart with "+keys[3]);
+							SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+							try {
+								Date date = dateFormat.parse(keys[3]);
+								timestart = new Timestamp(date.getTime());
+								taskRunner.setStart(timestart);
+							} catch (ParseException e) {
+							}
+						}
+						LocalChannelReference lcr =
+								Configuration.configuration.getLocalTransaction().
+										getFromRequest(packet.getSmiddle());
+						R66Result resulttest = TransferUtils.restartTransfer(taskRunner, lcr);
+						valid = new ValidPacket(packet.getSmiddle(), resulttest.code.getCode(),
+								LocalPacketFactory.REQUESTUSERPACKET);
+						resulttest.other = packet;
+						localChannelReference.validateRequest(resulttest);
+					} catch (WaarpDatabaseException e1) {
+						valid = new ValidPacket(packet.getSmiddle(),
+								ErrorCode.Internal.getCode(),
+								LocalPacketFactory.REQUESTUSERPACKET);
+						R66Result resulttest = new R66Result(new OpenR66DatabaseGlobalException(e1),
+								session, true,
+								ErrorCode.Internal, taskRunner);
+						resulttest.other = packet;
+						localChannelReference.invalidateRequest(resulttest);
+					}
 				}
 				// inform back the requester
 				try {

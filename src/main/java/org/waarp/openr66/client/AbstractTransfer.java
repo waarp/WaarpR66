@@ -47,6 +47,8 @@ public abstract class AbstractTransfer implements Runnable {
 	 * Internal Logger
 	 */
 	static protected volatile WaarpInternalLogger logger;
+	
+	protected static final String NOINFO = "noinfo";
 
 	protected final R66Future future;
 
@@ -126,6 +128,12 @@ public abstract class AbstractTransfer implements Runnable {
 						ErrorCode.QueryRemotelyUnknown, null));
 				future.setFailure(e);
 				return null;
+			}
+			if (fileinfo != null && !fileinfo.equals(NOINFO)) {
+				taskRunner.setFileInformation(fileinfo);
+			}
+			if (startTime != null) {
+				taskRunner.setStart(startTime);
 			}
 		} else {
 			RequestPacket request = new RequestPacket(rulename,
@@ -273,7 +281,7 @@ public abstract class AbstractTransfer implements Runnable {
 			return false;
 		}
 		if (fileInfo == null) {
-			fileInfo = "noinfo";
+			fileInfo = NOINFO;
 		}
 		if (rhost != null && rule != null && localFilename != null) {
 			return true;
@@ -283,6 +291,7 @@ public abstract class AbstractTransfer implements Runnable {
 						rhost);
 				rule = runner.getRuleId();
 				localFilename = runner.getOriginalFilename();
+				return true;
 			} catch (WaarpDatabaseException e) {
 				logger.error(
 						"All params are not correctly set! Need at least (-to -rule and -file)" +

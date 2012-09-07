@@ -52,6 +52,7 @@ public class SubmitTransfer extends AbstractTransfer {
 		if (logger == null) {
 			logger = WaarpInternalLoggerFactory.getLogger(SubmitTransfer.class);
 		}
+		long srcId = id;
 		DbTaskRunner taskRunner = this.initRequest();
 		if (taskRunner == null) {
 			logger.debug("Cannot prepare task");
@@ -61,7 +62,22 @@ public class SubmitTransfer extends AbstractTransfer {
 			future.setFailure(result.exception);
 			return;
 		}
-		taskRunner.changeUpdatedInfo(AbstractDbData.UpdatedInfo.TOSUBMIT);
+		if (srcId != DbConstant.ILLEGALVALUE) {
+			// Resubmit call, some checks are needed
+			if (! taskRunner.restart(true)) {
+				// cannot be done from there => must be done through IHM
+				logger.debug("Cannot prepare task from there. IHM must be used");
+				R66Result result = new R66Result(
+						new OpenR66DatabaseGlobalException("Cannot prepare task from there. IHM must be used"), 
+						null, true,
+						ErrorCode.Internal, taskRunner);
+				future.setResult(result);
+				future.setFailure(result.exception);
+				return;
+			}
+		} else {
+			taskRunner.changeUpdatedInfo(AbstractDbData.UpdatedInfo.TOSUBMIT);
+		}
 		try {
 			taskRunner.update();
 		} catch (WaarpDatabaseException e) {
@@ -99,7 +115,7 @@ public class SubmitTransfer extends AbstractTransfer {
 		}
 		R66Future future = new R66Future(true);
 		SubmitTransfer transaction = new SubmitTransfer(future,
-				rhost, localFilename, rule, fileInfo, ismd5, block, DbConstant.ILLEGALVALUE,
+				rhost, localFilename, rule, fileInfo, ismd5, block, idt,
 				ttimestart);
 		transaction.run();
 		future.awaitUninterruptibly();

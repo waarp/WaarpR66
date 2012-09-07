@@ -18,6 +18,8 @@
 package org.waarp.openr66.client;
 
 import java.net.SocketAddress;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.logging.InternalLoggerFactory;
@@ -66,6 +68,7 @@ public class RequestTransfer implements Runnable {
 	boolean cancel = false;
 	boolean stop = false;
 	boolean restart = false;
+	String restarttime = null;
 
 	static long sspecialId;
 	static String srequested = null;
@@ -73,6 +76,7 @@ public class RequestTransfer implements Runnable {
 	static boolean scancel = false;
 	static boolean sstop = false;
 	static boolean srestart = false;
+	static String srestarttime = null;
 
 	/**
 	 * Parse the parameter and set current values
@@ -91,7 +95,12 @@ public class RequestTransfer implements Runnable {
 							"Other options (only one):\n" +
 							"  '-cancel' to cancel completely the transfer,\n" +
 							"  '-stop' to stop the transfer (maybe restarted),\n" +
-							"  '-restart' to restart if possible a transfer");
+							"  '-restart' to restart if possible a transfer and optionnally the following arguments may be specified for a restart:\n"+
+							"      '-start' \"time start\" as yyyyMMddHHmmss (override previous -delay options)\n"
+							+
+							"      '-delay' \"+delay in ms\" as delay in ms from current time(override previous -start options)\n"
+							+
+							"      '-delay' \"delay in ms\" as time in ms (override previous -start options)");
 			return false;
 		}
 		if (!FileBasedConfiguration
@@ -135,6 +144,21 @@ public class RequestTransfer implements Runnable {
 				sstop = true;
 			} else if (args[i].equalsIgnoreCase("-restart")) {
 				srestart = true;
+			} else if (args[i].equalsIgnoreCase("-start")) {
+				i++;
+				srestarttime = args[i];
+			} else if (args[i].equalsIgnoreCase("-delay")) {
+				i++;
+				if (args[i].charAt(0) == '+') {
+					Date date = new Date(System.currentTimeMillis() +
+							Long.parseLong(args[i].substring(1)));
+					SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+					srestarttime = dateFormat.format(date);
+				} else {
+					Date date = new Date(Long.parseLong(args[i]));
+					SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+					srestarttime = dateFormat.format(date);
+				}
 			}
 		}
 		if ((scancel && srestart) || (scancel && sstop) || (srestart && sstop)) {
@@ -162,6 +186,23 @@ public class RequestTransfer implements Runnable {
 	public RequestTransfer(R66Future future, long specialId, String requested, String requester,
 			boolean cancel, boolean stop, boolean restart,
 			NetworkTransaction networkTransaction) {
+		this(future, specialId, requested, requester, cancel, stop, restart, null, networkTransaction);
+	}
+
+	/**
+	 * @param future
+	 * @param specialId
+	 * @param requested
+	 * @param requester
+	 * @param cancel
+	 * @param stop
+	 * @param restart
+	 * @param restarttime in yyyyMMddHHmmss format
+	 * @param networkTransaction
+	 */
+	public RequestTransfer(R66Future future, long specialId, String requested, String requester,
+			boolean cancel, boolean stop, boolean restart, String restarttime,
+			NetworkTransaction networkTransaction) {
 		this.future = future;
 		this.specialId = specialId;
 		this.requested = requested;
@@ -169,9 +210,10 @@ public class RequestTransfer implements Runnable {
 		this.cancel = cancel;
 		this.stop = stop;
 		this.restart = restart;
+		this.restarttime = restarttime;
 		this.networkTransaction = networkTransaction;
 	}
-
+	
 	public void run() {
 		if (logger == null) {
 			logger = WaarpInternalLoggerFactory.getLogger(RequestTransfer.class);
@@ -320,9 +362,18 @@ public class RequestTransfer implements Runnable {
 			future.cancel();
 			return ErrorCode.Internal;
 		}
-		ValidPacket packet = new ValidPacket("Request on Transfer",
+		ValidPacket packet = null;
+		if (restarttime != null && code == LocalPacketFactory.VALIDPACKET) {
+			// restart time set
+			logger.debug("Restart with time: "+restarttime);
+			packet = new ValidPacket("Request on Transfer",
+					this.requested + " " + this.requester + " " + this.specialId+" "+restarttime,
+					code);
+		} else {
+			packet = new ValidPacket("Request on Transfer",
 				this.requested + " " + this.requester + " " + this.specialId,
 				code);
+		}
 		localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
 		try {
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false);
@@ -375,7 +426,7 @@ public class RequestTransfer implements Runnable {
 			R66Future result = new R66Future(true);
 			RequestTransfer requestTransfer =
 					new RequestTransfer(result, sspecialId, srequested, srequester,
-							scancel, sstop, srestart,
+							scancel, sstop, srestart, srestarttime,
 							networkTransaction);
 			requestTransfer.run();
 			result.awaitUninterruptibly();
