@@ -784,8 +784,8 @@
 </codefragment>
 </duplication>
 <duplication lines="40" tokens="207">
-<file line="3396" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
-<file line="3507" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="3401" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="3512" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
 <codefragment>
 <![CDATA[
 		} catch (FileNotFoundException e) {
@@ -1150,8 +1150,8 @@
 </codefragment>
 </duplication>
 <duplication lines="14" tokens="169">
-<file line="1440" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<file line="1551" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="1460" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="1571" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
 <codefragment>
 <![CDATA[
 			String system = REQUEST.System.readFileUnique(this);
@@ -1759,8 +1759,8 @@
 </codefragment>
 </duplication>
 <duplication lines="21" tokens="108">
-<file line="1937" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="2049" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="1940" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="2052" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
 <codefragment>
 <![CDATA[
 					}
@@ -1812,8 +1812,8 @@
 </codefragment>
 </duplication>
 <duplication lines="18" tokens="107">
-<file line="299" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\RescheduleTransferTask.java"/>
-<file line="346" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\RescheduleTransferTask.java"/>
+<file line="300" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\RescheduleTransferTask.java"/>
+<file line="347" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\RescheduleTransferTask.java"/>
 <codefragment>
 <![CDATA[
 				String[] elmts = args[i].split(";");
