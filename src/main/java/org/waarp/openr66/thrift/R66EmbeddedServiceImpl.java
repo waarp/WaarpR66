@@ -281,7 +281,7 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 					null, request.getTid(), request.getFromuid(), request.getDestuid());
 			org.waarp.openr66.context.R66Result resulttest = TransferUtils.restartTransfer(taskRunner, lcr);
 			return new R66Result(request.getMode(), ErrorCode.valueOf(resulttest.code.name()), 
-					"Restart asked correctly");
+					resulttest.getMessage());
 		} catch (WaarpDatabaseException e1) {
 			logger.warn("Exception while trying to restart transfer", e1);
 			return new R66Result(request.getMode(), ErrorCode.Internal, 

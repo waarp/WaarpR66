@@ -1,0 +1,59 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type"><title>OpenR66 Monitoring</title>
+  <meta content="Frederic Bregier" name="author"></head><body>
+<div style="text-align: center;">
+<table style="text-align: left; width: 100%; margin-left: auto; margin-right: auto;" border="1" cellpadding="2" cellspacing="2">
+  <tbody>
+    <tr>
+      <th style="vertical-align: top; background-color: rgb(255, 153, 0); text-align: center;"><a href="/"><big><big><span style="font-weight: bold;">OpenR66
+Monitoring: XXXHOSTIDXXX</span></big></big></a>
+      </th>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">
+  <tbody>
+    <tr>
+      <td style="vertical-align: top;"><small>XXXDATEXXX</small></td>
+      <td style="vertical-align: top;"><small>Bandwidth: XXXBANDWIDTHXXX</small>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;"><small>Number of local active
+connections: XXXLOCACTIVEXXX</small></td>
+      <td style="vertical-align: top;"><small>Number of network active
+connections: XXXNETACTIVEXXX</small></td>
+    </tr>
+  </tbody>
+</table>
+<br>
+Default Monitoring:<br>
+<ul>
+  <li><a href="/active">Active Transfers</a></li>
+  <li><a href="/error">In Error Transfers</a></li>
+  <li><a href="/done">Finished Transfers</a></li>
+  <li><a href="/all">All Transfers</a></li>
+</ul>
+<br>
+Specific Monitoring:<br>
+<br>
+<form method="get" action="specific" name="specific">
+  <div style="margin-left: 40px;">One Choice Active Error Done
+All:&nbsp;
+  <select size="1" name="INFO">
+  <option selected="selected" value="0">Active</option>
+  <option value="1">In Error</option>
+  <option value="2">Finished</option>
+  <option value="3">All</option>
+  <option value="4">Status(test)</option>
+  </select>
+  </div>
+  <div style="margin-left: 40px;">Number of runners (0 for all): <input size="5" maxlength="4" name="NB" value="0"> &nbsp;&nbsp;
+&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; <input name="Send" value="Send" type="submit">
+  </div>
+</form>
+<br>
+</body></html>

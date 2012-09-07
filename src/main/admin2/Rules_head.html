@@ -1,0 +1,308 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Language" content="fr">
+<meta http-equiv="pragma" content="no-cache" />
+<meta http-equiv="imagetoolbar" content="no" />
+<meta http-equiv="Cache-Control" content="no-cache" />
+<meta name="robots" content="noindex,nofollow" />
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252" />
+<meta http-equiv="expires" content="MON, 1 SEP 2003 12:00:00 GMT" />
+<link rel="stylesheet" href="res/OpenR66Admin.css" type="text/css" />
+<link rel="stylesheet" href="res/rulefield.css" type="text/css">
+<style type="text/css">
+a {
+	color:#0000FF;
+	text-decoration:none;
+}
+a:visited {
+	text-decoration:none;
+}
+a:hover {
+	text-decoration:underline;
+}
+a img {
+	border:#000000 0px none;
+}
+.cshelp
+{
+    margin: 0em;
+    padding: 0.2em 0em 0.2em 0.2em;
+    background: #cee1ff;
+    color: #000;
+    width: 100%;
+}
+</style>
+<title>Rules</title>
+	<script type="text/javascript">
+//<![CDATA[
+	function MHGetRef(str)
+	{
+		if(document.all)
+			return document.all[str];
+		else
+			return document.getElementById(str);
+	}
+
+	function MHSwitchImage(strID, strFileName)
+	{
+		var obj = MHGetRef(strID);
+		if(obj == null || obj + "" == "undefined") return;
+		obj.src = strFileName;
+	}
+//]]>
+	</script>
+	<script type="text/javascript" src="res/fieldhelp.js"></script>
+	<script type="text/javascript" src="res/marknote.js"></script>
+	<script type="text/javascript" src="res/rulefield.js"></script>
+</head>
+<body class="normal" style="margin:0px;padding:0px;background-color:#FFFFFF;">
+<table style="border:none;" cellspacing="0" cellpadding="0" width="100%">
+<tbody>
+<tr>
+<td style="vertical-align:top;width:170px;"><img title="OpenR66" style="border-top-style:none; border-bottom:#000000 0px solid; border-right-style:none; border-left-style:none;" height="72" alt="OpenR66" src="gre/gre13.png" width="170" /></td>
+<td style="vertical-align:top;">
+<div style="height:36px;background-color:#EF6D00;text-align:left;"></div>
+<div id="Comp3_MenuHorizontal">
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+	<tr style="background-image:url('gre/gre12.png');background-repeat:repeat-x;background-position: left top;">
+		<td id="MH1_0"><a href="index.html"><img id="MH1_0_img" src="gre/gre1.png" width="54" height="36" alt="Start" style="border:none;display:block;" /></a></td>
+		<td></td><td><img src="gre/gre11.png" height="36" width="1" style="border:none;display:block;" alt="" /></td><td></td>
+		<td id="MH1_1"><a href="Transfers.html"><img id="MH1_1_img" src="gre/gre20.png" width="82" height="36" alt="Transfers" style="border:none;display:block;" /></a></td>
+		<td></td><td><img src="gre/gre11.png" height="36" width="1" style="border:none;display:block;" alt="" /></td><td></td>
+		<td id="MH1_2"><a href="Hosts.html"><img id="MH1_2_img" src="gre/gre28.png" width="56" height="36" alt="Hosts" style="border:none;display:block;" /></a></td>
+		<td></td><td><img src="gre/gre11.png" height="36" width="1" style="border:none;display:block;" alt="" /></td><td></td>
+		<td id="MH1_3"><a href="Rules.html"><img id="MH1_3_img" src="gre/gre31.png" width="55" height="36" alt="Rules" style="border:none;display:block;" /></a></td>
+		<td></td><td><img src="gre/gre11.png" height="36" width="1" style="border:none;display:block;" alt="" /></td><td></td>
+		<td id="MH1_4"><a href="System.html"><img id="MH1_4_img" src="gre/gre32.png" width="62" height="36" alt="System" style="border:none;display:block;" /></a></td>
+		<td></td><td><img src="gre/gre11.png" height="36" width="1" style="border:none;display:block;" alt="" /></td><td></td>
+		<td id="MH1_5"><a href="Logon.html"><img id="MH1_5_img" src="gre/gre34.png" width="58" height="36" alt="Logon" style="border:none;display:block;" /></a></td>
+		<td></td><td><img src="gre/gre11.png" height="36" width="1" style="border:none;display:block;" alt="" /></td><td></td>
+		<td align="center"><B>&nbsp;Local:&nbsp;<br>XXXLOCALXXX</B></td>
+		<td></td><td><img src="gre/gre11.png" height="36" width="1" style="border:none;display:block;" alt="" /></td><td></td>
+		<td align="center"><B>&nbsp;Network:&nbsp;<br>XXXNETWORKXXX</B></td>
+		<td></td><td><img src="gre/gre11.png" height="36" width="1" style="border:none;display:block;" alt="" /></td><td></td>
+		<td align="center"><B>&nbsp;Host:&nbsp;<br>&nbsp;XXXHOSTIDXXX&nbsp;</B></td>
+		<td></td><td><img src="gre/gre11.png" height="36" width="1" style="border:none;display:block;" alt="" /></td><td></td>
+		<td align="center"><B>&nbsp;Authent:&nbsp;<br>&nbsp;XXXADMINXXX&nbsp;</B></td>
+		<td></td><td><img src="gre/gre11.png" height="36" width="1" style="border:none;display:block;" alt="" /></td><td></td>
+		<td align="center"><B>&nbsp;XXXBANDWIDTHXXX&nbsp;</B></td>
+		<td style="width:100%;"><img src="img/space.gif" width="1" height="1" style="border:none;display:block;" alt="" /></td>
+	</tr>
+</table>
+</div>
+<p>&nbsp;</p></td></tr></tbody></table><p>
+
+</p><table style="border:none;height:200px;" cellspacing="10" cellpadding="0" width="100%">
+<tbody>
+<tr>
+<td style="vertical-align:top;width:150px;">
+<p>&nbsp;</p>
+<div id="Comp2_MenuVertical"></div></td>
+<td style="vertical-align:top;">
+<h1 class="h1">Rules</h1>
+<div id="Comp1_sys_doctext"><p>You can edit Rules configuration from here.</p>
+ <!-- Dialog Box Rule Helper    -->
+<div id="dialog_background" class='divicone' >
+</div>
+  <div id="dialog_box">
+    <div id="dialog_title">
+      Rule Helper
+    </div>        
+	<div id="dialog_content"  >  
+    </div>
+  </div> 
+ <!-- End of Dialog Box -->
+<p>&nbsp;</p>
+  <form method="post" name="CREATE" action="/Rules.html">
+    <table border="1" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="100%" id="AutoNumber2">
+      <tr>
+        <td width="6%" align="center"><b>Rule Id</b></td>
+        <td width="6%" align="center"><b>Mode</b></td>
+        <td width="6%" align="center"><b>Host Ids</b></td>
+        <td width="6%" align="center"><b>RecvPath</b></td>
+        <td width="6%" align="center"><b>SendPath</b></td>
+        <td width="7%" align="center"><b>ArchivePath</b></td>
+        <td width="7%" align="center"><b>WorkPath</b></td>
+      </tr>
+      <tr>
+        <td width="7%">
+        <p align="center"><input type="text" name="rule" size="20"></td>
+        <td width="7%"><input type="radio" value="send" checked name="mode">SEND
+        <input type="radio" name="mode" value="recv">RECV<br>
+        <input type="radio" name="mode" value="sendmd5">SENDMD5
+        <input type="radio" name="mode" value="recvmd5">RECVMD5<br>
+        <input type="radio" value="sendth" name="mode">SENDTHROUGH<br>
+        <input type="radio" name="mode" value="recvth">RECVTHROUGH<br>
+        <input type="radio" name="mode" value="sendthmd5">SENDMD5THROUGH<br>
+        <input type="radio" name="mode" value="recvthmd5">RECVMD5THROUGH
+        <img id="modehelp" alt="help for Mode field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containermodehelp"><p class="cshelp">
+	The Mode used with a transfer with this rule. For instance, if SENDMD5, the transfer will be a send of file
+	from the requester to the requested host where each packet will be checked by a MD5.
+	</p></div></td>
+        <td width="7%"><textarea rows="5" name="hostids" cols="20"><hostids>
+</hostids></textarea><img id="hidshelp" alt="help for HostIds field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerhidshelp"><p class="cshelp">
+	If no Host is written, these rule is allowed for any Host. If some Hosts are specified, only those
+	will be accepted with this rule.<br><br>The format is as:<xmp><hostids>
+ <hostid>hostid1</hostid>
+ <hostid>hostid2</hostid>
+</hostids></xmp></p></div></td>
+        <td width="7%">
+        <p align="center"><input type="text" name="recvp" size="20">
+        <img id="rphelp" alt="help for Recv Path field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerrphelp"><p class="cshelp">
+	If not null, it specifies a sub path of server ROOT for final receive directory.
+	</p></div></td>
+        <td width="8%">
+        <p align="center"><input type="text" name="sendp" size="20">
+        <img id="sphelp" alt="help for Send Path field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containersphelp"><p class="cshelp">
+	If not null, it specifies a sub path of server ROOT for send directory.
+	</p></div></td>
+        <td width="8%">
+        <p align="center"><input type="text" name="archp" size="20">
+        <img id="aphelp" alt="help for Archive Path field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containeraphelp"><p class="cshelp">
+	If not null, it specifies a sub path of server ROOT for archive (export) directory.
+	</p></div></td>
+        <td width="8%">
+        <p align="center"><input type="text" name="workp" size="20">
+        <img id="wphelp" alt="help for Working Path field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerwphelp"><p class="cshelp">
+	If not null, it specifies a sub path of server ROOT for working (during receive) directory.
+	</p></div></td>
+      </tr>
+      <tr>
+        <td width="7%" align="center"><b>Recv Pre</b></td>
+        <td width="7%" align="center"><b>Recv Post</b></td>
+        <td width="7%" align="center"><b>Recv Error</b></td>
+        <td width="7%" align="center"><b>Send Pre</b></td>
+        <td width="7%" align="center"><b>Send Post</b></td>
+        <td width="7%" align="center"><b>Send Error</b></td>
+        <td width="8%">&nbsp;</td>
+      </tr>
+      <tr>
+        <td width="7%"><textarea rows="8" name="rpre" cols="20" id="rpre0" class="dialog_input" onclick="dialog_open('rpre0','Rule Helper');"><tasks></tasks></textarea>
+<img id="rprehelp" alt="help for Recv Pre Actions field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerrprehelp"><p class="cshelp">
+	It specifies all actions to do BEFORE the transfer operation as receiver host(SEND and requested,
+	or RECV and requester).<br><br>The format is as:<xmp><tasks>
+ <task>
+  <type>NAME</type>
+  <path>path</path>
+  <delay>x</delay>
+ </task>
+</tasks></xmp>where<br>
+-type is one of LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, EXECOUTPUT, EXECJAVA, TRANSFER, VALIDFILEPATH, DELETE, LINKRENAME, TAR, ZIP, TRANSCODE<br>
+-path is a static argument where some replacement will be done<br>
+-delay is usually the maximum delay of execution<br>
+<a href="res/OpenR66TaskOptions.html" target="_blank">See the API or doc for the specific conditions.</a></p></div></td>
+        <td width="7%"><textarea rows="8" name="rpost" cols="20" id="rpost0" class="dialog_input" onclick="dialog_open('rpost0','Rule Helper');"><tasks></tasks></textarea>
+<img id="rposthelp" alt="help for Recv Post Actions field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerrposthelp"><p class="cshelp">
+	It specifies all actions to do AFTER the transfer operation as receiver host(SEND and requested,
+	or RECV and requester).<br><br>The format is as:<xmp><tasks>
+ <task>
+  <type>NAME</type>
+  <path>path</path>
+  <delay>x</delay>
+ </task>
+</tasks></xmp>where<br>
+-type is one of LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, EXECOUTPUT, EXECJAVA, TRANSFER, VALIDFILEPATH, DELETE, LINKRENAME, TAR, ZIP, TRANSCODE<br>
+-path is a static argument where some replacement will be done<br>
+-delay is usually the maximum delay of execution<br>
+<a href="res/OpenR66TaskOptions.html" target="_blank">See the API or doc for the specific conditions.</a></p></div></td>
+        <td width="7%"><textarea rows="8" name="rerr" cols="20" id="rerr0" class="dialog_input" onclick="dialog_open('rerr0','Rule Helper');"><tasks></tasks></textarea>
+<img id="rerrhelp" alt="help for Recv Error Actions field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerrerrhelp"><p class="cshelp">
+	It specifies all actions to do AFTER AN ERROR OCCURS as receiver host(SEND and requested,
+	or RECV and requester).<br><br>The format is as:<xmp><tasks>
+ <task>
+  <type>NAME</type>
+  <path>path</path>
+  <delay>x</delay>
+ </task>
+</tasks></xmp>where<br>
+-type is one of LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, EXECOUTPUT, EXECJAVA, TRANSFER, VALIDFILEPATH, DELETE, LINKRENAME, RESCHEDULE, TAR, ZIP, TRANSCODE<br>
+-path is a static argument where some replacement will be done<br>
+-delay is usually the maximum delay of execution<br>
+<a href="res/OpenR66TaskOptions.html" target="_blank">See the API or doc for the specific conditions.</a></p></div></td>
+        <td width="7%"><textarea rows="8" name="spre" cols="20" id="spre0" class="dialog_input" onclick="dialog_open('spre0','Rule Helper');"><tasks></tasks></textarea>
+<img id="sprehelp" alt="help for Send Pre Actions field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containersprehelp"><p class="cshelp">
+	It specifies all actions to do BEFORE the transfer operation as sender host(SEND and requester,
+	or RECV and requested).<br><br>The format is as:<xmp><tasks>
+ <task>
+  <type>NAME</type>
+  <path>path</path>
+  <delay>x</delay>
+ </task>
+</tasks></xmp>where<br>
+-type is one of LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, EXECOUTPUT, EXECJAVA, TRANSFER, VALIDFILEPATH, DELETE, LINKRENAME, TAR, ZIP, TRANSCODE<br>
+-path is a static argument where some replacement will be done<br>
+-delay is usually the maximum delay of execution<br>
+<a href="res/OpenR66TaskOptions.html" target="_blank">See the API or doc for the specific conditions.</a></p></div></td>
+        <td width="8%"><textarea rows="8" name="spost" cols="20" id="spost0" class="dialog_input" onclick="dialog_open('spost0','Rule Helper');"><tasks></tasks></textarea>
+<img id="sposthelp" alt="help for Send Post Actions field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containersposthelp"><p class="cshelp">
+	It specifies all actions to do AFTER the transfer operation as sender host(SEND and requester,
+	or RECV and requested).<br><br>The format is as:<xmp><tasks>
+ <task>
+  <type>NAME</type>
+  <path>path</path>
+  <delay>x</delay>
+ </task>
+</tasks></xmp>where<br>
+-type is one of LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, EXECOUTPUT, EXECJAVA, TRANSFER, VALIDFILEPATH, DELETE, LINKRENAME, TAR, ZIP, TRANSCODE<br>
+-path is a static argument where some replacement will be done<br>
+-delay is usually the maximum delay of execution<br>
+<a href="res/OpenR66TaskOptions.html" target="_blank">See the API or doc for the specific conditions.</a></p></div></td>
+        <td width="8%"><textarea rows="8" name="serr" cols="20" id="serr0" class="dialog_input" onclick="dialog_open('serr0','Rule Helper');"><tasks></tasks></textarea>
+<img id="serrhelp" alt="help for Send Error Actions field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerserrhelp"><p class="cshelp">
+	It specifies all actions to do AFTER AN ERROR OCCURS as sender host(SEND and requester,
+	or RECV and requested).<br><br>The format is as:<xmp><tasks>
+ <task>
+  <type>NAME</type>
+  <path>path</path>
+  <delay>x</delay>
+ </task>
+</tasks></xmp>where<br>
+-type is one of LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, EXECOUTPUT, EXECJAVA, TRANSFER, VALIDFILEPATH, DELETE, LINKRENAME, RESCHEDULE, TAR, ZIP, TRANSCODE<br>
+-path is a static argument where some replacement will be done<br>
+-delay is usually the maximum delay of execution<br>
+<a href="res/OpenR66TaskOptions.html" target="_blank">See the API or doc for the specific conditions.</a></p></div></td>
+        <td width="8%">
+        <p align="center"><input type="submit" value="Create" name="ACTION"></td>
+      </tr>
+    </table>
+  </form>
+  <p>&nbsp;</p>
+    <form method="post" name="FILTER" action="/Rules.html">
+  <p>Filter on Rule Id: <input type="text" name="rule" size="20" value="XXXRULEXXX"></p>
+  <fieldset style="padding: 2">
+  <legend>Filter on Mode: </legend>
+&nbsp;<input type="radio" name="mode" value="all" XXXALLXXX>ALL
+  <input type="radio" name="mode" value="send" XXXASENDXXX>ALL SEND
+  <input type="radio" name="mode" value="recv" XXXARECVXXX>ALL RECV
+  <img id="filterhelp" alt="help for Mode Filter field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerfilterhelp"><p class="cshelp">
+	Either you choose "ALL SEND", "ALL RECV" or "ALL" but none of specific (SEND, RECV, ...),
+	or you choose some specifics types of mode (SEND, SENDMD5, ...).
+	</p></div>
+	<p>&nbsp;
+  <input type="checkbox" name="send" value="ON" XXXSENDXXX>SEND
+  <input type="checkbox" name="recv" value="ON" XXXRECVXXX>RECV
+  <input type="checkbox" name="sendmd5" value="ON" XXXSENDMXXX>SENDMD5
+  <input type="checkbox" name="recvmd5" value="ON" XXXRECVMXXX>RECVMD5
+  <input type="checkbox" name="sendth" value="ON" XXXSENDTXXX>SENDTHROUGH
+  <input type="checkbox" name="recvth" value="ON" XXXRECVTXXX>RECVTHROUGH
+  <input type="checkbox" name="sendthmd5" value="ON" XXXSENDMTXXX>SENDMD5THROUGH
+  <input type="checkbox" name="recvthmd5" value="ON" XXXRECVMTXXX>RECVMD5THROUGH</p>
+  </fieldset><p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <input type="submit" value="Filter" name="ACTION">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <input type="reset" value="Clear" name="ACTION"></p>
+  </form>
+  <p>&nbsp;</p>
