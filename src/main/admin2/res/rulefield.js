@@ -69,6 +69,7 @@ function dialog_load() {
 		path.setAttribute('name', 'path');
 		path.setAttribute('size', '30');
 		path.setAttribute('value', arrayTasks[j][1]);
+		path.setAttribute("onChange", "dialog_typeInput(" + j + "," + 1 + " )" );
 		field.appendChild(path);
 		rownext.appendChild(field);
 		field=document.createElement('td');
@@ -79,6 +80,7 @@ function dialog_load() {
 		delay.setAttribute('name', 'delay');
 		delay.setAttribute('size', '5');
 		delay.setAttribute('value', arrayTasks[j][2]);
+		delay.setAttribute("onChange", "dialog_typeInput(" + j + "," + 2 + " )" );
 		field.appendChild(delay);
 		rownext.appendChild(field);
 		field=document.createElement('td');
@@ -93,6 +95,7 @@ function dialog_load() {
 		} else {
 			comment.setAttribute('value', '');
 		}
+		comment.setAttribute("onChange", "dialog_typeInput(" + j + "," + 3 + " )" );
 		field.appendChild(comment);
 		rownext.appendChild(field);
 		field=document.createElement('td');
@@ -149,6 +152,19 @@ function dialog_typeSelect(rank) {
 	var chosenoption = select.options[select.selectedIndex];
 	arrayTasks[rank][0] = chosenoption.value;
 }
+// Select value from INPUT
+function dialog_typeInput(rank, field) {
+	var fieldname = '';
+	if (field == 1) {
+		fieldname = "path"+rank;
+	} else if (field == 2) {
+		fieldname = "delay"+rank;
+	} else {
+		fieldname = "comment"+rank;
+	}
+	var input = document.getElementById(fieldname);
+	arrayTasks[rank][field] = input.value;
+}
 /*******************************************************************************
  * inputName : field name that contains the value of rule tasks
  ******************************************************************************/
@@ -156,15 +172,28 @@ function dialog_open(inputName, title) {
 	// back zone unvalidated
 	var dialog_background = document.getElementById('dialog_background');
 	dialog_background.style.display = "block";
+	// Keeo original object
+	var obInput = document.getElementById(inputName);
+	dialog_input = obInput;
 	// dialog show
 	var dialog_box = document.getElementById('dialog_box');
 	dialog_box.style.display = "block";
 	var dialog_title = document.getElementById('dialog_title');
-	dialog_title.innerHTML = title;
+	var code = '';
+	if (dialog_input.id.charAt(0) == 'r') {
+		code = " Send ";
+	} else {
+		code = " Recv ";
+	}
+	if (dialog_input.id.charAt(1) == 'e') {
+		code = code + " Error Tasks";
+	} else if (dialog_input.id.charAt(2) == 'o') {
+		code = code + " Post Tasks";
+	} else {
+		code = code + " Pre Tasks";
+	}
+	dialog_title.innerHTML = title + code;
 	dialog_box.style.top = (document.body.scrollTop * 1) + 100;
-	// Keeo original object
-	var obInput = document.getElementById(inputName);
-	dialog_input = obInput;
 	// parser xml tasks
 	value1 = obInput.value;
 	var parser = new marknote.Parser();
