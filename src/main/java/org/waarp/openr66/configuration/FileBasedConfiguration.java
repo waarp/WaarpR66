@@ -43,6 +43,8 @@ import org.waarp.common.file.filesystembased.FilesystemBasedDirImpl;
 import org.waarp.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.role.RoleDefault;
+import org.waarp.common.role.RoleDefault.ROLE;
 import org.waarp.common.xml.XmlDecl;
 import org.waarp.common.xml.XmlHash;
 import org.waarp.common.xml.XmlType;
@@ -408,11 +410,20 @@ public class FileBasedConfiguration {
 	/**
 	 * Check version in protocol
 	 */
-	private static final String XML_BUSINESS = "business";
-	/**
-	 * Check version in protocol
-	 */
 	private static final String XML_BUSINESSID = "businessid";
+	/**
+	 * Role Main entry
+	 */
+	private static final String XML_ROLE = "role";
+	/**
+	 * ID in role
+	 */
+	private static final String XML_ROLEID = "roleid";
+	/**
+	 * Role set
+	 */
+	private static final String XML_ROLESET = "roleset";
+
 
 	/**
 	 * Structure of the Configuration file
@@ -555,6 +566,15 @@ public class FileBasedConfiguration {
 			new XmlDecl(XmlType.STRING, XML_WORKINGPATH),
 			new XmlDecl(XmlType.STRING, XML_CONFIGPATH)
 	};
+	/**
+	 * Structure of the Configuration file
+	 * 
+	 */
+	private static final XmlDecl[] configRoleDecls = {
+			// roles
+			new XmlDecl(XmlType.STRING, XML_ROLEID),
+			new XmlDecl(XmlType.STRING, XML_ROLESET)
+	};
 
 	/**
 	 * Overall structure of the Configuration file
@@ -568,6 +588,8 @@ public class FileBasedConfiguration {
 	private static final String XML_NETWORK = "network";
 	private static final String XML_SSL = "ssl";
 	private static final String XML_DB = "db";
+	private static final String XML_BUSINESS = "business";
+	private static final String XML_ROLES = "roles";
 
 	/**
 	 * Global Structure for Server Configuration
@@ -585,7 +607,9 @@ public class FileBasedConfiguration {
 			new XmlDecl(XML_LIMIT, XmlType.XVAL, XML_ROOT + XML_LIMIT, configLimitDecls, false),
 			new XmlDecl(XML_DB, XmlType.XVAL, XML_ROOT + XML_DB, configDbDecls, false),
 			new XmlDecl(XML_BUSINESS, XmlType.STRING, XML_ROOT + XML_BUSINESS + "/"
-					+ XML_BUSINESSID, true)
+					+ XML_BUSINESSID, true),
+			new XmlDecl(XML_ROLES, XmlType.XVAL, XML_ROOT + XML_ROLES + "/"
+					+ XML_ROLE, configRoleDecls, true)
 	};
 	/**
 	 * Global Structure for Client Configuration
@@ -1394,6 +1418,48 @@ public class FileBasedConfiguration {
 	}
 
 	/**
+	 * Load Role list if any
+	 * 
+	 * @param document
+	 */
+	@SuppressWarnings("unchecked")
+	private static void loadRolesList(Configuration config) {
+		XmlValue value = hashConfig.get(XML_ROLES);
+		if (value != null && (value.getList() != null)) {
+			for (XmlValue[] xml : (List<XmlValue[]>) value.getList()) {
+				XmlHash subHash = new XmlHash(xml);
+				value = subHash.get(XML_ROLEID);
+				if (value == null || (value.isEmpty())) {
+					continue;
+				}
+				String refHostId = value.getString();
+				value = subHash.get(XML_ROLESET);
+				if (value == null || (value.isEmpty())) {
+					continue;
+				}
+				String roleset = value.getString();
+				String [] roles = roleset.split(" |\\|");
+				RoleDefault newrole = new RoleDefault();
+				for (String role : roles) {
+					try {
+						RoleDefault.ROLE roletype = RoleDefault.ROLE.valueOf(role.toUpperCase());
+						if (roletype == ROLE.NOACCESS) {
+							// reset
+							newrole.setRole(roletype);
+						} else {
+							newrole.addRole(roletype);
+						}
+					} catch (IllegalArgumentException e) {
+						// ignore
+					}
+				}
+				logger.warn("New Role: " + refHostId + ":" + newrole);
+				config.roles.put(refHostId, newrole);
+			}
+		}
+	}
+
+	/**
 	 * 
 	 * @param document
 	 * @param fromXML
@@ -1736,6 +1802,7 @@ public class FileBasedConfiguration {
 			}
 		}
 		loadBusinessWhiteList(config);
+		loadRolesList(config);
 		hashConfig.clear();
 		hashConfig = null;
 		configuration = null;

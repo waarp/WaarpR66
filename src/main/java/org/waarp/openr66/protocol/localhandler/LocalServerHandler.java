@@ -67,6 +67,7 @@ import org.waarp.common.exception.FileTransferException;
 import org.waarp.common.file.DataBlock;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.role.RoleDefault.ROLE;
 import org.waarp.openr66.client.AbstractBusinessRequest;
 import org.waarp.openr66.commander.ClientRunner;
 import org.waarp.openr66.configuration.AuthenticationFileBasedConfiguration;
@@ -1824,7 +1825,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			case LocalPacketFactory.LOGPURGEPACKET: {
 				session.newState(VALIDOTHER);
 				// should be from the local server or from an authorized hosts: isAdmin
-				if (!session.getAuth().isAdmin()) {
+				// XXX FIXME was 				if (!session.getAuth().isAdmin()) {
+				if (!session.getAuth().isValidRole(ROLE.LOGCONTROL)) {
 					throw new OpenR66ProtocolNotAuthenticatedException(
 							"Not correctly authenticated");
 				}
@@ -2208,7 +2210,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			case LocalPacketFactory.BANDWIDTHPACKET: {
 				session.newState(VALIDOTHER);
 				// should be from the local server or from an authorized hosts: isAdmin
-				if (!session.getAuth().isAdmin()) {
+				// XXX FIXME was				if (!session.getAuth().isAdmin()) {
+				if (!session.getAuth().isValidRole(ROLE.LIMIT)) {
 					throw new OpenR66ProtocolNotAuthenticatedException(
 							"Not correctly authenticated");
 				}
@@ -2354,7 +2357,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			throw new OpenR66ProtocolNotAuthenticatedException(
 					"Not authenticated while Shutdown received");
 		}
-		boolean isAdmin = session.getAuth().isAdmin();
+		// XXX FIXME was 		boolean isAdmin = session.getAuth().isAdmin();
+		boolean isAdmin = session.getAuth().isValidRole(ROLE.SYSTEM);
 		boolean isKeyValid = Configuration.configuration.isKeyValid(packet.getKey());
 		if (isAdmin && isKeyValid) {
 			if (Configuration.configuration.r66Mib != null) {
