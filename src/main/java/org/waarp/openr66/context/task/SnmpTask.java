@@ -17,6 +17,8 @@
  */
 package org.waarp.openr66.context.task;
 
+import org.waarp.common.logging.WaarpInternalLogger;
+import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.protocol.configuration.Configuration;
 
@@ -30,7 +32,11 @@ import org.waarp.openr66.protocol.configuration.Configuration;
  * 
  */
 public class SnmpTask extends AbstractTask {
-
+	/**
+	 * Internal Logger
+	 */
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(SnmpTask.class);
 	/**
 	 * @param argRule
 	 * @param delay
@@ -44,6 +50,11 @@ public class SnmpTask extends AbstractTask {
 
 	@Override
 	public void run() {
+		if (Configuration.configuration.r66Mib == null) {
+			logger.warn("SNMP support is not active");
+			futureCompletion.setSuccess();
+			return;
+		}
 		String finalValue = argRule;
 		finalValue = getReplacedValue(finalValue, argTransfer.split(" "));
 		switch (delay) {
