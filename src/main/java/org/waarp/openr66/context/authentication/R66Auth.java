@@ -28,6 +28,8 @@ import org.waarp.common.file.DirInterface;
 import org.waarp.common.file.filesystembased.FilesystemBasedAuthImpl;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.role.RoleDefault;
+import org.waarp.common.role.RoleDefault.ROLE;
 import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbHostAuth;
@@ -52,6 +54,10 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 	 * is Admin role
 	 */
 	private boolean isAdmin = false;
+	/**
+	 * Role set from configuration file only
+	 */
+	private RoleDefault role = new RoleDefault();
 
 	/**
 	 * @param session
@@ -68,13 +74,9 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 	protected void businessClean() {
 		currentAuth = null;
 		isAdmin = false;
+		role.clear();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @seeorg.waarp.common.file.filesystembased.FilesystemBasedAuthImpl# getBaseDirectory()
-	 */
-	@Override
 	public String getBaseDirectory() {
 		return Configuration.configuration.baseDirectory;
 	}
@@ -117,6 +119,24 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 			setRootFromAuth();
 			getSession().getDir().initAfterIdentification();
 			isAdmin = currentAuth.isAdminrole();
+			if (Configuration.configuration.roles.isEmpty()) {
+				if (isAdmin) {
+					role.setRole(ROLE.FULLADMIN);
+				} else {
+					role.setRole(ROLE.PARTNER);
+				}
+			} else {
+				RoleDefault configRole = Configuration.configuration.roles.get(hostId);
+				if (configRole == null) {
+					// set to default PARTNER
+					role.setRole(ROLE.PARTNER);
+				} else {
+					role.setRole(configRole);
+					if (this.role.isContaining(ROLE.FULLADMIN)) {
+						isAdmin = true;
+					}
+				}
+			}
 			return true;
 		}
 		throw new Reply530Exception("Key is not valid for this HostId");
@@ -172,13 +192,17 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 		throw new Reply421Exception("Command not valid");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.common.file.AuthInterface#isAdmin()
-	 */
-	@Override
 	public boolean isAdmin() {
 		return isAdmin;
+	}
+	
+	/**
+	 * 
+	 * @param roleCheck
+	 * @return True if the current role contains the specified role to check
+	 */
+	public boolean isValidRole(ROLE roleCheck) {
+		return this.role.isContaining(roleCheck);
 	}
 
 	/**
@@ -189,11 +213,6 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 		return currentAuth.isSsl();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.common.file.AuthInterface#isBusinessPathValid(java.lang.String )
-	 */
-	@Override
 	public boolean isBusinessPathValid(String newPath) {
 		if (newPath == null) {
 			return false;

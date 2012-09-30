@@ -54,7 +54,6 @@ public class NetworkServerPipelineFactory implements ChannelPipelineFactory {
 		this.server = server;
 	}
 
-	@Override
 	public ChannelPipeline getPipeline() {
 		final ChannelPipeline pipeline = Channels.pipeline();
 		pipeline.addLast("codec", new NetworkPacketCodec());

@@ -125,11 +125,6 @@ public class CommanderNoDb implements CommanderInterface {
 		// todoList.clear();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Runnable#run()
-	 */
-	@Override
 	public void run() {
 		Thread.currentThread().setName("OpenR66Commander");
 		while (!todoList.isEmpty()) {

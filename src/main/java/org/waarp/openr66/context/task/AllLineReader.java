@@ -40,11 +40,6 @@ class AllLineReader implements Runnable {
 		reader = new BufferedReader(new InputStreamReader(inputStream));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Runnable#run()
-	 */
-	@Override
 	public void run() {
 		String line;
 		try {

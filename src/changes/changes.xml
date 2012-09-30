@@ -5,7 +5,15 @@
 		<author email="waarp1 at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
-		<release version="2.4.8" date="2012-09-08" description="Fix release">
+		<release version="2.4.9" date="2012-09-30" description="Fix release">
+			<action dev="Frederic Bregier" type="add">Add support for Roles overriding database simple admin role</action>
+			<action dev="Frederic Bregier" type="add">Add AllEvents level in snmp trap</action>
+			<action dev="Frederic Bregier" type="add">Add -nossl option in ServerShutdown</action>
+			<action dev="Frederic Bregier" type="add">Add SNMP task to enable SNMP trap/info notifications</action>
+			<action dev="Frederic Bregier" type="fix">XSD configuration files and add support for Jaxe</action>
+			<action dev="Frederic Bregier" type="fix">Add serverpasswdfile option in Server XML configuration file to enable ggp file for admin password</action>
+		</release>
+	    <release version="2.4.8" date="2012-09-08" description="Fix release">
 			<action dev="Frederic Bregier" type="add">Add TRANSCODE task</action>
 			<action dev="Frederic Bregier" type="add">Add restart time support to RequestTransfer</action>
 			<action dev="Frederic Bregier" type="fix">Fix restart of one transfer through ID in SubmitTransfer</action>

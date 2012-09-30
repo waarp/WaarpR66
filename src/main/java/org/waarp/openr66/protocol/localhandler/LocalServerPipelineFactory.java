@@ -30,7 +30,7 @@ import org.waarp.openr66.protocol.localhandler.packet.LocalPacketCodec;
  * @author Frederic Bregier
  */
 public class LocalServerPipelineFactory implements ChannelPipelineFactory {
-	@Override
+
 	public ChannelPipeline getPipeline() throws Exception {
 		final ChannelPipeline pipeline = Channels.pipeline();
 		pipeline.addLast("codec", new LocalPacketCodec());

@@ -20,6 +20,7 @@ package org.waarp.openr66.protocol.configuration;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -52,6 +53,7 @@ import org.waarp.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 import org.waarp.common.future.WaarpFuture;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.role.RoleDefault;
 import org.waarp.common.utility.SystemPropertyUtil;
 import org.waarp.common.utility.WaarpShutdownHook.ShutdownConfiguration;
 import org.waarp.common.utility.WaarpThreadFactory;
@@ -159,6 +161,10 @@ public class Configuration {
 	 * White List of allowed Partners to use Business Requests
 	 */
 	public HashSet<String> businessWhiteSet = new HashSet<String>();
+	/**
+	 * Roles list for identified partners
+	 */
+	public HashMap<String, RoleDefault> roles = new HashMap<String, RoleDefault>();
 	/**
 	 * Actual Host ID
 	 */

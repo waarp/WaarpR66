@@ -166,17 +166,12 @@ public class R66PrivateMib extends WaarpPrivateMib {
 	}
 
 	/**
-	 * Send a notification (trap or inform) for Warning/Error event on a single Transfer Task
+	 * Send a notification (trap or inform) 
 	 * 
 	 * @param message
 	 * @param runner
 	 */
-	public void notifyInfoTask(String message, DbTaskRunner runner) {
-		if (!TrapLevel.All.isLevelValid(agent.trapLevel))
-			return;
-		if (logger.isDebugEnabled())
-			logger.debug("Notify: " + NotificationElements.InfoTask + ":" + message +
-					":" + runner.toShortString());
+	public void notifyInternalTask(String message, DbTaskRunner runner) {
 		long delay = (runner.getStart().getTime() -
 				agent.getUptimeSystemTime()) / 10;
 		if (delay < 0)
@@ -296,6 +291,35 @@ public class R66PrivateMib extends WaarpPrivateMib {
 	}
 
 	/**
+	 * Send a notification (trap or inform) for Warning/Error event on a single Transfer Task
+	 * 
+	 * @param message
+	 * @param runner
+	 */
+	public void notifyInfoTask(String message, DbTaskRunner runner) {
+		if (!TrapLevel.All.isLevelValid(agent.trapLevel))
+			return;
+		if (logger.isDebugEnabled())
+			logger.debug("Notify: " + NotificationElements.InfoTask + ":" + message +
+					":" + runner.toShortString());
+		notifyInternalTask(message, runner);
+	}
+	/**
+	 * Send a notification (trap or inform) for all events on a single Transfer Task
+	 * 
+	 * @param message
+	 * @param runner
+	 */
+	public void notifyTask(String message, DbTaskRunner runner) {
+		if (!TrapLevel.AllEvents.isLevelValid(agent.trapLevel))
+			return;
+		if (logger.isDebugEnabled())
+			logger.debug("Notify: " + NotificationElements.InfoTask + ":" + message +
+					":" + runner.toShortString());
+		notifyInternalTask(message, runner);
+	}
+
+	/**
 	 * Trap/Notification
 	 * 
 	 * @param element
@@ -326,19 +350,9 @@ public class R66PrivateMib extends WaarpPrivateMib {
 				});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.snmp.WaarpInterfaceMib#updateServices(org.waarp.snmp.WaarpMOScalar)
-	 */
-	@Override
 	public void updateServices(WaarpMOScalar scalar) {
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.snmp.WaarpInterfaceMib#updateServices(org.snmp4j.agent.MOScope)
-	 */
-	@Override
 	public void updateServices(MOScope range) {
 	}
 

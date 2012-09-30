@@ -792,11 +792,6 @@ public class Monitoring implements WaarpInterfaceMonitor {
 		return builder.toString();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.snmp.WaarpInterfaceMonitor#setAgent(org.waarp.snmp.WaarpSnmpAgent)
-	 */
-	@Override
 	public void setAgent(WaarpSnmpAgent agent) {
 		this.agent = agent;
 		this.lastInActiveTransfer = this.agent.getUptimeSystemTime();

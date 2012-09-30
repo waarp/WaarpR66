@@ -42,12 +42,6 @@ public class ThreadPoolRunnerExecutor extends ThreadPoolExecutor {
 	 */
 	private class RunnerRejectedExecutionHandler implements RejectedExecutionHandler {
 
-		/*
-		 * (non-Javadoc)
-		 * @see java.util.concurrent.RejectedExecutionHandler#rejectedExecution(java.lang.Runnable,
-		 * java.util.concurrent.ThreadPoolExecutor)
-		 */
-		@Override
 		public void rejectedExecution(Runnable arg0, ThreadPoolExecutor arg1) {
 			ClientRunner runner = (ClientRunner) arg0;
 			runner.changeUpdatedInfo(AbstractDbData.UpdatedInfo.INERROR,

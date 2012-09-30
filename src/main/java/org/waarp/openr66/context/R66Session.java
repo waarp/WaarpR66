@@ -174,11 +174,6 @@ public class R66Session implements SessionInterface {
 		this.status = "(" + elt.getFileName() + ":" + elt.getLineNumber() + "):" + stat;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.common.file.SessionInterface#clear()
-	 */
-	@Override
 	public void clear() {
 		// First check if a transfer was on going
 		if (runner != null && (!runner.isFinished()) && (!runner.continueTransfer())) {
@@ -220,20 +215,10 @@ public class R66Session implements SessionInterface {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.common.file.SessionInterface#getAuth()
-	 */
-	@Override
 	public R66Auth getAuth() {
 		return auth;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.common.file.SessionInterface#getBlockSize()
-	 */
-	@Override
 	public int getBlockSize() {
 		return blockSize;
 	}
@@ -246,29 +231,14 @@ public class R66Session implements SessionInterface {
 		blockSize = blocksize;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.common.file.SessionInterface#getDir()
-	 */
-	@Override
 	public R66Dir getDir() {
 		return dir;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.common.file.SessionInterface#getFileParameter()
-	 */
-	@Override
 	public FilesystemBasedFileParameterImpl getFileParameter() {
 		return Configuration.getFileParameter();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.common.file.SessionInterface#getRestart()
-	 */
-	@Override
 	public R66Restart getRestart() {
 		return restart;
 	}
@@ -904,11 +874,6 @@ public class R66Session implements SessionInterface {
 				(runner != null ? runner.toShortString() : "no Runner");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.common.file.SessionInterface#getUniqueExtension()
-	 */
-	@Override
 	public String getUniqueExtension() {
 		return Configuration.EXT_R66;
 	}

@@ -39,7 +39,6 @@ public class ChannelCloseTimer implements TimerTask {
 		this.channel = channel;
 	}
 
-	@Override
 	public void run(Timeout timeout) throws Exception {
 		WaarpSslUtility.closingSslChannel(channel);
 	}
