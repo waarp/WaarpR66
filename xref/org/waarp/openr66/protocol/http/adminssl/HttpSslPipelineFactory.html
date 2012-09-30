@@ -58,28 +58,27 @@
 <a class="jxr_linenumber" name="48" href="#48">48</a>  		<strong class="jxr_keyword">this</strong>.executorService = executor;
 <a class="jxr_linenumber" name="49" href="#49">49</a>  	}
 <a class="jxr_linenumber" name="50" href="#50">50</a>  
-<a class="jxr_linenumber" name="51" href="#51">51</a>  	@Override
-<a class="jxr_linenumber" name="52" href="#52">52</a>  	<strong class="jxr_keyword">public</strong> ChannelPipeline getPipeline() {
-<a class="jxr_linenumber" name="53" href="#53">53</a>  		<strong class="jxr_keyword">final</strong> ChannelPipeline pipeline = Channels.pipeline();
-<a class="jxr_linenumber" name="54" href="#54">54</a>  		<em class="jxr_comment">// Add SSL handler first to encrypt and decrypt everything.</em>
-<a class="jxr_linenumber" name="55" href="#55">55</a>          SslHandler sslhandler = Configuration.waarpSslContextFactory.initPipelineFactory(<strong class="jxr_keyword">true</strong>,
-<a class="jxr_linenumber" name="56" href="#56">56</a>  				false, enableRenegotiation, executorService);
-<a class="jxr_linenumber" name="57" href="#57">57</a>          sslhandler.setIssueHandshake(<strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="58" href="#58">58</a>          pipeline.addLast(<span class="jxr_string">"ssl"</span>, sslhandler);
-<a class="jxr_linenumber" name="59" href="#59">59</a>  
-<a class="jxr_linenumber" name="60" href="#60">60</a>  		pipeline.addLast(<span class="jxr_string">"decoder"</span>, <strong class="jxr_keyword">new</strong> HttpRequestDecoder());
-<a class="jxr_linenumber" name="61" href="#61">61</a>  		pipeline.addLast(<span class="jxr_string">"aggregator"</span>, <strong class="jxr_keyword">new</strong> HttpChunkAggregator(1048576));
-<a class="jxr_linenumber" name="62" href="#62">62</a>  		pipeline.addLast(<span class="jxr_string">"encoder"</span>, <strong class="jxr_keyword">new</strong> HttpResponseEncoder());
-<a class="jxr_linenumber" name="63" href="#63">63</a>  		pipeline.addLast(<span class="jxr_string">"pipelineExecutor"</span>, <strong class="jxr_keyword">new</strong> ExecutionHandler(
-<a class="jxr_linenumber" name="64" href="#64">64</a>  				Configuration.configuration.getHttpPipelineExecutor()));
-<a class="jxr_linenumber" name="65" href="#65">65</a>  		pipeline.addLast(<span class="jxr_string">"streamer"</span>, <strong class="jxr_keyword">new</strong> ChunkedWriteHandler());
-<a class="jxr_linenumber" name="66" href="#66">66</a>  		<strong class="jxr_keyword">if</strong> (useHttpCompression) {
-<a class="jxr_linenumber" name="67" href="#67">67</a>  			pipeline.addLast(<span class="jxr_string">"deflater"</span>, <strong class="jxr_keyword">new</strong> HttpContentCompressor());
-<a class="jxr_linenumber" name="68" href="#68">68</a>  		}
-<a class="jxr_linenumber" name="69" href="#69">69</a>  		pipeline.addLast(<span class="jxr_string">"handler"</span>, <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/waarp/openr66/protocol/http/adminssl/HttpSslHandler.html">HttpSslHandler</a>());
-<a class="jxr_linenumber" name="70" href="#70">70</a>  		<strong class="jxr_keyword">return</strong> pipeline;
-<a class="jxr_linenumber" name="71" href="#71">71</a>  	}
-<a class="jxr_linenumber" name="72" href="#72">72</a>  }
+<a class="jxr_linenumber" name="51" href="#51">51</a>  	<strong class="jxr_keyword">public</strong> ChannelPipeline getPipeline() {
+<a class="jxr_linenumber" name="52" href="#52">52</a>  		<strong class="jxr_keyword">final</strong> ChannelPipeline pipeline = Channels.pipeline();
+<a class="jxr_linenumber" name="53" href="#53">53</a>  		<em class="jxr_comment">// Add SSL handler first to encrypt and decrypt everything.</em>
+<a class="jxr_linenumber" name="54" href="#54">54</a>          SslHandler sslhandler = Configuration.waarpSslContextFactory.initPipelineFactory(<strong class="jxr_keyword">true</strong>,
+<a class="jxr_linenumber" name="55" href="#55">55</a>  				false, enableRenegotiation, executorService);
+<a class="jxr_linenumber" name="56" href="#56">56</a>          sslhandler.setIssueHandshake(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="57" href="#57">57</a>          pipeline.addLast(<span class="jxr_string">"ssl"</span>, sslhandler);
+<a class="jxr_linenumber" name="58" href="#58">58</a>  
+<a class="jxr_linenumber" name="59" href="#59">59</a>  		pipeline.addLast(<span class="jxr_string">"decoder"</span>, <strong class="jxr_keyword">new</strong> HttpRequestDecoder());
+<a class="jxr_linenumber" name="60" href="#60">60</a>  		pipeline.addLast(<span class="jxr_string">"aggregator"</span>, <strong class="jxr_keyword">new</strong> HttpChunkAggregator(1048576));
+<a class="jxr_linenumber" name="61" href="#61">61</a>  		pipeline.addLast(<span class="jxr_string">"encoder"</span>, <strong class="jxr_keyword">new</strong> HttpResponseEncoder());
+<a class="jxr_linenumber" name="62" href="#62">62</a>  		pipeline.addLast(<span class="jxr_string">"pipelineExecutor"</span>, <strong class="jxr_keyword">new</strong> ExecutionHandler(
+<a class="jxr_linenumber" name="63" href="#63">63</a>  				Configuration.configuration.getHttpPipelineExecutor()));
+<a class="jxr_linenumber" name="64" href="#64">64</a>  		pipeline.addLast(<span class="jxr_string">"streamer"</span>, <strong class="jxr_keyword">new</strong> ChunkedWriteHandler());
+<a class="jxr_linenumber" name="65" href="#65">65</a>  		<strong class="jxr_keyword">if</strong> (useHttpCompression) {
+<a class="jxr_linenumber" name="66" href="#66">66</a>  			pipeline.addLast(<span class="jxr_string">"deflater"</span>, <strong class="jxr_keyword">new</strong> HttpContentCompressor());
+<a class="jxr_linenumber" name="67" href="#67">67</a>  		}
+<a class="jxr_linenumber" name="68" href="#68">68</a>  		pipeline.addLast(<span class="jxr_string">"handler"</span>, <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/waarp/openr66/protocol/http/adminssl/HttpSslHandler.html">HttpSslHandler</a>());
+<a class="jxr_linenumber" name="69" href="#69">69</a>  		<strong class="jxr_keyword">return</strong> pipeline;
+<a class="jxr_linenumber" name="70" href="#70">70</a>  	}
+<a class="jxr_linenumber" name="71" href="#71">71</a>  }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>

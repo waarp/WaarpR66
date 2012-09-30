@@ -40,7 +40,7 @@
 <a class="jxr_linenumber" name="30" href="#30">30</a>  <em class="jxr_javadoccomment"> * @author Frederic Bregier</em>
 <a class="jxr_linenumber" name="31" href="#31">31</a>  <em class="jxr_javadoccomment"> */</em>
 <a class="jxr_linenumber" name="32" href="#32">32</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../org/waarp/openr66/protocol/localhandler/LocalServerPipelineFactory.html">LocalServerPipelineFactory</a> <strong class="jxr_keyword">implements</strong> ChannelPipelineFactory {
-<a class="jxr_linenumber" name="33" href="#33">33</a>  	@Override
+<a class="jxr_linenumber" name="33" href="#33">33</a>  
 <a class="jxr_linenumber" name="34" href="#34">34</a>  	<strong class="jxr_keyword">public</strong> ChannelPipeline getPipeline() <strong class="jxr_keyword">throws</strong> Exception {
 <a class="jxr_linenumber" name="35" href="#35">35</a>  		<strong class="jxr_keyword">final</strong> ChannelPipeline pipeline = Channels.pipeline();
 <a class="jxr_linenumber" name="36" href="#36">36</a>  		pipeline.addLast(<span class="jxr_string">"codec"</span>, <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/localhandler/packet/LocalPacketCodec.html">LocalPacketCodec</a>());
