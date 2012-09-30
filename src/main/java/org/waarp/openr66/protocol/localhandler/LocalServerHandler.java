@@ -802,13 +802,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			this.result = result;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see
-		 * org.jboss.netty.channel.ChannelFutureListener#operationComplete(org.jboss.netty.channel
-		 * .ChannelFuture)
-		 */
-		@Override
 		public void operationComplete(ChannelFuture future) throws Exception {
 			localChannelReference.invalidateRequest(
 					result);

@@ -19,6 +19,7 @@
 <MENU_INSERTION nom="cryptokey"/>
 <MENU_INSERTION nom="authentfile"/>
 <MENU_INSERTION nom="serveradmin"/>
+<MENU_INSERTION nom="serverpasswdfile"/>
 <MENU_INSERTION nom="serverpasswd"/>
 <MENU_INSERTION nom="usenossl"/>
 <MENU_INSERTION nom="usessl"/>
@@ -105,6 +106,7 @@
 <AFFICHAGE_ELEMENT type="typesimple" element="cryptokey"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="authentfile"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="serveradmin"/>
+<AFFICHAGE_ELEMENT type="typesimple" element="serverpasswdfile"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="serverpasswd"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="usenossl"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="usessl"/>
@@ -252,11 +254,15 @@ Authentication File containing Authentications for partners
 Username for Administrator access
                         </DOCUMENTATION>
 </STRINGS_ELEMENT>
+<STRINGS_ELEMENT element="serverpasswdfile">
+<TITRE>serverpasswdfile</TITRE>
+<DOCUMENTATION>GoldenGate Password File containing the password for Administrator access</DOCUMENTATION>
+</STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="serverpasswd">
 <TITRE>serverpasswd</TITRE>
 <DOCUMENTATION>
-Password for Administrator access using Crypto Key
-                        </DOCUMENTATION>
+	Password for Administrator access using Crypto Key
+	                        </DOCUMENTATION>
 </STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="usenossl">
 <TITRE>usenossl</TITRE>

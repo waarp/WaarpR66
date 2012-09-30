@@ -90,7 +90,6 @@ public class NetworkPacketCodec extends FrameDecoder implements
 		return networkPacket;
 	}
 
-	@Override
 	public void handleDownstream(ChannelHandlerContext ctx, ChannelEvent e)
 			throws Exception {
 		if (e instanceof MessageEvent) {

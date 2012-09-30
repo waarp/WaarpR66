@@ -171,7 +171,7 @@ public class R66PrivateMib extends WaarpPrivateMib {
 	 * @param message
 	 * @param runner
 	 */
-	private void notifyInternalTask(String message, DbTaskRunner runner) {
+	public void notifyInternalTask(String message, DbTaskRunner runner) {
 		long delay = (runner.getStart().getTime() -
 				agent.getUptimeSystemTime()) / 10;
 		if (delay < 0)
@@ -350,19 +350,9 @@ public class R66PrivateMib extends WaarpPrivateMib {
 				});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.snmp.WaarpInterfaceMib#updateServices(org.waarp.snmp.WaarpMOScalar)
-	 */
-	@Override
 	public void updateServices(WaarpMOScalar scalar) {
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.snmp.WaarpInterfaceMib#updateServices(org.snmp4j.agent.MOScope)
-	 */
-	@Override
 	public void updateServices(MOScope range) {
 	}
 

@@ -24,18 +24,28 @@ Username for Administrator access
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
-                <xsd:element
-                    name="serverpasswd"
-                    type="nonEmptyString" >
-                    <xsd:annotation>
-                        <xsd:appinfo>
-                            <fg:node-info message="Password for Administrator access using Crypto Key" />
-                        </xsd:appinfo>
-                        <xsd:documentation>
-Password for Administrator access using Crypto Key
-                        </xsd:documentation>
-                    </xsd:annotation>
-                </xsd:element>
+                <xsd:choice minOccurs="1" maxOccurs="1">
+                	<xsd:element name="serverpasswdfile" type="GGP-File">
+                    	<xsd:annotation>
+                        	<xsd:appinfo>
+                            	<fg:node-info
+                                	message="GoldenGate Password File containing the password for Administrator access" />
+                            </xsd:appinfo>
+                        <xsd:documentation>GoldenGate Password File containing the password for Administrator access</xsd:documentation></xsd:annotation>
+                    </xsd:element>
+	                <xsd:element
+	                    name="serverpasswd"
+	                    type="nonEmptyString">
+	                    <xsd:annotation>
+	                        <xsd:appinfo>
+	                            <fg:node-info message="Password for Administrator access using Crypto Key" />
+	                        </xsd:appinfo>
+	                        <xsd:documentation>
+	Password for Administrator access using Crypto Key
+	                        </xsd:documentation>
+	                    </xsd:annotation>
+	                </xsd:element>
+                </xsd:choice>
                 <xsd:element
                     name="usenossl"
                     default="True"

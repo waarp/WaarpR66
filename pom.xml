@@ -84,7 +84,7 @@
     <dependency>
     	<groupId>commons-codec</groupId>
     	<artifactId>commons-codec</artifactId>
-    	<version>1.6</version>
+    	<version>1.7</version>
     </dependency>
     <dependency>
     	<groupId>Waarp</groupId>
@@ -99,17 +99,17 @@
     <dependency>
     	<groupId>ch.qos.logback</groupId>
     	<artifactId>logback-access</artifactId>
-    	<version>1.0.6</version>
+    	<version>1.0.7</version>
     </dependency>
     <dependency>
     	<groupId>ch.qos.logback</groupId>
     	<artifactId>logback-classic</artifactId>
-    	<version>1.0.6</version>
+    	<version>1.0.7</version>
     </dependency>
     <dependency>
     	<groupId>ch.qos.logback</groupId>
     	<artifactId>logback-core</artifactId>
-    	<version>1.0.6</version>
+    	<version>1.0.7</version>
     </dependency>
     <dependency>
     	<groupId>Waarp</groupId>

@@ -77,11 +77,6 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 		role.clear();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @seeorg.waarp.common.file.filesystembased.FilesystemBasedAuthImpl# getBaseDirectory()
-	 */
-	@Override
 	public String getBaseDirectory() {
 		return Configuration.configuration.baseDirectory;
 	}
@@ -197,11 +192,6 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 		throw new Reply421Exception("Command not valid");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.common.file.AuthInterface#isAdmin()
-	 */
-	@Override
 	public boolean isAdmin() {
 		return isAdmin;
 	}
@@ -223,11 +213,6 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 		return currentAuth.isSsl();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.common.file.AuthInterface#isBusinessPathValid(java.lang.String )
-	 */
-	@Override
 	public boolean isBusinessPathValid(String newPath) {
 		if (newPath == null) {
 			return false;

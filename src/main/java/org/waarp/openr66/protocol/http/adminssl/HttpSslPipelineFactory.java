@@ -48,7 +48,6 @@ public class HttpSslPipelineFactory implements ChannelPipelineFactory {
 		this.executorService = executor;
 	}
 
-	@Override
 	public ChannelPipeline getPipeline() {
 		final ChannelPipeline pipeline = Channels.pipeline();
 		// Add SSL handler first to encrypt and decrypt everything.

@@ -36,12 +36,6 @@ import org.waarp.snmp.interf.WaarpInterfaceVariableFactory;
  */
 public class R66VariableFactory implements WaarpInterfaceVariableFactory {
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.snmp.interf.WaarpInterfaceVariableFactory#getVariable(org.snmp4j.smi.OID, int,
-	 * int, int)
-	 */
-	@Override
 	public Variable getVariable(OID oid, int type, int mibLevel, int entry) {
 		Variable var;
 		switch (type) {

@@ -16,10 +16,10 @@
 										<xsd:annotation>
 											<xsd:appinfo>
 												<fg:node-info
-													message="Type of Task: LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, EXECOUTPUT, EXECJAVA, TRANSFER, VALIDFILEPATH, DELETE, LINKRENAME, RESCHEDULE, TAR, ZIP, TRANSCODE" />
+													message="Type of Task: LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, EXECOUTPUT, EXECJAVA, TRANSFER, VALIDFILEPATH, DELETE, LINKRENAME, RESCHEDULE, TAR, ZIP, TRANSCODE, SNMP" />
 											</xsd:appinfo>
 											<xsd:documentation>
-Type of Task: LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, EXECOUTPUT, EXECJAVA, TRANSFER, VALIDFILEPATH, DELETE, LINKRENAME, RESCHEDULE, TAR, ZIP, TRANSCODE
+Type of Task: LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, EXECOUTPUT, EXECJAVA, TRANSFER, VALIDFILEPATH, DELETE, LINKRENAME, RESCHEDULE, TAR, ZIP, TRANSCODE, SNMP
 											</xsd:documentation>
 										</xsd:annotation>
 										<xsd:simpleType>
@@ -75,6 +75,8 @@ Type of Task: LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, EXECOUTPU
 												</xsd:enumeration>
 												<xsd:enumeration
 													value="TRANSCODE">
+												</xsd:enumeration>
+												<xsd:enumeration value="SNMP">
 												</xsd:enumeration>
 											</xsd:restriction>
 										</xsd:simpleType>

@@ -879,11 +879,6 @@ public class NetworkTransaction {
 			this.address = address;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.jboss.netty.util.TimerTask#run(org.jboss.netty.util.Timeout)
-		 */
-		@Override
 		public void run(Timeout timeout) throws Exception {
 			ReentrantLock socketLock = getChannelLock(address);
 			socketLock.lock();
@@ -1118,11 +1113,6 @@ public class NetworkTransaction {
 			this.href = href;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.jboss.netty.util.TimerTask#run(org.jboss.netty.util.Timeout)
-		 */
-		@Override
 		public void run(Timeout timeout) throws Exception {
 			logger.debug("DEBUG: Will remove shutdown for : " + href);
 			NetworkChannel networkChannel =

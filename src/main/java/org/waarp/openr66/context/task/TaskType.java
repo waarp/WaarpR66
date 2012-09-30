@@ -32,7 +32,7 @@ import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
  */
 public enum TaskType {
 	LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, LINKRENAME, TRANSFER,
-	VALIDFILEPATH, DELETE, TAR, ZIP, EXECOUTPUT, RESCHEDULE, EXECJAVA, TRANSCODE;
+	VALIDFILEPATH, DELETE, TAR, ZIP, EXECOUTPUT, RESCHEDULE, EXECJAVA, TRANSCODE, SNMP;
 
 	public int type;
 
@@ -111,6 +111,9 @@ public enum TaskType {
 						getFileInformation(), session);
 			case TRANSCODE:
 				return new TranscodeTask(argRule, delay, session.getRunner().
+						getFileInformation(), session);
+			case SNMP:
+				return new SnmpTask(argRule, delay, session.getRunner().
 						getFileInformation(), session);
 			default:
 				logger.error("name unknown: " + type.name);

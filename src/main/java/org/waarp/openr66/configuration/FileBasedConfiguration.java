@@ -95,6 +95,10 @@ public class FileBasedConfiguration {
 	 */
 	private static final String XML_SERVER_PASSWD = "serverpasswd";
 	/**
+	 * SERVER PASSWORD FILE (shutdown)
+	 */
+	private static final String XML_SERVER_PASSWD_FILE = "serverpasswdfile";
+	/**
 	 * Authentication
 	 */
 	private static final String XML_AUTHENTIFICATION_FILE = "authentfile";
@@ -452,6 +456,7 @@ public class FileBasedConfiguration {
 			new XmlDecl(XmlType.BOOLEAN, XML_CHECK_CLIENTADDRESS),
 			new XmlDecl(XmlType.STRING, XML_SERVER_ADMIN),
 			new XmlDecl(XmlType.STRING, XML_SERVER_PASSWD),
+			new XmlDecl(XmlType.STRING, XML_SERVER_PASSWD_FILE),
 			new XmlDecl(XmlType.STRING, XML_HTTPADMINPATH),
 			new XmlDecl(XmlType.STRING, XML_PATH_ADMIN_KEYPATH),
 			new XmlDecl(XmlType.STRING, XML_PATH_ADMIN_KEYSTOREPASS),
@@ -746,23 +751,42 @@ public class FileBasedConfiguration {
 				return false;
 			}
 		}
-		String passwd;
-		value = hashConfig.get(XML_SERVER_PASSWD);
-		if (value != null && (!value.isEmpty())) {
-			passwd = value.getString();
-		} else {
-			logger.error("Unable to find Password in Config file");
-			return false;
-		}
 		byte[] decodedByteKeys = null;
-		try {
-			decodedByteKeys =
-					config.cryptoKey.decryptHexInBytes(passwd);
-		} catch (Exception e) {
-			logger.error(
-					"Unable to Decrypt Server Password in Config file from: " +
-							passwd, e);
-			return false;
+		value = hashConfig.get(XML_SERVER_PASSWD_FILE);
+		if (value == null || (value.isEmpty())) {
+			String passwd;
+			value = hashConfig.get(XML_SERVER_PASSWD);
+			if (value != null && (!value.isEmpty())) {
+				passwd = value.getString();
+			} else {
+				logger.error("Unable to find Password in Config file");
+				return false;
+			}
+			try {
+				decodedByteKeys =
+						config.cryptoKey.decryptHexInBytes(passwd);
+			} catch (Exception e) {
+				logger.error(
+						"Unable to Decrypt Server Password in Config file from: " +
+								passwd, e);
+				return false;
+			}
+		} else {
+			String skey = value.getString();
+			// load key from file
+			File key = new File(skey);
+			if (!key.canRead()) {
+				logger.error("Unable to read Password in Config file from " + skey);
+				return false;
+			}
+			try {
+				decodedByteKeys = config.cryptoKey.decryptHexFile(key);
+			} catch (Exception e2) {
+				logger.error(
+						"Unable to Decrypt Server Password in Config file from: " +
+								skey, e2);
+				return false;
+			}
 		}
 		config.setSERVERKEY(decodedByteKeys);
 		value = hashConfig.get(XML_HTTPADMINPATH);

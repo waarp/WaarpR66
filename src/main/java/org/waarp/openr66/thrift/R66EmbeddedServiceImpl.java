@@ -124,7 +124,6 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 		return taskRunner;
 	}
 
-	@Override
 	public R66Result transferRequestQuery(R66Request request) throws TException {
 		DbTaskRunner runner = initRequest(request);
 		if (runner != null) {
@@ -289,7 +288,6 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 		}
 	}
 	
-	@Override
 	public R66Result infoTransferQuery(R66Request request) throws TException {
 		RequestMode mode = request.getMode();
 		if (mode != RequestMode.INFOREQUEST) {
@@ -350,7 +348,6 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 		}
 	}
 
-	@Override
 	public boolean isStillRunning(String fromuid, String touid, long tid) throws TException {
 		// now check if enough arguments are provided
 		if (fromuid == null || touid == null || tid == DbConstant.ILLEGALVALUE) {
@@ -365,7 +362,6 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 		return (lcr != null);
 	}
 
-	@Override
 	public List<String> infoListQuery(R66Request request) throws TException {
 		List<String> list = new ArrayList<String>();
 		RequestMode mode = request.getMode();
