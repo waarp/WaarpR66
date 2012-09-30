@@ -49,11 +49,6 @@ public class R66Dir extends FilesystemBasedDirImpl {
 		super(session, new FilesystemBasedOptsMLSxImpl());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.common.file.DirInterface#newFile(java.lang.String, boolean)
-	 */
-	@Override
 	public R66File newFile(String path, boolean append)
 			throws CommandAbstractException {
 		return new R66File((R66Session) getSession(), this, path, append);

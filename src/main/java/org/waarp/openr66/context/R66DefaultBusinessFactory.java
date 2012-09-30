@@ -33,23 +33,11 @@ public class R66DefaultBusinessFactory implements R66BusinessFactoryInterface {
 	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
 			.getLogger(R66DefaultBusinessFactory.class);
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * org.waarp.openr66.context.R66BusinessFactoryInterface#getBusinessInterface(org.waarp.openr66
-	 * .context.R66Session)
-	 */
-	@Override
 	public R66BusinessInterface getBusinessInterface(R66Session session) {
 		logger.debug("No Business");
 		return null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.context.R66BusinessFactoryInterface#releaseResources()
-	 */
-	@Override
 	public void releaseResources() {
 	}
 

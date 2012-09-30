@@ -66,7 +66,7 @@ public class R66ThriftServerService implements Runnable {
 		}
 		return true;
 	}
-	@Override
+
 	public void run() {
 		try {
 			logger.warn("Will start Thrift service on port: " + port);

@@ -185,11 +185,6 @@ public class Commander implements CommanderInterface {
 		// DbConstant.admin.session.removeLongTermPreparedStatements();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.lang.Runnable#run()
-	 */
-	@Override
 	public void run() {
 		Thread.currentThread().setName("OpenR66Commander");
 		// each time it is runned, it parses all database for updates

@@ -58,7 +58,7 @@ public class ServerShutdown {
 				.getLogger(ServerShutdown.class);
 		if (args.length < 1) {
 			logger
-					.error("Needs the configuration file as first argument");
+					.error("Needs the configuration file as first argument and optionally [-nossl]");
 			ChannelUtils.stopLogger();
 			System.exit(1);
 			return;
@@ -66,7 +66,28 @@ public class ServerShutdown {
 		if (!FileBasedConfiguration
 				.setConfigurationServerShutdownFromXml(Configuration.configuration, args[0])) {
 			logger
-					.error("Needs a correct configuration file as first argument");
+					.error("Needs a correct configuration file as first argument and optionally [-nossl]");
+			if (DbConstant.admin != null) {
+				DbConstant.admin.close();
+			}
+			ChannelUtils.stopLogger();
+			System.exit(1);
+			return;
+		}
+		boolean useSsl = true;
+		if (args.length > 1) {
+			if (args[1].equalsIgnoreCase("-nossl")) {
+				useSsl = false;
+			}
+		}
+		DbHostAuth host = null;
+		if (useSsl) {
+			host = Configuration.configuration.HOST_SSLAUTH;
+		} else {
+			host = Configuration.configuration.HOST_AUTH;
+		}
+		if (host == null) {
+			logger.error("Host id not found while SSL mode is : "+useSsl);
 			if (DbConstant.admin != null) {
 				DbConstant.admin.close();
 			}
@@ -80,11 +101,10 @@ public class ServerShutdown {
 		final ShutdownPacket packet = new ShutdownPacket(
 				key);
 		final NetworkTransaction networkTransaction = new NetworkTransaction();
-		DbHostAuth host = Configuration.configuration.HOST_SSLAUTH;
 		final SocketAddress socketServerAddress = host.getSocketAddress();
 		LocalChannelReference localChannelReference = null;
 		localChannelReference = networkTransaction
-				.createConnectionWithRetry(socketServerAddress, true, null);
+				.createConnectionWithRetry(socketServerAddress, useSsl, null);
 		if (localChannelReference == null) {
 			logger.error("Cannot connect to " + host.getSocketAddress());
 			networkTransaction.closeAll();

@@ -950,6 +950,15 @@ public class DbTaskRunner extends AbstractDbData {
 				Configuration.configuration.r66Mib.notifyInfoTask(
 						"Task is " + UpdatedInfo.values()[updatedInfo].name(), this);
 			}
+		} else {
+			if (globalstep != TASKSTEP.TRANSFERTASK.ordinal() || 
+					(globalstep == TASKSTEP.TRANSFERTASK.ordinal() && 
+					(rank % 100 == 0))) {
+				if (Configuration.configuration.r66Mib != null) {
+					Configuration.configuration.r66Mib.notifyTask(
+							"Task is currently " + UpdatedInfo.values()[updatedInfo].name(), this);
+				}
+			}
 		}
 		super.update();
 	}

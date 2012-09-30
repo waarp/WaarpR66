@@ -80,7 +80,6 @@ public class LocalPacketCodec extends FrameDecoder implements
 				middleLength, endLength, buf);
 	}
 
-	@Override
 	public void handleDownstream(ChannelHandlerContext ctx, ChannelEvent e)
 			throws Exception {
 		if (e instanceof MessageEvent) {
