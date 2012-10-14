@@ -3226,11 +3226,32 @@ public class DbTaskRunner extends AbstractDbData {
 	 * @return True if the current host is the requested host (to prevent request to itself)
 	 */
 	public boolean isSelfRequested() {
-		return (this.requestedHostId
-				.equals(Configuration.configuration.HOST_ID) || this.requestedHostId
-				.equals(Configuration.configuration.HOST_SSLID));
+		if (this.requestedHostId.equals(Configuration.configuration.HOST_ID) || 
+				this.requestedHostId.equals(Configuration.configuration.HOST_SSLID)) {
+			// check if not calling itself
+			return (! this.requesterHostId.equals(Configuration.configuration.HOST_ID) && 
+					! this.requesterHostId.equals(Configuration.configuration.HOST_SSLID));
+		}
+		return false;
 	}
 
+	/*
+	 * @param host default hostid
+	 * @return the ID to use when the request is loobpack
+	 *
+	public String getIdForItselfRequest(String host) {
+		if (this.requestedHostId.equals(Configuration.configuration.HOST_ID) &&
+			host.equals(Configuration.configuration.HOST_ID)) {
+			return Configuration.configuration.LOOPBACK_HOST_ID;
+		}
+		if (this.requestedHostId.equals(Configuration.configuration.HOST_SSLID) &&
+			host.equals(Configuration.configuration.HOST_SSLID)) {
+			return Configuration.configuration.LOOPBACK_HOST_SSLID;
+		}
+		return host;
+	}
+	*/
+	
 	/**
 	 * 
 	 * @return the requested HostId

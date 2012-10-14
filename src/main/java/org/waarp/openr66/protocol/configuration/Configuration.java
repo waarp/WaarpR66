@@ -173,6 +173,14 @@ public class Configuration {
 	 * Actual SSL Host ID
 	 */
 	public String HOST_SSLID;
+	/**
+	 * Requester Host ID
+	 */
+	public String REQER_HOST_ID;
+	/**
+	 * Requested Host ID
+	 */
+	public String REQED_HOST_ID;
 
 	/**
 	 * Server Administration user name

@@ -649,6 +649,8 @@ public class FileBasedConfiguration {
 		XmlValue value = hashConfig.get(XML_SERVER_HOSTID);
 		if (value != null && (!value.isEmpty())) {
 			config.HOST_ID = value.getString();
+			config.REQER_HOST_ID = config.HOST_ID + "__rd__";
+			config.REQED_HOST_ID = config.HOST_ID + "__rr__";
 		} else {
 			logger.error("Unable to find Host ID in Config file");
 			return false;
