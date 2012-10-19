@@ -145,6 +145,17 @@ function dialog_load() {
 	oValid.setAttribute('value', 'CANCEL');
 	oValid.onclick = function() {dialog_cancel();};
 	dialog_content.appendChild(oValid);
+	var br = document.createElement("br");
+	dialog_content.appendChild(br);
+	var tt = document.createElement("tt");
+	var text = document.createTextNode("Keywords: #TRUEFULLPATH# #TRUEFILENAME# #ORIGINALFULLPATH# " +
+			"#ORIGINALFILENAME# #FILESIZE# #RULE# #DATE# #HOUR# #REMOTEHOST# #REMOTEHOSTADDR# " +
+			"#LOCALHOST# #LOCALHOSTADDR# #TRANSFERID# #REQUESTERHOST# #REQUESTEDHOST# " +
+			"#FULLTRANSFERID# #RANKTRANSFER# #BLOCKSIZE# #INPATH# #OUTPATH# #WORKPATH# " +
+			"#ARCHPATH# #HOMEPATH# #ERRORMSG# #ERRORCODE# #ERRORSTRCODE# #NOWAIT# " +
+			"#LOCALEXEC# #CPTLIMIT#");
+	tt.appendChild(text);
+	dialog_content.appendChild(tt);
 }
 // Select value from SELECT
 function dialog_typeSelect(rank) {
