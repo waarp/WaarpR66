@@ -24,10 +24,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.jboss.netty.channel.ChannelFuture;
 import org.waarp.common.command.exception.CommandAbstractException;
+import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.exception.FileEndOfTransferException;
 import org.waarp.common.exception.FileTransferException;
 import org.waarp.common.file.DataBlock;
@@ -39,11 +41,13 @@ import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
+import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 import org.waarp.openr66.protocol.localhandler.RetrieveRunner;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
+import org.waarp.openr66.protocol.utils.FileUtils;
 
 /**
  * File representation
@@ -100,6 +104,8 @@ public class R66File extends FilesystemBasedFileImpl {
 		boolean retrieveDone = false;
 		LocalChannelReference localChannelReference = getSession()
 				.getLocalChannelReference();
+		FilesystemBasedDigest digest = null;
+
 		try {
 			if (!isReady) {
 				return;
@@ -116,11 +122,17 @@ public class R66File extends FilesystemBasedFileImpl {
 				// Last block (in fact, no data to read)
 				retrieveDone = true;
 				return;
+			}			
+			try {
+				digest = new FilesystemBasedDigest(Configuration.configuration.digest);
+			} catch (NoSuchAlgorithmException e2) {
+				// ignore
 			}
 			ChannelFuture future1 = null, future2 = null;
 			if ((block != null && (running.get()))) {
 				future1 = RetrieveRunner.writeWhenPossible(
 						block, localChannelReference);
+				FileUtils.computeGlobalHash(digest, block.getBlock());
 			}
 			// While not last block
 			while (block != null && (!block.isEOF()) && (running.get())) {
@@ -139,6 +151,7 @@ public class R66File extends FilesystemBasedFileImpl {
 				}
 				future2 = RetrieveRunner.writeWhenPossible(
 						block, localChannelReference);
+				FileUtils.computeGlobalHash(digest, block.getBlock());
 				try {
 					future1.await();
 				} catch (InterruptedException e) {
@@ -181,8 +194,16 @@ public class R66File extends FilesystemBasedFileImpl {
 									ErrorCode.Internal, getSession().getRunner()));
 		} finally {
 			if (retrieveDone) {
+				String hash = null;
+				if (digest != null) {
+					hash = FilesystemBasedDigest.getHex(digest.Final());
+				}
 				try {
-					ChannelUtils.writeEndTransfer(localChannelReference);
+					if (hash == null) {
+						ChannelUtils.writeEndTransfer(localChannelReference);
+					} else {
+						ChannelUtils.writeEndTransfer(localChannelReference, hash);
+					}
 				} catch (OpenR66ProtocolPacketException e) {
 					// An error occurs!
 					getSession().setFinalizeTransfer(

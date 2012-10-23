@@ -40,6 +40,7 @@ import java.io.File;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -63,6 +64,7 @@ import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseNoDataException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
+import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.exception.FileTransferException;
 import org.waarp.common.file.DataBlock;
 import org.waarp.common.logging.WaarpInternalLogger;
@@ -125,6 +127,7 @@ import org.waarp.openr66.protocol.networkhandler.NetworkChannel;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelCloseTimer;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
+import org.waarp.openr66.protocol.utils.FileUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
 import org.waarp.openr66.protocol.utils.TransferUtils;
 
@@ -148,7 +151,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
 	 * Local Channel Reference
 	 */
 	private volatile LocalChannelReference localChannelReference;
-
+	/**
+	 * Global Digest in receive
+	 */
+	private volatile FilesystemBasedDigest globalDigest;
+	
 	/*
 	 * (non-Javadoc)
 	 * @see org.jboss.netty.channel.SimpleChannelHandler#channelClosed(org.jboss.
@@ -1407,6 +1414,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				return;
 			}
 		}
+		if (globalDigest == null) {
+			try {
+				globalDigest = new FilesystemBasedDigest(Configuration.configuration.digest);
+			} catch (NoSuchAlgorithmException e) {
+			}
+		}
+		FileUtils.computeGlobalHash(globalDigest, packet.getData());
 		if (session.getRunner().isRecvThrough() && localChannelReference.isRecvThroughMode()) {
 			localChannelReference.getRecvThroughHandler().writeChannelBuffer(packet.getData());
 			session.getRunner().incrementRank();
@@ -1488,6 +1502,23 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		}
 		// Check end of transfer
 		if (packet.isToValidate()) {
+			// check if possible Global Digest
+			String hash = packet.getOptional();
+			if (hash != null && globalDigest != null) {
+				String localhash = FilesystemBasedDigest.getHex(globalDigest.Final());
+				globalDigest = null;
+				if (! localhash.equalsIgnoreCase(hash)) {
+					// bad global Hash
+					//session.getRunner().setRankAtStartup(0);
+					R66Result result = new R66Result(new OpenR66RunnerErrorException("Global Hash in error, transfer in error and rank should be reset to 0"),
+							session, false, ErrorCode.MD5Error, session.getRunner());
+					localChannelReference.invalidateRequest(result);
+					throw (OpenR66RunnerErrorException) result.exception;
+				} else {
+					logger.debug("Global digest ok");
+				}
+			}
+			globalDigest = null;
 			session.newState(ENDTRANSFERS);
 			if (!localChannelReference.getFutureRequest().isDone()) {
 				// Finish with post Operation
