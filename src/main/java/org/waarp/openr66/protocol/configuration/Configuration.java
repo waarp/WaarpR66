@@ -191,6 +191,10 @@ public class Configuration {
 	 */
 	private byte[] SERVERADMINKEY = null;
 	/**
+	 * Server Administration Key file
+	 */
+	public String serverKeyFile = null;
+	/**
 	 * Server Actual Authentication
 	 */
 	public DbHostAuth HOST_AUTH;
@@ -354,6 +358,10 @@ public class Configuration {
 	 * Crypto Key
 	 */
 	public Des cryptoKey = null;
+	/**
+	 * Associated file for CryptoKey
+	 */
+	public String cryptoFile = null;
 
 	/**
 	 * List of all Server Channels to enable the close call on them using Netty ChannelGroup

@@ -1126,6 +1126,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					runner = new DbTaskRunner(localChannelReference.getDbSession(),
 							session, rule, packet.getSpecialId(),
 							requester, requested);
+					if (! runner.isSender()) {
+						logger.debug("New filename ? :" +packet.getFilename());
+						runner.setOriginalFilename(packet.getFilename());
+						runner.setFilename(packet.getFilename());
+					}
 					try {
 						if (runner.restart(false)) {
 							runner.saveStatus();
@@ -1237,6 +1242,19 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					runner.getFilename());
 			session.newState(VALID);
 			ValidPacket validPacket = new ValidPacket("Change Filename by Pre action on sender",
+					runner.getFilename(), LocalPacketFactory.REQUESTPACKET);
+			ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+					validPacket, true);
+		} else if ((!packet.getFilename().equals(runner.getOriginalFilename())) 
+				&& runner.isSender() && runner.isInTransfer()
+				&& runner.getRank() == 0 && (!packet.isToValidate())) {
+			// File was modify at the very beginning (using wildcards)
+			// and the remote host has already received the request packet
+			// => Informs the receiver of the new name
+			logger.debug("Will send a modification of filename due to wildcard: " +
+					runner.getFilename());
+			session.newState(VALID);
+			ValidPacket validPacket = new ValidPacket("Change Filename by Wildcard on sender",
 					runner.getFilename(), LocalPacketFactory.REQUESTPACKET);
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference,
 					validPacket, true);

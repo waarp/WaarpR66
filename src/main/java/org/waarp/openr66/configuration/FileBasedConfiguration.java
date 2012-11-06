@@ -776,6 +776,7 @@ public class FileBasedConfiguration {
 		} else {
 			String skey = value.getString();
 			// load key from file
+			config.serverKeyFile = skey;
 			File key = new File(skey);
 			if (!key.canRead()) {
 				logger.error("Unable to read Password in Config file from " + skey);
@@ -1292,6 +1293,7 @@ public class FileBasedConfiguration {
 			return false;
 		}
 		String filename = value.getString();
+		config.cryptoFile = filename;
 		File key = new File(filename);
 		Des des = new Des();
 		try {

@@ -280,7 +280,11 @@ public class TransferUtils {
 			}
 		}
 		try {
-			session.setFileAfterPreRunner(false);
+			try {
+				session.setFileAfterPreRunner(false);
+			} catch (CommandAbstractException e) {
+				throw new OpenR66RunnerErrorException(e);
+			}
 		} catch (OpenR66RunnerErrorException e) {
 			logger.error("Cannot recreate file: {}", taskRunner.getFilename());
 			taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);
