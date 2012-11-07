@@ -6,6 +6,9 @@
 	</properties>
 	<body>
 		<release version="2.4.10" date="2012-10-15" description="Fix release">
+			<action dev="Frederic Bregier" type="fix">Fix wildcard file as input</action>
+			<action dev="Frederic Bregier" type="fix">Add Keywords in rule helper</action>
+			<action dev="Frederic Bregier" type="add">Add support for global Digest (optional)</action>
 			<action dev="Frederic Bregier" type="add">Allow partially request to itself</action>
 			<action dev="Frederic Bregier" type="fix">Update Commons to have less dependency with Netty</action>
 		</release>

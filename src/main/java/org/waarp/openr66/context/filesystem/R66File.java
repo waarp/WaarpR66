@@ -122,17 +122,21 @@ public class R66File extends FilesystemBasedFileImpl {
 				// Last block (in fact, no data to read)
 				retrieveDone = true;
 				return;
-			}			
-			try {
-				digest = new FilesystemBasedDigest(Configuration.configuration.digest);
-			} catch (NoSuchAlgorithmException e2) {
-				// ignore
+			}
+			if (Configuration.configuration.globalDigest) {
+				try {
+					digest = new FilesystemBasedDigest(Configuration.configuration.digest);
+				} catch (NoSuchAlgorithmException e2) {
+					// ignore
+				}
 			}
 			ChannelFuture future1 = null, future2 = null;
 			if ((block != null && (running.get()))) {
 				future1 = RetrieveRunner.writeWhenPossible(
 						block, localChannelReference);
-				FileUtils.computeGlobalHash(digest, block.getBlock());
+				if (Configuration.configuration.globalDigest) {
+					FileUtils.computeGlobalHash(digest, block.getBlock());
+				}
 			}
 			// While not last block
 			while (block != null && (!block.isEOF()) && (running.get())) {
@@ -151,7 +155,9 @@ public class R66File extends FilesystemBasedFileImpl {
 				}
 				future2 = RetrieveRunner.writeWhenPossible(
 						block, localChannelReference);
-				FileUtils.computeGlobalHash(digest, block.getBlock());
+				if (Configuration.configuration.globalDigest) {
+					FileUtils.computeGlobalHash(digest, block.getBlock());
+				}
 				try {
 					future1.await();
 				} catch (InterruptedException e) {

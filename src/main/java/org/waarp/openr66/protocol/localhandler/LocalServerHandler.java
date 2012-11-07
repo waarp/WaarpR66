@@ -1432,13 +1432,15 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				return;
 			}
 		}
-		if (globalDigest == null) {
-			try {
-				globalDigest = new FilesystemBasedDigest(Configuration.configuration.digest);
-			} catch (NoSuchAlgorithmException e) {
+		if (Configuration.configuration.globalDigest) {
+			if (globalDigest == null) {
+				try {
+					globalDigest = new FilesystemBasedDigest(Configuration.configuration.digest);
+				} catch (NoSuchAlgorithmException e) {
+				}
 			}
+			FileUtils.computeGlobalHash(globalDigest, packet.getData());
 		}
-		FileUtils.computeGlobalHash(globalDigest, packet.getData());
 		if (session.getRunner().isRecvThrough() && localChannelReference.isRecvThroughMode()) {
 			localChannelReference.getRecvThroughHandler().writeChannelBuffer(packet.getData());
 			session.getRunner().incrementRank();

@@ -158,6 +158,10 @@ public class Configuration {
 	 */
 	public boolean extendedProtocol = true;
 	/**
+	 * Global digest
+	 */
+	public boolean globalDigest = true;
+	/**
 	 * White List of allowed Partners to use Business Requests
 	 */
 	public HashSet<String> businessWhiteSet = new HashSet<String>();

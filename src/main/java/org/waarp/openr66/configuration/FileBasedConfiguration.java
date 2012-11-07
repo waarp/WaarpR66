@@ -412,6 +412,10 @@ public class FileBasedConfiguration {
 	 */
 	private static final String XML_CHECKVERSION = "checkversion";
 	/**
+	 * Global digest by transfer enable
+	 */
+	private static final String XML_GLOBALDIGEST = "globaldigest";
+	/**
 	 * Check version in protocol
 	 */
 	private static final String XML_BUSINESSID = "businessid";
@@ -536,7 +540,8 @@ public class FileBasedConfiguration {
 			new XmlDecl(XmlType.INTEGER, XML_GAPRESTART),
 			new XmlDecl(XmlType.INTEGER, XML_BLOCKSIZE),
 			new XmlDecl(XmlType.INTEGER, XML_USETHRIFT),
-			new XmlDecl(XmlType.BOOLEAN, XML_CHECKVERSION)
+			new XmlDecl(XmlType.BOOLEAN, XML_CHECKVERSION),
+			new XmlDecl(XmlType.BOOLEAN, XML_GLOBALDIGEST)
 	};
 	/**
 	 * Structure of the Configuration file
@@ -1155,6 +1160,10 @@ public class FileBasedConfiguration {
 		if (value != null && (!value.isEmpty())) {
 			config.extendedProtocol = value.getBoolean();
 			logger.warn("ExtendedProtocol= " + config.extendedProtocol);
+		}
+		value = hashConfig.get(XML_GLOBALDIGEST);
+		if (value != null && (!value.isEmpty())) {
+			config.globalDigest = value.getBoolean();
 		}
 		alreadySetLimit = true;
 		return true;
