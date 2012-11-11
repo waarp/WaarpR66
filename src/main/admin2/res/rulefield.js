@@ -6,7 +6,7 @@ var dialog_inputName = '';
 // Current tasks array
 var arrayTasks = new Array();
 // Available Task's types
-var availableTasks = new Array("LOG", "MOVE", "MOVERENAME", "COPY", "COPYRENAME", "EXEC", "EXECMOVE", "EXECOUTPUT", "EXECJAVA", "TRANSFER", "VALIDFILEPATH", "DELETE", "LINKRENAME", "RESCHEDULE", "TAR", "ZIP", "TRANSCODE");
+var availableTasks = new Array("LOG", "MOVE", "MOVERENAME", "COPY", "COPYRENAME", "EXEC", "EXECMOVE", "EXECOUTPUT", "EXECJAVA", "TRANSFER", "VALIDFILEPATH", "DELETE", "LINKRENAME", "RESCHEDULE", "TAR", "ZIP", "TRANSCODE", "FTP");
 // Load dialog
 function dialog_load() {
 	// get container
@@ -192,9 +192,9 @@ function dialog_open(inputName, title) {
 	var dialog_title = document.getElementById('dialog_title');
 	var code = '';
 	if (dialog_input.id.charAt(0) == 'r') {
-		code = " Send ";
-	} else {
 		code = " Recv ";
+	} else {
+		code = " Send ";
 	}
 	if (dialog_input.id.charAt(1) == 'e') {
 		code = code + " Error Tasks";

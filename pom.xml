@@ -123,6 +123,11 @@
     	<version>1.0.10</version>
     	<optional>true</optional>
     </dependency>
+    <dependency>
+    	<groupId>Waarp</groupId>
+    	<artifactId>WaarpFtpClient</artifactId>
+    	<version>1.0.0</version>
+    </dependency>
   </dependencies>
   <properties>
   	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
