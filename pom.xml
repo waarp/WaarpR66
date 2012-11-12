@@ -262,6 +262,8 @@
 				-group "Waarp R66 Configuration file based loaders package" "org.waarp.openr66.configuration*"
 				-group "Waarp R66 Context package" "org.waarp.openr66.context*"
 				-group "Waarp R66 Commander package" "org.waarp.openr66.commander*"
+				-group "Waarp R66 Service Windows package" "org.waarp.openr66.service*"
+				-group "Waarp R66 Thrift Interface package" "org.waarp.openr66.thrift*"
 
 	            -sourceclasspath ${basedir}/target/classes
 	          </additionalparam>
