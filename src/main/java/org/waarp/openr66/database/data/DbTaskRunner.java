@@ -3235,6 +3235,17 @@ public class DbTaskRunner extends AbstractDbData {
 		return false;
 	}
 
+
+	/**
+	 * 
+	 * @return True if the request is a self request (same host on both side)
+	 */
+	public boolean isSelfRequest() {
+		return ((this.requestedHostId.equals(Configuration.configuration.HOST_ID) || 
+				this.requestedHostId.equals(Configuration.configuration.HOST_SSLID)) &&
+				(this.requesterHostId.equals(Configuration.configuration.HOST_ID) || 
+				this.requesterHostId.equals(Configuration.configuration.HOST_SSLID)));
+	}
 	/*
 	 * @param host default hostid
 	 * @return the ID to use when the request is loobpack
@@ -3626,5 +3637,13 @@ public class DbTaskRunner extends AbstractDbData {
 	public void deleteXmlWorkNoDb() {
 		File file = new File(backendXmlFilename());
 		file.delete();
+	}
+	
+	/**
+	 * Utility for "self request" mode only
+	 * @param sender
+	 */
+	public void setSender(boolean sender) {
+		this.isSender = sender;
 	}
 }

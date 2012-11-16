@@ -17,6 +17,11 @@
  */
 package org.waarp.openr66.context;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -40,8 +45,12 @@ import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.database.data.DbTaskRunner.TASKSTEP;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
+import org.waarp.openr66.protocol.localhandler.packet.EndRequestPacket;
+import org.waarp.openr66.protocol.localhandler.packet.RequestPacket;
+import org.waarp.openr66.protocol.utils.ChannelUtils;
 
 /**
  * The global object session in OpenR66, a session by local channel
@@ -902,4 +911,279 @@ public class R66Session implements SessionInterface {
 	public String getUniqueExtension() {
 		return Configuration.EXT_R66;
 	}
+	
+	/**
+	 * Set the runner, START from the PreTask if necessary, and prepare the file
+	 * 
+	 * @param runner
+	 *            the runner to set
+	 * @param packet toValidate True means the host is the requested one
+	 * @throws OpenR66RunnerErrorException
+	 */
+	public void setRunnerSelfRequest(DbTaskRunner runner, RequestPacket packet)
+			throws OpenR66RunnerErrorException {
+		if (!packet.isToValidate()) {
+			this.runner = runner;
+			setBusinessObject(Configuration.configuration.r66BusinessFactory.getBusinessInterface(this));
+			this.runner.checkThroughMode();
+			return;
+		}
+		this.runner = runner;
+		this.runner.setSender(true);
+		setBusinessObject(Configuration.configuration.r66BusinessFactory.getBusinessInterface(this));
+		this.runner.checkThroughMode();
+		if (this.businessObject != null) {
+			this.businessObject.checkAtStartup(this);
+		}
+
+		// Requested
+		// first act as sender
+		if (runner.isSendThrough()) {
+			// May not change dir as needed
+			// Change dir
+			try {
+				dir.changeDirectory(this.runner.getRule().sendPath);
+			} catch (CommandAbstractException e) {
+				// ignore
+			}
+		} else {
+			// Change dir
+			try {
+				dir.changeDirectory(this.runner.getRule().sendPath);
+			} catch (CommandAbstractException e) {
+				throw new OpenR66RunnerErrorException(e);
+			}
+		}
+		int laststep = runner.getGloballaststep();
+		if (runner.getGloballaststep() == TASKSTEP.NOTASK.ordinal() ||
+				runner.getGloballaststep() == TASKSTEP.PRETASK.ordinal()) {
+			setFileBeforePreRunner();
+			this.runner.setPreTask();
+			runner.saveStatus();
+			this.runner.run();
+			runner.saveStatus();
+			runner.setTransferTask(runner.getRank());
+		} else {
+			runner.reset();
+			runner.changeUpdatedInfo(UpdatedInfo.RUNNING);
+			runner.saveStatus();
+		}
+		// Now create the associated file
+		try {
+			setFileAfterPreRunner(true);
+		} catch (CommandAbstractException e2) {
+			// generated due to a possible wildcard not ready
+			file = null;
+		}
+		R66File r66FileSend = file;
+		File fileSend = file.getTrueFile();
+		if (runner.getGloballaststep() == TASKSTEP.TRANSFERTASK.ordinal()) {
+			if (this.businessObject != null) {
+				this.businessObject.checkAfterPreCommand(this);
+			}
+			if (localChannelReference != null) {
+				try {
+					this.localChannelReference.getFutureRequest().filesize = file.length();
+				} catch (CommandAbstractException e1) {
+				}
+			}
+		}
+		this.runner.saveStatus();
+		logger.info("Final init Sender: {}", this.runner);
+
+		// receiver
+		this.runner.setSender(false);
+		if (runner.isRecvThrough()) {
+			// May not change dir as needed
+			// Change dir
+			try {
+				dir.changeDirectory(this.runner.getRule().workPath);
+			} catch (CommandAbstractException e) {
+			}
+		} else {
+			// Change dir
+			try {
+				dir.changeDirectory(this.runner.getRule().workPath);
+			} catch (CommandAbstractException e) {
+				throw new OpenR66RunnerErrorException(e);
+			}
+		}
+		if (laststep == TASKSTEP.NOTASK.ordinal() ||
+				laststep == TASKSTEP.PRETASK.ordinal()) {
+			setFileBeforePreRunner();
+			this.runner.setPreTask();
+			runner.saveStatus();
+			this.runner.run();
+			runner.saveStatus();
+			runner.setTransferTask(runner.getRank());
+		} else {
+			runner.reset();
+			runner.changeUpdatedInfo(UpdatedInfo.RUNNING);
+			runner.saveStatus();
+		}
+		// Now create the associated file
+		try {
+			setFileAfterPreRunner(true);
+		} catch (CommandAbstractException e2) {
+			// generated due to a possible wildcard not ready
+			file = null;
+		}
+		R66File r66FileRecv = file;
+		File fileRecv = file.getTrueFile();
+		if (runner.getGloballaststep() == TASKSTEP.TRANSFERTASK.ordinal()) {
+			if (this.businessObject != null) {
+				this.businessObject.checkAfterPreCommand(this);
+			}
+			// Check file length according to rank
+			if (runner.isRecvThrough()) {
+				// no size can be checked
+			} else {
+				if (file == null) {
+					this.runner.saveStatus();
+					logger.info("Final PARTIAL init: {}", this.runner);
+					return;
+				}
+			}
+		}
+		this.runner.saveStatus();
+		logger.info("Final init: {}", this.runner);
+		// Send validation of Request packet
+		if (localChannelReference != null) {
+			if (packet.isToValidate()) {
+				packet.validate();
+				try {
+					ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, true);
+				} catch (OpenR66ProtocolPacketException e) {
+				}
+			}
+		}
+		
+		// now copy file
+		try {
+			r66FileRecv.closeFile();
+		} catch (CommandAbstractException e) {
+		}
+		try {
+			r66FileSend.closeFile();
+		} catch (CommandAbstractException e) {
+		}
+		FileInputStream inputStream;
+		try {
+			inputStream = new FileInputStream(fileSend);
+		} catch (FileNotFoundException e) {
+            throw new OpenR66RunnerErrorException("Error while copying", e);
+		}
+		FileOutputStream outputStream;
+		try {
+			outputStream = new FileOutputStream(fileRecv);
+		} catch (FileNotFoundException e) {
+			try {
+				inputStream.close();
+			} catch (IOException e1) {
+			}
+            throw new OpenR66RunnerErrorException("Error while copying", e);
+		}
+		try {
+            int read;
+            byte[] bytes = new byte[Configuration.BUFFERSIZEDEFAULT];
+            while ((read = inputStream.read(bytes)) > 0) {
+                outputStream.write(bytes, 0, read);
+            }
+            inputStream.close();
+            inputStream = null;
+            outputStream.flush();
+            outputStream.close();
+            outputStream = null;
+        } catch (IOException e) {
+            throw new OpenR66RunnerErrorException("Error while copying", e);
+        } finally {
+            if (outputStream != null) {
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    // ignore
+                }
+                outputStream = null;
+            }
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    // ignore
+                }
+                inputStream = null;
+            }
+        }
+		
+		// now post task
+		// receiver
+		R66Result result = new R66Result(this, false,
+				ErrorCode.TransferOk, runner);
+		if (this.businessObject != null) {
+			if (this.businessObject != null) {
+				this.businessObject.checkAfterTransfer(this);
+			}
+		}
+		try {
+			setFinalizeTransferSelfRequest(true, result);
+		} catch (OpenR66ProtocolSystemException e) {
+			throw new OpenR66RunnerErrorException("Error while post operation", e);
+		}
+		
+		// sender
+		this.runner.setSender(true);
+		file = r66FileSend;
+		try {
+			setFinalizeTransferSelfRequest(true, result);
+		} catch (OpenR66ProtocolSystemException e) {
+			throw new OpenR66RunnerErrorException("Error while post operation", e);
+		}
+		newState(R66FiniteDualStates.ENDREQUESTS);
+		if (localChannelReference != null) {
+			EndRequestPacket validPacket = new EndRequestPacket(
+					ErrorCode.CompleteOk.ordinal());
+			if (getExtendedProtocol() &&
+					getBusinessObject() != null &&
+					getBusinessObject().getInfo() != null) {
+				validPacket.setOptional(getBusinessObject().getInfo());
+			}
+			try {
+				ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+						validPacket, true);
+			} catch (OpenR66ProtocolPacketException e) {
+			}
+		}
+		runner.setAllDone();
+		try {
+			runner.saveStatus();
+		} catch (OpenR66RunnerErrorException e) {
+			// ignore
+		}
+		if (localChannelReference != null) {
+			localChannelReference.validateRequest(localChannelReference
+				.getFutureEndTransfer().getResult());
+			ChannelUtils.close(localChannelReference.getLocalChannel());
+		}
+	}
+
+	/**
+	 * Finalize the transfer step by running the error or post operation according to the status.
+	 * 
+	 * @param status
+	 * @param finalValue
+	 * @throws OpenR66RunnerErrorException
+	 * @throws OpenR66ProtocolSystemException
+	 */
+	public void setFinalizeTransferSelfRequest(boolean status, R66Result finalValue)
+			throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException {
+		logger.debug(status + ":" + finalValue + ":" + runner);
+		runner.finishTransferTask(ErrorCode.TransferOk);
+		runner.saveStatus();
+		logger.debug("Transfer " + status + " on {} and {}", file, runner);
+		runner.finalizeTransfer(localChannelReference, file, finalValue, status);
+		if (this.businessObject != null) {
+			this.businessObject.checkAfterPost(this);
+		}
+	}
+
 }

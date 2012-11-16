@@ -1189,6 +1189,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			errorMesg(channel, errorPacket);
 			return;
 		}
+		// XXX FIXME for SelfRequest
+		if (runner.isSelfRequest()) {
+			session.setRunnerSelfRequest(runner, packet);
+			Configuration.configuration.getLocalTransaction().setFromId(runner, localChannelReference);
+			logger.debug("Runner setup: " + (session.getRunner() != null));
+			return;
+		}
 		// Receiver can specify a rank different from database
 		if (runner.isSender()) {
 			logger.debug("Rank was: " + runner.getRank() + " -> " + packet.getRank());
@@ -2326,6 +2333,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				localChannelReference,
 				packet);
 		DbTaskRunner runner = session.getRunner();
+		logger.debug("Runner endRequest: " + (session.getRunner() != null));
 		if (runner != null) {
 			runner.setAllDone();
 			try {
@@ -2337,6 +2345,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		String optional = null;
 		if (session.getExtendedProtocol()) {
 			optional = packet.getOptional();
+		}
+		// XXX FIXME for SelfRequest
+		if (runner.isSelfRequest()) {
+			R66Result result = new R66Result(session, true,
+					ErrorCode.TransferOk, runner);
+			localChannelReference.validateRequest(result);
 		}
 		if (!localChannelReference.getFutureRequest().isDone()) {
 			// end of request

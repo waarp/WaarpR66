@@ -31,6 +31,7 @@ import org.waarp.openr66.client.RecvThroughHandler;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66FiniteDualStates;
 import org.waarp.openr66.context.R66Result;
+import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.context.authentication.R66Auth;
 import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
 import org.waarp.openr66.database.DbConstant;
@@ -122,6 +123,23 @@ public class ClientRunner extends Thread {
 		try {
 			if (activeRunners != null) {
 				activeRunners.add(this);
+			}
+			// XXX FIXME SelfRequest
+			if (taskRunner.isSelfRequest()) {
+				R66Session session = new R66Session();
+				RequestPacket packet = taskRunner.getRequest();
+				packet.validate();
+				try {
+					session.setRunnerSelfRequest(taskRunner, packet);
+				} catch (OpenR66RunnerErrorException e) {
+					logger.error("Runner Error: {} {}", e.getMessage(),
+							taskRunner.toShortString());
+					this.changeUpdatedInfo(UpdatedInfo.INERROR,
+							taskRunner.getErrorInfo());
+				}
+				logger.warn("DEBUG Runner Success: {}", 
+						taskRunner.toShortString());
+				return;
 			}
 			R66Future transfer;
 			try {
