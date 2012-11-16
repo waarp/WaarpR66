@@ -2336,10 +2336,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		logger.debug("Runner endRequest: " + (session.getRunner() != null));
 		if (runner != null) {
 			runner.setAllDone();
-			try {
-				runner.saveStatus();
-			} catch (OpenR66RunnerErrorException e) {
-				// ignore
+			// XXX FIXME for SelfRequest
+			if (! runner.isSelfRequest() || ! packet.isToValidate()) {
+				try {
+					runner.saveStatus();
+				} catch (OpenR66RunnerErrorException e) {
+					// ignore
+				}
 			}
 		}
 		String optional = null;
