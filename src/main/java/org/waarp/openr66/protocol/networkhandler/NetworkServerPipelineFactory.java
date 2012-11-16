@@ -48,7 +48,7 @@ public class NetworkServerPipelineFactory implements ChannelPipelineFactory {
 	public static final String LIMIT = "LIMIT";
 	public static final String LIMITCHANNEL = "LIMITCHANNEL";
 
-	private boolean server = false;
+	protected boolean server = false;
 
 	public NetworkServerPipelineFactory(boolean server) {
 		this.server = server;

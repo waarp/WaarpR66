@@ -370,7 +370,7 @@ public class Configuration {
 	/**
 	 * List of all Server Channels to enable the close call on them using Netty ChannelGroup
 	 */
-	private ChannelGroup serverChannelGroup = null;
+	protected ChannelGroup serverChannelGroup = null;
 	/**
 	 * Does the current program running as Server
 	 */
@@ -397,12 +397,12 @@ public class Configuration {
 	/**
 	 * ChannelFactory for Server part
 	 */
-	private ChannelFactory serverChannelFactory = null;
+	protected ChannelFactory serverChannelFactory = null;
 
 	/**
 	 * ThreadPoolExecutor for Server
 	 */
-	private volatile OrderedMemoryAwareThreadPoolExecutor serverPipelineExecutor;
+	protected volatile OrderedMemoryAwareThreadPoolExecutor serverPipelineExecutor;
 
 	/**
 	 * ThreadPoolExecutor for LocalServer
@@ -422,20 +422,20 @@ public class Configuration {
 	/**
 	 * Bootstrap for server
 	 */
-	private ServerBootstrap serverBootstrap = null;
+	protected ServerBootstrap serverBootstrap = null;
 
 	/**
 	 * Bootstrap for SSL server
 	 */
-	private ServerBootstrap serverSslBootstrap = null;
+	protected ServerBootstrap serverSslBootstrap = null;
 	/**
 	 * Factory for NON SSL Server
 	 */
-	private NetworkServerPipelineFactory networkServerPipelineFactory;
+	protected NetworkServerPipelineFactory networkServerPipelineFactory;
 	/**
 	 * Factory for SSL Server
 	 */
-	private NetworkSslServerPipelineFactory networkSslServerPipelineFactory;
+	protected NetworkSslServerPipelineFactory networkSslServerPipelineFactory;
 
 	/**
 	 * Bootstrap for Http server
@@ -472,7 +472,7 @@ public class Configuration {
 	/**
 	 * Timer for TrafficCounter
 	 */
-	private Timer timerTrafficCounter =
+	protected Timer timerTrafficCounter =
 			new HashedWheelTimer(
 					new WaarpThreadFactory(
 							"TimerTraffic"),
@@ -482,7 +482,7 @@ public class Configuration {
 	/**
 	 * Global TrafficCounter (set from global configuration)
 	 */
-	private volatile GlobalTrafficHandler globalTrafficShapingHandler = null;
+	protected volatile GlobalTrafficHandler globalTrafficShapingHandler = null;
 
 	/**
 	 * ObjectSizeEstimator
@@ -492,7 +492,7 @@ public class Configuration {
 	/**
 	 * LocalTransaction
 	 */
-	private LocalTransaction localTransaction;
+	protected LocalTransaction localTransaction;
 	/**
 	 * InternalRunner
 	 */
@@ -556,7 +556,7 @@ public class Configuration {
 	 */
 	public R66PrivateMib r66Mib = null;
 
-	private volatile boolean configured = false;
+	protected volatile boolean configured = false;
 
 	public static WaarpSecureKeyStore WaarpSecureKeyStore;
 
