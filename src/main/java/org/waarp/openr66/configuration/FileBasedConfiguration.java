@@ -344,7 +344,7 @@ public class FileBasedConfiguration {
 	private static final String XML_DELAYCOMMANDER = "delaycommand";
 
 	/**
-	 * Delay between two checks for Commander
+	 * Delay between two retry after bad connection
 	 */
 	private static final String XML_DELAYRETRY = "delayretry";
 

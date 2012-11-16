@@ -377,8 +377,12 @@ public class Monitoring implements WaarpInterfaceMonitor {
 				// Update value
 				// Overall status including past, future and current transfers
 				nbCountInfoToSubmit = CommanderNoDb.todoList.size();
-				nbCountInfoRunning = Configuration.configuration.getInternalRunner()
+				if (Configuration.configuration.getInternalRunner() != null) {
+					nbCountInfoRunning = Configuration.configuration.getInternalRunner()
 						.nbInternalRunner();
+				} else {
+					nbCountInfoRunning = Configuration.configuration.getServerChannelGroup().size();
+				}
 				// Current situation of all transfers, running or not
 				nbCountAllRunningStep = nbCountInfoRunning;
 			} else {
