@@ -105,7 +105,7 @@ public class R66File extends FilesystemBasedFileImpl {
 		LocalChannelReference localChannelReference = getSession()
 				.getLocalChannelReference();
 		FilesystemBasedDigest digest = null;
-
+		logger.debug("File to retrieve: " + this.toString());
 		try {
 			if (!isReady) {
 				return;

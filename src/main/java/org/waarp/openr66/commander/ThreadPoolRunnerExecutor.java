@@ -45,7 +45,7 @@ public class ThreadPoolRunnerExecutor extends ThreadPoolExecutor {
 		public void rejectedExecution(Runnable arg0, ThreadPoolExecutor arg1) {
 			ClientRunner runner = (ClientRunner) arg0;
 			runner.changeUpdatedInfo(AbstractDbData.UpdatedInfo.INERROR,
-					ErrorCode.Unknown);
+					ErrorCode.Unknown, true);
 		}
 
 	}

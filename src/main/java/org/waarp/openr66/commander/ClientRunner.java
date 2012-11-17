@@ -31,7 +31,6 @@ import org.waarp.openr66.client.RecvThroughHandler;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66FiniteDualStates;
 import org.waarp.openr66.context.R66Result;
-import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.context.authentication.R66Auth;
 import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
 import org.waarp.openr66.database.DbConstant;
@@ -114,32 +113,16 @@ public class ClientRunner extends Thread {
 	public void run() {
 		if (Configuration.configuration.isShutdown) {
 			taskRunner.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
-			try {
-				taskRunner.update();
-			} catch (WaarpDatabaseException e) {
-			}
+			taskRunner.forceSaveStatus();
 			return;
 		}
 		try {
 			if (activeRunners != null) {
 				activeRunners.add(this);
 			}
-			// XXX FIXME SelfRequest
+			// fix for SelfRequest
 			if (taskRunner.isSelfRequest()) {
-				R66Session session = new R66Session();
-				RequestPacket packet = taskRunner.getRequest();
-				packet.validate();
-				try {
-					session.setRunnerSelfRequest(taskRunner, packet);
-				} catch (OpenR66RunnerErrorException e) {
-					logger.error("Runner Error: {} {}", e.getMessage(),
-							taskRunner.toShortString());
-					this.changeUpdatedInfo(UpdatedInfo.INERROR,
-							taskRunner.getErrorInfo());
-				}
-				logger.warn("DEBUG Runner Success: {}", 
-						taskRunner.toShortString());
-				return;
+				taskRunner.setSenderByRequestToValidate(false);
 			}
 			R66Future transfer;
 			try {
@@ -157,11 +140,11 @@ public class ClientRunner extends Thread {
 				}
 				taskRunner.setErrorTask(localChannelReference);
 				try {
-					taskRunner.saveStatus();
+					taskRunner.forceSaveStatus();
 					taskRunner.run();
 				} catch (OpenR66RunnerErrorException e1) {
 					this.changeUpdatedInfo(UpdatedInfo.INERROR,
-							ErrorCode.ConnectionImpossible);
+							ErrorCode.ConnectionImpossible, true);
 				}
 				return;
 			} catch (OpenR66ProtocolPacketException e) {
@@ -289,7 +272,7 @@ public class ClientRunner extends Thread {
 				break;
 			default:
 				this.changeUpdatedInfo(UpdatedInfo.INERROR,
-						ErrorCode.ServerOverloaded);
+						ErrorCode.ServerOverloaded, true);
 		}
 		// redo if possible
 		if (retry && incRetry) {
@@ -342,6 +325,7 @@ public class ClientRunner extends Thread {
 				: "error"));
 		Channels.close(localChannelReference.getLocalChannel());
 		// now reload TaskRunner if it still exists (light client can forget it)
+		boolean isSender = taskRunner.isSender();
 		if (transfer.isSuccess()) {
 			try {
 				taskRunner.select();
@@ -349,7 +333,8 @@ public class ClientRunner extends Thread {
 				logger.debug("Not a problem but cannot find at the end the task");
 				taskRunner.setFrom(transfer.runner);
 			}
-			this.changeUpdatedInfo(UpdatedInfo.DONE, ErrorCode.CompleteOk);
+			taskRunner.setSender(isSender);
+			this.changeUpdatedInfo(UpdatedInfo.DONE, ErrorCode.CompleteOk, false);
 		} else {
 			try {
 				taskRunner.select();
@@ -357,6 +342,7 @@ public class ClientRunner extends Thread {
 				logger.debug("Not a problem but cannot find at the end the task");
 				taskRunner.setFrom(transfer.runner);
 			}
+			taskRunner.setSender(isSender);
 			// Case when we were interrupted
 			if (transfer.getResult() == null) {
 				switch (taskRunner.getUpdatedInfo()) {
@@ -366,7 +352,7 @@ public class ClientRunner extends Thread {
 						transfer.setResult(ok);
 						transfer.setSuccess();
 						this.changeUpdatedInfo(UpdatedInfo.DONE,
-								ErrorCode.CompleteOk);
+								ErrorCode.CompleteOk, false);
 						break;
 					case INERROR:
 					case INTERRUPTED:
@@ -376,7 +362,7 @@ public class ClientRunner extends Thread {
 						transfer.setResult(error);
 						transfer.cancel();
 						this.changeUpdatedInfo(UpdatedInfo.INERROR,
-								ErrorCode.Internal);
+								ErrorCode.Internal, false);
 				}
 				return transfer;
 			}
@@ -390,10 +376,7 @@ public class ClientRunner extends Thread {
 							localChannelReference);
 				} catch (OpenR66RunnerErrorException e) {
 					this.taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);
-					try {
-						this.taskRunner.update();
-					} catch (WaarpDatabaseException e1) {
-					}
+					this.taskRunner.forceSaveStatus();
 				}
 			} else {
 				switch (taskRunner.getUpdatedInfo()) {
@@ -404,7 +387,7 @@ public class ClientRunner extends Thread {
 						break;
 					default:
 						this.changeUpdatedInfo(UpdatedInfo.INERROR,
-								transfer.getResult().code);
+								transfer.getResult().code, false);
 				}
 			}
 		}
@@ -424,7 +407,7 @@ public class ClientRunner extends Thread {
 			throws OpenR66ProtocolNoConnectionException,
 			OpenR66RunnerErrorException, OpenR66ProtocolPacketException,
 			OpenR66ProtocolNotYetConnectionException {
-		this.changeUpdatedInfo(UpdatedInfo.RUNNING, ErrorCode.Running);
+		this.changeUpdatedInfo(UpdatedInfo.RUNNING, ErrorCode.Running, true);
 		long id = taskRunner.getSpecialId();
 		String tid;
 		if (id == DbConstant.ILLEGALVALUE) {
@@ -448,7 +431,7 @@ public class ClientRunner extends Thread {
 			// Don't have to restart a task for itself (or should use requester)
 			logger.warn("Requested host cannot initiate itself the request");
 			this.changeUpdatedInfo(UpdatedInfo.INERROR,
-					ErrorCode.LoopSelfRequestedHost);
+					ErrorCode.LoopSelfRequestedHost, true);
 			throw new OpenR66ProtocolNoConnectionException(
 					"Requested host cannot initiate itself the request");
 		}
@@ -457,7 +440,7 @@ public class ClientRunner extends Thread {
 		if (host == null) {
 			logger.error("Requested host cannot be found: " +
 					taskRunner.getRequested());
-			this.changeUpdatedInfo(UpdatedInfo.INERROR, ErrorCode.NotKnownHost);
+			this.changeUpdatedInfo(UpdatedInfo.INERROR, ErrorCode.NotKnownHost, true);
 			throw new OpenR66ProtocolNoConnectionException(
 					"Requested host cannot be found " +
 							taskRunner.getRequested());
@@ -465,7 +448,7 @@ public class ClientRunner extends Thread {
 		if (host.isClient()) {
 			logger.debug("Cannot initiate a connection with a client: {}", host);
 			this.changeUpdatedInfo(UpdatedInfo.INERROR,
-					ErrorCode.ConnectionImpossible);
+					ErrorCode.ConnectionImpossible, true);
 			throw new OpenR66ProtocolNoConnectionException(
 					"Cannot connect to client " + host.toString());
 		}
@@ -492,14 +475,14 @@ public class ClientRunner extends Thread {
 							host);
 					retry = " and retries limit is reached so stop here";
 					this.changeUpdatedInfo(UpdatedInfo.INERROR,
-							ErrorCode.ConnectionImpossible);
+							ErrorCode.ConnectionImpossible, true);
 					taskRunner
 							.setLocalChannelReference(new LocalChannelReference());
 					throw new OpenR66ProtocolNoConnectionException(
 							"Cannot connect to server " + host.toString() + retry);
 				}
 				this.changeUpdatedInfo(UpdatedInfo.TOSUBMIT,
-						ErrorCode.ConnectionImpossible);
+						ErrorCode.ConnectionImpossible, true);
 				throw new OpenR66ProtocolNotYetConnectionException(
 						"Cannot connect to server " + host.toString() + retry);
 			} else {
@@ -508,7 +491,7 @@ public class ClientRunner extends Thread {
 						host);
 				retry = " and retries limit is reached so stop here";
 				this.changeUpdatedInfo(UpdatedInfo.INERROR,
-						ErrorCode.ConnectionImpossible);
+						ErrorCode.ConnectionImpossible, true);
 				taskRunner
 						.setLocalChannelReference(new LocalChannelReference());
 				throw new OpenR66ProtocolNoConnectionException(
@@ -531,7 +514,7 @@ public class ClientRunner extends Thread {
 				// propose to redo
 				logger.warn("Cannot transfer request to " + host.toString());
 				this.changeUpdatedInfo(UpdatedInfo.INTERRUPTED,
-						ErrorCode.Internal);
+						ErrorCode.Internal, true);
 				Channels.close(localChannelReference.getLocalChannel());
 				localChannelReference = null;
 				host = null;
@@ -552,7 +535,7 @@ public class ClientRunner extends Thread {
 					"Requester is not Sender so decrease if possible the rank {}",
 					taskRunner);
 			taskRunner.restartRank();
-			taskRunner.saveStatus();
+			taskRunner.forceSaveStatus();
 			logger.debug(
 					"Requester is not Sender so new rank is " +
 							taskRunner.getRank() + " {}", taskRunner);
@@ -567,7 +550,7 @@ public class ClientRunner extends Thread {
 		} catch (OpenR66ProtocolPacketException e) {
 			// propose to redo
 			logger.warn("Cannot transfer request to " + host.toString());
-			this.changeUpdatedInfo(UpdatedInfo.INTERRUPTED, ErrorCode.Internal);
+			this.changeUpdatedInfo(UpdatedInfo.INTERRUPTED, ErrorCode.Internal, true);
 			Channels.close(localChannelReference.getLocalChannel());
 			localChannelReference = null;
 			host = null;
@@ -586,12 +569,16 @@ public class ClientRunner extends Thread {
 	 * @param info
 	 */
 	public void changeUpdatedInfo(AbstractDbData.UpdatedInfo info,
-			ErrorCode code) {
+			ErrorCode code, boolean force) {
 		this.taskRunner.changeUpdatedInfo(info);
 		this.taskRunner.setErrorExecutionStatus(code);
-		try {
-			this.taskRunner.update();
-		} catch (WaarpDatabaseException e) {
+		if (force) {
+			this.taskRunner.forceSaveStatus();
+		} else {
+			try {
+				this.taskRunner.saveStatus();
+			} catch (OpenR66RunnerErrorException e) {
+			}
 		}
 	}
 
