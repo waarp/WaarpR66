@@ -326,10 +326,7 @@ public class RequestTransfer implements Runnable {
 	private void setDone(DbTaskRunner runner) {
 		if (runner.getUpdatedInfo() != UpdatedInfo.DONE) {
 			runner.changeUpdatedInfo(UpdatedInfo.DONE);
-			try {
-				runner.saveStatus();
-			} catch (OpenR66RunnerErrorException e) {
-			}
+			runner.forceSaveStatus();
 		}
 	}
 

@@ -344,7 +344,7 @@ public class FileBasedConfiguration {
 	private static final String XML_DELAYCOMMANDER = "delaycommand";
 
 	/**
-	 * Delay between two checks for Commander
+	 * Delay between two retry after bad connection
 	 */
 	private static final String XML_DELAYRETRY = "delayretry";
 
@@ -411,6 +411,10 @@ public class FileBasedConfiguration {
 	 * Check version in protocol
 	 */
 	private static final String XML_CHECKVERSION = "checkversion";
+	/**
+	 * Global digest by transfer enable
+	 */
+	private static final String XML_GLOBALDIGEST = "globaldigest";
 	/**
 	 * Check version in protocol
 	 */
@@ -536,7 +540,8 @@ public class FileBasedConfiguration {
 			new XmlDecl(XmlType.INTEGER, XML_GAPRESTART),
 			new XmlDecl(XmlType.INTEGER, XML_BLOCKSIZE),
 			new XmlDecl(XmlType.INTEGER, XML_USETHRIFT),
-			new XmlDecl(XmlType.BOOLEAN, XML_CHECKVERSION)
+			new XmlDecl(XmlType.BOOLEAN, XML_CHECKVERSION),
+			new XmlDecl(XmlType.BOOLEAN, XML_GLOBALDIGEST)
 	};
 	/**
 	 * Structure of the Configuration file
@@ -649,6 +654,8 @@ public class FileBasedConfiguration {
 		XmlValue value = hashConfig.get(XML_SERVER_HOSTID);
 		if (value != null && (!value.isEmpty())) {
 			config.HOST_ID = value.getString();
+			config.REQER_HOST_ID = config.HOST_ID + "__rd__";
+			config.REQED_HOST_ID = config.HOST_ID + "__rr__";
 		} else {
 			logger.error("Unable to find Host ID in Config file");
 			return false;
@@ -774,6 +781,7 @@ public class FileBasedConfiguration {
 		} else {
 			String skey = value.getString();
 			// load key from file
+			config.serverKeyFile = skey;
 			File key = new File(skey);
 			if (!key.canRead()) {
 				logger.error("Unable to read Password in Config file from " + skey);
@@ -1153,6 +1161,10 @@ public class FileBasedConfiguration {
 			config.extendedProtocol = value.getBoolean();
 			logger.warn("ExtendedProtocol= " + config.extendedProtocol);
 		}
+		value = hashConfig.get(XML_GLOBALDIGEST);
+		if (value != null && (!value.isEmpty())) {
+			config.globalDigest = value.getBoolean();
+		}
 		alreadySetLimit = true;
 		return true;
 	}
@@ -1290,6 +1302,7 @@ public class FileBasedConfiguration {
 			return false;
 		}
 		String filename = value.getString();
+		config.cryptoFile = filename;
 		File key = new File(filename);
 		Des des = new Des();
 		try {

@@ -26,7 +26,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
-import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.logging.WaarpInternalLogger;
@@ -94,10 +93,7 @@ public class InternalRunner {
 			if (threadPoolExecutor.getActiveCount() + 5 > Configuration.configuration.RUNNER_THREAD) {
 				// too many current active threads
 				taskRunner.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
-				try {
-					taskRunner.update();
-				} catch (WaarpDatabaseException e) {
-				}
+				taskRunner.forceSaveStatus();
 				return;
 			}
 			logger.debug("Will run {}", taskRunner);

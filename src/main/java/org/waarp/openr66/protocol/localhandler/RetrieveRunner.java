@@ -100,6 +100,7 @@ public class RetrieveRunner extends Thread {
 			Thread.currentThread().setName("RetrieveRunner: " + channel.getId());
 			try {
 				if (session.getRunner().getGloballaststep() == TASKSTEP.POSTTASK.ordinal()) {
+					logger.debug("Restart from POSTTASK: EndTransfer");
 					// restart from PostTask global step so just end now
 					try {
 						ChannelUtils.writeEndTransfer(localChannelReference);
@@ -109,6 +110,7 @@ public class RetrieveRunner extends Thread {
 						return;
 					}
 				} else {
+					logger.debug("Start retrieve operation (send)");
 					session.getFile().retrieveBlocking(running);
 				}
 			} catch (OpenR66RunnerErrorException e) {

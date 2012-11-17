@@ -451,6 +451,34 @@ public class FileUtils {
 		}
 		return ChannelBuffers.wrappedBuffer(newkey);
 	}
+	
+	/**
+	 * Compute global hash (if possible)
+	 * @param digest
+	 * @param block
+	 */
+	public static void computeGlobalHash(FilesystemBasedDigest digest, ChannelBuffer buffer) {
+		if (digest == null) {
+			return;
+		}
+		byte[] bytes = null;
+		int start = 0;
+		int length = buffer.readableBytes();
+		if (buffer.hasArray()) {
+			start = buffer.arrayOffset();
+			bytes = buffer.array();
+			if (bytes.length > start + length) {
+				byte[] temp = new byte[length];
+				System.arraycopy(bytes, start, temp, 0, length);
+				start = 0;
+				bytes = temp;
+			}
+		} else {
+			bytes = new byte[length];
+			buffer.getBytes(buffer.readerIndex(), bytes);
+		}
+		digest.Update(bytes, start, length);
+	}
 
 	/**
 	 * Write one fileChannel to another one. Close the fileChannels

@@ -242,7 +242,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 		}
 		return auth;
 	}
-
+	
 	/**
 	 * Special Authentication for local execution
 	 * 
@@ -251,8 +251,15 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 	 */
 	public void specialNoSessionAuth(boolean isSSL, String hostid) {
 		this.isIdentified = true;
-		DbHostAuth auth = R66Auth.getServerAuth(DbConstant.admin.session,
-				hostid);
+		DbHostAuth auth = null;
+		try {
+			auth = new DbHostAuth(DbConstant.admin.session,
+					hostid);
+		} catch (WaarpDatabaseException e1) {
+		}
+		if (auth == null) {
+			auth = new DbHostAuth(DbConstant.admin.session, hostid, "127.0.0.1", 6666, isSSL, null, true, false);
+		}
 		currentAuth = auth;
 		setIsIdentified(true);
 		user = auth.getHostid();

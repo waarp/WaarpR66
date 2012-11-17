@@ -41,10 +41,10 @@ import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacketCodec;
  * 
  */
 public class NetworkSslServerPipelineFactory implements ChannelPipelineFactory {
-	private final boolean isClient;
+	protected final boolean isClient;
 	public static WaarpSslContextFactory waarpSslContextFactory;
 	public static WaarpSecureKeyStore WaarpSecureKeyStore;
-	private final ExecutorService executorService;
+	protected final ExecutorService executorService;
 	/**
 	 * Global HashedWheelTimer
 	 */

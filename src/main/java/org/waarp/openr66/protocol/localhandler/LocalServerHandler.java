@@ -40,6 +40,7 @@ import java.io.File;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -63,6 +64,7 @@ import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseNoDataException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
+import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.exception.FileTransferException;
 import org.waarp.common.file.DataBlock;
 import org.waarp.common.logging.WaarpInternalLogger;
@@ -125,6 +127,7 @@ import org.waarp.openr66.protocol.networkhandler.NetworkChannel;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelCloseTimer;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
+import org.waarp.openr66.protocol.utils.FileUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
 import org.waarp.openr66.protocol.utils.TransferUtils;
 
@@ -148,7 +151,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
 	 * Local Channel Reference
 	 */
 	private volatile LocalChannelReference localChannelReference;
-
+	/**
+	 * Global Digest in receive
+	 */
+	private volatile FilesystemBasedDigest globalDigest;
+	
 	/*
 	 * (non-Javadoc)
 	 * @see org.jboss.netty.channel.SimpleChannelHandler#channelClosed(org.jboss.
@@ -1048,6 +1055,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		}
 		session.setBlockSize(blocksize);
 		DbTaskRunner runner;
+		// requested
+		boolean isRetrieve = DbTaskRunner.getSenderByRequestPacket(packet);
 		if (packet.getSpecialId() != DbConstant.ILLEGALVALUE) {
 			// Reload or create
 			String requested = DbTaskRunner.getRequested(session, packet);
@@ -1059,6 +1068,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					runner = new DbTaskRunner(localChannelReference.getDbSession(),
 							session, rule, packet.getSpecialId(),
 							requester, requested);
+					runner.setSender(isRetrieve);
 					if (runner.isAllDone()) {
 						// truly an error since done
 						session.setStatus(31);
@@ -1095,7 +1105,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					}
 				} catch (WaarpDatabaseNoDataException e) {
 					// Reception of request from requester host
-					boolean isRetrieve = RequestPacket.isRecvMode(packet.getMode());
 					try {
 						runner = new DbTaskRunner(localChannelReference.getDbSession(),
 								session, rule, isRetrieve, packet);
@@ -1119,16 +1128,27 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					runner = new DbTaskRunner(localChannelReference.getDbSession(),
 							session, rule, packet.getSpecialId(),
 							requester, requested);
+					runner.setSender(isRetrieve);
+					// FIX check for SelfRequest
+					if (runner.isSelfRequest()) {
+						runner.setFilename(runner.getOriginalFilename());
+					}
+					if (! runner.isSender()) {
+						logger.debug("New filename ? :" +packet.getFilename());
+						runner.setOriginalFilename(packet.getFilename());
+						runner.setFilename(packet.getFilename());
+					}
 					try {
 						if (runner.restart(false)) {
-							runner.saveStatus();
+							if (!runner.isSelfRequest()) {
+								runner.saveStatus();
+							}
 						}
 					} catch (OpenR66RunnerErrorException e) {
 					}
 				} catch (WaarpDatabaseException e) {
 					if (localChannelReference.getDbSession() == null) {
 						// Special case of no database client
-						boolean isRetrieve = (!RequestPacket.isRecvMode(packet.getMode()));
 						try {
 							runner = new DbTaskRunner(localChannelReference.getDbSession(),
 									session, rule, isRetrieve, packet);
@@ -1150,10 +1170,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			// Very new request
 			// should not be the case (the requester should always set the id)
 			logger.error("NO TransferID specified: SHOULD NOT BE THE CASE");
-			boolean isRetrieve = packet.isRetrieve();
-			if (!packet.isToValidate()) {
-				isRetrieve = !isRetrieve;
-			}
 			try {
 				runner = new DbTaskRunner(localChannelReference.getDbSession(),
 						session, rule, isRetrieve, packet);
@@ -1233,6 +1249,32 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					runner.getFilename(), LocalPacketFactory.REQUESTPACKET);
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference,
 					validPacket, true);
+		} else if ((!packet.getFilename().equals(runner.getOriginalFilename())) 
+				&& runner.isSender() && runner.isInTransfer()
+				&& runner.getRank() == 0 && (!packet.isToValidate())) {
+			// File was modify at the very beginning (using wildcards)
+			// and the remote host has already received the request packet
+			// => Informs the receiver of the new name
+			logger.debug("Will send a modification of filename due to wildcard: " +
+					runner.getFilename());
+			session.newState(VALID);
+			ValidPacket validPacket = new ValidPacket("Change Filename by Wildcard on sender",
+					runner.getFilename(), LocalPacketFactory.REQUESTPACKET);
+			ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+					validPacket, true);
+		} else if (runner.isSelfRequest() && runner.isSender() && runner.isInTransfer()
+				&& runner.getRank() == 0 && (!packet.isToValidate())) {
+			// FIX SelfRequest
+			// File could be modified at the very beginning (using wildcards)
+			// and the remote host has already received the request packet
+			// => Informs the receiver of the new name
+			logger.debug("Will send a modification of filename due to wildcard: " +
+					runner.getFilename());
+			session.newState(VALID);
+			ValidPacket validPacket = new ValidPacket("Change Filename by Wildcard on sender",
+					runner.getFilename(), LocalPacketFactory.REQUESTPACKET);
+			ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+					validPacket, true);
 		}
 		session.setReady(true);
 		Configuration.configuration.getLocalTransaction().setFromId(runner, localChannelReference);
@@ -1275,6 +1317,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 						new R66Result(session, false, ErrorCode.PreProcessingOk, runner));
 			} else {
 				// Automatically send data now
+				logger.debug("Now ready to continue with runRetrieve");
 				NetworkTransaction.runRetrieve(session, channel);
 			}
 		}
@@ -1407,6 +1450,15 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				return;
 			}
 		}
+		if (Configuration.configuration.globalDigest) {
+			if (globalDigest == null) {
+				try {
+					globalDigest = new FilesystemBasedDigest(Configuration.configuration.digest);
+				} catch (NoSuchAlgorithmException e) {
+				}
+			}
+			FileUtils.computeGlobalHash(globalDigest, packet.getData());
+		}
 		if (session.getRunner().isRecvThrough() && localChannelReference.isRecvThroughMode()) {
 			localChannelReference.getRecvThroughHandler().writeChannelBuffer(packet.getData());
 			session.getRunner().incrementRank();
@@ -1488,6 +1540,23 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		}
 		// Check end of transfer
 		if (packet.isToValidate()) {
+			// check if possible Global Digest
+			String hash = packet.getOptional();
+			if (hash != null && globalDigest != null) {
+				String localhash = FilesystemBasedDigest.getHex(globalDigest.Final());
+				globalDigest = null;
+				if (! localhash.equalsIgnoreCase(hash)) {
+					// bad global Hash
+					//session.getRunner().setRankAtStartup(0);
+					R66Result result = new R66Result(new OpenR66RunnerErrorException("Global Hash in error, transfer in error and rank should be reset to 0"),
+							session, false, ErrorCode.MD5Error, session.getRunner());
+					localChannelReference.invalidateRequest(result);
+					throw (OpenR66RunnerErrorException) result.exception;
+				} else {
+					logger.debug("Global digest ok");
+				}
+			}
+			globalDigest = null;
 			session.newState(ENDTRANSFERS);
 			if (!localChannelReference.getFutureRequest().isDone()) {
 				// Finish with post Operation
@@ -2275,6 +2344,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				localChannelReference,
 				packet);
 		DbTaskRunner runner = session.getRunner();
+		logger.debug("Runner endRequest: " + (session.getRunner() != null));
 		if (runner != null) {
 			runner.setAllDone();
 			try {

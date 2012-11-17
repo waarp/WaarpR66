@@ -129,6 +129,8 @@ public abstract class AbstractTransfer implements Runnable {
 				future.setFailure(e);
 				return null;
 			}
+			// requested
+			taskRunner.setSenderByRequestToValidate(true);
 			if (fileinfo != null && !fileinfo.equals(NOINFO)) {
 				taskRunner.setFileInformation(fileinfo);
 			}

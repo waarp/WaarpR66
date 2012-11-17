@@ -69,6 +69,9 @@
 <MENU_INSERTION nom="limitlowbandwidth"/>
 <MENU_INSERTION nom="digest"/>
 <MENU_INSERTION nom="usefastmd5"/>
+<MENU_INSERTION nom="usethrift"/>
+<MENU_INSERTION nom="checkversion"/>
+<MENU_INSERTION nom="globaldigest"/>
 <MENU_INSERTION nom="dbdriver"/>
 <MENU_INSERTION nom="dbserver"/>
 <MENU_INSERTION nom="dbuser"/>
@@ -156,6 +159,9 @@
 <AFFICHAGE_ELEMENT type="typesimple" element="limitlowbandwidth"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="digest"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="usefastmd5"/>
+<AFFICHAGE_ELEMENT type="typesimple" element="usethrift"/>
+<AFFICHAGE_ELEMENT type="typesimple" element="checkversion"/>
+<AFFICHAGE_ELEMENT type="typesimple" element="globaldigest"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="dbdriver"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="dbserver"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="dbuser"/>
@@ -550,6 +556,24 @@ Digest to use: CRC32=0, ADLER32=1, MD5=2, MD2=3, SHA1=4, SHA256=5, SHA384=6, SHA
 <TITRE>usefastmd5</TITRE>
 <DOCUMENTATION>
 Usage of FastMD5 library. The library greatly improves the performances for the MD5 computations
+                    </DOCUMENTATION>
+</STRINGS_ELEMENT>
+<STRINGS_ELEMENT element="usethrift">
+<TITRE>usethrift</TITRE>
+<DOCUMENTATION>
+If set to less or = 0, will not use Thrift support, if set greater than 0 (preferably greater than 1024) will enable Thrift support on the TCP port specified by this number
+                    </DOCUMENTATION>
+</STRINGS_ELEMENT>
+<STRINGS_ELEMENT element="checkversion">
+<TITRE>checkversion</TITRE>
+<DOCUMENTATION>
+New protocol extension using checkversion to check the compatibility
+                    </DOCUMENTATION>
+</STRINGS_ELEMENT>
+<STRINGS_ELEMENT element="globaldigest">
+<TITRE>globaldigest</TITRE>
+<DOCUMENTATION>
+Global digest by transfer enable
                     </DOCUMENTATION>
 </STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="dbdriver">

@@ -7,8 +7,8 @@
 
     <xsd:notation
         name="versionLimit"
-        public="2.4.9"
-        system="2.4.9" />
+        public="2.4.10"
+        system="2.4.10" />
 
     <xsd:complexType name="LimitType" >
         <xsd:all>
@@ -398,6 +398,51 @@ Digest to use: CRC32=0, ADLER32=1, MD5=2, MD2=3, SHA1=4, SHA256=5, SHA384=6, SHA
                     </xsd:appinfo>
                     <xsd:documentation>
 Usage of FastMD5 library. The library greatly improves the performances for the MD5 computations
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element
+                name="usethrift"
+                default="0"
+                maxOccurs="1"
+                minOccurs="0"
+                type="nonNegInteger" >
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <fg:node-info message="If set to less or = 0, will not use Thrift support, if set greater than 0 (preferably greater than 1024) will enable Thrift support on the TCP port specified by this number" />
+                    </xsd:appinfo>
+                    <xsd:documentation>
+If set to less or = 0, will not use Thrift support, if set greater than 0 (preferably greater than 1024) will enable Thrift support on the TCP port specified by this number
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element
+                name="checkversion"
+                default="True"
+                maxOccurs="1"
+                minOccurs="0"
+                type="booleanType" >
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <fg:node-info message="New protocol extension using checkversion to check the compatibility" />
+                    </xsd:appinfo>
+                    <xsd:documentation>
+New protocol extension using checkversion to check the compatibility
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element
+                name="globaldigest"
+                default="True"
+                maxOccurs="1"
+                minOccurs="0"
+                type="booleanType" >
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <fg:node-info message="Global digest by transfer enable" />
+                    </xsd:appinfo>
+                    <xsd:documentation>
+Global digest by transfer enable
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

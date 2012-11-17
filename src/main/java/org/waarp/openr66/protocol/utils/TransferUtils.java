@@ -82,7 +82,7 @@ public class TransferUtils {
 			// but maybe need action on database
 			try {
 				if (taskRunner.restart(true)) {
-					taskRunner.saveStatus();
+					taskRunner.forceSaveStatus();
 					finalResult.code = ErrorCode.PreProcessingOk;
 					finalResult.other = "Transfer is restarted";
 				} else {
@@ -118,7 +118,7 @@ public class TransferUtils {
 								taskRunner.setPostTask();
 								TransferUtils.finalizeTaskWithNoSession(taskRunner, lcr);
 								taskRunner.setErrorExecutionStatus(ErrorCode.QueryAlreadyFinished);
-								taskRunner.update();
+								taskRunner.forceSaveStatus();
 								break;
 							case RemoteError:
 								finalResult.code = ErrorCode.RemoteError;
@@ -135,7 +135,7 @@ public class TransferUtils {
 						taskRunner.setPostTask();
 						TransferUtils.finalizeTaskWithNoSession(taskRunner, lcr);
 						taskRunner.setErrorExecutionStatus(ErrorCode.QueryAlreadyFinished);
-						taskRunner.update();
+						taskRunner.forceSaveStatus();
 					}
 				}
 			} catch (OpenR66RunnerErrorException e) {
@@ -280,7 +280,11 @@ public class TransferUtils {
 			}
 		}
 		try {
-			session.setFileAfterPreRunner(false);
+			try {
+				session.setFileAfterPreRunner(false);
+			} catch (CommandAbstractException e) {
+				throw new OpenR66RunnerErrorException(e);
+			}
 		} catch (OpenR66RunnerErrorException e) {
 			logger.error("Cannot recreate file: {}", taskRunner.getFilename());
 			taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);
