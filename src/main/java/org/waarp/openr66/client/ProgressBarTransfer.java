@@ -105,7 +105,7 @@ public abstract class ProgressBarTransfer extends AbstractTransfer {
 							break;
 						default:
 							runner.changeUpdatedInfo(UpdatedInfo.INERROR,
-									ErrorCode.ServerOverloaded);
+									ErrorCode.ServerOverloaded, true);
 					}
 					// redo if possible
 					if (runner.incrementTaskRunerTry(taskRunner, Configuration.RETRYNB)) {

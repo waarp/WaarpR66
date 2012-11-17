@@ -102,6 +102,8 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 			try {
 				taskRunner = new DbTaskRunner(DbConstant.admin.session, tid,
 						request.getDestuid());
+				// requested
+				taskRunner.setSenderByRequestToValidate(true);
 			} catch (WaarpDatabaseException e) {
 				logger.warn("Cannot get task", e);
 				return null;
@@ -128,14 +130,12 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 		DbTaskRunner runner = initRequest(request);
 		if (runner != null) {
 			runner.changeUpdatedInfo(AbstractDbData.UpdatedInfo.TOSUBMIT);
-			try {
-				runner.update();
-			} catch (WaarpDatabaseException e) {
-				logger.warn("Cannot prepare task", e);
+			boolean isSender = runner.isSender();
+			if (! runner.forceSaveStatus()) {
+				logger.warn("Cannot prepare task");
 				return new R66Result(request.getMode(), ErrorCode.CommandNotFound, 
 						"ERROR: Cannot prepare transfer");
 			}
-
 			R66Result result = new R66Result(request.getMode(), ErrorCode.InitOk, 
 					"Transfer Scheduled");
 			if (request.getMode() == RequestMode.SYNCTRANSFER) {
@@ -150,6 +150,7 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 							break;
 						}
 					}
+					runner.setSender(isSender);
 				} catch (WaarpDatabaseException e1) {
 				}
 				setResultFromRunner(runner, result);
@@ -165,6 +166,7 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 					runner.select();
 				} catch (WaarpDatabaseException e) {
 				}
+				runner.setSender(isSender);
 				setResultFromRunner(runner, result);
 			}
 			return result;

@@ -24,7 +24,6 @@ import java.net.URLDecoder;
 
 import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
-import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.exception.IllegalFiniteStateException;
 import org.waarp.common.exception.NoRestartException;
 import org.waarp.common.file.SessionInterface;
@@ -391,6 +390,10 @@ public class R66Session implements SessionInterface {
 						throw new OpenR66RunnerErrorException("File cannot be read: " +
 								file.getTrueFile().getAbsolutePath());
 					}
+				} else {
+					// possibly resolved filename
+					runner.setOriginalFilename(file.getFile());
+					runner.setFilename(file.getFile());
 				}
 			} catch (CommandAbstractException e) {
 				throw new OpenR66RunnerErrorException(e);
@@ -408,8 +411,9 @@ public class R66Session implements SessionInterface {
 	 *            When True, the file can be newly created if needed. If False, no new file will be
 	 *            created, thus having an Exception.
 	 * @throws OpenR66RunnerErrorException
+	 * @throws CommandAbstractException only when new received created file cannot be created 
 	 */
-	public void setFileAfterPreRunner(boolean createFile) throws OpenR66RunnerErrorException {
+	public void setFileAfterPreRunner(boolean createFile) throws OpenR66RunnerErrorException, CommandAbstractException {
 		if (this.businessObject != null) {
 			this.businessObject.checkAtChangeFilename(this);
 		}
@@ -473,6 +477,11 @@ public class R66Session implements SessionInterface {
 					try {
 						file = dir.setUniqueFile(this.runner.getSpecialId(),
 								this.runner.getFilename());
+					} catch (CommandAbstractException e) {
+						this.runner.deleteTempFile();
+						throw e;
+					}
+					try {
 						if (runner.isRecvThrough()) {
 							// no test on file since it does not really exist
 							logger.debug("File is in through mode: {}", file);
@@ -536,6 +545,7 @@ public class R66Session implements SessionInterface {
 			try {
 				setFileAfterPreRunner(false);
 			} catch (OpenR66RunnerErrorException e) {
+			} catch (CommandAbstractException e) {
 			}
 		}
 	}
@@ -610,7 +620,12 @@ public class R66Session implements SessionInterface {
 			runner.saveStatus();
 		}
 		// Now create the associated file
-		setFileAfterPreRunner(true);
+		try {
+			setFileAfterPreRunner(true);
+		} catch (CommandAbstractException e2) {
+			// generated due to a possible wildcard not ready
+			file = null;
+		}
 		if (runner.getGloballaststep() == TASKSTEP.TRANSFERTASK.ordinal()) {
 			if (this.businessObject != null) {
 				this.businessObject.checkAfterPreCommand(this);
@@ -620,6 +635,11 @@ public class R66Session implements SessionInterface {
 				if (runner.isRecvThrough()) {
 					// no size can be checked
 				} else {
+					if (file == null) {
+						this.runner.saveStatus();
+						logger.info("Final PARTIAL init: {}", this.runner);
+						return;
+					}
 					try {
 						long length = file.length();
 						long oldPosition = restart.getPosition();
@@ -662,7 +682,7 @@ public class R66Session implements SessionInterface {
 			}
 		}
 		this.runner.saveStatus();
-		logger.info("Final init: {}", this.runner);
+		logger.debug("Final init: {} {}", this.runner, this.file != null);
 	}
 
 	/**
@@ -685,7 +705,11 @@ public class R66Session implements SessionInterface {
 		}
 		// Now rename it
 		this.runner.setOriginalFilename(newFilename);
-		this.setFileAfterPreRunner(true);
+		try {
+			this.setFileAfterPreRunner(true);
+		} catch (CommandAbstractException e) {
+			throw new OpenR66RunnerErrorException(e);
+		}
 		this.runner.saveStatus();
 	}
 
@@ -818,10 +842,7 @@ public class R66Session implements SessionInterface {
 		if (runner.getStatus() == ErrorCode.CompleteOk) {
 			// status = true;
 			runner.setAllDone();
-			try {
-				runner.update();
-			} catch (WaarpDatabaseException e) {
-			}
+			runner.forceSaveStatus();
 			localChannelReference.validateRequest(
 					new R66Result(this, true, ErrorCode.CompleteOk, runner));
 		} else if (runner.getStatus() == ErrorCode.TransferOk &&
@@ -837,19 +858,13 @@ public class R66Session implements SessionInterface {
 				logger.error("Cannot validate runner:\n    {}", runner.toShortString());
 				runner.changeUpdatedInfo(UpdatedInfo.INERROR);
 				runner.setErrorExecutionStatus(errorValue.code);
-				try {
-					runner.update();
-				} catch (WaarpDatabaseException e1) {
-				}
+				runner.forceSaveStatus();
 				this.setFinalizeTransfer(false, errorValue);
 			} catch (OpenR66RunnerErrorException e) {
 				logger.error("Cannot validate runner:\n    {}", runner.toShortString());
 				runner.changeUpdatedInfo(UpdatedInfo.INERROR);
 				runner.setErrorExecutionStatus(errorValue.code);
-				try {
-					runner.update();
-				} catch (WaarpDatabaseException e1) {
-				}
+				runner.forceSaveStatus();
 				this.setFinalizeTransfer(false, errorValue);
 			}
 		} else {
@@ -877,4 +892,5 @@ public class R66Session implements SessionInterface {
 	public String getUniqueExtension() {
 		return Configuration.EXT_R66;
 	}
+	
 }

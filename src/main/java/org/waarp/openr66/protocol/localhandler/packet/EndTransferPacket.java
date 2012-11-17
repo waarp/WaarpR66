@@ -17,6 +17,8 @@
  */
 package org.waarp.openr66.protocol.localhandler.packet;
 
+import java.nio.charset.Charset;
+
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
@@ -24,7 +26,7 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 /**
  * End of Transfer class
  * 
- * header = "request" middle = way end = empty
+ * header = "request" middle = way end = might be empty
  * 
  * @author frederic bregier
  */
@@ -36,6 +38,8 @@ public class EndTransferPacket extends AbstractLocalPacket {
 	private final byte request;
 
 	private byte way;
+	
+	private String hashOptional;
 
 	/**
 	 * @param headerLength
@@ -56,7 +60,24 @@ public class EndTransferPacket extends AbstractLocalPacket {
 		}
 		final byte bheader = buf.readByte();
 		byte valid = buf.readByte();
+		String optional;
+		if (endLength > 0) {
+			optional = buf.toString(buf.readerIndex(), endLength, Charset.defaultCharset());
+			buf.skipBytes(endLength);
+			return new EndTransferPacket(bheader, valid, optional);
+		}
 		return new EndTransferPacket(bheader, valid);
+	}
+
+	/**
+	 * @param request
+	 * @param valid
+	 * @param hashOptional
+	 */
+	private EndTransferPacket(byte request, byte valid, String hashOptional) {
+		this.request = request;
+		way = valid;
+		this.hashOptional = hashOptional;
 	}
 
 	/**
@@ -75,6 +96,15 @@ public class EndTransferPacket extends AbstractLocalPacket {
 		this.request = request;
 		way = ASKVALIDATE;
 	}
+	/**
+	 * @param request
+	 * @param hashOptional
+	 */
+	public EndTransferPacket(byte request, String hashOptional) {
+		this.request = request;
+		way = ASKVALIDATE;
+		this.hashOptional = hashOptional;
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -82,7 +112,11 @@ public class EndTransferPacket extends AbstractLocalPacket {
 	 */
 	@Override
 	public void createEnd() {
-		end = ChannelBuffers.EMPTY_BUFFER;
+		if (hashOptional == null) {
+			end = ChannelBuffers.EMPTY_BUFFER;
+		} else {
+			end = ChannelBuffers.copiedBuffer(hashOptional, Charset.defaultCharset());
+		}
 	}
 
 	/*
@@ -118,7 +152,8 @@ public class EndTransferPacket extends AbstractLocalPacket {
 	 */
 	@Override
 	public String toString() {
-		return "EndTransferPacket: " + request + " " + way;
+		return "EndTransferPacket: " + request + " " + way + 
+				(hashOptional != null ? " " + hashOptional : "");
 	}
 
 	/**
@@ -143,5 +178,20 @@ public class EndTransferPacket extends AbstractLocalPacket {
 		header = null;
 		middle = null;
 		end = null;
+	}
+	
+	/**
+	 * @return the optional
+	 */
+	public String getOptional() {
+		return hashOptional;
+	}
+
+	/**
+	 * @param optional
+	 *            the optional to set
+	 */
+	public void setOptional(String optional) {
+		this.hashOptional = optional;
 	}
 }

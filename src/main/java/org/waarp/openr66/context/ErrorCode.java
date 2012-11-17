@@ -267,4 +267,45 @@ public enum ErrorCode {
 				return ecode;
 		}
 	}
+	
+	public static boolean isErrorCode(ErrorCode code) {
+		switch (code) {
+			case BadAuthent:
+			case CanceledTransfer:
+			case CommandNotFound:
+			case ConnectionImpossible:
+			case Disconnection:
+			case ExternalOp:
+			case FileNotFound:
+			case FinalOp:
+			case Internal:
+			case LoopSelfRequestedHost:
+			case MD5Error:
+			case NotKnownHost:
+			case PassThroughMode:
+			case QueryAlreadyFinished:
+			case QueryRemotelyUnknown:
+			case QueryStillRunning:
+			case RemoteError:
+			case RemoteShutdown:
+			case ServerOverloaded:
+			case Shutdown:
+			case StoppedTransfer:
+			case TransferError:
+			case Unimplemented:
+				return true;
+			case CompleteOk:
+			case InitOk:
+			case PostProcessingOk:
+			case PreProcessingOk:
+			case Running:
+			case TransferOk:
+			case Unknown:
+			case Warning:
+				return false;
+			default:
+				break;
+		}
+		return true;
+	}
 }

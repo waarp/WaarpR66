@@ -960,7 +960,16 @@ public class DbTaskRunner extends AbstractDbData {
 				}
 			}
 		}
-		super.update();
+		// FIX SelfRequest
+		if (isSelfRequest()) {
+			if (RequestPacket.isCompatibleMode(mode, 
+					isSender ? RequestPacket.TRANSFERMODE.RECVMODE.ordinal() : 
+					RequestPacket.TRANSFERMODE.SENDMODE.ordinal())) {
+				super.update();
+			}
+		} else {
+			super.update();
+		}
 	}
 
 	/**
@@ -2008,10 +2017,7 @@ public class DbTaskRunner extends AbstractDbData {
 			// Already finished so DONE
 			this.setAllDone();
 			this.setErrorExecutionStatus(ErrorCode.QueryAlreadyFinished);
-			try {
-				this.saveStatus();
-			} catch (OpenR66RunnerErrorException e) {
-			}
+			this.forceSaveStatus();
 			return false;
 		}
 	}
@@ -2023,25 +2029,22 @@ public class DbTaskRunner extends AbstractDbData {
 	 * @return True if correctly stopped or canceled
 	 */
 	public boolean stopOrCancelRunner(ErrorCode code) {
-		try {
-			if (!isFinished()) {
-				reset();
-				switch (code) {
-					case CanceledTransfer:
-					case StoppedTransfer:
-					case RemoteShutdown:
-						this.changeUpdatedInfo(UpdatedInfo.INERROR);
-						break;
-					default:
-						this.changeUpdatedInfo(UpdatedInfo.INTERRUPTED);
-				}
-				update();
-				logger.warn("StopOrCancel: {}\n    {}", code.mesg, this.toShortString());
-				return true;
-			} else {
-				// is finished so do nothing
+		if (!isFinished()) {
+			reset();
+			switch (code) {
+				case CanceledTransfer:
+				case StoppedTransfer:
+				case RemoteShutdown:
+					this.changeUpdatedInfo(UpdatedInfo.INERROR);
+					break;
+				default:
+					this.changeUpdatedInfo(UpdatedInfo.INTERRUPTED);
 			}
-		} catch (WaarpDatabaseException e) {
+			forceSaveStatus();
+			logger.warn("StopOrCancel: {}\n    {}", code.mesg, this.toShortString());
+			return true;
+		} else {
+			// is finished so do nothing
 		}
 		return false;
 	}
@@ -2933,6 +2936,25 @@ public class DbTaskRunner extends AbstractDbData {
 	}
 
 	/**
+	 * This method is to be called each time an operation is happening on Runner and it is forced
+	 * (for SelfRequest handling)
+	 * @return True if saved
+	 * @throws OpenR66RunnerErrorException
+	 */
+	public boolean forceSaveStatus() {
+		boolean isSender = isSender();
+		setSenderForUpdate();
+		boolean status = true;
+		try {
+			saveStatus();
+		} catch (OpenR66RunnerErrorException e) {
+			status = false;
+		}
+		setSender(isSender);
+		return status;
+	}
+
+	/**
 	 * Clear the runner
 	 */
 	public void clear() {
@@ -3226,11 +3248,27 @@ public class DbTaskRunner extends AbstractDbData {
 	 * @return True if the current host is the requested host (to prevent request to itself)
 	 */
 	public boolean isSelfRequested() {
-		return (this.requestedHostId
-				.equals(Configuration.configuration.HOST_ID) || this.requestedHostId
-				.equals(Configuration.configuration.HOST_SSLID));
+		if (this.requestedHostId.equals(Configuration.configuration.HOST_ID) || 
+				this.requestedHostId.equals(Configuration.configuration.HOST_SSLID)) {
+			// check if not calling itself
+			return (! this.requesterHostId.equals(Configuration.configuration.HOST_ID) && 
+					! this.requesterHostId.equals(Configuration.configuration.HOST_SSLID));
+		}
+		return false;
 	}
 
+
+	/**
+	 * 
+	 * @return True if the request is a self request (same host on both side)
+	 */
+	public boolean isSelfRequest() {
+		return ((this.requestedHostId.equals(Configuration.configuration.HOST_ID) || 
+				this.requestedHostId.equals(Configuration.configuration.HOST_SSLID)) &&
+				(this.requesterHostId.equals(Configuration.configuration.HOST_ID) || 
+				this.requesterHostId.equals(Configuration.configuration.HOST_SSLID)));
+	}
+	
 	/**
 	 * 
 	 * @return the requested HostId
@@ -3605,5 +3643,42 @@ public class DbTaskRunner extends AbstractDbData {
 	public void deleteXmlWorkNoDb() {
 		File file = new File(backendXmlFilename());
 		file.delete();
+	}
+	
+	/**
+	 * Utility for "self request" mode only
+	 * @param sender
+	 */
+	public void setSender(boolean sender) {
+		this.isSender = sender;
+	}
+	/**
+	 * Helper
+	 * @param request
+	 * @return isSender according to request
+	 */
+	public static boolean getSenderByRequestPacket(RequestPacket request) {
+		if (request.isToValidate()) {
+			return RequestPacket.isRecvMode(request.getMode());
+		}
+		return ! RequestPacket.isRecvMode(request.getMode());
+	}
+	/**
+	 * Utility for "self request"
+	 * @param requestToValidate
+	 */
+	public void setSenderByRequestToValidate(boolean requestToValidate) {
+		this.isSender = RequestPacket.isRecvMode(mode);
+		if (! requestToValidate) {
+			this.isSender = ! this.isSender;
+		}
+	}
+	/**
+	 * Utility to force "update"
+	 */
+	private void setSenderForUpdate() {
+		if (isSelfRequest()) {
+			isSender = RequestPacket.isRecvMode(mode);
+		}
 	}
 }

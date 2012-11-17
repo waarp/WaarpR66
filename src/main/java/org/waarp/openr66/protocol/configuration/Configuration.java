@@ -158,6 +158,10 @@ public class Configuration {
 	 */
 	public boolean extendedProtocol = true;
 	/**
+	 * Global digest
+	 */
+	public boolean globalDigest = true;
+	/**
 	 * White List of allowed Partners to use Business Requests
 	 */
 	public HashSet<String> businessWhiteSet = new HashSet<String>();
@@ -173,6 +177,14 @@ public class Configuration {
 	 * Actual SSL Host ID
 	 */
 	public String HOST_SSLID;
+	/**
+	 * Requester Host ID
+	 */
+	public String REQER_HOST_ID;
+	/**
+	 * Requested Host ID
+	 */
+	public String REQED_HOST_ID;
 
 	/**
 	 * Server Administration user name
@@ -182,6 +194,10 @@ public class Configuration {
 	 * Server Administration Key
 	 */
 	private byte[] SERVERADMINKEY = null;
+	/**
+	 * Server Administration Key file
+	 */
+	public String serverKeyFile = null;
 	/**
 	 * Server Actual Authentication
 	 */
@@ -346,11 +362,15 @@ public class Configuration {
 	 * Crypto Key
 	 */
 	public Des cryptoKey = null;
+	/**
+	 * Associated file for CryptoKey
+	 */
+	public String cryptoFile = null;
 
 	/**
 	 * List of all Server Channels to enable the close call on them using Netty ChannelGroup
 	 */
-	private ChannelGroup serverChannelGroup = null;
+	protected ChannelGroup serverChannelGroup = null;
 	/**
 	 * Does the current program running as Server
 	 */
@@ -377,12 +397,12 @@ public class Configuration {
 	/**
 	 * ChannelFactory for Server part
 	 */
-	private ChannelFactory serverChannelFactory = null;
+	protected ChannelFactory serverChannelFactory = null;
 
 	/**
 	 * ThreadPoolExecutor for Server
 	 */
-	private volatile OrderedMemoryAwareThreadPoolExecutor serverPipelineExecutor;
+	protected volatile OrderedMemoryAwareThreadPoolExecutor serverPipelineExecutor;
 
 	/**
 	 * ThreadPoolExecutor for LocalServer
@@ -402,20 +422,20 @@ public class Configuration {
 	/**
 	 * Bootstrap for server
 	 */
-	private ServerBootstrap serverBootstrap = null;
+	protected ServerBootstrap serverBootstrap = null;
 
 	/**
 	 * Bootstrap for SSL server
 	 */
-	private ServerBootstrap serverSslBootstrap = null;
+	protected ServerBootstrap serverSslBootstrap = null;
 	/**
 	 * Factory for NON SSL Server
 	 */
-	private NetworkServerPipelineFactory networkServerPipelineFactory;
+	protected NetworkServerPipelineFactory networkServerPipelineFactory;
 	/**
 	 * Factory for SSL Server
 	 */
-	private NetworkSslServerPipelineFactory networkSslServerPipelineFactory;
+	protected NetworkSslServerPipelineFactory networkSslServerPipelineFactory;
 
 	/**
 	 * Bootstrap for Http server
@@ -452,7 +472,7 @@ public class Configuration {
 	/**
 	 * Timer for TrafficCounter
 	 */
-	private Timer timerTrafficCounter =
+	protected Timer timerTrafficCounter =
 			new HashedWheelTimer(
 					new WaarpThreadFactory(
 							"TimerTraffic"),
@@ -462,7 +482,7 @@ public class Configuration {
 	/**
 	 * Global TrafficCounter (set from global configuration)
 	 */
-	private volatile GlobalTrafficHandler globalTrafficShapingHandler = null;
+	protected volatile GlobalTrafficHandler globalTrafficShapingHandler = null;
 
 	/**
 	 * ObjectSizeEstimator
@@ -472,7 +492,7 @@ public class Configuration {
 	/**
 	 * LocalTransaction
 	 */
-	private LocalTransaction localTransaction;
+	protected LocalTransaction localTransaction;
 	/**
 	 * InternalRunner
 	 */
@@ -536,7 +556,7 @@ public class Configuration {
 	 */
 	public R66PrivateMib r66Mib = null;
 
-	private volatile boolean configured = false;
+	protected volatile boolean configured = false;
 
 	public static WaarpSecureKeyStore WaarpSecureKeyStore;
 

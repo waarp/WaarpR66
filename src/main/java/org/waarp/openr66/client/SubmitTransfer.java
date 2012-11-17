@@ -21,7 +21,6 @@ import java.sql.Timestamp;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.database.data.AbstractDbData;
-import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.context.ErrorCode;
@@ -78,14 +77,12 @@ public class SubmitTransfer extends AbstractTransfer {
 		} else {
 			taskRunner.changeUpdatedInfo(AbstractDbData.UpdatedInfo.TOSUBMIT);
 		}
-		try {
-			taskRunner.update();
-		} catch (WaarpDatabaseException e) {
-			logger.debug("Cannot prepare task", e);
-			R66Result result = new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
+		if (!taskRunner.forceSaveStatus()) {
+			logger.debug("Cannot prepare task");
+			R66Result result = new R66Result(new OpenR66DatabaseGlobalException("Cannot prepare Task"), null, true,
 					ErrorCode.Internal, taskRunner);
 			future.setResult(result);
-			future.setFailure(e);
+			future.setFailure(result.exception);
 			return;
 		}
 		R66Result result = new R66Result(null, false, ErrorCode.InitOk, taskRunner);

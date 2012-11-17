@@ -6,7 +6,7 @@ var dialog_inputName = '';
 // Current tasks array
 var arrayTasks = new Array();
 // Available Task's types
-var availableTasks = new Array("LOG", "MOVE", "MOVERENAME", "COPY", "COPYRENAME", "EXEC", "EXECMOVE", "EXECOUTPUT", "EXECJAVA", "TRANSFER", "VALIDFILEPATH", "DELETE", "LINKRENAME", "RESCHEDULE", "TAR", "ZIP", "TRANSCODE");
+var availableTasks = new Array("LOG", "MOVE", "MOVERENAME", "COPY", "COPYRENAME", "EXEC", "EXECMOVE", "EXECOUTPUT", "EXECJAVA", "TRANSFER", "VALIDFILEPATH", "DELETE", "LINKRENAME", "RESCHEDULE", "TAR", "ZIP", "TRANSCODE", "FTP");
 // Load dialog
 function dialog_load() {
 	// get container
@@ -145,6 +145,17 @@ function dialog_load() {
 	oValid.setAttribute('value', 'CANCEL');
 	oValid.onclick = function() {dialog_cancel();};
 	dialog_content.appendChild(oValid);
+	var br = document.createElement("br");
+	dialog_content.appendChild(br);
+	var tt = document.createElement("tt");
+	var text = document.createTextNode("Keywords: #TRUEFULLPATH# #TRUEFILENAME# #ORIGINALFULLPATH# " +
+			"#ORIGINALFILENAME# #FILESIZE# #RULE# #DATE# #HOUR# #REMOTEHOST# #REMOTEHOSTADDR# " +
+			"#LOCALHOST# #LOCALHOSTADDR# #TRANSFERID# #REQUESTERHOST# #REQUESTEDHOST# " +
+			"#FULLTRANSFERID# #RANKTRANSFER# #BLOCKSIZE# #INPATH# #OUTPATH# #WORKPATH# " +
+			"#ARCHPATH# #HOMEPATH# #ERRORMSG# #ERRORCODE# #ERRORSTRCODE# #NOWAIT# " +
+			"#LOCALEXEC# #CPTLIMIT#");
+	tt.appendChild(text);
+	dialog_content.appendChild(tt);
 }
 // Select value from SELECT
 function dialog_typeSelect(rank) {
@@ -181,9 +192,9 @@ function dialog_open(inputName, title) {
 	var dialog_title = document.getElementById('dialog_title');
 	var code = '';
 	if (dialog_input.id.charAt(0) == 'r') {
-		code = " Send ";
-	} else {
 		code = " Recv ";
+	} else {
+		code = " Send ";
 	}
 	if (dialog_input.id.charAt(1) == 'e') {
 		code = code + " Error Tasks";

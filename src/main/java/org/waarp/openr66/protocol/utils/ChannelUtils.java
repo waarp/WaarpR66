@@ -255,6 +255,21 @@ public class ChannelUtils extends Thread {
 		localChannelReference.sessionNewState(R66FiniteDualStates.ENDTRANSFERS);
 		writeAbstractLocalPacket(localChannelReference, packet, false);
 	}
+	/**
+	 * Write the EndTransfer plus Global Hash
+	 * 
+	 * @param localChannelReference
+	 * @param hash
+	 * @throws OpenR66ProtocolPacketException
+	 */
+	public static void writeEndTransfer(
+			LocalChannelReference localChannelReference, String hash)
+			throws OpenR66ProtocolPacketException {
+		EndTransferPacket packet = new EndTransferPacket(
+				LocalPacketFactory.REQUESTPACKET, hash);
+		localChannelReference.sessionNewState(R66FiniteDualStates.ENDTRANSFERS);
+		writeAbstractLocalPacket(localChannelReference, packet, false);
+	}
 
 	/**
 	 * Write an AbstractLocalPacket to the network Channel

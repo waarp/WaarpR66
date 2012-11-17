@@ -186,8 +186,7 @@ public class CommanderNoDb implements CommanderInterface {
 					return;
 				}
 			} catch (WaarpDatabaseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.error("Error in Commander", e);
 			}
 		}
 	}

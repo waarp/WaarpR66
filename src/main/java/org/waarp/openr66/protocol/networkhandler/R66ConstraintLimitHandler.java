@@ -125,7 +125,10 @@ public class R66ConstraintLimitHandler extends WaarpConstraintLimitHandler {
 	 */
 	@Override
 	protected int getNumberLocalChannel() {
-		return Configuration.configuration.getLocalTransaction().getNumberLocalChannel();
+		if (Configuration.configuration.getLocalTransaction() != null) {
+			return Configuration.configuration.getLocalTransaction().getNumberLocalChannel();
+		}
+		return 0;
 	}
 
 	/*

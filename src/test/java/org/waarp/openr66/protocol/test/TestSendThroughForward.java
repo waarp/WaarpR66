@@ -254,10 +254,7 @@ public class TestSendThroughForward extends SendThroughClient {
 				// and taskRunner not allowed to be restarted alone
 				if (future.isFailed()) {
 					taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);
-					try {
-						taskRunner.update();
-					} catch (WaarpDatabaseException e) {
-					}
+					taskRunner.forceSaveStatus();
 				}
 			}
 		}
