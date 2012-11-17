@@ -249,7 +249,7 @@ public class FtpTransferTask extends AbstractTask {
 					logger.debug("PRE: "+string);
 				}
 			}
-			if (! ftpClient.transferFile(filepath, finalname, codeCommand)) {
+			if (! ftpClient.transferFile(filepath, filename, codeCommand)) {
 				OpenR66RunnerErrorException exception = new OpenR66RunnerErrorException("Cannot transfert file from/to remote FTP host");
 				R66Result result = new R66Result(exception, session, false, ErrorCode.TransferError, session.getRunner());
 				futureCompletion.setResult(result);
