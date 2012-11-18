@@ -92,7 +92,7 @@
 <a class="jxr_linenumber" name="82" href="#82">82</a>  			<em class="jxr_comment">// but maybe need action on database</em>
 <a class="jxr_linenumber" name="83" href="#83">83</a>  			<strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="84" href="#84">84</a>  				<strong class="jxr_keyword">if</strong> (taskRunner.restart(<strong class="jxr_keyword">true</strong>)) {
-<a class="jxr_linenumber" name="85" href="#85">85</a>  					taskRunner.saveStatus();
+<a class="jxr_linenumber" name="85" href="#85">85</a>  					taskRunner.forceSaveStatus();
 <a class="jxr_linenumber" name="86" href="#86">86</a>  					finalResult.code = ErrorCode.PreProcessingOk;
 <a class="jxr_linenumber" name="87" href="#87">87</a>  					finalResult.other = <span class="jxr_string">"Transfer is restarted"</span>;
 <a class="jxr_linenumber" name="88" href="#88">88</a>  				} <strong class="jxr_keyword">else</strong> {
@@ -128,7 +128,7 @@
 <a class="jxr_linenumber" name="118" href="#118">118</a> 								taskRunner.setPostTask();
 <a class="jxr_linenumber" name="119" href="#119">119</a> 								TransferUtils.finalizeTaskWithNoSession(taskRunner, lcr);
 <a class="jxr_linenumber" name="120" href="#120">120</a> 								taskRunner.setErrorExecutionStatus(ErrorCode.QueryAlreadyFinished);
-<a class="jxr_linenumber" name="121" href="#121">121</a> 								taskRunner.update();
+<a class="jxr_linenumber" name="121" href="#121">121</a> 								taskRunner.forceSaveStatus();
 <a class="jxr_linenumber" name="122" href="#122">122</a> 								<strong class="jxr_keyword">break</strong>;
 <a class="jxr_linenumber" name="123" href="#123">123</a> 							<strong class="jxr_keyword">case</strong> RemoteError:
 <a class="jxr_linenumber" name="124" href="#124">124</a> 								finalResult.code = ErrorCode.RemoteError;
@@ -145,7 +145,7 @@
 <a class="jxr_linenumber" name="135" href="#135">135</a> 						taskRunner.setPostTask();
 <a class="jxr_linenumber" name="136" href="#136">136</a> 						TransferUtils.finalizeTaskWithNoSession(taskRunner, lcr);
 <a class="jxr_linenumber" name="137" href="#137">137</a> 						taskRunner.setErrorExecutionStatus(ErrorCode.QueryAlreadyFinished);
-<a class="jxr_linenumber" name="138" href="#138">138</a> 						taskRunner.update();
+<a class="jxr_linenumber" name="138" href="#138">138</a> 						taskRunner.forceSaveStatus();
 <a class="jxr_linenumber" name="139" href="#139">139</a> 					}
 <a class="jxr_linenumber" name="140" href="#140">140</a> 				}
 <a class="jxr_linenumber" name="141" href="#141">141</a> 			} <strong class="jxr_keyword">catch</strong> (OpenR66RunnerErrorException e) {
@@ -290,36 +290,40 @@
 <a class="jxr_linenumber" name="280" href="#280">280</a> 			}
 <a class="jxr_linenumber" name="281" href="#281">281</a> 		}
 <a class="jxr_linenumber" name="282" href="#282">282</a> 		<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="283" href="#283">283</a> 			session.setFileAfterPreRunner(false);
-<a class="jxr_linenumber" name="284" href="#284">284</a> 		} <strong class="jxr_keyword">catch</strong> (OpenR66RunnerErrorException e) {
-<a class="jxr_linenumber" name="285" href="#285">285</a> 			logger.error(<span class="jxr_string">"Cannot recreate file: {}"</span>, taskRunner.getFilename());
-<a class="jxr_linenumber" name="286" href="#286">286</a> 			taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);
-<a class="jxr_linenumber" name="287" href="#287">287</a> 			taskRunner.setErrorExecutionStatus(ErrorCode.FileNotFound);
-<a class="jxr_linenumber" name="288" href="#288">288</a> 			<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="289" href="#289">289</a> 				taskRunner.update();
-<a class="jxr_linenumber" name="290" href="#290">290</a> 			} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e1) {
-<a class="jxr_linenumber" name="291" href="#291">291</a> 			}
-<a class="jxr_linenumber" name="292" href="#292">292</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(<span class="jxr_string">"Cannot recreate file"</span>, e);
-<a class="jxr_linenumber" name="293" href="#293">293</a> 		}
-<a class="jxr_linenumber" name="294" href="#294">294</a> 		R66File file = session.getFile();
-<a class="jxr_linenumber" name="295" href="#295">295</a> 		R66Result finalValue = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>, ErrorCode.CompleteOk, taskRunner);
-<a class="jxr_linenumber" name="296" href="#296">296</a> 		finalValue.file = file;
-<a class="jxr_linenumber" name="297" href="#297">297</a> 		finalValue.runner = taskRunner;
-<a class="jxr_linenumber" name="298" href="#298">298</a> 		taskRunner.finishTransferTask(ErrorCode.TransferOk);
-<a class="jxr_linenumber" name="299" href="#299">299</a> 		<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="300" href="#300">300</a> 			taskRunner.finalizeTransfer(localChannelReference, file, finalValue, <strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="301" href="#301">301</a> 		} <strong class="jxr_keyword">catch</strong> (OpenR66ProtocolSystemException e) {
-<a class="jxr_linenumber" name="302" href="#302">302</a> 			logger.error(<span class="jxr_string">"Cannot validate runner:\n    {}"</span>, taskRunner.toShortString());
-<a class="jxr_linenumber" name="303" href="#303">303</a> 			taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);
-<a class="jxr_linenumber" name="304" href="#304">304</a> 			taskRunner.setErrorExecutionStatus(ErrorCode.Internal);
-<a class="jxr_linenumber" name="305" href="#305">305</a> 			<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="306" href="#306">306</a> 				taskRunner.update();
-<a class="jxr_linenumber" name="307" href="#307">307</a> 			} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e1) {
-<a class="jxr_linenumber" name="308" href="#308">308</a> 			}
-<a class="jxr_linenumber" name="309" href="#309">309</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(<span class="jxr_string">"Cannot validate runner"</span>, e);
-<a class="jxr_linenumber" name="310" href="#310">310</a> 		}
-<a class="jxr_linenumber" name="311" href="#311">311</a> 	}
-<a class="jxr_linenumber" name="312" href="#312">312</a> }
+<a class="jxr_linenumber" name="283" href="#283">283</a> 			<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="284" href="#284">284</a> 				session.setFileAfterPreRunner(false);
+<a class="jxr_linenumber" name="285" href="#285">285</a> 			} <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
+<a class="jxr_linenumber" name="286" href="#286">286</a> 				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(e);
+<a class="jxr_linenumber" name="287" href="#287">287</a> 			}
+<a class="jxr_linenumber" name="288" href="#288">288</a> 		} <strong class="jxr_keyword">catch</strong> (OpenR66RunnerErrorException e) {
+<a class="jxr_linenumber" name="289" href="#289">289</a> 			logger.error(<span class="jxr_string">"Cannot recreate file: {}"</span>, taskRunner.getFilename());
+<a class="jxr_linenumber" name="290" href="#290">290</a> 			taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);
+<a class="jxr_linenumber" name="291" href="#291">291</a> 			taskRunner.setErrorExecutionStatus(ErrorCode.FileNotFound);
+<a class="jxr_linenumber" name="292" href="#292">292</a> 			<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="293" href="#293">293</a> 				taskRunner.update();
+<a class="jxr_linenumber" name="294" href="#294">294</a> 			} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e1) {
+<a class="jxr_linenumber" name="295" href="#295">295</a> 			}
+<a class="jxr_linenumber" name="296" href="#296">296</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(<span class="jxr_string">"Cannot recreate file"</span>, e);
+<a class="jxr_linenumber" name="297" href="#297">297</a> 		}
+<a class="jxr_linenumber" name="298" href="#298">298</a> 		R66File file = session.getFile();
+<a class="jxr_linenumber" name="299" href="#299">299</a> 		R66Result finalValue = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>, ErrorCode.CompleteOk, taskRunner);
+<a class="jxr_linenumber" name="300" href="#300">300</a> 		finalValue.file = file;
+<a class="jxr_linenumber" name="301" href="#301">301</a> 		finalValue.runner = taskRunner;
+<a class="jxr_linenumber" name="302" href="#302">302</a> 		taskRunner.finishTransferTask(ErrorCode.TransferOk);
+<a class="jxr_linenumber" name="303" href="#303">303</a> 		<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="304" href="#304">304</a> 			taskRunner.finalizeTransfer(localChannelReference, file, finalValue, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="305" href="#305">305</a> 		} <strong class="jxr_keyword">catch</strong> (OpenR66ProtocolSystemException e) {
+<a class="jxr_linenumber" name="306" href="#306">306</a> 			logger.error(<span class="jxr_string">"Cannot validate runner:\n    {}"</span>, taskRunner.toShortString());
+<a class="jxr_linenumber" name="307" href="#307">307</a> 			taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);
+<a class="jxr_linenumber" name="308" href="#308">308</a> 			taskRunner.setErrorExecutionStatus(ErrorCode.Internal);
+<a class="jxr_linenumber" name="309" href="#309">309</a> 			<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="310" href="#310">310</a> 				taskRunner.update();
+<a class="jxr_linenumber" name="311" href="#311">311</a> 			} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e1) {
+<a class="jxr_linenumber" name="312" href="#312">312</a> 			}
+<a class="jxr_linenumber" name="313" href="#313">313</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(<span class="jxr_string">"Cannot validate runner"</span>, e);
+<a class="jxr_linenumber" name="314" href="#314">314</a> 		}
+<a class="jxr_linenumber" name="315" href="#315">315</a> 	}
+<a class="jxr_linenumber" name="316" href="#316">316</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>

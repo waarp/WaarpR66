@@ -42,7 +42,7 @@
 <a class="jxr_linenumber" name="32" href="#32">32</a>  <em class="jxr_javadoccomment"> */</em>
 <a class="jxr_linenumber" name="33" href="#33">33</a>  <strong class="jxr_keyword">public</strong> enum <a href="../../../../../org/waarp/openr66/context/task/TaskType.html">TaskType</a> {
 <a class="jxr_linenumber" name="34" href="#34">34</a>  	LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, LINKRENAME, TRANSFER,
-<a class="jxr_linenumber" name="35" href="#35">35</a>  	VALIDFILEPATH, DELETE, TAR, ZIP, EXECOUTPUT, RESCHEDULE, EXECJAVA, TRANSCODE, SNMP;
+<a class="jxr_linenumber" name="35" href="#35">35</a>  	VALIDFILEPATH, DELETE, TAR, ZIP, EXECOUTPUT, RESCHEDULE, EXECJAVA, TRANSCODE, SNMP, FTP;
 <a class="jxr_linenumber" name="36" href="#36">36</a>  
 <a class="jxr_linenumber" name="37" href="#37">37</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> type;
 <a class="jxr_linenumber" name="38" href="#38">38</a>  
@@ -125,37 +125,40 @@
 <a class="jxr_linenumber" name="115" href="#115">115</a> 			<strong class="jxr_keyword">case</strong> SNMP:
 <a class="jxr_linenumber" name="116" href="#116">116</a> 				<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/task/SnmpTask.html">SnmpTask</a>(argRule, delay, session.getRunner().
 <a class="jxr_linenumber" name="117" href="#117">117</a> 						getFileInformation(), session);
-<a class="jxr_linenumber" name="118" href="#118">118</a> 			<strong class="jxr_keyword">default</strong>:
-<a class="jxr_linenumber" name="119" href="#119">119</a> 				logger.error(<span class="jxr_string">"name unknown: "</span> + type.name);
-<a class="jxr_linenumber" name="120" href="#120">120</a> 				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(<span class="jxr_string">"Unvalid Task: "</span> +
-<a class="jxr_linenumber" name="121" href="#121">121</a> 						type.name);
-<a class="jxr_linenumber" name="122" href="#122">122</a> 		}
-<a class="jxr_linenumber" name="123" href="#123">123</a> 	}
-<a class="jxr_linenumber" name="124" href="#124">124</a> 
-<a class="jxr_linenumber" name="125" href="#125">125</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="126" href="#126">126</a> <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="127" href="#127">127</a> <em class="jxr_javadoccomment">	 * @param name</em>
-<a class="jxr_linenumber" name="128" href="#128">128</a> <em class="jxr_javadoccomment">	 * @param argRule</em>
-<a class="jxr_linenumber" name="129" href="#129">129</a> <em class="jxr_javadoccomment">	 * @param delay</em>
-<a class="jxr_linenumber" name="130" href="#130">130</a> <em class="jxr_javadoccomment">	 * @param session</em>
-<a class="jxr_linenumber" name="131" href="#131">131</a> <em class="jxr_javadoccomment">	 * @return the corresponding AbstractTask</em>
-<a class="jxr_linenumber" name="132" href="#132">132</a> <em class="jxr_javadoccomment">	 * @throws OpenR66RunnerErrorException</em>
-<a class="jxr_linenumber" name="133" href="#133">133</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="134" href="#134">134</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <a href="../../../../../org/waarp/openr66/context/task/AbstractTask.html">AbstractTask</a> getTaskFromId(String name, String argRule,
-<a class="jxr_linenumber" name="135" href="#135">135</a> 			<strong class="jxr_keyword">int</strong> delay, <a href="../../../../../org/waarp/openr66/context/R66Session.html">R66Session</a> session) <strong class="jxr_keyword">throws</strong> OpenR66RunnerErrorException {
-<a class="jxr_linenumber" name="136" href="#136">136</a> 		TaskType type;
-<a class="jxr_linenumber" name="137" href="#137">137</a> 		<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="138" href="#138">138</a> 			type = valueOf(name);
-<a class="jxr_linenumber" name="139" href="#139">139</a> 		} <strong class="jxr_keyword">catch</strong> (NullPointerException e) {
-<a class="jxr_linenumber" name="140" href="#140">140</a> 			logger.error(<span class="jxr_string">"name empty "</span> + name);
-<a class="jxr_linenumber" name="141" href="#141">141</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(<span class="jxr_string">"Unvalid Task: "</span> + name);
-<a class="jxr_linenumber" name="142" href="#142">142</a> 		} <strong class="jxr_keyword">catch</strong> (IllegalArgumentException e) {
-<a class="jxr_linenumber" name="143" href="#143">143</a> 			logger.error(<span class="jxr_string">"name unknown: "</span> + name);
+<a class="jxr_linenumber" name="118" href="#118">118</a> 			<strong class="jxr_keyword">case</strong> FTP:
+<a class="jxr_linenumber" name="119" href="#119">119</a> 				<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/task/FtpTransferTask.html">FtpTransferTask</a>(argRule, delay, session.getRunner().
+<a class="jxr_linenumber" name="120" href="#120">120</a> 						getFileInformation(), session);
+<a class="jxr_linenumber" name="121" href="#121">121</a> 			<strong class="jxr_keyword">default</strong>:
+<a class="jxr_linenumber" name="122" href="#122">122</a> 				logger.error(<span class="jxr_string">"name unknown: "</span> + type.name);
+<a class="jxr_linenumber" name="123" href="#123">123</a> 				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(<span class="jxr_string">"Unvalid Task: "</span> +
+<a class="jxr_linenumber" name="124" href="#124">124</a> 						type.name);
+<a class="jxr_linenumber" name="125" href="#125">125</a> 		}
+<a class="jxr_linenumber" name="126" href="#126">126</a> 	}
+<a class="jxr_linenumber" name="127" href="#127">127</a> 
+<a class="jxr_linenumber" name="128" href="#128">128</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="129" href="#129">129</a> <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="130" href="#130">130</a> <em class="jxr_javadoccomment">	 * @param name</em>
+<a class="jxr_linenumber" name="131" href="#131">131</a> <em class="jxr_javadoccomment">	 * @param argRule</em>
+<a class="jxr_linenumber" name="132" href="#132">132</a> <em class="jxr_javadoccomment">	 * @param delay</em>
+<a class="jxr_linenumber" name="133" href="#133">133</a> <em class="jxr_javadoccomment">	 * @param session</em>
+<a class="jxr_linenumber" name="134" href="#134">134</a> <em class="jxr_javadoccomment">	 * @return the corresponding AbstractTask</em>
+<a class="jxr_linenumber" name="135" href="#135">135</a> <em class="jxr_javadoccomment">	 * @throws OpenR66RunnerErrorException</em>
+<a class="jxr_linenumber" name="136" href="#136">136</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="137" href="#137">137</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <a href="../../../../../org/waarp/openr66/context/task/AbstractTask.html">AbstractTask</a> getTaskFromId(String name, String argRule,
+<a class="jxr_linenumber" name="138" href="#138">138</a> 			<strong class="jxr_keyword">int</strong> delay, <a href="../../../../../org/waarp/openr66/context/R66Session.html">R66Session</a> session) <strong class="jxr_keyword">throws</strong> OpenR66RunnerErrorException {
+<a class="jxr_linenumber" name="139" href="#139">139</a> 		TaskType type;
+<a class="jxr_linenumber" name="140" href="#140">140</a> 		<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="141" href="#141">141</a> 			type = valueOf(name);
+<a class="jxr_linenumber" name="142" href="#142">142</a> 		} <strong class="jxr_keyword">catch</strong> (NullPointerException e) {
+<a class="jxr_linenumber" name="143" href="#143">143</a> 			logger.error(<span class="jxr_string">"name empty "</span> + name);
 <a class="jxr_linenumber" name="144" href="#144">144</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(<span class="jxr_string">"Unvalid Task: "</span> + name);
-<a class="jxr_linenumber" name="145" href="#145">145</a> 		}
-<a class="jxr_linenumber" name="146" href="#146">146</a> 		<strong class="jxr_keyword">return</strong> getTaskFromId(type, argRule, delay, session);
-<a class="jxr_linenumber" name="147" href="#147">147</a> 	}
-<a class="jxr_linenumber" name="148" href="#148">148</a> }
+<a class="jxr_linenumber" name="145" href="#145">145</a> 		} <strong class="jxr_keyword">catch</strong> (IllegalArgumentException e) {
+<a class="jxr_linenumber" name="146" href="#146">146</a> 			logger.error(<span class="jxr_string">"name unknown: "</span> + name);
+<a class="jxr_linenumber" name="147" href="#147">147</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(<span class="jxr_string">"Unvalid Task: "</span> + name);
+<a class="jxr_linenumber" name="148" href="#148">148</a> 		}
+<a class="jxr_linenumber" name="149" href="#149">149</a> 		<strong class="jxr_keyword">return</strong> getTaskFromId(type, argRule, delay, session);
+<a class="jxr_linenumber" name="150" href="#150">150</a> 	}
+<a class="jxr_linenumber" name="151" href="#151">151</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>
