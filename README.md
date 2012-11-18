@@ -3,6 +3,8 @@ Waarp R66
 
 You will find in this web site the sub project Waarp R66.
 
+There is also a Wiki available here: [Wiki](https://github.com/waarp/WaarpR66/wiki)
+
 The global license is GPL V3.
 
 Waarp is a project that provides, among other packages, 
