@@ -56,6 +56,7 @@ public class ConfigExport implements Runnable {
 	protected final boolean host;
 	protected final boolean rule;
 	protected final NetworkTransaction networkTransaction;
+	protected DbHostAuth dbhost;
 
 	public ConfigExport(R66Future future, boolean host, boolean rule,
 			NetworkTransaction networkTransaction) {
@@ -63,6 +64,11 @@ public class ConfigExport implements Runnable {
 		this.host = host;
 		this.rule = rule;
 		this.networkTransaction = networkTransaction;
+		this.dbhost = Configuration.configuration.HOST_SSLAUTH;
+	}
+	
+	public void setHost(DbHostAuth host) {
+		this.dbhost = host;
 	}
 
 	/**
@@ -75,15 +81,14 @@ public class ConfigExport implements Runnable {
 		}
 		ValidPacket valid = new ValidPacket(Boolean.toString(host), Boolean.toString(rule),
 				LocalPacketFactory.CONFEXPORTPACKET);
-		DbHostAuth host = Configuration.configuration.HOST_SSLAUTH;
-		SocketAddress socketAddress = host.getSocketAddress();
-		boolean isSSL = host.isSsl();
+		SocketAddress socketAddress = dbhost.getSocketAddress();
+		boolean isSSL = dbhost.isSsl();
 
 		LocalChannelReference localChannelReference = networkTransaction
 				.createConnectionWithRetry(socketAddress, isSSL, future);
 		socketAddress = null;
 		if (localChannelReference == null) {
-			host = null;
+			dbhost = null;
 			logger.error("Cannot Connect");
 			future.setResult(new R66Result(
 					new OpenR66ProtocolNoConnectionException("Cannot connect to server"),
@@ -98,14 +103,14 @@ public class ConfigExport implements Runnable {
 			logger.error("Bad Protocol", e);
 			Channels.close(localChannelReference.getLocalChannel());
 			localChannelReference = null;
-			host = null;
+			dbhost = null;
 			valid = null;
 			future.setResult(new R66Result(e, null, true,
 					ErrorCode.TransferError, null));
 			future.setFailure(e);
 			return;
 		}
-		host = null;
+		dbhost = null;
 		future.awaitUninterruptibly();
 		logger.info("Request done with " + (future.isSuccess() ? "success" : "error"));
 		Channels.close(localChannelReference.getLocalChannel());

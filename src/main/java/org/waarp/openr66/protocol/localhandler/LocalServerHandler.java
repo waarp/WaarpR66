@@ -2277,6 +2277,24 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				}
 				String[] splitglobal = packet.getSheader().split(" ");
 				String[] splitsession = packet.getSmiddle().split(" ");
+				if (splitglobal.length < 2 || splitsession.length < 2) {
+					// request of current values
+					R66Result result = new R66Result(session, true, ErrorCode.CompleteOk, null);
+					// Now answer
+					ValidPacket valid = new ValidPacket(Configuration.configuration.serverGlobalWriteLimit
+							+" "+Configuration.configuration.serverGlobalReadLimit+
+							" "+Configuration.configuration.serverChannelWriteLimit+
+							" "+Configuration.configuration.serverChannelReadLimit, result.code.getCode(),
+							LocalPacketFactory.REQUESTUSERPACKET);
+					localChannelReference.validateRequest(result);
+					try {
+						ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+								valid, true);
+					} catch (OpenR66ProtocolPacketException e) {
+					}
+					Channels.close(channel);
+					return;
+				}
 				long wgl = (Long.parseLong(splitglobal[0]) / 10) * 10;
 				long rgl = (Long.parseLong(splitglobal[1]) / 10) * 10;
 				long wsl = (Long.parseLong(splitsession[0]) / 10) * 10;
