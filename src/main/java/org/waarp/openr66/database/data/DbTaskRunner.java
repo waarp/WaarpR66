@@ -65,7 +65,6 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
-import org.waarp.openr66.protocol.http.HttpFormattedHandler;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 import org.waarp.openr66.protocol.localhandler.packet.ErrorPacket;
 import org.waarp.openr66.protocol.localhandler.packet.RequestPacket;
@@ -3075,16 +3074,16 @@ public class DbTaskRunner extends AbstractDbData {
 						sdir = rule.workPath;
 					}
 					R66Dir dir;
-					if (HttpFormattedHandler.usedDir.containsKey(sdir)) {
-						dir = HttpFormattedHandler.usedDir.get(sdir);
+					if (session.dirsFromSession.containsKey(sdir)) {
+						dir = session.dirsFromSession.get(sdir);
 					} else {
 						dir = new R66Dir(session);
 						dir.changeDirectory(sdir);
-						HttpFormattedHandler.usedDir.put(sdir, dir);
+						session.dirsFromSession.put(sdir, dir);
 					}
 					freespace = dir.getFreeSpace() / 0x100000L;
 				} catch (CommandAbstractException e) {
-					logger.warn("Error while freespace compute {}", e.getMessage());
+					logger.warn("Error while freespace compute {}", e.getMessage(), e);
 				}
 			}
 		}

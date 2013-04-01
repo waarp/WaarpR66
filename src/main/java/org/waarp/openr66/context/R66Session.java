@@ -21,6 +21,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.URLDecoder;
+import java.util.HashMap;
 
 import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
@@ -114,6 +115,7 @@ public class R66Session implements SessionInterface {
 	 */
 	private boolean extendedProtocol = Configuration.configuration.extendedProtocol;
 
+	public HashMap<String, R66Dir> dirsFromSession = new HashMap<String, R66Dir>();
 	/**
 	 * Create the session
 	 */
