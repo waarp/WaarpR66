@@ -22,7 +22,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -60,7 +59,6 @@ import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Session;
-import org.waarp.openr66.context.filesystem.R66Dir;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.database.data.DbTaskRunner.TASKSTEP;
@@ -149,8 +147,6 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 											// 4
 
 	public final R66Session authentHttp = new R66Session();
-
-	public static final ConcurrentHashMap<String, R66Dir> usedDir = new ConcurrentHashMap<String, R66Dir>();
 
 	private volatile HttpRequest request;
 

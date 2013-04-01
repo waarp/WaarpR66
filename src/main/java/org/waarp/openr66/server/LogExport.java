@@ -65,6 +65,7 @@ public class LogExport implements Runnable {
 	protected final Timestamp stop;
 	protected final boolean clean;
 	protected final NetworkTransaction networkTransaction;
+	protected DbHostAuth host;
 
 	public LogExport(R66Future future, boolean purgeLog, boolean clean,
 			Timestamp start, Timestamp stop,
@@ -75,8 +76,13 @@ public class LogExport implements Runnable {
 		this.start = start;
 		this.stop = stop;
 		this.networkTransaction = networkTransaction;
+		this.host = Configuration.configuration.HOST_SSLAUTH;
 	}
 
+	public void setHost(DbHostAuth host) {
+		this.host = host;
+	}
+	
 	/**
 	 * Prior to call this method, the pipeline and NetworkTransaction must have been initialized. It
 	 * is the responsibility of the caller to finish all network resources.
@@ -89,7 +95,6 @@ public class LogExport implements Runnable {
 		String lstop = (stop != null) ? stop.toString() : null;
 		byte type = (purgeLog) ? LocalPacketFactory.LOGPURGEPACKET : LocalPacketFactory.LOGPACKET;
 		ValidPacket valid = new ValidPacket(lstart, lstop, type);
-		DbHostAuth host = Configuration.configuration.HOST_SSLAUTH;
 		SocketAddress socketAddress = host.getSocketAddress();
 		boolean isSSL = host.isSsl();
 
@@ -143,7 +148,7 @@ public class LogExport implements Runnable {
 
 	private static SimpleDateFormat format = new SimpleDateFormat("yyyyMMddHHmmssSSS");
 
-	private static Timestamp fixDate(String sdate) {
+	public static Timestamp fixDate(String sdate) {
 		Timestamp tdate = null;
 		String date = sdate.replaceAll("/|:|\\.| |-", "");
 		if (date.length() > 0) {
@@ -161,7 +166,7 @@ public class LogExport implements Runnable {
 		return tdate;
 	}
 
-	private static Timestamp fixDate(String sdate, Timestamp before) {
+	public static Timestamp fixDate(String sdate, Timestamp before) {
 		Timestamp tdate = null;
 		String date = sdate.replaceAll("/|:|\\.| |-", "");
 		if (date.length() > 0) {
@@ -185,7 +190,7 @@ public class LogExport implements Runnable {
 		return tdate;
 	}
 
-	private static Timestamp getTodayMidnight() {
+	public static Timestamp getTodayMidnight() {
 		GregorianCalendar calendar = new GregorianCalendar();
 		calendar.set(GregorianCalendar.HOUR_OF_DAY, 0);
 		calendar.set(GregorianCalendar.MINUTE, 0);

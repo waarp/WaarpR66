@@ -59,6 +59,7 @@ public class ChangeBandwidthLimits implements Runnable {
 	protected final long writeSessionLimit;
 	protected final long readSessionLimit;
 	protected final NetworkTransaction networkTransaction;
+	protected DbHostAuth host;
 
 	public ChangeBandwidthLimits(R66Future future, long wgl, long rgl, long wsl, long rsl,
 			NetworkTransaction networkTransaction) {
@@ -68,7 +69,14 @@ public class ChangeBandwidthLimits implements Runnable {
 		this.writeSessionLimit = wsl;
 		this.readSessionLimit = rsl;
 		this.networkTransaction = networkTransaction;
+		this.host = Configuration.configuration.HOST_SSLAUTH;
 	}
+	
+
+	public void setHost(DbHostAuth host) {
+		this.host = host;
+	}
+	
 
 	/**
 	 * Prior to call this method, the pipeline and NetworkTransaction must have been initialized. It
@@ -78,9 +86,15 @@ public class ChangeBandwidthLimits implements Runnable {
 		if (logger == null) {
 			logger = WaarpInternalLoggerFactory.getLogger(ChangeBandwidthLimits.class);
 		}
-		ValidPacket valid = new ValidPacket(writeGlobalLimit + " " + readGlobalLimit,
+		ValidPacket valid = null;
+		if (writeGlobalLimit < 0 && readGlobalLimit < 0 && writeSessionLimit < 0 && readSessionLimit < 0) {
+			// will ask current values instead
+			valid = new ValidPacket("-1",
+					"-1", LocalPacketFactory.BANDWIDTHPACKET);
+		} else {
+			valid = new ValidPacket(writeGlobalLimit + " " + readGlobalLimit,
 				writeSessionLimit + " " + readSessionLimit, LocalPacketFactory.BANDWIDTHPACKET);
-		DbHostAuth host = Configuration.configuration.HOST_SSLAUTH;
+		}
 		SocketAddress socketAddress = host.getSocketAddress();
 		boolean isSSL = host.isSsl();
 		LocalChannelReference localChannelReference = networkTransaction

@@ -1692,6 +1692,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					logger.debug("Still not authenticated: {}", authentHttp);
 					getMenu = true;
 				}
+				logger.debug("Identified: "+authentHttp.getAuth().isIdentified()+":"+authentHttp.isAuthenticated());
 				// load DbSession
 				if (this.dbSession == null) {
 					try {
@@ -1805,23 +1806,29 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 			if (!cookies.isEmpty()) {
 				for (Cookie elt : cookies) {
 					if (elt.getName().equalsIgnoreCase(R66SESSION)) {
+						logger.debug("Found session: "+elt);
 						admin = elt;
+						R66Session session = sessions.get(admin.getValue());
+						if (session != null) {
+							authentHttp = session;
+							authentHttp.setStatus(73);
+						} else {
+							admin = null;
+							continue;
+						}
+						DbSession dbSession = dbSessions.get(admin.getValue());
+						if (dbSession != null) {
+							this.dbSession = dbSession;
+						} else {
+							admin = null;
+							continue;
+						}
 						break;
 					}
 				}
 			}
 		}
-		if (admin != null) {
-			R66Session session = sessions.get(admin.getValue());
-			if (session != null) {
-				authentHttp = session;
-				authentHttp.setStatus(73);
-			}
-			DbSession dbSession = dbSessions.get(admin.getValue());
-			if (dbSession != null) {
-				this.dbSession = dbSession;
-			}
-		} else {
+		if (admin == null) {
 			logger.debug("NoSession: " + uriRequest + ":{}", admin);
 		}
 	}
