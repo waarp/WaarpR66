@@ -737,55 +737,9 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="38" tokens="219">
-<file line="82" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ChangeBandwidthLimits.java"/>
-<file line="77" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigExport.java"/>
-<codefragment>
-<![CDATA[
-				writeSessionLimit + " " + readSessionLimit, LocalPacketFactory.BANDWIDTHPACKET);
-		DbHostAuth host = Configuration.configuration.HOST_SSLAUTH;
-		SocketAddress socketAddress = host.getSocketAddress();
-		boolean isSSL = host.isSsl();
-		LocalChannelReference localChannelReference = networkTransaction
-				.createConnectionWithRetry(socketAddress, isSSL, future);
-		socketAddress = null;
-		if (localChannelReference == null) {
-			host = null;
-			logger.error("Cannot Connect");
-			future.setResult(new R66Result(
-					new OpenR66ProtocolNoConnectionException("Cannot connect to server"),
-					null, true, ErrorCode.Internal, null));
-			future.setFailure(future.getResult().exception);
-			return;
-		}
-		localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
-		try {
-			ChannelUtils.writeAbstractLocalPacket(localChannelReference, valid, false);
-		} catch (OpenR66ProtocolPacketException e) {
-			logger.error("Bad Protocol", e);
-			Channels.close(localChannelReference.getLocalChannel());
-			localChannelReference = null;
-			host = null;
-			valid = null;
-			future.setResult(new R66Result(e, null, true,
-					ErrorCode.TransferError, null));
-			future.setFailure(e);
-			return;
-		}
-		host = null;
-		future.awaitUninterruptibly();
-		logger.info("Request done with " + (future.isSuccess() ? "success" : "error"));
-		Channels.close(localChannelReference.getLocalChannel());
-		localChannelReference = null;
-	}
-
-	protected static long swriteGlobalLimit = -1;
-]]>
-</codefragment>
-</duplication>
 <duplication lines="40" tokens="207">
-<file line="3448" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
-<file line="3559" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="3447" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="3558" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
 <codefragment>
 <![CDATA[
 		} catch (FileNotFoundException e) {
@@ -977,51 +931,9 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="34" tokens="195">
-<file line="82" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigExport.java"/>
-<file line="106" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExport.java"/>
-<codefragment>
-<![CDATA[
-		LocalChannelReference localChannelReference = networkTransaction
-				.createConnectionWithRetry(socketAddress, isSSL, future);
-		socketAddress = null;
-		if (localChannelReference == null) {
-			host = null;
-			logger.error("Cannot Connect");
-			future.setResult(new R66Result(
-					new OpenR66ProtocolNoConnectionException("Cannot connect to server"),
-					null, true, ErrorCode.Internal, null));
-			future.setFailure(future.getResult().exception);
-			return;
-		}
-		localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
-		try {
-			ChannelUtils.writeAbstractLocalPacket(localChannelReference, valid, false);
-		} catch (OpenR66ProtocolPacketException e) {
-			logger.error("Bad Protocol", e);
-			Channels.close(localChannelReference.getLocalChannel());
-			localChannelReference = null;
-			host = null;
-			valid = null;
-			future.setResult(new R66Result(e, null, true,
-					ErrorCode.TransferError, null));
-			future.setFailure(e);
-			return;
-		}
-		host = null;
-		future.awaitUninterruptibly();
-		logger.info("Request done with " + (future.isSuccess() ? "success" : "error"));
-		Channels.close(localChannelReference.getLocalChannel());
-		localChannelReference = null;
-	}
-
-	protected static boolean shost = false;
-]]>
-</codefragment>
-</duplication>
 <duplication lines="34" tokens="194">
-<file line="86" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ChangeBandwidthLimits.java"/>
-<file line="106" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExport.java"/>
+<file line="100" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ChangeBandwidthLimits.java"/>
+<file line="111" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExport.java"/>
 <codefragment>
 <![CDATA[
 		LocalChannelReference localChannelReference = networkTransaction
@@ -1058,48 +970,6 @@
 	}
 
 	protected static long swriteGlobalLimit = -1;
-]]>
-</codefragment>
-</duplication>
-<duplication lines="33" tokens="187">
-<file line="82" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ChangeBandwidthLimits.java"/>
-<file line="77" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigExport.java"/>
-<file line="83" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigImport.java"/>
-<codefragment>
-<![CDATA[
-				writeSessionLimit + " " + readSessionLimit, LocalPacketFactory.BANDWIDTHPACKET);
-		DbHostAuth host = Configuration.configuration.HOST_SSLAUTH;
-		SocketAddress socketAddress = host.getSocketAddress();
-		boolean isSSL = host.isSsl();
-		LocalChannelReference localChannelReference = networkTransaction
-				.createConnectionWithRetry(socketAddress, isSSL, future);
-		socketAddress = null;
-		if (localChannelReference == null) {
-			host = null;
-			logger.error("Cannot Connect");
-			future.setResult(new R66Result(
-					new OpenR66ProtocolNoConnectionException("Cannot connect to server"),
-					null, true, ErrorCode.Internal, null));
-			future.setFailure(future.getResult().exception);
-			return;
-		}
-		localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
-		try {
-			ChannelUtils.writeAbstractLocalPacket(localChannelReference, valid, false);
-		} catch (OpenR66ProtocolPacketException e) {
-			logger.error("Bad Protocol", e);
-			Channels.close(localChannelReference.getLocalChannel());
-			localChannelReference = null;
-			host = null;
-			valid = null;
-			future.setResult(new R66Result(e, null, true,
-					ErrorCode.TransferError, null));
-			future.setFailure(e);
-			return;
-		}
-		host = null;
-		future.awaitUninterruptibly();
-		logger.info("Request done with " + (future.isSuccess() ? "success" : "error"));
 ]]>
 </codefragment>
 </duplication>
@@ -1146,6 +1016,47 @@
 				return false;
 			}
 		}
+]]>
+</codefragment>
+</duplication>
+<duplication lines="33" tokens="179">
+<file line="83" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigExport.java"/>
+<file line="89" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigImport.java"/>
+<codefragment>
+<![CDATA[
+				LocalPacketFactory.CONFEXPORTPACKET);
+		SocketAddress socketAddress = dbhost.getSocketAddress();
+		boolean isSSL = dbhost.isSsl();
+
+		LocalChannelReference localChannelReference = networkTransaction
+				.createConnectionWithRetry(socketAddress, isSSL, future);
+		socketAddress = null;
+		if (localChannelReference == null) {
+			dbhost = null;
+			logger.error("Cannot Connect");
+			future.setResult(new R66Result(
+					new OpenR66ProtocolNoConnectionException("Cannot connect to server"),
+					null, true, ErrorCode.Internal, null));
+			future.setFailure(future.getResult().exception);
+			return;
+		}
+		localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
+		try {
+			ChannelUtils.writeAbstractLocalPacket(localChannelReference, valid, false);
+		} catch (OpenR66ProtocolPacketException e) {
+			logger.error("Bad Protocol", e);
+			Channels.close(localChannelReference.getLocalChannel());
+			localChannelReference = null;
+			dbhost = null;
+			valid = null;
+			future.setResult(new R66Result(e, null, true,
+					ErrorCode.TransferError, null));
+			future.setFailure(e);
+			return;
+		}
+		dbhost = null;
+		future.awaitUninterruptibly();
+		logger.info("Request done with " + (future.isSuccess() ? "success" : "error"));
 ]]>
 </codefragment>
 </duplication>
@@ -1200,46 +1111,9 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="29" tokens="162">
-<file line="88" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigImport.java"/>
-<file line="106" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExport.java"/>
-<codefragment>
-<![CDATA[
-		LocalChannelReference localChannelReference = networkTransaction
-				.createConnectionWithRetry(socketAddress, isSSL, future);
-		socketAddress = null;
-		if (localChannelReference == null) {
-			host = null;
-			logger.error("Cannot Connect");
-			future.setResult(new R66Result(
-					new OpenR66ProtocolNoConnectionException("Cannot connect to server"),
-					null, true, ErrorCode.Internal, null));
-			future.setFailure(future.getResult().exception);
-			return;
-		}
-		localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
-		try {
-			ChannelUtils.writeAbstractLocalPacket(localChannelReference, valid, false);
-		} catch (OpenR66ProtocolPacketException e) {
-			logger.error("Bad Protocol", e);
-			Channels.close(localChannelReference.getLocalChannel());
-			localChannelReference = null;
-			host = null;
-			valid = null;
-			future.setResult(new R66Result(e, null, true,
-					ErrorCode.TransferError, null));
-			future.setFailure(e);
-			return;
-		}
-		host = null;
-		future.awaitUninterruptibly();
-		logger.debug("Request done with " + (future.isSuccess() ? "success" : "error"));
-]]>
-</codefragment>
-</duplication>
 <duplication lines="21" tokens="154">
-<file line="1550" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
-<file line="1590" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="1549" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="1589" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
 <codefragment>
 <![CDATA[
 			DbSession session, boolean in)
@@ -1573,8 +1447,8 @@
 </codefragment>
 </duplication>
 <duplication lines="22" tokens="117">
-<file line="181" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigExport.java"/>
-<file line="293" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExport.java"/>
+<file line="186" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigExport.java"/>
+<file line="298" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExport.java"/>
 <codefragment>
 <![CDATA[
 					logger.warn("SUCCESS on Final files:\n    " +
@@ -1909,8 +1783,8 @@
 </codefragment>
 </duplication>
 <duplication lines="27" tokens="105">
-<file line="755" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
-<file line="793" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="754" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="792" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
 <codefragment>
 <![CDATA[
 	public void insert() throws WaarpDatabaseException {
