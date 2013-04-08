@@ -1553,8 +1553,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					localChannelReference.invalidateRequest(result);
 					throw (OpenR66RunnerErrorException) result.exception;
 				} else {
+					localChannelReference.setHashComputeDuringTransfer(localhash);
 					logger.debug("Global digest ok");
 				}
+			} else if (globalDigest != null) {
+				String localhash = FilesystemBasedDigest.getHex(globalDigest.Final());
+				globalDigest = null;
+				localChannelReference.setHashComputeDuringTransfer(localhash);
 			}
 			globalDigest = null;
 			session.newState(ENDTRANSFERS);

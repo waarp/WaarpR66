@@ -2,6 +2,8 @@
 
 rem -- DO NOT CHANGE THIS ! OR YOU REALLY KNOW WHAT YOU ARE DOING ;)
 
+rem -- INSTALL prunmgr.exe and prunsrv.exe from Daemon Apache project in the directory windows under EXEC_PATH
+
 rem -- Organization: 
 rem -- EXEC_PATH is root (pid will be there)
 rem -- EXEC_PATH\..\logs\ will be the log place

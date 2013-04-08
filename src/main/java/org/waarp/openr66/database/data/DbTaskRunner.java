@@ -44,6 +44,7 @@ import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseNoDataException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
+import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
@@ -2750,6 +2751,35 @@ public class DbTaskRunner extends AbstractDbData {
 						try {
 							this.setFilename(file.getFile());
 						} catch (CommandAbstractException e) {
+						}
+						// check if possible once more the hash
+						String hash = localChannelReference.getHashComputeDuringTransfer();
+						if (hash != null) {
+							// we can compute it once more
+							try {
+								if (! FilesystemBasedDigest.getHex(FilesystemBasedDigest.getHash(file.getTrueFile(), true, Configuration.configuration.digest)).equals(hash)) {
+									// KO
+									R66Result result = new R66Result(
+											new OpenR66RunnerErrorException("Bad final digest on receive operation"), session,
+											false, ErrorCode.FinalOp, this);
+									result.file = file;
+									result.runner = this;
+									if (localChannelReference != null) {
+										localChannelReference.invalidateRequest(result);
+									}
+									throw (OpenR66RunnerErrorException) result.exception;
+								}
+							} catch (IOException e) {
+								R66Result result = new R66Result(
+										new OpenR66RunnerErrorException("Bad final digest on receive operation", e), session,
+										false, ErrorCode.FinalOp, this);
+								result.file = file;
+								result.runner = this;
+								if (localChannelReference != null) {
+									localChannelReference.invalidateRequest(result);
+								}
+								throw (OpenR66RunnerErrorException) result.exception;
+							}
 						}
 					}
 				}
