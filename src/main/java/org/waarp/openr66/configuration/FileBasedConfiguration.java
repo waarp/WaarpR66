@@ -19,6 +19,7 @@ package org.waarp.openr66.configuration;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
@@ -26,6 +27,7 @@ import java.util.List;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
+import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.jboss.netty.handler.traffic.AbstractTrafficShapingHandler;
 import org.waarp.common.crypto.Des;
@@ -54,6 +56,7 @@ import org.waarp.openr66.context.authentication.R66Auth;
 import org.waarp.openr66.context.task.localexec.LocalExecClient;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbConfiguration;
+import org.waarp.openr66.database.data.DbHostConfiguration;
 import org.waarp.openr66.database.model.DbModelFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
@@ -431,6 +434,18 @@ public class FileBasedConfiguration {
 	 * Role set
 	 */
 	private static final String XML_ROLESET = "roleset";
+	/**
+	 * Alias
+	 */
+	private static final String XML_ALIAS = "alias";
+	/**
+	 * Main ID in alias
+	 */
+	private static final String XML_REALID = "realid";
+	/**
+	 * Alias Id
+	 */
+	private static final String XML_ALIASID = "aliasid";
 
 
 	/**
@@ -585,6 +600,15 @@ public class FileBasedConfiguration {
 			new XmlDecl(XmlType.STRING, XML_ROLEID),
 			new XmlDecl(XmlType.STRING, XML_ROLESET)
 	};
+	/**
+	 * Structure of the Configuration file
+	 * 
+	 */
+	private static final XmlDecl[] configAliasDecls = {
+			// roles
+			new XmlDecl(XmlType.STRING, XML_REALID),
+			new XmlDecl(XmlType.STRING, XML_ALIASID)
+	};
 
 	/**
 	 * Overall structure of the Configuration file
@@ -600,6 +624,7 @@ public class FileBasedConfiguration {
 	private static final String XML_DB = "db";
 	private static final String XML_BUSINESS = "business";
 	private static final String XML_ROLES = "roles";
+	private static final String XML_ALIASES = "aliases";
 
 	/**
 	 * Global Structure for Server Configuration
@@ -619,7 +644,9 @@ public class FileBasedConfiguration {
 			new XmlDecl(XML_BUSINESS, XmlType.STRING, XML_ROOT + XML_BUSINESS + "/"
 					+ XML_BUSINESSID, true),
 			new XmlDecl(XML_ROLES, XmlType.XVAL, XML_ROOT + XML_ROLES + "/"
-					+ XML_ROLE, configRoleDecls, true)
+					+ XML_ROLE, configRoleDecls, true),
+			new XmlDecl(XML_ALIASES, XmlType.XVAL, XML_ROOT + XML_ALIASES + "/"
+					+ XML_ALIAS, configAliasDecls, true)
 	};
 	/**
 	 * Global Structure for Client Configuration
@@ -635,7 +662,9 @@ public class FileBasedConfiguration {
 			new XmlDecl(XML_LIMIT, XmlType.XVAL, XML_ROOT + XML_LIMIT, configLimitDecls, false),
 			new XmlDecl(XML_DB, XmlType.XVAL, XML_ROOT + XML_DB, configDbDecls, false),
 			new XmlDecl(XML_BUSINESS, XmlType.STRING, XML_ROOT + XML_BUSINESS + "/"
-					+ XML_BUSINESSID, true)
+					+ XML_BUSINESSID, true),
+			new XmlDecl(XML_ALIASES, XmlType.XVAL, XML_ROOT + XML_ALIASES + "/"
+					+ XML_ALIAS, configAliasDecls, true)
 	};
 	/**
 	 * Global Structure for Submit only Client Configuration
@@ -645,7 +674,9 @@ public class FileBasedConfiguration {
 					false),
 			new XmlDecl(XML_LIMIT, XmlType.XVAL, XML_ROOT + XML_LIMIT, configSubmitLimitDecls,
 					false),
-			new XmlDecl(XML_DB, XmlType.XVAL, XML_ROOT + XML_DB, configDbDecls, false)
+			new XmlDecl(XML_DB, XmlType.XVAL, XML_ROOT + XML_DB, configDbDecls, false),
+			new XmlDecl(XML_ALIASES, XmlType.XVAL, XML_ROOT + XML_ALIASES + "/"
+					+ XML_ALIAS, configAliasDecls, true)
 	};
 	private static XmlValue[] configuration = null;
 	private static XmlHash hashConfig = null;
@@ -1452,8 +1483,185 @@ public class FileBasedConfiguration {
 				ids = null;
 			}
 		}
+		loadAliases(config);
+		// now check in DB
+		if (DbConstant.admin != null) {
+			try {
+				DbHostConfiguration hostconfiguration = new DbHostConfiguration(DbConstant.admin.session, config.HOST_ID);
+				if (hostconfiguration != null) {
+					updateHostConfiguration(config, hostconfiguration);
+				}
+			} catch (WaarpDatabaseException e) {
+				// ignore
+			}
+			
+		}
 	}
+	@SuppressWarnings("unchecked")
+	public static void loadAliases(Configuration config) {
+		XmlValue value = hashConfig.get(XML_ALIASES);
+		if (value != null && (value.getList() != null)) {
+			for (XmlValue[] xml : (List<XmlValue[]>) value.getList()) {
+				XmlHash subHash = new XmlHash(xml);
+				value = subHash.get(XML_REALID);
+				if (value == null || (value.isEmpty())) {
+					continue;
+				}
+				String refHostId = value.getString();
+				value = subHash.get(XML_ALIASID);
+				if (value == null || (value.isEmpty())) {
+					continue;
+				}
+				String aliasset = value.getString();
+				String [] alias = aliasset.split(" |\\|");
+				for (String namealias : alias) {
+					config.aliases.put(namealias, refHostId);
+				}
+				logger.warn("Aliases for: " + refHostId +" = "+ aliasset);
+			}
+		}
+	}
+	@SuppressWarnings("unchecked")
+	public static void updateHostConfiguration(Configuration config, DbHostConfiguration hostConfiguration) {
+		String business = hostConfiguration.getBusiness();
+		Document document = null;
+		// Open config file
+		StringReader reader = null;
+		try {
+			reader = new StringReader(business);
+			document = new SAXReader().read(reader);
+		} catch (DocumentException e) {
+			logger.error("Unable to read the XML Config Business string: " + business, e);
+			if (reader != null) {
+				reader.close();
+			}
+			return;
+		}
+		if (document == null) {
+			logger.error("Unable to read the XML Config Business string: " + business);
+			if (reader != null) {
+				reader.close();
+			}
+			return;
+		}
+		// XXX FIXME
+		List<Element> list = document.selectNodes(XML_BUSINESS + "/" + XML_BUSINESSID);
+		for (Element element : list) {
+			String sval = element.getText();
+			if (sval.isEmpty()) {
+				continue;
+			}
+			logger.warn("Business Allow: " + sval);
+			config.businessWhiteSet.add(sval.trim());
+		}
+		list.clear();
+		document.clearContent();
+		document = null;
+		if (reader != null) {
+			reader.close();
+			reader = null;
+		}
+		
+		String aliases = hostConfiguration.getAliases();
+		try {
+			reader = new StringReader(aliases);
+			document = new SAXReader().read(reader);
+		} catch (DocumentException e) {
+			logger.error("Unable to read the XML Config Aliases string: " + business, e);
+			if (reader != null) {
+				reader.close();
+			}
+			return;
+		}
+		if (document == null) {
+			logger.error("Unable to read the XML Config Aliases string: " + business);
+			if (reader != null) {
+				reader.close();
+			}
+			return;
+		}
+		// XXX FIXME
+		list = document.selectNodes(XML_ALIASES + "/" + XML_ALIAS);
+		for (Element element : list) {
+			Element nodeid = (Element) element.selectSingleNode(XML_REALID);
+			if (nodeid == null) {
+				continue;
+			}
+			Element nodeset = (Element) element.selectSingleNode(XML_ALIASID);
+			if (nodeset == null) {
+				continue;
+			}
+			String refHostId = nodeid.getText();
+			String aliasesid = nodeset.getText();
+			String [] aliasid = aliasesid.split(" |\\|");
+			for (String namealias : aliasid) {
+				config.aliases.put(namealias, refHostId);
+			}
+			logger.warn("Aliases for: " + refHostId +" = "+ aliasesid);
+		}
+		list.clear();
+		document.clearContent();
+		document = null;
+		if (reader != null) {
+			reader.close();
+		}
 
+		String xroles = hostConfiguration.getRoles();
+		try {
+			reader = new StringReader(xroles);
+			document = new SAXReader().read(reader);
+		} catch (DocumentException e) {
+			logger.error("Unable to read the XML Config Roles string: " + business, e);
+			if (reader != null) {
+				reader.close();
+			}
+			return;
+		}
+		if (document == null) {
+			logger.error("Unable to read the XML Config Roles string: " + business);
+			if (reader != null) {
+				reader.close();
+			}
+			return;
+		}
+		// XXX FIXME
+		list = document.selectNodes(XML_ROLES + "/" + XML_ROLE);
+		for (Element element : list) {
+			Element nodeid = (Element) element.selectSingleNode(XML_ROLEID);
+			if (nodeid == null) {
+				continue;
+			}
+			Element nodeset = (Element) element.selectSingleNode(XML_ROLESET);
+			if (nodeset == null) {
+				continue;
+			}
+			String refHostId = nodeid.getText();
+			String roleset = nodeset.getText();
+			String [] roles = roleset.split(" |\\|");
+			RoleDefault newrole = new RoleDefault();
+			for (String role : roles) {
+				try {
+					RoleDefault.ROLE roletype = RoleDefault.ROLE.valueOf(role.toUpperCase());
+					if (roletype == ROLE.NOACCESS) {
+						// reset
+						newrole.setRole(roletype);
+					} else {
+						newrole.addRole(roletype);
+					}
+				} catch (IllegalArgumentException e) {
+					// ignore
+				}
+			}
+			logger.warn("New Role: " + refHostId + ":" + newrole);
+			config.roles.put(refHostId, newrole);
+		}
+		list.clear();
+		document.clearContent();
+		document = null;
+		if (reader != null) {
+			reader.close();
+		}
+	}
 	/**
 	 * Load Role list if any
 	 * 
@@ -1752,6 +1960,7 @@ public class FileBasedConfiguration {
 				return false;
 			}
 		}
+		loadBusinessWhiteList(config);
 		hashConfig.clear();
 		hashConfig = null;
 		configuration = null;
@@ -1979,6 +2188,7 @@ public class FileBasedConfiguration {
 				return false;
 			}
 		}
+		loadBusinessWhiteList(config);
 		hashConfig.clear();
 		hashConfig = null;
 		configuration = null;
