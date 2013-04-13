@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <pmd-cpd>
-<duplication lines="162" tokens="963">
-<file line="64" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
-<file line="57" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<duplication lines="187" tokens="1110">
+<file line="65" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="58" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
 <codefragment>
 <![CDATA[
 		String primaryKey = " PRIMARY KEY ";
@@ -29,7 +29,7 @@
 			return;
 		} catch (WaarpDatabaseSqlException e) {
 			e.printStackTrace();
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
@@ -63,11 +63,36 @@
 			return;
 		} catch (WaarpDatabaseSqlException e) {
 			e.printStackTrace();
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
 
+		// HostConfiguration
+		action = createTableH2 + DbHostConfiguration.table + "(";
+		DbHostConfiguration.Columns[] chcolumns = DbHostConfiguration.Columns
+				.values();
+		for (int i = 0; i < chcolumns.length - 1; i++) {
+			action += chcolumns[i].name() +
+					DBType.getType(DbHostConfiguration.dbTypes[i]) + notNull +
+					", ";
+		}
+		action += chcolumns[chcolumns.length - 1].name() +
+				DBType.getType(DbHostConfiguration.dbTypes[chcolumns.length - 1]) +
+				primaryKey + ")";
+		System.out.println(action);
+		request = new DbRequest(session);
+		try {
+			request.query(action);
+		} catch (WaarpDatabaseNoConnectionException e) {
+			e.printStackTrace();
+			return;
+		} catch (WaarpDatabaseSqlException e) {
+			// XXX FIX no return;
+		} finally {
+			request.close();
+		}
+		
 		// hosts
 		action = createTableH2 + DbHostAuth.table + "(";
 		DbHostAuth.Columns[] hcolumns = DbHostAuth.Columns.values();
@@ -86,7 +111,7 @@
 			return;
 		} catch (WaarpDatabaseSqlException e) {
 			e.printStackTrace();
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
@@ -109,7 +134,7 @@
 			return;
 		} catch (WaarpDatabaseSqlException e) {
 			e.printStackTrace();
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
@@ -135,7 +160,7 @@
 			return;
 		} catch (WaarpDatabaseSqlException e) {
 			e.printStackTrace();
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
@@ -153,7 +178,7 @@
 			e.printStackTrace();
 			return;
 		} catch (WaarpDatabaseSqlException e) {
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
@@ -170,9 +195,9 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="140" tokens="868">
-<file line="57" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
-<file line="60" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<duplication lines="165" tokens="1016">
+<file line="58" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="61" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
 <codefragment>
 <![CDATA[
 	@Override
@@ -203,7 +228,7 @@
 			return;
 		} catch (WaarpDatabaseSqlException e) {
 			e.printStackTrace();
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
@@ -237,11 +262,36 @@
 			return;
 		} catch (WaarpDatabaseSqlException e) {
 			e.printStackTrace();
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
 
+		// HostConfiguration
+		action = createTableH2 + DbHostConfiguration.table + "(";
+		DbHostConfiguration.Columns[] chcolumns = DbHostConfiguration.Columns
+				.values();
+		for (int i = 0; i < chcolumns.length - 1; i++) {
+			action += chcolumns[i].name() +
+					DBType.getType(DbHostConfiguration.dbTypes[i]) + notNull +
+					", ";
+		}
+		action += chcolumns[chcolumns.length - 1].name() +
+				DBType.getType(DbHostConfiguration.dbTypes[chcolumns.length - 1]) +
+				primaryKey + ")";
+		System.out.println(action);
+		request = new DbRequest(session);
+		try {
+			request.query(action);
+		} catch (WaarpDatabaseNoConnectionException e) {
+			e.printStackTrace();
+			return;
+		} catch (WaarpDatabaseSqlException e) {
+			// XXX FIX no return;
+		} finally {
+			request.close();
+		}
+				
 		// hosts
 		action = createTableH2 + DbHostAuth.table + "(";
 		DbHostAuth.Columns[] hcolumns = DbHostAuth.Columns.values();
@@ -260,7 +310,7 @@
 			return;
 		} catch (WaarpDatabaseSqlException e) {
 			e.printStackTrace();
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
@@ -283,7 +333,7 @@
 			return;
 		} catch (WaarpDatabaseSqlException e) {
 			e.printStackTrace();
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
@@ -309,7 +359,7 @@
 			return;
 		} catch (WaarpDatabaseSqlException e) {
 			e.printStackTrace();
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
@@ -318,9 +368,9 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="136" tokens="852">
-<file line="61" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
-<file line="57" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<duplication lines="161" tokens="1000">
+<file line="62" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="58" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
 <codefragment>
 <![CDATA[
 		String primaryKey = " PRIMARY KEY ";
@@ -347,7 +397,7 @@
 			return;
 		} catch (WaarpDatabaseSqlException e) {
 			e.printStackTrace();
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
@@ -381,11 +431,36 @@
 			return;
 		} catch (WaarpDatabaseSqlException e) {
 			e.printStackTrace();
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
 
+		// HostConfiguration
+		action = createTableH2 + DbHostConfiguration.table + "(";
+		DbHostConfiguration.Columns[] chcolumns = DbHostConfiguration.Columns
+				.values();
+		for (int i = 0; i < chcolumns.length - 1; i++) {
+			action += chcolumns[i].name() +
+					DBType.getType(DbHostConfiguration.dbTypes[i]) + notNull +
+					", ";
+		}
+		action += chcolumns[chcolumns.length - 1].name() +
+				DBType.getType(DbHostConfiguration.dbTypes[chcolumns.length - 1]) +
+				primaryKey + ")";
+		System.out.println(action);
+		request = new DbRequest(session);
+		try {
+			request.query(action);
+		} catch (WaarpDatabaseNoConnectionException e) {
+			e.printStackTrace();
+			return;
+		} catch (WaarpDatabaseSqlException e) {
+			// XXX FIX no return;
+		} finally {
+			request.close();
+		}
+				
 		// hosts
 		action = createTableH2 + DbHostAuth.table + "(";
 		DbHostAuth.Columns[] hcolumns = DbHostAuth.Columns.values();
@@ -404,7 +479,7 @@
 			return;
 		} catch (WaarpDatabaseSqlException e) {
 			e.printStackTrace();
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
@@ -427,7 +502,7 @@
 			return;
 		} catch (WaarpDatabaseSqlException e) {
 			e.printStackTrace();
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
@@ -453,7 +528,7 @@
 			return;
 		} catch (WaarpDatabaseSqlException e) {
 			e.printStackTrace();
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
@@ -602,9 +677,9 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="71" tokens="260">
-<file line="216" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
-<file line="212" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<duplication lines="71" tokens="259">
+<file line="242" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="238" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
 <codefragment>
 <![CDATA[
 				" START WITH " + (DbConstant.ILLEGALVALUE + 1);
@@ -616,7 +691,7 @@
 			return;
 		} catch (WaarpDatabaseSqlException e) {
 			e.printStackTrace();
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
@@ -682,8 +757,8 @@
 </codefragment>
 </duplication>
 <duplication lines="48" tokens="219">
-<file line="1684" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1767" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1892" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1976" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 	public static boolean setConfigurationServerShutdownFromXml(Configuration config,
@@ -738,8 +813,8 @@
 </codefragment>
 </duplication>
 <duplication lines="40" tokens="207">
-<file line="3447" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
-<file line="3558" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="3480" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="3591" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
 <codefragment>
 <![CDATA[
 		} catch (FileNotFoundException e) {
@@ -782,49 +857,6 @@
 				file.delete();
 			}
 		}
-]]>
-</codefragment>
-</duplication>
-<duplication lines="33" tokens="206">
-<file line="76" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
-<file line="79" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
-<file line="79" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
-<file line="72" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
-<codefragment>
-<![CDATA[
-		System.out.println(action);
-		DbRequest request = new DbRequest(session);
-		try {
-			request.query(action);
-		} catch (WaarpDatabaseNoConnectionException e) {
-			e.printStackTrace();
-			return;
-		} catch (WaarpDatabaseSqlException e) {
-			e.printStackTrace();
-			return;
-		} finally {
-			request.close();
-		}
-		DbMultipleMonitor multipleMonitor = new DbMultipleMonitor(session,
-				Configuration.configuration.HOST_ID, 0, 0, 0);
-		try {
-			if (!multipleMonitor.exist())
-				multipleMonitor.insert();
-		} catch (WaarpDatabaseException e1) {
-			e1.printStackTrace();
-		}
-
-		// Configuration
-		action = createTableH2 + DbConfiguration.table + "(";
-		DbConfiguration.Columns[] ccolumns = DbConfiguration.Columns
-				.values();
-		for (int i = 0; i < ccolumns.length - 1; i++) {
-			action += ccolumns[i].name() +
-					DBType.getType(DbConfiguration.dbTypes[i]) + notNull +
-					", ";
-		}
-		action += ccolumns[ccolumns.length - 1].name() +
-				DBType.getType(DbConfiguration.dbTypes[ccolumns.length - 1]) +
 ]]>
 </codefragment>
 </duplication>
@@ -974,8 +1006,8 @@
 </codefragment>
 </duplication>
 <duplication lines="38" tokens="183">
-<file line="1567" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1617" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1775" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1825" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 	public static boolean setConfigurationInitDatabase(Configuration config, String filename) {
@@ -1082,6 +1114,56 @@
 ]]>
 </codefragment>
 </duplication>
+<duplication lines="42" tokens="163">
+<file line="392" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbConfiguration.java"/>
+<file line="452" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbHostConfiguration.java"/>
+<codefragment>
+<![CDATA[
+		DbConfiguration dbConfiguration = new DbConfiguration(preparedStatement.getDbSession());
+		dbConfiguration.getValues(preparedStatement, dbConfiguration.allFields);
+		dbConfiguration.setFromArray();
+		dbConfiguration.isSaved = true;
+		return dbConfiguration;
+	}
+
+	/**
+	 * 
+	 * @return the DbPreparedStatement for getting Updated Object
+	 * @throws WaarpDatabaseNoConnectionException
+	 * @throws WaarpDatabaseSqlException
+	 */
+	public static DbPreparedStatement getUpdatedPrepareStament(DbSession session)
+			throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
+		String request = "SELECT " + selectAllFields;
+		request += " FROM " + table +
+				" WHERE " + Columns.UPDATEDINFO.name() + " = " +
+				AbstractDbData.UpdatedInfo.TOSUBMIT.ordinal() +
+				" AND " + Columns.HOSTID.name() + " = '" + Configuration.configuration.HOST_ID
+				+ "'";
+		DbPreparedStatement prep = new DbPreparedStatement(session, request);
+		return prep;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.waarp.openr66.databaseold.data.AbstractDbData#changeUpdatedInfo(UpdatedInfo)
+	 */
+	@Override
+	public void changeUpdatedInfo(UpdatedInfo info) {
+		if (updatedInfo != info.ordinal()) {
+			updatedInfo = info.ordinal();
+			allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
+			isSaved = false;
+		}
+	}
+
+	/**
+	 * Update configuration according to new value of limits
+	 */
+	public void updateConfiguration() {
+]]>
+</codefragment>
+</duplication>
 <duplication lines="21" tokens="163">
 <file line="998" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
 <file line="1050" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
@@ -1112,8 +1194,8 @@
 </codefragment>
 </duplication>
 <duplication lines="21" tokens="154">
-<file line="1549" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
-<file line="1589" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="1553" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="1593" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
 <codefragment>
 <![CDATA[
 			DbSession session, boolean in)
@@ -1140,60 +1222,43 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="40" tokens="140">
-<file line="1645" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1728" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<duplication lines="22" tokens="150">
+<file line="137" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="140" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="144" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="133" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
 <codefragment>
 <![CDATA[
-			logger.error("Cannot load Limit configuration");
-			return false;
+		System.out.println(action);
+		request = new DbRequest(session);
+		try {
+			request.query(action);
+		} catch (WaarpDatabaseNoConnectionException e) {
+			e.printStackTrace();
+			return;
+		} catch (WaarpDatabaseSqlException e) {
+			// XXX FIX no return;
+		} finally {
+			request.close();
 		}
-		if (!DbConstant.admin.isConnected) {
-			// if no database, must load authentication from file
-			if (!loadAuthentication(config)) {
-				logger.error("Cannot load Authentication configuration");
-				return false;
-			}
+				
+		// hosts
+		action = createTableH2 + DbHostAuth.table + "(";
+		DbHostAuth.Columns[] hcolumns = DbHostAuth.Columns.values();
+		for (int i = 0; i < hcolumns.length - 1; i++) {
+			action += hcolumns[i].name() +
+					DBType.getType(DbHostAuth.dbTypes[i]) + notNull + ", ";
 		}
-		config.HOST_AUTH = R66Auth.getServerAuth(
-				DbConstant.admin.session, config.HOST_ID);
-		if (config.HOST_AUTH == null &&
-				config.useNOSSL) {
-			logger.error("Cannot find Authentication for current host");
-			return false;
-		}
-		if (config.HOST_SSLID != null) {
-			config.HOST_SSLAUTH = R66Auth.getServerAuth(
-					DbConstant.admin.session,
-					config.HOST_SSLID);
-			if (config.HOST_SSLAUTH == null &&
-					config.useSSL) {
-				logger.error("Cannot find SSL Authentication for current host");
-				return false;
-			}
-		}
-		hashConfig.clear();
-		hashConfig = null;
-		configuration = null;
-		return true;
-	}
-
-	/**
-	 * Initiate the configuration from the xml file for server shutdown
-	 * 
-	 * @param filename
-	 * @return True if OK
-	 */
-	public static boolean setConfigurationServerShutdownFromXml(Configuration config,
+		action += hcolumns[hcolumns.length - 1].name() +
+				DBType.getType(DbHostAuth.dbTypes[hcolumns.length - 1]) +
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="26" tokens="138">
-<file line="196" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
-<file line="187" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<duplication lines="25" tokens="136">
+<file line="226" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="214" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
 <codefragment>
 <![CDATA[
-			return;
 		} finally {
 			request.close();
 		}
@@ -1211,7 +1276,7 @@
 			e.printStackTrace();
 			return;
 		} catch (WaarpDatabaseSqlException e) {
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
@@ -1273,10 +1338,46 @@
 ]]>
 </codefragment>
 </duplication>
+<duplication lines="28" tokens="127">
+<file line="1936" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="2023" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<codefragment>
+<![CDATA[
+			logger.error("Cannot load Network configuration");
+			return false;
+		}
+		if (!DbConstant.admin.isConnected) {
+			// if no database, must load authentication from file
+			if (!loadAuthentication(config)) {
+				logger.error("Cannot load Authentication configuration");
+				return false;
+			}
+		}
+		config.HOST_AUTH = R66Auth.getServerAuth(
+				DbConstant.admin.session, config.HOST_ID);
+		if (config.HOST_AUTH == null &&
+				config.useNOSSL) {
+			logger.error("Cannot find Authentication for current host");
+			return false;
+		}
+		if (config.HOST_SSLID != null) {
+			config.HOST_SSLAUTH = R66Auth.getServerAuth(
+					DbConstant.admin.session,
+					config.HOST_SSLID);
+			if (config.HOST_SSLAUTH == null &&
+					config.useSSL) {
+				logger.error("Cannot find SSL Authentication for current host");
+				return false;
+			}
+		}
+		loadBusinessWhiteList(config);
+]]>
+</codefragment>
+</duplication>
 <duplication lines="27" tokens="123">
-<file line="1645" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1728" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1814" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1853" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1936" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="2023" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 			logger.error("Cannot load Limit configuration");
@@ -1309,12 +1410,42 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="32" tokens="123">
-<file line="194" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
-<file line="196" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<duplication lines="23" tokens="121">
+<file line="257" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\commander\Commander.java"/>
+<file line="308" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\commander\Commander.java"/>
 <codefragment>
 <![CDATA[
-			return;
+				preparedStatementConfig.close();
+			} catch (WaarpDatabaseNoConnectionException e) {
+				try {
+					DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+				} catch (WaarpDatabaseNoConnectionException e1) {
+				}
+				logger.error("Database No Connection Error: Cannot execute Commander", e);
+				return;
+			} catch (WaarpDatabaseSqlException e) {
+				try {
+					DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+				} catch (WaarpDatabaseNoConnectionException e1) {
+				}
+				logger.error("Database SQL Error: Cannot execute Commander", e);
+				return;
+			} catch (WaarpDatabaseException e) {
+				try {
+					DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+				} catch (WaarpDatabaseNoConnectionException e1) {
+				}
+				logger.error("Database Error: Cannot execute Commander", e);
+				return;
+			} finally {
+]]>
+</codefragment>
+</duplication>
+<duplication lines="31" tokens="121">
+<file line="221" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="226" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<codefragment>
+<![CDATA[
 		} finally {
 			request.close();
 		}
@@ -1332,7 +1463,7 @@
 			e.printStackTrace();
 			return;
 		} catch (WaarpDatabaseSqlException e) {
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
@@ -1350,8 +1481,8 @@
 </codefragment>
 </duplication>
 <duplication lines="24" tokens="120">
-<file line="298" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\commander\Commander.java"/>
-<file line="416" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\commander\Commander.java"/>
+<file line="363" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\commander\Commander.java"/>
+<file line="481" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\commander\Commander.java"/>
 <codefragment>
 <![CDATA[
 					hostAuth = null;
@@ -1382,10 +1513,10 @@
 </codefragment>
 </duplication>
 <duplication lines="24" tokens="119">
-<file line="1567" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1617" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1684" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1767" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1775" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1825" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1892" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1976" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 	public static boolean setConfigurationInitDatabase(Configuration config, String filename) {
@@ -1416,9 +1547,10 @@
 </codefragment>
 </duplication>
 <duplication lines="22" tokens="117">
-<file line="244" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\commander\Commander.java"/>
-<file line="300" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\commander\Commander.java"/>
-<file line="418" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\commander\Commander.java"/>
+<file line="258" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\commander\Commander.java"/>
+<file line="309" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\commander\Commander.java"/>
+<file line="365" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\commander\Commander.java"/>
+<file line="483" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\commander\Commander.java"/>
 <codefragment>
 <![CDATA[
 			} catch (WaarpDatabaseNoConnectionException e) {
@@ -1555,11 +1687,36 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="20" tokens="110">
-<file line="196" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
-<file line="199" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
-<file line="201" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
-<file line="192" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<duplication lines="15" tokens="111">
+<file line="95" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="98" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="99" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="91" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<codefragment>
+<![CDATA[
+		} catch (WaarpDatabaseException e1) {
+			e1.printStackTrace();
+		}
+
+		// Configuration
+		action = createTableH2 + DbConfiguration.table + "(";
+		DbConfiguration.Columns[] ccolumns = DbConfiguration.Columns
+				.values();
+		for (int i = 0; i < ccolumns.length - 1; i++) {
+			action += ccolumns[i].name() +
+					DBType.getType(DbConfiguration.dbTypes[i]) + notNull +
+					", ";
+		}
+		action += ccolumns[ccolumns.length - 1].name() +
+				DBType.getType(DbConfiguration.dbTypes[ccolumns.length - 1]) +
+]]>
+</codefragment>
+</duplication>
+<duplication lines="20" tokens="109">
+<file line="222" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="225" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="230" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="218" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
 <codefragment>
 <![CDATA[
 		action = "CREATE INDEX IF NOT EXISTS IDX_RUNNER ON " + DbTaskRunner.table + "(";
@@ -1575,7 +1732,7 @@
 			e.printStackTrace();
 			return;
 		} catch (WaarpDatabaseSqlException e) {
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
@@ -1608,33 +1765,9 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="14" tokens="108">
-<file line="119" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
-<file line="122" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
-<file line="123" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
-<file line="115" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
-<codefragment>
-<![CDATA[
-			return;
-		} finally {
-			request.close();
-		}
-
-		// hosts
-		action = createTableH2 + DbHostAuth.table + "(";
-		DbHostAuth.Columns[] hcolumns = DbHostAuth.Columns.values();
-		for (int i = 0; i < hcolumns.length - 1; i++) {
-			action += hcolumns[i].name() +
-					DBType.getType(DbHostAuth.dbTypes[i]) + notNull + ", ";
-		}
-		action += hcolumns[hcolumns.length - 1].name() +
-				DBType.getType(DbHostAuth.dbTypes[hcolumns.length - 1]) +
-]]>
-</codefragment>
-</duplication>
 <duplication lines="21" tokens="108">
-<file line="2003" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="2115" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="2043" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="2155" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
 <codefragment>
 <![CDATA[
 					}
@@ -1712,10 +1845,10 @@
 </codefragment>
 </duplication>
 <duplication lines="14" tokens="107">
-<file line="61" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
-<file line="64" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
-<file line="62" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
-<file line="57" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<file line="62" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="65" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="63" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="58" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
 <codefragment>
 <![CDATA[
 		String primaryKey = " PRIMARY KEY ";
@@ -1732,6 +1865,31 @@
 		}
 		action += mcolumns[mcolumns.length - 1].name() +
 				DBType.getType(DbMultipleMonitor.dbTypes[mcolumns.length - 1]) +
+]]>
+</codefragment>
+</duplication>
+<duplication lines="15" tokens="107">
+<file line="121" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="124" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="126" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="117" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<codefragment>
+<![CDATA[
+		} finally {
+			request.close();
+		}
+
+		// HostConfiguration
+		action = createTableH2 + DbHostConfiguration.table + "(";
+		DbHostConfiguration.Columns[] chcolumns = DbHostConfiguration.Columns
+				.values();
+		for (int i = 0; i < chcolumns.length - 1; i++) {
+			action += chcolumns[i].name() +
+					DBType.getType(DbHostConfiguration.dbTypes[i]) + notNull +
+					", ";
+		}
+		action += chcolumns[chcolumns.length - 1].name() +
+				DBType.getType(DbHostConfiguration.dbTypes[chcolumns.length - 1]) +
 ]]>
 </codefragment>
 </duplication>
@@ -1758,33 +1916,9 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="14" tokens="106">
-<file line="142" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
-<file line="145" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
-<file line="147" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
-<file line="138" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
-<codefragment>
-<![CDATA[
-			return;
-		} finally {
-			request.close();
-		}
-
-		// rules
-		action = createTableH2 + DbRule.table + "(";
-		DbRule.Columns[] rcolumns = DbRule.Columns.values();
-		for (int i = 0; i < rcolumns.length - 1; i++) {
-			action += rcolumns[i].name() +
-					DBType.getType(DbRule.dbTypes[i]) + ", ";
-		}
-		action += rcolumns[rcolumns.length - 1].name() +
-				DBType.getType(DbRule.dbTypes[rcolumns.length - 1]) +
-]]>
-</codefragment>
-</duplication>
 <duplication lines="27" tokens="105">
-<file line="754" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
-<file line="792" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="758" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="796" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
 <codefragment>
 <![CDATA[
 	public void insert() throws WaarpDatabaseException {
@@ -1814,6 +1948,86 @@
 		if (specialId == DbConstant.ILLEGALVALUE) {
 			specialId = DbModelFactory.dbModel.nextSequence(dbSession);
 			logger.debug("Try Insert create a new Id from sequence: " +
+]]>
+</codefragment>
+</duplication>
+<duplication lines="13" tokens="105">
+<file line="169" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="172" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="177" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="165" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<codefragment>
+<![CDATA[
+		} finally {
+			request.close();
+		}
+
+		// rules
+		action = createTableH2 + DbRule.table + "(";
+		DbRule.Columns[] rcolumns = DbRule.Columns.values();
+		for (int i = 0; i < rcolumns.length - 1; i++) {
+			action += rcolumns[i].name() +
+					DBType.getType(DbRule.dbTypes[i]) + ", ";
+		}
+		action += rcolumns[rcolumns.length - 1].name() +
+				DBType.getType(DbRule.dbTypes[rcolumns.length - 1]) +
+]]>
+</codefragment>
+</duplication>
+<duplication lines="19" tokens="104">
+<file line="1639" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1685" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<codefragment>
+<![CDATA[
+			String roleset = nodeset.getText();
+			String [] roles = roleset.split(" |\\|");
+			RoleDefault newrole = new RoleDefault();
+			for (String role : roles) {
+				try {
+					RoleDefault.ROLE roletype = RoleDefault.ROLE.valueOf(role.toUpperCase());
+					if (roletype == ROLE.NOACCESS) {
+						// reset
+						newrole.setRole(roletype);
+					} else {
+						newrole.addRole(roletype);
+					}
+				} catch (IllegalArgumentException e) {
+					// ignore
+				}
+			}
+			logger.warn("New Role: " + refHostId + ":" + newrole);
+			config.roles.put(refHostId, newrole);
+		}
+]]>
+</codefragment>
+</duplication>
+<duplication lines="22" tokens="101">
+<file line="2117" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="2175" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<codefragment>
+<![CDATA[
+		}
+		config.HOST_AUTH = R66Auth.getServerAuth(
+				DbConstant.admin.session, config.HOST_ID);
+		if (config.HOST_AUTH == null) {
+			logger.error("Cannot find Authentication for current host");
+			return false;
+		}
+		if (config.HOST_SSLID != null) {
+			config.HOST_SSLAUTH = R66Auth.getServerAuth(
+					DbConstant.admin.session,
+					config.HOST_SSLID);
+			if (config.HOST_SSLAUTH == null) {
+				logger.error("Cannot find SSL Authentication for current host");
+				return false;
+			}
+		}
+		loadBusinessWhiteList(config);
+		hashConfig.clear();
+		hashConfig = null;
+		configuration = null;
+		return true;
+	}
 ]]>
 </codefragment>
 </duplication>
