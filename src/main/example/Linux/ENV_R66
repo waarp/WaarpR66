@@ -38,7 +38,7 @@ export R66SERVER="${R66HOME}/bin/server.sh"
 alias r66server="${R66SERVER} ${SERVER_CONFIG} "
 
 # init database from argument
-# [ -initdb ] [ -dir rulesDirectory ] [ -limit xmlFileLimit ] [ -auth xmlFileAuthent ]
+# [ -initdb ] [ -loadBusiness businessConfiguration ] [ -loadRoles roleConfiguration ] [ -loadAlias aliasConfig ] [ -dir rulesDirectory ] [ -limit xmlFileLimit ] [ -auth xmlFileAuthent ]
 export R66INIT="${JAVARUNCLIENT} org.waarp.openr66.server.ServerInitDatabase ${SERVER_CONFIG} "
 alias r66init="${R66INIT}"
 

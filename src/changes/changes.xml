@@ -7,8 +7,11 @@
 	<body>
 		<release version="2.4.12" date="2013-04-15" description="Fix release">
 			<action dev="Frederic Bregier" type="fix">Fix HTTPs log</action>
-			<action dev="Frederic Bregier" type="add">Add final Hash check on receive operation</action>
+			<action dev="Frederic Bregier" type="add">Add final Hash check on receive operation (if not RecvThrough mode)</action>
+			<action dev="Frederic Bregier" type="add">Add final size checking (if not Through mode)</action>
 			<action dev="Frederic Bregier" type="fix">Fix configuration files</action>
+			<action dev="Frederic Bregier" type="add">Add support for Aliases</action>
+			<action dev="Frederic Bregier" type="add">Add support for configuration of Business, Rules and Aliases in DB instead of files</action>
 		</release>
 	    <release version="2.4.11" date="2013-04-03" description="Fix release">
 			<action dev="Frederic Bregier" type="fix">Fix HTTP session checking</action>

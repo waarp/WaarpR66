@@ -29,6 +29,7 @@ import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbConfiguration;
 import org.waarp.openr66.database.data.DbHostAuth;
+import org.waarp.openr66.database.data.DbHostConfiguration;
 import org.waarp.openr66.database.data.DbMultipleMonitor;
 import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
@@ -85,15 +86,16 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
 			return;
 		} catch (WaarpDatabaseSqlException e) {
 			e.printStackTrace();
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
 		DbMultipleMonitor multipleMonitor = new DbMultipleMonitor(session,
 				Configuration.configuration.HOST_ID, 0, 0, 0);
 		try {
-			if (!multipleMonitor.exist())
+			if (!multipleMonitor.exist()) {
 				multipleMonitor.insert();
+			}
 		} catch (WaarpDatabaseException e1) {
 			e1.printStackTrace();
 		}
@@ -120,7 +122,34 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
 			e.printStackTrace();
 			return;
 		} catch (WaarpDatabaseSqlException e) {
+			// XXX FIX no return;
+		} finally {
+			request.close();
+		}
+
+		// HostConfiguration
+		action = createTableH2 + DbHostConfiguration.table + "(";
+		DbHostConfiguration.Columns[] chcolumns = DbHostConfiguration.Columns
+				.values();
+		for (int i = 0; i < chcolumns.length - 1; i++) {
+			action += chcolumns[i].name() +
+					DBType.getType(DbHostConfiguration.dbTypes[i]) + notNull +
+					", ";
+		}
+		action += chcolumns[chcolumns.length - 1].name() +
+				DBType.getType(DbHostConfiguration.dbTypes[chcolumns.length - 1]) +
+				notNull + ",";
+		action += constraint + " conf_pk " + primaryKey + "("
+				+ chcolumns[chcolumns.length - 1].name() + "))";
+		System.out.println(action);
+		request = new DbRequest(session);
+		try {
+			request.query(action);
+		} catch (WaarpDatabaseNoConnectionException e) {
+			e.printStackTrace();
 			return;
+		} catch (WaarpDatabaseSqlException e) {
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
@@ -144,7 +173,7 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
 			e.printStackTrace();
 			return;
 		} catch (WaarpDatabaseSqlException e) {
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
@@ -168,7 +197,7 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
 			e.printStackTrace();
 			return;
 		} catch (WaarpDatabaseSqlException e) {
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
@@ -193,7 +222,7 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
 			e.printStackTrace();
 			return;
 		} catch (WaarpDatabaseSqlException e) {
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
@@ -211,7 +240,7 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
 			e.printStackTrace();
 			return;
 		} catch (WaarpDatabaseSqlException e) {
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}

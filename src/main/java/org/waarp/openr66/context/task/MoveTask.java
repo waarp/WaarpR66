@@ -64,7 +64,7 @@ public class MoveTask extends AbstractTask {
 		try {
 			success = session.getFile().renameTo(finalname, true);
 		} catch (CommandAbstractException e) {
-			logger.error("Move with " + argRule + ":" + argTransfer + " and " +
+			logger.error("Move with " + argRule + ":" + argTransfer + " to " + finalname + " and " +
 					session, e);
 			futureCompletion.setFailure(new OpenR66ProtocolSystemException(e));
 			return;
@@ -73,7 +73,7 @@ public class MoveTask extends AbstractTask {
 			session.getRunner().setFileMoved(finalname, success);
 			futureCompletion.setSuccess();
 		} else {
-			logger.error("Cannot Move with " + argRule + ":" + argTransfer +
+			logger.error("Cannot Move with " + argRule + ":" + argTransfer  + " to " + finalname +
 					" and " + session);
 			futureCompletion.setFailure(new OpenR66ProtocolSystemException(
 					"Cannot move file"));

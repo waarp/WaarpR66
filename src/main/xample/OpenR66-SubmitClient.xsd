@@ -4,6 +4,7 @@
 	<xsd:include schemaLocation="R66-SubIdentityTypes.xsd" />
     <xsd:include schemaLocation="R66-DirectoryTypes.xsd" />
     <xsd:include schemaLocation="R66-SubDbTypes.xsd" />
+    <xsd:include schemaLocation="R66-AliasTypes.xsd" />
     
 	<xsd:notation name="version" system="2.4.9" public="2.4.9"/>
 	
@@ -44,6 +45,8 @@ Block size (64Ko). A value between 8 KB to 16 MB is recommanded
 		</xsd:element>
 		
         <xsd:element name="db" type="SubDbType"/>
+                    
+        <xsd:element name="aliases" maxOccurs="1" minOccurs="0" type="AliasType" />
         
       </xsd:sequence>
     </xsd:complexType>

@@ -29,6 +29,7 @@ import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbConfiguration;
 import org.waarp.openr66.database.data.DbHostAuth;
+import org.waarp.openr66.database.data.DbHostConfiguration;
 import org.waarp.openr66.database.data.DbMultipleMonitor;
 import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
@@ -78,7 +79,7 @@ public class DbModelPostgresql extends org.waarp.common.database.model.DbModelPo
 			return;
 		} catch (WaarpDatabaseSqlException e) {
 			e.printStackTrace();
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
@@ -112,11 +113,36 @@ public class DbModelPostgresql extends org.waarp.common.database.model.DbModelPo
 			return;
 		} catch (WaarpDatabaseSqlException e) {
 			e.printStackTrace();
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
 
+		// HostConfiguration
+		action = createTableH2 + DbHostConfiguration.table + "(";
+		DbHostConfiguration.Columns[] chcolumns = DbHostConfiguration.Columns
+				.values();
+		for (int i = 0; i < chcolumns.length - 1; i++) {
+			action += chcolumns[i].name() +
+					DBType.getType(DbHostConfiguration.dbTypes[i]) + notNull +
+					", ";
+		}
+		action += chcolumns[chcolumns.length - 1].name() +
+				DBType.getType(DbHostConfiguration.dbTypes[chcolumns.length - 1]) +
+				primaryKey + ")";
+		System.out.println(action);
+		request = new DbRequest(session);
+		try {
+			request.query(action);
+		} catch (WaarpDatabaseNoConnectionException e) {
+			e.printStackTrace();
+			return;
+		} catch (WaarpDatabaseSqlException e) {
+			// XXX FIX no return;
+		} finally {
+			request.close();
+		}
+		
 		// hosts
 		action = createTableH2 + DbHostAuth.table + "(";
 		DbHostAuth.Columns[] hcolumns = DbHostAuth.Columns.values();
@@ -135,7 +161,7 @@ public class DbModelPostgresql extends org.waarp.common.database.model.DbModelPo
 			return;
 		} catch (WaarpDatabaseSqlException e) {
 			e.printStackTrace();
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
@@ -158,7 +184,7 @@ public class DbModelPostgresql extends org.waarp.common.database.model.DbModelPo
 			return;
 		} catch (WaarpDatabaseSqlException e) {
 			e.printStackTrace();
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
@@ -184,7 +210,7 @@ public class DbModelPostgresql extends org.waarp.common.database.model.DbModelPo
 			return;
 		} catch (WaarpDatabaseSqlException e) {
 			e.printStackTrace();
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
@@ -202,7 +228,7 @@ public class DbModelPostgresql extends org.waarp.common.database.model.DbModelPo
 			e.printStackTrace();
 			return;
 		} catch (WaarpDatabaseSqlException e) {
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}
@@ -218,7 +244,7 @@ public class DbModelPostgresql extends org.waarp.common.database.model.DbModelPo
 			return;
 		} catch (WaarpDatabaseSqlException e) {
 			e.printStackTrace();
-			return;
+			// XXX FIX no return;
 		} finally {
 			request.close();
 		}

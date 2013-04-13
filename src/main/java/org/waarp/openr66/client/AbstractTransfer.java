@@ -17,6 +17,7 @@
  */
 package org.waarp.openr66.client;
 
+import java.io.File;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -91,7 +92,11 @@ public abstract class AbstractTransfer implements Runnable {
 		this.rulename = rulename;
 		this.fileinfo = fileinfo;
 		this.isMD5 = isMD5;
-		this.remoteHost = remoteHost;
+		if (Configuration.configuration.aliases.containsKey(remoteHost)) {
+			this.remoteHost = Configuration.configuration.aliases.get(remoteHost);
+		} else {
+			this.remoteHost = remoteHost;
+		}
 		this.blocksize = blocksize;
 		this.id = id;
 		this.startTime = timestart;
@@ -138,9 +143,16 @@ public abstract class AbstractTransfer implements Runnable {
 				taskRunner.setStart(startTime);
 			}
 		} else {
+			long originalSize = -1;
+			if (RequestPacket.isSendMode(mode) && ! RequestPacket.isThroughMode(mode)) {
+				File file = new File(filename);
+				if (file.canRead()) {
+					originalSize = file.length();
+				}
+			}
 			RequestPacket request = new RequestPacket(rulename,
 					mode, filename, blocksize, 0,
-					id, fileinfo);
+					id, fileinfo, originalSize);
 			// Not isRecv since it is the requester, so send => isRetrieve is true
 			boolean isRetrieve = !RequestPacket.isRecvMode(request.getMode());
 			try {

@@ -177,7 +177,7 @@ public class TestSendThroughForward extends SendThroughClient {
 		}
 		RequestPacket request = new RequestPacket(rulename,
 				mode, filename, blocksize, sourceRunner.getRank(),
-				id, fileinfo);
+				id, fileinfo, -1);
 		// Not isRecv since it is the requester, so send => isSender is true
 		boolean isSender = true;
 		try {

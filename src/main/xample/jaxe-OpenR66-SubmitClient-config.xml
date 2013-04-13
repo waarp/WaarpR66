@@ -34,6 +34,7 @@
 <MENU_INSERTION nom="limit"/>
 <MENU_INSERTION nom="blocksize"/>
 <MENU_INSERTION nom="db"/>
+<MENU_INSERTION nom="aliases"/>
 </MENU>
 </MENUS>
 
@@ -66,6 +67,7 @@
 <AFFICHAGE_ELEMENT type="zone" element="limit"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="blocksize"/>
 <AFFICHAGE_ELEMENT type="zone" element="db"/>
+<AFFICHAGE_ELEMENT type="zone" element="alias"/>
 </AFFICHAGE_NOEUDS>
 
 <STRINGS>
@@ -215,6 +217,21 @@ Block size (64Ko). A value between 8 KB to 16 MB is recommanded
 </STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="db">
 <TITRE>db</TITRE>
+</STRINGS_ELEMENT>
+<STRINGS_ELEMENT element="realid">
+<TITRE>realid</TITRE>
+<DOCUMENTATION>
+The real host id that will have aliases (locally)
+</DOCUMENTATION>
+</STRINGS_ELEMENT>
+<STRINGS_ELEMENT element="aliasid">
+<TITRE>aliasid</TITRE>
+<DOCUMENTATION>
+The set of aliases assign to this host separated by '|' or blank space
+</DOCUMENTATION>
+</STRINGS_ELEMENT>
+<STRINGS_ELEMENT element="aliases">
+<TITRE>aliases</TITRE>
 </STRINGS_ELEMENT>
 </STRINGS>
 </CONFIG_JAXE>

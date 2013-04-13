@@ -212,6 +212,7 @@ public class DbTaskRunner extends AbstractDbData {
 
 	private boolean isRecvThrough = false;
 	private boolean isSendThrough = false;
+	private long originalSize = -1;
 
 	/**
 	 * Special For DbTaskRunner
@@ -539,6 +540,7 @@ public class DbTaskRunner extends AbstractDbData {
 		originalFilename = requestPacket.getFilename();
 		fileInformation = requestPacket.getFileInformation();
 		mode = requestPacket.getMode();
+		originalSize = requestPacket.getOriginalSize();
 		// itself but according to SSL
 		requesterHostId = Configuration.configuration.getHostId(dbSession,
 				requested);
@@ -596,6 +598,7 @@ public class DbTaskRunner extends AbstractDbData {
 		originalFilename = requestPacket.getFilename();
 		fileInformation = requestPacket.getFileInformation();
 		mode = requestPacket.getMode();
+		originalSize = requestPacket.getOriginalSize();
 		requesterHostId = getRequester(session, requestPacket);
 		requestedHostId = getRequested(session, requestPacket);
 		// always itself
@@ -3020,7 +3023,7 @@ public class DbTaskRunner extends AbstractDbData {
 				" Requester: " + requesterHostId + " Requested: " +
 				requestedHostId + " Start: " + start + " Stop: " + stop +
 				" Internal: " + UpdatedInfo.values()[updatedInfo].name() +
-				":" + infostatus.mesg +
+				":" + infostatus.mesg + " OriginalSize: " + originalSize +
 				" Fileinfo: " + fileInformation;
 	}
 
@@ -3042,7 +3045,7 @@ public class DbTaskRunner extends AbstractDbData {
 				newline + " Requester: " + requesterHostId + " Requested: " +
 				requestedHostId + " Start: " + start + " Stop: " + stop +
 				newline + " Internal: " + UpdatedInfo.values()[updatedInfo].name() +
-				":" + infostatus.mesg +
+				":" + infostatus.mesg + " OriginalSize: " + originalSize +
 				newline + " Fileinfo: " + fileInformation;
 	}
 
@@ -3057,7 +3060,7 @@ public class DbTaskRunner extends AbstractDbData {
 				requesterHostId + "</REQR><REQD>" + requestedHostId +
 				"</REQD>\n    <START>" + start + "</START><STOP>" + stop +
 				"</STOP>\n    <INTERNAL>" + UpdatedInfo.values()[updatedInfo].name()
-				+ " : " + infostatus.mesg + "</INTERNAL>\n    <FILEINFO>" +
+				+ " : " + infostatus.mesg + "</INTERNAL><ORIGINALSIZE>" + originalSize +"</ORIGINALSIZE>\n    <FILEINFO>" +
 				fileInformation + "</FILEINFO>";
 	}
 
@@ -3343,7 +3346,7 @@ public class DbTaskRunner extends AbstractDbData {
 	 */
 	public RequestPacket getRequest() {
 		return new RequestPacket(ruleId, mode, originalFilename, blocksize,
-				rank, specialId, fileInformation);
+				rank, specialId, fileInformation, originalSize);
 	}
 
 	/**
@@ -3710,4 +3713,19 @@ public class DbTaskRunner extends AbstractDbData {
 			isSender = RequestPacket.isRecvMode(mode);
 		}
 	}
+
+	/**
+	 * @return the originalSize
+	 */
+	public long getOriginalSize() {
+		return originalSize;
+	}
+
+	/**
+	 * @param originalSize the originalSize to set
+	 */
+	public void setOriginalSize(long originalSize) {
+		this.originalSize = originalSize;
+	}
+	
 }
