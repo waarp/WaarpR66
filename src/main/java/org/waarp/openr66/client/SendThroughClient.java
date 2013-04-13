@@ -160,7 +160,7 @@ public abstract class SendThroughClient extends AbstractTransfer {
 		}
 		RequestPacket request = new RequestPacket(rulename,
 				mode, filename, blocksize, 0,
-				id, fileinfo);
+				id, fileinfo, -1);
 		// Not isRecv since it is the requester, so send => isSender is true
 		boolean isSender = true;
 		try {

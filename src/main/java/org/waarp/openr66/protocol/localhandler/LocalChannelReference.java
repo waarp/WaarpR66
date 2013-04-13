@@ -138,7 +138,12 @@ public class LocalChannelReference {
 	 * Thread for ClientRunner if any
 	 */
 	private ClientRunner clientRunner = null;
-
+	
+	/**
+	 * To be able to check hash once all transfer is over once again
+	 */
+	private String hashComputeDuringTransfer = null;
+	
 	/**
 	 * 
 	 * @param localChannel
@@ -618,4 +623,18 @@ public class LocalChannelReference {
 		}
 	}
 
+	/**
+	 * @return the hashComputeDuringTransfer
+	 */
+	public String getHashComputeDuringTransfer() {
+		return hashComputeDuringTransfer;
+	}
+
+	/**
+	 * @param hashComputeDuringTransfer the hashComputeDuringTransfer to set
+	 */
+	public void setHashComputeDuringTransfer(String hashComputeDuringTransfer) {
+		this.hashComputeDuringTransfer = hashComputeDuringTransfer;
+	}
+	
 }

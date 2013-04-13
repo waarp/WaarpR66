@@ -23,10 +23,12 @@
 
     <xsd:include schemaLocation="R66-RolesTypes.xsd" />
 
+    <xsd:include schemaLocation="R66-AliasTypes.xsd" />
+
     <xsd:notation
         name="version"
-        public="2.4.9"
-        system="2.4.9" />
+        public="2.4.12"
+        system="2.4.12" />
 
     <xsd:element name="config" >
 
@@ -81,6 +83,12 @@
                     maxOccurs="1"
                     minOccurs="0"
                     type="RolesType" />
+                    
+                <xsd:element
+                    name="aliases"
+                    maxOccurs="1"
+                    minOccurs="0"
+                    type="AliasType" />
             </xsd:sequence>
         </xsd:complexType>
     </xsd:element>

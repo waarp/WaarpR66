@@ -26,7 +26,7 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 /**
  * Request class
  * 
- * header = "rulename MODETRANS" middle = way+"FILENAME BLOCKSIZE RANK specialId code" end =
+ * header = "rulename MODETRANS" middle = way+"FILENAME BLOCKSIZE RANK specialId code (optional length)" end =
  * "fileInformation"
  * 
  * @author frederic bregier
@@ -56,6 +56,8 @@ public class RequestPacket extends AbstractLocalPacket {
 	private byte way;
 
 	private char code;
+	
+	private long originalSize;
 
 	private final String fileInformation;
 
@@ -127,6 +129,9 @@ public class RequestPacket extends AbstractLocalPacket {
 				.ordinal());
 	}
 
+	public static boolean isSendMode(int mode) {
+		return ! isRecvMode(mode);
+	}
 	/**
 	 * 
 	 * @param mode
@@ -198,7 +203,7 @@ public class RequestPacket extends AbstractLocalPacket {
 			throw new OpenR66ProtocolPacketException("Not enough data");
 		}
 		final String[] amiddle = smiddle.split(" ");
-		if (amiddle.length != 5) {
+		if (amiddle.length < 5) {
 			throw new OpenR66ProtocolPacketException("Not enough data");
 		}
 		int blocksize = Integer.parseInt(amiddle[1]);
@@ -208,8 +213,12 @@ public class RequestPacket extends AbstractLocalPacket {
 		int rank = Integer.parseInt(amiddle[2]);
 		long specialId = Long.parseLong(amiddle[3]);
 		char code = amiddle[4].charAt(0);
+		long originalSize = -1;
+		if (amiddle.length > 5) {
+			originalSize = Long.parseLong(amiddle[5]);
+		}
 		return new RequestPacket(aheader[0], Integer.parseInt(aheader[1]),
-				amiddle[0], blocksize, rank, specialId, valid, send, code);
+				amiddle[0], blocksize, rank, specialId, valid, send, code, originalSize);
 	}
 
 	/**
@@ -221,10 +230,12 @@ public class RequestPacket extends AbstractLocalPacket {
 	 * @param specialId
 	 * @param valid
 	 * @param fileInformation
+	 * @param code
+	 * @param originalSize
 	 */
 	private RequestPacket(String rulename, int mode, String filename,
 			int blocksize, int rank, long specialId, byte valid,
-			String fileInformation, char code) {
+			String fileInformation, char code, long originalSize) {
 		this.rulename = rulename;
 		this.mode = mode;
 		this.filename = filename;
@@ -238,6 +249,7 @@ public class RequestPacket extends AbstractLocalPacket {
 		way = valid;
 		this.fileInformation = fileInformation;
 		this.code = code;
+		this.originalSize = originalSize;
 	}
 
 	/**
@@ -250,9 +262,9 @@ public class RequestPacket extends AbstractLocalPacket {
 	 * @param fileInformation
 	 */
 	public RequestPacket(String rulename, int mode, String filename,
-			int blocksize, int rank, long specialId, String fileInformation) {
+			int blocksize, int rank, long specialId, String fileInformation, long originalSize) {
 		this(rulename, mode, filename, blocksize, rank, specialId,
-				REQVALIDATE, fileInformation, ErrorCode.InitOk.code);
+				REQVALIDATE, fileInformation, ErrorCode.InitOk.code, originalSize);
 	}
 
 	/*
@@ -294,7 +306,7 @@ public class RequestPacket extends AbstractLocalPacket {
 				.getBytes(), Integer.toString(blocksize).getBytes(), " "
 				.getBytes(), Integer.toString(rank).getBytes(), " ".getBytes(),
 				Long.toString(specialId).getBytes(), " ".getBytes(),
-				Character.toString(code).getBytes());
+				Character.toString(code).getBytes(), " ".getBytes(), Long.toString(originalSize).getBytes());
 	}
 
 	@Override
@@ -310,7 +322,7 @@ public class RequestPacket extends AbstractLocalPacket {
 	public String toString() {
 		return "RequestPacket: " + rulename + " : " + mode + " : " + filename +
 				" : " + fileInformation + " : " + blocksize + " : " + rank +
-				" : " + way + " : " + code;
+				" : " + way + " : " + code + " : "+ originalSize;
 	}
 
 	/**
@@ -369,6 +381,20 @@ public class RequestPacket extends AbstractLocalPacket {
 	 */
 	public void setRank(int rank) {
 		this.rank = rank;
+	}
+
+	/**
+	 * @return the originalSize
+	 */
+	public long getOriginalSize() {
+		return originalSize;
+	}
+
+	/**
+	 * @param originalSize the originalSize to set
+	 */
+	public void setOriginalSize(long originalSize) {
+		this.originalSize = originalSize;
 	}
 
 	/**

@@ -513,6 +513,11 @@ public class R66Session implements SessionInterface {
 			this.runner.deleteTempFile();
 			throw new OpenR66RunnerErrorException(e);
 		}
+		// check fileSize
+		if (runner.isSender() && file != null) {
+			long originalSize = file.length();
+			this.runner.setOriginalSize(originalSize);
+		}
 	}
 
 	/**
@@ -695,6 +700,9 @@ public class R66Session implements SessionInterface {
 	 * @throws OpenR66RunnerErrorException
 	 */
 	public void renameReceiverFile(String newFilename) throws OpenR66RunnerErrorException {
+		if (runner == null) {
+			return;
+		}
 		// First delete the temporary file if needed
 		if (runner.getRank() > 0) {
 			logger.error("Renaming file is not correct since transfer does not start from first block");
