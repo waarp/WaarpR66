@@ -170,6 +170,10 @@ public class Configuration {
 	 */
 	public HashMap<String, RoleDefault> roles = new HashMap<String, RoleDefault>();
 	/**
+	 * Aliases list for identified partners
+	 */
+	public HashMap<String, String> aliases = new HashMap<String, String>();
+	/**
 	 * Actual Host ID
 	 */
 	public String HOST_ID;

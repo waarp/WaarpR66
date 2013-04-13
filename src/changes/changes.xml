@@ -5,14 +5,22 @@
 		<author email="waarp1 at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
-		<release version="2.4.11" date="2013-04-15" description="Fix release">
+		<release version="2.4.12" date="2013-04-15" description="Fix release">
+			<action dev="Frederic Bregier" type="fix">Fix HTTPs log</action>
+			<action dev="Frederic Bregier" type="add">Add final Hash check on receive operation (if not RecvThrough mode)</action>
+			<action dev="Frederic Bregier" type="add">Add final size checking (if not Through mode)</action>
+			<action dev="Frederic Bregier" type="fix">Fix configuration files</action>
+			<action dev="Frederic Bregier" type="add">Add support for Aliases</action>
+			<action dev="Frederic Bregier" type="add">Add support for configuration of Business, Rules and Aliases in DB instead of files</action>
+		</release>
+	    <release version="2.4.11" date="2013-04-03" description="Fix release">
 			<action dev="Frederic Bregier" type="fix">Fix HTTP session checking</action>
 			<action dev="Frederic Bregier" type="add">Add FTP task option</action>
 			<action dev="Frederic Bregier" type="add">Allow request to itself</action>
 			<action dev="Frederic Bregier" type="fix">Fix to support R66Proxy</action>
 			<action dev="Frederic Bregier" type="fix">Fix to support future Global Admin</action>
 			<action dev="Frederic Bregier" type="fix">Update dependencies</action>
-					</release>
+		</release>
 	    <release version="2.4.10" date="2012-10-15" description="Fix release">
 			<action dev="Frederic Bregier" type="fix">Fix wildcard file as input</action>
 			<action dev="Frederic Bregier" type="fix">Add Keywords in rule helper</action>

@@ -7,6 +7,7 @@
     <xsd:include schemaLocation="R66-LimitTypes.xsd" />
     <xsd:include schemaLocation="R66-SubDbTypes.xsd" />
     <xsd:include schemaLocation="R66-BusinessTypes.xsd" />
+    <xsd:include schemaLocation="R66-AliasTypes.xsd" />
 
 	<xsd:notation name="version" system="2.4.9" public="2.4.9"/>
 	
@@ -41,6 +42,8 @@
         <xsd:element name="db" minOccurs="0" maxOccurs="1" type="SubDbType" />
 		
         <xsd:element name="business" minOccurs="0" maxOccurs="1" type="BusinessType" />
+                    
+        <xsd:element name="aliases" maxOccurs="1" minOccurs="0" type="AliasType" />
 
       </xsd:sequence>
     </xsd:complexType>

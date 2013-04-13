@@ -18,7 +18,9 @@
 package org.waarp.openr66.server;
 
 import java.io.File;
+import java.io.IOException;
 
+import org.apache.commons.io.FileUtils;
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
@@ -29,6 +31,7 @@ import org.waarp.openr66.configuration.AuthenticationFileBasedConfiguration;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.configuration.RuleFileBasedConfiguration;
 import org.waarp.openr66.database.DbConstant;
+import org.waarp.openr66.database.data.DbHostConfiguration;
 import org.waarp.openr66.database.model.DbModelFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
@@ -48,6 +51,9 @@ public class ServerInitDatabase {
 
 	static String sxml = null;
 	static boolean database = false;
+	static String sbusiness = null;
+	static String salias = null;
+	static String sroles = null;
 	static String sdirconfig = null;
 	static String shostauth = null;
 	static String slimitconfig = null;
@@ -57,6 +63,9 @@ public class ServerInitDatabase {
 			logger.error("Need at least the configuration file as first argument then optionally\n"
 					+
 					"    -initdb\n" +
+					"    -loadBusiness xmlfile for Business configuration\n" +
+					"    -loadAlias xmlfile for Alias configuration\n" +
+					"    -loadRoles xmlfile for Roles configuration\n" +
 					"    -dir directory for rules configuration\n" +
 					"    -limit xmlfile containing limit of bandwidth\n" +
 					"    -auth xml file containing the authentication of hosts");
@@ -66,6 +75,15 @@ public class ServerInitDatabase {
 		for (int i = 1; i < args.length; i++) {
 			if (args[i].equalsIgnoreCase("-initdb")) {
 				database = true;
+			} else if (args[i].equalsIgnoreCase("-loadBusiness")) {
+				i++;
+				sbusiness = args[i];
+			} else if (args[i].equalsIgnoreCase("-loadAlias")) {
+				i++;
+				salias = args[i];
+			} else if (args[i].equalsIgnoreCase("-loadRoles")) {
+				i++;
+				sroles = args[i];
 			} else if (args[i].equalsIgnoreCase("-dir")) {
 				i++;
 				sdirconfig = args[i];
@@ -93,6 +111,9 @@ public class ServerInitDatabase {
 			logger.error("Need at least the configuration file as first argument then optionally\n"
 					+
 					"    -initdb\n" +
+					"    -loadBusiness xmlfile for Business configuration\n" +
+					"    -loadAlias xmlfile for Alias configuration\n" +
+					"    -loadRoles xmlfile for Roles configuration\n" +
 					"    -dir directory for rules configuration\n" +
 					"    -limit xmlfile containing limit of bandwidth\n" +
 					"    -auth xml file containing the authentication of hosts");
@@ -146,6 +167,91 @@ public class ServerInitDatabase {
 					FileBasedConfiguration.setConfigurationLoadLimitFromXml(
 							Configuration.configuration,
 							slimitconfig);
+				}
+			}
+			
+			if (sbusiness != null || salias != null || sroles != null) {
+				if (sbusiness != null) {
+					File file = new File(sbusiness);
+					if (file.canRead()) {
+						try {
+							String value = FileUtils.readFileToString(file);
+							if (value != null && ! value.trim().isEmpty()) {
+								value = value.trim().replaceAll("\r|\n|  ", " ").trim();
+								value = value.replaceAll("\r|\n|  ", " ");
+								sbusiness = value.trim();
+							} else {
+								sbusiness = null;
+							}
+						} catch (IOException e) {
+							sbusiness = null;
+							e.printStackTrace();
+						}
+					} else {
+						sbusiness = null;
+					}
+				}
+				if (salias != null) {
+					File file = new File(salias);
+					if (file.canRead()) {
+						try {
+							String value = FileUtils.readFileToString(file);
+							if (value != null && ! value.trim().isEmpty()) {
+								value = value.trim().replaceAll("\r|\t|\n|  ", " ").trim();
+								value = value.replaceAll("\r|\n|  ", " ");
+								salias = value.trim();
+							} else {
+								salias = null;
+							}
+						} catch (IOException e) {
+							salias = null;
+							e.printStackTrace();
+						}
+					} else {
+						salias = null;
+					}
+				}
+				if (sroles != null) {
+					File file = new File(sroles);
+					if (file.canRead()) {
+						try {
+							String value = FileUtils.readFileToString(file);
+							if (value != null && ! value.trim().isEmpty()) {
+								value = value.trim().replaceAll("\r|\n|  ", " ").trim();
+								value = value.replaceAll("\r|\n|  ", " ");
+								sroles = value.trim();
+							} else {
+								sroles = null;
+							}
+						} catch (IOException e) {
+							sroles = null;
+							e.printStackTrace();
+						}
+					} else {
+						sroles = null;
+					}
+				}
+				DbHostConfiguration hostConfiguration = null;
+				try {
+					hostConfiguration = new DbHostConfiguration(DbConstant.admin.session, Configuration.configuration.HOST_ID);
+					if (salias != null) {
+						hostConfiguration.setAliases(salias);
+					}
+					if (sbusiness != null) {
+						hostConfiguration.setBusiness(sbusiness);
+					}
+					if (sroles != null) {
+						hostConfiguration.setRoles(sroles);
+					}
+					hostConfiguration.update();
+				} catch (WaarpDatabaseException e) {
+					hostConfiguration = new DbHostConfiguration(DbConstant.admin.session, Configuration.configuration.HOST_ID, 
+							sbusiness, sroles, salias, null);
+					try {
+						hostConfiguration.insert();
+					} catch (WaarpDatabaseException e1) {
+						e1.printStackTrace();
+					}
 				}
 			}
 			System.out.println("Load done");

@@ -92,6 +92,7 @@
 <MENU_INSERTION nom="db"/>
 <MENU_INSERTION nom="business"/>
 <MENU_INSERTION nom="roles"/>
+<MENU_INSERTION nom="aliases"/>
 </MENU>
 </MENUS>
 
@@ -182,6 +183,7 @@
 <AFFICHAGE_ELEMENT type="zone" element="db"/>
 <AFFICHAGE_ELEMENT type="zone" element="business"/>
 <AFFICHAGE_ELEMENT type="zone" element="roles"/>
+<AFFICHAGE_ELEMENT type="zone" element="alias"/>
 </AFFICHAGE_NOEUDS>
 
 <STRINGS>
@@ -616,19 +618,31 @@ The host ids (1 by 1) that will be allow to use Business Requests (from version 
 <TITRE>role</TITRE>
 <DOCUMENTATION>
 If specified for one host, this will override database roles for ALL hosts (from version 2.4.9). By default, local server should be added as role = FULLADMIN.
-                    </DOCUMENTATION>
+</DOCUMENTATION>
 </STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="roleid">
 <TITRE>roleid</TITRE>
 <DOCUMENTATION>
 The host ids (1 by 1) that will override database roles
-                                </DOCUMENTATION>
+</DOCUMENTATION>
 </STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="roleset">
 <TITRE>roleset</TITRE>
 <DOCUMENTATION>
 The role assign to this host between NOACCESS,READONLY,TRANSFER,RULE,HOST,LIMIT,SYSTEM,LOGCONTROL,PARTNER(READONLY,TRANSFER),CONFIGADMIN(PARTNER,RULE,HOST),FULLADMIN(CONFIGADMIN,LIMIT,SYSTEM,LOGCONTROL)
-                                </DOCUMENTATION>
+</DOCUMENTATION>
+</STRINGS_ELEMENT>
+<STRINGS_ELEMENT element="realid">
+<TITRE>realid</TITRE>
+<DOCUMENTATION>
+The real host id that will have aliases (locally)
+</DOCUMENTATION>
+</STRINGS_ELEMENT>
+<STRINGS_ELEMENT element="aliasid">
+<TITRE>aliasid</TITRE>
+<DOCUMENTATION>
+The set of aliases assign to this host separated by '|' or blank space
+</DOCUMENTATION>
 </STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="config">
 <TITRE>config</TITRE>
@@ -662,6 +676,9 @@ The role assign to this host between NOACCESS,READONLY,TRANSFER,RULE,HOST,LIMIT,
 </STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="roles">
 <TITRE>roles</TITRE>
+</STRINGS_ELEMENT>
+<STRINGS_ELEMENT element="aliases">
+<TITRE>aliases</TITRE>
 </STRINGS_ELEMENT>
 </STRINGS>
 </CONFIG_JAXE>
