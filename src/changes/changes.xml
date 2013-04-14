@@ -5,7 +5,11 @@
 		<author email="waarp1 at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
-		<release version="2.4.12" date="2013-04-15" description="Fix release">
+		<release version="2.4.13" date="2013-05-01" description="Fix release">
+			<action dev="Frederic Bregier" type="fix">Fix filename with blank characters support</action>
+			<action dev="Frederic Bregier" type="fix">Fix the possibility to not have upgraded the database structure (HostConfiguration)</action>
+		</release>
+	    <release version="2.4.12" date="2013-04-15" description="Fix release">
 			<action dev="Frederic Bregier" type="fix">Fix HTTPs log</action>
 			<action dev="Frederic Bregier" type="add">Add final Hash check on receive operation (if not RecvThrough mode)</action>
 			<action dev="Frederic Bregier" type="add">Add final size checking (if not Through mode)</action>
