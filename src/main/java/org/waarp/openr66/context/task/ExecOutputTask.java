@@ -42,8 +42,8 @@ import org.waarp.openr66.protocol.configuration.Configuration;
  * Execute an external command and Use the output if an error occurs.<br>
  * 
  * The output is ignored if the command has a correct status.<br>
- * If the output finishes with <tt>NEWFINALNAME:xxx</tt> then this part is removed from the output
- * and the xxx is used as the last valid name for the file (meaning the file was moved or renamed)<br>
+ * In case of error, if the output finishes with <tt>NEWFINALNAME:xxx</tt> then this part is removed from the output
+ * and the xxx is used as the last valid name for the file (meaning the file was moved or renamed even in case of error)<br>
  * <br>
  * 
  * waitForValidation (#NOWAIT#) must not be set since it will prevent to have the feedback in case
@@ -58,7 +58,9 @@ public class ExecOutputTask extends AbstractTask {
 	 */
 	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
 			.getLogger(ExecOutputTask.class);
-
+	/**
+	 * In the final line output, the filename must prefixed by the following field
+	 */
 	public static final String DELIMITER = "NEWFINALNAME:";
 
 	/**
@@ -268,8 +270,8 @@ public class ExecOutputTask extends AbstractTask {
 				if (newfilename.indexOf(' ') > 0) {
 					logger.warn("Exec returns a multiple string in final line: " +
 							newfilename);
-					String[] args = newfilename.split(" ");
-					newfilename = args[args.length - 1];
+					// XXX FIXME: should not split String[] args = newfilename.split(" ");
+					// newfilename = args[args.length - 1];
 				}
 				// now test if the previous file was deleted (should be)
 				File file = new File(newfilename);
