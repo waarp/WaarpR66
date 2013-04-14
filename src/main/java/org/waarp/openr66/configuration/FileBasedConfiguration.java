@@ -63,6 +63,7 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
 import org.waarp.openr66.protocol.networkhandler.R66ConstraintLimitHandler;
 import org.waarp.openr66.protocol.networkhandler.ssl.NetworkSslServerPipelineFactory;
 import org.waarp.openr66.protocol.utils.FileUtils;
+import org.waarp.openr66.protocol.utils.Version;
 import org.waarp.snmp.SnmpConfiguration;
 
 /**
@@ -685,8 +686,6 @@ public class FileBasedConfiguration {
 		XmlValue value = hashConfig.get(XML_SERVER_HOSTID);
 		if (value != null && (!value.isEmpty())) {
 			config.HOST_ID = value.getString();
-			config.REQER_HOST_ID = config.HOST_ID + "__rd__";
-			config.REQED_HOST_ID = config.HOST_ID + "__rr__";
 		} else {
 			logger.error("Unable to find Host ID in Config file");
 			return false;
@@ -1527,139 +1526,152 @@ public class FileBasedConfiguration {
 		Document document = null;
 		// Open config file
 		StringReader reader = null;
-		try {
-			reader = new StringReader(business);
-			document = new SAXReader().read(reader);
-		} catch (DocumentException e) {
-			logger.error("Unable to read the XML Config Business string: " + business, e);
+		if (business != null && ! business.isEmpty()) {
+			try {
+				reader = new StringReader(business);
+				document = new SAXReader().read(reader);
+			} catch (DocumentException e) {
+				logger.error("Unable to read the XML Config Business string: " + business, e);
+				if (reader != null) {
+					reader.close();
+				}
+				return;
+			}
+			if (document == null) {
+				logger.error("Unable to read the XML Config Business string: " + business);
+				if (reader != null) {
+					reader.close();
+				}
+				return;
+			}
+			// XXX FIXME
+			List<Element> list = document.selectNodes(XML_BUSINESS + "/" + XML_BUSINESSID);
+			for (Element element : list) {
+				String sval = element.getText();
+				if (sval.isEmpty()) {
+					continue;
+				}
+				logger.warn("Business Allow: " + sval);
+				config.businessWhiteSet.add(sval.trim());
+			}
+			list.clear();
+			document.clearContent();
+			document = null;
+			if (reader != null) {
+				reader.close();
+				reader = null;
+			}
+		}
+	
+		String aliases = hostConfiguration.getAliases();
+		if (aliases != null && ! aliases.isEmpty()) {
+			try {
+				reader = new StringReader(aliases);
+				document = new SAXReader().read(reader);
+			} catch (DocumentException e) {
+				logger.error("Unable to read the XML Config Aliases string: " + business, e);
+				if (reader != null) {
+					reader.close();
+				}
+				return;
+			}
+			if (document == null) {
+				logger.error("Unable to read the XML Config Aliases string: " + business);
+				if (reader != null) {
+					reader.close();
+				}
+				return;
+			}
+			// XXX FIXME
+			List<Element> list = document.selectNodes(XML_ALIASES + "/" + XML_ALIAS);
+			for (Element element : list) {
+				Element nodeid = (Element) element.selectSingleNode(XML_REALID);
+				if (nodeid == null) {
+					continue;
+				}
+				Element nodeset = (Element) element.selectSingleNode(XML_ALIASID);
+				if (nodeset == null) {
+					continue;
+				}
+				String refHostId = nodeid.getText();
+				String aliasesid = nodeset.getText();
+				String [] aliasid = aliasesid.split(" |\\|");
+				for (String namealias : aliasid) {
+					config.aliases.put(namealias, refHostId);
+				}
+				logger.warn("Aliases for: " + refHostId +" = "+ aliasesid);
+			}
+			list.clear();
+			document.clearContent();
+			document = null;
 			if (reader != null) {
 				reader.close();
 			}
-			return;
-		}
-		if (document == null) {
-			logger.error("Unable to read the XML Config Business string: " + business);
-			if (reader != null) {
-				reader.close();
-			}
-			return;
-		}
-		// XXX FIXME
-		List<Element> list = document.selectNodes(XML_BUSINESS + "/" + XML_BUSINESSID);
-		for (Element element : list) {
-			String sval = element.getText();
-			if (sval.isEmpty()) {
-				continue;
-			}
-			logger.warn("Business Allow: " + sval);
-			config.businessWhiteSet.add(sval.trim());
-		}
-		list.clear();
-		document.clearContent();
-		document = null;
-		if (reader != null) {
-			reader.close();
-			reader = null;
 		}
 		
-		String aliases = hostConfiguration.getAliases();
-		try {
-			reader = new StringReader(aliases);
-			document = new SAXReader().read(reader);
-		} catch (DocumentException e) {
-			logger.error("Unable to read the XML Config Aliases string: " + business, e);
-			if (reader != null) {
-				reader.close();
-			}
-			return;
-		}
-		if (document == null) {
-			logger.error("Unable to read the XML Config Aliases string: " + business);
-			if (reader != null) {
-				reader.close();
-			}
-			return;
-		}
-		// XXX FIXME
-		list = document.selectNodes(XML_ALIASES + "/" + XML_ALIAS);
-		for (Element element : list) {
-			Element nodeid = (Element) element.selectSingleNode(XML_REALID);
-			if (nodeid == null) {
-				continue;
-			}
-			Element nodeset = (Element) element.selectSingleNode(XML_ALIASID);
-			if (nodeset == null) {
-				continue;
-			}
-			String refHostId = nodeid.getText();
-			String aliasesid = nodeset.getText();
-			String [] aliasid = aliasesid.split(" |\\|");
-			for (String namealias : aliasid) {
-				config.aliases.put(namealias, refHostId);
-			}
-			logger.warn("Aliases for: " + refHostId +" = "+ aliasesid);
-		}
-		list.clear();
-		document.clearContent();
-		document = null;
-		if (reader != null) {
-			reader.close();
-		}
-
 		String xroles = hostConfiguration.getRoles();
-		try {
-			reader = new StringReader(xroles);
-			document = new SAXReader().read(reader);
-		} catch (DocumentException e) {
-			logger.error("Unable to read the XML Config Roles string: " + business, e);
-			if (reader != null) {
-				reader.close();
-			}
-			return;
-		}
-		if (document == null) {
-			logger.error("Unable to read the XML Config Roles string: " + business);
-			if (reader != null) {
-				reader.close();
-			}
-			return;
-		}
-		// XXX FIXME
-		list = document.selectNodes(XML_ROLES + "/" + XML_ROLE);
-		for (Element element : list) {
-			Element nodeid = (Element) element.selectSingleNode(XML_ROLEID);
-			if (nodeid == null) {
-				continue;
-			}
-			Element nodeset = (Element) element.selectSingleNode(XML_ROLESET);
-			if (nodeset == null) {
-				continue;
-			}
-			String refHostId = nodeid.getText();
-			String roleset = nodeset.getText();
-			String [] roles = roleset.split(" |\\|");
-			RoleDefault newrole = new RoleDefault();
-			for (String role : roles) {
-				try {
-					RoleDefault.ROLE roletype = RoleDefault.ROLE.valueOf(role.toUpperCase());
-					if (roletype == ROLE.NOACCESS) {
-						// reset
-						newrole.setRole(roletype);
-					} else {
-						newrole.addRole(roletype);
-					}
-				} catch (IllegalArgumentException e) {
-					// ignore
+		if (xroles != null && ! xroles.isEmpty()) {
+			try {
+				reader = new StringReader(xroles);
+				document = new SAXReader().read(reader);
+			} catch (DocumentException e) {
+				logger.error("Unable to read the XML Config Roles string: " + business, e);
+				if (reader != null) {
+					reader.close();
 				}
+				return;
 			}
-			logger.warn("New Role: " + refHostId + ":" + newrole);
-			config.roles.put(refHostId, newrole);
+			if (document == null) {
+				logger.error("Unable to read the XML Config Roles string: " + business);
+				if (reader != null) {
+					reader.close();
+				}
+				return;
+			}
+			// XXX FIXME
+			List<Element> list = document.selectNodes(XML_ROLES + "/" + XML_ROLE);
+			for (Element element : list) {
+				Element nodeid = (Element) element.selectSingleNode(XML_ROLEID);
+				if (nodeid == null) {
+					continue;
+				}
+				Element nodeset = (Element) element.selectSingleNode(XML_ROLESET);
+				if (nodeset == null) {
+					continue;
+				}
+				String refHostId = nodeid.getText();
+				String roleset = nodeset.getText();
+				String [] roles = roleset.split(" |\\|");
+				RoleDefault newrole = new RoleDefault();
+				for (String role : roles) {
+					try {
+						RoleDefault.ROLE roletype = RoleDefault.ROLE.valueOf(role.toUpperCase());
+						if (roletype == ROLE.NOACCESS) {
+							// reset
+							newrole.setRole(roletype);
+						} else {
+							newrole.addRole(roletype);
+						}
+					} catch (IllegalArgumentException e) {
+						// ignore
+					}
+				}
+				logger.warn("New Role: " + refHostId + ":" + newrole);
+				config.roles.put(refHostId, newrole);
+			}
+			list.clear();
+			document.clearContent();
+			document = null;
+			if (reader != null) {
+				reader.close();
+			}
 		}
-		list.clear();
-		document.clearContent();
-		document = null;
-		if (reader != null) {
-			reader.close();
+		
+		if (config.HOST_ID != null) {
+			config.versions.put(config.HOST_ID, Version.ID);
+		}
+		if (config.HOST_SSLID != null) {
+			config.versions.put(config.HOST_SSLID, Version.ID);
 		}
 	}
 	/**

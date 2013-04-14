@@ -264,8 +264,8 @@ public class ExecMoveTask extends AbstractTask {
 			if (newname.indexOf(' ') > 0) {
 				logger.warn("Exec returns a multiple string in final line: " +
 						newname);
-				String[] args = newname.split(" ");
-				newname = args[args.length - 1];
+				// XXX FIXME: should not split String[] args = newname.split(" ");
+				//newname = args[args.length - 1];
 			}
 			// now test if the previous file was deleted (should be)
 			File file = new File(newname);

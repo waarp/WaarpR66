@@ -109,9 +109,10 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 				return null;
 			}
 		} else {
+			String sep = Configuration.getSeparator(request.getDestuid());
 			RequestPacket requestPacket = new RequestPacket(request.getRule(),
 					mode, request.getFile(), request.getBlocksize(), 0,
-					tid, request.getInfo(), -1);
+					tid, request.getInfo(), -1, sep);
 			// Not isRecv since it is the requester, so send => isRetrieve is true
 			boolean isRetrieve = !RequestPacket.isRecvMode(requestPacket.getMode());
 			try {

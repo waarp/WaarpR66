@@ -175,9 +175,10 @@ public class TestSendThroughForward extends SendThroughClient {
 		if (isMD5) {
 			mode = RequestPacket.getModeMD5(mode);
 		}
+		String sep = Configuration.getSeparator(remoteHost);
 		RequestPacket request = new RequestPacket(rulename,
 				mode, filename, blocksize, sourceRunner.getRank(),
-				id, fileinfo, -1);
+				id, fileinfo, -1, sep);
 		// Not isRecv since it is the requester, so send => isSender is true
 		boolean isSender = true;
 		try {

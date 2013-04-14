@@ -3345,8 +3345,15 @@ public class DbTaskRunner extends AbstractDbData {
 	 * @return the associated request
 	 */
 	public RequestPacket getRequest() {
+		String sep = null;
+		if (this.requestedHostId.equals(Configuration.configuration.HOST_ID) || 
+				this.requestedHostId.equals(Configuration.configuration.HOST_SSLID)) {
+			sep = Configuration.getSeparator(this.requesterHostId);	
+		} else {
+			sep = Configuration.getSeparator(this.requestedHostId);
+		}
 		return new RequestPacket(ruleId, mode, originalFilename, blocksize,
-				rank, specialId, fileInformation, originalSize);
+				rank, specialId, fileInformation, originalSize, sep);
 	}
 
 	/**

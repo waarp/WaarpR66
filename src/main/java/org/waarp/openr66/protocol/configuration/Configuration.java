@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -101,7 +102,30 @@ public class Configuration {
 	 * General Configuration object
 	 */
 	public static Configuration configuration = new Configuration();
-
+	/**
+	 * Uses as separator in field
+	 */
+	public static final String BAR_SEPARATOR_FIELD = ":";
+	/**
+	 * Uses as separator in field
+	 */
+	public static final String BLANK_SEPARATOR_FIELD = " ";
+	/**
+	 * Uses as separator in field
+	 */
+	public static String SEPARATOR_FIELD = BAR_SEPARATOR_FIELD;
+	/**
+	 * Here is the list of specific identified version
+	 */
+	public static enum R66VERSION {
+		R66VERSION_NOUSABLE("2.4.12"), R66VERSION_SEPARATOR("2.4.13");
+		
+		public String version;
+		private R66VERSION(String name) {
+			this.version = name;
+		}
+	}
+	
 	public static final String SnmpName = "Waarp OpenR66 SNMP";
 	public static final int SnmpPrivateId = 66666;
 	public static final int SnmpR66Id = 66;
@@ -174,6 +198,10 @@ public class Configuration {
 	 */
 	public HashMap<String, String> aliases = new HashMap<String, String>();
 	/**
+	 * Versions for each HostID
+	 */
+	public ConcurrentHashMap<String, String> versions = new ConcurrentHashMap<String, String>();
+	/**
 	 * Actual Host ID
 	 */
 	public String HOST_ID;
@@ -181,14 +209,6 @@ public class Configuration {
 	 * Actual SSL Host ID
 	 */
 	public String HOST_SSLID;
-	/**
-	 * Requester Host ID
-	 */
-	public String REQER_HOST_ID;
-	/**
-	 * Requested Host ID
-	 */
-	public String REQED_HOST_ID;
 
 	/**
 	 * Server Administration user name
@@ -584,6 +604,10 @@ public class Configuration {
 		R66FiniteDualStates.initR66FiniteStates();
 		boolean value = SystemPropertyUtil.getBoolean("openr66.executebeforetransferred", true);
 		isExecuteErrorBeforeTransferAllowed = value;
+		boolean useSpaceSeparator = SystemPropertyUtil.getBoolean("openr66.usespaceseparator", false);
+		if (useSpaceSeparator) {
+			SEPARATOR_FIELD = BLANK_SEPARATOR_FIELD;
+		}
 	}
 
 	/**
@@ -1125,5 +1149,51 @@ public class Configuration {
 		} catch (OpenR66ProtocolNoSslException e) {
 			throw new WaarpDatabaseException(e);
 		}
+	}
+	
+	/**
+	 * 
+	 * @param remoteHost
+	 * @return the separator to be used
+	 */
+	public static String getSeparator(String remoteHost) {
+		logger.debug("Versions: search: "+remoteHost+ " in {}", Configuration.configuration.versions);
+		String version = Configuration.configuration.versions.get(remoteHost);
+		String sep = Configuration.SEPARATOR_FIELD;
+		if (version != null) {
+			if (! Configuration.isVersion2GEQVersion1(Configuration.R66VERSION.R66VERSION_SEPARATOR.version, version)) {
+				sep = Configuration.BLANK_SEPARATOR_FIELD;
+			}
+		}
+		return sep;
+	}
+	
+	/**
+	 * Compare 2 versions
+	 * @param version1
+	 * @param version2
+	 * @return True if version2 >= version1
+	 */
+	public static boolean isVersion2GEQVersion1(String version1, String version2) {
+		if (version1 == null || version2 == null) {
+			return false;
+		}
+		int major1 = 0;
+		int rank1 = 0;
+		int subversion1 = 0;
+		String [] vals = version1.split("\\.");
+		major1 = Integer.parseInt(vals[0]);
+		rank1 = Integer.parseInt(vals[1]);
+		subversion1 = Integer.parseInt(vals[2]);
+		int major2 = 0;
+		int rank2 = 0;
+		int subversion2 = 0;
+		vals = version2.split("\\.");
+		major2 = Integer.parseInt(vals[0]);
+		rank2 = Integer.parseInt(vals[1]);
+		subversion2 = Integer.parseInt(vals[2]);
+		logger.debug("1: "+major1+":"+rank1+":"+subversion1+" <=? "+major2+":"+rank2+":"+subversion2+ " = "+
+				(major1 <= major2 && rank1 <= rank2 && subversion1 <= subversion2));
+		return (major1 <= major2 && rank1 <= rank2 && subversion1 <= subversion2);
 	}
 }
