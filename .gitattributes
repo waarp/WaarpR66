@@ -22,6 +22,7 @@
 *.RTF	 diff=astextplain
 
 # Specific
+*.java text eol=lf
 *.sh text eol=lf
 ENV_R66 text eol=lf
 

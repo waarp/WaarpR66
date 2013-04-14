@@ -23,11 +23,12 @@ import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
+import org.waarp.openr66.protocol.utils.Version;
 
 /**
  * Request Authentication class
  * 
- * header = "hostId" middle = "key bytes" end = localId + way
+ * header = "hostId" middle = "key bytes" end = localId + way + (optional version)
  * 
  * @author frederic bregier
  */
@@ -39,6 +40,8 @@ public class AuthentPacket extends AbstractLocalPacket {
 	private final Integer localId;
 
 	private byte way;
+	
+	private String version;
 
 	private String hostId;
 
@@ -72,10 +75,18 @@ public class AuthentPacket extends AbstractLocalPacket {
 		if (middleLength > 0) {
 			buf.readBytes(bmiddle);
 		}
+		// end part
 		Integer newId = buf.readInt();
 		byte valid = buf.readByte();
+		String version = Configuration.R66VERSION.R66VERSION_NOUSABLE.version; // first base reference where it is unacceptable
+		if (endLength > 5) {
+			// version
+			byte [] bversion = new byte[endLength-5];
+			buf.readBytes(bversion);
+			version = new String(bversion);
+		}
 		final String sheader = new String(bheader);
-		return new AuthentPacket(sheader, bmiddle, newId, valid);
+		return new AuthentPacket(sheader, bmiddle, newId, valid, version);
 	}
 
 	/**
@@ -83,12 +94,15 @@ public class AuthentPacket extends AbstractLocalPacket {
 	 * @param key
 	 * @param newId
 	 * @param valid
+	 * @param version
 	 */
-	private AuthentPacket(String hostId, byte[] key, Integer newId, byte valid) {
+	private AuthentPacket(String hostId, byte[] key, Integer newId, byte valid, String version) {
 		this.hostId = hostId;
 		this.key = key;
 		localId = newId;
 		way = valid;
+		Configuration.configuration.versions.put(hostId, version);
+		this.version = version;
 	}
 
 	/**
@@ -101,6 +115,8 @@ public class AuthentPacket extends AbstractLocalPacket {
 		this.key = key;
 		localId = newId;
 		way = ASKVALIDATE;
+		this.version = Version.ID;
+		Configuration.configuration.versions.put(hostId, version);
 	}
 
 	/*
@@ -109,9 +125,12 @@ public class AuthentPacket extends AbstractLocalPacket {
 	 */
 	@Override
 	public void createEnd() throws OpenR66ProtocolPacketException {
-		end = ChannelBuffers.buffer(5);
+		end = ChannelBuffers.buffer(5+(version != null ? version.getBytes().length : 0));
 		end.writeInt(localId);
 		end.writeByte(way);
+		if (version != null) {
+			end.writeBytes(version.getBytes());
+		}
 	}
 
 	/*
@@ -149,7 +168,7 @@ public class AuthentPacket extends AbstractLocalPacket {
 	 */
 	@Override
 	public String toString() {
-		return "AuthentPacket: " + hostId + " " + localId + " " + way;
+		return "AuthentPacket: " + hostId + " " + localId + " " + way + " " + version;
 	}
 
 	/**
@@ -181,6 +200,13 @@ public class AuthentPacket extends AbstractLocalPacket {
 	}
 
 	/**
+	 * @return the version
+	 */
+	public String getVersion() {
+		return version;
+	}
+
+	/**
 	 * Validate the connection
 	 */
 	public void validate(boolean isSSL) {
@@ -191,6 +217,8 @@ public class AuthentPacket extends AbstractLocalPacket {
 			hostId = Configuration.configuration.HOST_ID;
 		}
 		key = FilesystemBasedDigest.passwdCrypt(Configuration.configuration.HOST_AUTH.getHostkey());
+		version = Version.ID;
+		Configuration.configuration.versions.put(hostId, version);
 		header = null;
 		middle = null;
 		end = null;

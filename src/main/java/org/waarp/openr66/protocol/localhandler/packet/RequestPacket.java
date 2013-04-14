@@ -60,6 +60,8 @@ public class RequestPacket extends AbstractLocalPacket {
 	private long originalSize;
 
 	private final String fileInformation;
+	
+	private String separator = Configuration.SEPARATOR_FIELD;
 
 	/**
 	 * 
@@ -198,13 +200,19 @@ public class RequestPacket extends AbstractLocalPacket {
 		final String sheader = new String(bheader);
 		final String smiddle = new String(bmiddle);
 		final String send = new String(bend);
-		final String[] aheader = sheader.split(" ");
+		String[] aheader = sheader.split(Configuration.BLANK_SEPARATOR_FIELD);
 		if (aheader.length != 2) {
 			throw new OpenR66ProtocolPacketException("Not enough data");
 		}
-		final String[] amiddle = smiddle.split(" ");
+		// FIX to check both ' ' and SEPARATOR_FIELD
+		String[] amiddle = smiddle.split(Configuration.BAR_SEPARATOR_FIELD);
+		String sep = Configuration.BAR_SEPARATOR_FIELD;
 		if (amiddle.length < 5) {
-			throw new OpenR66ProtocolPacketException("Not enough data");
+			amiddle = smiddle.split(Configuration.BLANK_SEPARATOR_FIELD);
+			sep = Configuration.BLANK_SEPARATOR_FIELD;
+			if (amiddle.length < 5) {
+				throw new OpenR66ProtocolPacketException("Not enough data");
+			}
 		}
 		int blocksize = Integer.parseInt(amiddle[1]);
 		if (blocksize < 100) {
@@ -218,7 +226,7 @@ public class RequestPacket extends AbstractLocalPacket {
 			originalSize = Long.parseLong(amiddle[5]);
 		}
 		return new RequestPacket(aheader[0], Integer.parseInt(aheader[1]),
-				amiddle[0], blocksize, rank, specialId, valid, send, code, originalSize);
+				amiddle[0], blocksize, rank, specialId, valid, send, code, originalSize, sep);
 	}
 
 	/**
@@ -235,7 +243,7 @@ public class RequestPacket extends AbstractLocalPacket {
 	 */
 	private RequestPacket(String rulename, int mode, String filename,
 			int blocksize, int rank, long specialId, byte valid,
-			String fileInformation, char code, long originalSize) {
+			String fileInformation, char code, long originalSize, String separator) {
 		this.rulename = rulename;
 		this.mode = mode;
 		this.filename = filename;
@@ -250,6 +258,7 @@ public class RequestPacket extends AbstractLocalPacket {
 		this.fileInformation = fileInformation;
 		this.code = code;
 		this.originalSize = originalSize;
+		this.separator = separator;
 	}
 
 	/**
@@ -262,9 +271,9 @@ public class RequestPacket extends AbstractLocalPacket {
 	 * @param fileInformation
 	 */
 	public RequestPacket(String rulename, int mode, String filename,
-			int blocksize, int rank, long specialId, String fileInformation, long originalSize) {
+			int blocksize, int rank, long specialId, String fileInformation, long originalSize, String separator) {
 		this(rulename, mode, filename, blocksize, rank, specialId,
-				REQVALIDATE, fileInformation, ErrorCode.InitOk.code, originalSize);
+				REQVALIDATE, fileInformation, ErrorCode.InitOk.code, originalSize, separator);
 	}
 
 	/*
@@ -287,8 +296,9 @@ public class RequestPacket extends AbstractLocalPacket {
 		if (rulename == null || mode <= 0) {
 			throw new OpenR66ProtocolPacketException("Not enough data");
 		}
-		header = ChannelBuffers.wrappedBuffer(rulename.getBytes(), " "
-				.getBytes(), Integer.toString(mode).getBytes());
+		header = ChannelBuffers.wrappedBuffer(rulename.getBytes(), 
+				Configuration.BLANK_SEPARATOR_FIELD.getBytes(), 
+				Integer.toString(mode).getBytes());
 	}
 
 	/*
@@ -302,11 +312,14 @@ public class RequestPacket extends AbstractLocalPacket {
 		}
 		byte[] away = new byte[1];
 		away[0] = way;
-		middle = ChannelBuffers.wrappedBuffer(away, filename.getBytes(), " "
-				.getBytes(), Integer.toString(blocksize).getBytes(), " "
-				.getBytes(), Integer.toString(rank).getBytes(), " ".getBytes(),
-				Long.toString(specialId).getBytes(), " ".getBytes(),
-				Character.toString(code).getBytes(), " ".getBytes(), Long.toString(originalSize).getBytes());
+		middle = ChannelBuffers.wrappedBuffer(away, filename.getBytes(), 
+				this.separator.getBytes(), 
+				Integer.toString(blocksize).getBytes(), 
+				this.separator.getBytes(), 
+				Integer.toString(rank).getBytes(), this.separator.getBytes(), 
+				Long.toString(specialId).getBytes(), this.separator.getBytes(),
+				Character.toString(code).getBytes(), this.separator.getBytes(), 
+				Long.toString(originalSize).getBytes());
 	}
 
 	@Override
