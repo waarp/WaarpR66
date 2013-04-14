@@ -150,9 +150,10 @@ public abstract class AbstractTransfer implements Runnable {
 					originalSize = file.length();
 				}
 			}
+			String sep = Configuration.getSeparator(remoteHost);
 			RequestPacket request = new RequestPacket(rulename,
 					mode, filename, blocksize, 0,
-					id, fileinfo, originalSize);
+					id, fileinfo, originalSize, sep);
 			// Not isRecv since it is the requester, so send => isRetrieve is true
 			boolean isRetrieve = !RequestPacket.isRecvMode(request.getMode());
 			try {

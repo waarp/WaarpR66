@@ -319,14 +319,14 @@ public class Commander implements CommanderInterface {
 				} catch (WaarpDatabaseNoConnectionException e1) {
 				}
 				logger.error("Database SQL Error: Cannot execute Commander", e);
-				return;
+				// XXX no return since table might not be initialized return;
 			} catch (WaarpDatabaseException e) {
 				try {
 					DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
 				} catch (WaarpDatabaseNoConnectionException e1) {
 				}
 				logger.error("Database Error: Cannot execute Commander", e);
-				return;
+				// XXX no return since table might not be initialized return;
 			} finally {
 				preparedStatementHostConfig.close();
 			}

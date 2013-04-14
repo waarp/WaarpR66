@@ -773,6 +773,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false);
 			session.setStatus(98);
 		}
+		logger.debug("versions: {}", Configuration.configuration.versions);
 	}
 
 	/**
@@ -1042,9 +1043,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			// Check if the blocksize is greater than local value
 			if (Configuration.configuration.BLOCKSIZE < blocksize) {
 				blocksize = Configuration.configuration.BLOCKSIZE;
+				String sep = Configuration.getSeparator(session.getAuth().getUser());
 				packet = new RequestPacket(packet.getRulename(), packet.getMode(),
 						packet.getFilename(), blocksize, packet.getRank(),
-						packet.getSpecialId(), packet.getFileInformation(), packet.getOriginalSize());
+						packet.getSpecialId(), packet.getFileInformation(), packet.getOriginalSize(), sep);
 			}
 		}
 		if (!RequestPacket.isCompatibleMode(rule.mode, packet.getMode())) {
@@ -1253,7 +1255,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					runner.getFilename());
 			session.newState(VALID);
 			ValidPacket validPacket = new ValidPacket("Change Filename by Pre action on sender",
-					runner.getFilename()+" "+packet.getOriginalSize(),
+					runner.getFilename()+Configuration.BAR_SEPARATOR_FIELD+packet.getOriginalSize(),
 					LocalPacketFactory.REQUESTPACKET);
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference,
 					validPacket, true);
@@ -1267,7 +1269,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					runner.getFilename());
 			session.newState(VALID);
 			ValidPacket validPacket = new ValidPacket("Change Filename by Wildcard on sender",
-					runner.getFilename()+" "+packet.getOriginalSize(), 
+					runner.getFilename()+Configuration.BAR_SEPARATOR_FIELD+packet.getOriginalSize(), 
 					LocalPacketFactory.REQUESTPACKET);
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference,
 					validPacket, true);
@@ -1281,7 +1283,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					runner.getFilename());
 			session.newState(VALID);
 			ValidPacket validPacket = new ValidPacket("Change Filename by Wildcard on sender",
-					runner.getFilename()+" "+packet.getOriginalSize(), 
+					runner.getFilename()+Configuration.BAR_SEPARATOR_FIELD+packet.getOriginalSize(), 
 					LocalPacketFactory.REQUESTPACKET);
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference,
 					validPacket, true);
@@ -1291,7 +1293,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					runner.getFilename());
 			session.newState(VALID);
 			ValidPacket validPacket = new ValidPacket("Change Filename by Wildcard on sender",
-					runner.getFilename()+" "+packet.getOriginalSize(), 
+					runner.getFilename()+Configuration.BAR_SEPARATOR_FIELD+packet.getOriginalSize(), 
 					LocalPacketFactory.REQUESTPACKET);
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference,
 					validPacket, true);
@@ -2272,11 +2274,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			case LocalPacketFactory.REQUESTPACKET: {
 				session.newState(VALID);
 				// The filename from sender is changed due to PreTask so change it too in receiver
-				String [] fields = packet.getSmiddle().split(" ");
+				String [] fields = packet.getSmiddle().split(Configuration.BAR_SEPARATOR_FIELD);
 				String newfilename = fields[0];
-				for (int i = 1; i < fields.length-1; i++) {
-					newfilename += " "+fields[i];
-				}
 				// potential file size changed
 				long newSize = -1;
 				if (fields.length > 1) {
@@ -2286,7 +2285,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 							session.getRunner().setOriginalSize(newSize);
 						}
 					} catch (NumberFormatException e) {
-						newfilename += " " + fields[fields.length-1];
+						newfilename += Configuration.BAR_SEPARATOR_FIELD + fields[fields.length-1];
 					}
 				}
 				// Pre execution was already done since this packet is only received once
