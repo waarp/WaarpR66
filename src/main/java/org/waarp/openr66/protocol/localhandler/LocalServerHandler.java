@@ -1289,10 +1289,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					validPacket, true);
 		} else if (shouldInformBack) {
 			// File length is now known, so inform back
-			logger.debug("Will send a modification of filename due to wildcard: " +
-					runner.getFilename());
+			logger.debug("Will send a modification of filesize: " +
+					runner.getOriginalSize());
 			session.newState(VALID);
-			ValidPacket validPacket = new ValidPacket("Change Filename by Wildcard on sender",
+			ValidPacket validPacket = new ValidPacket("Change Filesize on sender",
 					runner.getFilename()+Configuration.BAR_SEPARATOR_FIELD+packet.getOriginalSize(), 
 					LocalPacketFactory.REQUESTPACKET);
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference,
@@ -1475,6 +1475,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		if (Configuration.configuration.globalDigest) {
 			if (globalDigest == null) {
 				try {
+					// check if first block, since if not, digest will be only partial
+					if (session.getRunner().getRank() > 0) {
+						localChannelReference.setPartialHash();
+					}
 					globalDigest = new FilesystemBasedDigest(Configuration.configuration.digest);
 				} catch (NoSuchAlgorithmException e) {
 				}
@@ -1898,6 +1902,95 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				Channels.close(channel);
 				break;
 			}
+			case LocalPacketFactory.VALIDPACKET: {
+				session.newState(VALIDOTHER);
+				// Try to validate a restarting transfer
+				// XXX validLimit on requested side
+				if (Configuration.configuration.constraintLimitHandler.checkConstraints()) {
+					logger.error("Limit exceeded while asking to relaunch a task"
+							+ packet.getSmiddle());
+					session.setStatus(100);
+					ValidPacket valid;
+					valid = new ValidPacket(packet.getSmiddle(),
+							ErrorCode.ServerOverloaded.getCode(),
+							LocalPacketFactory.REQUESTUSERPACKET);
+					R66Result resulttest = new R66Result(null, session, true,
+							ErrorCode.Internal, null);
+					resulttest.other = packet;
+					localChannelReference.invalidateRequest(resulttest);
+					// inform back the requester
+					try {
+						ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+								valid, true);
+					} catch (OpenR66ProtocolPacketException e) {
+					}
+					Channels.close(channel);
+					return;
+				}
+				// Try to validate a restarting transfer
+				// header = ?; middle = requested+blank+requester+blank+specialId
+				// note: might contains one more argument = time to reschedule in yyyyMMddHHmmss format
+				String[] keys = packet.getSmiddle().split(" ");
+				ValidPacket valid;
+				if (keys.length < 3) {
+					// not enough args
+					valid = new ValidPacket(packet.getSmiddle(),
+							ErrorCode.Internal.getCode(),
+							LocalPacketFactory.REQUESTUSERPACKET);
+					R66Result resulttest = new R66Result(
+							new OpenR66ProtocolBusinessRemoteFileNotFoundException("Not enough arguments"),
+							session, true,
+							ErrorCode.Internal, null);
+					resulttest.other = packet;
+					localChannelReference.invalidateRequest(resulttest);
+				} else {
+					long id = Long.parseLong(keys[2]);
+					DbTaskRunner taskRunner = null;
+					try {
+						taskRunner = new DbTaskRunner(localChannelReference.getDbSession(), session,
+								null, id, keys[1], keys[0]);
+						Timestamp timestart = null;
+						if (keys.length > 3) {
+							// time to reschedule in yyyyMMddHHmmss format
+							logger.debug("Debug: restart with "+keys[3]);
+							SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+							try {
+								Date date = dateFormat.parse(keys[3]);
+								timestart = new Timestamp(date.getTime());
+								taskRunner.setStart(timestart);
+							} catch (ParseException e) {
+							}
+						}
+						LocalChannelReference lcr =
+								Configuration.configuration.getLocalTransaction().
+										getFromRequest(packet.getSmiddle());
+						// since it comes from a request transfer, cannot redo it
+						logger.info("Will try to restart: "+taskRunner.toShortString());
+						R66Result resulttest = TransferUtils.restartTransfer(taskRunner, lcr);
+						valid = new ValidPacket(packet.getSmiddle(), resulttest.code.getCode(),
+								LocalPacketFactory.REQUESTUSERPACKET);
+						resulttest.other = packet;
+						localChannelReference.validateRequest(resulttest);
+					} catch (WaarpDatabaseException e1) {
+						valid = new ValidPacket(packet.getSmiddle(),
+								ErrorCode.Internal.getCode(),
+								LocalPacketFactory.REQUESTUSERPACKET);
+						R66Result resulttest = new R66Result(new OpenR66DatabaseGlobalException(e1),
+								session, true,
+								ErrorCode.Internal, taskRunner);
+						resulttest.other = packet;
+						localChannelReference.invalidateRequest(resulttest);
+					}
+				}
+				// inform back the requester
+				try {
+					ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+							valid, true);
+				} catch (OpenR66ProtocolPacketException e) {
+				}
+				Channels.close(channel);
+				break;
+			}
 			case LocalPacketFactory.REQUESTUSERPACKET: {
 				session.newState(VALIDOTHER);
 				// Validate user request
@@ -2184,96 +2277,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				Channels.close(channel);
 				break;
 			}
-			case LocalPacketFactory.VALIDPACKET: {
-				session.newState(VALIDOTHER);
-				// Try to validate a restarting transfer
-				// XXX validLimit on requested side
-				if (Configuration.configuration.constraintLimitHandler.checkConstraints()) {
-					logger.error("Limit exceeded while asking to relaunch a task"
-							+ packet.getSmiddle());
-					session.setStatus(100);
-					ValidPacket valid;
-					valid = new ValidPacket(packet.getSmiddle(),
-							ErrorCode.ServerOverloaded.getCode(),
-							LocalPacketFactory.REQUESTUSERPACKET);
-					R66Result resulttest = new R66Result(null, session, true,
-							ErrorCode.Internal, null);
-					resulttest.other = packet;
-					localChannelReference.invalidateRequest(resulttest);
-					// inform back the requester
-					try {
-						ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-								valid, true);
-					} catch (OpenR66ProtocolPacketException e) {
-					}
-					Channels.close(channel);
-					return;
-				}
-				// Try to validate a restarting transfer
-				// header = ?; middle = requested+blank+requester+blank+specialId
-				// note: might contains one more argument = time to reschedule in yyyyMMddHHmmss format
-				String[] keys = packet.getSmiddle().split(" ");
-				ValidPacket valid;
-				if (keys.length < 3) {
-					// not enough args
-					valid = new ValidPacket(packet.getSmiddle(),
-							ErrorCode.Internal.getCode(),
-							LocalPacketFactory.REQUESTUSERPACKET);
-					R66Result resulttest = new R66Result(
-							new OpenR66ProtocolBusinessRemoteFileNotFoundException("Not enough arguments"),
-							session, true,
-							ErrorCode.Internal, null);
-					resulttest.other = packet;
-					localChannelReference.invalidateRequest(resulttest);
-				} else {
-					long id = Long.parseLong(keys[2]);
-					DbTaskRunner taskRunner = null;
-					try {
-						taskRunner = new DbTaskRunner(localChannelReference.getDbSession(), session,
-								null, id, keys[1], keys[0]);
-						Timestamp timestart = null;
-						if (keys.length > 3) {
-							// time to reschedule in yyyyMMddHHmmss format
-							logger.debug("Debug: restart with "+keys[3]);
-							SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
-							try {
-								Date date = dateFormat.parse(keys[3]);
-								timestart = new Timestamp(date.getTime());
-								taskRunner.setStart(timestart);
-							} catch (ParseException e) {
-							}
-						}
-						LocalChannelReference lcr =
-								Configuration.configuration.getLocalTransaction().
-										getFromRequest(packet.getSmiddle());
-						R66Result resulttest = TransferUtils.restartTransfer(taskRunner, lcr);
-						valid = new ValidPacket(packet.getSmiddle(), resulttest.code.getCode(),
-								LocalPacketFactory.REQUESTUSERPACKET);
-						resulttest.other = packet;
-						localChannelReference.validateRequest(resulttest);
-					} catch (WaarpDatabaseException e1) {
-						valid = new ValidPacket(packet.getSmiddle(),
-								ErrorCode.Internal.getCode(),
-								LocalPacketFactory.REQUESTUSERPACKET);
-						R66Result resulttest = new R66Result(new OpenR66DatabaseGlobalException(e1),
-								session, true,
-								ErrorCode.Internal, taskRunner);
-						resulttest.other = packet;
-						localChannelReference.invalidateRequest(resulttest);
-					}
-				}
-				// inform back the requester
-				try {
-					ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-							valid, true);
-				} catch (OpenR66ProtocolPacketException e) {
-				}
-				Channels.close(channel);
-				break;
-			}
 			case LocalPacketFactory.REQUESTPACKET: {
 				session.newState(VALID);
-				// The filename from sender is changed due to PreTask so change it too in receiver
+				// The filename or filesize from sender is changed due to PreTask so change it too in receiver
 				String [] fields = packet.getSmiddle().split(Configuration.BAR_SEPARATOR_FIELD);
 				String newfilename = fields[0];
 				// potential file size changed
@@ -2287,6 +2293,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					} catch (NumberFormatException e) {
 						newfilename += Configuration.BAR_SEPARATOR_FIELD + fields[fields.length-1];
 					}
+				}
+				// check if send is already on going
+				if (session.getRunner() != null && session.getRunner().getRank() > 0) {
+					// already started so not changing the filename
+					// Success: No write back at all
+					break;
 				}
 				// Pre execution was already done since this packet is only received once
 				// the request is already validated by the receiver

@@ -2757,6 +2757,9 @@ public class DbTaskRunner extends AbstractDbData {
 						}
 						// check if possible once more the hash
 						String hash = localChannelReference.getHashComputeDuringTransfer();
+						if (localChannelReference.isPartialHash()) {
+							hash = null; // ignore
+						}
 						if (hash != null) {
 							// we can compute it once more
 							try {

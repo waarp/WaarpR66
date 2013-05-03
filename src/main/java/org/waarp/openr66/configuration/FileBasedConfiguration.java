@@ -1363,7 +1363,7 @@ public class FileBasedConfiguration {
 						config.HOST_ID);
 				configuration.updateConfiguration();
 			} catch (WaarpDatabaseException e) {
-				logger.warn("Cannot load configuration from database", e);
+				logger.warn("Cannot load configuration from database: " + e.getMessage());
 			}
 		} else {
 			if (config.baseDirectory != null &&

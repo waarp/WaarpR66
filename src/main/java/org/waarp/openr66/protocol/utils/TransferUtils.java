@@ -33,8 +33,11 @@ import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66FiniteDualStates;
 import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.context.R66Session;
+import org.waarp.openr66.context.authentication.R66Auth;
 import org.waarp.openr66.context.filesystem.R66File;
 import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
+import org.waarp.openr66.database.DbConstant;
+import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.database.data.DbTaskRunner.TASKSTEP;
 import org.waarp.openr66.protocol.configuration.Configuration;
@@ -88,46 +91,56 @@ public class TransferUtils {
 				} else {
 					if (taskRunner.isSelfRequested() &&
 							(taskRunner.getGloballaststep() < TASKSTEP.POSTTASK.ordinal())) {
-						// send a VALID packet with VALID code to the requester
-						R66Future result = new R66Future(true);
-						RequestTransfer requestTransfer =
-								new RequestTransfer(result, taskRunner.getSpecialId(),
-										taskRunner.getRequested(), taskRunner.getRequester(),
-										false, false, true,
-										Configuration.configuration.getInternalRunner().
-												getNetworkTransaction());
-						requestTransfer.run();
-						result.awaitUninterruptibly();
-						R66Result finalValue = result.getResult();
-						switch (finalValue.code) {
-							case QueryStillRunning:
-								finalResult.code = ErrorCode.QueryStillRunning;
-								finalResult.other = "Transfer restart requested but already active and running";
-								break;
-							case Running:
-								finalResult.code = ErrorCode.Running;
-								finalResult.other = "Transfer restart requested but already running";
-								break;
-							case PreProcessingOk:
-								finalResult.code = ErrorCode.PreProcessingOk;
-								finalResult.other = "Transfer restart requested and restarted";
-								break;
-							case CompleteOk:
-								finalResult.code = ErrorCode.CompleteOk;
-								finalResult.other = "Transfer restart requested but already finished so try to run Post Action";
-								taskRunner.setPostTask();
-								TransferUtils.finalizeTaskWithNoSession(taskRunner, lcr);
-								taskRunner.setErrorExecutionStatus(ErrorCode.QueryAlreadyFinished);
-								taskRunner.forceSaveStatus();
-								break;
-							case RemoteError:
-								finalResult.code = ErrorCode.RemoteError;
-								finalResult.other = "Transfer restart requested but remote error";
-								break;
-							default:
-								finalResult.code = ErrorCode.Internal;
-								finalResult.other = "Transfer restart requested but internal error";
-								break;
+						// send a VALID packet with VALID code to the requester except if client
+						DbHostAuth host = R66Auth.getServerAuth(DbConstant.admin.session,
+								taskRunner.getRequester());
+						if (host == null || host.isClient()) {
+							// cannot be relaunch from there
+							finalResult.code = ErrorCode.ConnectionImpossible;
+							finalResult.other = "Transfer cannot be restarted since requester is a client";
+							logger.warn("Should not ask to restart since the requester is a client. Use DirectTransfer instead!");
+						} else {
+							R66Future result = new R66Future(true);
+							logger.info("Try to request a transfer from restart: "+taskRunner.toShortString());
+							RequestTransfer requestTransfer =
+									new RequestTransfer(result, taskRunner.getSpecialId(),
+											taskRunner.getRequested(), taskRunner.getRequester(),
+											false, false, true,
+											Configuration.configuration.getInternalRunner().
+													getNetworkTransaction());
+							requestTransfer.run();
+							result.awaitUninterruptibly();
+							R66Result finalValue = result.getResult();
+							switch (finalValue.code) {
+								case QueryStillRunning:
+									finalResult.code = ErrorCode.QueryStillRunning;
+									finalResult.other = "Transfer restart requested but already active and running";
+									break;
+								case Running:
+									finalResult.code = ErrorCode.Running;
+									finalResult.other = "Transfer restart requested but already running";
+									break;
+								case PreProcessingOk:
+									finalResult.code = ErrorCode.PreProcessingOk;
+									finalResult.other = "Transfer restart requested and restarted";
+									break;
+								case CompleteOk:
+									finalResult.code = ErrorCode.CompleteOk;
+									finalResult.other = "Transfer restart requested but already finished so try to run Post Action";
+									taskRunner.setPostTask();
+									TransferUtils.finalizeTaskWithNoSession(taskRunner, lcr);
+									taskRunner.setErrorExecutionStatus(ErrorCode.QueryAlreadyFinished);
+									taskRunner.forceSaveStatus();
+									break;
+								case RemoteError:
+									finalResult.code = ErrorCode.RemoteError;
+									finalResult.other = "Transfer restart requested but remote error";
+									break;
+								default:
+									finalResult.code = ErrorCode.Internal;
+									finalResult.other = "Transfer restart requested but internal error";
+									break;
+							}
 						}
 					} else {
 						finalResult.code = ErrorCode.CompleteOk;

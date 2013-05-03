@@ -6,6 +6,8 @@
 	</properties>
 	<body>
 		<release version="2.4.13" date="2013-05-01" description="Fix release">
+			<action dev="Frederic Bregier" type="fix">Fix restart request while client is initiator</action>
+			<action dev="Frederic Bregier" type="fix">Fix digest in case of restart only valid for restarted part</action>
 			<action dev="Frederic Bregier" type="fix">Fix filename with blank characters support</action>
 			<action dev="Frederic Bregier" type="fix">Fix the possibility to not have upgraded the database structure (HostConfiguration)</action>
 		</release>

@@ -222,6 +222,7 @@ public class RequestTransfer implements Runnable {
 		try {
 			runner = new DbTaskRunner(DbConstant.admin.session, null, null,
 					specialId, requester, requested);
+			logger.info("Found previous Runner: "+runner.toString());
 		} catch (WaarpDatabaseException e) {
 			logger.error("Cannot find the transfer");
 			future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
@@ -242,7 +243,7 @@ public class RequestTransfer implements Runnable {
 					return;
 				} else {
 					// Send a request of cancel
-					ErrorCode code = sendValid(LocalPacketFactory.CANCELPACKET);
+					ErrorCode code = sendValid(runner, LocalPacketFactory.CANCELPACKET);
 					switch (code) {
 						case CompleteOk:
 							logger.info("Transfer cancel requested and done: {}",
@@ -261,7 +262,7 @@ public class RequestTransfer implements Runnable {
 			} else if (stop) {
 				// Just stop the task
 				// Send a request
-				ErrorCode code = sendValid(LocalPacketFactory.STOPPACKET);
+				ErrorCode code = sendValid(runner, LocalPacketFactory.STOPPACKET);
 				switch (code) {
 					case CompleteOk:
 						logger.info("Transfer stop requested and done: {}", runner);
@@ -277,7 +278,7 @@ public class RequestTransfer implements Runnable {
 				}
 			} else if (restart) {
 				// Restart if already stopped and not finished
-				ErrorCode code = sendValid(LocalPacketFactory.VALIDPACKET);
+				ErrorCode code = sendValid(runner, LocalPacketFactory.VALIDPACKET);
 				switch (code) {
 					case QueryStillRunning:
 						logger.info(
@@ -330,14 +331,14 @@ public class RequestTransfer implements Runnable {
 		}
 	}
 
-	private ErrorCode sendValid(byte code) {
+	private ErrorCode sendValid(DbTaskRunner runner, byte code) {
 		DbHostAuth host;
 		host = R66Auth.getServerAuth(DbConstant.admin.session,
 				this.requester);
 		if (host == null) {
-			logger.error("Requested host cannot be found: " + this.requester);
+			logger.error("Requester host cannot be found: " + this.requester);
 			OpenR66Exception e =
-					new OpenR66RunnerErrorException("Requested host cannot be found");
+					new OpenR66RunnerErrorException("Requester host cannot be found");
 			future.setResult(new R66Result(
 					e,
 					null, true,
@@ -345,6 +346,49 @@ public class RequestTransfer implements Runnable {
 			future.setFailure(e);
 			return ErrorCode.Internal;
 		}
+		// check if requester is "client" so no connect from him but direct action
+		logger.debug("Requester Host isClient: "+host.isClient());
+		if (host.isClient()) {
+			if (code == LocalPacketFactory.VALIDPACKET) {
+				logger.warn("RequestTransfer from Client as requester, so use DirectTransfer instead: "+
+						runner.toShortString());
+				DirectTransfer transaction = new DirectTransfer(future,
+						runner.getRequested(), runner.getOriginalFilename(), 
+						runner.getRuleId(), runner.getFileInformation(), false, 
+						runner.getBlocksize(), runner.getSpecialId(), networkTransaction);
+				transaction.run();
+				future.awaitUninterruptibly();
+				logger.info("Request done with " + (future.isSuccess() ? "success" : "error"));
+				if (future.isSuccess()) {
+					future.setResult(new R66Result(null, true, ErrorCode.PreProcessingOk, runner));
+					future.getResult().runner = runner;
+					return ErrorCode.PreProcessingOk;
+				} else {
+					R66Result result = future.getResult();
+					if (result != null) {
+						return result.code;
+					}
+					return ErrorCode.Internal;
+				}
+			} else {
+				// get remote host instead
+				host = R66Auth.getServerAuth(DbConstant.admin.session,
+						this.requested);
+				if (host == null) {
+					logger.error("Requested host cannot be found: " + this.requested);
+					OpenR66Exception e =
+							new OpenR66RunnerErrorException("Requested host cannot be found");
+					future.setResult(new R66Result(
+							e,
+							null, true,
+							ErrorCode.TransferError, null));
+					future.setFailure(e);
+					return ErrorCode.Internal;
+				}
+			}
+		}
+
+		logger.info("Try RequestTransfer to "+host.toString());
 		SocketAddress socketAddress = host.getSocketAddress();
 		boolean isSSL = host.isSsl();
 
@@ -389,10 +433,11 @@ public class RequestTransfer implements Runnable {
 		packet = null;
 		host = null;
 		future.awaitUninterruptibly();
-		logger.info("Request done with " + (future.isSuccess() ? "success" : "error"));
 
 		Channels.close(localChannelReference.getLocalChannel());
 		localChannelReference = null;
+
+		logger.info("Request done with " + (future.isSuccess() ? "success" : "error"));
 		R66Result result = future.getResult();
 		if (result != null) {
 			return result.code;
