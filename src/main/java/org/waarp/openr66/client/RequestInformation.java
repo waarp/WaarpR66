@@ -57,11 +57,15 @@ public class RequestInformation implements Runnable {
 	String filename = null;
 	String rulename = null;
 	byte code;
+	long id = DbConstant.ILLEGALVALUE;
+	boolean isTo = true;
 
 	static String srequested = null;
 	static String sfilename = null;
 	static String srulename = null;
-	static byte scode = 0;
+	static byte scode = -1;
+	static long sid = DbConstant.ILLEGALVALUE;
+	static boolean sisTo = true;
 
 	/**
 	 * Parse the parameter and set current values
@@ -75,13 +79,15 @@ public class RequestInformation implements Runnable {
 					.error("Needs at least 3 arguments:\n" +
 							"  the XML client configuration file,\n" +
 							"  '-to' the remoteHost Id,\n" +
-							"  '-rule' the rule\n" +
 							"Other options:\n" +
+							"  '-rule' the rule (mandatory for this group of option)\n" +
 							"  '-file' the optional file for which to get info,\n" +
 							"  '-exist' to test the existence\n" +
 							"  '-detail' to get the detail on file\n" +
 							"  '-list' to get the list of files\n" +
-							"  '-mlsx' to get the list and details of files");
+							"  '-mlsx' to get the list and details of files\n" +
+							"  The following option is exclusive of the previous ones:\n" +
+							"  '-id' follow by the id and '-reqto (default)|-reqfrom' as additional parameter to get the full information of a transfer where current host is requested(to) or requester(from)");
 			return false;
 		}
 		if (!FileBasedConfiguration
@@ -108,13 +114,26 @@ public class RequestInformation implements Runnable {
 				scode = (byte) InformationPacket.ASKENUM.ASKLIST.ordinal();
 			} else if (args[i].equalsIgnoreCase("-mlsx")) {
 				scode = (byte) InformationPacket.ASKENUM.ASKMLSLIST.ordinal();
+			} else if (args[i].equalsIgnoreCase("-id")) {
+				i++;
+				sid = Long.parseLong(args[i]);
+			} else if (args[i].equalsIgnoreCase("-reqfrom")) {
+				sisTo = true;
+			} else if (args[i].equalsIgnoreCase("-reqto")) {
+				sisTo = false;
 			}
 		}
-		if (srulename == null || srequested == null) {
-			logger.error("Rulename and Requested HostId must be set");
+		if (sfilename != null && scode == -1) {
+			scode = (byte) InformationPacket.ASKENUM.ASKEXIST.ordinal();
+		}
+		if ((srulename == null && scode != -1) || srequested == null) {
+			logger.error("(Rulename or TransferId) and Requested HostId must be set");
 			return false;
 		}
-
+		if (scode != -1 && sid != DbConstant.ILLEGALVALUE) {
+			logger.error("Setting ID is exclusive of other options.");
+			return false;
+		}
 		return true;
 	}
 
@@ -124,16 +143,20 @@ public class RequestInformation implements Runnable {
 	 * @param rulename
 	 * @param filename
 	 * @param request
+	 * @param id Id of the request
+	 * @param isTo request is To remote Host (true), or From remote host (false)
 	 * @param networkTransaction
 	 */
 	public RequestInformation(R66Future future, String requested, String rulename,
-			String filename, byte request,
+			String filename, byte request, long id, boolean isTo,
 			NetworkTransaction networkTransaction) {
 		this.future = future;
 		this.rulename = rulename;
 		this.requested = requested;
 		this.filename = filename;
 		this.code = request;
+		this.id = id;
+		this.isTo = isTo;
 		this.networkTransaction = networkTransaction;
 	}
 
@@ -141,8 +164,12 @@ public class RequestInformation implements Runnable {
 		if (logger == null) {
 			logger = WaarpInternalLoggerFactory.getLogger(RequestInformation.class);
 		}
-		InformationPacket request = new InformationPacket(rulename, code,
-				filename);
+		InformationPacket request = null;
+		if (code != -1) {
+			request = new InformationPacket(rulename, code, filename);
+		} else {
+			request = new InformationPacket(""+id, code, (isTo ? "1" : "0"));
+		}
 
 		// Connection
 		DbHostAuth host = R66Auth.getServerAuth(DbConstant.admin.session,
@@ -211,7 +238,7 @@ public class RequestInformation implements Runnable {
 			R66Future result = new R66Future(true);
 			RequestInformation requestInformation =
 					new RequestInformation(result, srequested, srulename,
-							sfilename, scode,
+							sfilename, scode, sid, sisTo,
 							networkTransaction);
 			requestInformation.run();
 			result.awaitUninterruptibly();

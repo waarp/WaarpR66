@@ -21,6 +21,9 @@ import java.net.SocketAddress;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.DocumentHelper;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
@@ -40,6 +43,7 @@ import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66DatabaseGlobalException;
 import org.waarp.openr66.protocol.exception.OpenR66Exception;
+import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
@@ -224,11 +228,49 @@ public class RequestTransfer implements Runnable {
 					specialId, requester, requested);
 			logger.info("Found previous Runner: "+runner.toString());
 		} catch (WaarpDatabaseException e) {
-			logger.error("Cannot find the transfer");
-			future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
-					ErrorCode.Internal, null));
-			future.setFailure(e);
-			return;
+			// Maybe we can ask to the remote
+			R66Future futureInfo = new R66Future(true);
+			RequestInformation requestInformation = new RequestInformation(futureInfo, srequested, null, null, (byte) -1, specialId, true, networkTransaction);
+			requestInformation.run();
+			futureInfo.awaitUninterruptibly();
+			if (futureInfo.isSuccess()) {
+				R66Result r66result = futureInfo.getResult();
+				ValidPacket info = (ValidPacket) r66result.other;
+				String xml = info.getSheader();
+				Document document;
+				try {
+					document = DocumentHelper.parseText(xml);
+				} catch (DocumentException e1) {
+					logger.error("Cannot find the transfer");
+					future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e1), null, true,
+							ErrorCode.Internal, null));
+					future.setFailure(e);
+					return;
+				}
+				try {
+					runner = DbTaskRunner.fromXml(DbConstant.admin.session, document.getRootElement(), true);
+					logger.info("Get Runner from remote: "+runner.toString());
+					if (runner.getSpecialId() == DbConstant.ILLEGALVALUE) {
+						logger.error("Cannot find the transfer");
+						future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
+								ErrorCode.Internal, null));
+						future.setFailure(e);
+						return;
+					}
+				} catch (OpenR66ProtocolBusinessException e1) {
+					logger.error("Cannot find the transfer");
+					future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e1), null, true,
+							ErrorCode.Internal, null));
+					future.setFailure(e);
+					return;
+				}
+			} else {
+				logger.error("Cannot find the transfer");
+				future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
+						ErrorCode.Internal, null));
+				future.setFailure(e);
+				return;
+			}
 		}
 		if (cancel || stop || restart) {
 			if (cancel) {
@@ -352,23 +394,29 @@ public class RequestTransfer implements Runnable {
 			if (code == LocalPacketFactory.VALIDPACKET) {
 				logger.warn("RequestTransfer from Client as requester, so use DirectTransfer instead: "+
 						runner.toShortString());
-				DirectTransfer transaction = new DirectTransfer(future,
+				R66Future transfer = new R66Future(true);
+				DirectTransfer transaction = new DirectTransfer(transfer,
 						runner.getRequested(), runner.getOriginalFilename(), 
 						runner.getRuleId(), runner.getFileInformation(), false, 
 						runner.getBlocksize(), runner.getSpecialId(), networkTransaction);
 				transaction.run();
-				future.awaitUninterruptibly();
-				logger.info("Request done with " + (future.isSuccess() ? "success" : "error"));
-				if (future.isSuccess()) {
+				transfer.awaitUninterruptibly();
+				logger.info("Request done with " + (transfer.isSuccess() ? "success" : "error"));
+				if (transfer.isSuccess()) {
 					future.setResult(new R66Result(null, true, ErrorCode.PreProcessingOk, runner));
 					future.getResult().runner = runner;
+					future.setSuccess();
 					return ErrorCode.PreProcessingOk;
 				} else {
-					R66Result result = future.getResult();
+					R66Result result = transfer.getResult();
+					ErrorCode error = ErrorCode.Internal;
 					if (result != null) {
-						return result.code;
+						error = result.code;
 					}
-					return ErrorCode.Internal;
+					OpenR66Exception e =
+							new OpenR66RunnerErrorException("Transfer in direct mode failed: "+error.mesg);
+					future.setFailure(e);
+					return error;
 				}
 			} else {
 				// get remote host instead

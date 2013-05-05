@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
+import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
@@ -166,7 +167,7 @@ public class DbTaskRunner extends AbstractDbData {
 	 */
 	private ErrorCode status = ErrorCode.Unknown;
 
-	private long specialId;
+	private long specialId = DbConstant.ILLEGALVALUE;
 
 	private boolean isSender;
 
@@ -912,6 +913,29 @@ public class DbTaskRunner extends AbstractDbData {
 				isSaved = true;
 				checkThroughMode();
 				return;
+			}
+			for (AbstractDbData data : CommanderNoDb.todoList) {
+				DbTaskRunner runner = (DbTaskRunner) data;
+				if (runner.specialId == this.specialId && runner.requestedHostId.equals(this.requestedHostId) &&
+						runner.requesterHostId.equals(this.requesterHostId)) {
+					DbValue[] temp = this.allFields;
+					this.allFields = runner.allFields;
+					try {
+						this.setFromArray();
+					} catch (WaarpDatabaseSqlException e) {
+					}
+					this.allFields = temp;
+					this.setToArray();
+					this.isRecvThrough = runner.isRecvThrough;
+					this.isSendThrough = runner.isSendThrough;
+					this.rule = runner.rule;
+					this.isSaved = true;
+					if (rule == null) {
+						rule = new DbRule(this.dbSession, ruleId);
+					}
+					checkThroughMode();
+					return;
+				}
 			}
 			throw new WaarpDatabaseNoDataException("No row found");
 		}
@@ -3568,6 +3592,77 @@ public class DbTaskRunner extends AbstractDbData {
 				+ XMLEXTENSION;
 	}
 
+	/**
+	 * 
+	 * @return the runner as XML
+	 * @throws OpenR66ProtocolBusinessException 
+	 */
+	public String asXML() throws OpenR66ProtocolBusinessException {
+		Element node;
+		try {
+			node = DbTaskRunner.getElementFromRunner(this);
+		} catch (WaarpDatabaseSqlException e) {
+			logger.error("Cannot read Data", e);
+			throw new OpenR66ProtocolBusinessException("Cannot read Data: " + e.getMessage());
+		}
+		Document document = DocumentHelper.createDocument(node);
+		return document.asXML();
+	}
+	
+	/**
+	 * Set the given runner from the root element of the runner itself (XMLRUNNER but not
+	 * XMLRUNNERS). Need to call 'setFromArray' after.
+	 * 
+	 * @param runner
+	 * @param root
+	 */
+	private static void setRunnerFromElementNoException(DbTaskRunner runner, Element root) {
+		for (DbValue value : runner.allFields) {
+			if (value.column.equals(Columns.UPDATEDINFO.name())) {
+				continue;
+			}
+			Element elt = (Element) root.selectSingleNode(value.column.toLowerCase());
+			if (elt != null) {
+				String newValue = elt.getText();
+				try {
+					value.setValueFromString(newValue);
+				} catch (WaarpDatabaseSqlException e) {
+					// ignore
+				}
+			}
+		}
+	}
+	
+	/**
+	 * 
+	 * @param session
+	 * @param document
+	 * @param reverse should the way be invert (isSender)
+	 * @return the TaskRunner from the XML element
+	 * @throws OpenR66ProtocolBusinessException
+	 */
+	public static DbTaskRunner fromXml(DbSession session, Element root, boolean reverse) throws OpenR66ProtocolBusinessException {
+		DbTaskRunner runner = new DbTaskRunner(session);
+		setRunnerFromElementNoException(runner, root);
+		try {
+			runner.setFromArray();
+		} catch (WaarpDatabaseSqlException e) {
+			logger.error("Cannot read XML", e);
+			throw new OpenR66ProtocolBusinessException("Cannot read XML: " + e.getMessage());
+		}
+		runner.ownerRequest = Configuration.configuration.HOST_ID;
+		if (reverse) {
+			runner.isSender = ! runner.isSender;
+			if (runner.isSender) {
+				runner.filename = runner.originalFilename;
+			}
+		}
+		runner.updatedInfo = UpdatedInfo.TOSUBMIT.ordinal();
+		runner.setToArray();
+		CommanderNoDb.todoList.add(runner);
+		return runner;
+	}
+	
 	/**
 	 * Method to write the current DbTaskRunner for NoDb client instead of updating DB. 'setToArray'
 	 * must be called priorly to be able to store the values.

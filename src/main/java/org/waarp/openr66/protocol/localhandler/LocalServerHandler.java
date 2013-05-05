@@ -1655,6 +1655,65 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					"Not authenticated while Information received");
 		}
 		byte request = packet.getRequest();
+		if (request == -1) {
+			// Id request
+			String sid = packet.getRulename();
+			String sisto = packet.getFilename();
+			long id = DbConstant.ILLEGALVALUE;
+			try {
+				id = Long.parseLong(sid);
+			} catch (NumberFormatException e) {
+				logger.error("Incorrect Transfer ID", e);
+				throw new OpenR66ProtocolNoDataException("Incorrect Transfer ID", e);
+			}
+			boolean isTo = sisto.equals("1");
+			String remote = session.getAuth().getUser();
+			String local = null;
+			try {
+				local = Configuration.configuration.getHostId(session.getAuth().isSsl());
+			} catch (OpenR66ProtocolNoSslException e1) {
+				logger.error("Local Ssl Host unknown is unknown", e1);
+				throw new OpenR66ProtocolNoDataException("Local Ssl Host is unknown", e1);
+			}
+			DbTaskRunner runner = null;
+			if (isTo) {
+				try {
+					runner = new DbTaskRunner(localChannelReference.getDbSession(), 
+							localChannelReference.getSession(), null, 
+							id, remote, local);
+				} catch (WaarpDatabaseException e) {
+					logger.error("RunnerTask is not found: " + packet.getRulename(), e);
+					throw new OpenR66ProtocolNoDataException("Remote starting RunnerTask is not found: " + packet.getRulename(), e);
+				}
+			} else {
+				try {
+					runner = new DbTaskRunner(localChannelReference.getDbSession(),
+							localChannelReference.getSession(), null, 
+							id, local, remote);
+				} catch (WaarpDatabaseException e) {
+					logger.error("RunnerTask is not found: " + packet.getRulename() + ":" +id, e);
+					throw new OpenR66ProtocolNoDataException("Local starting RunnerTask is not found: " + packet.getRulename(), e);
+				}
+			}
+			session.newState(VALIDOTHER);
+			ValidPacket validPacket;
+			try {
+				validPacket = new ValidPacket(runner.asXML(), "",
+						LocalPacketFactory.INFORMATIONPACKET);
+			} catch (OpenR66ProtocolBusinessException e) {
+				logger.error("RunnerTask cannot be found: " + packet.getRulename(), e);
+				throw new OpenR66ProtocolNoDataException("RunnerTask cannot be found: " + packet.getRulename(), e);
+			}
+			R66Result result = new R66Result(session, true,
+					ErrorCode.CompleteOk, null);
+			result.other = validPacket;
+			localChannelReference.validateEndTransfer(result);
+			localChannelReference.validateRequest(result);
+			ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+					validPacket, true);
+			Channels.close(channel);
+			return;
+		}
 		DbRule rule;
 		try {
 			rule = new DbRule(localChannelReference.getDbSession(), packet.getRulename());
