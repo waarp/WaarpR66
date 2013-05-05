@@ -250,8 +250,15 @@ public class RequestTransfer implements Runnable {
 				try {
 					runner = DbTaskRunner.fromXml(DbConstant.admin.session, document.getRootElement(), true);
 					logger.info("Get Runner from remote: "+runner.toString());
-					if (runner.getSpecialId() == DbConstant.ILLEGALVALUE) {
+					if (runner.getSpecialId() == DbConstant.ILLEGALVALUE || ! runner.isSender()) {
 						logger.error("Cannot find the transfer");
+						future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
+								ErrorCode.Internal, null));
+						future.setFailure(e);
+						return;
+					}
+					if (runner.isAllDone()) {
+						logger.error("Transfer already finished");
 						future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
 								ErrorCode.Internal, null));
 						future.setFailure(e);
