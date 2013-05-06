@@ -1475,7 +1475,7 @@ public class FileBasedConfiguration {
 					if (sval.isEmpty()) {
 						continue;
 					}
-					logger.warn("Business Allow: " + sval);
+					logger.info("Business Allow: " + sval);
 					config.businessWhiteSet.add(sval.trim());
 				}
 				ids.clear();
@@ -1516,7 +1516,7 @@ public class FileBasedConfiguration {
 				for (String namealias : alias) {
 					config.aliases.put(namealias, refHostId);
 				}
-				logger.warn("Aliases for: " + refHostId +" = "+ aliasset);
+				logger.info("Aliases for: " + refHostId +" = "+ aliasset);
 			}
 		}
 	}
@@ -1551,7 +1551,7 @@ public class FileBasedConfiguration {
 				if (sval.isEmpty()) {
 					continue;
 				}
-				logger.warn("Business Allow: " + sval);
+				logger.info("Business Allow: " + sval);
 				config.businessWhiteSet.add(sval.trim());
 			}
 			list.clear();
@@ -1599,7 +1599,7 @@ public class FileBasedConfiguration {
 				for (String namealias : aliasid) {
 					config.aliases.put(namealias, refHostId);
 				}
-				logger.warn("Aliases for: " + refHostId +" = "+ aliasesid);
+				logger.info("Aliases for: " + refHostId +" = "+ aliasesid);
 			}
 			list.clear();
 			document.clearContent();
@@ -1656,7 +1656,7 @@ public class FileBasedConfiguration {
 						// ignore
 					}
 				}
-				logger.warn("New Role: " + refHostId + ":" + newrole);
+				logger.info("New Role: " + refHostId + ":" + newrole);
 				config.roles.put(refHostId, newrole);
 			}
 			list.clear();
@@ -1710,7 +1710,7 @@ public class FileBasedConfiguration {
 						// ignore
 					}
 				}
-				logger.warn("New Role: " + refHostId + ":" + newrole);
+				logger.info("New Role: " + refHostId + ":" + newrole);
 				config.roles.put(refHostId, newrole);
 			}
 		}
