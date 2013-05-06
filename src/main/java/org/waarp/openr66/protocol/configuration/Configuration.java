@@ -670,8 +670,8 @@ public class Configuration {
 	}
 
 	public void r66Startup() throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
-		logger.debug("Start R66: " + SERVER_PORT + ":" + useNOSSL + " " + SERVER_SSLPORT + ":"
-				+ useSSL + ":" + HOST_SSLID);
+		logger.info("Start R66: " + SERVER_PORT + ":" + useNOSSL + ":" + HOST_ID + 
+				" " + SERVER_SSLPORT + ":" + useSSL + ":" + HOST_SSLID);
 		// add into configuration
 		this.constraintLimitHandler.setServer(true);
 		// Global Server
@@ -738,6 +738,8 @@ public class Configuration {
 
 	public void startHttpSupport() {
 		// Now start the HTTP support
+		logger.info("Start R66 HTTP: " + SERVER_HTTPPORT + 
+				" HTTPS: " + SERVER_HTTPSPORT);
 		httpChannelGroup = new DefaultChannelGroup("HttpOpenR66");
 		// Configure the server.
 		httpChannelFactory = new NioServerSocketChannelFactory(
