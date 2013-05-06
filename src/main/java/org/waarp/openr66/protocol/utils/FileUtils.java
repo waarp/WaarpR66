@@ -481,6 +481,44 @@ public class FileUtils {
 	}
 
 	/**
+	 * Compute global hash (if possible) from a file but up to length
+	 * @param digest
+	 * @param file
+	 * @param length
+	 */
+	public static void computeGlobalHash(FilesystemBasedDigest digest, File file, int length) {
+		if (digest == null) {
+			return;
+		}
+		byte[] bytes = new byte[65536];
+		int still = length;
+		int len = still > 65536 ? 65536 : still;
+		FileInputStream inputStream = null;
+		try {
+			inputStream = new FileInputStream(file);
+			while (inputStream.read(bytes, 0, len) > 0) {
+				digest.Update(bytes, 0, len);
+				still -= length;
+				if (still <= 0) {
+					break;
+				}
+				len = still > 65536 ? 65536 : still;
+			}
+		} catch (FileNotFoundException e) {
+			// error
+		} catch (IOException e) {
+			// error
+		} finally {
+			if (inputStream != null) {
+				try {
+					inputStream.close();
+				} catch (IOException e) {
+				}
+			}
+		}
+	}
+
+	/**
 	 * Write one fileChannel to another one. Close the fileChannels
 	 * 
 	 * @param fileChannelIn

@@ -143,7 +143,10 @@ public class LocalChannelReference {
 	 * To be able to check hash once all transfer is over once again
 	 */
 	private String hashComputeDuringTransfer = null;
-	
+	/**
+	 * If partial hash, no global hash validation can be done
+	 */
+	private boolean partialHash = false;
 	/**
 	 * 
 	 * @param localChannel
@@ -636,5 +639,12 @@ public class LocalChannelReference {
 	public void setHashComputeDuringTransfer(String hashComputeDuringTransfer) {
 		this.hashComputeDuringTransfer = hashComputeDuringTransfer;
 	}
+
+	public void setPartialHash() {
+		this.partialHash = true;
+	}
 	
+	public boolean isPartialHash() {
+		return this.partialHash;
+	}
 }
