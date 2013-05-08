@@ -33,6 +33,8 @@ import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
+import org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket;
+import org.waarp.openr66.protocol.localhandler.packet.BlockRequestPacket;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 import org.waarp.openr66.protocol.localhandler.packet.ShutdownPacket;
 import org.waarp.openr66.protocol.localhandler.packet.ValidPacket;
@@ -58,7 +60,8 @@ public class ServerShutdown {
 				.getLogger(ServerShutdown.class);
 		if (args.length < 1) {
 			logger
-					.error("Needs the configuration file as first argument and optionally [-nossl]");
+					.error("Needs the configuration file as first argument and optionally [-nossl].\n" +
+							"If '-block' or '-unblock' is specified, it will only block or unblock new request, but no shutdown will occur.");
 			ChannelUtils.stopLogger();
 			System.exit(1);
 			return;
@@ -66,7 +69,8 @@ public class ServerShutdown {
 		if (!FileBasedConfiguration
 				.setConfigurationServerShutdownFromXml(Configuration.configuration, args[0])) {
 			logger
-					.error("Needs a correct configuration file as first argument and optionally [-nossl]");
+					.error("Needs a correct configuration file as first argument and optionally [-nossl].\n" +
+							"If '-block' or '-unblock' is specified, it will only block or unblock new request, but no shutdown will occur.");
 			if (DbConstant.admin != null) {
 				DbConstant.admin.close();
 			}
@@ -75,9 +79,17 @@ public class ServerShutdown {
 			return;
 		}
 		boolean useSsl = true;
+		boolean isblock = false;
+		boolean isunblock = false;
 		if (args.length > 1) {
-			if (args[1].equalsIgnoreCase("-nossl")) {
-				useSsl = false;
+			for (int i = 1; i < args.length; i++) {
+				if (args[i].equalsIgnoreCase("-nossl")) {
+					useSsl = false;
+				} else if (args[i].equalsIgnoreCase("-block")) {
+					isblock = true;
+				} else if (args[i].equalsIgnoreCase("-unblock")) {
+					isunblock = true;
+				}
 			}
 		}
 		DbHostAuth host = null;
@@ -95,11 +107,24 @@ public class ServerShutdown {
 			System.exit(1);
 			return;
 		}
+		if (isunblock && isblock) {
+			logger.error("Only one of '-block' or '-unblock' must be specified");
+			if (DbConstant.admin != null) {
+				DbConstant.admin.close();
+			}
+			ChannelUtils.stopLogger();
+			System.exit(1);
+			return;
+		}
 		Configuration.configuration.pipelineInit();
 		byte[] key;
 		key = FilesystemBasedDigest.passwdCrypt(Configuration.configuration.getSERVERADMINKEY());
-		final ShutdownPacket packet = new ShutdownPacket(
-				key);
+		final AbstractLocalPacket packet;
+		if (isblock || isunblock) {
+			packet = new BlockRequestPacket(isblock, key);
+		} else {
+			packet = new ShutdownPacket(key);
+		}
 		final NetworkTransaction networkTransaction = new NetworkTransaction();
 		final SocketAddress socketServerAddress = host.getSocketAddress();
 		LocalChannelReference localChannelReference = null;
@@ -110,23 +135,38 @@ public class ServerShutdown {
 			networkTransaction.closeAll();
 			return;
 		}
-		localChannelReference.sessionNewState(R66FiniteDualStates.SHUTDOWN);
+		if (isblock || isunblock) {
+			localChannelReference.sessionNewState(R66FiniteDualStates.BUSINESSR);
+		} else {
+			localChannelReference.sessionNewState(R66FiniteDualStates.SHUTDOWN);
+		}
 		ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false);
 		localChannelReference.getFutureRequest().awaitUninterruptibly();
-		if (localChannelReference.getFutureRequest().isSuccess()) {
-			logger.warn("Shutdown OK");
-		} else {
-			R66Result result = localChannelReference.getFutureRequest()
-					.getResult();
-			if (result.other instanceof ValidPacket
-					&&
-					((ValidPacket) result.other).getTypeValid() == LocalPacketFactory.SHUTDOWNPACKET) {
-				logger.warn("Shutdown command OK");
-			} else if (result.code == ErrorCode.Shutdown) {
-				logger.warn("Shutdown command done");
+		if (isblock || isunblock) {
+			if (localChannelReference.getFutureRequest().isSuccess()) {
+				logger.warn((isblock ? "Blocking" : "Unblocking") + " OK");
 			} else {
-				logger.error("Cannot Shutdown: " + result.toString(), localChannelReference
+				R66Result result = localChannelReference.getFutureRequest()
+						.getResult();
+				logger.error("Cannot "+(isblock ? "Blocking" : "Unblocking") + ": " + result.toString(), localChannelReference
 						.getFutureRequest().getCause());
+			}
+		} else {
+			if (localChannelReference.getFutureRequest().isSuccess()) {
+				logger.warn("Shutdown OK");
+			} else {
+				R66Result result = localChannelReference.getFutureRequest()
+						.getResult();
+				if (result.other instanceof ValidPacket
+						&&
+						((ValidPacket) result.other).getTypeValid() == LocalPacketFactory.SHUTDOWNPACKET) {
+					logger.warn("Shutdown command OK");
+				} else if (result.code == ErrorCode.Shutdown) {
+					logger.warn("Shutdown command done");
+				} else {
+					logger.error("Cannot Shutdown: " + result.toString(), localChannelReference
+							.getFutureRequest().getCause());
+				}
 			}
 		}
 		networkTransaction.closeAll();

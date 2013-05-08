@@ -165,6 +165,9 @@ public class LocalChannelReference {
 		if (futureRequest == null) {
 			this.futureRequest = new R66Future(true);
 		} else {
+			if (futureRequest.isDone()) {
+				futureRequest.reset();
+			}
 			this.futureRequest = futureRequest;
 		}
 		cts = (ChannelTrafficShapingHandler) networkChannel.getPipeline().get(
