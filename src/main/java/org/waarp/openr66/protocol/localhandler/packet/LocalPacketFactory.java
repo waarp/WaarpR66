@@ -72,6 +72,8 @@ public class LocalPacketFactory {
 
 	public static final byte NOOPPACKET = 23;
 
+	public static final byte BLOCKREQUESTPACKET = 24;
+
 	/**
 	 * This method create a Packet from the ChannelBuffer.
 	 * 
@@ -142,6 +144,9 @@ public class LocalPacketFactory {
 						middleLength, endLength, buf);
 			case NOOPPACKET:
 				return NoOpPacket.createFromBuffer(headerLength,
+						middleLength, endLength, buf);
+			case BLOCKREQUESTPACKET:
+				return BlockRequestPacket.createFromBuffer(headerLength,
 						middleLength, endLength, buf);
 			default:
 				throw new OpenR66ProtocolPacketException(

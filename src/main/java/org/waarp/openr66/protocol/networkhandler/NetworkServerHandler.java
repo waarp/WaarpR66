@@ -201,6 +201,11 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 			logger.debug("NetworkRecv: {}", packet);
 			// Special code to STOP here
 			if (packet.getLocalId() == ChannelUtils.NOCHANNEL) {
+				int nb = NetworkTransaction.getNbLocalChannel(e.getChannel());
+				if (nb > 0) {
+					logger.warn("Temptative of connection failed but still some connection are there so not closing the server channel: "+nb);
+					return;
+				}
 				// No way to know what is wrong: close all connections with
 				// remote host
 				logger
@@ -208,7 +213,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 								+
 								packet.toString() +
 								" : " +
-								e.getChannel().getRemoteAddress());
+								e.getChannel().getRemoteAddress() + " : " + nb);
 				WaarpSslUtility.closingSslChannel(e.getChannel());
 				return;
 			}
