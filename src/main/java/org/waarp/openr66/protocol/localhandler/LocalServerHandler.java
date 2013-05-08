@@ -110,6 +110,7 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolShutdownException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
 import org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket;
 import org.waarp.openr66.protocol.localhandler.packet.AuthentPacket;
+import org.waarp.openr66.protocol.localhandler.packet.BlockRequestPacket;
 import org.waarp.openr66.protocol.localhandler.packet.BusinessRequestPacket;
 import org.waarp.openr66.protocol.localhandler.packet.ConnectionErrorPacket;
 import org.waarp.openr66.protocol.localhandler.packet.DataPacket;
@@ -389,6 +390,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				}
 				case LocalPacketFactory.BUSINESSREQUESTPACKET: {
 					businessRequest(e.getChannel(), (BusinessRequestPacket) packet);
+					break;
+				}
+				case LocalPacketFactory.BLOCKREQUESTPACKET: {
+					blockRequest(e.getChannel(), (BlockRequestPacket) packet);
 					break;
 				}
 				default: {
@@ -785,9 +790,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
 	private void connectionError(Channel channel, ConnectionErrorPacket packet) {
 		// do something according to the error
 		logger.error(channel.getId() + ": " + packet.toString());
+		ErrorCode code = ErrorCode.ConnectionImpossible;
+		if (packet.getSmiddle() != null) {
+			code = ErrorCode.getFromCode(packet.getSmiddle());
+		}
 		localChannelReference.invalidateRequest(new R66Result(
 				new OpenR66ProtocolSystemException(packet.getSheader()),
-				session, true, ErrorCode.ConnectionImpossible, null));
+				session, true, code, null));
 		// True since closing
 		session.newState(ERROR);
 		session.setStatus(45);
@@ -994,6 +1003,17 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		}
 		// XXX validLimit only on requested side
 		if (packet.isToValidate()) {
+			if (Configuration.configuration.isShutdown) {
+				logger.info("Server is blocking new requests when receive request with Rule: "
+						+ packet.getRulename() + " from " + session.getAuth().toString());
+				session.setStatus(100);
+				endInitRequestInError(channel,
+						ErrorCode.ServerOverloaded, null,
+						new OpenR66ProtocolNotYetConnectionException(
+								"Limit exceeded"), packet);
+				session.setStatus(100);
+				return;
+			}
 			if (Configuration.configuration.constraintLimitHandler.checkConstraints()) {
 				if (Configuration.configuration.r66Mib != null) {
 					Configuration.configuration.r66Mib.
@@ -2637,6 +2657,52 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			}
 			session.setStatus(204);
 		}
+	}
+
+	/**
+	 * Block/Unblock Request 
+	 * 
+	 * 
+	 * @param channel
+	 * @param packet
+	 * @throws OpenR66ProtocolPacketException
+	 * @throws OpenR66ProtocolBusinessException 
+	 */
+	private void blockRequest(Channel channel, BlockRequestPacket packet)
+			throws OpenR66ProtocolPacketException, OpenR66ProtocolBusinessException {
+		if (!session.isAuthenticated()) {
+			throw new OpenR66ProtocolNotAuthenticatedException(
+					"Not authenticated while BlockRequest received");
+		}
+		// SYSTEM authorization
+		boolean isAdmin = session.getAuth().isValidRole(ROLE.SYSTEM);
+		boolean isKeyValid = Configuration.configuration.isKeyValid(packet.getKey());
+		if (isAdmin && isKeyValid) {
+			boolean block = packet.getBlock();
+			if (Configuration.configuration.r66Mib != null) {
+				Configuration.configuration.r66Mib.notifyWarning(
+						(block ? "Block" : "Unblock") + " Order received",
+						session.getAuth().getUser());
+			}
+			logger.debug((block ? "Block" : "Unblock") + " Order received");
+			Configuration.configuration.isShutdown = block;
+			// inform back the requester
+			// request of current values
+			R66Result result = new R66Result(session, true, ErrorCode.CompleteOk, null);
+			ValidPacket valid = new ValidPacket((block ? "Block" : "Unblock")+" new request", result.code.getCode(),
+					LocalPacketFactory.REQUESTUSERPACKET);
+			localChannelReference.validateRequest(result);
+			try {
+				ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+						valid, true);
+			} catch (OpenR66ProtocolPacketException e) {
+			}
+			Channels.close(channel);
+			return;
+		}
+		logger.error("Invalid Block command: from " + session.getAuth().getUser()
+				+ " AdmValid: " + isAdmin + " KeyValid: " + isKeyValid);
+		throw new OpenR66ProtocolBusinessException("Invalid Block comand");
 	}
 
 	/**

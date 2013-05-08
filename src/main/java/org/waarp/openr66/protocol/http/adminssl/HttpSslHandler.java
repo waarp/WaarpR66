@@ -1471,6 +1471,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					Long.toString(Configuration.configuration.serverGlobalWriteLimit));
 			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITRXXX.toString(),
 					Long.toString(Configuration.configuration.serverGlobalReadLimit));
+			WaarpStringUtils.replace(builder, "XXXBLOCKXXX", Configuration.configuration.isShutdown ? "checked" : "");
 			return builder.toString();
 		}
 		String extraInformation = null;
@@ -1506,6 +1507,14 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					clearSession();
 					forceClose = true;
 					return logon;
+				} else if (act.equalsIgnoreCase("Block")) {
+					boolean block = params.containsKey("blocking");
+					if (block) {
+						extraInformation = "New request will be blocked";
+					} else {
+						extraInformation = "New request will be allowed";
+					}
+					Configuration.configuration.isShutdown = block;
 				} else if (act.equalsIgnoreCase("Shutdown")) {
 					String error;
 					if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
@@ -1582,6 +1591,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				Long.toString(Configuration.configuration.serverGlobalWriteLimit));
 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITRXXX.toString(),
 				Long.toString(Configuration.configuration.serverGlobalReadLimit));
+		WaarpStringUtils.replace(builder, "XXXBLOCKXXX", Configuration.configuration.isShutdown ? "checked" : "");
 		if (extraInformation != null) {
 			builder.append(extraInformation);
 		}
