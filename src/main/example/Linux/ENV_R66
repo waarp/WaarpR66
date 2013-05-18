@@ -80,7 +80,7 @@ alias r66limit="${R66LIMIT}"
 # Administrator Gui
 # no argument
 export R66ADMIN="${JAVARUNCLIENT} org.waarp.administrator.AdminGui ${SERVER_CONFIG} "
-alias r66admin="${R66LIMIT}"
+alias r66admin="${R66ADMIN}"
 
 # CLIENT SIDE #
 ###############
