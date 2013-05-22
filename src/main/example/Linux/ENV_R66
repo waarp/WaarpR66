@@ -110,3 +110,9 @@ alias r66info="${R66INFO}"
 # -to host -msg "message"
 export R66MESG="${JAVARUNCLIENT} org.waarp.openr66.client.Message ${CLIENT_CONFIG} "
 alias r66mesg="${R66MESG}"
+
+# R66 Gui
+# no argument
+export R66GUI="${JAVARUNCLIENT} org.waarp.openr66.r66gui.R66ClientGui ${CLIENT_CONFIG} "
+alias r66gui="${R66GUI}"
+
