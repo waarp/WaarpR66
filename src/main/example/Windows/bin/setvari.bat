@@ -10,16 +10,16 @@ SET R66BIN=%R66HOME%\lib
 REM command for Client
 
 REM Logger
-SET LOGSERVER=" -Dlogback.configurationFile=${R66HOME}\conf\logback.xml "
-SET LOGCLIENT=" -Dlogback.configurationFile=${R66HOME}\conf\logback-client.xml "
+SET LOGSERVER=" -Dlogback.configurationFile=%R66HOME%\conf\logback.xml "
+SET LOGCLIENT=" -Dlogback.configurationFile=%R66HOME%\conf\logback-client.xml "
 
-SET R66_CLASSPATH=" ${R66BIN}\WaarpR66-2.4.11.jar;${R66BIN}\* "
+SET R66_CLASSPATH=" %R66BIN%\WaarpR66-2.4.11.jar;%R66BIN%\* "
 
 SET JAVARUNCLIENT=%JAVA_RUN% -cp %R66_CLASSPATH% %LOGCLIENT% 
 SET JAVARUNSERVER=%JAVA_RUN% -cp %R66_CLASSPATH% %LOGSERVER% 
 
-SET SERVER_CONFIG="${R66HOME}/conf/config-serverA.xml"
-SET CLIENT_CONFIG="${R66HOME}/conf/config-clientA.xml"
+SET SERVER_CONFIG="%R66HOME%/conf/config-serverA.xml"
+SET CLIENT_CONFIG="%R66HOME%/conf/config-clientA.xml"
 
 REM ################
 REM # R66 COMMANDS #

@@ -67,7 +67,7 @@ public class ZipTask extends AbstractTask {
 			case 2: {
 				// directory: zip finalname where finalname="target directory"
 				String[] args = finalname.split(" ");
-				zip = ZipUtility.createZipFromDirectory(args[1], args[0], false);
+				zip = ZipUtility.createZipFromDirectory(args[1], args[0], true);
 				break;
 			}
 			case 3: {
@@ -88,6 +88,7 @@ public class ZipTask extends AbstractTask {
 				File directory = new File(args[1]);
 				try {
 					ZipUtility.unZip(zipFile, directory);
+					zip = true;
 				} catch (IOException e) {
 					logger.warn("Error while unzip", e);
 					zip = false;
