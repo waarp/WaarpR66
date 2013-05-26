@@ -28,12 +28,6 @@
     <limit>
         <digest>4</digest>
         <usefastmd5>True</usefastmd5>
-        <nofastmd5>J:\NEWJARS\gglib\win32\MD5.dll</nofastmd5>
-        <blocksize>4096</blocksize>
-        <timeoutcon>10000</timeoutcon>
-        <sessionlimit>0</sessionlimit>
-        <globallimit>0</globallimit>
-        <delaylimit>10000</delaylimit>
 		<checkversion>True</checkversion>
     </limit>
 </config>

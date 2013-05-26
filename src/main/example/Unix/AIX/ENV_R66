@@ -28,7 +28,7 @@ export R66BIN="${R66HOME}/lib"
 LOGSERVER=" -Dlogback.configurationFile=${R66HOME}/conf/logback.xml "
 LOGCLIENT=" -Dlogback.configurationFile=${R66HOME}/conf/logback-client.xml "
 
-R66_CLASSPATH=" ${R66BIN}/WaarpR66-2.4.11.jar:${R66BIN}/* "
+R66_CLASSPATH=" ${R66BIN}/WaarpR66-2.4.14.jar:${R66BIN}/* "
 
 export JAVARUNCLIENT="${JAVA_RUN} -cp ${R66_CLASSPATH} ${LOGCLIENT} "
 export JAVARUNSERVER="${JAVA_RUN} -cp ${R66_CLASSPATH} ${LOGSERVER} "
@@ -90,7 +90,7 @@ alias -x r66limit="${R66LIMIT}"
 # Administrator Gui
 # no argument
 export R66ADMIN="${JAVARUNCLIENT} org.waarp.administrator.AdminGui ${SERVER_CONFIG} "
-alias -x r66admin="${R66LIMIT}"
+alias -x r66admin="${R66ADMIN}"
 
 # CLIENT SIDE #
 ###############
@@ -120,3 +120,8 @@ alias -x r66info="${R66INFO}"
 # -to host -msg "message"
 export R66MESG="${JAVARUNCLIENT} org.waarp.openr66.client.Message ${CLIENT_CONFIG} "
 alias -x r66mesg="${R66MESG}"
+
+# R66 Gui
+# no argument
+export R66GUI="${JAVARUNCLIENT} org.waarp.openr66.r66gui.R66ClientGui ${CLIENT_CONFIG} "
+alias -x r66gui="${R66GUI}"

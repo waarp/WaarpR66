@@ -5,7 +5,14 @@
 		<author email="waarp1 at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
-		<release version="2.4.13" date="2013-05-08" description="Fix release">
+		<release version="2.4.14" date="2013-05-26" description="Fix release">
+			<action dev="Frederic Bregier" type="fix">Fix seperator from : to ; since : is used under Windows!</action>
+			<action dev="Frederic Bregier" type="fix">Fix conf_pk wrongly assigned to 3 tables on Oracle configuration</action>
+			<action dev="Frederic Bregier" type="fix">Fix example of bin and configuration</action>
+			<action dev="Frederic Bregier" type="add">Add example of restart configuration</action>
+			<action dev="Frederic Bregier" type="add">Add version in toString for DbHostAuth</action>
+		</release>
+	    <release version="2.4.13" date="2013-05-08" description="Fix release">
 			<action dev="Frederic Bregier" type="fix">Fix restart request while client is initiator</action>
 			<action dev="Frederic Bregier" type="fix">Fix digest in case of restart only valid for restarted part</action>
 			<action dev="Frederic Bregier" type="fix">Fix filename with blank characters support</action>
