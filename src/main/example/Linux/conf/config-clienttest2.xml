@@ -5,7 +5,7 @@
         <hostid>test</hostid>
         <sslhostid>tests</sslhostid>
         <cryptokey>/GG/R66/certs/test-key.des</cryptokey>
-        <authentfile>/GG/R66/conf/OpenR66-authent-A-2.xml</authentfile>
+        <authentfile>/GG/R66/conf/OpenR66-authent-A.xml</authentfile>
     </identity>
     <client>
     </client>
@@ -18,7 +18,7 @@
         <trustuseclientauthenticate>False</trustuseclientauthenticate>
     </ssl>
     <directory>
-        <serverhome>/GG/R66/</serverhome>
+        <serverhome>/GG/R66</serverhome>
         <in>in</in>
         <out>out</out>
         <arch>arch</arch>
@@ -26,13 +26,8 @@
         <conf>conf</conf>
     </directory>
     <limit>
-        <digest>4</digest>
         <usefastmd5>True</usefastmd5>
-        <blocksize>4096</blocksize>
-        <timeoutcon>10000</timeoutcon>
-        <sessionlimit>0</sessionlimit>
-        <globallimit>0</globallimit>
-        <delaylimit>10000</delaylimit>
-		<checkversion>True</checkversion>
+        <digest>4</digest>
+        <checkversion>True</checkversion>
     </limit>
 </config>

@@ -455,7 +455,7 @@ public class FileUtils {
 	/**
 	 * Compute global hash (if possible)
 	 * @param digest
-	 * @param block
+	 * @param buffer
 	 */
 	public static void computeGlobalHash(FilesystemBasedDigest digest, ChannelBuffer buffer) {
 		if (digest == null) {

@@ -3636,7 +3636,7 @@ public class DbTaskRunner extends AbstractDbData {
 	/**
 	 * 
 	 * @param session
-	 * @param document
+	 * @param root
 	 * @param reverse should the way be invert (isSender)
 	 * @return the TaskRunner from the XML element
 	 * @throws OpenR66ProtocolBusinessException

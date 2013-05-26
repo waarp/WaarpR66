@@ -90,6 +90,7 @@ public abstract class ProgressBarTransfer extends AbstractTransfer {
 		OpenR66ProtocolNotYetConnectionException exc = null;
 		for (int i = 0; i < Configuration.RETRYNB; i++) {
 			try {
+				logger.debug("starting connection done on progressBarTransfer");
 				LocalChannelReference localChannelReference = runner.initRequest();
 				try {
 					localChannelReference.getFutureValidRequest().await();
@@ -121,6 +122,7 @@ public abstract class ProgressBarTransfer extends AbstractTransfer {
 								"End of retry on ServerOverloaded");
 					}
 				}
+				logger.debug("connection done on progressBarTransfer");
 				this.filesize = future.filesize;
 				while (!future.awaitUninterruptibly(INTERVALCALLBACK)) {
 					if (future.isDone()) {
@@ -128,6 +130,7 @@ public abstract class ProgressBarTransfer extends AbstractTransfer {
 					}
 					callBack(future.runner.getRank(), future.runner.getBlocksize());
 				}
+				logger.debug("transfer done on progressBarTransfer");
 				runner.finishTransfer(false, localChannelReference);
 				lastCallBack(future.isSuccess(),
 						future.runner.getRank(), future.runner.getBlocksize());
