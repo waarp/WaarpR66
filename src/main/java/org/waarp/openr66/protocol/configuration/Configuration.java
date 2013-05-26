@@ -105,7 +105,7 @@ public class Configuration {
 	/**
 	 * Uses as separator in field
 	 */
-	public static final String BAR_SEPARATOR_FIELD = ":";
+	public static final String BAR_SEPARATOR_FIELD = ";";
 	/**
 	 * Uses as separator in field
 	 */

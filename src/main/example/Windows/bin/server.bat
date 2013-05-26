@@ -1,4 +1,4 @@
 echo Start R66Server
 call setvari.bat
-%JAVARUNSERVER% 
+%R66SERVER% 
 echo R66Server stopped

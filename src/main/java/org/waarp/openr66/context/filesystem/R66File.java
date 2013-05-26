@@ -605,7 +605,7 @@ public class R66File extends FilesystemBasedFileImpl {
 
 	@Override
 	public String toString() {
-		return "File: " + currentFile + " Ready " + isReady + " " +
+		return "File: " + currentFile + " Ready " + isReady + " isExternal " + isExternal + " "+
 				getPosition();
 	}
 }

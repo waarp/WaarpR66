@@ -67,7 +67,7 @@ public class TarTask extends AbstractTask {
 			case 2: {
 				// directory: tar finalname where finalname="target directory"
 				String[] args = finalname.split(" ");
-				tar = TarUtility.createTarFromDirectory(args[1], args[0], false);
+				tar = TarUtility.createTarFromDirectory(args[1], args[0], true);
 				break;
 			}
 			case 3: {
@@ -88,6 +88,7 @@ public class TarTask extends AbstractTask {
 				File directory = new File(args[1]);
 				try {
 					TarUtility.unTar(tarFile, directory);
+					tar = true;
 				} catch (IOException e) {
 					logger.warn("Error while untar", e);
 					tar = false;

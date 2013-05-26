@@ -75,7 +75,7 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
 		action += mcolumns[mcolumns.length - 1].name() +
 				DBType.getType(DbMultipleMonitor.dbTypes[mcolumns.length - 1]) +
 				notNull + ",";
-		action += constraint + " conf_pk " + primaryKey + "("
+		action += constraint + " multimonit_pk " + primaryKey + "("
 				+ mcolumns[mcolumns.length - 1].name() + "))";
 		System.out.println(action);
 		DbRequest request = new DbRequest(session);
@@ -139,7 +139,7 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
 		action += chcolumns[chcolumns.length - 1].name() +
 				DBType.getType(DbHostConfiguration.dbTypes[chcolumns.length - 1]) +
 				notNull + ",";
-		action += constraint + " conf_pk " + primaryKey + "("
+		action += constraint + " hostconf_pk " + primaryKey + "("
 				+ chcolumns[chcolumns.length - 1].name() + "))";
 		System.out.println(action);
 		request = new DbRequest(session);

@@ -51,29 +51,6 @@
     <limit>
         <digest>4</digest>
         <usefastmd5>True</usefastmd5>
-        <delayretry>10000</delayretry>
-        <timeoutcon>10000</timeoutcon>
-        <serverthread>10</serverthread>
-        <clientthread>50</clientthread>
-        <memorylimit>4000000000</memorylimit>
-        <sessionlimit>0</sessionlimit>
-        <globallimit>0</globallimit>
-        <delaylimit>10000</delaylimit>
-        <runlimit>10000</runlimit>
-        <delaycommand>5000</delaycommand>
-        <blocksize>65536</blocksize>
-        <gaprestart>30</gaprestart>
-        <usenio>False</usenio>
-        <usecpulimit>False</usecpulimit>
-        <usejdkcpulimit>False</usejdkcpulimit>
-        <cpulimit>0.9</cpulimit>
-        <connlimit>0</connlimit>
-        <lowcpulimit>0.5</lowcpulimit>
-        <highcpulimit>0.9</highcpulimit>
-        <percentdecrease>0.25</percentdecrease>
-        <delaythrottle>1000</delaythrottle>
-        <limitlowbandwidth>4096</limitlowbandwidth>
-		<usethrift>4266</usethrift>
 		<checkversion>True</checkversion>
     </limit>
     <db>
