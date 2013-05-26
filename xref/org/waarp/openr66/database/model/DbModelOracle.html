@@ -85,7 +85,7 @@
 <a class="jxr_linenumber" name="75" href="#75">75</a>  		action += mcolumns[mcolumns.length - 1].name() +
 <a class="jxr_linenumber" name="76" href="#76">76</a>  				DBType.getType(DbMultipleMonitor.dbTypes[mcolumns.length - 1]) +
 <a class="jxr_linenumber" name="77" href="#77">77</a>  				notNull + <span class="jxr_string">","</span>;
-<a class="jxr_linenumber" name="78" href="#78">78</a>  		action += constraint + <span class="jxr_string">" conf_pk "</span> + primaryKey + <span class="jxr_string">"("</span>
+<a class="jxr_linenumber" name="78" href="#78">78</a>  		action += constraint + <span class="jxr_string">" multimonit_pk "</span> + primaryKey + <span class="jxr_string">"("</span>
 <a class="jxr_linenumber" name="79" href="#79">79</a>  				+ mcolumns[mcolumns.length - 1].name() + <span class="jxr_string">"))"</span>;
 <a class="jxr_linenumber" name="80" href="#80">80</a>  		System.out.println(action);
 <a class="jxr_linenumber" name="81" href="#81">81</a>  		DbRequest request = <strong class="jxr_keyword">new</strong> DbRequest(session);
@@ -149,7 +149,7 @@
 <a class="jxr_linenumber" name="139" href="#139">139</a> 		action += chcolumns[chcolumns.length - 1].name() +
 <a class="jxr_linenumber" name="140" href="#140">140</a> 				DBType.getType(DbHostConfiguration.dbTypes[chcolumns.length - 1]) +
 <a class="jxr_linenumber" name="141" href="#141">141</a> 				notNull + <span class="jxr_string">","</span>;
-<a class="jxr_linenumber" name="142" href="#142">142</a> 		action += constraint + <span class="jxr_string">" conf_pk "</span> + primaryKey + <span class="jxr_string">"("</span>
+<a class="jxr_linenumber" name="142" href="#142">142</a> 		action += constraint + <span class="jxr_string">" hostconf_pk "</span> + primaryKey + <span class="jxr_string">"("</span>
 <a class="jxr_linenumber" name="143" href="#143">143</a> 				+ chcolumns[chcolumns.length - 1].name() + <span class="jxr_string">"))"</span>;
 <a class="jxr_linenumber" name="144" href="#144">144</a> 		System.out.println(action);
 <a class="jxr_linenumber" name="145" href="#145">145</a> 		request = <strong class="jxr_keyword">new</strong> DbRequest(session);

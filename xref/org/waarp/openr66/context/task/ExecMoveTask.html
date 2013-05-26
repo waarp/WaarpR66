@@ -274,8 +274,8 @@
 <a class="jxr_linenumber" name="264" href="#264">264</a> 			<strong class="jxr_keyword">if</strong> (newname.indexOf(' ') &gt; 0) {
 <a class="jxr_linenumber" name="265" href="#265">265</a> 				logger.warn(<span class="jxr_string">"Exec returns a multiple string in final line: "</span> +
 <a class="jxr_linenumber" name="266" href="#266">266</a> 						newname);
-<a class="jxr_linenumber" name="267" href="#267">267</a> 				String[] args = newname.split(<span class="jxr_string">" "</span>);
-<a class="jxr_linenumber" name="268" href="#268">268</a> 				newname = args[args.length - 1];
+<a class="jxr_linenumber" name="267" href="#267">267</a> 				<em class="jxr_comment">// XXX FIXME: should not split String[] args = newname.split(" ");</em>
+<a class="jxr_linenumber" name="268" href="#268">268</a> 				<em class="jxr_comment">//newname = args[args.length - 1];</em>
 <a class="jxr_linenumber" name="269" href="#269">269</a> 			}
 <a class="jxr_linenumber" name="270" href="#270">270</a> 			<em class="jxr_comment">// now test if the previous file was deleted (should be)</em>
 <a class="jxr_linenumber" name="271" href="#271">271</a> 			File file = <strong class="jxr_keyword">new</strong> File(newname);

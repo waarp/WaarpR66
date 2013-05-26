@@ -329,14 +329,14 @@
 <a class="jxr_linenumber" name="319" href="#319">319</a> 				} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
 <a class="jxr_linenumber" name="320" href="#320">320</a> 				}
 <a class="jxr_linenumber" name="321" href="#321">321</a> 				logger.error(<span class="jxr_string">"Database SQL Error: Cannot execute Commander"</span>, e);
-<a class="jxr_linenumber" name="322" href="#322">322</a> 				<strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="322" href="#322">322</a> 				<em class="jxr_comment">// XXX no return since table might not be initialized return;</em>
 <a class="jxr_linenumber" name="323" href="#323">323</a> 			} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="324" href="#324">324</a> 				<strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="325" href="#325">325</a> 					DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
 <a class="jxr_linenumber" name="326" href="#326">326</a> 				} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
 <a class="jxr_linenumber" name="327" href="#327">327</a> 				}
 <a class="jxr_linenumber" name="328" href="#328">328</a> 				logger.error(<span class="jxr_string">"Database Error: Cannot execute Commander"</span>, e);
-<a class="jxr_linenumber" name="329" href="#329">329</a> 				<strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="329" href="#329">329</a> 				<em class="jxr_comment">// XXX no return since table might not be initialized return;</em>
 <a class="jxr_linenumber" name="330" href="#330">330</a> 			} <strong class="jxr_keyword">finally</strong> {
 <a class="jxr_linenumber" name="331" href="#331">331</a> 				preparedStatementHostConfig.close();
 <a class="jxr_linenumber" name="332" href="#332">332</a> 			}

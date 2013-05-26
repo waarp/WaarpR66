@@ -699,43 +699,47 @@
 <a class="jxr_linenumber" name="689" href="#689">689</a> 
 <a class="jxr_linenumber" name="690" href="#690">690</a> 	@Override
 <a class="jxr_linenumber" name="691" href="#691">691</a> 	<strong class="jxr_keyword">public</strong> String toString() {
-<a class="jxr_linenumber" name="692" href="#692">692</a> 		<strong class="jxr_keyword">return</strong> <span class="jxr_string">"HostAuth: "</span> + hostid + <span class="jxr_string">" address: "</span> + address + <span class="jxr_string">":"</span> + port + <span class="jxr_string">" isSSL: "</span> + isSsl +
-<a class="jxr_linenumber" name="693" href="#693">693</a> 				<span class="jxr_string">" admin: "</span> + adminrole + <span class="jxr_string">" isClient: "</span> + isClient + <span class="jxr_string">" ("</span>
-<a class="jxr_linenumber" name="694" href="#694">694</a> 				+ (hostkey != <strong class="jxr_keyword">null</strong> ? hostkey.length : 0) + <span class="jxr_string">")"</span>;
-<a class="jxr_linenumber" name="695" href="#695">695</a> 	}
-<a class="jxr_linenumber" name="696" href="#696">696</a> 
-<a class="jxr_linenumber" name="697" href="#697">697</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="698" href="#698">698</a> <em class="jxr_javadoccomment">	 * @param session</em>
-<a class="jxr_linenumber" name="699" href="#699">699</a> <em class="jxr_javadoccomment">	 * @param body</em>
-<a class="jxr_linenumber" name="700" href="#700">700</a> <em class="jxr_javadoccomment">	 * @param crypted</em>
-<a class="jxr_linenumber" name="701" href="#701">701</a> <em class="jxr_javadoccomment">	 *            True if the Key is kept crypted, False it will be in clear form</em>
-<a class="jxr_linenumber" name="702" href="#702">702</a> <em class="jxr_javadoccomment">	 * @return the runner in Html format specified by body by replacing all instance of fields</em>
-<a class="jxr_linenumber" name="703" href="#703">703</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="704" href="#704">704</a> 	<strong class="jxr_keyword">public</strong> String toSpecializedHtml(<a href="../../../../../org/waarp/openr66/context/R66Session.html">R66Session</a> session, String body, <strong class="jxr_keyword">boolean</strong> crypted) {
-<a class="jxr_linenumber" name="705" href="#705">705</a> 		StringBuilder builder = <strong class="jxr_keyword">new</strong> StringBuilder(body);
-<a class="jxr_linenumber" name="706" href="#706">706</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXHOSTXXX"</span>, hostid);
-<a class="jxr_linenumber" name="707" href="#707">707</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXADDRXXX"</span>, address);
-<a class="jxr_linenumber" name="708" href="#708">708</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXPORTXXX"</span>, Integer.toString(port));
-<a class="jxr_linenumber" name="709" href="#709">709</a> 		<strong class="jxr_keyword">if</strong> (crypted) {
-<a class="jxr_linenumber" name="710" href="#710">710</a> 			WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXKEYXXX"</span>, <strong class="jxr_keyword">new</strong> String(hostkey));
-<a class="jxr_linenumber" name="711" href="#711">711</a> 		} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="712" href="#712">712</a> 			<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="713" href="#713">713</a> 				WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXKEYXXX"</span>,
-<a class="jxr_linenumber" name="714" href="#714">714</a> 						Configuration.configuration.cryptoKey.decryptHexInString(<strong class="jxr_keyword">new</strong> String(
-<a class="jxr_linenumber" name="715" href="#715">715</a> 								<strong class="jxr_keyword">this</strong>.hostkey)));
-<a class="jxr_linenumber" name="716" href="#716">716</a> 			} <strong class="jxr_keyword">catch</strong> (Exception e) {
-<a class="jxr_linenumber" name="717" href="#717">717</a> 				WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXKEYXXX"</span>, <span class="jxr_string">"BAD DECRYPT"</span>);
-<a class="jxr_linenumber" name="718" href="#718">718</a> 			}
-<a class="jxr_linenumber" name="719" href="#719">719</a> 		}
-<a class="jxr_linenumber" name="720" href="#720">720</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXSSLXXX"</span>, isSsl ? <span class="jxr_string">"checked"</span> : <span class="jxr_string">""</span>);
-<a class="jxr_linenumber" name="721" href="#721">721</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXADMXXX"</span>, adminrole ? <span class="jxr_string">"checked"</span> : <span class="jxr_string">""</span>);
-<a class="jxr_linenumber" name="722" href="#722">722</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXISCXXX"</span>, isClient ? <span class="jxr_string">"checked"</span> : <span class="jxr_string">""</span>);
-<a class="jxr_linenumber" name="723" href="#723">723</a> 		<strong class="jxr_keyword">int</strong> nb = NetworkTransaction.existConnection(getSocketAddress(), getHostid());
-<a class="jxr_linenumber" name="724" href="#724">724</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXCONNXXX"</span>, (nb &gt; 0)
-<a class="jxr_linenumber" name="725" href="#725">725</a> 				? <span class="jxr_string">"("</span> + nb + <span class="jxr_string">" Connected) "</span> : <span class="jxr_string">""</span>);
-<a class="jxr_linenumber" name="726" href="#726">726</a> 		<strong class="jxr_keyword">return</strong> builder.toString();
-<a class="jxr_linenumber" name="727" href="#727">727</a> 	}
-<a class="jxr_linenumber" name="728" href="#728">728</a> }
+<a class="jxr_linenumber" name="692" href="#692">692</a> 		<em class="jxr_comment">//System.err.println(hostid+" Version: "+Configuration.configuration.versions.get(hostid)+":"+Configuration.configuration.versions.containsKey(hostid));</em>
+<a class="jxr_linenumber" name="693" href="#693">693</a> 		<strong class="jxr_keyword">return</strong> <span class="jxr_string">"HostAuth: "</span> + hostid + <span class="jxr_string">" address: "</span> + address + <span class="jxr_string">":"</span> + port + <span class="jxr_string">" isSSL: "</span> + isSsl +
+<a class="jxr_linenumber" name="694" href="#694">694</a> 				<span class="jxr_string">" admin: "</span> + adminrole + <span class="jxr_string">" isClient: "</span> + isClient + <span class="jxr_string">" ("</span>
+<a class="jxr_linenumber" name="695" href="#695">695</a> 				+ (hostkey != <strong class="jxr_keyword">null</strong> ? hostkey.length : 0) + <span class="jxr_string">") Version: "</span>
+<a class="jxr_linenumber" name="696" href="#696">696</a> 				+ (Configuration.configuration.versions.containsKey(hostid) ? 
+<a class="jxr_linenumber" name="697" href="#697">697</a> 						Configuration.configuration.versions.get(hostid) :
+<a class="jxr_linenumber" name="698" href="#698">698</a> 							<span class="jxr_string">"Unknown"</span>);
+<a class="jxr_linenumber" name="699" href="#699">699</a> 	}
+<a class="jxr_linenumber" name="700" href="#700">700</a> 
+<a class="jxr_linenumber" name="701" href="#701">701</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="702" href="#702">702</a> <em class="jxr_javadoccomment">	 * @param session</em>
+<a class="jxr_linenumber" name="703" href="#703">703</a> <em class="jxr_javadoccomment">	 * @param body</em>
+<a class="jxr_linenumber" name="704" href="#704">704</a> <em class="jxr_javadoccomment">	 * @param crypted</em>
+<a class="jxr_linenumber" name="705" href="#705">705</a> <em class="jxr_javadoccomment">	 *            True if the Key is kept crypted, False it will be in clear form</em>
+<a class="jxr_linenumber" name="706" href="#706">706</a> <em class="jxr_javadoccomment">	 * @return the runner in Html format specified by body by replacing all instance of fields</em>
+<a class="jxr_linenumber" name="707" href="#707">707</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="708" href="#708">708</a> 	<strong class="jxr_keyword">public</strong> String toSpecializedHtml(<a href="../../../../../org/waarp/openr66/context/R66Session.html">R66Session</a> session, String body, <strong class="jxr_keyword">boolean</strong> crypted) {
+<a class="jxr_linenumber" name="709" href="#709">709</a> 		StringBuilder builder = <strong class="jxr_keyword">new</strong> StringBuilder(body);
+<a class="jxr_linenumber" name="710" href="#710">710</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXHOSTXXX"</span>, hostid);
+<a class="jxr_linenumber" name="711" href="#711">711</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXADDRXXX"</span>, address);
+<a class="jxr_linenumber" name="712" href="#712">712</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXPORTXXX"</span>, Integer.toString(port));
+<a class="jxr_linenumber" name="713" href="#713">713</a> 		<strong class="jxr_keyword">if</strong> (crypted) {
+<a class="jxr_linenumber" name="714" href="#714">714</a> 			WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXKEYXXX"</span>, <strong class="jxr_keyword">new</strong> String(hostkey));
+<a class="jxr_linenumber" name="715" href="#715">715</a> 		} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="716" href="#716">716</a> 			<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="717" href="#717">717</a> 				WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXKEYXXX"</span>,
+<a class="jxr_linenumber" name="718" href="#718">718</a> 						Configuration.configuration.cryptoKey.decryptHexInString(<strong class="jxr_keyword">new</strong> String(
+<a class="jxr_linenumber" name="719" href="#719">719</a> 								<strong class="jxr_keyword">this</strong>.hostkey)));
+<a class="jxr_linenumber" name="720" href="#720">720</a> 			} <strong class="jxr_keyword">catch</strong> (Exception e) {
+<a class="jxr_linenumber" name="721" href="#721">721</a> 				WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXKEYXXX"</span>, <span class="jxr_string">"BAD DECRYPT"</span>);
+<a class="jxr_linenumber" name="722" href="#722">722</a> 			}
+<a class="jxr_linenumber" name="723" href="#723">723</a> 		}
+<a class="jxr_linenumber" name="724" href="#724">724</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXSSLXXX"</span>, isSsl ? <span class="jxr_string">"checked"</span> : <span class="jxr_string">""</span>);
+<a class="jxr_linenumber" name="725" href="#725">725</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXADMXXX"</span>, adminrole ? <span class="jxr_string">"checked"</span> : <span class="jxr_string">""</span>);
+<a class="jxr_linenumber" name="726" href="#726">726</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXISCXXX"</span>, isClient ? <span class="jxr_string">"checked"</span> : <span class="jxr_string">""</span>);
+<a class="jxr_linenumber" name="727" href="#727">727</a> 		<strong class="jxr_keyword">int</strong> nb = NetworkTransaction.existConnection(getSocketAddress(), getHostid());
+<a class="jxr_linenumber" name="728" href="#728">728</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXCONNXXX"</span>, (nb &gt; 0)
+<a class="jxr_linenumber" name="729" href="#729">729</a> 				? <span class="jxr_string">"("</span> + nb + <span class="jxr_string">" Connected) "</span> : <span class="jxr_string">""</span>);
+<a class="jxr_linenumber" name="730" href="#730">730</a> 		<strong class="jxr_keyword">return</strong> builder.toString();
+<a class="jxr_linenumber" name="731" href="#731">731</a> 	}
+<a class="jxr_linenumber" name="732" href="#732">732</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>

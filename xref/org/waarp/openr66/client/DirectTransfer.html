@@ -151,7 +151,7 @@
 <a class="jxr_linenumber" name="141" href="#141">141</a> 			DirectTransfer transaction = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/client/DirectTransfer.html">DirectTransfer</a>(future,
 <a class="jxr_linenumber" name="142" href="#142">142</a> 					rhost, localFilename, rule, fileInfo, ismd5, block, idt,
 <a class="jxr_linenumber" name="143" href="#143">143</a> 					networkTransaction);
-<a class="jxr_linenumber" name="144" href="#144">144</a> 			logger.warn(<span class="jxr_string">"rhost: "</span>+rhost+<span class="jxr_string">":"</span>+transaction.remoteHost);
+<a class="jxr_linenumber" name="144" href="#144">144</a> 			logger.debug(<span class="jxr_string">"rhost: "</span>+rhost+<span class="jxr_string">":"</span>+transaction.remoteHost);
 <a class="jxr_linenumber" name="145" href="#145">145</a> 			transaction.run();
 <a class="jxr_linenumber" name="146" href="#146">146</a> 			future.awaitUninterruptibly();
 <a class="jxr_linenumber" name="147" href="#147">147</a> 			<strong class="jxr_keyword">long</strong> time2 = System.currentTimeMillis();
