@@ -47,15 +47,12 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * 
  */
 public class MultipleDirectTransfer extends DirectTransfer {
-	protected final NetworkTransaction networkTransaction;
-
 	public MultipleDirectTransfer(R66Future future, String remoteHost,
 			String filename, String rulename, String fileinfo, boolean isMD5, int blocksize,
 			long id,
 			NetworkTransaction networkTransaction) {
 		// no starttime since it is direct (blocking request, no delay)
-		super(future, remoteHost, filename, rulename, fileinfo, isMD5, blocksize, id, null);
-		this.networkTransaction = networkTransaction;
+		super(future, remoteHost, filename, rulename, fileinfo, isMD5, blocksize, id, networkTransaction);
 	}
 
 	public static void main(String[] args) {
@@ -72,7 +69,6 @@ public class MultipleDirectTransfer extends DirectTransfer {
 			System.exit(2);
 		}
 		long time1 = System.currentTimeMillis();
-		R66Future future = new R66Future(true);
 
 		Configuration.configuration.pipelineInit();
 		NetworkTransaction networkTransaction = new NetworkTransaction();
@@ -87,8 +83,10 @@ public class MultipleDirectTransfer extends DirectTransfer {
 					for (String filename : localfilenames) {
 						filename = filename.trim();
 						if (filename != null && filename.length() > 0) {
+							logger.warn("Launch transfer to "+host+" with file "+filename);
+							R66Future future = new R66Future(true);
 							MultipleDirectTransfer transaction = new MultipleDirectTransfer(future,
-									rhost, localFilename, rule, fileInfo, ismd5, block, idt,
+									host, filename, rule, fileInfo, ismd5, block, idt,
 									networkTransaction);
 							logger.debug("rhost: "+rhost+":"+transaction.remoteHost);
 							transaction.run();
@@ -163,14 +161,8 @@ public class MultipleDirectTransfer extends DirectTransfer {
 		} catch (Exception e) {
 			logger.debug("exc", e);
 		} finally {
-			logger.debug("finish transfer: " + future.isDone() + ":" + future.isSuccess());
 			networkTransaction.closeAll();
-			// In case something wrong append
-			if (future.isDone() && future.isSuccess()) {
-				System.exit(0);
-			} else {
-				System.exit(66);
-			}
+			System.exit(0);
 		}
 	}
 

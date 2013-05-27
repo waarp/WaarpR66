@@ -85,7 +85,7 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 					if (filename != null && filename.length() > 0) {
 						R66Future future = new R66Future(true);
 						MultipleSubmitTransfer transaction = new MultipleSubmitTransfer(future,
-								rhost, localFilename, rule, fileInfo, ismd5, block, idt,
+								host, filename, rule, fileInfo, ismd5, block, idt,
 								ttimestart);
 						transaction.run();
 						future.awaitUninterruptibly();
