@@ -32,7 +32,8 @@ import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
  */
 public enum TaskType {
 	LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, LINKRENAME, TRANSFER,
-	VALIDFILEPATH, DELETE, TAR, ZIP, EXECOUTPUT, RESCHEDULE, EXECJAVA, TRANSCODE, SNMP, FTP;
+	VALIDFILEPATH, DELETE, TAR, ZIP, EXECOUTPUT, RESCHEDULE, EXECJAVA, TRANSCODE, SNMP, FTP,
+	RENAME;
 
 	public int type;
 
@@ -117,6 +118,9 @@ public enum TaskType {
 						getFileInformation(), session);
 			case FTP:
 				return new FtpTransferTask(argRule, delay, session.getRunner().
+						getFileInformation(), session);
+			case RENAME:
+				return new RenameTask(argRule, delay, session.getRunner().
 						getFileInformation(), session);
 			default:
 				logger.error("name unknown: " + type.name);
