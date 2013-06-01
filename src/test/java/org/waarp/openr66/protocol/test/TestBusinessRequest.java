@@ -25,6 +25,7 @@ import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.client.AbstractBusinessRequest;
+import org.waarp.openr66.client.BusinessRequest;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.context.task.test.TestExecJavaTask;
 import org.waarp.openr66.database.data.DbHostAuth;
@@ -99,6 +100,23 @@ public class TestBusinessRequest extends AbstractBusinessRequest {
 		long time2 = System.currentTimeMillis();
 		logger.warn("Success: " + success + " Error: " + error + " NB/s: " +
 				success * 100 * 1000 / (time2 - time1));
+		R66Future future = new R66Future(true);
+		classname = BusinessRequest.DEFAULT_CLASS;
+		BusinessRequestPacket packet =
+				new BusinessRequestPacket(classname + " LOG warn some information 1", 0);
+		BusinessRequest transaction = new BusinessRequest(
+				networkTransaction, future, host.getHostid(), packet);
+		transaction.run();
+		future.awaitUninterruptibly();
+		if (future.isSuccess()) {
+			success ++;
+		} else {
+			error ++;
+		}
+		long time3 = System.currentTimeMillis();
+		logger.warn("Success: " + success + " Error: " + error + " NB/s: " +
+				1000 / (time3 - time2));
+		
 		executorService.shutdown();
 		networkTransaction.closeAll();
 	}
