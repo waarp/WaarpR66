@@ -25,7 +25,7 @@ import org.waarp.openr66.protocol.utils.FileUtils;
 /**
  * Data packet
  * 
- * header = packetRank middle = data
+ * header = packetRank middle = data end = key
  * 
  * @author frederic bregier
  */

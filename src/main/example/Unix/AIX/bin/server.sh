@@ -4,10 +4,10 @@ CONFIG_FILE=$1
 nohup ${JAVARUNSERVER} org.waarp.openr66.server.R66Server ${CONFIG_FILE} &
 set MYPID=$!
 sleep 60
-set MYTEST=`ps -e | grep -G '^\s*'${MYPID} | grep -v grep | grep openr66.server.R66Server`
-if [[ "${MYTEST}" != "" ]] then
+MYTEST=`ps -eaf | grep -G '^\s*'${MYPID} | grep -v grep | grep openr66.server.R66Server`
+if [ "${MYTEST}" != "" ] then
 	echo ${MYPID} > ${R66HOME}/log/lastpid
 	echo R66Server started
-elif
+else
 	echo R66Server failed to start
 fi
