@@ -116,3 +116,12 @@ alias r66mesg="${R66MESG}"
 export R66GUI="${JAVARUNCLIENT} org.waarp.openr66.r66gui.R66ClientGui ${CLIENT_CONFIG} "
 alias r66gui="${R66GUI}"
 
+# R66 Multiple Submit
+# (-to hostId,hostID -file filepath,filepath -rule ruleId) | (-to hostId -id transferId) [ -md5 ] [ -block size ] [ -nolog ] [-start yyyyMMddHHmmssSSS | -delay +durationInMilliseconds | -delay preciseTimeInMilliseconds] [ -info "information" ]
+export R66MULTISEND="${JAVARUNCLIENT} org.waarp.openr66.client.MultipleSubmitTransfer ${CLIENT_CONFIG} "
+alias r66multisend="${R66MULTISEND}"
+
+# synchronous transfer
+# (-to hostId,hostid -file filepath,filepath -rule ruleId) | (-to hostId -id transferId) [ -md5 ] [ -block size ] [ -nolog ] [-start yyyyMMddHHmmssSSS | -delay +durationInMilliseconds | -delay preciseTimeInMilliseconds] [ -info "information" ]
+export R66MULTISYNCSEND="${JAVARUNCLIENT} org.waarp.openr66.client.MultipleDirectTransfer ${CLIENT_CONFIG} "
+alias r66multisyncsend="${R66MULTISYNCSEND}"

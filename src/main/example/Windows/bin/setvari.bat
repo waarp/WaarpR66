@@ -96,3 +96,13 @@ set R66MESG=%JAVARUNCLIENT% org.waarp.openr66.client.Message %CLIENT_CONFIG%
 REM # Gui interface
 REM # no argument
 set R66GUI=%JAVARUNCLIENT% org.waarp.openr66.r66gui.R66ClientGui %CLIENT_CONFIG% 
+
+
+REM R66 Multiple Submit
+REM (-to hostId,hostID -file filepath,filepath -rule ruleId) | (-to hostId -id transferId) [ -md5 ] [ -block size ] [ -nolog ] [-start yyyyMMddHHmmssSSS | -delay +durationInMilliseconds | -delay preciseTimeInMilliseconds] [ -info "information" ]
+set R66MULTISEND=%JAVARUNCLIENT% org.waarp.openr66.client.MultipleSubmitTransfer %CLIENT_CONFIG% 
+
+REM synchronous transfer
+REM (-to hostId,hostid -file filepath,filepath -rule ruleId) | (-to hostId -id transferId) [ -md5 ] [ -block size ] [ -nolog ] [-start yyyyMMddHHmmssSSS | -delay +durationInMilliseconds | -delay preciseTimeInMilliseconds] [ -info "information" ]
+set R66MULTISYNCSEND=%JAVARUNCLIENT% org.waarp.openr66.client.MultipleDirectTransfer %CLIENT_CONFIG%
+
