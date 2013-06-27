@@ -28,6 +28,7 @@ import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.context.filesystem.R66Dir;
 import org.waarp.openr66.context.filesystem.R66File;
+import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import org.waarp.openr66.protocol.utils.R66Future;
@@ -292,13 +293,16 @@ public abstract class AbstractTask implements Runnable {
 			WaarpStringUtils.replaceAll(builder, TRUEFILENAME, "nofile");
 			WaarpStringUtils.replaceAll(builder, FILESIZE, "0");
 		}
-		WaarpStringUtils.replaceAll(builder, ORIGINALFULLPATH, session.getRunner()
+		DbTaskRunner runner = session.getRunner();
+		if (runner != null) {
+			WaarpStringUtils.replaceAll(builder, ORIGINALFULLPATH, runner
 				.getOriginalFilename());
-		WaarpStringUtils.replaceAll(builder, ORIGINALFILENAME,
-				R66File.getBasename(session.getRunner()
+			WaarpStringUtils.replaceAll(builder, ORIGINALFILENAME,
+				R66File.getBasename(runner
 						.getOriginalFilename()));
-		WaarpStringUtils.replaceAll(builder, RULE, session.getRunner()
+			WaarpStringUtils.replaceAll(builder, RULE, runner
 				.getRuleId());
+		}
 		DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
 		Date date = new Date();
 		WaarpStringUtils.replaceAll(builder, DATE, dateFormat.format(date));
@@ -324,64 +328,90 @@ public abstract class AbstractTask implements Runnable {
 			WaarpStringUtils.replaceAll(builder, REMOTEHOSTADDR, "unknown");
 			WaarpStringUtils.replaceAll(builder, LOCALHOSTADDR, "unknown");
 		}
-		WaarpStringUtils.replaceAll(builder, TRANSFERID, Long.toString(session
-				.getRunner().getSpecialId()));
-		String requester = session.getRunner().getRequester();
-		WaarpStringUtils.replaceAll(builder, REQUESTERHOST, requester);
-		String requested = session.getRunner().getRequested();
-		WaarpStringUtils.replaceAll(builder, REQUESTEDHOST, requested);
-		WaarpStringUtils.replaceAll(builder, FULLTRANSFERID, session
-				.getRunner().getSpecialId() + "_" + requester + "_" + requested);
-		WaarpStringUtils.replaceAll(builder, RANKTRANSFER, Integer.toString(session
-				.getRunner().getRank()));
+		if (runner != null) {
+			WaarpStringUtils.replaceAll(builder, TRANSFERID, Long.toString(runner.getSpecialId()));
+			String requester = runner.getRequester();
+			WaarpStringUtils.replaceAll(builder, REQUESTERHOST, requester);
+			String requested = runner.getRequested();
+			WaarpStringUtils.replaceAll(builder, REQUESTEDHOST, requested);
+			WaarpStringUtils.replaceAll(builder, FULLTRANSFERID, 
+					runner.getSpecialId() + "_" + requester + "_" + requested);
+			WaarpStringUtils.replaceAll(builder, RANKTRANSFER, Integer.toString(runner.getRank()));
+		}
 		WaarpStringUtils.replaceAll(builder, BLOCKSIZE, Integer.toString(session
 				.getBlockSize()));
 		R66Dir dir = new R66Dir(session);
-		if (session.getRunner().isRecvThrough() || session.getRunner().isSendThrough()) {
-			try {
-				dir.changeDirectoryNotChecked(session.getRunner().getRule().recvPath);
-				WaarpStringUtils.replaceAll(builder, INPATH, dir.getFullPath());
-			} catch (CommandAbstractException e) {
-			}
-			dir = new R66Dir(session);
-			try {
-				dir.changeDirectoryNotChecked(session.getRunner().getRule().sendPath);
-				WaarpStringUtils.replaceAll(builder, OUTPATH, dir.getFullPath());
-			} catch (CommandAbstractException e) {
-			}
-			dir = new R66Dir(session);
-			try {
-				dir.changeDirectoryNotChecked(session.getRunner().getRule().workPath);
-				WaarpStringUtils.replaceAll(builder, WORKPATH, dir.getFullPath());
-			} catch (CommandAbstractException e) {
-			}
-			dir = new R66Dir(session);
-			try {
-				dir.changeDirectoryNotChecked(session.getRunner().getRule().archivePath);
-				WaarpStringUtils.replaceAll(builder, ARCHPATH, dir.getFullPath());
-			} catch (CommandAbstractException e) {
+		if (runner != null) {
+			if (runner.isRecvThrough() || runner.isSendThrough()) {
+				try {
+					dir.changeDirectoryNotChecked(runner.getRule().recvPath);
+					WaarpStringUtils.replaceAll(builder, INPATH, dir.getFullPath());
+				} catch (CommandAbstractException e) {
+				}
+				dir = new R66Dir(session);
+				try {
+					dir.changeDirectoryNotChecked(runner.getRule().sendPath);
+					WaarpStringUtils.replaceAll(builder, OUTPATH, dir.getFullPath());
+				} catch (CommandAbstractException e) {
+				}
+				dir = new R66Dir(session);
+				try {
+					dir.changeDirectoryNotChecked(runner.getRule().workPath);
+					WaarpStringUtils.replaceAll(builder, WORKPATH, dir.getFullPath());
+				} catch (CommandAbstractException e) {
+				}
+				dir = new R66Dir(session);
+				try {
+					dir.changeDirectoryNotChecked(runner.getRule().archivePath);
+					WaarpStringUtils.replaceAll(builder, ARCHPATH, dir.getFullPath());
+				} catch (CommandAbstractException e) {
+				}
+			} else {
+				try {
+					dir.changeDirectoryNotChecked(runner.getRule().recvPath);
+					WaarpStringUtils.replaceAll(builder, INPATH, dir.getFullPath());
+				} catch (CommandAbstractException e) {
+				}
+				dir = new R66Dir(session);
+				try {
+					dir.changeDirectory(runner.getRule().sendPath);
+					WaarpStringUtils.replaceAll(builder, OUTPATH, dir.getFullPath());
+				} catch (CommandAbstractException e) {
+				}
+				dir = new R66Dir(session);
+				try {
+					dir.changeDirectory(runner.getRule().workPath);
+					WaarpStringUtils.replaceAll(builder, WORKPATH, dir.getFullPath());
+				} catch (CommandAbstractException e) {
+				}
+				dir = new R66Dir(session);
+				try {
+					dir.changeDirectory(runner.getRule().archivePath);
+					WaarpStringUtils.replaceAll(builder, ARCHPATH, dir.getFullPath());
+				} catch (CommandAbstractException e) {
+				}
 			}
 		} else {
 			try {
-				dir.changeDirectoryNotChecked(session.getRunner().getRule().recvPath);
+				dir.changeDirectoryNotChecked(Configuration.configuration.inPath);
 				WaarpStringUtils.replaceAll(builder, INPATH, dir.getFullPath());
 			} catch (CommandAbstractException e) {
 			}
 			dir = new R66Dir(session);
 			try {
-				dir.changeDirectory(session.getRunner().getRule().sendPath);
+				dir.changeDirectory(Configuration.configuration.outPath);
 				WaarpStringUtils.replaceAll(builder, OUTPATH, dir.getFullPath());
 			} catch (CommandAbstractException e) {
 			}
 			dir = new R66Dir(session);
 			try {
-				dir.changeDirectory(session.getRunner().getRule().workPath);
+				dir.changeDirectory(Configuration.configuration.workingPath);
 				WaarpStringUtils.replaceAll(builder, WORKPATH, dir.getFullPath());
 			} catch (CommandAbstractException e) {
 			}
 			dir = new R66Dir(session);
 			try {
-				dir.changeDirectory(session.getRunner().getRule().archivePath);
+				dir.changeDirectory(Configuration.configuration.archivePath);
 				WaarpStringUtils.replaceAll(builder, ARCHPATH, dir.getFullPath());
 			} catch (CommandAbstractException e) {
 			}

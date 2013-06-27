@@ -181,7 +181,7 @@ public abstract class AbstractBusinessRequest implements Runnable {
 	 * @return True if all parameters were found and correct
 	 */
 	protected static boolean getParams(String[] args) {
-		if (args.length < 5) {
+		if (args.length < 3) {
 			logger
 					.error("Needs at least 3 or 4 arguments:\n" +
 							"  the XML client configuration file,\n" +

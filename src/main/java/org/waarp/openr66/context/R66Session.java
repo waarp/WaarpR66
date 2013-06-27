@@ -32,6 +32,7 @@ import org.waarp.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.state.MachineState;
+import org.waarp.common.utility.DetectionUtils;
 import org.waarp.openr66.context.authentication.R66Auth;
 import org.waarp.openr66.context.filesystem.R66Dir;
 import org.waarp.openr66.context.filesystem.R66File;
@@ -354,9 +355,15 @@ public class R66Session implements SessionInterface {
 		// check first if the next step is the PRE task from beginning
 		String filename;
 		if (this.runner.isPreTaskStarting()) {
+			logger.debug("Dir is: "+dir.getFullPath());
+			logger.debug("File is: "+this.runner.getOriginalFilename());
 			filename = R66Dir.normalizePath(this.runner.getOriginalFilename());
 			if (filename.startsWith("file:/")) {
-				filename = filename.substring("file:/".length());
+				if (DetectionUtils.isWindows()) {
+					filename = filename.substring("file:/".length());
+				} else {
+					filename = filename.substring("file:".length());
+				}
 				try {
 					filename = URLDecoder.decode(filename, "UTF-8");
 				} catch (UnsupportedEncodingException e) {
@@ -365,6 +372,7 @@ public class R66Session implements SessionInterface {
 							filename);
 				}
 			}
+			logger.debug("File becomes: "+filename);
 			this.runner.setOriginalFilename(filename);
 		} else {
 			filename = this.runner.getFilename();
@@ -606,6 +614,7 @@ public class R66Session implements SessionInterface {
 				}
 			}
 		}
+		logger.debug("Dir is: "+dir.getFullPath());
 		if (runner.getRank() > 0) {
 			logger.debug("restart at " + runner.getRank() + " {}", runner);
 			runner.setTransferTask(runner.getRank());
