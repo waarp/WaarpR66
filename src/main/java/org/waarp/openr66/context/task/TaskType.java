@@ -32,7 +32,8 @@ import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
  */
 public enum TaskType {
 	LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, LINKRENAME, TRANSFER,
-	VALIDFILEPATH, DELETE, TAR, ZIP, EXECOUTPUT, RESCHEDULE, EXECJAVA, TRANSCODE, SNMP, FTP;
+	VALIDFILEPATH, DELETE, TAR, ZIP, EXECOUTPUT, RESCHEDULE, EXECJAVA, TRANSCODE, SNMP, FTP,
+	RENAME;
 
 	public int type;
 
@@ -118,6 +119,9 @@ public enum TaskType {
 			case FTP:
 				return new FtpTransferTask(argRule, delay, session.getRunner().
 						getFileInformation(), session);
+			case RENAME:
+				return new RenameTask(argRule, delay, session.getRunner().
+						getFileInformation(), session);
 			default:
 				logger.error("name unknown: " + type.name);
 				throw new OpenR66RunnerErrorException("Unvalid Task: " +
@@ -147,5 +151,99 @@ public enum TaskType {
 			throw new OpenR66RunnerErrorException("Unvalid Task: " + name);
 		}
 		return getTaskFromId(type, argRule, delay, session);
+	}
+	
+	/**
+	 * For usage in ExecBusinessTask
+	 * @param name
+	 * @param argRule
+	 * @param delay
+	 * @param session
+	 * @return the corresponding AbstractTask
+	 * @throws OpenR66RunnerErrorException
+	 */
+	public static AbstractTask getTaskFromIdForBusiness(String name, String argRule,
+			int delay, R66Session session)
+			throws OpenR66RunnerErrorException {
+		TaskType type;
+		try {
+			type = valueOf(name);
+		} catch (NullPointerException e) {
+			logger.error("name empty " + name);
+			throw new OpenR66RunnerErrorException("Unvalid Task: " + name);
+		} catch (IllegalArgumentException e) {
+			logger.error("name unknown: " + name);
+			throw new OpenR66RunnerErrorException("Unvalid Task: " + name);
+		}
+		switch (type) {
+			case LOG:
+				int newdelay = delay;
+				if (newdelay == 0) {
+					newdelay = 1;
+				}
+				return new LogTask(argRule, newdelay, "", session);
+			case MOVE:
+				throw new OpenR66RunnerErrorException("Unvalid Task: " +
+						type.name);
+				//return new MoveTask(argRule, delay, "", session);
+			case MOVERENAME:
+				throw new OpenR66RunnerErrorException("Unvalid Task: " +
+						type.name);
+				//return new MoveRenameTask(argRule, delay, "", session);
+			case COPY:
+				throw new OpenR66RunnerErrorException("Unvalid Task: " +
+						type.name);
+				//return new CopyTask(argRule, delay, "", session);
+			case COPYRENAME:
+				throw new OpenR66RunnerErrorException("Unvalid Task: " +
+						type.name);
+				//return new CopyRenameTask(argRule, delay, "", session);
+			case EXEC:
+				return new ExecTask(argRule, delay, "", session);
+			case EXECMOVE:
+				throw new OpenR66RunnerErrorException("Unvalid Task: " +
+						type.name);
+				//return new ExecMoveTask(argRule, delay, "", session);
+			case LINKRENAME:
+				throw new OpenR66RunnerErrorException("Unvalid Task: " +
+						type.name);
+				//return new LinkRenameTask(argRule, delay, "", session);
+			case TRANSFER:
+				return new TransferTask(argRule, delay, "", session);
+			case VALIDFILEPATH:
+				throw new OpenR66RunnerErrorException("Unvalid Task: " +
+						type.name);
+				//return new ValidFilePathTask(argRule, delay, "", session);
+			case DELETE:
+				throw new OpenR66RunnerErrorException("Unvalid Task: " +
+						type.name);
+				//return new DeleteTask(argRule, delay, "", session);
+			case TAR:
+				return new TarTask(argRule, delay, "", session);
+			case ZIP:
+				return new ZipTask(argRule, delay, "", session);
+			case EXECOUTPUT:
+				return new ExecOutputTask(argRule, delay, "", session);
+			case RESCHEDULE:
+				throw new OpenR66RunnerErrorException("Unvalid Task: " +
+						type.name);
+				//return new RescheduleTransferTask(argRule, delay, "", session);
+			case EXECJAVA:
+				return new ExecJavaTask(argRule, delay, "", session);
+			case TRANSCODE:
+				throw new OpenR66RunnerErrorException("Unvalid Task: " +
+						type.name);
+				//return new TranscodeTask(argRule, delay, "", session);
+			case SNMP:
+				return new SnmpTask(argRule, delay, "", session);
+			case FTP:
+				return new FtpTransferTask(argRule, delay, "", session);
+			case RENAME:
+				return new RenameTask(argRule, delay, "", session);
+			default:
+				logger.error("name unknown: " + type.name);
+				throw new OpenR66RunnerErrorException("Unvalid Task: " +
+						type.name);
+		}
 	}
 }
