@@ -1244,7 +1244,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					runner.getErrorInfo() == ErrorCode.TransferOk) {
 				runner.setErrorExecutionStatus(ErrorCode.ExternalOp);
 			}
-			logger.error("PreTask in error {}", e.getMessage());
+			logger.error("PreTask in error {}", e.getMessage(), e);
 			session.newState(ERROR);
 			ErrorPacket error = new ErrorPacket("PreTask in error: " + e
 					.getMessage(), runner.getErrorInfo().getCode(), ErrorPacket.FORWARDCLOSECODE);
@@ -1743,9 +1743,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		}
 		try {
 			if (RequestPacket.isRecvMode(rule.mode)) {
-				session.getDir().changeDirectory(rule.workPath);
+				session.getDir().changeDirectory(rule.getWorkPath());
 			} else {
-				session.getDir().changeDirectory(rule.sendPath);
+				session.getDir().changeDirectory(rule.getSendPath());
 			}
 
 			if (request == InformationPacket.ASKENUM.ASKLIST.ordinal() ||

@@ -184,22 +184,22 @@ public class DbRule extends AbstractDbData {
 	/**
 	 * The associated Recv Path
 	 */
-	public String recvPath = null;
+	private String recvPath = null;
 
 	/**
 	 * The associated Send Path
 	 */
-	public String sendPath = null;
+	private String sendPath = null;
 
 	/**
 	 * The associated Archive Path
 	 */
-	public String archivePath = null;
+	private String archivePath = null;
 
 	/**
 	 * The associated Work Path
 	 */
-	public String workPath = null;
+	private String workPath = null;
 
 	/**
 	 * The associated Pre Tasks for Receiver
@@ -743,17 +743,17 @@ public class DbRule extends AbstractDbData {
 				allFields[i].value = rule.allFields[i].value;
 			}
 			setFromArrayClone(rule);
-			if (recvPath == null) {
-				recvPath = Configuration.configuration.inPath;
+			if (recvPath == null || recvPath.trim().length() == 0) {
+				recvPath = null;
 			}
-			if (sendPath == null) {
-				sendPath = Configuration.configuration.outPath;
+			if (sendPath == null || sendPath.trim().length() == 0) {
+				sendPath = null;
 			}
-			if (archivePath == null) {
-				archivePath = Configuration.configuration.archivePath;
+			if (archivePath == null || archivePath.trim().length() == 0) {
+				archivePath = null;
 			}
-			if (workPath == null) {
-				workPath = Configuration.configuration.workingPath;
+			if (workPath == null || workPath.trim().length() == 0) {
+				workPath = null;
 			}
 			isSaved = true;
 			return;
@@ -764,17 +764,17 @@ public class DbRule extends AbstractDbData {
 			}
 		}
 		super.select();
-		if (recvPath == null) {
-			recvPath = Configuration.configuration.inPath;
+		if (recvPath == null || recvPath.trim().length() == 0) {
+			recvPath = null;
 		}
-		if (sendPath == null) {
-			sendPath = Configuration.configuration.outPath;
+		if (sendPath == null || sendPath.trim().length() == 0) {
+			sendPath = null;
 		}
-		if (archivePath == null) {
-			archivePath = Configuration.configuration.archivePath;
+		if (archivePath == null || archivePath.trim().length() == 0) {
+			archivePath = null;
 		}
-		if (workPath == null) {
-			workPath = Configuration.configuration.workingPath;
+		if (workPath == null || workPath.trim().length() == 0) {
+			workPath = null;
 		}
 		setFromArray();
 		dbR66RuleHashMap.put(this.idRule, this);
@@ -1000,7 +1000,7 @@ public class DbRule extends AbstractDbData {
 	 */
 	public String setRecvPath(String filename)
 			throws OpenR66ProtocolSystemException {
-		if (recvPath != null) {
+		if (recvPath != null && recvPath.length() > 0) {
 			return recvPath + DirInterface.SEPARATOR + filename;
 		}
 		return FileUtils.consolidatePath(Configuration.configuration.inPath,
@@ -1102,8 +1102,8 @@ public class DbRule extends AbstractDbData {
 	public String toString() {
 		return "Rule Name:" + idRule + " IDS:" + ids + " MODETRANS: " +
 				RequestPacket.TRANSFERMODE.values()[mode].toString() +
-				" RECV:" + recvPath + " SEND:" + sendPath + " ARCHIVE:" +
-				archivePath + " WORK:" + workPath +
+				" RECV:" + getRecvPath() + " SEND:" + getSendPath() + " ARCHIVE:" +
+				getArchivePath() + " WORK:" + getWorkPath() +
 				"\nRPRET:" + rpreTasks + "\nRPOST:" + rpostTasks + "\nRERROR:" + rerrorTasks +
 				"\nSPRET:" + spreTasks + "\nSPOST:" + spostTasks + "\nSERROR:" + serrorTasks;
 	}
@@ -1229,6 +1229,71 @@ public class DbRule extends AbstractDbData {
 		WaarpStringUtils.replace(builder, "XXXSSTXXX", spostTasks == null ? "" : spostTasks);
 		WaarpStringUtils.replace(builder, "XXXSETXXX", serrorTasks == null ? "" : serrorTasks);
 		return builder.toString();
+	}
+
+	/**
+	 * @return the recvPath
+	 */
+	public String getRecvPath() {
+		if (recvPath == null || recvPath.trim().length() == 0)
+			return Configuration.configuration.inPath;
+		return recvPath;
+	}
+
+	/**
+	 * @return the sendPath
+	 */
+	public String getSendPath() {
+		if (sendPath == null || sendPath.trim().length() == 0)
+			return Configuration.configuration.outPath;
+		return sendPath;
+	}
+
+	/**
+	 * @return the archivePath
+	 */
+	public String getArchivePath() {
+		if (archivePath == null || archivePath.trim().length() == 0)
+			return Configuration.configuration.archivePath;
+		return archivePath;
+	}
+
+	/**
+	 * @return the workPath
+	 */
+	public String getWorkPath() {
+		if (workPath == null || workPath.trim().length() == 0)
+			return Configuration.configuration.workingPath;
+		return workPath;
+	}
+
+
+	/**
+	 * @return the Rule recvPath
+	 */
+	public String getRuleRecvPath() {
+		return recvPath;
+	}
+
+	/**
+	 * @return the Rule sendPath
+	 */
+	public String getRuleSendPath() {
+		return sendPath;
+	}
+
+	/**
+	 * @return the Rule archivePath
+	 */
+	public String getRuleArchivePath() {
+		return archivePath;
+	}
+
+	/**
+	 * @return the Rule workPath
+	 */
+	public String getRuleWorkPath() {
+		return workPath;
 	}
 
 }

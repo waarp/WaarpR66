@@ -280,14 +280,14 @@ public class TransferUtils {
 		if (taskRunner.isSender()) {
 			// Change dir
 			try {
-				session.getDir().changeDirectory(taskRunner.getRule().sendPath);
+				session.getDir().changeDirectory(taskRunner.getRule().getSendPath());
 			} catch (CommandAbstractException e) {
 				throw new OpenR66RunnerErrorException(e);
 			}
 		} else {
 			// Change dir
 			try {
-				session.getDir().changeDirectory(taskRunner.getRule().workPath);
+				session.getDir().changeDirectory(taskRunner.getRule().getWorkPath());
 			} catch (CommandAbstractException e) {
 				throw new OpenR66RunnerErrorException(e);
 			}
