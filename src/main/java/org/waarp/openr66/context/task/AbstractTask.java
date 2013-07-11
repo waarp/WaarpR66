@@ -344,49 +344,49 @@ public abstract class AbstractTask implements Runnable {
 		if (runner != null) {
 			if (runner.isRecvThrough() || runner.isSendThrough()) {
 				try {
-					dir.changeDirectoryNotChecked(runner.getRule().recvPath);
+					dir.changeDirectoryNotChecked(runner.getRule().getRecvPath());
 					WaarpStringUtils.replaceAll(builder, INPATH, dir.getFullPath());
 				} catch (CommandAbstractException e) {
 				}
 				dir = new R66Dir(session);
 				try {
-					dir.changeDirectoryNotChecked(runner.getRule().sendPath);
+					dir.changeDirectoryNotChecked(runner.getRule().getSendPath());
 					WaarpStringUtils.replaceAll(builder, OUTPATH, dir.getFullPath());
 				} catch (CommandAbstractException e) {
 				}
 				dir = new R66Dir(session);
 				try {
-					dir.changeDirectoryNotChecked(runner.getRule().workPath);
+					dir.changeDirectoryNotChecked(runner.getRule().getWorkPath());
 					WaarpStringUtils.replaceAll(builder, WORKPATH, dir.getFullPath());
 				} catch (CommandAbstractException e) {
 				}
 				dir = new R66Dir(session);
 				try {
-					dir.changeDirectoryNotChecked(runner.getRule().archivePath);
+					dir.changeDirectoryNotChecked(runner.getRule().getArchivePath());
 					WaarpStringUtils.replaceAll(builder, ARCHPATH, dir.getFullPath());
 				} catch (CommandAbstractException e) {
 				}
 			} else {
 				try {
-					dir.changeDirectoryNotChecked(runner.getRule().recvPath);
+					dir.changeDirectoryNotChecked(runner.getRule().getRecvPath());
 					WaarpStringUtils.replaceAll(builder, INPATH, dir.getFullPath());
 				} catch (CommandAbstractException e) {
 				}
 				dir = new R66Dir(session);
 				try {
-					dir.changeDirectory(runner.getRule().sendPath);
+					dir.changeDirectory(runner.getRule().getSendPath());
 					WaarpStringUtils.replaceAll(builder, OUTPATH, dir.getFullPath());
 				} catch (CommandAbstractException e) {
 				}
 				dir = new R66Dir(session);
 				try {
-					dir.changeDirectory(runner.getRule().workPath);
+					dir.changeDirectory(runner.getRule().getWorkPath());
 					WaarpStringUtils.replaceAll(builder, WORKPATH, dir.getFullPath());
 				} catch (CommandAbstractException e) {
 				}
 				dir = new R66Dir(session);
 				try {
-					dir.changeDirectory(runner.getRule().archivePath);
+					dir.changeDirectory(runner.getRule().getArchivePath());
 					WaarpStringUtils.replaceAll(builder, ARCHPATH, dir.getFullPath());
 				} catch (CommandAbstractException e) {
 				}
