@@ -5,7 +5,11 @@
 		<author email="waarp1 at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
-		<release version="2.4.15" date="2013-06-27" description="Fix release">
+		<release version="2.4.16" date="2013-07-11" description="Fix release">
+			<action dev="Frederic Bregier" type="fix">Fix R66 Proxy issue</action>
+			<action dev="Frederic Bregier" type="fix">Fix path access issue when Rule's path is empty</action>
+		</release>
+	    <release version="2.4.15" date="2013-06-27" description="Fix release">
 			<action dev="Frederic Bregier" type="fix">Fix Unix condition in file usage in GUI</action>
 			<action dev="Frederic Bregier" type="fix">Fix example of bin and configuration</action>
 			<action dev="Frederic Bregier" type="add">Add Multiple Transfer/Submit Transfer action</action>
