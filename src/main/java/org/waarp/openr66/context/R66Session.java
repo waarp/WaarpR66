@@ -540,13 +540,13 @@ public class R66Session implements SessionInterface {
 			if (this.runner.isSender()) {
 				// Change dir
 				try {
-					dir.changeDirectory(this.runner.getRule().sendPath);
+					dir.changeDirectory(this.runner.getRule().getSendPath());
 				} catch (CommandAbstractException e) {
 				}
 			} else {
 				// Change dir
 				try {
-					dir.changeDirectory(this.runner.getRule().workPath);
+					dir.changeDirectory(this.runner.getRule().getWorkPath());
 				} catch (CommandAbstractException e) {
 				}
 			}
@@ -585,14 +585,14 @@ public class R66Session implements SessionInterface {
 				// May not change dir as needed
 				// Change dir
 				try {
-					dir.changeDirectory(this.runner.getRule().sendPath);
+					dir.changeDirectory(this.runner.getRule().getSendPath());
 				} catch (CommandAbstractException e) {
 					// ignore
 				}
 			} else {
 				// Change dir
 				try {
-					dir.changeDirectory(this.runner.getRule().sendPath);
+					dir.changeDirectory(this.runner.getRule().getSendPath());
 				} catch (CommandAbstractException e) {
 					throw new OpenR66RunnerErrorException(e);
 				}
@@ -602,13 +602,13 @@ public class R66Session implements SessionInterface {
 				// May not change dir as needed
 				// Change dir
 				try {
-					dir.changeDirectory(this.runner.getRule().workPath);
+					dir.changeDirectory(this.runner.getRule().getWorkPath());
 				} catch (CommandAbstractException e) {
 				}
 			} else {
 				// Change dir
 				try {
-					dir.changeDirectory(this.runner.getRule().workPath);
+					dir.changeDirectory(this.runner.getRule().getWorkPath());
 				} catch (CommandAbstractException e) {
 					throw new OpenR66RunnerErrorException(e);
 				}

@@ -3124,14 +3124,14 @@ public class DbTaskRunner extends AbstractDbData {
 					String sdir;
 					if (this.globallaststep == TASKSTEP.ALLDONETASK.ordinal()) {
 						// all finished
-						sdir = rule.recvPath;
+						sdir = rule.getRecvPath();
 					} else if (this.globallaststep == TASKSTEP.POSTTASK
 							.ordinal()) {
 						// Post task
-						sdir = rule.recvPath;
+						sdir = rule.getRecvPath();
 					} else {
 						// are we in sending or receive
-						sdir = rule.workPath;
+						sdir = rule.getWorkPath();
 					}
 					R66Dir dir;
 					if (session.dirsFromSession.containsKey(sdir)) {
