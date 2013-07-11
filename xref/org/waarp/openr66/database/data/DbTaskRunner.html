@@ -3134,14 +3134,14 @@
 <a class="jxr_linenumber" name="3124" href="#3124">3124</a> 					String sdir;
 <a class="jxr_linenumber" name="3125" href="#3125">3125</a> 					<strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.globallaststep == TASKSTEP.ALLDONETASK.ordinal()) {
 <a class="jxr_linenumber" name="3126" href="#3126">3126</a> 						<em class="jxr_comment">// all finished</em>
-<a class="jxr_linenumber" name="3127" href="#3127">3127</a> 						sdir = rule.recvPath;
+<a class="jxr_linenumber" name="3127" href="#3127">3127</a> 						sdir = rule.getRecvPath();
 <a class="jxr_linenumber" name="3128" href="#3128">3128</a> 					} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.globallaststep == TASKSTEP.POSTTASK
 <a class="jxr_linenumber" name="3129" href="#3129">3129</a> 							.ordinal()) {
 <a class="jxr_linenumber" name="3130" href="#3130">3130</a> 						<em class="jxr_comment">// Post task</em>
-<a class="jxr_linenumber" name="3131" href="#3131">3131</a> 						sdir = rule.recvPath;
+<a class="jxr_linenumber" name="3131" href="#3131">3131</a> 						sdir = rule.getRecvPath();
 <a class="jxr_linenumber" name="3132" href="#3132">3132</a> 					} <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="3133" href="#3133">3133</a> 						<em class="jxr_comment">// are we in sending or receive</em>
-<a class="jxr_linenumber" name="3134" href="#3134">3134</a> 						sdir = rule.workPath;
+<a class="jxr_linenumber" name="3134" href="#3134">3134</a> 						sdir = rule.getWorkPath();
 <a class="jxr_linenumber" name="3135" href="#3135">3135</a> 					}
 <a class="jxr_linenumber" name="3136" href="#3136">3136</a> 					R66Dir dir;
 <a class="jxr_linenumber" name="3137" href="#3137">3137</a> 					<strong class="jxr_keyword">if</strong> (session.dirsFromSession.containsKey(sdir)) {

@@ -756,6 +756,63 @@
 ]]>
 </codefragment>
 </duplication>
+<duplication lines="49" tokens="258">
+<file line="142" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\DirectTransfer.java"/>
+<file line="89" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\MultipleDirectTransfer.java"/>
+<codefragment>
+<![CDATA[
+					rhost, localFilename, rule, fileInfo, ismd5, block, idt,
+					networkTransaction);
+			logger.debug("rhost: "+rhost+":"+transaction.remoteHost);
+			transaction.run();
+			future.awaitUninterruptibly();
+			long time2 = System.currentTimeMillis();
+			logger.debug("finish transfer: " + future.isSuccess());
+			long delay = time2 - time1;
+			R66Result result = future.getResult();
+			if (future.isSuccess()) {
+				if (result.runner.getErrorInfo() == ErrorCode.Warning) {
+					logger.warn("Transfer in status:\nWARNED\n    "
+							+ result.runner.toShortString()
+							+
+							"\n    <REMOTE>"
+							+ rhost
+							+ "</REMOTE>"
+							+
+							"\n    <FILEFINAL>"
+							+
+							(result.file != null ? result.file.toString() + "</FILEFINAL>"
+									: "no file")
+							+ "\n    delay: " + delay);
+				} else {
+					logger.info("Transfer in status:\nSUCCESS\n    "
+							+ result.runner.toShortString()
+							+
+							"\n    <REMOTE>"
+							+ rhost
+							+ "</REMOTE>"
+							+
+							"\n    <FILEFINAL>"
+							+
+							(result.file != null ? result.file.toString() + "</FILEFINAL>"
+									: "no file")
+							+ "\n    delay: " + delay);
+				}
+				if (nolog) {
+					// In case of success, delete the runner
+					try {
+						result.runner.delete();
+					} catch (WaarpDatabaseException e) {
+						logger.warn("Cannot apply nolog to\n    " + result.runner.toShortString(),
+								e);
+					}
+				}
+			} else {
+				if (result == null || result.runner == null) {
+					logger.error("Transfer in\n    FAILURE with no Id", future.getCause());
+]]>
+</codefragment>
+</duplication>
 <duplication lines="48" tokens="219">
 <file line="1904" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
 <file line="1988" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
@@ -1634,11 +1691,11 @@
 </codefragment>
 </duplication>
 <duplication lines="12" tokens="111">
-<file line="503" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
-<file line="517" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
-<file line="531" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
-<file line="545" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
-<file line="559" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="523" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="537" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="551" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="565" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="579" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 		if (array != null) {
@@ -1678,6 +1735,29 @@
 		}
 		action += ccolumns[ccolumns.length - 1].name() +
 				DBType.getType(DbConfiguration.dbTypes[ccolumns.length - 1]) +
+]]>
+</codefragment>
+</duplication>
+<duplication lines="15" tokens="110">
+<file line="88" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\MultipleSubmitTransfer.java"/>
+<file line="115" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\SubmitTransfer.java"/>
+<codefragment>
+<![CDATA[
+								host, filename, rule, fileInfo, ismd5, block, idt,
+								ttimestart);
+						transaction.run();
+						future.awaitUninterruptibly();
+						DbTaskRunner runner = future.getResult().runner;
+						if (future.isSuccess()) {
+							logger.warn("Prepare transfer in\n    SUCCESS\n    " + runner.toShortString() +
+									"<REMOTE>" + rhost + "</REMOTE>");
+						} else {
+							if (runner != null) {
+								logger.error("Prepare transfer in\n    FAILURE\n     " + runner.toShortString() +
+										"<REMOTE>" + rhost + "</REMOTE>", future.getCause());
+							} else {
+								logger.error("Prepare transfer in\n    FAILURE\n     ", future.getCause());
+							}
 ]]>
 </codefragment>
 </duplication>
@@ -1863,12 +1943,12 @@
 </codefragment>
 </duplication>
 <duplication lines="11" tokens="106">
-<file line="503" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
-<file line="517" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
-<file line="531" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
-<file line="545" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
-<file line="559" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
-<file line="573" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="523" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="537" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="551" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="565" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="579" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
+<file line="593" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 		if (array != null) {
@@ -1882,6 +1962,38 @@
 		}
 		tasks.add(roottasks);
 		root.add(tasks);
+]]>
+</codefragment>
+</duplication>
+<duplication lines="24" tokens="105">
+<file line="147" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\AbstractBusinessRequest.java"/>
+<file line="87" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\BusinessRequest.java"/>
+<codefragment>
+<![CDATA[
+				new BusinessRequestPacket(classname + " " + classarg, 0);
+		// XXX FIXME this has to be adapted
+		/*
+		 * AbstractBusinessRequest transaction = new AbstractBusinessRequest(
+		 * AbstractBusinessRequest.class, future, rhost, networkTransaction, packet);
+		 * transaction.run(); future.awaitUninterruptibly();
+		 */
+		long time2 = System.currentTimeMillis();
+		logger.debug("Finish Business Request: " + future.isSuccess());
+		long delay = time2 - time1;
+		if (future.isSuccess()) {
+			logger.info("Business Request in status:\nSUCCESS" +
+					"\n    <REMOTE>" + rhost + "</REMOTE>" +
+					"\n    delay: " + delay);
+		} else {
+			logger.info("Business Request in status:\nFAILURE" +
+					"\n    <REMOTE>" + rhost + "</REMOTE>" +
+					"\n    <ERROR>" + future.getCause() + "</ERROR>" +
+					"\n    delay: " + delay);
+			networkTransaction.closeAll();
+			System.exit(ErrorCode.Unknown.ordinal());
+		}
+		networkTransaction.closeAll();
+	}
 ]]>
 </codefragment>
 </duplication>

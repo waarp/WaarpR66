@@ -194,22 +194,22 @@
 <a class="jxr_linenumber" name="184" href="#184">184</a> 	<em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="185" href="#185">185</a> <em class="jxr_javadoccomment">	 * The associated Recv Path</em>
 <a class="jxr_linenumber" name="186" href="#186">186</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="187" href="#187">187</a> 	<strong class="jxr_keyword">public</strong> String recvPath = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="187" href="#187">187</a> 	<strong class="jxr_keyword">private</strong> String recvPath = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="188" href="#188">188</a> 
 <a class="jxr_linenumber" name="189" href="#189">189</a> 	<em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="190" href="#190">190</a> <em class="jxr_javadoccomment">	 * The associated Send Path</em>
 <a class="jxr_linenumber" name="191" href="#191">191</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="192" href="#192">192</a> 	<strong class="jxr_keyword">public</strong> String sendPath = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="192" href="#192">192</a> 	<strong class="jxr_keyword">private</strong> String sendPath = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="193" href="#193">193</a> 
 <a class="jxr_linenumber" name="194" href="#194">194</a> 	<em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="195" href="#195">195</a> <em class="jxr_javadoccomment">	 * The associated Archive Path</em>
 <a class="jxr_linenumber" name="196" href="#196">196</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="197" href="#197">197</a> 	<strong class="jxr_keyword">public</strong> String archivePath = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="197" href="#197">197</a> 	<strong class="jxr_keyword">private</strong> String archivePath = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="198" href="#198">198</a> 
 <a class="jxr_linenumber" name="199" href="#199">199</a> 	<em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="200" href="#200">200</a> <em class="jxr_javadoccomment">	 * The associated Work Path</em>
 <a class="jxr_linenumber" name="201" href="#201">201</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="202" href="#202">202</a> 	<strong class="jxr_keyword">public</strong> String workPath = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="202" href="#202">202</a> 	<strong class="jxr_keyword">private</strong> String workPath = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="203" href="#203">203</a> 
 <a class="jxr_linenumber" name="204" href="#204">204</a> 	<em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="205" href="#205">205</a> <em class="jxr_javadoccomment">	 * The associated Pre Tasks for Receiver</em>
@@ -753,17 +753,17 @@
 <a class="jxr_linenumber" name="743" href="#743">743</a> 				allFields[i].value = rule.allFields[i].value;
 <a class="jxr_linenumber" name="744" href="#744">744</a> 			}
 <a class="jxr_linenumber" name="745" href="#745">745</a> 			setFromArrayClone(rule);
-<a class="jxr_linenumber" name="746" href="#746">746</a> 			<strong class="jxr_keyword">if</strong> (recvPath == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="747" href="#747">747</a> 				recvPath = Configuration.configuration.inPath;
+<a class="jxr_linenumber" name="746" href="#746">746</a> 			<strong class="jxr_keyword">if</strong> (recvPath == <strong class="jxr_keyword">null</strong> || recvPath.trim().length() == 0) {
+<a class="jxr_linenumber" name="747" href="#747">747</a> 				recvPath = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="748" href="#748">748</a> 			}
-<a class="jxr_linenumber" name="749" href="#749">749</a> 			<strong class="jxr_keyword">if</strong> (sendPath == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="750" href="#750">750</a> 				sendPath = Configuration.configuration.outPath;
+<a class="jxr_linenumber" name="749" href="#749">749</a> 			<strong class="jxr_keyword">if</strong> (sendPath == <strong class="jxr_keyword">null</strong> || sendPath.trim().length() == 0) {
+<a class="jxr_linenumber" name="750" href="#750">750</a> 				sendPath = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="751" href="#751">751</a> 			}
-<a class="jxr_linenumber" name="752" href="#752">752</a> 			<strong class="jxr_keyword">if</strong> (archivePath == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="753" href="#753">753</a> 				archivePath = Configuration.configuration.archivePath;
+<a class="jxr_linenumber" name="752" href="#752">752</a> 			<strong class="jxr_keyword">if</strong> (archivePath == <strong class="jxr_keyword">null</strong> || archivePath.trim().length() == 0) {
+<a class="jxr_linenumber" name="753" href="#753">753</a> 				archivePath = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="754" href="#754">754</a> 			}
-<a class="jxr_linenumber" name="755" href="#755">755</a> 			<strong class="jxr_keyword">if</strong> (workPath == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="756" href="#756">756</a> 				workPath = Configuration.configuration.workingPath;
+<a class="jxr_linenumber" name="755" href="#755">755</a> 			<strong class="jxr_keyword">if</strong> (workPath == <strong class="jxr_keyword">null</strong> || workPath.trim().length() == 0) {
+<a class="jxr_linenumber" name="756" href="#756">756</a> 				workPath = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="757" href="#757">757</a> 			}
 <a class="jxr_linenumber" name="758" href="#758">758</a> 			isSaved = <strong class="jxr_keyword">true</strong>;
 <a class="jxr_linenumber" name="759" href="#759">759</a> 			<strong class="jxr_keyword">return</strong>;
@@ -774,17 +774,17 @@
 <a class="jxr_linenumber" name="764" href="#764">764</a> 			}
 <a class="jxr_linenumber" name="765" href="#765">765</a> 		}
 <a class="jxr_linenumber" name="766" href="#766">766</a> 		<strong class="jxr_keyword">super</strong>.select();
-<a class="jxr_linenumber" name="767" href="#767">767</a> 		<strong class="jxr_keyword">if</strong> (recvPath == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="768" href="#768">768</a> 			recvPath = Configuration.configuration.inPath;
+<a class="jxr_linenumber" name="767" href="#767">767</a> 		<strong class="jxr_keyword">if</strong> (recvPath == <strong class="jxr_keyword">null</strong> || recvPath.trim().length() == 0) {
+<a class="jxr_linenumber" name="768" href="#768">768</a> 			recvPath = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="769" href="#769">769</a> 		}
-<a class="jxr_linenumber" name="770" href="#770">770</a> 		<strong class="jxr_keyword">if</strong> (sendPath == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="771" href="#771">771</a> 			sendPath = Configuration.configuration.outPath;
+<a class="jxr_linenumber" name="770" href="#770">770</a> 		<strong class="jxr_keyword">if</strong> (sendPath == <strong class="jxr_keyword">null</strong> || sendPath.trim().length() == 0) {
+<a class="jxr_linenumber" name="771" href="#771">771</a> 			sendPath = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="772" href="#772">772</a> 		}
-<a class="jxr_linenumber" name="773" href="#773">773</a> 		<strong class="jxr_keyword">if</strong> (archivePath == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="774" href="#774">774</a> 			archivePath = Configuration.configuration.archivePath;
+<a class="jxr_linenumber" name="773" href="#773">773</a> 		<strong class="jxr_keyword">if</strong> (archivePath == <strong class="jxr_keyword">null</strong> || archivePath.trim().length() == 0) {
+<a class="jxr_linenumber" name="774" href="#774">774</a> 			archivePath = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="775" href="#775">775</a> 		}
-<a class="jxr_linenumber" name="776" href="#776">776</a> 		<strong class="jxr_keyword">if</strong> (workPath == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="777" href="#777">777</a> 			workPath = Configuration.configuration.workingPath;
+<a class="jxr_linenumber" name="776" href="#776">776</a> 		<strong class="jxr_keyword">if</strong> (workPath == <strong class="jxr_keyword">null</strong> || workPath.trim().length() == 0) {
+<a class="jxr_linenumber" name="777" href="#777">777</a> 			workPath = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="778" href="#778">778</a> 		}
 <a class="jxr_linenumber" name="779" href="#779">779</a> 		setFromArray();
 <a class="jxr_linenumber" name="780" href="#780">780</a> 		dbR66RuleHashMap.put(<strong class="jxr_keyword">this</strong>.idRule, <strong class="jxr_keyword">this</strong>);
@@ -1010,7 +1010,7 @@
 <a class="jxr_linenumber" name="1000" href="#1000">1000</a> <em class="jxr_javadoccomment">	 */</em>
 <a class="jxr_linenumber" name="1001" href="#1001">1001</a> 	<strong class="jxr_keyword">public</strong> String setRecvPath(String filename)
 <a class="jxr_linenumber" name="1002" href="#1002">1002</a> 			<strong class="jxr_keyword">throws</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a> {
-<a class="jxr_linenumber" name="1003" href="#1003">1003</a> 		<strong class="jxr_keyword">if</strong> (recvPath != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="1003" href="#1003">1003</a> 		<strong class="jxr_keyword">if</strong> (recvPath != <strong class="jxr_keyword">null</strong> &amp;&amp; recvPath.length() &gt; 0) {
 <a class="jxr_linenumber" name="1004" href="#1004">1004</a> 			<strong class="jxr_keyword">return</strong> recvPath + DirInterface.SEPARATOR + filename;
 <a class="jxr_linenumber" name="1005" href="#1005">1005</a> 		}
 <a class="jxr_linenumber" name="1006" href="#1006">1006</a> 		<strong class="jxr_keyword">return</strong> FileUtils.consolidatePath(Configuration.configuration.inPath,
@@ -1112,8 +1112,8 @@
 <a class="jxr_linenumber" name="1102" href="#1102">1102</a> 	<strong class="jxr_keyword">public</strong> String toString() {
 <a class="jxr_linenumber" name="1103" href="#1103">1103</a> 		<strong class="jxr_keyword">return</strong> <span class="jxr_string">"Rule Name:"</span> + idRule + <span class="jxr_string">" IDS:"</span> + ids + <span class="jxr_string">" MODETRANS: "</span> +
 <a class="jxr_linenumber" name="1104" href="#1104">1104</a> 				RequestPacket.TRANSFERMODE.values()[mode].toString() +
-<a class="jxr_linenumber" name="1105" href="#1105">1105</a> 				<span class="jxr_string">" RECV:"</span> + recvPath + <span class="jxr_string">" SEND:"</span> + sendPath + <span class="jxr_string">" ARCHIVE:"</span> +
-<a class="jxr_linenumber" name="1106" href="#1106">1106</a> 				archivePath + <span class="jxr_string">" WORK:"</span> + workPath +
+<a class="jxr_linenumber" name="1105" href="#1105">1105</a> 				<span class="jxr_string">" RECV:"</span> + getRecvPath() + <span class="jxr_string">" SEND:"</span> + getSendPath() + <span class="jxr_string">" ARCHIVE:"</span> +
+<a class="jxr_linenumber" name="1106" href="#1106">1106</a> 				getArchivePath() + <span class="jxr_string">" WORK:"</span> + getWorkPath() +
 <a class="jxr_linenumber" name="1107" href="#1107">1107</a> 				<span class="jxr_string">"\nRPRET:"</span> + rpreTasks + <span class="jxr_string">"\nRPOST:"</span> + rpostTasks + <span class="jxr_string">"\nRERROR:"</span> + rerrorTasks +
 <a class="jxr_linenumber" name="1108" href="#1108">1108</a> 				<span class="jxr_string">"\nSPRET:"</span> + spreTasks + <span class="jxr_string">"\nSPOST:"</span> + spostTasks + <span class="jxr_string">"\nSERROR:"</span> + serrorTasks;
 <a class="jxr_linenumber" name="1109" href="#1109">1109</a> 	}
@@ -1241,7 +1241,72 @@
 <a class="jxr_linenumber" name="1231" href="#1231">1231</a> 		<strong class="jxr_keyword">return</strong> builder.toString();
 <a class="jxr_linenumber" name="1232" href="#1232">1232</a> 	}
 <a class="jxr_linenumber" name="1233" href="#1233">1233</a> 
-<a class="jxr_linenumber" name="1234" href="#1234">1234</a> }
+<a class="jxr_linenumber" name="1234" href="#1234">1234</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="1235" href="#1235">1235</a> <em class="jxr_javadoccomment">	 * @return the recvPath</em>
+<a class="jxr_linenumber" name="1236" href="#1236">1236</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="1237" href="#1237">1237</a> 	<strong class="jxr_keyword">public</strong> String getRecvPath() {
+<a class="jxr_linenumber" name="1238" href="#1238">1238</a> 		<strong class="jxr_keyword">if</strong> (recvPath == <strong class="jxr_keyword">null</strong> || recvPath.trim().length() == 0)
+<a class="jxr_linenumber" name="1239" href="#1239">1239</a> 			<strong class="jxr_keyword">return</strong> Configuration.configuration.inPath;
+<a class="jxr_linenumber" name="1240" href="#1240">1240</a> 		<strong class="jxr_keyword">return</strong> recvPath;
+<a class="jxr_linenumber" name="1241" href="#1241">1241</a> 	}
+<a class="jxr_linenumber" name="1242" href="#1242">1242</a> 
+<a class="jxr_linenumber" name="1243" href="#1243">1243</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="1244" href="#1244">1244</a> <em class="jxr_javadoccomment">	 * @return the sendPath</em>
+<a class="jxr_linenumber" name="1245" href="#1245">1245</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="1246" href="#1246">1246</a> 	<strong class="jxr_keyword">public</strong> String getSendPath() {
+<a class="jxr_linenumber" name="1247" href="#1247">1247</a> 		<strong class="jxr_keyword">if</strong> (sendPath == <strong class="jxr_keyword">null</strong> || sendPath.trim().length() == 0)
+<a class="jxr_linenumber" name="1248" href="#1248">1248</a> 			<strong class="jxr_keyword">return</strong> Configuration.configuration.outPath;
+<a class="jxr_linenumber" name="1249" href="#1249">1249</a> 		<strong class="jxr_keyword">return</strong> sendPath;
+<a class="jxr_linenumber" name="1250" href="#1250">1250</a> 	}
+<a class="jxr_linenumber" name="1251" href="#1251">1251</a> 
+<a class="jxr_linenumber" name="1252" href="#1252">1252</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="1253" href="#1253">1253</a> <em class="jxr_javadoccomment">	 * @return the archivePath</em>
+<a class="jxr_linenumber" name="1254" href="#1254">1254</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="1255" href="#1255">1255</a> 	<strong class="jxr_keyword">public</strong> String getArchivePath() {
+<a class="jxr_linenumber" name="1256" href="#1256">1256</a> 		<strong class="jxr_keyword">if</strong> (archivePath == <strong class="jxr_keyword">null</strong> || archivePath.trim().length() == 0)
+<a class="jxr_linenumber" name="1257" href="#1257">1257</a> 			<strong class="jxr_keyword">return</strong> Configuration.configuration.archivePath;
+<a class="jxr_linenumber" name="1258" href="#1258">1258</a> 		<strong class="jxr_keyword">return</strong> archivePath;
+<a class="jxr_linenumber" name="1259" href="#1259">1259</a> 	}
+<a class="jxr_linenumber" name="1260" href="#1260">1260</a> 
+<a class="jxr_linenumber" name="1261" href="#1261">1261</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="1262" href="#1262">1262</a> <em class="jxr_javadoccomment">	 * @return the workPath</em>
+<a class="jxr_linenumber" name="1263" href="#1263">1263</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="1264" href="#1264">1264</a> 	<strong class="jxr_keyword">public</strong> String getWorkPath() {
+<a class="jxr_linenumber" name="1265" href="#1265">1265</a> 		<strong class="jxr_keyword">if</strong> (workPath == <strong class="jxr_keyword">null</strong> || workPath.trim().length() == 0)
+<a class="jxr_linenumber" name="1266" href="#1266">1266</a> 			<strong class="jxr_keyword">return</strong> Configuration.configuration.workingPath;
+<a class="jxr_linenumber" name="1267" href="#1267">1267</a> 		<strong class="jxr_keyword">return</strong> workPath;
+<a class="jxr_linenumber" name="1268" href="#1268">1268</a> 	}
+<a class="jxr_linenumber" name="1269" href="#1269">1269</a> 
+<a class="jxr_linenumber" name="1270" href="#1270">1270</a> 
+<a class="jxr_linenumber" name="1271" href="#1271">1271</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="1272" href="#1272">1272</a> <em class="jxr_javadoccomment">	 * @return the Rule recvPath</em>
+<a class="jxr_linenumber" name="1273" href="#1273">1273</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="1274" href="#1274">1274</a> 	<strong class="jxr_keyword">public</strong> String getRuleRecvPath() {
+<a class="jxr_linenumber" name="1275" href="#1275">1275</a> 		<strong class="jxr_keyword">return</strong> recvPath;
+<a class="jxr_linenumber" name="1276" href="#1276">1276</a> 	}
+<a class="jxr_linenumber" name="1277" href="#1277">1277</a> 
+<a class="jxr_linenumber" name="1278" href="#1278">1278</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="1279" href="#1279">1279</a> <em class="jxr_javadoccomment">	 * @return the Rule sendPath</em>
+<a class="jxr_linenumber" name="1280" href="#1280">1280</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="1281" href="#1281">1281</a> 	<strong class="jxr_keyword">public</strong> String getRuleSendPath() {
+<a class="jxr_linenumber" name="1282" href="#1282">1282</a> 		<strong class="jxr_keyword">return</strong> sendPath;
+<a class="jxr_linenumber" name="1283" href="#1283">1283</a> 	}
+<a class="jxr_linenumber" name="1284" href="#1284">1284</a> 
+<a class="jxr_linenumber" name="1285" href="#1285">1285</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="1286" href="#1286">1286</a> <em class="jxr_javadoccomment">	 * @return the Rule archivePath</em>
+<a class="jxr_linenumber" name="1287" href="#1287">1287</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="1288" href="#1288">1288</a> 	<strong class="jxr_keyword">public</strong> String getRuleArchivePath() {
+<a class="jxr_linenumber" name="1289" href="#1289">1289</a> 		<strong class="jxr_keyword">return</strong> archivePath;
+<a class="jxr_linenumber" name="1290" href="#1290">1290</a> 	}
+<a class="jxr_linenumber" name="1291" href="#1291">1291</a> 
+<a class="jxr_linenumber" name="1292" href="#1292">1292</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="1293" href="#1293">1293</a> <em class="jxr_javadoccomment">	 * @return the Rule workPath</em>
+<a class="jxr_linenumber" name="1294" href="#1294">1294</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="1295" href="#1295">1295</a> 	<strong class="jxr_keyword">public</strong> String getRuleWorkPath() {
+<a class="jxr_linenumber" name="1296" href="#1296">1296</a> 		<strong class="jxr_keyword">return</strong> workPath;
+<a class="jxr_linenumber" name="1297" href="#1297">1297</a> 	}
+<a class="jxr_linenumber" name="1298" href="#1298">1298</a> 
+<a class="jxr_linenumber" name="1299" href="#1299">1299</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>

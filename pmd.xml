@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<pmd version="4.3" timestamp="2013-05-26T15:39:20.390">
+<pmd version="4.3" timestamp="2013-07-11T20:16:16.169">
 <file name="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\AbstractBusinessRequest.java">
 <violation beginline="52" endline="52" begincolumn="55" endcolumn="60" rule="AssignmentToNonFinalStatic" ruleset="Design Rules" package="org.waarp.openr66.client" class="AbstractBusinessRequest" variable="logger" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#AssignmentToNonFinalStatic" priority="3">
 Possible unsafe assignment to a non-final static field in a constructor.
@@ -40,6 +40,14 @@ Singleton is not thread safe
 Singleton is not thread safe
 </violation>
 </file>
+<file name="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\BusinessRequest.java">
+<violation beginline="40" endline="107" begincolumn="62" endcolumn="1" rule="UseSingleton" ruleset="Design Rules" package="org.waarp.openr66.client" class="BusinessRequest" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#UseSingleton" priority="3">
+All methods are static.  Consider using Singleton instead.  Alternatively, you could add a private constructor or make the class abstract to silence this warning.
+</violation>
+<violation beginline="58" endline="60" begincolumn="17" endcolumn="17" rule="NonThreadSafeSingleton" ruleset="Design Rules" package="org.waarp.openr66.client" class="BusinessRequest" method="main" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#NonThreadSafeSingleton" priority="3">
+Singleton is not thread safe
+</violation>
+</file>
 <file name="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\DirectTransfer.java">
 <violation beginline="88" endline="89" begincolumn="43" endcolumn="41" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.client" class="DirectTransfer" method="run" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
@@ -60,6 +68,25 @@ Possible unsafe assignment to a non-final static field in a constructor.
 </violation>
 <violation beginline="182" endline="184" begincolumn="17" endcolumn="17" rule="NonThreadSafeSingleton" ruleset="Design Rules" package="org.waarp.openr66.client" class="Message" method="main" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#NonThreadSafeSingleton" priority="3">
 Singleton is not thread safe
+</violation>
+</file>
+<file name="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\MultipleDirectTransfer.java">
+<violation beginline="49" endline="169" begincolumn="60" endcolumn="1" rule="UseSingleton" ruleset="Design Rules" package="org.waarp.openr66.client" class="MultipleDirectTransfer" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#UseSingleton" priority="3">
+All methods are static.  Consider using Singleton instead.  Alternatively, you could add a private constructor or make the class abstract to silence this warning.
+</violation>
+<violation beginline="109" endline="110" begincolumn="90" endcolumn="115" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.openr66.client" class="MultipleDirectTransfer" method="main" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+Avoid if (x != y) ..; else ..;
+</violation>
+<violation beginline="122" endline="123" begincolumn="90" endcolumn="115" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.openr66.client" class="MultipleDirectTransfer" method="main" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+Avoid if (x != y) ..; else ..;
+</violation>
+</file>
+<file name="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\MultipleSubmitTransfer.java">
+<violation beginline="47" endline="118" begincolumn="60" endcolumn="1" rule="UseSingleton" ruleset="Design Rules" package="org.waarp.openr66.client" class="MultipleSubmitTransfer" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#UseSingleton" priority="3">
+All methods are static.  Consider using Singleton instead.  Alternatively, you could add a private constructor or make the class abstract to silence this warning.
+</violation>
+<violation beginline="97" endline="102" begincolumn="57" endcolumn="57" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.openr66.client" class="MultipleSubmitTransfer" method="main" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+Avoid if (x != y) ..; else ..;
 </violation>
 </file>
 <file name="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\ProgressBarTransfer.java">
@@ -328,7 +355,7 @@ These nested if statements could be combined
 </violation>
 </file>
 <file name="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java">
-<violation beginline="57" endline="664" begincolumn="41" endcolumn="1" rule="UseSingleton" ruleset="Design Rules" package="org.waarp.openr66.configuration" class="RuleFileBasedConfiguration" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#UseSingleton" priority="3">
+<violation beginline="57" endline="684" begincolumn="41" endcolumn="1" rule="UseSingleton" ruleset="Design Rules" package="org.waarp.openr66.configuration" class="RuleFileBasedConfiguration" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#UseSingleton" priority="3">
 All methods are static.  Consider using Singleton instead.  Alternatively, you could add a private constructor or make the class abstract to silence this warning.
 </violation>
 <violation beginline="443" endline="452" begincolumn="17" endcolumn="17" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.openr66.configuration" class="RuleFileBasedConfiguration" method="getFromXmlValue" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
@@ -355,91 +382,91 @@ Avoid if (x != y) ..; else ..;
 </violation>
 </file>
 <file name="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\R66Session.java">
-<violation beginline="116" endline="116" begincolumn="25" endcolumn="40" rule="ImmutableField" ruleset="Design Rules" package="org.waarp.openr66.context" class="R66Session" variable="extendedProtocol" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ImmutableField" priority="3">
+<violation beginline="117" endline="117" begincolumn="25" endcolumn="40" rule="ImmutableField" ruleset="Design Rules" package="org.waarp.openr66.context" class="R66Session" variable="extendedProtocol" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ImmutableField" priority="3">
 Private field 'extendedProtocol' could be made final; it is only initialized in the declaration or constructor.
 </violation>
-<violation beginline="181" endline="193" begincolumn="25" endcolumn="25" rule="CollapsibleIfStatements" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="clear" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#CollapsibleIfStatements" priority="3">
+<violation beginline="182" endline="194" begincolumn="25" endcolumn="25" rule="CollapsibleIfStatements" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="clear" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#CollapsibleIfStatements" priority="3">
 These nested if statements could be combined
 </violation>
-<violation beginline="182" endline="192" begincolumn="33" endcolumn="33" rule="AvoidDeeplyNestedIfStmts" ruleset="Design Rules" package="org.waarp.openr66.context" class="R66Session" method="clear" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#AvoidDeeplyNestedIfStmts" priority="3">
+<violation beginline="183" endline="193" begincolumn="33" endcolumn="33" rule="AvoidDeeplyNestedIfStmts" ruleset="Design Rules" package="org.waarp.openr66.context" class="R66Session" method="clear" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#AvoidDeeplyNestedIfStmts" priority="3">
 Deeply nested if..then statements are hard to read
 </violation>
-<violation beginline="182" endline="192" begincolumn="33" endcolumn="33" rule="CollapsibleIfStatements" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="clear" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#CollapsibleIfStatements" priority="3">
+<violation beginline="183" endline="193" begincolumn="33" endcolumn="33" rule="CollapsibleIfStatements" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="clear" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#CollapsibleIfStatements" priority="3">
 These nested if statements could be combined
-</violation>
-<violation beginline="189" endline="190" begincolumn="43" endcolumn="41" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="clear" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
-Avoid empty catch blocks
 </violation>
 <violation beginline="190" endline="191" begincolumn="43" endcolumn="41" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="clear" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="207" endline="208" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="clear" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="191" endline="192" begincolumn="43" endcolumn="41" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="clear" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="288" endline="293" begincolumn="17" endcolumn="17" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.openr66.context" class="R66Session" method="setLocalChannelReference" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
-Avoid if (x != y) ..; else ..;
-</violation>
-<violation beginline="331" endline="332" begincolumn="19" endcolumn="17" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="setNoSessionRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="208" endline="209" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="clear" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="336" endline="340" begincolumn="25" endcolumn="25" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.openr66.context" class="R66Session" method="setNoSessionRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+<violation beginline="289" endline="294" begincolumn="17" endcolumn="17" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.openr66.context" class="R66Session" method="setLocalChannelReference" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
 Avoid if (x != y) ..; else ..;
 </violation>
-<violation beginline="364" endline="365" begincolumn="41" endcolumn="66" rule="PreserveStackTrace" ruleset="Design Rules" package="org.waarp.openr66.context" class="R66Session" method="setFileBeforePreRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#PreserveStackTrace" priority="3">
+<violation beginline="332" endline="333" begincolumn="19" endcolumn="17" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="setNoSessionRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+Avoid empty catch blocks
+</violation>
+<violation beginline="337" endline="341" begincolumn="25" endcolumn="25" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.openr66.context" class="R66Session" method="setNoSessionRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+Avoid if (x != y) ..; else ..;
+</violation>
+<violation beginline="371" endline="372" begincolumn="41" endcolumn="66" rule="PreserveStackTrace" ruleset="Design Rules" package="org.waarp.openr66.context" class="R66Session" method="setFileBeforePreRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#PreserveStackTrace" priority="3">
 New exception is thrown in catch block, original stack trace may be lost
 </violation>
-<violation beginline="386" endline="399" begincolumn="40" endcolumn="33" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.openr66.context" class="R66Session" method="setFileBeforePreRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+<violation beginline="394" endline="407" begincolumn="40" endcolumn="33" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.openr66.context" class="R66Session" method="setFileBeforePreRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
 Avoid if (x != y) ..; else ..;
 </violation>
-<violation beginline="536" endline="537" begincolumn="35" endcolumn="33" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="setBadRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="544" endline="545" begincolumn="35" endcolumn="33" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="setBadRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="542" endline="543" begincolumn="35" endcolumn="33" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="setBadRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="550" endline="551" begincolumn="35" endcolumn="33" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="setBadRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="548" endline="549" begincolumn="35" endcolumn="33" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="setBadRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="556" endline="557" begincolumn="35" endcolumn="33" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="setBadRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="554" endline="555" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="setBadRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="562" endline="563" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="setBadRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="555" endline="556" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="setBadRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="563" endline="564" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="setBadRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="581" endline="583" begincolumn="35" endcolumn="33" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="setRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="589" endline="591" begincolumn="35" endcolumn="33" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="setRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="598" endline="599" begincolumn="35" endcolumn="33" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="setRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="606" endline="607" begincolumn="35" endcolumn="33" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="setRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="640" endline="691" begincolumn="25" endcolumn="25" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.openr66.context" class="R66Session" method="setRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+<violation beginline="649" endline="700" begincolumn="25" endcolumn="25" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.openr66.context" class="R66Session" method="setRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
 Avoid if (x != y) ..; else ..;
 </violation>
-<violation beginline="642" endline="644" begincolumn="61" endcolumn="33" rule="EmptyIfStmt" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="setRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyIfStmt" priority="3">
+<violation beginline="651" endline="653" begincolumn="61" endcolumn="33" rule="EmptyIfStmt" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="setRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyIfStmt" priority="3">
 Avoid empty if statements
 </violation>
-<violation beginline="676" endline="678" begincolumn="43" endcolumn="41" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="setRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="685" endline="687" begincolumn="43" endcolumn="41" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="setRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="683" endline="684" begincolumn="35" endcolumn="33" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="setRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="692" endline="693" begincolumn="35" endcolumn="33" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="setRunner" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="757" endline="763" begincolumn="25" endcolumn="25" rule="CollapsibleIfStatements" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="setFinalizeTransfer" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#CollapsibleIfStatements" priority="3">
+<violation beginline="766" endline="772" begincolumn="25" endcolumn="25" rule="CollapsibleIfStatements" ruleset="Basic Rules" package="org.waarp.openr66.context" class="R66Session" method="setFinalizeTransfer" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#CollapsibleIfStatements" priority="3">
 These nested if statements could be combined
 </violation>
-<violation beginline="797" endline="804" begincolumn="25" endcolumn="25" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.openr66.context" class="R66Session" method="setFinalizeTransfer" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+<violation beginline="806" endline="813" begincolumn="25" endcolumn="25" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.openr66.context" class="R66Session" method="setFinalizeTransfer" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
 Avoid if (x != y) ..; else ..;
 </violation>
-<violation beginline="898" endline="898" begincolumn="34" endcolumn="75" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.openr66.context" class="R66Session" method="toString" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+<violation beginline="907" endline="907" begincolumn="34" endcolumn="75" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.openr66.context" class="R66Session" method="toString" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
 Avoid if (x != y) ..; else ..;
 </violation>
-<violation beginline="899" endline="899" begincolumn="34" endcolumn="72" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.openr66.context" class="R66Session" method="toString" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+<violation beginline="908" endline="908" begincolumn="34" endcolumn="72" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.openr66.context" class="R66Session" method="toString" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
 Avoid if (x != y) ..; else ..;
 </violation>
-<violation beginline="900" endline="900" begincolumn="34" endcolumn="75" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.openr66.context" class="R66Session" method="toString" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+<violation beginline="909" endline="909" begincolumn="34" endcolumn="75" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.openr66.context" class="R66Session" method="toString" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
 Avoid if (x != y) ..; else ..;
 </violation>
-<violation beginline="901" endline="901" begincolumn="34" endcolumn="86" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.openr66.context" class="R66Session" method="toString" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+<violation beginline="910" endline="910" begincolumn="34" endcolumn="86" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.openr66.context" class="R66Session" method="toString" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
 Avoid if (x != y) ..; else ..;
 </violation>
 </file>
@@ -496,40 +523,55 @@ These nested if statements could be combined
 </violation>
 </file>
 <file name="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\AbstractTask.java">
-<violation beginline="285" endline="294" begincolumn="17" endcolumn="17" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.openr66.context.task" class="AbstractTask" method="getReplacedValue" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+<violation beginline="286" endline="295" begincolumn="17" endcolumn="17" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.openr66.context.task" class="AbstractTask" method="getReplacedValue" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
 Avoid if (x != y) ..; else ..;
 </violation>
-<violation beginline="302" endline="302" begincolumn="41" endcolumn="72" rule="SimpleDateFormatNeedsLocale" ruleset="Design Rules" package="org.waarp.openr66.context.task" class="AbstractTask" method="getReplacedValue" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#SimpleDateFormatNeedsLocale" priority="3">
+<violation beginline="306" endline="306" begincolumn="41" endcolumn="72" rule="SimpleDateFormatNeedsLocale" ruleset="Design Rules" package="org.waarp.openr66.context.task" class="AbstractTask" method="getReplacedValue" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#SimpleDateFormatNeedsLocale" priority="3">
 When instantiating a SimpleDateFormat object, specify a Locale
 </violation>
-<violation beginline="305" endline="305" begincolumn="30" endcolumn="59" rule="SimpleDateFormatNeedsLocale" ruleset="Design Rules" package="org.waarp.openr66.context.task" class="AbstractTask" method="getReplacedValue" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#SimpleDateFormatNeedsLocale" priority="3">
+<violation beginline="309" endline="309" begincolumn="30" endcolumn="59" rule="SimpleDateFormatNeedsLocale" ruleset="Design Rules" package="org.waarp.openr66.context.task" class="AbstractTask" method="getReplacedValue" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#SimpleDateFormatNeedsLocale" priority="3">
 When instantiating a SimpleDateFormat object, specify a Locale
 </violation>
-<violation beginline="318" endline="326" begincolumn="17" endcolumn="17" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.openr66.context.task" class="AbstractTask" method="getReplacedValue" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+<violation beginline="322" endline="330" begincolumn="17" endcolumn="17" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.openr66.context.task" class="AbstractTask" method="getReplacedValue" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
 Avoid if (x != y) ..; else ..;
 </violation>
-<violation beginline="344" endline="345" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context.task" class="AbstractTask" method="getReplacedValue" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="344" endline="418" begincolumn="17" endcolumn="17" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.openr66.context.task" class="AbstractTask" method="getReplacedValue" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+Avoid if (x != y) ..; else ..;
+</violation>
+<violation beginline="349" endline="350" begincolumn="35" endcolumn="33" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context.task" class="AbstractTask" method="getReplacedValue" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="350" endline="351" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context.task" class="AbstractTask" method="getReplacedValue" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="355" endline="356" begincolumn="35" endcolumn="33" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context.task" class="AbstractTask" method="getReplacedValue" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="356" endline="357" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context.task" class="AbstractTask" method="getReplacedValue" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="361" endline="362" begincolumn="35" endcolumn="33" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context.task" class="AbstractTask" method="getReplacedValue" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="362" endline="363" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context.task" class="AbstractTask" method="getReplacedValue" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="367" endline="368" begincolumn="35" endcolumn="33" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context.task" class="AbstractTask" method="getReplacedValue" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="368" endline="369" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context.task" class="AbstractTask" method="getReplacedValue" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="373" endline="374" begincolumn="35" endcolumn="33" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context.task" class="AbstractTask" method="getReplacedValue" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="374" endline="375" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context.task" class="AbstractTask" method="getReplacedValue" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="379" endline="380" begincolumn="35" endcolumn="33" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context.task" class="AbstractTask" method="getReplacedValue" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="380" endline="381" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context.task" class="AbstractTask" method="getReplacedValue" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="385" endline="386" begincolumn="35" endcolumn="33" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context.task" class="AbstractTask" method="getReplacedValue" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
-<violation beginline="386" endline="387" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context.task" class="AbstractTask" method="getReplacedValue" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+<violation beginline="391" endline="392" begincolumn="35" endcolumn="33" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context.task" class="AbstractTask" method="getReplacedValue" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+Avoid empty catch blocks
+</violation>
+<violation beginline="398" endline="399" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context.task" class="AbstractTask" method="getReplacedValue" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+Avoid empty catch blocks
+</violation>
+<violation beginline="404" endline="405" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context.task" class="AbstractTask" method="getReplacedValue" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+Avoid empty catch blocks
+</violation>
+<violation beginline="410" endline="411" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context.task" class="AbstractTask" method="getReplacedValue" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+Avoid empty catch blocks
+</violation>
+<violation beginline="416" endline="417" begincolumn="27" endcolumn="25" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context.task" class="AbstractTask" method="getReplacedValue" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
 </file>
@@ -538,6 +580,14 @@ Avoid empty catch blocks
 Avoid empty catch blocks
 </violation>
 <violation beginline="59" endline="60" begincolumn="19" endcolumn="17" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context.task" class="AllLineReader" method="run" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
+Avoid empty catch blocks
+</violation>
+</file>
+<file name="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecBusinessTask.java">
+<violation beginline="66" endline="81" begincolumn="41" endcolumn="41" rule="ConfusingTernary" ruleset="Design Rules" package="org.waarp.openr66.context.task" class="ExecBusinessTask" method="run" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#ConfusingTernary" priority="3">
+Avoid if (x != y) ..; else ..;
+</violation>
+<violation beginline="93" endline="94" begincolumn="35" endcolumn="33" rule="EmptyCatchBlock" ruleset="Basic Rules" package="org.waarp.openr66.context.task" class="ExecBusinessTask" method="run" externalInfoUrl="http://pmd.sourceforge.net/rules/basic.html#EmptyCatchBlock" priority="3">
 Avoid empty catch blocks
 </violation>
 </file>
@@ -696,10 +746,16 @@ Switch statements should have a default label
 </violation>
 </file>
 <file name="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\TaskType.java">
-<violation beginline="144" endline="144" begincolumn="25" endcolumn="87" rule="PreserveStackTrace" ruleset="Design Rules" package="org.waarp.openr66.context.task" method="getTaskFromId" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#PreserveStackTrace" priority="3">
+<violation beginline="148" endline="148" begincolumn="25" endcolumn="87" rule="PreserveStackTrace" ruleset="Design Rules" package="org.waarp.openr66.context.task" method="getTaskFromId" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#PreserveStackTrace" priority="3">
 New exception is thrown in catch block, original stack trace may be lost
 </violation>
-<violation beginline="147" endline="147" begincolumn="25" endcolumn="87" rule="PreserveStackTrace" ruleset="Design Rules" package="org.waarp.openr66.context.task" method="getTaskFromId" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#PreserveStackTrace" priority="3">
+<violation beginline="151" endline="151" begincolumn="25" endcolumn="87" rule="PreserveStackTrace" ruleset="Design Rules" package="org.waarp.openr66.context.task" method="getTaskFromId" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#PreserveStackTrace" priority="3">
+New exception is thrown in catch block, original stack trace may be lost
+</violation>
+<violation beginline="173" endline="173" begincolumn="25" endcolumn="87" rule="PreserveStackTrace" ruleset="Design Rules" package="org.waarp.openr66.context.task" method="getTaskFromIdForBusiness" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#PreserveStackTrace" priority="3">
+New exception is thrown in catch block, original stack trace may be lost
+</violation>
+<violation beginline="176" endline="176" begincolumn="25" endcolumn="87" rule="PreserveStackTrace" ruleset="Design Rules" package="org.waarp.openr66.context.task" method="getTaskFromIdForBusiness" externalInfoUrl="http://pmd.sourceforge.net/rules/design.html#PreserveStackTrace" priority="3">
 New exception is thrown in catch block, original stack trace may be lost
 </violation>
 </file>

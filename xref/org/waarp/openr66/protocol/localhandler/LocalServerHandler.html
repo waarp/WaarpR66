@@ -1254,7 +1254,7 @@
 <a class="jxr_linenumber" name="1244" href="#1244">1244</a> 					runner.getErrorInfo() == ErrorCode.TransferOk) {
 <a class="jxr_linenumber" name="1245" href="#1245">1245</a> 				runner.setErrorExecutionStatus(ErrorCode.ExternalOp);
 <a class="jxr_linenumber" name="1246" href="#1246">1246</a> 			}
-<a class="jxr_linenumber" name="1247" href="#1247">1247</a> 			logger.error(<span class="jxr_string">"PreTask in error {}"</span>, e.getMessage());
+<a class="jxr_linenumber" name="1247" href="#1247">1247</a> 			logger.error(<span class="jxr_string">"PreTask in error {}"</span>, e.getMessage(), e);
 <a class="jxr_linenumber" name="1248" href="#1248">1248</a> 			session.newState(ERROR);
 <a class="jxr_linenumber" name="1249" href="#1249">1249</a> 			ErrorPacket error = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/localhandler/packet/ErrorPacket.html">ErrorPacket</a>(<span class="jxr_string">"PreTask in error: "</span> + e
 <a class="jxr_linenumber" name="1250" href="#1250">1250</a> 					.getMessage(), runner.getErrorInfo().getCode(), ErrorPacket.FORWARDCLOSECODE);
@@ -1753,9 +1753,9 @@
 <a class="jxr_linenumber" name="1743" href="#1743">1743</a> 		}
 <a class="jxr_linenumber" name="1744" href="#1744">1744</a> 		<strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="1745" href="#1745">1745</a> 			<strong class="jxr_keyword">if</strong> (RequestPacket.isRecvMode(rule.mode)) {
-<a class="jxr_linenumber" name="1746" href="#1746">1746</a> 				session.getDir().changeDirectory(rule.workPath);
+<a class="jxr_linenumber" name="1746" href="#1746">1746</a> 				session.getDir().changeDirectory(rule.getWorkPath());
 <a class="jxr_linenumber" name="1747" href="#1747">1747</a> 			} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="1748" href="#1748">1748</a> 				session.getDir().changeDirectory(rule.sendPath);
+<a class="jxr_linenumber" name="1748" href="#1748">1748</a> 				session.getDir().changeDirectory(rule.getSendPath());
 <a class="jxr_linenumber" name="1749" href="#1749">1749</a> 			}
 <a class="jxr_linenumber" name="1750" href="#1750">1750</a> 
 <a class="jxr_linenumber" name="1751" href="#1751">1751</a> 			<strong class="jxr_keyword">if</strong> (request == InformationPacket.ASKENUM.ASKLIST.ordinal() ||
