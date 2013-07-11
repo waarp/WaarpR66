@@ -393,9 +393,9 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 		}
 		try {
 			if (RequestPacket.isRecvMode(rule.mode)) {
-				session.getDir().changeDirectory(rule.workPath);
+				session.getDir().changeDirectory(rule.getWorkPath());
 			} else {
-				session.getDir().changeDirectory(rule.sendPath);
+				session.getDir().changeDirectory(rule.getSendPath());
 			}
 
 			if (request.getAction() == Action.List ||

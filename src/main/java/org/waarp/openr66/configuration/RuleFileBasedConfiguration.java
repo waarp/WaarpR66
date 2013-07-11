@@ -484,17 +484,37 @@ public class RuleFileBasedConfiguration {
 		}
 		root.add(hosts);
 		root.add(newElement(XMODE, Integer.toString(rule.mode)));
-		if (rule.recvPath != null) {
-			root.add(newElement(XRECVPATH, rule.recvPath.substring(1)));
+		String dir = rule.getRuleRecvPath();
+		if (dir != null) {
+			if (dir.startsWith(File.separator)) {
+				root.add(newElement(XRECVPATH, dir.substring(1)));
+			} else {
+				root.add(newElement(XRECVPATH, dir));
+			}
 		}
-		if (rule.sendPath != null) {
-			root.add(newElement(XSENDPATH, rule.sendPath.substring(1)));
+		dir = rule.getRuleSendPath();
+		if (dir != null) {
+			if (dir.startsWith(File.separator)) {
+				root.add(newElement(XSENDPATH, dir.substring(1)));
+			} else {
+				root.add(newElement(XSENDPATH, dir));
+			}
 		}
-		if (rule.archivePath != null) {
-			root.add(newElement(XARCHIVEPATH, rule.archivePath.substring(1)));
+		dir = rule.getRuleArchivePath();
+		if (dir != null) {
+			if (dir.startsWith(File.separator)) {
+				root.add(newElement(XARCHIVEPATH, dir.substring(1)));
+			} else {
+				root.add(newElement(XARCHIVEPATH, dir));
+			}
 		}
-		if (rule.workPath != null) {
-			root.add(newElement(XWORKPATH, rule.workPath.substring(1)));
+		dir = rule.getRuleWorkPath();
+		if (dir != null) {
+			if (dir.startsWith(File.separator)) {
+				root.add(newElement(XWORKPATH, dir.substring(1)));
+			} else {
+				root.add(newElement(XWORKPATH, dir));
+			}
 		}
 		Element tasks = new DefaultElement(XRPRETASKS);
 		Element roottasks = new DefaultElement(XTASKS);
