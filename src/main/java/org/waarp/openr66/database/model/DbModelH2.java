@@ -34,6 +34,7 @@ import org.waarp.openr66.database.data.DbMultipleMonitor;
 import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.utils.Version;
 
 /**
  * H2 Database Model implementation
@@ -254,6 +255,36 @@ public class DbModelH2 extends org.waarp.common.database.model.DbModelH2 {
 		}
 	}
 
+	/**
+	 * Upgrade Database from version
+	 * @param session
+	 * @param version
+	 * @throws WaarpDatabaseNoConnectionException 
+	 */
+	public void upgradeDb(DbSession session, String version) throws WaarpDatabaseNoConnectionException {
+		System.out.println(version+":"+Version.ID+":"+Configuration.isVersion2GEQVersion1(version, Version.ID));
+		if (Configuration.isVersion2GEQVersion1(version, Version.ID)) {
+			String command = "ALTER TABLE "+DbTaskRunner.table+" ADD COLUMN IF NOT EXISTS "+
+				DbTaskRunner.Columns.TRANSFERINFO.name()+ " "+
+				DBType.getType(DbTaskRunner.dbTypes[DbTaskRunner.Columns.TRANSFERINFO.ordinal()]) + 
+				" NOT NULL DEFAULT '<"+DbHostConfiguration.OtherFields.root.name()+"/>' " +
+				" AFTER "+DbTaskRunner.Columns.FILEINFO.name();
+			DbRequest request = new DbRequest(session);
+			try {
+				System.out.println("Command: "+command);
+				request.query(command);
+			} catch (WaarpDatabaseNoConnectionException e) {
+				e.printStackTrace();
+				return;
+			} catch (WaarpDatabaseSqlException e) {
+				e.printStackTrace();
+				// FIX no return;
+			} finally {
+				request.close();
+			}
+		}
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * @see org.waarp.openr66.databaseold.model.DbModel#resetSequence()

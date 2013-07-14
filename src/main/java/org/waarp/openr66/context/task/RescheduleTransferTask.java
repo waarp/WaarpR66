@@ -21,6 +21,7 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Date;
 
+import org.dom4j.Element;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.openr66.context.ErrorCode;
@@ -56,16 +57,17 @@ import org.waarp.openr66.database.data.DbTaskRunner;
  * while X=n or Xn means setting exact value<br>
  * If one time specification is not set, it is based on the current date.<br>
  * <br>
- * "-count limit" will be the limit of retry. The value limit is taken from the "info on transfer" and not from the rule
- * as "#CPTLIMIT#newlimit#CPTLIMIT#". Each time this function is called, the 
- * limit value will be replaced as newlimit = limit - 1 in the "info of transfer" as "#CPTLIMIT#newlimit#CPTLIMIT#".<br>
- * To ensure correctness, the value must be in the "info of transfer" since this value will be
- * changed statically in the "info of transfer". If taken from the rule, it will be wrong since 
+ * "-count limit" will be the limit of retry. The current value limit is taken from the "transferInfo" internal code 
+ * (not any more the "information of transfer")and not from the rule
+ * as "CPTLIMIT newlimit CPTLIMIT" as XML code. Each time this function is called, the 
+ * limit value will be replaced as newlimit = limit - 1 in the "transferInfo" as "CPTLIMIT newlimit CPTLIMIT" as XML code.<br>
+ * To ensure correctness, the value must be in the "transferInfo" internal code since this value will be
+ * changed statically in the "transferInfo". If taken from the rule, it will be wrong since 
  * the value will never decrease. However, a value must be setup in the rule in order to reset the value
  * when the count reach 0.
  * <br>So in the rule, "-count resetlimit" must be present, where resetlimit will be
- * the new value set when the limit reach 0, and in the "info on transfer",
- * "#CPTLIMIT#limit#CPTLIMIT#" must be present. If one is missing, the condition is not applied.
+ * the new value set when the limit reach 0, and in the "transferInfo" internal code,
+ * "CPTLIMIT limit CPTLIMIT" as XML code must be present. If one is missing, the condition is not applied.
  * <br>
  * <br>
  * If "-notbetween" is specified, the planned date must not be in the area.<br>
@@ -97,6 +99,13 @@ public class RescheduleTransferTask extends AbstractTask {
 	 */
 	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
 			.getLogger(RescheduleTransferTask.class);
+	
+	/**
+	 * Delimiter for -count option in Reschedule to be placed in the transfer info of transfer as
+	 * CPTLIMIT limit CPTLIMIT where limit is an integer.
+	 */
+	public static final String CPTLIMIT = "CPTLIMIT";
+
 
 	protected long newdate = 0;
 
@@ -107,6 +116,8 @@ public class RescheduleTransferTask extends AbstractTask {
 	protected int limitCount = -1;
 	
 	protected int resetCount = -1;
+	
+	protected DbTaskRunner runner = null;
 	
 	/**
 	 * @param argRule
@@ -127,7 +138,7 @@ public class RescheduleTransferTask extends AbstractTask {
 	public void run() {
 		logger.info("Reschedule with " + argRule + ":" + argTransfer +
 				" and {}", session);
-		DbTaskRunner runner = session.getRunner();
+		runner = session.getRunner();
 		if (runner == null) {
 			futureCompletion.setFailure(new OpenR66RunnerErrorException(
 					"No valid runner in Reschedule"));
@@ -170,17 +181,15 @@ public class RescheduleTransferTask extends AbstractTask {
 			futureCompletion.setSuccess();
 			return;
 		}
-		String newFileInformation = null;
 		if (countUsed) {
 			limitCount --;
 			if (limitCount >= 0) {
 				// restart is allowed so resetting to new limitCount 
 				resetCount = limitCount;
 			}
-			newFileInformation = resetInformation(runner, resetCount);
+			resetInformation(resetCount);
 			if (limitCount < 0) {
 				// Must not reschedule since limit is reached
-				runner.setFileInformation(newFileInformation);
 				try {
 					runner.saveStatus();
 				} catch (OpenR66RunnerErrorException e) {
@@ -197,7 +206,6 @@ public class RescheduleTransferTask extends AbstractTask {
 		try {
 			runner.setStart(start);
 			if (runner.restart(true)) {
-				runner.setFileInformation(newFileInformation);
 				runner.saveStatus();
 			}
 		} catch (OpenR66RunnerErrorException e) {
@@ -219,19 +227,14 @@ public class RescheduleTransferTask extends AbstractTask {
 		futureCompletion.setSuccess();
 	}
 	
-	protected String resetInformation(DbTaskRunner runner, int value) {
-		String info = runner.getFileInformation();
-		int pos = info.indexOf(CPTLIMIT);
-		if (pos >= 0) {
-			pos += CPTLIMIT.length();
-			int endpos = info.indexOf(CPTLIMIT, pos);
-			if (endpos >= 0) {
-				// now string replace
-				String limit = info.substring(pos, endpos);
-				return info.replaceFirst(CPTLIMIT+limit+CPTLIMIT, CPTLIMIT+value+CPTLIMIT);
-			}
+	protected void resetInformation(int value) {
+		Element transf = runner.getTransferElement();
+		Element limit = (Element) transf.selectSingleNode(CPTLIMIT);
+		if (limit == null) {
+			limit = transf.addElement(CPTLIMIT);
 		}
-		return info;
+		limit.setText(Integer.toString(value));
+		runner.setTransferElement(transf);
 	}
 
 	protected boolean validateArgs(String[] args) {
@@ -266,16 +269,20 @@ public class RescheduleTransferTask extends AbstractTask {
 					countUsed = false;
 					return false;
 				}
-				String []find = argTransfer.split(CPTLIMIT);
-				if (find.length > 1) {
-					// should be 2nd value
+				Element transf = runner.getTransferElement();
+				Element limit = (Element) transf.selectSingleNode(CPTLIMIT);
+				if (limit != null) {
 					try {
-						limitCount = Integer.parseInt(find[1]);
+						limitCount = Integer.parseInt(limit.getText());
 					} catch (NumberFormatException e) {
-						logger.warn("Limit is not an integer: "+find[1]);
+						logger.warn("Limit is not an integer: "+limit.getText());
 						countUsed = false;
 						return false;
 					}
+				} else {
+					limitCount = 3;
+					limit = transf.addElement(CPTLIMIT);
+					limit.setText(Integer.toString(limitCount));
 				}
 				countUsed = true;
 			}

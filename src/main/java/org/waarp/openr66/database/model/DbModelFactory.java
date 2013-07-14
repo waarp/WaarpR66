@@ -18,6 +18,7 @@
 package org.waarp.openr66.database.model;
 
 import org.waarp.common.database.DbAdmin;
+import org.waarp.common.database.DbSession;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.model.DbType;
 
@@ -62,5 +63,25 @@ public class DbModelFactory extends org.waarp.common.database.model.DbModelFacto
 		}
 		return new DbAdmin(type, dbserver, dbuser, dbpasswd,
 				write);
+	}
+	
+	public static boolean upgradeDb(DbSession session, String version) throws WaarpDatabaseNoConnectionException {
+		switch (dbModel.getDbType()) {
+			case H2:
+				((DbModelH2) dbModel).upgradeDb(session, version);
+				break;
+			case MySQL:
+				((DbModelMysql) dbModel).upgradeDb(session, version);
+				break;
+			case Oracle:
+				((DbModelOracle) dbModel).upgradeDb(session, version);
+				break;
+			case PostGreSQL:
+				((DbModelPostgresql) dbModel).upgradeDb(session, version);
+				break;
+			default:
+				break;
+		}
+		return true;
 	}
 }

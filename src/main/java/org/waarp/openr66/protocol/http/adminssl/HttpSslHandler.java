@@ -71,6 +71,7 @@ import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.context.filesystem.R66Dir;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbHostAuth;
+import org.waarp.openr66.database.data.DbHostConfiguration;
 import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
@@ -210,7 +211,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		XXXXCHANNELLIMITRXXX, XXXXCHANNELLIMITWXXX,
 		XXXXDELAYCOMMDXXX, XXXXDELAYRETRYXXX,
 		XXXLOCALXXX, XXXNETWORKXXX,
-		XXXERRORMESGXXX;
+		XXXERRORMESGXXX,
+		XXXXBUSINESSXXX, XXXXROLESXXX, XXXXALIASESXXX, XXXXOTHERXXX;
 	}
 
 	public static final int LIMITROW = 48; // better if it can
@@ -1456,9 +1458,27 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 
 	private String System() {
 		getParams();
+		DbHostConfiguration config = null;
+		try {
+			config = new DbHostConfiguration(dbSession, Configuration.configuration.HOST_ID);
+		} catch (WaarpDatabaseException e2) {
+			config = new DbHostConfiguration(dbSession, Configuration.configuration.HOST_ID, "", "", "", "");
+			try {
+				config.insert();
+			} catch (WaarpDatabaseException e) {
+			}
+		}
 		if (params == null) {
 			String system = REQUEST.System.readFileUnique(this);
 			StringBuilder builder = new StringBuilder(system);
+			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXBUSINESSXXX.toString(),
+					config.getBusiness());
+			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXROLESXXX.toString(),
+					config.getRoles());
+			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXALIASESXXX.toString(),
+					config.getAliases());
+			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXOTHERXXX.toString(),
+					config.getOthers());
 			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITWXXX.toString(),
 					Long.toString(Configuration.configuration.serverChannelWriteLimit));
 			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITRXXX.toString(),
@@ -1574,11 +1594,28 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					} catch (NumberFormatException e) {
 						extraInformation = "Configuration cannot be Saved due to Format error";
 					}
+				} else if (act.equalsIgnoreCase("HostConfig")) {
+					config.setBusiness(getTrimValue("BUSINESS"));
+					config.setRoles(getTrimValue("ROLES"));
+					config.setAliases(getTrimValue("ALIASES"));
+					config.setOthers(getTrimValue("OTHER"));
+					try {
+						config.update();
+					} catch (WaarpDatabaseException e) {
+					}
 				}
 			}
 		}
 		String system = REQUEST.System.readFileUnique(this);
 		StringBuilder builder = new StringBuilder(system);
+		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXBUSINESSXXX.toString(),
+				config.getBusiness());
+		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXROLESXXX.toString(),
+				config.getRoles());
+		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXALIASESXXX.toString(),
+				config.getAliases());
+		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXOTHERXXX.toString(),
+				config.getOthers());
 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITWXXX.toString(),
 				Long.toString(Configuration.configuration.serverChannelWriteLimit));
 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITRXXX.toString(),

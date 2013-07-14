@@ -20,6 +20,10 @@ package org.waarp.openr66.database.data;
 import java.sql.Types;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
 import org.waarp.common.database.DbPreparedStatement;
 import org.waarp.common.database.DbSession;
 import org.waarp.common.database.data.AbstractDbData;
@@ -73,6 +77,8 @@ public class DbHostConfiguration extends AbstractDbData {
 	private int updatedInfo = UpdatedInfo.UNKNOWN
 			.ordinal();
 
+	public static enum OtherFields {root, version};
+	
 	// ALL TABLE SHOULD IMPLEMENT THIS
 	public static final int NBPRKEY = 1;
 
@@ -188,20 +194,48 @@ public class DbHostConfiguration extends AbstractDbData {
 		allFields[Columns.HOSTID.ordinal()].setValue(hostid);
 		if (business == null) {
 			business = "";
+		} else {
+			int len;
+			do {
+				len = business.length();
+				business = business.replaceAll("\\s+", " ");
+			}
+			while (len != business.length());
 		}
 		allFields[Columns.BUSINESS.ordinal()].setValue(business);
 		if (roles == null) {
 			roles = "";
+		} else {
+			int len;
+			do {
+				len = roles.length();
+				roles = roles.replaceAll("\\s+", " ");
+			}
+			while (len != roles.length());
 		}
 		allFields[Columns.ROLES.ordinal()]
 				.setValue(roles);
 		if (aliases == null) {
 			aliases = "";
+		} else {
+			int len;
+			do {
+				len = aliases.length();
+				aliases = aliases.replaceAll("\\s+", " ");
+			}
+			while (len != aliases.length());
 		}
 		allFields[Columns.ALIASES.ordinal()]
 				.setValue(aliases);
 		if (others == null) {
 			others = "";
+		} else {
+			int len;
+			do {
+				len = others.length();
+				others = others.replaceAll("\\s+", " ");
+			}
+			while (len != others.length());
 		}
 		allFields[Columns.OTHERS.ordinal()]
 				.setValue(others);
@@ -291,6 +325,12 @@ public class DbHostConfiguration extends AbstractDbData {
 	 */
 	public void setBusiness(String business) {
 		this.business = business == null ? "" : business;
+		int len;
+		do {
+			len = this.business.length();
+			this.business = this.business.replaceAll("\\s+", " ");
+		}
+		while (len != this.business.length());
 		allFields[Columns.BUSINESS.ordinal()].setValue(business);
 		isSaved = false;
 	}
@@ -307,6 +347,12 @@ public class DbHostConfiguration extends AbstractDbData {
 	 */
 	public void setRoles(String roles) {
 		this.roles = roles == null ? "" : roles;
+		int len;
+		do {
+			len = this.roles.length();
+			this.roles = this.roles.replaceAll("\\s+", " ");
+		}
+		while (len != this.roles.length());
 		allFields[Columns.ROLES.ordinal()].setValue(roles);
 		isSaved = false;
 	}
@@ -323,6 +369,12 @@ public class DbHostConfiguration extends AbstractDbData {
 	 */
 	public void setAliases(String aliases) {
 		this.aliases = aliases == null ? "" : aliases;
+		int len;
+		do {
+			len = this.aliases.length();
+			this.aliases = this.aliases.replaceAll("\\s+", " ");
+		}
+		while (len != this.aliases.length());
 		allFields[Columns.ALIASES.ordinal()].setValue(aliases);
 		isSaved = false;
 	}
@@ -339,10 +391,42 @@ public class DbHostConfiguration extends AbstractDbData {
 	 */
 	public void setOthers(String others) {
 		this.others = others == null ? "" : others;
+		int len;
+		do {
+			len = this.others.length();
+			this.others = this.others.replaceAll("\\s+", " ");
+		}
+		while (len != this.others.length());
 		allFields[Columns.OTHERS.ordinal()].setValue(others);
 		isSaved = false;
 	}
 
+	/**
+	 * 
+	 * @return the element for the content of the other part
+	 */
+	public Element getOtherElement() {
+		if (others != null && others.length() > 0) {
+			Document document;
+			try {
+				document = DocumentHelper.parseText(others);
+			} catch (DocumentException e) {
+				return DocumentHelper.createElement(OtherFields.root.name());
+			}
+			return document.getRootElement();
+		} else {
+			return DocumentHelper.createElement(OtherFields.root.name());
+		}
+	}
+	
+	/**
+	 * 
+	 * @param element the element to set as XML string to other part
+	 */
+	public void setOtherElement(Element element) {
+		setOthers(element.asXML());
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * @see org.waarp.openr66.databaseold.data.AbstractDbData#delete()

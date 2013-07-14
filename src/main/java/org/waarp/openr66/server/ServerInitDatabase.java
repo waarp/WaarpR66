@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
+import org.dom4j.Element;
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
@@ -36,6 +37,7 @@ import org.waarp.openr66.database.model.DbModelFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
+import org.waarp.openr66.protocol.utils.Version;
 
 /**
  * Utility class to initiate the database for a server
@@ -51,6 +53,7 @@ public class ServerInitDatabase {
 
 	static String sxml = null;
 	static boolean database = false;
+	static boolean upgradeDb = false;
 	static String sbusiness = null;
 	static String salias = null;
 	static String sroles = null;
@@ -68,13 +71,16 @@ public class ServerInitDatabase {
 					"    -loadRoles xmlfile for Roles configuration\n" +
 					"    -dir directory for rules configuration\n" +
 					"    -limit xmlfile containing limit of bandwidth\n" +
-					"    -auth xml file containing the authentication of hosts");
+					"    -auth xml file containing the authentication of hosts\n" +
+					"    -upgradeDb");
 			return false;
 		}
 		sxml = args[0];
 		for (int i = 1; i < args.length; i++) {
 			if (args[i].equalsIgnoreCase("-initdb")) {
 				database = true;
+			} else if (args[i].equalsIgnoreCase("-upgradeDb")) {
+				upgradeDb = true;
 			} else if (args[i].equalsIgnoreCase("-loadBusiness")) {
 				i++;
 				sbusiness = args[i];
@@ -116,7 +122,8 @@ public class ServerInitDatabase {
 					"    -loadRoles xmlfile for Roles configuration\n" +
 					"    -dir directory for rules configuration\n" +
 					"    -limit xmlfile containing limit of bandwidth\n" +
-					"    -auth xml file containing the authentication of hosts");
+					"    -auth xml file containing the authentication of hosts\n" +
+					"    -upgradeDb");
 			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
 				DbConstant.admin.close();
 			}
@@ -145,6 +152,33 @@ public class ServerInitDatabase {
 					return;
 				}
 				System.out.println("End creation");
+			}
+			if (upgradeDb) {
+				// try to upgrade DB schema
+				try {
+					upgradedb();
+				} catch (WaarpDatabaseNoConnectionException e) {
+					logger.error("Cannot connect to database");
+					return;
+				}
+				System.out.println("End upgrade");
+			}
+			if (database || upgradeDb) {
+				DbHostConfiguration config;
+				try {
+					config = new DbHostConfiguration(DbConstant.admin.session, Configuration.configuration.HOST_ID);
+					Element other = config.getOtherElement();
+					if (other != null) {
+						Element version = (Element) other.selectSingleNode(DbHostConfiguration.OtherFields.version.name());
+						if (version == null) {
+							version = other.addElement(DbHostConfiguration.OtherFields.version.name());
+						}
+						version.setText(Version.ID);
+						config.update();
+					}
+				} catch (WaarpDatabaseException e) {
+					// ignore
+				}
 			}
 			if (sdirconfig != null) {
 				// load Rules
@@ -265,6 +299,27 @@ public class ServerInitDatabase {
 	public static void initdb() throws WaarpDatabaseNoConnectionException {
 		// Create tables: configuration, hosts, rules, runner, cptrunner
 		DbModelFactory.dbModel.createTables(DbConstant.admin.session);
+	}
+
+	public static void upgradedb() throws WaarpDatabaseNoConnectionException {
+		// Update tables: runner
+		DbHostConfiguration config;
+		try {
+			config = new DbHostConfiguration(DbConstant.admin.session, Configuration.configuration.HOST_ID);
+			Element other = config.getOtherElement();
+			if (other != null) {
+				Element version = (Element) other.selectSingleNode(DbHostConfiguration.OtherFields.version.name());
+				if (version != null) {
+					DbModelFactory.upgradeDb(DbConstant.admin.session, version.getText());
+				} else {
+					DbModelFactory.upgradeDb(DbConstant.admin.session, "1.1.0");
+				}
+			} else {
+				DbModelFactory.upgradeDb(DbConstant.admin.session, "1.1.0");
+			}
+		} catch (WaarpDatabaseException e) {
+			// ignore
+		}
 	}
 
 	public static void loadRules(File dirConfig) {

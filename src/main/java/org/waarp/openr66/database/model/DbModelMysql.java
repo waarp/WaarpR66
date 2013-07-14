@@ -35,6 +35,7 @@ import org.waarp.openr66.database.data.DbMultipleMonitor;
 import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.utils.Version;
 
 /**
  * MySQL Database Model implementation
@@ -278,6 +279,33 @@ public class DbModelMysql extends org.waarp.common.database.model.DbModelMysql {
 		}
 	}
 
+	/**
+	 * Upgrade Database from version
+	 * @param session
+	 * @param version
+	 * @throws WaarpDatabaseNoConnectionException 
+	 */
+	public void upgradeDb(DbSession session, String version) throws WaarpDatabaseNoConnectionException {
+		if (Configuration.isVersion2GEQVersion1(Version.ID, version)) {
+			String command = "ALTER TABLE "+DbTaskRunner.table+" ADD COLUMN "+
+					DbTaskRunner.Columns.TRANSFERINFO.name()+ " "+
+					DBType.getType(DbTaskRunner.dbTypes[DbTaskRunner.Columns.TRANSFERINFO.ordinal()]) +  
+					" DEFAULT '<"+DbHostConfiguration.OtherFields.root.name()+"/>' NOT NULL "+
+					" AFTER "+DbTaskRunner.Columns.FILEINFO.name();
+			DbRequest request = new DbRequest(session);
+			try {
+				request.query(command);
+			} catch (WaarpDatabaseNoConnectionException e) {
+				e.printStackTrace();
+				return;
+			} catch (WaarpDatabaseSqlException e) {
+				// FIX no return;
+			} finally {
+				request.close();
+			}
+		}
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * @see org.waarp.openr66.databaseold.model.DbModel#resetSequence()

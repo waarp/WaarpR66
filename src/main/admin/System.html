@@ -97,7 +97,7 @@ a img {
 <div id="Comp2_MenuVertical"></div></td>
 <td style="vertical-align:top;">
 <h1 class="h1">System</h1>
-<div id="Comp1_sys_doctext"><p>You can edit System configuration from here, disconnect from the Administrator or even shutdown the OpenR66 server.</p>
+<div id="Comp1_sys_doctext"><p>You can edit System and Host configuration from here, disconnect from the Administrator or even shutdown the OpenR66 server.</p>
 <p>&nbsp;</p>
   <form method="post" name="SYSTEM" action="/System.html">
     Bandwidth Session Read Limit (B/s):
@@ -140,6 +140,37 @@ a img {
     <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <input type="submit" value="Validate" name="ACTION">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <input type="reset" value="Restore" name="ACTION"></p>
+  </form>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+  <form method="post" name="SYSTEM" action="/System.html">
+    Business configuration:
+    <textarea rows="5" name="BUSINESS" cols="40">XXXXBUSINESSXXX</textarea>
+    <img id="sbushelp" alt="help for Business field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containersbushelp"><p class="cshelp">
+	List of Hosts allowed to use Business requests.
+	</p></div>
+    Roles configuration:
+    <textarea rows="5" name="ROLES" cols="40">XXXXROLESXXX</textarea>
+    <img id="srolhelp" alt="help for Roles field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containersrolhelp"><p class="cshelp">
+	Specific sub-roles specified for host and partners.
+	</p></div><br>
+    Aliases:&nbsp;&nbsp;
+    <textarea rows="5" name="ALIASES" cols="40">XXXXALIASESXXX</textarea>
+    <img id="salihelp" alt="help for Aliases field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containersalihelp"><p class="cshelp">
+	Aliases for partner's names.
+	</p></div>
+    Other informations:&nbsp;&nbsp;
+    <textarea rows="5" name="OTHER" cols="40">XXXXOTHERXXX</textarea>
+    <img id="sothhelp" alt="help for Other field"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containersothhelp"><p class="cshelp">
+	Other information (not yet defined).
+	</p></div><br>
+    <p>&nbsp;</p>
+    <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <input type="submit" value="HostConfig" name="ACTION"></p>
   </form>
 <p>&nbsp;</p>
 <p>&nbsp;</p>
