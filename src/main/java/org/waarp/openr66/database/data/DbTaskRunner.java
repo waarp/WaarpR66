@@ -22,10 +22,13 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.dom4j.Document;
@@ -76,6 +79,12 @@ import org.waarp.openr66.protocol.utils.NbAndSpecialId;
 import org.waarp.openr66.protocol.utils.R66Future;
 import org.xml.sax.SAXException;
 
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
  * Task Runner from pre operation to transfer to post operation, except in case of error
  * 
@@ -88,6 +97,8 @@ public class DbTaskRunner extends AbstractDbData {
 	 */
 	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
 			.getLogger(DbTaskRunner.class);
+
+	public static ObjectMapper mapper = new ObjectMapper();
 
 	public static enum Columns {
 		GLOBALSTEP,
@@ -184,7 +195,7 @@ public class DbTaskRunner extends AbstractDbData {
 
 	private String fileInformation;
 	
-	private String transferInformation = "<root/>";
+	private String transferInformation = "{}";
 
 	private int mode;
 
@@ -2267,37 +2278,56 @@ public class DbTaskRunner extends AbstractDbData {
 	}
 
 	/**
-	 * @return the transferInformation
-	 */
-	public String getTransferInformation() {
-		return transferInformation;
-	}
-
-	/**
 	 * 
-	 * @return the element for the content of the transferInformation
+	 * @return the Map<String, Object> for the content of the transferInformation
 	 */
-	public Element getTransferElement() {
+	public Map<String, Object> getTransferMap() {
 		if (transferInformation != null && transferInformation.length() > 0) {
-			Document document;
+			Map<String, Object> info = null;
 			try {
-				document = DocumentHelper.parseText(transferInformation);
-			} catch (DocumentException e) {
-				logger.warn("Cannot parse transfer information", e);
-				return DocumentHelper.createElement("root");
+				info = mapper.readValue(transferInformation, new TypeReference<Map<String, Object>>() {});
+			} catch (JsonParseException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (JsonMappingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
-			return document.getRootElement();
+			if (info == null) {
+				info = new HashMap<String, Object>();
+			}
+			return info;
 		} else {
-			return DocumentHelper.createElement("root");
+			return new HashMap<String, Object>();
 		}
 	}
 	
 	/**
 	 * 
-	 * @param element the element to set as XML string to transferInformation
+	 * @param map the Map to set as XML string to transferInformation
 	 */
-	public void setTransferElement(Element element) {
-		setTransferInformation(element.asXML());
+	public void setTransferMap(Map<String, Object> map) {
+		StringWriter writer = new StringWriter();
+		try {
+			mapper.writeValue(writer, map);
+		} catch (JsonGenerationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		setTransferInformation(writer.toString());
+		try {
+			writer.close();
+		} catch (IOException e) {
+		}
 	}
 	
 	/**
@@ -2313,7 +2343,7 @@ public class DbTaskRunner extends AbstractDbData {
 	/**
 	 * @param transferInformation the transferInformation to set
 	 */
-	public void setTransferInformation(String transferInformation) {
+	private void setTransferInformation(String transferInformation) {
 		this.transferInformation = transferInformation;
 		allFields[Columns.TRANSFERINFO.ordinal()].setValue(this.transferInformation);
 		isSaved = false;

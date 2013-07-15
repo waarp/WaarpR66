@@ -20,8 +20,8 @@ package org.waarp.openr66.context.task;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Map;
 
-import org.dom4j.Element;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.openr66.context.ErrorCode;
@@ -29,6 +29,7 @@ import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
 import org.waarp.openr66.database.data.DbTaskRunner;
+
 
 /**
  * Reschedule Transfer task to a time delayed by the specified number of milliseconds, if the error
@@ -59,15 +60,15 @@ import org.waarp.openr66.database.data.DbTaskRunner;
  * <br>
  * "-count limit" will be the limit of retry. The current value limit is taken from the "transferInfo" internal code 
  * (not any more the "information of transfer")and not from the rule
- * as "CPTLIMIT newlimit CPTLIMIT" as XML code. Each time this function is called, the 
- * limit value will be replaced as newlimit = limit - 1 in the "transferInfo" as "CPTLIMIT newlimit CPTLIMIT" as XML code.<br>
+ * as "{"CPTLIMIT": limit}" as JSON code. Each time this function is called, the 
+ * limit value will be replaced as newlimit = limit - 1 in the "transferInfo" as "{"CPTLIMIT": limit}" as JSON code.<br>
  * To ensure correctness, the value must be in the "transferInfo" internal code since this value will be
  * changed statically in the "transferInfo". If taken from the rule, it will be wrong since 
  * the value will never decrease. However, a value must be setup in the rule in order to reset the value
  * when the count reach 0.
  * <br>So in the rule, "-count resetlimit" must be present, where resetlimit will be
  * the new value set when the limit reach 0, and in the "transferInfo" internal code,
- * "CPTLIMIT limit CPTLIMIT" as XML code must be present. If one is missing, the condition is not applied.
+ * "{"CPTLIMIT": limit}" as JSON code must be present. If one is missing, the condition is not applied.
  * <br>
  * <br>
  * If "-notbetween" is specified, the planned date must not be in the area.<br>
@@ -102,9 +103,10 @@ public class RescheduleTransferTask extends AbstractTask {
 	
 	/**
 	 * Delimiter for -count option in Reschedule to be placed in the transfer info of transfer as
-	 * CPTLIMIT limit CPTLIMIT where limit is an integer.
+	 * {"CPTLIMIT": limit} where limit is an integer.
 	 */
 	public static final String CPTLIMIT = "CPTLIMIT";
+	public static final String CPTTOTAL = "CPTTOTAL";
 
 
 	protected long newdate = 0;
@@ -114,6 +116,8 @@ public class RescheduleTransferTask extends AbstractTask {
 	protected boolean countUsed = false;
 	
 	protected int limitCount = -1;
+
+	protected int totalCount = 0;
 	
 	protected int resetCount = -1;
 	
@@ -228,13 +232,17 @@ public class RescheduleTransferTask extends AbstractTask {
 	}
 	
 	protected void resetInformation(int value) {
-		Element transf = runner.getTransferElement();
-		Element limit = (Element) transf.selectSingleNode(CPTLIMIT);
-		if (limit == null) {
-			limit = transf.addElement(CPTLIMIT);
+		Map<String, Object> root = runner.getTransferMap();
+		root.put(CPTLIMIT, value);
+		try {
+			totalCount = (Integer) root.get(CPTTOTAL);
+			totalCount++;
+			root.put(CPTTOTAL, totalCount);
+		} catch (Exception e) {
+			totalCount = 1;
+			root.put(CPTTOTAL, totalCount);
 		}
-		limit.setText(Integer.toString(value));
-		runner.setTransferElement(transf);
+		runner.setTransferMap(root);
 	}
 
 	protected boolean validateArgs(String[] args) {
@@ -269,20 +277,19 @@ public class RescheduleTransferTask extends AbstractTask {
 					countUsed = false;
 					return false;
 				}
-				Element transf = runner.getTransferElement();
-				Element limit = (Element) transf.selectSingleNode(CPTLIMIT);
+				Map<String, Object> root = runner.getTransferMap();
+				Integer limit = null;
+				try {
+					limit = (Integer) root.get(CPTLIMIT);
+				} catch (Exception e) {
+					logger.warn("Bad Long format: CPTLIMIT", e);
+					return false;
+				}
 				if (limit != null) {
-					try {
-						limitCount = Integer.parseInt(limit.getText());
-					} catch (NumberFormatException e) {
-						logger.warn("Limit is not an integer: "+limit.getText());
-						countUsed = false;
-						return false;
-					}
+					limitCount = limit;
 				} else {
-					limitCount = 3;
-					limit = transf.addElement(CPTLIMIT);
-					limit.setText(Integer.toString(limitCount));
+					limitCount = resetCount;
+					root.put(CPTLIMIT, limitCount);
 				}
 				countUsed = true;
 			}
