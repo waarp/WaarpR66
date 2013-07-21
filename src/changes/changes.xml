@@ -14,7 +14,8 @@
 		    <action dev="Frederic Bregier" type="add">Add support to explicitely said to partner one host is proxified, in order they do not check its IP address</action>
 		    <action dev="Frederic Bregier" type="add">Add support in web administration for BUSINESS, ROLE and ALIAS</action>
 		    <action dev="Frederic Bregier" type="add">Add support for Database upgrade according to version of schema</action>
-			<action dev="Frederic Bregier" type="fix">Update dependencies</action>
+			<action dev="Frederic Bregier" type="fix">Fix Move File not correctly tested</action>
+		    <action dev="Frederic Bregier" type="fix">Update dependencies</action>
 		</release>
 	    <release version="2.4.16" date="2013-07-11" description="Fix release">
 		    <action dev="Frederic Bregier" type="fix">Fix R66 Proxy issue</action>
