@@ -694,7 +694,7 @@ public class DbHostAuth extends AbstractDbData {
 				" admin: " + adminrole + " isClient: " + isClient + " ("
 				+ (hostkey != null ? hostkey.length : 0) + ") Version: "
 				+ (Configuration.configuration.versions.containsKey(hostid) ? 
-						Configuration.configuration.versions.get(hostid) :
+						Configuration.configuration.versions.get(hostid).toString() :
 							"Unknown");
 	}
 

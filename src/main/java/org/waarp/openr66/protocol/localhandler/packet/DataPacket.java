@@ -19,6 +19,7 @@ package org.waarp.openr66.protocol.localhandler.packet;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
+import org.waarp.common.digest.FilesystemBasedDigest.DigestAlgo;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.utils.FileUtils;
 
@@ -152,13 +153,13 @@ public class DataPacket extends AbstractLocalPacket {
 
 	/**
 	 * 
-	 * @return True if the MD5 key is valid (or no key is set)
+	 * @return True if the Hashed key is valid (or no key is set)
 	 */
-	public boolean isKeyValid() {
+	public boolean isKeyValid(DigestAlgo algo) {
 		if (key == null || key == ChannelBuffers.EMPTY_BUFFER) {
 			return true;
 		}
-		ChannelBuffer newbufkey = FileUtils.getHash(data);
+		ChannelBuffer newbufkey = FileUtils.getHash(data, algo);
 		return ChannelBuffers.equals(key, newbufkey);
 	}
 }

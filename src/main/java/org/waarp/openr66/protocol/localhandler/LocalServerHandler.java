@@ -65,6 +65,7 @@ import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseNoDataException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.digest.FilesystemBasedDigest;
+import org.waarp.common.digest.FilesystemBasedDigest.DigestAlgo;
 import org.waarp.common.exception.FileTransferException;
 import org.waarp.common.file.DataBlock;
 import org.waarp.common.logging.WaarpInternalLogger;
@@ -88,6 +89,7 @@ import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66DatabaseGlobalException;
 import org.waarp.openr66.protocol.exception.OpenR66Exception;
 import org.waarp.openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
@@ -156,6 +158,14 @@ public class LocalServerHandler extends SimpleChannelHandler {
 	 * Global Digest in receive
 	 */
 	private volatile FilesystemBasedDigest globalDigest;
+	/**
+	 * Global Digest in receive using local hash if necessary
+	 */
+	private volatile FilesystemBasedDigest localDigest;
+	/**
+	 * PartnerConfiguration
+	 */
+	private volatile PartnerConfiguration partner;
 	
 	/*
 	 * (non-Javadoc)
@@ -210,10 +220,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				// Since requested : log
 				R66Result result = transfer.getResult();
 				if (transfer.isDone() && transfer.isSuccess()) {
-					logger.info("TRANSFER REQUESTED RESULT:\n    SUCCESS\n    " +
+					logger.info("TRANSFER REQUESTED RESULT:     SUCCESS     " +
 							(result != null ? result.toString() : "no result"));
 				} else {
-					logger.error("TRANSFER REQUESTED RESULT:\n    FAILURE\n    " +
+					logger.error("TRANSFER REQUESTED RESULT:     FAILURE     " +
 							(result != null ? result.toString() : "no result"));
 				}
 			}
@@ -323,6 +333,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				// Already done case LocalPacketFactory.STARTUPPACKET:
 				case LocalPacketFactory.DATAPACKET: {
 					session.newState(DATAR);
+					logger.debug("DATA RANK: " + ((DataPacket) packet).getPacketRank() + " : " +
+							session.getRunner().getRank());
 					data(e.getChannel(), (DataPacket) packet);
 					break;
 				}
@@ -509,6 +521,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				} else if (exception instanceof OpenR66ProtocolBusinessRemoteFileNotFoundException) {
 					code = ErrorCode.FileNotFound;
 				} else if (exception instanceof OpenR66RunnerException) {
+					code = ErrorCode.ExternalOp;
+				} else if (exception instanceof OpenR66RunnerErrorException) {
 					code = ErrorCode.ExternalOp;
 				} else if (exception instanceof OpenR66ProtocolNotAuthenticatedException) {
 					code = ErrorCode.BadAuthent;
@@ -714,8 +728,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			session.setStatus(43);
 			return;
 		}
+		partner = Configuration.configuration.versions.get(packet.getHostId());
 		// Now if configuration say to do so: check remote ip address
-		if (Configuration.configuration.checkRemoteAddress) {
+		if (Configuration.configuration.checkRemoteAddress && ! partner.isProxified()) {
 			DbHostAuth host = R66Auth.getServerAuth(DbConstant.admin.session,
 					packet.getHostId());
 			boolean toTest = false;
@@ -778,7 +793,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false);
 			session.setStatus(98);
 		}
-		logger.debug("versions: {}", Configuration.configuration.versions);
+		logger.debug("Partner: {} from {}", partner, Configuration.configuration.versions);
 	}
 
 	/**
@@ -1063,7 +1078,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			// Check if the blocksize is greater than local value
 			if (Configuration.configuration.BLOCKSIZE < blocksize) {
 				blocksize = Configuration.configuration.BLOCKSIZE;
-				String sep = Configuration.getSeparator(session.getAuth().getUser());
+				String sep = partner.getSeperator();
 				packet = new RequestPacket(packet.getRulename(), packet.getMode(),
 						packet.getFilename(), blocksize, packet.getRank(),
 						packet.getSpecialId(), packet.getFileInformation(), packet.getOriginalSize(), sep);
@@ -1275,7 +1290,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					runner.getFilename());
 			session.newState(VALID);
 			ValidPacket validPacket = new ValidPacket("Change Filename by Pre action on sender",
-					runner.getFilename()+Configuration.BAR_SEPARATOR_FIELD+packet.getOriginalSize(),
+					runner.getFilename()+PartnerConfiguration.BAR_SEPARATOR_FIELD+packet.getOriginalSize(),
 					LocalPacketFactory.REQUESTPACKET);
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference,
 					validPacket, true);
@@ -1289,7 +1304,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					runner.getFilename());
 			session.newState(VALID);
 			ValidPacket validPacket = new ValidPacket("Change Filename by Wildcard on sender",
-					runner.getFilename()+Configuration.BAR_SEPARATOR_FIELD+packet.getOriginalSize(), 
+					runner.getFilename()+PartnerConfiguration.BAR_SEPARATOR_FIELD+packet.getOriginalSize(), 
 					LocalPacketFactory.REQUESTPACKET);
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference,
 					validPacket, true);
@@ -1303,7 +1318,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					runner.getFilename());
 			session.newState(VALID);
 			ValidPacket validPacket = new ValidPacket("Change Filename by Wildcard on sender",
-					runner.getFilename()+Configuration.BAR_SEPARATOR_FIELD+packet.getOriginalSize(), 
+					runner.getFilename()+PartnerConfiguration.BAR_SEPARATOR_FIELD+packet.getOriginalSize(), 
 					LocalPacketFactory.REQUESTPACKET);
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference,
 					validPacket, true);
@@ -1313,7 +1328,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					runner.getOriginalSize());
 			session.newState(VALID);
 			ValidPacket validPacket = new ValidPacket("Change Filesize on sender",
-					runner.getFilename()+Configuration.BAR_SEPARATOR_FIELD+packet.getOriginalSize(), 
+					runner.getFilename()+PartnerConfiguration.BAR_SEPARATOR_FIELD+packet.getOriginalSize(), 
 					LocalPacketFactory.REQUESTPACKET);
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference,
 					validPacket, true);
@@ -1379,17 +1394,21 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			throws OpenR66ProtocolNotAuthenticatedException,
 			OpenR66ProtocolBusinessException, OpenR66ProtocolPacketException {
 		if (!session.isAuthenticated()) {
+			logger.debug("Not authenticated while Data received");
 			throw new OpenR66ProtocolNotAuthenticatedException(
 					"Not authenticated while Data received");
 		}
 		if (!session.isReady()) {
+			logger.debug("No request prepared");
 			throw new OpenR66ProtocolBusinessException("No request prepared");
 		}
 		if (session.getRunner().isSender()) {
+			logger.debug("Not in receive MODE but receive a packet");
 			throw new OpenR66ProtocolBusinessException(
 					"Not in receive MODE but receive a packet");
 		}
 		if (!session.getRunner().continueTransfer()) {
+			logger.debug("EndTransfer failed ? "+localChannelReference.getFutureEndTransfer().isFailed());
 			if (localChannelReference.getFutureEndTransfer().isFailed()) {
 				// nothing to do since already done
 				session.setStatus(94);
@@ -1413,6 +1432,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			return;
 		}
 		if (packet.getPacketRank() != session.getRunner().getRank()) {
+			logger.debug("Issue on rank: "+packet.getPacketRank() +":"+ session.getRunner().getRank());
 			// Fix the rank if possible
 			if (packet.getPacketRank() < session.getRunner().getRank()) {
 				logger.debug("Bad RANK: " + packet.getPacketRank() + " : " +
@@ -1471,7 +1491,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		DataBlock dataBlock = new DataBlock();
 		// if MD5 check MD5
 		if (RequestPacket.isMD5Mode(session.getRunner().getMode())) {
-			if (!packet.isKeyValid()) {
+			logger.debug("AlgoDigest: "+(partner != null ? partner.getDigestAlgo() : "usual algo"));
+			if (!packet.isKeyValid(partner.getDigestAlgo())) {
 				// Wrong packet
 				logger.error("Wrong MD5 Packet: {}", packet);
 				session.newState(ERROR);
@@ -1499,20 +1520,40 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					if (session.getRunner().getRank() > 0) {
 						localChannelReference.setPartialHash();
 					}
-					globalDigest = new FilesystemBasedDigest(Configuration.configuration.digest);
+					if (partner != null) {
+						if (partner.useFinalHash()) {
+							DigestAlgo algo = partner.getDigestAlgo();
+							if (algo != Configuration.configuration.digest) {
+								globalDigest = new FilesystemBasedDigest(algo);
+								localDigest = new FilesystemBasedDigest(Configuration.configuration.digest);
+							}
+						}
+					}
+					if (globalDigest == null) {
+						globalDigest = new FilesystemBasedDigest(Configuration.configuration.digest);
+						localDigest = null;
+					}
 				} catch (NoSuchAlgorithmException e) {
 				}
+				logger.debug("GlobalDigest: "+partner.getDigestAlgo()+" different? "+(localDigest != null));
 			}
 			FileUtils.computeGlobalHash(globalDigest, packet.getData());
+			if (localDigest != null) {
+				FileUtils.computeGlobalHash(localDigest, packet.getData());
+			}
 		}
 		if (session.getRunner().isRecvThrough() && localChannelReference.isRecvThroughMode()) {
 			localChannelReference.getRecvThroughHandler().writeChannelBuffer(packet.getData());
 			session.getRunner().incrementRank();
+			logger.debug("Good RANK: " + packet.getPacketRank() + " : " +
+					session.getRunner().getRank());
 		} else {
 			dataBlock.setBlock(packet.getData());
 			try {
 				session.getFile().writeDataBlock(dataBlock);
 				session.getRunner().incrementRank();
+				logger.debug("Good RANK: " + packet.getPacketRank() + " : " +
+					session.getRunner().getRank());
 			} catch (FileTransferException e) {
 				session.newState(ERROR);
 				try {
@@ -1593,9 +1634,18 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				try {
 					if (!session.getRunner().isRecvThrough() && session.getFile().length() != originalSize) {
 						R66Result result = new R66Result(new OpenR66RunnerErrorException("Final size in error, transfer in error and rank should be reset to 0"),
-								session, false, ErrorCode.TransferError, session.getRunner());
+								session, true, ErrorCode.TransferError, session.getRunner());
 						localChannelReference.invalidateRequest(result);
-						throw (OpenR66RunnerErrorException) result.exception;
+						ErrorPacket error = new ErrorPacket(
+								"Final size in error, transfer in error and rank should be reset to 0",
+								ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
+						try {
+							ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
+						} catch (OpenR66ProtocolPacketException e) {
+						}
+						session.setStatus(23);
+						ChannelCloseTimer.closeFutureChannel(channel);
+						return;
 					}
 				} catch (CommandAbstractException e) {
 					// ignore
@@ -1603,6 +1653,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			}
 			// check if possible Global Digest
 			String hash = packet.getOptional();
+			logger.debug("GlobalDigest: "+partner.getDigestAlgo()+" different? "+(localDigest != null)+" remoteHash? "+(hash != null));
 			if (hash != null && globalDigest != null) {
 				String localhash = FilesystemBasedDigest.getHex(globalDigest.Final());
 				globalDigest = null;
@@ -1610,18 +1661,36 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					// bad global Hash
 					//session.getRunner().setRankAtStartup(0);
 					R66Result result = new R66Result(new OpenR66RunnerErrorException("Global Hash in error, transfer in error and rank should be reset to 0"),
-							session, false, ErrorCode.MD5Error, session.getRunner());
+							session, true, ErrorCode.MD5Error, session.getRunner());
 					localChannelReference.invalidateRequest(result);
-					throw (OpenR66RunnerErrorException) result.exception;
+					ErrorPacket error = new ErrorPacket(
+							"Global Hash in error, transfer in error and rank should be reset to 0",
+							ErrorCode.MD5Error.getCode(), ErrorPacket.FORWARDCLOSECODE);
+					try {
+						ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
+					} catch (OpenR66ProtocolPacketException e) {
+					}
+					session.setStatus(23);
+					ChannelCloseTimer.closeFutureChannel(channel);
+					return;
 				} else {
+					if (localDigest != null) {
+						localhash = FilesystemBasedDigest.getHex(localDigest.Final());
+					}
 					localChannelReference.setHashComputeDuringTransfer(localhash);
 					logger.debug("Global digest ok");
 				}
 			} else if (globalDigest != null) {
-				String localhash = FilesystemBasedDigest.getHex(globalDigest.Final());
+				String localhash = null;
+				if (localDigest != null) {
+					localhash = FilesystemBasedDigest.getHex(localDigest.Final());
+				} else {
+					localhash = FilesystemBasedDigest.getHex(globalDigest.Final());
+				}
 				globalDigest = null;
 				localChannelReference.setHashComputeDuringTransfer(localhash);
 			}
+			localDigest = null;
 			globalDigest = null;
 			session.newState(ENDTRANSFERS);
 			if (!localChannelReference.getFutureRequest().isDone()) {
@@ -2359,7 +2428,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			case LocalPacketFactory.REQUESTPACKET: {
 				session.newState(VALID);
 				// The filename or filesize from sender is changed due to PreTask so change it too in receiver
-				String [] fields = packet.getSmiddle().split(Configuration.BAR_SEPARATOR_FIELD);
+				String [] fields = packet.getSmiddle().split(PartnerConfiguration.BAR_SEPARATOR_FIELD);
 				String newfilename = fields[0];
 				// potential file size changed
 				long newSize = -1;
@@ -2370,7 +2439,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 							session.getRunner().setOriginalSize(newSize);
 						}
 					} catch (NumberFormatException e) {
-						newfilename += Configuration.BAR_SEPARATOR_FIELD + fields[fields.length-1];
+						newfilename += PartnerConfiguration.BAR_SEPARATOR_FIELD + fields[fields.length-1];
 					}
 				}
 				// check if send is already on going
@@ -2504,7 +2573,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 	 */
 	private void endRequest(Channel channel, EndRequestPacket packet) {
 		// Validate the last post action on a transfer from receiver remote host
-		logger.info("Valid Request {}\nPacket {}",
+		logger.info("Valid Request {} Packet {}",
 				localChannelReference,
 				packet);
 		DbTaskRunner runner = session.getRunner();
@@ -2644,7 +2713,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			if (result == null) {
 				result = new R66Result(session, false, ErrorCode.ExternalOp, session.getRunner());
 			}
-			logger.info("Task in Error:" + argRule + "\n" + result);
+			logger.info("Task in Error:" + argRule + " " + result);
 			if (!result.isAnswered) {
 				packet.invalidate();
 				session.newState(ERROR);

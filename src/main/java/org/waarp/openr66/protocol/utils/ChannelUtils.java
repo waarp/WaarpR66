@@ -231,7 +231,7 @@ public class ChannelUtils extends Thread {
 		ChannelBuffer md5 = ChannelBuffers.EMPTY_BUFFER;
 		DbTaskRunner runner = localChannelReference.getSession().getRunner();
 		if (RequestPacket.isMD5Mode(runner.getMode())) {
-			md5 = FileUtils.getHash(block.getBlock());
+			md5 = FileUtils.getHash(block.getBlock(), Configuration.configuration.digest);
 		}
 		localChannelReference.sessionNewState(R66FiniteDualStates.DATAS);
 		DataPacket data = new DataPacket(runner.getRank(), block.getBlock()

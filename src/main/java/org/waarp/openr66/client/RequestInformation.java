@@ -246,10 +246,10 @@ public class RequestInformation implements Runnable {
 				value = 0;
 				R66Result r66result = result.getResult();
 				ValidPacket info = (ValidPacket) r66result.other;
-				logger.warn("SUCCESS\n    " + info.getSmiddle() + "\n    " + info.getSheader());
+				logger.warn("SUCCESS     " + info.getSmiddle() + "     " + info.getSheader());
 			} else {
 				value = 2;
-				logger.error("FAILURE\n    " +
+				logger.error("FAILURE     " +
 						result.getResult().toString());
 			}
 

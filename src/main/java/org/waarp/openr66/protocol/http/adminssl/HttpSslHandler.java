@@ -538,8 +538,9 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				}
 				body1 = REQUEST.CancelRestart.readBodyEnd();
 			} else if ("RestartAll".equalsIgnoreCase(parm) ||
-					"StopAll".equalsIgnoreCase(parm)) {
-				boolean stopcommand = "StopAll".equalsIgnoreCase(parm);
+					"StopAll".equalsIgnoreCase(parm) ||
+					"StopCleanAll".equalsIgnoreCase(parm)) {
+				boolean stopcommand = "StopAll".equalsIgnoreCase(parm) || "StopCleanAll".equalsIgnoreCase(parm);
 				String startid = getTrimValue("startid");
 				String stopid = getTrimValue("stopid");
 				String start = getValue("start");
@@ -575,21 +576,27 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				body = REQUEST.CancelRestart.readBody();
 				StringBuilder builder = new StringBuilder();
 				if (stopcommand) {
-					builder = TransferUtils.stopSelectedTransfers(dbSession, LIMITROW, builder,
+					if ("StopCleanAll".equalsIgnoreCase(parm)) {
+						builder = TransferUtils.cleanSelectedTransfers(dbSession, 0, builder,
+								authentHttp, body, startid, stopid, tstart, tstop, rule, req,
+								pending, transfer, error);
+					} else {
+						builder = TransferUtils.stopSelectedTransfers(dbSession, 0, builder, 
 							authentHttp, body, startid, stopid, tstart, tstop, rule, req,
 							pending, transfer, error);
+					}
 				} else {
 					DbPreparedStatement preparedStatement = null;
 					try {
 						preparedStatement =
-								DbTaskRunner.getFilterPrepareStatement(dbSession, LIMITROW, false,
+								DbTaskRunner.getFilterPrepareStatement(dbSession, 0, false,
 										startid, stopid, tstart, tstop, rule, req,
 										pending, transfer, error, done, all);
 						preparedStatement.executeQuery();
-						int i = 0;
+						//int i = 0;
 						while (preparedStatement.getNext()) {
 							try {
-								i++;
+								//i++;
 								DbTaskRunner taskRunner = DbTaskRunner
 										.getFromStatement(preparedStatement);
 								LocalChannelReference lcr =
@@ -603,9 +610,9 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 								builder.append(taskRunner.toSpecializedHtml(authentHttp, body,
 										lcr != null ? "Active" : "NotActive"));
 								taskRunner.setErrorExecutionStatus(last);
-								if (i > LIMITROW) {
+								/*if (i > LIMITROW) {
 									break;
-								}
+								}*/
 							} catch (WaarpDatabaseException e) {
 								// try to continue if possible
 								logger.warn("An error occurs while accessing a Runner: {}",
@@ -627,7 +634,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					body = "";
 				}
 				body1 = REQUEST.CancelRestart.readBodyEnd();
-			} else if ("Cancel".equalsIgnoreCase(parm) || "Stop".equalsIgnoreCase(parm)) {
+			} else if ("Cancel".equalsIgnoreCase(parm) || "CancelClean".equalsIgnoreCase(parm) || "Stop".equalsIgnoreCase(parm)) {
 				// Cancel or Stop
 				boolean stop = "Stop".equalsIgnoreCase(parm);
 				String specid = getValue("specid");
@@ -688,6 +695,9 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					}
 				}
 				if (taskRunner != null) {
+					if ("CancelClean".equalsIgnoreCase(parm)) {
+						TransferUtils.cleanOneTransfer(taskRunner, null, authentHttp, null);
+					}
 					body = REQUEST.CancelRestart.readBody();
 					body = taskRunner.toSpecializedHtml(authentHttp, body,
 							lcr != null ? "Active" : "NotActive");

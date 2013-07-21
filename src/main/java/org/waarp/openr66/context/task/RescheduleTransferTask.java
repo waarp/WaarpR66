@@ -214,8 +214,8 @@ public class RescheduleTransferTask extends AbstractTask {
 			}
 		} catch (OpenR66RunnerErrorException e) {
 			logger.error(
-					"Prepare transfer in\n    FAILURE\n     " +
-							runner.toShortString() + "\n    <AT>" +
+					"Prepare transfer in     FAILURE      " +
+							runner.toShortString() + "     <AT>" +
 							(new Date(newdate)).toString() + "</AT>", e);
 			futureCompletion.setFailure(new OpenR66RunnerErrorException(
 					"Reschedule failed: " + e.getMessage(), e));
@@ -225,8 +225,8 @@ public class RescheduleTransferTask extends AbstractTask {
 		R66Result result = new R66Result(session, false, ErrorCode.Warning,
 				runner);
 		futureCompletion.setResult(result);
-		logger.warn("Reschedule transfer in\n    SUCCESS\n    " +
-				runner.toShortString() + "\n    <AT>" +
+		logger.warn("Reschedule transfer in     SUCCESS     " +
+				runner.toShortString() + "     <AT>" +
 				(new Date(newdate)).toString() + "</AT>");
 		futureCompletion.setSuccess();
 	}

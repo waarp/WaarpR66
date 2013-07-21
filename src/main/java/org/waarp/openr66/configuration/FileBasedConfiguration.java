@@ -37,6 +37,7 @@ import org.waarp.common.database.DbAdmin;
 import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
+import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.digest.FilesystemBasedDigest.DigestAlgo;
 import org.waarp.common.exception.CryptoException;
@@ -59,11 +60,11 @@ import org.waarp.openr66.database.data.DbConfiguration;
 import org.waarp.openr66.database.data.DbHostConfiguration;
 import org.waarp.openr66.database.model.DbModelFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
 import org.waarp.openr66.protocol.networkhandler.R66ConstraintLimitHandler;
 import org.waarp.openr66.protocol.networkhandler.ssl.NetworkSslServerPipelineFactory;
 import org.waarp.openr66.protocol.utils.FileUtils;
-import org.waarp.openr66.protocol.utils.Version;
 import org.waarp.snmp.SnmpConfiguration;
 
 /**
@@ -1153,11 +1154,17 @@ public class FileBasedConfiguration {
 		}
 		value = hashConfig.get(XML_DIGEST);
 		if (value != null && (!value.isEmpty())) {
-			int val = value.getInteger();
-			if (val < 0 || val >= DigestAlgo.values().length) {
-				val = 0;
+			try {
+				int val = value.getInteger();
+				if (val < 0 || val >= DigestAlgo.values().length) {
+					val = 0;
+				}
+				config.digest = DigestAlgo.values()[val];
+			} catch (IllegalArgumentException e) {
+				// might be String
+				String val = value.getString();
+				config.digest = PartnerConfiguration.getDigestAlgo(val);
 			}
-			config.digest = DigestAlgo.values()[val];
 		}
 		logger.warn("DigestAlgo used: {}", config.digest);
 		value = hashConfig.get(XML_USEFASTMD5);
@@ -1452,6 +1459,38 @@ public class FileBasedConfiguration {
 				logger.error("Unable to Connect to DB", e2);
 				return false;
 			}
+			// Check if the database is up to date
+			DbHostConfiguration hostconfig;
+			try {
+				hostconfig = new DbHostConfiguration(DbConstant.admin.session, Configuration.configuration.HOST_ID);
+				Element other = hostconfig.getOtherElement();
+				boolean uptodate = true;
+				if (other != null) {
+					Element version = (Element) other.selectSingleNode(DbHostConfiguration.OtherFields.version.name());
+					if (version != null) {
+						uptodate = DbModelFactory.dbModel.needUpgradeDb(DbConstant.admin.session, version.getText(), true);
+					} else {
+						uptodate = DbModelFactory.dbModel.needUpgradeDb(DbConstant.admin.session, "1.1.0", true);
+					}
+				} else {
+					uptodate = DbModelFactory.dbModel.needUpgradeDb(DbConstant.admin.session, "1.1.0", true);
+				}
+				if (uptodate) {
+					logger.error("Database schema is not up to date: you must run ServerInitDatabase with the option -upgradeDb");
+					return false;
+				} else {
+					logger.debug("Database schema is up to date");
+				}
+			} catch (WaarpDatabaseNoConnectionException e) {
+				logger.error("Unable to Connect to DB", e);
+				return false;
+			} catch (WaarpDatabaseSqlException e) {
+				logger.error("Database schema is not up to date: you must run ServerInitDatabase with the option -upgradeDb", e);
+				return false;
+			} catch (WaarpDatabaseException e) {
+				logger.error("Unable to Connect to DB", e);
+				return false;
+			}			
 		}
 		value = hashConfig.get(XML_SAVE_TASKRUNNERNODB);
 		if (value != null && (!value.isEmpty())) {
@@ -1668,11 +1707,16 @@ public class FileBasedConfiguration {
 		}
 		
 		if (config.HOST_ID != null) {
-			config.versions.put(config.HOST_ID, Version.ID);
+			if (! config.versions.contains(config.HOST_ID)) {
+				config.versions.put(config.HOST_ID, new PartnerConfiguration(config.HOST_ID));
+			}
 		}
 		if (config.HOST_SSLID != null) {
-			config.versions.put(config.HOST_SSLID, Version.ID);
+			if (! config.versions.contains(config.HOST_SSLID)) {
+				config.versions.put(config.HOST_SSLID, new PartnerConfiguration(config.HOST_SSLID));
+			}
 		}
+		logger.debug("Partners: {}", config.versions);
 	}
 	/**
 	 * Load Role list if any

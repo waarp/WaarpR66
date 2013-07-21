@@ -34,7 +34,7 @@ import org.waarp.openr66.database.data.DbMultipleMonitor;
 import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
-import org.waarp.openr66.protocol.utils.Version;
+import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 
 /**
  * H2 Database Model implementation
@@ -255,34 +255,55 @@ public class DbModelH2 extends org.waarp.common.database.model.DbModelH2 {
 		}
 	}
 
-	/**
-	 * Upgrade Database from version
-	 * @param session
-	 * @param version
-	 * @throws WaarpDatabaseNoConnectionException 
-	 */
-	public void upgradeDb(DbSession session, String version) throws WaarpDatabaseNoConnectionException {
-		System.out.println(version+":"+Version.ID+":"+Configuration.isVersion2GEQVersion1(version, Version.ID));
-		if (Configuration.isVersion2GEQVersion1(version, Version.ID)) {
+	public boolean upgradeDb(DbSession session, String version) throws WaarpDatabaseNoConnectionException {
+		if (PartnerConfiguration.isVersion2GEQVersion1(version, "2.4.13")) {
+			System.out.println(version+" to 2.4.13? "+PartnerConfiguration.isVersion2GEQVersion1(version, "2.4.13"));
+			String createTableH2 = "CREATE TABLE IF NOT EXISTS ";
+			String primaryKey = " PRIMARY KEY ";
+			String notNull = " NOT NULL ";
+	
+			// HostConfiguration
+			String action = createTableH2 + DbHostConfiguration.table + "(";
+			DbHostConfiguration.Columns[] chcolumns = DbHostConfiguration.Columns
+					.values();
+			for (int i = 0; i < chcolumns.length - 1; i++) {
+				action += chcolumns[i].name() +
+						DBType.getType(DbHostConfiguration.dbTypes[i]) + notNull +
+						", ";
+			}
+			action += chcolumns[chcolumns.length - 1].name() +
+					DBType.getType(DbHostConfiguration.dbTypes[chcolumns.length - 1]) +
+					primaryKey + ")";
+			System.out.println(action);
+			DbRequest request = new DbRequest(session);
+			try {
+				request.query(action);
+			} catch (WaarpDatabaseSqlException e) {
+				e.printStackTrace();
+				return false;
+			} finally {
+				request.close();
+			}
+		}
+		if (PartnerConfiguration.isVersion2GEQVersion1(version, "2.5.0")) {
+			System.out.println(version+" to 2.5.0? "+PartnerConfiguration.isVersion2GEQVersion1(version, "2.5.0"));
 			String command = "ALTER TABLE "+DbTaskRunner.table+" ADD COLUMN IF NOT EXISTS "+
 				DbTaskRunner.Columns.TRANSFERINFO.name()+ " "+
 				DBType.getType(DbTaskRunner.dbTypes[DbTaskRunner.Columns.TRANSFERINFO.ordinal()]) + 
-				" NOT NULL DEFAULT '<"+DbHostConfiguration.OtherFields.root.name()+"/>' " +
+				" NOT NULL DEFAULT '{}' " +
 				" AFTER "+DbTaskRunner.Columns.FILEINFO.name();
 			DbRequest request = new DbRequest(session);
 			try {
 				System.out.println("Command: "+command);
 				request.query(command);
-			} catch (WaarpDatabaseNoConnectionException e) {
-				e.printStackTrace();
-				return;
 			} catch (WaarpDatabaseSqlException e) {
 				e.printStackTrace();
-				// FIX no return;
+				return false;
 			} finally {
 				request.close();
 			}
 		}
+		return true;
 	}
 	
 	/*
@@ -340,4 +361,42 @@ public class DbModelH2 extends org.waarp.common.database.model.DbModelH2 {
 			preparedStatement.realClose();
 		}
 	}
+
+	public boolean needUpgradeDb(DbSession session, String version, boolean tryFix)
+			throws WaarpDatabaseNoConnectionException {
+		// Check if the database is up to date
+		DbRequest request = null;
+		if (PartnerConfiguration.isVersion2GEQVersion1(version, "2.4.13")) {
+			try {
+				request = new DbRequest(DbConstant.admin.session);
+				request.select("select "+DbHostConfiguration.Columns.HOSTID.name()+" from "+DbHostConfiguration.table+
+						" where "+DbHostConfiguration.Columns.HOSTID+" = '"+Configuration.configuration.HOST_ID+"'");
+				request.close();
+			} catch (WaarpDatabaseSqlException e) {
+				return ! upgradeDb(session, version);
+			} finally {
+				if (request != null) {
+					request.close();
+				}
+			}
+		}
+		request = null;
+		if (PartnerConfiguration.isVersion2GEQVersion1(version, "2.5.0")) {
+			try {
+				request = new DbRequest(DbConstant.admin.session);
+				request.select("select "+DbTaskRunner.Columns.TRANSFERINFO.name()+" from "+DbTaskRunner.table+
+						" where "+DbTaskRunner.Columns.SPECIALID+" = "+DbConstant.ILLEGALVALUE);
+				request.close();
+			} catch (WaarpDatabaseSqlException e) {
+				return ! upgradeDb(session, version);
+			} finally {
+				if (request != null) {
+					request.close();
+				}
+			}
+		}
+		return false;
+	}
+	
+	
 }

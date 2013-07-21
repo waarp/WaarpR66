@@ -21,9 +21,9 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
-import org.waarp.openr66.protocol.utils.Version;
 
 /**
  * Request Authentication class
@@ -42,7 +42,7 @@ public class AuthentPacket extends AbstractLocalPacket {
 	private byte way;
 	
 	private String version;
-
+	
 	private String hostId;
 
 	private byte[] key;
@@ -78,7 +78,7 @@ public class AuthentPacket extends AbstractLocalPacket {
 		// end part
 		Integer newId = buf.readInt();
 		byte valid = buf.readByte();
-		String version = Configuration.R66VERSION.R66VERSION_NOUSABLE.version; // first base reference where it is unacceptable
+		String version = PartnerConfiguration.R66VERSION.R66VERSION_NOUSABLE.version; // first base reference where it is unacceptable
 		if (endLength > 5) {
 			// version
 			byte [] bversion = new byte[endLength-5];
@@ -101,7 +101,7 @@ public class AuthentPacket extends AbstractLocalPacket {
 		this.key = key;
 		localId = newId;
 		way = valid;
-		Configuration.configuration.versions.put(hostId, version);
+		Configuration.configuration.versions.put(hostId, new PartnerConfiguration(hostId, version));
 		this.version = version;
 	}
 
@@ -115,8 +115,10 @@ public class AuthentPacket extends AbstractLocalPacket {
 		this.key = key;
 		localId = newId;
 		way = ASKVALIDATE;
-		this.version = Version.ID;
-		Configuration.configuration.versions.put(hostId, version);
+		if (! Configuration.configuration.versions.contains(hostId)) {
+			Configuration.configuration.versions.put(hostId, new PartnerConfiguration(hostId));
+		}
+		version = Configuration.configuration.versions.get(hostId).toString();
 	}
 
 	/*
@@ -200,13 +202,6 @@ public class AuthentPacket extends AbstractLocalPacket {
 	}
 
 	/**
-	 * @return the version
-	 */
-	public String getVersion() {
-		return version;
-	}
-
-	/**
 	 * Validate the connection
 	 */
 	public void validate(boolean isSSL) {
@@ -217,8 +212,10 @@ public class AuthentPacket extends AbstractLocalPacket {
 			hostId = Configuration.configuration.HOST_ID;
 		}
 		key = FilesystemBasedDigest.passwdCrypt(Configuration.configuration.HOST_AUTH.getHostkey());
-		version = Version.ID;
-		Configuration.configuration.versions.put(hostId, version);
+		if (! Configuration.configuration.versions.contains(hostId)) {
+			Configuration.configuration.versions.put(hostId, new PartnerConfiguration(hostId));
+		}
+		version = Configuration.configuration.versions.get(hostId).toString();
 		header = null;
 		middle = null;
 		end = null;

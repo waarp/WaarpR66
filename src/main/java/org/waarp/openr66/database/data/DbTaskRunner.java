@@ -66,6 +66,7 @@ import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.model.DbModelFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
@@ -83,7 +84,6 @@ import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Task Runner from pre operation to transfer to post operation, except in case of error
@@ -97,8 +97,6 @@ public class DbTaskRunner extends AbstractDbData {
 	 */
 	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
 			.getLogger(DbTaskRunner.class);
-
-	public static ObjectMapper mapper = new ObjectMapper();
 
 	public static enum Columns {
 		GLOBALSTEP,
@@ -2087,7 +2085,7 @@ public class DbTaskRunner extends AbstractDbData {
 					this.changeUpdatedInfo(UpdatedInfo.INTERRUPTED);
 			}
 			forceSaveStatus();
-			logger.warn("StopOrCancel: {}\n    {}", code.mesg, this.toShortString());
+			logger.warn("StopOrCancel: {}     {}", code.mesg, this.toShortString());
 			return true;
 		} else {
 			// is finished so do nothing
@@ -2285,7 +2283,7 @@ public class DbTaskRunner extends AbstractDbData {
 		if (transferInformation != null && transferInformation.length() > 0) {
 			Map<String, Object> info = null;
 			try {
-				info = mapper.readValue(transferInformation, new TypeReference<Map<String, Object>>() {});
+				info = PartnerConfiguration.mapper.readValue(transferInformation, new TypeReference<Map<String, Object>>() {});
 			} catch (JsonParseException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -2312,7 +2310,7 @@ public class DbTaskRunner extends AbstractDbData {
 	public void setTransferMap(Map<String, Object> map) {
 		StringWriter writer = new StringWriter();
 		try {
-			mapper.writeValue(writer, map);
+			PartnerConfiguration.mapper.writeValue(writer, map);
 		} catch (JsonGenerationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -2618,7 +2616,7 @@ public class DbTaskRunner extends AbstractDbData {
 		logger.debug((session == null) + ":"
 				+ (session == null ? "norunner" : (this.session.getRunner() == null)) + ":"
 				+ this.toLogRunStep() + ":" + step + ":" + (tasks == null ? "null" : tasks.length)
-				+ "\nSender: " + this.isSender + " " + this.rule.printTasks(isSender,
+				+ " Sender: " + this.isSender + " " + this.rule.printTasks(isSender,
 						TASKSTEP.values()[globalstep]));
 		if (tasks == null) {
 			throw new OpenR66RunnerEndTasksException("No tasks!");
@@ -2676,7 +2674,7 @@ public class DbTaskRunner extends AbstractDbData {
 	 */
 	private R66Future runNext() throws OpenR66RunnerErrorException,
 			OpenR66RunnerEndTasksException {
-		logger.debug(this.toLogRunStep() + "\nSender: " + this.isSender + " "
+		logger.debug(this.toLogRunStep() + " Sender: " + this.isSender + " "
 				+ this.rule.printTasks(isSender,
 						TASKSTEP.values()[globalstep]));
 		if (rule == null) {
@@ -2743,7 +2741,7 @@ public class DbTaskRunner extends AbstractDbData {
 	 */
 	public void run() throws OpenR66RunnerErrorException {
 		R66Future future;
-		logger.debug(this.toLogRunStep() + " Status: " + status + "\nSender: " + this.isSender
+		logger.debug(this.toLogRunStep() + " Status: " + status + " Sender: " + this.isSender
 				+ " " + this.rule.printTasks(isSender,
 						TASKSTEP.values()[globalstep]));
 		if (status != ErrorCode.Running) {
@@ -2812,7 +2810,7 @@ public class DbTaskRunner extends AbstractDbData {
 	public void finalizeTransfer(LocalChannelReference localChannelReference, R66File file,
 			R66Result finalValue, boolean status)
 			throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException {
-		logger.debug("status" + status + ":" + finalValue);
+		logger.debug("status: " + status + ":" + finalValue);
 
 		if (session == null) {
 			this.session = localChannelReference.getSession();
@@ -2834,7 +2832,17 @@ public class DbTaskRunner extends AbstractDbData {
 						String finalpath = R66Dir.getFinalUniqueFilename(file);
 						logger.debug("Will move file {}", finalpath);
 						try {
-							file.renameTo(this.getRule().setRecvPath(finalpath));
+							if (!file.renameTo(this.getRule().setRecvPath(finalpath))) {
+								OpenR66ProtocolSystemException e = new OpenR66ProtocolSystemException("Cannot move file to final position");
+								R66Result result = new R66Result(e, session, false,
+										ErrorCode.FinalOp, this);
+								result.file = file;
+								result.runner = this;
+								if (localChannelReference != null) {
+									localChannelReference.invalidateRequest(result);
+								}
+								throw e;
+							}
 						} catch (OpenR66ProtocolSystemException e) {
 							R66Result result = new R66Result(e, session, false,
 									ErrorCode.FinalOp, this);
@@ -3159,17 +3167,17 @@ public class DbTaskRunner extends AbstractDbData {
 
 	public String toShortString() {
 		return "<RULE>" + ruleId + "</RULE><ID>" + specialId + "</ID><FILE>" +
-				filename + "</FILE>\n    <STEP>" + TASKSTEP.values()[globalstep] +
+				filename + "</FILE>     <STEP>" + TASKSTEP.values()[globalstep] +
 				"(" + TASKSTEP.values()[globallaststep] + "):" + step + ":" +
 				status.mesg + "</STEP><RANK>" + rank + "</RANK><BLOCKSIZE>" + blocksize +
-				"</BLOCKSIZE>\n    <SENDER>" +
+				"</BLOCKSIZE>     <SENDER>" +
 				isSender + "</SENDER><MOVED>" + isFileMoved + "</MOVED><MODE>" +
-				TRANSFERMODE.values()[mode] + "</MODE>\n    <REQR>" +
+				TRANSFERMODE.values()[mode] + "</MODE>     <REQR>" +
 				requesterHostId + "</REQR><REQD>" + requestedHostId +
-				"</REQD>\n    <START>" + start + "</START><STOP>" + stop +
-				"</STOP>\n    <INTERNAL>" + UpdatedInfo.values()[updatedInfo].name()
-				+ " : " + infostatus.mesg + "</INTERNAL><ORIGINALSIZE>" + originalSize +"</ORIGINALSIZE>\n    <FILEINFO>" +
-				fileInformation + "</FILEINFO>\n<TRANSFERINFO>" +transferInformation+"</TRANSFERINFO>";
+				"</REQD>     <START>" + start + "</START><STOP>" + stop +
+				"</STOP>     <INTERNAL>" + UpdatedInfo.values()[updatedInfo].name()
+				+ " : " + infostatus.mesg + "</INTERNAL><ORIGINALSIZE>" + originalSize +"</ORIGINALSIZE>     <FILEINFO>" +
+				fileInformation + "</FILEINFO> <TRANSFERINFO>" +transferInformation+"</TRANSFERINFO>";
 	}
 
 	/**
@@ -3457,9 +3465,9 @@ public class DbTaskRunner extends AbstractDbData {
 		String sep = null;
 		if (this.requestedHostId.equals(Configuration.configuration.HOST_ID) || 
 				this.requestedHostId.equals(Configuration.configuration.HOST_SSLID)) {
-			sep = Configuration.getSeparator(this.requesterHostId);	
+			sep = PartnerConfiguration.getSeparator(this.requesterHostId);	
 		} else {
-			sep = Configuration.getSeparator(this.requestedHostId);
+			sep = PartnerConfiguration.getSeparator(this.requestedHostId);
 		}
 		return new RequestPacket(ruleId, mode, originalFilename, blocksize,
 				rank, specialId, fileInformation, originalSize, sep);

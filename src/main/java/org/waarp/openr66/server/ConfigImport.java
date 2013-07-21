@@ -202,23 +202,23 @@ public class ConfigImport implements Runnable {
 			R66Result result = future.getResult();
 			if (future.isSuccess()) {
 				if (result.code == ErrorCode.Warning) {
-					logger.warn("WARNED on import:\n    " +
+					logger.warn("WARNED on import:     " +
 							(result.other != null ? ((ValidPacket) result.other).getSheader() :
 									"no import")
-							+ "\n    delay: " + delay);
+							+ "     delay: " + delay);
 				} else {
-					logger.warn("SUCCESS on import:\n    " +
+					logger.warn("SUCCESS on import:     " +
 							(result.other != null ? ((ValidPacket) result.other).getSheader() :
 									"no import")
-							+ "\n    delay: " + delay);
+							+ "     delay: " + delay);
 				}
 			} else {
 				if (result.code == ErrorCode.Warning) {
-					logger.warn("Transfer is\n    WARNED", future.getCause());
+					logger.warn("Transfer is     WARNED", future.getCause());
 					networkTransaction.closeAll();
 					System.exit(result.code.ordinal());
 				} else {
-					logger.error("Transfer in\n    FAILURE", future.getCause());
+					logger.error("Transfer in     FAILURE", future.getCause());
 					networkTransaction.closeAll();
 					System.exit(result.code.ordinal());
 				}

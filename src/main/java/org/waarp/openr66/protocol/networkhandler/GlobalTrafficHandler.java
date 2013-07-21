@@ -61,7 +61,7 @@ public class GlobalTrafficHandler extends GlobalTrafficShapingHandler {
 	@Override
 	protected void doAccounting(TrafficCounter counter) {
 		if (false)
-			logger.debug(this.toString() + "\n   {}", counter);
+			logger.debug(this.toString() + "    {}", counter);
 	}
 
 }

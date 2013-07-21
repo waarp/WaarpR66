@@ -92,7 +92,7 @@ public class R66Result {
 	@Override
 	public String toString() {
 		return (exception != null ? "Exception: " + exception.toString() : "") +
-				(file != null ? file.toString() : " no file") + "\n    " +
+				(file != null ? file.toString() : " no file") + "     " +
 				(runner != null ? runner.toShortString() : " no runner") +
 				" isAnswered: " + isAnswered + " Code: " + code.mesg;
 	}

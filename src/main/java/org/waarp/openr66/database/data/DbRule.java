@@ -1104,8 +1104,8 @@ public class DbRule extends AbstractDbData {
 				RequestPacket.TRANSFERMODE.values()[mode].toString() +
 				" RECV:" + getRecvPath() + " SEND:" + getSendPath() + " ARCHIVE:" +
 				getArchivePath() + " WORK:" + getWorkPath() +
-				"\nRPRET:" + rpreTasks + "\nRPOST:" + rpostTasks + "\nRERROR:" + rerrorTasks +
-				"\nSPRET:" + spreTasks + "\nSPOST:" + spostTasks + "\nSERROR:" + serrorTasks;
+				" RPRET:{" + rpreTasks.replace('\n', ' ') + "} RPOST:{" + rpostTasks.replace('\n', ' ') + "} RERROR:{" + rerrorTasks.replace('\n', ' ') +
+				"} SPRET:{" + spreTasks.replace('\n', ' ') + "} SPOST:{" + spostTasks.replace('\n', ' ') + "} SERROR:{" + serrorTasks.replace('\n', ' ')+"}";
 	}
 
 	/**
@@ -1118,24 +1118,24 @@ public class DbRule extends AbstractDbData {
 		if (isSender) {
 			switch (step) {
 				case PRETASK:
-					return "S:" + spreTasks;
+					return "S:{" + spreTasks.replace('\n', ' ')+"}";
 				case POSTTASK:
-					return "S:" + spostTasks;
+					return "S:{" + spostTasks.replace('\n', ' ')+"}";
 				case ERRORTASK:
-					return "S:" + serrorTasks;
+					return "S:{" + serrorTasks.replace('\n', ' ')+"}";
 				default:
-					return "S:no task";
+					return "S:{no task}";
 			}
 		} else {
 			switch (step) {
 				case PRETASK:
-					return "R:" + rpreTasks;
+					return "R:{" + rpreTasks.replace('\n', ' ')+"}";
 				case POSTTASK:
-					return "R:" + rpostTasks;
+					return "R:{" + rpostTasks.replace('\n', ' ')+"}";
 				case ERRORTASK:
-					return "R:" + rerrorTasks;
+					return "R:{" + rerrorTasks.replace('\n', ' ')+"}";
 				default:
-					return "R:no task";
+					return "R:{no task}";
 			}
 		}
 	}

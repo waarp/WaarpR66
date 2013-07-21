@@ -21,6 +21,7 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 
 /**
@@ -61,7 +62,7 @@ public class RequestPacket extends AbstractLocalPacket {
 
 	private final String fileInformation;
 	
-	private String separator = Configuration.SEPARATOR_FIELD;
+	private String separator = PartnerConfiguration.SEPARATOR_FIELD;
 
 	/**
 	 * 
@@ -200,16 +201,16 @@ public class RequestPacket extends AbstractLocalPacket {
 		final String sheader = new String(bheader);
 		final String smiddle = new String(bmiddle);
 		final String send = new String(bend);
-		String[] aheader = sheader.split(Configuration.BLANK_SEPARATOR_FIELD);
+		String[] aheader = sheader.split(PartnerConfiguration.BLANK_SEPARATOR_FIELD);
 		if (aheader.length != 2) {
 			throw new OpenR66ProtocolPacketException("Not enough data");
 		}
 		// FIX to check both ' ' and SEPARATOR_FIELD
-		String[] amiddle = smiddle.split(Configuration.BAR_SEPARATOR_FIELD);
-		String sep = Configuration.BAR_SEPARATOR_FIELD;
+		String[] amiddle = smiddle.split(PartnerConfiguration.BAR_SEPARATOR_FIELD);
+		String sep = PartnerConfiguration.BAR_SEPARATOR_FIELD;
 		if (amiddle.length < 5) {
-			amiddle = smiddle.split(Configuration.BLANK_SEPARATOR_FIELD);
-			sep = Configuration.BLANK_SEPARATOR_FIELD;
+			amiddle = smiddle.split(PartnerConfiguration.BLANK_SEPARATOR_FIELD);
+			sep = PartnerConfiguration.BLANK_SEPARATOR_FIELD;
 			if (amiddle.length < 5) {
 				throw new OpenR66ProtocolPacketException("Not enough data");
 			}
@@ -297,7 +298,7 @@ public class RequestPacket extends AbstractLocalPacket {
 			throw new OpenR66ProtocolPacketException("Not enough data");
 		}
 		header = ChannelBuffers.wrappedBuffer(rulename.getBytes(), 
-				Configuration.BLANK_SEPARATOR_FIELD.getBytes(), 
+				PartnerConfiguration.BLANK_SEPARATOR_FIELD.getBytes(), 
 				Integer.toString(mode).getBytes());
 	}
 

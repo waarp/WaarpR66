@@ -301,8 +301,9 @@ public class ServerInitDatabase {
 		DbModelFactory.dbModel.createTables(DbConstant.admin.session);
 	}
 
-	public static void upgradedb() throws WaarpDatabaseNoConnectionException {
+	public static boolean upgradedb() throws WaarpDatabaseNoConnectionException {
 		// Update tables: runner
+		boolean updated = false;
 		DbHostConfiguration config;
 		try {
 			config = new DbHostConfiguration(DbConstant.admin.session, Configuration.configuration.HOST_ID);
@@ -310,16 +311,24 @@ public class ServerInitDatabase {
 			if (other != null) {
 				Element version = (Element) other.selectSingleNode(DbHostConfiguration.OtherFields.version.name());
 				if (version != null) {
-					DbModelFactory.upgradeDb(DbConstant.admin.session, version.getText());
+					updated = DbModelFactory.dbModel.upgradeDb(DbConstant.admin.session, version.getText());
 				} else {
-					DbModelFactory.upgradeDb(DbConstant.admin.session, "1.1.0");
+					updated = DbModelFactory.dbModel.upgradeDb(DbConstant.admin.session, "1.1.0");
 				}
 			} else {
-				DbModelFactory.upgradeDb(DbConstant.admin.session, "1.1.0");
+				updated = DbModelFactory.dbModel.upgradeDb(DbConstant.admin.session, "1.1.0");
 			}
+			if (updated) {
+				other.addElement(DbHostConfiguration.OtherFields.version.name()).addText(Version.ID);
+				config.setOtherElement(other);
+				config.update();
+			}
+		} catch (WaarpDatabaseNoConnectionException e) {
+			throw e;
 		} catch (WaarpDatabaseException e) {
 			// ignore
 		}
+		return updated;
 	}
 
 	public static void loadRules(File dirConfig) {

@@ -555,13 +555,13 @@ public class LocalChannelReference {
 
 	@Override
 	public String toString() {
-		return "LCR: L: " + localId + " R: " + remoteId + "\nStartup[" +
-				(futureStartup != null ? futureStartup : "noStartup") + "]\nConn[" +
+		return "LCR: L: " + localId + " R: " + remoteId + " Startup[" +
+				(futureStartup != null ? futureStartup : "noStartup") + "] Conn[" +
 				(futureConnection != null ? futureConnection : "noConn")
-				+ "]\nValidRequestRequest[" +
+				+ "] ValidRequestRequest[" +
 				(futureValidRequest != null ? futureValidRequest : "noValidRequest")
-				+ "]\nEndTransfer[" +
-				(futureEndTransfer != null ? futureEndTransfer : "noEndTransfer") + "]\nRequest[" +
+				+ "] EndTransfer[" +
+				(futureEndTransfer != null ? futureEndTransfer : "noEndTransfer") + "] Request[" +
 				(futureRequest != null ? futureRequest : "noRequest") + "]";
 	}
 

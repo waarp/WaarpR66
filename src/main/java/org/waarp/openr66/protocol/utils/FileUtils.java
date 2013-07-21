@@ -28,6 +28,7 @@ import java.nio.channels.FileChannel;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.waarp.common.digest.FilesystemBasedDigest;
+import org.waarp.common.digest.FilesystemBasedDigest.DigestAlgo;
 import org.waarp.common.file.DirInterface;
 import org.waarp.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 import org.waarp.openr66.protocol.configuration.Configuration;
@@ -442,10 +443,10 @@ public class FileUtils {
 	 * @param buffer
 	 * @return the hash from the given Buffer
 	 */
-	public static ChannelBuffer getHash(ChannelBuffer buffer) {
+	public static ChannelBuffer getHash(ChannelBuffer buffer, DigestAlgo algo) {
 		byte[] newkey;
 		try {
-			newkey = FilesystemBasedDigest.getHash(buffer, Configuration.configuration.digest);
+			newkey = FilesystemBasedDigest.getHash(buffer, algo);
 		} catch (IOException e) {
 			return ChannelBuffers.EMPTY_BUFFER;
 		}

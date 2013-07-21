@@ -362,7 +362,7 @@ public class RequestTransfer implements Runnable {
 			}
 		} else {
 			// Only request
-			logger.info("Transfer information:\n    " + runner.toShortString());
+			logger.info("Transfer information:     " + runner.toShortString());
 			future.setResult(new R66Result(null, true, runner.getErrorInfo(), runner));
 			future.setSuccess();
 		}
@@ -532,24 +532,24 @@ public class RequestTransfer implements Runnable {
 				if (scancel) {
 					if (result.isSuccess()) {
 						value = 0;
-						logger.warn("Transfer already finished:\n    " +
+						logger.warn("Transfer already finished:     " +
 								finalValue.runner.toShortString());
 					} else {
 						switch (finalValue.code) {
 							case CompleteOk:
 								value = 0;
-								logger.warn("Transfer cancel requested and done:\n    " +
+								logger.warn("Transfer cancel requested and done:     " +
 										finalValue.runner.toShortString());
 								break;
 							case TransferOk:
 								value = 3;
-								logger.warn("Transfer cancel requested but already finished:\n    "
+								logger.warn("Transfer cancel requested but already finished:     "
 										+
 										finalValue.runner.toShortString());
 								break;
 							default:
 								value = 4;
-								logger.error("Transfer cancel requested but internal error:\n    " +
+								logger.error("Transfer cancel requested but internal error:     " +
 										finalValue.runner.toShortString());
 								break;
 						}
@@ -558,17 +558,17 @@ public class RequestTransfer implements Runnable {
 					switch (finalValue.code) {
 						case CompleteOk:
 							value = 0;
-							logger.warn("Transfer stop requested and done:\n    " +
+							logger.warn("Transfer stop requested and done:     " +
 									finalValue.runner.toShortString());
 							break;
 						case TransferOk:
 							value = 0;
-							logger.warn("Transfer stop requested but already finished:\n    " +
+							logger.warn("Transfer stop requested but already finished:     " +
 									finalValue.runner.toShortString());
 							break;
 						default:
 							value = 3;
-							logger.error("Transfer stop requested but internal error:\n    " +
+							logger.error("Transfer stop requested but internal error:     " +
 									finalValue.runner.toShortString());
 							break;
 					}
@@ -576,39 +576,39 @@ public class RequestTransfer implements Runnable {
 					switch (finalValue.code) {
 						case QueryStillRunning:
 							value = 0;
-							logger.warn("Transfer restart requested but already active and running:\n    "
+							logger.warn("Transfer restart requested but already active and running:     "
 									+
 									finalValue.runner.toShortString());
 							break;
 						case Running:
 							value = 0;
-							logger.warn("Transfer restart requested but already running:\n    " +
+							logger.warn("Transfer restart requested but already running:     " +
 									finalValue.runner.toShortString());
 							break;
 						case PreProcessingOk:
 							value = 0;
-							logger.warn("Transfer restart requested and restarted:\n    " +
+							logger.warn("Transfer restart requested and restarted:     " +
 									finalValue.runner.toShortString());
 							break;
 						case CompleteOk:
 							value = 4;
-							logger.warn("Transfer restart requested but already finished:\n    " +
+							logger.warn("Transfer restart requested but already finished:     " +
 									finalValue.runner.toShortString());
 							break;
 						case RemoteError:
 							value = 5;
-							logger.error("Transfer restart requested but remote error:\n    " +
+							logger.error("Transfer restart requested but remote error:     " +
 									finalValue.runner.toShortString());
 							break;
 						case PassThroughMode:
 							value = 6;
-							logger.warn("Transfer not restarted since it is in PassThrough mode:\n    "
+							logger.warn("Transfer not restarted since it is in PassThrough mode:     "
 									+
 									finalValue.runner.toShortString());
 							break;
 						default:
 							value = 3;
-							logger.error("Transfer restart requested but internal error:\n    " +
+							logger.error("Transfer restart requested but internal error:     " +
 									finalValue.runner.toShortString());
 							break;
 					}
@@ -616,7 +616,7 @@ public class RequestTransfer implements Runnable {
 			} else {
 				value = 0;
 				// Only request
-				logger.warn("Transfer information:\n    " +
+				logger.warn("Transfer information:     " +
 						finalValue.runner.toShortString());
 			}
 		} finally {

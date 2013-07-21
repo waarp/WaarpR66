@@ -33,6 +33,7 @@ import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66DatabaseGlobalException;
 import org.waarp.openr66.protocol.localhandler.packet.RequestPacket;
 import org.waarp.openr66.protocol.utils.R66Future;
@@ -150,7 +151,7 @@ public abstract class AbstractTransfer implements Runnable {
 					originalSize = file.length();
 				}
 			}
-			String sep = Configuration.getSeparator(remoteHost);
+			String sep = PartnerConfiguration.getSeparator(remoteHost);
 			RequestPacket request = new RequestPacket(rulename,
 					mode, filename, blocksize, 0,
 					id, fileinfo, originalSize, sep);
