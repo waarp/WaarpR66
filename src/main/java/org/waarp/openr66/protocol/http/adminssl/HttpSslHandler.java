@@ -1611,7 +1611,9 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					config.setOthers(getTrimValue("OTHER"));
 					try {
 						config.update();
+						extraInformation = "Configuration Saved";
 					} catch (WaarpDatabaseException e) {
+						extraInformation = "Configuration cannot be Saved due to Database error";
 					}
 				}
 			}

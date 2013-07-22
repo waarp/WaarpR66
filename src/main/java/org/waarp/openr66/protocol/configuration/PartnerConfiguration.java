@@ -25,6 +25,7 @@ import java.io.IOException;
 import org.waarp.common.digest.FilesystemBasedDigest.DigestAlgo;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.openr66.protocol.utils.R66Versions;
 import org.waarp.openr66.protocol.utils.Version;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -43,17 +44,7 @@ public class PartnerConfiguration {
 	 */
 	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
 			.getLogger(PartnerConfiguration.class);
-	/**
-	 * Here is the list of specific identified version
-	 */
-	public static enum R66VERSION {
-		R66VERSION_NOUSABLE("2.4.12"), R66VERSION_SEPARATOR("2.4.13"), R66VERSION_2_4_17("2.4.17");
-		
-		public String version;
-		private R66VERSION(String name) {
-			this.version = name;
-		}
-	}
+
 	/**
 	 * Uses as separator in field
 	 */
@@ -72,7 +63,7 @@ public class PartnerConfiguration {
 	 *
 	 */
 	public static enum FIELDS {
-		HOSTID("nohostid"), VERSION(R66VERSION.R66VERSION_NOUSABLE.version), 
+		HOSTID("nohostid"), VERSION(R66Versions.V2_4_12.getVersion()), 
 		DIGESTALGO(DigestAlgo.MD5.name), FILESIZE(false), FINALHASH(false), 
 		PROXIFIED(false), SEPARATOR(BLANK_SEPARATOR_FIELD);
 		
@@ -107,7 +98,7 @@ public class PartnerConfiguration {
 			version = json;
 		}
 		((ObjectNode) root).put(FIELDS.VERSION.name, version);
-		if (isVersion2GEQVersion1("2.4.12", version)) {
+		if (isVersion2GEQVersion1(R66Versions.V2_4_12.getVersion(), version)) {
 			((ObjectNode) root).put(FIELDS.FILESIZE.name, true);
 			((ObjectNode) root).put(FIELDS.FINALHASH.name, true);
 		} else {
@@ -117,7 +108,7 @@ public class PartnerConfiguration {
 		((ObjectNode) root).put(FIELDS.DIGESTALGO.name, (String) FIELDS.DIGESTALGO.defaultValue);
 		((ObjectNode) root).put(FIELDS.PROXIFIED.name, (Boolean) FIELDS.PROXIFIED.defaultValue);
 		String sep = SEPARATOR_FIELD;
-		if (! isVersion2GEQVersion1(R66VERSION.R66VERSION_SEPARATOR.version, version)) {
+		if (! isVersion2GEQVersion1(R66Versions.V2_4_13.getVersion(), version)) {
 			sep = BLANK_SEPARATOR_FIELD;
 		}
 		((ObjectNode) root).put(FIELDS.SEPARATOR.name, sep);

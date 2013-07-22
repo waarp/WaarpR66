@@ -686,6 +686,18 @@ public class DbHostAuth extends AbstractDbData {
 	public int getPort() {
 		return port;
 	}
+	
+	private static String getVersion(String host) {
+		String remoteHost = host;
+		String alias = "";
+		if (Configuration.configuration.aliases.containsKey(remoteHost)) {
+			alias = "(Alias: "+remoteHost+") ";
+			remoteHost = Configuration.configuration.aliases.get(remoteHost);
+		}
+		return alias+(Configuration.configuration.versions.containsKey(remoteHost) ? 
+				Configuration.configuration.versions.get(remoteHost).toString() :
+					"Unknown");
+	}
 
 	@Override
 	public String toString() {
@@ -693,9 +705,7 @@ public class DbHostAuth extends AbstractDbData {
 		return "HostAuth: " + hostid + " address: " + address + ":" + port + " isSSL: " + isSsl +
 				" admin: " + adminrole + " isClient: " + isClient + " ("
 				+ (hostkey != null ? hostkey.length : 0) + ") Version: "
-				+ (Configuration.configuration.versions.containsKey(hostid) ? 
-						Configuration.configuration.versions.get(hostid).toString() :
-							"Unknown");
+				+ getVersion(hostid);
 	}
 
 	/**
@@ -724,6 +734,8 @@ public class DbHostAuth extends AbstractDbData {
 		WaarpStringUtils.replace(builder, "XXXSSLXXX", isSsl ? "checked" : "");
 		WaarpStringUtils.replace(builder, "XXXADMXXX", adminrole ? "checked" : "");
 		WaarpStringUtils.replace(builder, "XXXISCXXX", isClient ? "checked" : "");
+		WaarpStringUtils.replace(builder, "XXXVERSIONXXX", getVersion(hostid).replace(",", ", "));
+		
 		int nb = NetworkTransaction.existConnection(getSocketAddress(), getHostid());
 		WaarpStringUtils.replace(builder, "XXXCONNXXX", (nb > 0)
 				? "(" + nb + " Connected) " : "");

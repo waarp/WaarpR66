@@ -24,6 +24,7 @@ import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
+import org.waarp.openr66.protocol.utils.R66Versions;
 
 /**
  * Request Authentication class
@@ -78,7 +79,7 @@ public class AuthentPacket extends AbstractLocalPacket {
 		// end part
 		Integer newId = buf.readInt();
 		byte valid = buf.readByte();
-		String version = PartnerConfiguration.R66VERSION.R66VERSION_NOUSABLE.version; // first base reference where it is unacceptable
+		String version = R66Versions.V2_4_12.getVersion(); // first base reference where it is unacceptable
 		if (endLength > 5) {
 			// version
 			byte [] bversion = new byte[endLength-5];

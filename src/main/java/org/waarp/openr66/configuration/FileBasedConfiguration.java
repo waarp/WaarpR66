@@ -37,7 +37,6 @@ import org.waarp.common.database.DbAdmin;
 import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
-import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.digest.FilesystemBasedDigest.DigestAlgo;
 import org.waarp.common.exception.CryptoException;
@@ -1460,18 +1459,11 @@ public class FileBasedConfiguration {
 				return false;
 			}
 			// Check if the database is up to date
-			DbHostConfiguration hostconfig;
+			String version = DbHostConfiguration.getVersionDb(DbConstant.admin.session, Configuration.configuration.HOST_ID);
 			try {
-				hostconfig = new DbHostConfiguration(DbConstant.admin.session, Configuration.configuration.HOST_ID);
-				Element other = hostconfig.getOtherElement();
 				boolean uptodate = true;
-				if (other != null) {
-					Element version = (Element) other.selectSingleNode(DbHostConfiguration.OtherFields.version.name());
-					if (version != null) {
-						uptodate = DbModelFactory.dbModel.needUpgradeDb(DbConstant.admin.session, version.getText(), true);
-					} else {
-						uptodate = DbModelFactory.dbModel.needUpgradeDb(DbConstant.admin.session, "1.1.0", true);
-					}
+				if (version != null) {
+					uptodate = DbModelFactory.dbModel.needUpgradeDb(DbConstant.admin.session, version, true);
 				} else {
 					uptodate = DbModelFactory.dbModel.needUpgradeDb(DbConstant.admin.session, "1.1.0", true);
 				}
@@ -1482,12 +1474,6 @@ public class FileBasedConfiguration {
 					logger.debug("Database schema is up to date");
 				}
 			} catch (WaarpDatabaseNoConnectionException e) {
-				logger.error("Unable to Connect to DB", e);
-				return false;
-			} catch (WaarpDatabaseSqlException e) {
-				logger.error("Database schema is not up to date: you must run ServerInitDatabase with the option -upgradeDb", e);
-				return false;
-			} catch (WaarpDatabaseException e) {
 				logger.error("Unable to Connect to DB", e);
 				return false;
 			}			

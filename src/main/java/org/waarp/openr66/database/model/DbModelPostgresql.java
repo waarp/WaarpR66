@@ -35,6 +35,7 @@ import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
+import org.waarp.openr66.protocol.utils.R66Versions;
 
 /**
  * PostGreSQL Database Model implementation
@@ -252,8 +253,8 @@ public class DbModelPostgresql extends org.waarp.common.database.model.DbModelPo
 	}
 
 	public boolean upgradeDb(DbSession session, String version) throws WaarpDatabaseNoConnectionException {
-		if (PartnerConfiguration.isVersion2GEQVersion1(version, "2.4.13")) {
-			System.out.println(version+" to 2.4.13? "+PartnerConfiguration.isVersion2GEQVersion1(version, "2.4.13"));
+		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_13.getVersion())) {
+			System.out.println(version+" to "+R66Versions.V2_4_13.getVersion()+"? "+true);
 			String createTableH2 = "CREATE TABLE ";
 			String primaryKey = " PRIMARY KEY ";
 			String notNull = " NOT NULL ";
@@ -281,7 +282,8 @@ public class DbModelPostgresql extends org.waarp.common.database.model.DbModelPo
 				request.close();
 			}
 		}
-		if (PartnerConfiguration.isVersion2GEQVersion1(version, "2.5.0")) {
+		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_17.getVersion())) {
+			System.out.println(version+" to "+R66Versions.V2_4_17.getVersion()+"? "+true);
 			String command = "ALTER TABLE "+DbTaskRunner.table+" ADD COLUMN "+
 					DbTaskRunner.Columns.TRANSFERINFO.name()+ " "+
 					DBType.getType(DbTaskRunner.dbTypes[DbTaskRunner.Columns.TRANSFERINFO.ordinal()]) + 
@@ -359,12 +361,13 @@ public class DbModelPostgresql extends org.waarp.common.database.model.DbModelPo
 			throws WaarpDatabaseNoConnectionException {
 		// Check if the database is up to date
 		DbRequest request = null;
-		if (PartnerConfiguration.isVersion2GEQVersion1(version, "2.4.13")) {
+		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_13.getVersion())) {
 			try {
 				request = new DbRequest(DbConstant.admin.session);
 				request.select("select "+DbHostConfiguration.Columns.HOSTID.name()+" from "+DbHostConfiguration.table+
 						" where "+DbHostConfiguration.Columns.HOSTID+" = '"+Configuration.configuration.HOST_ID+"'");
 				request.close();
+				DbHostConfiguration.updateVersionDb(session, Configuration.configuration.HOST_ID, R66Versions.V2_4_13.getVersion());
 			} catch (WaarpDatabaseSqlException e) {
 				return ! upgradeDb(session, version);
 			} finally {
@@ -374,12 +377,13 @@ public class DbModelPostgresql extends org.waarp.common.database.model.DbModelPo
 			}
 		}
 		request = null;
-		if (PartnerConfiguration.isVersion2GEQVersion1(version, "2.5.0")) {
+		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_17.getVersion())) {
 			try {
 				request = new DbRequest(DbConstant.admin.session);
 				request.select("select "+DbTaskRunner.Columns.TRANSFERINFO.name()+" from "+DbTaskRunner.table+
 						" where "+DbTaskRunner.Columns.SPECIALID+" = "+DbConstant.ILLEGALVALUE);
 				request.close();
+				DbHostConfiguration.updateVersionDb(session, Configuration.configuration.HOST_ID, R66Versions.V2_4_17.getVersion());
 			} catch (WaarpDatabaseSqlException e) {
 				return ! upgradeDb(session, version);
 			} finally {

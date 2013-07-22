@@ -21,7 +21,6 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
-import org.dom4j.Element;
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
@@ -37,7 +36,6 @@ import org.waarp.openr66.database.model.DbModelFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
-import org.waarp.openr66.protocol.utils.Version;
 
 /**
  * Utility class to initiate the database for a server
@@ -163,23 +161,6 @@ public class ServerInitDatabase {
 				}
 				System.out.println("End upgrade");
 			}
-			if (database || upgradeDb) {
-				DbHostConfiguration config;
-				try {
-					config = new DbHostConfiguration(DbConstant.admin.session, Configuration.configuration.HOST_ID);
-					Element other = config.getOtherElement();
-					if (other != null) {
-						Element version = (Element) other.selectSingleNode(DbHostConfiguration.OtherFields.version.name());
-						if (version == null) {
-							version = other.addElement(DbHostConfiguration.OtherFields.version.name());
-						}
-						version.setText(Version.ID);
-						config.update();
-					}
-				} catch (WaarpDatabaseException e) {
-					// ignore
-				}
-			}
 			if (sdirconfig != null) {
 				// load Rules
 				File dirConfig = new File(sdirconfig);
@@ -303,32 +284,26 @@ public class ServerInitDatabase {
 
 	public static boolean upgradedb() throws WaarpDatabaseNoConnectionException {
 		// Update tables: runner
-		boolean updated = false;
-		DbHostConfiguration config;
+		boolean uptodate = true;
+		// Check if the database is up to date
+		String version = DbHostConfiguration.getVersionDb(DbConstant.admin.session, Configuration.configuration.HOST_ID);
 		try {
-			config = new DbHostConfiguration(DbConstant.admin.session, Configuration.configuration.HOST_ID);
-			Element other = config.getOtherElement();
-			if (other != null) {
-				Element version = (Element) other.selectSingleNode(DbHostConfiguration.OtherFields.version.name());
-				if (version != null) {
-					updated = DbModelFactory.dbModel.upgradeDb(DbConstant.admin.session, version.getText());
-				} else {
-					updated = DbModelFactory.dbModel.upgradeDb(DbConstant.admin.session, "1.1.0");
-				}
+			if (version != null) {
+				uptodate = DbModelFactory.dbModel.needUpgradeDb(DbConstant.admin.session, version, true);
 			} else {
-				updated = DbModelFactory.dbModel.upgradeDb(DbConstant.admin.session, "1.1.0");
+				uptodate = DbModelFactory.dbModel.needUpgradeDb(DbConstant.admin.session, "1.1.0", true);
 			}
-			if (updated) {
-				other.addElement(DbHostConfiguration.OtherFields.version.name()).addText(Version.ID);
-				config.setOtherElement(other);
-				config.update();
+			if (uptodate) {
+				logger.error("Database schema is not up to date: you must run ServerInitDatabase with the option -upgradeDb");
+				return false;
+			} else {
+				logger.debug("Database schema is up to date");
 			}
 		} catch (WaarpDatabaseNoConnectionException e) {
-			throw e;
-		} catch (WaarpDatabaseException e) {
-			// ignore
+			logger.error("Unable to Connect to DB", e);
+			return false;
 		}
-		return updated;
+		return ! uptodate;
 	}
 
 	public static void loadRules(File dirConfig) {

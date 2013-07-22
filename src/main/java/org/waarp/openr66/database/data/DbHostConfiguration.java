@@ -35,6 +35,7 @@ import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.openr66.commander.CommanderNoDb;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.utils.Version;
 
 /**
  * Configuration Table object
@@ -584,5 +585,57 @@ public class DbHostConfiguration extends AbstractDbData {
 	 */
 	public boolean isOwnConfiguration() {
 		return this.hostid.equals(Configuration.configuration.HOST_ID);
+	}
+	
+	/**
+	 * 
+	 * @param dbSession
+	 * @param hostid
+	 * @return the version of the database from HostConfiguration table
+	 */
+	public static String getVersionDb(DbSession dbSession, String hostid) {
+		DbHostConfiguration hostConfiguration;
+		try {
+			hostConfiguration = new DbHostConfiguration(dbSession, hostid);
+		} catch (WaarpDatabaseException e) {
+			// ignore and return
+			return "2.4.0";
+		}
+		Element others = hostConfiguration.getOtherElement();
+		if (others != null) {
+			Element version = (Element) others.selectSingleNode(DbHostConfiguration.OtherFields.version.name());
+			if (version != null) {
+				return version.getText();
+			}
+		}
+		return "2.4.0";
+	}
+	public static void updateVersionDb(DbSession dbSession, String hostid, String version) {
+		DbHostConfiguration hostConfiguration;
+		try {
+			hostConfiguration = new DbHostConfiguration(dbSession, hostid);
+		} catch (WaarpDatabaseException e) {
+			// ignore and return
+			return;
+		}
+		Element others = hostConfiguration.getOtherElement();
+		if (others != null) {
+			Element eversion = (Element) others.selectSingleNode(DbHostConfiguration.OtherFields.version.name());
+			if (eversion != null) {
+				eversion.setText(version);
+			} else {
+				others.addElement(DbHostConfiguration.OtherFields.version.name()).addText(Version.ID);
+			}
+		} else {
+			others = DocumentHelper.createElement(DbHostConfiguration.OtherFields.root.name());
+			others.addElement(DbHostConfiguration.OtherFields.version.name()).addText(Version.ID);
+		}
+		hostConfiguration.setOtherElement(others);
+		try {
+			hostConfiguration.update();
+		} catch (WaarpDatabaseException e) {
+			// ignore
+			return;
+		}
 	}
 }
