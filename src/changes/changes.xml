@@ -5,7 +5,7 @@
 		<author email="waarp1 at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
-		<release version="2.5.0" date="2013-07-28" description="Improvement release">
+		<release version="2.4.17" date="2013-07-28" description="Improvement release">
 			<action dev="Frederic Bregier" type="add">Add support for adaptative protocol with "old" versions 2.4.x to new versions</action>
 		    <action dev="Frederic Bregier" type="fix">Fix different Hash algorithm support from partner</action>
 		    <action dev="Frederic Bregier" type="fix">Fix end of transfer error to have the real error back to the partner</action>
