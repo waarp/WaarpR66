@@ -486,7 +486,7 @@ public class RuleFileBasedConfiguration {
 		root.add(newElement(XMODE, Integer.toString(rule.mode)));
 		String dir = rule.getRuleRecvPath();
 		if (dir != null) {
-			if (dir.startsWith(File.separator)) {
+			if (dir.startsWith(File.separator) || dir.startsWith(DirInterface.SEPARATOR)) {
 				root.add(newElement(XRECVPATH, dir.substring(1)));
 			} else {
 				root.add(newElement(XRECVPATH, dir));
@@ -494,7 +494,7 @@ public class RuleFileBasedConfiguration {
 		}
 		dir = rule.getRuleSendPath();
 		if (dir != null) {
-			if (dir.startsWith(File.separator)) {
+			if (dir.startsWith(File.separator) || dir.startsWith(DirInterface.SEPARATOR)) {
 				root.add(newElement(XSENDPATH, dir.substring(1)));
 			} else {
 				root.add(newElement(XSENDPATH, dir));
@@ -502,7 +502,7 @@ public class RuleFileBasedConfiguration {
 		}
 		dir = rule.getRuleArchivePath();
 		if (dir != null) {
-			if (dir.startsWith(File.separator)) {
+			if (dir.startsWith(File.separator) || dir.startsWith(DirInterface.SEPARATOR)) {
 				root.add(newElement(XARCHIVEPATH, dir.substring(1)));
 			} else {
 				root.add(newElement(XARCHIVEPATH, dir));
@@ -510,7 +510,7 @@ public class RuleFileBasedConfiguration {
 		}
 		dir = rule.getRuleWorkPath();
 		if (dir != null) {
-			if (dir.startsWith(File.separator)) {
+			if (dir.startsWith(File.separator) || dir.startsWith(DirInterface.SEPARATOR)) {
 				root.add(newElement(XWORKPATH, dir.substring(1)));
 			} else {
 				root.add(newElement(XWORKPATH, dir));

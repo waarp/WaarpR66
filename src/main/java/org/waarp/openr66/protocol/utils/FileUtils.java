@@ -29,7 +29,6 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.digest.FilesystemBasedDigest.DigestAlgo;
-import org.waarp.common.file.DirInterface;
 import org.waarp.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
@@ -41,35 +40,6 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
  * 
  */
 public class FileUtils {
-	/**
-	 * 
-	 * @param base
-	 *            in absolute
-	 * @param path
-	 *            path in absolute or relative
-	 * @return a new String for a file from the base and the path (according to relative or absolute
-	 *         path)
-	 * @throws OpenR66ProtocolSystemException
-	 */
-	public static String consolidatePath(String base, String path)
-			throws OpenR66ProtocolSystemException {
-		if (base == null || base.length() == 0 || path == null ||
-				path.length() == 0) {
-			throw new OpenR66ProtocolSystemException(
-					"base and path must not be empty");
-		}
-		// First check if the path is relative or absolute
-		String extDir = null;
-		if (path.charAt(0) == DirInterface.SEPARATORCHAR) {
-			extDir = Configuration.configuration.baseDirectory +
-					DirInterface.SEPARATOR + path;
-		} else {
-			extDir = Configuration.configuration.baseDirectory +
-					DirInterface.SEPARATOR + base + DirInterface.SEPARATOR +
-					path;
-		}
-		return extDir;
-	}
 
 	/**
 	 * Copy one file to another one
