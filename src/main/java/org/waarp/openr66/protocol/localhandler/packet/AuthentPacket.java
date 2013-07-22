@@ -28,7 +28,7 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 /**
  * Request Authentication class
  * 
- * header = "hostId" middle = "key bytes" end = localId + way + (optional version)
+ * header = "hostId" middle = "key bytes" end = localId + way + (optional version: could be a JSON on the form version.{})
  * 
  * @author frederic bregier
  */
