@@ -79,7 +79,7 @@ public enum ErrorCode {
 	 * Code stands for Transfer in error due to MD5
 	 */
 	MD5Error(
-			"MD5 during transfer in error",
+			"MD5 (or other hash as configured) during transfer in error",
 			'M'),
 	/**
 	 * Code stands for Network disconnection

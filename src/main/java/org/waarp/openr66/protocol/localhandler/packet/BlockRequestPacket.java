@@ -20,6 +20,7 @@ package org.waarp.openr66.protocol.localhandler.packet;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
+import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 
 /**
  * Block Request Message class
@@ -63,32 +64,20 @@ public class BlockRequestPacket extends AbstractLocalPacket {
 		key = spassword;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#createEnd()
-	 */
 	@Override
-	public void createEnd() throws OpenR66ProtocolPacketException {
+	public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		end = ChannelBuffers.EMPTY_BUFFER;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#createHeader()
-	 */
 	@Override
-	public void createHeader() throws OpenR66ProtocolPacketException {
+	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		header = ChannelBuffers.buffer(1+key.length);
 		header.writeByte(block ? 1 : 0);
 		header.writeBytes(key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#createMiddle()
-	 */
 	@Override
-	public void createMiddle() throws OpenR66ProtocolPacketException {
+	public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		middle = ChannelBuffers.EMPTY_BUFFER;
 	}
 

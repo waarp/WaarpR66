@@ -19,10 +19,16 @@ package org.waarp.openr66.protocol.localhandler.packet;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
+import org.waarp.common.json.JsonHandler;
+import org.waarp.common.logging.WaarpInternalLogger;
+import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
+import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Request class
@@ -30,39 +36,54 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
  * header = "rulename MODETRANS" middle = way+"FILENAME BLOCKSIZE RANK specialId code (optional length)" end =
  * "fileInformation"
  * 
+ * or
+ * 
+ * header = "{rule:rulename, mode:MODETRANS}" middle = way{filename:FILENAME, block:BLOCKSIZE, rank:RANK, id:specialId, code:code, length:length}" end =
+ * "fileInformation"
+ * 
  * @author frederic bregier
  */
 public class RequestPacket extends AbstractLocalPacket {
+	/**
+	 * Internal Logger
+	 */
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(RequestPacket.class);
+	
+
 	public static enum TRANSFERMODE {
 		UNKNOWNMODE, SENDMODE, RECVMODE, SENDMD5MODE, RECVMD5MODE,
 		SENDTHROUGHMODE, RECVTHROUGHMODE, SENDMD5THROUGHMODE, RECVMD5THROUGHMODE;
 	}
-
-	private static final byte REQVALIDATE = 0;
-
-	private static final byte REQANSWERVALIDATE = 1;
-
-	private final String rulename;
-
-	private final int mode;
-
-	private String filename;
-
-	private final int blocksize;
-
-	private int rank;
-
-	private long specialId;
-
-	private byte way;
-
-	private char code;
+	protected static enum FIELDS {
+		rule, mode, filename, block, rank, id, code, length
+	}
 	
-	private long originalSize;
+	protected static final byte REQVALIDATE = 0;
 
-	private final String fileInformation;
+	protected static final byte REQANSWERVALIDATE = 1;
+
+	protected final String rulename;
+
+	protected final int mode;
+
+	protected String filename;
+
+	protected final int blocksize;
+
+	protected int rank;
+
+	protected long specialId;
+
+	protected byte way;
+
+	protected char code;
 	
-	private String separator = PartnerConfiguration.SEPARATOR_FIELD;
+	protected long originalSize;
+
+	protected final String fileInformation;
+	
+	protected String separator = PartnerConfiguration.SEPARATOR_FIELD;
 
 	/**
 	 * 
@@ -186,7 +207,7 @@ public class RequestPacket extends AbstractLocalPacket {
 			throw new OpenR66ProtocolPacketException("Not enough data");
 		}
 		final byte[] bheader = new byte[headerLength - 1];
-		final byte[] bmiddle = new byte[middleLength - 1];
+		final byte[] bmiddle = new byte[middleLength - 1];// valid is not in bmiddle
 		final byte[] bend = new byte[endLength];
 		if (headerLength - 1 > 0) {
 			buf.readBytes(bheader);
@@ -201,6 +222,21 @@ public class RequestPacket extends AbstractLocalPacket {
 		final String sheader = new String(bheader);
 		final String smiddle = new String(bmiddle);
 		final String send = new String(bend);
+		
+		// check if JSON on header since it will directly starts with a JSON, in contrary to middle
+		if (sheader.startsWith(PartnerConfiguration.BAR_JSON_FIELD)) {
+			// JSON
+			logger.debug("Request is using JSON");
+			ObjectNode map = JsonHandler.getFromString(sheader);
+			ObjectNode map2 = JsonHandler.getFromString(smiddle);
+			return new RequestPacket(map.path(FIELDS.rule.name()).asText(), map.path(FIELDS.mode.name()).asInt(),
+					map2.path(FIELDS.filename.name()).asText(), map2.path(FIELDS.block.name()).asInt(), 
+					map2.path(FIELDS.rank.name()).asInt(), map2.path(FIELDS.id.name()).asLong(), 
+					valid, send, 
+					(char) map2.path(FIELDS.code.name()).asInt(), map2.path(FIELDS.length.name()).asLong(), 
+					PartnerConfiguration.BAR_JSON_FIELD);
+		}
+				
 		String[] aheader = sheader.split(PartnerConfiguration.BLANK_SEPARATOR_FIELD);
 		if (aheader.length != 2) {
 			throw new OpenR66ProtocolPacketException("Not enough data");
@@ -277,43 +313,50 @@ public class RequestPacket extends AbstractLocalPacket {
 				REQVALIDATE, fileInformation, ErrorCode.InitOk.code, originalSize, separator);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#createEnd()
-	 */
 	@Override
-	public void createEnd() throws OpenR66ProtocolPacketException {
+	public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		if (fileInformation != null) {
 			end = ChannelBuffers.wrappedBuffer(fileInformation.getBytes());
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#createHeader()
-	 */
 	@Override
-	public void createHeader() throws OpenR66ProtocolPacketException {
+	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		if (rulename == null || mode <= 0) {
 			throw new OpenR66ProtocolPacketException("Not enough data");
 		}
-		header = ChannelBuffers.wrappedBuffer(rulename.getBytes(), 
-				PartnerConfiguration.BLANK_SEPARATOR_FIELD.getBytes(), 
-				Integer.toString(mode).getBytes());
+		if (lcr.getPartner() != null && lcr.getPartner().useJson()) {
+			logger.debug("Request will use JSON "+lcr.getPartner().toString());
+			ObjectNode node = JsonHandler.createObjectNode();
+			node.put(FIELDS.rule.name(), rulename);
+			node.put(FIELDS.mode.name(), mode);
+			header = ChannelBuffers.wrappedBuffer(JsonHandler.writeAsString(node).getBytes());
+		} else {
+			header = ChannelBuffers.wrappedBuffer(rulename.getBytes(), 
+					PartnerConfiguration.BLANK_SEPARATOR_FIELD.getBytes(), 
+					Integer.toString(mode).getBytes());
+		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#createMiddle()
-	 */
 	@Override
-	public void createMiddle() throws OpenR66ProtocolPacketException {
+	public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		if (filename == null) {
 			throw new OpenR66ProtocolPacketException("Not enough data");
 		}
 		byte[] away = new byte[1];
 		away[0] = way;
-		middle = ChannelBuffers.wrappedBuffer(away, filename.getBytes(), 
+		if (lcr.getPartner() != null && lcr.getPartner().useJson()) {
+			logger.debug("Request will use JSON "+lcr.getPartner().toString());
+			ObjectNode node = JsonHandler.createObjectNode();
+			node.put(FIELDS.filename.name(), filename);
+			node.put(FIELDS.block.name(), blocksize);
+			node.put(FIELDS.rank.name(), rank);
+			node.put(FIELDS.id.name(), specialId);
+			node.put(FIELDS.code.name(), code);
+			node.put(FIELDS.length.name(), originalSize);
+			middle = ChannelBuffers.wrappedBuffer(away, JsonHandler.writeAsString(node).getBytes());
+		} else {
+			middle = ChannelBuffers.wrappedBuffer(away, filename.getBytes(), 
 				this.separator.getBytes(), 
 				Integer.toString(blocksize).getBytes(), 
 				this.separator.getBytes(), 
@@ -321,6 +364,7 @@ public class RequestPacket extends AbstractLocalPacket {
 				Long.toString(specialId).getBytes(), this.separator.getBytes(),
 				Character.toString(code).getBytes(), this.separator.getBytes(), 
 				Long.toString(originalSize).getBytes());
+		}
 	}
 
 	@Override

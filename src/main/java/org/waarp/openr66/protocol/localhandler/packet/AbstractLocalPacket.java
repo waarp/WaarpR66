@@ -20,6 +20,7 @@ package org.waarp.openr66.protocol.localhandler.packet;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
+import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 
 /**
  * This class represents Abstract Packet with its header, middle and end parts. A Packet is composed
@@ -55,21 +56,21 @@ public abstract class AbstractLocalPacket {
 	 * 
 	 * @throws OpenR66ProtocolPacketException
 	 */
-	public abstract void createHeader() throws OpenR66ProtocolPacketException;
+	public abstract void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException;
 
 	/**
 	 * Prepare the Middle buffer
 	 * 
 	 * @throws OpenR66ProtocolPacketException
 	 */
-	public abstract void createMiddle() throws OpenR66ProtocolPacketException;
+	public abstract void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException;
 
 	/**
 	 * Prepare the End buffer
 	 * 
 	 * @throws OpenR66ProtocolPacketException
 	 */
-	public abstract void createEnd() throws OpenR66ProtocolPacketException;
+	public abstract void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException;
 
 	/**
 	 * 
@@ -81,27 +82,27 @@ public abstract class AbstractLocalPacket {
 	public abstract String toString();
 
 	/**
-	 * 
+	 * @param lcr the LocalChannelReference in use
 	 * @return the ChannelBuffer as LocalPacket
 	 * @throws OpenR66ProtocolPacketException
 	 */
-	public ChannelBuffer getLocalPacket() throws OpenR66ProtocolPacketException {
+	public ChannelBuffer getLocalPacket(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		final ChannelBuffer buf = ChannelBuffers.buffer(4 * 3 + 1);// 3 header
 		// lengths+type
 		if (header == null) {
-			createHeader();
+			createHeader(lcr);
 		}
 		final ChannelBuffer newHeader = header != null ? header
 				: ChannelBuffers.EMPTY_BUFFER;
 		final int headerLength = 4 * 2 + 1 + newHeader.readableBytes();
 		if (middle == null) {
-			createMiddle();
+			createMiddle(lcr);
 		}
 		final ChannelBuffer newMiddle = middle != null ? middle
 				: ChannelBuffers.EMPTY_BUFFER;
 		final int middleLength = newMiddle.readableBytes();
 		if (end == null) {
-			createEnd();
+			createEnd(lcr);
 		}
 		final ChannelBuffer newEnd = end != null ? end
 				: ChannelBuffers.EMPTY_BUFFER;

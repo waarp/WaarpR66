@@ -22,12 +22,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -49,6 +47,7 @@ import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseNoDataException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.digest.FilesystemBasedDigest;
+import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
@@ -79,11 +78,6 @@ import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.NbAndSpecialId;
 import org.waarp.openr66.protocol.utils.R66Future;
 import org.xml.sax.SAXException;
-
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
 
 /**
  * Task Runner from pre operation to transfer to post operation, except in case of error
@@ -2280,27 +2274,7 @@ public class DbTaskRunner extends AbstractDbData {
 	 * @return the Map<String, Object> for the content of the transferInformation
 	 */
 	public Map<String, Object> getTransferMap() {
-		if (transferInformation != null && transferInformation.length() > 0) {
-			Map<String, Object> info = null;
-			try {
-				info = PartnerConfiguration.mapper.readValue(transferInformation, new TypeReference<Map<String, Object>>() {});
-			} catch (JsonParseException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (JsonMappingException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-			if (info == null) {
-				info = new HashMap<String, Object>();
-			}
-			return info;
-		} else {
-			return new HashMap<String, Object>();
-		}
+		return JsonHandler.getMapFromString(transferInformation);
 	}
 	
 	/**
@@ -2308,24 +2282,7 @@ public class DbTaskRunner extends AbstractDbData {
 	 * @param map the Map to set as XML string to transferInformation
 	 */
 	public void setTransferMap(Map<String, Object> map) {
-		StringWriter writer = new StringWriter();
-		try {
-			PartnerConfiguration.mapper.writeValue(writer, map);
-		} catch (JsonGenerationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (JsonMappingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		setTransferInformation(writer.toString());
-		try {
-			writer.close();
-		} catch (IOException e) {
-		}
+		setTransferInformation(JsonHandler.writeAsString(map));
 	}
 	
 	/**

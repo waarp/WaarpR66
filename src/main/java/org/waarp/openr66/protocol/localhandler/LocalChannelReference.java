@@ -32,6 +32,7 @@ import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66Exception;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import org.waarp.openr66.protocol.networkhandler.NetworkChannel;
@@ -39,6 +40,7 @@ import org.waarp.openr66.protocol.networkhandler.NetworkServerHandler;
 import org.waarp.openr66.protocol.networkhandler.NetworkServerPipelineFactory;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.R66Future;
+import org.waarp.openr66.protocol.utils.R66Versions;
 
 /**
  * Reference of one object using Local Channel localId and containing local channel and network
@@ -147,6 +149,13 @@ public class LocalChannelReference {
 	 * If partial hash, no global hash validation can be done
 	 */
 	private boolean partialHash = false;
+
+	/**
+	 * PartnerConfiguration
+	 */
+	private volatile PartnerConfiguration partner;
+	
+	
 	/**
 	 * 
 	 * @param localChannel
@@ -649,5 +658,22 @@ public class LocalChannelReference {
 	
 	public boolean isPartialHash() {
 		return this.partialHash;
+	}
+
+	/**
+	 * @return the partner
+	 */
+	public PartnerConfiguration getPartner() {
+		return partner;
+	}
+
+	/**
+	 * @param partner the partner to set
+	 */
+	public void setPartner(String hostId) {
+		partner = Configuration.configuration.versions.get(hostId);
+		if (partner == null) {
+			partner = new PartnerConfiguration(hostId, R66Versions.V2_4_12.getVersion());
+		}
 	}
 }

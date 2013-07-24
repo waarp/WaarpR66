@@ -287,7 +287,7 @@ public class ChannelUtils extends Thread {
 		NetworkPacket networkPacket;
 		try {
 			networkPacket = new NetworkPacket(localChannelReference
-					.getLocalId(), localChannelReference.getRemoteId(), packet);
+					.getLocalId(), localChannelReference.getRemoteId(), packet, localChannelReference);
 		} catch (OpenR66ProtocolPacketException e) {
 			logger.error("Cannot construct message from " + packet.toString(),
 					e);

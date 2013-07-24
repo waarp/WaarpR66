@@ -478,7 +478,7 @@ public class LocalTransaction {
 							true, ErrorCode.Shutdown, runner);
 					result.other = packet;
 					try {
-						buffer = packet.getLocalPacket();
+						buffer = packet.getLocalPacket(localChannelReference);
 					} catch (OpenR66ProtocolPacketException e1) {
 					}
 					localChannelReference
@@ -502,7 +502,7 @@ public class LocalTransaction {
 				continue;
 			}
 			try {
-				buffer = packet.getLocalPacket();
+				buffer = packet.getLocalPacket(localChannelReference);
 			} catch (OpenR66ProtocolPacketException e1) {
 			}
 			NetworkPacket message = new NetworkPacket(

@@ -162,11 +162,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
 	 * Global Digest in receive using local hash if necessary
 	 */
 	private volatile FilesystemBasedDigest localDigest;
-	/**
-	 * PartnerConfiguration
-	 */
-	private volatile PartnerConfiguration partner;
-	
 	/*
 	 * (non-Javadoc)
 	 * @see org.jboss.netty.channel.SimpleChannelHandler#channelClosed(org.jboss.
@@ -728,9 +723,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			session.setStatus(43);
 			return;
 		}
-		partner = Configuration.configuration.versions.get(packet.getHostId());
+		localChannelReference.setPartner(packet.getHostId());
 		// Now if configuration say to do so: check remote ip address
-		if (Configuration.configuration.checkRemoteAddress && ! partner.isProxified()) {
+		if (Configuration.configuration.checkRemoteAddress && ! localChannelReference.getPartner().isProxified()) {
 			DbHostAuth host = R66Auth.getServerAuth(DbConstant.admin.session,
 					packet.getHostId());
 			boolean toTest = false;
@@ -793,7 +788,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false);
 			session.setStatus(98);
 		}
-		logger.debug("Partner: {} from {}", partner, Configuration.configuration.versions);
+		logger.debug("Partner: {} from {}", localChannelReference.getPartner(), Configuration.configuration.versions);
 	}
 
 	/**
@@ -1078,7 +1073,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			// Check if the blocksize is greater than local value
 			if (Configuration.configuration.BLOCKSIZE < blocksize) {
 				blocksize = Configuration.configuration.BLOCKSIZE;
-				String sep = partner.getSeperator();
+				String sep = localChannelReference.getPartner().getSeperator();
 				packet = new RequestPacket(packet.getRulename(), packet.getMode(),
 						packet.getFilename(), blocksize, packet.getRank(),
 						packet.getSpecialId(), packet.getFileInformation(), packet.getOriginalSize(), sep);
@@ -1491,21 +1486,21 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		DataBlock dataBlock = new DataBlock();
 		// if MD5 check MD5
 		if (RequestPacket.isMD5Mode(session.getRunner().getMode())) {
-			logger.debug("AlgoDigest: "+(partner != null ? partner.getDigestAlgo() : "usual algo"));
-			if (!packet.isKeyValid(partner.getDigestAlgo())) {
+			logger.debug("AlgoDigest: "+(localChannelReference.getPartner() != null ? localChannelReference.getPartner().getDigestAlgo() : "usual algo"));
+			if (!packet.isKeyValid(localChannelReference.getPartner().getDigestAlgo())) {
 				// Wrong packet
-				logger.error("Wrong MD5 Packet: {}", packet);
+				logger.error("Wrong Hash Packet: {} using {}", packet, localChannelReference.getPartner().getDigestAlgo().name);
 				session.newState(ERROR);
 				try {
 					session.setFinalizeTransfer(false, new R66Result(
 							new OpenR66ProtocolPacketException(
-									"Wrong Packet MD5"), session, true,
+									"Wrong Packet Hash"), session, true,
 							ErrorCode.MD5Error, session.getRunner()));
 				} catch (OpenR66RunnerErrorException e1) {
 				} catch (OpenR66ProtocolSystemException e1) {
 				}
 				ErrorPacket error = new ErrorPacket(
-						"Transfer in error due to bad MD5",
+						"Transfer in error due to bad Hash on data packet ("+localChannelReference.getPartner().getDigestAlgo().name+")",
 						ErrorCode.MD5Error.getCode(), ErrorPacket.FORWARDCLOSECODE);
 				ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
 				session.setStatus(21);
@@ -1520,9 +1515,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					if (session.getRunner().getRank() > 0) {
 						localChannelReference.setPartialHash();
 					}
-					if (partner != null) {
-						if (partner.useFinalHash()) {
-							DigestAlgo algo = partner.getDigestAlgo();
+					if (localChannelReference.getPartner() != null) {
+						if (localChannelReference.getPartner().useFinalHash()) {
+							DigestAlgo algo = localChannelReference.getPartner().getDigestAlgo();
 							if (algo != Configuration.configuration.digest) {
 								globalDigest = new FilesystemBasedDigest(algo);
 								localDigest = new FilesystemBasedDigest(Configuration.configuration.digest);
@@ -1535,7 +1530,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					}
 				} catch (NoSuchAlgorithmException e) {
 				}
-				logger.debug("GlobalDigest: "+partner.getDigestAlgo()+" different? "+(localDigest != null));
+				logger.debug("GlobalDigest: "+localChannelReference.getPartner().getDigestAlgo()+" different? "+(localDigest != null));
 			}
 			FileUtils.computeGlobalHash(globalDigest, packet.getData());
 			if (localDigest != null) {
@@ -1653,18 +1648,20 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			}
 			// check if possible Global Digest
 			String hash = packet.getOptional();
-			logger.debug("GlobalDigest: "+partner.getDigestAlgo()+" different? "+(localDigest != null)+" remoteHash? "+(hash != null));
+			logger.debug("GlobalDigest: "+localChannelReference.getPartner().getDigestAlgo()+" different? "+(localDigest != null)+" remoteHash? "+(hash != null));
 			if (hash != null && globalDigest != null) {
 				String localhash = FilesystemBasedDigest.getHex(globalDigest.Final());
 				globalDigest = null;
 				if (! localhash.equalsIgnoreCase(hash)) {
 					// bad global Hash
 					//session.getRunner().setRankAtStartup(0);
-					R66Result result = new R66Result(new OpenR66RunnerErrorException("Global Hash in error, transfer in error and rank should be reset to 0"),
+					R66Result result = new R66Result(new OpenR66RunnerErrorException("Global Hash in error, transfer in error and rank should be reset to 0 (using "+
+							localChannelReference.getPartner().getDigestAlgo().name+")"),
 							session, true, ErrorCode.MD5Error, session.getRunner());
 					localChannelReference.invalidateRequest(result);
 					ErrorPacket error = new ErrorPacket(
-							"Global Hash in error, transfer in error and rank should be reset to 0",
+							"Global Hash in error, transfer in error and rank should be reset to 0 (using "+
+							localChannelReference.getPartner().getDigestAlgo().name+")",
 							ErrorCode.MD5Error.getCode(), ErrorPacket.FORWARDCLOSECODE);
 					try {
 						ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);

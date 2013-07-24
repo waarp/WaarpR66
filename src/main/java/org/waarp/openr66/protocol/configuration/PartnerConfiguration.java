@@ -20,17 +20,13 @@
  */
 package org.waarp.openr66.protocol.configuration;
 
-import java.io.IOException;
-
 import org.waarp.common.digest.FilesystemBasedDigest.DigestAlgo;
+import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.openr66.protocol.utils.R66Versions;
 import org.waarp.openr66.protocol.utils.Version;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -45,6 +41,10 @@ public class PartnerConfiguration {
 	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
 			.getLogger(PartnerConfiguration.class);
 
+	/**
+	 * Uses as separator in field
+	 */
+	public static final String BAR_JSON_FIELD = "{";
 	/**
 	 * Uses as separator in field
 	 */
@@ -74,13 +74,9 @@ public class PartnerConfiguration {
 			this.defaultValue = def;
 		}
 	}
-	/**
-	 * JSON parser
-	 */
-	public static ObjectMapper mapper = new ObjectMapper();
-	
 	private String id;
-	private JsonNode root = mapper.createObjectNode();
+	private ObjectNode root = JsonHandler.createObjectNode();
+	private boolean useJson = false;
 	
 	/**
 	 * Constructor for an external HostId
@@ -89,7 +85,7 @@ public class PartnerConfiguration {
 	 */
 	public PartnerConfiguration(String id, String json) {
 		this.id = id;
-		((ObjectNode) root).put(FIELDS.HOSTID.name, id);
+		root.put(FIELDS.HOSTID.name, id);
 		int pos = json.lastIndexOf('{');
 		String version = null;
 		if (pos > 1) {
@@ -97,30 +93,32 @@ public class PartnerConfiguration {
 		} else {
 			version = json;
 		}
-		((ObjectNode) root).put(FIELDS.VERSION.name, version);
+		root.put(FIELDS.VERSION.name, version);
 		if (isVersion2GEQVersion1(R66Versions.V2_4_12.getVersion(), version)) {
-			((ObjectNode) root).put(FIELDS.FILESIZE.name, true);
-			((ObjectNode) root).put(FIELDS.FINALHASH.name, true);
+			root.put(FIELDS.FILESIZE.name, true);
+			root.put(FIELDS.FINALHASH.name, true);
 		} else {
-			((ObjectNode) root).put(FIELDS.FILESIZE.name, (Boolean) FIELDS.FILESIZE.defaultValue);
-			((ObjectNode) root).put(FIELDS.FINALHASH.name, (Boolean) FIELDS.FINALHASH.defaultValue);
+			root.put(FIELDS.FILESIZE.name, (Boolean) FIELDS.FILESIZE.defaultValue);
+			root.put(FIELDS.FINALHASH.name, (Boolean) FIELDS.FINALHASH.defaultValue);
 		}
-		((ObjectNode) root).put(FIELDS.DIGESTALGO.name, (String) FIELDS.DIGESTALGO.defaultValue);
-		((ObjectNode) root).put(FIELDS.PROXIFIED.name, (Boolean) FIELDS.PROXIFIED.defaultValue);
+		root.put(FIELDS.DIGESTALGO.name, Configuration.configuration.digest.name);
+		root.put(FIELDS.PROXIFIED.name, (Boolean) FIELDS.PROXIFIED.defaultValue);
 		String sep = SEPARATOR_FIELD;
 		if (! isVersion2GEQVersion1(R66Versions.V2_4_13.getVersion(), version)) {
 			sep = BLANK_SEPARATOR_FIELD;
 		}
-		((ObjectNode) root).put(FIELDS.SEPARATOR.name, sep);
+		if (isVersion2GEQVersion1(R66Versions.V2_4_17.getVersion(), version)) {
+			useJson = true;
+		} else {
+			useJson = false;
+		}
+		root.put(FIELDS.SEPARATOR.name, sep);
 		
 		if (json != null && pos > 1) {
 			String realjson = json.substring(pos);
-			try {
-				JsonNode info = mapper.readTree(realjson);
-				if (info != null) {
-					((ObjectNode) root).putAll((ObjectNode) info);
-				}
-			} catch (IOException e1) {
+			ObjectNode info = JsonHandler.getFromString(realjson);
+			if (info != null) {
+				root.putAll(info);
 			}
 		}
 		logger.debug("Info HostId: "+root.toString());
@@ -132,13 +130,14 @@ public class PartnerConfiguration {
 	 */
 	public PartnerConfiguration(String id) {
 		this.id = id;
-		((ObjectNode) root).put(FIELDS.HOSTID.name, id);
-		((ObjectNode) root).put(FIELDS.VERSION.name, Version.ID);
-		((ObjectNode) root).put(FIELDS.FILESIZE.name, true);
-		((ObjectNode) root).put(FIELDS.FINALHASH.name, Configuration.configuration.globalDigest);
-		((ObjectNode) root).put(FIELDS.DIGESTALGO.name, Configuration.configuration.digest.name);
-		((ObjectNode) root).put(FIELDS.PROXIFIED.name, Configuration.configuration.isHostProxyfied);
-		((ObjectNode) root).put(FIELDS.SEPARATOR.name, SEPARATOR_FIELD);
+		root.put(FIELDS.HOSTID.name, id);
+		root.put(FIELDS.VERSION.name, Version.ID);
+		root.put(FIELDS.FILESIZE.name, true);
+		root.put(FIELDS.FINALHASH.name, Configuration.configuration.globalDigest);
+		root.put(FIELDS.DIGESTALGO.name, Configuration.configuration.digest.name);
+		root.put(FIELDS.PROXIFIED.name, Configuration.configuration.isHostProxyfied);
+		root.put(FIELDS.SEPARATOR.name, SEPARATOR_FIELD);
+		useJson = true;
 		logger.debug("Info HostId: "+root.toString());
 	}
 	
@@ -193,16 +192,20 @@ public class PartnerConfiguration {
 	public String getSeperator() {
 		return root.path(FIELDS.SEPARATOR.name).asText();
 	}
+	
+	/**
+	 * @return the useJson
+	 */
+	public boolean useJson() {
+		return useJson;
+	}
+	
 	/**
 	 * 
 	 * @return the String representation as version.json
 	 */
 	public String toString() {
-		try {
-			return getVersion()+"."+mapper.writeValueAsString(root);
-		} catch (JsonProcessingException e) {
-			return getVersion();
-		}
+		return getVersion()+"."+JsonHandler.writeAsString(root);
 	}
 	
 	public static DigestAlgo getDigestAlgo(String algo) {
@@ -215,7 +218,7 @@ public class PartnerConfiguration {
 			return DigestAlgo.valueOf(algo);
 		} catch (IllegalArgumentException e) {
 		}
-		return DigestAlgo.MD5;
+		return Configuration.configuration.digest;
 	}
 	/**
 	 * 
@@ -258,4 +261,5 @@ public class PartnerConfiguration {
 				(major1 < major2 || (major1 == major2 && (rank1 < rank2 || (rank1 == rank2 && subversion1 <= subversion2)))));
 		return (major1 < major2 || (major1 == major2 && (rank1 < rank2 || (rank1 == rank2 && subversion1 <= subversion2))));
 	}
+
 }

@@ -15,7 +15,8 @@
 		    <action dev="Frederic Bregier" type="add">Add support in web administration for BUSINESS, ROLE and ALIAS</action>
 		    <action dev="Frederic Bregier" type="add">Add support for Database upgrade according to version of schema</action>
 			<action dev="Frederic Bregier" type="fix">Fix Move File not correctly tested</action>
-		    <action dev="Frederic Bregier" type="fix">Update dependencies</action>
+			<action dev="Frederic Bregier" type="fix">Fix password not correclty selected (host with ssl will use the same password than with no ssl, while it is permitted to have 2 differents passwords)</action>
+			<action dev="Frederic Bregier" type="fix">Update dependencies</action>
 		</release>
 	    <release version="2.4.16" date="2013-07-11" description="Fix release">
 		    <action dev="Frederic Bregier" type="fix">Fix R66 Proxy issue</action>

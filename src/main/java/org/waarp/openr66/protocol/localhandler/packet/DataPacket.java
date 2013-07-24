@@ -21,6 +21,7 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.waarp.common.digest.FilesystemBasedDigest.DigestAlgo;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
+import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 import org.waarp.openr66.protocol.utils.FileUtils;
 
 /**
@@ -81,31 +82,19 @@ public class DataPacket extends AbstractLocalPacket {
 		lengthPacket = data.readableBytes();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#createEnd()
-	 */
 	@Override
-	public void createEnd() throws OpenR66ProtocolPacketException {
+	public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		end = key;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#createHeader()
-	 */
 	@Override
-	public void createHeader() throws OpenR66ProtocolPacketException {
+	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		header = ChannelBuffers.buffer(4);
 		header.writeInt(packetRank);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#createMiddle()
-	 */
 	@Override
-	public void createMiddle() throws OpenR66ProtocolPacketException {
+	public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		middle = data;
 	}
 

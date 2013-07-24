@@ -33,6 +33,8 @@ import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseNoDataException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.digest.FilesystemBasedDigest;
+import org.waarp.common.logging.WaarpInternalLogger;
+import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.protocol.configuration.Configuration;
@@ -45,6 +47,12 @@ import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
  * 
  */
 public class DbHostAuth extends AbstractDbData {
+	/**
+	 * Internal Logger
+	 */
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(DbHostAuth.class);
+	
 	public static enum Columns {
 		ADDRESS, PORT, ISSSL, HOSTKEY, ADMINROLE, ISCLIENT, UPDATEDINFO, HOSTID
 	}
@@ -607,6 +615,7 @@ public class DbHostAuth extends AbstractDbData {
 					Configuration.configuration.cryptoKey.decryptHexInBytes(this.hostkey),
 					newkey);
 		} catch (Exception e) {
+			logger.debug("Error while checking key", e);
 			return false;
 		}
 	}

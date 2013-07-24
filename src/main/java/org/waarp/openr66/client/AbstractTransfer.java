@@ -216,7 +216,7 @@ public abstract class AbstractTransfer implements Runnable {
 							+
 							"  '-info' \"information to send\",\n"
 							+
-							"  '-md5' to force MD5 by packet control,\n"
+							"  '-md5' to force MD5 (or other hash as configured) by packet control,\n"
 							+
 							"  '-block' size of packet > 1K (prefered is 64K),\n"
 							+
