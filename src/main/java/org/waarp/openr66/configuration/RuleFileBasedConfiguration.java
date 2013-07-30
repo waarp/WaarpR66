@@ -346,7 +346,7 @@ public class RuleFileBasedConfiguration {
 		DbRule newRule = null;
 		XmlHash hash = new XmlHash(root);
 		XmlValue value = hash.get(XIDRULE);
-		if (value == null || (value.isEmpty()) || value.getString().length() == 0) {
+		if (value == null || (value.isEmpty()) || value.getString().isEmpty()) {
 			logger.error("Unable to find in Rule field: " + XIDRULE);
 			throw new OpenR66ProtocolSystemException();
 		}
@@ -359,28 +359,28 @@ public class RuleFileBasedConfiguration {
 		int mode = value.getInteger();
 		String recvpath;
 		value = hash.get(XRECVPATH);
-		if (value == null || (value.isEmpty()) || value.getString().length() == 0) {
+		if (value == null || (value.isEmpty()) || value.getString().isEmpty()) {
 			recvpath = Configuration.configuration.inPath;
 		} else {
 			recvpath = DirInterface.SEPARATOR + value.getString();
 		}
 		String sendpath;
 		value = hash.get(XSENDPATH);
-		if (value == null || (value.isEmpty()) || value.getString().length() == 0) {
+		if (value == null || (value.isEmpty()) || value.getString().isEmpty()) {
 			sendpath = Configuration.configuration.outPath;
 		} else {
 			sendpath = DirInterface.SEPARATOR + value.getString();
 		}
 		String archivepath;
 		value = hash.get(XARCHIVEPATH);
-		if (value == null || (value.isEmpty()) || value.getString().length() == 0) {
+		if (value == null || (value.isEmpty()) || value.getString().isEmpty()) {
 			archivepath = Configuration.configuration.archivePath;
 		} else {
 			archivepath = DirInterface.SEPARATOR + value.getString();
 		}
 		String workpath;
 		value = hash.get(XWORKPATH);
-		if (value == null || (value.isEmpty()) || value.getString().length() == 0) {
+		if (value == null || (value.isEmpty()) || value.getString().isEmpty()) {
 			workpath = Configuration.configuration.workingPath;
 		} else {
 			workpath = DirInterface.SEPARATOR + value.getString();

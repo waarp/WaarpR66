@@ -28,6 +28,7 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
 import org.waarp.common.database.exception.WaarpDatabaseException;
+import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
@@ -41,16 +42,21 @@ import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66DatabaseGlobalException;
 import org.waarp.openr66.protocol.exception.OpenR66Exception;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
+import org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket;
+import org.waarp.openr66.protocol.localhandler.packet.JsonCommandPacket;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 import org.waarp.openr66.protocol.localhandler.packet.ValidPacket;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Class to request information or request cancellation or restart
@@ -458,17 +464,35 @@ public class RequestTransfer implements Runnable {
 			future.cancel();
 			return ErrorCode.Internal;
 		}
-		ValidPacket packet = null;
-		if (restarttime != null && code == LocalPacketFactory.VALIDPACKET) {
-			// restart time set
-			logger.debug("Restart with time: "+restarttime);
-			packet = new ValidPacket("Request on Transfer",
-					this.requested + " " + this.requester + " " + this.specialId+" "+restarttime,
-					code);
+		boolean useJson = PartnerConfiguration.useJson(host.getHostid());
+		logger.debug("UseJson: "+useJson);
+		AbstractLocalPacket packet = null;
+		if (useJson) {
+			ObjectNode node = JsonHandler.createObjectNode();
+			JsonHandler.setValue(node, JsonCommandPacket.VALIDPACKET.comment, "Request on Transfer");
+			JsonHandler.setValue(node, JsonCommandPacket.VALIDPACKET.requested, this.requested);
+			JsonHandler.setValue(node, JsonCommandPacket.VALIDPACKET.requester, this.requester);
+			JsonHandler.setValue(node, JsonCommandPacket.VALIDPACKET.specialid, this.specialId);
+			if (restarttime != null && code == LocalPacketFactory.VALIDPACKET) {
+				// restart time set
+				logger.debug("Restart with time: "+restarttime);
+				JsonHandler.setValue(node, JsonCommandPacket.VALIDPACKET.restarttime, restarttime);
+				packet = new JsonCommandPacket(node, code);
+			} else {
+				packet = new JsonCommandPacket(node, code);
+			}
 		} else {
-			packet = new ValidPacket("Request on Transfer",
-				this.requested + " " + this.requester + " " + this.specialId,
-				code);
+			if (restarttime != null && code == LocalPacketFactory.VALIDPACKET) {
+				// restart time set
+				logger.debug("Restart with time: "+restarttime);
+				packet = new ValidPacket("Request on Transfer",
+						this.requested + " " + this.requester + " " + this.specialId+" "+restarttime,
+						code);
+			} else {
+				packet = new ValidPacket("Request on Transfer",
+					this.requested + " " + this.requester + " " + this.specialId,
+					code);
+			}
 		}
 		localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
 		try {

@@ -125,7 +125,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 		}
 		NetworkTransaction.removeForceNetworkChannel(remoteAddress);
 		// Now force the close of the database after a wait
-		if (dbSession != null && dbSession.internalId != DbConstant.admin.session.internalId) {
+		if (dbSession != null && DbConstant.admin != null && DbConstant.admin.session != null && dbSession.internalId != DbConstant.admin.session.internalId) {
 			dbSession.disconnect();
 			dbSession = null;
 		}

@@ -742,16 +742,16 @@ public class DbRule extends AbstractDbData {
 				allFields[i].value = rule.allFields[i].value;
 			}
 			setFromArrayClone(rule);
-			if (recvPath == null || recvPath.trim().length() == 0) {
+			if (recvPath == null || recvPath.trim().isEmpty()) {
 				recvPath = Configuration.configuration.inPath;
 			}
-			if (sendPath == null || sendPath.trim().length() == 0) {
+			if (sendPath == null || sendPath.trim().isEmpty()) {
 				sendPath = Configuration.configuration.outPath;
 			}
-			if (archivePath == null || archivePath.trim().length() == 0) {
+			if (archivePath == null || archivePath.trim().isEmpty()) {
 				archivePath = Configuration.configuration.archivePath;
 			}
-			if (workPath == null || workPath.trim().length() == 0) {
+			if (workPath == null || workPath.trim().isEmpty()) {
 				workPath = Configuration.configuration.workingPath;
 			}
 			isSaved = true;
@@ -763,16 +763,16 @@ public class DbRule extends AbstractDbData {
 			}
 		}
 		super.select();
-		if (recvPath == null || recvPath.trim().length() == 0) {
+		if (recvPath == null || recvPath.trim().isEmpty()) {
 			recvPath = Configuration.configuration.inPath;
 		}
-		if (sendPath == null || sendPath.trim().length() == 0) {
+		if (sendPath == null || sendPath.trim().isEmpty()) {
 			sendPath = Configuration.configuration.outPath;
 		}
-		if (archivePath == null || archivePath.trim().length() == 0) {
+		if (archivePath == null || archivePath.trim().isEmpty()) {
 			archivePath = Configuration.configuration.archivePath;
 		}
-		if (workPath == null || workPath.trim().length() == 0) {
+		if (workPath == null || workPath.trim().isEmpty()) {
 			workPath = Configuration.configuration.workingPath;
 		}
 		setFromArray();
@@ -999,7 +999,7 @@ public class DbRule extends AbstractDbData {
 	 */
 	public String setRecvPath(String filename)
 			throws OpenR66ProtocolSystemException {
-		if (recvPath != null && recvPath.length() > 0) {
+		if (recvPath != null && ! recvPath.isEmpty()) {
 			return recvPath + DirInterface.SEPARATOR + filename;
 		}
 		return Configuration.configuration.inPath + DirInterface.SEPARATOR +filename;
@@ -1230,7 +1230,7 @@ public class DbRule extends AbstractDbData {
 	 * @return the recvPath
 	 */
 	public String getRecvPath() {
-		if (recvPath == null || recvPath.trim().length() == 0)
+		if (recvPath == null || recvPath.trim().isEmpty())
 			return Configuration.configuration.inPath;
 		return recvPath;
 	}
@@ -1239,7 +1239,7 @@ public class DbRule extends AbstractDbData {
 	 * @return the sendPath
 	 */
 	public String getSendPath() {
-		if (sendPath == null || sendPath.trim().length() == 0)
+		if (sendPath == null || sendPath.trim().isEmpty())
 			return Configuration.configuration.outPath;
 		return sendPath;
 	}
@@ -1248,7 +1248,7 @@ public class DbRule extends AbstractDbData {
 	 * @return the archivePath
 	 */
 	public String getArchivePath() {
-		if (archivePath == null || archivePath.trim().length() == 0)
+		if (archivePath == null || archivePath.trim().isEmpty())
 			return Configuration.configuration.archivePath;
 		return archivePath;
 	}
@@ -1257,7 +1257,7 @@ public class DbRule extends AbstractDbData {
 	 * @return the workPath
 	 */
 	public String getWorkPath() {
-		if (workPath == null || workPath.trim().length() == 0)
+		if (workPath == null || workPath.trim().isEmpty())
 			return Configuration.configuration.workingPath;
 		return workPath;
 	}

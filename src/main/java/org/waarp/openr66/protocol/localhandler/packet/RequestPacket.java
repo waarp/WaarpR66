@@ -90,7 +90,7 @@ public class RequestPacket extends AbstractLocalPacket {
 	 * @param mode
 	 * @return the same mode (RECV or SEND) in MD5 version
 	 */
-	public static int getModeMD5(int mode) {
+	public final static int getModeMD5(int mode) {
 		switch (mode) {
 			case 1:
 			case 2:
@@ -106,7 +106,7 @@ public class RequestPacket extends AbstractLocalPacket {
 	 * @param mode
 	 * @return true if this mode is a RECV(MD5) mode
 	 */
-	public static boolean isRecvMode(int mode) {
+	public final static boolean isRecvMode(int mode) {
 		return (mode == TRANSFERMODE.RECVMODE.ordinal() ||
 				mode == TRANSFERMODE.RECVMD5MODE.ordinal() ||
 				mode == TRANSFERMODE.RECVTHROUGHMODE.ordinal() || mode == TRANSFERMODE.RECVMD5THROUGHMODE
@@ -119,7 +119,7 @@ public class RequestPacket extends AbstractLocalPacket {
 	 * @param isRequested
 	 * @return True if this mode is a THROUGH (MD5) mode
 	 */
-	public static boolean isSendThroughMode(int mode, boolean isRequested) {
+	public final static boolean isSendThroughMode(int mode, boolean isRequested) {
 		return ((!isRequested && isSendThroughMode(mode)) || (isRequested && isRecvThroughMode(mode)));
 	}
 
@@ -128,7 +128,7 @@ public class RequestPacket extends AbstractLocalPacket {
 	 * @param mode
 	 * @return True if this mode is a SEND THROUGH (MD5) mode
 	 */
-	public static boolean isSendThroughMode(int mode) {
+	public final static boolean isSendThroughMode(int mode) {
 		return (mode == TRANSFERMODE.SENDTHROUGHMODE.ordinal() || mode == TRANSFERMODE.SENDMD5THROUGHMODE
 				.ordinal());
 	}
@@ -139,7 +139,7 @@ public class RequestPacket extends AbstractLocalPacket {
 	 * @param isRequested
 	 * @return True if this mode is a THROUGH (MD5) mode
 	 */
-	public static boolean isRecvThroughMode(int mode, boolean isRequested) {
+	public final static boolean isRecvThroughMode(int mode, boolean isRequested) {
 		return ((!isRequested && isRecvThroughMode(mode)) || (isRequested && isSendThroughMode(mode)));
 	}
 
@@ -148,12 +148,12 @@ public class RequestPacket extends AbstractLocalPacket {
 	 * @param mode
 	 * @return True if this mode is a RECV THROUGH (MD5) mode
 	 */
-	public static boolean isRecvThroughMode(int mode) {
+	public final static boolean isRecvThroughMode(int mode) {
 		return (mode == TRANSFERMODE.RECVTHROUGHMODE.ordinal() || mode == TRANSFERMODE.RECVMD5THROUGHMODE
 				.ordinal());
 	}
 
-	public static boolean isSendMode(int mode) {
+	public final static boolean isSendMode(int mode) {
 		return ! isRecvMode(mode);
 	}
 	/**
@@ -161,7 +161,7 @@ public class RequestPacket extends AbstractLocalPacket {
 	 * @param mode
 	 * @return True if this mode is a THROUGH mode (with or without MD5)
 	 */
-	public static boolean isThroughMode(int mode) {
+	public final static boolean isThroughMode(int mode) {
 		return mode >= TRANSFERMODE.SENDTHROUGHMODE.ordinal() &&
 				mode <= TRANSFERMODE.RECVMD5THROUGHMODE.ordinal();
 	}
@@ -171,7 +171,7 @@ public class RequestPacket extends AbstractLocalPacket {
 	 * @param mode
 	 * @return true if this mode is a MD5 mode
 	 */
-	public static boolean isMD5Mode(int mode) {
+	public final static boolean isMD5Mode(int mode) {
 		return (mode == TRANSFERMODE.RECVMD5MODE.ordinal() ||
 				mode == TRANSFERMODE.SENDMD5MODE.ordinal() ||
 				mode == TRANSFERMODE.SENDMD5THROUGHMODE.ordinal() || mode == TRANSFERMODE.RECVMD5THROUGHMODE
@@ -184,7 +184,7 @@ public class RequestPacket extends AbstractLocalPacket {
 	 * @param mode2
 	 * @return true if both modes are compatible (both send, or both recv)
 	 */
-	public static boolean isCompatibleMode(int mode1, int mode2) {
+	public final static boolean isCompatibleMode(int mode1, int mode2) {
 		return ((RequestPacket.isRecvMode(mode1) && RequestPacket.isRecvMode(mode2))
 		|| ((!RequestPacket.isRecvMode(mode1)) && (!RequestPacket.isRecvMode(mode2))));
 	}
@@ -328,8 +328,8 @@ public class RequestPacket extends AbstractLocalPacket {
 		if (lcr.getPartner() != null && lcr.getPartner().useJson()) {
 			logger.debug("Request will use JSON "+lcr.getPartner().toString());
 			ObjectNode node = JsonHandler.createObjectNode();
-			node.put(FIELDS.rule.name(), rulename);
-			node.put(FIELDS.mode.name(), mode);
+			JsonHandler.setValue(node, FIELDS.rule, rulename);
+			JsonHandler.setValue(node, FIELDS.mode, mode);
 			header = ChannelBuffers.wrappedBuffer(JsonHandler.writeAsString(node).getBytes());
 		} else {
 			header = ChannelBuffers.wrappedBuffer(rulename.getBytes(), 
@@ -348,12 +348,12 @@ public class RequestPacket extends AbstractLocalPacket {
 		if (lcr.getPartner() != null && lcr.getPartner().useJson()) {
 			logger.debug("Request will use JSON "+lcr.getPartner().toString());
 			ObjectNode node = JsonHandler.createObjectNode();
-			node.put(FIELDS.filename.name(), filename);
-			node.put(FIELDS.block.name(), blocksize);
-			node.put(FIELDS.rank.name(), rank);
-			node.put(FIELDS.id.name(), specialId);
-			node.put(FIELDS.code.name(), code);
-			node.put(FIELDS.length.name(), originalSize);
+			JsonHandler.setValue(node, FIELDS.filename, filename);
+			JsonHandler.setValue(node, FIELDS.block, blocksize);
+			JsonHandler.setValue(node, FIELDS.rank, rank);
+			JsonHandler.setValue(node, FIELDS.id, specialId);
+			JsonHandler.setValue(node, FIELDS.code, code);
+			JsonHandler.setValue(node, FIELDS.length, originalSize);
 			middle = ChannelBuffers.wrappedBuffer(away, JsonHandler.writeAsString(node).getBytes());
 		} else {
 			middle = ChannelBuffers.wrappedBuffer(away, filename.getBytes(), 

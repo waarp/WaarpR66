@@ -74,6 +74,8 @@ public class LocalPacketFactory {
 
 	public static final byte BLOCKREQUESTPACKET = 24;
 
+	public static final byte JSONREQUESTPACKET = 25;
+
 	/**
 	 * This method create a Packet from the ChannelBuffer.
 	 * 
@@ -147,6 +149,9 @@ public class LocalPacketFactory {
 						middleLength, endLength, buf);
 			case BLOCKREQUESTPACKET:
 				return BlockRequestPacket.createFromBuffer(headerLength,
+						middleLength, endLength, buf);
+			case JSONREQUESTPACKET:
+				return JsonCommandPacket.createFromBuffer(headerLength,
 						middleLength, endLength, buf);
 			default:
 				throw new OpenR66ProtocolPacketException(

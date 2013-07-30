@@ -671,6 +671,7 @@ public class LocalChannelReference {
 	 * @param partner the partner to set
 	 */
 	public void setPartner(String hostId) {
+		logger.debug("host:"+hostId);
 		partner = Configuration.configuration.versions.get(hostId);
 		if (partner == null) {
 			partner = new PartnerConfiguration(hostId, R66Versions.V2_4_12.getVersion());

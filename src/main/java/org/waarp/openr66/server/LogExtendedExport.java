@@ -23,7 +23,7 @@ import java.sql.Timestamp;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.database.exception.WaarpDatabaseException;
-import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
+import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
@@ -34,50 +34,81 @@ import org.waarp.openr66.context.R66FiniteDualStates;
 import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbHostAuth;
-import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
+import org.waarp.openr66.protocol.localhandler.packet.JsonCommandPacket;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
-import org.waarp.openr66.protocol.localhandler.packet.ValidPacket;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 /**
- * Log Export from a local client without database connection
+ * Log Export from a client (local or allowed)
  * 
  * @author Frederic Bregier
  * 
  */
-public class LogExport implements Runnable {
+public class LogExtendedExport implements Runnable {
 	/**
 	 * Internal Logger
 	 */
 	static volatile WaarpInternalLogger logger;
 
 	protected final R66Future future;
+	protected final boolean clean;
 	protected final boolean purgeLog;
 	protected final Timestamp start;
 	protected final Timestamp stop;
-	protected final boolean clean;
+	protected final String startid;
+	protected final String stopid;
+	protected final String rule;
+	protected final String request;
+	protected final boolean statuspending;
+	protected final boolean statustransfer;
+	protected final boolean statusdone;
+	protected final boolean statuserror;
 	protected final NetworkTransaction networkTransaction;
 	protected DbHostAuth host;
 
-	public LogExport(R66Future future, boolean purgeLog, boolean clean,
-			Timestamp start, Timestamp stop,
-			NetworkTransaction networkTransaction) {
+	/**
+	 * @param future
+	 * @param clean
+	 * @param purgeLog
+	 * @param start
+	 * @param stop
+	 * @param startid
+	 * @param stopid
+	 * @param rule
+	 * @param request
+	 * @param statuspending
+	 * @param statustransfer
+	 * @param statusdone
+	 * @param statuserror
+	 * @param networkTransaction
+	 * @param host
+	 */
+	public LogExtendedExport(R66Future future, boolean clean, boolean purgeLog, Timestamp start,
+			Timestamp stop, String startid, String stopid, String rule, String request,
+			boolean statuspending, boolean statustransfer, boolean statusdone, boolean statuserror,
+			NetworkTransaction networkTransaction, DbHostAuth host) {
 		this.future = future;
-		this.purgeLog = purgeLog;
 		this.clean = clean;
+		this.purgeLog = purgeLog;
 		this.start = start;
 		this.stop = stop;
+		this.startid = startid;
+		this.stopid = stopid;
+		this.rule = rule;
+		this.request = request;
+		this.statuspending = statuspending;
+		this.statustransfer = statustransfer;
+		this.statusdone = statusdone;
+		this.statuserror = statuserror;
 		this.networkTransaction = networkTransaction;
-		this.host = Configuration.configuration.HOST_SSLAUTH;
-	}
-
-	public void setHost(DbHostAuth host) {
 		this.host = host;
 	}
 	
@@ -87,26 +118,29 @@ public class LogExport implements Runnable {
 	 */
 	public void run() {
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(LogExport.class);
+			logger = WaarpInternalLoggerFactory.getLogger(LogExtendedExport.class);
 		}
 		String lstart = (start != null) ? start.toString() : null;
 		String lstop = (stop != null) ? stop.toString() : null;
 		byte type = (purgeLog) ? LocalPacketFactory.LOGPURGEPACKET : LocalPacketFactory.LOGPACKET;
-		ValidPacket valid = new ValidPacket(lstart, lstop, type);
+		ObjectNode node = JsonHandler.createObjectNode();
+		JsonHandler.setValue(node, JsonCommandPacket.LOGPACKET.clean, clean);
+		JsonHandler.setValue(node, JsonCommandPacket.LOGPACKET.purge, purgeLog);
+		JsonHandler.setValue(node, JsonCommandPacket.LOGPACKET.start, lstart);
+		JsonHandler.setValue(node, JsonCommandPacket.LOGPACKET.stop, lstop);
+		JsonHandler.setValue(node, JsonCommandPacket.LOGPACKET.startid, startid);
+		JsonHandler.setValue(node, JsonCommandPacket.LOGPACKET.stopid, stopid);
+		JsonHandler.setValue(node, JsonCommandPacket.LOGPACKET.rule, rule);
+		JsonHandler.setValue(node, JsonCommandPacket.LOGPACKET.request, request);
+		JsonHandler.setValue(node, JsonCommandPacket.LOGPACKET.statuspending, statuspending);
+		JsonHandler.setValue(node, JsonCommandPacket.LOGPACKET.statustransfer, statustransfer);
+		JsonHandler.setValue(node, JsonCommandPacket.LOGPACKET.statuserror, statuserror);
+		JsonHandler.setValue(node, JsonCommandPacket.LOGPACKET.statusdone, statusdone);
+		JsonCommandPacket valid = new JsonCommandPacket(node, type);
+		logger.debug("ExtendedLogCommand: " +valid.getRequest());
 		SocketAddress socketAddress = host.getSocketAddress();
 		boolean isSSL = host.isSsl();
 
-		// first clean if ask
-		if (clean && (host.getHostid().equals(Configuration.configuration.HOST_ID)
-				|| host.getHostid().equals(Configuration.configuration.HOST_SSLAUTH))) {
-			// Update all UpdatedInfo to DONE
-			// where GlobalLastStep = ALLDONETASK and status = CompleteOk
-			try {
-				DbTaskRunner.changeFinishedToDone(DbConstant.admin.session);
-			} catch (WaarpDatabaseNoConnectionException e) {
-				logger.warn("Clean cannot be done {}", e.getMessage());
-			}
-		}
 		LocalChannelReference localChannelReference = networkTransaction
 				.createConnectionWithRetry(socketAddress, isSSL, future);
 		socketAddress = null;
@@ -140,19 +174,20 @@ public class LogExport implements Runnable {
 		localChannelReference = null;
 	}
 
+	protected static boolean sclean = false;
 	protected static boolean spurgeLog = false;
 	protected static Timestamp sstart = null;
 	protected static Timestamp sstop = null;
-	protected static boolean sclean = false;
+	protected static String sstartid, sstopid, srule, srequest;
+	protected static boolean sstatuspending = false, sstatustransfer = false, sstatusdone = true, sstatuserror = false;
 	protected static String stohost = null;
-
+	
 	protected static boolean getParams(String[] args) {
 		if (args.length < 1) {
 			logger.error("Need at least the configuration file as first argument then optionally\n"
 					+
-					"    -purge\n"
-					+
-					"    -clean\n"
+					"    -purge\n    -clean\n    -startid id\n    -stopid id\n    -rule rule\n    -request host\n" +
+					"    -pending\n    -transfer\n    -done\n    -error\n"
 					+
 					"    -start timestamp in format yyyyMMddHHmmssSSS possibly truncated and where one of ':-. ' can be separators\n"
 					+
@@ -166,9 +201,8 @@ public class LogExport implements Runnable {
 				.setClientConfigurationFromXml(Configuration.configuration, args[0])) {
 			logger.error("Need at least the configuration file as first argument then optionally\n"
 					+
-					"    -purge\n"
-					+
-					"    -clean\n"
+					"    -purge\n    -clean\n    -startid id\n    -stopid id\n    -rule rule\n    -request host\n" +
+					"    -pending\n    -transfer\n    -done\n    -error\n"
 					+
 					"    -start timestamp in format yyyyMMddHHmmssSSS possibly truncated and where one of ':-. ' can be separators\n"
 					+
@@ -191,6 +225,26 @@ public class LogExport implements Runnable {
 			} else if (args[i].equalsIgnoreCase("-stop")) {
 				i++;
 				ssstop = args[i];
+			} else if (args[i].equalsIgnoreCase("-startid")) {
+				i++;
+				sstartid = args[i];
+			} else if (args[i].equalsIgnoreCase("-stopid")) {
+				i++;
+				sstopid = args[i];
+			} else if (args[i].equalsIgnoreCase("-rule")) {
+				i++;
+				srule = args[i];
+			} else if (args[i].equalsIgnoreCase("-request")) {
+				i++;
+				srequest = args[i];
+			} else if (args[i].equalsIgnoreCase("-pending")) {
+				sstatuspending = true;
+			} else if (args[i].equalsIgnoreCase("-transfer")) {
+				sstatustransfer = true;
+			} else if (args[i].equalsIgnoreCase("-done")) {
+				sstatusdone = true;
+			} else if (args[i].equalsIgnoreCase("-error")) {
+				sstatuserror = true;
 			} else if (args[i].equalsIgnoreCase("-host")) {
 				i++;
 				stohost = args[i];
@@ -217,7 +271,7 @@ public class LogExport implements Runnable {
 	public static void main(String[] args) {
 		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
 		if (logger == null) {
-			logger = WaarpInternalLoggerFactory.getLogger(LogExport.class);
+			logger = WaarpInternalLoggerFactory.getLogger(LogExtendedExport.class);
 		}
 		if (!getParams(args)) {
 			logger.error("Wrong initialization");
@@ -227,25 +281,31 @@ public class LogExport implements Runnable {
 			System.exit(1);
 		}
 		long time1 = System.currentTimeMillis();
+		DbHostAuth dbhost = null;
+		if (stohost != null) {
+			try {
+				dbhost = new DbHostAuth(DbConstant.admin.session, stohost);
+			} catch (WaarpDatabaseException e) {
+				logger.error("Wrong initialization");
+				if (DbConstant.admin != null && DbConstant.admin.isConnected) {
+					DbConstant.admin.close();
+				}
+				System.exit(2);
+			}
+		} else {
+			dbhost = Configuration.configuration.HOST_SSLAUTH;
+			stohost = Configuration.configuration.HOST_SSLID;
+		}
 		R66Future future = new R66Future(true);
 
 		Configuration.configuration.pipelineInit();
 		NetworkTransaction networkTransaction = new NetworkTransaction();
 		try {
-			LogExport transaction = new LogExport(future,
-					spurgeLog, sclean, sstart, sstop,
-					networkTransaction);
-			if (stohost != null) {
-				try {
-					transaction.setHost(new DbHostAuth(DbConstant.admin.session, stohost));
-				} catch (WaarpDatabaseException e) {
-					logger.error("LogExport in     FAILURE since Host is not found: "+stohost, e);
-					networkTransaction.closeAll();
-					System.exit(10);
-				}
-			} else {
-				stohost = Configuration.configuration.HOST_SSLID;
-			}
+			LogExtendedExport transaction = new LogExtendedExport(future,
+					sclean, spurgeLog, sstart, sstop,
+					sstartid, sstopid, srule, srequest, 
+					sstatuspending, sstatustransfer, sstatusdone, sstatuserror, 
+					networkTransaction, dbhost);
 			transaction.run();
 			future.awaitUninterruptibly();
 			long time2 = System.currentTimeMillis();
@@ -254,22 +314,22 @@ public class LogExport implements Runnable {
 			if (future.isSuccess()) {
 				if (result.code == ErrorCode.Warning) {
 					logger.warn("WARNED on file:     " +
-							(result.other != null ? ((ValidPacket) result.other).getSheader() :
+							(result.other != null ? ((JsonCommandPacket) result.other).getRequest() :
 									"no file")
 							+ "     delay: " + delay);
 				} else {
 					logger.warn("SUCCESS on Final file:     " +
-							(result.other != null ? ((ValidPacket) result.other).getSheader() :
+							(result.other != null ? ((JsonCommandPacket) result.other).getRequest() :
 									"no file")
 							+ "     delay: " + delay);
 				}
 			} else {
 				if (result.code == ErrorCode.Warning) {
-					logger.warn("LogExport is     WARNED", future.getCause());
+					logger.warn("LogExtendedExport is     WARNED", future.getCause());
 					networkTransaction.closeAll();
 					System.exit(result.code.ordinal());
 				} else {
-					logger.error("LogExport in     FAILURE", future.getCause());
+					logger.error("LogExtendedExport in     FAILURE", future.getCause());
 					networkTransaction.closeAll();
 					System.exit(result.code.ordinal());
 				}

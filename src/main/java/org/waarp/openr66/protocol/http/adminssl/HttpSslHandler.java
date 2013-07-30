@@ -267,7 +267,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 
 	private String getTrimValue(String varname) {
 		String value = params.get(varname).get(0).trim();
-		if (value.length() == 0) {
+		if (value.isEmpty()) {
 			value = null;
 		}
 		return value;
@@ -1098,7 +1098,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				}
 			} else if ("Delete".equalsIgnoreCase(parm)) {
 				String host = getTrimValue("host");
-				if (host == null || host.length() == 0) {
+				if (host == null || host.isEmpty()) {
 					body0 = body1 = body = "";
 					body = "<p><center><b>Not enough data to delete a Host</b></center></p>";
 					head = resetOptionHosts(head, "", "", false);
@@ -1427,7 +1427,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				body1 = REQUEST.Rules.readBodyEnd();
 			} else if ("Delete".equalsIgnoreCase(parm)) {
 				String rule = getTrimValue("rule");
-				if (rule == null || rule.length() == 0) {
+				if (rule == null || rule.isEmpty()) {
 					body0 = body1 = body = "";
 					body = "<p><center><b>Not enough data to delete a Rule</b></center></p>";
 					head = resetOptionRules(head, "", null, -3);
@@ -1706,7 +1706,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					values = params.get("name");
 					if (values != null) {
 						name = values.get(0);
-						if (name == null || name.length() == 0) {
+						if (name == null || name.isEmpty()) {
 							getMenu = true;
 						}
 					}
@@ -1718,7 +1718,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					values = params.get("passwd");
 					if (values != null) {
 						password = values.get(0);
-						if (password == null || password.length() == 0) {
+						if (password == null || password.isEmpty()) {
 							getMenu = true;
 						} else {
 							getMenu = false;

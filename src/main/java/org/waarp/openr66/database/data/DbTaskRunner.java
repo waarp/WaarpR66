@@ -3880,4 +3880,18 @@ public class DbTaskRunner extends AbstractDbData {
 		this.originalSize = originalSize;
 	}
 	
+	/**
+	 * 
+	 * @return the full path for the current file
+	 * @throws CommandAbstractException 
+	 */
+	public String getFullFilePath() throws CommandAbstractException {
+		if (this.isFileMoved()) {
+			return this.getFilename();
+		} else {
+			R66File file = new R66File(session, session.getDir(), this.getFilename(), false);
+			return file.getTrueFile().getAbsolutePath();
+		}
+	}
+	
 }

@@ -383,6 +383,7 @@ public class R66Session implements SessionInterface {
 					try {
 						file = (R66File) dir.setFile(filename, false);
 					} catch (CommandAbstractException e) {
+						logger.warn("File not placed in normal directory", e);
 						// file is not under normal base directory, so is external
 						// File should already exist but can be using special code ('*?')
 						file = dir.setFileNoCheck(filename);

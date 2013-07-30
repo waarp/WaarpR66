@@ -166,6 +166,7 @@ public class RequestInformation implements Runnable {
 		}
 		InformationPacket request = null;
 		if (code != -1) {
+			
 			request = new InformationPacket(rulename, code, filename);
 		} else {
 			request = new InformationPacket(""+id, code, (isTo ? "1" : "0"));

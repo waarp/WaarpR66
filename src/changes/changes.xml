@@ -13,8 +13,13 @@
 		    <action dev="Frederic Bregier" type="fix">Fix RESCHEDULE storage of the counter of retries: task definition changes</action>
 		    <action dev="Frederic Bregier" type="add">Add support to explicitely said to partner one host is proxified, in order they do not check its IP address</action>
 		    <action dev="Frederic Bregier" type="add">Add support in web administration for BUSINESS, ROLE and ALIAS</action>
-		    <action dev="Frederic Bregier" type="add">Add support for Database upgrade according to version of schema</action>
+		    <action dev="Frederic Bregier" type="add">Add support in web administration for BUSINESS, ROLE and ALIAS</action>
+		    <action dev="Frederic Bregier" type="add">Add support for extended methods using JSON Command format</action>
 			<action dev="Frederic Bregier" type="fix">Fix Move File not correctly tested</action>
+			<action dev="Frederic Bregier" type="fix">Fix INPATH bad resolution in tasks</action>
+			<action dev="Frederic Bregier" type="fix">Fix import config not using the correct filenames</action>
+			<action dev="Frederic Bregier" type="fix">Fix MultipleDirectTransfer to enable multiple files coming from wildcarded files (*?~)</action>
+			<action dev="Frederic Bregier" type="fix">Fix MultipleSubmitTransfer to enable multiple files coming from wildcarded files (*?~) (need -client for remote file list when recv rule is used)</action>
 			<action dev="Frederic Bregier" type="fix">Fix password not correclty selected (host with ssl will use the same password than with no ssl, while it is permitted to have 2 differents passwords)</action>
 			<action dev="Frederic Bregier" type="fix">Update dependencies</action>
 		</release>
