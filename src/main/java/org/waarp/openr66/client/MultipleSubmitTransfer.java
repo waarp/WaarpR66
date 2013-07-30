@@ -18,12 +18,18 @@
 package org.waarp.openr66.client;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
+import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.database.DbConstant;
+import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
+import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
 
@@ -40,6 +46,8 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * -to host2 -file file2<br>
  * -to host3 -file file1<br>
  * -to host3 -file file2<br>
+ * <br>
+ * <br>Extra option is -client which allows the filename resolution on remote (recv files) when using wildcards.<br>
  * 
  * @author Frederic Bregier
  * 
@@ -65,7 +73,13 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 		if (logger == null) {
 			logger = WaarpInternalLoggerFactory.getLogger(MultipleSubmitTransfer.class);
 		}
-		if (!getParams(args, true)) {
+		boolean submit = true;
+		for (String string : args) {
+			if (string.equalsIgnoreCase("-client")) {
+				submit = false;
+			}
+		}
+		if (!getParams(args, submit)) {
 			logger.error("Wrong initialization");
 			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
 				DbConstant.admin.close();
@@ -77,42 +91,78 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 		String [] rhosts = rhost.split(",");
 		int error = 0;
 		boolean inError = false;
-		for (String host : rhosts) {
-			host = host.trim();
-			if (host != null && host.length() > 0) {
-				for (String filename : localfilenames) {
-					filename = filename.trim();
-					if (filename != null && filename.length() > 0) {
-						R66Future future = new R66Future(true);
-						MultipleSubmitTransfer transaction = new MultipleSubmitTransfer(future,
-								host, filename, rule, fileInfo, ismd5, block, idt,
-								ttimestart);
-						transaction.run();
-						future.awaitUninterruptibly();
-						DbTaskRunner runner = future.getResult().runner;
-						if (future.isSuccess()) {
-							logger.warn("Prepare transfer in\n    SUCCESS\n    " + runner.toShortString() +
-									"<REMOTE>" + rhost + "</REMOTE>");
-						} else {
-							if (runner != null) {
-								logger.error("Prepare transfer in\n    FAILURE\n     " + runner.toShortString() +
-										"<REMOTE>" + rhost + "</REMOTE>", future.getCause());
+		// first check if filenames contains wildcards
+		DbRule dbrule = null;
+		try {
+			dbrule = new DbRule(DbConstant.admin.session, rule);
+		} catch (WaarpDatabaseException e) {
+			logger.error("Rule is not found: "+rule);
+			ChannelUtils.stopLogger();
+			System.exit(2);
+		}
+		NetworkTransaction networkTransaction = null;
+		if (! submit) {
+			Configuration.configuration.pipelineInit();
+			networkTransaction = new NetworkTransaction();
+		}
+		try {
+			List<String> files = null;
+			if (dbrule.isSendMode()) {
+				files = MultipleDirectTransfer.getLocalFiles(dbrule, localfilenames);
+			} else if (submit) {
+				files = new ArrayList<String>();
+				for (String string : localfilenames) {
+					files.add(string);
+				}
+			}
+			for (String host : rhosts) {
+				host = host.trim();
+				if (host != null && ! host.isEmpty()) {
+					if (! submit && dbrule.isRecvMode()) {
+						files = MultipleDirectTransfer.getRemoteFiles(dbrule, localfilenames, host, networkTransaction);
+					}
+					for (String filename : files) {
+						filename = filename.trim();
+						if (filename != null && ! filename.isEmpty()) {
+							R66Future future = new R66Future(true);
+							MultipleSubmitTransfer transaction = new MultipleSubmitTransfer(future,
+									host, filename, rule, fileInfo, ismd5, block, idt,
+									ttimestart);
+							transaction.run();
+							future.awaitUninterruptibly();
+							DbTaskRunner runner = future.getResult().runner;
+							if (future.isSuccess()) {
+								logger.warn("Prepare transfer in     SUCCESS     " + runner.toShortString() +
+										"<REMOTE>" + rhost + "</REMOTE>");
 							} else {
-								logger.error("Prepare transfer in\n    FAILURE\n     ", future.getCause());
+								if (runner != null) {
+									logger.error("Prepare transfer in     FAILURE      " + runner.toShortString() +
+											"<REMOTE>" + rhost + "</REMOTE>", future.getCause());
+								} else {
+									logger.error("Prepare transfer in     FAILURE      ", future.getCause());
+								}
+								error = future.getResult().code.ordinal();
+								inError = true;
 							}
-							error = future.getResult().code.ordinal();
-							inError = true;
 						}
 					}
 				}
 			}
-		}
-		if (inError) {
+			if (inError) {
+				if (networkTransaction != null)  {
+					networkTransaction.closeAll();
+					networkTransaction = null;
+				}
+				DbConstant.admin.close();
+				ChannelUtils.stopLogger();
+				System.exit(error);
+			}
 			DbConstant.admin.close();
-			ChannelUtils.stopLogger();
-			System.exit(error);
+		} finally {
+			if (networkTransaction != null)  {
+				networkTransaction.closeAll();
+			}
 		}
-		DbConstant.admin.close();
 	}
 
 }

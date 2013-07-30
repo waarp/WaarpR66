@@ -318,8 +318,8 @@ public class FtpTransferTask extends AbstractTask {
 		}
 		R66Result result = new R66Result(session, false, ErrorCode.TransferOk, session.getRunner());
 		futureCompletion.setResult(result);
-		logger.info("FTP transfer in\n    SUCCESS\n    " + session.getRunner().toShortString() +
-					"\n    <REMOTE>" + requested + "</REMOTE>");
+		logger.info("FTP transfer in     SUCCESS     " + session.getRunner().toShortString() +
+					"     <REMOTE>" + requested + "</REMOTE>");
 		futureCompletion.setSuccess();
 	}
 

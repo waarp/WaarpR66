@@ -174,11 +174,6 @@ public abstract class AbstractTask implements Runnable {
 	 * usage of LocalExec)
 	 */
 	public static final String LOCALEXEC = "#LOCALEXEC#";
-	/**
-	 * Delimiter for -count option in Reschedule to be placed in the info of transfer as
-	 * #CPTLIMIT#limit#CPTLIMIT# where limit is an integer.
-	 */
-	public static final String CPTLIMIT = "#CPTLIMIT#";
 
 	/**
 	 * Type of operation
@@ -368,7 +363,7 @@ public abstract class AbstractTask implements Runnable {
 				}
 			} else {
 				try {
-					dir.changeDirectoryNotChecked(runner.getRule().getRecvPath());
+					dir.changeDirectory(runner.getRule().getRecvPath());
 					WaarpStringUtils.replaceAll(builder, INPATH, dir.getFullPath());
 				} catch (CommandAbstractException e) {
 				}
@@ -393,7 +388,7 @@ public abstract class AbstractTask implements Runnable {
 			}
 		} else {
 			try {
-				dir.changeDirectoryNotChecked(Configuration.configuration.inPath);
+				dir.changeDirectory(Configuration.configuration.inPath);
 				WaarpStringUtils.replaceAll(builder, INPATH, dir.getFullPath());
 			} catch (CommandAbstractException e) {
 			}

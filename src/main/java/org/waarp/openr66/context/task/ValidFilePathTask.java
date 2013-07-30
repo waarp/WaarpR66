@@ -72,7 +72,7 @@ public class ValidFilePathTask extends AbstractTask {
 		for (String base : paths) {
 			if (curpath.startsWith(base)) {
 				if (delay > 0) {
-					logger.info("Validate File " + curpath + " from " + base + " and\n    " +
+					logger.info("Validate File " + curpath + " from " + base + " and     " +
 							session.toString());
 				}
 				futureCompletion.setSuccess();
@@ -80,7 +80,7 @@ public class ValidFilePathTask extends AbstractTask {
 			}
 		}
 		if (delay > 0) {
-			logger.error("Unvalidate File: " + curpath + "\n    " +
+			logger.error("Unvalidate File: " + curpath + "     " +
 					session.toString());
 		}
 		futureCompletion.setFailure(new OpenR66RunnerException("File not Validated"));

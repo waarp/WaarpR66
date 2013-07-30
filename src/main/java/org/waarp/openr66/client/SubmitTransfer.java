@@ -118,14 +118,14 @@ public class SubmitTransfer extends AbstractTransfer {
 		future.awaitUninterruptibly();
 		DbTaskRunner runner = future.getResult().runner;
 		if (future.isSuccess()) {
-			logger.warn("Prepare transfer in\n    SUCCESS\n    " + runner.toShortString() +
+			logger.warn("Prepare transfer in     SUCCESS     " + runner.toShortString() +
 					"<REMOTE>" + rhost + "</REMOTE>");
 		} else {
 			if (runner != null) {
-				logger.error("Prepare transfer in\n    FAILURE\n     " + runner.toShortString() +
+				logger.error("Prepare transfer in     FAILURE      " + runner.toShortString() +
 						"<REMOTE>" + rhost + "</REMOTE>", future.getCause());
 			} else {
-				logger.error("Prepare transfer in\n    FAILURE\n     ", future.getCause());
+				logger.error("Prepare transfer in     FAILURE      ", future.getCause());
 			}
 			DbConstant.admin.close();
 			ChannelUtils.stopLogger();

@@ -28,7 +28,7 @@ export R66BIN="${R66HOME}/lib"
 LOGSERVER=" -Dlogback.configurationFile=${R66HOME}/conf/logback.xml "
 LOGCLIENT=" -Dlogback.configurationFile=${R66HOME}/conf/logback-client.xml "
 
-R66_CLASSPATH=" ${R66BIN}/WaarpR66-2.4.14.jar:${R66BIN}/* "
+R66_CLASSPATH=" ${R66BIN}/WaarpR66-2.4.17.jar:${R66BIN}/* "
 
 export JAVARUNCLIENT="${JAVA_RUN} -cp ${R66_CLASSPATH} ${LOGCLIENT} "
 export JAVARUNSERVER="${JAVA_RUN} -cp ${R66_CLASSPATH} ${LOGSERVER} "
@@ -48,7 +48,7 @@ export R66SERVER="${R66HOME}/bin/server.sh"
 alias -x r66server="${R66SERVER} ${SERVER_CONFIG} "
 
 # init database from argument
-# [ -initdb ] [ -loadBusiness businessConfiguration ] [ -loadRoles roleConfiguration ] [ -loadAlias aliasConfig ] [ -dir rulesDirectory ] [ -limit xmlFileLimit ] [ -auth xmlFileAuthent ]
+# [ -initdb ] [ -loadBusiness businessConfiguration ] [ -loadRoles roleConfiguration ] [ -loadAlias aliasConfig ] [ -dir rulesDirectory ] [ -limit xmlFileLimit ] [ -auth xmlFileAuthent ] [ -upgradeDb ]
 export R66INIT="${JAVARUNCLIENT} org.waarp.openr66.server.ServerInitDatabase ${SERVER_CONFIG} "
 alias -x r66init="${R66INIT}"
 
@@ -58,12 +58,12 @@ export R66CNFEXP="${JAVARUNCLIENT} org.waarp.openr66.server.ServerExportConfigur
 alias -x r66cnfexp="${R66CNFEXP}"
 
 # export configuration as arguments
-# [-hosts] [-rules]
+# [-hosts] [-rules] [-business ] [ -alias ] [ -roles ] [ -host host ]
 export R66CONFEXP="${JAVARUNCLIENT} org.waarp.openr66.server.ConfigExport ${SERVER_CONFIG} "
 alias -x r66confexp="${R66CONFEXP}"
 
 # import configuration as arguments
-# [-hosts host-configuration-file] [-purgehosts] [-rules rule-configuration-file] [-purgerules]
+# [-hosts host-configuration-file] [-purgehosts] [-rules rule-configuration-file] [-purgerules] [-business file] [-purgebusiness] [-alias file] [-purgealias] [-roles file] [-purgeroles] [-hostid file transfer id] [-ruleid file transfer id] [-businessid file transfer id] [-aliasid file transfer id] [-roleid file transfer id] [-host host]
 export R66CONFIMP="${JAVARUNCLIENT} org.waarp.openr66.server.ConfigImport ${SERVER_CONFIG} "
 alias -x r66confimp="${R66CONFIMP}"
 
@@ -81,6 +81,11 @@ alias -x r66shutd="${R66SHUTD}"
 # [ -purge ] [ -clean ] [ -start timestamp ] [ -stop timestamp ] where timestamp are in yyyyMMddHHmmssSSS format eventually truncated and with possible ':- ' as separators
 export R66EXPORT="${JAVARUNCLIENT} org.waarp.openr66.server.LogExport ${SERVER_CONFIG} "
 alias -x r66export="${R66EXPORT}"
+
+# export the log (extended)
+# [-host host] [ -purge ] [ -clean ] [-startid id] [-stopid id] [-rule rule] [-request host] [-pending] [-transfer] [-done] [-error] [ -start timestamp ] [ -stop timestamp ] where timestamp are in yyyyMMddHHmmssSSS format eventually truncated and with possible ':- ' as separators
+export R66LOGEXPORT="${JAVARUNCLIENT} org.waarp.openr66.server.LogExtendedExport ${SERVER_CONFIG} "
+alias r66logexport="${R66EXPORT}"
 
 # change limits of bandwidth
 # "[ -wglob x ] [ -rglob w ] [ -wsess x ] [ -rsess x ]"

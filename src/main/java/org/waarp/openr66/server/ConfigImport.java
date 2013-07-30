@@ -21,6 +21,8 @@ import java.net.SocketAddress;
 
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.logging.InternalLoggerFactory;
+import org.waarp.common.database.exception.WaarpDatabaseException;
+import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
@@ -31,14 +33,19 @@ import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
+import org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket;
+import org.waarp.openr66.protocol.localhandler.packet.JsonCommandPacket;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 import org.waarp.openr66.protocol.localhandler.packet.ValidPacket;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Config Import from a local client without database connection
@@ -57,6 +64,15 @@ public class ConfigImport implements Runnable {
 	protected final boolean hostPurge;
 	protected final String rule;
 	protected final boolean rulePurge;
+	protected final String business;
+	protected final boolean businessPurge;
+	protected final String alias;
+	protected final boolean aliasPurge;
+	protected final String role;
+	protected final boolean rolePurge;
+	protected long hostid = DbConstant.ILLEGALVALUE, ruleid = DbConstant.ILLEGALVALUE,
+			businessid = DbConstant.ILLEGALVALUE, aliasid = DbConstant.ILLEGALVALUE, 
+			roleid = DbConstant.ILLEGALVALUE;
 	protected final NetworkTransaction networkTransaction;
 	protected DbHostAuth dbhost;
 	
@@ -68,10 +84,50 @@ public class ConfigImport implements Runnable {
 		this.rule = rule;
 		this.hostPurge = hostPurge;
 		this.rulePurge = rulePurge;
+		this.business = null;
+		this.businessPurge = false;
+		this.alias = null;
+		this.aliasPurge = false;
+		this.role = null;
+		this.rolePurge = false;
 		this.networkTransaction = networkTransaction;
 		this.dbhost = Configuration.configuration.HOST_SSLAUTH;
 	}
-	
+
+	public ConfigImport(R66Future future, boolean hostPurge, boolean rulePurge,
+			boolean businessPurge, boolean aliasPurge, boolean rolePurge,
+			String host, String rule,
+			String business, String alias, String role,
+			NetworkTransaction networkTransaction) {
+		this.future = future;
+		this.host = host;
+		this.rule = rule;
+		this.hostPurge = hostPurge;
+		this.rulePurge = rulePurge;
+		this.business = business;
+		this.businessPurge = businessPurge;
+		this.alias = alias;
+		this.aliasPurge = aliasPurge;
+		this.role = role;
+		this.rolePurge = rolePurge;
+		this.networkTransaction = networkTransaction;
+		this.dbhost = Configuration.configuration.HOST_SSLAUTH;
+	}
+	/**
+	 * Used when the filenames are not compliant with remote filenames.
+	 * @param hostid
+	 * @param ruleid
+	 * @param businessid
+	 * @param aliasid
+	 * @param roleid
+	 */
+	public void setSpecialIds(long hostid, long ruleid, long businessid, long aliasid, long roleid) {
+		this.hostid = hostid;
+		this.ruleid = ruleid;
+		this.businessid = businessid;
+		this.aliasid = aliasid;
+		this.roleid = roleid;
+	}
 	public void setHost(DbHostAuth host) {
 		this.dbhost = host;
 	}
@@ -84,9 +140,6 @@ public class ConfigImport implements Runnable {
 		if (logger == null) {
 			logger = WaarpInternalLoggerFactory.getLogger(ConfigImport.class);
 		}
-		ValidPacket valid = new ValidPacket((hostPurge ? "1 " : "0 ") + host,
-				(rulePurge ? "1 " : "0 ") + rule,
-				LocalPacketFactory.CONFIMPORTPACKET);
 		SocketAddress socketAddress = dbhost.getSocketAddress();
 		boolean isSSL = dbhost.isSsl();
 
@@ -103,6 +156,32 @@ public class ConfigImport implements Runnable {
 			return;
 		}
 		localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
+		boolean useJson = PartnerConfiguration.useJson(dbhost.getHostid());
+		logger.debug("UseJson: "+useJson);
+		AbstractLocalPacket valid = null;
+		if (useJson) {
+			ObjectNode node = JsonHandler.createObjectNode();
+			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.host, host);
+			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.rule, rule);
+			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.business, business);
+			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.alias, alias);
+			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.roles, role);
+			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.purgehost, hostPurge);
+			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.purgerule, rulePurge);
+			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.purgebusiness, businessPurge);
+			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.purgealias, aliasPurge);
+			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.purgeroles, rolePurge);
+			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.hostid, hostid);
+			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.ruleid, ruleid);
+			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.businessid, businessid);
+			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.aliasid, aliasid);
+			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.rolesid, roleid);
+			valid = new JsonCommandPacket(node, LocalPacketFactory.CONFIMPORTPACKET);
+		} else {
+			valid = new ValidPacket((hostPurge ? "1 " : "0 ") + host,
+				(rulePurge ? "1 " : "0 ") + rule,
+				LocalPacketFactory.CONFIMPORTPACKET);
+		}
 		try {
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference, valid, false);
 		} catch (OpenR66ProtocolPacketException e) {
@@ -125,17 +204,41 @@ public class ConfigImport implements Runnable {
 
 	protected static String shost = null;
 	protected static String srule = null;
+	protected static String sbusiness = null;
+	protected static String salias = null;
+	protected static String srole = null;
 	protected static boolean shostpurge = false;
 	protected static boolean srulepurge = false;
-
+	protected static boolean sbusinesspurge = false;
+	protected static boolean saliaspurge = false;
+	protected static boolean srolepurge = false;
+	protected static String stohost = null;
+	protected static long lhost = DbConstant.ILLEGALVALUE;
+	protected static long lrule = DbConstant.ILLEGALVALUE;
+	protected static long lbusiness = DbConstant.ILLEGALVALUE;
+	protected static long lalias = DbConstant.ILLEGALVALUE;
+	protected static long lrole = DbConstant.ILLEGALVALUE;
+	
 	protected static boolean getParams(String[] args) {
 		if (args.length < 3) {
 			logger.error("Need at least the configuration file as first argument then at least one from\n"
 					+
 					"    -hosts file\n" +
 					"    -rules file\n" +
+					"    -business file (if compatible)\n" +
+					"    -alias file (if compatible)\n" +
+					"    -roles file (if compatible)\n" +
 					"    -purgehosts\n" +
-					"    -purgerules");
+					"    -purgerules\n"+
+					"    -purgebusiness (if compatible)\n"+
+					"    -purgealias (if compatible)\n"+
+					"    -purgeroles (if compatible)\n"+
+					"    -hostid file transfer id (if compatible)\n" +
+					"    -ruleid file transfer id (if compatible)\n" +
+					"    -businessid file transfer id (if compatible)\n" +
+					"    -aliasid file transfer id (if compatible)\n" +
+					"    -roleid file transfer id (if compatible)\n" +
+					"    -host host (optional)");
 			return false;
 		}
 		if (!FileBasedConfiguration
@@ -144,8 +247,20 @@ public class ConfigImport implements Runnable {
 					+
 					"    -hosts file\n" +
 					"    -rules file\n" +
+					"    -business file (if compatible)\n" +
+					"    -alias file (if compatible)\n" +
+					"    -roles file (if compatible)\n" +
 					"    -purgehosts\n" +
-					"    -purgerules");
+					"    -purgerules\n"+
+					"    -purgebusiness (if compatible)\n"+
+					"    -purgealias (if compatible)\n"+
+					"    -purgeroles (if compatible)\n"+
+					"    -hostid file transfer id (if compatible)\n" +
+					"    -ruleid file transfer id (if compatible)\n" +
+					"    -businessid file transfer id (if compatible)\n" +
+					"    -aliasid file transfer id (if compatible)\n" +
+					"    -roleid file transfer id (if compatible)\n" +
+					"    -host host (optional)");
 			return false;
 		}
 		for (int i = 1; i < args.length; i++) {
@@ -161,15 +276,88 @@ public class ConfigImport implements Runnable {
 					return false;
 				}
 				srule = args[i];
+			} else if (args[i].equalsIgnoreCase("-business")) {
+				i++;
+				if (args.length <= i) {
+					return false;
+				}
+				sbusiness = args[i];
+			} else if (args[i].equalsIgnoreCase("-alias")) {
+				i++;
+				if (args.length <= i) {
+					return false;
+				}
+				salias = args[i];
+			} else if (args[i].equalsIgnoreCase("-roles")) {
+				i++;
+				if (args.length <= i) {
+					return false;
+				}
+				srole = args[i];
 			} else if (args[i].equalsIgnoreCase("-purgehosts")) {
 				shostpurge = true;
 			} else if (args[i].equalsIgnoreCase("-purgerules")) {
 				srulepurge = true;
+			} else if (args[i].equalsIgnoreCase("-purgebusiness")) {
+				sbusinesspurge = true;
+			} else if (args[i].equalsIgnoreCase("-purgealias")) {
+				saliaspurge = true;
+			} else if (args[i].equalsIgnoreCase("-purgeroles")) {
+				srolepurge = true;
+			} else if (args[i].equalsIgnoreCase("-host")) {
+				i++;
+				stohost = args[i];
+			} else if (args[i].equalsIgnoreCase("-hostid")) {
+				i++;
+				if (args.length <= i) {
+					return false;
+				}
+				try {
+					lhost = Long.parseLong(args[i]);
+				} catch (NumberFormatException e) {
+					return false;
+				}
+			} else if (args[i].equalsIgnoreCase("-ruleid")) {
+				i++;
+				if (args.length <= i) {
+					return false;
+				}
+				try {
+					lrule = Long.parseLong(args[i]);
+				} catch (NumberFormatException e) {
+					return false;
+				}
+			} else if (args[i].equalsIgnoreCase("-businessid")) {
+				i++;
+				if (args.length <= i) {
+					return false;
+				}
+				try {
+					lbusiness = Long.parseLong(args[i]);
+				} catch (NumberFormatException e) {
+					return false;
+				}
+			} else if (args[i].equalsIgnoreCase("-aliasid")) {
+				i++;
+				if (args.length <= i) {
+					return false;
+				}
+				try {
+					lalias = Long.parseLong(args[i]);
+				} catch (NumberFormatException e) {
+					return false;
+				}
+			} else if (args[i].equalsIgnoreCase("-roleid")) {
+				i++;
+				if (args.length <= i) {
+					return false;
+				}
+				try {
+					lrole = Long.parseLong(args[i]);
+				} catch (NumberFormatException e) {
+					return false;
+				}
 			}
-		}
-		if ((shost == null) && (srule == null)) {
-			logger.error("Need at least one of -hosts - rules");
-			return false;
 		}
 		return true;
 	}
@@ -192,33 +380,53 @@ public class ConfigImport implements Runnable {
 		Configuration.configuration.pipelineInit();
 		NetworkTransaction networkTransaction = new NetworkTransaction();
 		try {
-			ConfigImport transaction = new ConfigImport(future,
-					shostpurge, srulepurge, shost, srule,
-					networkTransaction);
+			ConfigImport transaction = new ConfigImport(future, shostpurge, srulepurge, 
+					sbusinesspurge, saliaspurge, srolepurge, shost, srule, 
+					sbusiness, salias, srole, networkTransaction);
+			transaction.setSpecialIds(lhost, lrule, lbusiness, lalias, lrole);
+			if (stohost != null) {
+				try {
+					transaction.setHost(new DbHostAuth(DbConstant.admin.session, stohost));
+				} catch (WaarpDatabaseException e) {
+					logger.error("ConfigImport in     FAILURE since Host is not found: "+stohost, e);
+					networkTransaction.closeAll();
+					System.exit(10);
+				}
+			} else {
+				stohost = Configuration.configuration.HOST_SSLID;
+			}
 			transaction.run();
 			future.awaitUninterruptibly();
 			long time2 = System.currentTimeMillis();
 			long delay = time2 - time1;
 			R66Result result = future.getResult();
 			if (future.isSuccess()) {
-				if (result.code == ErrorCode.Warning) {
-					logger.warn("WARNED on import:\n    " +
-							(result.other != null ? ((ValidPacket) result.other).getSheader() :
-									"no import")
-							+ "\n    delay: " + delay);
+				boolean useJson = PartnerConfiguration.useJson(stohost);
+				logger.debug("UseJson: "+useJson);
+				String message = null;
+				if (useJson) {
+					message = (result.other != null ? ((JsonCommandPacket) result.other).getRequest() :
+							"no file");
 				} else {
-					logger.warn("SUCCESS on import:\n    " +
-							(result.other != null ? ((ValidPacket) result.other).getSheader() :
-									"no import")
-							+ "\n    delay: " + delay);
+					message = (result.other != null ? ((ValidPacket) result.other).getSheader() :
+							"no file");
+				}
+				if (result.code == ErrorCode.Warning) {
+					logger.warn("WARNED on import:     " +
+							message
+							+ "     delay: " + delay);
+				} else {
+					logger.warn("SUCCESS on import:     " +
+							message
+							+ "     delay: " + delay);
 				}
 			} else {
 				if (result.code == ErrorCode.Warning) {
-					logger.warn("Transfer is\n    WARNED", future.getCause());
+					logger.warn("ConfigImport is     WARNED", future.getCause());
 					networkTransaction.closeAll();
 					System.exit(result.code.ordinal());
 				} else {
-					logger.error("Transfer in\n    FAILURE", future.getCause());
+					logger.error("ConfigImport in     FAILURE", future.getCause());
 					networkTransaction.closeAll();
 					System.exit(result.code.ordinal());
 				}

@@ -377,7 +377,7 @@ Low Limit of Bandwidth when decreasing from 4096
 <STRINGS_ELEMENT element="digest">
 <TITRE>digest</TITRE>
 <DOCUMENTATION>
-Digest to use: CRC32=0, ADLER32=1, MD5=2, MD2=3, SHA1=4, SHA256=5, SHA384=6, SHA512=7
+Digest to use, litteral or number: CRC32=0, ADLER32=1, MD5=2, MD2=3, SHA1=4, SHA256=5, SHA384=6, SHA512=7
                     </DOCUMENTATION>
 </STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="usefastmd5">

@@ -28,6 +28,7 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
 import org.waarp.common.database.exception.WaarpDatabaseException;
+import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
@@ -41,16 +42,21 @@ import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66DatabaseGlobalException;
 import org.waarp.openr66.protocol.exception.OpenR66Exception;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
+import org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket;
+import org.waarp.openr66.protocol.localhandler.packet.JsonCommandPacket;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 import org.waarp.openr66.protocol.localhandler.packet.ValidPacket;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Class to request information or request cancellation or restart
@@ -362,7 +368,7 @@ public class RequestTransfer implements Runnable {
 			}
 		} else {
 			// Only request
-			logger.info("Transfer information:\n    " + runner.toShortString());
+			logger.info("Transfer information:     " + runner.toShortString());
 			future.setResult(new R66Result(null, true, runner.getErrorInfo(), runner));
 			future.setSuccess();
 		}
@@ -458,17 +464,35 @@ public class RequestTransfer implements Runnable {
 			future.cancel();
 			return ErrorCode.Internal;
 		}
-		ValidPacket packet = null;
-		if (restarttime != null && code == LocalPacketFactory.VALIDPACKET) {
-			// restart time set
-			logger.debug("Restart with time: "+restarttime);
-			packet = new ValidPacket("Request on Transfer",
-					this.requested + " " + this.requester + " " + this.specialId+" "+restarttime,
-					code);
+		boolean useJson = PartnerConfiguration.useJson(host.getHostid());
+		logger.debug("UseJson: "+useJson);
+		AbstractLocalPacket packet = null;
+		if (useJson) {
+			ObjectNode node = JsonHandler.createObjectNode();
+			JsonHandler.setValue(node, JsonCommandPacket.VALIDPACKET.comment, "Request on Transfer");
+			JsonHandler.setValue(node, JsonCommandPacket.VALIDPACKET.requested, this.requested);
+			JsonHandler.setValue(node, JsonCommandPacket.VALIDPACKET.requester, this.requester);
+			JsonHandler.setValue(node, JsonCommandPacket.VALIDPACKET.specialid, this.specialId);
+			if (restarttime != null && code == LocalPacketFactory.VALIDPACKET) {
+				// restart time set
+				logger.debug("Restart with time: "+restarttime);
+				JsonHandler.setValue(node, JsonCommandPacket.VALIDPACKET.restarttime, restarttime);
+				packet = new JsonCommandPacket(node, code);
+			} else {
+				packet = new JsonCommandPacket(node, code);
+			}
 		} else {
-			packet = new ValidPacket("Request on Transfer",
-				this.requested + " " + this.requester + " " + this.specialId,
-				code);
+			if (restarttime != null && code == LocalPacketFactory.VALIDPACKET) {
+				// restart time set
+				logger.debug("Restart with time: "+restarttime);
+				packet = new ValidPacket("Request on Transfer",
+						this.requested + " " + this.requester + " " + this.specialId+" "+restarttime,
+						code);
+			} else {
+				packet = new ValidPacket("Request on Transfer",
+					this.requested + " " + this.requester + " " + this.specialId,
+					code);
+			}
 		}
 		localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
 		try {
@@ -532,24 +556,24 @@ public class RequestTransfer implements Runnable {
 				if (scancel) {
 					if (result.isSuccess()) {
 						value = 0;
-						logger.warn("Transfer already finished:\n    " +
+						logger.warn("Transfer already finished:     " +
 								finalValue.runner.toShortString());
 					} else {
 						switch (finalValue.code) {
 							case CompleteOk:
 								value = 0;
-								logger.warn("Transfer cancel requested and done:\n    " +
+								logger.warn("Transfer cancel requested and done:     " +
 										finalValue.runner.toShortString());
 								break;
 							case TransferOk:
 								value = 3;
-								logger.warn("Transfer cancel requested but already finished:\n    "
+								logger.warn("Transfer cancel requested but already finished:     "
 										+
 										finalValue.runner.toShortString());
 								break;
 							default:
 								value = 4;
-								logger.error("Transfer cancel requested but internal error:\n    " +
+								logger.error("Transfer cancel requested but internal error:     " +
 										finalValue.runner.toShortString());
 								break;
 						}
@@ -558,17 +582,17 @@ public class RequestTransfer implements Runnable {
 					switch (finalValue.code) {
 						case CompleteOk:
 							value = 0;
-							logger.warn("Transfer stop requested and done:\n    " +
+							logger.warn("Transfer stop requested and done:     " +
 									finalValue.runner.toShortString());
 							break;
 						case TransferOk:
 							value = 0;
-							logger.warn("Transfer stop requested but already finished:\n    " +
+							logger.warn("Transfer stop requested but already finished:     " +
 									finalValue.runner.toShortString());
 							break;
 						default:
 							value = 3;
-							logger.error("Transfer stop requested but internal error:\n    " +
+							logger.error("Transfer stop requested but internal error:     " +
 									finalValue.runner.toShortString());
 							break;
 					}
@@ -576,39 +600,39 @@ public class RequestTransfer implements Runnable {
 					switch (finalValue.code) {
 						case QueryStillRunning:
 							value = 0;
-							logger.warn("Transfer restart requested but already active and running:\n    "
+							logger.warn("Transfer restart requested but already active and running:     "
 									+
 									finalValue.runner.toShortString());
 							break;
 						case Running:
 							value = 0;
-							logger.warn("Transfer restart requested but already running:\n    " +
+							logger.warn("Transfer restart requested but already running:     " +
 									finalValue.runner.toShortString());
 							break;
 						case PreProcessingOk:
 							value = 0;
-							logger.warn("Transfer restart requested and restarted:\n    " +
+							logger.warn("Transfer restart requested and restarted:     " +
 									finalValue.runner.toShortString());
 							break;
 						case CompleteOk:
 							value = 4;
-							logger.warn("Transfer restart requested but already finished:\n    " +
+							logger.warn("Transfer restart requested but already finished:     " +
 									finalValue.runner.toShortString());
 							break;
 						case RemoteError:
 							value = 5;
-							logger.error("Transfer restart requested but remote error:\n    " +
+							logger.error("Transfer restart requested but remote error:     " +
 									finalValue.runner.toShortString());
 							break;
 						case PassThroughMode:
 							value = 6;
-							logger.warn("Transfer not restarted since it is in PassThrough mode:\n    "
+							logger.warn("Transfer not restarted since it is in PassThrough mode:     "
 									+
 									finalValue.runner.toShortString());
 							break;
 						default:
 							value = 3;
-							logger.error("Transfer restart requested but internal error:\n    " +
+							logger.error("Transfer restart requested but internal error:     " +
 									finalValue.runner.toShortString());
 							break;
 					}
@@ -616,7 +640,7 @@ public class RequestTransfer implements Runnable {
 			} else {
 				value = 0;
 				// Only request
-				logger.warn("Transfer information:\n    " +
+				logger.warn("Transfer information:     " +
 						finalValue.runner.toShortString());
 			}
 		} finally {

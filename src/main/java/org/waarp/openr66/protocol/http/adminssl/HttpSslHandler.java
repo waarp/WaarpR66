@@ -71,6 +71,7 @@ import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.context.filesystem.R66Dir;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbHostAuth;
+import org.waarp.openr66.database.data.DbHostConfiguration;
 import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
@@ -210,7 +211,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		XXXXCHANNELLIMITRXXX, XXXXCHANNELLIMITWXXX,
 		XXXXDELAYCOMMDXXX, XXXXDELAYRETRYXXX,
 		XXXLOCALXXX, XXXNETWORKXXX,
-		XXXERRORMESGXXX;
+		XXXERRORMESGXXX,
+		XXXXBUSINESSXXX, XXXXROLESXXX, XXXXALIASESXXX, XXXXOTHERXXX;
 	}
 
 	public static final int LIMITROW = 48; // better if it can
@@ -265,7 +267,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 
 	private String getTrimValue(String varname) {
 		String value = params.get(varname).get(0).trim();
-		if (value.length() == 0) {
+		if (value.isEmpty()) {
 			value = null;
 		}
 		return value;
@@ -536,8 +538,9 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				}
 				body1 = REQUEST.CancelRestart.readBodyEnd();
 			} else if ("RestartAll".equalsIgnoreCase(parm) ||
-					"StopAll".equalsIgnoreCase(parm)) {
-				boolean stopcommand = "StopAll".equalsIgnoreCase(parm);
+					"StopAll".equalsIgnoreCase(parm) ||
+					"StopCleanAll".equalsIgnoreCase(parm)) {
+				boolean stopcommand = "StopAll".equalsIgnoreCase(parm) || "StopCleanAll".equalsIgnoreCase(parm);
 				String startid = getTrimValue("startid");
 				String stopid = getTrimValue("stopid");
 				String start = getValue("start");
@@ -573,21 +576,27 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				body = REQUEST.CancelRestart.readBody();
 				StringBuilder builder = new StringBuilder();
 				if (stopcommand) {
-					builder = TransferUtils.stopSelectedTransfers(dbSession, LIMITROW, builder,
+					if ("StopCleanAll".equalsIgnoreCase(parm)) {
+						builder = TransferUtils.cleanSelectedTransfers(dbSession, 0, builder,
+								authentHttp, body, startid, stopid, tstart, tstop, rule, req,
+								pending, transfer, error);
+					} else {
+						builder = TransferUtils.stopSelectedTransfers(dbSession, 0, builder, 
 							authentHttp, body, startid, stopid, tstart, tstop, rule, req,
 							pending, transfer, error);
+					}
 				} else {
 					DbPreparedStatement preparedStatement = null;
 					try {
 						preparedStatement =
-								DbTaskRunner.getFilterPrepareStatement(dbSession, LIMITROW, false,
+								DbTaskRunner.getFilterPrepareStatement(dbSession, 0, false,
 										startid, stopid, tstart, tstop, rule, req,
 										pending, transfer, error, done, all);
 						preparedStatement.executeQuery();
-						int i = 0;
+						//int i = 0;
 						while (preparedStatement.getNext()) {
 							try {
-								i++;
+								//i++;
 								DbTaskRunner taskRunner = DbTaskRunner
 										.getFromStatement(preparedStatement);
 								LocalChannelReference lcr =
@@ -601,9 +610,9 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 								builder.append(taskRunner.toSpecializedHtml(authentHttp, body,
 										lcr != null ? "Active" : "NotActive"));
 								taskRunner.setErrorExecutionStatus(last);
-								if (i > LIMITROW) {
+								/*if (i > LIMITROW) {
 									break;
-								}
+								}*/
 							} catch (WaarpDatabaseException e) {
 								// try to continue if possible
 								logger.warn("An error occurs while accessing a Runner: {}",
@@ -625,7 +634,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					body = "";
 				}
 				body1 = REQUEST.CancelRestart.readBodyEnd();
-			} else if ("Cancel".equalsIgnoreCase(parm) || "Stop".equalsIgnoreCase(parm)) {
+			} else if ("Cancel".equalsIgnoreCase(parm) || "CancelClean".equalsIgnoreCase(parm) || "Stop".equalsIgnoreCase(parm)) {
 				// Cancel or Stop
 				boolean stop = "Stop".equalsIgnoreCase(parm);
 				String specid = getValue("specid");
@@ -686,6 +695,9 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					}
 				}
 				if (taskRunner != null) {
+					if ("CancelClean".equalsIgnoreCase(parm)) {
+						TransferUtils.cleanOneTransfer(taskRunner, null, authentHttp, null);
+					}
 					body = REQUEST.CancelRestart.readBody();
 					body = taskRunner.toSpecializedHtml(authentHttp, body,
 							lcr != null ? "Active" : "NotActive");
@@ -1086,7 +1098,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				}
 			} else if ("Delete".equalsIgnoreCase(parm)) {
 				String host = getTrimValue("host");
-				if (host == null || host.length() == 0) {
+				if (host == null || host.isEmpty()) {
 					body0 = body1 = body = "";
 					body = "<p><center><b>Not enough data to delete a Host</b></center></p>";
 					head = resetOptionHosts(head, "", "", false);
@@ -1415,7 +1427,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				body1 = REQUEST.Rules.readBodyEnd();
 			} else if ("Delete".equalsIgnoreCase(parm)) {
 				String rule = getTrimValue("rule");
-				if (rule == null || rule.length() == 0) {
+				if (rule == null || rule.isEmpty()) {
 					body0 = body1 = body = "";
 					body = "<p><center><b>Not enough data to delete a Rule</b></center></p>";
 					head = resetOptionRules(head, "", null, -3);
@@ -1456,9 +1468,27 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 
 	private String System() {
 		getParams();
+		DbHostConfiguration config = null;
+		try {
+			config = new DbHostConfiguration(dbSession, Configuration.configuration.HOST_ID);
+		} catch (WaarpDatabaseException e2) {
+			config = new DbHostConfiguration(dbSession, Configuration.configuration.HOST_ID, "", "", "", "");
+			try {
+				config.insert();
+			} catch (WaarpDatabaseException e) {
+			}
+		}
 		if (params == null) {
 			String system = REQUEST.System.readFileUnique(this);
 			StringBuilder builder = new StringBuilder(system);
+			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXBUSINESSXXX.toString(),
+					config.getBusiness());
+			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXROLESXXX.toString(),
+					config.getRoles());
+			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXALIASESXXX.toString(),
+					config.getAliases());
+			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXOTHERXXX.toString(),
+					config.getOthers());
 			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITWXXX.toString(),
 					Long.toString(Configuration.configuration.serverChannelWriteLimit));
 			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITRXXX.toString(),
@@ -1574,11 +1604,30 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					} catch (NumberFormatException e) {
 						extraInformation = "Configuration cannot be Saved due to Format error";
 					}
+				} else if (act.equalsIgnoreCase("HostConfig")) {
+					config.setBusiness(getTrimValue("BUSINESS"));
+					config.setRoles(getTrimValue("ROLES"));
+					config.setAliases(getTrimValue("ALIASES"));
+					config.setOthers(getTrimValue("OTHER"));
+					try {
+						config.update();
+						extraInformation = "Configuration Saved";
+					} catch (WaarpDatabaseException e) {
+						extraInformation = "Configuration cannot be Saved due to Database error";
+					}
 				}
 			}
 		}
 		String system = REQUEST.System.readFileUnique(this);
 		StringBuilder builder = new StringBuilder(system);
+		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXBUSINESSXXX.toString(),
+				config.getBusiness());
+		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXROLESXXX.toString(),
+				config.getRoles());
+		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXALIASESXXX.toString(),
+				config.getAliases());
+		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXOTHERXXX.toString(),
+				config.getOthers());
 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITWXXX.toString(),
 				Long.toString(Configuration.configuration.serverChannelWriteLimit));
 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITRXXX.toString(),
@@ -1657,7 +1706,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					values = params.get("name");
 					if (values != null) {
 						name = values.get(0);
-						if (name == null || name.length() == 0) {
+						if (name == null || name.isEmpty()) {
 							getMenu = true;
 						}
 					}
@@ -1669,7 +1718,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					values = params.get("passwd");
 					if (values != null) {
 						password = values.get(0);
-						if (password == null || password.length() == 0) {
+						if (password == null || password.isEmpty()) {
 							getMenu = true;
 						} else {
 							getMenu = false;

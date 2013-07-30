@@ -19,7 +19,6 @@ package org.waarp.openr66.configuration;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.StringReader;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
@@ -27,7 +26,6 @@ import java.util.List;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
-import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.jboss.netty.handler.traffic.AbstractTrafficShapingHandler;
 import org.waarp.common.crypto.Des;
@@ -59,11 +57,11 @@ import org.waarp.openr66.database.data.DbConfiguration;
 import org.waarp.openr66.database.data.DbHostConfiguration;
 import org.waarp.openr66.database.model.DbModelFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
 import org.waarp.openr66.protocol.networkhandler.R66ConstraintLimitHandler;
 import org.waarp.openr66.protocol.networkhandler.ssl.NetworkSslServerPipelineFactory;
 import org.waarp.openr66.protocol.utils.FileUtils;
-import org.waarp.openr66.protocol.utils.Version;
 import org.waarp.snmp.SnmpConfiguration;
 
 /**
@@ -420,36 +418,6 @@ public class FileBasedConfiguration {
 	 */
 	private static final String XML_GLOBALDIGEST = "globaldigest";
 	/**
-	 * Check version in protocol
-	 */
-	private static final String XML_BUSINESSID = "businessid";
-	/**
-	 * Role Main entry
-	 */
-	private static final String XML_ROLE = "role";
-	/**
-	 * ID in role
-	 */
-	private static final String XML_ROLEID = "roleid";
-	/**
-	 * Role set
-	 */
-	private static final String XML_ROLESET = "roleset";
-	/**
-	 * Alias
-	 */
-	private static final String XML_ALIAS = "alias";
-	/**
-	 * Main ID in alias
-	 */
-	private static final String XML_REALID = "realid";
-	/**
-	 * Alias Id
-	 */
-	private static final String XML_ALIASID = "aliasid";
-
-
-	/**
 	 * Structure of the Configuration file
 	 * 
 	 */
@@ -598,8 +566,8 @@ public class FileBasedConfiguration {
 	 */
 	private static final XmlDecl[] configRoleDecls = {
 			// roles
-			new XmlDecl(XmlType.STRING, XML_ROLEID),
-			new XmlDecl(XmlType.STRING, XML_ROLESET)
+			new XmlDecl(XmlType.STRING, DbHostConfiguration.XML_ROLEID),
+			new XmlDecl(XmlType.STRING, DbHostConfiguration.XML_ROLESET)
 	};
 	/**
 	 * Structure of the Configuration file
@@ -607,8 +575,8 @@ public class FileBasedConfiguration {
 	 */
 	private static final XmlDecl[] configAliasDecls = {
 			// roles
-			new XmlDecl(XmlType.STRING, XML_REALID),
-			new XmlDecl(XmlType.STRING, XML_ALIASID)
+			new XmlDecl(XmlType.STRING, DbHostConfiguration.XML_REALID),
+			new XmlDecl(XmlType.STRING, DbHostConfiguration.XML_ALIASID)
 	};
 
 	/**
@@ -623,10 +591,6 @@ public class FileBasedConfiguration {
 	private static final String XML_NETWORK = "network";
 	private static final String XML_SSL = "ssl";
 	private static final String XML_DB = "db";
-	private static final String XML_BUSINESS = "business";
-	private static final String XML_ROLES = "roles";
-	private static final String XML_ALIASES = "aliases";
-
 	/**
 	 * Global Structure for Server Configuration
 	 */
@@ -642,12 +606,12 @@ public class FileBasedConfiguration {
 					configDirectoryDecls, false),
 			new XmlDecl(XML_LIMIT, XmlType.XVAL, XML_ROOT + XML_LIMIT, configLimitDecls, false),
 			new XmlDecl(XML_DB, XmlType.XVAL, XML_ROOT + XML_DB, configDbDecls, false),
-			new XmlDecl(XML_BUSINESS, XmlType.STRING, XML_ROOT + XML_BUSINESS + "/"
-					+ XML_BUSINESSID, true),
-			new XmlDecl(XML_ROLES, XmlType.XVAL, XML_ROOT + XML_ROLES + "/"
-					+ XML_ROLE, configRoleDecls, true),
-			new XmlDecl(XML_ALIASES, XmlType.XVAL, XML_ROOT + XML_ALIASES + "/"
-					+ XML_ALIAS, configAliasDecls, true)
+			new XmlDecl(DbHostConfiguration.XML_BUSINESS, XmlType.STRING, XML_ROOT + DbHostConfiguration.XML_BUSINESS + "/"
+					+ DbHostConfiguration.XML_BUSINESSID, true),
+			new XmlDecl(DbHostConfiguration.XML_ROLES, XmlType.XVAL, XML_ROOT + DbHostConfiguration.XML_ROLES + "/"
+					+ DbHostConfiguration.XML_ROLE, configRoleDecls, true),
+			new XmlDecl(DbHostConfiguration.XML_ALIASES, XmlType.XVAL, XML_ROOT + DbHostConfiguration.XML_ALIASES + "/"
+					+ DbHostConfiguration.XML_ALIAS, configAliasDecls, true)
 	};
 	/**
 	 * Global Structure for Client Configuration
@@ -662,10 +626,10 @@ public class FileBasedConfiguration {
 					configDirectoryDecls, false),
 			new XmlDecl(XML_LIMIT, XmlType.XVAL, XML_ROOT + XML_LIMIT, configLimitDecls, false),
 			new XmlDecl(XML_DB, XmlType.XVAL, XML_ROOT + XML_DB, configDbDecls, false),
-			new XmlDecl(XML_BUSINESS, XmlType.STRING, XML_ROOT + XML_BUSINESS + "/"
-					+ XML_BUSINESSID, true),
-			new XmlDecl(XML_ALIASES, XmlType.XVAL, XML_ROOT + XML_ALIASES + "/"
-					+ XML_ALIAS, configAliasDecls, true)
+			new XmlDecl(DbHostConfiguration.XML_BUSINESS, XmlType.STRING, XML_ROOT + DbHostConfiguration.XML_BUSINESS + "/"
+					+ DbHostConfiguration.XML_BUSINESSID, true),
+			new XmlDecl(DbHostConfiguration.XML_ALIASES, XmlType.XVAL, XML_ROOT + DbHostConfiguration.XML_ALIASES + "/"
+					+ DbHostConfiguration.XML_ALIAS, configAliasDecls, true)
 	};
 	/**
 	 * Global Structure for Submit only Client Configuration
@@ -676,8 +640,8 @@ public class FileBasedConfiguration {
 			new XmlDecl(XML_LIMIT, XmlType.XVAL, XML_ROOT + XML_LIMIT, configSubmitLimitDecls,
 					false),
 			new XmlDecl(XML_DB, XmlType.XVAL, XML_ROOT + XML_DB, configDbDecls, false),
-			new XmlDecl(XML_ALIASES, XmlType.XVAL, XML_ROOT + XML_ALIASES + "/"
-					+ XML_ALIAS, configAliasDecls, true)
+			new XmlDecl(DbHostConfiguration.XML_ALIASES, XmlType.XVAL, XML_ROOT + DbHostConfiguration.XML_ALIASES + "/"
+					+ DbHostConfiguration.XML_ALIAS, configAliasDecls, true)
 	};
 	private static XmlValue[] configuration = null;
 	private static XmlHash hashConfig = null;
@@ -833,7 +797,7 @@ public class FileBasedConfiguration {
 			return false;
 		}
 		String path = value.getString();
-		if (path == null || path.length() == 0) {
+		if (path == null || path.isEmpty()) {
 			logger.error("Unable to set correct Http Admin Base in Config file");
 			return false;
 		}
@@ -855,7 +819,7 @@ public class FileBasedConfiguration {
 		value = hashConfig.get(XML_PATH_ADMIN_KEYPATH);
 		if (value != null && (!value.isEmpty())) {
 			String keypath = value.getString();
-			if ((keypath == null) || (keypath.length() == 0)) {
+			if ((keypath == null) || (keypath.isEmpty())) {
 				logger.error("Bad Key Path");
 				return false;
 			}
@@ -865,7 +829,7 @@ public class FileBasedConfiguration {
 				return false;
 			}
 			String keystorepass = value.getString();
-			if ((keystorepass == null) || (keystorepass.length() == 0)) {
+			if ((keystorepass == null) || (keystorepass.isEmpty())) {
 				logger.error("Bad KeyStore Passwd");
 				return false;
 			}
@@ -875,7 +839,7 @@ public class FileBasedConfiguration {
 				return false;
 			}
 			String keypass = value.getString();
-			if ((keypass == null) || (keypass.length() == 0)) {
+			if ((keypass == null) || (keypass.isEmpty())) {
 				logger.error("Bad Key Passwd");
 				return false;
 			}
@@ -1153,11 +1117,17 @@ public class FileBasedConfiguration {
 		}
 		value = hashConfig.get(XML_DIGEST);
 		if (value != null && (!value.isEmpty())) {
-			int val = value.getInteger();
-			if (val < 0 || val >= DigestAlgo.values().length) {
-				val = 0;
+			try {
+				int val = value.getInteger();
+				if (val < 0 || val >= DigestAlgo.values().length) {
+					val = 0;
+				}
+				config.digest = DigestAlgo.values()[val];
+			} catch (IllegalArgumentException e) {
+				// might be String
+				String val = value.getString();
+				config.digest = PartnerConfiguration.getDigestAlgo(val);
 			}
-			config.digest = DigestAlgo.values()[val];
 		}
 		logger.warn("DigestAlgo used: {}", config.digest);
 		value = hashConfig.get(XML_USEFASTMD5);
@@ -1213,7 +1183,7 @@ public class FileBasedConfiguration {
 			}
 		} else {
 			String keypath = value.getString();
-			if ((keypath == null) || (keypath.length() == 0)) {
+			if ((keypath == null) || (keypath.isEmpty())) {
 				logger.error("Bad Key Path");
 				return false;
 			}
@@ -1223,7 +1193,7 @@ public class FileBasedConfiguration {
 				return false;
 			}
 			String keystorepass = value.getString();
-			if ((keystorepass == null) || (keystorepass.length() == 0)) {
+			if ((keystorepass == null) || (keystorepass.isEmpty())) {
 				logger.error("Bad KeyStore Passwd");
 				return false;
 			}
@@ -1233,7 +1203,7 @@ public class FileBasedConfiguration {
 				return false;
 			}
 			String keypass = value.getString();
-			if ((keypass == null) || (keypass.length() == 0)) {
+			if ((keypass == null) || (keypass.isEmpty())) {
 				logger.error("Bad Key Passwd");
 				return false;
 			}
@@ -1254,7 +1224,7 @@ public class FileBasedConfiguration {
 			NetworkSslServerPipelineFactory.WaarpSecureKeyStore.initEmptyTrustStore();
 		} else {
 			String keypath = value.getString();
-			if ((keypath == null) || (keypath.length() == 0)) {
+			if ((keypath == null) || (keypath.isEmpty())) {
 				logger.error("Bad TRUST Key Path");
 				return false;
 			}
@@ -1264,7 +1234,7 @@ public class FileBasedConfiguration {
 				return false;
 			}
 			String keystorepass = value.getString();
-			if ((keystorepass == null) || (keystorepass.length() == 0)) {
+			if ((keystorepass == null) || (keystorepass.isEmpty())) {
 				logger.error("Bad TRUST KeyStore Passwd");
 				return false;
 			}
@@ -1404,7 +1374,7 @@ public class FileBasedConfiguration {
 	private static boolean loadDatabase(Configuration config) {
 		XmlValue value = hashConfig.get(XML_DBDRIVER);
 		if (value == null || (value.isEmpty())) {
-			logger.error("Unable to find DBDriver in Config file");
+			logger.warn("Unable to find DBDriver in Config file, try to rever to no database mode");
 			DbConstant.admin = new DbAdmin(); // no database support
 			DbConstant.noCommitAdmin = DbConstant.admin;
 		} else {
@@ -1428,9 +1398,9 @@ public class FileBasedConfiguration {
 			}
 			String dbpasswd = value.getString();
 			if (dbdriver == null || dbserver == null || dbuser == null ||
-					dbpasswd == null || dbdriver.length() == 0 ||
-					dbserver.length() == 0 || dbuser.length() == 0 ||
-					dbpasswd.length() == 0) {
+					dbpasswd == null || dbdriver.isEmpty() ||
+					dbserver.isEmpty() || dbuser.isEmpty() ||
+					dbpasswd.isEmpty()) {
 				logger.error("Unable to find Correct DB data in Config file");
 				return false;
 			}
@@ -1452,6 +1422,25 @@ public class FileBasedConfiguration {
 				logger.error("Unable to Connect to DB", e2);
 				return false;
 			}
+			// Check if the database is up to date
+			String version = DbHostConfiguration.getVersionDb(DbConstant.admin.session, Configuration.configuration.HOST_ID);
+			try {
+				boolean uptodate = true;
+				if (version != null) {
+					uptodate = DbModelFactory.dbModel.needUpgradeDb(DbConstant.admin.session, version, true);
+				} else {
+					uptodate = DbModelFactory.dbModel.needUpgradeDb(DbConstant.admin.session, "1.1.0", true);
+				}
+				if (uptodate) {
+					logger.error("Database schema is not up to date: you must run ServerInitDatabase with the option -upgradeDb");
+					return false;
+				} else {
+					logger.debug("Database schema is up to date");
+				}
+			} catch (WaarpDatabaseNoConnectionException e) {
+				logger.error("Unable to Connect to DB", e);
+				return false;
+			}			
 		}
 		value = hashConfig.get(XML_SAVE_TASKRUNNERNODB);
 		if (value != null && (!value.isEmpty())) {
@@ -1466,7 +1455,7 @@ public class FileBasedConfiguration {
 	 * @param document
 	 */
 	private static void loadBusinessWhiteList(Configuration config) {
-		XmlValue value = hashConfig.get(XML_BUSINESS);
+		XmlValue value = hashConfig.get(DbHostConfiguration.XML_BUSINESS);
 		if (value != null && (value.getList() != null)) {
 			@SuppressWarnings("unchecked")
 			List<String> ids = (List<String>) value.getList();
@@ -1488,26 +1477,27 @@ public class FileBasedConfiguration {
 			try {
 				DbHostConfiguration hostconfiguration = new DbHostConfiguration(DbConstant.admin.session, config.HOST_ID);
 				if (hostconfiguration != null) {
-					updateHostConfiguration(config, hostconfiguration);
+					DbHostConfiguration.updateHostConfiguration(config, hostconfiguration);
 				}
 			} catch (WaarpDatabaseException e) {
 				// ignore
 			}
-			
 		}
+		setSelfVersion(config);
 	}
+	
 	@SuppressWarnings("unchecked")
 	public static void loadAliases(Configuration config) {
-		XmlValue value = hashConfig.get(XML_ALIASES);
+		XmlValue value = hashConfig.get(DbHostConfiguration.XML_ALIASES);
 		if (value != null && (value.getList() != null)) {
 			for (XmlValue[] xml : (List<XmlValue[]>) value.getList()) {
 				XmlHash subHash = new XmlHash(xml);
-				value = subHash.get(XML_REALID);
+				value = subHash.get(DbHostConfiguration.XML_REALID);
 				if (value == null || (value.isEmpty())) {
 					continue;
 				}
 				String refHostId = value.getString();
-				value = subHash.get(XML_ALIASID);
+				value = subHash.get(DbHostConfiguration.XML_ALIASID);
 				if (value == null || (value.isEmpty())) {
 					continue;
 				}
@@ -1520,159 +1510,22 @@ public class FileBasedConfiguration {
 			}
 		}
 	}
-	@SuppressWarnings("unchecked")
-	public static void updateHostConfiguration(Configuration config, DbHostConfiguration hostConfiguration) {
-		String business = hostConfiguration.getBusiness();
-		Document document = null;
-		// Open config file
-		StringReader reader = null;
-		if (business != null && ! business.isEmpty()) {
-			try {
-				reader = new StringReader(business);
-				document = new SAXReader().read(reader);
-			} catch (DocumentException e) {
-				logger.error("Unable to read the XML Config Business string: " + business, e);
-				if (reader != null) {
-					reader.close();
-				}
-				return;
-			}
-			if (document == null) {
-				logger.error("Unable to read the XML Config Business string: " + business);
-				if (reader != null) {
-					reader.close();
-				}
-				return;
-			}
-			// XXX FIXME
-			List<Element> list = document.selectNodes(XML_BUSINESS + "/" + XML_BUSINESSID);
-			for (Element element : list) {
-				String sval = element.getText();
-				if (sval.isEmpty()) {
-					continue;
-				}
-				logger.info("Business Allow: " + sval);
-				config.businessWhiteSet.add(sval.trim());
-			}
-			list.clear();
-			document.clearContent();
-			document = null;
-			if (reader != null) {
-				reader.close();
-				reader = null;
-			}
-		}
-	
-		String aliases = hostConfiguration.getAliases();
-		if (aliases != null && ! aliases.isEmpty()) {
-			try {
-				reader = new StringReader(aliases);
-				document = new SAXReader().read(reader);
-			} catch (DocumentException e) {
-				logger.error("Unable to read the XML Config Aliases string: " + business, e);
-				if (reader != null) {
-					reader.close();
-				}
-				return;
-			}
-			if (document == null) {
-				logger.error("Unable to read the XML Config Aliases string: " + business);
-				if (reader != null) {
-					reader.close();
-				}
-				return;
-			}
-			// XXX FIXME
-			List<Element> list = document.selectNodes(XML_ALIASES + "/" + XML_ALIAS);
-			for (Element element : list) {
-				Element nodeid = (Element) element.selectSingleNode(XML_REALID);
-				if (nodeid == null) {
-					continue;
-				}
-				Element nodeset = (Element) element.selectSingleNode(XML_ALIASID);
-				if (nodeset == null) {
-					continue;
-				}
-				String refHostId = nodeid.getText();
-				String aliasesid = nodeset.getText();
-				String [] aliasid = aliasesid.split(" |\\|");
-				for (String namealias : aliasid) {
-					config.aliases.put(namealias, refHostId);
-				}
-				logger.info("Aliases for: " + refHostId +" = "+ aliasesid);
-			}
-			list.clear();
-			document.clearContent();
-			document = null;
-			if (reader != null) {
-				reader.close();
-			}
-		}
-		
-		String xroles = hostConfiguration.getRoles();
-		if (xroles != null && ! xroles.isEmpty()) {
-			try {
-				reader = new StringReader(xroles);
-				document = new SAXReader().read(reader);
-			} catch (DocumentException e) {
-				logger.error("Unable to read the XML Config Roles string: " + business, e);
-				if (reader != null) {
-					reader.close();
-				}
-				return;
-			}
-			if (document == null) {
-				logger.error("Unable to read the XML Config Roles string: " + business);
-				if (reader != null) {
-					reader.close();
-				}
-				return;
-			}
-			// XXX FIXME
-			List<Element> list = document.selectNodes(XML_ROLES + "/" + XML_ROLE);
-			for (Element element : list) {
-				Element nodeid = (Element) element.selectSingleNode(XML_ROLEID);
-				if (nodeid == null) {
-					continue;
-				}
-				Element nodeset = (Element) element.selectSingleNode(XML_ROLESET);
-				if (nodeset == null) {
-					continue;
-				}
-				String refHostId = nodeid.getText();
-				String roleset = nodeset.getText();
-				String [] roles = roleset.split(" |\\|");
-				RoleDefault newrole = new RoleDefault();
-				for (String role : roles) {
-					try {
-						RoleDefault.ROLE roletype = RoleDefault.ROLE.valueOf(role.toUpperCase());
-						if (roletype == ROLE.NOACCESS) {
-							// reset
-							newrole.setRole(roletype);
-						} else {
-							newrole.addRole(roletype);
-						}
-					} catch (IllegalArgumentException e) {
-						// ignore
-					}
-				}
-				logger.info("New Role: " + refHostId + ":" + newrole);
-				config.roles.put(refHostId, newrole);
-			}
-			list.clear();
-			document.clearContent();
-			document = null;
-			if (reader != null) {
-				reader.close();
-			}
-		}
-		
+	/**
+	 * Add the local host in Versions
+	 * @param config
+	 */
+	private static void setSelfVersion(Configuration config) {
 		if (config.HOST_ID != null) {
-			config.versions.put(config.HOST_ID, Version.ID);
+			if (! config.versions.containsKey(config.HOST_ID)) {
+				config.versions.put(config.HOST_ID, new PartnerConfiguration(config.HOST_ID));
+			}
 		}
 		if (config.HOST_SSLID != null) {
-			config.versions.put(config.HOST_SSLID, Version.ID);
+			if (! config.versions.containsKey(config.HOST_SSLID)) {
+				config.versions.put(config.HOST_SSLID, new PartnerConfiguration(config.HOST_SSLID));
+			}
 		}
+		logger.debug("Partners: {}", config.versions);
 	}
 	/**
 	 * Load Role list if any
@@ -1681,16 +1534,16 @@ public class FileBasedConfiguration {
 	 */
 	@SuppressWarnings("unchecked")
 	private static void loadRolesList(Configuration config) {
-		XmlValue value = hashConfig.get(XML_ROLES);
+		XmlValue value = hashConfig.get(DbHostConfiguration.XML_ROLES);
 		if (value != null && (value.getList() != null)) {
 			for (XmlValue[] xml : (List<XmlValue[]>) value.getList()) {
 				XmlHash subHash = new XmlHash(xml);
-				value = subHash.get(XML_ROLEID);
+				value = subHash.get(DbHostConfiguration.XML_ROLEID);
 				if (value == null || (value.isEmpty())) {
 					continue;
 				}
 				String refHostId = value.getString();
-				value = subHash.get(XML_ROLESET);
+				value = subHash.get(DbHostConfiguration.XML_ROLESET);
 				if (value == null || (value.isEmpty())) {
 					continue;
 				}
@@ -1733,7 +1586,7 @@ public class FileBasedConfiguration {
 		}
 
 		String path = value.getString();
-		if (path == null || path.length() == 0) {
+		if (path == null || path.isEmpty()) {
 			throw new OpenR66ProtocolSystemException(
 					"Unable to find a correct Path in Config file: " + fromXML);
 		}

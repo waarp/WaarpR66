@@ -214,10 +214,10 @@ public class Message implements Runnable {
 				value = 0;
 				R66Result r66result = result.getResult();
 				ValidPacket info = (ValidPacket) r66result.other;
-				logger.warn("Test Message\n    SUCCESS\n    " + info.getSheader());
+				logger.warn("Test Message     SUCCESS     " + info.getSheader());
 			} else {
 				value = 2;
-				logger.error("Test Message\n    FAILURE\n    " +
+				logger.error("Test Message     FAILURE     " +
 						result.getResult().toString());
 			}
 		} finally {

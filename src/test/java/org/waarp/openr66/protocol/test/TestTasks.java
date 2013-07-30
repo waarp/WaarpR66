@@ -44,6 +44,7 @@ import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.localhandler.packet.RequestPacket;
 import org.waarp.openr66.protocol.localhandler.packet.RequestPacket.TRANSFERMODE;
 
@@ -82,7 +83,7 @@ public class TestTasks {
 		R66Session session = new R66Session();
 		DbRule rule = new DbRule(null, "idRule", (String) null, TRANSFERMODE.SENDMODE.ordinal(), out, null, null, in, null, null, null, null, null, null);
 		RequestPacket requestPacket = new RequestPacket(rule.idRule, rule.mode, filename, Configuration.BUFFERSIZEDEFAULT, (int) size/Configuration.BUFFERSIZEDEFAULT+1, 
-				1, argTransfer, size, Configuration.BAR_SEPARATOR_FIELD);
+				1, argTransfer, size, PartnerConfiguration.BAR_SEPARATOR_FIELD);
 		DbTaskRunner runner = null;
 		DbConstant.admin = new DbAdmin();
 		session.getAuth().specialNoSessionAuth(false, "false");

@@ -63,4 +63,5 @@ public class DbModelFactory extends org.waarp.common.database.model.DbModelFacto
 		return new DbAdmin(type, dbserver, dbuser, dbpasswd,
 				write);
 	}
+	
 }

@@ -261,6 +261,112 @@ public class TransferUtils {
 	}
 
 	/**
+	 * Method to delete the temporary file
+	 * @param taskRunner
+	 * @param builder
+	 * @param session
+	 * @param body
+	 */
+	public static void cleanOneTransfer(DbTaskRunner taskRunner, StringBuilder builder, R66Session session, String body) {
+		if (! taskRunner.isSender() && ! taskRunner.isAllDone()) {
+			String name = null;
+			try {
+				if (session != null) {
+					session.getDir().changeDirectory("/");
+					session.setBadRunner(taskRunner, ErrorCode.QueryAlreadyFinished);
+					R66File file = session.getFile();
+					if (file != null) {
+						name = file.getFile();
+						if (file.exists()) {
+							logger.info("Will delete file: "+file);
+							if (! file.delete()) {
+								logger.warn("Cannot delete temporary empty file: "+file);
+							} else {
+								taskRunner.setRankAtStartup(0);
+								taskRunner.setFilename("###FILE DELETED### "+name);
+								taskRunner.update();
+							}
+						} else if (! name.contains("###FILE DELETED### ")){
+							taskRunner.setRankAtStartup(0);
+							taskRunner.setFilename("###FILE DELETED### "+name);
+							taskRunner.update();
+						}
+					}
+				}
+			} catch (CommandAbstractException e1) {
+				logger.warn("Cannot delete temporary empty file: "+name, e1);
+			} catch (WaarpDatabaseException e) {
+			}
+		}
+		if (builder != null) {
+			LocalChannelReference lcr =
+					Configuration.configuration.getLocalTransaction().
+							getFromRequest(taskRunner.getKey());
+			builder.append(taskRunner.toSpecializedHtml(session, body,
+					lcr != null ? "Active" : "NotActive"));
+		}
+	}
+	/**
+	 * Clean all selected transfers
+	 * 
+	 * @param dbSession
+	 * @param limit
+	 * @param builder
+	 * @param session
+	 * @param body
+	 * @param startid
+	 * @param stopid
+	 * @param tstart
+	 * @param tstop
+	 * @param rule
+	 * @param req
+	 * @param pending
+	 * @param transfer
+	 * @param error
+	 * @return the associated StringBuilder if the one given as parameter is not null
+	 */
+	public static StringBuilder cleanSelectedTransfers(DbSession dbSession, int limit,
+			StringBuilder builder, R66Session session, String body,
+			String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,
+			String req, boolean pending, boolean transfer, boolean error) {
+		if (dbSession == null || dbSession.isDisconnected) {
+			// do it without DB
+			if (ClientRunner.activeRunners != null) {
+				for (ClientRunner runner : ClientRunner.activeRunners) {
+					DbTaskRunner taskRunner = runner.getTaskRunner();
+					stopOneTransfer(taskRunner, null, session, null);
+					cleanOneTransfer(taskRunner, builder, session, body);
+				}
+			}
+			if (CommanderNoDb.todoList != null) {
+				CommanderNoDb.todoList.clear();
+			}
+			return builder;
+		}
+		DbPreparedStatement preparedStatement = null;
+		try {
+			preparedStatement =
+					DbTaskRunner.getFilterPrepareStatement(dbSession, limit, true,
+							startid, stopid, tstart, tstop, rule, req,
+							pending, transfer, error, false, false);
+			preparedStatement.executeQuery();
+			while (preparedStatement.getNext()) {
+				DbTaskRunner taskRunner = DbTaskRunner.getFromStatement(preparedStatement);
+				stopOneTransfer(taskRunner, null, session, null);
+				cleanOneTransfer(taskRunner, builder, session, body);
+			}
+			preparedStatement.realClose();
+			return builder;
+		} catch (WaarpDatabaseException e) {
+			if (preparedStatement != null) {
+				preparedStatement.realClose();
+			}
+			logger.error("OpenR66 Error {}", e.getMessage());
+			return null;
+		}
+	}
+
+	/**
 	 * Finalize a local task since only Post action has to be done
 	 * 
 	 * @param taskRunner
@@ -316,7 +422,7 @@ public class TransferUtils {
 		try {
 			taskRunner.finalizeTransfer(localChannelReference, file, finalValue, true);
 		} catch (OpenR66ProtocolSystemException e) {
-			logger.error("Cannot validate runner:\n    {}", taskRunner.toShortString());
+			logger.error("Cannot validate runner:     {}", taskRunner.toShortString());
 			taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);
 			taskRunner.setErrorExecutionStatus(ErrorCode.Internal);
 			try {

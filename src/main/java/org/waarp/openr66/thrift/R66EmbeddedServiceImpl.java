@@ -40,6 +40,7 @@ import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 import org.waarp.openr66.protocol.localhandler.packet.ErrorPacket;
 import org.waarp.openr66.protocol.localhandler.packet.RequestPacket;
@@ -109,7 +110,7 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 				return null;
 			}
 		} else {
-			String sep = Configuration.getSeparator(request.getDestuid());
+			String sep = PartnerConfiguration.getSeparator(request.getDestuid());
 			RequestPacket requestPacket = new RequestPacket(request.getRule(),
 					mode, request.getFile(), request.getBlocksize(), 0,
 					tid, request.getInfo(), -1, sep);
