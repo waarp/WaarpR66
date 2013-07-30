@@ -18,8 +18,11 @@
 package org.waarp.openr66.server;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
+import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.logging.WaarpInternalLogger;
@@ -29,6 +32,7 @@ import org.waarp.openr66.configuration.AuthenticationFileBasedConfiguration;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.configuration.RuleFileBasedConfiguration;
 import org.waarp.openr66.database.DbConstant;
+import org.waarp.openr66.database.data.DbHostConfiguration;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
@@ -139,6 +143,59 @@ public class ServerExportConfiguration {
 				ChannelUtils.stopLogger();
 				System.exit(2);
 			}
+			DbHostConfiguration dbHostConfiguration = null;
+			try {
+				dbHostConfiguration = new DbHostConfiguration(DbConstant.admin.session, Configuration.configuration.HOST_ID);
+			} catch (WaarpDatabaseException e) {
+				logger.error("Error", e);
+				DbConstant.admin.close();
+				ChannelUtils.stopLogger();
+				System.exit(2);
+			}
+			filename = dir.getAbsolutePath() + File.separator + hostname + "_Business.xml";
+			String business = dbHostConfiguration.getBusiness();
+			byte [] out = business.getBytes();
+			FileOutputStream outputStream;
+			try {
+				outputStream = new FileOutputStream(filename);
+				outputStream.write(out, 0, out.length);
+				outputStream.flush();
+				outputStream.close();
+			} catch (IOException e) {
+				logger.error("Error", e);
+				DbConstant.admin.close();
+				ChannelUtils.stopLogger();
+				System.exit(2);
+			}
+			filename = dir.getAbsolutePath() + File.separator + hostname + "_Alias.xml";
+			String alias = dbHostConfiguration.getAliases();
+			out = alias.getBytes();
+			try {
+				outputStream = new FileOutputStream(filename);
+				outputStream.write(out, 0, out.length);
+				outputStream.flush();
+				outputStream.close();
+			} catch (IOException e) {
+				logger.error("Error", e);
+				DbConstant.admin.close();
+				ChannelUtils.stopLogger();
+				System.exit(2);
+			}
+			filename = dir.getAbsolutePath() + File.separator + hostname + "_Roles.xml";
+			String roles = dbHostConfiguration.getRoles();
+			out = roles.getBytes();
+			try {
+				outputStream = new FileOutputStream(filename);
+				outputStream.write(out, 0, out.length);
+				outputStream.flush();
+				outputStream.close();
+			} catch (IOException e) {
+				logger.error("Error", e);
+				DbConstant.admin.close();
+				ChannelUtils.stopLogger();
+				System.exit(2);
+			}
+			
 			logger.info("End of Export");
 		} finally {
 			if (DbConstant.admin != null) {

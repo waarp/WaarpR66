@@ -45,7 +45,7 @@ class LastLineReader implements Runnable {
 		try {
 			while ((line = reader.readLine()) != null) {
 				line = line.trim();
-				if (line.length() > 0) {
+				if (! line.isEmpty()) {
 					lastLine = line;
 				}
 			}

@@ -157,27 +157,27 @@ public class ClientRunner extends Thread {
 			R66Result result = transfer.getResult();
 			if (result != null) {
 				if (result.code == ErrorCode.QueryAlreadyFinished) {
-					logger.warn("TRANSFER RESULT:\n    " +
+					logger.warn("TRANSFER RESULT:     " +
 							(transfer.isSuccess() ? "SUCCESS" : "FAILURE") +
-							"\n    " + ErrorCode.QueryAlreadyFinished.mesg +
+							"     " + ErrorCode.QueryAlreadyFinished.mesg +
 							":" +
 							(result != null ? result.toString() : "no result"));
 				} else {
 					if (transfer.isSuccess()) {
-						logger.info("TRANSFER RESULT:\n    SUCCESS\n    " +
+						logger.info("TRANSFER RESULT:     SUCCESS     " +
 								(result != null ? result.toString()
 										: "no result"));
 					} else {
-						logger.error("TRANSFER RESULT:\n    FAILURE\n    " +
+						logger.error("TRANSFER RESULT:     FAILURE     " +
 								(result != null ? result.toString()
 										: "no result"));
 					}
 				}
 			} else {
 				if (transfer.isSuccess()) {
-					logger.warn("TRANSFER REQUESTED RESULT:\n    SUCCESS\n    no result");
+					logger.warn("TRANSFER REQUESTED RESULT:     SUCCESS     no result");
 				} else {
-					logger.error("TRANSFER REQUESTED RESULT:\n    FAILURE\n    no result");
+					logger.error("TRANSFER REQUESTED RESULT:     FAILURE     no result");
 				}
 			}
 			transfer = null;
@@ -368,8 +368,8 @@ public class ClientRunner extends Thread {
 			}
 			if (transfer.getResult().code == ErrorCode.QueryAlreadyFinished) {
 				// check if post task to execute
-				logger.warn("WARN QueryAlreadyFinished:\n    " +
-						transfer.toString() + "\n    " +
+				logger.warn("WARN QueryAlreadyFinished:     " +
+						transfer.toString() + "     " +
 						taskRunner.toShortString());
 				try {
 					TransferUtils.finalizeTaskWithNoSession(taskRunner,

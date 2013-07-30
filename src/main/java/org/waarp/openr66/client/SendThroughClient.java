@@ -31,6 +31,7 @@ import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66DatabaseGlobalException;
 import org.waarp.openr66.protocol.exception.OpenR66Exception;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
@@ -158,7 +159,7 @@ public abstract class SendThroughClient extends AbstractTransfer {
 		if (isMD5) {
 			mode = RequestPacket.getModeMD5(mode);
 		}
-		String sep = Configuration.getSeparator(remoteHost);
+		String sep = PartnerConfiguration.getSeparator(remoteHost);
 		RequestPacket request = new RequestPacket(rulename,
 				mode, filename, blocksize, 0,
 				id, fileinfo, -1, sep);

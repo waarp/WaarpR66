@@ -51,6 +51,7 @@ public class ServerInitDatabase {
 
 	static String sxml = null;
 	static boolean database = false;
+	static boolean upgradeDb = false;
 	static String sbusiness = null;
 	static String salias = null;
 	static String sroles = null;
@@ -68,13 +69,16 @@ public class ServerInitDatabase {
 					"    -loadRoles xmlfile for Roles configuration\n" +
 					"    -dir directory for rules configuration\n" +
 					"    -limit xmlfile containing limit of bandwidth\n" +
-					"    -auth xml file containing the authentication of hosts");
+					"    -auth xml file containing the authentication of hosts\n" +
+					"    -upgradeDb");
 			return false;
 		}
 		sxml = args[0];
 		for (int i = 1; i < args.length; i++) {
 			if (args[i].equalsIgnoreCase("-initdb")) {
 				database = true;
+			} else if (args[i].equalsIgnoreCase("-upgradeDb")) {
+				upgradeDb = true;
 			} else if (args[i].equalsIgnoreCase("-loadBusiness")) {
 				i++;
 				sbusiness = args[i];
@@ -116,7 +120,8 @@ public class ServerInitDatabase {
 					"    -loadRoles xmlfile for Roles configuration\n" +
 					"    -dir directory for rules configuration\n" +
 					"    -limit xmlfile containing limit of bandwidth\n" +
-					"    -auth xml file containing the authentication of hosts");
+					"    -auth xml file containing the authentication of hosts\n" +
+					"    -upgradeDb");
 			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
 				DbConstant.admin.close();
 			}
@@ -145,6 +150,16 @@ public class ServerInitDatabase {
 					return;
 				}
 				System.out.println("End creation");
+			}
+			if (upgradeDb) {
+				// try to upgrade DB schema
+				try {
+					upgradedb();
+				} catch (WaarpDatabaseNoConnectionException e) {
+					logger.error("Cannot connect to database");
+					return;
+				}
+				System.out.println("End upgrade");
 			}
 			if (sdirconfig != null) {
 				// load Rules
@@ -265,6 +280,30 @@ public class ServerInitDatabase {
 	public static void initdb() throws WaarpDatabaseNoConnectionException {
 		// Create tables: configuration, hosts, rules, runner, cptrunner
 		DbModelFactory.dbModel.createTables(DbConstant.admin.session);
+	}
+
+	public static boolean upgradedb() throws WaarpDatabaseNoConnectionException {
+		// Update tables: runner
+		boolean uptodate = true;
+		// Check if the database is up to date
+		String version = DbHostConfiguration.getVersionDb(DbConstant.admin.session, Configuration.configuration.HOST_ID);
+		try {
+			if (version != null) {
+				uptodate = DbModelFactory.dbModel.needUpgradeDb(DbConstant.admin.session, version, true);
+			} else {
+				uptodate = DbModelFactory.dbModel.needUpgradeDb(DbConstant.admin.session, "1.1.0", true);
+			}
+			if (uptodate) {
+				logger.error("Database schema is not up to date: you must run ServerInitDatabase with the option -upgradeDb");
+				return false;
+			} else {
+				logger.debug("Database schema is up to date");
+			}
+		} catch (WaarpDatabaseNoConnectionException e) {
+			logger.error("Unable to Connect to DB", e);
+			return false;
+		}
+		return ! uptodate;
 	}
 
 	public static void loadRules(File dirConfig) {

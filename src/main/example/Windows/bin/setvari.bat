@@ -14,7 +14,7 @@ REM Logger
 SET LOGSERVER=" -Dlogback.configurationFile=%R66HOME%\conf\logback.xml "
 SET LOGCLIENT=" -Dlogback.configurationFile=%R66HOME%\conf\logback-client.xml "
 
-SET R66_CLASSPATH=" %R66BIN%\WaarpR66-2.4.14.jar;%R66BIN%\* "
+SET R66_CLASSPATH=" %R66BIN%\WaarpR66-2.4.17.jar;%R66BIN%\* "
 
 SET JAVARUNCLIENT=%JAVA_RUN% -cp %R66_CLASSPATH% %LOGCLIENT% 
 SET JAVARUNSERVER=%JAVASERVER_RUN% -cp %R66_CLASSPATH% %LOGSERVER% 
@@ -34,7 +34,7 @@ REM # no option
 set R66SERVER=%JAVARUNSERVER% openr66.server.R66Server %SERVER_CONFIG%
 
 REM # init database from argument
-REM # [ -initdb ] [ -dir rulesDirectory ] [ -limit xmlFileLimit ] [ -auth xmlFileAuthent ]
+REM # [ -initdb ] [ -loadBusiness businessConfiguration ] [ -loadRoles roleConfiguration ] [ -loadAlias aliasConfig ] [ -dir rulesDirectory ] [ -limit xmlFileLimit ] [ -auth xmlFileAuthent ] [ -upgradeDb ]
 set R66INIT=%JAVARUNCLIENT% openr66.server.ServerInitDatabase %SERVER_CONFIG%
 
 REM # export configuration into directory
@@ -42,11 +42,11 @@ REM # directory
 set R66CNFEXP=%JAVARUNCLIENT% org.waarp.openr66.server.ServerExportConfiguration %SERVER_CONFIG% 
 
 REM # export configuration as arguments
-REM # [-hosts] [-rules]
+REM # [-hosts] [-rules] [-business ] [ -alias ] [ -roles ] [ -host host ]
 set R66CONFEXP=%JAVARUNCLIENT% org.waarp.openr66.server.ConfigExport %SERVER_CONFIG% 
 
 REM # import configuration as arguments
-REM # [-hosts host-configuration-file] [-purgehosts] [-rules rule-configuration-file] [-purgerules]
+REM # [-hosts host-configuration-file] [-purgehosts] [-rules rule-configuration-file] [-purgerules] [-business file] [-purgebusiness] [-alias file] [-purgealias] [-roles file] [-purgeroles] [-hostid file transfer id] [-ruleid file transfer id] [-businessid file transfer id] [-aliasid file transfer id] [-roleid file transfer id] [-host host]
 set R66CONFIMP=%JAVARUNCLIENT% org.waarp.openr66.server.ConfigImport %SERVER_CONFIG% 
 
 REM # shutdown locally the server
@@ -60,6 +60,10 @@ set R66SHUTD=%JAVARUNCLIENT% org.waarp.openr66.server.ServerShutdown %SERVER_CON
 REM # export the log
 REM # [ -purge ] [ -clean ] [ -start timestamp ] [ -stop timestamp ] where timestamp are in yyyyMMddHHmmssSSS format eventually truncated and with possible ':- ' as separators
 set R66EXPORT=%JAVARUNCLIENT% org.waarp.openr66.server.LogExport %SERVER_CONFIG% 
+
+REM # export the log (extended)
+REM # [-host host] [ -purge ] [ -clean ] [-startid id] [-stopid id] [-rule rule] [-request host] [-pending] [-transfer] [-done] [-error] [ -start timestamp ] [ -stop timestamp ] where timestamp are in yyyyMMddHHmmssSSS format eventually truncated and with possible ':- ' as separators
+set R66LOGEXPORT=%JAVARUNCLIENT% org.waarp.openr66.server.LogExtendedExport %SERVER_CONFIG% 
 
 REM # change limits of bandwidth
 REM # "[ -wglob x ] [ -rglob w ] [ -wsess x ] [ -rsess x ]"

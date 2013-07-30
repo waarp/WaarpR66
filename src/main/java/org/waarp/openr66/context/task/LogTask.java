@@ -82,10 +82,10 @@ public class LogTask extends AbstractTask {
 			case 0:
 				break;
 			case 1:
-				logger.log(finalLevel, finalValue + "\n    " + session.toString());
+				logger.log(finalLevel, finalValue + "     " + session.toString());
 				break;
 			case 3:
-				logger.log(finalLevel, finalValue + "\n    " + session.toString());
+				logger.log(finalLevel, finalValue + "     " + session.toString());
 			case 2:
 				String[] args = finalValue.split(" ");
 				String filename = args[args.length - 1];
@@ -95,7 +95,7 @@ public class LogTask extends AbstractTask {
 					// File cannot be written so revert to log
 					session.getRunner().setErrorExecutionStatus(ErrorCode.Warning);
 					if (delay == 2) {
-						logger.log(finalLevel, finalValue + "\n    " + session.toString());
+						logger.log(finalLevel, finalValue + "     " + session.toString());
 					}
 					futureCompletion.setSuccess();
 					return;
@@ -107,7 +107,7 @@ public class LogTask extends AbstractTask {
 					// File cannot be written so revert to log
 					session.getRunner().setErrorExecutionStatus(ErrorCode.Warning);
 					if (delay == 2) {
-						logger.log(finalLevel, finalValue + "\n    " + session.toString());
+						logger.log(finalLevel, finalValue + "     " + session.toString());
 					}
 					futureCompletion.setSuccess();
 					return;
@@ -118,7 +118,7 @@ public class LogTask extends AbstractTask {
 						outputStream.write(args[i].getBytes());
 						outputStream.write(' ');
 					}
-					outputStream.write('\n');
+					outputStream.write(' ');
 				} catch (IOException e) {
 					// File cannot be written so revert to log
 					try {
@@ -128,7 +128,7 @@ public class LogTask extends AbstractTask {
 					file.delete();
 					session.getRunner().setErrorExecutionStatus(ErrorCode.Warning);
 					if (delay == 2) {
-						logger.log(finalLevel, finalValue + "\n    " + session.toString());
+						logger.log(finalLevel, finalValue + "     " + session.toString());
 					}
 					futureCompletion.setSuccess();
 					return;

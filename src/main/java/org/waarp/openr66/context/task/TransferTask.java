@@ -147,8 +147,8 @@ public class TransferTask extends AbstractTask {
 		futureCompletion.setResult(future.getResult());
 		DbTaskRunner runner = future.getResult().runner;
 		if (future.isSuccess()) {
-			logger.info("Prepare transfer in\n    SUCCESS\n    " + runner.toShortString() +
-					"\n    <REMOTE>" + requested + "</REMOTE>");
+			logger.info("Prepare transfer in     SUCCESS     " + runner.toShortString() +
+					"     <REMOTE>" + requested + "</REMOTE>");
 			futureCompletion.setSuccess();
 		} else {
 			if (runner != null) {
@@ -157,15 +157,15 @@ public class TransferTask extends AbstractTask {
 				} else {
 					futureCompletion.setFailure(future.getCause());
 				}
-				logger.error("Prepare transfer in\n    FAILURE\n     " + runner.toShortString() +
-						"\n    <REMOTE>" + requested + "</REMOTE>", future.getCause());
+				logger.error("Prepare transfer in     FAILURE      " + runner.toShortString() +
+						"     <REMOTE>" + requested + "</REMOTE>", future.getCause());
 			} else {
 				if (future.getCause() == null) {
 					futureCompletion.cancel();
 				} else {
 					futureCompletion.setFailure(future.getCause());
 				}
-				logger.error("Prepare transfer in\n    FAILURE without any runner back",
+				logger.error("Prepare transfer in     FAILURE without any runner back",
 						future.getCause());
 			}
 		}

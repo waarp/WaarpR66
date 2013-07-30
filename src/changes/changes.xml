@@ -5,9 +5,27 @@
 		<author email="waarp1 at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
-		<release version="2.4.16" date="2013-07-11" description="Fix release">
-			<action dev="Frederic Bregier" type="fix">Fix R66 Proxy issue</action>
-			<action dev="Frederic Bregier" type="fix">Fix path access issue when Rule's path is empty</action>
+		<release version="2.4.17" date="2013-07-28" description="Improvement release">
+			<action dev="Frederic Bregier" type="add">Add support for adaptative protocol with "old" versions 2.4.x to new versions</action>
+		    <action dev="Frederic Bregier" type="fix">Fix different Hash algorithm support from partner</action>
+		    <action dev="Frederic Bregier" type="fix">Fix end of transfer error to have the real error back to the partner</action>
+		    <action dev="Frederic Bregier" type="fix">Log are on one line</action>
+		    <action dev="Frederic Bregier" type="fix">Fix RESCHEDULE storage of the counter of retries: task definition changes</action>
+		    <action dev="Frederic Bregier" type="add">Add support to explicitely said to partner one host is proxified, in order they do not check its IP address</action>
+		    <action dev="Frederic Bregier" type="add">Add support in web administration for BUSINESS, ROLE and ALIAS</action>
+		    <action dev="Frederic Bregier" type="add">Add support in web administration for BUSINESS, ROLE and ALIAS</action>
+		    <action dev="Frederic Bregier" type="add">Add support for extended methods using JSON Command format</action>
+			<action dev="Frederic Bregier" type="fix">Fix Move File not correctly tested</action>
+			<action dev="Frederic Bregier" type="fix">Fix INPATH bad resolution in tasks</action>
+			<action dev="Frederic Bregier" type="fix">Fix import config not using the correct filenames</action>
+			<action dev="Frederic Bregier" type="fix">Fix MultipleDirectTransfer to enable multiple files coming from wildcarded files (*?~)</action>
+			<action dev="Frederic Bregier" type="fix">Fix MultipleSubmitTransfer to enable multiple files coming from wildcarded files (*?~) (need -client for remote file list when recv rule is used)</action>
+			<action dev="Frederic Bregier" type="fix">Fix password not correclty selected (host with ssl will use the same password than with no ssl, while it is permitted to have 2 differents passwords)</action>
+			<action dev="Frederic Bregier" type="fix">Update dependencies</action>
+		</release>
+	    <release version="2.4.16" date="2013-07-11" description="Fix release">
+		    <action dev="Frederic Bregier" type="fix">Fix R66 Proxy issue</action>
+		    <action dev="Frederic Bregier" type="fix">Fix path access issue when Rule's path is empty</action>
 		</release>
 	    <release version="2.4.15" date="2013-06-27" description="Fix release">
 			<action dev="Frederic Bregier" type="fix">Fix Unix condition in file usage in GUI</action>

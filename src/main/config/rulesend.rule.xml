@@ -33,6 +33,11 @@
 				<delay>0</delay>
 				<rank>0</rank>
 			</task>
+			<task>
+				<type>RESCHEDULE</type>
+				<path>-case C,l -delay 1000 -count 5</path>
+				<delay>0</delay>
+			</task>
 			<taskno>
 				<type>EXECRENAME</type>
 				<path>D:/GG/R66/conf/montest.bat #TRUEFULLPATH# D:\GG\FTP\fredo\a\#TRANSFERID#_#ORIGINALFILENAME# #TRUEFILENAME# #ORIGINALFILENAME# #DATE# #HOUR# #REMOTEHOST# #LOCALHOST# #TRANSFERID# #RANKTRANSFER# #BLOCKSIZE#</path>

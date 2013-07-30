@@ -213,7 +213,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 		} catch (NullPointerException e) {
 			return null;
 		}
-		if (value.length() == 0) {
+		if (value.isEmpty()) {
 			value = null;
 		}
 		return value;

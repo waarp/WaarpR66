@@ -182,7 +182,7 @@ public class AuthenticationFileBasedConfiguration {
 				} else {
 					String skey = value.getString();
 					// key is crypted
-					if (skey.length() > 0) {
+					if (! skey.isEmpty()) {
 						try {
 							byteKeys = config.cryptoKey.decryptHexInBytes(skey);
 						} catch (Exception e) {
