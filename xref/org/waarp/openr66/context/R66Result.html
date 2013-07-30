@@ -102,7 +102,7 @@
 <a class="jxr_linenumber" name="92" href="#92">92</a>  	@Override
 <a class="jxr_linenumber" name="93" href="#93">93</a>  	<strong class="jxr_keyword">public</strong> String toString() {
 <a class="jxr_linenumber" name="94" href="#94">94</a>  		<strong class="jxr_keyword">return</strong> (exception != <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">"Exception: "</span> + exception.toString() : <span class="jxr_string">""</span>) +
-<a class="jxr_linenumber" name="95" href="#95">95</a>  				(file != <strong class="jxr_keyword">null</strong> ? file.toString() : <span class="jxr_string">" no file"</span>) + <span class="jxr_string">"\n    "</span> +
+<a class="jxr_linenumber" name="95" href="#95">95</a>  				(file != <strong class="jxr_keyword">null</strong> ? file.toString() : <span class="jxr_string">" no file"</span>) + <span class="jxr_string">"     "</span> +
 <a class="jxr_linenumber" name="96" href="#96">96</a>  				(runner != <strong class="jxr_keyword">null</strong> ? runner.toShortString() : <span class="jxr_string">" no runner"</span>) +
 <a class="jxr_linenumber" name="97" href="#97">97</a>  				<span class="jxr_string">" isAnswered: "</span> + isAnswered + <span class="jxr_string">" Code: "</span> + code.mesg;
 <a class="jxr_linenumber" name="98" href="#98">98</a>  	}

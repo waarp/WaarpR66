@@ -135,7 +135,7 @@
 <a class="jxr_linenumber" name="125" href="#125">125</a> 		}
 <a class="jxr_linenumber" name="126" href="#126">126</a> 		NetworkTransaction.removeForceNetworkChannel(remoteAddress);
 <a class="jxr_linenumber" name="127" href="#127">127</a> 		<em class="jxr_comment">// Now force the close of the database after a wait</em>
-<a class="jxr_linenumber" name="128" href="#128">128</a> 		<strong class="jxr_keyword">if</strong> (dbSession != <strong class="jxr_keyword">null</strong> &amp;&amp; dbSession.internalId != DbConstant.admin.session.internalId) {
+<a class="jxr_linenumber" name="128" href="#128">128</a> 		<strong class="jxr_keyword">if</strong> (dbSession != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.session != <strong class="jxr_keyword">null</strong> &amp;&amp; dbSession.internalId != DbConstant.admin.session.internalId) {
 <a class="jxr_linenumber" name="129" href="#129">129</a> 			dbSession.disconnect();
 <a class="jxr_linenumber" name="130" href="#130">130</a> 			dbSession = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="131" href="#131">131</a> 		}
@@ -186,7 +186,7 @@
 <a class="jxr_linenumber" name="176" href="#176">176</a> 			KeepAlivePacket keepAlivePacket = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/localhandler/packet/KeepAlivePacket.html">KeepAlivePacket</a>();
 <a class="jxr_linenumber" name="177" href="#177">177</a> 			NetworkPacket response =
 <a class="jxr_linenumber" name="178" href="#178">178</a> 					<strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/networkhandler/packet/NetworkPacket.html">NetworkPacket</a>(ChannelUtils.NOCHANNEL,
-<a class="jxr_linenumber" name="179" href="#179">179</a> 							ChannelUtils.NOCHANNEL, keepAlivePacket);
+<a class="jxr_linenumber" name="179" href="#179">179</a> 							ChannelUtils.NOCHANNEL, keepAlivePacket, <strong class="jxr_keyword">null</strong>);
 <a class="jxr_linenumber" name="180" href="#180">180</a> 			logger.info(<span class="jxr_string">"Write KAlive"</span>);
 <a class="jxr_linenumber" name="181" href="#181">181</a> 			Channels.write(e.getChannel(), response);
 <a class="jxr_linenumber" name="182" href="#182">182</a> 		}
@@ -236,7 +236,7 @@
 <a class="jxr_linenumber" name="226" href="#226">226</a> 					keepAlivePacket.validate();
 <a class="jxr_linenumber" name="227" href="#227">227</a> 					NetworkPacket response =
 <a class="jxr_linenumber" name="228" href="#228">228</a> 							<strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/networkhandler/packet/NetworkPacket.html">NetworkPacket</a>(ChannelUtils.NOCHANNEL,
-<a class="jxr_linenumber" name="229" href="#229">229</a> 									ChannelUtils.NOCHANNEL, keepAlivePacket);
+<a class="jxr_linenumber" name="229" href="#229">229</a> 									ChannelUtils.NOCHANNEL, keepAlivePacket, <strong class="jxr_keyword">null</strong>);
 <a class="jxr_linenumber" name="230" href="#230">230</a> 					logger.info(<span class="jxr_string">"Answer KAlive"</span>);
 <a class="jxr_linenumber" name="231" href="#231">231</a> 					Channels.write(e.getChannel(), response);
 <a class="jxr_linenumber" name="232" href="#232">232</a> 				} <strong class="jxr_keyword">else</strong> {
@@ -404,7 +404,7 @@
 <a class="jxr_linenumber" name="394" href="#394">394</a> 			AbstractLocalPacket error) {
 <a class="jxr_linenumber" name="395" href="#395">395</a> 		NetworkPacket networkPacket = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="396" href="#396">396</a> 		<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="397" href="#397">397</a> 			networkPacket = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/networkhandler/packet/NetworkPacket.html">NetworkPacket</a>(localId, remoteId, error);
+<a class="jxr_linenumber" name="397" href="#397">397</a> 			networkPacket = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/networkhandler/packet/NetworkPacket.html">NetworkPacket</a>(localId, remoteId, error, <strong class="jxr_keyword">null</strong>);
 <a class="jxr_linenumber" name="398" href="#398">398</a> 		} <strong class="jxr_keyword">catch</strong> (OpenR66ProtocolPacketException e) {
 <a class="jxr_linenumber" name="399" href="#399">399</a> 		}
 <a class="jxr_linenumber" name="400" href="#400">400</a> 		<strong class="jxr_keyword">try</strong> {

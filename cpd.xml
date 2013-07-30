@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <pmd-cpd>
 <duplication lines="187" tokens="1110">
-<file line="65" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
-<file line="58" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<file line="67" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="60" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
 <codefragment>
 <![CDATA[
 		String primaryKey = " PRIMARY KEY ";
@@ -196,8 +196,8 @@
 </codefragment>
 </duplication>
 <duplication lines="165" tokens="1016">
-<file line="58" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
-<file line="61" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="60" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="63" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
 <codefragment>
 <![CDATA[
 	@Override
@@ -369,8 +369,8 @@
 </codefragment>
 </duplication>
 <duplication lines="161" tokens="1000">
-<file line="62" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
-<file line="58" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<file line="64" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="60" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
 <codefragment>
 <![CDATA[
 		String primaryKey = " PRIMARY KEY ";
@@ -537,9 +537,195 @@
 ]]>
 </codefragment>
 </duplication>
+<duplication lines="107" tokens="513">
+<file line="299" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="293" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<codefragment>
+<![CDATA[
+				request.query(command);
+			} catch (WaarpDatabaseSqlException e) {
+				e.printStackTrace();
+				return false;
+			} finally {
+				request.close();
+			}
+		}
+		return true;
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.waarp.openr66.databaseold.model.DbModel#resetSequence()
+	 */
+	@Override
+	public void resetSequence(DbSession session, long newvalue)
+			throws WaarpDatabaseNoConnectionException {
+		String action = "ALTER SEQUENCE " + DbTaskRunner.fieldseq +
+				" RESTART WITH " + newvalue;
+		DbRequest request = new DbRequest(session);
+		try {
+			request.query(action);
+		} catch (WaarpDatabaseNoConnectionException e) {
+			e.printStackTrace();
+			return;
+		} catch (WaarpDatabaseSqlException e) {
+			e.printStackTrace();
+			return;
+		} finally {
+			request.close();
+		}
+		System.out.println(action);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.waarp.openr66.databaseold.model.DbModel#nextSequence()
+	 */
+	@Override
+	public long nextSequence(DbSession dbSession)
+			throws WaarpDatabaseNoConnectionException,
+			WaarpDatabaseSqlException, WaarpDatabaseNoDataException {
+		long result = DbConstant.ILLEGALVALUE;
+		String action = "SELECT NEXTVAL('" + DbTaskRunner.fieldseq + "')";
+		DbPreparedStatement preparedStatement = new DbPreparedStatement(
+				dbSession);
+		try {
+			preparedStatement.createPrepareStatement(action);
+			// Limit the search
+			preparedStatement.executeQuery();
+			if (preparedStatement.getNext()) {
+				try {
+					result = preparedStatement.getResultSet().getLong(1);
+				} catch (SQLException e) {
+					throw new WaarpDatabaseSqlException(e);
+				}
+				return result;
+			} else {
+				throw new WaarpDatabaseNoDataException(
+						"No sequence found. Must be initialized first");
+			}
+		} finally {
+			preparedStatement.realClose();
+		}
+	}
+
+	public boolean needUpgradeDb(DbSession session, String version, boolean tryFix)
+			throws WaarpDatabaseNoConnectionException {
+		// Check if the database is up to date
+		DbRequest request = null;
+		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_13.getVersion())) {
+			try {
+				request = new DbRequest(DbConstant.admin.session);
+				request.select("select "+DbHostConfiguration.Columns.HOSTID.name()+" from "+DbHostConfiguration.table+
+						" where "+DbHostConfiguration.Columns.HOSTID+" = '"+Configuration.configuration.HOST_ID+"'");
+				request.close();
+				DbHostConfiguration.updateVersionDb(session, Configuration.configuration.HOST_ID, R66Versions.V2_4_13.getVersion());
+			} catch (WaarpDatabaseSqlException e) {
+				return ! upgradeDb(session, version);
+			} finally {
+				if (request != null) {
+					request.close();
+				}
+			}
+		}
+		request = null;
+		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_17.getVersion())) {
+			try {
+				request = new DbRequest(DbConstant.admin.session);
+				request.select("select "+DbTaskRunner.Columns.TRANSFERINFO.name()+" from "+DbTaskRunner.table+
+						" where "+DbTaskRunner.Columns.SPECIALID+" = "+DbConstant.ILLEGALVALUE);
+				request.close();
+				DbHostConfiguration.updateVersionDb(session, Configuration.configuration.HOST_ID, R66Versions.V2_4_17.getVersion());
+			} catch (WaarpDatabaseSqlException e) {
+				return ! upgradeDb(session, version);
+			} finally {
+				if (request != null) {
+					request.close();
+				}
+			}
+		}
+		return false;
+	}
+	
+	
+}
+]]>
+</codefragment>
+</duplication>
+<duplication lines="62" tokens="361">
+<file line="344" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="357" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="338" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<codefragment>
+<![CDATA[
+		DbPreparedStatement preparedStatement = new DbPreparedStatement(
+				dbSession);
+		try {
+			preparedStatement.createPrepareStatement(action);
+			// Limit the search
+			preparedStatement.executeQuery();
+			if (preparedStatement.getNext()) {
+				try {
+					result = preparedStatement.getResultSet().getLong(1);
+				} catch (SQLException e) {
+					throw new WaarpDatabaseSqlException(e);
+				}
+				return result;
+			} else {
+				throw new WaarpDatabaseNoDataException(
+						"No sequence found. Must be initialized first");
+			}
+		} finally {
+			preparedStatement.realClose();
+		}
+	}
+
+	public boolean needUpgradeDb(DbSession session, String version, boolean tryFix)
+			throws WaarpDatabaseNoConnectionException {
+		// Check if the database is up to date
+		DbRequest request = null;
+		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_13.getVersion())) {
+			try {
+				request = new DbRequest(DbConstant.admin.session);
+				request.select("select "+DbHostConfiguration.Columns.HOSTID.name()+" from "+DbHostConfiguration.table+
+						" where "+DbHostConfiguration.Columns.HOSTID+" = '"+Configuration.configuration.HOST_ID+"'");
+				request.close();
+				DbHostConfiguration.updateVersionDb(session, Configuration.configuration.HOST_ID, R66Versions.V2_4_13.getVersion());
+			} catch (WaarpDatabaseSqlException e) {
+				return ! upgradeDb(session, version);
+			} finally {
+				if (request != null) {
+					request.close();
+				}
+			}
+		}
+		request = null;
+		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_17.getVersion())) {
+			try {
+				request = new DbRequest(DbConstant.admin.session);
+				request.select("select "+DbTaskRunner.Columns.TRANSFERINFO.name()+" from "+DbTaskRunner.table+
+						" where "+DbTaskRunner.Columns.SPECIALID+" = "+DbConstant.ILLEGALVALUE);
+				request.close();
+				DbHostConfiguration.updateVersionDb(session, Configuration.configuration.HOST_ID, R66Versions.V2_4_17.getVersion());
+			} catch (WaarpDatabaseSqlException e) {
+				return ! upgradeDb(session, version);
+			} finally {
+				if (request != null) {
+					request.close();
+				}
+			}
+		}
+		return false;
+	}
+	
+	
+}
+]]>
+</codefragment>
+</duplication>
 <duplication lines="49" tokens="349">
-<file line="336" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<file line="451" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="338" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="453" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
 <codefragment>
 <![CDATA[
 			body0 = REQUEST.Listing.readBodyHeader();
@@ -591,6 +777,181 @@
 						rule == null ? "" : rule, req == null ? "" : req,
 						pending, transfer, error, done, all);
 				body = REQUEST.Listing.readBody();
+]]>
+</codefragment>
+</duplication>
+<duplication lines="47" tokens="315">
+<file line="245" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="269" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<codefragment>
+<![CDATA[
+		System.out.println(action);
+		try {
+			request.query(action);
+		} catch (WaarpDatabaseNoConnectionException e) {
+			e.printStackTrace();
+			return;
+		} catch (WaarpDatabaseSqlException e) {
+			e.printStackTrace();
+			// XXX FIX no return;
+		} finally {
+			request.close();
+		}
+	}
+
+	public boolean upgradeDb(DbSession session, String version) throws WaarpDatabaseNoConnectionException {
+		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_13.getVersion())) {
+			System.out.println(version+" to "+R66Versions.V2_4_13.getVersion()+"? "+true);
+			String createTableH2 = "CREATE TABLE IF NOT EXISTS ";
+			String primaryKey = " PRIMARY KEY ";
+			String notNull = " NOT NULL ";
+	
+			// HostConfiguration
+			String action = createTableH2 + DbHostConfiguration.table + "(";
+			DbHostConfiguration.Columns[] chcolumns = DbHostConfiguration.Columns
+					.values();
+			for (int i = 0; i < chcolumns.length - 1; i++) {
+				action += chcolumns[i].name() +
+						DBType.getType(DbHostConfiguration.dbTypes[i]) + notNull +
+						", ";
+			}
+			action += chcolumns[chcolumns.length - 1].name() +
+					DBType.getType(DbHostConfiguration.dbTypes[chcolumns.length - 1]) +
+					primaryKey + ")";
+			System.out.println(action);
+			DbRequest request = new DbRequest(session);
+			try {
+				request.query(action);
+			} catch (WaarpDatabaseSqlException e) {
+				e.printStackTrace();
+				return false;
+			} finally {
+				request.close();
+			}
+		}
+		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_17.getVersion())) {
+			System.out.println(version+" to "+R66Versions.V2_4_17.getVersion()+"? "+true);
+			String command = "ALTER TABLE "+DbTaskRunner.table+" ADD COLUMN IF NOT EXISTS "+
+]]>
+</codefragment>
+</duplication>
+<duplication lines="58" tokens="315">
+<file line="2612" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="3563" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<codefragment>
+<![CDATA[
+					}
+				}
+				// check if send is already on going
+				if (session.getRunner() != null && session.getRunner().getRank() > 0) {
+					// already started so not changing the filename
+					// Success: No write back at all
+					break;
+				}
+				// Pre execution was already done since this packet is only received once
+				// the request is already validated by the receiver
+				try {
+					session.renameReceiverFile(newfilename);
+				} catch (OpenR66RunnerErrorException e) {
+					DbTaskRunner runner = session.getRunner();
+					runner.saveStatus();
+					runner.setErrorExecutionStatus(ErrorCode.FileNotFound);
+					session.newState(ERROR);
+					logger.error("File renaming in error {}", e.getMessage());
+					ErrorPacket error = new ErrorPacket("File renaming in error: " + e
+							.getMessage(), runner.getErrorInfo().getCode(),
+							ErrorPacket.FORWARDCLOSECODE);
+					try {
+						ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+								error, true);
+					} catch (OpenR66ProtocolPacketException e2) {
+					}
+					try {
+						session.setFinalizeTransfer(false, new R66Result(e, session,
+								true, runner.getErrorInfo(), runner));
+					} catch (OpenR66RunnerErrorException e1) {
+						localChannelReference.invalidateRequest(new R66Result(e, session,
+								true, runner.getErrorInfo(), runner));
+					} catch (OpenR66ProtocolSystemException e1) {
+						localChannelReference.invalidateRequest(new R66Result(e, session,
+								true, runner.getErrorInfo(), runner));
+					}
+					session.setStatus(97);
+					ChannelCloseTimer.closeFutureChannel(channel);
+					return;
+				}
+				// Success: No write back at all
+				break;
+			}
+			case LocalPacketFactory.BANDWIDTHPACKET: {
+				session.newState(VALIDOTHER);
+				// should be from the local server or from an authorized hosts: LIMIT
+				// Authentication must be the local server or SYSTEM authorization
+				try {
+					if (!session.getAuth().getUser().equals(
+							Configuration.configuration.getHostId(session.getAuth().isSsl())) &&
+							!session.getAuth().isValidRole(ROLE.LIMIT)) {
+						throw new OpenR66ProtocolNotAuthenticatedException(
+								"Not correctly authenticated");
+					}
+				} catch (OpenR66ProtocolNoSslException e1) {
+					throw new OpenR66ProtocolNotAuthenticatedException(
+							"Not correctly authenticated since SSL is not supported", e1);
+				}
+]]>
+</codefragment>
+</duplication>
+<duplication lines="44" tokens="285">
+<file line="362" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="408" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="375" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="356" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<codefragment>
+<![CDATA[
+			preparedStatement.realClose();
+		}
+	}
+
+	public boolean needUpgradeDb(DbSession session, String version, boolean tryFix)
+			throws WaarpDatabaseNoConnectionException {
+		// Check if the database is up to date
+		DbRequest request = null;
+		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_13.getVersion())) {
+			try {
+				request = new DbRequest(DbConstant.admin.session);
+				request.select("select "+DbHostConfiguration.Columns.HOSTID.name()+" from "+DbHostConfiguration.table+
+						" where "+DbHostConfiguration.Columns.HOSTID+" = '"+Configuration.configuration.HOST_ID+"'");
+				request.close();
+				DbHostConfiguration.updateVersionDb(session, Configuration.configuration.HOST_ID, R66Versions.V2_4_13.getVersion());
+			} catch (WaarpDatabaseSqlException e) {
+				return ! upgradeDb(session, version);
+			} finally {
+				if (request != null) {
+					request.close();
+				}
+			}
+		}
+		request = null;
+		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_17.getVersion())) {
+			try {
+				request = new DbRequest(DbConstant.admin.session);
+				request.select("select "+DbTaskRunner.Columns.TRANSFERINFO.name()+" from "+DbTaskRunner.table+
+						" where "+DbTaskRunner.Columns.SPECIALID+" = "+DbConstant.ILLEGALVALUE);
+				request.close();
+				DbHostConfiguration.updateVersionDb(session, Configuration.configuration.HOST_ID, R66Versions.V2_4_17.getVersion());
+			} catch (WaarpDatabaseSqlException e) {
+				return ! upgradeDb(session, version);
+			} finally {
+				if (request != null) {
+					request.close();
+				}
+			}
+		}
+		return false;
+	}
+	
+	
+}
 ]]>
 </codefragment>
 </duplication>
@@ -651,8 +1012,8 @@
 </codefragment>
 </duplication>
 <duplication lines="19" tokens="270">
-<file line="461" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbRule.java"/>
-<file line="489" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbRule.java"/>
+<file line="460" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbRule.java"/>
+<file line="488" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbRule.java"/>
 <codefragment>
 <![CDATA[
 	protected void setFromArray() throws WaarpDatabaseSqlException {
@@ -677,145 +1038,80 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="71" tokens="259">
-<file line="242" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
-<file line="238" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<duplication lines="23" tokens="267">
+<file line="1482" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="1621" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
 <codefragment>
 <![CDATA[
-				" START WITH " + (DbConstant.ILLEGALVALUE + 1);
-		System.out.println(action);
-		try {
-			request.query(action);
-		} catch (WaarpDatabaseNoConnectionException e) {
-			e.printStackTrace();
-			return;
-		} catch (WaarpDatabaseSqlException e) {
-			e.printStackTrace();
-			// XXX FIX no return;
-		} finally {
-			request.close();
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.databaseold.model.DbModel#resetSequence()
-	 */
-	@Override
-	public void resetSequence(DbSession session, long newvalue)
-			throws WaarpDatabaseNoConnectionException {
-		String action = "ALTER SEQUENCE " + DbTaskRunner.fieldseq +
-				" RESTART WITH " + newvalue;
-		DbRequest request = new DbRequest(session);
-		try {
-			request.query(action);
-		} catch (WaarpDatabaseNoConnectionException e) {
-			e.printStackTrace();
-			return;
-		} catch (WaarpDatabaseSqlException e) {
-			e.printStackTrace();
-			return;
-		} finally {
-			request.close();
-		}
-		System.out.println(action);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.databaseold.model.DbModel#nextSequence()
-	 */
-	@Override
-	public long nextSequence(DbSession dbSession)
-			throws WaarpDatabaseNoConnectionException,
-			WaarpDatabaseSqlException, WaarpDatabaseNoDataException {
-		long result = DbConstant.ILLEGALVALUE;
-		String action = "SELECT NEXTVAL('" + DbTaskRunner.fieldseq + "')";
-		DbPreparedStatement preparedStatement = new DbPreparedStatement(
-				dbSession);
-		try {
-			preparedStatement.createPrepareStatement(action);
-			// Limit the search
-			preparedStatement.executeQuery();
-			if (preparedStatement.getNext()) {
-				try {
-					result = preparedStatement.getResultSet().getLong(1);
-				} catch (SQLException e) {
-					throw new WaarpDatabaseSqlException(e);
-				}
-				return result;
-			} else {
-				throw new WaarpDatabaseNoDataException(
-						"No sequence found. Must be initialized first");
-			}
-		} finally {
-			preparedStatement.realClose();
-		}
-	}
-}
+			String system = REQUEST.System.readFileUnique(this);
+			StringBuilder builder = new StringBuilder(system);
+			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXBUSINESSXXX.toString(),
+					config.getBusiness());
+			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXROLESXXX.toString(),
+					config.getRoles());
+			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXALIASESXXX.toString(),
+					config.getAliases());
+			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXOTHERXXX.toString(),
+					config.getOthers());
+			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITWXXX.toString(),
+					Long.toString(Configuration.configuration.serverChannelWriteLimit));
+			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITRXXX.toString(),
+					Long.toString(Configuration.configuration.serverChannelReadLimit));
+			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXDELAYCOMMDXXX.toString(),
+					Long.toString(Configuration.configuration.delayCommander));
+			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXDELAYRETRYXXX.toString(),
+					Long.toString(Configuration.configuration.delayRetry));
+			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITWXXX.toString(),
+					Long.toString(Configuration.configuration.serverGlobalWriteLimit));
+			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITRXXX.toString(),
+					Long.toString(Configuration.configuration.serverGlobalReadLimit));
+			WaarpStringUtils.replace(builder, "XXXBLOCKXXX", Configuration.configuration.isShutdown ? "checked" : "");
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="49" tokens="258">
-<file line="142" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\DirectTransfer.java"/>
-<file line="89" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\MultipleDirectTransfer.java"/>
+<duplication lines="32" tokens="242">
+<file line="287" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="259" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
 <codefragment>
 <![CDATA[
-					rhost, localFilename, rule, fileInfo, ismd5, block, idt,
-					networkTransaction);
-			logger.debug("rhost: "+rhost+":"+transaction.remoteHost);
-			transaction.run();
-			future.awaitUninterruptibly();
-			long time2 = System.currentTimeMillis();
-			logger.debug("finish transfer: " + future.isSuccess());
-			long delay = time2 - time1;
-			R66Result result = future.getResult();
-			if (future.isSuccess()) {
-				if (result.runner.getErrorInfo() == ErrorCode.Warning) {
-					logger.warn("Transfer in status:\nWARNED\n    "
-							+ result.runner.toShortString()
-							+
-							"\n    <REMOTE>"
-							+ rhost
-							+ "</REMOTE>"
-							+
-							"\n    <FILEFINAL>"
-							+
-							(result.file != null ? result.file.toString() + "</FILEFINAL>"
-									: "no file")
-							+ "\n    delay: " + delay);
-				} else {
-					logger.info("Transfer in status:\nSUCCESS\n    "
-							+ result.runner.toShortString()
-							+
-							"\n    <REMOTE>"
-							+ rhost
-							+ "</REMOTE>"
-							+
-							"\n    <FILEFINAL>"
-							+
-							(result.file != null ? result.file.toString() + "</FILEFINAL>"
-									: "no file")
-							+ "\n    delay: " + delay);
-				}
-				if (nolog) {
-					// In case of success, delete the runner
-					try {
-						result.runner.delete();
-					} catch (WaarpDatabaseException e) {
-						logger.warn("Cannot apply nolog to\n    " + result.runner.toShortString(),
-								e);
-					}
-				}
-			} else {
-				if (result == null || result.runner == null) {
-					logger.error("Transfer in\n    FAILURE with no Id", future.getCause());
+			String primaryKey = " PRIMARY KEY ";
+			String notNull = " NOT NULL ";
+	
+			// HostConfiguration
+			String action = createTableH2 + DbHostConfiguration.table + "(";
+			DbHostConfiguration.Columns[] chcolumns = DbHostConfiguration.Columns
+					.values();
+			for (int i = 0; i < chcolumns.length - 1; i++) {
+				action += chcolumns[i].name() +
+						DBType.getType(DbHostConfiguration.dbTypes[i]) + notNull +
+						", ";
+			}
+			action += chcolumns[chcolumns.length - 1].name() +
+					DBType.getType(DbHostConfiguration.dbTypes[chcolumns.length - 1]) +
+					primaryKey + ")";
+			System.out.println(action);
+			DbRequest request = new DbRequest(session);
+			try {
+				request.query(action);
+			} catch (WaarpDatabaseSqlException e) {
+				e.printStackTrace();
+				return false;
+			} finally {
+				request.close();
+			}
+		}
+		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_17.getVersion())) {
+			System.out.println(version+" to "+R66Versions.V2_4_17.getVersion()+"? "+true);
+			String command = "ALTER TABLE "+DbTaskRunner.table+" ADD COLUMN "+
+					DbTaskRunner.Columns.TRANSFERINFO.name()+ " "+
+					DBType.getType(DbTaskRunner.dbTypes[DbTaskRunner.Columns.TRANSFERINFO.ordinal()]) +  
+					" DEFAULT '{}' NOT NULL "+
 ]]>
 </codefragment>
 </duplication>
 <duplication lines="48" tokens="219">
-<file line="1904" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1988" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1757" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1841" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 	public static boolean setConfigurationServerShutdownFromXml(Configuration config,
@@ -870,8 +1166,8 @@
 </codefragment>
 </duplication>
 <duplication lines="40" tokens="207">
-<file line="3514" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
-<file line="3696" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="3561" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="3743" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
 <codefragment>
 <![CDATA[
 		} catch (FileNotFoundException e) {
@@ -914,6 +1210,43 @@
 				file.delete();
 			}
 		}
+]]>
+</codefragment>
+</duplication>
+<duplication lines="29" tokens="207">
+<file line="263" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="259" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<codefragment>
+<![CDATA[
+			String primaryKey = " PRIMARY KEY ";
+			String notNull = " NOT NULL ";
+	
+			// HostConfiguration
+			String action = createTableH2 + DbHostConfiguration.table + "(";
+			DbHostConfiguration.Columns[] chcolumns = DbHostConfiguration.Columns
+					.values();
+			for (int i = 0; i < chcolumns.length - 1; i++) {
+				action += chcolumns[i].name() +
+						DBType.getType(DbHostConfiguration.dbTypes[i]) + notNull +
+						", ";
+			}
+			action += chcolumns[chcolumns.length - 1].name() +
+					DBType.getType(DbHostConfiguration.dbTypes[chcolumns.length - 1]) +
+					primaryKey + ")";
+			System.out.println(action);
+			DbRequest request = new DbRequest(session);
+			try {
+				request.query(action);
+			} catch (WaarpDatabaseSqlException e) {
+				e.printStackTrace();
+				return false;
+			} finally {
+				request.close();
+			}
+		}
+		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_17.getVersion())) {
+			System.out.println(version+" to "+R66Versions.V2_4_17.getVersion()+"? "+true);
+			String command = "ALTER TABLE "+DbTaskRunner.table+" ADD COLUMN IF NOT EXISTS "+
 ]]>
 </codefragment>
 </duplication>
@@ -975,8 +1308,8 @@
 </codefragment>
 </duplication>
 <duplication lines="38" tokens="198">
-<file line="384" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<file line="499" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="386" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="501" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
 <codefragment>
 <![CDATA[
 				body = REQUEST.Listing.readBody();
@@ -1020,9 +1353,9 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="34" tokens="194">
-<file line="100" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ChangeBandwidthLimits.java"/>
-<file line="111" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExport.java"/>
+<duplication lines="34" tokens="195">
+<file line="110" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExport.java"/>
+<file line="144" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExtendedExport.java"/>
 <codefragment>
 <![CDATA[
 		LocalChannelReference localChannelReference = networkTransaction
@@ -1058,36 +1391,47 @@
 		localChannelReference = null;
 	}
 
-	protected static long swriteGlobalLimit = -1;
+	protected static boolean spurgeLog = false;
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="15" tokens="187">
-<file line="1460" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<file line="1580" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<duplication lines="26" tokens="189">
+<file line="1317" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="1342" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
 <codefragment>
 <![CDATA[
-			String system = REQUEST.System.readFileUnique(this);
-			StringBuilder builder = new StringBuilder(system);
-			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITWXXX.toString(),
-					Long.toString(Configuration.configuration.serverChannelWriteLimit));
-			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITRXXX.toString(),
-					Long.toString(Configuration.configuration.serverChannelReadLimit));
-			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXDELAYCOMMDXXX.toString(),
-					Long.toString(Configuration.configuration.delayCommander));
-			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXDELAYRETRYXXX.toString(),
-					Long.toString(Configuration.configuration.delayRetry));
-			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITWXXX.toString(),
-					Long.toString(Configuration.configuration.serverGlobalWriteLimit));
-			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITRXXX.toString(),
-					Long.toString(Configuration.configuration.serverGlobalReadLimit));
-			WaarpStringUtils.replace(builder, "XXXBLOCKXXX", Configuration.configuration.isShutdown ? "checked" : "");
+		} else if ((!packet.getFilename().equals(runner.getOriginalFilename())) 
+				&& runner.isSender() && runner.isInTransfer()
+				&& runner.getRank() == 0 && (!packet.isToValidate())) {
+			// File was modify at the very beginning (using wildcards)
+			// and the remote host has already received the request packet
+			// => Informs the receiver of the new name
+			logger.debug("Will send a modification of filename due to wildcard: " +
+					runner.getFilename());
+			session.newState(VALID);
+			if (localChannelReference.getPartner().useJson()) {
+				ObjectNode node = JsonHandler.createObjectNode();
+				JsonHandler.setValue(node, JsonCommandPacket.REQUESTPACKET.comment, "Change Filename by Wildcard on sender");
+				JsonHandler.setValue(node, JsonCommandPacket.REQUESTPACKET.filename, runner.getFilename());
+				JsonHandler.setValue(node, JsonCommandPacket.REQUESTPACKET.filesize, packet.getOriginalSize());
+				JsonCommandPacket validPacket = new JsonCommandPacket(node,
+						LocalPacketFactory.REQUESTPACKET);
+				ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+						validPacket, true);
+			} else {
+				ValidPacket validPacket = new ValidPacket("Change Filename by Wildcard on sender",
+					runner.getFilename()+PartnerConfiguration.BAR_SEPARATOR_FIELD+packet.getOriginalSize(), 
+					LocalPacketFactory.REQUESTPACKET);
+				ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+					validPacket, true);
+			}
+		} else if (runner.isSelfRequest() && runner.isSender() && runner.isInTransfer()
 ]]>
 </codefragment>
 </duplication>
 <duplication lines="38" tokens="183">
-<file line="1787" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1837" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1640" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1690" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 	public static boolean setConfigurationInitDatabase(Configuration config, String filename) {
@@ -1131,50 +1475,169 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="33" tokens="179">
-<file line="83" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigExport.java"/>
-<file line="89" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigImport.java"/>
+<duplication lines="38" tokens="175">
+<file line="2284" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="2959" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
 <codefragment>
 <![CDATA[
-				LocalPacketFactory.CONFEXPORTPACKET);
-		SocketAddress socketAddress = dbhost.getSocketAddress();
-		boolean isSSL = dbhost.isSsl();
-
-		LocalChannelReference localChannelReference = networkTransaction
-				.createConnectionWithRetry(socketAddress, isSSL, future);
-		socketAddress = null;
-		if (localChannelReference == null) {
-			dbhost = null;
-			logger.error("Cannot Connect");
-			future.setResult(new R66Result(
-					new OpenR66ProtocolNoConnectionException("Cannot connect to server"),
-					null, true, ErrorCode.Internal, null));
-			future.setFailure(future.getResult().exception);
-			return;
-		}
-		localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
-		try {
-			ChannelUtils.writeAbstractLocalPacket(localChannelReference, valid, false);
-		} catch (OpenR66ProtocolPacketException e) {
-			logger.error("Bad Protocol", e);
-			Channels.close(localChannelReference.getLocalChannel());
-			localChannelReference = null;
-			dbhost = null;
-			valid = null;
-			future.setResult(new R66Result(e, null, true,
-					ErrorCode.TransferError, null));
-			future.setFailure(e);
-			return;
-		}
-		dbhost = null;
-		future.awaitUninterruptibly();
-		logger.info("Request done with " + (future.isSuccess() ? "success" : "error"));
+						ErrorCode.getFromCode(packet.getSmiddle()), null);
+				resulttest.other = packet;
+				switch (resulttest.code) {
+					case CompleteOk:
+					case InitOk:
+					case PostProcessingOk:
+					case PreProcessingOk:
+					case QueryAlreadyFinished:
+					case QueryStillRunning:
+					case Running:
+					case TransferOk:
+						break;
+					default:
+						localChannelReference.invalidateRequest(resulttest);
+						session.setStatus(102);
+						Channels.close(channel);
+						return;
+				}
+				localChannelReference.validateRequest(resulttest);
+				session.setStatus(28);
+				Channels.close(channel);
+				break;
+			}
+			case LocalPacketFactory.LOGPACKET:
+			case LocalPacketFactory.LOGPURGEPACKET: {
+				session.newState(VALIDOTHER);
+				// should be from the local server or from an authorized hosts: LOGCONTROL
+				try {
+					if (!session.getAuth().getUser().equals(
+							Configuration.configuration.getHostId(session.getAuth().isSsl())) &&
+							!session.getAuth().isValidRole(ROLE.LOGCONTROL)) {
+						throw new OpenR66ProtocolNotAuthenticatedException(
+								"Not correctly authenticated");
+					}
+				} catch (OpenR66ProtocolNoSslException e1) {
+					throw new OpenR66ProtocolNotAuthenticatedException(
+							"Not correctly authenticated since SSL is not supported", e1);
+				}
+]]>
+</codefragment>
+</duplication>
+<duplication lines="32" tokens="164">
+<file line="2166" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="2831" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<codefragment>
+<![CDATA[
+				ValidPacket valid = new ValidPacket(packet.getSmiddle(), resulttest.code.getCode(),
+						LocalPacketFactory.REQUESTUSERPACKET);
+				resulttest.other = packet;
+				localChannelReference.validateRequest(resulttest);
+				try {
+					ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+							valid, true);
+				} catch (OpenR66ProtocolPacketException e) {
+				}
+				session.setStatus(27);
+				Channels.close(channel);
+				break;
+			}
+			case LocalPacketFactory.VALIDPACKET: {
+				session.newState(VALIDOTHER);
+				// should be from the local server or from an authorized hosts: TRANSFER
+				try {
+					if (!session.getAuth().getUser().equals(
+							Configuration.configuration.getHostId(session.getAuth().isSsl())) &&
+							!session.getAuth().isValidRole(ROLE.TRANSFER)) {
+						throw new OpenR66ProtocolNotAuthenticatedException(
+								"Not correctly authenticated");
+					}
+				} catch (OpenR66ProtocolNoSslException e1) {
+					throw new OpenR66ProtocolNotAuthenticatedException(
+							"Not correctly authenticated since SSL is not supported", e1);
+				}
+				// Try to validate a restarting transfer
+				// validLimit on requested side
+				if (Configuration.configuration.constraintLimitHandler.checkConstraints()) {
+					logger.error("Limit exceeded while asking to relaunch a task"
+							+ packet.getSmiddle());
+]]>
+</codefragment>
+</duplication>
+<duplication lines="29" tokens="164">
+<file line="2372" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="3085" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<codefragment>
+<![CDATA[
+				ValidPacket valid = new ValidPacket(filename + " " + nb, result.code.getCode(),
+						LocalPacketFactory.REQUESTUSERPACKET);
+				localChannelReference.validateRequest(result);
+				try {
+					ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+							valid, true);
+				} catch (OpenR66ProtocolPacketException e) {
+				}
+				Channels.close(channel);
+				break;
+			}
+			case LocalPacketFactory.CONFEXPORTPACKET: {
+				session.newState(VALIDOTHER);
+				// Authentication must be the local server or CONFIGADMIN authorization
+				try {
+					if (!session.getAuth().getUser().equals(
+							Configuration.configuration.getHostId(session.getAuth().isSsl())) &&
+							!session.getAuth().isValidRole(ROLE.CONFIGADMIN)) {
+						throw new OpenR66ProtocolNotAuthenticatedException(
+								"Not correctly authenticated");
+					}
+				} catch (OpenR66ProtocolNoSslException e1) {
+					throw new OpenR66ProtocolNotAuthenticatedException(
+							"Not correctly authenticated since SSL is not supported", e1);
+				}
+				if (Configuration.configuration.r66Mib != null) {
+					Configuration.configuration.r66Mib.notifyWarning(
+							"Export Configuration Order received", session.getAuth().getUser());
+				}
+]]>
+</codefragment>
+</duplication>
+<duplication lines="29" tokens="164">
+<file line="2452" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="3234" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<codefragment>
+<![CDATA[
+				ValidPacket valid = new ValidPacket(shost + " " + srule, result.code.getCode(),
+						LocalPacketFactory.REQUESTUSERPACKET);
+				localChannelReference.validateRequest(result);
+				try {
+					ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+							valid, true);
+				} catch (OpenR66ProtocolPacketException e) {
+				}
+				Channels.close(channel);
+				break;
+			}
+			case LocalPacketFactory.CONFIMPORTPACKET: {
+				session.newState(VALIDOTHER);
+				// Authentication must be the local server or CONFIGADMIN authorization
+				try {
+					if (!session.getAuth().getUser().equals(
+							Configuration.configuration.getHostId(session.getAuth().isSsl())) &&
+							!session.getAuth().isValidRole(ROLE.CONFIGADMIN)) {
+						throw new OpenR66ProtocolNotAuthenticatedException(
+								"Not correctly authenticated");
+					}
+				} catch (OpenR66ProtocolNoSslException e1) {
+					throw new OpenR66ProtocolNotAuthenticatedException(
+							"Not correctly authenticated since SSL is not supported", e1);
+				}
+				if (Configuration.configuration.r66Mib != null) {
+					Configuration.configuration.r66Mib.notifyWarning(
+							"Import Configuration Order received", session.getAuth().getUser());
+				}
 ]]>
 </codefragment>
 </duplication>
 <duplication lines="42" tokens="163">
 <file line="392" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbConfiguration.java"/>
-<file line="452" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbHostConfiguration.java"/>
+<file line="593" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbHostConfiguration.java"/>
 <codefragment>
 <![CDATA[
 		DbConfiguration dbConfiguration = new DbConfiguration(preparedStatement.getDbSession());
@@ -1223,8 +1686,8 @@
 </codefragment>
 </duplication>
 <duplication lines="21" tokens="163">
-<file line="998" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<file line="1050" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="1010" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="1062" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
 <codefragment>
 <![CDATA[
 			} else if ("TestConn".equalsIgnoreCase(parm)) {
@@ -1251,9 +1714,99 @@
 ]]>
 </codefragment>
 </duplication>
+<duplication lines="25" tokens="162">
+<file line="243" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigExport.java"/>
+<file line="391" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigImport.java"/>
+<codefragment>
+<![CDATA[
+					logger.error("COnfigExport in     FAILURE since Host is not found: "+stohost, e);
+					networkTransaction.closeAll();
+					System.exit(10);
+				}
+			} else {
+				stohost = Configuration.configuration.HOST_SSLID;
+			}
+			transaction.run();
+			future.awaitUninterruptibly();
+			long time2 = System.currentTimeMillis();
+			long delay = time2 - time1;
+			R66Result result = future.getResult();
+			if (future.isSuccess()) {
+				boolean useJson = PartnerConfiguration.useJson(stohost);
+				logger.debug("UseJson: "+useJson);
+				String message = null;
+				if (useJson) {
+					message = (result.other != null ? ((JsonCommandPacket) result.other).getRequest() :
+							"no file");
+				} else {
+					message = (result.other != null ? ((ValidPacket) result.other).getSheader() :
+							"no file");
+				}
+				if (result.code == ErrorCode.Warning) {
+					logger.warn("WARNED on files:     " +
+]]>
+</codefragment>
+</duplication>
+<duplication lines="16" tokens="158">
+<file line="3625" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="3667" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<codefragment>
+<![CDATA[
+					R66Result result = new R66Result(session, true, ErrorCode.CompleteOk, null);
+					// Now answer
+					JsonHandler.setValue(node, JsonCommandPacket.REQUESTUSERPACKET.command, packet.getTypeValid());
+					JsonHandler.setValue(node, JsonCommandPacket.BANDWIDTHPACKET.writeglobal, Configuration.configuration.serverGlobalWriteLimit);
+					JsonHandler.setValue(node, JsonCommandPacket.BANDWIDTHPACKET.readglobal, Configuration.configuration.serverGlobalReadLimit);
+					JsonHandler.setValue(node, JsonCommandPacket.BANDWIDTHPACKET.writesession, Configuration.configuration.serverChannelWriteLimit);
+					JsonHandler.setValue(node, JsonCommandPacket.BANDWIDTHPACKET.readsession, Configuration.configuration.serverChannelReadLimit);
+					JsonCommandPacket valid = new JsonCommandPacket(node, result.code.getCode(),
+							LocalPacketFactory.REQUESTUSERPACKET);
+					localChannelReference.validateRequest(result);
+					try {
+						ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+								valid, true);
+					} catch (OpenR66ProtocolPacketException e) {
+					}
+					Channels.close(channel);
+]]>
+</codefragment>
+</duplication>
+<duplication lines="25" tokens="155">
+<file line="653" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbHostConfiguration.java"/>
+<file line="749" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbHostConfiguration.java"/>
+<codefragment>
+<![CDATA[
+	private boolean updateSet(String source, String path, HashSet<String> set) {
+		if (source != null && ! source.isEmpty()) {
+			Document document = null;
+			StringReader reader = null;
+			if (source != null && ! source.isEmpty()) {
+				try {
+					reader = new StringReader(source);
+					document = new SAXReader().read(reader);
+				} catch (DocumentException e) {
+					logger.error("Unable to read the XML Config "+path+" string: " + source, e);
+					if (reader != null) {
+						reader.close();
+					}
+					return false;
+				}
+				if (document == null) {
+					logger.error("Unable to read the XML Config "+path+" string: " + source);
+					if (reader != null) {
+						reader.close();
+					}
+					return false;
+				}
+				@SuppressWarnings("unchecked")
+				List<Element> list = document.selectNodes(path);
+				for (Element element : list) {
+]]>
+</codefragment>
+</duplication>
 <duplication lines="21" tokens="154">
-<file line="1577" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
-<file line="1617" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="1588" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="1628" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
 <codefragment>
 <![CDATA[
 			DbSession session, boolean in)
@@ -1281,10 +1834,10 @@
 </codefragment>
 </duplication>
 <duplication lines="22" tokens="150">
-<file line="137" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
-<file line="140" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
-<file line="144" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
-<file line="133" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<file line="139" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="142" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="146" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="135" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
 <codefragment>
 <![CDATA[
 		System.out.println(action);
@@ -1312,9 +1865,137 @@
 ]]>
 </codefragment>
 </duplication>
+<duplication lines="22" tokens="150">
+<file line="2131" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="2796" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<codefragment>
+<![CDATA[
+				ErrorCode code = (packet.getTypeValid() == LocalPacketFactory.STOPPACKET) ?
+						ErrorCode.StoppedTransfer : ErrorCode.CanceledTransfer;
+				if (lcr != null) {
+					int rank = 0;
+					if (code == ErrorCode.StoppedTransfer && lcr.getSession() != null) {
+						DbTaskRunner taskRunner = lcr.getSession().getRunner();
+						if (taskRunner != null) {
+							rank = taskRunner.getRank();
+						}
+					}
+					session.newState(ERROR);
+					ErrorPacket error = new ErrorPacket(code.name() + " " + rank,
+							code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+					try {
+						// XXX ChannelUtils.writeAbstractLocalPacket(lcr, error);
+						// inform local instead of remote
+						ChannelUtils.writeAbstractLocalPacketToLocal(lcr, error);
+					} catch (Exception e) {
+					}
+					resulttest = new R66Result(session, true,
+							ErrorCode.CompleteOk, session.getRunner());
+				} else {
+]]>
+</codefragment>
+</duplication>
+<duplication lines="25" tokens="146">
+<file line="142" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\DirectTransfer.java"/>
+<file line="171" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\MultipleDirectTransfer.java"/>
+<codefragment>
+<![CDATA[
+					rhost, localFilename, rule, fileInfo, ismd5, block, idt,
+					networkTransaction);
+			logger.debug("rhost: "+rhost+":"+transaction.remoteHost);
+			transaction.run();
+			future.awaitUninterruptibly();
+			long time2 = System.currentTimeMillis();
+			logger.debug("finish transfer: " + future.isSuccess());
+			long delay = time2 - time1;
+			R66Result result = future.getResult();
+			if (future.isSuccess()) {
+				if (result.runner.getErrorInfo() == ErrorCode.Warning) {
+					logger.warn("Transfer in status: WARNED     "
+							+ result.runner.toShortString()
+							+
+							"     <REMOTE>"
+							+ rhost
+							+ "</REMOTE>"
+							+
+							"     <FILEFINAL>"
+							+
+							(result.file != null ? result.file.toString() + "</FILEFINAL>"
+									: "no file")
+							+ "     delay: " + delay);
+				} else {
+					logger.info("Transfer in status: SUCCESS     "
+]]>
+</codefragment>
+</duplication>
+<duplication lines="22" tokens="146">
+<file line="2693" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="3646" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<codefragment>
+<![CDATA[
+				long rsl = (Long.parseLong(splitsession[1]) / 10) * 10;
+				if (wgl < 0) {
+					wgl = Configuration.configuration.serverGlobalWriteLimit;
+				}
+				if (rgl < 0) {
+					rgl = Configuration.configuration.serverGlobalReadLimit;
+				}
+				if (wsl < 0) {
+					wsl = Configuration.configuration.serverChannelWriteLimit;
+				}
+				if (rsl < 0) {
+					rsl = Configuration.configuration.serverChannelReadLimit;
+				}
+				if (Configuration.configuration.r66Mib != null) {
+					Configuration.configuration.r66Mib.notifyWarning(
+							"Change Bandwidth Limit Order received: Global " +
+									wgl + ":" + rgl + " (W:R) Local " + wsl + ":" + rsl + " (W:R)",
+							session.getAuth().getUser());
+				}
+				Configuration.configuration.changeNetworkLimit(wgl, rgl, wsl, rsl,
+						Configuration.configuration.delayLimit);
+				R66Result result = new R66Result(session, true, ErrorCode.CompleteOk, null);
+]]>
+</codefragment>
+</duplication>
+<duplication lines="27" tokens="139">
+<file line="194" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExport.java"/>
+<file line="248" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExtendedExport.java"/>
+<codefragment>
+<![CDATA[
+			} else if (args[i].equalsIgnoreCase("-host")) {
+				i++;
+				stohost = args[i];
+			}
+		}
+		if (ssstart != null) {
+			Timestamp tstart = WaarpStringUtils.fixDate(ssstart);
+			if (tstart != null) {
+				sstart = tstart;
+			}
+		}
+		if (ssstop != null) {
+			Timestamp tstop = WaarpStringUtils.fixDate(ssstop, sstart);
+			if (tstop != null) {
+				sstop = tstop;
+			}
+		}
+		if (ssstart == null && ssstop == null) {
+			sstop = WaarpStringUtils.getTodayMidnight();
+		}
+		return true;
+	}
+
+	public static void main(String[] args) {
+		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+		if (logger == null) {
+			logger = WaarpInternalLoggerFactory.getLogger(LogExport.class);
+]]>
+</codefragment>
+</duplication>
 <duplication lines="25" tokens="136">
-<file line="226" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
-<file line="214" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<file line="228" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="216" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
 <codefragment>
 <![CDATA[
 		} finally {
@@ -1346,8 +2027,8 @@
 </codefragment>
 </duplication>
 <duplication lines="12" tokens="136">
-<file line="689" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<file line="730" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="701" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="742" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
 <codefragment>
 <![CDATA[
 					body = REQUEST.CancelRestart.readBody();
@@ -1396,9 +2077,62 @@
 ]]>
 </codefragment>
 </duplication>
+<duplication lines="14" tokens="133">
+<file line="133" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="276" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<codefragment>
+<![CDATA[
+		action = createTableH2 + DbHostConfiguration.table + "(";
+		DbHostConfiguration.Columns[] chcolumns = DbHostConfiguration.Columns
+				.values();
+		for (int i = 0; i < chcolumns.length - 1; i++) {
+			action += chcolumns[i].name() +
+					DBType.getType(DbHostConfiguration.dbTypes[i]) + notNull +
+					", ";
+		}
+		action += chcolumns[chcolumns.length - 1].name() +
+				DBType.getType(DbHostConfiguration.dbTypes[chcolumns.length - 1]) +
+				notNull + ",";
+		action += constraint + " hostconf_pk " + primaryKey + "("
+				+ chcolumns[chcolumns.length - 1].name() + "))";
+		System.out.println(action);
+]]>
+</codefragment>
+</duplication>
+<duplication lines="23" tokens="128">
+<file line="172" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExport.java"/>
+<file line="206" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExtendedExport.java"/>
+<codefragment>
+<![CDATA[
+					+
+					"    -start timestamp in format yyyyMMddHHmmssSSS possibly truncated and where one of ':-. ' can be separators\n"
+					+
+					"    -stop timestamp in same format than start\n" +
+					"If not start and no stop are given, stop is Today Midnight (00:00:00)\n" +
+					"If start is equals or greater than stop, stop is start+24H\n"+
+					"    -host host (optional)");
+			return false;
+		}
+		String ssstart = null;
+		String ssstop = null;
+		for (int i = 1; i < args.length; i++) {
+			if (args[i].equalsIgnoreCase("-purge")) {
+				spurgeLog = true;
+			} else if (args[i].equalsIgnoreCase("-clean")) {
+				sclean = true;
+			} else if (args[i].equalsIgnoreCase("-start")) {
+				i++;
+				ssstart = args[i];
+			} else if (args[i].equalsIgnoreCase("-stop")) {
+				i++;
+				ssstop = args[i];
+			} else if (args[i].equalsIgnoreCase("-host")) {
+]]>
+</codefragment>
+</duplication>
 <duplication lines="28" tokens="127">
-<file line="1948" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="2035" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1801" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1888" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 			logger.error("Cannot load Network configuration");
@@ -1432,10 +2166,55 @@
 ]]>
 </codefragment>
 </duplication>
+<duplication lines="37" tokens="124">
+<file line="2716" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="3674" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<codefragment>
+<![CDATA[
+				ValidPacket valid = new ValidPacket("Bandwidth changed", result.code.getCode(),
+						LocalPacketFactory.REQUESTUSERPACKET);
+				localChannelReference.validateRequest(result);
+				try {
+					ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+							valid, true);
+				} catch (OpenR66ProtocolPacketException e) {
+				}
+				Channels.close(channel);
+				break;
+			}
+			case LocalPacketFactory.TESTPACKET: {
+				session.newState(VALIDOTHER);
+				logger.info("Valid TEST MESSAGE: " + packet.toString());
+				R66Result resulttest = new R66Result(session, true,
+						ErrorCode.CompleteOk, null);
+				resulttest.other = packet;
+				localChannelReference.validateRequest(resulttest);
+				Channels.close(channel);
+				break;
+			}
+			default:
+				logger.info("Validation is ignored: " + packet.getTypeValid());
+		}
+	}
+
+	/**
+	 * Receive a json request
+	 * 
+	 * @param channel
+	 * @param packet
+	 * @throws OpenR66ProtocolNotAuthenticatedException
+	 * @throws OpenR66RunnerErrorException
+	 * @throws OpenR66ProtocolSystemException
+	 * @throws OpenR66ProtocolBusinessException
+	 */
+	private void jsonCommand(Channel channel, JsonCommandPacket packet)
+]]>
+</codefragment>
+</duplication>
 <duplication lines="27" tokens="123">
-<file line="1865" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1948" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="2035" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1718" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1801" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1888" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 			logger.error("Cannot load Limit configuration");
@@ -1469,8 +2248,8 @@
 </codefragment>
 </duplication>
 <duplication lines="31" tokens="121">
-<file line="221" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
-<file line="226" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="223" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="228" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
 <codefragment>
 <![CDATA[
 		} finally {
@@ -1540,10 +2319,10 @@
 </codefragment>
 </duplication>
 <duplication lines="24" tokens="119">
-<file line="1787" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1837" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1904" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1988" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1640" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1690" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1757" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1841" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 	public static boolean setConfigurationInitDatabase(Configuration config, String filename) {
@@ -1604,39 +2383,66 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="22" tokens="117">
-<file line="186" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigExport.java"/>
-<file line="298" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExport.java"/>
+<duplication lines="21" tokens="116">
+<file line="138" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ChangeBandwidthLimits.java"/>
+<file line="123" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExport.java"/>
+<file line="157" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExtendedExport.java"/>
 <codefragment>
 <![CDATA[
-					logger.warn("SUCCESS on Final files:\n    " +
-							(result.other != null ? ((ValidPacket) result.other).getSheader() :
-									"no file")
-							+ "\n    delay: " + delay);
-				}
-			} else {
-				if (result.code == ErrorCode.Warning) {
-					logger.warn("Transfer is\n    WARNED", future.getCause());
-					networkTransaction.closeAll();
-					System.exit(result.code.ordinal());
-				} else {
-					logger.error("Transfer in\n    FAILURE", future.getCause());
-					networkTransaction.closeAll();
-					System.exit(result.code.ordinal());
-				}
-			}
+		try {
+			ChannelUtils.writeAbstractLocalPacket(localChannelReference, valid, false);
+		} catch (OpenR66ProtocolPacketException e) {
+			logger.error("Bad Protocol", e);
+			Channels.close(localChannelReference.getLocalChannel());
+			localChannelReference = null;
+			host = null;
+			valid = null;
+			future.setResult(new R66Result(e, null, true,
+					ErrorCode.TransferError, null));
+			future.setFailure(e);
+			return;
+		}
+		host = null;
+		future.awaitUninterruptibly();
+		logger.info("Request done with " + (future.isSuccess() ? "success" : "error"));
+		Channels.close(localChannelReference.getLocalChannel());
+		localChannelReference = null;
+	}
+
+	protected static long swriteGlobalLimit = -1;
+]]>
+</codefragment>
+</duplication>
+<duplication lines="19" tokens="115">
+<file line="244" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="240" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<codefragment>
+<![CDATA[
+				" START WITH " + (DbConstant.ILLEGALVALUE + 1);
+		System.out.println(action);
+		try {
+			request.query(action);
+		} catch (WaarpDatabaseNoConnectionException e) {
+			e.printStackTrace();
+			return;
+		} catch (WaarpDatabaseSqlException e) {
+			e.printStackTrace();
+			// XXX FIX no return;
 		} finally {
-			networkTransaction.closeAll();
+			request.close();
 		}
 	}
 
-}
+	public boolean upgradeDb(DbSession session, String version) throws WaarpDatabaseNoConnectionException {
+		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_13.getVersion())) {
+			System.out.println(version+" to "+R66Versions.V2_4_13.getVersion()+"? "+true);
+			String createTableH2 = "CREATE TABLE IF NOT EXISTS ";
 ]]>
 </codefragment>
 </duplication>
 <duplication lines="15" tokens="114">
-<file line="485" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<file line="559" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="487" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="562" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
 <codefragment>
 <![CDATA[
 					all = true;
@@ -1658,8 +2464,8 @@
 </codefragment>
 </duplication>
 <duplication lines="25" tokens="113">
-<file line="483" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\filesystem\R66File.java"/>
-<file line="537" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\filesystem\R66File.java"/>
+<file line="484" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\filesystem\R66File.java"/>
+<file line="540" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\filesystem\R66File.java"/>
 <codefragment>
 <![CDATA[
 			File newFile = getFileFromPath(path);
@@ -1690,6 +2496,39 @@
 ]]>
 </codefragment>
 </duplication>
+<duplication lines="25" tokens="111">
+<file line="166" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\DirectTransfer.java"/>
+<file line="195" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\MultipleDirectTransfer.java"/>
+<codefragment>
+<![CDATA[
+					logger.info("Transfer in status: SUCCESS     "
+							+ result.runner.toShortString()
+							+
+							"     <REMOTE>"
+							+ rhost
+							+ "</REMOTE>"
+							+
+							"     <FILEFINAL>"
+							+
+							(result.file != null ? result.file.toString() + "</FILEFINAL>"
+									: "no file")
+							+ "     delay: " + delay);
+				}
+				if (nolog) {
+					// In case of success, delete the runner
+					try {
+						result.runner.delete();
+					} catch (WaarpDatabaseException e) {
+						logger.warn("Cannot apply nolog to     " + result.runner.toShortString(),
+								e);
+					}
+				}
+			} else {
+				if (result == null || result.runner == null) {
+					logger.error("Transfer in     FAILURE with no Id", future.getCause());
+]]>
+</codefragment>
+</duplication>
 <duplication lines="12" tokens="111">
 <file line="523" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
 <file line="537" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\RuleFileBasedConfiguration.java"/>
@@ -1714,10 +2553,10 @@
 </codefragment>
 </duplication>
 <duplication lines="15" tokens="111">
-<file line="95" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
-<file line="98" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
-<file line="99" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
-<file line="91" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<file line="97" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="100" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="101" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="93" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
 <codefragment>
 <![CDATA[
 		} catch (WaarpDatabaseException e1) {
@@ -1739,33 +2578,33 @@
 </codefragment>
 </duplication>
 <duplication lines="15" tokens="110">
-<file line="88" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\MultipleSubmitTransfer.java"/>
+<file line="129" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\MultipleSubmitTransfer.java"/>
 <file line="115" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\SubmitTransfer.java"/>
 <codefragment>
 <![CDATA[
-								host, filename, rule, fileInfo, ismd5, block, idt,
-								ttimestart);
-						transaction.run();
-						future.awaitUninterruptibly();
-						DbTaskRunner runner = future.getResult().runner;
-						if (future.isSuccess()) {
-							logger.warn("Prepare transfer in\n    SUCCESS\n    " + runner.toShortString() +
-									"<REMOTE>" + rhost + "</REMOTE>");
-						} else {
-							if (runner != null) {
-								logger.error("Prepare transfer in\n    FAILURE\n     " + runner.toShortString() +
-										"<REMOTE>" + rhost + "</REMOTE>", future.getCause());
+									host, filename, rule, fileInfo, ismd5, block, idt,
+									ttimestart);
+							transaction.run();
+							future.awaitUninterruptibly();
+							DbTaskRunner runner = future.getResult().runner;
+							if (future.isSuccess()) {
+								logger.warn("Prepare transfer in     SUCCESS     " + runner.toShortString() +
+										"<REMOTE>" + rhost + "</REMOTE>");
 							} else {
-								logger.error("Prepare transfer in\n    FAILURE\n     ", future.getCause());
-							}
+								if (runner != null) {
+									logger.error("Prepare transfer in     FAILURE      " + runner.toShortString() +
+											"<REMOTE>" + rhost + "</REMOTE>", future.getCause());
+								} else {
+									logger.error("Prepare transfer in     FAILURE      ", future.getCause());
+								}
 ]]>
 </codefragment>
 </duplication>
 <duplication lines="20" tokens="109">
-<file line="222" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
-<file line="225" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
-<file line="230" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
-<file line="218" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<file line="224" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="227" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="232" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="220" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
 <codefragment>
 <![CDATA[
 		action = "CREATE INDEX IF NOT EXISTS IDX_RUNNER ON " + DbTaskRunner.table + "(";
@@ -1791,9 +2630,33 @@
 ]]>
 </codefragment>
 </duplication>
+<duplication lines="12" tokens="109">
+<file line="128" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="267" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="131" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="291" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="124" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<file line="263" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<codefragment>
+<![CDATA[
+		action = createTableH2 + DbHostConfiguration.table + "(";
+		DbHostConfiguration.Columns[] chcolumns = DbHostConfiguration.Columns
+				.values();
+		for (int i = 0; i < chcolumns.length - 1; i++) {
+			action += chcolumns[i].name() +
+					DBType.getType(DbHostConfiguration.dbTypes[i]) + notNull +
+					", ";
+		}
+		action += chcolumns[chcolumns.length - 1].name() +
+				DBType.getType(DbHostConfiguration.dbTypes[chcolumns.length - 1]) +
+				primaryKey + ")";
+		System.out.println(action);
+]]>
+</codefragment>
+</duplication>
 <duplication lines="15" tokens="109">
-<file line="370" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<file line="559" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="372" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="562" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
 <codefragment>
 <![CDATA[
 					all = true;
@@ -1815,8 +2678,8 @@
 </codefragment>
 </duplication>
 <duplication lines="21" tokens="108">
-<file line="2217" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="2329" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="2443" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="2567" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
 <codefragment>
 <![CDATA[
 					}
@@ -1845,7 +2708,7 @@
 </duplication>
 <duplication lines="16" tokens="107">
 <file line="143" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\Message.java"/>
-<file line="178" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\RequestInformation.java"/>
+<file line="179" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\RequestInformation.java"/>
 <codefragment>
 <![CDATA[
 			logger.debug("Requested host cannot be found: " + requested);
@@ -1867,9 +2730,26 @@
 ]]>
 </codefragment>
 </duplication>
+<duplication lines="9" tokens="107">
+<file line="603" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="622" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<codefragment>
+<![CDATA[
+					configNetworkServerDecls, false),
+			new XmlDecl(XML_SSL, XmlType.XVAL, XML_ROOT + XML_SSL, configSslDecls, false),
+			new XmlDecl(XML_DIRECTORY, XmlType.XVAL, XML_ROOT + XML_DIRECTORY,
+					configDirectoryDecls, false),
+			new XmlDecl(XML_LIMIT, XmlType.XVAL, XML_ROOT + XML_LIMIT, configLimitDecls, false),
+			new XmlDecl(XML_DB, XmlType.XVAL, XML_ROOT + XML_DB, configDbDecls, false),
+			new XmlDecl(DbHostConfiguration.XML_BUSINESS, XmlType.STRING, XML_ROOT + DbHostConfiguration.XML_BUSINESS + "/"
+					+ DbHostConfiguration.XML_BUSINESSID, true),
+			new XmlDecl(DbHostConfiguration.XML_ROLES, XmlType.XVAL, XML_ROOT + DbHostConfiguration.XML_ROLES + "/"
+]]>
+</codefragment>
+</duplication>
 <duplication lines="18" tokens="107">
-<file line="300" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\RescheduleTransferTask.java"/>
-<file line="347" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\RescheduleTransferTask.java"/>
+<file line="314" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\RescheduleTransferTask.java"/>
+<file line="361" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\RescheduleTransferTask.java"/>
 <codefragment>
 <![CDATA[
 				String[] elmts = args[i].split(";");
@@ -1894,10 +2774,10 @@
 </codefragment>
 </duplication>
 <duplication lines="14" tokens="107">
-<file line="62" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
-<file line="65" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
-<file line="63" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
-<file line="58" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<file line="64" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="67" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="65" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="60" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
 <codefragment>
 <![CDATA[
 		String primaryKey = " PRIMARY KEY ";
@@ -1918,10 +2798,10 @@
 </codefragment>
 </duplication>
 <duplication lines="15" tokens="107">
-<file line="121" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
-<file line="124" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
-<file line="126" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
-<file line="117" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<file line="123" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="126" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="128" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="119" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
 <codefragment>
 <![CDATA[
 		} finally {
@@ -1939,6 +2819,56 @@
 		}
 		action += chcolumns[chcolumns.length - 1].name() +
 				DBType.getType(DbHostConfiguration.dbTypes[chcolumns.length - 1]) +
+]]>
+</codefragment>
+</duplication>
+<duplication lines="18" tokens="107">
+<file line="269" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="241" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<codefragment>
+<![CDATA[
+		System.out.println(action);
+		try {
+			request.query(action);
+		} catch (WaarpDatabaseNoConnectionException e) {
+			e.printStackTrace();
+			return;
+		} catch (WaarpDatabaseSqlException e) {
+			e.printStackTrace();
+			// XXX FIX no return;
+		} finally {
+			request.close();
+		}
+	}
+
+	public boolean upgradeDb(DbSession session, String version) throws WaarpDatabaseNoConnectionException {
+		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_13.getVersion())) {
+			System.out.println(version+" to "+R66Versions.V2_4_13.getVersion()+"? "+true);
+			String createTableH2 = "CREATE TABLE IF NOT EXISTS ";
+]]>
+</codefragment>
+</duplication>
+<duplication lines="14" tokens="107">
+<file line="263" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="287" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="272" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="259" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<codefragment>
+<![CDATA[
+			String primaryKey = " PRIMARY KEY ";
+			String notNull = " NOT NULL ";
+	
+			// HostConfiguration
+			String action = createTableH2 + DbHostConfiguration.table + "(";
+			DbHostConfiguration.Columns[] chcolumns = DbHostConfiguration.Columns
+					.values();
+			for (int i = 0; i < chcolumns.length - 1; i++) {
+				action += chcolumns[i].name() +
+						DBType.getType(DbHostConfiguration.dbTypes[i]) + notNull +
+						", ";
+			}
+			action += chcolumns[chcolumns.length - 1].name() +
+					DBType.getType(DbHostConfiguration.dbTypes[chcolumns.length - 1]) +
 ]]>
 </codefragment>
 </duplication>
@@ -1981,14 +2911,14 @@
 		logger.debug("Finish Business Request: " + future.isSuccess());
 		long delay = time2 - time1;
 		if (future.isSuccess()) {
-			logger.info("Business Request in status:\nSUCCESS" +
-					"\n    <REMOTE>" + rhost + "</REMOTE>" +
-					"\n    delay: " + delay);
+			logger.info("Business Request in status: SUCCESS" +
+					"    <REMOTE>" + rhost + "</REMOTE>" +
+					"    delay: " + delay);
 		} else {
-			logger.info("Business Request in status:\nFAILURE" +
-					"\n    <REMOTE>" + rhost + "</REMOTE>" +
-					"\n    <ERROR>" + future.getCause() + "</ERROR>" +
-					"\n    delay: " + delay);
+			logger.info("Business Request in status: FAILURE" +
+					"    <REMOTE>" + rhost + "</REMOTE>" +
+					"    <ERROR>" + future.getCause() + "</ERROR>" +
+					"    delay: " + delay);
 			networkTransaction.closeAll();
 			System.exit(ErrorCode.Unknown.ordinal());
 		}
@@ -1998,8 +2928,8 @@
 </codefragment>
 </duplication>
 <duplication lines="27" tokens="105">
-<file line="759" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
-<file line="797" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="770" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="808" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
 <codefragment>
 <![CDATA[
 	public void insert() throws WaarpDatabaseException {
@@ -2033,10 +2963,10 @@
 </codefragment>
 </duplication>
 <duplication lines="13" tokens="105">
-<file line="169" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
-<file line="172" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
-<file line="177" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
-<file line="165" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
+<file line="171" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
+<file line="174" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMysql.java"/>
+<file line="179" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
+<file line="167" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelPostgresql.java"/>
 <codefragment>
 <![CDATA[
 		} finally {
@@ -2055,36 +2985,41 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="19" tokens="104">
-<file line="1643" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1697" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<duplication lines="24" tokens="104">
+<file line="2261" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="2936" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
 <codefragment>
 <![CDATA[
-				String roleset = nodeset.getText();
-				String [] roles = roleset.split(" |\\|");
-				RoleDefault newrole = new RoleDefault();
-				for (String role : roles) {
-					try {
-						RoleDefault.ROLE roletype = RoleDefault.ROLE.valueOf(role.toUpperCase());
-						if (roletype == ROLE.NOACCESS) {
-							// reset
-							newrole.setRole(roletype);
-						} else {
-							newrole.addRole(roletype);
-						}
-					} catch (IllegalArgumentException e) {
-						// ignore
+						valid = new ValidPacket(packet.getSmiddle(),
+								ErrorCode.Internal.getCode(),
+								LocalPacketFactory.REQUESTUSERPACKET);
+						R66Result resulttest = new R66Result(new OpenR66DatabaseGlobalException(e1),
+								session, true,
+								ErrorCode.Internal, taskRunner);
+						resulttest.other = packet;
+						localChannelReference.invalidateRequest(resulttest);
 					}
 				}
-				logger.info("New Role: " + refHostId + ":" + newrole);
-				config.roles.put(refHostId, newrole);
+				// inform back the requester
+				try {
+					ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+							valid, true);
+				} catch (OpenR66ProtocolPacketException e) {
+				}
+				Channels.close(channel);
+				break;
 			}
+			case LocalPacketFactory.REQUESTUSERPACKET: {
+				session.newState(VALIDOTHER);
+				// Validate user request
+				R66Result resulttest = new R66Result(session, true,
+						ErrorCode.getFromCode(packet.getSmiddle()), null);
 ]]>
 </codefragment>
 </duplication>
 <duplication lines="22" tokens="101">
-<file line="2129" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="2187" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1982" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="2040" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 		}
@@ -2112,6 +3047,27 @@
 ]]>
 </codefragment>
 </duplication>
+<duplication lines="13" tokens="101">
+<file line="744" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbRule.java"/>
+<file line="765" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbRule.java"/>
+<codefragment>
+<![CDATA[
+			setFromArrayClone(rule);
+			if (recvPath == null || recvPath.trim().isEmpty()) {
+				recvPath = Configuration.configuration.inPath;
+			}
+			if (sendPath == null || sendPath.trim().isEmpty()) {
+				sendPath = Configuration.configuration.outPath;
+			}
+			if (archivePath == null || archivePath.trim().isEmpty()) {
+				archivePath = Configuration.configuration.archivePath;
+			}
+			if (workPath == null || workPath.trim().isEmpty()) {
+				workPath = Configuration.configuration.workingPath;
+			}
+]]>
+</codefragment>
+</duplication>
 <duplication lines="17" tokens="100">
 <file line="145" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecMoveTask.java"/>
 <file line="150" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\task\ExecOutputTask.java"/>
@@ -2134,6 +3090,32 @@
 				try {
 					status = defaultExecutor.execute(commandLine);
 				} catch (ExecuteException e1) {
+]]>
+</codefragment>
+</duplication>
+<duplication lines="16" tokens="100">
+<file line="2383" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="2463" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="3096" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="3245" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<codefragment>
+<![CDATA[
+			case LocalPacketFactory.CONFEXPORTPACKET: {
+				session.newState(VALIDOTHER);
+				// Authentication must be the local server or CONFIGADMIN authorization
+				try {
+					if (!session.getAuth().getUser().equals(
+							Configuration.configuration.getHostId(session.getAuth().isSsl())) &&
+							!session.getAuth().isValidRole(ROLE.CONFIGADMIN)) {
+						throw new OpenR66ProtocolNotAuthenticatedException(
+								"Not correctly authenticated");
+					}
+				} catch (OpenR66ProtocolNoSslException e1) {
+					throw new OpenR66ProtocolNotAuthenticatedException(
+							"Not correctly authenticated since SSL is not supported", e1);
+				}
+				if (Configuration.configuration.r66Mib != null) {
+					Configuration.configuration.r66Mib.notifyWarning(
 ]]>
 </codefragment>
 </duplication>

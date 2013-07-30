@@ -356,7 +356,7 @@
 <a class="jxr_linenumber" name="346" href="#346">346</a> 		DbRule newRule = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="347" href="#347">347</a> 		XmlHash hash = <strong class="jxr_keyword">new</strong> XmlHash(root);
 <a class="jxr_linenumber" name="348" href="#348">348</a> 		XmlValue value = hash.get(XIDRULE);
-<a class="jxr_linenumber" name="349" href="#349">349</a> 		<strong class="jxr_keyword">if</strong> (value == <strong class="jxr_keyword">null</strong> || (value.isEmpty()) || value.getString().length() == 0) {
+<a class="jxr_linenumber" name="349" href="#349">349</a> 		<strong class="jxr_keyword">if</strong> (value == <strong class="jxr_keyword">null</strong> || (value.isEmpty()) || value.getString().isEmpty()) {
 <a class="jxr_linenumber" name="350" href="#350">350</a> 			logger.error(<span class="jxr_string">"Unable to find in Rule field: "</span> + XIDRULE);
 <a class="jxr_linenumber" name="351" href="#351">351</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>();
 <a class="jxr_linenumber" name="352" href="#352">352</a> 		}
@@ -369,28 +369,28 @@
 <a class="jxr_linenumber" name="359" href="#359">359</a> 		<strong class="jxr_keyword">int</strong> mode = value.getInteger();
 <a class="jxr_linenumber" name="360" href="#360">360</a> 		String recvpath;
 <a class="jxr_linenumber" name="361" href="#361">361</a> 		value = hash.get(XRECVPATH);
-<a class="jxr_linenumber" name="362" href="#362">362</a> 		<strong class="jxr_keyword">if</strong> (value == <strong class="jxr_keyword">null</strong> || (value.isEmpty()) || value.getString().length() == 0) {
+<a class="jxr_linenumber" name="362" href="#362">362</a> 		<strong class="jxr_keyword">if</strong> (value == <strong class="jxr_keyword">null</strong> || (value.isEmpty()) || value.getString().isEmpty()) {
 <a class="jxr_linenumber" name="363" href="#363">363</a> 			recvpath = Configuration.configuration.inPath;
 <a class="jxr_linenumber" name="364" href="#364">364</a> 		} <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="365" href="#365">365</a> 			recvpath = DirInterface.SEPARATOR + value.getString();
 <a class="jxr_linenumber" name="366" href="#366">366</a> 		}
 <a class="jxr_linenumber" name="367" href="#367">367</a> 		String sendpath;
 <a class="jxr_linenumber" name="368" href="#368">368</a> 		value = hash.get(XSENDPATH);
-<a class="jxr_linenumber" name="369" href="#369">369</a> 		<strong class="jxr_keyword">if</strong> (value == <strong class="jxr_keyword">null</strong> || (value.isEmpty()) || value.getString().length() == 0) {
+<a class="jxr_linenumber" name="369" href="#369">369</a> 		<strong class="jxr_keyword">if</strong> (value == <strong class="jxr_keyword">null</strong> || (value.isEmpty()) || value.getString().isEmpty()) {
 <a class="jxr_linenumber" name="370" href="#370">370</a> 			sendpath = Configuration.configuration.outPath;
 <a class="jxr_linenumber" name="371" href="#371">371</a> 		} <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="372" href="#372">372</a> 			sendpath = DirInterface.SEPARATOR + value.getString();
 <a class="jxr_linenumber" name="373" href="#373">373</a> 		}
 <a class="jxr_linenumber" name="374" href="#374">374</a> 		String archivepath;
 <a class="jxr_linenumber" name="375" href="#375">375</a> 		value = hash.get(XARCHIVEPATH);
-<a class="jxr_linenumber" name="376" href="#376">376</a> 		<strong class="jxr_keyword">if</strong> (value == <strong class="jxr_keyword">null</strong> || (value.isEmpty()) || value.getString().length() == 0) {
+<a class="jxr_linenumber" name="376" href="#376">376</a> 		<strong class="jxr_keyword">if</strong> (value == <strong class="jxr_keyword">null</strong> || (value.isEmpty()) || value.getString().isEmpty()) {
 <a class="jxr_linenumber" name="377" href="#377">377</a> 			archivepath = Configuration.configuration.archivePath;
 <a class="jxr_linenumber" name="378" href="#378">378</a> 		} <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="379" href="#379">379</a> 			archivepath = DirInterface.SEPARATOR + value.getString();
 <a class="jxr_linenumber" name="380" href="#380">380</a> 		}
 <a class="jxr_linenumber" name="381" href="#381">381</a> 		String workpath;
 <a class="jxr_linenumber" name="382" href="#382">382</a> 		value = hash.get(XWORKPATH);
-<a class="jxr_linenumber" name="383" href="#383">383</a> 		<strong class="jxr_keyword">if</strong> (value == <strong class="jxr_keyword">null</strong> || (value.isEmpty()) || value.getString().length() == 0) {
+<a class="jxr_linenumber" name="383" href="#383">383</a> 		<strong class="jxr_keyword">if</strong> (value == <strong class="jxr_keyword">null</strong> || (value.isEmpty()) || value.getString().isEmpty()) {
 <a class="jxr_linenumber" name="384" href="#384">384</a> 			workpath = Configuration.configuration.workingPath;
 <a class="jxr_linenumber" name="385" href="#385">385</a> 		} <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="386" href="#386">386</a> 			workpath = DirInterface.SEPARATOR + value.getString();
@@ -496,7 +496,7 @@
 <a class="jxr_linenumber" name="486" href="#486">486</a> 		root.add(newElement(XMODE, Integer.toString(rule.mode)));
 <a class="jxr_linenumber" name="487" href="#487">487</a> 		String dir = rule.getRuleRecvPath();
 <a class="jxr_linenumber" name="488" href="#488">488</a> 		<strong class="jxr_keyword">if</strong> (dir != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="489" href="#489">489</a> 			<strong class="jxr_keyword">if</strong> (dir.startsWith(File.separator)) {
+<a class="jxr_linenumber" name="489" href="#489">489</a> 			<strong class="jxr_keyword">if</strong> (dir.startsWith(File.separator) || dir.startsWith(DirInterface.SEPARATOR)) {
 <a class="jxr_linenumber" name="490" href="#490">490</a> 				root.add(newElement(XRECVPATH, dir.substring(1)));
 <a class="jxr_linenumber" name="491" href="#491">491</a> 			} <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="492" href="#492">492</a> 				root.add(newElement(XRECVPATH, dir));
@@ -504,7 +504,7 @@
 <a class="jxr_linenumber" name="494" href="#494">494</a> 		}
 <a class="jxr_linenumber" name="495" href="#495">495</a> 		dir = rule.getRuleSendPath();
 <a class="jxr_linenumber" name="496" href="#496">496</a> 		<strong class="jxr_keyword">if</strong> (dir != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="497" href="#497">497</a> 			<strong class="jxr_keyword">if</strong> (dir.startsWith(File.separator)) {
+<a class="jxr_linenumber" name="497" href="#497">497</a> 			<strong class="jxr_keyword">if</strong> (dir.startsWith(File.separator) || dir.startsWith(DirInterface.SEPARATOR)) {
 <a class="jxr_linenumber" name="498" href="#498">498</a> 				root.add(newElement(XSENDPATH, dir.substring(1)));
 <a class="jxr_linenumber" name="499" href="#499">499</a> 			} <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="500" href="#500">500</a> 				root.add(newElement(XSENDPATH, dir));
@@ -512,7 +512,7 @@
 <a class="jxr_linenumber" name="502" href="#502">502</a> 		}
 <a class="jxr_linenumber" name="503" href="#503">503</a> 		dir = rule.getRuleArchivePath();
 <a class="jxr_linenumber" name="504" href="#504">504</a> 		<strong class="jxr_keyword">if</strong> (dir != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="505" href="#505">505</a> 			<strong class="jxr_keyword">if</strong> (dir.startsWith(File.separator)) {
+<a class="jxr_linenumber" name="505" href="#505">505</a> 			<strong class="jxr_keyword">if</strong> (dir.startsWith(File.separator) || dir.startsWith(DirInterface.SEPARATOR)) {
 <a class="jxr_linenumber" name="506" href="#506">506</a> 				root.add(newElement(XARCHIVEPATH, dir.substring(1)));
 <a class="jxr_linenumber" name="507" href="#507">507</a> 			} <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="508" href="#508">508</a> 				root.add(newElement(XARCHIVEPATH, dir));
@@ -520,7 +520,7 @@
 <a class="jxr_linenumber" name="510" href="#510">510</a> 		}
 <a class="jxr_linenumber" name="511" href="#511">511</a> 		dir = rule.getRuleWorkPath();
 <a class="jxr_linenumber" name="512" href="#512">512</a> 		<strong class="jxr_keyword">if</strong> (dir != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="513" href="#513">513</a> 			<strong class="jxr_keyword">if</strong> (dir.startsWith(File.separator)) {
+<a class="jxr_linenumber" name="513" href="#513">513</a> 			<strong class="jxr_keyword">if</strong> (dir.startsWith(File.separator) || dir.startsWith(DirInterface.SEPARATOR)) {
 <a class="jxr_linenumber" name="514" href="#514">514</a> 				root.add(newElement(XWORKPATH, dir.substring(1)));
 <a class="jxr_linenumber" name="515" href="#515">515</a> 			} <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="516" href="#516">516</a> 				root.add(newElement(XWORKPATH, dir));

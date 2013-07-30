@@ -167,27 +167,27 @@
 <a class="jxr_linenumber" name="157" href="#157">157</a> 			R66Result result = transfer.getResult();
 <a class="jxr_linenumber" name="158" href="#158">158</a> 			<strong class="jxr_keyword">if</strong> (result != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="159" href="#159">159</a> 				<strong class="jxr_keyword">if</strong> (result.code == ErrorCode.QueryAlreadyFinished) {
-<a class="jxr_linenumber" name="160" href="#160">160</a> 					logger.warn(<span class="jxr_string">"TRANSFER RESULT:\n    "</span> +
+<a class="jxr_linenumber" name="160" href="#160">160</a> 					logger.warn(<span class="jxr_string">"TRANSFER RESULT:     "</span> +
 <a class="jxr_linenumber" name="161" href="#161">161</a> 							(transfer.isSuccess() ? <span class="jxr_string">"SUCCESS"</span> : <span class="jxr_string">"FAILURE"</span>) +
-<a class="jxr_linenumber" name="162" href="#162">162</a> 							<span class="jxr_string">"\n    "</span> + ErrorCode.QueryAlreadyFinished.mesg +
+<a class="jxr_linenumber" name="162" href="#162">162</a> 							<span class="jxr_string">"     "</span> + ErrorCode.QueryAlreadyFinished.mesg +
 <a class="jxr_linenumber" name="163" href="#163">163</a> 							<span class="jxr_string">":"</span> +
 <a class="jxr_linenumber" name="164" href="#164">164</a> 							(result != <strong class="jxr_keyword">null</strong> ? result.toString() : <span class="jxr_string">"no result"</span>));
 <a class="jxr_linenumber" name="165" href="#165">165</a> 				} <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="166" href="#166">166</a> 					<strong class="jxr_keyword">if</strong> (transfer.isSuccess()) {
-<a class="jxr_linenumber" name="167" href="#167">167</a> 						logger.info(<span class="jxr_string">"TRANSFER RESULT:\n    SUCCESS\n    "</span> +
+<a class="jxr_linenumber" name="167" href="#167">167</a> 						logger.info(<span class="jxr_string">"TRANSFER RESULT:     SUCCESS     "</span> +
 <a class="jxr_linenumber" name="168" href="#168">168</a> 								(result != <strong class="jxr_keyword">null</strong> ? result.toString()
 <a class="jxr_linenumber" name="169" href="#169">169</a> 										: <span class="jxr_string">"no result"</span>));
 <a class="jxr_linenumber" name="170" href="#170">170</a> 					} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="171" href="#171">171</a> 						logger.error(<span class="jxr_string">"TRANSFER RESULT:\n    FAILURE\n    "</span> +
+<a class="jxr_linenumber" name="171" href="#171">171</a> 						logger.error(<span class="jxr_string">"TRANSFER RESULT:     FAILURE     "</span> +
 <a class="jxr_linenumber" name="172" href="#172">172</a> 								(result != <strong class="jxr_keyword">null</strong> ? result.toString()
 <a class="jxr_linenumber" name="173" href="#173">173</a> 										: <span class="jxr_string">"no result"</span>));
 <a class="jxr_linenumber" name="174" href="#174">174</a> 					}
 <a class="jxr_linenumber" name="175" href="#175">175</a> 				}
 <a class="jxr_linenumber" name="176" href="#176">176</a> 			} <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="177" href="#177">177</a> 				<strong class="jxr_keyword">if</strong> (transfer.isSuccess()) {
-<a class="jxr_linenumber" name="178" href="#178">178</a> 					logger.warn(<span class="jxr_string">"TRANSFER REQUESTED RESULT:\n    SUCCESS\n    no result"</span>);
+<a class="jxr_linenumber" name="178" href="#178">178</a> 					logger.warn(<span class="jxr_string">"TRANSFER REQUESTED RESULT:     SUCCESS     no result"</span>);
 <a class="jxr_linenumber" name="179" href="#179">179</a> 				} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="180" href="#180">180</a> 					logger.error(<span class="jxr_string">"TRANSFER REQUESTED RESULT:\n    FAILURE\n    no result"</span>);
+<a class="jxr_linenumber" name="180" href="#180">180</a> 					logger.error(<span class="jxr_string">"TRANSFER REQUESTED RESULT:     FAILURE     no result"</span>);
 <a class="jxr_linenumber" name="181" href="#181">181</a> 				}
 <a class="jxr_linenumber" name="182" href="#182">182</a> 			}
 <a class="jxr_linenumber" name="183" href="#183">183</a> 			transfer = <strong class="jxr_keyword">null</strong>;
@@ -378,8 +378,8 @@
 <a class="jxr_linenumber" name="368" href="#368">368</a> 			}
 <a class="jxr_linenumber" name="369" href="#369">369</a> 			<strong class="jxr_keyword">if</strong> (transfer.getResult().code == ErrorCode.QueryAlreadyFinished) {
 <a class="jxr_linenumber" name="370" href="#370">370</a> 				<em class="jxr_comment">// check if post task to execute</em>
-<a class="jxr_linenumber" name="371" href="#371">371</a> 				logger.warn(<span class="jxr_string">"WARN QueryAlreadyFinished:\n    "</span> +
-<a class="jxr_linenumber" name="372" href="#372">372</a> 						transfer.toString() + <span class="jxr_string">"\n    "</span> +
+<a class="jxr_linenumber" name="371" href="#371">371</a> 				logger.warn(<span class="jxr_string">"WARN QueryAlreadyFinished:     "</span> +
+<a class="jxr_linenumber" name="372" href="#372">372</a> 						transfer.toString() + <span class="jxr_string">"     "</span> +
 <a class="jxr_linenumber" name="373" href="#373">373</a> 						taskRunner.toShortString());
 <a class="jxr_linenumber" name="374" href="#374">374</a> 				<strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="375" href="#375">375</a> 					TransferUtils.finalizeTaskWithNoSession(taskRunner,
