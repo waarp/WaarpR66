@@ -75,7 +75,7 @@ public class ChannelUtils extends Thread {
 	 * @param channel
 	 * @return the remote InetAddress
 	 */
-	public static InetAddress getRemoteInetAddress(Channel channel) {
+	public final static InetAddress getRemoteInetAddress(Channel channel) {
 		InetSocketAddress socketAddress = (InetSocketAddress) channel
 				.getRemoteAddress();
 		if (socketAddress == null) {
@@ -90,7 +90,7 @@ public class ChannelUtils extends Thread {
 	 * @param channel
 	 * @return the local InetAddress
 	 */
-	public static InetAddress getLocalInetAddress(Channel channel) {
+	public final static InetAddress getLocalInetAddress(Channel channel) {
 		final InetSocketAddress socketAddress = (InetSocketAddress) channel
 				.getLocalAddress();
 		return socketAddress.getAddress();
@@ -102,7 +102,7 @@ public class ChannelUtils extends Thread {
 	 * @param channel
 	 * @return the remote InetSocketAddress
 	 */
-	public static InetSocketAddress getRemoteInetSocketAddress(Channel channel) {
+	public final static InetSocketAddress getRemoteInetSocketAddress(Channel channel) {
 		return (InetSocketAddress) channel.getRemoteAddress();
 	}
 
@@ -112,7 +112,7 @@ public class ChannelUtils extends Thread {
 	 * @param channel
 	 * @return the local InetSocketAddress
 	 */
-	public static InetSocketAddress getLocalInetSocketAddress(Channel channel) {
+	public final static InetSocketAddress getLocalInetSocketAddress(Channel channel) {
 		return (InetSocketAddress) channel.getLocalAddress();
 	}
 
@@ -201,7 +201,7 @@ public class ChannelUtils extends Thread {
 	 * @param configuration
 	 * @return the current number of network connections
 	 */
-	public static int nbCommandChannels(Configuration configuration) {
+	public final static int nbCommandChannels(Configuration configuration) {
 		return configuration.getServerChannelGroup().size();
 	}
 
@@ -209,7 +209,7 @@ public class ChannelUtils extends Thread {
 	 * To be used only with LocalChannel (NetworkChannel could be using SSL)
 	 * @param channel
 	 */
-	public static void close(Channel channel) {
+	public final static void close(Channel channel) {
 		try {
 			Thread.sleep(Configuration.WAITFORNETOP);
 		} catch (InterruptedException e) {
@@ -231,7 +231,7 @@ public class ChannelUtils extends Thread {
 		ChannelBuffer md5 = ChannelBuffers.EMPTY_BUFFER;
 		DbTaskRunner runner = localChannelReference.getSession().getRunner();
 		if (RequestPacket.isMD5Mode(runner.getMode())) {
-			md5 = FileUtils.getHash(block.getBlock());
+			md5 = FileUtils.getHash(block.getBlock(), Configuration.configuration.digest);
 		}
 		localChannelReference.sessionNewState(R66FiniteDualStates.DATAS);
 		DataPacket data = new DataPacket(runner.getRank(), block.getBlock()
@@ -247,7 +247,7 @@ public class ChannelUtils extends Thread {
 	 * @param localChannelReference
 	 * @throws OpenR66ProtocolPacketException
 	 */
-	public static void writeEndTransfer(
+	public final static void writeEndTransfer(
 			LocalChannelReference localChannelReference)
 			throws OpenR66ProtocolPacketException {
 		EndTransferPacket packet = new EndTransferPacket(
@@ -262,7 +262,7 @@ public class ChannelUtils extends Thread {
 	 * @param hash
 	 * @throws OpenR66ProtocolPacketException
 	 */
-	public static void writeEndTransfer(
+	public final static void writeEndTransfer(
 			LocalChannelReference localChannelReference, String hash)
 			throws OpenR66ProtocolPacketException {
 		EndTransferPacket packet = new EndTransferPacket(
@@ -287,7 +287,7 @@ public class ChannelUtils extends Thread {
 		NetworkPacket networkPacket;
 		try {
 			networkPacket = new NetworkPacket(localChannelReference
-					.getLocalId(), localChannelReference.getRemoteId(), packet);
+					.getLocalId(), localChannelReference.getRemoteId(), packet, localChannelReference);
 		} catch (OpenR66ProtocolPacketException e) {
 			logger.error("Cannot construct message from " + packet.toString(),
 					e);
@@ -314,7 +314,7 @@ public class ChannelUtils extends Thread {
 	 * @return the ChannelFuture on write operation
 	 * @throws OpenR66ProtocolPacketException
 	 */
-	public static ChannelFuture writeAbstractLocalPacketToLocal(
+	public final static ChannelFuture writeAbstractLocalPacketToLocal(
 			LocalChannelReference localChannelReference, AbstractLocalPacket packet)
 			throws OpenR66ProtocolPacketException {
 		return Channels.write(localChannelReference.getLocalChannel(), packet);
@@ -433,7 +433,7 @@ public class ChannelUtils extends Thread {
 		//Thread.currentThread().interrupt();
 	}
 
-	public static void stopLogger() {
+	public final static void stopLogger() {
 		if (WaarpInternalLoggerFactory.getDefaultFactory() instanceof WaarpSlf4JLoggerFactory) {
 			LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
 			lc.stop();
@@ -451,7 +451,7 @@ public class ChannelUtils extends Thread {
 	/**
 	 * Start Shutdown
 	 */
-	public static void startShutdown() {
+	public final static void startShutdown() {
 		Thread thread = new Thread(new ChannelUtils(), "R66 Shutdown Thread");
 		thread.setDaemon(true);
 		thread.start();

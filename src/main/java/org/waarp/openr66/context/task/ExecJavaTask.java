@@ -123,7 +123,7 @@ public class ExecJavaTask extends AbstractTask {
 					status = runnable.getFinalStatus();
 				}
 			} catch (InterruptedException e) {
-				logger.error("Status: " + e.getMessage() + "\n\t Exec in error with " +
+				logger.error("Status: " + e.getMessage() + " \t Exec in error with " +
 						runnable);
 				if (waitForValidation) {
 					futureCompletion.cancel();

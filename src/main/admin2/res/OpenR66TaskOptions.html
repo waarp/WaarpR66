@@ -313,11 +313,11 @@ a img {
 <li><div style="text-align:justify;"><span style="font-size:11pt;">"-between start;end" and/or "-notbetween start;end" (multiple times are allowed, start or end can be not set) and where start and stop are in the following format:<br />Yn:Mn:Dn:Hn:mn:Sn where n is a number for each time specification, each specification is optional, as Y=Year, M=Month, D=Day, H=Hour, m=minute, s=second.<br />Format can be X+n, X-n, X=n or Xn where X+-n means adding/subtracting n to current date value, while X=n or Xn means setting exact value<br />If one time specification is not set, it is based on the current date.<br /><br />If "-notbetween" is specified, the planned date must not be in the area.<br />If "-between" is specified, the planned date must be found in any such specified areas (could be in any of the occurrence). If not specified, it only depends on "-notbetween".<br />If none is specified, the planned date is always valid.</span></div></li>
 
 <li>
-<div style="text-align:justify;"><span style="font-size:11pt;">"-count limit" will be the limit of retry. The value limit is taken from the "info on transfer" and not from the rule as "#CPTLIMIT#newlimit#CPTLIMIT#".</span></div></li></ul></li></ul>
+<div style="text-align:justify;"><span style="font-size:11pt;">"-count limit" will be the limit of retry. The value limit is computed internally using transfer information.</span></div></li></ul></li></ul>
 <blockquote>
 <blockquote style="margin-right:0px;" dir="ltr">
-<p style="text-align:justify;"><span style="font-size:11pt;">Each time this function is called, the limit value will be replaced as newlimit = limit - 1 in the "info of transfer" as "#CPTLIMIT#newlimit#CPTLIMIT#". </span></p>
-<p style="text-align:justify;"><span style="font-size:11pt;">To ensure correctness, the value must be in the "info of transfer" since this value will be changed statically in the "info of transfer". If taken from the rule, it will be wrong since the value will never decrease. However, a value must be setup in the rule in order to reset the value when the count reach 0. <br />So in the rule, "-count resetlimit" must be present, where resetlimit will be the new value set when the limit reach 0, and in the "info on transfer", "#CPTLIMIT#limit#CPTLIMIT#" must be present. If one is missing, the condition is not applied. </span></p></blockquote>
+<p style="text-align:justify;"><span style="font-size:11pt;">Each time this function is called, the limit value will be replaced as newlimit = limit - 1 in the "transfer information". </span></p>
+<p style="text-align:justify;"><span style="font-size:11pt;">To ensure correctness, the value must be in the "transfer information" since this value will be changed statically in the "transfer information". However, a value must be setup in the rule in order to reset the value when the count reach 0. <br />So in the rule, "-count resetlimit" must be present, where resetlimit will be the new value set when the limit reach 0. If it is missing, the condition is not applied. </span></p></blockquote>
 <p style="text-align:justify;"><span style="font-size:11pt;"><br /><br /></span></p>
 <blockquote>
 <p style="text-align:justify;"><span style="font-size:11pt;">Note that if a previous called to a reschedule was done for this attempt and was successful, the following calls will be ignored.</span></p></blockquote>
@@ -328,9 +328,7 @@ a img {
 <blockquote>
 <p style="text-align:justify;"><br /><span style="font-size:11pt;">Example: </span></p></blockquote>
 <blockquote>
-<p style="text-align:justify;"><span style="font-size:11pt;">"-delay 3600000 -case ConnectionImpossible,ServerOverloaded,Shutdown -notbetween H7:m0:S0;H19:m0:S0 -notbetween H1:m0:S0;H=3:m0:S0 -count 1"<br />And in the &ldquo;file information&rdquo;:</span></p></blockquote>
-<blockquote>
-<p style="text-align:justify;"><span style="font-size:11pt;">"#CPTLIMIT#3#CPTLIMIT#&rdquo;</span></p></blockquote>
+<p style="text-align:justify;"><span style="font-size:11pt;">"-delay 3600000 -case ConnectionImpossible,ServerOverloaded,Shutdown -notbetween H7:m0:S0;H19:m0:S0 -notbetween H1:m0:S0;H=3:m0:S0 -count 1"<br />
 <blockquote>
 <p style="text-align:justify;"><span style="font-size:11pt;">means retry in case of error during initialization of connection in 1 hour if not between 7AM to 7PM and not between 1AM to 3AM and with a limit of 3 retries (retry will be reset to 1 in case of 3 attempts).</span></p></blockquote></blockquote>
 <ul>

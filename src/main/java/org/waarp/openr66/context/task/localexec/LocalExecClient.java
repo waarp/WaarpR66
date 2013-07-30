@@ -126,7 +126,7 @@ public class LocalExecClient {
 			}
 		} else {
 			logger.error("Status: " + result.status + " Exec in error with " +
-					command + "\n" + result.result);
+					command + " " + result.result);
 			if (waitFor) {
 				futureCompletion.cancel();
 			}

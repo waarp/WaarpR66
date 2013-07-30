@@ -33,6 +33,8 @@ import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseNoDataException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.digest.FilesystemBasedDigest;
+import org.waarp.common.logging.WaarpInternalLogger;
+import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.protocol.configuration.Configuration;
@@ -45,6 +47,12 @@ import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
  * 
  */
 public class DbHostAuth extends AbstractDbData {
+	/**
+	 * Internal Logger
+	 */
+	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
+			.getLogger(DbHostAuth.class);
+	
 	public static enum Columns {
 		ADDRESS, PORT, ISSSL, HOSTKEY, ADMINROLE, ISCLIENT, UPDATEDINFO, HOSTID
 	}
@@ -280,6 +288,9 @@ public class DbHostAuth extends AbstractDbData {
 	public DbHostAuth(DbSession dbSession, String hostid) throws WaarpDatabaseException {
 		super(dbSession);
 		this.hostid = hostid;
+		if (Configuration.configuration.aliases.containsKey(hostid)) {
+			this.hostid = Configuration.configuration.aliases.get(hostid);
+		}
 		// load from DB
 		select();
 	}
@@ -607,6 +618,7 @@ public class DbHostAuth extends AbstractDbData {
 					Configuration.configuration.cryptoKey.decryptHexInBytes(this.hostkey),
 					newkey);
 		} catch (Exception e) {
+			logger.debug("Error while checking key", e);
 			return false;
 		}
 	}
@@ -686,6 +698,18 @@ public class DbHostAuth extends AbstractDbData {
 	public int getPort() {
 		return port;
 	}
+	
+	private static String getVersion(String host) {
+		String remoteHost = host;
+		String alias = "";
+		if (Configuration.configuration.aliases.containsKey(remoteHost)) {
+			alias = "(Alias: "+remoteHost+") ";
+			remoteHost = Configuration.configuration.aliases.get(remoteHost);
+		}
+		return alias+(Configuration.configuration.versions.containsKey(remoteHost) ? 
+				Configuration.configuration.versions.get(remoteHost).toString() :
+					"Unknown");
+	}
 
 	@Override
 	public String toString() {
@@ -693,9 +717,7 @@ public class DbHostAuth extends AbstractDbData {
 		return "HostAuth: " + hostid + " address: " + address + ":" + port + " isSSL: " + isSsl +
 				" admin: " + adminrole + " isClient: " + isClient + " ("
 				+ (hostkey != null ? hostkey.length : 0) + ") Version: "
-				+ (Configuration.configuration.versions.containsKey(hostid) ? 
-						Configuration.configuration.versions.get(hostid) :
-							"Unknown");
+				+ getVersion(hostid);
 	}
 
 	/**
@@ -724,6 +746,8 @@ public class DbHostAuth extends AbstractDbData {
 		WaarpStringUtils.replace(builder, "XXXSSLXXX", isSsl ? "checked" : "");
 		WaarpStringUtils.replace(builder, "XXXADMXXX", adminrole ? "checked" : "");
 		WaarpStringUtils.replace(builder, "XXXISCXXX", isClient ? "checked" : "");
+		WaarpStringUtils.replace(builder, "XXXVERSIONXXX", getVersion(hostid).replace(",", ", "));
+		
 		int nb = NetworkTransaction.existConnection(getSocketAddress(), getHostid());
 		WaarpStringUtils.replace(builder, "XXXCONNXXX", (nb > 0)
 				? "(" + nb + " Connected) " : "");

@@ -187,7 +187,7 @@ public class R66Dir extends FilesystemBasedDirImpl {
 		String newpath = consolidatePath(path);
 		List<String> paths = wildcardFilesNoCheck(newpath);
 		if (paths.size() != 1) {
-			throw new Reply550Exception("FileInterface not found: " +
+			throw new Reply550Exception("File not found from: " + newpath +" and " +
 					paths.size() + " founds");
 		}
 		String extDir = paths.get(0);

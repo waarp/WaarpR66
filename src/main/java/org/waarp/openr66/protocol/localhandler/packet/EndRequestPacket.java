@@ -22,6 +22,7 @@ import java.nio.charset.Charset;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
+import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 
 /**
  * End of Request class
@@ -97,12 +98,8 @@ public class EndRequestPacket extends AbstractLocalPacket {
 		way = ASKVALIDATE;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#createEnd()
-	 */
 	@Override
-	public void createEnd() {
+	public void createEnd(LocalChannelReference lcr) {
 		if (optional == null) {
 			end = ChannelBuffers.EMPTY_BUFFER;
 		} else {
@@ -110,22 +107,14 @@ public class EndRequestPacket extends AbstractLocalPacket {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#createHeader()
-	 */
 	@Override
-	public void createHeader() {
+	public void createHeader(LocalChannelReference lcr) {
 		header = ChannelBuffers.buffer(4);
 		header.writeInt(code);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#createMiddle()
-	 */
 	@Override
-	public void createMiddle() {
+	public void createMiddle(LocalChannelReference lcr) {
 		byte[] newbytes = {
 				way };
 		middle = ChannelBuffers.wrappedBuffer(newbytes);

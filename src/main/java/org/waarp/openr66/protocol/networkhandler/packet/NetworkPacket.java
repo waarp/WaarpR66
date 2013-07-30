@@ -20,6 +20,7 @@ package org.waarp.openr66.protocol.networkhandler.packet;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
+import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 import org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket;
 
 /**
@@ -56,14 +57,15 @@ public class NetworkPacket {
 	 * @param localId
 	 * @param remoteId
 	 * @param packet
+	 * @param lcr the LocalChannelReference in use
 	 * @throws OpenR66ProtocolPacketException
 	 */
-	public NetworkPacket(int localId, int remoteId, AbstractLocalPacket packet)
+	public NetworkPacket(int localId, int remoteId, AbstractLocalPacket packet, LocalChannelReference lcr)
 			throws OpenR66ProtocolPacketException {
 		this.remoteId = remoteId;
 		this.localId = localId;
 		code = packet.getType();
-		buffer = packet.getLocalPacket();
+		buffer = packet.getLocalPacket(lcr);
 	}
 
 	/**

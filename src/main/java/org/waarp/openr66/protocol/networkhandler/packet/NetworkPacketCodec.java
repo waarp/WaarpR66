@@ -79,11 +79,11 @@ public class NetworkPacketCodec extends FrameDecoder implements
 				keepAlivePacket.validate();
 				NetworkPacket response =
 						new NetworkPacket(ChannelUtils.NOCHANNEL,
-								ChannelUtils.NOCHANNEL, keepAlivePacket);
+								ChannelUtils.NOCHANNEL, keepAlivePacket, null);
 				Channels.write(channel, response);
 			}
 			// Replaced by a NoOp packet
-			networkPacket = new NetworkPacket(localId, remoteId, new NoOpPacket());
+			networkPacket = new NetworkPacket(localId, remoteId, new NoOpPacket(), null);
 			NetworkServerHandler nsh = (NetworkServerHandler) ctx.getPipeline().getLast();
 			nsh.setKeepAlivedSent();
 		}

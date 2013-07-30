@@ -33,6 +33,7 @@ import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66DatabaseGlobalException;
 import org.waarp.openr66.protocol.exception.OpenR66Exception;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
@@ -175,7 +176,7 @@ public class TestSendThroughForward extends SendThroughClient {
 		if (isMD5) {
 			mode = RequestPacket.getModeMD5(mode);
 		}
-		String sep = Configuration.getSeparator(remoteHost);
+		String sep = PartnerConfiguration.getSeparator(remoteHost);
 		RequestPacket request = new RequestPacket(rulename,
 				mode, filename, blocksize, sourceRunner.getRank(),
 				id, fileinfo, -1, sep);
