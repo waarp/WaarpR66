@@ -28,7 +28,7 @@ import java.nio.channels.FileChannel;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.waarp.common.digest.FilesystemBasedDigest;
-import org.waarp.common.file.DirInterface;
+import org.waarp.common.digest.FilesystemBasedDigest.DigestAlgo;
 import org.waarp.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
@@ -40,35 +40,6 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
  * 
  */
 public class FileUtils {
-	/**
-	 * 
-	 * @param base
-	 *            in absolute
-	 * @param path
-	 *            path in absolute or relative
-	 * @return a new String for a file from the base and the path (according to relative or absolute
-	 *         path)
-	 * @throws OpenR66ProtocolSystemException
-	 */
-	public static String consolidatePath(String base, String path)
-			throws OpenR66ProtocolSystemException {
-		if (base == null || base.length() == 0 || path == null ||
-				path.length() == 0) {
-			throw new OpenR66ProtocolSystemException(
-					"base and path must not be empty");
-		}
-		// First check if the path is relative or absolute
-		String extDir = null;
-		if (path.charAt(0) == DirInterface.SEPARATORCHAR) {
-			extDir = Configuration.configuration.baseDirectory +
-					DirInterface.SEPARATOR + path;
-		} else {
-			extDir = Configuration.configuration.baseDirectory +
-					DirInterface.SEPARATOR + base + DirInterface.SEPARATOR +
-					path;
-		}
-		return extDir;
-	}
 
 	/**
 	 * Copy one file to another one
@@ -204,7 +175,7 @@ public class FileUtils {
 	 * @param directory
 	 * @return True if created, False else.
 	 */
-	public static boolean createDir(File directory) {
+	public final static boolean createDir(File directory) {
 		if (directory == null) {
 			return false;
 		}
@@ -220,7 +191,7 @@ public class FileUtils {
 	 * @param file
 	 * @return True if OK, else if not (or if the file never exists).
 	 */
-	public static boolean delete(File file) {
+	public final static boolean delete(File file) {
 		if (!file.exists()) {
 			return true;
 		}
@@ -233,7 +204,7 @@ public class FileUtils {
 	 * @param directory
 	 * @return True if deleted, False else.
 	 */
-	public static boolean deleteDir(File directory) {
+	public final static boolean deleteDir(File directory) {
 		if (directory == null) {
 			return true;
 		}
@@ -251,7 +222,7 @@ public class FileUtils {
 	 * 
 	 * @param file
 	 */
-	public static void deleteOnExit(File file) {
+	public final static void deleteOnExit(File file) {
 		if (!file.exists()) {
 			return;
 		}
@@ -341,7 +312,7 @@ public class FileUtils {
 	 * @param _Path
 	 * @return true if the file exist in the specified path
 	 */
-	public static boolean FileExist(String _FileName, String _Path) {
+	public final static boolean FileExist(String _FileName, String _Path) {
 		boolean exist = false;
 		String fileString = _Path + File.separator + _FileName;
 		File file = new File(fileString);
@@ -399,7 +370,7 @@ public class FileUtils {
 	 * @param directory
 	 * @return the list of files (as an array)
 	 */
-	public static File[] getFiles(File directory) {
+	public final static File[] getFiles(File directory) {
 		if (directory == null || !directory.isDirectory()) {
 			return null;
 		}
@@ -413,7 +384,7 @@ public class FileUtils {
 	 * @param filter
 	 * @return the list of files (as an array)
 	 */
-	public static File[] getFiles(File directory, FilenameFilter filter) {
+	public final static File[] getFiles(File directory, FilenameFilter filter) {
 		if (directory == null || !directory.isDirectory()) {
 			return null;
 		}
@@ -428,7 +399,7 @@ public class FileUtils {
 	 * @return the hash from the given file
 	 * @throws OpenR66ProtocolSystemException
 	 **/
-	public static String getHash(File f) throws OpenR66ProtocolSystemException {
+	public final static String getHash(File f) throws OpenR66ProtocolSystemException {
 		try {
 			return FilesystemBasedDigest.getHex(FilesystemBasedDigest.getHash(f,
 					FilesystemBasedFileParameterImpl.useNio, Configuration.configuration.digest));
@@ -442,10 +413,10 @@ public class FileUtils {
 	 * @param buffer
 	 * @return the hash from the given Buffer
 	 */
-	public static ChannelBuffer getHash(ChannelBuffer buffer) {
+	public final static ChannelBuffer getHash(ChannelBuffer buffer, DigestAlgo algo) {
 		byte[] newkey;
 		try {
-			newkey = FilesystemBasedDigest.getHash(buffer, Configuration.configuration.digest);
+			newkey = FilesystemBasedDigest.getHash(buffer, algo);
 		} catch (IOException e) {
 			return ChannelBuffers.EMPTY_BUFFER;
 		}

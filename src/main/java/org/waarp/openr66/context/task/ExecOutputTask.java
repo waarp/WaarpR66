@@ -333,7 +333,7 @@ public class ExecOutputTask extends AbstractTask {
 		}
 		String result = allLineReader.lastLine.toString();
 		logger.error("Status: " + status + " Exec in error with " +
-				commandLine + " returns\n" + result);
+				commandLine + " returns " + result);
 		OpenR66RunnerErrorException exc =
 				new OpenR66RunnerErrorException("<STATUS>" + status + "</STATUS><ERROR>" + result
 						+ "</ERROR>");

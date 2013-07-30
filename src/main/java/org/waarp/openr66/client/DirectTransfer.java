@@ -150,55 +150,55 @@ public class DirectTransfer extends AbstractTransfer {
 			R66Result result = future.getResult();
 			if (future.isSuccess()) {
 				if (result.runner.getErrorInfo() == ErrorCode.Warning) {
-					logger.warn("Transfer in status:\nWARNED\n    "
+					logger.warn("Transfer in status: WARNED     "
 							+ result.runner.toShortString()
 							+
-							"\n    <REMOTE>"
+							"     <REMOTE>"
 							+ rhost
 							+ "</REMOTE>"
 							+
-							"\n    <FILEFINAL>"
+							"     <FILEFINAL>"
 							+
 							(result.file != null ? result.file.toString() + "</FILEFINAL>"
 									: "no file")
-							+ "\n    delay: " + delay);
+							+ "     delay: " + delay);
 				} else {
-					logger.info("Transfer in status:\nSUCCESS\n    "
+					logger.info("Transfer in status: SUCCESS     "
 							+ result.runner.toShortString()
 							+
-							"\n    <REMOTE>"
+							"     <REMOTE>"
 							+ rhost
 							+ "</REMOTE>"
 							+
-							"\n    <FILEFINAL>"
+							"     <FILEFINAL>"
 							+
 							(result.file != null ? result.file.toString() + "</FILEFINAL>"
 									: "no file")
-							+ "\n    delay: " + delay);
+							+ "     delay: " + delay);
 				}
 				if (nolog) {
 					// In case of success, delete the runner
 					try {
 						result.runner.delete();
 					} catch (WaarpDatabaseException e) {
-						logger.warn("Cannot apply nolog to\n    " + result.runner.toShortString(),
+						logger.warn("Cannot apply nolog to     " + result.runner.toShortString(),
 								e);
 					}
 				}
 			} else {
 				if (result == null || result.runner == null) {
-					logger.error("Transfer in\n    FAILURE with no Id", future.getCause());
+					logger.error("Transfer in     FAILURE with no Id", future.getCause());
 					networkTransaction.closeAll();
 					System.exit(ErrorCode.Unknown.ordinal());
 				}
 				if (result.runner.getErrorInfo() == ErrorCode.Warning) {
-					logger.warn("Transfer is\n    WARNED\n    " + result.runner.toShortString() +
-							"\n    <REMOTE>" + rhost + "</REMOTE>", future.getCause());
+					logger.warn("Transfer is     WARNED     " + result.runner.toShortString() +
+							"     <REMOTE>" + rhost + "</REMOTE>", future.getCause());
 					networkTransaction.closeAll();
 					System.exit(result.code.ordinal());
 				} else {
-					logger.error("Transfer in\n    FAILURE\n    " + result.runner.toShortString() +
-							"\n    <REMOTE>" + rhost + "</REMOTE>", future.getCause());
+					logger.error("Transfer in     FAILURE     " + result.runner.toShortString() +
+							"     <REMOTE>" + rhost + "</REMOTE>", future.getCause());
 					networkTransaction.closeAll();
 					System.exit(result.code.ordinal());
 				}

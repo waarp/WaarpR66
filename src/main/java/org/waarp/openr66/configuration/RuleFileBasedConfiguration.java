@@ -346,7 +346,7 @@ public class RuleFileBasedConfiguration {
 		DbRule newRule = null;
 		XmlHash hash = new XmlHash(root);
 		XmlValue value = hash.get(XIDRULE);
-		if (value == null || (value.isEmpty()) || value.getString().length() == 0) {
+		if (value == null || (value.isEmpty()) || value.getString().isEmpty()) {
 			logger.error("Unable to find in Rule field: " + XIDRULE);
 			throw new OpenR66ProtocolSystemException();
 		}
@@ -359,28 +359,28 @@ public class RuleFileBasedConfiguration {
 		int mode = value.getInteger();
 		String recvpath;
 		value = hash.get(XRECVPATH);
-		if (value == null || (value.isEmpty()) || value.getString().length() == 0) {
+		if (value == null || (value.isEmpty()) || value.getString().isEmpty()) {
 			recvpath = Configuration.configuration.inPath;
 		} else {
 			recvpath = DirInterface.SEPARATOR + value.getString();
 		}
 		String sendpath;
 		value = hash.get(XSENDPATH);
-		if (value == null || (value.isEmpty()) || value.getString().length() == 0) {
+		if (value == null || (value.isEmpty()) || value.getString().isEmpty()) {
 			sendpath = Configuration.configuration.outPath;
 		} else {
 			sendpath = DirInterface.SEPARATOR + value.getString();
 		}
 		String archivepath;
 		value = hash.get(XARCHIVEPATH);
-		if (value == null || (value.isEmpty()) || value.getString().length() == 0) {
+		if (value == null || (value.isEmpty()) || value.getString().isEmpty()) {
 			archivepath = Configuration.configuration.archivePath;
 		} else {
 			archivepath = DirInterface.SEPARATOR + value.getString();
 		}
 		String workpath;
 		value = hash.get(XWORKPATH);
-		if (value == null || (value.isEmpty()) || value.getString().length() == 0) {
+		if (value == null || (value.isEmpty()) || value.getString().isEmpty()) {
 			workpath = Configuration.configuration.workingPath;
 		} else {
 			workpath = DirInterface.SEPARATOR + value.getString();
@@ -486,7 +486,7 @@ public class RuleFileBasedConfiguration {
 		root.add(newElement(XMODE, Integer.toString(rule.mode)));
 		String dir = rule.getRuleRecvPath();
 		if (dir != null) {
-			if (dir.startsWith(File.separator)) {
+			if (dir.startsWith(File.separator) || dir.startsWith(DirInterface.SEPARATOR)) {
 				root.add(newElement(XRECVPATH, dir.substring(1)));
 			} else {
 				root.add(newElement(XRECVPATH, dir));
@@ -494,7 +494,7 @@ public class RuleFileBasedConfiguration {
 		}
 		dir = rule.getRuleSendPath();
 		if (dir != null) {
-			if (dir.startsWith(File.separator)) {
+			if (dir.startsWith(File.separator) || dir.startsWith(DirInterface.SEPARATOR)) {
 				root.add(newElement(XSENDPATH, dir.substring(1)));
 			} else {
 				root.add(newElement(XSENDPATH, dir));
@@ -502,7 +502,7 @@ public class RuleFileBasedConfiguration {
 		}
 		dir = rule.getRuleArchivePath();
 		if (dir != null) {
-			if (dir.startsWith(File.separator)) {
+			if (dir.startsWith(File.separator) || dir.startsWith(DirInterface.SEPARATOR)) {
 				root.add(newElement(XARCHIVEPATH, dir.substring(1)));
 			} else {
 				root.add(newElement(XARCHIVEPATH, dir));
@@ -510,7 +510,7 @@ public class RuleFileBasedConfiguration {
 		}
 		dir = rule.getRuleWorkPath();
 		if (dir != null) {
-			if (dir.startsWith(File.separator)) {
+			if (dir.startsWith(File.separator) || dir.startsWith(DirInterface.SEPARATOR)) {
 				root.add(newElement(XWORKPATH, dir.substring(1)));
 			} else {
 				root.add(newElement(XWORKPATH, dir));

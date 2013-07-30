@@ -476,6 +476,7 @@ public class R66File extends FilesystemBasedFileImpl {
 		}
 		checkIdentify();
 		if (!isReady) {
+			logger.warn("File not ready: {}", this);
 			return false;
 		}
 		File file = getTrueFile();
@@ -507,9 +508,11 @@ public class R66File extends FilesystemBasedFileImpl {
 				currentFile = getRelativePath(newFile);
 				isExternal = false;
 				isReady = true;
+				logger.debug("File renamed to: {} and real position: {}", this, newFile);
 				return true;
 			}
 		}
+		logger.warn("Cannot read file: {}", file);
 		return false;
 	}
 

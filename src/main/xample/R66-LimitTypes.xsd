@@ -359,30 +359,15 @@ Low Limit of Bandwidth when decreasing from 4096
                 minOccurs="0" >
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <fg:node-info message="Digest to use: CRC32=0, ADLER32=1, MD5=2, MD2=3, SHA1=4, SHA256=5, SHA384=6, SHA512=7" />
+                        <fg:node-info message="Digest to use, litteral or number: CRC32=0, ADLER32=1, MD5=2, MD2=3, SHA1=4, SHA256=5, SHA384=6, SHA512=7" />
                     </xsd:appinfo>
                     <xsd:documentation>
-Digest to use: CRC32=0, ADLER32=1, MD5=2, MD2=3, SHA1=4, SHA256=5, SHA384=6, SHA512=7
+Digest to use, litteral or number: CRC32=0, ADLER32=1, MD5=2, MD2=3, SHA1=4, SHA256=5, SHA384=6, SHA512=7
                     </xsd:documentation>
                 </xsd:annotation>
                 <xsd:simpleType>
-                    <xsd:restriction base="nonNegInteger" >
-                        <xsd:enumeration value="0" >
-                        </xsd:enumeration>
-                        <xsd:enumeration value="1" >
-                        </xsd:enumeration>
-                        <xsd:enumeration value="2" >
-                        </xsd:enumeration>
-                        <xsd:enumeration value="3" >
-                        </xsd:enumeration>
-                        <xsd:enumeration value="4" >
-                        </xsd:enumeration>
-                        <xsd:enumeration value="5" >
-                        </xsd:enumeration>
-                        <xsd:enumeration value="6" >
-                        </xsd:enumeration>
-                        <xsd:enumeration value="7" >
-                        </xsd:enumeration>
+                    <xsd:restriction base="xsd:token" >
+                    	<xsd:pattern value="[0-7]|CRC32|ADLER32|MD5|MD2|SHA1|SHA256|SHA384|SHA512|SHA\-1|SHA\-256|SHA\-384|SHA\-512"/>
                     </xsd:restriction>
                 </xsd:simpleType>
             </xsd:element>

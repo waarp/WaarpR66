@@ -383,6 +383,7 @@ public class R66Session implements SessionInterface {
 					try {
 						file = (R66File) dir.setFile(filename, false);
 					} catch (CommandAbstractException e) {
+						logger.warn("File not placed in normal directory", e);
 						// file is not under normal base directory, so is external
 						// File should already exist but can be using special code ('*?')
 						file = dir.setFileNoCheck(filename);
@@ -876,13 +877,13 @@ public class R66Session implements SessionInterface {
 				localChannelReference.validateRequest(
 						localChannelReference.getFutureEndTransfer().getResult());
 			} catch (OpenR66ProtocolSystemException e) {
-				logger.error("Cannot validate runner:\n    {}", runner.toShortString());
+				logger.error("Cannot validate runner:     {}", runner.toShortString());
 				runner.changeUpdatedInfo(UpdatedInfo.INERROR);
 				runner.setErrorExecutionStatus(errorValue.code);
 				runner.forceSaveStatus();
 				this.setFinalizeTransfer(false, errorValue);
 			} catch (OpenR66RunnerErrorException e) {
-				logger.error("Cannot validate runner:\n    {}", runner.toShortString());
+				logger.error("Cannot validate runner:     {}", runner.toShortString());
 				runner.changeUpdatedInfo(UpdatedInfo.INERROR);
 				runner.setErrorExecutionStatus(errorValue.code);
 				runner.forceSaveStatus();
@@ -903,10 +904,10 @@ public class R66Session implements SessionInterface {
 
 	@Override
 	public String toString() {
-		return "Session: FS[" + state.getCurrent() + "] " + status + "\n " +
-				(auth != null ? auth.toString() : "no Auth") + "\n    " +
-				(dir != null ? dir.toString() : "no Dir") + "\n    " +
-				(file != null ? file.toString() : "no File") + "\n    " +
+		return "Session: FS[" + state.getCurrent() + "] " + status + "  " +
+				(auth != null ? auth.toString() : "no Auth") + "     " +
+				(dir != null ? dir.toString() : "no Dir") + "     " +
+				(file != null ? file.toString() : "no File") + "     " +
 				(runner != null ? runner.toShortString() : "no Runner");
 	}
 

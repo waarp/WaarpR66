@@ -94,7 +94,7 @@ public class LocalPacketCodec extends FrameDecoder implements
 			}
 			final AbstractLocalPacket packet = (AbstractLocalPacket) evt
 					.getMessage();
-			final ChannelBuffer buf = packet.getLocalPacket();
+			final ChannelBuffer buf = packet.getLocalPacket(null);
 			Channels.write(ctx, evt.getFuture(), buf);
 		} else {
 			ctx.sendDownstream(e);

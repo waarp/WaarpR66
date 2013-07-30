@@ -251,7 +251,7 @@ public class ExecMoveTask extends AbstractTask {
 			newname = "TimeOut";
 		} else {
 			newname = lastLineReader.lastLine;
-			if (status == 0 && (newname == null || newname.length() == 0)) {
+			if (status == 0 && (newname == null || newname.isEmpty())) {
 				status = 1;
 			}
 		}

@@ -20,15 +20,18 @@ package org.waarp.openr66.protocol.localhandler.packet;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.waarp.common.digest.FilesystemBasedDigest;
+import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
-import org.waarp.openr66.protocol.utils.Version;
+import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
+import org.waarp.openr66.protocol.utils.R66Versions;
 
 /**
  * Request Authentication class
  * 
- * header = "hostId" middle = "key bytes" end = localId + way + (optional version)
+ * header = "hostId" middle = "key bytes" end = localId + way + (optional version: could be a JSON on the form version.{})
  * 
  * @author frederic bregier
  */
@@ -42,7 +45,7 @@ public class AuthentPacket extends AbstractLocalPacket {
 	private byte way;
 	
 	private String version;
-
+	
 	private String hostId;
 
 	private byte[] key;
@@ -78,7 +81,7 @@ public class AuthentPacket extends AbstractLocalPacket {
 		// end part
 		Integer newId = buf.readInt();
 		byte valid = buf.readByte();
-		String version = Configuration.R66VERSION.R66VERSION_NOUSABLE.version; // first base reference where it is unacceptable
+		String version = R66Versions.V2_4_12.getVersion(); // first base reference where it is unacceptable
 		if (endLength > 5) {
 			// version
 			byte [] bversion = new byte[endLength-5];
@@ -101,7 +104,7 @@ public class AuthentPacket extends AbstractLocalPacket {
 		this.key = key;
 		localId = newId;
 		way = valid;
-		Configuration.configuration.versions.put(hostId, version);
+		Configuration.configuration.versions.put(hostId, new PartnerConfiguration(hostId, version));
 		this.version = version;
 	}
 
@@ -115,16 +118,14 @@ public class AuthentPacket extends AbstractLocalPacket {
 		this.key = key;
 		localId = newId;
 		way = ASKVALIDATE;
-		this.version = Version.ID;
-		Configuration.configuration.versions.put(hostId, version);
+		if (! Configuration.configuration.versions.containsKey(hostId)) {
+			Configuration.configuration.versions.put(hostId, new PartnerConfiguration(hostId));
+		}
+		version = Configuration.configuration.versions.get(hostId).toString();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#createEnd()
-	 */
 	@Override
-	public void createEnd() throws OpenR66ProtocolPacketException {
+	public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		end = ChannelBuffers.buffer(5+(version != null ? version.getBytes().length : 0));
 		end.writeInt(localId);
 		end.writeByte(way);
@@ -133,24 +134,16 @@ public class AuthentPacket extends AbstractLocalPacket {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#createHeader()
-	 */
 	@Override
-	public void createHeader() throws OpenR66ProtocolPacketException {
+	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		if (hostId == null) {
 			throw new OpenR66ProtocolPacketException("Not enough data");
 		}
 		header = ChannelBuffers.wrappedBuffer(hostId.getBytes());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket#createMiddle()
-	 */
 	@Override
-	public void createMiddle() throws OpenR66ProtocolPacketException {
+	public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		if (key == null) {
 			throw new OpenR66ProtocolPacketException("Not enough data");
 		}
@@ -200,25 +193,22 @@ public class AuthentPacket extends AbstractLocalPacket {
 	}
 
 	/**
-	 * @return the version
-	 */
-	public String getVersion() {
-		return version;
-	}
-
-	/**
 	 * Validate the connection
 	 */
 	public void validate(boolean isSSL) {
 		way = ANSWERVALIDATE;
+		DbHostAuth auth = isSSL ? Configuration.configuration.HOST_SSLAUTH : Configuration.configuration.HOST_AUTH;
 		try {
 			hostId = Configuration.configuration.getHostId(isSSL);
 		} catch (OpenR66ProtocolNoSslException e) {
 			hostId = Configuration.configuration.HOST_ID;
+			auth = Configuration.configuration.HOST_AUTH;
 		}
-		key = FilesystemBasedDigest.passwdCrypt(Configuration.configuration.HOST_AUTH.getHostkey());
-		version = Version.ID;
-		Configuration.configuration.versions.put(hostId, version);
+		key = FilesystemBasedDigest.passwdCrypt(auth.getHostkey());
+		if (! Configuration.configuration.versions.containsKey(hostId)) {
+			Configuration.configuration.versions.put(hostId, new PartnerConfiguration(hostId));
+		}
+		version = Configuration.configuration.versions.get(hostId).toString();
 		header = null;
 		middle = null;
 		end = null;

@@ -26,6 +26,7 @@ import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.dom4j.Document;
@@ -46,6 +47,7 @@ import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseNoDataException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.digest.FilesystemBasedDigest;
+import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
@@ -63,6 +65,7 @@ import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.model.DbModelFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
@@ -102,6 +105,7 @@ public class DbTaskRunner extends AbstractDbData {
 		BLOCKSZ,
 		ORIGINALNAME,
 		FILEINFO,
+		TRANSFERINFO,
 		MODETRANS,
 		STARTTRANS,
 		STOPTRANS,
@@ -117,7 +121,7 @@ public class DbTaskRunner extends AbstractDbData {
 			Types.INTEGER, Types.INTEGER, Types.INTEGER,
 			Types.INTEGER,
 			Types.CHAR, Types.BIT, Types.VARCHAR, Types.BIT, Types.VARCHAR,
-			Types.INTEGER, Types.VARCHAR, Types.LONGVARCHAR, Types.INTEGER,
+			Types.INTEGER, Types.VARCHAR, Types.LONGVARCHAR, Types.LONGVARCHAR, Types.INTEGER,
 			Types.TIMESTAMP, Types.TIMESTAMP, Types.CHAR, Types.INTEGER,
 			Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BIGINT };
 
@@ -182,6 +186,8 @@ public class DbTaskRunner extends AbstractDbData {
 	private String originalFilename;
 
 	private String fileInformation;
+	
+	private String transferInformation = "{}";
 
 	private int mode;
 
@@ -236,7 +242,7 @@ public class DbTaskRunner extends AbstractDbData {
 			Columns.BLOCKSZ.name() + ","
 			+ Columns.ORIGINALNAME.name()
 			+ "," +
-			Columns.FILEINFO.name() + ","
+			Columns.FILEINFO.name() + "," + Columns.TRANSFERINFO.name() + ","
 			+ Columns.MODETRANS.name()
 			+ "," +
 			Columns.STARTTRANS.name() + ","
@@ -270,6 +276,7 @@ public class DbTaskRunner extends AbstractDbData {
 			+ Columns.ORIGINALNAME.name()
 			+ "=?," +
 			Columns.FILEINFO.name() + "=?,"
+			+ Columns.TRANSFERINFO.name() + "=?,"
 			+ Columns.MODETRANS.name()
 			+ "=?," +
 			Columns.STARTTRANS.name()
@@ -281,7 +288,7 @@ public class DbTaskRunner extends AbstractDbData {
 			+ Columns.UPDATEDINFO.name()
 			+ "=?";
 
-	protected static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
+	protected static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
 
 	private static final AtomicLong clientNoDbSpecialIdLast =
 			new AtomicLong(
@@ -316,6 +323,7 @@ public class DbTaskRunner extends AbstractDbData {
 				new DbValue(blocksize, Columns.BLOCKSZ.name()),
 				new DbValue(originalFilename, Columns.ORIGINALNAME.name()),
 				new DbValue(fileInformation, Columns.FILEINFO.name(), true),
+				new DbValue(transferInformation, Columns.TRANSFERINFO.name(), true),
 				new DbValue(mode, Columns.MODETRANS.name()),
 				new DbValue(start, Columns.STARTTRANS.name()),
 				new DbValue(stop, Columns.STOPTRANS.name()),
@@ -326,7 +334,7 @@ public class DbTaskRunner extends AbstractDbData {
 				otherFields[4], otherFields[5], otherFields[6], otherFields[7],
 				otherFields[8], otherFields[9], otherFields[10], otherFields[11],
 				otherFields[12], otherFields[13], otherFields[14], otherFields[15],
-				otherFields[16],
+				otherFields[16], otherFields[17],
 				primaryKey[0], primaryKey[1], primaryKey[2], primaryKey[3] };
 	}
 
@@ -380,6 +388,7 @@ public class DbTaskRunner extends AbstractDbData {
 		allFields[Columns.BLOCKSZ.ordinal()].setValue(blocksize);
 		allFields[Columns.ORIGINALNAME.ordinal()].setValue(originalFilename);
 		allFields[Columns.FILEINFO.ordinal()].setValue(fileInformation);
+		allFields[Columns.TRANSFERINFO.ordinal()].setValue(transferInformation);
 		allFields[Columns.MODETRANS.ordinal()].setValue(mode);
 		allFields[Columns.STARTTRANS.ordinal()].setValue(start);
 		stop = new Timestamp(System.currentTimeMillis());
@@ -411,6 +420,8 @@ public class DbTaskRunner extends AbstractDbData {
 		originalFilename = (String) allFields[Columns.ORIGINALNAME.ordinal()]
 				.getValue();
 		fileInformation = (String) allFields[Columns.FILEINFO.ordinal()]
+				.getValue();
+		transferInformation = (String) allFields[Columns.TRANSFERINFO.ordinal()]
 				.getValue();
 		mode = (Integer) allFields[Columns.MODETRANS.ordinal()].getValue();
 		start = (Timestamp) allFields[Columns.STARTTRANS.ordinal()].getValue();
@@ -2068,7 +2079,7 @@ public class DbTaskRunner extends AbstractDbData {
 					this.changeUpdatedInfo(UpdatedInfo.INTERRUPTED);
 			}
 			forceSaveStatus();
-			logger.warn("StopOrCancel: {}\n    {}", code.mesg, this.toShortString());
+			logger.warn("StopOrCancel: {}     {}", code.mesg, this.toShortString());
 			return true;
 		} else {
 			// is finished so do nothing
@@ -2259,6 +2270,22 @@ public class DbTaskRunner extends AbstractDbData {
 	}
 
 	/**
+	 * 
+	 * @return the Map<String, Object> for the content of the transferInformation
+	 */
+	public Map<String, Object> getTransferMap() {
+		return JsonHandler.getMapFromString(transferInformation);
+	}
+	
+	/**
+	 * 
+	 * @param map the Map to set as XML string to transferInformation
+	 */
+	public void setTransferMap(Map<String, Object> map) {
+		setTransferInformation(JsonHandler.writeAsString(map));
+	}
+	
+	/**
 	 * Set a new File information for this transfer
 	 * @param newFileInformation
 	 */
@@ -2268,6 +2295,15 @@ public class DbTaskRunner extends AbstractDbData {
 		isSaved = false;
 	}
 	
+	/**
+	 * @param transferInformation the transferInformation to set
+	 */
+	private void setTransferInformation(String transferInformation) {
+		this.transferInformation = transferInformation;
+		allFields[Columns.TRANSFERINFO.ordinal()].setValue(this.transferInformation);
+		isSaved = false;
+	}
+
 	/**
 	 * @return the specialId
 	 */
@@ -2537,7 +2573,7 @@ public class DbTaskRunner extends AbstractDbData {
 		logger.debug((session == null) + ":"
 				+ (session == null ? "norunner" : (this.session.getRunner() == null)) + ":"
 				+ this.toLogRunStep() + ":" + step + ":" + (tasks == null ? "null" : tasks.length)
-				+ "\nSender: " + this.isSender + " " + this.rule.printTasks(isSender,
+				+ " Sender: " + this.isSender + " " + this.rule.printTasks(isSender,
 						TASKSTEP.values()[globalstep]));
 		if (tasks == null) {
 			throw new OpenR66RunnerEndTasksException("No tasks!");
@@ -2595,7 +2631,7 @@ public class DbTaskRunner extends AbstractDbData {
 	 */
 	private R66Future runNext() throws OpenR66RunnerErrorException,
 			OpenR66RunnerEndTasksException {
-		logger.debug(this.toLogRunStep() + "\nSender: " + this.isSender + " "
+		logger.debug(this.toLogRunStep() + " Sender: " + this.isSender + " "
 				+ this.rule.printTasks(isSender,
 						TASKSTEP.values()[globalstep]));
 		if (rule == null) {
@@ -2662,7 +2698,7 @@ public class DbTaskRunner extends AbstractDbData {
 	 */
 	public void run() throws OpenR66RunnerErrorException {
 		R66Future future;
-		logger.debug(this.toLogRunStep() + " Status: " + status + "\nSender: " + this.isSender
+		logger.debug(this.toLogRunStep() + " Status: " + status + " Sender: " + this.isSender
 				+ " " + this.rule.printTasks(isSender,
 						TASKSTEP.values()[globalstep]));
 		if (status != ErrorCode.Running) {
@@ -2731,7 +2767,7 @@ public class DbTaskRunner extends AbstractDbData {
 	public void finalizeTransfer(LocalChannelReference localChannelReference, R66File file,
 			R66Result finalValue, boolean status)
 			throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException {
-		logger.debug("status" + status + ":" + finalValue);
+		logger.debug("status: " + status + ":" + finalValue);
 
 		if (session == null) {
 			this.session = localChannelReference.getSession();
@@ -2753,7 +2789,17 @@ public class DbTaskRunner extends AbstractDbData {
 						String finalpath = R66Dir.getFinalUniqueFilename(file);
 						logger.debug("Will move file {}", finalpath);
 						try {
-							file.renameTo(this.getRule().setRecvPath(finalpath));
+							if (!file.renameTo(this.getRule().setRecvPath(finalpath))) {
+								OpenR66ProtocolSystemException e = new OpenR66ProtocolSystemException("Cannot move file to final position");
+								R66Result result = new R66Result(e, session, false,
+										ErrorCode.FinalOp, this);
+								result.file = file;
+								result.runner = this;
+								if (localChannelReference != null) {
+									localChannelReference.invalidateRequest(result);
+								}
+								throw e;
+							}
 						} catch (OpenR66ProtocolSystemException e) {
 							R66Result result = new R66Result(e, session, false,
 									ErrorCode.FinalOp, this);
@@ -3040,18 +3086,18 @@ public class DbTaskRunner extends AbstractDbData {
 
 	@Override
 	public String toString() {
-		return "Run: " + (rule != null ? rule.toString() : ruleId) + " on " +
-				filename + " STEP: " + TASKSTEP.values()[globalstep] + "(" +
+		return "Run: '" + (rule != null ? rule.toString() : ruleId) + "' Filename: '" +
+				filename + "', STEP: '" + TASKSTEP.values()[globalstep] + "(" +
 				TASKSTEP.values()[globallaststep] + "):" + step + ":" +
-				status.mesg + " Transfer Rank: " + rank + " Blocksize: " + blocksize +
-				" SpecialId: " +
-				specialId + " isSender: " + isSender + " isMoved: " +
-				isFileMoved + " Mode: " + TRANSFERMODE.values()[mode] +
-				" Requester: " + requesterHostId + " Requested: " +
-				requestedHostId + " Start: " + start + " Stop: " + stop +
-				" Internal: " + UpdatedInfo.values()[updatedInfo].name() +
-				":" + infostatus.mesg + " OriginalSize: " + originalSize +
-				" Fileinfo: " + fileInformation;
+				status.mesg + "', TransferRank: " + rank + ", Blocksize: " + blocksize +
+				", SpecialId: " +
+				specialId + ", isSender: " + isSender + ", isMoved: " +
+				isFileMoved + ", Mode: '" + TRANSFERMODE.values()[mode] +
+				"', Requester: '" + requesterHostId + "', Requested: '" +
+				requestedHostId + "', Start: '" + start + "', Stop: '" + stop +
+				"', Internal: '" + UpdatedInfo.values()[updatedInfo].name() +
+				":" + infostatus.mesg + "', OriginalSize: " + originalSize +
+				", Fileinfo: '" + fileInformation+"', Transferinfo: '"+transferInformation+"'";
 	}
 
 	public String toLogRunStep() {
@@ -3062,33 +3108,33 @@ public class DbTaskRunner extends AbstractDbData {
 	}
 
 	public String toShortNoHtmlString(String newline) {
-		return "Run: " + ruleId + " on " +
-				filename + newline + " STEP: " + TASKSTEP.values()[globalstep] + "(" +
+		return "{Run: '" + ruleId + "', Filename: '" +
+				filename +"'," + newline + " STEP: '" + TASKSTEP.values()[globalstep] + "(" +
 				TASKSTEP.values()[globallaststep] + "):" + step + ":" +
-				status.mesg + newline + " Transfer Rank: " + rank + " Blocksize: " + blocksize +
-				" SpecialId: " +
-				specialId + " isSender: " + isSender + " isMoved: " +
-				isFileMoved + " Mode: " + TRANSFERMODE.values()[mode] +
-				newline + " Requester: " + requesterHostId + " Requested: " +
-				requestedHostId + " Start: " + start + " Stop: " + stop +
-				newline + " Internal: " + UpdatedInfo.values()[updatedInfo].name() +
-				":" + infostatus.mesg + " OriginalSize: " + originalSize +
-				newline + " Fileinfo: " + fileInformation;
+				status.mesg + "'," + newline + " TransferRank: " + rank + ", Blocksize: " + blocksize +
+				", SpecialId: " +
+				specialId + ", isSender: '" + isSender + "', isMoved: '" +
+				isFileMoved + "', Mode: '" + TRANSFERMODE.values()[mode] +
+				newline + "', Requester: '" + requesterHostId + "', Requested: '" +
+				requestedHostId + "', Start: '" + start + "', Stop: '" + stop + "'," +
+				newline + " Internal: '" + UpdatedInfo.values()[updatedInfo].name() +
+				":" + infostatus.mesg + "', OriginalSize: " + originalSize +","+
+				newline + " Fileinfo: '" + fileInformation + "', Transferinfo: '"+transferInformation +"'}";
 	}
 
 	public String toShortString() {
 		return "<RULE>" + ruleId + "</RULE><ID>" + specialId + "</ID><FILE>" +
-				filename + "</FILE>\n    <STEP>" + TASKSTEP.values()[globalstep] +
+				filename + "</FILE>     <STEP>" + TASKSTEP.values()[globalstep] +
 				"(" + TASKSTEP.values()[globallaststep] + "):" + step + ":" +
 				status.mesg + "</STEP><RANK>" + rank + "</RANK><BLOCKSIZE>" + blocksize +
-				"</BLOCKSIZE>\n    <SENDER>" +
+				"</BLOCKSIZE>     <SENDER>" +
 				isSender + "</SENDER><MOVED>" + isFileMoved + "</MOVED><MODE>" +
-				TRANSFERMODE.values()[mode] + "</MODE>\n    <REQR>" +
+				TRANSFERMODE.values()[mode] + "</MODE>     <REQR>" +
 				requesterHostId + "</REQR><REQD>" + requestedHostId +
-				"</REQD>\n    <START>" + start + "</START><STOP>" + stop +
-				"</STOP>\n    <INTERNAL>" + UpdatedInfo.values()[updatedInfo].name()
-				+ " : " + infostatus.mesg + "</INTERNAL><ORIGINALSIZE>" + originalSize +"</ORIGINALSIZE>\n    <FILEINFO>" +
-				fileInformation + "</FILEINFO>";
+				"</REQD>     <START>" + start + "</START><STOP>" + stop +
+				"</STOP>     <INTERNAL>" + UpdatedInfo.values()[updatedInfo].name()
+				+ " : " + infostatus.mesg + "</INTERNAL><ORIGINALSIZE>" + originalSize +"</ORIGINALSIZE>     <FILEINFO>" +
+				fileInformation + "</FILEINFO> <TRANSFERINFO>" +transferInformation+"</TRANSFERINFO>";
 	}
 
 	/**
@@ -3232,7 +3278,7 @@ public class DbTaskRunner extends AbstractDbData {
 				(rule != null ? rule.toShortString() : ruleId) +
 				"</td><td>" +
 				filename +
-				"</td><td>" + fileInformation +
+				"</td><td>" + fileInformation +"["+transferInformation+"]"+
 				"</td><td bgcolor=\"" +
 				color +
 				"\">" +
@@ -3280,6 +3326,7 @@ public class DbTaskRunner extends AbstractDbData {
 				: ruleId));
 		WaarpStringUtils.replace(builder, "XXXFileXXX", filename);
 		WaarpStringUtils.replace(builder, "XXXInfoXXX", fileInformation);
+		WaarpStringUtils.replace(builder, "XXXTransXXX", transferInformation);
 		WaarpStringUtils.replace(builder, "XXXStepXXX", TASKSTEP.values()[globalstep] + " (" +
 				TASKSTEP.values()[globallaststep] + ")");
 		WaarpStringUtils.replace(builder, "XXXCOLXXX", getHtmlColor());
@@ -3375,9 +3422,9 @@ public class DbTaskRunner extends AbstractDbData {
 		String sep = null;
 		if (this.requestedHostId.equals(Configuration.configuration.HOST_ID) || 
 				this.requestedHostId.equals(Configuration.configuration.HOST_SSLID)) {
-			sep = Configuration.getSeparator(this.requesterHostId);	
+			sep = PartnerConfiguration.getSeparator(this.requesterHostId);	
 		} else {
-			sep = Configuration.getSeparator(this.requestedHostId);
+			sep = PartnerConfiguration.getSeparator(this.requestedHostId);
 		}
 		return new RequestPacket(ruleId, mode, originalFilename, blocksize,
 				rank, specialId, fileInformation, originalSize, sep);
@@ -3831,6 +3878,20 @@ public class DbTaskRunner extends AbstractDbData {
 	 */
 	public void setOriginalSize(long originalSize) {
 		this.originalSize = originalSize;
+	}
+	
+	/**
+	 * 
+	 * @return the full path for the current file
+	 * @throws CommandAbstractException 
+	 */
+	public String getFullFilePath() throws CommandAbstractException {
+		if (this.isFileMoved()) {
+			return this.getFilename();
+		} else {
+			R66File file = new R66File(session, session.getDir(), this.getFilename(), false);
+			return file.getTrueFile().getAbsolutePath();
+		}
 	}
 	
 }

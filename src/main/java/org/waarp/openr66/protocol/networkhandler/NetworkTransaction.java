@@ -50,6 +50,7 @@ import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
+import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66Exception;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNetworkException;
@@ -266,7 +267,8 @@ public class NetworkTransaction {
 		LocalChannelReference localChannelReference = null;
 		boolean ok = false;
 		// check valid limit on server side only (could be the initiator but not a client)
-		if (!Configuration.configuration.HOST_AUTH.isClient()) {
+		DbHostAuth auth = isSSL ? Configuration.configuration.HOST_SSLAUTH : Configuration.configuration.HOST_AUTH;
+		if (!auth.isClient()) {
 			boolean valid = false;
 			for (int i = 0; i < Configuration.RETRYNB * 2; i++) {
 				if (Configuration.configuration.constraintLimitHandler.checkConstraintsSleep(i)) {
@@ -467,12 +469,15 @@ public class NetworkTransaction {
 			throws OpenR66ProtocolNetworkException,
 			OpenR66ProtocolRemoteShutdownException {
 		AuthentPacket authent;
+		
 		try {
+			DbHostAuth auth = localChannelReference.getNetworkServerHandler().isSsl() ?
+					Configuration.configuration.HOST_SSLAUTH : Configuration.configuration.HOST_AUTH;
 			authent = new AuthentPacket(
 					Configuration.configuration.getHostId(
 							localChannelReference.getNetworkServerHandler().isSsl()),
 					FilesystemBasedDigest.passwdCrypt(
-							Configuration.configuration.HOST_AUTH.getHostkey()),
+							auth.getHostkey()),
 					localChannelReference.getLocalId());
 		} catch (OpenR66ProtocolNoSslException e1) {
 			R66Result finalValue = new R66Result(
