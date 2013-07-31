@@ -312,13 +312,18 @@ public class DbModelMysql extends org.waarp.common.database.model.DbModelMysql {
 		}
 		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_17.getVersion())) {
 			System.out.println(version+" to "+R66Versions.V2_4_17.getVersion()+"? "+true);
-			String command = "ALTER TABLE "+DbTaskRunner.table+" ADD COLUMN "+
-					DbTaskRunner.Columns.TRANSFERINFO.name()+ " "+
-					DBType.getType(DbTaskRunner.dbTypes[DbTaskRunner.Columns.TRANSFERINFO.ordinal()]) +  
-					" DEFAULT '{}' NOT NULL "+
-					" AFTER "+DbTaskRunner.Columns.FILEINFO.name();
 			DbRequest request = new DbRequest(session);
 			try {
+				String command = "ALTER TABLE "
+						+ DbTaskRunner.table
+						+ " ADD COLUMN "
+						+
+						DbTaskRunner.Columns.TRANSFERINFO.name()
+						+ " "
+						+
+						DBType.getType(DbTaskRunner.dbTypes[DbTaskRunner.Columns.TRANSFERINFO
+								.ordinal()]) +
+						" AFTER " + DbTaskRunner.Columns.FILEINFO.name();
 				request.query(command);
 			} catch (WaarpDatabaseSqlException e) {
 				e.printStackTrace();
