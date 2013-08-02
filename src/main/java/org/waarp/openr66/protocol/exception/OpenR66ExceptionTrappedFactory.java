@@ -22,6 +22,7 @@ import java.net.BindException;
 import java.net.ConnectException;
 import java.nio.channels.CancelledKeyException;
 import java.nio.channels.ClosedChannelException;
+import java.nio.channels.NotYetConnectedException;
 import java.util.concurrent.RejectedExecutionException;
 
 import javax.net.ssl.SSLException;
@@ -118,6 +119,10 @@ public class OpenR66ExceptionTrappedFactory {
 			logger.debug("Address already in use {}", e2.getMessage());
 			return new OpenR66ProtocolNetworkException(
 					"Address already in use", e2);
+		} else if (e1 instanceof NotYetConnectedException) {
+			final NotYetConnectedException e2 = (NotYetConnectedException) e1;
+			logger.debug("Timeout occurs {}", e2.getMessage());
+			return new OpenR66ProtocolNetworkException("Timeout occurs", e2);
 		} else if (e1 instanceof ConnectException) {
 			final ConnectException e2 = (ConnectException) e1;
 			logger.debug("Timeout occurs {}", e2.getMessage());
