@@ -7,6 +7,11 @@
     </identity>
     <directory>
         <serverhome>D:\GG\R66</serverhome>
+        <in>in</in>
+        <out>out</out>
+        <arch>arch</arch>
+        <work>work</work>
+        <conf>conf</conf>
     </directory>
     <limit/>
     <db>
