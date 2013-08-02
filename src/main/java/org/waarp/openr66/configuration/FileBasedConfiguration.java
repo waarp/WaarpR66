@@ -32,9 +32,11 @@ import org.waarp.common.crypto.Des;
 import org.waarp.common.crypto.ssl.WaarpSecureKeyStore;
 import org.waarp.common.crypto.ssl.WaarpSslContextFactory;
 import org.waarp.common.database.DbAdmin;
+import org.waarp.common.database.DbRequest;
 import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
+import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.digest.FilesystemBasedDigest.DigestAlgo;
 import org.waarp.common.exception.CryptoException;
@@ -637,6 +639,8 @@ public class FileBasedConfiguration {
 	private static final XmlDecl[] configSubmitClient = {
 			new XmlDecl(XML_IDENTITY, XmlType.XVAL, XML_ROOT + XML_IDENTITY, configIdentityDecls,
 					false),
+			new XmlDecl(XML_DIRECTORY, XmlType.XVAL, XML_ROOT + XML_DIRECTORY,
+							configDirectoryDecls, false),
 			new XmlDecl(XML_LIMIT, XmlType.XVAL, XML_ROOT + XML_LIMIT, configSubmitLimitDecls,
 					false),
 			new XmlDecl(XML_DB, XmlType.XVAL, XML_ROOT + XML_DB, configDbDecls, false),
@@ -1422,6 +1426,20 @@ public class FileBasedConfiguration {
 				logger.error("Unable to Connect to DB", e2);
 				return false;
 			}
+			// Check if the database is ready (initdb already done before)
+			DbRequest request = null;
+			try {
+				request = new DbRequest(DbConstant.admin.session);
+				try {
+					request.select("SELECT * FROM "+DbConfiguration.table);
+				} catch (WaarpDatabaseSqlException e) {
+					logger.error("Database is not yet initiated: run ServerInitDatabase -initdb first", e);
+					return true;
+				}
+				request.close();
+			} catch (WaarpDatabaseNoConnectionException e1) {
+				// ignore
+			}
 			// Check if the database is up to date
 			String version = DbHostConfiguration.getVersionDb(DbConstant.admin.session, Configuration.configuration.HOST_ID);
 			try {
@@ -2032,6 +2050,10 @@ public class FileBasedConfiguration {
 		}
 		if (!loadDatabase(config)) {
 			logger.error("Cannot load Database configuration");
+			return false;
+		}
+		if (!loadDirectory(config)) {
+			logger.error("Cannot load Directory configuration");
 			return false;
 		}
 		XmlValue value = hashConfig.get(XML_BLOCKSIZE);
