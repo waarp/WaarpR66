@@ -270,7 +270,6 @@ public abstract class AbstractTransfer implements Runnable {
 					}
 				} else if (args[i].equalsIgnoreCase("-nolog")) {
 					nolog = true;
-					i++;
 				} else if (args[i].equalsIgnoreCase("-id")) {
 					i++;
 					idt = Long.parseLong(args[i]);

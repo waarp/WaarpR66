@@ -5,6 +5,10 @@
 		<author email="waarp1 at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+	    <release version="2.4.18" date="2013-08-28" description="Fix release">
+		    <action dev="Frederic Bregier" type="fix">Fix Multiple commands</action>
+		    <action dev="Frederic Bregier" type="add">Support for Spooled Directory Transfer</action>
+		</release>
 		<release version="2.4.17" date="2013-07-28" description="Improvement release">
 			<action dev="Frederic Bregier" type="add">Add support for adaptative protocol with "old" versions 2.4.x to new versions</action>
 		    <action dev="Frederic Bregier" type="fix">Fix different Hash algorithm support from partner</action>

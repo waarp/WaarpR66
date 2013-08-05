@@ -14,7 +14,7 @@ REM Logger
 SET LOGSERVER=" -Dlogback.configurationFile=%R66HOME%\conf\logback.xml "
 SET LOGCLIENT=" -Dlogback.configurationFile=%R66HOME%\conf\logback-client.xml "
 
-SET R66_CLASSPATH=" %R66BIN%\WaarpR66-2.4.17.jar;%R66BIN%\* "
+SET R66_CLASSPATH=" %R66BIN%\WaarpR66-2.4.18.jar;%R66BIN%\* "
 
 SET JAVARUNCLIENT=%JAVA_RUN% -cp %R66_CLASSPATH% %LOGCLIENT% 
 SET JAVARUNSERVER=%JAVASERVER_RUN% -cp %R66_CLASSPATH% %LOGSERVER% 
@@ -102,11 +102,15 @@ REM # no argument
 set R66GUI=%JAVARUNCLIENT% org.waarp.openr66.r66gui.R66ClientGui %CLIENT_CONFIG% 
 
 
-REM R66 Multiple Submit
-REM (-to hostId,hostID -file filepath,filepath -rule ruleId) | (-to hostId -id transferId) [ -md5 ] [ -block size ] [ -nolog ] [-start yyyyMMddHHmmssSSS | -delay +durationInMilliseconds | -delay preciseTimeInMilliseconds] [ -info "information" ]
+REM # R66 Multiple Submit
+REM # (-to hostId,hostID -file filepath,filepath -rule ruleId) | (-to hostId -id transferId) [ -md5 ] [ -block size ] [ -nolog ] [-start yyyyMMddHHmmssSSS | -delay +durationInMilliseconds | -delay preciseTimeInMilliseconds] [ -info "information" ]
 set R66MULTISEND=%JAVARUNCLIENT% org.waarp.openr66.client.MultipleSubmitTransfer %CLIENT_CONFIG% 
 
-REM synchronous transfer
-REM (-to hostId,hostid -file filepath,filepath -rule ruleId) | (-to hostId -id transferId) [ -md5 ] [ -block size ] [ -nolog ] [-start yyyyMMddHHmmssSSS | -delay +durationInMilliseconds | -delay preciseTimeInMilliseconds] [ -info "information" ]
-set R66MULTISYNCSEND=%JAVARUNCLIENT% org.waarp.openr66.client.MultipleDirectTransfer %CLIENT_CONFIG%
+REM # R66 Multiple synchronous transfer
+REM # (-to hostId,hostid -file filepath,filepath -rule ruleId) | (-to hostId -id transferId) [ -md5 ] [ -block size ] [ -nolog ] [-start yyyyMMddHHmmssSSS | -delay +durationInMilliseconds | -delay preciseTimeInMilliseconds] [ -info "information" ]
+set R66MULTISYNCSEND=%JAVARUNCLIENT% org.waarp.openr66.client.MultipleDirectTransfer %CLIENT_CONFIG% 
 
+
+REM # R66 Spooled directory transfer
+REM # (-to hostId,hostid -directory directory -statusfile file -stopfile file -rule ruleId) [-md5] [-block size] [-nolog ] [-elapse elapse] [-regex regex] [-submit|-direct] [-info "information"]
+set R66SPOOLEDSEND=%JAVARUNCLIENT% org.waarp.openr66.client.SpooledDirectoryTransfer %CLIENT_CONFIG% 

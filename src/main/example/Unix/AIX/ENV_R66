@@ -28,7 +28,7 @@ export R66BIN="${R66HOME}/lib"
 LOGSERVER=" -Dlogback.configurationFile=${R66HOME}/conf/logback.xml "
 LOGCLIENT=" -Dlogback.configurationFile=${R66HOME}/conf/logback-client.xml "
 
-R66_CLASSPATH=" ${R66BIN}/WaarpR66-2.4.17.jar:${R66BIN}/* "
+R66_CLASSPATH=" ${R66BIN}/WaarpR66-2.4.18.jar:${R66BIN}/* "
 
 export JAVARUNCLIENT="${JAVA_RUN} -cp ${R66_CLASSPATH} ${LOGCLIENT} "
 export JAVARUNSERVER="${JAVA_RUN} -cp ${R66_CLASSPATH} ${LOGSERVER} "
@@ -137,8 +137,12 @@ alias -x r66gui="${R66GUI}"
 export R66MULTISEND="${JAVARUNCLIENT} org.waarp.openr66.client.MultipleSubmitTransfer ${CLIENT_CONFIG} "
 alias -x r66multisend="${R66MULTISEND}"
 
-# synchronous transfer
+# R66 Multiple synchronous transfer
 # (-to hostId,hostid -file filepath,filepath -rule ruleId) | (-to hostId -id transferId) [ -md5 ] [ -block size ] [ -nolog ] [-start yyyyMMddHHmmssSSS | -delay +durationInMilliseconds | -delay preciseTimeInMilliseconds] [ -info "information" ]
 export R66MULTISYNCSEND="${JAVARUNCLIENT} org.waarp.openr66.client.MultipleDirectTransfer ${CLIENT_CONFIG} "
 alias -x r66multisyncsend="${R66MULTISYNCSEND}"
 
+# R66 Spooled directory transfer
+# (-to hostId,hostid -directory directory -statusfile file -stopfile file -rule ruleId) [-md5] [-block size] [-nolog ] [-elapse elapse] [-regex regex] [-submit|-direct] [-info "information"]
+export R66SPOOLEDSEND="${JAVARUNCLIENT} org.waarp.openr66.client.SpooledDirectoryTransfer ${CLIENT_CONFIG} "
+alias -x r66spooledsend="${R66MULTISYNCSEND}"
