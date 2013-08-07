@@ -63,8 +63,36 @@ public class SpooledDirectoryTransfer implements Runnable {
 	 * Internal Logger
 	 */
 	static protected volatile WaarpInternalLogger logger;
+
+	protected static String _INFO_ARGS = 
+			"Needs at least 11 arguments:\n"
+					+
+					"  the XML client configuration file,\n"
+					+
+					"  '-to' the remoteHost Id or Ids as a comma separated list,\n"
+					+
+					"  '-directory' the directory to spool,\n" +
+					"  '-statusfile' file (file to use as permanent status (if process is killed or aborts)),\n" +
+					"  '-stopfile' file (when this file is created, the daemon stops),\n"
+					+
+					"  '-rule' the rule\n"
+					+
+					"Other options:\n"
+					+
+					"  '-info' \"information to send\",\n"
+					+
+					"  '-md5' to force MD5 (or other hash as configured) by packet control,\n"
+					+
+					"  '-block' size of packet > 1K (prefered is 64K),\n"
+					+
+					"  '-nolog' to not log locally this action,\n" +
+					"  '-regex' regex (regular expression to filter file names from directory source),\n" +
+					"  '-elapse' elapse (elapse time between 2 checks of the directory),\n" +
+					"  '-submit' (to submit only: default),\n" +
+					"  '-direct' (to directly transfer only)";
 	
-	protected static final String NOINFO = "noinfo";
+	
+	protected static final String NO_INFO_ARGS = "noinfo";
 
 	protected final R66Future future;
 
@@ -299,31 +327,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 	protected static boolean getParams(String[] args) {
 		if (args.length < 11) {
 			logger
-					.error("Needs at least 11 arguments:\n"
-							+
-							"  the XML client configuration file,\n"
-							+
-							"  '-to' the remoteHost Id or Ids as a comma separated list,\n"
-							+
-							"  '-directory' the directory to spool,\n" +
-							"  '-statusfile' file (file to use as permanent status (if process is killed or aborts)),\n" +
-							"  '-stopfile' file (when this file is created, the daemon stops),\n"
-							+
-							"  '-rule' the rule\n"
-							+
-							"Other options:\n"
-							+
-							"  '-info' \"information to send\",\n"
-							+
-							"  '-md5' to force MD5 (or other hash as configured) by packet control,\n"
-							+
-							"  '-block' size of packet > 1K (prefered is 64K),\n"
-							+
-							"  '-nolog' to not log locally this action,\n" +
-							"  '-regex' regex (regular expression to filter file names from directory source),\n" +
-							"  '-elapse' elapse (elapse time between 2 checks of the directory),\n" +
-							"  '-submit' (to submit only: default),\n" +
-							"  '-direct' (to directly transfer only)");
+					.error(_INFO_ARGS);
 			return false;
 		}
 		if (!FileBasedConfiguration
@@ -383,12 +387,13 @@ public class SpooledDirectoryTransfer implements Runnable {
 			return false;
 		}
 		if (fileInfo == null) {
-			fileInfo = NOINFO;
+			fileInfo = NO_INFO_ARGS;
 		}
 		if (rhosts != null && rule != null && localDirectory != null && statusfile != null && stopfile != null) {
 			return true;
 		}
-		logger.error("All params are not set! Need at least (-to -rule -statusfile and -directory)");
+		logger.error("All params are not set! Need at least (-to -rule -statusfile and -directory)\n"+
+				_INFO_ARGS);
 		return false;
 	}
 

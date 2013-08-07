@@ -83,9 +83,14 @@ export R66EXPORT="${JAVARUNCLIENT} org.waarp.openr66.server.LogExport ${SERVER_C
 alias -x r66export="${R66EXPORT}"
 
 # export the log (extended)
-# [-host host] [ -purge ] [ -clean ] [-startid id] [-stopid id] [-rule rule] [-request host] [-pending] [-transfer] [-done] [-error] [ -start timestamp ] [ -stop timestamp ] where timestamp are in yyyyMMddHHmmssSSS format eventually truncated and with possible ':- ' as separators
+# [-host host [-ruleDownload rule [-import]]] [ -purge ] [ -clean ] [-startid id] [-stopid id] [-rule rule] [-request host] [-pending] [-transfer] [-done] [-error] [ -start timestamp ] [ -stop timestamp ] where timestamp are in yyyyMMddHHmmssSSS format eventually truncated and with possible ':- ' as separators
 export R66LOGEXPORT="${JAVARUNCLIENT} org.waarp.openr66.server.LogExtendedExport ${SERVER_CONFIG} "
-alias r66logexport="${R66EXPORT}"
+alias -x r66logexport="${R66LOGEXPORT}"
+
+# import the log (should be used on another server)
+# exportedLogFile
+export R66LOGIMPORT="${JAVARUNCLIENT} org.waarp.openr66.server.LogImport ${SERVER_CONFIG} "
+alias -x r66logimport="${R66LOGIMPORT}"
 
 # change limits of bandwidth
 # "[ -wglob x ] [ -rglob w ] [ -wsess x ] [ -rsess x ]"

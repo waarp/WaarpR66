@@ -58,6 +58,25 @@ public class ConfigImport implements Runnable {
 	 * Internal Logger
 	 */
 	static volatile WaarpInternalLogger logger;
+	
+	protected static String _INFO_ARGS = "Need at least the configuration file as first argument then at least one from\n"
+			+
+			"    -hosts file\n" +
+			"    -rules file\n" +
+			"    -business file (if compatible)\n" +
+			"    -alias file (if compatible)\n" +
+			"    -roles file (if compatible)\n" +
+			"    -purgehosts\n" +
+			"    -purgerules\n"+
+			"    -purgebusiness (if compatible)\n"+
+			"    -purgealias (if compatible)\n"+
+			"    -purgeroles (if compatible)\n"+
+			"    -hostid file transfer id (if compatible)\n" +
+			"    -ruleid file transfer id (if compatible)\n" +
+			"    -businessid file transfer id (if compatible)\n" +
+			"    -aliasid file transfer id (if compatible)\n" +
+			"    -roleid file transfer id (if compatible)\n" +
+			"    -host host (optional)";
 
 	protected final R66Future future;
 	protected final String host;
@@ -221,46 +240,12 @@ public class ConfigImport implements Runnable {
 	
 	protected static boolean getParams(String[] args) {
 		if (args.length < 3) {
-			logger.error("Need at least the configuration file as first argument then at least one from\n"
-					+
-					"    -hosts file\n" +
-					"    -rules file\n" +
-					"    -business file (if compatible)\n" +
-					"    -alias file (if compatible)\n" +
-					"    -roles file (if compatible)\n" +
-					"    -purgehosts\n" +
-					"    -purgerules\n"+
-					"    -purgebusiness (if compatible)\n"+
-					"    -purgealias (if compatible)\n"+
-					"    -purgeroles (if compatible)\n"+
-					"    -hostid file transfer id (if compatible)\n" +
-					"    -ruleid file transfer id (if compatible)\n" +
-					"    -businessid file transfer id (if compatible)\n" +
-					"    -aliasid file transfer id (if compatible)\n" +
-					"    -roleid file transfer id (if compatible)\n" +
-					"    -host host (optional)");
+			logger.error(_INFO_ARGS);
 			return false;
 		}
 		if (!FileBasedConfiguration
 				.setClientConfigurationFromXml(Configuration.configuration, args[0])) {
-			logger.error("Need at least the configuration file as first argument then at least one from\n"
-					+
-					"    -hosts file\n" +
-					"    -rules file\n" +
-					"    -business file (if compatible)\n" +
-					"    -alias file (if compatible)\n" +
-					"    -roles file (if compatible)\n" +
-					"    -purgehosts\n" +
-					"    -purgerules\n"+
-					"    -purgebusiness (if compatible)\n"+
-					"    -purgealias (if compatible)\n"+
-					"    -purgeroles (if compatible)\n"+
-					"    -hostid file transfer id (if compatible)\n" +
-					"    -ruleid file transfer id (if compatible)\n" +
-					"    -businessid file transfer id (if compatible)\n" +
-					"    -aliasid file transfer id (if compatible)\n" +
-					"    -roleid file transfer id (if compatible)\n" +
-					"    -host host (optional)");
+			logger.error(_INFO_ARGS);
 			return false;
 		}
 		for (int i = 1; i < args.length; i++) {

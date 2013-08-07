@@ -59,6 +59,15 @@ public class ConfigExport implements Runnable {
 	 */
 	static volatile WaarpInternalLogger logger;
 
+	protected static String _INFO_ARGS = "Need at least the configuration file as first argument then at least one from\n"
+			+
+			"    -hosts\n" +
+			"    -rules\n"+
+			"    -business (if compatible)\n"+
+			"    -alias (if compatible)\n"+
+			"    -role (if compatible)\n"+
+			"    -host host (optional)";
+	
 	protected final R66Future future;
 	protected final boolean host;
 	protected final boolean rule;
@@ -170,26 +179,12 @@ public class ConfigExport implements Runnable {
 	
 	protected static boolean getParams(String[] args) {
 		if (args.length < 2) {
-			logger.error("Need at least the configuration file as first argument then at least one from\n"
-					+
-					"    -hosts\n" +
-					"    -rules\n"+
-					"    -business (if compatible)\n"+
-					"    -alias (if compatible)\n"+
-					"    -role (if compatible)\n"+
-					"    -host host (optional)");
+			logger.error(_INFO_ARGS);
 			return false;
 		}
 		if (!FileBasedConfiguration
 				.setClientConfigurationFromXml(Configuration.configuration, args[0])) {
-			logger.error("Need at least the configuration file as first argument then at least one from\n"
-					+
-					"    -hosts\n" +
-					"    -rules\n"+
-					"    -business (if compatible)\n"+
-					"    -alias (if compatible)\n"+
-					"    -roles (if compatible)\n"+
-					"    -host host (optional)");
+			logger.error(_INFO_ARGS);
 			return false;
 		}
 		for (int i = 1; i < args.length; i++) {

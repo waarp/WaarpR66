@@ -62,8 +62,12 @@ REM # [ -purge ] [ -clean ] [ -start timestamp ] [ -stop timestamp ] where times
 set R66EXPORT=%JAVARUNCLIENT% org.waarp.openr66.server.LogExport %SERVER_CONFIG% 
 
 REM # export the log (extended)
-REM # [-host host] [ -purge ] [ -clean ] [-startid id] [-stopid id] [-rule rule] [-request host] [-pending] [-transfer] [-done] [-error] [ -start timestamp ] [ -stop timestamp ] where timestamp are in yyyyMMddHHmmssSSS format eventually truncated and with possible ':- ' as separators
+REM # [-host host [-ruleDownload rule [-import]]] [ -purge ] [ -clean ] [-startid id] [-stopid id] [-rule rule] [-request host] [-pending] [-transfer] [-done] [-error] [ -start timestamp ] [ -stop timestamp ] where timestamp are in yyyyMMddHHmmssSSS format eventually truncated and with possible ':- ' as separators
 set R66LOGEXPORT=%JAVARUNCLIENT% org.waarp.openr66.server.LogExtendedExport %SERVER_CONFIG% 
+
+REM # import the log (should be used on another server)
+REM # exportedLogFile
+set R66LOGIMPORT=%JAVARUNCLIENT% org.waarp.openr66.server.LogImport %SERVER_CONFIG% 
 
 REM # change limits of bandwidth
 REM # "[ -wglob x ] [ -rglob w ] [ -wsess x ] [ -rsess x ]"

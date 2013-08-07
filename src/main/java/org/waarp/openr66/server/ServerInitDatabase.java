@@ -49,6 +49,18 @@ public class ServerInitDatabase {
 	 */
 	static volatile WaarpInternalLogger logger;
 
+	protected static String _INFO_ARGS = 
+			"Need at least the configuration file as first argument then optionally\n"
+					+
+					"    -initdb\n" +
+					"    -loadBusiness xmlfile for Business configuration\n" +
+					"    -loadAlias xmlfile for Alias configuration\n" +
+					"    -loadRoles xmlfile for Roles configuration\n" +
+					"    -dir directory for rules configuration\n" +
+					"    -limit xmlfile containing limit of bandwidth\n" +
+					"    -auth xml file containing the authentication of hosts\n" +
+					"    -upgradeDb";
+	
 	static String sxml = null;
 	static boolean database = false;
 	static boolean upgradeDb = false;
@@ -61,16 +73,7 @@ public class ServerInitDatabase {
 
 	protected static boolean getParams(String[] args) {
 		if (args.length < 1) {
-			logger.error("Need at least the configuration file as first argument then optionally\n"
-					+
-					"    -initdb\n" +
-					"    -loadBusiness xmlfile for Business configuration\n" +
-					"    -loadAlias xmlfile for Alias configuration\n" +
-					"    -loadRoles xmlfile for Roles configuration\n" +
-					"    -dir directory for rules configuration\n" +
-					"    -limit xmlfile containing limit of bandwidth\n" +
-					"    -auth xml file containing the authentication of hosts\n" +
-					"    -upgradeDb");
+			logger.error(_INFO_ARGS);
 			return false;
 		}
 		sxml = args[0];
@@ -112,16 +115,7 @@ public class ServerInitDatabase {
 			logger = WaarpInternalLoggerFactory.getLogger(ServerInitDatabase.class);
 		}
 		if (!getParams(args)) {
-			logger.error("Need at least the configuration file as first argument then optionally\n"
-					+
-					"    -initdb\n" +
-					"    -loadBusiness xmlfile for Business configuration\n" +
-					"    -loadAlias xmlfile for Alias configuration\n" +
-					"    -loadRoles xmlfile for Roles configuration\n" +
-					"    -dir directory for rules configuration\n" +
-					"    -limit xmlfile containing limit of bandwidth\n" +
-					"    -auth xml file containing the authentication of hosts\n" +
-					"    -upgradeDb");
+			logger.error(_INFO_ARGS);
 			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
 				DbConstant.admin.close();
 			}

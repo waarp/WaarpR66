@@ -50,7 +50,40 @@ public abstract class AbstractTransfer implements Runnable {
 	 */
 	static protected volatile WaarpInternalLogger logger;
 	
-	protected static final String NOINFO = "noinfo";
+	protected static String _INFO_ARGS = 
+			"Needs at least 3 or 4 arguments:\n"
+					+
+					"  the XML client configuration file,\n"
+					+
+					"  '-to' the remoteHost Id,\n"
+					+
+					"  '-file' the file to transfer,\n"
+					+
+					"  '-rule' the rule\n"
+					+
+					"Or\n"
+					+
+					"  '-to' the remoteHost Id,\n"
+					+
+					"  '-id' \"Id of a previous transfer\",\n"
+					+
+					"Other options:\n"
+					+
+					"  '-info' \"information to send\",\n"
+					+
+					"  '-md5' to force MD5 (or other hash as configured) by packet control,\n"
+					+
+					"  '-block' size of packet > 1K (prefered is 64K),\n"
+					+
+					"  '-nolog' to not log locally this action\n"
+					+
+					"  '-start' \"time start\" as yyyyMMddHHmmss (override previous -delay options)\n"
+					+
+					"  '-delay' \"+delay in ms\" as delay in ms from current time(override previous -start options)\n"
+					+
+					"  '-delay' \"delay in ms\" as time in ms (override previous -start options)";
+	
+	protected static final String NO_INFO_ARGS = "noinfo";
 
 	protected final R66Future future;
 
@@ -137,7 +170,7 @@ public abstract class AbstractTransfer implements Runnable {
 			}
 			// requested
 			taskRunner.setSenderByRequestToValidate(true);
-			if (fileinfo != null && !fileinfo.equals(NOINFO)) {
+			if (fileinfo != null && !fileinfo.equals(NO_INFO_ARGS)) {
 				taskRunner.setFileInformation(fileinfo);
 			}
 			if (startTime != null) {
@@ -196,37 +229,7 @@ public abstract class AbstractTransfer implements Runnable {
 	protected static boolean getParams(String[] args, boolean submitOnly) {
 		if (args.length < 2) {
 			logger
-					.error("Needs at least 3 or 4 arguments:\n"
-							+
-							"  the XML client configuration file,\n"
-							+
-							"  '-to' the remoteHost Id,\n"
-							+
-							"  '-file' the file to transfer,\n"
-							+
-							"  '-rule' the rule\n"
-							+
-							"Or\n"
-							+
-							"  '-to' the remoteHost Id,\n"
-							+
-							"  '-id' \"Id of a previous transfer\",\n"
-							+
-							"Other options:\n"
-							+
-							"  '-info' \"information to send\",\n"
-							+
-							"  '-md5' to force MD5 (or other hash as configured) by packet control,\n"
-							+
-							"  '-block' size of packet > 1K (prefered is 64K),\n"
-							+
-							"  '-nolog' to not log locally this action\n"
-							+
-							"  '-start' \"time start\" as yyyyMMddHHmmss (override previous -delay options)\n"
-							+
-							"  '-delay' \"+delay in ms\" as delay in ms from current time(override previous -start options)\n"
-							+
-							"  '-delay' \"delay in ms\" as time in ms (override previous -start options)");
+					.error(_INFO_ARGS);
 			return false;
 		}
 		if (submitOnly) {
@@ -296,7 +299,7 @@ public abstract class AbstractTransfer implements Runnable {
 			return false;
 		}
 		if (fileInfo == null) {
-			fileInfo = NOINFO;
+			fileInfo = NO_INFO_ARGS;
 		}
 		if (rhost != null && rule != null && localFilename != null) {
 			return true;
@@ -316,7 +319,7 @@ public abstract class AbstractTransfer implements Runnable {
 
 		}
 		logger.error("All params are not set! Need at least (-to -rule and -file)" +
-				" or (-to and -id) params");
+				" or (-to and -id) params\n" + _INFO_ARGS);
 		return false;
 	}
 }

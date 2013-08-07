@@ -17,6 +17,7 @@
  */
 package org.waarp.openr66.server;
 
+import java.io.File;
 import java.net.SocketAddress;
 import java.sql.Timestamp;
 
@@ -28,13 +29,16 @@ import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
+import org.waarp.openr66.client.DirectTransfer;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66FiniteDualStates;
 import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbHostAuth;
+import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
@@ -58,6 +62,20 @@ public class LogExtendedExport implements Runnable {
 	 */
 	static volatile WaarpInternalLogger logger;
 
+	protected static String _INFO_ARGS = 
+			"Need at least the configuration file as first argument then optionally\n"
+			+
+			"    -purge\n    -clean\n    -startid id\n    -stopid id\n    -rule rule\n    -request host\n" +
+			"    -pending\n    -transfer\n    -done\n    -error\n" +
+			"    -start timestamp in format yyyyMMddHHmmssSSS possibly truncated and where one of ':-. ' can be separators\n"
+			+
+			"    -stop timestamp in same format than start\n" +
+			"If not start and no stop are given, stop is Today Midnight (00:00:00)\n" +
+			"If start is equals or greater than stop, stop is start+24H\n"+
+			"    -host host (optional additional options:\n" +
+			"      -ruleDownload ruleDownload if set, will try to download the exported logs\n" +
+			"      -import that will try to import exported logs using ruleDownload to download the logs)";
+	
 	protected final R66Future future;
 	protected final boolean clean;
 	protected final boolean purgeLog;
@@ -71,6 +89,8 @@ public class LogExtendedExport implements Runnable {
 	protected final boolean statustransfer;
 	protected final boolean statusdone;
 	protected final boolean statuserror;
+	protected String ruleDownload = null;
+	protected boolean tryimport = false;
 	protected final NetworkTransaction networkTransaction;
 	protected DbHostAuth host;
 
@@ -113,6 +133,22 @@ public class LogExtendedExport implements Runnable {
 	}
 	
 	/**
+	 * Try first to download the exported logs, then to import (must be a host different than the source one)
+	 * @param ruleDownload
+	 * @param tryimport
+	 */
+	public void setDownloadTryImport(String ruleDownload, boolean tryimport) {
+		this.ruleDownload = ruleDownload;
+		if (ruleDownload != null && tryimport && 
+				this.host.getHostid() != Configuration.configuration.HOST_ID &&
+				this.host.getHostid() != Configuration.configuration.HOST_SSLID) {
+			this.tryimport = tryimport;
+		} else {
+			this.tryimport = false;
+		}
+	}
+	
+	/**
 	 * Prior to call this method, the pipeline and NetworkTransaction must have been initialized. It
 	 * is the responsibility of the caller to finish all network resources.
 	 */
@@ -141,8 +177,9 @@ public class LogExtendedExport implements Runnable {
 		SocketAddress socketAddress = host.getSocketAddress();
 		boolean isSSL = host.isSsl();
 
+		R66Future newFuture = new R66Future(true);
 		LocalChannelReference localChannelReference = networkTransaction
-				.createConnectionWithRetry(socketAddress, isSSL, future);
+				.createConnectionWithRetry(socketAddress, isSSL, newFuture);
 		socketAddress = null;
 		if (localChannelReference == null) {
 			host = null;
@@ -168,10 +205,81 @@ public class LogExtendedExport implements Runnable {
 			return;
 		}
 		host = null;
-		future.awaitUninterruptibly();
-		logger.info("Request done with " + (future.isSuccess() ? "success" : "error"));
+		newFuture.awaitUninterruptibly();
+		logger.info("Request done with " + (newFuture.isSuccess() ? "success" : "error"));
+		if (newFuture.isSuccess() && ruleDownload != null && ! ruleDownload.isEmpty()) {
+			try {
+				importLog(newFuture);
+			} catch (OpenR66ProtocolBusinessException e) {
+				Channels.close(localChannelReference.getLocalChannel());
+				localChannelReference = null;
+				return;
+			}
+		}
+		future.filesize = newFuture.filesize;
+		future.runner = newFuture.runner;
+		future.setResult(newFuture.getResult());
+		if (newFuture.isSuccess()) {
+			future.setSuccess();
+		} else {
+			if (newFuture.getCause() != null) {
+				future.setFailure(newFuture.getCause());
+			}
+			future.cancel();
+		}
 		Channels.close(localChannelReference.getLocalChannel());
 		localChannelReference = null;
+	}
+	
+	public void importLog(R66Future future) throws OpenR66ProtocolBusinessException {
+		if (future.isSuccess()) {
+			JsonCommandPacket packet = (JsonCommandPacket) future.getResult().other;
+			if (packet != null) {
+				String fileExported = null;
+				fileExported = JsonHandler.getValue(packet.getNodeRequest(), JsonCommandPacket.RESPONSELOGPACKET.filename, "unknown");
+				// download logs
+				if (fileExported != null && ! fileExported.isEmpty()) {
+					String ruleToExport = ruleDownload;
+					R66Future futuretemp = new R66Future(true);
+					DirectTransfer transfer = new DirectTransfer(futuretemp, host.getHostid(),
+							fileExported,
+							ruleToExport, "Get Exported Logs from "
+									+ Configuration.configuration.HOST_ID,
+							false, Configuration.configuration.BLOCKSIZE,
+							DbConstant.ILLEGALVALUE,
+							networkTransaction);
+					transfer.run();
+					File logsFile = null;
+					if (!futuretemp.isSuccess()) {
+						if (futuretemp.getCause() != null) {
+							throw new OpenR66ProtocolBusinessException(futuretemp.getCause());
+						}
+						throw new OpenR66ProtocolBusinessException("Download of exported logs in error");
+					} else {
+						logsFile = futuretemp.getResult().file.getTrueFile();
+					}
+					if (tryimport && DbConstant.admin.isConnected) {
+						try {
+							DbTaskRunner.loadXml(logsFile);
+						} catch (OpenR66ProtocolBusinessException e) {
+							logger.warn("Cannot load the logs from "+logsFile.getAbsolutePath()
+									+" since: "+ e.getMessage());
+							throw new OpenR66ProtocolBusinessException("Cannot load the logs from "+logsFile.getAbsolutePath(),
+									e);
+						}
+					}
+				} else {
+					throw new OpenR66ProtocolBusinessException("Export log with no file result");
+				}
+			} else {
+				throw new OpenR66ProtocolBusinessException("Export log with no file result");
+			}
+		} else {
+			if (future.getCause() != null) {
+				throw new OpenR66ProtocolBusinessException(future.getCause());
+			}
+			throw new OpenR66ProtocolBusinessException("Export log in error");
+		}
 	}
 
 	protected static boolean sclean = false;
@@ -181,35 +289,17 @@ public class LogExtendedExport implements Runnable {
 	protected static String sstartid, sstopid, srule, srequest;
 	protected static boolean sstatuspending = false, sstatustransfer = false, sstatusdone = true, sstatuserror = false;
 	protected static String stohost = null;
+	protected static String sruleDownload = null;
+	protected static boolean stryimport = false;
 	
 	protected static boolean getParams(String[] args) {
 		if (args.length < 1) {
-			logger.error("Need at least the configuration file as first argument then optionally\n"
-					+
-					"    -purge\n    -clean\n    -startid id\n    -stopid id\n    -rule rule\n    -request host\n" +
-					"    -pending\n    -transfer\n    -done\n    -error\n"
-					+
-					"    -start timestamp in format yyyyMMddHHmmssSSS possibly truncated and where one of ':-. ' can be separators\n"
-					+
-					"    -stop timestamp in same format than start\n" +
-					"If not start and no stop are given, stop is Today Midnight (00:00:00)\n" +
-					"If start is equals or greater than stop, stop is start+24H\n"+
-					"    -host host (optional)");
+			logger.error(_INFO_ARGS);
 			return false;
 		}
 		if (!FileBasedConfiguration
 				.setClientConfigurationFromXml(Configuration.configuration, args[0])) {
-			logger.error("Need at least the configuration file as first argument then optionally\n"
-					+
-					"    -purge\n    -clean\n    -startid id\n    -stopid id\n    -rule rule\n    -request host\n" +
-					"    -pending\n    -transfer\n    -done\n    -error\n"
-					+
-					"    -start timestamp in format yyyyMMddHHmmssSSS possibly truncated and where one of ':-. ' can be separators\n"
-					+
-					"    -stop timestamp in same format than start\n" +
-					"If not start and no stop are given, stop is Today Midnight (00:00:00)\n" +
-					"If start is equals or greater than stop, stop is start+24H\n"+
-					"    -host host (optional)");
+			logger.error(_INFO_ARGS);
 			return false;
 		}
 		String ssstart = null;
@@ -245,9 +335,14 @@ public class LogExtendedExport implements Runnable {
 				sstatusdone = true;
 			} else if (args[i].equalsIgnoreCase("-error")) {
 				sstatuserror = true;
+			} else if (args[i].equalsIgnoreCase("-import")) {
+				stryimport = true;
 			} else if (args[i].equalsIgnoreCase("-host")) {
 				i++;
 				stohost = args[i];
+			} else if (args[i].equalsIgnoreCase("-ruleDownload")) {
+				i++;
+				sruleDownload = args[i];
 			}
 		}
 		if (ssstart != null) {
@@ -264,6 +359,9 @@ public class LogExtendedExport implements Runnable {
 		}
 		if (ssstart == null && ssstop == null) {
 			sstop = WaarpStringUtils.getTodayMidnight();
+		}
+		if (stohost == null) {
+			stryimport = false;
 		}
 		return true;
 	}
@@ -306,6 +404,7 @@ public class LogExtendedExport implements Runnable {
 					sstartid, sstopid, srule, srequest, 
 					sstatuspending, sstatustransfer, sstatusdone, sstatuserror, 
 					networkTransaction, dbhost);
+			transaction.setDownloadTryImport(sruleDownload, stryimport);
 			transaction.run();
 			future.awaitUninterruptibly();
 			long time2 = System.currentTimeMillis();

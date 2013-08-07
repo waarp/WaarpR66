@@ -60,6 +60,13 @@ public class ChangeBandwidthLimits implements Runnable {
 	 */
 	static volatile WaarpInternalLogger logger;
 
+	protected static String _INFO_ARGS = "Need the configuration file as first argument then at least one of\n" +
+			"   -wglob limitGlobalWrite\n" +
+			"   -rglob limitGlobalRead\n" +
+			"   -wsess limitSessionWrite\n" +
+			"   -rsess limitSessionWrite\n"+
+			"   -host host (optional)";
+	
 	protected final R66Future future;
 	protected final long writeGlobalLimit;
 	protected final long readGlobalLimit;
@@ -163,22 +170,12 @@ public class ChangeBandwidthLimits implements Runnable {
 
 	protected static boolean getParams(String[] args) {
 		if (args.length < 3) {
-			logger.error("Need the configuration file as first argument then at least one of\n" +
-					"   -wglob limitGlobalWrite\n" +
-					"   -rglob limitGlobalRead\n" +
-					"   -wsess limitSessionWrite\n" +
-					"   -rsess limitSessionWrite\n"+
-					"   -host host (optional)");
+			logger.error(_INFO_ARGS);
 			return false;
 		}
 		if (!FileBasedConfiguration
 				.setClientConfigurationFromXml(Configuration.configuration, args[0])) {
-			logger.error("Need the configuration file as first argument then at least one of\n" +
-					"   -wglob limitGlobalWrite\n" +
-					"   -rglob limitGlobalRead\n" +
-					"   -wsess limitSessionWrite\n" +
-					"   -rsess limitSessionWrite\n"+
-					"   -host host (optional)");
+			logger.error(_INFO_ARGS);
 			return false;
 		}
 		for (int i = 1; i < args.length; i++) {
@@ -204,11 +201,7 @@ public class ChangeBandwidthLimits implements Runnable {
 		}
 		if (swriteGlobalLimit == -1 && sreadGlobalLimit == -1 &&
 				swriteSessionLimit == -1 && sreadSessionLimit == -1) {
-			logger.error("Need the configuration file as first argument then at least one of\n" +
-					"   -wglob limitGlobalWrite\n" +
-					"   -rglob limitGlobalRead\n" +
-					"   -wsess limitSessionWrite\n" +
-					"   -rsess limitSessionWrite");
+			logger.error(_INFO_ARGS);
 			return false;
 		}
 		return true;

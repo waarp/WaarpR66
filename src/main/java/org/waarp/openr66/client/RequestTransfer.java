@@ -70,6 +70,22 @@ public class RequestTransfer implements Runnable {
 	 */
 	static volatile WaarpInternalLogger logger;
 
+	protected static String _INFO_ARGS = 
+			"Needs at least 5 arguments:\n" +
+					"  the XML client configuration file,\n" +
+					"  '-id' the transfer Id,\n" +
+					"  '-to' the requested host Id or '-from' the requester host Id " +
+					"(localhost will be the opposite),\n" +
+					"Other options (only one):\n" +
+					"  '-cancel' to cancel completely the transfer,\n" +
+					"  '-stop' to stop the transfer (maybe restarted),\n" +
+					"  '-restart' to restart if possible a transfer and optionnally the following arguments may be specified for a restart:\n"+
+					"      '-start' \"time start\" as yyyyMMddHHmmss (override previous -delay options)\n"
+					+
+					"      '-delay' \"+delay in ms\" as delay in ms from current time(override previous -start options)\n"
+					+
+					"      '-delay' \"delay in ms\" as time in ms (override previous -start options)";
+	
 	protected final NetworkTransaction networkTransaction;
 	final R66Future future;
 	final long specialId;
@@ -97,20 +113,7 @@ public class RequestTransfer implements Runnable {
 	protected static boolean getParams(String[] args) {
 		if (args.length < 5) {
 			logger
-					.error("Needs at least 5 arguments:\n" +
-							"  the XML client configuration file,\n" +
-							"  '-id' the transfer Id,\n" +
-							"  '-to' the requested host Id or '-from' the requester host Id " +
-							"(localhost will be the opposite),\n" +
-							"Other options (only one):\n" +
-							"  '-cancel' to cancel completely the transfer,\n" +
-							"  '-stop' to stop the transfer (maybe restarted),\n" +
-							"  '-restart' to restart if possible a transfer and optionnally the following arguments may be specified for a restart:\n"+
-							"      '-start' \"time start\" as yyyyMMddHHmmss (override previous -delay options)\n"
-							+
-							"      '-delay' \"+delay in ms\" as delay in ms from current time(override previous -start options)\n"
-							+
-							"      '-delay' \"delay in ms\" as time in ms (override previous -start options)");
+					.error(_INFO_ARGS);
 			return false;
 		}
 		if (!FileBasedConfiguration
@@ -172,11 +175,11 @@ public class RequestTransfer implements Runnable {
 			}
 		}
 		if ((scancel && srestart) || (scancel && sstop) || (srestart && sstop)) {
-			logger.error("Cannot cancel or restart or stop at the same time");
+			logger.error("Cannot cancel or restart or stop at the same time\n"+_INFO_ARGS);
 			return false;
 		}
 		if (sspecialId == DbConstant.ILLEGALVALUE || srequested == null) {
-			logger.error("TransferId and Requested/Requester HostId must be set");
+			logger.error("TransferId and Requested/Requester HostId must be set\n"+_INFO_ARGS);
 			return false;
 		}
 

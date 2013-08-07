@@ -48,6 +48,9 @@ import org.waarp.openr66.protocol.utils.ChannelUtils;
  */
 public class ServerShutdown {
 
+	protected static String _INFO_ARGS = "Needs a correct configuration file as first argument and optionally [-nossl].\n" +
+			"If '-block' or '-unblock' is specified, it will only block or unblock new request, but no shutdown will occur.";
+	
 	/**
 	 * @param args
 	 *            the configuration file as first argument
@@ -60,8 +63,7 @@ public class ServerShutdown {
 				.getLogger(ServerShutdown.class);
 		if (args.length < 1) {
 			logger
-					.error("Needs the configuration file as first argument and optionally [-nossl].\n" +
-							"If '-block' or '-unblock' is specified, it will only block or unblock new request, but no shutdown will occur.");
+					.error(_INFO_ARGS);
 			ChannelUtils.stopLogger();
 			System.exit(1);
 			return;
@@ -69,8 +71,7 @@ public class ServerShutdown {
 		if (!FileBasedConfiguration
 				.setConfigurationServerShutdownFromXml(Configuration.configuration, args[0])) {
 			logger
-					.error("Needs a correct configuration file as first argument and optionally [-nossl].\n" +
-							"If '-block' or '-unblock' is specified, it will only block or unblock new request, but no shutdown will occur.");
+					.error(_INFO_ARGS);
 			if (DbConstant.admin != null) {
 				DbConstant.admin.close();
 			}
