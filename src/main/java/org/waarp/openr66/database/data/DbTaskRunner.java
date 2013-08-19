@@ -2301,6 +2301,9 @@ public class DbTaskRunner extends AbstractDbData {
 	 */
 	private void setTransferInformation(String transferInformation) {
 		this.transferInformation = transferInformation;
+		if (this.transferInformation == null) {
+			this.transferInformation = "{}";
+		}
 		allFields[Columns.TRANSFERINFO.ordinal()].setValue(this.transferInformation);
 		isSaved = false;
 	}
