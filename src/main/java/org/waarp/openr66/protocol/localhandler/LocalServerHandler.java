@@ -1652,7 +1652,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					if (!session.getRunner().isRecvThrough() && session.getFile().length() != originalSize) {
 						R66Result result = new R66Result(new OpenR66RunnerErrorException("Final size in error, transfer in error and rank should be reset to 0"),
 								session, true, ErrorCode.TransferError, session.getRunner());
-						localChannelReference.invalidateRequest(result);
+						session.setFinalizeTransfer(false, result);
 						ErrorPacket error = new ErrorPacket(
 								"Final size in error, transfer in error and rank should be reset to 0",
 								ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
@@ -1680,7 +1680,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					R66Result result = new R66Result(new OpenR66RunnerErrorException("Global Hash in error, transfer in error and rank should be reset to 0 (using "+
 							localChannelReference.getPartner().getDigestAlgo().name+")"),
 							session, true, ErrorCode.MD5Error, session.getRunner());
-					localChannelReference.invalidateRequest(result);
+					session.setFinalizeTransfer(false, result);
 					ErrorPacket error = new ErrorPacket(
 							"Global Hash in error, transfer in error and rank should be reset to 0 (using "+
 							localChannelReference.getPartner().getDigestAlgo().name+")",
