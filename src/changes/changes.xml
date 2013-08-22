@@ -9,6 +9,8 @@
 		    <action dev="Frederic Bregier" type="fix">Fix Multiple commands</action>
 		    <action dev="Frederic Bregier" type="fix">Fix Issue on null String</action>
 		    <action dev="Frederic Bregier" type="fix">Fix EndTransfer error (size or Hash) not correctly set</action>
+		    <action dev="Frederic Bregier" type="fix">Fix CPUlimit handling - False not take into account -</action>
+		    <action dev="Frederic Bregier" type="fix">Fix File Size in transfer initialization</action>
 		    <action dev="Frederic Bregier" type="add">Support for Spooled Directory Transfer</action>
 		    <action dev="Frederic Bregier" type="add">Support for Import exported logs</action>
 		</release>

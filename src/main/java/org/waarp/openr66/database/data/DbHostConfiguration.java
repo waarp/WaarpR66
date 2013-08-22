@@ -967,7 +967,7 @@ public class DbHostConfiguration extends AbstractDbData {
 			hostConfiguration = new DbHostConfiguration(dbSession, hostid);
 		} catch (WaarpDatabaseException e) {
 			// ignore and return
-			return "2.4.0";
+			return "1.1.0";
 		}
 		Element others = hostConfiguration.getOtherElement();
 		if (others != null) {
@@ -976,7 +976,7 @@ public class DbHostConfiguration extends AbstractDbData {
 				return version.getText();
 			}
 		}
-		return "2.4.0";
+		return "1.1.0";
 	}
 	/**
 	 * Update the version for this HostId
