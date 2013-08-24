@@ -64,6 +64,7 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
 import org.waarp.openr66.protocol.networkhandler.R66ConstraintLimitHandler;
 import org.waarp.openr66.protocol.networkhandler.ssl.NetworkSslServerPipelineFactory;
 import org.waarp.openr66.protocol.utils.FileUtils;
+import org.waarp.openr66.server.ServerInitDatabase;
 import org.waarp.snmp.SnmpConfiguration;
 
 /**
@@ -1415,6 +1416,7 @@ public class FileBasedConfiguration {
 		return true;
 	}
 
+	public static boolean checkDatabase = true;
 	/**
 	 * Load database parameter
 	 * 
@@ -1487,25 +1489,12 @@ public class FileBasedConfiguration {
 			} catch (WaarpDatabaseNoConnectionException e1) {
 				// ignore
 			}
-			// Check if the database is up to date
-			String version = DbHostConfiguration.getVersionDb(DbConstant.admin.session, Configuration.configuration.HOST_ID);
-			try {
-				boolean uptodate = true;
-				if (version != null) {
-					uptodate = DbModelFactory.dbModel.needUpgradeDb(DbConstant.admin.session, version, true);
-				} else {
-					uptodate = DbModelFactory.dbModel.needUpgradeDb(DbConstant.admin.session, "1.1.0", true);
-				}
-				if (uptodate) {
-					logger.error("Database schema is not up to date: you must run ServerInitDatabase with the option -upgradeDb");
+			if (checkDatabase) {
+				// Check if the database is up to date
+				if (! ServerInitDatabase.upgradedb()) {
 					return false;
-				} else {
-					logger.debug("Database schema is up to date");
 				}
-			} catch (WaarpDatabaseNoConnectionException e) {
-				logger.error("Unable to Connect to DB", e);
-				return false;
-			}			
+			}
 		}
 		value = hashConfig.get(XML_SAVE_TASKRUNNERNODB);
 		if (value != null && (!value.isEmpty())) {

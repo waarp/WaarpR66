@@ -182,64 +182,35 @@ public enum TaskType {
 					newdelay = 1;
 				}
 				return new LogTask(argRule, newdelay, "", session);
-			case MOVE:
-				throw new OpenR66RunnerErrorException("Unvalid Task: " +
-						type.name);
-				//return new MoveTask(argRule, delay, "", session);
-			case MOVERENAME:
-				throw new OpenR66RunnerErrorException("Unvalid Task: " +
-						type.name);
-				//return new MoveRenameTask(argRule, delay, "", session);
-			case COPY:
-				throw new OpenR66RunnerErrorException("Unvalid Task: " +
-						type.name);
-				//return new CopyTask(argRule, delay, "", session);
-			case COPYRENAME:
-				throw new OpenR66RunnerErrorException("Unvalid Task: " +
-						type.name);
-				//return new CopyRenameTask(argRule, delay, "", session);
 			case EXEC:
 				return new ExecTask(argRule, delay, "", session);
-			case EXECMOVE:
-				throw new OpenR66RunnerErrorException("Unvalid Task: " +
-						type.name);
-				//return new ExecMoveTask(argRule, delay, "", session);
-			case LINKRENAME:
-				throw new OpenR66RunnerErrorException("Unvalid Task: " +
-						type.name);
-				//return new LinkRenameTask(argRule, delay, "", session);
 			case TRANSFER:
 				return new TransferTask(argRule, delay, "", session);
-			case VALIDFILEPATH:
-				throw new OpenR66RunnerErrorException("Unvalid Task: " +
-						type.name);
-				//return new ValidFilePathTask(argRule, delay, "", session);
-			case DELETE:
-				throw new OpenR66RunnerErrorException("Unvalid Task: " +
-						type.name);
-				//return new DeleteTask(argRule, delay, "", session);
 			case TAR:
 				return new TarTask(argRule, delay, "", session);
 			case ZIP:
 				return new ZipTask(argRule, delay, "", session);
 			case EXECOUTPUT:
 				return new ExecOutputTask(argRule, delay, "", session);
-			case RESCHEDULE:
-				throw new OpenR66RunnerErrorException("Unvalid Task: " +
-						type.name);
-				//return new RescheduleTransferTask(argRule, delay, "", session);
 			case EXECJAVA:
 				return new ExecJavaTask(argRule, delay, "", session);
-			case TRANSCODE:
-				throw new OpenR66RunnerErrorException("Unvalid Task: " +
-						type.name);
-				//return new TranscodeTask(argRule, delay, "", session);
 			case SNMP:
 				return new SnmpTask(argRule, delay, "", session);
 			case FTP:
 				return new FtpTransferTask(argRule, delay, "", session);
+			case MOVE:
+			case MOVERENAME:
+			case COPY:
+			case COPYRENAME:
+			case EXECMOVE:
+			case LINKRENAME:
+			case VALIDFILEPATH:
+			case DELETE:
+			case RESCHEDULE:
+			case TRANSCODE:
 			case RENAME:
-				return new RenameTask(argRule, delay, "", session);
+				throw new OpenR66RunnerErrorException("Unvalid Task: " +
+						type.name);
 			default:
 				logger.error("name unknown: " + type.name);
 				throw new OpenR66RunnerErrorException("Unvalid Task: " +

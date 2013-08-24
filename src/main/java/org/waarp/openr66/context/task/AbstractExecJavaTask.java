@@ -19,7 +19,6 @@ package org.waarp.openr66.context.task;
 
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
-import org.waarp.openr66.client.AbstractBusinessRequest;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66FiniteDualStates;
 import org.waarp.openr66.context.R66Result;
@@ -44,7 +43,6 @@ public abstract class AbstractExecJavaTask implements R66Runnable {
 			.getLogger(AbstractExecJavaTask.class);
 
 	protected int delay;
-	protected String[] args = null;
 	protected int status = -1;
 	protected R66Session session;
 	protected boolean waitForValidation;
@@ -56,7 +54,7 @@ public abstract class AbstractExecJavaTask implements R66Runnable {
 	protected boolean callFromBusiness;
 
 	/**
-	 * Server side methode to validate the request
+	 * Server side method to validate the request
 	 * 
 	 * @param packet
 	 */
@@ -126,42 +124,23 @@ public abstract class AbstractExecJavaTask implements R66Runnable {
 			}
 		}
 		StringBuilder builder = new StringBuilder(this.getClass().getSimpleName() + ":");
-		for (int i = 0; i < args.length; i++) {
-			builder.append(' ');
-			builder.append(args[i]);
-		}
+		builder.append("args(");
+		builder.append(fullarg);
+		builder.append(")");
 		logger.warn(builder.toString());
 		this.status = 0;
 	}
 
 	public void setArgs(R66Session session, boolean waitForValidation,
-			boolean useLocalExec, int delay, String[] args) {
+			boolean useLocalExec, int delay, String classname, String arg, boolean callFromBusiness, boolean isToValidate) {
 		this.session = session;
 		this.waitForValidation = waitForValidation;
 		this.useLocalExec = useLocalExec;
 		this.delay = delay;
-		this.args = args;
-		this.classname = args[0];
-		if (args.length > 2) {
-			callFromBusiness = this.args[this.args.length - 2].
-					equals(AbstractBusinessRequest.BUSINESSREQUEST);
-		}
-		if (callFromBusiness) {
-			isToValidate = Boolean.parseBoolean(this.args[this.args.length - 1]);
-			StringBuilder builder = new StringBuilder(args[1]);
-			for (int i = 2; i < args.length - 2; i++) {
-				builder.append(' ');
-				builder.append(args[i]);
-			}
-			fullarg = builder.toString();
-		} else {
-			StringBuilder builder = new StringBuilder(args[1]);
-			for (int i = 2; i < args.length; i++) {
-				builder.append(' ');
-				builder.append(args[i]);
-			}
-			fullarg = builder.toString();
-		}
+		this.classname = classname;
+		this.callFromBusiness = callFromBusiness;
+		this.fullarg = arg;
+		this.isToValidate = isToValidate;
 	}
 
 	public int getFinalStatus() {
@@ -171,12 +150,8 @@ public abstract class AbstractExecJavaTask implements R66Runnable {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder(this.getClass().getSimpleName() + ": [");
-		builder.append(args[0]);
+		builder.append(fullarg);
 		builder.append(']');
-		for (int i = 1; i < args.length; i++) {
-			builder.append(' ');
-			builder.append(args[i]);
-		}
 		return builder.toString();
 	}
 

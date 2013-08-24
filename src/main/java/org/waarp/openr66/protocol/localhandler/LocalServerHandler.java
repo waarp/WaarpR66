@@ -76,7 +76,6 @@ import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.role.RoleDefault.ROLE;
 import org.waarp.common.utility.WaarpStringUtils;
-import org.waarp.openr66.client.AbstractBusinessRequest;
 import org.waarp.openr66.commander.ClientRunner;
 import org.waarp.openr66.configuration.AuthenticationFileBasedConfiguration;
 import org.waarp.openr66.configuration.RuleFileBasedConfiguration;
@@ -3763,9 +3762,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		if (argTransfer) {
 			session.newState(BUSINESSD);
 		}
-		ExecJavaTask task = new ExecJavaTask(argRule + " " +
-				AbstractBusinessRequest.BUSINESSREQUEST + " " + argTransfer,
+		ExecJavaTask task = new ExecJavaTask(argRule + " " + argTransfer,
 				delay, null, session);
+		task.setBusinessRequest(true);
 		task.run();
 		session.setStatus(201);
 		if (task.isSuccess()) {

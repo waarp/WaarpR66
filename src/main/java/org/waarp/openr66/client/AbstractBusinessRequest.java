@@ -59,8 +59,6 @@ public abstract class AbstractBusinessRequest implements Runnable {
 			"Other options:\n" +
 			"  '-nolog' to not log locally this action\n";
 
-	public static final String BUSINESSREQUEST = "BusinessRequest";
-
 	protected final R66Future future;
 
 	protected final String remoteHost;

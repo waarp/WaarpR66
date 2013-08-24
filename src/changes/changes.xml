@@ -11,6 +11,9 @@
 		    <action dev="Frederic Bregier" type="fix">Fix EndTransfer error (size or Hash) not correctly set</action>
 		    <action dev="Frederic Bregier" type="fix">Fix CPUlimit handling - False not take into account -</action>
 		    <action dev="Frederic Bregier" type="fix">Fix File Size in transfer initialization</action>
+		    <action dev="Frederic Bregier" type="fix">Fix database initialization</action>
+		    <action dev="Frederic Bregier" type="fix">Fix ExecJava implementation - interface break up, but as not used anywhere, no issue -</action>
+		    <action dev="Frederic Bregier" type="add">Add support for Mariadb</action>
 		    <action dev="Frederic Bregier" type="add">Support for Spooled Directory Transfer</action>
 		    <action dev="Frederic Bregier" type="add">Support for Import exported logs</action>
 		</release>

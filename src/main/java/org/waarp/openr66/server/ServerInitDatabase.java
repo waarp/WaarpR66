@@ -80,6 +80,7 @@ public class ServerInitDatabase {
 		for (int i = 1; i < args.length; i++) {
 			if (args[i].equalsIgnoreCase("-initdb")) {
 				database = true;
+				FileBasedConfiguration.checkDatabase = false;
 			} else if (args[i].equalsIgnoreCase("-upgradeDb")) {
 				upgradeDb = true;
 			} else if (args[i].equalsIgnoreCase("-loadBusiness")) {
@@ -147,12 +148,7 @@ public class ServerInitDatabase {
 			}
 			if (upgradeDb) {
 				// try to upgrade DB schema
-				try {
-					upgradedb();
-				} catch (WaarpDatabaseNoConnectionException e) {
-					logger.error("Cannot connect to database");
-					return;
-				}
+				upgradedb();
 				System.out.println("End upgrade");
 			}
 			if (sdirconfig != null) {
@@ -276,7 +272,14 @@ public class ServerInitDatabase {
 		DbModelFactory.dbModel.createTables(DbConstant.admin.session);
 	}
 
-	public static boolean upgradedb() throws WaarpDatabaseNoConnectionException {
+	/**
+	 * 
+	 * @return True if the base is up to date, else False (need Upgrade)
+	 */
+	public static boolean upgradedb() {
+		if (logger == null) {
+			logger = WaarpInternalLoggerFactory.getLogger(ServerInitDatabase.class);
+		}
 		// Update tables: runner
 		boolean uptodate = true;
 		// Check if the database is up to date
