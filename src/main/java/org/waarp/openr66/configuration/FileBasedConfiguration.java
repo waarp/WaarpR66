@@ -1125,7 +1125,7 @@ public class FileBasedConfiguration {
 		if (value != null && (!value.isEmpty())) {
 			limitLowBandwidth = value.getLong();
 		}
-		if (useCpuLimit) {
+		if (useCpuLimit || highcpuLimit > 0) {
 			if (highcpuLimit > 0) {
 				config.constraintLimitHandler =
 						new R66ConstraintLimitHandler(useCpuLimit, useCpuLimitJDK, cpulimit, connlimit,
@@ -1137,7 +1137,7 @@ public class FileBasedConfiguration {
 			}
 		} else {
 			config.constraintLimitHandler =
-					new R66ConstraintLimitHandler(useCpuLimit, false, 0.0, 0);
+					new R66ConstraintLimitHandler();
 		}
 		value = hashConfig.get(XML_SERVER_THREAD);
 		if (value != null && (!value.isEmpty())) {
