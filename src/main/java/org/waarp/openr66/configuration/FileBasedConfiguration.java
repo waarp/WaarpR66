@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.sql.SQLException;
 import java.util.List;
 
 import org.dom4j.Document;
@@ -1470,6 +1471,17 @@ public class FileBasedConfiguration {
 				}
 				logger.info("Database connection: " + (DbConstant.admin != null) + ":"
 						+ (DbConstant.noCommitAdmin != null));
+				
+				try {
+					logger.info("DefaultTransactionIsolation: " +
+							DbConstant.admin.session.conn.getMetaData().getDefaultTransactionIsolation() +
+							" MaxConnections: " +
+							DbConstant.admin.session.conn.getMetaData().getMaxConnections() +
+							" MaxStatements: " +
+							DbConstant.admin.session.conn.getMetaData().getMaxStatements());
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
 			} catch (WaarpDatabaseNoConnectionException e2) {
 				logger.error("Unable to Connect to DB", e2);
 				return false;

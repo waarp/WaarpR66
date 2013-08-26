@@ -219,7 +219,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			}
 		}
 		if (mustFinalize && runner != null) {
-			if (runner.isSelfRequested()) {
+			if (runner.isSelfRequested() && localChannelReference != null) {
 				R66Future transfer = localChannelReference.getFutureRequest();
 				// Since requested : log
 				R66Result result = transfer.getResult();
@@ -279,6 +279,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				clientRunner.interrupt();
 			}
 		}
+		if (localChannelReference != null) {
+			localChannelReference.close();
+		}
 	}
 
 	/*
@@ -318,10 +321,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					Channels.write(e.getChannel(), errorPacket).await();
 				} catch (InterruptedException e1) {
 				}
-				localChannelReference.invalidateRequest(new R66Result(
-						new OpenR66ProtocolSystemException(
-								"No LocalChannelReference"), session, true,
-						ErrorCode.ConnectionImpossible, null));
 				ChannelUtils.close(e.getChannel());
 				if (Configuration.configuration.r66Mib != null) {
 					Configuration.configuration.r66Mib.notifyWarning(
@@ -580,8 +579,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
 							.getMessage(),
 							code.getCode(), ErrorPacket.FORWARDCLOSECODE);
 					try {
-						ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+						if (localChannelReference != null) {
+							ChannelUtils.writeAbstractLocalPacket(localChannelReference,
 								errorPacket, true);
+						}
 					} catch (OpenR66ProtocolPacketException e1) {
 						// should not be
 					}
@@ -739,7 +740,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		localChannelReference.setPartner(packet.getHostId());
 		// Now if configuration say to do so: check remote ip address
 		if (Configuration.configuration.checkRemoteAddress && ! localChannelReference.getPartner().isProxified()) {
-			DbHostAuth host = R66Auth.getServerAuth(DbConstant.admin.session,
+			DbHostAuth host = R66Auth.getServerAuth(localChannelReference.getDbSession(),
 					packet.getHostId());
 			boolean toTest = false;
 			if (host.isClient()) {
@@ -2490,7 +2491,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					if (bhostPurge) {
 						// Need to first delete all entries
 						try {
-							oldHosts = DbHostAuth.deleteAll(DbConstant.admin.session);
+							oldHosts = DbHostAuth.deleteAll(localChannelReference.getDbSession());
 						} catch (WaarpDatabaseException e) {
 							// ignore
 						}
@@ -2524,7 +2525,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					if (brulePurge) {
 						// Need to first delete all entries
 						try {
-							oldRules = DbRule.deleteAll(DbConstant.admin.session);
+							oldRules = DbRule.deleteAll(localChannelReference.getDbSession());
 						} catch (WaarpDatabaseException e) {
 							// ignore
 						}
@@ -3307,7 +3308,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 						if (bhostPurge) {
 							// Need to first delete all entries
 							try {
-								oldHosts = DbHostAuth.deleteAll(DbConstant.admin.session);
+								oldHosts = DbHostAuth.deleteAll(localChannelReference.getDbSession());
 							} catch (WaarpDatabaseException e) {
 								// ignore
 							}
@@ -3357,7 +3358,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 						if (brulePurge) {
 							// Need to first delete all entries
 							try {
-								oldRules = DbRule.deleteAll(DbConstant.admin.session);
+								oldRules = DbRule.deleteAll(localChannelReference.getDbSession());
 							} catch (WaarpDatabaseException e) {
 								// ignore
 							}

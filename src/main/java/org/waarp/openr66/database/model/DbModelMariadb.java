@@ -39,7 +39,7 @@ import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.utils.R66Versions;
 
 /**
- * MySQL Database Model implementation
+ * MariaDB Database Model implementation
  * 
  * @author Frederic Bregier
  * 
@@ -420,7 +420,7 @@ public class DbModelMariadb extends org.waarp.common.database.model.DbModelMaria
 		DbRequest request = null;
 		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_13.getVersion())) {
 			try {
-				request = new DbRequest(DbConstant.admin.session);
+				request = new DbRequest(session);
 				request.select("select "+DbHostConfiguration.Columns.HOSTID.name()+" from "+DbHostConfiguration.table+
 						" where "+DbHostConfiguration.Columns.HOSTID+" = '"+Configuration.configuration.HOST_ID+"'");
 				request.close();
@@ -436,7 +436,7 @@ public class DbModelMariadb extends org.waarp.common.database.model.DbModelMaria
 		request = null;
 		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_17.getVersion())) {
 			try {
-				request = new DbRequest(DbConstant.admin.session);
+				request = new DbRequest(session);
 				request.select("select "+DbTaskRunner.Columns.TRANSFERINFO.name()+" from "+DbTaskRunner.table+
 						" where "+DbTaskRunner.Columns.SPECIALID+" = "+DbConstant.ILLEGALVALUE);
 				request.close();
