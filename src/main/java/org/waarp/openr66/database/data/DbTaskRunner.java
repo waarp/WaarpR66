@@ -2785,6 +2785,10 @@ public class DbTaskRunner extends AbstractDbData {
 				int poststep = this.step;
 				this.setPostTask();
 				this.saveStatus();
+				// in case of error
+				R66Result error =
+						new R66Result(this.session, finalValue.isAnswered,
+								ErrorCode.FinalOp, this);
 				if (!isRecvThrough()) {
 					if (this.globalstep == TASKSTEP.TRANSFERTASK.ordinal() ||
 							(this.globalstep == TASKSTEP.POSTTASK.ordinal() &&
@@ -2802,6 +2806,7 @@ public class DbTaskRunner extends AbstractDbData {
 								if (localChannelReference != null) {
 									localChannelReference.invalidateRequest(result);
 								}
+								errorTransfer(error, file, localChannelReference);
 								throw e;
 							}
 						} catch (OpenR66ProtocolSystemException e) {
@@ -2812,6 +2817,7 @@ public class DbTaskRunner extends AbstractDbData {
 							if (localChannelReference != null) {
 								localChannelReference.invalidateRequest(result);
 							}
+							errorTransfer(error, file, localChannelReference);
 							throw e;
 						} catch (CommandAbstractException e) {
 							R66Result result = new R66Result(
@@ -2822,6 +2828,7 @@ public class DbTaskRunner extends AbstractDbData {
 							if (localChannelReference != null) {
 								localChannelReference.invalidateRequest(result);
 							}
+							errorTransfer(error, file, localChannelReference);
 							throw (OpenR66RunnerErrorException) result.exception;
 						}
 						logger.debug("File finally moved: {}", file);
@@ -2847,6 +2854,7 @@ public class DbTaskRunner extends AbstractDbData {
 									if (localChannelReference != null) {
 										localChannelReference.invalidateRequest(result);
 									}
+									errorTransfer(error, file, localChannelReference);
 									throw (OpenR66RunnerErrorException) result.exception;
 								}
 							} catch (IOException e) {
@@ -2858,6 +2866,7 @@ public class DbTaskRunner extends AbstractDbData {
 								if (localChannelReference != null) {
 									localChannelReference.invalidateRequest(result);
 								}
+								errorTransfer(error, file, localChannelReference);
 								throw (OpenR66RunnerErrorException) result.exception;
 							}
 						}

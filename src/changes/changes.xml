@@ -8,6 +8,7 @@
 	    <release version="2.4.18" date="2013-08-28" description="Fix release">
 		    <action dev="Frederic Bregier" type="fix">Fix Multiple commands</action>
 		    <action dev="Frederic Bregier" type="fix">Fix Issue on null String</action>
+		    <action dev="Frederic Bregier" type="fix">Fix Issue on Full/relative path while all are relative</action>
 		    <action dev="Frederic Bregier" type="fix">Fix EndTransfer error (size or Hash) not correctly set</action>
 		    <action dev="Frederic Bregier" type="fix">Fix CPUlimit handling - False not take into account -</action>
 		    <action dev="Frederic Bregier" type="fix">Fix File Size in transfer initialization</action>
