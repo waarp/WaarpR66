@@ -57,6 +57,20 @@ public class LogExport implements Runnable {
 	 */
 	static volatile WaarpInternalLogger logger;
 
+	protected static String _INFO_ARGS = 
+			"Need at least the configuration file as first argument then optionally\n"
+					+
+					"    -purge\n"
+					+
+					"    -clean\n"
+					+
+					"    -start timestamp in format yyyyMMddHHmmssSSS possibly truncated and where one of ':-. ' can be separators\n"
+					+
+					"    -stop timestamp in same format than start\n" +
+					"If not start and no stop are given, stop is Today Midnight (00:00:00)\n" +
+					"If start is equals or greater than stop, stop is start+24H\n"+
+					"    -host host (optional)";
+	
 	protected final R66Future future;
 	protected final boolean purgeLog;
 	protected final Timestamp start;
@@ -148,34 +162,12 @@ public class LogExport implements Runnable {
 
 	protected static boolean getParams(String[] args) {
 		if (args.length < 1) {
-			logger.error("Need at least the configuration file as first argument then optionally\n"
-					+
-					"    -purge\n"
-					+
-					"    -clean\n"
-					+
-					"    -start timestamp in format yyyyMMddHHmmssSSS possibly truncated and where one of ':-. ' can be separators\n"
-					+
-					"    -stop timestamp in same format than start\n" +
-					"If not start and no stop are given, stop is Today Midnight (00:00:00)\n" +
-					"If start is equals or greater than stop, stop is start+24H\n"+
-					"    -host host (optional)");
+			logger.error(_INFO_ARGS);
 			return false;
 		}
 		if (!FileBasedConfiguration
 				.setClientConfigurationFromXml(Configuration.configuration, args[0])) {
-			logger.error("Need at least the configuration file as first argument then optionally\n"
-					+
-					"    -purge\n"
-					+
-					"    -clean\n"
-					+
-					"    -start timestamp in format yyyyMMddHHmmssSSS possibly truncated and where one of ':-. ' can be separators\n"
-					+
-					"    -stop timestamp in same format than start\n" +
-					"If not start and no stop are given, stop is Today Midnight (00:00:00)\n" +
-					"If start is equals or greater than stop, stop is start+24H\n"+
-					"    -host host (optional)");
+			logger.error(_INFO_ARGS);
 			return false;
 		}
 		String ssstart = null;

@@ -116,7 +116,24 @@ public class TestBusinessRequest extends AbstractBusinessRequest {
 		long time3 = System.currentTimeMillis();
 		logger.warn("Success: " + success + " Error: " + error + " NB/s: " +
 				1000 / (time3 - time2));
-		
+
+		future = new R66Future(true);
+		classname = BusinessRequest.DEFAULT_CLASS;
+		packet =
+				new BusinessRequestPacket(classname + " EXECJAVA "+TestExecJavaTask.class.getName()+" business 0 other arguments 0", 0);
+		transaction = new BusinessRequest(
+				networkTransaction, future, host.getHostid(), packet);
+		transaction.run();
+		future.awaitUninterruptibly();
+		if (future.isSuccess()) {
+			success ++;
+		} else {
+			error ++;
+		}
+		long time4 = System.currentTimeMillis();
+		logger.warn("Success: " + success + " Error: " + error + " NB/s: " +
+				1000 / (time4 - time3));
+
 		executorService.shutdown();
 		networkTransaction.closeAll();
 	}

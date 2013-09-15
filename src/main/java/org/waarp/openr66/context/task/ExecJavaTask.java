@@ -35,6 +35,7 @@ import org.waarp.openr66.context.R66Session;
  * 
  */
 public class ExecJavaTask extends AbstractTask {
+	protected boolean businessRequest = false;
 
 	/**
 	 * Internal Logger
@@ -53,6 +54,13 @@ public class ExecJavaTask extends AbstractTask {
 		super(TaskType.EXECJAVA, delay, argRule, argTransfer, session);
 	}
 
+	/**
+	 * Set the type
+	 * @param businessRequest
+	 */
+	public void setBusinessRequest(boolean businessRequest) {
+		this.businessRequest = businessRequest;
+	}
 	/*
 	 * (non-Javadoc)
 	 * @see org.waarp.openr66.context.task.AbstractTask#run()
@@ -85,8 +93,14 @@ public class ExecJavaTask extends AbstractTask {
 			futureCompletion.cancel();
 			return;
 		}
-		runnable.setArgs(this.session, this.waitForValidation, this.useLocalExec,
-				this.delay, args);
+		if (businessRequest) {
+			boolean istovalidate = Boolean.parseBoolean(args[args.length-1]);
+			runnable.setArgs(this.session, this.waitForValidation, this.useLocalExec,
+				this.delay, className, finalname.substring(finalname.indexOf(' ')+1, finalname.lastIndexOf(' ')), businessRequest, istovalidate);
+		} else {
+			runnable.setArgs(this.session, this.waitForValidation, this.useLocalExec,
+					this.delay, className, finalname.substring(className.length()+1), businessRequest, false);
+		}
 		logger.debug(className + " " + runnable.getClass().getName());
 		if (!waitForValidation) {
 			// Do not wait for validation

@@ -5,6 +5,20 @@
 		<author email="waarp1 at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+	    <release version="2.4.18" date="2013-09-15" description="Fix release">
+		    <action dev="Frederic Bregier" type="fix">Fix Multiple commands</action>
+		    <action dev="Frederic Bregier" type="fix">Fix Issue on null String</action>
+		    <action dev="Frederic Bregier" type="fix">Fix Issue on Full/relative path while all are relative</action>
+		    <action dev="Frederic Bregier" type="fix">Fix EndTransfer error (size or Hash) not correctly set</action>
+		    <action dev="Frederic Bregier" type="fix">Fix CPUlimit handling - False not take into account -</action>
+		    <action dev="Frederic Bregier" type="fix">Fix File Size in transfer initialization</action>
+		    <action dev="Frederic Bregier" type="fix">Fix database initialization</action>
+		    <action dev="Frederic Bregier" type="fix">Fix ExecJava implementation - interface break up, but as not used anywhere, no issue -</action>
+		    <action dev="Frederic Bregier" type="add">Add support for Mariadb</action>
+		    <action dev="Frederic Bregier" type="add">Support for Spooled Directory Transfer</action>
+		    <action dev="Frederic Bregier" type="add">Support for Import exported logs</action>
+		    <action dev="Frederic Bregier" type="fix">Fix support for extended methods using JSON Command format using class as container</action>
+		</release>
 		<release version="2.4.17" date="2013-07-28" description="Improvement release">
 			<action dev="Frederic Bregier" type="add">Add support for adaptative protocol with "old" versions 2.4.x to new versions</action>
 		    <action dev="Frederic Bregier" type="fix">Fix different Hash algorithm support from partner</action>
@@ -12,7 +26,6 @@
 		    <action dev="Frederic Bregier" type="fix">Log are on one line</action>
 		    <action dev="Frederic Bregier" type="fix">Fix RESCHEDULE storage of the counter of retries: task definition changes</action>
 		    <action dev="Frederic Bregier" type="add">Add support to explicitely said to partner one host is proxified, in order they do not check its IP address</action>
-		    <action dev="Frederic Bregier" type="add">Add support in web administration for BUSINESS, ROLE and ALIAS</action>
 		    <action dev="Frederic Bregier" type="add">Add support in web administration for BUSINESS, ROLE and ALIAS</action>
 		    <action dev="Frederic Bregier" type="add">Add support for extended methods using JSON Command format</action>
 			<action dev="Frederic Bregier" type="fix">Fix Move File not correctly tested</action>

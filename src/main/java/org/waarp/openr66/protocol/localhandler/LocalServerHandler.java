@@ -71,12 +71,10 @@ import org.waarp.common.digest.FilesystemBasedDigest.DigestAlgo;
 import org.waarp.common.exception.FileTransferException;
 import org.waarp.common.exception.InvalidArgumentException;
 import org.waarp.common.file.DataBlock;
-import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.role.RoleDefault.ROLE;
 import org.waarp.common.utility.WaarpStringUtils;
-import org.waarp.openr66.client.AbstractBusinessRequest;
 import org.waarp.openr66.commander.ClientRunner;
 import org.waarp.openr66.configuration.AuthenticationFileBasedConfiguration;
 import org.waarp.openr66.configuration.RuleFileBasedConfiguration;
@@ -133,6 +131,17 @@ import org.waarp.openr66.protocol.localhandler.packet.ShutdownPacket;
 import org.waarp.openr66.protocol.localhandler.packet.StartupPacket;
 import org.waarp.openr66.protocol.localhandler.packet.TestPacket;
 import org.waarp.openr66.protocol.localhandler.packet.ValidPacket;
+import org.waarp.openr66.protocol.localhandler.packet.json.BandwidthJsonPacket;
+import org.waarp.openr66.protocol.localhandler.packet.json.ConfigExportJsonPacket;
+import org.waarp.openr66.protocol.localhandler.packet.json.ConfigExportResponseJsonPacket;
+import org.waarp.openr66.protocol.localhandler.packet.json.ConfigImportJsonPacket;
+import org.waarp.openr66.protocol.localhandler.packet.json.ConfigImportResponseJsonPacket;
+import org.waarp.openr66.protocol.localhandler.packet.json.JsonPacket;
+import org.waarp.openr66.protocol.localhandler.packet.json.LogJsonPacket;
+import org.waarp.openr66.protocol.localhandler.packet.json.LogResponseJsonPacket;
+import org.waarp.openr66.protocol.localhandler.packet.json.RequestJsonPacket;
+import org.waarp.openr66.protocol.localhandler.packet.json.StopOrCancelJsonPacket;
+import org.waarp.openr66.protocol.localhandler.packet.json.ValidJsonPacket;
 import org.waarp.openr66.protocol.networkhandler.NetworkChannel;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelCloseTimer;
@@ -141,8 +150,6 @@ import org.waarp.openr66.protocol.utils.FileUtils;
 import org.waarp.openr66.protocol.utils.NbAndSpecialId;
 import org.waarp.openr66.protocol.utils.R66Future;
 import org.waarp.openr66.protocol.utils.TransferUtils;
-
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * The local server handler handles real end file operations.
@@ -220,7 +227,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			}
 		}
 		if (mustFinalize && runner != null) {
-			if (runner.isSelfRequested()) {
+			if (runner.isSelfRequested() && localChannelReference != null) {
 				R66Future transfer = localChannelReference.getFutureRequest();
 				// Since requested : log
 				R66Result result = transfer.getResult();
@@ -280,6 +287,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				clientRunner.interrupt();
 			}
 		}
+		if (localChannelReference != null) {
+			localChannelReference.close();
+		}
 	}
 
 	/*
@@ -319,10 +329,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					Channels.write(e.getChannel(), errorPacket).await();
 				} catch (InterruptedException e1) {
 				}
-				localChannelReference.invalidateRequest(new R66Result(
-						new OpenR66ProtocolSystemException(
-								"No LocalChannelReference"), session, true,
-						ErrorCode.ConnectionImpossible, null));
 				ChannelUtils.close(e.getChannel());
 				if (Configuration.configuration.r66Mib != null) {
 					Configuration.configuration.r66Mib.notifyWarning(
@@ -581,8 +587,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
 							.getMessage(),
 							code.getCode(), ErrorPacket.FORWARDCLOSECODE);
 					try {
-						ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+						if (localChannelReference != null) {
+							ChannelUtils.writeAbstractLocalPacket(localChannelReference,
 								errorPacket, true);
+						}
 					} catch (OpenR66ProtocolPacketException e1) {
 						// should not be
 					}
@@ -740,7 +748,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		localChannelReference.setPartner(packet.getHostId());
 		// Now if configuration say to do so: check remote ip address
 		if (Configuration.configuration.checkRemoteAddress && ! localChannelReference.getPartner().isProxified()) {
-			DbHostAuth host = R66Auth.getServerAuth(DbConstant.admin.session,
+			DbHostAuth host = R66Auth.getServerAuth(localChannelReference.getDbSession(),
 					packet.getHostId());
 			boolean toTest = false;
 			if (host.isClient()) {
@@ -1299,11 +1307,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					runner.getFilename());
 			session.newState(VALID);
 			if (localChannelReference.getPartner().useJson()) {
-				ObjectNode node = JsonHandler.createObjectNode();
-				JsonHandler.setValue(node, JsonCommandPacket.REQUESTPACKET.comment, "Change Filename by Pre action on sender");
-				JsonHandler.setValue(node, JsonCommandPacket.REQUESTPACKET.filename, runner.getFilename());
-				JsonHandler.setValue(node, JsonCommandPacket.REQUESTPACKET.filesize, packet.getOriginalSize());
-				JsonCommandPacket validPacket = new JsonCommandPacket(node,
+				RequestJsonPacket request = new RequestJsonPacket();
+				request.setComment("Change Filename by Pre action on sender");
+				request.setFilename(runner.getFilename());
+				request.setFilesize(packet.getOriginalSize());
+				JsonCommandPacket validPacket = new JsonCommandPacket(request,
 						LocalPacketFactory.REQUESTPACKET);
 				ChannelUtils.writeAbstractLocalPacket(localChannelReference,
 						validPacket, true);
@@ -1324,11 +1332,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					runner.getFilename());
 			session.newState(VALID);
 			if (localChannelReference.getPartner().useJson()) {
-				ObjectNode node = JsonHandler.createObjectNode();
-				JsonHandler.setValue(node, JsonCommandPacket.REQUESTPACKET.comment, "Change Filename by Wildcard on sender");
-				JsonHandler.setValue(node, JsonCommandPacket.REQUESTPACKET.filename, runner.getFilename());
-				JsonHandler.setValue(node, JsonCommandPacket.REQUESTPACKET.filesize, packet.getOriginalSize());
-				JsonCommandPacket validPacket = new JsonCommandPacket(node,
+				RequestJsonPacket request = new RequestJsonPacket();
+				request.setComment("Change Filename by Wildcard on sender");
+				request.setFilename(runner.getFilename());
+				request.setFilesize(packet.getOriginalSize());
+				JsonCommandPacket validPacket = new JsonCommandPacket(request,
 						LocalPacketFactory.REQUESTPACKET);
 				ChannelUtils.writeAbstractLocalPacket(localChannelReference,
 						validPacket, true);
@@ -1349,11 +1357,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					runner.getFilename());
 			session.newState(VALID);
 			if (localChannelReference.getPartner().useJson()) {
-				ObjectNode node = JsonHandler.createObjectNode();
-				JsonHandler.setValue(node, JsonCommandPacket.REQUESTPACKET.comment, "Change Filename by Wildcard on sender");
-				JsonHandler.setValue(node, JsonCommandPacket.REQUESTPACKET.filename, runner.getFilename());
-				JsonHandler.setValue(node, JsonCommandPacket.REQUESTPACKET.filesize, packet.getOriginalSize());
-				JsonCommandPacket validPacket = new JsonCommandPacket(node,
+				RequestJsonPacket request = new RequestJsonPacket();
+				request.setComment("Change Filename by Wildcard on sender");
+				request.setFilename(runner.getFilename());
+				request.setFilesize(packet.getOriginalSize());
+				JsonCommandPacket validPacket = new JsonCommandPacket(request,
 						LocalPacketFactory.REQUESTPACKET);
 				ChannelUtils.writeAbstractLocalPacket(localChannelReference,
 						validPacket, true);
@@ -1370,11 +1378,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					runner.getOriginalSize());
 			session.newState(VALID);
 			if (localChannelReference.getPartner().useJson()) {
-				ObjectNode node = JsonHandler.createObjectNode();
-				JsonHandler.setValue(node, JsonCommandPacket.REQUESTPACKET.comment, "Change Filensize on sender");
-				JsonHandler.setValue(node, JsonCommandPacket.REQUESTPACKET.filename, runner.getFilename());
-				JsonHandler.setValue(node, JsonCommandPacket.REQUESTPACKET.filesize, packet.getOriginalSize());
-				JsonCommandPacket validPacket = new JsonCommandPacket(node,
+				RequestJsonPacket request = new RequestJsonPacket();
+				request.setComment("Change Filensize on sender");
+				request.setFilename(runner.getFilename());
+				request.setFilesize(packet.getOriginalSize());
+				JsonCommandPacket validPacket = new JsonCommandPacket(request,
 						LocalPacketFactory.REQUESTPACKET);
 				ChannelUtils.writeAbstractLocalPacket(localChannelReference,
 						validPacket, true);
@@ -1652,7 +1660,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					if (!session.getRunner().isRecvThrough() && session.getFile().length() != originalSize) {
 						R66Result result = new R66Result(new OpenR66RunnerErrorException("Final size in error, transfer in error and rank should be reset to 0"),
 								session, true, ErrorCode.TransferError, session.getRunner());
-						localChannelReference.invalidateRequest(result);
+						try {
+							session.setFinalizeTransfer(false, result);
+						} catch (OpenR66RunnerErrorException e) {
+						} catch (OpenR66ProtocolSystemException e) {
+						}
 						ErrorPacket error = new ErrorPacket(
 								"Final size in error, transfer in error and rank should be reset to 0",
 								ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
@@ -1680,7 +1692,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					R66Result result = new R66Result(new OpenR66RunnerErrorException("Global Hash in error, transfer in error and rank should be reset to 0 (using "+
 							localChannelReference.getPartner().getDigestAlgo().name+")"),
 							session, true, ErrorCode.MD5Error, session.getRunner());
-					localChannelReference.invalidateRequest(result);
+					try {
+						session.setFinalizeTransfer(false, result);
+					} catch (OpenR66RunnerErrorException e) {
+					} catch (OpenR66ProtocolSystemException e) {
+					}
 					ErrorPacket error = new ErrorPacket(
 							"Global Hash in error, transfer in error and rank should be reset to 0 (using "+
 							localChannelReference.getPartner().getDigestAlgo().name+")",
@@ -1717,7 +1733,51 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				R66Result result = new R66Result(session, false,
 						ErrorCode.TransferOk, session.getRunner());
 				session.newState(ENDTRANSFERR);
-				session.setFinalizeTransfer(true, result);
+				try {
+					session.setFinalizeTransfer(true, result);
+				} catch (OpenR66RunnerErrorException e) {
+					// TODO
+					session.newState(ERROR);
+					ErrorPacket error = null;
+					if (localChannelReference.getFutureRequest().getResult() != null) {
+						result = localChannelReference.getFutureRequest().getResult();
+						error = new ErrorPacket(
+							"Error while finalizing transfer: "+result.getMessage(),
+							result.code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+					} else {
+						error = new ErrorPacket(
+								"Error while finalizing transfer",
+								ErrorCode.FinalOp.getCode(), ErrorPacket.FORWARDCLOSECODE);
+					}
+					try {
+						ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
+					} catch (OpenR66ProtocolPacketException e1) {
+					}
+					session.setStatus(23);
+					ChannelCloseTimer.closeFutureChannel(channel);
+					return;
+				} catch (OpenR66ProtocolSystemException e) {
+					// TODO
+					session.newState(ERROR);
+					ErrorPacket error = null;
+					if (localChannelReference.getFutureRequest().getResult() != null) {
+						result = localChannelReference.getFutureRequest().getResult();
+						error = new ErrorPacket(
+							"Error while finalizing transfer: "+result.getMessage(),
+							result.code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+					} else {
+						error = new ErrorPacket(
+								"Error while finalizing transfer",
+								ErrorCode.FinalOp.getCode(), ErrorPacket.FORWARDCLOSECODE);
+					}
+					try {
+						ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
+					} catch (OpenR66ProtocolPacketException e1) {
+					}
+					session.setStatus(23);
+					ChannelCloseTimer.closeFutureChannel(channel);
+					return;
+				}
 				// Now can send validation
 				packet.validate();
 				try {
@@ -1740,7 +1800,51 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				// Validation of end of transfer
 				R66Result result = new R66Result(session, false,
 						ErrorCode.TransferOk, session.getRunner());
-				session.setFinalizeTransfer(true, result);
+				try {
+					session.setFinalizeTransfer(true, result);
+				} catch (OpenR66RunnerErrorException e) {
+					// TODO
+					session.newState(ERROR);
+					ErrorPacket error = null;
+					if (localChannelReference.getFutureRequest().getResult() != null) {
+						result = localChannelReference.getFutureRequest().getResult();
+						error = new ErrorPacket(
+							"Error while finalizing transfer: "+result.getMessage(),
+							result.code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+					} else {
+						error = new ErrorPacket(
+								"Error while finalizing transfer",
+								ErrorCode.FinalOp.getCode(), ErrorPacket.FORWARDCLOSECODE);
+					}
+					try {
+						ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
+					} catch (OpenR66ProtocolPacketException e1) {
+					}
+					session.setStatus(23);
+					ChannelCloseTimer.closeFutureChannel(channel);
+					return;
+				} catch (OpenR66ProtocolSystemException e) {
+					// TODO
+					session.newState(ERROR);
+					ErrorPacket error = null;
+					if (localChannelReference.getFutureRequest().getResult() != null) {
+						result = localChannelReference.getFutureRequest().getResult();
+						error = new ErrorPacket(
+							"Error while finalizing transfer: "+result.getMessage(),
+							result.code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+					} else {
+						error = new ErrorPacket(
+								"Error while finalizing transfer",
+								ErrorCode.FinalOp.getCode(), ErrorPacket.FORWARDCLOSECODE);
+					}
+					try {
+						ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
+					} catch (OpenR66ProtocolPacketException e1) {
+					}
+					session.setStatus(23);
+					ChannelCloseTimer.closeFutureChannel(channel);
+					return;
+				}
 			}
 		}
 	}
@@ -1898,7 +2002,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
 							localChannelReference.getSession(), null, 
 							id, remote, local);
 				} catch (WaarpDatabaseException e) {
-					logger.error("RunnerTask is not found: " + packet.getRulename(), e);
+					logger.error("RunnerTask is not found: " + packet.getRulename());
+					logger.debug("RunnerTask is not found: " + packet.getRulename(), e);
 					throw new OpenR66ProtocolNoDataException("Remote starting RunnerTask is not found: " + packet.getRulename(), e);
 				}
 			} else {
@@ -1907,6 +2012,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 							localChannelReference.getSession(), null, 
 							id, local, remote);
 				} catch (WaarpDatabaseException e) {
+					logger.debug("RunnerTask is not found: " + packet.getRulename() + ":" +id);
 					logger.error("RunnerTask is not found: " + packet.getRulename() + ":" +id, e);
 					throw new OpenR66ProtocolNoDataException("Local starting RunnerTask is not found: " + packet.getRulename(), e);
 				}
@@ -2491,7 +2597,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					if (bhostPurge) {
 						// Need to first delete all entries
 						try {
-							oldHosts = DbHostAuth.deleteAll(DbConstant.admin.session);
+							oldHosts = DbHostAuth.deleteAll(localChannelReference.getDbSession());
 						} catch (WaarpDatabaseException e) {
 							// ignore
 						}
@@ -2525,7 +2631,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					if (brulePurge) {
 						// Need to first delete all entries
 						try {
-							oldRules = DbRule.deleteAll(DbConstant.admin.session);
+							oldRules = DbRule.deleteAll(localChannelReference.getDbSession());
 						} catch (WaarpDatabaseException e) {
 							// ignore
 						}
@@ -2759,6 +2865,28 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			throw new OpenR66ProtocolNotAuthenticatedException(
 					"Not authenticated while Valid received");
 		}
+		JsonPacket json = packet.getJsonRequest();
+		if (json == null) {
+			ErrorCode code = ErrorCode.CommandNotFound;
+			R66Result resulttest = new R66Result(session, true,
+					code, session.getRunner());
+			json = new JsonPacket();
+			json.setComment("Invalid command");
+			json.setRequestUserPacket(packet.getTypeValid());
+			JsonCommandPacket valid = new JsonCommandPacket(json, resulttest.code.getCode(),
+					LocalPacketFactory.REQUESTUSERPACKET);
+			resulttest.other = packet;
+			localChannelReference.validateRequest(resulttest);
+			try {
+				ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+						valid, true);
+			} catch (OpenR66ProtocolPacketException e) {
+			}
+			session.setStatus(99);
+			Channels.close(channel);
+			return;
+		}
+		json.setRequestUserPacket(packet.getTypeValid());
 		switch (packet.getTypeValid()) {
 			case LocalPacketFactory.STOPPACKET:
 			case LocalPacketFactory.CANCELPACKET: {
@@ -2775,18 +2903,16 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					throw new OpenR66ProtocolNotAuthenticatedException(
 							"Not correctly authenticated since SSL is not supported", e1);
 				}
-				ObjectNode node = packet.getNodeRequest();
 				R66Result resulttest;
-				if (! JsonHandler.exist(node, JsonCommandPacket.STOPorCANCELPACKET.requested, 
-						JsonCommandPacket.STOPorCANCELPACKET.requester,
-						JsonCommandPacket.STOPorCANCELPACKET.specialid)) {
+				StopOrCancelJsonPacket node = (StopOrCancelJsonPacket) json;
+				if (node.getRequested() == null || node.getRequester() == null || node.getSpecialid() == DbConstant.ILLEGALVALUE) {
 					ErrorCode code = ErrorCode.CommandNotFound;
 					resulttest = new R66Result(session, true,
 							code, session.getRunner());
 				} else {
-					String reqd = JsonHandler.getString(node, JsonCommandPacket.STOPorCANCELPACKET.requested);
-					String reqr = JsonHandler.getString(node, JsonCommandPacket.STOPorCANCELPACKET.requester);
-					long id = JsonHandler.getValue(node, JsonCommandPacket.STOPorCANCELPACKET.specialid, DbConstant.ILLEGALVALUE);
+					String reqd = node.getRequested();
+					String reqr = node.getRequester();
+					long id = node.getSpecialid();
 					String key = reqd+" "+reqr+" "+id;
 					// header = ?; middle = requested+blank+requester+blank+specialId
 					LocalChannelReference lcr =
@@ -2827,8 +2953,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					}
 				}
 				// inform back the requester
-				JsonHandler.setValue(node, JsonCommandPacket.REQUESTUSERPACKET.command, packet.getTypeValid());
-				JsonCommandPacket valid = new JsonCommandPacket(node, resulttest.code.getCode(),
+				JsonCommandPacket valid = new JsonCommandPacket(json, resulttest.code.getCode(),
 						LocalPacketFactory.REQUESTUSERPACKET);
 				resulttest.other = packet;
 				localChannelReference.validateRequest(resulttest);
@@ -2862,9 +2987,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 							+ packet.getRequest());
 					session.setStatus(100);
 					JsonCommandPacket valid;
-					ObjectNode node = packet.getNodeRequest();
-					JsonHandler.setValue(node, JsonCommandPacket.REQUESTUSERPACKET.command, packet.getTypeValid());
-					valid = new JsonCommandPacket(node,
+					valid = new JsonCommandPacket(json,
 							ErrorCode.ServerOverloaded.getCode(),
 							LocalPacketFactory.REQUESTUSERPACKET);
 					R66Result resulttest = new R66Result(null, session, true,
@@ -2883,14 +3006,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				// Try to validate a restarting transfer
 				// header = ?; middle = requested+blank+requester+blank+specialId
 				// note: might contains one more argument = time to reschedule in yyyyMMddHHmmss format
-				ObjectNode node = packet.getNodeRequest();
+				ValidJsonPacket node = (ValidJsonPacket) json;
 				JsonCommandPacket valid;
-				if (! JsonHandler.exist(node, JsonCommandPacket.VALIDPACKET.requested, 
-						JsonCommandPacket.VALIDPACKET.requester,
-						JsonCommandPacket.VALIDPACKET.specialid)) {
+				if (node.getRequested() == null || node.getRequester() == null || node.getSpecialid() == DbConstant.ILLEGALVALUE) {
 					// not enough args
-					JsonHandler.setValue(node, JsonCommandPacket.REQUESTUSERPACKET.command, packet.getTypeValid());
-					valid = new JsonCommandPacket(node,
+					valid = new JsonCommandPacket(json,
 							ErrorCode.Internal.getCode(),
 							LocalPacketFactory.REQUESTUSERPACKET);
 					R66Result resulttest = new R66Result(
@@ -2900,25 +3020,20 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					resulttest.other = packet;
 					localChannelReference.invalidateRequest(resulttest);
 				} else {
-					String reqd = JsonHandler.getString(node, JsonCommandPacket.VALIDPACKET.requested);
-					String reqr = JsonHandler.getString(node, JsonCommandPacket.VALIDPACKET.requester);
-					long id = JsonHandler.getValue(node, JsonCommandPacket.VALIDPACKET.specialid, DbConstant.ILLEGALVALUE);
+					String reqd = node.getRequested();
+					String reqr = node.getRequester();
+					long id = node.getSpecialid();
 					DbTaskRunner taskRunner = null;
 					try {
 						taskRunner = new DbTaskRunner(localChannelReference.getDbSession(), session,
 								null, id, reqr, reqd);
 						Timestamp timestart = null;
-						String time = JsonHandler.getString(node, JsonCommandPacket.VALIDPACKET.restarttime);
-						if (time != null) {
+						Date date = node.getRestarttime();
+						if (date != null) {
 							// time to reschedule in yyyyMMddHHmmss format
-							logger.debug("Debug: restart with "+time);
-							SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
-							try {
-								Date date = dateFormat.parse(time);
-								timestart = new Timestamp(date.getTime());
-								taskRunner.setStart(timestart);
-							} catch (ParseException e) {
-							}
+							logger.debug("Debug: restart with "+date);
+							timestart = new Timestamp(date.getTime());
+							taskRunner.setStart(timestart);
 						}
 						LocalChannelReference lcr =
 								Configuration.configuration.getLocalTransaction().
@@ -2926,13 +3041,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
 						// since it comes from a request transfer, cannot redo it
 						logger.info("Will try to restart: "+taskRunner.toShortString());
 						R66Result resulttest = TransferUtils.restartTransfer(taskRunner, lcr);
-						JsonHandler.setValue(node, JsonCommandPacket.REQUESTUSERPACKET.command, packet.getTypeValid());
 						valid = new JsonCommandPacket(node, resulttest.code.getCode(),
 								LocalPacketFactory.REQUESTUSERPACKET);
 						resulttest.other = packet;
 						localChannelReference.validateRequest(resulttest);
 					} catch (WaarpDatabaseException e1) {
-						JsonHandler.setValue(node, JsonCommandPacket.REQUESTUSERPACKET.command, packet.getTypeValid());
 						valid = new JsonCommandPacket(node,
 								ErrorCode.Internal.getCode(),
 								LocalPacketFactory.REQUESTUSERPACKET);
@@ -2994,27 +3107,24 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					throw new OpenR66ProtocolNotAuthenticatedException(
 							"Not correctly authenticated since SSL is not supported", e1);
 				}
-				ObjectNode node = packet.getNodeRequest();
-				boolean purge = JsonHandler.getValue(node, JsonCommandPacket.LOGPACKET.purge, false);
-				boolean clean = JsonHandler.getValue(node, JsonCommandPacket.LOGPACKET.clean, false);
-				String nstart = JsonHandler.getString(node, JsonCommandPacket.LOGPACKET.start);
-				logger.debug("Start: '"+nstart+"'");
-				Timestamp start = (nstart == null || nstart.isEmpty()) ? null :
-					Timestamp.valueOf(nstart);
-				String nstop = JsonHandler.getString(node, JsonCommandPacket.LOGPACKET.stop);
-				logger.debug("Stop: '"+nstop+"'");
-				Timestamp stop = (nstop == null || nstop.isEmpty()) ? null :
-					Timestamp.valueOf(nstop);
-				String startid = JsonHandler.getString(node, JsonCommandPacket.LOGPACKET.startid);
-				String stopid = JsonHandler.getString(node, JsonCommandPacket.LOGPACKET.stopid);
-				String rule = JsonHandler.getString(node, JsonCommandPacket.LOGPACKET.rule);
-				String request = JsonHandler.getString(node, JsonCommandPacket.LOGPACKET.request);
-				boolean pending = JsonHandler.getValue(node, JsonCommandPacket.LOGPACKET.statuspending, false);
-				boolean transfer = JsonHandler.getValue(node, JsonCommandPacket.LOGPACKET.statustransfer, false);
-				boolean done = JsonHandler.getValue(node, JsonCommandPacket.LOGPACKET.statusdone, true);
-				boolean error = JsonHandler.getValue(node, JsonCommandPacket.LOGPACKET.statuserror, false);
+				LogJsonPacket node = (LogJsonPacket) json;
+				boolean purge = node.isPurge();
+				boolean clean = node.isClean();
+				Timestamp start = (node.getStart() == null) ? null :
+					new Timestamp(node.getStart().getTime());
+				Timestamp stop = (node.getStop() == null) ? null :
+					new Timestamp(node.getStop().getTime());
+				String startid = node.getStartid();
+				String stopid = node.getStopid();
+				String rule = node.getRule();
+				String request = node.getRequest();
+				boolean pending = node.isStatuspending();
+				boolean transfer = node.isStatustransfer();
+				boolean done = node.isStatusdone();
+				boolean error = node.isStatuserror();
 				boolean isPurge = (packet.getTypeValid() == LocalPacketFactory.LOGPURGEPACKET || purge) ?
 						true : false;
+
 				// first clean if ask
 				if (clean) {
 					// Update all UpdatedInfo to DONE
@@ -3077,12 +3187,14 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					}
 				}
 				R66Result result = new R66Result(session, true, ErrorCode.CompleteOk, null);
+				LogResponseJsonPacket newjson = new LogResponseJsonPacket();
+				newjson.fromJson(node);
 				// Now answer
-				JsonHandler.setValue(node, JsonCommandPacket.REQUESTUSERPACKET.command, packet.getTypeValid());
-				JsonHandler.setValue(node, JsonCommandPacket.RESPONSELOGPACKET.filename, filename);
-				JsonHandler.setValue(node, JsonCommandPacket.RESPONSELOGPACKET.exported, nb.nb);
-				JsonHandler.setValue(node, JsonCommandPacket.RESPONSELOGPACKET.purged, npurge);
-				JsonCommandPacket valid = new JsonCommandPacket(node, result.code.getCode(),
+				newjson.setCommand(packet.getTypeValid());
+				newjson.setFilename(filename);
+				newjson.setExported(nb.nb);
+				newjson.setPurged(npurge);
+				JsonCommandPacket valid = new JsonCommandPacket(newjson, result.code.getCode(),
 						LocalPacketFactory.REQUESTUSERPACKET);
 				localChannelReference.validateRequest(result);
 				try {
@@ -3112,13 +3224,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
 							"Export Configuration Order received", session.getAuth().getUser());
 				}
 				// host, rule, business, alias, roles
-				ObjectNode node = packet.getNodeRequest();
-				boolean bhost = JsonHandler.getValue(node, JsonCommandPacket.CONFEXPORTPACKET.host, false);
+				ConfigExportJsonPacket node = (ConfigExportJsonPacket) json;
+				boolean bhost = node.isHost();
 				String shost = null, srule = null, sbusiness = null, salias = null, sroles = null;
-				boolean brule = JsonHandler.getValue(node, JsonCommandPacket.CONFEXPORTPACKET.rule, false);
-				boolean bbusiness = JsonHandler.getValue(node, JsonCommandPacket.CONFEXPORTPACKET.business, false);
-				boolean balias = JsonHandler.getValue(node, JsonCommandPacket.CONFEXPORTPACKET.alias, false);
-				boolean broles = JsonHandler.getValue(node, JsonCommandPacket.CONFEXPORTPACKET.roles, false);
+				boolean brule = node.isRule();
+				boolean bbusiness = node.isBusiness();
+				boolean balias = node.isAlias();
+				boolean broles = node.isRoles();
 				String dir = Configuration.configuration.baseDirectory +
 						Configuration.configuration.archivePath;
 				String hostname = Configuration.configuration.HOST_ID;
@@ -3225,13 +3337,14 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					result = new R66Result(session, true, ErrorCode.TransferError, null);
 				}
 				// Now answer
-				JsonHandler.setValue(node, JsonCommandPacket.REQUESTUSERPACKET.command, packet.getTypeValid());
-				JsonHandler.setValue(node, JsonCommandPacket.RESPONSECONFEXPORTPACKET.filehost, shost);
-				JsonHandler.setValue(node, JsonCommandPacket.RESPONSECONFEXPORTPACKET.filerule, srule);
-				JsonHandler.setValue(node, JsonCommandPacket.RESPONSECONFEXPORTPACKET.filebusiness, sbusiness);
-				JsonHandler.setValue(node, JsonCommandPacket.RESPONSECONFEXPORTPACKET.filealias, salias);
-				JsonHandler.setValue(node, JsonCommandPacket.RESPONSECONFEXPORTPACKET.fileroles, sroles);
-				JsonCommandPacket valid = new JsonCommandPacket(node, result.code.getCode(),
+				ConfigExportResponseJsonPacket resp = new ConfigExportResponseJsonPacket();
+				resp.fromJson(node);
+				resp.setFilehost(shost);
+				resp.setFilerule(srule);
+				resp.setFilebusiness(sbusiness);
+				resp.setFilealias(salias);
+				resp.setFileroles(sroles);
+				JsonCommandPacket valid = new JsonCommandPacket(resp, result.code.getCode(),
 						LocalPacketFactory.REQUESTUSERPACKET);
 				localChannelReference.validateRequest(result);
 				try {
@@ -3261,23 +3374,23 @@ public class LocalServerHandler extends SimpleChannelHandler {
 							"Import Configuration Order received", session.getAuth().getUser());
 				}
 				//purgehost, purgerule, purgebusiness, purgealias, purgeroles, host, rule, business, alias, roles
-				ObjectNode node = packet.getNodeRequest();
-				boolean bhostPurge = JsonHandler.getValue(node, JsonCommandPacket.CONFIMPORTPACKET.purgehost, false);
-				boolean brulePurge = JsonHandler.getValue(node, JsonCommandPacket.CONFIMPORTPACKET.purgerule, false);
-				boolean bbusinessPurge = JsonHandler.getValue(node, JsonCommandPacket.CONFIMPORTPACKET.purgebusiness, false);
-				boolean baliasPurge = JsonHandler.getValue(node, JsonCommandPacket.CONFIMPORTPACKET.purgealias, false);
-				boolean brolesPurge = JsonHandler.getValue(node, JsonCommandPacket.CONFIMPORTPACKET.purgeroles, false);
+				ConfigImportJsonPacket node = (ConfigImportJsonPacket) json;
+				boolean bhostPurge = node.isPurgehost();
+				boolean brulePurge = node.isPurgerule();
+				boolean bbusinessPurge = node.isPurgebusiness();
+				boolean baliasPurge = node.isPurgealias();
+				boolean brolesPurge = node.isPurgeroles();
 				boolean importedhost = false, importedrule = false, importedbusiness = false, importedalias = false, importedroles = false;
-				String shost = JsonHandler.getString(node, JsonCommandPacket.CONFIMPORTPACKET.host);
-				String srule = JsonHandler.getString(node, JsonCommandPacket.CONFIMPORTPACKET.rule);
-				String sbusiness = JsonHandler.getString(node, JsonCommandPacket.CONFIMPORTPACKET.business);
-				String salias = JsonHandler.getString(node, JsonCommandPacket.CONFIMPORTPACKET.alias);
-				String sroles = JsonHandler.getString(node, JsonCommandPacket.CONFIMPORTPACKET.roles);
-				long hostid = JsonHandler.getValue(node, JsonCommandPacket.CONFIMPORTPACKET.hostid, DbConstant.ILLEGALVALUE);
-				long ruleid = JsonHandler.getValue(node, JsonCommandPacket.CONFIMPORTPACKET.ruleid, DbConstant.ILLEGALVALUE);
-				long businessid = JsonHandler.getValue(node, JsonCommandPacket.CONFIMPORTPACKET.businessid, DbConstant.ILLEGALVALUE);
-				long aliasid = JsonHandler.getValue(node, JsonCommandPacket.CONFIMPORTPACKET.aliasid, DbConstant.ILLEGALVALUE);
-				long roleid = JsonHandler.getValue(node, JsonCommandPacket.CONFIMPORTPACKET.rolesid, DbConstant.ILLEGALVALUE);
+				String shost = node.getHost();
+				String srule = node.getRule();
+				String sbusiness = node.getBusiness();
+				String salias = node.getAlias();
+				String sroles = node.getRoles();
+				long hostid = node.getHostid();
+				long ruleid = node.getRuleid();
+				long businessid = node.getBusinessid();
+				long aliasid = node.getAliasid();
+				long roleid = node.getRolesid();
 				
 				String remote = session.getAuth().getUser();
 				String local = null;
@@ -3308,7 +3421,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 						if (bhostPurge) {
 							// Need to first delete all entries
 							try {
-								oldHosts = DbHostAuth.deleteAll(DbConstant.admin.session);
+								oldHosts = DbHostAuth.deleteAll(localChannelReference.getDbSession());
 							} catch (WaarpDatabaseException e) {
 								// ignore
 							}
@@ -3358,7 +3471,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 						if (brulePurge) {
 							// Need to first delete all entries
 							try {
-								oldRules = DbRule.deleteAll(DbConstant.admin.session);
+								oldRules = DbRule.deleteAll(localChannelReference.getDbSession());
 							} catch (WaarpDatabaseException e) {
 								// ignore
 							}
@@ -3502,28 +3615,29 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					result = new R66Result(session, true, ErrorCode.TransferError, null);
 				}
 				// Now answer
-				JsonHandler.setValue(node, JsonCommandPacket.REQUESTUSERPACKET.command, packet.getTypeValid());
+				ConfigImportResponseJsonPacket resp = new ConfigImportResponseJsonPacket();
+				resp.fromJson(node);
 				if (bhostPurge || shost != null) {
-					JsonHandler.setValue(node, JsonCommandPacket.RESPONSECONFIMPORTPACKET.purgedhost, bhostPurge);
-					JsonHandler.setValue(node, JsonCommandPacket.RESPONSECONFIMPORTPACKET.importedhost, importedhost);
+					resp.setPurgedhost(bhostPurge);
+					resp.setImportedhost(importedhost);
 				}
 				if (brulePurge || srule != null) {
-					JsonHandler.setValue(node, JsonCommandPacket.RESPONSECONFIMPORTPACKET.purgedrule, brulePurge);
-					JsonHandler.setValue(node, JsonCommandPacket.RESPONSECONFIMPORTPACKET.importedrule, importedrule);
+					resp.setPurgedrule(brulePurge);
+					resp.setImportedrule(importedrule);
 				}
 				if (bbusinessPurge || sbusiness != null) {
-					JsonHandler.setValue(node, JsonCommandPacket.RESPONSECONFIMPORTPACKET.purgedbusiness, bbusinessPurge);
-					JsonHandler.setValue(node, JsonCommandPacket.RESPONSECONFIMPORTPACKET.importedbusiness, importedbusiness);
+					resp.setPurgedbusiness(bbusinessPurge);
+					resp.setImportedbusiness(importedbusiness);
 				}
 				if (baliasPurge || salias != null) {
-					JsonHandler.setValue(node, JsonCommandPacket.RESPONSECONFIMPORTPACKET.purgedalias, baliasPurge);
-					JsonHandler.setValue(node, JsonCommandPacket.RESPONSECONFIMPORTPACKET.importedalias, importedalias);
+					resp.setPurgedalias(baliasPurge);
+					resp.setImportedalias(importedalias);
 				}
 				if (brolesPurge || sroles != null) {
-					JsonHandler.setValue(node, JsonCommandPacket.RESPONSECONFIMPORTPACKET.purgedroles, brolesPurge);
-					JsonHandler.setValue(node, JsonCommandPacket.RESPONSECONFIMPORTPACKET.importedroles, importedroles);
+					resp.setPurgedroles(brolesPurge);
+					resp.setImportedroles(importedroles);
 				}
-				JsonCommandPacket valid = new JsonCommandPacket(node, result.code.getCode(),
+				JsonCommandPacket valid = new JsonCommandPacket(resp, result.code.getCode(),
 						LocalPacketFactory.REQUESTUSERPACKET);
 				logger.debug(valid.getRequest());
 				localChannelReference.validateRequest(result);
@@ -3549,13 +3663,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				session.newState(VALID);
 				// The filename or filesize from sender is changed due to PreTask so change it too in receiver
 				// comment, filename, filesize
-				ObjectNode node = packet.getNodeRequest();
-				String newfilename = JsonHandler.getString(node, JsonCommandPacket.REQUESTPACKET.filename);
+				RequestJsonPacket node = (RequestJsonPacket) json;
+				String newfilename = node.getFilename();
 				if (newfilename == null) {
 					// error so ignore
 					break;
 				}
-				long newSize = JsonHandler.getValue(node, JsonCommandPacket.REQUESTPACKET.filesize, -1);
+				long newSize = node.getFilesize();
 				// potential file size changed
 				if (newSize > 0) {
 					if (session.getRunner() != null) {
@@ -3618,17 +3732,16 @@ public class LocalServerHandler extends SimpleChannelHandler {
 							"Not correctly authenticated since SSL is not supported", e1);
 				}
 				// setter, writeglobal, readglobal, writesession, readsession
-				ObjectNode node = packet.getNodeRequest();
-				boolean setter = JsonHandler.getValue(node, JsonCommandPacket.BANDWIDTHPACKET.setter, false);
+				BandwidthJsonPacket node = (BandwidthJsonPacket) json;
+				boolean setter = node.isSetter();
 				if (! setter) {
 					// request of current values
 					R66Result result = new R66Result(session, true, ErrorCode.CompleteOk, null);
 					// Now answer
-					JsonHandler.setValue(node, JsonCommandPacket.REQUESTUSERPACKET.command, packet.getTypeValid());
-					JsonHandler.setValue(node, JsonCommandPacket.BANDWIDTHPACKET.writeglobal, Configuration.configuration.serverGlobalWriteLimit);
-					JsonHandler.setValue(node, JsonCommandPacket.BANDWIDTHPACKET.readglobal, Configuration.configuration.serverGlobalReadLimit);
-					JsonHandler.setValue(node, JsonCommandPacket.BANDWIDTHPACKET.writesession, Configuration.configuration.serverChannelWriteLimit);
-					JsonHandler.setValue(node, JsonCommandPacket.BANDWIDTHPACKET.readsession, Configuration.configuration.serverChannelReadLimit);
+					node.setWriteglobal(Configuration.configuration.serverGlobalWriteLimit);
+					node.setReadglobal(Configuration.configuration.serverGlobalReadLimit);
+					node.setWritesession(Configuration.configuration.serverChannelWriteLimit);
+					node.setReadsession(Configuration.configuration.serverChannelReadLimit);
 					JsonCommandPacket valid = new JsonCommandPacket(node, result.code.getCode(),
 							LocalPacketFactory.REQUESTUSERPACKET);
 					localChannelReference.validateRequest(result);
@@ -3640,10 +3753,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					Channels.close(channel);
 					return;
 				}
-				long wgl = JsonHandler.getValue(node, JsonCommandPacket.BANDWIDTHPACKET.writeglobal, -10) / 10 * 10;
-				long rgl = JsonHandler.getValue(node, JsonCommandPacket.BANDWIDTHPACKET.readglobal, -10) / 10 * 10;
-				long wsl = JsonHandler.getValue(node, JsonCommandPacket.BANDWIDTHPACKET.writesession, -10) / 10 * 10;
-				long rsl = JsonHandler.getValue(node, JsonCommandPacket.BANDWIDTHPACKET.readsession, -10) / 10 * 10;
+				long wgl = (node.getWriteglobal() / 10) * 10;
+				long rgl = (node.getReadglobal() / 10) * 10;
+				long wsl = (node.getWritesession() / 10) * 10;
+				long rsl = (node.getReadsession() / 10) * 10;
 				if (wgl < 0) {
 					wgl = Configuration.configuration.serverGlobalWriteLimit;
 				}
@@ -3666,11 +3779,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
 						Configuration.configuration.delayLimit);
 				R66Result result = new R66Result(session, true, ErrorCode.CompleteOk, null);
 				// Now answer
-				JsonHandler.setValue(node, JsonCommandPacket.REQUESTUSERPACKET.command, packet.getTypeValid());
-				JsonHandler.setValue(node, JsonCommandPacket.BANDWIDTHPACKET.writeglobal, Configuration.configuration.serverGlobalWriteLimit);
-				JsonHandler.setValue(node, JsonCommandPacket.BANDWIDTHPACKET.readglobal, Configuration.configuration.serverGlobalReadLimit);
-				JsonHandler.setValue(node, JsonCommandPacket.BANDWIDTHPACKET.writesession, Configuration.configuration.serverChannelWriteLimit);
-				JsonHandler.setValue(node, JsonCommandPacket.BANDWIDTHPACKET.readsession, Configuration.configuration.serverChannelReadLimit);
+				node.setWriteglobal(Configuration.configuration.serverGlobalWriteLimit);
+				node.setReadglobal(Configuration.configuration.serverGlobalReadLimit);
+				node.setWritesession(Configuration.configuration.serverChannelWriteLimit);
+				node.setReadsession(Configuration.configuration.serverChannelReadLimit);
 				JsonCommandPacket valid = new JsonCommandPacket(node, result.code.getCode(),
 						LocalPacketFactory.REQUESTUSERPACKET);
 				localChannelReference.validateRequest(result);
@@ -3763,9 +3875,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		if (argTransfer) {
 			session.newState(BUSINESSD);
 		}
-		ExecJavaTask task = new ExecJavaTask(argRule + " " +
-				AbstractBusinessRequest.BUSINESSREQUEST + " " + argTransfer,
+		ExecJavaTask task = new ExecJavaTask(argRule + " " + argTransfer,
 				delay, null, session);
+		task.setBusinessRequest(true);
 		task.run();
 		session.setStatus(201);
 		if (task.isSuccess()) {

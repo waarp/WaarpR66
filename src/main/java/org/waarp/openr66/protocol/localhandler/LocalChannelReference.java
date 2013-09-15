@@ -20,6 +20,7 @@ package org.waarp.openr66.protocol.localhandler;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler;
 import org.waarp.common.database.DbSession;
+import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.openr66.client.RecvThroughHandler;
@@ -154,7 +155,10 @@ public class LocalChannelReference {
 	 * PartnerConfiguration
 	 */
 	private volatile PartnerConfiguration partner;
-	
+	/**
+	 * DbSession for Database that do not support concurrency in access
+	 */
+	private volatile DbSession noconcurrencyDbSession = null;
 	
 	/**
 	 * 
@@ -181,6 +185,17 @@ public class LocalChannelReference {
 		}
 		cts = (ChannelTrafficShapingHandler) networkChannel.getPipeline().get(
 				NetworkServerPipelineFactory.LIMITCHANNEL);
+		if (DbConstant.admin.isConnected && ! DbConstant.admin.isCompatibleWithThreadSharedConnexion()) {
+			try {
+				this.noconcurrencyDbSession = new DbSession(DbConstant.admin, false);
+			} catch (WaarpDatabaseNoConnectionException e) {
+				// Cannot connect so use default connection
+				logger.warn("Use default database connection");
+				this.noconcurrencyDbSession = null;
+			}
+		} else {
+			this.noconcurrencyDbSession = null;
+		}
 	}
 
 	/**
@@ -194,6 +209,16 @@ public class LocalChannelReference {
 		this.futureRequest = new R66Future(true);
 	}
 
+	/**
+	 * Close the localChannelReference
+	 */
+	public void close() {
+		// Now force the close of the database after a wait
+		if (noconcurrencyDbSession != null && DbConstant.admin != null && DbConstant.admin.session != null && ! noconcurrencyDbSession.equals(DbConstant.admin.session)) {
+			noconcurrencyDbSession.disconnect();
+			noconcurrencyDbSession = null;
+		}
+	}
 	/**
 	 * @return the localChannel
 	 */
@@ -256,6 +281,9 @@ public class LocalChannelReference {
 	 * @return the actual dbSession
 	 */
 	public DbSession getDbSession() {
+		if (noconcurrencyDbSession != null) {
+			return noconcurrencyDbSession;
+		}
 		if (networkServerHandler != null) {
 			return networkServerHandler.getDbSession();
 		}

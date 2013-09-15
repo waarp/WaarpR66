@@ -180,7 +180,15 @@ public class Monitoring implements WaarpInterfaceMonitor {
 		if (session != null) {
 			dbSession = session;
 		} else {
-			dbSession = DbConstant.admin.session;
+			if (DbConstant.admin.isConnected) {
+				try {
+					dbSession = new DbSession(DbConstant.admin, false);
+				} catch (WaarpDatabaseNoConnectionException e) {
+					dbSession = DbConstant.admin.session;
+				}
+			} else {
+				dbSession = DbConstant.admin.session;
+			}
 		}
 		this.initialize();
 	}
@@ -292,6 +300,10 @@ public class Monitoring implements WaarpInterfaceMonitor {
 			// Error Status on all transfers
 			countStatus.realClose();
 		} catch (NullPointerException e) {
+		}
+		if (! dbSession.equals(DbConstant.admin.session)) {
+			dbSession.disconnect();
+			dbSession = null;
 		}
 	}
 

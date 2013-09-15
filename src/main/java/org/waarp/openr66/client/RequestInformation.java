@@ -51,6 +51,21 @@ public class RequestInformation implements Runnable {
 	 */
 	static volatile WaarpInternalLogger logger;
 
+	protected static String _INFO_ARGS = 
+			"Needs at least 3 arguments:\n" +
+					"  the XML client configuration file,\n" +
+					"  '-to' the remoteHost Id,\n" +
+					"Other options:\n" +
+					"  '-rule' the rule (mandatory for this group of option)\n" +
+					"  '-file' the optional file for which to get info,\n" +
+					"  '-exist' to test the existence\n" +
+					"  '-detail' to get the detail on file\n" +
+					"  '-list' to get the list of files\n" +
+					"  '-mlsx' to get the list and details of files\n" +
+					"  The following option is exclusive of the previous ones:\n" +
+					"  '-id' follow by the id and '-reqto (default)|-reqfrom' as additional parameter to get " +
+					"the full information of a transfer where current host is requested(to) or requester(from)";
+	
 	protected final NetworkTransaction networkTransaction;
 	final R66Future future;
 	String requested = null;
@@ -76,18 +91,7 @@ public class RequestInformation implements Runnable {
 	protected static boolean getParams(String[] args) {
 		if (args.length < 5) {
 			logger
-					.error("Needs at least 3 arguments:\n" +
-							"  the XML client configuration file,\n" +
-							"  '-to' the remoteHost Id,\n" +
-							"Other options:\n" +
-							"  '-rule' the rule (mandatory for this group of option)\n" +
-							"  '-file' the optional file for which to get info,\n" +
-							"  '-exist' to test the existence\n" +
-							"  '-detail' to get the detail on file\n" +
-							"  '-list' to get the list of files\n" +
-							"  '-mlsx' to get the list and details of files\n" +
-							"  The following option is exclusive of the previous ones:\n" +
-							"  '-id' follow by the id and '-reqto (default)|-reqfrom' as additional parameter to get the full information of a transfer where current host is requested(to) or requester(from)");
+					.error(_INFO_ARGS);
 			return false;
 		}
 		if (!FileBasedConfiguration
@@ -127,11 +131,11 @@ public class RequestInformation implements Runnable {
 			scode = (byte) InformationPacket.ASKENUM.ASKEXIST.ordinal();
 		}
 		if ((srulename == null && scode != -1) || srequested == null) {
-			logger.error("(Rulename or TransferId) and Requested HostId must be set");
+			logger.error("(Rulename or TransferId) and Requested HostId must be set.\n"+_INFO_ARGS);
 			return false;
 		}
 		if (scode != -1 && sid != DbConstant.ILLEGALVALUE) {
-			logger.error("Setting ID is exclusive of other options.");
+			logger.error("Setting ID is exclusive of other options.\n"+_INFO_ARGS);
 			return false;
 		}
 		return true;

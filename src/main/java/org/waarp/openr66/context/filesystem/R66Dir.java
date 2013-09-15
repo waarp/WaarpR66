@@ -123,7 +123,6 @@ public class R66Dir extends FilesystemBasedDirImpl {
 		}
 		File wildcardFile = new File(pathWithWildcard);
 		File rootFile;
-		initWindowsSupport();
 		if (ISUNIX) {
 			rootFile = new File("/");
 		} else {
