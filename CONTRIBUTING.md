@@ -29,6 +29,8 @@ in the best conditions (meaning in a timely manner!):
   changes, rationale and use cases for the changes, etc.
 - Your patch must not break backward compatibility and should be forward
   compatible
+- An export of logs (logs of client and server and transfer log export) shall
+  be added as additional input information in order to show the behaviour
 
 If you have any doubt about the relevance of a change or the right way to do it,
 do not hesitate to submit a partial pull request or a ticket in Github to start
