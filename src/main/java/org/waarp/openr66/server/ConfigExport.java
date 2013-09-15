@@ -22,7 +22,6 @@ import java.net.SocketAddress;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.database.exception.WaarpDatabaseException;
-import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
@@ -41,11 +40,11 @@ import org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket;
 import org.waarp.openr66.protocol.localhandler.packet.JsonCommandPacket;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 import org.waarp.openr66.protocol.localhandler.packet.ValidPacket;
+import org.waarp.openr66.protocol.localhandler.packet.json.ConfigExportJsonPacket;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Config Export from a local client without database connection
@@ -134,12 +133,12 @@ public class ConfigExport implements Runnable {
 		boolean useJson = PartnerConfiguration.useJson(dbhost.getHostid());
 		logger.debug("UseJson: "+useJson);
 		if (useJson) {
-			ObjectNode node = JsonHandler.createObjectNode();
-			JsonHandler.setValue(node, JsonCommandPacket.CONFEXPORTPACKET.host, host);
-			JsonHandler.setValue(node, JsonCommandPacket.CONFEXPORTPACKET.rule, rule);
-			JsonHandler.setValue(node, JsonCommandPacket.CONFEXPORTPACKET.business, business);
-			JsonHandler.setValue(node, JsonCommandPacket.CONFEXPORTPACKET.alias, alias);
-			JsonHandler.setValue(node, JsonCommandPacket.CONFEXPORTPACKET.roles, role);
+			ConfigExportJsonPacket node = new ConfigExportJsonPacket();
+			node.setHost(host);
+			node.setRule(rule);
+			node.setBusiness(business);
+			node.setAlias(alias);
+			node.setRoles(role);
 			valid = new JsonCommandPacket(node, LocalPacketFactory.CONFEXPORTPACKET);
 		} else {
 			valid = new ValidPacket(Boolean.toString(host), Boolean.toString(rule),

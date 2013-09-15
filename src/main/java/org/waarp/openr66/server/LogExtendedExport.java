@@ -24,7 +24,6 @@ import java.sql.Timestamp;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.database.exception.WaarpDatabaseException;
-import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
@@ -44,11 +43,12 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 import org.waarp.openr66.protocol.localhandler.packet.JsonCommandPacket;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
+import org.waarp.openr66.protocol.localhandler.packet.json.LogJsonPacket;
+import org.waarp.openr66.protocol.localhandler.packet.json.LogResponseJsonPacket;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Log Export from a client (local or allowed)
@@ -156,22 +156,21 @@ public class LogExtendedExport implements Runnable {
 		if (logger == null) {
 			logger = WaarpInternalLoggerFactory.getLogger(LogExtendedExport.class);
 		}
-		String lstart = (start != null) ? start.toString() : null;
-		String lstop = (stop != null) ? stop.toString() : null;
 		byte type = (purgeLog) ? LocalPacketFactory.LOGPURGEPACKET : LocalPacketFactory.LOGPACKET;
-		ObjectNode node = JsonHandler.createObjectNode();
-		JsonHandler.setValue(node, JsonCommandPacket.LOGPACKET.clean, clean);
-		JsonHandler.setValue(node, JsonCommandPacket.LOGPACKET.purge, purgeLog);
-		JsonHandler.setValue(node, JsonCommandPacket.LOGPACKET.start, lstart);
-		JsonHandler.setValue(node, JsonCommandPacket.LOGPACKET.stop, lstop);
-		JsonHandler.setValue(node, JsonCommandPacket.LOGPACKET.startid, startid);
-		JsonHandler.setValue(node, JsonCommandPacket.LOGPACKET.stopid, stopid);
-		JsonHandler.setValue(node, JsonCommandPacket.LOGPACKET.rule, rule);
-		JsonHandler.setValue(node, JsonCommandPacket.LOGPACKET.request, request);
-		JsonHandler.setValue(node, JsonCommandPacket.LOGPACKET.statuspending, statuspending);
-		JsonHandler.setValue(node, JsonCommandPacket.LOGPACKET.statustransfer, statustransfer);
-		JsonHandler.setValue(node, JsonCommandPacket.LOGPACKET.statuserror, statuserror);
-		JsonHandler.setValue(node, JsonCommandPacket.LOGPACKET.statusdone, statusdone);
+		LogJsonPacket node = new LogJsonPacket();
+		node.setClean(clean);
+		node.setPurge(purgeLog);
+		node.setStart(start);
+		node.setStop(stop);
+		node.setStartid(startid);
+		node.setStopid(stopid);
+		node.setRule(rule);
+		node.setRequest(request);
+		node.setStatuspending(statuspending);
+		node.setStatustransfer(statustransfer);
+		node.setStatuserror(statuserror);
+		node.setStatusdone(statusdone);
+		
 		JsonCommandPacket valid = new JsonCommandPacket(node, type);
 		logger.debug("ExtendedLogCommand: " +valid.getRequest());
 		SocketAddress socketAddress = host.getSocketAddress();
@@ -235,8 +234,8 @@ public class LogExtendedExport implements Runnable {
 		if (future.isSuccess()) {
 			JsonCommandPacket packet = (JsonCommandPacket) future.getResult().other;
 			if (packet != null) {
-				String fileExported = null;
-				fileExported = JsonHandler.getValue(packet.getNodeRequest(), JsonCommandPacket.RESPONSELOGPACKET.filename, "unknown");
+				LogResponseJsonPacket res = (LogResponseJsonPacket) packet.getJsonRequest();
+				String fileExported = res.getFilename();
 				// download logs
 				if (fileExported != null && ! fileExported.isEmpty()) {
 					String ruleToExport = ruleDownload;

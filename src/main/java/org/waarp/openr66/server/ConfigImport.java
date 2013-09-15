@@ -22,7 +22,6 @@ import java.net.SocketAddress;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.database.exception.WaarpDatabaseException;
-import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
@@ -41,11 +40,11 @@ import org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket;
 import org.waarp.openr66.protocol.localhandler.packet.JsonCommandPacket;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 import org.waarp.openr66.protocol.localhandler.packet.ValidPacket;
+import org.waarp.openr66.protocol.localhandler.packet.json.ConfigImportJsonPacket;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Config Import from a local client without database connection
@@ -179,22 +178,22 @@ public class ConfigImport implements Runnable {
 		logger.debug("UseJson: "+useJson);
 		AbstractLocalPacket valid = null;
 		if (useJson) {
-			ObjectNode node = JsonHandler.createObjectNode();
-			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.host, host);
-			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.rule, rule);
-			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.business, business);
-			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.alias, alias);
-			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.roles, role);
-			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.purgehost, hostPurge);
-			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.purgerule, rulePurge);
-			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.purgebusiness, businessPurge);
-			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.purgealias, aliasPurge);
-			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.purgeroles, rolePurge);
-			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.hostid, hostid);
-			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.ruleid, ruleid);
-			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.businessid, businessid);
-			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.aliasid, aliasid);
-			JsonHandler.setValue(node, JsonCommandPacket.CONFIMPORTPACKET.rolesid, roleid);
+			ConfigImportJsonPacket node = new ConfigImportJsonPacket();
+			node.setHost(host);
+			node.setRule(rule);
+			node.setBusiness(business);
+			node.setAlias(alias);
+			node.setRoles(role);
+			node.setPurgehost(hostPurge);
+			node.setPurgerule(rulePurge);
+			node.setPurgebusiness(businessPurge);
+			node.setPurgealias(aliasPurge);
+			node.setPurgeroles(rolePurge);
+			node.setHostid(hostid);
+			node.setRuleid(ruleid);
+			node.setBusinessid(businessid);
+			node.setAliasid(aliasid);
+			node.setRolesid(roleid);
 			valid = new JsonCommandPacket(node, LocalPacketFactory.CONFIMPORTPACKET);
 		} else {
 			valid = new ValidPacket((hostPurge ? "1 " : "0 ") + host,

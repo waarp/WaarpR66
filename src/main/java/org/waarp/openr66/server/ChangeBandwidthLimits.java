@@ -22,7 +22,6 @@ import java.net.SocketAddress;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.database.exception.WaarpDatabaseException;
-import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
@@ -41,11 +40,11 @@ import org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket;
 import org.waarp.openr66.protocol.localhandler.packet.JsonCommandPacket;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 import org.waarp.openr66.protocol.localhandler.packet.ValidPacket;
+import org.waarp.openr66.protocol.localhandler.packet.json.BandwidthJsonPacket;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * This command enables the dynamic change of bandwidth limitation. It does not changed the valuesin
@@ -119,18 +118,18 @@ public class ChangeBandwidthLimits implements Runnable {
 		boolean useJson = PartnerConfiguration.useJson(host.getHostid());
 		logger.debug("UseJson: "+useJson);
 		if (useJson) {
-			ObjectNode orequest = JsonHandler.createObjectNode();
+			BandwidthJsonPacket node = new BandwidthJsonPacket();
 			if (writeGlobalLimit < 0 && readGlobalLimit < 0 && writeSessionLimit < 0 && readSessionLimit < 0) {
 				// will ask current values instead
-				JsonHandler.setValue(orequest, JsonCommandPacket.BANDWIDTHPACKET.setter, false);
-				valid = new JsonCommandPacket(orequest, LocalPacketFactory.BANDWIDTHPACKET);
+				node.setSetter(false);
+				valid = new JsonCommandPacket(node, LocalPacketFactory.BANDWIDTHPACKET);
 			} else {
-				JsonHandler.setValue(orequest, JsonCommandPacket.BANDWIDTHPACKET.setter, true);
-				JsonHandler.setValue(orequest, JsonCommandPacket.BANDWIDTHPACKET.writeglobal, writeGlobalLimit);
-				JsonHandler.setValue(orequest, JsonCommandPacket.BANDWIDTHPACKET.readglobal, readGlobalLimit);
-				JsonHandler.setValue(orequest, JsonCommandPacket.BANDWIDTHPACKET.writesession, writeSessionLimit);
-				JsonHandler.setValue(orequest, JsonCommandPacket.BANDWIDTHPACKET.readsession, readSessionLimit);
-				valid = new JsonCommandPacket(orequest, LocalPacketFactory.BANDWIDTHPACKET);
+				node.setSetter(true);
+				node.setWriteglobal(writeGlobalLimit);
+				node.setReadglobal(readGlobalLimit);
+				node.setWritesession(writeSessionLimit);
+				node.setReadsession(readSessionLimit);
+				valid = new JsonCommandPacket(node, LocalPacketFactory.BANDWIDTHPACKET);
 			}
 		} else {
 			if (writeGlobalLimit < 0 && readGlobalLimit < 0 && writeSessionLimit < 0 && readSessionLimit < 0) {

@@ -18,6 +18,7 @@
 package org.waarp.openr66.client;
 
 import java.net.SocketAddress;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -28,7 +29,6 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
 import org.waarp.common.database.exception.WaarpDatabaseException;
-import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
@@ -52,11 +52,11 @@ import org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket;
 import org.waarp.openr66.protocol.localhandler.packet.JsonCommandPacket;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 import org.waarp.openr66.protocol.localhandler.packet.ValidPacket;
+import org.waarp.openr66.protocol.localhandler.packet.json.ValidJsonPacket;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Class to request information or request cancellation or restart
@@ -471,15 +471,21 @@ public class RequestTransfer implements Runnable {
 		logger.debug("UseJson: "+useJson);
 		AbstractLocalPacket packet = null;
 		if (useJson) {
-			ObjectNode node = JsonHandler.createObjectNode();
-			JsonHandler.setValue(node, JsonCommandPacket.VALIDPACKET.comment, "Request on Transfer");
-			JsonHandler.setValue(node, JsonCommandPacket.VALIDPACKET.requested, this.requested);
-			JsonHandler.setValue(node, JsonCommandPacket.VALIDPACKET.requester, this.requester);
-			JsonHandler.setValue(node, JsonCommandPacket.VALIDPACKET.specialid, this.specialId);
+			ValidJsonPacket node = new ValidJsonPacket();
+			node.setComment("Request on Transfer");
+			node.setRequested(requested);
+			node.setRequester(requester);
+			node.setSpecialid(specialId);
 			if (restarttime != null && code == LocalPacketFactory.VALIDPACKET) {
 				// restart time set
 				logger.debug("Restart with time: "+restarttime);
-				JsonHandler.setValue(node, JsonCommandPacket.VALIDPACKET.restarttime, restarttime);
+				// time to reschedule in yyyyMMddHHmmss format
+				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+				try {
+					Date date = dateFormat.parse(restarttime);
+					node.setRestarttime(date);
+				} catch (ParseException e) {
+				}
 				packet = new JsonCommandPacket(node, code);
 			} else {
 				packet = new JsonCommandPacket(node, code);
