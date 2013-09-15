@@ -49,24 +49,30 @@
 <a class="jxr_linenumber" name="39" href="#39">39</a>  <em class="jxr_javadoccomment">	 *            True if currently R66 is configured to use LocalExec (may be ignored)</em>
 <a class="jxr_linenumber" name="40" href="#40">40</a>  <em class="jxr_javadoccomment">	 * @param delay</em>
 <a class="jxr_linenumber" name="41" href="#41">41</a>  <em class="jxr_javadoccomment">	 *            Delay in ms used only if waitForValidation is True</em>
-<a class="jxr_linenumber" name="42" href="#42">42</a>  <em class="jxr_javadoccomment">	 * @param args</em>
-<a class="jxr_linenumber" name="43" href="#43">43</a>  <em class="jxr_javadoccomment">	 *            First arg is the Class name used</em>
-<a class="jxr_linenumber" name="44" href="#44">44</a>  <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="45" href="#45">45</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setArgs(<a href="../../../../../org/waarp/openr66/context/R66Session.html">R66Session</a> session, <strong class="jxr_keyword">boolean</strong> waitForValidation,
-<a class="jxr_linenumber" name="46" href="#46">46</a>  			<strong class="jxr_keyword">boolean</strong> useLocalExec, <strong class="jxr_keyword">int</strong> delay, String[] args);
-<a class="jxr_linenumber" name="47" href="#47">47</a>  
-<a class="jxr_linenumber" name="48" href="#48">48</a>  	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="49" href="#49">49</a>  <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="50" href="#50">50</a>  <em class="jxr_javadoccomment">	 * @return the final status where 0 is OK, 1 is Warning, 2 is Error</em>
-<a class="jxr_linenumber" name="51" href="#51">51</a>  <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="52" href="#52">52</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getFinalStatus();
+<a class="jxr_linenumber" name="42" href="#42">42</a>  <em class="jxr_javadoccomment">	 * @param classname</em>
+<a class="jxr_linenumber" name="43" href="#43">43</a>  <em class="jxr_javadoccomment">	 * 				The Classname</em>
+<a class="jxr_linenumber" name="44" href="#44">44</a>  <em class="jxr_javadoccomment">	 * @param arg</em>
+<a class="jxr_linenumber" name="45" href="#45">45</a>  <em class="jxr_javadoccomment">	 *            full argument</em>
+<a class="jxr_linenumber" name="46" href="#46">46</a>  <em class="jxr_javadoccomment">	 * @param callFromBusiness</em>
+<a class="jxr_linenumber" name="47" href="#47">47</a>  <em class="jxr_javadoccomment">	 * 				True if called from Business operation, not task</em>
+<a class="jxr_linenumber" name="48" href="#48">48</a>  <em class="jxr_javadoccomment">	 * @param isToValidate</em>
+<a class="jxr_linenumber" name="49" href="#49">49</a>  <em class="jxr_javadoccomment">	 * 				True if the call from Business is to Validate</em>
+<a class="jxr_linenumber" name="50" href="#50">50</a>  <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="51" href="#51">51</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setArgs(<a href="../../../../../org/waarp/openr66/context/R66Session.html">R66Session</a> session, <strong class="jxr_keyword">boolean</strong> waitForValidation,
+<a class="jxr_linenumber" name="52" href="#52">52</a>  			<strong class="jxr_keyword">boolean</strong> useLocalExec, <strong class="jxr_keyword">int</strong> delay, String classname, String arg, <strong class="jxr_keyword">boolean</strong> callFromBusiness, <strong class="jxr_keyword">boolean</strong> isToValidate);
 <a class="jxr_linenumber" name="53" href="#53">53</a>  
 <a class="jxr_linenumber" name="54" href="#54">54</a>  	<em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="55" href="#55">55</a>  <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="56" href="#56">56</a>  <em class="jxr_javadoccomment">	 * @return Information on task</em>
+<a class="jxr_linenumber" name="56" href="#56">56</a>  <em class="jxr_javadoccomment">	 * @return the final status where 0 is OK, 1 is Warning, 2 is Error</em>
 <a class="jxr_linenumber" name="57" href="#57">57</a>  <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="58" href="#58">58</a>  	<strong class="jxr_keyword">public</strong> String toString();
-<a class="jxr_linenumber" name="59" href="#59">59</a>  }
+<a class="jxr_linenumber" name="58" href="#58">58</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> getFinalStatus();
+<a class="jxr_linenumber" name="59" href="#59">59</a>  
+<a class="jxr_linenumber" name="60" href="#60">60</a>  	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="61" href="#61">61</a>  <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="62" href="#62">62</a>  <em class="jxr_javadoccomment">	 * @return Information on task</em>
+<a class="jxr_linenumber" name="63" href="#63">63</a>  <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="64" href="#64">64</a>  	<strong class="jxr_keyword">public</strong> String toString();
+<a class="jxr_linenumber" name="65" href="#65">65</a>  }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>

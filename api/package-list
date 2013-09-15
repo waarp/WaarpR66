@@ -18,6 +18,7 @@ org.waarp.openr66.protocol.http
 org.waarp.openr66.protocol.http.adminssl
 org.waarp.openr66.protocol.localhandler
 org.waarp.openr66.protocol.localhandler.packet
+org.waarp.openr66.protocol.localhandler.packet.json
 org.waarp.openr66.protocol.networkhandler
 org.waarp.openr66.protocol.networkhandler.packet
 org.waarp.openr66.protocol.networkhandler.ssl

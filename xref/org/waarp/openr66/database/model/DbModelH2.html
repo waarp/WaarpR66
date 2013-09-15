@@ -379,7 +379,7 @@
 <a class="jxr_linenumber" name="369" href="#369">369</a> 		DbRequest request = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="370" href="#370">370</a> 		<strong class="jxr_keyword">if</strong> (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_13.getVersion())) {
 <a class="jxr_linenumber" name="371" href="#371">371</a> 			<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="372" href="#372">372</a> 				request = <strong class="jxr_keyword">new</strong> DbRequest(DbConstant.admin.session);
+<a class="jxr_linenumber" name="372" href="#372">372</a> 				request = <strong class="jxr_keyword">new</strong> DbRequest(session);
 <a class="jxr_linenumber" name="373" href="#373">373</a> 				request.select(<span class="jxr_string">"select "</span>+DbHostConfiguration.Columns.HOSTID.name()+<span class="jxr_string">" from "</span>+DbHostConfiguration.table+
 <a class="jxr_linenumber" name="374" href="#374">374</a> 						<span class="jxr_string">" where "</span>+DbHostConfiguration.Columns.HOSTID+<span class="jxr_string">" = '"</span>+Configuration.configuration.HOST_ID+<span class="jxr_string">"'"</span>);
 <a class="jxr_linenumber" name="375" href="#375">375</a> 				request.close();
@@ -395,7 +395,7 @@
 <a class="jxr_linenumber" name="385" href="#385">385</a> 		request = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="386" href="#386">386</a> 		<strong class="jxr_keyword">if</strong> (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_17.getVersion())) {
 <a class="jxr_linenumber" name="387" href="#387">387</a> 			<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="388" href="#388">388</a> 				request = <strong class="jxr_keyword">new</strong> DbRequest(DbConstant.admin.session);
+<a class="jxr_linenumber" name="388" href="#388">388</a> 				request = <strong class="jxr_keyword">new</strong> DbRequest(session);
 <a class="jxr_linenumber" name="389" href="#389">389</a> 				request.select(<span class="jxr_string">"select "</span>+DbTaskRunner.Columns.TRANSFERINFO.name()+<span class="jxr_string">" from "</span>+DbTaskRunner.table+
 <a class="jxr_linenumber" name="390" href="#390">390</a> 						<span class="jxr_string">" where "</span>+DbTaskRunner.Columns.SPECIALID+<span class="jxr_string">" = "</span>+DbConstant.ILLEGALVALUE);
 <a class="jxr_linenumber" name="391" href="#391">391</a> 				request.close();
