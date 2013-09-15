@@ -14,7 +14,7 @@ REM Logger
 SET LOGSERVER=" -Dlogback.configurationFile=%R66HOME%\conf\logback.xml "
 SET LOGCLIENT=" -Dlogback.configurationFile=%R66HOME%\conf\logback-client.xml "
 
-SET R66_CLASSPATH=" %R66BIN%\WaarpR66-2.4.17.jar;%R66BIN%\* "
+SET R66_CLASSPATH=" %R66BIN%\WaarpR66-2.4.18.jar;%R66BIN%\* "
 
 SET JAVARUNCLIENT=%JAVA_RUN% -cp %R66_CLASSPATH% %LOGCLIENT% 
 SET JAVARUNSERVER=%JAVASERVER_RUN% -cp %R66_CLASSPATH% %LOGSERVER% 
@@ -62,8 +62,12 @@ REM # [ -purge ] [ -clean ] [ -start timestamp ] [ -stop timestamp ] where times
 set R66EXPORT=%JAVARUNCLIENT% org.waarp.openr66.server.LogExport %SERVER_CONFIG% 
 
 REM # export the log (extended)
-REM # [-host host] [ -purge ] [ -clean ] [-startid id] [-stopid id] [-rule rule] [-request host] [-pending] [-transfer] [-done] [-error] [ -start timestamp ] [ -stop timestamp ] where timestamp are in yyyyMMddHHmmssSSS format eventually truncated and with possible ':- ' as separators
+REM # [-host host [-ruleDownload rule [-import]]] [ -purge ] [ -clean ] [-startid id] [-stopid id] [-rule rule] [-request host] [-pending] [-transfer] [-done] [-error] [ -start timestamp ] [ -stop timestamp ] where timestamp are in yyyyMMddHHmmssSSS format eventually truncated and with possible ':- ' as separators
 set R66LOGEXPORT=%JAVARUNCLIENT% org.waarp.openr66.server.LogExtendedExport %SERVER_CONFIG% 
+
+REM # import the log (should be used on another server)
+REM # exportedLogFile
+set R66LOGIMPORT=%JAVARUNCLIENT% org.waarp.openr66.server.LogImport %SERVER_CONFIG% 
 
 REM # change limits of bandwidth
 REM # "[ -wglob x ] [ -rglob w ] [ -wsess x ] [ -rsess x ]"
@@ -102,11 +106,15 @@ REM # no argument
 set R66GUI=%JAVARUNCLIENT% org.waarp.openr66.r66gui.R66ClientGui %CLIENT_CONFIG% 
 
 
-REM R66 Multiple Submit
-REM (-to hostId,hostID -file filepath,filepath -rule ruleId) | (-to hostId -id transferId) [ -md5 ] [ -block size ] [ -nolog ] [-start yyyyMMddHHmmssSSS | -delay +durationInMilliseconds | -delay preciseTimeInMilliseconds] [ -info "information" ]
+REM # R66 Multiple Submit
+REM # (-to hostId,hostID -file filepath,filepath -rule ruleId) | (-to hostId -id transferId) [ -md5 ] [ -block size ] [ -nolog ] [-start yyyyMMddHHmmssSSS | -delay +durationInMilliseconds | -delay preciseTimeInMilliseconds] [ -info "information" ]
 set R66MULTISEND=%JAVARUNCLIENT% org.waarp.openr66.client.MultipleSubmitTransfer %CLIENT_CONFIG% 
 
-REM synchronous transfer
-REM (-to hostId,hostid -file filepath,filepath -rule ruleId) | (-to hostId -id transferId) [ -md5 ] [ -block size ] [ -nolog ] [-start yyyyMMddHHmmssSSS | -delay +durationInMilliseconds | -delay preciseTimeInMilliseconds] [ -info "information" ]
-set R66MULTISYNCSEND=%JAVARUNCLIENT% org.waarp.openr66.client.MultipleDirectTransfer %CLIENT_CONFIG%
+REM # R66 Multiple synchronous transfer
+REM # (-to hostId,hostid -file filepath,filepath -rule ruleId) | (-to hostId -id transferId) [ -md5 ] [ -block size ] [ -nolog ] [-start yyyyMMddHHmmssSSS | -delay +durationInMilliseconds | -delay preciseTimeInMilliseconds] [ -info "information" ]
+set R66MULTISYNCSEND=%JAVARUNCLIENT% org.waarp.openr66.client.MultipleDirectTransfer %CLIENT_CONFIG% 
 
+
+REM # R66 Spooled directory transfer
+REM # (-to hostId,hostid -directory directory -statusfile file -stopfile file -rule ruleId) [-md5] [-block size] [-nolog ] [-elapse elapse] [-regex regex] [-submit|-direct] [-info "information"]
+set R66SPOOLEDSEND=%JAVARUNCLIENT% org.waarp.openr66.client.SpooledDirectoryTransfer %CLIENT_CONFIG% 

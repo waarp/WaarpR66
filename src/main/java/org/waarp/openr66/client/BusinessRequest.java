@@ -60,7 +60,8 @@ public class BusinessRequest extends AbstractBusinessRequest {
 		}
 		if (args.length < 5) {
 			logger
-					.error("Needs at least the configuration file as first argument and Business Java class and -to host as second and third arguments and -arg arguments");
+					.error("Needs at least the configuration file as first argument and Business Java class and -to host as second and third arguments and -arg arguments\n"+
+							_INFO_ARGS);
 			return;
 		}
 		classname = DEFAULT_CLASS;

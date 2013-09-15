@@ -18,6 +18,7 @@
 package org.waarp.openr66.client;
 
 import java.net.SocketAddress;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -28,7 +29,6 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
 import org.waarp.common.database.exception.WaarpDatabaseException;
-import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
@@ -52,11 +52,11 @@ import org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket;
 import org.waarp.openr66.protocol.localhandler.packet.JsonCommandPacket;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 import org.waarp.openr66.protocol.localhandler.packet.ValidPacket;
+import org.waarp.openr66.protocol.localhandler.packet.json.ValidJsonPacket;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Class to request information or request cancellation or restart
@@ -70,6 +70,22 @@ public class RequestTransfer implements Runnable {
 	 */
 	static volatile WaarpInternalLogger logger;
 
+	protected static String _INFO_ARGS = 
+			"Needs at least 5 arguments:\n" +
+					"  the XML client configuration file,\n" +
+					"  '-id' the transfer Id,\n" +
+					"  '-to' the requested host Id or '-from' the requester host Id " +
+					"(localhost will be the opposite),\n" +
+					"Other options (only one):\n" +
+					"  '-cancel' to cancel completely the transfer,\n" +
+					"  '-stop' to stop the transfer (maybe restarted),\n" +
+					"  '-restart' to restart if possible a transfer and optionnally the following arguments may be specified for a restart:\n"+
+					"      '-start' \"time start\" as yyyyMMddHHmmss (override previous -delay options)\n"
+					+
+					"      '-delay' \"+delay in ms\" as delay in ms from current time(override previous -start options)\n"
+					+
+					"      '-delay' \"delay in ms\" as time in ms (override previous -start options)";
+	
 	protected final NetworkTransaction networkTransaction;
 	final R66Future future;
 	final long specialId;
@@ -97,20 +113,7 @@ public class RequestTransfer implements Runnable {
 	protected static boolean getParams(String[] args) {
 		if (args.length < 5) {
 			logger
-					.error("Needs at least 5 arguments:\n" +
-							"  the XML client configuration file,\n" +
-							"  '-id' the transfer Id,\n" +
-							"  '-to' the requested host Id or '-from' the requester host Id " +
-							"(localhost will be the opposite),\n" +
-							"Other options (only one):\n" +
-							"  '-cancel' to cancel completely the transfer,\n" +
-							"  '-stop' to stop the transfer (maybe restarted),\n" +
-							"  '-restart' to restart if possible a transfer and optionnally the following arguments may be specified for a restart:\n"+
-							"      '-start' \"time start\" as yyyyMMddHHmmss (override previous -delay options)\n"
-							+
-							"      '-delay' \"+delay in ms\" as delay in ms from current time(override previous -start options)\n"
-							+
-							"      '-delay' \"delay in ms\" as time in ms (override previous -start options)");
+					.error(_INFO_ARGS);
 			return false;
 		}
 		if (!FileBasedConfiguration
@@ -172,11 +175,11 @@ public class RequestTransfer implements Runnable {
 			}
 		}
 		if ((scancel && srestart) || (scancel && sstop) || (srestart && sstop)) {
-			logger.error("Cannot cancel or restart or stop at the same time");
+			logger.error("Cannot cancel or restart or stop at the same time\n"+_INFO_ARGS);
 			return false;
 		}
 		if (sspecialId == DbConstant.ILLEGALVALUE || srequested == null) {
-			logger.error("TransferId and Requested/Requester HostId must be set");
+			logger.error("TransferId and Requested/Requester HostId must be set\n"+_INFO_ARGS);
 			return false;
 		}
 
@@ -468,15 +471,21 @@ public class RequestTransfer implements Runnable {
 		logger.debug("UseJson: "+useJson);
 		AbstractLocalPacket packet = null;
 		if (useJson) {
-			ObjectNode node = JsonHandler.createObjectNode();
-			JsonHandler.setValue(node, JsonCommandPacket.VALIDPACKET.comment, "Request on Transfer");
-			JsonHandler.setValue(node, JsonCommandPacket.VALIDPACKET.requested, this.requested);
-			JsonHandler.setValue(node, JsonCommandPacket.VALIDPACKET.requester, this.requester);
-			JsonHandler.setValue(node, JsonCommandPacket.VALIDPACKET.specialid, this.specialId);
+			ValidJsonPacket node = new ValidJsonPacket();
+			node.setComment("Request on Transfer");
+			node.setRequested(requested);
+			node.setRequester(requester);
+			node.setSpecialid(specialId);
 			if (restarttime != null && code == LocalPacketFactory.VALIDPACKET) {
 				// restart time set
 				logger.debug("Restart with time: "+restarttime);
-				JsonHandler.setValue(node, JsonCommandPacket.VALIDPACKET.restarttime, restarttime);
+				// time to reschedule in yyyyMMddHHmmss format
+				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+				try {
+					Date date = dateFormat.parse(restarttime);
+					node.setRestarttime(date);
+				} catch (ParseException e) {
+				}
 				packet = new JsonCommandPacket(node, code);
 			} else {
 				packet = new JsonCommandPacket(node, code);

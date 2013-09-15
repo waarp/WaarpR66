@@ -125,7 +125,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 		}
 		NetworkTransaction.removeForceNetworkChannel(remoteAddress);
 		// Now force the close of the database after a wait
-		if (dbSession != null && DbConstant.admin != null && DbConstant.admin.session != null && dbSession.internalId != DbConstant.admin.session.internalId) {
+		if (dbSession != null && DbConstant.admin != null && DbConstant.admin.session != null && ! dbSession.equals(DbConstant.admin.session)) {
 			dbSession.disconnect();
 			dbSession = null;
 		}
@@ -143,7 +143,12 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 		this.remoteAddress = this.networkChannel.getRemoteAddress();
 		try {
 			if (DbConstant.admin.isConnected) {
-				this.dbSession = new DbSession(DbConstant.admin, false);
+				if (DbConstant.admin.isCompatibleWithThreadSharedConnexion()) {
+					this.dbSession = new DbSession(DbConstant.admin, false);
+				} else {
+					logger.debug("DbSession will be adjusted on LocalChannelReference");
+					this.dbSession = DbConstant.admin.session;
+				}
 			}
 		} catch (WaarpDatabaseNoConnectionException e1) {
 			// Cannot connect so use default connection

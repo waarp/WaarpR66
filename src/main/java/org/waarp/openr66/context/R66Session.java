@@ -406,6 +406,9 @@ public class R66Session implements SessionInterface {
 					runner.setOriginalFilename(file.getFile());
 					runner.setFilename(file.getFile());
 				}
+				if (runner.getOriginalSize() <= 0) {
+					runner.setOriginalSize(file.length());
+				}
 			} catch (CommandAbstractException e) {
 				throw new OpenR66RunnerErrorException(e);
 			}

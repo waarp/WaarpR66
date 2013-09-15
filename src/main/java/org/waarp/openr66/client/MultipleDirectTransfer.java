@@ -57,6 +57,9 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * 
  */
 public class MultipleDirectTransfer extends DirectTransfer {
+	public int errorMultiple = 0;
+	public int doneMultiple = 0;
+	
 	public MultipleDirectTransfer(R66Future future, String remoteHost,
 			String filename, String rulename, String fileinfo, boolean isMD5, int blocksize,
 			long id,
@@ -127,6 +130,118 @@ public class MultipleDirectTransfer extends DirectTransfer {
 		}
 		return files;
 	}
+	
+
+	@Override
+	public void run() {
+		String [] localfilenames = filename.split(",");
+		String [] rhosts = remoteHost.split(",");
+		boolean inError = false;
+		R66Result resultError = null;
+		// first check if filenames contains wildcards
+		DbRule dbrule = null;
+		try {
+			dbrule = new DbRule(DbConstant.admin.session, rulename);
+		} catch (WaarpDatabaseException e1) {
+			logger.error("Rule error: ", e1);
+			this.future.setFailure(e1);
+			return;
+		}
+		List<String> files = null;
+		if (dbrule.isSendMode()) {
+			files = getLocalFiles(dbrule, localfilenames);
+		}
+		for (String host : rhosts) {
+			host = host.trim();
+			if (host != null && ! host.isEmpty()) {
+				if (dbrule.isRecvMode()) {
+					files = getRemoteFiles(dbrule, localfilenames, host, networkTransaction);
+				}
+				for (String filename : files) {
+					filename = filename.trim();
+					if (filename != null && ! filename.isEmpty()) {
+						logger.info("Launch transfer to "+host+" with file "+filename);
+						long time1 = System.currentTimeMillis();
+						R66Future future = new R66Future(true);
+						DirectTransfer transaction = new DirectTransfer(future,
+								host, filename, rule, fileInfo, ismd5, block, idt,
+								networkTransaction);
+						logger.debug("rhost: "+rhost+":"+transaction.remoteHost);
+						transaction.run();
+						future.awaitUninterruptibly();
+						long time2 = System.currentTimeMillis();
+						logger.debug("finish transfer: " + future.isSuccess());
+						long delay = time2 - time1;
+						R66Result result = future.getResult();
+						if (future.isSuccess()) {
+							doneMultiple++;
+							if (result.runner.getErrorInfo() == ErrorCode.Warning) {
+								logger.warn("Transfer in status: WARNED     "
+										+ result.runner.toShortString()
+										+
+										"     <REMOTE>"
+										+ rhost
+										+ "</REMOTE>"
+										+
+										"     <FILEFINAL>"
+										+
+										(result.file != null ? result.file.toString() + "</FILEFINAL>"
+												: "no file")
+										+ "     delay: " + delay);
+							} else {
+								logger.warn("Transfer in status: SUCCESS     "
+										+ result.runner.toShortString()
+										+
+										"     <REMOTE>"
+										+ rhost
+										+ "</REMOTE>"
+										+
+										"     <FILEFINAL>"
+										+
+										(result.file != null ? result.file.toString() + "</FILEFINAL>"
+												: "no file")
+										+ "     delay: " + delay);
+							}
+							if (nolog) {
+								// In case of success, delete the runner
+								try {
+									result.runner.delete();
+								} catch (WaarpDatabaseException e) {
+									logger.warn("Cannot apply nolog to     " + result.runner.toShortString(),
+											e);
+								}
+							}
+						} else {
+							errorMultiple++;
+							if (result == null || result.runner == null) {
+								logger.error("Transfer in     FAILURE with no Id", future.getCause());
+								inError = true;
+							}
+							if (result.runner.getErrorInfo() == ErrorCode.Warning) {
+								logger.warn("Transfer is     WARNED     " + result.runner.toShortString() +
+										"     <REMOTE>" + rhost + "</REMOTE>", future.getCause());
+								inError = true;
+								resultError = result;
+							} else {
+								logger.error("Transfer in     FAILURE     " + result.runner.toShortString() +
+										"     <REMOTE>" + rhost + "</REMOTE>", future.getCause());
+								inError = true;
+								resultError = result;
+							}
+						}
+					}
+				}
+			}
+		}
+		if (inError) {
+			if (resultError != null) {
+				this.future.setResult(resultError);
+			}
+			this.future.cancel();
+		} else {
+			this.future.setSuccess();
+		}
+	}
 
 	public static void main(String[] args) {
 		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
@@ -141,104 +256,31 @@ public class MultipleDirectTransfer extends DirectTransfer {
 			ChannelUtils.stopLogger();
 			System.exit(2);
 		}
-		long time1 = System.currentTimeMillis();
 
 		Configuration.configuration.pipelineInit();
 		NetworkTransaction networkTransaction = new NetworkTransaction();
 		try {
-			String [] localfilenames = localFilename.split(",");
-			String [] rhosts = rhost.split(",");
-			int error = 0;
-			boolean inError = false;
-			// first check if filenames contains wildcards
-			DbRule dbrule = new DbRule(DbConstant.admin.session, rule);
-			List<String> files = null;
-			if (dbrule.isSendMode()) {
-				files = getLocalFiles(dbrule, localfilenames);
-			}
-			for (String host : rhosts) {
-				host = host.trim();
-				if (host != null && ! host.isEmpty()) {
-					if (dbrule.isRecvMode()) {
-						files = getRemoteFiles(dbrule, localfilenames, host, networkTransaction);
-					}
-					for (String filename : files) {
-						filename = filename.trim();
-						if (filename != null && ! filename.isEmpty()) {
-							logger.warn("Launch transfer to "+host+" with file "+filename);
-							R66Future future = new R66Future(true);
-							MultipleDirectTransfer transaction = new MultipleDirectTransfer(future,
-									host, filename, rule, fileInfo, ismd5, block, idt,
-									networkTransaction);
-							logger.debug("rhost: "+rhost+":"+transaction.remoteHost);
-							transaction.run();
-							future.awaitUninterruptibly();
-							long time2 = System.currentTimeMillis();
-							logger.debug("finish transfer: " + future.isSuccess());
-							long delay = time2 - time1;
-							R66Result result = future.getResult();
-							if (future.isSuccess()) {
-								if (result.runner.getErrorInfo() == ErrorCode.Warning) {
-									logger.warn("Transfer in status: WARNED     "
-											+ result.runner.toShortString()
-											+
-											"     <REMOTE>"
-											+ rhost
-											+ "</REMOTE>"
-											+
-											"     <FILEFINAL>"
-											+
-											(result.file != null ? result.file.toString() + "</FILEFINAL>"
-													: "no file")
-											+ "     delay: " + delay);
-								} else {
-									logger.warn("Transfer in status: SUCCESS     "
-											+ result.runner.toShortString()
-											+
-											"     <REMOTE>"
-											+ rhost
-											+ "</REMOTE>"
-											+
-											"     <FILEFINAL>"
-											+
-											(result.file != null ? result.file.toString() + "</FILEFINAL>"
-													: "no file")
-											+ "     delay: " + delay);
-								}
-								if (nolog) {
-									// In case of success, delete the runner
-									try {
-										result.runner.delete();
-									} catch (WaarpDatabaseException e) {
-										logger.warn("Cannot apply nolog to     " + result.runner.toShortString(),
-												e);
-									}
-								}
-							} else {
-								if (result == null || result.runner == null) {
-									logger.error("Transfer in     FAILURE with no Id", future.getCause());
-									inError = true;
-									error = ErrorCode.Unknown.ordinal();
-								}
-								if (result.runner.getErrorInfo() == ErrorCode.Warning) {
-									logger.warn("Transfer is     WARNED     " + result.runner.toShortString() +
-											"     <REMOTE>" + rhost + "</REMOTE>", future.getCause());
-									inError = true;
-									error = result.code.ordinal();
-								} else {
-									logger.error("Transfer in     FAILURE     " + result.runner.toShortString() +
-											"     <REMOTE>" + rhost + "</REMOTE>", future.getCause());
-									inError = true;
-									error = result.code.ordinal();
-								}
-							}
-						}
-					}
-				}
-			}
-			if (inError) {
+			R66Future future = new R66Future(true);
+			long time1 = System.currentTimeMillis();
+			MultipleDirectTransfer multipleDirectTransfer =
+					new MultipleDirectTransfer(future, rhost, localFilename, 
+							rule, fileInfo, ismd5, block, idt,
+							networkTransaction);
+			multipleDirectTransfer.run();
+			future.awaitUninterruptibly();
+			long time2 = System.currentTimeMillis();
+			logger.debug("finish all transfers: " + future.isSuccess());
+			long delay = time2 - time1;
+			if (future.isSuccess()) {
+				logger.warn("Transfers in status: SUCCESS      for "+multipleDirectTransfer.doneMultiple
+						+ " transfers     delay: " + delay);
+			} else {
+				logger.error("Some Transfers in status:     FAILURE     for ko: "+
+						multipleDirectTransfer.errorMultiple +
+						" ok: "+ multipleDirectTransfer.doneMultiple
+						+ " transfers     delay: " + delay);
 				networkTransaction.closeAll();
-				System.exit(error);
+				System.exit(multipleDirectTransfer.errorMultiple);
 			}
 		} catch (Exception e) {
 			logger.warn("exc", e);
