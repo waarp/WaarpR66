@@ -26,6 +26,7 @@ import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -2300,6 +2301,9 @@ public class DbTaskRunner extends AbstractDbData {
 	 */
 	private void setTransferInformation(String transferInformation) {
 		this.transferInformation = transferInformation;
+		if (this.transferInformation == null) {
+			this.transferInformation = "{}";
+		}
 		allFields[Columns.TRANSFERINFO.ordinal()].setValue(this.transferInformation);
 		isSaved = false;
 	}
@@ -2781,6 +2785,10 @@ public class DbTaskRunner extends AbstractDbData {
 				int poststep = this.step;
 				this.setPostTask();
 				this.saveStatus();
+				// in case of error
+				R66Result error =
+						new R66Result(this.session, finalValue.isAnswered,
+								ErrorCode.FinalOp, this);
 				if (!isRecvThrough()) {
 					if (this.globalstep == TASKSTEP.TRANSFERTASK.ordinal() ||
 							(this.globalstep == TASKSTEP.POSTTASK.ordinal() &&
@@ -2798,6 +2806,7 @@ public class DbTaskRunner extends AbstractDbData {
 								if (localChannelReference != null) {
 									localChannelReference.invalidateRequest(result);
 								}
+								errorTransfer(error, file, localChannelReference);
 								throw e;
 							}
 						} catch (OpenR66ProtocolSystemException e) {
@@ -2808,6 +2817,7 @@ public class DbTaskRunner extends AbstractDbData {
 							if (localChannelReference != null) {
 								localChannelReference.invalidateRequest(result);
 							}
+							errorTransfer(error, file, localChannelReference);
 							throw e;
 						} catch (CommandAbstractException e) {
 							R66Result result = new R66Result(
@@ -2818,6 +2828,7 @@ public class DbTaskRunner extends AbstractDbData {
 							if (localChannelReference != null) {
 								localChannelReference.invalidateRequest(result);
 							}
+							errorTransfer(error, file, localChannelReference);
 							throw (OpenR66RunnerErrorException) result.exception;
 						}
 						logger.debug("File finally moved: {}", file);
@@ -2843,6 +2854,7 @@ public class DbTaskRunner extends AbstractDbData {
 									if (localChannelReference != null) {
 										localChannelReference.invalidateRequest(result);
 									}
+									errorTransfer(error, file, localChannelReference);
 									throw (OpenR66RunnerErrorException) result.exception;
 								}
 							} catch (IOException e) {
@@ -2854,6 +2866,7 @@ public class DbTaskRunner extends AbstractDbData {
 								if (localChannelReference != null) {
 									localChannelReference.invalidateRequest(result);
 								}
+								errorTransfer(error, file, localChannelReference);
 								throw (OpenR66RunnerErrorException) result.exception;
 							}
 						}
@@ -3465,7 +3478,8 @@ public class DbTaskRunner extends AbstractDbData {
 			throws WaarpDatabaseSqlException {
 		Element root = new DefaultElement(XMLRUNNER);
 		for (DbValue value : runner.allFields) {
-			if (value.column.equals(Columns.UPDATEDINFO.name())) {
+			if (value.column.equals(Columns.UPDATEDINFO.name()) ||
+					value.column.equals(Columns.TRANSFERINFO.name())) {
 				continue;
 			}
 			root.add(newElement(value.column.toLowerCase(), value
@@ -3485,7 +3499,8 @@ public class DbTaskRunner extends AbstractDbData {
 	private static void setRunnerFromElement(DbTaskRunner runner, Element root)
 			throws WaarpDatabaseSqlException {
 		for (DbValue value : runner.allFields) {
-			if (value.column.equals(Columns.UPDATEDINFO.name())) {
+			if (value.column.equals(Columns.UPDATEDINFO.name()) ||
+					value.column.equals(Columns.TRANSFERINFO.name())) {
 				continue;
 			}
 			Element elt = (Element) root.selectSingleNode(value.column.toLowerCase());
@@ -3665,7 +3680,8 @@ public class DbTaskRunner extends AbstractDbData {
 	 */
 	private static void setRunnerFromElementNoException(DbTaskRunner runner, Element root) {
 		for (DbValue value : runner.allFields) {
-			if (value.column.equals(Columns.UPDATEDINFO.name())) {
+			if (value.column.equals(Columns.UPDATEDINFO.name()) ||
+					value.column.equals(Columns.TRANSFERINFO.name())) {
 				continue;
 			}
 			Element elt = (Element) root.selectSingleNode(value.column.toLowerCase());
@@ -3681,7 +3697,7 @@ public class DbTaskRunner extends AbstractDbData {
 	}
 	
 	/**
-	 * 
+	 * Reload a to submitted runner from a remote partner's log (so reverse should be true)
 	 * @param session
 	 * @param root
 	 * @param reverse should the way be invert (isSender)
@@ -3808,6 +3824,59 @@ public class DbTaskRunner extends AbstractDbData {
 		} catch (WaarpDatabaseSqlException e) {
 			throw new OpenR66ProtocolBusinessException(
 					"Backend XML file is not conform to the model");
+		}
+	}
+	
+	/**
+	 * Special function for save or update for Log Import
+	 * @throws WaarpDatabaseException
+	 */
+	private final void insertOrUpdateForLogsImport() throws WaarpDatabaseException {
+		if (dbSession == null) {
+			return;
+		}
+		if (super.exist()) {
+			super.update();
+		} else {
+			super.insert();
+		}
+	}
+	/**
+	 * Method to load several DbTaskRunner from File logs.
+	 * 
+	 * @param logsFile File containing logs from export function
+	 * @throws OpenR66ProtocolBusinessException
+	 */
+	public static void loadXml(File logsFile) throws OpenR66ProtocolBusinessException {
+		if (!logsFile.canRead()) {
+			throw new OpenR66ProtocolBusinessException("XML file cannot be read");
+		}
+		SAXReader reader = new SAXReader();
+		Document document;
+		try {
+			document = reader.read(logsFile);
+		} catch (DocumentException e) {
+			throw new OpenR66ProtocolBusinessException(
+					"XML file cannot be read as an XML file");
+		}
+		@SuppressWarnings("unchecked")
+		List<Element> elts = document.selectNodes("/" + XMLRUNNERS + "/" + XMLRUNNER);
+		boolean error = false;
+		for (Element element : elts) {
+			DbTaskRunner runnerlog = new DbTaskRunner(DbConstant.admin.session);
+			try {
+				setRunnerFromElement(runnerlog, element);
+				runnerlog.setFromArray();
+				runnerlog.insertOrUpdateForLogsImport();
+			} catch (WaarpDatabaseSqlException e) {
+				error = true;
+			} catch (WaarpDatabaseException e) {
+				error = true;
+			}
+		}
+		if (error) {
+			throw new OpenR66ProtocolBusinessException(
+				"Backend XML file is not conform to the model");
 		}
 	}
 

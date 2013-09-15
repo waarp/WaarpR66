@@ -17,12 +17,17 @@
  */
 package org.waarp.openr66.protocol.localhandler.packet;
 
+import java.io.IOException;
+
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.waarp.common.json.JsonHandler;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
+import org.waarp.openr66.protocol.localhandler.packet.json.JsonPacket;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -33,18 +38,18 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * @author frederic bregier
  */
 public class JsonCommandPacket extends AbstractLocalPacket {
-	public static enum STOPorCANCELPACKET {comment, requester, requested, specialid};
-	public static enum VALIDPACKET {comment, requester, requested, specialid, restarttime};
-	public static enum LOGPACKET {purge, clean, start, stop, startid, stopid, rule, request, statuspending, statustransfer, statusdone, statuserror};
-	public static enum CONFEXPORTPACKET {host, rule, business, alias, roles};
-	public static enum CONFIMPORTPACKET {purgehost, purgerule, purgebusiness, purgealias, purgeroles, host, rule, business, alias, roles, hostid, ruleid, businessid, aliasid, rolesid};
-	public static enum INFORMATIONPACKET {result, nbitems};
-	public static enum REQUESTPACKET {comment, filename, filesize};
-	public static enum BANDWIDTHPACKET {setter, writeglobal, readglobal, writesession, readsession};
-	public static enum REQUESTUSERPACKET {command};
-	public static enum RESPONSELOGPACKET {command, filename, exported, purged};
-	public static enum RESPONSECONFEXPORTPACKET {command, filehost, filerule, filebusiness, filealias, fileroles};
-	public static enum RESPONSECONFIMPORTPACKET {command, purgedhost, purgedrule, purgedbusiness, purgedalias, purgedroles, 
+	private static enum STOPorCANCELPACKET {comment, requester, requested, specialid};
+	private static enum VALIDPACKET {comment, requester, requested, specialid, restarttime};
+	private static enum LOGPACKET {purge, clean, start, stop, startid, stopid, rule, request, statuspending, statustransfer, statusdone, statuserror};
+	private static enum CONFEXPORTPACKET {host, rule, business, alias, roles};
+	private static enum CONFIMPORTPACKET {purgehost, purgerule, purgebusiness, purgealias, purgeroles, host, rule, business, alias, roles, hostid, ruleid, businessid, aliasid, rolesid};
+	private static enum INFORMATIONPACKET {result, nbitems};
+	private static enum REQUESTPACKET {comment, filename, filesize};
+	private static enum BANDWIDTHPACKET {setter, writeglobal, readglobal, writesession, readsession};
+	private static enum REQUESTUSERPACKET {command};
+	private static enum RESPONSELOGPACKET {command, filename, exported, purged};
+	private static enum RESPONSECONFEXPORTPACKET {command, filehost, filerule, filebusiness, filealias, fileroles};
+	private static enum RESPONSECONFIMPORTPACKET {command, purgedhost, purgedrule, purgedbusiness, purgedalias, purgedroles, 
 		importedhost, importedrule, importedbusiness, importedalias, importedroles};
 	
 	private final String request;
@@ -90,7 +95,7 @@ public class JsonCommandPacket extends AbstractLocalPacket {
 	 * @param orequest
 	 * @param end
 	 */
-	public JsonCommandPacket(ObjectNode orequest, byte end) {
+	private JsonCommandPacket(ObjectNode orequest, byte end) {
 		request = JsonHandler.writeAsString(orequest);
 		result = null;
 		send = end;
@@ -101,8 +106,29 @@ public class JsonCommandPacket extends AbstractLocalPacket {
 	 * @param sresult
 	 * @param end
 	 */
-	public JsonCommandPacket(ObjectNode orequest, String sresult, byte end) {
+	private JsonCommandPacket(ObjectNode orequest, String sresult, byte end) {
 		request = JsonHandler.writeAsString(orequest);
+		result = sresult;
+		send = end;
+	}
+	
+	/**
+	 * @param jrequest
+	 * @param end
+	 */
+	public JsonCommandPacket(JsonPacket jrequest, byte end) {
+		request = jrequest.toString();
+		result = null;
+		send = end;
+	}
+
+	/**
+	 * @param jrequest
+	 * @param sresult
+	 * @param end
+	 */
+	public JsonCommandPacket(JsonPacket jrequest, String sresult, byte end) {
+		request = jrequest.toString();
 		result = sresult;
 		send = end;
 	}
@@ -144,8 +170,23 @@ public class JsonCommandPacket extends AbstractLocalPacket {
 	/**
 	 * @return the node from request
 	 */
-	public ObjectNode getNodeRequest() {
+	private ObjectNode getNodeRequest() {
 		return JsonHandler.getFromString(request);
+	}
+
+	/**
+	 * @return the JsonPacket from request
+	 */
+	public JsonPacket getJsonRequest() {
+		try {
+			return JsonPacket.createFromBuffer(request);
+		} catch (JsonParseException e) {
+			return null;
+		} catch (JsonMappingException e) {
+			return null;
+		} catch (IOException e) {
+			return null;
+		}
 	}
 
 	/**

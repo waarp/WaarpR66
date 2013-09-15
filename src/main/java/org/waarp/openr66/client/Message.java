@@ -51,6 +51,12 @@ public class Message implements Runnable {
 	 * Internal Logger
 	 */
 	private static WaarpInternalLogger logger;
+	
+	protected static String _INFO_ARGS =
+			"Needs 5 arguments:\n" +
+					"  the XML client configuration file,\n" +
+					"  '-to' the remoteHost Id,\n" +
+					"  '-msg' the message\n";
 
 	final private NetworkTransaction networkTransaction;
 
@@ -74,10 +80,7 @@ public class Message implements Runnable {
 	protected static boolean getParams(String[] args) {
 		if (args.length < 5) {
 			logger
-					.error("Needs 5 arguments:\n" +
-							"  the XML client configuration file,\n" +
-							"  '-to' the remoteHost Id,\n" +
-							"  '-msg' the message\n");
+					.error(_INFO_ARGS);
 			return false;
 		}
 		if (!FileBasedConfiguration
@@ -96,7 +99,7 @@ public class Message implements Runnable {
 			}
 		}
 		if (srequested == null) {
-			logger.error("Requested HostId must be set");
+			logger.error("Requested HostId must be set\n"+_INFO_ARGS);
 			return false;
 		}
 		return true;
@@ -184,10 +187,7 @@ public class Message implements Runnable {
 		}
 		if (args.length < 5) {
 			logger
-					.error("Needs 5 arguments:\n" +
-							"  the XML client configuration file,\n" +
-							"  '-to' the remoteHost Id,\n" +
-							"  '-msg' the message\n");
+					.error(_INFO_ARGS);
 			System.exit(1);
 		}
 		if (!getParams(args)) {

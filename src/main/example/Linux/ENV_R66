@@ -18,7 +18,7 @@ export R66BIN="${R66HOME}/lib"
 LOGSERVER=" -Dlogback.configurationFile=${R66HOME}/conf/logback.xml "
 LOGCLIENT=" -Dlogback.configurationFile=${R66HOME}/conf/logback-client.xml "
 
-R66_CLASSPATH=" ${R66BIN}/WaarpR66-2.4.17.jar:${R66BIN}/* "
+R66_CLASSPATH=" ${R66BIN}/WaarpR66-2.4.18.jar:${R66BIN}/* "
 
 export JAVARUNCLIENT="${JAVA_RUN} -cp ${R66_CLASSPATH} ${LOGCLIENT} "
 export JAVARUNSERVER="${JAVA_RUN} -cp ${R66_CLASSPATH} ${LOGSERVER} "
@@ -73,9 +73,14 @@ export R66EXPORT="${JAVARUNCLIENT} org.waarp.openr66.server.LogExport ${SERVER_C
 alias r66export="${R66EXPORT}"
 
 # export the log (extended)
-# [-host host] [ -purge ] [ -clean ] [-startid id] [-stopid id] [-rule rule] [-request host] [-pending] [-transfer] [-done] [-error] [ -start timestamp ] [ -stop timestamp ] where timestamp are in yyyyMMddHHmmssSSS format eventually truncated and with possible ':- ' as separators
+# [-host host [-ruleDownload rule [-import]]] [ -purge ] [ -clean ] [-startid id] [-stopid id] [-rule rule] [-request host] [-pending] [-transfer] [-done] [-error] [ -start timestamp ] [ -stop timestamp ] where timestamp are in yyyyMMddHHmmssSSS format eventually truncated and with possible ':- ' as separators
 export R66LOGEXPORT="${JAVARUNCLIENT} org.waarp.openr66.server.LogExtendedExport ${SERVER_CONFIG} "
-alias r66logexport="${R66EXPORT}"
+alias r66logexport="${R66LOGEXPORT}"
+
+# import the log (should be used on another server)
+# exportedLogFile
+export R66LOGIMPORT="${JAVARUNCLIENT} org.waarp.openr66.server.LogImport ${SERVER_CONFIG} "
+alias r66logimport="${R66LOGIMPORT}"
 
 # change limits of bandwidth
 # "[ -wglob x ] [ -rglob w ] [ -wsess x ] [ -rsess x ]"
@@ -126,7 +131,12 @@ alias r66gui="${R66GUI}"
 export R66MULTISEND="${JAVARUNCLIENT} org.waarp.openr66.client.MultipleSubmitTransfer ${CLIENT_CONFIG} "
 alias r66multisend="${R66MULTISEND}"
 
-# synchronous transfer
+# R66 Multiple synchronous transfer
 # (-to hostId,hostid -file filepath,filepath -rule ruleId) | (-to hostId -id transferId) [ -md5 ] [ -block size ] [ -nolog ] [-start yyyyMMddHHmmssSSS | -delay +durationInMilliseconds | -delay preciseTimeInMilliseconds] [ -info "information" ]
 export R66MULTISYNCSEND="${JAVARUNCLIENT} org.waarp.openr66.client.MultipleDirectTransfer ${CLIENT_CONFIG} "
 alias r66multisyncsend="${R66MULTISYNCSEND}"
+
+# R66 Spooled directory transfer
+# (-to hostId,hostid -directory directory -statusfile file -stopfile file -rule ruleId) [-md5] [-block size] [-nolog ] [-elapse elapse] [-regex regex] [-submit|-direct] [-info "information"]
+export R66SPOOLEDSEND="${JAVARUNCLIENT} org.waarp.openr66.client.SpooledDirectoryTransfer ${CLIENT_CONFIG} "
+alias r66spooledsend="${R66MULTISYNCSEND}"

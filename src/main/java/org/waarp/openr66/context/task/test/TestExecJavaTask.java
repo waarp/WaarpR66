@@ -46,7 +46,8 @@ public class TestExecJavaTask extends AbstractExecJavaTask {
 		if (callFromBusiness) {
 			// Business Request to validate?
 			if (isToValidate) {
-				int rank = Integer.parseInt(args[2]);
+				String [] args = fullarg.split(" ");
+				int rank = Integer.parseInt(args[1]);
 				rank++;
 				BusinessRequestPacket packet =
 						new BusinessRequestPacket(this.getClass().getName() + " business " + rank
@@ -80,9 +81,9 @@ public class TestExecJavaTask extends AbstractExecJavaTask {
 				}
 			}
 			if (runner == null) {
-				logger.info("TestExecJavaTask No Runner");
+				logger.warn("TestExecJavaTask No Runner: "+fullarg);
 			} else {
-				logger.info("TestExecJavaTask Runner: " + runner.toShortString());
+				logger.warn("TestExecJavaTask Runner: " + runner.toShortString());
 			}
 			this.status = 0;
 		}

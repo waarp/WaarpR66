@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.sql.SQLException;
 import java.util.List;
 
 import org.dom4j.Document;
@@ -64,6 +65,7 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
 import org.waarp.openr66.protocol.networkhandler.R66ConstraintLimitHandler;
 import org.waarp.openr66.protocol.networkhandler.ssl.NetworkSslServerPipelineFactory;
 import org.waarp.openr66.protocol.utils.FileUtils;
+import org.waarp.openr66.server.ServerInitDatabase;
 import org.waarp.snmp.SnmpConfiguration;
 
 /**
@@ -650,6 +652,11 @@ public class FileBasedConfiguration {
 	private static XmlValue[] configuration = null;
 	private static XmlHash hashConfig = null;
 
+	/**
+	 * 
+	 * @param config
+	 * @return True if the identity of the server is correctly loaded
+	 */
 	private static boolean loadIdentity(Configuration config) {
 		XmlValue value = hashConfig.get(XML_SERVER_HOSTID);
 		if (value != null && (!value.isEmpty())) {
@@ -670,6 +677,11 @@ public class FileBasedConfiguration {
 		return setCryptoKey(config);
 	}
 
+	/**
+	 * 
+	 * @param config
+	 * @return True if the authentication of partners is correctly loaded
+	 */
 	private static boolean loadAuthentication(Configuration config) {
 		if (!DbConstant.admin.isConnected) {
 			// if no database, must load authentication from file
@@ -688,6 +700,11 @@ public class FileBasedConfiguration {
 		return true;
 	}
 
+	/**
+	 * 
+	 * @param config
+	 * @return True if the server parameters are correctly loaded
+	 */
 	private static boolean loadServerParam(Configuration config) {
 		XmlValue value = hashConfig.get(XML_USESSL);
 		if (value != null && (!value.isEmpty())) {
@@ -894,6 +911,11 @@ public class FileBasedConfiguration {
 		return true;
 	}
 
+	/**
+	 * 
+	 * @param config
+	 * @return True if the client parameters are correctly loaded
+	 */
 	private static boolean loadClientParam(Configuration config) {
 		XmlValue value = hashConfig.get(XML_SAVE_TASKRUNNERNODB);
 		if (value != null && (!value.isEmpty())) {
@@ -902,6 +924,11 @@ public class FileBasedConfiguration {
 		return true;
 	}
 
+	/**
+	 * 
+	 * @param config
+	 * @return True if the directory parameters are correctly loaded
+	 */
 	private static boolean loadDirectory(Configuration config) {
 		XmlValue value = hashConfig.get(XML_SERVER_HOME);
 		if (value == null || (value.isEmpty())) {
@@ -961,6 +988,12 @@ public class FileBasedConfiguration {
 
 	private static boolean alreadySetLimit = false;
 
+	/**
+	 * 
+	 * @param config
+	 * @param updateLimit
+	 * @return True if the limit configuration is correctly loaded
+	 */
 	private static boolean loadLimit(Configuration config, boolean updateLimit) {
 		if (alreadySetLimit) {
 			return true;
@@ -1093,14 +1126,19 @@ public class FileBasedConfiguration {
 		if (value != null && (!value.isEmpty())) {
 			limitLowBandwidth = value.getLong();
 		}
-		if (highcpuLimit > 0) {
-			config.constraintLimitHandler =
-					new R66ConstraintLimitHandler(useCpuLimit, useCpuLimitJDK, cpulimit, connlimit,
-							lowcpuLimit, highcpuLimit, percentageDecrease, null, delay,
-							limitLowBandwidth);
+		if (useCpuLimit || highcpuLimit > 0) {
+			if (highcpuLimit > 0) {
+				config.constraintLimitHandler =
+						new R66ConstraintLimitHandler(useCpuLimit, useCpuLimitJDK, cpulimit, connlimit,
+								lowcpuLimit, highcpuLimit, percentageDecrease, null, delay,
+								limitLowBandwidth);
+			} else {
+				config.constraintLimitHandler =
+						new R66ConstraintLimitHandler(useCpuLimit, useCpuLimitJDK, cpulimit, connlimit);
+			}
 		} else {
 			config.constraintLimitHandler =
-					new R66ConstraintLimitHandler(useCpuLimit, useCpuLimitJDK, cpulimit, connlimit);
+					new R66ConstraintLimitHandler();
 		}
 		value = hashConfig.get(XML_SERVER_THREAD);
 		if (value != null && (!value.isEmpty())) {
@@ -1173,6 +1211,11 @@ public class FileBasedConfiguration {
 		return true;
 	}
 
+	/**
+	 * 
+	 * @param config
+	 * @return True if the SSL configuration is correctly loaded
+	 */
 	private static boolean loadSsl(Configuration config) {
 		// StoreKey for Server
 		XmlValue value = hashConfig.get(XML_PATH_KEYPATH);
@@ -1261,6 +1304,11 @@ public class FileBasedConfiguration {
 		return true;
 	}
 
+	/**
+	 * 
+	 * @param config
+	 * @return True if the network configuration is correctly loaded
+	 */
 	private static boolean loadNetworkServer(Configuration config) {
 		XmlValue value = hashConfig.get(XML_SERVER_PORT);
 		int port = 6666;
@@ -1296,7 +1344,7 @@ public class FileBasedConfiguration {
 	/**
 	 * Set the Crypto Key from the Document
 	 * 
-	 * @param document
+	 * @param config
 	 * @return True if OK
 	 */
 	private static boolean setCryptoKey(Configuration config) {
@@ -1325,7 +1373,7 @@ public class FileBasedConfiguration {
 	/**
 	 * Load data from database or from files if not connected
 	 * 
-	 * @param document
+	 * @param config
 	 * @return True if OK
 	 */
 	private static boolean loadFromDatabase(Configuration config) {
@@ -1369,10 +1417,11 @@ public class FileBasedConfiguration {
 		return true;
 	}
 
+	public static boolean checkDatabase = true;
 	/**
 	 * Load database parameter
 	 * 
-	 * @param document
+	 * @param config
 	 * @return True if OK
 	 */
 	private static boolean loadDatabase(Configuration config) {
@@ -1422,6 +1471,17 @@ public class FileBasedConfiguration {
 				}
 				logger.info("Database connection: " + (DbConstant.admin != null) + ":"
 						+ (DbConstant.noCommitAdmin != null));
+				
+				try {
+					logger.info("DefaultTransactionIsolation: " +
+							DbConstant.admin.session.conn.getMetaData().getDefaultTransactionIsolation() +
+							" MaxConnections: " +
+							DbConstant.admin.session.conn.getMetaData().getMaxConnections() +
+							" MaxStatements: " +
+							DbConstant.admin.session.conn.getMetaData().getMaxStatements());
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
 			} catch (WaarpDatabaseNoConnectionException e2) {
 				logger.error("Unable to Connect to DB", e2);
 				return false;
@@ -1435,30 +1495,18 @@ public class FileBasedConfiguration {
 				} catch (WaarpDatabaseSqlException e) {
 					logger.error("Database is not yet initiated: run ServerInitDatabase -initdb first", e);
 					return true;
+				} finally {
+					request.close();
 				}
-				request.close();
 			} catch (WaarpDatabaseNoConnectionException e1) {
 				// ignore
 			}
-			// Check if the database is up to date
-			String version = DbHostConfiguration.getVersionDb(DbConstant.admin.session, Configuration.configuration.HOST_ID);
-			try {
-				boolean uptodate = true;
-				if (version != null) {
-					uptodate = DbModelFactory.dbModel.needUpgradeDb(DbConstant.admin.session, version, true);
-				} else {
-					uptodate = DbModelFactory.dbModel.needUpgradeDb(DbConstant.admin.session, "1.1.0", true);
-				}
-				if (uptodate) {
-					logger.error("Database schema is not up to date: you must run ServerInitDatabase with the option -upgradeDb");
+			if (checkDatabase) {
+				// Check if the database is up to date
+				if (! ServerInitDatabase.upgradedb()) {
 					return false;
-				} else {
-					logger.debug("Database schema is up to date");
 				}
-			} catch (WaarpDatabaseNoConnectionException e) {
-				logger.error("Unable to Connect to DB", e);
-				return false;
-			}			
+			}
 		}
 		value = hashConfig.get(XML_SAVE_TASKRUNNERNODB);
 		if (value != null && (!value.isEmpty())) {
@@ -1470,7 +1518,7 @@ public class FileBasedConfiguration {
 	/**
 	 * Load white list for Business if any
 	 * 
-	 * @param document
+	 * @param config
 	 */
 	private static void loadBusinessWhiteList(Configuration config) {
 		XmlValue value = hashConfig.get(DbHostConfiguration.XML_BUSINESS);
@@ -1504,6 +1552,10 @@ public class FileBasedConfiguration {
 		setSelfVersion(config);
 	}
 	
+	/**
+	 * Load the aliases configuration
+	 * @param config
+	 */
 	@SuppressWarnings("unchecked")
 	public static void loadAliases(Configuration config) {
 		XmlValue value = hashConfig.get(DbHostConfiguration.XML_ALIASES);
@@ -1548,7 +1600,7 @@ public class FileBasedConfiguration {
 	/**
 	 * Load Role list if any
 	 * 
-	 * @param document
+	 * @param config
 	 */
 	@SuppressWarnings("unchecked")
 	private static void loadRolesList(Configuration config) {
@@ -1589,7 +1641,7 @@ public class FileBasedConfiguration {
 
 	/**
 	 * 
-	 * @param document
+	 * @param config
 	 * @param fromXML
 	 * @return the new subpath
 	 * @throws OpenR66ProtocolSystemException
@@ -1620,6 +1672,7 @@ public class FileBasedConfiguration {
 	/**
 	 * Load minimalistic Limit configuration
 	 * 
+	 * @param config
 	 * @param filename
 	 * @return True if OK
 	 */
@@ -1652,6 +1705,7 @@ public class FileBasedConfiguration {
 	/**
 	 * Load configuration for init database
 	 * 
+	 * @param config
 	 * @param filename
 	 * @return True if OK
 	 */
@@ -1702,6 +1756,7 @@ public class FileBasedConfiguration {
 	/**
 	 * Load minimalistic configuration
 	 * 
+	 * @param config
 	 * @param filename
 	 * @return True if OK
 	 */
@@ -1769,6 +1824,7 @@ public class FileBasedConfiguration {
 	/**
 	 * Initiate the configuration from the xml file for server shutdown
 	 * 
+	 * @param config
 	 * @param filename
 	 * @return True if OK
 	 */
@@ -1853,6 +1909,7 @@ public class FileBasedConfiguration {
 	/**
 	 * Initiate the configuration from the xml file for server
 	 * 
+	 * @param config
 	 * @param filename
 	 * @return True if OK
 	 */
@@ -1941,6 +1998,7 @@ public class FileBasedConfiguration {
 	/**
 	 * Initiate the configuration from the xml file for database client
 	 * 
+	 * @param config
 	 * @param filename
 	 * @return True if OK
 	 */

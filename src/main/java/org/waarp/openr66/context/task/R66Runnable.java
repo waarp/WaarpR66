@@ -39,11 +39,17 @@ public interface R66Runnable extends Runnable {
 	 *            True if currently R66 is configured to use LocalExec (may be ignored)
 	 * @param delay
 	 *            Delay in ms used only if waitForValidation is True
-	 * @param args
-	 *            First arg is the Class name used
+	 * @param classname
+	 * 				The Classname
+	 * @param arg
+	 *            full argument
+	 * @param callFromBusiness
+	 * 				True if called from Business operation, not task
+	 * @param isToValidate
+	 * 				True if the call from Business is to Validate
 	 */
 	public void setArgs(R66Session session, boolean waitForValidation,
-			boolean useLocalExec, int delay, String[] args);
+			boolean useLocalExec, int delay, String classname, String arg, boolean callFromBusiness, boolean isToValidate);
 
 	/**
 	 * 

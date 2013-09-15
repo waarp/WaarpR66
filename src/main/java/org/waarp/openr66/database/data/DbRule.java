@@ -437,9 +437,25 @@ public class DbRule extends AbstractDbData {
 	protected String getUpdateAllFields() {
 		return updateAllFields;
 	}
+	
+	protected final void checkPath() {
+		if (recvPath != null && ! recvPath.isEmpty() && recvPath.charAt(0) != DirInterface.SEPARATORCHAR) {
+			recvPath = DirInterface.SEPARATOR + recvPath;
+		}
+		if (sendPath != null && ! sendPath.isEmpty() && sendPath.charAt(0) != DirInterface.SEPARATORCHAR) {
+			sendPath = DirInterface.SEPARATOR + sendPath;
+		}
+		if (archivePath != null && ! archivePath.isEmpty() && archivePath.charAt(0) != DirInterface.SEPARATORCHAR) {
+			archivePath = DirInterface.SEPARATOR + archivePath;
+		}
+		if (workPath != null && ! workPath.isEmpty() && workPath.charAt(0) != DirInterface.SEPARATORCHAR) {
+			workPath = DirInterface.SEPARATOR + workPath;
+		}
+	}
 
 	@Override
 	protected void setToArray() {
+		checkPath();
 		allFields[Columns.HOSTIDS.ordinal()].setValue(ids);
 		allFields[Columns.MODETRANS.ordinal()].setValue(mode);
 		allFields[Columns.RECVPATH.ordinal()].setValue(recvPath);
@@ -483,6 +499,7 @@ public class DbRule extends AbstractDbData {
 		spreTasksArray = getTasksRule(spreTasks);
 		spostTasksArray = getTasksRule(spostTasks);
 		serrorTasksArray = getTasksRule(serrorTasks);
+		checkPath();
 	}
 
 	protected void setFromArrayClone(DbRule source) throws WaarpDatabaseSqlException {
@@ -518,6 +535,7 @@ public class DbRule extends AbstractDbData {
 		spreTasksArray = source.spreTasksArray;
 		spostTasksArray = source.spostTasksArray;
 		serrorTasksArray = source.serrorTasksArray;
+		checkPath();
 	}
 
 	/*
