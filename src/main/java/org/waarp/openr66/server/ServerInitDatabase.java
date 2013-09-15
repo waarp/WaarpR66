@@ -49,6 +49,18 @@ public class ServerInitDatabase {
 	 */
 	static volatile WaarpInternalLogger logger;
 
+	protected static String _INFO_ARGS = 
+			"Need at least the configuration file as first argument then optionally\n"
+					+
+					"    -initdb\n" +
+					"    -loadBusiness xmlfile for Business configuration\n" +
+					"    -loadAlias xmlfile for Alias configuration\n" +
+					"    -loadRoles xmlfile for Roles configuration\n" +
+					"    -dir directory for rules configuration\n" +
+					"    -limit xmlfile containing limit of bandwidth\n" +
+					"    -auth xml file containing the authentication of hosts\n" +
+					"    -upgradeDb";
+	
 	static String sxml = null;
 	static boolean database = false;
 	static boolean upgradeDb = false;
@@ -61,22 +73,14 @@ public class ServerInitDatabase {
 
 	protected static boolean getParams(String[] args) {
 		if (args.length < 1) {
-			logger.error("Need at least the configuration file as first argument then optionally\n"
-					+
-					"    -initdb\n" +
-					"    -loadBusiness xmlfile for Business configuration\n" +
-					"    -loadAlias xmlfile for Alias configuration\n" +
-					"    -loadRoles xmlfile for Roles configuration\n" +
-					"    -dir directory for rules configuration\n" +
-					"    -limit xmlfile containing limit of bandwidth\n" +
-					"    -auth xml file containing the authentication of hosts\n" +
-					"    -upgradeDb");
+			logger.error(_INFO_ARGS);
 			return false;
 		}
 		sxml = args[0];
 		for (int i = 1; i < args.length; i++) {
 			if (args[i].equalsIgnoreCase("-initdb")) {
 				database = true;
+				FileBasedConfiguration.checkDatabase = false;
 			} else if (args[i].equalsIgnoreCase("-upgradeDb")) {
 				upgradeDb = true;
 			} else if (args[i].equalsIgnoreCase("-loadBusiness")) {
@@ -112,16 +116,7 @@ public class ServerInitDatabase {
 			logger = WaarpInternalLoggerFactory.getLogger(ServerInitDatabase.class);
 		}
 		if (!getParams(args)) {
-			logger.error("Need at least the configuration file as first argument then optionally\n"
-					+
-					"    -initdb\n" +
-					"    -loadBusiness xmlfile for Business configuration\n" +
-					"    -loadAlias xmlfile for Alias configuration\n" +
-					"    -loadRoles xmlfile for Roles configuration\n" +
-					"    -dir directory for rules configuration\n" +
-					"    -limit xmlfile containing limit of bandwidth\n" +
-					"    -auth xml file containing the authentication of hosts\n" +
-					"    -upgradeDb");
+			logger.error(_INFO_ARGS);
 			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
 				DbConstant.admin.close();
 			}
@@ -153,12 +148,7 @@ public class ServerInitDatabase {
 			}
 			if (upgradeDb) {
 				// try to upgrade DB schema
-				try {
-					upgradedb();
-				} catch (WaarpDatabaseNoConnectionException e) {
-					logger.error("Cannot connect to database");
-					return;
-				}
+				upgradedb();
 				System.out.println("End upgrade");
 			}
 			if (sdirconfig != null) {
@@ -282,7 +272,14 @@ public class ServerInitDatabase {
 		DbModelFactory.dbModel.createTables(DbConstant.admin.session);
 	}
 
-	public static boolean upgradedb() throws WaarpDatabaseNoConnectionException {
+	/**
+	 * 
+	 * @return True if the base is up to date, else False (need Upgrade)
+	 */
+	public static boolean upgradedb() {
+		if (logger == null) {
+			logger = WaarpInternalLoggerFactory.getLogger(ServerInitDatabase.class);
+		}
 		// Update tables: runner
 		boolean uptodate = true;
 		// Check if the database is up to date

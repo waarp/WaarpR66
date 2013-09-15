@@ -25,6 +25,7 @@ import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
+import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
@@ -53,13 +54,88 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * 
  */
 public class MultipleSubmitTransfer extends SubmitTransfer {
+	public int errorMultiple = 0;
+	public int doneMultiple = 0;
+	protected boolean submit = false;
+	protected NetworkTransaction networkTransaction = null;
 
 	public MultipleSubmitTransfer(R66Future future, String remoteHost,
 			String filename, String rulename, String fileinfo, boolean isMD5, int blocksize,
 			long id,
-			Timestamp starttime) {
+			Timestamp starttime, NetworkTransaction networkTransaction) {
 		super(future, remoteHost, filename, rulename, fileinfo, isMD5, blocksize, id, starttime);
+		this.networkTransaction = networkTransaction;
 	}
+
+	
+	@Override
+	public void run() {
+		String [] localfilenames = filename.split(",");
+		String [] rhosts = remoteHost.split(",");
+		R66Result resultError = null;
+
+		// first check if filenames contains wildcards
+		DbRule dbrule = null;
+		try {
+			dbrule = new DbRule(DbConstant.admin.session, rulename);
+		} catch (WaarpDatabaseException e) {
+			logger.error("Rule is not found: "+rule);
+			ChannelUtils.stopLogger();
+			System.exit(2);
+		}
+		List<String> files = null;
+		if (dbrule.isSendMode()) {
+			files = MultipleDirectTransfer.getLocalFiles(dbrule, localfilenames);
+		} else if (submit) {
+			files = new ArrayList<String>();
+			for (String string : localfilenames) {
+				files.add(string);
+			}
+		}
+		for (String host : rhosts) {
+			host = host.trim();
+			if (host != null && ! host.isEmpty()) {
+				if (! submit && dbrule.isRecvMode()) {
+					files = MultipleDirectTransfer.getRemoteFiles(dbrule, localfilenames, host, networkTransaction);
+				}
+				for (String filename : files) {
+					filename = filename.trim();
+					if (filename != null && ! filename.isEmpty()) {
+						R66Future future = new R66Future(true);
+						SubmitTransfer transaction = new SubmitTransfer(future,
+								host, filename, rule, fileInfo, ismd5, block, idt,
+								ttimestart);
+						transaction.run();
+						future.awaitUninterruptibly();
+						DbTaskRunner runner = future.getResult().runner;
+						if (future.isSuccess()) {
+							logger.warn("Prepare transfer in     SUCCESS     " + runner.toShortString() +
+									"<REMOTE>" + rhost + "</REMOTE>");
+							doneMultiple++;
+						} else {
+							if (runner != null) {
+								logger.error("Prepare transfer in     FAILURE      " + runner.toShortString() +
+										"<REMOTE>" + rhost + "</REMOTE>", future.getCause());
+							} else {
+								logger.error("Prepare transfer in     FAILURE      ", future.getCause());
+							}
+							errorMultiple++;
+							resultError = future.getResult();
+						}
+					}
+				}
+			}
+		}
+		if (errorMultiple > 0) {
+			if (resultError != null) {
+				this.future.setResult(resultError);
+			}
+			this.future.cancel();
+		} else {
+			this.future.setSuccess();
+		}
+	}
+
 
 	/**
 	 * 
@@ -87,75 +163,33 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 			ChannelUtils.stopLogger();
 			System.exit(1);
 		}
-		String [] localfilenames = localFilename.split(",");
-		String [] rhosts = rhost.split(",");
-		int error = 0;
-		boolean inError = false;
-		// first check if filenames contains wildcards
-		DbRule dbrule = null;
-		try {
-			dbrule = new DbRule(DbConstant.admin.session, rule);
-		} catch (WaarpDatabaseException e) {
-			logger.error("Rule is not found: "+rule);
-			ChannelUtils.stopLogger();
-			System.exit(2);
-		}
 		NetworkTransaction networkTransaction = null;
 		if (! submit) {
 			Configuration.configuration.pipelineInit();
 			networkTransaction = new NetworkTransaction();
 		}
 		try {
-			List<String> files = null;
-			if (dbrule.isSendMode()) {
-				files = MultipleDirectTransfer.getLocalFiles(dbrule, localfilenames);
-			} else if (submit) {
-				files = new ArrayList<String>();
-				for (String string : localfilenames) {
-					files.add(string);
-				}
-			}
-			for (String host : rhosts) {
-				host = host.trim();
-				if (host != null && ! host.isEmpty()) {
-					if (! submit && dbrule.isRecvMode()) {
-						files = MultipleDirectTransfer.getRemoteFiles(dbrule, localfilenames, host, networkTransaction);
-					}
-					for (String filename : files) {
-						filename = filename.trim();
-						if (filename != null && ! filename.isEmpty()) {
-							R66Future future = new R66Future(true);
-							MultipleSubmitTransfer transaction = new MultipleSubmitTransfer(future,
-									host, filename, rule, fileInfo, ismd5, block, idt,
-									ttimestart);
-							transaction.run();
-							future.awaitUninterruptibly();
-							DbTaskRunner runner = future.getResult().runner;
-							if (future.isSuccess()) {
-								logger.warn("Prepare transfer in     SUCCESS     " + runner.toShortString() +
-										"<REMOTE>" + rhost + "</REMOTE>");
-							} else {
-								if (runner != null) {
-									logger.error("Prepare transfer in     FAILURE      " + runner.toShortString() +
-											"<REMOTE>" + rhost + "</REMOTE>", future.getCause());
-								} else {
-									logger.error("Prepare transfer in     FAILURE      ", future.getCause());
-								}
-								error = future.getResult().code.ordinal();
-								inError = true;
-							}
-						}
-					}
-				}
-			}
-			if (inError) {
+			R66Future future = new R66Future(true);
+			MultipleSubmitTransfer transaction = new MultipleSubmitTransfer(future,
+					rhost, localFilename, rule, fileInfo, ismd5, block, idt,
+					ttimestart, networkTransaction);
+			transaction.run();
+			future.awaitUninterruptibly();
+			if (future.isSuccess()) {
+				logger.warn("Prepare Transfers in status: SUCCESS      for "+transaction.doneMultiple
+						+ " transfers");
+			} else {
+				logger.error("Some Prepare Transfers in status:     FAILURE     for ko: "+
+						transaction.errorMultiple +
+						" ok: "+ transaction.doneMultiple
+						+ " transfers");
 				if (networkTransaction != null)  {
 					networkTransaction.closeAll();
 					networkTransaction = null;
 				}
 				DbConstant.admin.close();
 				ChannelUtils.stopLogger();
-				System.exit(error);
+				System.exit(transaction.errorMultiple);
 			}
 			DbConstant.admin.close();
 		} finally {

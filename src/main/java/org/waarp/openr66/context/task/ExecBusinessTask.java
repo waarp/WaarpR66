@@ -45,21 +45,17 @@ public class ExecBusinessTask extends AbstractExecJavaTask {
 		if (callFromBusiness) {
 			// Business Request to validate?
 			if (isToValidate) {
-				String operation = args[1];
-				
-				String argRule = "";
-				for (int i = 2; i < args.length - 3; i++) {
-					argRule += args[i];
-					if (i < args.length - 4) {
-						argRule += " ";
-					}
-				}
+				logger.debug("DEBUG: "+fullarg);
+				String [] args = fullarg.split(" ");
+				String operation = args[0];
 				int newdelay = 0;
+				String argRule = "";
 				try {
-					newdelay = Integer.parseInt(args[args.length-3]);
+					newdelay = Integer.parseInt(args[args.length-1]);
+					argRule = fullarg.substring(fullarg.indexOf(' ')+1, fullarg.lastIndexOf(' '));
 				} catch (NumberFormatException e) {
 					newdelay = 0;
-					argRule += args[args.length-3]; 
+					argRule = fullarg.substring(fullarg.indexOf(' ')+1);
 				}
 				try {
 					AbstractTask task = TaskType.getTaskFromIdForBusiness(operation, argRule, newdelay, this.session);
@@ -100,7 +96,7 @@ public class ExecBusinessTask extends AbstractExecJavaTask {
 		} else {
 			// Rule EXECJAVA based should be used instead
 			this.status = 2;
-			args[args.length-1] = "EXECJAVA should be used instead";
+			fullarg = "EXECJAVA should be used instead";
 		}
 	}
 }

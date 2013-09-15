@@ -363,7 +363,7 @@ public class DbModelPostgresql extends org.waarp.common.database.model.DbModelPo
 		DbRequest request = null;
 		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_13.getVersion())) {
 			try {
-				request = new DbRequest(DbConstant.admin.session);
+				request = new DbRequest(session);
 				request.select("select "+DbHostConfiguration.Columns.HOSTID.name()+" from "+DbHostConfiguration.table+
 						" where "+DbHostConfiguration.Columns.HOSTID+" = '"+Configuration.configuration.HOST_ID+"'");
 				request.close();
@@ -379,7 +379,7 @@ public class DbModelPostgresql extends org.waarp.common.database.model.DbModelPo
 		request = null;
 		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_17.getVersion())) {
 			try {
-				request = new DbRequest(DbConstant.admin.session);
+				request = new DbRequest(session);
 				request.select("select "+DbTaskRunner.Columns.TRANSFERINFO.name()+" from "+DbTaskRunner.table+
 						" where "+DbTaskRunner.Columns.SPECIALID+" = "+DbConstant.ILLEGALVALUE);
 				request.close();
