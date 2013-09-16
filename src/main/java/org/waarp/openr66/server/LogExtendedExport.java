@@ -140,8 +140,8 @@ public class LogExtendedExport implements Runnable {
 	public void setDownloadTryImport(String ruleDownload, boolean tryimport) {
 		this.ruleDownload = ruleDownload;
 		if (ruleDownload != null && tryimport && 
-				this.host.getHostid() != Configuration.configuration.HOST_ID &&
-				this.host.getHostid() != Configuration.configuration.HOST_SSLID) {
+				! this.host.getHostid().equals(Configuration.configuration.HOST_ID) &&
+				! this.host.getHostid().equals(Configuration.configuration.HOST_SSLID)) {
 			this.tryimport = tryimport;
 		} else {
 			this.tryimport = false;

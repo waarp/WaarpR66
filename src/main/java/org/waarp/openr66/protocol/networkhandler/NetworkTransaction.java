@@ -177,11 +177,9 @@ public class NetworkTransaction {
 				return lock;
 			}
 			Integer hash = socketAddress.hashCode();
-			ReentrantLock socketLock = reentrantLockOnSocketAddressConcurrentHashMap.get(hash);
-			if (socketLock == null) {
-				socketLock = new ReentrantLock(true);
-				reentrantLockOnSocketAddressConcurrentHashMap.put(hash, socketLock);
-			}
+			ReentrantLock socketLock = new ReentrantLock(true);
+			reentrantLockOnSocketAddressConcurrentHashMap.putIfAbsent(hash, socketLock);
+			socketLock = reentrantLockOnSocketAddressConcurrentHashMap.get(hash);
 			return socketLock;
 		} finally {
 			lock.unlock();
@@ -794,11 +792,8 @@ public class NetworkTransaction {
 			if (networkChannel != null) {
 				lockClient.lock();
 				try {
+					remoteClients.putIfAbsent(requester, new ClientNetworkChannels(requester));
 					ClientNetworkChannels clientNetworkChannels = remoteClients.get(requester);
-					if (clientNetworkChannels == null) {
-						clientNetworkChannels = new ClientNetworkChannels(requester);
-						remoteClients.put(requester, clientNetworkChannels);
-					}
 					clientNetworkChannels.add(networkChannel);
 				} finally {
 					lockClient.unlock();

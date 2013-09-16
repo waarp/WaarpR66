@@ -570,6 +570,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 							case Running:
 							case TransferOk:
 								code = ErrorCode.Internal;
+								break;
 							default:
 								code = runner.getErrorInfo();
 						}

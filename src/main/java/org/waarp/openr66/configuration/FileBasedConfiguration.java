@@ -1586,14 +1586,10 @@ public class FileBasedConfiguration {
 	 */
 	private static void setSelfVersion(Configuration config) {
 		if (config.HOST_ID != null) {
-			if (! config.versions.containsKey(config.HOST_ID)) {
-				config.versions.put(config.HOST_ID, new PartnerConfiguration(config.HOST_ID));
-			}
+			config.versions.putIfAbsent(config.HOST_ID, new PartnerConfiguration(config.HOST_ID));
 		}
 		if (config.HOST_SSLID != null) {
-			if (! config.versions.containsKey(config.HOST_SSLID)) {
-				config.versions.put(config.HOST_SSLID, new PartnerConfiguration(config.HOST_SSLID));
-			}
+			config.versions.putIfAbsent(config.HOST_SSLID, new PartnerConfiguration(config.HOST_SSLID));
 		}
 		logger.debug("Partners: {}", config.versions);
 	}

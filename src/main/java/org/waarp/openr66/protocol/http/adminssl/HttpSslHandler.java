@@ -108,6 +108,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 	 */
 	private static final ConcurrentHashMap<String, R66Session> sessions = new ConcurrentHashMap<String, R66Session>();
 	private static final ConcurrentHashMap<String, DbSession> dbSessions = new ConcurrentHashMap<String, DbSession>();
+	private static final Random random = new Random();
+	
 	private volatile R66Session authentHttp = new R66Session();
 
 	private volatile HttpRequest request;
@@ -1780,7 +1782,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 			responseContent.append(index);
 			clearSession();
 			admin = new DefaultCookie(R66SESSION, Configuration.configuration.HOST_ID +
-					Long.toHexString(new Random().nextLong()));
+					Long.toHexString(random.nextLong()));
 			sessions.put(admin.getValue(), this.authentHttp);
 			authentHttp.setStatus(72);
 			if (this.isPrivateDbSession) {

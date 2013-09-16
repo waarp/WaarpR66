@@ -2635,9 +2635,6 @@ public class DbTaskRunner extends AbstractDbData {
 	 */
 	private R66Future runNext() throws OpenR66RunnerErrorException,
 			OpenR66RunnerEndTasksException {
-		logger.debug(this.toLogRunStep() + " Sender: " + this.isSender + " "
-				+ this.rule.printTasks(isSender,
-						TASKSTEP.values()[globalstep]));
 		if (rule == null) {
 			if (ruleId != null) {
 				try {
@@ -2650,6 +2647,9 @@ public class DbTaskRunner extends AbstractDbData {
 				throw new OpenR66RunnerErrorException("Rule Object not initialized");
 			}
 		}
+		logger.debug(this.toLogRunStep() + " Sender: " + this.isSender + " "
+				+ this.rule.printTasks(isSender,
+						TASKSTEP.values()[globalstep]));
 		switch (TASKSTEP.values()[globalstep]) {
 			case PRETASK:
 				try {
