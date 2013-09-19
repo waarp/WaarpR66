@@ -49,6 +49,7 @@ public class R66Server {
 					.error("Needs the configuration file as first argument");
 			return;
 		}
+		R66ShutdownHook.registerMain(R66Server.class, args);
 		if (initialize(args[0])) {
 			logger.warn("Server OpenR66 starts for " + Configuration.configuration.HOST_ID);
 			System.err.println("Server OpenR66 starts for " + Configuration.configuration.HOST_ID);

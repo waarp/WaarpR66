@@ -90,6 +90,7 @@ import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.NbAndSpecialId;
 import org.waarp.openr66.protocol.utils.R66Future;
+import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 import org.waarp.openr66.protocol.utils.TransferUtils;
 import org.waarp.openr66.protocol.utils.Version;
 
@@ -1554,6 +1555,21 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					} else {
 						error = error("Shutdown in progress");
 					}
+					R66ShutdownHook.setRestart(false);
+					newSession = true;
+					clearSession();
+					forceClose = true;
+					shutdown = true;
+					return error;
+				} else if (act.equalsIgnoreCase("Restart")) {
+					String error;
+					if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
+						error = error("Shutdown in progress but WARNING: R66 started as a service might not be correctly shown as stopped under Windows Services");
+					} else {
+						error = error("Shutdown in progress... Waiting "+(Configuration.configuration.TIMEOUTCON*2/1000)+"s before trying to reconnect");
+					}
+					error = error.replace("XXXRELOADHTTPXXX", "HTTP-EQUIV=\"refresh\" CONTENT=\""+(Configuration.configuration.TIMEOUTCON*2/1000)+"\"");
+					R66ShutdownHook.setRestart(true);
 					newSession = true;
 					clearSession();
 					forceClose = true;

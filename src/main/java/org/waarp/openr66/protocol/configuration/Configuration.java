@@ -893,6 +893,23 @@ public class Configuration {
 	}
 
 	/**
+	 * submit a task in a fixed delay
+	 * @param thread
+	 * @param delay
+	 * @param unit
+	 */
+	public void launchInFixedDelay(Thread thread, long delay, TimeUnit unit) {
+		if (internalRunner != null) {
+			internalRunner.submitExternalTask(thread, delay, unit);
+		} else {
+			try {
+				Thread.sleep(delay);
+			} catch (InterruptedException e) {
+			}
+			thread.start();
+		}
+	}
+	/**
 	 * Reset the global monitor for bandwidth limitation and change future channel monitors
 	 * 
 	 * @param writeGlobalLimit
