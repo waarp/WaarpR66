@@ -6,7 +6,7 @@ var dialog_inputName = '';
 // Current tasks array
 var arrayTasks = new Array();
 // Available Task's types
-var availableTasks = new Array("LOG", "MOVE", "MOVERENAME", "COPY", "COPYRENAME", "EXEC", "EXECMOVE", "EXECOUTPUT", "EXECJAVA", "TRANSFER", "VALIDFILEPATH", "DELETE", "LINKRENAME", "RESCHEDULE", "TAR", "ZIP", "TRANSCODE", "FTP");
+var availableTasks = new Array("LOG", "MOVE", "MOVERENAME", "COPY", "COPYRENAME", "EXEC", "EXECMOVE", "EXECOUTPUT", "EXECJAVA", "TRANSFER", "VALIDFILEPATH", "DELETE", "LINKRENAME", "RESCHEDULE", "TAR", "ZIP", "TRANSCODE", "FTP", "RENAME", "RESTART");
 // Load dialog
 function dialog_load() {
 	// get container
@@ -36,7 +36,7 @@ function dialog_load() {
 		var field=document.createElement('td');
 		/*
 		<SELECT name="type" id="typeX">
-		LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, EXECOUTPUT, EXECJAVA, TRANSFER, VALIDFILEPATH, DELETE, LINKRENAME, RESCHEDULE, TAR, ZIP, TRANSCODE
+		LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, EXECOUTPUT, EXECJAVA, TRANSFER, VALIDFILEPATH, DELETE, LINKRENAME, RESCHEDULE, TAR, ZIP, TRANSCODE, "FTP", "RENAME", "RESTART"
 		<OPTION VALUE="LOG" SELECTED>LOG</OPTION>
 		<OPTION VALUE="MOVE">MOVE</OPTION>
 		...
