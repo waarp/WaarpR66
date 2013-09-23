@@ -23,12 +23,16 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
+import org.waarp.openr66.context.R66Session;
+import org.waarp.openr66.context.filesystem.R66File;
+import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
@@ -36,6 +40,7 @@ import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66DatabaseGlobalException;
 import org.waarp.openr66.protocol.localhandler.packet.RequestPacket;
+import org.waarp.openr66.protocol.utils.FileUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
 
 /**
@@ -180,10 +185,21 @@ public abstract class AbstractTransfer implements Runnable {
 			long originalSize = -1;
 			if (RequestPacket.isSendMode(mode) && ! RequestPacket.isThroughMode(mode)) {
 				File file = new File(filename);
+				// Change dir
+				try {
+					R66Session session = new R66Session();
+					session.getAuth().specialNoSessionAuth(false, Configuration.configuration.HOST_ID);
+					session.getDir().changeDirectory(rule.getSendPath());
+					R66File filer66 = FileUtils.getFile(logger, session, filename, true, true, false, null);
+					file = filer66.getTrueFile();
+				} catch (CommandAbstractException e) {
+				} catch (OpenR66RunnerErrorException e) {
+				}
 				if (file.canRead()) {
 					originalSize = file.length();
 				}
 			}
+			logger.debug("Filesize: "+originalSize);
 			String sep = PartnerConfiguration.getSeparator(remoteHost);
 			RequestPacket request = new RequestPacket(rulename,
 					mode, filename, blocksize, 0,

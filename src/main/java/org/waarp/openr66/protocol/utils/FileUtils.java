@@ -23,13 +23,23 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.nio.channels.FileChannel;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
+import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.digest.FilesystemBasedDigest.DigestAlgo;
 import org.waarp.common.file.filesystembased.FilesystemBasedFileParameterImpl;
+import org.waarp.common.logging.WaarpInternalLogger;
+import org.waarp.common.utility.DetectionUtils;
+import org.waarp.common.utility.WaarpStringUtils;
+import org.waarp.openr66.context.R66Session;
+import org.waarp.openr66.context.filesystem.R66Dir;
+import org.waarp.openr66.context.filesystem.R66File;
+import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
 
@@ -305,6 +315,76 @@ public class FileUtils {
 			retour = dir.delete();
 		}
 		return retour;
+	}
+	
+	/**
+	 * Change or create the R66File associated with the context
+	 * @param logger
+	 * @param session
+	 * @param filenameSrc new filename
+	 * @param isPreStart
+	 * @param isSender
+	 * @param isThrough
+	 * @param file old R66File if any (might be null)
+	 * @return the R66File
+	 * @throws OpenR66RunnerErrorException
+	 */
+	public final static R66File getFile(WaarpInternalLogger logger, R66Session session, String filenameSrc, 
+			boolean isPreStart, boolean isSender, boolean isThrough, R66File file) throws OpenR66RunnerErrorException {
+		String filename;
+		if (isPreStart) {
+			logger.debug("Dir is: "+session.getDir().getFullPath());
+			logger.debug("File is: "+filenameSrc);
+			filename = R66Dir.normalizePath(filenameSrc);
+			if (filename.startsWith("file:/")) {
+				if (DetectionUtils.isWindows()) {
+					filename = filename.substring("file:/".length());
+				} else {
+					filename = filename.substring("file:".length());
+				}
+				try {
+					filename = URLDecoder.decode(filename, WaarpStringUtils.UTF8.name());
+				} catch (UnsupportedEncodingException e) {
+					throw new OpenR66RunnerErrorException("File cannot be read: " +
+							filename);
+				}
+			}
+			logger.debug("File becomes: "+filename);
+		} else {
+			filename = filenameSrc;
+		}
+		if (isSender) {
+			try {
+				if (file == null) {
+					try {
+						file = (R66File) session.getDir().setFile(filename, false);
+					} catch (CommandAbstractException e) {
+						logger.warn("File not placed in normal directory", e);
+						// file is not under normal base directory, so is external
+						// File should already exist but can be using special code ('*?')
+						file = session.getDir().setFileNoCheck(filename);
+					}
+				}
+				if (isThrough) {
+					// no test on file since it does not really exist
+					logger.debug("File is in through mode: {}", file);
+				} else if (!file.canRead()) {
+					// file is not under normal base directory, so is external
+					// File should already exist but cannot use special code ('*?')
+					file = new R66File(session, session.getDir(), filename);
+					if (!file.canRead()) {
+						throw new OpenR66RunnerErrorException("File cannot be read: " +
+								file.getTrueFile().getAbsolutePath());
+					}
+				}
+			} catch (CommandAbstractException e) {
+				throw new OpenR66RunnerErrorException(e);
+			}
+		} else {
+			// not sender so file is just registered as is but no test of existence
+			file = new R66File(session, session.getDir(), filename);
+		}
+		return file;
 	}
 
 	/**

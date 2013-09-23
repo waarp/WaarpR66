@@ -6,6 +6,8 @@
 	</properties>
 	<body>
 	    <release version="2.4.19" date="2013-09-15" description="Fix release">
+		    <action dev="Frederic Bregier" type="add">Add check on available space if receive operation</action>
+	        <action dev="Frederic Bregier" type="add">Add deny of service check - temptative to send same block over and over, to send more data than file size -</action>
 		    <action dev="Frederic Bregier" type="add">Add restart capability both in admin and tasks in order to allow remote upgrade procedure</action>
 		</release>
 	    <release version="2.4.18" date="2013-09-15" description="Fix release">
