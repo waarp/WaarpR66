@@ -51,6 +51,14 @@ public class SubmitTransfer extends AbstractTransfer {
 		if (logger == null) {
 			logger = WaarpInternalLoggerFactory.getLogger(SubmitTransfer.class);
 		}
+		if (! DbConstant.admin.isConnected) {
+			logger.debug("Client not connected");
+			R66Result result = new R66Result(new OpenR66DatabaseGlobalException("No database connexion"), null, true,
+					ErrorCode.Internal, null);
+			future.setResult(result);
+			future.setFailure(result.exception);
+			return;
+		}
 		long srcId = id;
 		DbTaskRunner taskRunner = this.initRequest();
 		if (taskRunner == null) {

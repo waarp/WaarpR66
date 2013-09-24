@@ -169,6 +169,11 @@ public class SpooledDirectoryTransfer implements Runnable {
 
 	@Override
 	public void run() {
+		if (submit && ! DbConstant.admin.isConnected) {
+			logger.error("To submit transfer, client must be connected to the database of the server");
+			this.future.cancel();
+			return;
+		}
 		sent = 0;
 		error  = 0;
 		final String [] allrhosts = remoteHosts.split(",");
@@ -388,6 +393,10 @@ public class SpooledDirectoryTransfer implements Runnable {
 		}
 		if (fileInfo == null) {
 			fileInfo = NO_INFO_ARGS;
+		}
+		if (tosubmit && ! DbConstant.admin.isConnected) {
+			logger.error("To submit transfer, client must be connected to the database of the server");
+			return false;
 		}
 		if (rhosts != null && rule != null && localDirectory != null && statusfile != null && stopfile != null) {
 			return true;
