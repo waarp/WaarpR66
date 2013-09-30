@@ -2023,6 +2023,7 @@ public class FileBasedConfiguration {
 			logger.error("Cannot load Database configuration");
 			return false;
 		}
+		logger.info("Is Client connected to database: "+DbConstant.admin.isConnected);
 		if (!loadClientParam(config)) {
 			logger.error("Cannot load Client Parameters");
 			return false;
