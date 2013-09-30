@@ -215,10 +215,12 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		XXXXDELAYCOMMDXXX, XXXXDELAYRETRYXXX,
 		XXXLOCALXXX, XXXNETWORKXXX,
 		XXXERRORMESGXXX,
-		XXXXBUSINESSXXX, XXXXROLESXXX, XXXXALIASESXXX, XXXXOTHERXXX;
+		XXXXBUSINESSXXX, XXXXROLESXXX, XXXXALIASESXXX, XXXXOTHERXXX, XXXLIMITROWXXX;
 	}
 
-	public static final int LIMITROW = 48; // better if it can
+	public static final String sLIMITROW = "LIMITROW";
+	
+	public static int LIMITROW = 48; // better if it can
 											// be divided by 4
 
 	/**
@@ -265,6 +267,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				"IN:" + (trafficCounter.getLastReadThroughput() >> 17) +
 						"Mbits&nbsp;<br>&nbsp;OUT:" +
 						(trafficCounter.getLastWriteThroughput() >> 17) + "Mbits");
+		WaarpStringUtils.replace(builder, REPLACEMENT.XXXLIMITROWXXX.toString(),
+				""+LIMITROW);
 		return builder.toString();
 	}
 
@@ -345,18 +349,16 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				String stopid = getTrimValue("stopid");
 				if (startid != null && stopid == null) {
 					try {
-                 		stopid = Long.toString(Long.parseLong(startid)+(LIMITROW/2));
+                 		stopid = Long.toString(Long.parseLong(startid)+LIMITROW);
                     } catch (NumberFormatException e) {
-                     	stopid = null;
-                     	startid = null;
+                     	stopid = Long.MAX_VALUE+"";
                     }
 				}
 				if (stopid != null && startid == null) {
 					try {
-						startid = Long.toString(Long.parseLong(stopid) - (LIMITROW / 2));
+						startid = Long.toString(Long.parseLong(stopid) - LIMITROW);
                     } catch (NumberFormatException e) {
-                     	stopid = null;
-                     	startid = null;
+                     	startid = (DbConstant.ILLEGALVALUE+1)+"";
                     }
 				}
 				String start = getValue("start");
@@ -382,10 +384,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				if (tstop != null) {
 					stop = tstop.toString();
 				}
-				head = resetOptionTransfer(head, startid == null ? "" : startid,
-						stopid == null ? "" : stopid, start, stop,
-						rule == null ? "" : rule, req == null ? "" : req,
-						pending, transfer, error, done, all);
+				Long idstart = null, idstop = null; 
 				body = REQUEST.Listing.readBody();
 				DbPreparedStatement preparedStatement = null;
 				try {
@@ -401,6 +400,13 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 							i++;
 							DbTaskRunner taskRunner = DbTaskRunner
 									.getFromStatement(preparedStatement);
+							long specid = taskRunner.getSpecialId();
+							if (idstop == null || idstop < specid) {
+								idstop = specid;
+							}
+							if (idstart == null || idstart > specid) {
+								idstart = specid;
+							}
 							LocalChannelReference lcr =
 									Configuration.configuration.getLocalTransaction().
 											getFromRequest(taskRunner.getKey());
@@ -424,6 +430,10 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					}
 					logger.warn("OpenR66 Web Error {}", e.getMessage());
 				}
+				head = resetOptionTransfer(head, startid == null ? (idstart != null ? idstart.toString() : "") : startid,
+						stopid == null ? (idstop != null ? idstop.toString() : "") : stopid, start, stop,
+						rule == null ? "" : rule, req == null ? "" : req,
+						pending, transfer, error, done, all);
 			} else {
 				head = resetOptionTransfer(head, "", "", "", "", "", "",
 						false, false, false, false, true);
@@ -460,18 +470,16 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				String stopid = getTrimValue("stopid");
 				if (startid != null && stopid == null) {
 					try {
-                 		stopid = Long.toString(Long.parseLong(startid)+(LIMITROW/2));
+                 		stopid = Long.toString(Long.parseLong(startid)+LIMITROW);
                     } catch (NumberFormatException e) {
-                     	stopid = null;
-                     	startid = null;
+                     	stopid = Long.MAX_VALUE+"";
                     }
 				}
 				if (stopid != null && startid == null) {
 					try {
-						startid = Long.toString(Long.parseLong(stopid) - (LIMITROW / 2));
+						startid = Long.toString(Long.parseLong(stopid) - LIMITROW);
                     } catch (NumberFormatException e) {
-                     	stopid = null;
-                     	startid = null;
+                     	startid = (DbConstant.ILLEGALVALUE+1)+"";
                     }
 				}
 				String start = getValue("start");
@@ -497,11 +505,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				if (tstop != null) {
 					stop = tstop.toString();
 				}
-				head = resetOptionTransfer(head, startid == null ? "" : startid,
-						stopid == null ? "" : stopid, start, stop,
-						rule == null ? "" : rule, req == null ? "" : req,
-						pending, transfer, error, done, all);
 				body = REQUEST.CancelRestart.readBody();
+				Long idstart = null, idstop = null; 
 				DbPreparedStatement preparedStatement = null;
 				try {
 					preparedStatement =
@@ -516,6 +521,13 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 							i++;
 							DbTaskRunner taskRunner = DbTaskRunner
 									.getFromStatement(preparedStatement);
+							long specid = taskRunner.getSpecialId();
+							if (idstop == null || idstop < specid) {
+								idstop = specid;
+							}
+							if (idstart == null || idstart > specid) {
+								idstart = specid;
+							}
 							LocalChannelReference lcr =
 									Configuration.configuration.getLocalTransaction().
 											getFromRequest(taskRunner.getKey());
@@ -539,6 +551,10 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					}
 					logger.warn("OpenR66 Web Error {}", e.getMessage());
 				}
+				head = resetOptionTransfer(head, startid == null ? (idstart != null ? idstart.toString() : "") : startid,
+						stopid == null ? (idstop != null ? idstop.toString() : "") : stopid, start, stop,
+						rule == null ? "" : rule, req == null ? "" : req,
+						pending, transfer, error, done, all);
 				body1 = REQUEST.CancelRestart.readBodyEnd();
 			} else if ("RestartAll".equalsIgnoreCase(parm) ||
 					"StopAll".equalsIgnoreCase(parm) ||
@@ -1674,6 +1690,15 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				String param = content.toString(WaarpStringUtils.UTF8);
 				QueryStringDecoder queryStringDecoder2 = new QueryStringDecoder("/?" + param);
 				params = queryStringDecoder2.getParameters();
+				if (params.containsKey(sLIMITROW)) {
+					String snb = getTrimValue(sLIMITROW);
+					if (snb != null) {
+						try {
+							LIMITROW = Integer.parseInt(snb);
+						} catch (Exception e1) {
+						}
+					}
+				}
 			} else {
 				params = null;
 			}
