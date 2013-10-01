@@ -567,7 +567,9 @@ public class R66File extends FilesystemBasedFileImpl {
 				isReady = true;
 				return true;
 			}
+			logger.error("Cannot write to parent directory: {}", newFile.getParent());
 		}
+		logger.error("Cannot read file: {}", file);
 		return false;
 	}
 
