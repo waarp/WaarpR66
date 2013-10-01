@@ -167,7 +167,11 @@ public enum ErrorCode {
 	/**
 	 * Code stands for running step
 	 */
-	Running("Current step in running", 'z');
+	Running("Current step in running", 'z'),
+	/**
+	 * Code stands for Incorrect command
+	 */
+	IncorrectCommand("Command passed is incorrectly made, cannot answer", 'n');
 
 	/**
 	 * Literal for this code
@@ -257,6 +261,8 @@ public enum ErrorCode {
 				return PassThroughMode;
 			case 'l':
 				return ServerOverloaded;
+			case 'n':
+				return IncorrectCommand;
 			default:
 				ErrorCode ecode = Unknown;
 				try {
@@ -293,6 +299,7 @@ public enum ErrorCode {
 			case StoppedTransfer:
 			case TransferError:
 			case Unimplemented:
+			case IncorrectCommand:
 				return true;
 			case CompleteOk:
 			case InitOk:

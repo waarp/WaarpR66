@@ -65,7 +65,6 @@ public class TransferUtils {
 	 * @return the associated Result
 	 * @throws WaarpDatabaseException
 	 */
-	@SuppressWarnings("unused")
 	public static R66Result restartTransfer(DbTaskRunner taskRunner, LocalChannelReference lcr)
 			throws WaarpDatabaseException {
 		R66Result finalResult = new R66Result(null, true, ErrorCode.InitOk, taskRunner);
@@ -75,11 +74,11 @@ public class TransferUtils {
 		} else {
 			if (taskRunner.isSendThrough()) {
 				// XXX FIXME TODO cannot be restarted... Really?
-				if (false) {
+				/*if (false) {
 					finalResult.code = ErrorCode.PassThroughMode;
 					finalResult.other = "Transfer cannot be restarted since it is in PassThrough mode";
 					return finalResult;
-				}
+				}*/
 			}
 			// Transfer is not running
 			// but maybe need action on database
