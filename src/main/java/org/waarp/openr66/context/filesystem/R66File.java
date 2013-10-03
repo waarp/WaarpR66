@@ -259,8 +259,17 @@ public class R66File extends FilesystemBasedFileImpl {
 	 * @return the basename from the given path
 	 */
 	public static String getBasename(String path) {
-		File file = new File(path);
-		return file.getName();
+		int pos = path.lastIndexOf('/');
+		int pos2 = path.lastIndexOf('\\');
+		if (pos2 > pos) {
+			pos = pos2;
+		}
+		if (pos > 0) {
+			return path.substring(pos+1);
+		}
+		return path;
+		/*File file = new File(path);
+		return file.getName();*/
 	}
 
 	@Override

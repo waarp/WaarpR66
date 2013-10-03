@@ -24,6 +24,7 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Locale;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -48,6 +49,7 @@ import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.role.RoleDefault;
 import org.waarp.common.role.RoleDefault.ROLE;
+import org.waarp.common.utility.SystemPropertyUtil;
 import org.waarp.common.xml.XmlDecl;
 import org.waarp.common.xml.XmlHash;
 import org.waarp.common.xml.XmlType;
@@ -60,7 +62,9 @@ import org.waarp.openr66.database.data.DbConfiguration;
 import org.waarp.openr66.database.data.DbHostConfiguration;
 import org.waarp.openr66.database.model.DbModelFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
+import org.waarp.openr66.protocol.configuration.R66SystemProperties;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
 import org.waarp.openr66.protocol.networkhandler.R66ConstraintLimitHandler;
 import org.waarp.openr66.protocol.networkhandler.ssl.NetworkSslServerPipelineFactory;
@@ -81,6 +85,11 @@ public class FileBasedConfiguration {
 	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
 			.getLogger(FileBasedConfiguration.class);
 
+	/**
+	 * XML_LOCALE
+	 */
+	private static final String XML_LOCALE = "locale";
+	
 	/**
 	 * SERVER HOSTID
 	 */
@@ -430,7 +439,8 @@ public class FileBasedConfiguration {
 			new XmlDecl(XmlType.STRING, XML_SERVER_HOSTID),
 			new XmlDecl(XmlType.STRING, XML_SERVER_SSLHOSTID),
 			new XmlDecl(XmlType.STRING, XML_PATH_CRYPTOKEY),
-			new XmlDecl(XmlType.STRING, XML_AUTHENTIFICATION_FILE)
+			new XmlDecl(XmlType.STRING, XML_AUTHENTIFICATION_FILE),
+			new XmlDecl(XmlType.STRING, XML_LOCALE)
 	};
 	/**
 	 * Structure of the Configuration file
@@ -653,6 +663,21 @@ public class FileBasedConfiguration {
 	private static XmlHash hashConfig = null;
 
 	/**
+	 * Load the locale from configuration file
+	 * @param config
+	 */
+	private static void loadLocale(Configuration config) {
+		XmlValue value = hashConfig.get(XML_LOCALE);
+		if (value != null && (!value.isEmpty())) {
+			String locale = value.getString();
+			locale = SystemPropertyUtil.get(R66SystemProperties.OPENR66_LOCALE, locale);
+			if (locale == null || locale.isEmpty()) {
+				return;
+			}
+			Messages.init(new Locale(locale));
+		}
+	}
+	/**
 	 * 
 	 * @param config
 	 * @return True if the identity of the server is correctly loaded
@@ -662,7 +687,7 @@ public class FileBasedConfiguration {
 		if (value != null && (!value.isEmpty())) {
 			config.HOST_ID = value.getString();
 		} else {
-			logger.error("Unable to find Host ID in Config file");
+			logger.error(Messages.getString("FileBasedConfiguration.NotFoundConfig")+"Host ID"); //$NON-NLS-1$
 			return false;
 		}
 		value = hashConfig.get(XML_SERVER_SSLHOSTID);
@@ -670,7 +695,7 @@ public class FileBasedConfiguration {
 			config.HOST_SSLID = value.getString();
 		} else {
 			logger
-					.warn("Unable to find Host SSL ID in Config file so no SSL support will be used");
+					.warn(Messages.getString("FileBasedConfiguration.SSLIDNotFound")); //$NON-NLS-1$
 			config.useSSL = false;
 			config.HOST_SSLID = null;
 		}
@@ -693,7 +718,7 @@ public class FileBasedConfiguration {
 					return false;
 				}
 			} else {
-				logger.warn("Unable to find Authentication file in Config file");
+				logger.warn(Messages.getString("FileBasedConfiguration.NotFoundConfig")+"Authentication file"); //$NON-NLS-1$
 				return false;
 			}
 		}
@@ -730,15 +755,15 @@ public class FileBasedConfiguration {
 					try {
 						addr = InetAddress.getByName(saddr);
 					} catch (UnknownHostException e) {
-						logger.error("Unable to find LocalExec Address in Config file");
+						logger.error(Messages.getString("FileBasedConfiguration.NotFoundConfig")+"LocalExec Address"); //$NON-NLS-1$
 						return false;
 					}
 				} else {
-					logger.warn("Unable to find LocalExec Address in Config file");
+					logger.warn(Messages.getString("FileBasedConfiguration.NotFoundConfig")+"LocalExec Address"); //$NON-NLS-1$
 					try {
 						addr = InetAddress.getByAddress(new byte[] { 127, 0, 0, 1 });
 					} catch (UnknownHostException e) {
-						logger.error("Unable to find LocalExec Address in Config file");
+						logger.error(Messages.getString("FileBasedConfiguration.NotFoundConfig")+"LocalExec Address"); //$NON-NLS-1$
 						return false;
 					}
 				}
@@ -764,12 +789,12 @@ public class FileBasedConfiguration {
 		if (value != null && (!value.isEmpty())) {
 			config.ADMINNAME = value.getString();
 		} else {
-			logger.error("Unable to find Administrator name in Config file");
+			logger.error(Messages.getString("FileBasedConfiguration.NotFoundConfig")+"Administrator name"); //$NON-NLS-1$
 			return false;
 		}
 		if (config.cryptoKey == null) {
 			if (!setCryptoKey(config)) {
-				logger.error("Unable to find Crypto Key in Config file");
+				logger.error(Messages.getString("FileBasedConfiguration.NotFoundConfig")+"Crypto Key"); //$NON-NLS-1$
 				return false;
 			}
 		}
@@ -781,7 +806,7 @@ public class FileBasedConfiguration {
 			if (value != null && (!value.isEmpty())) {
 				passwd = value.getString();
 			} else {
-				logger.error("Unable to find Password in Config file");
+				logger.error(Messages.getString("FileBasedConfiguration.NotFoundConfig")+"Password"); //$NON-NLS-1$
 				return false;
 			}
 			try {
@@ -814,17 +839,17 @@ public class FileBasedConfiguration {
 		config.setSERVERKEY(decodedByteKeys);
 		value = hashConfig.get(XML_HTTPADMINPATH);
 		if (value == null || (value.isEmpty())) {
-			logger.error("Unable to find Http Admin Base in Config file");
+			logger.error(Messages.getString("FileBasedConfiguration.NotFoundConfig")+"Http Admin Base"); //$NON-NLS-1$
 			return false;
 		}
 		String path = value.getString();
 		if (path == null || path.isEmpty()) {
-			logger.error("Unable to set correct Http Admin Base in Config file");
+			logger.error(Messages.getString("FileBasedConfiguration.NoSetConfig")+"Http Admin Base"); //$NON-NLS-1$
 			return false;
 		}
 		File file = new File(path);
 		if (!file.isDirectory()) {
-			logger.error("Http Admin is not a directory in Config file");
+			logger.error(Messages.getString("FileBasedConfiguration.NotDirectory")+"Http Admin Base"); //$NON-NLS-1$
 			return false;
 		}
 		try {
@@ -832,7 +857,7 @@ public class FileBasedConfiguration {
 					FilesystemBasedDirImpl.normalizePath(file.getCanonicalPath()) +
 							DirInterface.SEPARATOR;
 		} catch (IOException e1) {
-			logger.error("Unable to set Http Admin Path in Config file");
+			logger.error(Messages.getString("FileBasedConfiguration.NoSetConfig")+"Http Admin Path"); //$NON-NLS-1$
 			return false;
 		}
 
@@ -846,7 +871,7 @@ public class FileBasedConfiguration {
 			}
 			value = hashConfig.get(XML_PATH_ADMIN_KEYSTOREPASS);
 			if (value == null || (value.isEmpty())) {
-				logger.error("Unable to find KeyStore Passwd");
+				logger.error("Unable to find: "+"KeyStore Passwd");
 				return false;
 			}
 			String keystorepass = value.getString();
@@ -856,7 +881,7 @@ public class FileBasedConfiguration {
 			}
 			value = hashConfig.get(XML_PATH_ADMIN_KEYPASS);
 			if (value == null || (value.isEmpty())) {
-				logger.error("Unable to find Key Passwd");
+				logger.error("Unable to find :"+"Key Passwd");
 				return false;
 			}
 			String keypass = value.getString();
@@ -901,12 +926,12 @@ public class FileBasedConfiguration {
 		value = hashConfig.get(XML_MULTIPLE_MONITORS);
 		if (value != null && (!value.isEmpty())) {
 			config.multipleMonitors = value.getInteger();
-			logger.warn("Multiple Monitor configuration active for "
+			logger.warn(Messages.getString("FileBasedConfiguration.MMOn") //$NON-NLS-1$
 					+ config.multipleMonitors
-					+ " servers in HA behind a Load Balancer in TCP");
+					+ Messages.getString("FileBasedConfiguration.MMOn2")); //$NON-NLS-1$
 		} else {
 			config.multipleMonitors = 1;
-			logger.warn("Multiple Monitor configuration unactive");
+			logger.warn(Messages.getString("FileBasedConfiguration.MMOff")); //$NON-NLS-1$
 		}
 		return true;
 	}
@@ -932,55 +957,55 @@ public class FileBasedConfiguration {
 	private static boolean loadDirectory(Configuration config) {
 		XmlValue value = hashConfig.get(XML_SERVER_HOME);
 		if (value == null || (value.isEmpty())) {
-			logger.error("Unable to find Home in Config file");
+			logger.error(Messages.getString("FileBasedConfiguration.NotFoundConfig")+"Home"); //$NON-NLS-1$
 			return false;
 		}
 		String path = value.getString();
 		File file = new File(path);
 		if (!file.isDirectory()) {
-			logger.error("Home is not a directory in Config file");
+			logger.error(Messages.getString("FileBasedConfiguration.NotDirectory")+"Home"); //$NON-NLS-1$
 			return false;
 		}
 		try {
 			config.baseDirectory = FilesystemBasedDirImpl
 					.normalizePath(file.getCanonicalPath());
 		} catch (IOException e1) {
-			logger.error("Unable to set Home in Config file");
+			logger.error(Messages.getString("FileBasedConfiguration.NoSetConfig")+"Home"); //$NON-NLS-1$
 			return false;
 		}
 		try {
 			config.configPath = FilesystemBasedDirImpl
 					.normalizePath(getSubPath(config, XML_CONFIGPATH));
 		} catch (OpenR66ProtocolSystemException e2) {
-			logger.error("Unable to set Config in Config file");
+			logger.error(Messages.getString("FileBasedConfiguration.NoSetConfig")+"Config"); //$NON-NLS-1$
 			return false;
 		}
 		try {
 			config.inPath = FilesystemBasedDirImpl
 					.normalizePath(getSubPath(config, XML_INPATH));
 		} catch (OpenR66ProtocolSystemException e2) {
-			logger.error("Unable to set In in Config file");
+			logger.error(Messages.getString("FileBasedConfiguration.NoSetConfig")+"In"); //$NON-NLS-1$
 			return false;
 		}
 		try {
 			config.outPath = FilesystemBasedDirImpl
 					.normalizePath(getSubPath(config, XML_OUTPATH));
 		} catch (OpenR66ProtocolSystemException e2) {
-			logger.error("Unable to set Out in Config file");
+			logger.error(Messages.getString("FileBasedConfiguration.NoSetConfig")+"Out"); //$NON-NLS-1$
 			return false;
 		}
 		try {
 			config.workingPath = FilesystemBasedDirImpl
 					.normalizePath(getSubPath(config, XML_WORKINGPATH));
 		} catch (OpenR66ProtocolSystemException e2) {
-			logger.error("Unable to set Working in Config file");
+			logger.error(Messages.getString("FileBasedConfiguration.NoSetConfig")+"Working"); //$NON-NLS-1$
 			return false;
 		}
 		try {
 			config.archivePath = FilesystemBasedDirImpl
 					.normalizePath(getSubPath(config, XML_ARCHIVEPATH));
 		} catch (OpenR66ProtocolSystemException e2) {
-			logger.error("Unable to set Archive in Config file");
+			logger.error(Messages.getString("FileBasedConfiguration.NoSetConfig")+"Archive"); //$NON-NLS-1$
 			return false;
 		}
 		return true;
@@ -1385,7 +1410,7 @@ public class FileBasedConfiguration {
 						config.HOST_ID);
 				configuration.updateConfiguration();
 			} catch (WaarpDatabaseException e) {
-				logger.warn("Cannot load configuration from database: " + e.getMessage());
+				logger.info(Messages.getString("FileBasedConfiguration.NoBandwidth") + e.getMessage()); //$NON-NLS-1$
 			}
 		} else {
 			if (config.baseDirectory != null &&
@@ -1398,10 +1423,10 @@ public class FileBasedConfiguration {
 					try {
 						RuleFileBasedConfiguration.importRules(dirConfig);
 					} catch (OpenR66ProtocolSystemException e) {
-						logger.error("Cannot load Rules", e);
+						logger.error(Messages.getString("FileBasedConfiguration.NoRule"), e); //$NON-NLS-1$
 						return false;
 					} catch (WaarpDatabaseException e) {
-						logger.error("Cannot load Rules", e);
+						logger.error(Messages.getString("FileBasedConfiguration.NoRule"), e); //$NON-NLS-1$
 						return false;
 					}
 				} else {
@@ -1427,26 +1452,26 @@ public class FileBasedConfiguration {
 	private static boolean loadDatabase(Configuration config) {
 		XmlValue value = hashConfig.get(XML_DBDRIVER);
 		if (value == null || (value.isEmpty())) {
-			logger.warn("Unable to find DBDriver in Config file, try to rever to no database mode");
+			logger.warn(Messages.getString("FileBasedConfiguration.NoDB")); //$NON-NLS-1$
 			DbConstant.admin = new DbAdmin(); // no database support
 			DbConstant.noCommitAdmin = DbConstant.admin;
 		} else {
 			String dbdriver = value.getString();
 			value = hashConfig.get(XML_DBSERVER);
 			if (value == null || (value.isEmpty())) {
-				logger.error("Unable to find DBServer in Config file");
+				logger.error(Messages.getString("FileBasedConfiguration.NotFoundConfig")+"DBServer"); //$NON-NLS-1$
 				return false;
 			}
 			String dbserver = value.getString();
 			value = hashConfig.get(XML_DBUSER);
 			if (value == null || (value.isEmpty())) {
-				logger.error("Unable to find DBUser in Config file");
+				logger.error(Messages.getString("FileBasedConfiguration.NotFoundConfig")+"DBUser"); //$NON-NLS-1$
 				return false;
 			}
 			String dbuser = value.getString();
 			value = hashConfig.get(XML_DBPASSWD);
 			if (value == null || (value.isEmpty())) {
-				logger.error("Unable to find DBPassword in Config file");
+				logger.error(Messages.getString("FileBasedConfiguration.NotFoundConfig")+"DBPassword"); //$NON-NLS-1$
 				return false;
 			}
 			String dbpasswd = value.getString();
@@ -1454,7 +1479,7 @@ public class FileBasedConfiguration {
 					dbpasswd == null || dbdriver.isEmpty() ||
 					dbserver.isEmpty() || dbuser.isEmpty() ||
 					dbpasswd.isEmpty()) {
-				logger.error("Unable to find Correct DB data in Config file");
+				logger.error(Messages.getString("FileBasedConfiguration.NotFoundConfig")+"Correct DB data"); //$NON-NLS-1$
 				return false;
 			}
 			try {
@@ -1469,7 +1494,7 @@ public class FileBasedConfiguration {
 				} else {
 					DbConstant.noCommitAdmin = DbConstant.admin;
 				}
-				logger.info("Database connection: " + (DbConstant.admin != null) + ":"
+				logger.info("Database connection: Admin:" + (DbConstant.admin != null) + " NoCommitAdmin:"
 						+ (DbConstant.noCommitAdmin != null));
 				
 				try {
@@ -1483,7 +1508,7 @@ public class FileBasedConfiguration {
 					e.printStackTrace();
 				}
 			} catch (WaarpDatabaseNoConnectionException e2) {
-				logger.error("Unable to Connect to DB", e2);
+				logger.error(Messages.getString("Database.CannotConnect"), e2); //$NON-NLS-1$
 				return false;
 			}
 			// Check if the database is ready (initdb already done before)
@@ -1493,7 +1518,7 @@ public class FileBasedConfiguration {
 				try {
 					request.select("SELECT * FROM "+DbConfiguration.table);
 				} catch (WaarpDatabaseSqlException e) {
-					logger.error("Database is not yet initiated: run ServerInitDatabase -initdb first", e);
+					logger.error(Messages.getString("Database.DbNotInitiated"), e); //$NON-NLS-1$
 					return true;
 				} finally {
 					request.close();
@@ -1646,15 +1671,15 @@ public class FileBasedConfiguration {
 			throws OpenR66ProtocolSystemException {
 		XmlValue value = hashConfig.get(fromXML);
 		if (value == null || (value.isEmpty())) {
-			logger.error("Unable to find a Path in Config file: " + fromXML);
+			logger.error(Messages.getString("FileBasedConfiguration.NoXmlPath") + fromXML); //$NON-NLS-1$
 			throw new OpenR66ProtocolSystemException(
-					"Unable to find a Path in Config file: " + fromXML);
+					Messages.getString("FileBasedConfiguration.NoXmlPath") + fromXML); //$NON-NLS-1$
 		}
 
 		String path = value.getString();
 		if (path == null || path.isEmpty()) {
 			throw new OpenR66ProtocolSystemException(
-					"Unable to find a correct Path in Config file: " + fromXML);
+					Messages.getString("FileBasedConfiguration.NotCorrectPath") + fromXML); //$NON-NLS-1$
 		}
 		path = DirInterface.SEPARATOR + path;
 		String newpath = config.baseDirectory + path;
@@ -1679,17 +1704,18 @@ public class FileBasedConfiguration {
 		try {
 			document = new SAXReader().read(filename);
 		} catch (DocumentException e) {
-			logger.error("Unable to read the XML Config file: " + filename, e);
+			logger.error(Messages.getString("FileBasedConfiguration.CannotReadXml") + filename, e); //$NON-NLS-1$
 			return false;
 		}
 		if (document == null) {
-			logger.error("Unable to read the XML Config file: " + filename);
+			logger.error(Messages.getString("FileBasedConfiguration.CannotReadXml") + filename); //$NON-NLS-1$
 			return false;
 		}
 		configuration = XmlUtil.read(document, configServer);
 		hashConfig = new XmlHash(configuration);
+		loadLocale(config);
 		if (!loadLimit(config, true)) {
-			logger.error("Unable to read Limitation config file: " + filename);
+			logger.error(Messages.getString("FileBasedConfiguration.NoLimit") + filename); //$NON-NLS-1$
 			return false;
 		}
 		hashConfig.clear();
@@ -1711,15 +1737,16 @@ public class FileBasedConfiguration {
 		try {
 			document = new SAXReader().read(filename);
 		} catch (DocumentException e) {
-			logger.error("Unable to read the XML Config file: " + filename, e);
+			logger.error(Messages.getString("FileBasedConfiguration.CannotReadXml") + filename, e); //$NON-NLS-1$
 			return false;
 		}
 		if (document == null) {
-			logger.error("Unable to read the XML Config file: " + filename);
+			logger.error(Messages.getString("FileBasedConfiguration.CannotReadXml") + filename); //$NON-NLS-1$
 			return false;
 		}
 		configuration = XmlUtil.read(document, configServer);
 		hashConfig = new XmlHash(configuration);
+		loadLocale(config);
 		if (!loadIdentity(config)) {
 			logger.error("Cannot load Identity");
 			return false;
@@ -1762,15 +1789,16 @@ public class FileBasedConfiguration {
 		try {
 			document = new SAXReader().read(filename);
 		} catch (DocumentException e) {
-			logger.error("Unable to read the XML Config file: " + filename, e);
+			logger.error(Messages.getString("FileBasedConfiguration.CannotReadXml") + filename, e); //$NON-NLS-1$
 			return false;
 		}
 		if (document == null) {
-			logger.error("Unable to read the XML Config file: " + filename);
+			logger.error(Messages.getString("FileBasedConfiguration.CannotReadXml") + filename); //$NON-NLS-1$
 			return false;
 		}
 		configuration = XmlUtil.read(document, configServer);
 		hashConfig = new XmlHash(configuration);
+		loadLocale(config);
 		if (!loadIdentity(config)) {
 			logger.error("Cannot load Identity");
 			return false;
@@ -1831,16 +1859,17 @@ public class FileBasedConfiguration {
 		try {
 			document = new SAXReader().read(filename);
 		} catch (DocumentException e) {
-			logger.error("Unable to read the XML Config file: " + filename, e);
+			logger.error(Messages.getString("FileBasedConfiguration.CannotReadXml") + filename, e); //$NON-NLS-1$
 			return false;
 		}
 		if (document == null) {
-			logger.error("Unable to read the XML Config file: " + filename);
+			logger.error(Messages.getString("FileBasedConfiguration.CannotReadXml") + filename); //$NON-NLS-1$
 			return false;
 		}
 		configuration = XmlUtil.read(document, configServer);
 		hashConfig = new XmlHash(configuration);
 		// Now read the configuration
+		loadLocale(config);
 		if (!loadIdentity(config)) {
 			logger.error("Cannot load Identity");
 			return false;
@@ -1915,16 +1944,17 @@ public class FileBasedConfiguration {
 		try {
 			document = new SAXReader().read(filename);
 		} catch (DocumentException e) {
-			logger.error("Unable to read the XML Config file: " + filename, e);
+			logger.error(Messages.getString("FileBasedConfiguration.CannotReadXml") + filename, e); //$NON-NLS-1$
 			return false;
 		}
 		if (document == null) {
-			logger.error("Unable to read the XML Config file: " + filename);
+			logger.error(Messages.getString("FileBasedConfiguration.CannotReadXml") + filename); //$NON-NLS-1$
 			return false;
 		}
 		configuration = XmlUtil.read(document, configServer);
 		hashConfig = new XmlHash(configuration);
 		// Now read the configuration
+		loadLocale(config);
 		if (!loadIdentity(config)) {
 			logger.error("Cannot load Identity");
 			return false;
@@ -2004,15 +2034,16 @@ public class FileBasedConfiguration {
 		try {
 			document = new SAXReader().read(filename);
 		} catch (DocumentException e) {
-			logger.error("Unable to read the XML Config file: " + filename, e);
+			logger.error(Messages.getString("FileBasedConfiguration.CannotReadXml") + filename, e); //$NON-NLS-1$
 			return false;
 		}
 		if (document == null) {
-			logger.error("Unable to read the XML Config file: " + filename);
+			logger.error(Messages.getString("FileBasedConfiguration.CannotReadXml") + filename); //$NON-NLS-1$
 			return false;
 		}
 		configuration = XmlUtil.read(document, configClient);
 		hashConfig = new XmlHash(configuration);
+		loadLocale(config);
 		// Client enables SSL by default but could be reverted later on
 		config.useSSL = true;
 		if (!loadIdentity(config)) {
@@ -2088,15 +2119,16 @@ public class FileBasedConfiguration {
 		try {
 			document = new SAXReader().read(filename);
 		} catch (DocumentException e) {
-			logger.error("Unable to read the XML Config file: " + filename, e);
+			logger.error(Messages.getString("FileBasedConfiguration.CannotReadXml") + filename, e); //$NON-NLS-1$
 			return false;
 		}
 		if (document == null) {
-			logger.error("Unable to read the XML Config file: " + filename);
+			logger.error(Messages.getString("FileBasedConfiguration.CannotReadXml") + filename); //$NON-NLS-1$
 			return false;
 		}
 		configuration = XmlUtil.read(document, configSubmitClient);
 		hashConfig = new XmlHash(configuration);
+		loadLocale(config);
 		// Client enables SSL by default but could be reverted later on
 		config.useSSL = true;
 		if (!loadIdentity(config)) {

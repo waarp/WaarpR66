@@ -33,6 +33,7 @@ import org.waarp.openr66.context.filesystem.R66Dir;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.localhandler.packet.InformationPacket;
 import org.waarp.openr66.protocol.localhandler.packet.ValidPacket;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
@@ -176,7 +177,7 @@ public class MultipleDirectTransfer extends DirectTransfer {
 						if (future.isSuccess()) {
 							doneMultiple++;
 							if (result.runner.getErrorInfo() == ErrorCode.Warning) {
-								logger.warn("Transfer in status: WARNED     "
+								logger.warn(Messages.getString("Transfer.Warned")
 										+ result.runner.toShortString()
 										+
 										"     <REMOTE>"
@@ -189,7 +190,7 @@ public class MultipleDirectTransfer extends DirectTransfer {
 												: "no file")
 										+ "     delay: " + delay);
 							} else {
-								logger.warn("Transfer in status: SUCCESS     "
+								logger.warn(Messages.getString("Transfer.Success")
 										+ result.runner.toShortString()
 										+
 										"     <REMOTE>"
@@ -214,16 +215,16 @@ public class MultipleDirectTransfer extends DirectTransfer {
 						} else {
 							errorMultiple++;
 							if (result == null || result.runner == null) {
-								logger.error("Transfer in     FAILURE with no Id", future.getCause());
+								logger.error(Messages.getString("Transfer.FailedNoId"), future.getCause());
 								inError = true;
 							}
 							if (result.runner.getErrorInfo() == ErrorCode.Warning) {
-								logger.warn("Transfer is     WARNED     " + result.runner.toShortString() +
+								logger.warn(Messages.getString("Transfer.Warned") + result.runner.toShortString() +
 										"     <REMOTE>" + rhost + "</REMOTE>", future.getCause());
 								inError = true;
 								resultError = result;
 							} else {
-								logger.error("Transfer in     FAILURE     " + result.runner.toShortString() +
+								logger.error(Messages.getString("Transfer.Failed") + result.runner.toShortString() +
 										"     <REMOTE>" + rhost + "</REMOTE>", future.getCause());
 								inError = true;
 								resultError = result;

@@ -93,6 +93,7 @@ import org.waarp.openr66.database.data.DbHostConfiguration;
 import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66DatabaseGlobalException;
 import org.waarp.openr66.protocol.exception.OpenR66Exception;
@@ -218,7 +219,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					session.newState(ERROR);
 					R66Result finalValue = new R66Result(
 							new OpenR66ProtocolSystemException(
-									"Finalize too early at close time But Must Finalize"),
+									Messages.getString("LocalServerHandler.4")), //$NON-NLS-1$
 							session, true, ErrorCode.FinalOp, runner); // True since closed
 					try {
 						tryFinalizeRequest(finalValue);
@@ -275,7 +276,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				&& (!localChannelReference.getFutureRequest().isDone())) {
 			R66Result finalValue = new R66Result(
 					new OpenR66ProtocolSystemException(
-							"Finalize too early at close time while Request not yet finished"),
+							Messages.getString("LocalServerHandler.11")), //$NON-NLS-1$
 					session, true, ErrorCode.FinalOp, runner);
 			localChannelReference.invalidateRequest(finalValue);
 			// In case stop the attached thread if any
@@ -464,7 +465,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			session.newState(ERROR);
 			boolean isAnswered = false;
 			if (exception instanceof OpenR66ProtocolShutdownException) {
-				logger.warn("Shutdown order received and going from: " +
+				logger.warn(Messages.getString("LocalServerHandler.0") + //$NON-NLS-1$
 						session.getAuth().getUser());
 				if (localChannelReference != null) {
 					R66Result finalValue = new R66Result(exception, session, true,
@@ -548,7 +549,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					if (runner != null) {
 						R66Result finalValue = new R66Result(
 								new OpenR66ProtocolSystemException(
-										"Finalize too early at close time with Network Exception"),
+										Messages.getString("LocalServerHandler.2")), //$NON-NLS-1$
 								session, true, code, session.getRunner());
 						try {
 							tryFinalizeRequest(finalValue);
@@ -646,7 +647,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				.getLocalTransaction().getFromId(packet.getLocalId());
 		if (localChannelReference == null) {
 			session.newState(ERROR);
-			logger.error("Cannot startup");
+			logger.error(Messages.getString("LocalServerHandler.1")); //$NON-NLS-1$
 			ErrorPacket error = new ErrorPacket("Cannot startup connection",
 					ErrorCode.ConnectionImpossible.getCode(), ErrorPacket.FORWARDCLOSECODE);
 			try {
@@ -682,7 +683,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 	 */
 	private void refusedConnection(Channel channel, AuthentPacket packet, Exception e1)
 			throws OpenR66ProtocolPacketException {
-		logger.error("Cannot connect from "+
+		logger.error(Messages.getString("LocalServerHandler.5")+ //$NON-NLS-1$
 			localChannelReference.getNetworkChannel().getRemoteAddress()+
 			" : " + packet.getHostId(), e1);
 		if (Configuration.configuration.r66Mib != null) {
@@ -693,7 +694,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		}
 		R66Result result = new R66Result(
 				new OpenR66ProtocolSystemException(
-						"Connection not allowed from "+
+						Messages.getString("LocalServerHandler.6")+ //$NON-NLS-1$
 						localChannelReference.getNetworkChannel().getRemoteAddress(),
 						e1), session, true,
 				ErrorCode.BadAuthent, null);
@@ -1033,12 +1034,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		if (!session.isAuthenticated()) {
 			session.setStatus(48);
 			throw new OpenR66ProtocolNotAuthenticatedException(
-					"Not authenticated while Request received");
+					Messages.getString("LocalServerHandler.3")); //$NON-NLS-1$
 		}
 		// XXX validLimit only on requested side
 		if (packet.isToValidate()) {
 			if (Configuration.configuration.isShutdown) {
-				logger.info("Server is blocking new requests when receive request with Rule: "
+				logger.info(Messages.getString("LocalServerHandler.7") //$NON-NLS-1$
 						+ packet.getRulename() + " from " + session.getAuth().toString());
 				session.setStatus(100);
 				endInitRequestInError(channel,
@@ -1055,7 +1056,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 									+ session.getAuth().toString(),
 									Configuration.configuration.constraintLimitHandler.lastAlert);
 				}
-				logger.info("Limit exceeded when receive request with Rule: "
+				logger.info(Messages.getString("LocalServerHandler.8") //$NON-NLS-1$
 						+ packet.getRulename() + " from " + session.getAuth().toString());
 				session.setStatus(100);
 				endInitRequestInError(channel,
@@ -1083,7 +1084,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			endInitRequestInError(channel,
 					ErrorCode.QueryRemotelyUnknown, null,
 					new OpenR66ProtocolBusinessException(
-							"The Transfer is associated with an Unknown Rule: " +
+							Messages.getString("LocalServerHandler.9") + //$NON-NLS-1$
 									packet.getRulename()), packet);
 			return;
 		}
@@ -1092,7 +1093,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			if (!rule.checkHostAllow(session.getAuth().getUser())) {
 				session.setStatus(30);
 				throw new OpenR66ProtocolNotAuthenticatedException(
-						"Rule is not allowed for the remote host");
+						Messages.getString("LocalServerHandler.10")); //$NON-NLS-1$
 			}
 			// Check if the blocksize is greater than local value
 			if (Configuration.configuration.BLOCKSIZE < blocksize) {
@@ -1106,7 +1107,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		if (!RequestPacket.isCompatibleMode(rule.mode, packet.getMode())) {
 			// not compatible Rule and mode in request
 			throw new OpenR66ProtocolNotAuthenticatedException(
-					"Rule has not the same mode of transmission: " + rule.mode + " vs "
+					Messages.getString("LocalServerHandler.12") + rule.mode + " vs " //$NON-NLS-1$
 							+ packet.getMode());
 		}
 		session.setBlockSize(blocksize);
@@ -1131,7 +1132,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 						endInitRequestInError(channel,
 								ErrorCode.QueryAlreadyFinished, runner,
 								new OpenR66ProtocolBusinessQueryAlreadyFinishedException(
-										"The TransferId is associated with a Transfer already finished: "
+										Messages.getString("LocalServerHandler.13") //$NON-NLS-1$
 												+
 												packet.getSpecialId()), packet);
 						return;
@@ -1147,7 +1148,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 						endInitRequestInError(channel,
 								ErrorCode.QueryStillRunning, runner,
 								new OpenR66ProtocolBusinessQueryStillRunningException(
-										"The TransferId is associated with a Transfer still running: "
+										Messages.getString("LocalServerHandler.14") //$NON-NLS-1$
 												+
 												packet.getSpecialId()), packet);
 						return;
@@ -1498,7 +1499,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			logger.debug("Issue on rank: "+packet.getPacketRank() +":"+ session.getRunner().getRank());
 			if (! session.addError()) {
 				// cannot continue
-				logger.error("Too much Bad RANK: " + packet.getPacketRank() + " : " +
+				logger.error(Messages.getString("LocalServerHandler.15") + packet.getPacketRank() + " : " + //$NON-NLS-1$
 						session.getRunner().getRank()+ " from {}", session.getRunner());
 				errorToSend("Too much Bad Rank in transmission: " +
 					packet.getPacketRank(), ErrorCode.TransferError, channel, 96);
@@ -1536,7 +1537,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		if (originalSize > 0) {
 			if (session.getRunner().getBlocksize() * (session.getRunner().getRank()-1) > originalSize) {
 				// cannot continue
-				logger.error("Too much Data transfered: " + packet.getPacketRank() + " : " +
+				logger.error(Messages.getString("LocalServerHandler.16") + packet.getPacketRank() + " : " + //$NON-NLS-1$
 						(originalSize/session.getRunner().getBlocksize()+1)+" from {}", session.getRunner());
 				errorToSend("Too much data transferred: " +
 						packet.getPacketRank(), ErrorCode.TransferError, channel, 96);
@@ -1548,7 +1549,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			logger.debug("AlgoDigest: "+(localChannelReference.getPartner() != null ? localChannelReference.getPartner().getDigestAlgo() : "usual algo"));
 			if (!packet.isKeyValid(localChannelReference.getPartner().getDigestAlgo())) {
 				// Wrong packet
-				logger.error("Wrong Hash Packet: {} using {}", packet, localChannelReference.getPartner().getDigestAlgo().name);
+				logger.error(Messages.getString("LocalServerHandler.17"), packet, localChannelReference.getPartner().getDigestAlgo().name); //$NON-NLS-1$
 				errorToSend("Transfer in error due to bad Hash on data packet ("+localChannelReference.getPartner().getDigestAlgo().name+")",
 						ErrorCode.MD5Error, channel, 21);
 				return;
@@ -1628,7 +1629,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			if (originalSize >= 0) {
 				try {
 					if (!session.getRunner().isRecvThrough() && session.getFile().length() != originalSize) {
-						R66Result result = new R66Result(new OpenR66RunnerErrorException("Final size in error, transfer in error and rank should be reset to 0"),
+						R66Result result = new R66Result(new OpenR66RunnerErrorException(Messages.getString("LocalServerHandler.18")), //$NON-NLS-1$
 								session, true, ErrorCode.TransferError, session.getRunner());
 						try {
 							session.setFinalizeTransfer(false, result);
@@ -1659,7 +1660,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				if (! localhash.equalsIgnoreCase(hash)) {
 					// bad global Hash
 					//session.getRunner().setRankAtStartup(0);
-					R66Result result = new R66Result(new OpenR66RunnerErrorException("Global Hash in error, transfer in error and rank should be reset to 0 (using "+
+					R66Result result = new R66Result(new OpenR66RunnerErrorException(Messages.getString("LocalServerHandler.19")+ //$NON-NLS-1$
 							localChannelReference.getPartner().getDigestAlgo().name+")"),
 							session, true, ErrorCode.MD5Error, session.getRunner());
 					try {
@@ -1759,7 +1760,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			} else {
 				// in error due to a previous status (like bad MD5)
 				logger
-						.error("Error since end of transfer signaled but already done");
+						.error(Messages.getString("LocalServerHandler.20")); //$NON-NLS-1$
 				session.setStatus(23);
 				Channels.close(channel);
 				return;
@@ -1962,7 +1963,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			try {
 				local = Configuration.configuration.getHostId(session.getAuth().isSsl());
 			} catch (OpenR66ProtocolNoSslException e1) {
-				logger.error("Local Ssl Host unknown is unknown", e1);
+				logger.error("Local Ssl Host is unknown", e1);
 				throw new OpenR66ProtocolNoDataException("Local Ssl Host is unknown", e1);
 			}
 			DbTaskRunner runner = null;
@@ -1972,9 +1973,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
 							localChannelReference.getSession(), null, 
 							id, remote, local);
 				} catch (WaarpDatabaseException e) {
-					logger.error("RunnerTask is not found: " + packet.getRulename());
+					logger.error(Messages.getString("LocalServerHandler.21") + packet.getRulename()); //$NON-NLS-1$
 					logger.debug("RunnerTask is not found: " + packet.getRulename(), e);
-					throw new OpenR66ProtocolNoDataException("Remote starting RunnerTask is not found: " + packet.getRulename(), e);
+					throw new OpenR66ProtocolNoDataException(Messages.getString("LocalServerHandler.22") + packet.getRulename(), e); //$NON-NLS-1$
 				}
 			} else {
 				try {

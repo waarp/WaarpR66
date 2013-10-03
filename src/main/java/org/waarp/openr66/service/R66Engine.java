@@ -26,6 +26,7 @@ import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.service.EngineAbstract;
 import org.waarp.common.utility.SystemPropertyUtil;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.R66SystemProperties;
 import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 import org.waarp.openr66.server.R66Server;
 
@@ -43,13 +44,11 @@ public class R66Engine extends EngineAbstract {
 	
 	public static WaarpFuture closeFuture = new WaarpFuture(true);
 	
-	public static final String CONFIGFILE = "org.waarp.r66.config.file";
-	
 	@Override
 	public void run() {
-		String config = SystemPropertyUtil.get(CONFIGFILE);
+		String config = SystemPropertyUtil.get(R66SystemProperties.CONFIGFILE);
 		if (config == null) {
-			logger.error("Cannot find "+CONFIGFILE+" parameter");
+			logger.error("Cannot find "+R66SystemProperties.CONFIGFILE+" parameter");
 			closeFuture.cancel();
 			shutdown();
 			return;

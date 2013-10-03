@@ -14,6 +14,9 @@
 		    <action dev="Frederic Bregier" type="add">Add restart capability both in admin and tasks in order to allow remote upgrade procedure</action>
    			<action dev="Frederic Bregier" type="fix">Fix Database access when using configuration with Database support</action>
    			<action dev="Frederic Bregier" type="fix">Small fix on path setup in move/copy tasks</action>
+   			<action dev="Frederic Bregier" type="add">Add first step of internationalization support through -Dopenr66.locale=en|fr</action>
+   			<action dev="Frederic Bregier" type="add">Add option -dos2unix -unix2dos to TRANSCODE task</action>
+   			<action dev="Frederic Bregier" type="fix">Fix File getBasename</action>
    		</release>
 	    <release version="2.4.18" date="2013-09-15" description="Fix release">
 		    <action dev="Frederic Bregier" type="fix">Fix Multiple commands</action>

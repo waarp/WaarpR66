@@ -75,6 +75,7 @@ import org.waarp.openr66.database.data.DbHostConfiguration;
 import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.exception.OpenR66Exception;
 import org.waarp.openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
@@ -256,10 +257,10 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				Configuration.configuration.HOST_ID);
 		if (authentHttp.isAuthenticated()) {
 			WaarpStringUtils.replace(builder, REPLACEMENT.XXXADMINXXX.toString(),
-					"Connected");
+					Messages.getString("HttpSslHandler.1")); //$NON-NLS-1$
 		} else {
 			WaarpStringUtils.replace(builder, REPLACEMENT.XXXADMINXXX.toString(),
-					"Not authenticated");
+					Messages.getString("HttpSslHandler.0")); //$NON-NLS-1$
 		}
 		TrafficCounter trafficCounter =
 				Configuration.configuration.getGlobalTrafficShapingHandler().getTrafficCounter();
@@ -290,7 +291,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		WaarpStringUtils.replaceAll(builder, REPLACEMENT.XXXHOSTIDXXX.toString(),
 				Configuration.configuration.HOST_ID);
 		WaarpStringUtils.replaceAll(builder, REPLACEMENT.XXXADMINXXX.toString(),
-				"Administrator Connected");
+				Messages.getString("HttpSslHandler.2")); //$NON-NLS-1$
 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXVERSIONXXX.toString(),
 				Version.ID);
 		return builder.toString();
@@ -670,7 +671,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 } catch (NumberFormatException e) {
                  	body = "";
                     body1 = REQUEST.CancelRestart.readBodyEnd();
-                    body1 += "<br><b>"+parm+" aborted since Transfer is not found</b>";
+                    body1 += "<br><b>"+parm+Messages.getString("HttpSslHandler.3"); //$NON-NLS-2$
                     String end;
                     end = REQUEST.CancelRestart.readEnd();
                     return head+body0+body+body1+end;
@@ -684,7 +685,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				if (taskRunner == null) {
 					body = "";
 					body1 = REQUEST.CancelRestart.readBodyEnd();
-					body1 += "<br><b>" + parm + " aborted since Transfer is not found</b>";
+					body1 += "<br><b>" + parm + Messages.getString("HttpSslHandler.3"); //$NON-NLS-2$
 					String end;
 					end = REQUEST.CancelRestart.readEnd();
 					return head + body0 + body + body1 + end;
@@ -730,8 +731,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 							false, false, false, false, true);
 				}
 				body1 = REQUEST.CancelRestart.readBodyEnd();
-				body1 += "<br><b>" + (result == ErrorCode.CompleteOk ? parm + " transmitted" :
-						parm + " aborted since Transfer is not running") + "</b>";
+				body1 += "<br><b>" + (result == ErrorCode.CompleteOk ? parm + Messages.getString("HttpSslHandler.5") : //$NON-NLS-2$
+						parm + Messages.getString("HttpSslHandler.4")) + "</b>"; //$NON-NLS-1$
 			} else if ("Restart".equalsIgnoreCase(parm)) {
 				// Restart
 				String specid = getValue("specid");
@@ -743,7 +744,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                 } catch (NumberFormatException e) {
     	             body = "";
                     body1 = REQUEST.CancelRestart.readBodyEnd();
-                    body1 += "<br><b>"+parm+" aborted since Transfer is not found</b>";
+                    body1 += "<br><b>"+parm+Messages.getString("HttpSslHandler.3"); //$NON-NLS-2$
                     String end;
                     end = REQUEST.CancelRestart.readEnd();
                     return head+body0+body+body1+end;
@@ -771,7 +772,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 							false, false, false, false, true);
 				} catch (WaarpDatabaseException e) {
 					body = "";
-					comment = "Internal error";
+					comment = Messages.getString("HttpSslHandler.6"); //$NON-NLS-1$
 				}
 				body1 = REQUEST.CancelRestart.readBodyEnd();
 				body1 += "<br><b>" + comment + "</b>";
@@ -865,7 +866,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		if (isexported && nbAndSpecialId != null) {
 			if (nbAndSpecialId.nb <= 0) {
 				return body.replace("XXXRESULTXXX",
-						"Export unsuccessful since no records were found");
+						Messages.getString("HttpSslHandler.7")); //$NON-NLS-1$
 			}
 			// in case of purge
 			if (isexported && toPurge) {
@@ -884,10 +885,10 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 			}
 		}
 		return body.replace("XXXRESULTXXX", "Export "
-				+ (isexported ? "successful into " +
-						filename + " with " + nbAndSpecialId.nb + " exported and " + purge
-						+ " purged records" :
-						"in error"));
+				+ (isexported ? Messages.getString("HttpSslHandler.8") + //$NON-NLS-1$
+						filename + Messages.getString("HttpSslHandler.9") + nbAndSpecialId.nb + Messages.getString("HttpSslHandler.10") + purge //$NON-NLS-1$ //$NON-NLS-2$
+						+ Messages.getString("HttpSslHandler.11") : //$NON-NLS-1$
+						Messages.getString("HttpSslHandler.12"))); //$NON-NLS-1$
 	}
 
 	private String resetOptionHosts(String header,
@@ -925,7 +926,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				isclient = params.containsKey("isclient");
 				if (host == null || addr == null || port == null || key == null) {
 					body0 = body1 = body = "";
-					body = "<p><center><b>Not enough data to create a Host</b></center></p>";
+					body = Messages.getString("HttpSslHandler.13"); //$NON-NLS-1$
 					head = resetOptionHosts(head, "", "", false);
 					return head + body0 + body + body1 + end;
 				}
@@ -935,7 +936,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					iport = Integer.parseInt(port);
 				} catch (NumberFormatException e1) {
 					body0 = body1 = body = "";
-                    body = "<p><center><b>Cannot create a Host: "+e1.getMessage()+"</b></center></p>";
+                    body = Messages.getString("HttpSslHandler.14")+e1.getMessage()+"</b></center></p>"; //$NON-NLS-1$
                     head = resetOptionHosts(head, "", "", false);
                     return head+body0+body+body1+end;
 				}
@@ -945,7 +946,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					dbhost.insert();
 				} catch (WaarpDatabaseException e) {
 					body0 = body1 = body = "";
-					body = "<p><center><b>Cannot create a Host: " + e.getMessage()
+					body = Messages.getString("HttpSslHandler.14") + e.getMessage() //$NON-NLS-1$
 							+ "</b></center></p>";
 					head = resetOptionHosts(head, "", "", false);
 					return head + body0 + body + body1 + end;
@@ -995,7 +996,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				isclient = params.containsKey("isclient");
 				if (host == null || addr == null || port == null || key == null) {
 					body0 = body1 = body = "";
-					body = "<p><center><b>Not enough data to update a Host</b></center></p>";
+					body = Messages.getString("HttpSslHandler.15"); //$NON-NLS-1$
 					head = resetOptionHosts(head, "", "", false);
 					return head + body0 + body + body1 + end;
 				}
@@ -1005,7 +1006,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					iport = Integer.parseInt(port);
 				} catch (NumberFormatException e1) {
 					body0 = body1 = body = "";
-                    body = "<p><center><b>Cannot Update a Host: "+e1.getMessage()+"</b></center></p>";
+                    body = Messages.getString("HttpSslHandler.16")+e1.getMessage()+"</b></center></p>"; //$NON-NLS-1$
                     head = resetOptionHosts(head, "", "", false);
                     return head+body0+body+body1+end;
 				}
@@ -1019,7 +1020,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					}
 				} catch (WaarpDatabaseException e) {
 					body0 = body1 = body = "";
-					body = "<p><center><b>Cannot update a Host: " + e.getMessage()
+					body = Messages.getString("HttpSslHandler.16") + e.getMessage() //$NON-NLS-1$
 							+ "</b></center></p>";
 					head = resetOptionHosts(head, "", "", false);
 					return head + body0 + body + body1 + end;
@@ -1041,7 +1042,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					iport = Integer.parseInt(port);
 				} catch (NumberFormatException e1) {
 					body0 = body1 = body = "";
-                    body = "<p><center><b>Cannot find a Host: "+e1.getMessage()+"</b></center></p>";
+                    body = Messages.getString("HttpSslHandler.17")+e1.getMessage()+"</b></center></p>"; //$NON-NLS-1$
                     head = resetOptionHosts(head, "", "", false);
                     return head+body0+body+body1+end;
 				}
@@ -1057,7 +1058,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				body = REQUEST.Hosts.readBody();
 				if (result.isSuccess()) {
 					body = dbhost.toSpecializedHtml(authentHttp, body, false);
-					body += "<p><center><b>Connection SUCCESSFUL</b></center></p>";
+					body += Messages.getString("HttpSslHandler.18"); //$NON-NLS-1$
 				} else {
 					boolean resultShutDown = false;
 					if (!dbhost.isClient()) {
@@ -1069,12 +1070,12 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 							NetworkTransaction.shuttingdownNetworkChannels(host);
 					if (resultShutDown) {
 						body = dbhost.toSpecializedHtml(authentHttp, body, false);
-						body += "<p><center><b>Connection FAILURE: Disconnection is on going due to "
+						body += Messages.getString("HttpSslHandler.19") //$NON-NLS-1$
 								+
 								result.getResult().code.mesg + "</b></center></p>";
 					} else {
 						body = dbhost.toSpecializedHtml(authentHttp, body, false);
-						body += "<p><center><b>Connection FAILURE: " +
+						body += Messages.getString("HttpSslHandler.20") + //$NON-NLS-1$
 								result.getResult().code.mesg + "</b></center></p>";
 					}
 				}
@@ -1093,7 +1094,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					iport = Integer.parseInt(port);
 				} catch (NumberFormatException e1) {
 					body0 = body1 = body = "";
-                    body = "<p><center><b>Cannot find a Host: "+e1.getMessage()+"</b></center></p>";
+                    body = Messages.getString("HttpSslHandler.17")+e1.getMessage()+"</b></center></p>"; //$NON-NLS-1$
                     head = resetOptionHosts(head, "", "", false);
                     return head+body0+body+body1+end;
 				}
@@ -1110,16 +1111,16 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 						NetworkTransaction.shuttingdownNetworkChannels(host);
 				if (resultShutDown) {
 					body = dbhost.toSpecializedHtml(authentHttp, body, false);
-					body += "<p><center><b>Disconnection on going SUCCESSFUL</b></center></p>";
+					body += Messages.getString("HttpSslHandler.21"); //$NON-NLS-1$
 				} else {
 					body = dbhost.toSpecializedHtml(authentHttp, body, false);
-					body += "<p><center><b>Disconnection cannot be done</b></center></p>";
+					body += Messages.getString("HttpSslHandler.22"); //$NON-NLS-1$
 				}
 			} else if ("Delete".equalsIgnoreCase(parm)) {
 				String host = getTrimValue("host");
 				if (host == null || host.isEmpty()) {
 					body0 = body1 = body = "";
-					body = "<p><center><b>Not enough data to delete a Host</b></center></p>";
+					body = Messages.getString("HttpSslHandler.23"); //$NON-NLS-1$
 					head = resetOptionHosts(head, "", "", false);
 					return head + body0 + body + body1 + end;
 				}
@@ -1128,7 +1129,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					dbhost = new DbHostAuth(dbSession, host);
 				} catch (WaarpDatabaseException e) {
 					body0 = body1 = body = "";
-					body = "<p><center><b>Cannot delete a Host: " + e.getMessage()
+					body = Messages.getString("HttpSslHandler.24") + e.getMessage() //$NON-NLS-1$
 							+ "</b></center></p>";
 					head = resetOptionHosts(head, "", "", false);
 					return head + body0 + body + body1 + end;
@@ -1137,13 +1138,13 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					dbhost.delete();
 				} catch (WaarpDatabaseException e) {
 					body0 = body1 = body = "";
-					body = "<p><center><b>Cannot delete a Host: " + e.getMessage()
+					body = Messages.getString("HttpSslHandler.24") + e.getMessage() //$NON-NLS-1$
 							+ "</b></center></p>";
 					head = resetOptionHosts(head, "", "", false);
 					return head + body0 + body + body1 + end;
 				}
 				body0 = body1 = body = "";
-				body = "<p><center><b>Deleted Host: " + host + "</b></center></p>";
+				body = Messages.getString("HttpSslHandler.25") + host + "</b></center></p>"; //$NON-NLS-1$
 				head = resetOptionHosts(head, "", "", false);
 				return head + body0 + body + body1 + end;
 			} else {
@@ -1260,7 +1261,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				String mode = getTrimValue("mode");
 				if (rule == null || mode == null) {
 					body0 = body1 = body = "";
-					body = "<p><center><b>Not enough data to " + parm + " a Rule</b></center></p>";
+					body = Messages.getString("HttpSslHandler.26") + parm + Messages.getString("HttpSslHandler.27"); //$NON-NLS-1$ //$NON-NLS-2$
 					head = resetOptionRules(head, "", null, -3);
 					return head + body0 + body + body1 + end;
 				}
@@ -1307,7 +1308,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					}
 				} catch (WaarpDatabaseException e) {
 					body0 = body1 = body = "";
-					body = "<p><center><b>Cannot create a Rule: " + e.getMessage()
+					body = Messages.getString("HttpSslHandler.28") + e.getMessage() //$NON-NLS-1$
 							+ "</b></center></p>";
 					head = resetOptionRules(head, "", null, -3);
 					return head + body0 + body + body1 + end;
@@ -1448,7 +1449,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				String rule = getTrimValue("rule");
 				if (rule == null || rule.isEmpty()) {
 					body0 = body1 = body = "";
-					body = "<p><center><b>Not enough data to delete a Rule</b></center></p>";
+					body = Messages.getString("HttpSslHandler.29"); //$NON-NLS-1$
 					head = resetOptionRules(head, "", null, -3);
 					return head + body0 + body + body1 + end;
 				}
@@ -1457,7 +1458,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					dbrule = new DbRule(dbSession, rule);
 				} catch (WaarpDatabaseException e) {
 					body0 = body1 = body = "";
-					body = "<p><center><b>Cannot delete a Rule: " + e.getMessage()
+					body = Messages.getString("HttpSslHandler.30") + e.getMessage() //$NON-NLS-1$
 							+ "</b></center></p>";
 					head = resetOptionRules(head, "", null, -3);
 					return head + body0 + body + body1 + end;
@@ -1466,13 +1467,13 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					dbrule.delete();
 				} catch (WaarpDatabaseException e) {
 					body0 = body1 = body = "";
-					body = "<p><center><b>Cannot delete a Rule: " + e.getMessage()
+					body = Messages.getString("HttpSslHandler.30") + e.getMessage() //$NON-NLS-1$
 							+ "</b></center></p>";
 					head = resetOptionRules(head, "", null, -3);
 					return head + body0 + body + body1 + end;
 				}
 				body0 = body1 = body = "";
-				body = "<p><center><b>Deleted Rule: " + rule + "</b></center></p>";
+				body = Messages.getString("HttpSslHandler.31") + rule + "</b></center></p>"; //$NON-NLS-1$
 				head = resetOptionRules(head, "", null, -3);
 				return head + body0 + body + body1 + end;
 			} else {
@@ -1534,7 +1535,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					try {
 						RuleFileBasedConfiguration.writeXml(directory,
 								Configuration.configuration.HOST_ID);
-						extraInformation += "-Rule are exported.<br>";
+						extraInformation += Messages.getString("HttpSslHandler.32"); //$NON-NLS-1$
 					} catch (WaarpDatabaseNoConnectionException e1) {
 					} catch (WaarpDatabaseSqlException e1) {
 					} catch (OpenR66ProtocolSystemException e1) {
@@ -1545,7 +1546,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					try {
 						AuthenticationFileBasedConfiguration.writeXML(Configuration.configuration,
 								filename);
-						extraInformation += "-Authent are exported.<br>";
+						extraInformation += Messages.getString("HttpSslHandler.33"); //$NON-NLS-1$
 					} catch (WaarpDatabaseNoConnectionException e) {
 					} catch (WaarpDatabaseSqlException e) {
 					} catch (OpenR66ProtocolSystemException e) {
@@ -1559,17 +1560,17 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				} else if (act.equalsIgnoreCase("Block")) {
 					boolean block = params.containsKey("blocking");
 					if (block) {
-						extraInformation = "New request will be blocked";
+						extraInformation = Messages.getString("HttpSslHandler.34"); //$NON-NLS-1$
 					} else {
-						extraInformation = "New request will be allowed";
+						extraInformation = Messages.getString("HttpSslHandler.35"); //$NON-NLS-1$
 					}
 					Configuration.configuration.isShutdown = block;
 				} else if (act.equalsIgnoreCase("Shutdown")) {
 					String error;
 					if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
-						error = error("Shutdown in progress but WARNING: R66 started as a service might not be correctly shown as stopped under Windows Services");
+						error = error(Messages.getString("HttpSslHandler.36")); //$NON-NLS-1$
 					} else {
-						error = error("Shutdown in progress");
+						error = error(Messages.getString("HttpSslHandler.37")); //$NON-NLS-1$
 					}
 					R66ShutdownHook.setRestart(false);
 					newSession = true;
@@ -1580,9 +1581,9 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				} else if (act.equalsIgnoreCase("Restart")) {
 					String error;
 					if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
-						error = error("Shutdown in progress but WARNING: R66 started as a service might not be correctly shown as stopped under Windows Services");
+						error = error(Messages.getString("HttpSslHandler.38")); //$NON-NLS-1$
 					} else {
-						error = error("Shutdown in progress... Waiting "+(Configuration.configuration.TIMEOUTCON*2/1000)+"s before trying to reconnect");
+						error = error(Messages.getString("HttpSslHandler.39")+(Configuration.configuration.TIMEOUTCON*2/1000)+Messages.getString("HttpSslHandler.40")); //$NON-NLS-1$ //$NON-NLS-2$
 					}
 					error = error.replace("XXXRELOADHTTPXXX", "HTTP-EQUIV=\"refresh\" CONTENT=\""+(Configuration.configuration.TIMEOUTCON*2/1000)+"\"");
 					R66ShutdownHook.setRestart(true);
@@ -1634,9 +1635,9 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 								Configuration.configuration.delayRetry = 1000;
 							}
 						}
-						extraInformation = "Configuration Saved";
+						extraInformation = Messages.getString("HttpSslHandler.41"); //$NON-NLS-1$
 					} catch (NumberFormatException e) {
-						extraInformation = "Configuration cannot be Saved due to Format error";
+						extraInformation = Messages.getString("HttpSslHandler.42"); //$NON-NLS-1$
 					}
 				} else if (act.equalsIgnoreCase("HostConfig")) {
 					config.setBusiness(getTrimValue("BUSINESS"));
@@ -1645,9 +1646,9 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					config.setOthers(getTrimValue("OTHER"));
 					try {
 						config.update();
-						extraInformation = "Configuration Saved";
+						extraInformation = Messages.getString("HttpSslHandler.41"); //$NON-NLS-1$
 					} catch (WaarpDatabaseException e) {
-						extraInformation = "Configuration cannot be Saved due to Database error";
+						extraInformation = Messages.getString("HttpSslHandler.43"); //$NON-NLS-1$
 					}
 				}
 			}
