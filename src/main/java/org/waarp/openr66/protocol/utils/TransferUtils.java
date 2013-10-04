@@ -153,7 +153,7 @@ public class TransferUtils {
 				}
 			} catch (OpenR66RunnerErrorException e) {
 				finalResult.code = ErrorCode.PreProcessingOk;
-				finalResult.other = Messages.getString("TransferUtils.12"); //$NON-NLS-1$
+				finalResult.other = Messages.getString("TransferUtils.1"); //$NON-NLS-1$
 			}
 		}
 		return finalResult;

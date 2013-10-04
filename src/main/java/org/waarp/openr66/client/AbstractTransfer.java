@@ -223,13 +223,13 @@ public abstract class AbstractTransfer implements Runnable {
 			if (!FileBasedConfiguration
 					.setSubmitClientConfigurationFromXml(Configuration.configuration, args[0])) {
 				logger
-						.error(Messages.getString("AbstractTransfer.7")); //$NON-NLS-1$
+						.error(Messages.getString("Configuration.NeedCorrectConfig")); //$NON-NLS-1$
 				return false;
 			}
 		} else if (!FileBasedConfiguration
 				.setClientConfigurationFromXml(Configuration.configuration, args[0])) {
 			logger
-					.error(Messages.getString("AbstractTransfer.7")); //$NON-NLS-1$
+					.error(Messages.getString("Configuration.NeedCorrectConfig")); //$NON-NLS-1$
 			return false;
 		}
 		// Now set default values from configuration

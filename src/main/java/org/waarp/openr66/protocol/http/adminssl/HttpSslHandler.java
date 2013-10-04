@@ -772,7 +772,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 							false, false, false, false, true);
 				} catch (WaarpDatabaseException e) {
 					body = "";
-					comment = Messages.getString("HttpSslHandler.6"); //$NON-NLS-1$
+					comment = Messages.getString("ErrorCode.17"); //$NON-NLS-1$
 				}
 				body1 = REQUEST.CancelRestart.readBodyEnd();
 				body1 += "<br><b>" + comment + "</b>";
@@ -1568,7 +1568,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				} else if (act.equalsIgnoreCase("Shutdown")) {
 					String error;
 					if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
-						error = error(Messages.getString("HttpSslHandler.36")); //$NON-NLS-1$
+						error = error(Messages.getString("HttpSslHandler.38")); //$NON-NLS-1$
 					} else {
 						error = error(Messages.getString("HttpSslHandler.37")); //$NON-NLS-1$
 					}

@@ -126,7 +126,7 @@ public class DirectTransfer extends AbstractTransfer {
 			logger = WaarpInternalLoggerFactory.getLogger(DirectTransfer.class);
 		}
 		if (!getParams(args, false)) {
-			logger.error(Messages.getString("Transfer.WrongInit")); //$NON-NLS-1$
+			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
 			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
 				DbConstant.admin.close();
 			}
