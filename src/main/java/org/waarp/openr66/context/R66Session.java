@@ -598,6 +598,15 @@ public class R66Session implements SessionInterface {
 			this.runner.setPreTask();
 			runner.saveStatus();
 			this.runner.run();
+			if (runner.isSender() && ! runner.isSendThrough()) {
+				if (file != null) {
+					try {
+						runner.setOriginalSize(file.length());
+					} catch (CommandAbstractException e) {
+						// ignore
+					}
+				}
+			}
 			runner.saveStatus();
 			runner.setTransferTask(runner.getRank());
 		} else {

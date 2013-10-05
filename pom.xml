@@ -197,6 +197,9 @@
                         <include name="NOTICE.*" />
                         <include name="COPYRIGHT.*" />
                       </zipfileset>
+                      <zipfileset dir="${basedir}/src/main/java" >
+                        <include name="*.properties" />
+                      </zipfileset>
                       <zipfileset dir="${basedir}/license" prefix="META-INF/license/">
                         <exclude name="**/.*/**" />
                         <include name="**" />
