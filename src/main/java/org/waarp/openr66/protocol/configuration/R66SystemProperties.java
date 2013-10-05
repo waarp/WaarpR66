@@ -46,6 +46,10 @@ public class R66SystemProperties {
 	/**
 	 * Use in Windows Service mode to specify the location of the configuration file
 	 */
-	public static final String CONFIGFILE = "org.waarp.r66.config.file";
+	public static final String OPENR66_CONFIGFILE = "org.waarp.r66.config.file";
+	/**
+	 * Shall we print info of startup in Warning mode (true) or Info mode (false)
+	 */
+	public static final String OPENR66_STARTUP_WARNING = "openr66.startup.warning";
 
 }

@@ -332,9 +332,10 @@ public class FileUtils {
 	public final static R66File getFile(WaarpInternalLogger logger, R66Session session, String filenameSrc, 
 			boolean isPreStart, boolean isSender, boolean isThrough, R66File file) throws OpenR66RunnerErrorException {
 		String filename;
+		logger.debug("PreStart: "+isPreStart);
+		logger.debug("Dir is: "+session.getDir().getFullPath());
+		logger.debug("File is: "+filenameSrc);
 		if (isPreStart) {
-			logger.debug("Dir is: "+session.getDir().getFullPath());
-			logger.debug("File is: "+filenameSrc);
 			filename = R66Dir.normalizePath(filenameSrc);
 			if (filename.startsWith("file:/")) {
 				if (DetectionUtils.isWindows()) {

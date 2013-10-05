@@ -83,7 +83,7 @@ public class DirectTransfer extends AbstractTransfer {
 				future.setResult(new R66Result(e, null, true,
 						ErrorCode.ConnectionImpossible, taskRunner));
 				// since no connection : just forget it
-				if (nolog) {
+				if (nolog || taskRunner.shallIgnoreSave()) {
 					try {
 						taskRunner.delete();
 					} catch (WaarpDatabaseException e1) {
@@ -109,7 +109,7 @@ public class DirectTransfer extends AbstractTransfer {
 			future.setResult(new R66Result(exc, null, true,
 					ErrorCode.ConnectionImpossible, taskRunner));
 			// since no connection : just forget it
-			if (nolog) {
+			if (nolog || taskRunner.shallIgnoreSave()) {
 				try {
 					taskRunner.delete();
 				} catch (WaarpDatabaseException e1) {
@@ -177,7 +177,7 @@ public class DirectTransfer extends AbstractTransfer {
 									: "no file")
 							+ "     delay: " + delay);
 				}
-				if (nolog) {
+				if (nolog || result.runner.shallIgnoreSave()) {
 					// In case of success, delete the runner
 					try {
 						result.runner.delete();

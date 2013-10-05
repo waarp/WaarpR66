@@ -46,9 +46,9 @@ public class R66Engine extends EngineAbstract {
 	
 	@Override
 	public void run() {
-		String config = SystemPropertyUtil.get(R66SystemProperties.CONFIGFILE);
+		String config = SystemPropertyUtil.get(R66SystemProperties.OPENR66_CONFIGFILE);
 		if (config == null) {
-			logger.error("Cannot find "+R66SystemProperties.CONFIGFILE+" parameter");
+			logger.error("Cannot find "+R66SystemProperties.OPENR66_CONFIGFILE+" parameter");
 			closeFuture.cancel();
 			shutdown();
 			return;

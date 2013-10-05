@@ -1125,7 +1125,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					runner = new DbTaskRunner(localChannelReference.getDbSession(),
 							session, rule, packet.getSpecialId(),
 							requester, requested);
+					// Patch to prevent self request to be stored by sender
+					boolean ignoreSave = runner.shallIgnoreSave();
 					runner.setSender(isRetrieve);
+					if (ignoreSave && ! runner.shallIgnoreSave()) {
+						// Since status changed, it means that object should be created and not reloaded
+						throw new WaarpDatabaseNoDataException("False load, must reopen and create DbTaskRunner");
+					}
 					if (runner.isAllDone()) {
 						// truly an error since done
 						session.setStatus(31);
@@ -1153,6 +1159,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 												packet.getSpecialId()), packet);
 						return;
 					}
+					logger.debug("Runner before any action: {} {}", runner.shallIgnoreSave(), runner);
 					// ok to restart
 					try {
 						if (runner.restart(false)) {
@@ -1165,6 +1172,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					try {
 						runner = new DbTaskRunner(localChannelReference.getDbSession(),
 								session, rule, isRetrieve, packet);
+						logger.debug("Runner before any action: {} {}", runner.shallIgnoreSave(), runner);
 					} catch (WaarpDatabaseException e1) {
 						session.setStatus(33);
 						endInitRequestInError(channel, ErrorCode.QueryRemotelyUnknown,
@@ -1195,6 +1203,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 						runner.setOriginalFilename(packet.getFilename());
 						runner.setFilename(packet.getFilename());
 					}
+					logger.debug("Runner before any action: {} {}", runner.shallIgnoreSave(), runner);
 					try {
 						if (runner.restart(false)) {
 							if (!runner.isSelfRequest()) {
@@ -1209,6 +1218,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 						try {
 							runner = new DbTaskRunner(localChannelReference.getDbSession(),
 									session, rule, isRetrieve, packet);
+							logger.debug("Runner before any action: {} {}", runner.shallIgnoreSave(), runner);
 						} catch (WaarpDatabaseException e1) {
 							session.setStatus(35);
 							endInitRequestInError(channel, ErrorCode.QueryRemotelyUnknown, null,
@@ -1238,6 +1248,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			}
 			packet.setSpecialId(runner.getSpecialId());
 		}
+		logger.debug("Runner before any action: {} {}", runner.shallIgnoreSave(), runner);
 		// Check now if request is a valid one
 		if (packet.getCode() != ErrorCode.InitOk.code) {
 			// not valid so create an error from there

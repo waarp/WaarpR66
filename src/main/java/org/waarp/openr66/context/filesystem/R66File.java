@@ -268,8 +268,6 @@ public class R66File extends FilesystemBasedFileImpl {
 			return path.substring(pos+1);
 		}
 		return path;
-		/*File file = new File(path);
-		return file.getName();*/
 	}
 
 	@Override
@@ -477,7 +475,6 @@ public class R66File extends FilesystemBasedFileImpl {
 	 * @see org.waarp.common.file.filesystembased.FilesystemBasedFileImpl#renameTo
 	 * (java.lang.String)
 	 */
-	@SuppressWarnings("resource")
 	@Override
 	public boolean renameTo(String path) throws CommandAbstractException {
 		if (!isExternal) {
@@ -493,25 +490,34 @@ public class R66File extends FilesystemBasedFileImpl {
 			File newFile = getFileFromPath(path);
 			if (newFile.getParentFile().canWrite()) {
 				if (!file.renameTo(newFile)) {
-					FileOutputStream fileOutputStream;
+					FileOutputStream fileOutputStream = null;
 					try {
-						fileOutputStream = new FileOutputStream(newFile);
-					} catch (FileNotFoundException e) {
-						logger
-								.warn("Cannot find file: " + newFile.getName(),
-										e);
-						return false;
-					}
-					FileChannel fileChannelOut = fileOutputStream.getChannel();
-					if (get(fileChannelOut)) {
-						delete();
-					} else {
 						try {
-							fileChannelOut.close();
-						} catch (IOException e) {
+							fileOutputStream = new FileOutputStream(newFile);
+						} catch (FileNotFoundException e) {
+							logger
+									.warn("Cannot find file: " + newFile.getName(),
+											e);
+							return false;
 						}
-						logger.error("Cannot write file: {}", newFile);
-						return false;
+						FileChannel fileChannelOut = fileOutputStream.getChannel();
+						if (get(fileChannelOut)) {
+							delete();
+						} else {
+							try {
+								fileChannelOut.close();
+							} catch (IOException e) {
+							}
+							logger.error("Cannot write file: {}", newFile);
+							return false;
+						}
+					} finally {
+						if (fileOutputStream != null) {
+							try {
+								fileOutputStream.close();
+							} catch (IOException e) {
+							}
+						}
 					}
 				}
 				currentFile = getRelativePath(newFile);
@@ -534,7 +540,6 @@ public class R66File extends FilesystemBasedFileImpl {
 	 * @return True if the operation is done
 	 * @throws CommandAbstractException
 	 */
-	@SuppressWarnings("resource")
 	public boolean renameTo(String path, boolean external)
 			throws CommandAbstractException {
 		if (!external) {
@@ -549,25 +554,34 @@ public class R66File extends FilesystemBasedFileImpl {
 			File newFile = new File(path);
 			if (newFile.getParentFile().canWrite()) {
 				if (!file.renameTo(newFile)) {
-					FileOutputStream fileOutputStream;
+					FileOutputStream fileOutputStream = null;
 					try {
-						fileOutputStream = new FileOutputStream(newFile);
-					} catch (FileNotFoundException e) {
-						logger
-								.warn("Cannot find file: " + newFile.getName(),
-										e);
-						return false;
-					}
-					FileChannel fileChannelOut = fileOutputStream.getChannel();
-					if (get(fileChannelOut)) {
-						delete();
-					} else {
 						try {
-							fileChannelOut.close();
-						} catch (IOException e) {
+							fileOutputStream = new FileOutputStream(newFile);
+						} catch (FileNotFoundException e) {
+							logger
+									.warn("Cannot find file: " + newFile.getName(),
+											e);
+							return false;
 						}
-						logger.error("Cannot write file: {}", newFile);
-						return false;
+						FileChannel fileChannelOut = fileOutputStream.getChannel();
+						if (get(fileChannelOut)) {
+							delete();
+						} else {
+							try {
+								fileChannelOut.close();
+							} catch (IOException e) {
+							}
+							logger.error("Cannot write file: {}", newFile);
+							return false;
+						}
+					} finally {
+						if (fileOutputStream != null) {
+							try {
+								fileOutputStream.close();
+							} catch (IOException e) {
+							}
+						}
 					}
 				}
 				currentFile = FilesystemBasedDirImpl.normalizePath(newFile

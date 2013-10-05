@@ -574,6 +574,8 @@ public class Configuration {
 	
 	public boolean isHostProxyfied = false;
 	
+	public boolean warnOnStartup = true;
+	
 	public Configuration() {
 		// Init signal handler
 		shutdownConfiguration.timeout = TIMEOUTCON;
@@ -588,6 +590,7 @@ public class Configuration {
 			PartnerConfiguration.SEPARATOR_FIELD = PartnerConfiguration.BLANK_SEPARATOR_FIELD;
 		}
 		isHostProxyfied = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_ISHOSTPROXYFIED, false);
+		warnOnStartup = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_STARTUP_WARNING, true);
 	}
 
 	/**
@@ -602,8 +605,13 @@ public class Configuration {
 				.getDefaultFactory());
 		objectSizeEstimator = new NetworkPacketSizeEstimator();
 		httpPipelineInit();
-		logger.warn("Server Thread: " + SERVER_THREAD + " Client Thread: " + CLIENT_THREAD
+		if (warnOnStartup) {
+			logger.warn("Server Thread: " + SERVER_THREAD + " Client Thread: " + CLIENT_THREAD
 				+ " Runner Thread: " + RUNNER_THREAD);
+		} else {
+			logger.info("Server Thread: " + SERVER_THREAD + " Client Thread: " + CLIENT_THREAD
+					+ " Runner Thread: " + RUNNER_THREAD);
+		}
 		serverPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
 				CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory, 1000,
 				TimeUnit.MILLISECONDS, objectSizeEstimator,

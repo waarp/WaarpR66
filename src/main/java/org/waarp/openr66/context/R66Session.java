@@ -543,6 +543,7 @@ public class R66Session implements SessionInterface {
 	public void setRunner(DbTaskRunner runner)
 			throws OpenR66RunnerErrorException {
 		this.runner = runner;
+		logger.debug("Runner to set: {} {}", runner.shallIgnoreSave(), runner);
 		setBusinessObject(Configuration.configuration.r66BusinessFactory.getBusinessInterface(this));
 		this.runner.checkThroughMode();
 		if (this.businessObject != null) {
@@ -590,6 +591,7 @@ public class R66Session implements SessionInterface {
 		} else {
 			restart.restartMarker(0);
 		}
+		logger.debug("GlobalLastStep: "+runner.getGloballaststep() + " vs " +TASKSTEP.NOTASK.ordinal()+":"+TASKSTEP.PRETASK.ordinal());
 		if (runner.getGloballaststep() == TASKSTEP.NOTASK.ordinal() ||
 				runner.getGloballaststep() == TASKSTEP.PRETASK.ordinal()) {
 			setFileBeforePreRunner();

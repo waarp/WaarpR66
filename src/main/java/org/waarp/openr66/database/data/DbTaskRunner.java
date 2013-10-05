@@ -28,6 +28,7 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.dom4j.Document;
@@ -92,6 +93,12 @@ public class DbTaskRunner extends AbstractDbData {
 	 */
 	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
 			.getLogger(DbTaskRunner.class);
+	
+	/**
+	 * HashTable in case of lack of database
+	 */
+	private static final ConcurrentHashMap<Long, DbTaskRunner> dbR66TaskHashMap =
+			new ConcurrentHashMap<Long, DbTaskRunner>();
 
 	public static enum Columns {
 		GLOBALSTEP,
@@ -215,7 +222,7 @@ public class DbTaskRunner extends AbstractDbData {
 	private volatile boolean continueTransfer = true;
 
 	private volatile boolean rescheduledTransfer = false;
-
+	
 	private LocalChannelReference localChannelReference = null;
 
 	private boolean isRecvThrough = false;
@@ -567,6 +574,8 @@ public class DbTaskRunner extends AbstractDbData {
 		} else {
 			start = new Timestamp(System.currentTimeMillis());
 		}
+		globalstep = TASKSTEP.NOTASK.ordinal();
+		globallaststep = TASKSTEP.NOTASK.ordinal();
 		setToArray();
 		isSaved = false;
 		specialId = requestPacket.getSpecialId();
@@ -727,6 +736,7 @@ public class DbTaskRunner extends AbstractDbData {
 	 * Remove a Spcieal Id for NoDb Client
 	 */
 	private void removeNoDbSpecialId() {
+		dbR66TaskHashMap.remove(this.specialId);
 	}
 
 	/*
@@ -735,7 +745,7 @@ public class DbTaskRunner extends AbstractDbData {
 	 */
 	@Override
 	public void delete() throws WaarpDatabaseException {
-		if (dbSession == null) {
+		if (dbSession == null || shallIgnoreSave()) {
 			removeNoDbSpecialId();
 			if (Configuration.configuration.saveTaskRunnerWithNoDb) {
 				deleteXmlWorkNoDb();
@@ -772,7 +782,8 @@ public class DbTaskRunner extends AbstractDbData {
 		if (isSaved) {
 			return;
 		}
-		if (dbSession == null) {
+		boolean shallIgnore = shallIgnoreSave();
+		if (dbSession == null || shallIgnore) {
 			if (specialId == DbConstant.ILLEGALVALUE) {
 				// New SpecialId is not possible with No Database Model
 				createNoDbSpecialId();
@@ -788,6 +799,9 @@ public class DbTaskRunner extends AbstractDbData {
 			}
 			if (this.updatedInfo == UpdatedInfo.TOSUBMIT.ordinal()) {
 				addNoDb();
+			}
+			if (shallIgnore) {
+				dbR66TaskHashMap.put(specialId, this);
 			}
 			return;
 		}
@@ -810,7 +824,8 @@ public class DbTaskRunner extends AbstractDbData {
 		if (isSaved) {
 			return;
 		}
-		if (dbSession == null) {
+		boolean shallIgnore = shallIgnoreSave();
+		if (dbSession == null || shallIgnore) {
 			if (specialId == DbConstant.ILLEGALVALUE) {
 				// New SpecialId is not possible with No Database Model
 				createNoDbSpecialId();
@@ -826,6 +841,9 @@ public class DbTaskRunner extends AbstractDbData {
 			}
 			if (this.updatedInfo == UpdatedInfo.TOSUBMIT.ordinal()) {
 				addNoDb();
+			}
+			if (shallIgnore) {
+				dbR66TaskHashMap.put(specialId, this);
 			}
 			return;
 		}
@@ -896,9 +914,13 @@ public class DbTaskRunner extends AbstractDbData {
 	 */
 	@Override
 	public boolean exist() throws WaarpDatabaseException {
-		if (dbSession == null) {
+		boolean shallIgnore = shallIgnoreSave();
+		if (dbSession == null || shallIgnore) {
 			if (Configuration.configuration.saveTaskRunnerWithNoDb) {
 				return existXmlWorkNoDb();
+			}
+			if (shallIgnore) {
+				return dbR66TaskHashMap.containsKey(specialId);
 			}
 			return false;
 		}
@@ -951,6 +973,26 @@ public class DbTaskRunner extends AbstractDbData {
 			}
 			throw new WaarpDatabaseNoDataException("No row found");
 		}
+		DbTaskRunner previous = dbR66TaskHashMap.get(specialId);
+		if (previous != null) {
+			DbValue[] temp = this.allFields;
+			this.allFields = previous.allFields;
+			try {
+				this.setFromArray();
+			} catch (WaarpDatabaseSqlException e) {
+			}
+			this.allFields = temp;
+			this.setToArray();
+			this.isRecvThrough = previous.isRecvThrough;
+			this.isSendThrough = previous.isSendThrough;
+			this.rule = previous.rule;
+			this.isSaved = true;
+			if (rule == null) {
+				rule = new DbRule(this.dbSession, ruleId);
+			}
+			checkThroughMode();
+			return;
+		}
 		super.select();
 		if (rule == null) {
 			rule = new DbRule(this.dbSession, ruleId);
@@ -967,7 +1009,8 @@ public class DbTaskRunner extends AbstractDbData {
 		if (isSaved) {
 			return;
 		}
-		if (dbSession == null) {
+		boolean shallIgnore = shallIgnoreSave();
+		if (dbSession == null || shallIgnore) {
 			isSaved = true;
 			if (Configuration.configuration.saveTaskRunnerWithNoDb) {
 				try {
@@ -1011,6 +1054,17 @@ public class DbTaskRunner extends AbstractDbData {
 		}
 	}
 
+	/**
+	 * Special method used to force insert in case of SelfSubmit
+	 * @throws WaarpDatabaseException 
+	 */
+	public boolean specialSubmit() throws WaarpDatabaseException {
+		if (shallIgnoreSave()) {
+			super.insert();
+			return true;
+		}
+		return false;
+	}
 	/**
 	 * Partial set from another runner (infostatus, rank, status, step, stop, filename,
 	 * globallastep, globalstep, isFileMoved)
@@ -1300,8 +1354,9 @@ public class DbTaskRunner extends AbstractDbData {
 				scondition.append(Columns.UPDATEDINFO.name());
 				scondition.append(" = ");
 				scondition.append(UpdatedInfo.DONE.ordinal());
+				hasone = true;
 			}
-			if (scondition.length() <= 3) {
+			if (! hasone) {
 				scondition.append(Columns.UPDATEDINFO.name());
 				scondition.append(" IS NOT NULL ");
 			}
@@ -3376,7 +3431,13 @@ public class DbTaskRunner extends AbstractDbData {
 		return false;
 	}
 
-
+	/**
+	 * 
+	 * @return True if this is a self request and current action is on Requested
+	 */
+	public boolean shallIgnoreSave() {
+		return isSelfRequest() && ((isSender && getRule().isSendMode()) || (! isSender && getRule().isRecvMode()));
+	}
 	/**
 	 * 
 	 * @return True if the request is a self request (same host on both side)

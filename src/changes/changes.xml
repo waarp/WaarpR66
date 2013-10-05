@@ -17,6 +17,8 @@
    			<action dev="Frederic Bregier" type="add">Add first step of internationalization support through -Dopenr66.locale=en|fr</action>
    			<action dev="Frederic Bregier" type="add">Add option -dos2unix -unix2dos to TRANSCODE task</action>
    			<action dev="Frederic Bregier" type="fix">Fix File getBasename</action>
+   			<action dev="Frederic Bregier" type="fix">Fix self request handling when using Database connexion</action>
+   			<action dev="Frederic Bregier" type="add">Add support to limit log of startup with option -Dopenr66.startup.warning=0</action>
    		</release>
 	    <release version="2.4.18" date="2013-09-15" description="Fix release">
 		    <action dev="Frederic Bregier" type="fix">Fix Multiple commands</action>

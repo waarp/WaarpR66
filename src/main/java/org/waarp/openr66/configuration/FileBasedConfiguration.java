@@ -931,7 +931,11 @@ public class FileBasedConfiguration {
 					+ Messages.getString("FileBasedConfiguration.MMOn2")); //$NON-NLS-1$
 		} else {
 			config.multipleMonitors = 1;
-			logger.warn(Messages.getString("FileBasedConfiguration.MMOff")); //$NON-NLS-1$
+			if (config.warnOnStartup) {
+				logger.warn(Messages.getString("FileBasedConfiguration.MMOff")); //$NON-NLS-1$
+			} else {
+				logger.info(Messages.getString("FileBasedConfiguration.MMOff")); //$NON-NLS-1$
+			}
 		}
 		return true;
 	}
@@ -1196,7 +1200,11 @@ public class FileBasedConfiguration {
 				config.digest = PartnerConfiguration.getDigestAlgo(val);
 			}
 		}
-		logger.warn("DigestAlgo used: {}", config.digest);
+		if (config.warnOnStartup) {
+			logger.warn("DigestAlgo used: {}", config.digest);
+		} else {
+			logger.info("DigestAlgo used: {}", config.digest);
+		}
 		value = hashConfig.get(XML_USEFASTMD5);
 		if (value != null && (!value.isEmpty())) {
 			FilesystemBasedDigest.useFastMd5 = value.getBoolean();
@@ -1226,7 +1234,7 @@ public class FileBasedConfiguration {
 		value = hashConfig.get(XML_CHECKVERSION);
 		if (value != null && (!value.isEmpty())) {
 			config.extendedProtocol = value.getBoolean();
-			logger.warn("ExtendedProtocol= " + config.extendedProtocol);
+			logger.info("ExtendedProtocol= " + config.extendedProtocol);
 		}
 		value = hashConfig.get(XML_GLOBALDIGEST);
 		if (value != null && (!value.isEmpty())) {
@@ -1452,7 +1460,11 @@ public class FileBasedConfiguration {
 	private static boolean loadDatabase(Configuration config) {
 		XmlValue value = hashConfig.get(XML_DBDRIVER);
 		if (value == null || (value.isEmpty())) {
-			logger.warn(Messages.getString("FileBasedConfiguration.NoDB")); //$NON-NLS-1$
+			if (config.warnOnStartup) {
+				logger.warn(Messages.getString("FileBasedConfiguration.NoDB")); //$NON-NLS-1$
+			} else {
+				logger.info(Messages.getString("FileBasedConfiguration.NoDB")); //$NON-NLS-1$
+			}
 			DbConstant.admin = new DbAdmin(); // no database support
 			DbConstant.noCommitAdmin = DbConstant.admin;
 		} else {

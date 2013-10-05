@@ -349,18 +349,10 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				String startid = getTrimValue("startid");
 				String stopid = getTrimValue("stopid");
 				if (startid != null && stopid == null) {
-					try {
-                 		stopid = Long.toString(Long.parseLong(startid)+LIMITROW);
-                    } catch (NumberFormatException e) {
-                     	stopid = Long.MAX_VALUE+"";
-                    }
+					stopid = Long.MAX_VALUE+"";
 				}
 				if (stopid != null && startid == null) {
-					try {
-						startid = Long.toString(Long.parseLong(stopid) - LIMITROW);
-                    } catch (NumberFormatException e) {
-                     	startid = (DbConstant.ILLEGALVALUE+1)+"";
-                    }
+                   	startid = (DbConstant.ILLEGALVALUE+1)+"";
 				}
 				String start = getValue("start");
 				String stop = getValue("stop");
@@ -385,7 +377,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				if (tstop != null) {
 					stop = tstop.toString();
 				}
-				Long idstart = null, idstop = null; 
+				Long idstart = null; 
 				body = REQUEST.Listing.readBody();
 				DbPreparedStatement preparedStatement = null;
 				try {
@@ -402,9 +394,6 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 							DbTaskRunner taskRunner = DbTaskRunner
 									.getFromStatement(preparedStatement);
 							long specid = taskRunner.getSpecialId();
-							if (idstop == null || idstop < specid) {
-								idstop = specid;
-							}
 							if (idstart == null || idstart > specid) {
 								idstart = specid;
 							}
@@ -432,7 +421,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					logger.warn("OpenR66 Web Error {}", e.getMessage());
 				}
 				head = resetOptionTransfer(head, startid == null ? (idstart != null ? idstart.toString() : "") : startid,
-						stopid == null ? (idstop != null ? idstop.toString() : "") : stopid, start, stop,
+						stopid == null ? "" : stopid, start, stop,
 						rule == null ? "" : rule, req == null ? "" : req,
 						pending, transfer, error, done, all);
 			} else {
@@ -470,18 +459,10 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				String startid = getTrimValue("startid");
 				String stopid = getTrimValue("stopid");
 				if (startid != null && stopid == null) {
-					try {
-                 		stopid = Long.toString(Long.parseLong(startid)+LIMITROW);
-                    } catch (NumberFormatException e) {
-                     	stopid = Long.MAX_VALUE+"";
-                    }
+                   	stopid = Long.MAX_VALUE+"";
 				}
 				if (stopid != null && startid == null) {
-					try {
-						startid = Long.toString(Long.parseLong(stopid) - LIMITROW);
-                    } catch (NumberFormatException e) {
-                     	startid = (DbConstant.ILLEGALVALUE+1)+"";
-                    }
+                   	startid = (DbConstant.ILLEGALVALUE+1)+"";
 				}
 				String start = getValue("start");
 				String stop = getValue("stop");
@@ -507,7 +488,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					stop = tstop.toString();
 				}
 				body = REQUEST.CancelRestart.readBody();
-				Long idstart = null, idstop = null; 
+				Long idstart = null; 
 				DbPreparedStatement preparedStatement = null;
 				try {
 					preparedStatement =
@@ -523,9 +504,6 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 							DbTaskRunner taskRunner = DbTaskRunner
 									.getFromStatement(preparedStatement);
 							long specid = taskRunner.getSpecialId();
-							if (idstop == null || idstop < specid) {
-								idstop = specid;
-							}
 							if (idstart == null || idstart > specid) {
 								idstart = specid;
 							}
@@ -553,7 +531,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					logger.warn("OpenR66 Web Error {}", e.getMessage());
 				}
 				head = resetOptionTransfer(head, startid == null ? (idstart != null ? idstart.toString() : "") : startid,
-						stopid == null ? (idstop != null ? idstop.toString() : "") : stopid, start, stop,
+						stopid == null ? "" : stopid, start, stop,
 						rule == null ? "" : rule, req == null ? "" : req,
 						pending, transfer, error, done, all);
 				body1 = REQUEST.CancelRestart.readBodyEnd();

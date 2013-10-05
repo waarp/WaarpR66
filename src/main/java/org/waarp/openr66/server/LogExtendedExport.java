@@ -39,6 +39,7 @@ import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
+import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 import org.waarp.openr66.protocol.localhandler.packet.JsonCommandPacket;
@@ -156,6 +157,15 @@ public class LogExtendedExport implements Runnable {
 		if (logger == null) {
 			logger = WaarpInternalLoggerFactory.getLogger(LogExtendedExport.class);
 		}
+		if (! (statusdone || statuserror || statuspending || statustransfer)) {
+			logger.error("No action required");
+			future.setResult(new R66Result(
+					new OpenR66ProtocolNoDataException("No action required"),
+					null, true, ErrorCode.IncorrectCommand, null));
+			future.setFailure(future.getResult().exception);
+			return;
+		}
+
 		byte type = (purgeLog) ? LocalPacketFactory.LOGPURGEPACKET : LocalPacketFactory.LOGPACKET;
 		LogJsonPacket node = new LogJsonPacket();
 		node.setClean(clean);
