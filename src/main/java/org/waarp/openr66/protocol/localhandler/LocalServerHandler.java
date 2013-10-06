@@ -93,6 +93,7 @@ import org.waarp.openr66.database.data.DbHostConfiguration;
 import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66DatabaseGlobalException;
 import org.waarp.openr66.protocol.exception.OpenR66Exception;
@@ -149,6 +150,7 @@ import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.FileUtils;
 import org.waarp.openr66.protocol.utils.NbAndSpecialId;
 import org.waarp.openr66.protocol.utils.R66Future;
+import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 import org.waarp.openr66.protocol.utils.TransferUtils;
 
 /**
@@ -217,7 +219,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					session.newState(ERROR);
 					R66Result finalValue = new R66Result(
 							new OpenR66ProtocolSystemException(
-									"Finalize too early at close time But Must Finalize"),
+									Messages.getString("LocalServerHandler.4")), //$NON-NLS-1$
 							session, true, ErrorCode.FinalOp, runner); // True since closed
 					try {
 						tryFinalizeRequest(finalValue);
@@ -274,7 +276,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				&& (!localChannelReference.getFutureRequest().isDone())) {
 			R66Result finalValue = new R66Result(
 					new OpenR66ProtocolSystemException(
-							"Finalize too early at close time while Request not yet finished"),
+							Messages.getString("LocalServerHandler.11")), //$NON-NLS-1$
 					session, true, ErrorCode.FinalOp, runner);
 			localChannelReference.invalidateRequest(finalValue);
 			// In case stop the attached thread if any
@@ -463,7 +465,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			session.newState(ERROR);
 			boolean isAnswered = false;
 			if (exception instanceof OpenR66ProtocolShutdownException) {
-				logger.warn("Shutdown order received and going from: " +
+				logger.warn(Messages.getString("LocalServerHandler.0") + //$NON-NLS-1$
 						session.getAuth().getUser());
 				if (localChannelReference != null) {
 					R66Result finalValue = new R66Result(exception, session, true,
@@ -547,7 +549,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					if (runner != null) {
 						R66Result finalValue = new R66Result(
 								new OpenR66ProtocolSystemException(
-										"Finalize too early at close time with Network Exception"),
+										Messages.getString("LocalServerHandler.2")), //$NON-NLS-1$
 								session, true, code, session.getRunner());
 						try {
 							tryFinalizeRequest(finalValue);
@@ -570,6 +572,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 							case Running:
 							case TransferOk:
 								code = ErrorCode.Internal;
+								break;
 							default:
 								code = runner.getErrorInfo();
 						}
@@ -644,7 +647,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				.getLocalTransaction().getFromId(packet.getLocalId());
 		if (localChannelReference == null) {
 			session.newState(ERROR);
-			logger.error("Cannot startup");
+			logger.error(Messages.getString("LocalServerHandler.1")); //$NON-NLS-1$
 			ErrorPacket error = new ErrorPacket("Cannot startup connection",
 					ErrorCode.ConnectionImpossible.getCode(), ErrorPacket.FORWARDCLOSECODE);
 			try {
@@ -680,7 +683,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 	 */
 	private void refusedConnection(Channel channel, AuthentPacket packet, Exception e1)
 			throws OpenR66ProtocolPacketException {
-		logger.error("Cannot connect from "+
+		logger.error(Messages.getString("LocalServerHandler.5")+ //$NON-NLS-1$
 			localChannelReference.getNetworkChannel().getRemoteAddress()+
 			" : " + packet.getHostId(), e1);
 		if (Configuration.configuration.r66Mib != null) {
@@ -691,7 +694,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		}
 		R66Result result = new R66Result(
 				new OpenR66ProtocolSystemException(
-						"Connection not allowed from "+
+						Messages.getString("LocalServerHandler.6")+ //$NON-NLS-1$
 						localChannelReference.getNetworkChannel().getRemoteAddress(),
 						e1), session, true,
 				ErrorCode.BadAuthent, null);
@@ -1031,12 +1034,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		if (!session.isAuthenticated()) {
 			session.setStatus(48);
 			throw new OpenR66ProtocolNotAuthenticatedException(
-					"Not authenticated while Request received");
+					Messages.getString("LocalServerHandler.3")); //$NON-NLS-1$
 		}
 		// XXX validLimit only on requested side
 		if (packet.isToValidate()) {
 			if (Configuration.configuration.isShutdown) {
-				logger.info("Server is blocking new requests when receive request with Rule: "
+				logger.info(Messages.getString("LocalServerHandler.7") //$NON-NLS-1$
 						+ packet.getRulename() + " from " + session.getAuth().toString());
 				session.setStatus(100);
 				endInitRequestInError(channel,
@@ -1053,7 +1056,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 									+ session.getAuth().toString(),
 									Configuration.configuration.constraintLimitHandler.lastAlert);
 				}
-				logger.info("Limit exceeded when receive request with Rule: "
+				logger.info(Messages.getString("LocalServerHandler.8") //$NON-NLS-1$
 						+ packet.getRulename() + " from " + session.getAuth().toString());
 				session.setStatus(100);
 				endInitRequestInError(channel,
@@ -1081,7 +1084,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			endInitRequestInError(channel,
 					ErrorCode.QueryRemotelyUnknown, null,
 					new OpenR66ProtocolBusinessException(
-							"The Transfer is associated with an Unknown Rule: " +
+							Messages.getString("LocalServerHandler.9") + //$NON-NLS-1$
 									packet.getRulename()), packet);
 			return;
 		}
@@ -1090,7 +1093,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			if (!rule.checkHostAllow(session.getAuth().getUser())) {
 				session.setStatus(30);
 				throw new OpenR66ProtocolNotAuthenticatedException(
-						"Rule is not allowed for the remote host");
+						Messages.getString("LocalServerHandler.10")); //$NON-NLS-1$
 			}
 			// Check if the blocksize is greater than local value
 			if (Configuration.configuration.BLOCKSIZE < blocksize) {
@@ -1104,7 +1107,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		if (!RequestPacket.isCompatibleMode(rule.mode, packet.getMode())) {
 			// not compatible Rule and mode in request
 			throw new OpenR66ProtocolNotAuthenticatedException(
-					"Rule has not the same mode of transmission: " + rule.mode + " vs "
+					Messages.getString("LocalServerHandler.12") + rule.mode + " vs " //$NON-NLS-1$
 							+ packet.getMode());
 		}
 		session.setBlockSize(blocksize);
@@ -1122,14 +1125,20 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					runner = new DbTaskRunner(localChannelReference.getDbSession(),
 							session, rule, packet.getSpecialId(),
 							requester, requested);
+					// Patch to prevent self request to be stored by sender
+					boolean ignoreSave = runner.shallIgnoreSave();
 					runner.setSender(isRetrieve);
+					if (ignoreSave && ! runner.shallIgnoreSave()) {
+						// Since status changed, it means that object should be created and not reloaded
+						throw new WaarpDatabaseNoDataException("False load, must reopen and create DbTaskRunner");
+					}
 					if (runner.isAllDone()) {
 						// truly an error since done
 						session.setStatus(31);
 						endInitRequestInError(channel,
 								ErrorCode.QueryAlreadyFinished, runner,
 								new OpenR66ProtocolBusinessQueryAlreadyFinishedException(
-										"The TransferId is associated with a Transfer already finished: "
+										Messages.getString("LocalServerHandler.13") //$NON-NLS-1$
 												+
 												packet.getSpecialId()), packet);
 						return;
@@ -1145,11 +1154,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
 						endInitRequestInError(channel,
 								ErrorCode.QueryStillRunning, runner,
 								new OpenR66ProtocolBusinessQueryStillRunningException(
-										"The TransferId is associated with a Transfer still running: "
+										Messages.getString("LocalServerHandler.14") //$NON-NLS-1$
 												+
 												packet.getSpecialId()), packet);
 						return;
 					}
+					logger.debug("Runner before any action: {} {}", runner.shallIgnoreSave(), runner);
 					// ok to restart
 					try {
 						if (runner.restart(false)) {
@@ -1162,6 +1172,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					try {
 						runner = new DbTaskRunner(localChannelReference.getDbSession(),
 								session, rule, isRetrieve, packet);
+						logger.debug("Runner before any action: {} {}", runner.shallIgnoreSave(), runner);
 					} catch (WaarpDatabaseException e1) {
 						session.setStatus(33);
 						endInitRequestInError(channel, ErrorCode.QueryRemotelyUnknown,
@@ -1192,6 +1203,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 						runner.setOriginalFilename(packet.getFilename());
 						runner.setFilename(packet.getFilename());
 					}
+					logger.debug("Runner before any action: {} {}", runner.shallIgnoreSave(), runner);
 					try {
 						if (runner.restart(false)) {
 							if (!runner.isSelfRequest()) {
@@ -1206,6 +1218,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 						try {
 							runner = new DbTaskRunner(localChannelReference.getDbSession(),
 									session, rule, isRetrieve, packet);
+							logger.debug("Runner before any action: {} {}", runner.shallIgnoreSave(), runner);
 						} catch (WaarpDatabaseException e1) {
 							session.setStatus(35);
 							endInitRequestInError(channel, ErrorCode.QueryRemotelyUnknown, null,
@@ -1235,6 +1248,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			}
 			packet.setSpecialId(runner.getSpecialId());
 		}
+		logger.debug("Runner before any action: {} {}", runner.shallIgnoreSave(), runner);
 		// Check now if request is a valid one
 		if (packet.getCode() != ErrorCode.InitOk.code) {
 			// not valid so create an error from there
@@ -1256,6 +1270,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			// if receiver, change only if current rank is upper proposed rank
 			runner.setRankAtStartup(packet.getRank());
 		}
+		logger.debug("Filesize: "+packet.getOriginalSize()+":"+runner.isSender());
 		boolean shouldInformBack = false;
 		try {
 			session.setRunner(runner);
@@ -1263,6 +1278,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				if (packet.getOriginalSize() != runner.getOriginalSize()) {
 					packet.setOriginalSize(runner.getOriginalSize());
 					shouldInformBack = true;
+					logger.debug("Filesize2: "+packet.getOriginalSize()+":"+runner.isSender());
 				}
 			}
 		} catch (OpenR66RunnerErrorException e) {
@@ -1277,22 +1293,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				runner.setErrorExecutionStatus(ErrorCode.ExternalOp);
 			}
 			logger.error("PreTask in error {}", e.getMessage(), e);
-			session.newState(ERROR);
-			ErrorPacket error = new ErrorPacket("PreTask in error: " + e
-					.getMessage(), runner.getErrorInfo().getCode(), ErrorPacket.FORWARDCLOSECODE);
-			ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
-			try {
-				session.setFinalizeTransfer(false, new R66Result(e, session,
-						true, runner.getErrorInfo(), runner));
-			} catch (OpenR66RunnerErrorException e1) {
-				localChannelReference.invalidateRequest(new R66Result(e, session,
-						true, runner.getErrorInfo(), runner));
-			} catch (OpenR66ProtocolSystemException e1) {
-				localChannelReference.invalidateRequest(new R66Result(e, session,
-						true, runner.getErrorInfo(), runner));
-			}
-			session.setStatus(38);
-			ChannelCloseTimer.closeFutureChannel(channel);
+			errorToSend("PreTask in error: " + e.getMessage(), runner.getErrorInfo(), channel, 38);
 			return;
 		}
 		if (packet.isToValidate()) {
@@ -1443,6 +1444,33 @@ public class LocalServerHandler extends SimpleChannelHandler {
 	}
 
 	/**
+	 * Send an error
+	 * @param message
+	 * @param code
+	 * @param channel
+	 * @throws OpenR66ProtocolPacketException
+	 */
+	private void errorToSend(String message, ErrorCode code, Channel channel, int status) throws OpenR66ProtocolPacketException {
+		session.newState(ERROR);
+		try {
+			session.setFinalizeTransfer(false, new R66Result(
+					new OpenR66ProtocolPacketException(message), session, true,
+					code, session.getRunner()));
+		} catch (OpenR66RunnerErrorException e1) {
+			localChannelReference.invalidateRequest(new R66Result(e1, session,
+					true, code, session.getRunner()));
+		} catch (OpenR66ProtocolSystemException e1) {
+			localChannelReference.invalidateRequest(new R66Result(e1, session,
+					true, code, session.getRunner()));
+		}
+		ErrorPacket error = new ErrorPacket(
+				message,
+				code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+		ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
+		session.setStatus(status);
+		ChannelCloseTimer.closeFutureChannel(channel);
+	}
+	/**
 	 * Receive a data
 	 * 
 	 * @param channel
@@ -1475,25 +1503,19 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				session.setStatus(94);
 				return;
 			}
-			session.newState(ERROR);
-			ErrorPacket error = new ErrorPacket(
-					"Transfer in error due previously aborted transmission",
-					ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
-			ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
-			try {
-				session.setFinalizeTransfer(false, new R66Result(
-						new OpenR66ProtocolPacketException(
-								"Transfer was aborted previously"), session, true,
-						ErrorCode.TransferError, session.getRunner()));
-			} catch (OpenR66RunnerErrorException e1) {
-			} catch (OpenR66ProtocolSystemException e1) {
-			}
-			session.setStatus(95);
-			ChannelCloseTimer.closeFutureChannel(channel);
+			errorToSend("Transfer in error due previously aborted transmission", ErrorCode.TransferError, channel, 95);
 			return;
 		}
 		if (packet.getPacketRank() != session.getRunner().getRank()) {
 			logger.debug("Issue on rank: "+packet.getPacketRank() +":"+ session.getRunner().getRank());
+			if (! session.addError()) {
+				// cannot continue
+				logger.error(Messages.getString("LocalServerHandler.15") + packet.getPacketRank() + " : " + //$NON-NLS-1$
+						session.getRunner().getRank()+ " from {}", session.getRunner());
+				errorToSend("Too much Bad Rank in transmission: " +
+					packet.getPacketRank(), ErrorCode.TransferError, channel, 96);
+				return;
+			}
 			// Fix the rank if possible
 			if (packet.getPacketRank() < session.getRunner().getRank()) {
 				logger.debug("Bad RANK: " + packet.getPacketRank() + " : " +
@@ -1507,70 +1529,40 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				} catch (CommandAbstractException e) {
 					logger.error("Bad RANK: " + packet.getPacketRank() + " : " +
 							session.getRunner().getRank());
-					session.newState(ERROR);
-					try {
-						session.setFinalizeTransfer(false, new R66Result(
-								new OpenR66ProtocolPacketException(
-										"Bad Rank in transmission even after retry: " +
-												packet.getPacketRank()), session, true,
-								ErrorCode.TransferError, session.getRunner()));
-					} catch (OpenR66RunnerErrorException e1) {
-					} catch (OpenR66ProtocolSystemException e1) {
-					}
-					ErrorPacket error = new ErrorPacket(
-							"Transfer in error due to bad rank transmission",
-							ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
-					ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
-					session.setStatus(96);
-					ChannelCloseTimer.closeFutureChannel(channel);
+					errorToSend("Bad Rank in transmission even after retry: " +
+							packet.getPacketRank(), ErrorCode.TransferError, channel, 96);
 					return;
 				}
 			} else {
 				// really bad
 				logger.error("Bad RANK: " + packet.getPacketRank() + " : " +
 						session.getRunner().getRank());
-				session.newState(ERROR);
-				try {
-					session.setFinalizeTransfer(false, new R66Result(
-							new OpenR66ProtocolPacketException(
-									"Bad Rank in transmission: " +
-											packet.getPacketRank() + " > " +
-											session.getRunner().getRank()), session, true,
-							ErrorCode.TransferError, session.getRunner()));
-				} catch (OpenR66RunnerErrorException e1) {
-				} catch (OpenR66ProtocolSystemException e1) {
-				}
-				ErrorPacket error = new ErrorPacket(
-						"Transfer in error due to bad rank transmission",
-						ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
-				ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
-				session.setStatus(20);
-				ChannelCloseTimer.closeFutureChannel(channel);
+				errorToSend("Bad Rank in transmission: " +
+						packet.getPacketRank()+ " > " +
+								session.getRunner().getRank(), ErrorCode.TransferError, channel, 20);
 				return;
 			}
 		}
-		DataBlock dataBlock = new DataBlock();
+		// Check global size
+		long originalSize = session.getRunner().getOriginalSize();
+		if (originalSize > 0) {
+			if (session.getRunner().getBlocksize() * (session.getRunner().getRank()-1) > originalSize) {
+				// cannot continue
+				logger.error(Messages.getString("LocalServerHandler.16") + packet.getPacketRank() + " : " + //$NON-NLS-1$
+						(originalSize/session.getRunner().getBlocksize()+1)+" from {}", session.getRunner());
+				errorToSend("Too much data transferred: " +
+						packet.getPacketRank(), ErrorCode.TransferError, channel, 96);
+				return;
+			}
+		}
 		// if MD5 check MD5
 		if (RequestPacket.isMD5Mode(session.getRunner().getMode())) {
 			logger.debug("AlgoDigest: "+(localChannelReference.getPartner() != null ? localChannelReference.getPartner().getDigestAlgo() : "usual algo"));
 			if (!packet.isKeyValid(localChannelReference.getPartner().getDigestAlgo())) {
 				// Wrong packet
-				logger.error("Wrong Hash Packet: {} using {}", packet, localChannelReference.getPartner().getDigestAlgo().name);
-				session.newState(ERROR);
-				try {
-					session.setFinalizeTransfer(false, new R66Result(
-							new OpenR66ProtocolPacketException(
-									"Wrong Packet Hash"), session, true,
-							ErrorCode.MD5Error, session.getRunner()));
-				} catch (OpenR66RunnerErrorException e1) {
-				} catch (OpenR66ProtocolSystemException e1) {
-				}
-				ErrorPacket error = new ErrorPacket(
-						"Transfer in error due to bad Hash on data packet ("+localChannelReference.getPartner().getDigestAlgo().name+")",
-						ErrorCode.MD5Error.getCode(), ErrorPacket.FORWARDCLOSECODE);
-				ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
-				session.setStatus(21);
-				ChannelCloseTimer.closeFutureChannel(channel);
+				logger.error(Messages.getString("LocalServerHandler.17"), packet, localChannelReference.getPartner().getDigestAlgo().name); //$NON-NLS-1$
+				errorToSend("Transfer in error due to bad Hash on data packet ("+localChannelReference.getPartner().getDigestAlgo().name+")",
+						ErrorCode.MD5Error, channel, 21);
 				return;
 			}
 		}
@@ -1603,6 +1595,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				FileUtils.computeGlobalHash(localDigest, packet.getData());
 			}
 		}
+		DataBlock dataBlock = new DataBlock();
 		if (session.getRunner().isRecvThrough() && localChannelReference.isRecvThroughMode()) {
 			localChannelReference.getRecvThroughHandler().writeChannelBuffer(packet.getData());
 			session.getRunner().incrementRank();
@@ -1616,19 +1609,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				logger.debug("Good RANK: " + packet.getPacketRank() + " : " +
 					session.getRunner().getRank());
 			} catch (FileTransferException e) {
-				session.newState(ERROR);
-				try {
-					session.setFinalizeTransfer(false, new R66Result(
-							new OpenR66ProtocolSystemException(e), session, true,
-							ErrorCode.TransferError, session.getRunner()));
-				} catch (OpenR66RunnerErrorException e1) {
-				} catch (OpenR66ProtocolSystemException e1) {
-				}
-				ErrorPacket error = new ErrorPacket("Transfer in error",
-						ErrorCode.TransferError.getCode(), ErrorPacket.FORWARDCLOSECODE);
-				ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
-				session.setStatus(22);
-				ChannelCloseTimer.closeFutureChannel(channel);
+				errorToSend("Transfer in error",
+						ErrorCode.TransferError, channel, 22);
 				return;
 			}
 		}
@@ -1658,7 +1640,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			if (originalSize >= 0) {
 				try {
 					if (!session.getRunner().isRecvThrough() && session.getFile().length() != originalSize) {
-						R66Result result = new R66Result(new OpenR66RunnerErrorException("Final size in error, transfer in error and rank should be reset to 0"),
+						R66Result result = new R66Result(new OpenR66RunnerErrorException(Messages.getString("LocalServerHandler.18")), //$NON-NLS-1$
 								session, true, ErrorCode.TransferError, session.getRunner());
 						try {
 							session.setFinalizeTransfer(false, result);
@@ -1689,7 +1671,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				if (! localhash.equalsIgnoreCase(hash)) {
 					// bad global Hash
 					//session.getRunner().setRankAtStartup(0);
-					R66Result result = new R66Result(new OpenR66RunnerErrorException("Global Hash in error, transfer in error and rank should be reset to 0 (using "+
+					R66Result result = new R66Result(new OpenR66RunnerErrorException(Messages.getString("LocalServerHandler.19")+ //$NON-NLS-1$
 							localChannelReference.getPartner().getDigestAlgo().name+")"),
 							session, true, ErrorCode.MD5Error, session.getRunner());
 					try {
@@ -1789,7 +1771,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			} else {
 				// in error due to a previous status (like bad MD5)
 				logger
-						.error("Error since end of transfer signaled but already done");
+						.error(Messages.getString("LocalServerHandler.20")); //$NON-NLS-1$
 				session.setStatus(23);
 				Channels.close(channel);
 				return;
@@ -1992,7 +1974,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			try {
 				local = Configuration.configuration.getHostId(session.getAuth().isSsl());
 			} catch (OpenR66ProtocolNoSslException e1) {
-				logger.error("Local Ssl Host unknown is unknown", e1);
+				logger.error("Local Ssl Host is unknown", e1);
 				throw new OpenR66ProtocolNoDataException("Local Ssl Host is unknown", e1);
 			}
 			DbTaskRunner runner = null;
@@ -2002,9 +1984,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
 							localChannelReference.getSession(), null, 
 							id, remote, local);
 				} catch (WaarpDatabaseException e) {
-					logger.error("RunnerTask is not found: " + packet.getRulename());
+					logger.error(Messages.getString("LocalServerHandler.21") + packet.getRulename()); //$NON-NLS-1$
 					logger.debug("RunnerTask is not found: " + packet.getRulename(), e);
-					throw new OpenR66ProtocolNoDataException("Remote starting RunnerTask is not found: " + packet.getRulename(), e);
+					throw new OpenR66ProtocolNoDataException(Messages.getString("LocalServerHandler.22") + packet.getRulename(), e); //$NON-NLS-1$
 				}
 			} else {
 				try {
@@ -2215,59 +2197,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			}
 			case LocalPacketFactory.STOPPACKET:
 			case LocalPacketFactory.CANCELPACKET: {
-				session.newState(VALIDOTHER);
-				// Authentication must be the local server or SYSTEM authorization
-				try {
-					if (!session.getAuth().getUser().equals(
-							Configuration.configuration.getHostId(session.getAuth().isSsl())) &&
-							!session.getAuth().isValidRole(ROLE.SYSTEM)) {
-						throw new OpenR66ProtocolNotAuthenticatedException(
-								"Not correctly authenticated");
-					}
-				} catch (OpenR66ProtocolNoSslException e1) {
-					throw new OpenR66ProtocolNotAuthenticatedException(
-							"Not correctly authenticated since SSL is not supported", e1);
-				}
-				// header = ?; middle = requested+blank+requester+blank+specialId
-				LocalChannelReference lcr =
-						Configuration.configuration.getLocalTransaction().
-								getFromRequest(packet.getSmiddle());
-				// stop the current transfer
-				R66Result resulttest;
-				ErrorCode code = (packet.getTypeValid() == LocalPacketFactory.STOPPACKET) ?
-						ErrorCode.StoppedTransfer : ErrorCode.CanceledTransfer;
-				if (lcr != null) {
-					int rank = 0;
-					if (code == ErrorCode.StoppedTransfer && lcr.getSession() != null) {
-						DbTaskRunner taskRunner = lcr.getSession().getRunner();
-						if (taskRunner != null) {
-							rank = taskRunner.getRank();
-						}
-					}
-					session.newState(ERROR);
-					ErrorPacket error = new ErrorPacket(code.name() + " " + rank,
-							code.getCode(), ErrorPacket.FORWARDCLOSECODE);
-					try {
-						// XXX ChannelUtils.writeAbstractLocalPacket(lcr, error);
-						// inform local instead of remote
-						ChannelUtils.writeAbstractLocalPacketToLocal(lcr, error);
-					} catch (Exception e) {
-					}
-					resulttest = new R66Result(session, true,
-							ErrorCode.CompleteOk, session.getRunner());
-				} else {
-					// Transfer is not running
-					// but maybe need action on database
-					String[] keys = packet.getSmiddle().split(" ");
-					long id = Long.parseLong(keys[2]);
-					if (stopOrCancelRunner(id, keys[0], keys[1], code)) {
-						resulttest = new R66Result(session, true,
-								ErrorCode.CompleteOk, session.getRunner());
-					} else {
-						resulttest = new R66Result(session, true,
-								ErrorCode.TransferOk, session.getRunner());
-					}
-				}
+				String[] keys = packet.getSmiddle().split(" ");
+				long id = Long.parseLong(keys[2]);
+				R66Result resulttest = stopOrCancel(packet.getTypeValid(), keys[0], keys[1], id);
 				// inform back the requester
 				ValidPacket valid = new ValidPacket(packet.getSmiddle(), resulttest.code.getCode(),
 						LocalPacketFactory.REQUESTUSERPACKET);
@@ -2890,68 +2822,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		switch (packet.getTypeValid()) {
 			case LocalPacketFactory.STOPPACKET:
 			case LocalPacketFactory.CANCELPACKET: {
-				session.newState(VALIDOTHER);
-				// should be from the local server or from an authorized hosts: SYSTEM
-				try {
-					if (!session.getAuth().getUser().equals(
-							Configuration.configuration.getHostId(session.getAuth().isSsl())) &&
-							!session.getAuth().isValidRole(ROLE.SYSTEM)) {
-						throw new OpenR66ProtocolNotAuthenticatedException(
-								"Not correctly authenticated");
-					}
-				} catch (OpenR66ProtocolNoSslException e1) {
-					throw new OpenR66ProtocolNotAuthenticatedException(
-							"Not correctly authenticated since SSL is not supported", e1);
-				}
-				R66Result resulttest;
 				StopOrCancelJsonPacket node = (StopOrCancelJsonPacket) json;
-				if (node.getRequested() == null || node.getRequester() == null || node.getSpecialid() == DbConstant.ILLEGALVALUE) {
-					ErrorCode code = ErrorCode.CommandNotFound;
-					resulttest = new R66Result(session, true,
-							code, session.getRunner());
-				} else {
-					String reqd = node.getRequested();
-					String reqr = node.getRequester();
-					long id = node.getSpecialid();
-					String key = reqd+" "+reqr+" "+id;
-					// header = ?; middle = requested+blank+requester+blank+specialId
-					LocalChannelReference lcr =
-							Configuration.configuration.getLocalTransaction().
-									getFromRequest(key);
-					// stop the current transfer
-					ErrorCode code = (packet.getTypeValid() == LocalPacketFactory.STOPPACKET) ?
-							ErrorCode.StoppedTransfer : ErrorCode.CanceledTransfer;
-					if (lcr != null) {
-						int rank = 0;
-						if (code == ErrorCode.StoppedTransfer && lcr.getSession() != null) {
-							DbTaskRunner taskRunner = lcr.getSession().getRunner();
-							if (taskRunner != null) {
-								rank = taskRunner.getRank();
-							}
-						}
-						session.newState(ERROR);
-						ErrorPacket error = new ErrorPacket(code.name() + " " + rank,
-								code.getCode(), ErrorPacket.FORWARDCLOSECODE);
-						try {
-							// XXX ChannelUtils.writeAbstractLocalPacket(lcr, error);
-							// inform local instead of remote
-							ChannelUtils.writeAbstractLocalPacketToLocal(lcr, error);
-						} catch (Exception e) {
-						}
-						resulttest = new R66Result(session, true,
-								ErrorCode.CompleteOk, session.getRunner());
-					} else {
-						// Transfer is not running
-						// but maybe need action on database
-						if (stopOrCancelRunner(id, reqd, reqr, code)) {
-							resulttest = new R66Result(session, true,
-									ErrorCode.CompleteOk, session.getRunner());
-						} else {
-							resulttest = new R66Result(session, true,
-									ErrorCode.TransferOk, session.getRunner());
-						}
-					}
-				}
+				R66Result resulttest = stopOrCancel(packet, node);
 				// inform back the requester
 				JsonCommandPacket valid = new JsonCommandPacket(json, resulttest.code.getCode(),
 						LocalPacketFactory.REQUESTUSERPACKET);
@@ -2967,95 +2839,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				break;
 			}
 			case LocalPacketFactory.VALIDPACKET: {
-				session.newState(VALIDOTHER);
-				// should be from the local server or from an authorized hosts: TRANSFER
-				try {
-					if (!session.getAuth().getUser().equals(
-							Configuration.configuration.getHostId(session.getAuth().isSsl())) &&
-							!session.getAuth().isValidRole(ROLE.TRANSFER)) {
-						throw new OpenR66ProtocolNotAuthenticatedException(
-								"Not correctly authenticated");
-					}
-				} catch (OpenR66ProtocolNoSslException e1) {
-					throw new OpenR66ProtocolNotAuthenticatedException(
-							"Not correctly authenticated since SSL is not supported", e1);
-				}
-				// Try to validate a restarting transfer
-				// validLimit on requested side
-				if (Configuration.configuration.constraintLimitHandler.checkConstraints()) {
-					logger.error("Limit exceeded while asking to relaunch a task"
-							+ packet.getRequest());
-					session.setStatus(100);
-					JsonCommandPacket valid;
-					valid = new JsonCommandPacket(json,
-							ErrorCode.ServerOverloaded.getCode(),
-							LocalPacketFactory.REQUESTUSERPACKET);
-					R66Result resulttest = new R66Result(null, session, true,
-							ErrorCode.Internal, null);
-					resulttest.other = packet;
-					localChannelReference.invalidateRequest(resulttest);
-					// inform back the requester
-					try {
-						ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-								valid, true);
-					} catch (OpenR66ProtocolPacketException e) {
-					}
-					Channels.close(channel);
-					return;
-				}
-				// Try to validate a restarting transfer
-				// header = ?; middle = requested+blank+requester+blank+specialId
-				// note: might contains one more argument = time to reschedule in yyyyMMddHHmmss format
-				ValidJsonPacket node = (ValidJsonPacket) json;
-				JsonCommandPacket valid;
-				if (node.getRequested() == null || node.getRequester() == null || node.getSpecialid() == DbConstant.ILLEGALVALUE) {
-					// not enough args
-					valid = new JsonCommandPacket(json,
-							ErrorCode.Internal.getCode(),
-							LocalPacketFactory.REQUESTUSERPACKET);
-					R66Result resulttest = new R66Result(
-							new OpenR66ProtocolBusinessRemoteFileNotFoundException("Not enough arguments"),
-							session, true,
-							ErrorCode.Internal, null);
-					resulttest.other = packet;
-					localChannelReference.invalidateRequest(resulttest);
-				} else {
-					String reqd = node.getRequested();
-					String reqr = node.getRequester();
-					long id = node.getSpecialid();
-					DbTaskRunner taskRunner = null;
-					try {
-						taskRunner = new DbTaskRunner(localChannelReference.getDbSession(), session,
-								null, id, reqr, reqd);
-						Timestamp timestart = null;
-						Date date = node.getRestarttime();
-						if (date != null) {
-							// time to reschedule in yyyyMMddHHmmss format
-							logger.debug("Debug: restart with "+date);
-							timestart = new Timestamp(date.getTime());
-							taskRunner.setStart(timestart);
-						}
-						LocalChannelReference lcr =
-								Configuration.configuration.getLocalTransaction().
-										getFromRequest(reqd+" "+reqr+" "+id);
-						// since it comes from a request transfer, cannot redo it
-						logger.info("Will try to restart: "+taskRunner.toShortString());
-						R66Result resulttest = TransferUtils.restartTransfer(taskRunner, lcr);
-						valid = new JsonCommandPacket(node, resulttest.code.getCode(),
-								LocalPacketFactory.REQUESTUSERPACKET);
-						resulttest.other = packet;
-						localChannelReference.validateRequest(resulttest);
-					} catch (WaarpDatabaseException e1) {
-						valid = new JsonCommandPacket(node,
-								ErrorCode.Internal.getCode(),
-								LocalPacketFactory.REQUESTUSERPACKET);
-						R66Result resulttest = new R66Result(new OpenR66DatabaseGlobalException(e1),
-								session, true,
-								ErrorCode.Internal, taskRunner);
-						resulttest.other = packet;
-						localChannelReference.invalidateRequest(resulttest);
-					}
-				}
+				JsonCommandPacket valid = requestRestart(packet, json);
 				// inform back the requester
 				try {
 					ChannelUtils.writeAbstractLocalPacket(localChannelReference,
@@ -3094,106 +2878,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			}
 			case LocalPacketFactory.LOGPACKET:
 			case LocalPacketFactory.LOGPURGEPACKET: {
-				session.newState(VALIDOTHER);
-				// should be from the local server or from an authorized hosts: LOGCONTROL
-				try {
-					if (!session.getAuth().getUser().equals(
-							Configuration.configuration.getHostId(session.getAuth().isSsl())) &&
-							!session.getAuth().isValidRole(ROLE.LOGCONTROL)) {
-						throw new OpenR66ProtocolNotAuthenticatedException(
-								"Not correctly authenticated");
-					}
-				} catch (OpenR66ProtocolNoSslException e1) {
-					throw new OpenR66ProtocolNotAuthenticatedException(
-							"Not correctly authenticated since SSL is not supported", e1);
-				}
-				LogJsonPacket node = (LogJsonPacket) json;
-				boolean purge = node.isPurge();
-				boolean clean = node.isClean();
-				Timestamp start = (node.getStart() == null) ? null :
-					new Timestamp(node.getStart().getTime());
-				Timestamp stop = (node.getStop() == null) ? null :
-					new Timestamp(node.getStop().getTime());
-				String startid = node.getStartid();
-				String stopid = node.getStopid();
-				String rule = node.getRule();
-				String request = node.getRequest();
-				boolean pending = node.isStatuspending();
-				boolean transfer = node.isStatustransfer();
-				boolean done = node.isStatusdone();
-				boolean error = node.isStatuserror();
-				boolean isPurge = (packet.getTypeValid() == LocalPacketFactory.LOGPURGEPACKET || purge) ?
-						true : false;
-
-				// first clean if ask
-				if (clean) {
-					// Update all UpdatedInfo to DONE
-					// where GlobalLastStep = ALLDONETASK and status = CompleteOk
-					try {
-						DbTaskRunner.changeFinishedToDone(localChannelReference.getDbSession());
-					} catch (WaarpDatabaseNoConnectionException e) {
-						logger.warn("Clean cannot be done {}", e.getMessage());
-					}
-				}
-				// create export of log and optionally purge them from database
-				DbPreparedStatement getValid = null;
-				String filename = Configuration.configuration.baseDirectory +
-						Configuration.configuration.archivePath + R66Dir.SEPARATOR +
-						Configuration.configuration.HOST_ID + "_" + System.currentTimeMillis() +
-						"_runners.xml";
-				NbAndSpecialId nb = null;
-				try {
-					getValid =
-							DbTaskRunner.getFilterPrepareStatement(localChannelReference.getDbSession(), 0,// 0 means no limit
-									true, startid, stopid, start, stop, rule, request,
-									pending, transfer, error, done, false);
-					nb = DbTaskRunner.writeXMLWriter(getValid, filename);
-				} catch (WaarpDatabaseNoConnectionException e1) {
-					throw new OpenR66ProtocolBusinessException(e1);
-				} catch (WaarpDatabaseSqlException e1) {
-					throw new OpenR66ProtocolBusinessException(e1);
-				} finally {
-					if (getValid != null) {
-						getValid.realClose();
-					}
-				}
-				// in case of purge
-				int npurge = 0;
-				if (nb != null && nb.nb> 0 && isPurge) {
-					// purge in same interval all runners with globallaststep
-					// as ALLDONETASK or ERRORTASK
-					if (Configuration.configuration.r66Mib != null) {
-						Configuration.configuration.r66Mib.notifyWarning(
-								"Purge Log Order received", session.getAuth().getUser());
-					}
-					try {
-						if (stopid != null) {
-							long newstopid = Long.parseLong(stopid);
-							if (nb.higherSpecialId < newstopid) {
-								stopid = Long.toString(nb.higherSpecialId);
-							}
-						} else {
-							stopid = Long.toString(nb.higherSpecialId);
-						}
-						// not pending or in transfer
-						npurge =
-								DbTaskRunner.purgeLogPrepareStatement(localChannelReference.getDbSession(),
-										startid, stopid, start, stop, rule, request,
-										false, false, error, done, false);
-					} catch (WaarpDatabaseNoConnectionException e) {
-						throw new OpenR66ProtocolBusinessException(e);
-					} catch (WaarpDatabaseSqlException e) {
-						throw new OpenR66ProtocolBusinessException(e);
-					}
-				}
+				LogResponseJsonPacket newjson = logPurge(packet, (LogJsonPacket) json);
 				R66Result result = new R66Result(session, true, ErrorCode.CompleteOk, null);
-				LogResponseJsonPacket newjson = new LogResponseJsonPacket();
-				newjson.fromJson(node);
-				// Now answer
-				newjson.setCommand(packet.getTypeValid());
-				newjson.setFilename(filename);
-				newjson.setExported(nb.nb);
-				newjson.setPurged(npurge);
 				JsonCommandPacket valid = new JsonCommandPacket(newjson, result.code.getCode(),
 						LocalPacketFactory.REQUESTUSERPACKET);
 				localChannelReference.validateRequest(result);
@@ -3206,144 +2892,15 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				break;
 			}
 			case LocalPacketFactory.CONFEXPORTPACKET: {
-				session.newState(VALIDOTHER);
-				// Authentication must be the local server or CONFIGADMIN authorization
-				try {
-					if (!session.getAuth().getUser().equals(
-							Configuration.configuration.getHostId(session.getAuth().isSsl())) &&
-							!session.getAuth().isValidRole(ROLE.CONFIGADMIN)) {
-						throw new OpenR66ProtocolNotAuthenticatedException(
-								"Not correctly authenticated");
-					}
-				} catch (OpenR66ProtocolNoSslException e1) {
-					throw new OpenR66ProtocolNotAuthenticatedException(
-							"Not correctly authenticated since SSL is not supported", e1);
-				}
-				if (Configuration.configuration.r66Mib != null) {
-					Configuration.configuration.r66Mib.notifyWarning(
-							"Export Configuration Order received", session.getAuth().getUser());
-				}
-				// host, rule, business, alias, roles
-				ConfigExportJsonPacket node = (ConfigExportJsonPacket) json;
-				boolean bhost = node.isHost();
-				String shost = null, srule = null, sbusiness = null, salias = null, sroles = null;
-				boolean brule = node.isRule();
-				boolean bbusiness = node.isBusiness();
-				boolean balias = node.isAlias();
-				boolean broles = node.isRoles();
-				String dir = Configuration.configuration.baseDirectory +
-						Configuration.configuration.archivePath;
-				String hostname = Configuration.configuration.HOST_ID;
-				if (bhost) {
-					String filename = dir + File.separator + hostname + "_Authentications.xml";
-					try {
-						AuthenticationFileBasedConfiguration.writeXML(Configuration.configuration,
-								filename);
-						shost = filename;
-					} catch (WaarpDatabaseNoConnectionException e) {
-						logger.error("Error", e);
-						shost = null;
-						bhost = false;
-					} catch (WaarpDatabaseSqlException e) {
-						logger.error("Error", e);
-						shost = null;
-						bhost = false;
-					} catch (OpenR66ProtocolSystemException e) {
-						logger.error("Error", e);
-						shost = null;
-						bhost = false;
-					}
-				}
-				if (brule) {
-					try {
-						srule = RuleFileBasedConfiguration.writeOneXml(dir, hostname);
-					} catch (WaarpDatabaseNoConnectionException e1) {
-						logger.error("Error", e1);
-						srule = null;
-						brule = false;
-					} catch (WaarpDatabaseSqlException e1) {
-						logger.error("Error", e1);
-						srule = null;
-						brule = false;
-					} catch (OpenR66ProtocolSystemException e1) {
-						logger.error("Error", e1);
-						srule = null;
-						brule = false;
-					}
-				}
-				try {
-					DbHostConfiguration host = new DbHostConfiguration(localChannelReference.getDbSession(), Configuration.configuration.HOST_ID);
-					if (bbusiness) {
-						sbusiness = host.getBusiness();
-						if (sbusiness != null) {
-							String filename = dir + File.separator + hostname + "_Business.xml";
-							FileOutputStream outputStream = new FileOutputStream(filename);
-							outputStream.write(sbusiness.getBytes());
-							outputStream.flush();
-							outputStream.close();
-							sbusiness = filename;
-						}
-						bbusiness = (sbusiness != null);
-					}
-					if (balias) {
-						salias = host.getAliases();
-						if (salias != null) {
-							String filename = dir + File.separator + hostname + "_Aliases.xml";
-							FileOutputStream outputStream = new FileOutputStream(filename);
-							outputStream.write(salias.getBytes());
-							outputStream.flush();
-							outputStream.close();
-							salias = filename;
-						}
-						balias = (salias != null);
-					}
-					if (broles) {
-						sroles = host.getRoles();
-						if (sroles != null) {
-							String filename = dir + File.separator + hostname + "_Roles.xml";
-							FileOutputStream outputStream = new FileOutputStream(filename);
-							outputStream.write(sroles.getBytes());
-							outputStream.flush();
-							outputStream.close();
-							sroles = filename;
-						}
-						broles = (sroles != null);
-					}
-				} catch (WaarpDatabaseNoConnectionException e1) {
-					logger.error("Error", e1);
-					bbusiness = (sbusiness != null);
-					balias = (salias != null);
-					broles = (sroles != null);
-				} catch (WaarpDatabaseSqlException e1) {
-					logger.error("Error", e1);
-					bbusiness = (sbusiness != null);
-					balias = (salias != null);
-					broles = (sroles != null);
-				} catch (WaarpDatabaseException e) {
-					logger.error("Error", e);
-					bbusiness = (sbusiness != null);
-					balias = (salias != null);
-					broles = (sroles != null);
-				} catch (IOException e) {
-					logger.error("Error", e);
-					bbusiness = (sbusiness != null);
-					balias = (salias != null);
-					broles = (sroles != null);
-				}
+				ConfigExportResponseJsonPacket resp = configExport(json);
 				R66Result result = null;
-				if (brule || bhost || bbusiness || balias || broles) {
+				if (resp.getFilerule() != null || resp.getFilehost() != null || 
+						resp.getFilebusiness() != null || resp.getFilealias() != null || 
+								resp.getFileroles() != null) {
 					result = new R66Result(session, true, ErrorCode.CompleteOk, null);
 				} else {
 					result = new R66Result(session, true, ErrorCode.TransferError, null);
 				}
-				// Now answer
-				ConfigExportResponseJsonPacket resp = new ConfigExportResponseJsonPacket();
-				resp.fromJson(node);
-				resp.setFilehost(shost);
-				resp.setFilerule(srule);
-				resp.setFilebusiness(sbusiness);
-				resp.setFilealias(salias);
-				resp.setFileroles(sroles);
 				JsonCommandPacket valid = new JsonCommandPacket(resp, result.code.getCode(),
 						LocalPacketFactory.REQUESTUSERPACKET);
 				localChannelReference.validateRequest(result);
@@ -3356,286 +2913,14 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				break;
 			}
 			case LocalPacketFactory.CONFIMPORTPACKET: {
-				session.newState(VALIDOTHER);
-				// Authentication must be the local server or CONFIGADMIN authorization
-				try {
-					if (!session.getAuth().getUser().equals(
-							Configuration.configuration.getHostId(session.getAuth().isSsl())) &&
-							!session.getAuth().isValidRole(ROLE.CONFIGADMIN)) {
-						throw new OpenR66ProtocolNotAuthenticatedException(
-								"Not correctly authenticated");
-					}
-				} catch (OpenR66ProtocolNoSslException e1) {
-					throw new OpenR66ProtocolNotAuthenticatedException(
-							"Not correctly authenticated since SSL is not supported", e1);
-				}
-				if (Configuration.configuration.r66Mib != null) {
-					Configuration.configuration.r66Mib.notifyWarning(
-							"Import Configuration Order received", session.getAuth().getUser());
-				}
-				//purgehost, purgerule, purgebusiness, purgealias, purgeroles, host, rule, business, alias, roles
-				ConfigImportJsonPacket node = (ConfigImportJsonPacket) json;
-				boolean bhostPurge = node.isPurgehost();
-				boolean brulePurge = node.isPurgerule();
-				boolean bbusinessPurge = node.isPurgebusiness();
-				boolean baliasPurge = node.isPurgealias();
-				boolean brolesPurge = node.isPurgeroles();
-				boolean importedhost = false, importedrule = false, importedbusiness = false, importedalias = false, importedroles = false;
-				String shost = node.getHost();
-				String srule = node.getRule();
-				String sbusiness = node.getBusiness();
-				String salias = node.getAlias();
-				String sroles = node.getRoles();
-				long hostid = node.getHostid();
-				long ruleid = node.getRuleid();
-				long businessid = node.getBusinessid();
-				long aliasid = node.getAliasid();
-				long roleid = node.getRolesid();
-				
-				String remote = session.getAuth().getUser();
-				String local = null;
-				try {
-					local = Configuration.configuration.getHostId(session.getAuth().isSsl());
-				} catch (OpenR66ProtocolNoSslException e1) {
-					logger.warn("Local Ssl Host is unknown", e1);
-				}
-				if (shost != null || (hostid != DbConstant.ILLEGALVALUE && local != null)) {
-					DbHostAuth[] oldHosts = null;
-					DbTaskRunner runner = null;
-					if (hostid != DbConstant.ILLEGALVALUE && local != null) {
-						// need to find the local filename
-						try {
-							runner = new DbTaskRunner(localChannelReference.getDbSession(), 
-									localChannelReference.getSession(), null, 
-									hostid, remote, local);
-							shost = runner.getFullFilePath();
-						} catch (WaarpDatabaseException e) {
-							logger.error("RunnerTask is not found: " + hostid, e);
-							shost = null;
-						} catch (CommandAbstractException e) {
-							logger.error("File is not found: " + hostid, e);
-							shost = null;
-						}
-					}
-					if (shost != null) {
-						if (bhostPurge) {
-							// Need to first delete all entries
-							try {
-								oldHosts = DbHostAuth.deleteAll(localChannelReference.getDbSession());
-							} catch (WaarpDatabaseException e) {
-								// ignore
-							}
-						}
-						if (AuthenticationFileBasedConfiguration.loadAuthentication(
-								Configuration.configuration, shost)) {
-							importedhost = true;
-							logger.debug("Host configuration imported from "+shost);
-						} else {
-							logger.error("Error in Load Hosts");
-							importedhost = false;
-						}
-						if (!importedhost && bhostPurge) {
-							if (oldHosts != null) {
-								for (DbHostAuth dbHost : oldHosts) {
-									try {
-										if (!dbHost.exist()) {
-											dbHost.insert();
-										}
-									} catch (WaarpDatabaseException e1) {
-										// ignore
-									}
-								}
-							}
-						}
-					}
-				}
-				if (srule != null || (ruleid != DbConstant.ILLEGALVALUE && local != null)) {
-					DbRule[] oldRules = null;
-					DbTaskRunner runner = null;
-					if (ruleid != DbConstant.ILLEGALVALUE && local != null) {
-						// need to find the local filename
-						try {
-							runner = new DbTaskRunner(localChannelReference.getDbSession(), 
-									localChannelReference.getSession(), null, 
-									ruleid, remote, local);
-							srule = runner.getFullFilePath();
-						} catch (WaarpDatabaseException e) {
-							logger.error("RunnerTask is not found: " + ruleid, e);
-							srule = null;
-						} catch (CommandAbstractException e) {
-							logger.error("File is not found: " + hostid, e);
-							srule = null;
-						}
-					}
-					if (srule != null) {
-						if (brulePurge) {
-							// Need to first delete all entries
-							try {
-								oldRules = DbRule.deleteAll(localChannelReference.getDbSession());
-							} catch (WaarpDatabaseException e) {
-								// ignore
-							}
-						}
-						File file = new File(srule);
-						try {
-							RuleFileBasedConfiguration.getMultipleFromFile(file);
-							importedrule = true;
-							logger.debug("Rule configuration imported from "+srule);
-						} catch (WaarpDatabaseNoConnectionException e) {
-							logger.error("Error", e);
-							importedrule = false;
-						} catch (WaarpDatabaseSqlException e) {
-							logger.error("Error", e);
-							importedrule = false;
-						} catch (WaarpDatabaseNoDataException e) {
-							logger.error("Error", e);
-							importedrule = false;
-						} catch (WaarpDatabaseException e) {
-							logger.error("Error", e);
-							importedrule = false;
-						}
-						if (!importedrule && brulePurge) {
-							if (oldRules != null) {
-								for (DbRule dbRule : oldRules) {
-									try {
-										if (!dbRule.exist()) {
-											dbRule.insert();
-										}
-									} catch (WaarpDatabaseException e1) {
-										// ignore
-									}
-								}
-							}
-						}
-					}
-				}
-				// load from file ! not from filename ! Moreover: filename might be incorrect => Must get the remote filename (recv)
-				if (sbusiness != null || salias != null || sroles != null || bbusinessPurge || baliasPurge || brolesPurge
-						|| ((businessid != DbConstant.ILLEGALVALUE || aliasid != DbConstant.ILLEGALVALUE ||
-								roleid != DbConstant.ILLEGALVALUE) && local != null)) {
-					DbHostConfiguration host = null;
-					try {
-						host = new DbHostConfiguration(localChannelReference.getDbSession(), Configuration.configuration.HOST_ID);
-						DbTaskRunner runner = null;
-						if (businessid != DbConstant.ILLEGALVALUE && local != null) {
-							// need to find the local filename
-							try {
-								runner = new DbTaskRunner(localChannelReference.getDbSession(), 
-										localChannelReference.getSession(), null, 
-										businessid, remote, local);
-								sbusiness = runner.getFullFilePath();
-							} catch (WaarpDatabaseException e) {
-								logger.error("RunnerTask is not found: " + businessid, e);
-								sbusiness = null;
-							} catch (CommandAbstractException e) {
-								logger.error("File is not found: " + hostid, e);
-								sbusiness = null;
-							}
-						}
-						if (sbusiness != null) {
-							try {
-								String content = WaarpStringUtils.readFileException(sbusiness);
-								importedbusiness = host.updateBusiness(Configuration.configuration, content, bbusinessPurge);
-								logger.debug("Business configuration imported from "+sbusiness+"("+importedbusiness+")");
-							} catch (InvalidArgumentException e) {
-								logger.error("Error", e);
-								importedbusiness = false;
-							} catch (FileTransferException e) {
-								logger.error("Error", e);
-								importedbusiness = false;
-							}
-						}
-						if (aliasid != DbConstant.ILLEGALVALUE && local != null) {
-							// need to find the local filename
-							try {
-								runner = new DbTaskRunner(localChannelReference.getDbSession(), 
-										localChannelReference.getSession(), null, 
-										aliasid, remote, local);
-								salias = runner.getFullFilePath();
-							} catch (WaarpDatabaseException e) {
-								logger.error("RunnerTask is not found: " + aliasid, e);
-								salias = null;
-							} catch (CommandAbstractException e) {
-								logger.error("File is not found: " + hostid, e);
-								salias = null;
-							}
-						}
-						if (salias != null) {
-							try {
-								String content = WaarpStringUtils.readFileException(salias);
-								importedalias = host.updateAlias(Configuration.configuration, content, baliasPurge);
-								logger.debug("Alias configuration imported from "+salias+"("+importedalias+")");
-							} catch (InvalidArgumentException e) {
-								logger.error("Error", e);
-								importedalias = false;
-							} catch (FileTransferException e) {
-								logger.error("Error", e);
-								importedalias = false;
-							}
-						}
-						if (roleid != DbConstant.ILLEGALVALUE && local != null) {
-							// need to find the local filename
-							try {
-								runner = new DbTaskRunner(localChannelReference.getDbSession(), 
-										localChannelReference.getSession(), null, 
-										roleid, remote, local);
-								sroles = runner.getFullFilePath();
-							} catch (WaarpDatabaseException e) {
-								logger.error("RunnerTask is not found: " + roleid, e);
-								sroles = null;
-							} catch (CommandAbstractException e) {
-								logger.error("File is not found: " + hostid, e);
-								sroles = null;
-							}
-						}
-						if (sroles != null) {
-							try {
-								String content = WaarpStringUtils.readFileException(sroles);
-								importedroles = host.updateRoles(Configuration.configuration, content, brolesPurge);
-								logger.debug("Roles configuration imported from "+sroles+"("+importedroles+")");
-							} catch (InvalidArgumentException e) {
-								logger.error("Error", e);
-								importedroles = false;
-							} catch (FileTransferException e) {
-								logger.error("Error", e);
-								importedroles = false;
-							}
-						}
-					} catch (WaarpDatabaseException e1) {
-						logger.error("Error while trying to open: " + sbusiness, e1);
-						importedbusiness = false;
-						importedalias = false;
-						importedroles = false;
-					}
-				}
+				ConfigImportResponseJsonPacket resp = configImport(json);
 				R66Result result = null;
-				if (importedhost || importedrule || importedbusiness || importedalias || importedroles) {
+				if (resp.isImportedhost() || resp.isImportedrule() || 
+						resp.isImportedbusiness() || resp.isImportedalias() || 
+						resp.isImportedroles()) {
 					result = new R66Result(session, true, ErrorCode.CompleteOk, null);
 				} else {
 					result = new R66Result(session, true, ErrorCode.TransferError, null);
-				}
-				// Now answer
-				ConfigImportResponseJsonPacket resp = new ConfigImportResponseJsonPacket();
-				resp.fromJson(node);
-				if (bhostPurge || shost != null) {
-					resp.setPurgedhost(bhostPurge);
-					resp.setImportedhost(importedhost);
-				}
-				if (brulePurge || srule != null) {
-					resp.setPurgedrule(brulePurge);
-					resp.setImportedrule(importedrule);
-				}
-				if (bbusinessPurge || sbusiness != null) {
-					resp.setPurgedbusiness(bbusinessPurge);
-					resp.setImportedbusiness(importedbusiness);
-				}
-				if (baliasPurge || salias != null) {
-					resp.setPurgedalias(baliasPurge);
-					resp.setImportedalias(importedalias);
-				}
-				if (brolesPurge || sroles != null) {
-					resp.setPurgedroles(brolesPurge);
-					resp.setImportedroles(importedroles);
 				}
 				JsonCommandPacket valid = new JsonCommandPacket(resp, result.code.getCode(),
 						LocalPacketFactory.REQUESTUSERPACKET);
@@ -3718,71 +3003,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				break;
 			}
 			case LocalPacketFactory.BANDWIDTHPACKET: {
-				session.newState(VALIDOTHER);
-				// Authentication must be the local server or LIMIT authorization
-				try {
-					if (!session.getAuth().getUser().equals(
-							Configuration.configuration.getHostId(session.getAuth().isSsl())) &&
-							!session.getAuth().isValidRole(ROLE.LIMIT)) {
-						throw new OpenR66ProtocolNotAuthenticatedException(
-								"Not correctly authenticated");
-					}
-				} catch (OpenR66ProtocolNoSslException e1) {
-					throw new OpenR66ProtocolNotAuthenticatedException(
-							"Not correctly authenticated since SSL is not supported", e1);
-				}
-				// setter, writeglobal, readglobal, writesession, readsession
-				BandwidthJsonPacket node = (BandwidthJsonPacket) json;
-				boolean setter = node.isSetter();
-				if (! setter) {
-					// request of current values
-					R66Result result = new R66Result(session, true, ErrorCode.CompleteOk, null);
-					// Now answer
-					node.setWriteglobal(Configuration.configuration.serverGlobalWriteLimit);
-					node.setReadglobal(Configuration.configuration.serverGlobalReadLimit);
-					node.setWritesession(Configuration.configuration.serverChannelWriteLimit);
-					node.setReadsession(Configuration.configuration.serverChannelReadLimit);
-					JsonCommandPacket valid = new JsonCommandPacket(node, result.code.getCode(),
-							LocalPacketFactory.REQUESTUSERPACKET);
-					localChannelReference.validateRequest(result);
-					try {
-						ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-								valid, true);
-					} catch (OpenR66ProtocolPacketException e) {
-					}
-					Channels.close(channel);
-					return;
-				}
-				long wgl = (node.getWriteglobal() / 10) * 10;
-				long rgl = (node.getReadglobal() / 10) * 10;
-				long wsl = (node.getWritesession() / 10) * 10;
-				long rsl = (node.getReadsession() / 10) * 10;
-				if (wgl < 0) {
-					wgl = Configuration.configuration.serverGlobalWriteLimit;
-				}
-				if (rgl < 0) {
-					rgl = Configuration.configuration.serverGlobalReadLimit;
-				}
-				if (wsl < 0) {
-					wsl = Configuration.configuration.serverChannelWriteLimit;
-				}
-				if (rsl < 0) {
-					rsl = Configuration.configuration.serverChannelReadLimit;
-				}
-				if (Configuration.configuration.r66Mib != null) {
-					Configuration.configuration.r66Mib.notifyWarning(
-							"Change Bandwidth Limit Order received: Global " +
-									wgl + ":" + rgl + " (W:R) Local " + wsl + ":" + rsl + " (W:R)",
-							session.getAuth().getUser());
-				}
-				Configuration.configuration.changeNetworkLimit(wgl, rgl, wsl, rsl,
-						Configuration.configuration.delayLimit);
+				BandwidthJsonPacket node = bandwidth(json);
 				R66Result result = new R66Result(session, true, ErrorCode.CompleteOk, null);
-				// Now answer
-				node.setWriteglobal(Configuration.configuration.serverGlobalWriteLimit);
-				node.setReadglobal(Configuration.configuration.serverGlobalReadLimit);
-				node.setWritesession(Configuration.configuration.serverChannelWriteLimit);
-				node.setReadsession(Configuration.configuration.serverChannelReadLimit);
 				JsonCommandPacket valid = new JsonCommandPacket(node, result.code.getCode(),
 						LocalPacketFactory.REQUESTUSERPACKET);
 				localChannelReference.validateRequest(result);
@@ -3807,6 +3029,789 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			default:
 				logger.info("Validation is ignored: " + packet.getTypeValid());
 		}
+	}
+
+	/**
+	 * @param json
+	 * @return the packet to answer
+	 * @throws OpenR66ProtocolNotAuthenticatedException
+	 */
+	public BandwidthJsonPacket bandwidth(JsonPacket json)
+			throws OpenR66ProtocolNotAuthenticatedException {
+		session.newState(VALIDOTHER);
+		// Authentication must be the local server or LIMIT authorization
+		try {
+			if (!session.getAuth().getUser().equals(
+					Configuration.configuration.getHostId(session.getAuth().isSsl())) &&
+					!session.getAuth().isValidRole(ROLE.LIMIT)) {
+				throw new OpenR66ProtocolNotAuthenticatedException(
+						"Not correctly authenticated");
+			}
+		} catch (OpenR66ProtocolNoSslException e1) {
+			throw new OpenR66ProtocolNotAuthenticatedException(
+					"Not correctly authenticated since SSL is not supported", e1);
+		}
+		// setter, writeglobal, readglobal, writesession, readsession
+		BandwidthJsonPacket node = (BandwidthJsonPacket) json;
+		boolean setter = node.isSetter();
+		if (! setter) {
+			// request of current values
+			// Now answer
+			node.setWriteglobal(Configuration.configuration.serverGlobalWriteLimit);
+			node.setReadglobal(Configuration.configuration.serverGlobalReadLimit);
+			node.setWritesession(Configuration.configuration.serverChannelWriteLimit);
+			node.setReadsession(Configuration.configuration.serverChannelReadLimit);
+		} else {
+			long wgl = (node.getWriteglobal() / 10) * 10;
+			long rgl = (node.getReadglobal() / 10) * 10;
+			long wsl = (node.getWritesession() / 10) * 10;
+			long rsl = (node.getReadsession() / 10) * 10;
+			if (wgl < 0) {
+				wgl = Configuration.configuration.serverGlobalWriteLimit;
+			}
+			if (rgl < 0) {
+				rgl = Configuration.configuration.serverGlobalReadLimit;
+			}
+			if (wsl < 0) {
+				wsl = Configuration.configuration.serverChannelWriteLimit;
+			}
+			if (rsl < 0) {
+				rsl = Configuration.configuration.serverChannelReadLimit;
+			}
+			if (Configuration.configuration.r66Mib != null) {
+				Configuration.configuration.r66Mib.notifyWarning(
+						"Change Bandwidth Limit Order received: Global " +
+								wgl + ":" + rgl + " (W:R) Local " + wsl + ":" + rsl + " (W:R)",
+						session.getAuth().getUser());
+			}
+			Configuration.configuration.changeNetworkLimit(wgl, rgl, wsl, rsl,
+					Configuration.configuration.delayLimit);
+			// Now answer
+			node.setWriteglobal(Configuration.configuration.serverGlobalWriteLimit);
+			node.setReadglobal(Configuration.configuration.serverGlobalReadLimit);
+			node.setWritesession(Configuration.configuration.serverChannelWriteLimit);
+			node.setReadsession(Configuration.configuration.serverChannelReadLimit);
+		}
+		return node;
+	}
+
+	/**
+	 * @param json
+	 * @return the packet to answer
+	 * @throws OpenR66ProtocolNotAuthenticatedException
+	 * @throws OpenR66ProtocolSystemException
+	 */
+	public ConfigImportResponseJsonPacket configImport(JsonPacket json)
+			throws OpenR66ProtocolNotAuthenticatedException, OpenR66ProtocolSystemException {
+		session.newState(VALIDOTHER);
+		// Authentication must be the local server or CONFIGADMIN authorization
+		try {
+			if (!session.getAuth().getUser().equals(
+					Configuration.configuration.getHostId(session.getAuth().isSsl())) &&
+					!session.getAuth().isValidRole(ROLE.CONFIGADMIN)) {
+				throw new OpenR66ProtocolNotAuthenticatedException(
+						"Not correctly authenticated");
+			}
+		} catch (OpenR66ProtocolNoSslException e1) {
+			throw new OpenR66ProtocolNotAuthenticatedException(
+					"Not correctly authenticated since SSL is not supported", e1);
+		}
+		if (Configuration.configuration.r66Mib != null) {
+			Configuration.configuration.r66Mib.notifyWarning(
+					"Import Configuration Order received", session.getAuth().getUser());
+		}
+		//purgehost, purgerule, purgebusiness, purgealias, purgeroles, host, rule, business, alias, roles
+		ConfigImportJsonPacket node = (ConfigImportJsonPacket) json;
+		boolean bhostPurge = node.isPurgehost();
+		boolean brulePurge = node.isPurgerule();
+		boolean bbusinessPurge = node.isPurgebusiness();
+		boolean baliasPurge = node.isPurgealias();
+		boolean brolesPurge = node.isPurgeroles();
+		boolean importedhost = false, importedrule = false, importedbusiness = false, importedalias = false, importedroles = false;
+		String shost = node.getHost();
+		String srule = node.getRule();
+		String sbusiness = node.getBusiness();
+		String salias = node.getAlias();
+		String sroles = node.getRoles();
+		long hostid = node.getHostid();
+		long ruleid = node.getRuleid();
+		long businessid = node.getBusinessid();
+		long aliasid = node.getAliasid();
+		long roleid = node.getRolesid();
+		
+		String remote = session.getAuth().getUser();
+		String local = null;
+		try {
+			local = Configuration.configuration.getHostId(session.getAuth().isSsl());
+		} catch (OpenR66ProtocolNoSslException e1) {
+			logger.warn("Local Ssl Host is unknown", e1);
+		}
+		if (shost != null || (hostid != DbConstant.ILLEGALVALUE && local != null)) {
+			DbHostAuth[] oldHosts = null;
+			DbTaskRunner runner = null;
+			if (hostid != DbConstant.ILLEGALVALUE && local != null) {
+				// need to find the local filename
+				try {
+					runner = new DbTaskRunner(localChannelReference.getDbSession(), 
+							localChannelReference.getSession(), null, 
+							hostid, remote, local);
+					shost = runner.getFullFilePath();
+				} catch (WaarpDatabaseException e) {
+					logger.error("RunnerTask is not found: " + hostid, e);
+					shost = null;
+				} catch (CommandAbstractException e) {
+					logger.error("File is not found: " + hostid, e);
+					shost = null;
+				}
+			}
+			if (shost != null) {
+				if (bhostPurge) {
+					// Need to first delete all entries
+					try {
+						oldHosts = DbHostAuth.deleteAll(localChannelReference.getDbSession());
+					} catch (WaarpDatabaseException e) {
+						// ignore
+					}
+				}
+				if (AuthenticationFileBasedConfiguration.loadAuthentication(
+						Configuration.configuration, shost)) {
+					importedhost = true;
+					logger.debug("Host configuration imported from "+shost);
+				} else {
+					logger.error("Error in Load Hosts");
+					importedhost = false;
+				}
+				if (!importedhost && bhostPurge) {
+					if (oldHosts != null) {
+						for (DbHostAuth dbHost : oldHosts) {
+							try {
+								if (!dbHost.exist()) {
+									dbHost.insert();
+								}
+							} catch (WaarpDatabaseException e1) {
+								// ignore
+							}
+						}
+					}
+				}
+			}
+		}
+		if (srule != null || (ruleid != DbConstant.ILLEGALVALUE && local != null)) {
+			DbRule[] oldRules = null;
+			DbTaskRunner runner = null;
+			if (ruleid != DbConstant.ILLEGALVALUE && local != null) {
+				// need to find the local filename
+				try {
+					runner = new DbTaskRunner(localChannelReference.getDbSession(), 
+							localChannelReference.getSession(), null, 
+							ruleid, remote, local);
+					srule = runner.getFullFilePath();
+				} catch (WaarpDatabaseException e) {
+					logger.error("RunnerTask is not found: " + ruleid, e);
+					srule = null;
+				} catch (CommandAbstractException e) {
+					logger.error("File is not found: " + hostid, e);
+					srule = null;
+				}
+			}
+			if (srule != null) {
+				if (brulePurge) {
+					// Need to first delete all entries
+					try {
+						oldRules = DbRule.deleteAll(localChannelReference.getDbSession());
+					} catch (WaarpDatabaseException e) {
+						// ignore
+					}
+				}
+				File file = new File(srule);
+				try {
+					RuleFileBasedConfiguration.getMultipleFromFile(file);
+					importedrule = true;
+					logger.debug("Rule configuration imported from "+srule);
+				} catch (WaarpDatabaseNoConnectionException e) {
+					logger.error("Error", e);
+					importedrule = false;
+				} catch (WaarpDatabaseSqlException e) {
+					logger.error("Error", e);
+					importedrule = false;
+				} catch (WaarpDatabaseNoDataException e) {
+					logger.error("Error", e);
+					importedrule = false;
+				} catch (WaarpDatabaseException e) {
+					logger.error("Error", e);
+					importedrule = false;
+				}
+				if (!importedrule && brulePurge) {
+					if (oldRules != null) {
+						for (DbRule dbRule : oldRules) {
+							try {
+								if (!dbRule.exist()) {
+									dbRule.insert();
+								}
+							} catch (WaarpDatabaseException e1) {
+								// ignore
+							}
+						}
+					}
+				}
+			}
+		}
+		// load from file ! not from filename ! Moreover: filename might be incorrect => Must get the remote filename (recv)
+		if (sbusiness != null || salias != null || sroles != null || bbusinessPurge || baliasPurge || brolesPurge
+				|| ((businessid != DbConstant.ILLEGALVALUE || aliasid != DbConstant.ILLEGALVALUE ||
+						roleid != DbConstant.ILLEGALVALUE) && local != null)) {
+			DbHostConfiguration host = null;
+			try {
+				host = new DbHostConfiguration(localChannelReference.getDbSession(), Configuration.configuration.HOST_ID);
+				DbTaskRunner runner = null;
+				if (businessid != DbConstant.ILLEGALVALUE && local != null) {
+					// need to find the local filename
+					try {
+						runner = new DbTaskRunner(localChannelReference.getDbSession(), 
+								localChannelReference.getSession(), null, 
+								businessid, remote, local);
+						sbusiness = runner.getFullFilePath();
+					} catch (WaarpDatabaseException e) {
+						logger.error("RunnerTask is not found: " + businessid, e);
+						sbusiness = null;
+					} catch (CommandAbstractException e) {
+						logger.error("File is not found: " + hostid, e);
+						sbusiness = null;
+					}
+				}
+				if (sbusiness != null) {
+					try {
+						String content = WaarpStringUtils.readFileException(sbusiness);
+						importedbusiness = host.updateBusiness(Configuration.configuration, content, bbusinessPurge);
+						logger.debug("Business configuration imported from "+sbusiness+"("+importedbusiness+")");
+					} catch (InvalidArgumentException e) {
+						logger.error("Error", e);
+						importedbusiness = false;
+					} catch (FileTransferException e) {
+						logger.error("Error", e);
+						importedbusiness = false;
+					}
+				}
+				if (aliasid != DbConstant.ILLEGALVALUE && local != null) {
+					// need to find the local filename
+					try {
+						runner = new DbTaskRunner(localChannelReference.getDbSession(), 
+								localChannelReference.getSession(), null, 
+								aliasid, remote, local);
+						salias = runner.getFullFilePath();
+					} catch (WaarpDatabaseException e) {
+						logger.error("RunnerTask is not found: " + aliasid, e);
+						salias = null;
+					} catch (CommandAbstractException e) {
+						logger.error("File is not found: " + hostid, e);
+						salias = null;
+					}
+				}
+				if (salias != null) {
+					try {
+						String content = WaarpStringUtils.readFileException(salias);
+						importedalias = host.updateAlias(Configuration.configuration, content, baliasPurge);
+						logger.debug("Alias configuration imported from "+salias+"("+importedalias+")");
+					} catch (InvalidArgumentException e) {
+						logger.error("Error", e);
+						importedalias = false;
+					} catch (FileTransferException e) {
+						logger.error("Error", e);
+						importedalias = false;
+					}
+				}
+				if (roleid != DbConstant.ILLEGALVALUE && local != null) {
+					// need to find the local filename
+					try {
+						runner = new DbTaskRunner(localChannelReference.getDbSession(), 
+								localChannelReference.getSession(), null, 
+								roleid, remote, local);
+						sroles = runner.getFullFilePath();
+					} catch (WaarpDatabaseException e) {
+						logger.error("RunnerTask is not found: " + roleid, e);
+						sroles = null;
+					} catch (CommandAbstractException e) {
+						logger.error("File is not found: " + hostid, e);
+						sroles = null;
+					}
+				}
+				if (sroles != null) {
+					try {
+						String content = WaarpStringUtils.readFileException(sroles);
+						importedroles = host.updateRoles(Configuration.configuration, content, brolesPurge);
+						logger.debug("Roles configuration imported from "+sroles+"("+importedroles+")");
+					} catch (InvalidArgumentException e) {
+						logger.error("Error", e);
+						importedroles = false;
+					} catch (FileTransferException e) {
+						logger.error("Error", e);
+						importedroles = false;
+					}
+				}
+			} catch (WaarpDatabaseException e1) {
+				logger.error("Error while trying to open: " + sbusiness, e1);
+				importedbusiness = false;
+				importedalias = false;
+				importedroles = false;
+			}
+		}
+		// Now answer
+		ConfigImportResponseJsonPacket resp = new ConfigImportResponseJsonPacket();
+		resp.fromJson(node);
+		if (bhostPurge || shost != null) {
+			resp.setPurgedhost(bhostPurge);
+			resp.setImportedhost(importedhost);
+		}
+		if (brulePurge || srule != null) {
+			resp.setPurgedrule(brulePurge);
+			resp.setImportedrule(importedrule);
+		}
+		if (bbusinessPurge || sbusiness != null) {
+			resp.setPurgedbusiness(bbusinessPurge);
+			resp.setImportedbusiness(importedbusiness);
+		}
+		if (baliasPurge || salias != null) {
+			resp.setPurgedalias(baliasPurge);
+			resp.setImportedalias(importedalias);
+		}
+		if (brolesPurge || sroles != null) {
+			resp.setPurgedroles(brolesPurge);
+			resp.setImportedroles(importedroles);
+		}
+		return resp;
+	}
+
+	/**
+	 * @param json
+	 * @return the packet to answer
+	 * @throws OpenR66ProtocolNotAuthenticatedException
+	 */
+	public ConfigExportResponseJsonPacket configExport(JsonPacket json)
+			throws OpenR66ProtocolNotAuthenticatedException {
+		session.newState(VALIDOTHER);
+		// Authentication must be the local server or CONFIGADMIN authorization
+		try {
+			if (!session.getAuth().getUser().equals(
+					Configuration.configuration.getHostId(session.getAuth().isSsl())) &&
+					!session.getAuth().isValidRole(ROLE.CONFIGADMIN)) {
+				throw new OpenR66ProtocolNotAuthenticatedException(
+						"Not correctly authenticated");
+			}
+		} catch (OpenR66ProtocolNoSslException e1) {
+			throw new OpenR66ProtocolNotAuthenticatedException(
+					"Not correctly authenticated since SSL is not supported", e1);
+		}
+		if (Configuration.configuration.r66Mib != null) {
+			Configuration.configuration.r66Mib.notifyWarning(
+					"Export Configuration Order received", session.getAuth().getUser());
+		}
+		// host, rule, business, alias, roles
+		ConfigExportJsonPacket node = (ConfigExportJsonPacket) json;
+		boolean bhost = node.isHost();
+		String shost = null, srule = null, sbusiness = null, salias = null, sroles = null;
+		boolean brule = node.isRule();
+		boolean bbusiness = node.isBusiness();
+		boolean balias = node.isAlias();
+		boolean broles = node.isRoles();
+		String dir = Configuration.configuration.baseDirectory +
+				Configuration.configuration.archivePath;
+		String hostname = Configuration.configuration.HOST_ID;
+		if (bhost) {
+			String filename = dir + File.separator + hostname + "_Authentications.xml";
+			try {
+				AuthenticationFileBasedConfiguration.writeXML(Configuration.configuration,
+						filename);
+				shost = filename;
+			} catch (WaarpDatabaseNoConnectionException e) {
+				logger.error("Error", e);
+				shost = null;
+				bhost = false;
+			} catch (WaarpDatabaseSqlException e) {
+				logger.error("Error", e);
+				shost = null;
+				bhost = false;
+			} catch (OpenR66ProtocolSystemException e) {
+				logger.error("Error", e);
+				shost = null;
+				bhost = false;
+			}
+		}
+		if (brule) {
+			try {
+				srule = RuleFileBasedConfiguration.writeOneXml(dir, hostname);
+			} catch (WaarpDatabaseNoConnectionException e1) {
+				logger.error("Error", e1);
+				srule = null;
+				brule = false;
+			} catch (WaarpDatabaseSqlException e1) {
+				logger.error("Error", e1);
+				srule = null;
+				brule = false;
+			} catch (OpenR66ProtocolSystemException e1) {
+				logger.error("Error", e1);
+				srule = null;
+				brule = false;
+			}
+		}
+		try {
+			DbHostConfiguration host = new DbHostConfiguration(localChannelReference.getDbSession(), Configuration.configuration.HOST_ID);
+			if (bbusiness) {
+				sbusiness = host.getBusiness();
+				if (sbusiness != null) {
+					String filename = dir + File.separator + hostname + "_Business.xml";
+					FileOutputStream outputStream = new FileOutputStream(filename);
+					outputStream.write(sbusiness.getBytes());
+					outputStream.flush();
+					outputStream.close();
+					sbusiness = filename;
+				}
+				bbusiness = (sbusiness != null);
+			}
+			if (balias) {
+				salias = host.getAliases();
+				if (salias != null) {
+					String filename = dir + File.separator + hostname + "_Aliases.xml";
+					FileOutputStream outputStream = new FileOutputStream(filename);
+					outputStream.write(salias.getBytes());
+					outputStream.flush();
+					outputStream.close();
+					salias = filename;
+				}
+				balias = (salias != null);
+			}
+			if (broles) {
+				sroles = host.getRoles();
+				if (sroles != null) {
+					String filename = dir + File.separator + hostname + "_Roles.xml";
+					FileOutputStream outputStream = new FileOutputStream(filename);
+					outputStream.write(sroles.getBytes());
+					outputStream.flush();
+					outputStream.close();
+					sroles = filename;
+				}
+				broles = (sroles != null);
+			}
+		} catch (WaarpDatabaseNoConnectionException e1) {
+			logger.error("Error", e1);
+			bbusiness = (sbusiness != null);
+			balias = (salias != null);
+			broles = (sroles != null);
+		} catch (WaarpDatabaseSqlException e1) {
+			logger.error("Error", e1);
+			bbusiness = (sbusiness != null);
+			balias = (salias != null);
+			broles = (sroles != null);
+		} catch (WaarpDatabaseException e) {
+			logger.error("Error", e);
+			bbusiness = (sbusiness != null);
+			balias = (salias != null);
+			broles = (sroles != null);
+		} catch (IOException e) {
+			logger.error("Error", e);
+			bbusiness = (sbusiness != null);
+			balias = (salias != null);
+			broles = (sroles != null);
+		}
+		// Now answer
+		ConfigExportResponseJsonPacket resp = new ConfigExportResponseJsonPacket();
+		resp.fromJson(node);
+		resp.setFilehost(shost);
+		resp.setFilerule(srule);
+		resp.setFilebusiness(sbusiness);
+		resp.setFilealias(salias);
+		resp.setFileroles(sroles);
+		return resp;
+	}
+
+	/**
+	 * @param packet
+	 * @param json
+	 * @return the packet to answer
+	 * @throws OpenR66ProtocolNotAuthenticatedException
+	 */
+	public JsonCommandPacket requestRestart(JsonCommandPacket packet, JsonPacket json)
+			throws OpenR66ProtocolNotAuthenticatedException {
+		session.newState(VALIDOTHER);
+		// should be from the local server or from an authorized hosts: TRANSFER
+		try {
+			if (!session.getAuth().getUser().equals(
+					Configuration.configuration.getHostId(session.getAuth().isSsl())) &&
+					!session.getAuth().isValidRole(ROLE.TRANSFER)) {
+				throw new OpenR66ProtocolNotAuthenticatedException(
+						"Not correctly authenticated");
+			}
+		} catch (OpenR66ProtocolNoSslException e1) {
+			throw new OpenR66ProtocolNotAuthenticatedException(
+					"Not correctly authenticated since SSL is not supported", e1);
+		}
+		// Try to validate a restarting transfer
+		// validLimit on requested side
+		JsonCommandPacket valid;
+		if (Configuration.configuration.constraintLimitHandler.checkConstraints()) {
+			logger.error("Limit exceeded while asking to relaunch a task"
+					+ packet.getRequest());
+			session.setStatus(100);
+			valid = new JsonCommandPacket(json,
+					ErrorCode.ServerOverloaded.getCode(),
+					LocalPacketFactory.REQUESTUSERPACKET);
+			R66Result resulttest = new R66Result(null, session, true,
+					ErrorCode.Internal, null);
+			resulttest.other = packet;
+			localChannelReference.invalidateRequest(resulttest);
+		} else {
+			// Try to validate a restarting transfer
+			// header = ?; middle = requested+blank+requester+blank+specialId
+			// note: might contains one more argument = time to reschedule in yyyyMMddHHmmss format
+			ValidJsonPacket node = (ValidJsonPacket) json;
+			if (node.getRequested() == null || node.getRequester() == null || node.getSpecialid() == DbConstant.ILLEGALVALUE) {
+				// not enough args
+				valid = new JsonCommandPacket(json,
+						ErrorCode.Internal.getCode(),
+						LocalPacketFactory.REQUESTUSERPACKET);
+				R66Result resulttest = new R66Result(
+						new OpenR66ProtocolBusinessRemoteFileNotFoundException("Not enough arguments"),
+						session, true,
+						ErrorCode.Internal, null);
+				resulttest.other = packet;
+				localChannelReference.invalidateRequest(resulttest);
+			} else {
+				String reqd = node.getRequested();
+				String reqr = node.getRequester();
+				long id = node.getSpecialid();
+				DbTaskRunner taskRunner = null;
+				try {
+					taskRunner = new DbTaskRunner(localChannelReference.getDbSession(), session,
+							null, id, reqr, reqd);
+					Timestamp timestart = null;
+					Date date = node.getRestarttime();
+					if (date != null) {
+						// time to reschedule in yyyyMMddHHmmss format
+						logger.debug("Debug: restart with "+date);
+						timestart = new Timestamp(date.getTime());
+						taskRunner.setStart(timestart);
+					}
+					LocalChannelReference lcr =
+							Configuration.configuration.getLocalTransaction().
+									getFromRequest(reqd+" "+reqr+" "+id);
+					// since it comes from a request transfer, cannot redo it
+					logger.info("Will try to restart: "+taskRunner.toShortString());
+					R66Result resulttest = TransferUtils.restartTransfer(taskRunner, lcr);
+					valid = new JsonCommandPacket(node, resulttest.code.getCode(),
+							LocalPacketFactory.REQUESTUSERPACKET);
+					resulttest.other = packet;
+					localChannelReference.validateRequest(resulttest);
+				} catch (WaarpDatabaseException e1) {
+					valid = new JsonCommandPacket(node,
+							ErrorCode.Internal.getCode(),
+							LocalPacketFactory.REQUESTUSERPACKET);
+					R66Result resulttest = new R66Result(new OpenR66DatabaseGlobalException(e1),
+							session, true,
+							ErrorCode.Internal, taskRunner);
+					resulttest.other = packet;
+					localChannelReference.invalidateRequest(resulttest);
+				}
+			}
+		}
+		return valid;
+	}
+
+	/**
+	 * @param packet
+	 * @param node
+	 * @return the packet to answer
+	 * @throws OpenR66ProtocolNotAuthenticatedException
+	 * @throws OpenR66ProtocolBusinessException
+	 */
+	public LogResponseJsonPacket logPurge(JsonCommandPacket packet, LogJsonPacket node)
+			throws OpenR66ProtocolNotAuthenticatedException, OpenR66ProtocolBusinessException {
+		session.newState(VALIDOTHER);
+		// should be from the local server or from an authorized hosts: LOGCONTROL
+		try {
+			if (!session.getAuth().getUser().equals(
+					Configuration.configuration.getHostId(session.getAuth().isSsl())) &&
+					!session.getAuth().isValidRole(ROLE.LOGCONTROL)) {
+				throw new OpenR66ProtocolNotAuthenticatedException(
+						"Not correctly authenticated");
+			}
+		} catch (OpenR66ProtocolNoSslException e1) {
+			throw new OpenR66ProtocolNotAuthenticatedException(
+					"Not correctly authenticated since SSL is not supported", e1);
+		}
+		
+		boolean purge = node.isPurge();
+		boolean clean = node.isClean();
+		Timestamp start = (node.getStart() == null) ? null :
+			new Timestamp(node.getStart().getTime());
+		Timestamp stop = (node.getStop() == null) ? null :
+			new Timestamp(node.getStop().getTime());
+		String startid = node.getStartid();
+		String stopid = node.getStopid();
+		String rule = node.getRule();
+		String request = node.getRequest();
+		boolean pending = node.isStatuspending();
+		boolean transfer = node.isStatustransfer();
+		boolean done = node.isStatusdone();
+		boolean error = node.isStatuserror();
+		boolean isPurge = (packet.getTypeValid() == LocalPacketFactory.LOGPURGEPACKET || purge) ?
+				true : false;
+
+		// first clean if ask
+		if (clean) {
+			// Update all UpdatedInfo to DONE
+			// where GlobalLastStep = ALLDONETASK and status = CompleteOk
+			try {
+				DbTaskRunner.changeFinishedToDone(localChannelReference.getDbSession());
+			} catch (WaarpDatabaseNoConnectionException e) {
+				logger.warn("Clean cannot be done {}", e.getMessage());
+			}
+		}
+		// create export of log and optionally purge them from database
+		DbPreparedStatement getValid = null;
+		String filename = Configuration.configuration.baseDirectory +
+				Configuration.configuration.archivePath + R66Dir.SEPARATOR +
+				Configuration.configuration.HOST_ID + "_" + System.currentTimeMillis() +
+				"_runners.xml";
+		NbAndSpecialId nb = null;
+		try {
+			getValid =
+					DbTaskRunner.getFilterPrepareStatement(localChannelReference.getDbSession(), 0,// 0 means no limit
+							true, startid, stopid, start, stop, rule, request,
+							pending, transfer, error, done, false);
+			nb = DbTaskRunner.writeXMLWriter(getValid, filename);
+		} catch (WaarpDatabaseNoConnectionException e1) {
+			throw new OpenR66ProtocolBusinessException(e1);
+		} catch (WaarpDatabaseSqlException e1) {
+			throw new OpenR66ProtocolBusinessException(e1);
+		} finally {
+			if (getValid != null) {
+				getValid.realClose();
+			}
+		}
+		// in case of purge
+		int npurge = 0;
+		if (nb != null && nb.nb> 0 && isPurge) {
+			// purge in same interval all runners with globallaststep
+			// as ALLDONETASK or ERRORTASK
+			if (Configuration.configuration.r66Mib != null) {
+				Configuration.configuration.r66Mib.notifyWarning(
+						"Purge Log Order received", session.getAuth().getUser());
+			}
+			try {
+				if (stopid != null) {
+					long newstopid = Long.parseLong(stopid);
+					if (nb.higherSpecialId < newstopid) {
+						stopid = Long.toString(nb.higherSpecialId);
+					}
+				} else {
+					stopid = Long.toString(nb.higherSpecialId);
+				}
+				// not pending or in transfer
+				npurge =
+						DbTaskRunner.purgeLogPrepareStatement(localChannelReference.getDbSession(),
+								startid, stopid, start, stop, rule, request,
+								false, false, error, done, false);
+			} catch (WaarpDatabaseNoConnectionException e) {
+				throw new OpenR66ProtocolBusinessException(e);
+			} catch (WaarpDatabaseSqlException e) {
+				throw new OpenR66ProtocolBusinessException(e);
+			}
+		}
+		LogResponseJsonPacket newjson = new LogResponseJsonPacket();
+		newjson.fromJson(node);
+		// Now answer
+		newjson.setCommand(packet.getTypeValid());
+		newjson.setFilename(filename);
+		newjson.setExported(nb.nb);
+		newjson.setPurged(npurge);
+		return newjson;
+	}
+
+	/**
+	 * @param packet
+	 * @param node
+	 * @return the packet to answer
+	 * @throws OpenR66ProtocolNotAuthenticatedException
+	 */
+	public R66Result stopOrCancel(JsonCommandPacket packet, StopOrCancelJsonPacket node)
+			throws OpenR66ProtocolNotAuthenticatedException {
+		R66Result resulttest;
+		if (node.getRequested() == null || node.getRequester() == null || node.getSpecialid() == DbConstant.ILLEGALVALUE) {
+			ErrorCode code = ErrorCode.CommandNotFound;
+			resulttest = new R66Result(session, true,
+					code, session.getRunner());
+		} else {
+			String reqd = node.getRequested();
+			String reqr = node.getRequester();
+			long id = node.getSpecialid();
+			resulttest = stopOrCancel(packet.getTypeValid(), reqd, reqr, id);
+		}
+		return resulttest;
+	}
+
+	/**
+	 * 
+	 * @param type
+	 * @param reqd
+	 * @param reqr
+	 * @param id
+	 * @return the packet to answer
+	 * @throws OpenR66ProtocolNotAuthenticatedException
+	 */
+	private R66Result stopOrCancel(byte type, String reqd, String reqr, long id)
+			throws OpenR66ProtocolNotAuthenticatedException {
+		session.newState(VALIDOTHER);
+		// should be from the local server or from an authorized hosts: SYSTEM
+		try {
+			if (!session.getAuth().getUser().equals(
+					Configuration.configuration.getHostId(session.getAuth().isSsl())) &&
+					!session.getAuth().isValidRole(ROLE.SYSTEM)) {
+				throw new OpenR66ProtocolNotAuthenticatedException(
+						"Not correctly authenticated");
+			}
+		} catch (OpenR66ProtocolNoSslException e1) {
+			throw new OpenR66ProtocolNotAuthenticatedException(
+					"Not correctly authenticated since SSL is not supported", e1);
+		}
+		R66Result resulttest;
+		String key = reqd+" "+reqr+" "+id;
+		// header = ?; middle = requested+blank+requester+blank+specialId
+		LocalChannelReference lcr =
+				Configuration.configuration.getLocalTransaction().
+						getFromRequest(key);
+		// stop the current transfer
+		ErrorCode code = (type == LocalPacketFactory.STOPPACKET) ?
+				ErrorCode.StoppedTransfer : ErrorCode.CanceledTransfer;
+		if (lcr != null) {
+			int rank = 0;
+			if (code == ErrorCode.StoppedTransfer && lcr.getSession() != null) {
+				DbTaskRunner taskRunner = lcr.getSession().getRunner();
+				if (taskRunner != null) {
+					rank = taskRunner.getRank();
+				}
+			}
+			session.newState(ERROR);
+			ErrorPacket error = new ErrorPacket(code.name() + " " + rank,
+					code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+			try {
+				// XXX ChannelUtils.writeAbstractLocalPacket(lcr, error);
+				// inform local instead of remote
+				ChannelUtils.writeAbstractLocalPacketToLocal(lcr, error);
+			} catch (Exception e) {
+			}
+			resulttest = new R66Result(session, true,
+					ErrorCode.CompleteOk, session.getRunner());
+		} else {
+			// Transfer is not running
+			// but maybe need action on database
+			if (stopOrCancelRunner(id, reqd, reqr, code)) {
+				resulttest = new R66Result(session, true,
+						ErrorCode.CompleteOk, session.getRunner());
+			} else {
+				resulttest = new R66Result(session, true,
+						ErrorCode.TransferOk, session.getRunner());
+			}
+		}
+		return resulttest;
 	}
 
 	/**
@@ -3838,6 +3843,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			}
 			if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
 				logger.warn("R66 started as a service, Windows Services might not shown it as stopped");
+			}
+			if (packet.isRestart()) {
+				R66ShutdownHook.setRestart(true);
+				logger.warn("Server will shutdown and restart");
 			}
 			throw new OpenR66ProtocolShutdownException("Shutdown Type received");
 		}

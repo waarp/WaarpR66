@@ -696,7 +696,7 @@ public class LocalChannelReference {
 	}
 
 	/**
-	 * @param partner the partner to set
+	 * @param hostId the partner to set
 	 */
 	public void setPartner(String hostId) {
 		logger.debug("host:"+hostId);

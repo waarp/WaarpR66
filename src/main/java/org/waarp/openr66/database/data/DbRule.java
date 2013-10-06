@@ -618,12 +618,6 @@ public class DbRule extends AbstractDbData {
 		this.idRule = idRule;
 		// load from DB
 		select();
-		/*
-		 * getIdsRule(ids); rpreTasksArray = getTasksRule(this.rpreTasks); rpostTasksArray =
-		 * getTasksRule(this.rpostTasks); rerrorTasksArray = getTasksRule(this.rerrorTasks);
-		 * spreTasksArray = getTasksRule(this.spreTasks); spostTasksArray =
-		 * getTasksRule(this.spostTasks); serrorTasksArray = getTasksRule(this.serrorTasks);
-		 */
 	}
 
 	/**
@@ -951,7 +945,7 @@ public class DbRule extends AbstractDbData {
 		try {
 			document = new SAXReader().read(reader);
 		} catch (DocumentException e) {
-			logger.warn("Unable to read the tasks for Rule: " + tasks, e);
+			logger.info("Unable to read the tasks for Rule: " + tasks, e);
 			// No tasks so setting to the default!
 			reader.close();
 			return new String[0][0];

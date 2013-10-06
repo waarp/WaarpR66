@@ -295,7 +295,7 @@ public abstract class SendThroughClient extends AbstractTransfer {
 			}
 		} finally {
 			if (taskRunner != null) {
-				if ((future.isDone() && (!future.isSuccess())) || nolog) {
+				if ((future.isDone() && (!future.isSuccess())) || nolog  || taskRunner.shallIgnoreSave()) {
 					try {
 						taskRunner.delete();
 					} catch (WaarpDatabaseException e) {

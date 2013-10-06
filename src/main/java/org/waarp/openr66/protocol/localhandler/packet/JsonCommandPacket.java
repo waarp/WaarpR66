@@ -21,14 +21,12 @@ import java.io.IOException;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
-import org.waarp.common.json.JsonHandler;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 import org.waarp.openr66.protocol.localhandler.packet.json.JsonPacket;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Json Command Message class for packet
@@ -38,20 +36,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * @author frederic bregier
  */
 public class JsonCommandPacket extends AbstractLocalPacket {
-	private static enum STOPorCANCELPACKET {comment, requester, requested, specialid};
-	private static enum VALIDPACKET {comment, requester, requested, specialid, restarttime};
-	private static enum LOGPACKET {purge, clean, start, stop, startid, stopid, rule, request, statuspending, statustransfer, statusdone, statuserror};
-	private static enum CONFEXPORTPACKET {host, rule, business, alias, roles};
-	private static enum CONFIMPORTPACKET {purgehost, purgerule, purgebusiness, purgealias, purgeroles, host, rule, business, alias, roles, hostid, ruleid, businessid, aliasid, rolesid};
-	private static enum INFORMATIONPACKET {result, nbitems};
-	private static enum REQUESTPACKET {comment, filename, filesize};
-	private static enum BANDWIDTHPACKET {setter, writeglobal, readglobal, writesession, readsession};
-	private static enum REQUESTUSERPACKET {command};
-	private static enum RESPONSELOGPACKET {command, filename, exported, purged};
-	private static enum RESPONSECONFEXPORTPACKET {command, filehost, filerule, filebusiness, filealias, fileroles};
-	private static enum RESPONSECONFIMPORTPACKET {command, purgedhost, purgedrule, purgedbusiness, purgedalias, purgedroles, 
-		importedhost, importedrule, importedbusiness, importedalias, importedroles};
-	
 	private final String request;
 
 	private String result;
@@ -87,27 +71,6 @@ public class JsonCommandPacket extends AbstractLocalPacket {
 	 */
 	public JsonCommandPacket(String srequest, String sresult, byte end) {
 		request = srequest;
-		result = sresult;
-		send = end;
-	}
-	
-	/**
-	 * @param orequest
-	 * @param end
-	 */
-	private JsonCommandPacket(ObjectNode orequest, byte end) {
-		request = JsonHandler.writeAsString(orequest);
-		result = null;
-		send = end;
-	}
-
-	/**
-	 * @param orequest
-	 * @param sresult
-	 * @param end
-	 */
-	private JsonCommandPacket(ObjectNode orequest, String sresult, byte end) {
-		request = JsonHandler.writeAsString(orequest);
 		result = sresult;
 		send = end;
 	}
@@ -165,13 +128,6 @@ public class JsonCommandPacket extends AbstractLocalPacket {
 	@Override
 	public byte getType() {
 		return LocalPacketFactory.JSONREQUESTPACKET;
-	}
-
-	/**
-	 * @return the node from request
-	 */
-	private ObjectNode getNodeRequest() {
-		return JsonHandler.getFromString(request);
 	}
 
 	/**
