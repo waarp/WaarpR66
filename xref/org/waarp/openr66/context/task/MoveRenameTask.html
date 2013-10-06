@@ -65,7 +65,7 @@
 <a class="jxr_linenumber" name="55" href="#55">55</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> run() {
 <a class="jxr_linenumber" name="56" href="#56">56</a>  		<strong class="jxr_keyword">boolean</strong> success = false;
 <a class="jxr_linenumber" name="57" href="#57">57</a>  		String finalname = argRule;
-<a class="jxr_linenumber" name="58" href="#58">58</a>  		finalname = getReplacedValue(finalname, argTransfer.split(<span class="jxr_string">" "</span>)).split(<span class="jxr_string">" "</span>)[0];
+<a class="jxr_linenumber" name="58" href="#58">58</a>  		finalname = getReplacedValue(finalname, argTransfer.split(<span class="jxr_string">" "</span>)).split(<span class="jxr_string">" "</span>)[0].replace('&#92;&#92;', '/');
 <a class="jxr_linenumber" name="59" href="#59">59</a>  		logger.debug(<span class="jxr_string">"Move and Rename to "</span> + finalname + <span class="jxr_string">" with "</span> + argRule +
 <a class="jxr_linenumber" name="60" href="#60">60</a>  				<span class="jxr_string">":"</span> + argTransfer + <span class="jxr_string">" and {}"</span>, session);
 <a class="jxr_linenumber" name="61" href="#61">61</a>  		<strong class="jxr_keyword">try</strong> {

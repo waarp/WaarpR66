@@ -1133,129 +1133,6 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="49" tokens="349">
-<file line="338" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<file line="453" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<codefragment>
-<![CDATA[
-			body0 = REQUEST.Listing.readBodyHeader();
-			String parm = parms.get(0);
-			if ("Filter".equalsIgnoreCase(parm)) {
-				String startid = getTrimValue("startid");
-				String stopid = getTrimValue("stopid");
-				if (startid != null && stopid == null) {
-					try {
-                 		stopid = Long.toString(Long.parseLong(startid)+(LIMITROW/2));
-                    } catch (NumberFormatException e) {
-                     	stopid = null;
-                     	startid = null;
-                    }
-				}
-				if (stopid != null && startid == null) {
-					try {
-						startid = Long.toString(Long.parseLong(stopid) - (LIMITROW / 2));
-                    } catch (NumberFormatException e) {
-                     	stopid = null;
-                     	startid = null;
-                    }
-				}
-				String start = getValue("start");
-				String stop = getValue("stop");
-				String rule = getTrimValue("rule");
-				String req = getTrimValue("req");
-				boolean pending, transfer, error, done, all;
-				pending = params.containsKey("pending");
-				transfer = params.containsKey("transfer");
-				error = params.containsKey("error");
-				done = params.containsKey("done");
-				all = params.containsKey("all");
-				if (pending && transfer && error && done) {
-					all = true;
-				} else if (!(pending || transfer || error || done)) {
-					all = true;
-				}
-				Timestamp tstart = WaarpStringUtils.fixDate(start);
-				if (tstart != null) {
-					start = tstart.toString();
-				}
-				Timestamp tstop = WaarpStringUtils.fixDate(stop, tstart);
-				if (tstop != null) {
-					stop = tstop.toString();
-				}
-				head = resetOptionTransfer(head, startid == null ? "" : startid,
-						stopid == null ? "" : stopid, start, stop,
-						rule == null ? "" : rule, req == null ? "" : req,
-						pending, transfer, error, done, all);
-				body = REQUEST.Listing.readBody();
-]]>
-</codefragment>
-</duplication>
-<duplication lines="58" tokens="315">
-<file line="2718" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="3677" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<codefragment>
-<![CDATA[
-					}
-				}
-				// check if send is already on going
-				if (session.getRunner() != null && session.getRunner().getRank() > 0) {
-					// already started so not changing the filename
-					// Success: No write back at all
-					break;
-				}
-				// Pre execution was already done since this packet is only received once
-				// the request is already validated by the receiver
-				try {
-					session.renameReceiverFile(newfilename);
-				} catch (OpenR66RunnerErrorException e) {
-					DbTaskRunner runner = session.getRunner();
-					runner.saveStatus();
-					runner.setErrorExecutionStatus(ErrorCode.FileNotFound);
-					session.newState(ERROR);
-					logger.error("File renaming in error {}", e.getMessage());
-					ErrorPacket error = new ErrorPacket("File renaming in error: " + e
-							.getMessage(), runner.getErrorInfo().getCode(),
-							ErrorPacket.FORWARDCLOSECODE);
-					try {
-						ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-								error, true);
-					} catch (OpenR66ProtocolPacketException e2) {
-					}
-					try {
-						session.setFinalizeTransfer(false, new R66Result(e, session,
-								true, runner.getErrorInfo(), runner));
-					} catch (OpenR66RunnerErrorException e1) {
-						localChannelReference.invalidateRequest(new R66Result(e, session,
-								true, runner.getErrorInfo(), runner));
-					} catch (OpenR66ProtocolSystemException e1) {
-						localChannelReference.invalidateRequest(new R66Result(e, session,
-								true, runner.getErrorInfo(), runner));
-					}
-					session.setStatus(97);
-					ChannelCloseTimer.closeFutureChannel(channel);
-					return;
-				}
-				// Success: No write back at all
-				break;
-			}
-			case LocalPacketFactory.BANDWIDTHPACKET: {
-				session.newState(VALIDOTHER);
-				// should be from the local server or from an authorized hosts: LIMIT
-				// Authentication must be the local server or SYSTEM authorization
-				try {
-					if (!session.getAuth().getUser().equals(
-							Configuration.configuration.getHostId(session.getAuth().isSsl())) &&
-							!session.getAuth().isValidRole(ROLE.LIMIT)) {
-						throw new OpenR66ProtocolNotAuthenticatedException(
-								"Not correctly authenticated");
-					}
-				} catch (OpenR66ProtocolNoSslException e1) {
-					throw new OpenR66ProtocolNotAuthenticatedException(
-							"Not correctly authenticated since SSL is not supported", e1);
-				}
-]]>
-</codefragment>
-</duplication>
 <duplication lines="46" tokens="306">
 <file line="245" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
 <file line="269" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMariadb.java"/>
@@ -1308,6 +1185,59 @@
 		}
 		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_17.getVersion())) {
 			System.out.println(version+" to "+R66Versions.V2_4_17.getVersion()+"? "+true);
+]]>
+</codefragment>
+</duplication>
+<duplication lines="45" tokens="281">
+<file line="382" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="492" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<codefragment>
+<![CDATA[
+				DbPreparedStatement preparedStatement = null;
+				try {
+					preparedStatement =
+							DbTaskRunner.getFilterPrepareStatement(dbSession, LIMITROW, false,
+									startid, stopid, tstart, tstop, rule, req,
+									pending, transfer, error, done, all);
+					preparedStatement.executeQuery();
+					StringBuilder builder = new StringBuilder();
+					int i = 0;
+					while (preparedStatement.getNext()) {
+						try {
+							i++;
+							DbTaskRunner taskRunner = DbTaskRunner
+									.getFromStatement(preparedStatement);
+							long specid = taskRunner.getSpecialId();
+							if (idstart == null || idstart > specid) {
+								idstart = specid;
+							}
+							LocalChannelReference lcr =
+									Configuration.configuration.getLocalTransaction().
+											getFromRequest(taskRunner.getKey());
+							builder.append(taskRunner.toSpecializedHtml(authentHttp, body,
+									lcr != null ? "Active" : "NotActive"));
+							if (i > LIMITROW) {
+								break;
+							}
+						} catch (WaarpDatabaseException e) {
+							// try to continue if possible
+							logger.warn("An error occurs while accessing a Runner: {}",
+									e.getMessage());
+							continue;
+						}
+					}
+					preparedStatement.realClose();
+					body = builder.toString();
+				} catch (WaarpDatabaseException e) {
+					if (preparedStatement != null) {
+						preparedStatement.realClose();
+					}
+					logger.warn("OpenR66 Web Error {}", e.getMessage());
+				}
+				head = resetOptionTransfer(head, startid == null ? (idstart != null ? idstart.toString() : "") : startid,
+						stopid == null ? "" : stopid, start, stop,
+						rule == null ? "" : rule, req == null ? "" : req,
+						pending, transfer, error, done, all);
 ]]>
 </codefragment>
 </duplication>
@@ -1450,8 +1380,8 @@
 </codefragment>
 </duplication>
 <duplication lines="23" tokens="267">
-<file line="1482" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<file line="1621" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="1480" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="1634" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
 <codefragment>
 <![CDATA[
 			String system = REQUEST.System.readFileUnique(this);
@@ -1481,8 +1411,8 @@
 </codefragment>
 </duplication>
 <duplication lines="46" tokens="260">
-<file line="1735" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="1802" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="1717" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="1784" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
 <codefragment>
 <![CDATA[
 				session.newState(ENDTRANSFERR);
@@ -1534,9 +1464,103 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="48" tokens="219">
-<file line="1831" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1916" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<duplication lines="34" tokens="241">
+<file line="346" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="456" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<codefragment>
+<![CDATA[
+			body0 = REQUEST.Listing.readBodyHeader();
+			String parm = parms.get(0);
+			if ("Filter".equalsIgnoreCase(parm)) {
+				String startid = getTrimValue("startid");
+				String stopid = getTrimValue("stopid");
+				if (startid != null && stopid == null) {
+					stopid = Long.MAX_VALUE+"";
+				}
+				if (stopid != null && startid == null) {
+                   	startid = (DbConstant.ILLEGALVALUE+1)+"";
+				}
+				String start = getValue("start");
+				String stop = getValue("stop");
+				String rule = getTrimValue("rule");
+				String req = getTrimValue("req");
+				boolean pending, transfer, error, done, all;
+				pending = params.containsKey("pending");
+				transfer = params.containsKey("transfer");
+				error = params.containsKey("error");
+				done = params.containsKey("done");
+				all = params.containsKey("all");
+				if (pending && transfer && error && done) {
+					all = true;
+				} else if (!(pending || transfer || error || done)) {
+					all = true;
+				}
+				Timestamp tstart = WaarpStringUtils.fixDate(start);
+				if (tstart != null) {
+					start = tstart.toString();
+				}
+				Timestamp tstop = WaarpStringUtils.fixDate(stop, tstart);
+				if (tstop != null) {
+					stop = tstop.toString();
+				}
+]]>
+</codefragment>
+</duplication>
+<duplication lines="44" tokens="236">
+<file line="2650" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="2962" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<codefragment>
+<![CDATA[
+					}
+				}
+				// check if send is already on going
+				if (session.getRunner() != null && session.getRunner().getRank() > 0) {
+					// already started so not changing the filename
+					// Success: No write back at all
+					break;
+				}
+				// Pre execution was already done since this packet is only received once
+				// the request is already validated by the receiver
+				try {
+					session.renameReceiverFile(newfilename);
+				} catch (OpenR66RunnerErrorException e) {
+					DbTaskRunner runner = session.getRunner();
+					runner.saveStatus();
+					runner.setErrorExecutionStatus(ErrorCode.FileNotFound);
+					session.newState(ERROR);
+					logger.error("File renaming in error {}", e.getMessage());
+					ErrorPacket error = new ErrorPacket("File renaming in error: " + e
+							.getMessage(), runner.getErrorInfo().getCode(),
+							ErrorPacket.FORWARDCLOSECODE);
+					try {
+						ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+								error, true);
+					} catch (OpenR66ProtocolPacketException e2) {
+					}
+					try {
+						session.setFinalizeTransfer(false, new R66Result(e, session,
+								true, runner.getErrorInfo(), runner));
+					} catch (OpenR66RunnerErrorException e1) {
+						localChannelReference.invalidateRequest(new R66Result(e, session,
+								true, runner.getErrorInfo(), runner));
+					} catch (OpenR66ProtocolSystemException e1) {
+						localChannelReference.invalidateRequest(new R66Result(e, session,
+								true, runner.getErrorInfo(), runner));
+					}
+					session.setStatus(97);
+					ChannelCloseTimer.closeFutureChannel(channel);
+					return;
+				}
+				// Success: No write back at all
+				break;
+			}
+			case LocalPacketFactory.BANDWIDTHPACKET: {
+]]>
+</codefragment>
+</duplication>
+<duplication lines="49" tokens="233">
+<file line="1867" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1953" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 	public static boolean setConfigurationServerShutdownFromXml(Configuration config,
@@ -1546,16 +1570,17 @@
 		try {
 			document = new SAXReader().read(filename);
 		} catch (DocumentException e) {
-			logger.error("Unable to read the XML Config file: " + filename, e);
+			logger.error(Messages.getString("FileBasedConfiguration.CannotReadXml") + filename, e); //$NON-NLS-1$
 			return false;
 		}
 		if (document == null) {
-			logger.error("Unable to read the XML Config file: " + filename);
+			logger.error(Messages.getString("FileBasedConfiguration.CannotReadXml") + filename); //$NON-NLS-1$
 			return false;
 		}
 		configuration = XmlUtil.read(document, configServer);
 		hashConfig = new XmlHash(configuration);
 		// Now read the configuration
+		loadLocale(config);
 		if (!loadIdentity(config)) {
 			logger.error("Cannot load Identity");
 			return false;
@@ -1591,8 +1616,8 @@
 </codefragment>
 </duplication>
 <duplication lines="40" tokens="207">
-<file line="3576" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
-<file line="3759" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="3637" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="3820" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
 <codefragment>
 <![CDATA[
 		} catch (FileNotFoundException e) {
@@ -1769,55 +1794,9 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="38" tokens="198">
-<file line="386" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<file line="501" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<codefragment>
-<![CDATA[
-				body = REQUEST.Listing.readBody();
-				DbPreparedStatement preparedStatement = null;
-				try {
-					preparedStatement =
-							DbTaskRunner.getFilterPrepareStatement(dbSession, LIMITROW, false,
-									startid, stopid, tstart, tstop, rule, req,
-									pending, transfer, error, done, all);
-					preparedStatement.executeQuery();
-					StringBuilder builder = new StringBuilder();
-					int i = 0;
-					while (preparedStatement.getNext()) {
-						try {
-							i++;
-							DbTaskRunner taskRunner = DbTaskRunner
-									.getFromStatement(preparedStatement);
-							LocalChannelReference lcr =
-									Configuration.configuration.getLocalTransaction().
-											getFromRequest(taskRunner.getKey());
-							builder.append(taskRunner.toSpecializedHtml(authentHttp, body,
-									lcr != null ? "Active" : "NotActive"));
-							if (i > LIMITROW) {
-								break;
-							}
-						} catch (WaarpDatabaseException e) {
-							// try to continue if possible
-							logger.warn("An error occurs while accessing a Runner: {}",
-									e.getMessage());
-							continue;
-						}
-					}
-					preparedStatement.realClose();
-					body = builder.toString();
-				} catch (WaarpDatabaseException e) {
-					if (preparedStatement != null) {
-						preparedStatement.realClose();
-					}
-					logger.warn("OpenR66 Web Error {}", e.getMessage());
-				}
-]]>
-</codefragment>
-</duplication>
-<duplication lines="38" tokens="183">
-<file line="1712" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1763" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<duplication lines="39" tokens="197">
+<file line="1746" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1798" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 	public static boolean setConfigurationInitDatabase(Configuration config, String filename) {
@@ -1826,15 +1805,16 @@
 		try {
 			document = new SAXReader().read(filename);
 		} catch (DocumentException e) {
-			logger.error("Unable to read the XML Config file: " + filename, e);
+			logger.error(Messages.getString("FileBasedConfiguration.CannotReadXml") + filename, e); //$NON-NLS-1$
 			return false;
 		}
 		if (document == null) {
-			logger.error("Unable to read the XML Config file: " + filename);
+			logger.error(Messages.getString("FileBasedConfiguration.CannotReadXml") + filename); //$NON-NLS-1$
 			return false;
 		}
 		configuration = XmlUtil.read(document, configServer);
 		hashConfig = new XmlHash(configuration);
+		loadLocale(config);
 		if (!loadIdentity(config)) {
 			logger.error("Cannot load Identity");
 			return false;
@@ -1861,55 +1841,9 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="38" tokens="175">
-<file line="2390" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="3072" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<codefragment>
-<![CDATA[
-						ErrorCode.getFromCode(packet.getSmiddle()), null);
-				resulttest.other = packet;
-				switch (resulttest.code) {
-					case CompleteOk:
-					case InitOk:
-					case PostProcessingOk:
-					case PreProcessingOk:
-					case QueryAlreadyFinished:
-					case QueryStillRunning:
-					case Running:
-					case TransferOk:
-						break;
-					default:
-						localChannelReference.invalidateRequest(resulttest);
-						session.setStatus(102);
-						Channels.close(channel);
-						return;
-				}
-				localChannelReference.validateRequest(resulttest);
-				session.setStatus(28);
-				Channels.close(channel);
-				break;
-			}
-			case LocalPacketFactory.LOGPACKET:
-			case LocalPacketFactory.LOGPURGEPACKET: {
-				session.newState(VALIDOTHER);
-				// should be from the local server or from an authorized hosts: LOGCONTROL
-				try {
-					if (!session.getAuth().getUser().equals(
-							Configuration.configuration.getHostId(session.getAuth().isSsl())) &&
-							!session.getAuth().isValidRole(ROLE.LOGCONTROL)) {
-						throw new OpenR66ProtocolNotAuthenticatedException(
-								"Not correctly authenticated");
-					}
-				} catch (OpenR66ProtocolNoSslException e1) {
-					throw new OpenR66ProtocolNotAuthenticatedException(
-							"Not correctly authenticated since SSL is not supported", e1);
-				}
-]]>
-</codefragment>
-</duplication>
 <duplication lines="24" tokens="170">
 <file line="163" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExport.java"/>
-<file line="294" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExtendedExport.java"/>
+<file line="304" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExtendedExport.java"/>
 <codefragment>
 <![CDATA[
 	protected static boolean getParams(String[] args) {
@@ -1939,9 +1873,38 @@
 ]]>
 </codefragment>
 </duplication>
+<duplication lines="21" tokens="168">
+<file line="1008" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="1060" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<codefragment>
+<![CDATA[
+			} else if ("TestConn".equalsIgnoreCase(parm)) {
+				String host = getTrimValue("host");
+				String addr = getTrimValue("address");
+				String port = getTrimValue("port");
+				String key = getTrimValue("hostkey");
+				boolean ssl, admin, isclient;
+				ssl = params.containsKey("ssl");
+				admin = params.containsKey("admin");
+				isclient = params.containsKey("isclient");
+				head = resetOptionHosts(head, host, addr, ssl);
+                int iport;
+				try {
+					iport = Integer.parseInt(port);
+				} catch (NumberFormatException e1) {
+					body0 = body1 = body = "";
+                    body = Messages.getString("HttpSslHandler.17")+e1.getMessage()+"</b></center></p>"; //$NON-NLS-1$
+                    head = resetOptionHosts(head, "", "", false);
+                    return head+body0+body+body1+end;
+				}
+				DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
+						ssl, key.getBytes(), admin, isclient);
+]]>
+</codefragment>
+</duplication>
 <duplication lines="26" tokens="164">
-<file line="1325" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="1350" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="1326" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="1351" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
 <codefragment>
 <![CDATA[
 		} else if ((!packet.getFilename().equals(runner.getOriginalFilename())) 
@@ -1970,120 +1933,6 @@
 					validPacket, true);
 			}
 		} else if (runner.isSelfRequest() && runner.isSender() && runner.isInTransfer()
-]]>
-</codefragment>
-</duplication>
-<duplication lines="32" tokens="164">
-<file line="2272" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="2956" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<codefragment>
-<![CDATA[
-				ValidPacket valid = new ValidPacket(packet.getSmiddle(), resulttest.code.getCode(),
-						LocalPacketFactory.REQUESTUSERPACKET);
-				resulttest.other = packet;
-				localChannelReference.validateRequest(resulttest);
-				try {
-					ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-							valid, true);
-				} catch (OpenR66ProtocolPacketException e) {
-				}
-				session.setStatus(27);
-				Channels.close(channel);
-				break;
-			}
-			case LocalPacketFactory.VALIDPACKET: {
-				session.newState(VALIDOTHER);
-				// should be from the local server or from an authorized hosts: TRANSFER
-				try {
-					if (!session.getAuth().getUser().equals(
-							Configuration.configuration.getHostId(session.getAuth().isSsl())) &&
-							!session.getAuth().isValidRole(ROLE.TRANSFER)) {
-						throw new OpenR66ProtocolNotAuthenticatedException(
-								"Not correctly authenticated");
-					}
-				} catch (OpenR66ProtocolNoSslException e1) {
-					throw new OpenR66ProtocolNotAuthenticatedException(
-							"Not correctly authenticated since SSL is not supported", e1);
-				}
-				// Try to validate a restarting transfer
-				// validLimit on requested side
-				if (Configuration.configuration.constraintLimitHandler.checkConstraints()) {
-					logger.error("Limit exceeded while asking to relaunch a task"
-							+ packet.getSmiddle());
-]]>
-</codefragment>
-</duplication>
-<duplication lines="29" tokens="164">
-<file line="2478" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="3197" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<codefragment>
-<![CDATA[
-				ValidPacket valid = new ValidPacket(filename + " " + nb, result.code.getCode(),
-						LocalPacketFactory.REQUESTUSERPACKET);
-				localChannelReference.validateRequest(result);
-				try {
-					ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-							valid, true);
-				} catch (OpenR66ProtocolPacketException e) {
-				}
-				Channels.close(channel);
-				break;
-			}
-			case LocalPacketFactory.CONFEXPORTPACKET: {
-				session.newState(VALIDOTHER);
-				// Authentication must be the local server or CONFIGADMIN authorization
-				try {
-					if (!session.getAuth().getUser().equals(
-							Configuration.configuration.getHostId(session.getAuth().isSsl())) &&
-							!session.getAuth().isValidRole(ROLE.CONFIGADMIN)) {
-						throw new OpenR66ProtocolNotAuthenticatedException(
-								"Not correctly authenticated");
-					}
-				} catch (OpenR66ProtocolNoSslException e1) {
-					throw new OpenR66ProtocolNotAuthenticatedException(
-							"Not correctly authenticated since SSL is not supported", e1);
-				}
-				if (Configuration.configuration.r66Mib != null) {
-					Configuration.configuration.r66Mib.notifyWarning(
-							"Export Configuration Order received", session.getAuth().getUser());
-				}
-]]>
-</codefragment>
-</duplication>
-<duplication lines="29" tokens="164">
-<file line="2558" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="3347" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<codefragment>
-<![CDATA[
-				ValidPacket valid = new ValidPacket(shost + " " + srule, result.code.getCode(),
-						LocalPacketFactory.REQUESTUSERPACKET);
-				localChannelReference.validateRequest(result);
-				try {
-					ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-							valid, true);
-				} catch (OpenR66ProtocolPacketException e) {
-				}
-				Channels.close(channel);
-				break;
-			}
-			case LocalPacketFactory.CONFIMPORTPACKET: {
-				session.newState(VALIDOTHER);
-				// Authentication must be the local server or CONFIGADMIN authorization
-				try {
-					if (!session.getAuth().getUser().equals(
-							Configuration.configuration.getHostId(session.getAuth().isSsl())) &&
-							!session.getAuth().isValidRole(ROLE.CONFIGADMIN)) {
-						throw new OpenR66ProtocolNotAuthenticatedException(
-								"Not correctly authenticated");
-					}
-				} catch (OpenR66ProtocolNoSslException e1) {
-					throw new OpenR66ProtocolNotAuthenticatedException(
-							"Not correctly authenticated since SSL is not supported", e1);
-				}
-				if (Configuration.configuration.r66Mib != null) {
-					Configuration.configuration.r66Mib.notifyWarning(
-							"Import Configuration Order received", session.getAuth().getUser());
-				}
 ]]>
 </codefragment>
 </duplication>
@@ -2137,37 +1986,8 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="21" tokens="163">
-<file line="1010" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<file line="1062" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<codefragment>
-<![CDATA[
-			} else if ("TestConn".equalsIgnoreCase(parm)) {
-				String host = getTrimValue("host");
-				String addr = getTrimValue("address");
-				String port = getTrimValue("port");
-				String key = getTrimValue("hostkey");
-				boolean ssl, admin, isclient;
-				ssl = params.containsKey("ssl");
-				admin = params.containsKey("admin");
-				isclient = params.containsKey("isclient");
-				head = resetOptionHosts(head, host, addr, ssl);
-                int iport;
-				try {
-					iport = Integer.parseInt(port);
-				} catch (NumberFormatException e1) {
-					body0 = body1 = body = "";
-                    body = "<p><center><b>Cannot find a Host: "+e1.getMessage()+"</b></center></p>";
-                    head = resetOptionHosts(head, "", "", false);
-                    return head+body0+body+body1+end;
-				}
-				DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
-						ssl, key.getBytes(), admin, isclient);
-]]>
-</codefragment>
-</duplication>
 <duplication lines="25" tokens="162">
-<file line="237" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigExport.java"/>
+<file line="246" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigExport.java"/>
 <file line="375" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\ConfigImport.java"/>
 <codefragment>
 <![CDATA[
@@ -2233,8 +2053,8 @@
 </codefragment>
 </duplication>
 <duplication lines="21" tokens="154">
-<file line="1589" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
-<file line="1629" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="1644" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="1684" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
 <codefragment>
 <![CDATA[
 			DbSession session, boolean in)
@@ -2294,69 +2114,51 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="22" tokens="150">
-<file line="2237" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="2922" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<duplication lines="34" tokens="144">
+<file line="490" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\filesystem\R66File.java"/>
+<file line="554" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\filesystem\R66File.java"/>
 <codefragment>
 <![CDATA[
-				ErrorCode code = (packet.getTypeValid() == LocalPacketFactory.STOPPACKET) ?
-						ErrorCode.StoppedTransfer : ErrorCode.CanceledTransfer;
-				if (lcr != null) {
-					int rank = 0;
-					if (code == ErrorCode.StoppedTransfer && lcr.getSession() != null) {
-						DbTaskRunner taskRunner = lcr.getSession().getRunner();
-						if (taskRunner != null) {
-							rank = taskRunner.getRank();
+			File newFile = getFileFromPath(path);
+			if (newFile.getParentFile().canWrite()) {
+				if (!file.renameTo(newFile)) {
+					FileOutputStream fileOutputStream = null;
+					try {
+						try {
+							fileOutputStream = new FileOutputStream(newFile);
+						} catch (FileNotFoundException e) {
+							logger
+									.warn("Cannot find file: " + newFile.getName(),
+											e);
+							return false;
+						}
+						FileChannel fileChannelOut = fileOutputStream.getChannel();
+						if (get(fileChannelOut)) {
+							delete();
+						} else {
+							try {
+								fileChannelOut.close();
+							} catch (IOException e) {
+							}
+							logger.error("Cannot write file: {}", newFile);
+							return false;
+						}
+					} finally {
+						if (fileOutputStream != null) {
+							try {
+								fileOutputStream.close();
+							} catch (IOException e) {
+							}
 						}
 					}
-					session.newState(ERROR);
-					ErrorPacket error = new ErrorPacket(code.name() + " " + rank,
-							code.getCode(), ErrorPacket.FORWARDCLOSECODE);
-					try {
-						// XXX ChannelUtils.writeAbstractLocalPacket(lcr, error);
-						// inform local instead of remote
-						ChannelUtils.writeAbstractLocalPacketToLocal(lcr, error);
-					} catch (Exception e) {
-					}
-					resulttest = new R66Result(session, true,
-							ErrorCode.CompleteOk, session.getRunner());
-				} else {
-]]>
-</codefragment>
-</duplication>
-<duplication lines="22" tokens="150">
-<file line="2799" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="3759" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<codefragment>
-<![CDATA[
-				long rsl = (Long.parseLong(splitsession[1]) / 10) * 10;
-				if (wgl < 0) {
-					wgl = Configuration.configuration.serverGlobalWriteLimit;
 				}
-				if (rgl < 0) {
-					rgl = Configuration.configuration.serverGlobalReadLimit;
-				}
-				if (wsl < 0) {
-					wsl = Configuration.configuration.serverChannelWriteLimit;
-				}
-				if (rsl < 0) {
-					rsl = Configuration.configuration.serverChannelReadLimit;
-				}
-				if (Configuration.configuration.r66Mib != null) {
-					Configuration.configuration.r66Mib.notifyWarning(
-							"Change Bandwidth Limit Order received: Global " +
-									wgl + ":" + rgl + " (W:R) Local " + wsl + ":" + rsl + " (W:R)",
-							session.getAuth().getUser());
-				}
-				Configuration.configuration.changeNetworkLimit(wgl, rgl, wsl, rsl,
-						Configuration.configuration.delayLimit);
-				R66Result result = new R66Result(session, true, ErrorCode.CompleteOk, null);
+				currentFile = getRelativePath(newFile);
 ]]>
 </codefragment>
 </duplication>
 <duplication lines="26" tokens="143">
 <file line="125" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExport.java"/>
-<file line="181" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExtendedExport.java"/>
+<file line="191" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\server\LogExtendedExport.java"/>
 <codefragment>
 <![CDATA[
 				.createConnectionWithRetry(socketAddress, isSSL, future);
@@ -2422,8 +2224,8 @@
 </codefragment>
 </duplication>
 <duplication lines="12" tokens="136">
-<file line="701" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<file line="742" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="699" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="740" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
 <codefragment>
 <![CDATA[
 					body = REQUEST.CancelRestart.readBody();
@@ -2472,6 +2274,70 @@
 ]]>
 </codefragment>
 </duplication>
+<duplication lines="21" tokens="134">
+<file line="2731" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="3068" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<codefragment>
+<![CDATA[
+				long rsl = (Long.parseLong(splitsession[1]) / 10) * 10;
+				if (wgl < 0) {
+					wgl = Configuration.configuration.serverGlobalWriteLimit;
+				}
+				if (rgl < 0) {
+					rgl = Configuration.configuration.serverGlobalReadLimit;
+				}
+				if (wsl < 0) {
+					wsl = Configuration.configuration.serverChannelWriteLimit;
+				}
+				if (rsl < 0) {
+					rsl = Configuration.configuration.serverChannelReadLimit;
+				}
+				if (Configuration.configuration.r66Mib != null) {
+					Configuration.configuration.r66Mib.notifyWarning(
+							"Change Bandwidth Limit Order received: Global " +
+									wgl + ":" + rgl + " (W:R) Local " + wsl + ":" + rsl + " (W:R)",
+							session.getAuth().getUser());
+				}
+				Configuration.configuration.changeNetworkLimit(wgl, rgl, wsl, rsl,
+						Configuration.configuration.delayLimit);
+]]>
+</codefragment>
+</duplication>
+<duplication lines="25" tokens="133">
+<file line="1746" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1798" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1867" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1953" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<codefragment>
+<![CDATA[
+	public static boolean setConfigurationInitDatabase(Configuration config, String filename) {
+		Document document = null;
+		// Open config file
+		try {
+			document = new SAXReader().read(filename);
+		} catch (DocumentException e) {
+			logger.error(Messages.getString("FileBasedConfiguration.CannotReadXml") + filename, e); //$NON-NLS-1$
+			return false;
+		}
+		if (document == null) {
+			logger.error(Messages.getString("FileBasedConfiguration.CannotReadXml") + filename); //$NON-NLS-1$
+			return false;
+		}
+		configuration = XmlUtil.read(document, configServer);
+		hashConfig = new XmlHash(configuration);
+		loadLocale(config);
+		if (!loadIdentity(config)) {
+			logger.error("Cannot load Identity");
+			return false;
+		}
+		if (!loadDatabase(config)) {
+			logger.error("Cannot load Database configuration");
+			return false;
+		}
+		if (!loadDirectory(config)) {
+]]>
+</codefragment>
+</duplication>
 <duplication lines="14" tokens="133">
 <file line="133" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
 <file line="276" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelOracle.java"/>
@@ -2495,8 +2361,8 @@
 </codefragment>
 </duplication>
 <duplication lines="28" tokens="127">
-<file line="1875" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1963" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1912" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="2001" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 			logger.error("Cannot load Network configuration");
@@ -2530,55 +2396,49 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="37" tokens="124">
-<file line="2822" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="3786" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<duplication lines="31" tokens="127">
+<file line="781" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
+<file line="823" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
 <codefragment>
 <![CDATA[
-				ValidPacket valid = new ValidPacket("Bandwidth changed", result.code.getCode(),
-						LocalPacketFactory.REQUESTUSERPACKET);
-				localChannelReference.validateRequest(result);
-				try {
-					ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-							valid, true);
-				} catch (OpenR66ProtocolPacketException e) {
-				}
-				Channels.close(channel);
-				break;
-			}
-			case LocalPacketFactory.TESTPACKET: {
-				session.newState(VALIDOTHER);
-				logger.info("Valid TEST MESSAGE: " + packet.toString());
-				R66Result resulttest = new R66Result(session, true,
-						ErrorCode.CompleteOk, null);
-				resulttest.other = packet;
-				localChannelReference.validateRequest(resulttest);
-				Channels.close(channel);
-				break;
-			}
-			default:
-				logger.info("Validation is ignored: " + packet.getTypeValid());
+	public void insert() throws WaarpDatabaseException {
+		if (isSaved) {
+			return;
 		}
-	}
-
-	/**
-	 * Receive a json request
-	 * 
-	 * @param channel
-	 * @param packet
-	 * @throws OpenR66ProtocolNotAuthenticatedException
-	 * @throws OpenR66RunnerErrorException
-	 * @throws OpenR66ProtocolSystemException
-	 * @throws OpenR66ProtocolBusinessException
-	 */
-	private void jsonCommand(Channel channel, JsonCommandPacket packet)
+		boolean shallIgnore = shallIgnoreSave();
+		if (dbSession == null || shallIgnore) {
+			if (specialId == DbConstant.ILLEGALVALUE) {
+				// New SpecialId is not possible with No Database Model
+				createNoDbSpecialId();
+			}
+			isSaved = true;
+			if (Configuration.configuration.saveTaskRunnerWithNoDb) {
+				try {
+					setToArray();
+					this.writeXmlWorkNoDb();
+				} catch (OpenR66ProtocolBusinessException e) {
+					// Ignore
+				}
+			}
+			if (this.updatedInfo == UpdatedInfo.TOSUBMIT.ordinal()) {
+				addNoDb();
+			}
+			if (shallIgnore) {
+				dbR66TaskHashMap.put(specialId, this);
+			}
+			return;
+		}
+		// First need to find a new id if id is not ok
+		if (specialId == DbConstant.ILLEGALVALUE) {
+			specialId = DbModelFactory.dbModel.nextSequence(dbSession);
+			logger.debug("Try Insert create a new Id from sequence: " +
 ]]>
 </codefragment>
 </duplication>
 <duplication lines="27" tokens="123">
-<file line="1791" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1875" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1963" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1827" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="1912" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="2001" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 			logger.error("Cannot load Limit configuration");
@@ -2608,6 +2468,39 @@
 				return false;
 			}
 		}
+]]>
+</codefragment>
+</duplication>
+<duplication lines="25" tokens="122">
+<file line="2754" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="3008" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<codefragment>
+<![CDATA[
+				ValidPacket valid = new ValidPacket("Bandwidth changed", result.code.getCode(),
+						LocalPacketFactory.REQUESTUSERPACKET);
+				localChannelReference.validateRequest(result);
+				try {
+					ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+							valid, true);
+				} catch (OpenR66ProtocolPacketException e) {
+				}
+				Channels.close(channel);
+				break;
+			}
+			case LocalPacketFactory.TESTPACKET: {
+				session.newState(VALIDOTHER);
+				logger.info("Valid TEST MESSAGE: " + packet.toString());
+				R66Result resulttest = new R66Result(session, true,
+						ErrorCode.CompleteOk, null);
+				resulttest.other = packet;
+				localChannelReference.validateRequest(resulttest);
+				Channels.close(channel);
+				break;
+			}
+			default:
+				logger.info("Validation is ignored: " + packet.getTypeValid());
+		}
+	}
 ]]>
 </codefragment>
 </duplication>
@@ -2652,10 +2545,10 @@
 </codefragment>
 </duplication>
 <duplication lines="22" tokens="121">
-<file line="1738" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="1759" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="1805" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="1826" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="1720" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="1741" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="1787" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="1808" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
 <codefragment>
 <![CDATA[
 				} catch (OpenR66RunnerErrorException e) {
@@ -2715,37 +2608,27 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="24" tokens="119">
-<file line="1712" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1763" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1831" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="1916" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<duplication lines="16" tokens="117">
+<file line="145" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\Message.java"/>
+<file line="173" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\RequestInformation.java"/>
 <codefragment>
 <![CDATA[
-	public static boolean setConfigurationInitDatabase(Configuration config, String filename) {
-		Document document = null;
-		// Open config file
-		try {
-			document = new SAXReader().read(filename);
-		} catch (DocumentException e) {
-			logger.error("Unable to read the XML Config file: " + filename, e);
-			return false;
+			logger.debug(Messages.getString("Message.HostNotFound") + requested); //$NON-NLS-1$
+			R66Result result = new R66Result(null, true, ErrorCode.ConnectionImpossible, null);
+			this.future.setResult(result);
+			this.future.cancel();
+			return;
 		}
-		if (document == null) {
-			logger.error("Unable to read the XML Config file: " + filename);
-			return false;
+		if (host.isClient()) {
+			logger.error(Messages.getString("Message.HostIsClient") + requested); //$NON-NLS-1$
+			R66Result result = new R66Result(null, true, ErrorCode.ConnectionImpossible, null);
+			this.future.setResult(result);
+			this.future.cancel();
+			return;
 		}
-		configuration = XmlUtil.read(document, configServer);
-		hashConfig = new XmlHash(configuration);
-		if (!loadIdentity(config)) {
-			logger.error("Cannot load Identity");
-			return false;
-		}
-		if (!loadDatabase(config)) {
-			logger.error("Cannot load Database configuration");
-			return false;
-		}
-		if (!loadDirectory(config)) {
+		SocketAddress socketAddress = host.getSocketAddress();
+		boolean isSSL = host.isSsl();
+		LocalChannelReference localChannelReference = null;
 ]]>
 </codefragment>
 </duplication>
@@ -2836,59 +2719,77 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="15" tokens="114">
-<file line="487" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<file line="562" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<duplication lines="14" tokens="112">
+<file line="249" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\AbstractTransfer.java"/>
+<file line="341" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\SpooledDirectoryTransfer.java"/>
 <codefragment>
 <![CDATA[
-					all = true;
-				}
-				Timestamp tstart = WaarpStringUtils.fixDate(start);
-				if (tstart != null) {
-					start = tstart.toString();
-				}
-				Timestamp tstop = WaarpStringUtils.fixDate(stop, tstart);
-				if (tstop != null) {
-					stop = tstop.toString();
-				}
-				head = resetOptionTransfer(head, startid == null ? "" : startid,
-						stopid == null ? "" : stopid, start, stop,
-						rule == null ? "" : rule, req == null ? "" : req,
-						pending, transfer, error, done, all);
-				body = REQUEST.CancelRestart.readBody();
+					rule = args[i];
+				} else if (args[i].equalsIgnoreCase("-info")) {
+					i++;
+					fileInfo = args[i];
+				} else if (args[i].equalsIgnoreCase("-md5")) {
+					ismd5 = true;
+				} else if (args[i].equalsIgnoreCase("-block")) {
+					i++;
+					block = Integer.parseInt(args[i]);
+					if (block < 100) {
+						logger.error(Messages.getString("AbstractTransfer.1") + block); //$NON-NLS-1$
+						return false;
+					}
+				} else if (args[i].equalsIgnoreCase("-nolog")) {
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="25" tokens="113">
-<file line="484" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\filesystem\R66File.java"/>
-<file line="540" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\filesystem\R66File.java"/>
+<duplication lines="18" tokens="112">
+<file line="2501" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="3105" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
 <codefragment>
 <![CDATA[
-			File newFile = getFileFromPath(path);
-			if (newFile.getParentFile().canWrite()) {
-				if (!file.renameTo(newFile)) {
-					FileOutputStream fileOutputStream;
-					try {
-						fileOutputStream = new FileOutputStream(newFile);
-					} catch (FileNotFoundException e) {
-						logger
-								.warn("Cannot find file: " + newFile.getName(),
-										e);
-						return false;
+			case LocalPacketFactory.CONFIMPORTPACKET: {
+				session.newState(VALIDOTHER);
+				// Authentication must be the local server or CONFIGADMIN authorization
+				try {
+					if (!session.getAuth().getUser().equals(
+							Configuration.configuration.getHostId(session.getAuth().isSsl())) &&
+							!session.getAuth().isValidRole(ROLE.CONFIGADMIN)) {
+						throw new OpenR66ProtocolNotAuthenticatedException(
+								"Not correctly authenticated");
 					}
-					FileChannel fileChannelOut = fileOutputStream.getChannel();
-					if (get(fileChannelOut)) {
-						delete();
-					} else {
-						try {
-							fileChannelOut.close();
-						} catch (IOException e) {
-						}
-						logger.error("Cannot write file: {}", newFile);
-						return false;
-					}
+				} catch (OpenR66ProtocolNoSslException e1) {
+					throw new OpenR66ProtocolNotAuthenticatedException(
+							"Not correctly authenticated since SSL is not supported", e1);
 				}
-				currentFile = getRelativePath(newFile);
+				if (Configuration.configuration.r66Mib != null) {
+					Configuration.configuration.r66Mib.notifyWarning(
+							"Import Configuration Order received", session.getAuth().getUser());
+				}
+]]>
+</codefragment>
+</duplication>
+<duplication lines="18" tokens="112">
+<file line="2421" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="3390" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<codefragment>
+<![CDATA[
+			case LocalPacketFactory.CONFEXPORTPACKET: {
+				session.newState(VALIDOTHER);
+				// Authentication must be the local server or CONFIGADMIN authorization
+				try {
+					if (!session.getAuth().getUser().equals(
+							Configuration.configuration.getHostId(session.getAuth().isSsl())) &&
+							!session.getAuth().isValidRole(ROLE.CONFIGADMIN)) {
+						throw new OpenR66ProtocolNotAuthenticatedException(
+								"Not correctly authenticated");
+					}
+				} catch (OpenR66ProtocolNoSslException e1) {
+					throw new OpenR66ProtocolNotAuthenticatedException(
+							"Not correctly authenticated since SSL is not supported", e1);
+				}
+				if (Configuration.configuration.r66Mib != null) {
+					Configuration.configuration.r66Mib.notifyWarning(
+							"Export Configuration Order received", session.getAuth().getUser());
+				}
 ]]>
 </codefragment>
 </duplication>
@@ -2998,32 +2899,9 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="15" tokens="109">
-<file line="372" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<file line="562" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<codefragment>
-<![CDATA[
-					all = true;
-				}
-				Timestamp tstart = WaarpStringUtils.fixDate(start);
-				if (tstart != null) {
-					start = tstart.toString();
-				}
-				Timestamp tstop = WaarpStringUtils.fixDate(stop, tstart);
-				if (tstop != null) {
-					stop = tstop.toString();
-				}
-				head = resetOptionTransfer(head, startid == null ? "" : startid,
-						stopid == null ? "" : stopid, start, stop,
-						rule == null ? "" : rule, req == null ? "" : req,
-						pending, transfer, error, done, all);
-				body = REQUEST.Listing.readBody();
-]]>
-</codefragment>
-</duplication>
 <duplication lines="21" tokens="108">
-<file line="2549" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="2673" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="2481" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="2605" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
 <codefragment>
 <![CDATA[
 					}
@@ -3050,78 +2928,9 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="15" tokens="108">
-<file line="3739" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="3780" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<codefragment>
-<![CDATA[
-					R66Result result = new R66Result(session, true, ErrorCode.CompleteOk, null);
-					// Now answer
-					node.setWriteglobal(Configuration.configuration.serverGlobalWriteLimit);
-					node.setReadglobal(Configuration.configuration.serverGlobalReadLimit);
-					node.setWritesession(Configuration.configuration.serverChannelWriteLimit);
-					node.setReadsession(Configuration.configuration.serverChannelReadLimit);
-					JsonCommandPacket valid = new JsonCommandPacket(node, result.code.getCode(),
-							LocalPacketFactory.REQUESTUSERPACKET);
-					localChannelReference.validateRequest(result);
-					try {
-						ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-								valid, true);
-					} catch (OpenR66ProtocolPacketException e) {
-					}
-					Channels.close(channel);
-]]>
-</codefragment>
-</duplication>
-<duplication lines="16" tokens="107">
-<file line="146" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\Message.java"/>
-<file line="183" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\RequestInformation.java"/>
-<codefragment>
-<![CDATA[
-			logger.debug("Requested host cannot be found: " + requested);
-			R66Result result = new R66Result(null, true, ErrorCode.ConnectionImpossible, null);
-			this.future.setResult(result);
-			this.future.cancel();
-			return;
-		}
-		if (host.isClient()) {
-			logger.error("Requested host is a client and cannot be requested: " + requested);
-			R66Result result = new R66Result(null, true, ErrorCode.ConnectionImpossible, null);
-			this.future.setResult(result);
-			this.future.cancel();
-			return;
-		}
-		SocketAddress socketAddress = host.getSocketAddress();
-		boolean isSSL = host.isSsl();
-		LocalChannelReference localChannelReference = null;
-]]>
-</codefragment>
-</duplication>
-<duplication lines="14" tokens="107">
-<file line="261" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\AbstractTransfer.java"/>
-<file line="358" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\SpooledDirectoryTransfer.java"/>
-<codefragment>
-<![CDATA[
-					rule = args[i];
-				} else if (args[i].equalsIgnoreCase("-info")) {
-					i++;
-					fileInfo = args[i];
-				} else if (args[i].equalsIgnoreCase("-md5")) {
-					ismd5 = true;
-				} else if (args[i].equalsIgnoreCase("-block")) {
-					i++;
-					block = Integer.parseInt(args[i]);
-					if (block < 100) {
-						logger.error("Block size is too small: " + block);
-						return false;
-					}
-				} else if (args[i].equalsIgnoreCase("-nolog")) {
-]]>
-</codefragment>
-</duplication>
 <duplication lines="9" tokens="107">
-<file line="607" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="626" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="617" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="636" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 					configNetworkServerDecls, false),
@@ -3288,73 +3097,6 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="24" tokens="105">
-<file line="153" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\AbstractBusinessRequest.java"/>
-<file line="88" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\BusinessRequest.java"/>
-<codefragment>
-<![CDATA[
-				new BusinessRequestPacket(classname + " " + classarg, 0);
-		// XXX FIXME this has to be adapted
-		/*
-		 * AbstractBusinessRequest transaction = new AbstractBusinessRequest(
-		 * AbstractBusinessRequest.class, future, rhost, networkTransaction, packet);
-		 * transaction.run(); future.awaitUninterruptibly();
-		 */
-		long time2 = System.currentTimeMillis();
-		logger.debug("Finish Business Request: " + future.isSuccess());
-		long delay = time2 - time1;
-		if (future.isSuccess()) {
-			logger.info("Business Request in status: SUCCESS" +
-					"    <REMOTE>" + rhost + "</REMOTE>" +
-					"    delay: " + delay);
-		} else {
-			logger.info("Business Request in status: FAILURE" +
-					"    <REMOTE>" + rhost + "</REMOTE>" +
-					"    <ERROR>" + future.getCause() + "</ERROR>" +
-					"    delay: " + delay);
-			networkTransaction.closeAll();
-			System.exit(ErrorCode.Unknown.ordinal());
-		}
-		networkTransaction.closeAll();
-	}
-]]>
-</codefragment>
-</duplication>
-<duplication lines="27" tokens="105">
-<file line="771" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
-<file line="809" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbTaskRunner.java"/>
-<codefragment>
-<![CDATA[
-	public void insert() throws WaarpDatabaseException {
-		if (isSaved) {
-			return;
-		}
-		if (dbSession == null) {
-			if (specialId == DbConstant.ILLEGALVALUE) {
-				// New SpecialId is not possible with No Database Model
-				createNoDbSpecialId();
-			}
-			isSaved = true;
-			if (Configuration.configuration.saveTaskRunnerWithNoDb) {
-				try {
-					setToArray();
-					this.writeXmlWorkNoDb();
-				} catch (OpenR66ProtocolBusinessException e) {
-					// Ignore
-				}
-			}
-			if (this.updatedInfo == UpdatedInfo.TOSUBMIT.ordinal()) {
-				addNoDb();
-			}
-			return;
-		}
-		// First need to find a new id if id is not ok
-		if (specialId == DbConstant.ILLEGALVALUE) {
-			specialId = DbModelFactory.dbModel.nextSequence(dbSession);
-			logger.debug("Try Insert create a new Id from sequence: " +
-]]>
-</codefragment>
-</duplication>
 <duplication lines="13" tokens="105">
 <file line="171" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelH2.java"/>
 <file line="174" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\model\DbModelMariadb.java"/>
@@ -3379,66 +3121,9 @@
 ]]>
 </codefragment>
 </duplication>
-<duplication lines="24" tokens="104">
-<file line="2367" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="3049" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<codefragment>
-<![CDATA[
-						valid = new ValidPacket(packet.getSmiddle(),
-								ErrorCode.Internal.getCode(),
-								LocalPacketFactory.REQUESTUSERPACKET);
-						R66Result resulttest = new R66Result(new OpenR66DatabaseGlobalException(e1),
-								session, true,
-								ErrorCode.Internal, taskRunner);
-						resulttest.other = packet;
-						localChannelReference.invalidateRequest(resulttest);
-					}
-				}
-				// inform back the requester
-				try {
-					ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-							valid, true);
-				} catch (OpenR66ProtocolPacketException e) {
-				}
-				Channels.close(channel);
-				break;
-			}
-			case LocalPacketFactory.REQUESTUSERPACKET: {
-				session.newState(VALIDOTHER);
-				// Validate user request
-				R66Result resulttest = new R66Result(session, true,
-						ErrorCode.getFromCode(packet.getSmiddle()), null);
-]]>
-</codefragment>
-</duplication>
-<duplication lines="17" tokens="103">
-<file line="80" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\Message.java"/>
-<file line="91" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\client\RequestInformation.java"/>
-<codefragment>
-<![CDATA[
-	protected static boolean getParams(String[] args) {
-		if (args.length < 5) {
-			logger
-					.error(_INFO_ARGS);
-			return false;
-		}
-		if (!FileBasedConfiguration
-				.setClientConfigurationFromXml(Configuration.configuration, args[0])) {
-			logger
-					.error("Needs a correct configuration file as first argument");
-			return false;
-		}
-		for (int i = 1; i < args.length; i++) {
-			if (args[i].equalsIgnoreCase("-to")) {
-				i++;
-				srequested = args[i];
-			} else if (args[i].equalsIgnoreCase("-msg")) {
-]]>
-</codefragment>
-</duplication>
 <duplication lines="22" tokens="101">
-<file line="2058" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
-<file line="2120" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="2098" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
+<file line="2161" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
 <codefragment>
 <![CDATA[
 		}
@@ -3467,8 +3152,8 @@
 </codefragment>
 </duplication>
 <duplication lines="13" tokens="101">
-<file line="762" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbRule.java"/>
-<file line="783" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbRule.java"/>
+<file line="756" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbRule.java"/>
+<file line="777" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\database\data\DbRule.java"/>
 <codefragment>
 <![CDATA[
 			setFromArrayClone(rule);
@@ -3513,10 +3198,8 @@
 </codefragment>
 </duplication>
 <duplication lines="16" tokens="100">
-<file line="2489" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="2569" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="3208" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="3358" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="2421" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="2501" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
 <codefragment>
 <![CDATA[
 			case LocalPacketFactory.CONFEXPORTPACKET: {

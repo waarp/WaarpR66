@@ -68,7 +68,7 @@
 <a class="jxr_linenumber" name="58" href="#58">58</a>  		logger.info(<span class="jxr_string">"Copy with "</span> + argRule + <span class="jxr_string">":"</span> + argTransfer + <span class="jxr_string">" and {}"</span>,
 <a class="jxr_linenumber" name="59" href="#59">59</a>  				session);
 <a class="jxr_linenumber" name="60" href="#60">60</a>  		File from = session.getFile().getTrueFile();
-<a class="jxr_linenumber" name="61" href="#61">61</a>  		File to = <strong class="jxr_keyword">new</strong> File(argRule + session.getFile().getBasename());
+<a class="jxr_linenumber" name="61" href="#61">61</a>  		File to = <strong class="jxr_keyword">new</strong> File(argRule.replace('&#92;&#92;', '/') + session.getFile().getBasename());
 <a class="jxr_linenumber" name="62" href="#62">62</a>  		<strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="63" href="#63">63</a>  			FileUtils.copy(from, to, false, false);
 <a class="jxr_linenumber" name="64" href="#64">64</a>  		} <strong class="jxr_keyword">catch</strong> (OpenR66ProtocolSystemException e1) {

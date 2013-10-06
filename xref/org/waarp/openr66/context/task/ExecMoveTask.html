@@ -269,7 +269,7 @@
 <a class="jxr_linenumber" name="259" href="#259">259</a> 	}
 <a class="jxr_linenumber" name="260" href="#260">260</a> 
 <a class="jxr_linenumber" name="261" href="#261">261</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> move(<strong class="jxr_keyword">int</strong> status, String newName, String commandLine) {
-<a class="jxr_linenumber" name="262" href="#262">262</a> 		String newname = newName;
+<a class="jxr_linenumber" name="262" href="#262">262</a> 		String newname = newName.replace('&#92;&#92;', '/');
 <a class="jxr_linenumber" name="263" href="#263">263</a> 		<strong class="jxr_keyword">if</strong> (status == 0) {
 <a class="jxr_linenumber" name="264" href="#264">264</a> 			<strong class="jxr_keyword">if</strong> (newname.indexOf(' ') &gt; 0) {
 <a class="jxr_linenumber" name="265" href="#265">265</a> 				logger.warn(<span class="jxr_string">"Exec returns a multiple string in final line: "</span> +

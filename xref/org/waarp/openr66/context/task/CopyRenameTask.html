@@ -66,7 +66,7 @@
 <a class="jxr_linenumber" name="56" href="#56">56</a>  	@Override
 <a class="jxr_linenumber" name="57" href="#57">57</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> run() {
 <a class="jxr_linenumber" name="58" href="#58">58</a>  		String finalname = argRule;
-<a class="jxr_linenumber" name="59" href="#59">59</a>  		finalname = getReplacedValue(finalname, argTransfer.split(<span class="jxr_string">" "</span>));
+<a class="jxr_linenumber" name="59" href="#59">59</a>  		finalname = getReplacedValue(finalname, argTransfer.split(<span class="jxr_string">" "</span>)).replace('&#92;&#92;', '/');
 <a class="jxr_linenumber" name="60" href="#60">60</a>  		logger.info(<span class="jxr_string">"Copy and Rename to "</span> + finalname + <span class="jxr_string">" with "</span> + argRule +
 <a class="jxr_linenumber" name="61" href="#61">61</a>  				<span class="jxr_string">":"</span> + argTransfer + <span class="jxr_string">" and {}"</span>, session);
 <a class="jxr_linenumber" name="62" href="#62">62</a>  		File from = session.getFile().getTrueFile();

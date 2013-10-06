@@ -195,7 +195,7 @@
 <a class="jxr_linenumber" name="185" href="#185">185</a> 							(result.file != <strong class="jxr_keyword">null</strong> ? result.file.toString() : <span class="jxr_string">"no file"</span>)
 <a class="jxr_linenumber" name="186" href="#186">186</a> 							+ <span class="jxr_string">" delay: "</span> + delay);
 <a class="jxr_linenumber" name="187" href="#187">187</a> 				}
-<a class="jxr_linenumber" name="188" href="#188">188</a> 				<strong class="jxr_keyword">if</strong> (nolog) {
+<a class="jxr_linenumber" name="188" href="#188">188</a> 				<strong class="jxr_keyword">if</strong> (nolog || result.runner.shallIgnoreSave()) {
 <a class="jxr_linenumber" name="189" href="#189">189</a> 					<em class="jxr_comment">// In case of success, delete the runner</em>
 <a class="jxr_linenumber" name="190" href="#190">190</a> 					<strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="191" href="#191">191</a> 						result.runner.delete();

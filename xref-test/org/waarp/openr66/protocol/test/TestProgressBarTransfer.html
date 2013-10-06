@@ -152,7 +152,7 @@
 <a class="jxr_linenumber" name="142" href="#142">142</a> 									: <span class="jxr_string">"no file"</span>)
 <a class="jxr_linenumber" name="143" href="#143">143</a> 							+ <span class="jxr_string">"     delay: "</span> + delay);
 <a class="jxr_linenumber" name="144" href="#144">144</a> 				}
-<a class="jxr_linenumber" name="145" href="#145">145</a> 				<strong class="jxr_keyword">if</strong> (nolog) {
+<a class="jxr_linenumber" name="145" href="#145">145</a> 				<strong class="jxr_keyword">if</strong> (nolog || result.runner.shallIgnoreSave()) {
 <a class="jxr_linenumber" name="146" href="#146">146</a> 					<em class="jxr_comment">// In case of success, delete the runner</em>
 <a class="jxr_linenumber" name="147" href="#147">147</a> 					<strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="148" href="#148">148</a> 						result.runner.delete();

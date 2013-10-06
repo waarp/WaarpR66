@@ -305,7 +305,7 @@
 <a class="jxr_linenumber" name="295" href="#295">295</a> 			}
 <a class="jxr_linenumber" name="296" href="#296">296</a> 		} <strong class="jxr_keyword">finally</strong> {
 <a class="jxr_linenumber" name="297" href="#297">297</a> 			<strong class="jxr_keyword">if</strong> (taskRunner != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="298" href="#298">298</a> 				<strong class="jxr_keyword">if</strong> ((future.isDone() &amp;&amp; (!future.isSuccess())) || nolog) {
+<a class="jxr_linenumber" name="298" href="#298">298</a> 				<strong class="jxr_keyword">if</strong> ((future.isDone() &amp;&amp; (!future.isSuccess())) || nolog  || taskRunner.shallIgnoreSave()) {
 <a class="jxr_linenumber" name="299" href="#299">299</a> 					<strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="300" href="#300">300</a> 						taskRunner.delete();
 <a class="jxr_linenumber" name="301" href="#301">301</a> 					} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
