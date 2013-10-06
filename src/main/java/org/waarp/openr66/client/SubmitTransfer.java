@@ -28,6 +28,7 @@ import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbTaskRunner;
+import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.exception.OpenR66DatabaseGlobalException;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
@@ -123,7 +124,7 @@ public class SubmitTransfer extends AbstractTransfer {
 			logger = WaarpInternalLoggerFactory.getLogger(SubmitTransfer.class);
 		}
 		if (!getParams(args, true)) {
-			logger.error("Wrong initialization");
+			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
 			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
 				DbConstant.admin.close();
 			}
@@ -138,14 +139,14 @@ public class SubmitTransfer extends AbstractTransfer {
 		future.awaitUninterruptibly();
 		DbTaskRunner runner = future.getResult().runner;
 		if (future.isSuccess()) {
-			logger.warn("Prepare transfer in     SUCCESS     " + runner.toShortString() +
+			logger.warn(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Success") + runner.toShortString() + //$NON-NLS-1$
 					"<REMOTE>" + rhost + "</REMOTE>");
 		} else {
 			if (runner != null) {
-				logger.error("Prepare transfer in     FAILURE      " + runner.toShortString() +
+				logger.error(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Failure") + runner.toShortString() + //$NON-NLS-1$
 						"<REMOTE>" + rhost + "</REMOTE>", future.getCause());
 			} else {
-				logger.error("Prepare transfer in     FAILURE      ", future.getCause());
+				logger.error(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Failure"), future.getCause()); //$NON-NLS-1$
 			}
 			DbConstant.admin.close();
 			ChannelUtils.stopLogger();

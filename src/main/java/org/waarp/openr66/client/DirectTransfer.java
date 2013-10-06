@@ -151,7 +151,7 @@ public class DirectTransfer extends AbstractTransfer {
 			R66Result result = future.getResult();
 			if (future.isSuccess()) {
 				if (result.runner.getErrorInfo() == ErrorCode.Warning) {
-					logger.warn(Messages.getString("Transfer.Warned") //$NON-NLS-1$
+					logger.warn(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Warned") //$NON-NLS-1$
 							+ result.runner.toShortString()
 							+
 							"     <REMOTE>"
@@ -164,7 +164,7 @@ public class DirectTransfer extends AbstractTransfer {
 									: "no file")
 							+ "     delay: " + delay);
 				} else {
-					logger.info(Messages.getString("Transfer.Success") //$NON-NLS-1$
+					logger.info(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Success") //$NON-NLS-1$
 							+ result.runner.toShortString()
 							+
 							"     <REMOTE>"
@@ -193,12 +193,12 @@ public class DirectTransfer extends AbstractTransfer {
 					System.exit(ErrorCode.Unknown.ordinal());
 				}
 				if (result.runner.getErrorInfo() == ErrorCode.Warning) {
-					logger.warn(Messages.getString("Transfer.Warned") + result.runner.toShortString() + //$NON-NLS-1$
+					logger.warn(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Warned") + result.runner.toShortString() + //$NON-NLS-1$
 							"     <REMOTE>" + rhost + "</REMOTE>", future.getCause());
 					networkTransaction.closeAll();
 					System.exit(result.code.ordinal());
 				} else {
-					logger.error(Messages.getString("Transfer.Failed") + result.runner.toShortString() + //$NON-NLS-1$
+					logger.error(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Failure") + result.runner.toShortString() + //$NON-NLS-1$
 							"     <REMOTE>" + rhost + "</REMOTE>", future.getCause());
 					networkTransaction.closeAll();
 					System.exit(result.code.ordinal());

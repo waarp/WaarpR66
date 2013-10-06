@@ -32,6 +32,7 @@ import org.waarp.openr66.context.authentication.R66Auth;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 import org.waarp.openr66.protocol.localhandler.packet.TestPacket;
@@ -53,10 +54,7 @@ public class Message implements Runnable {
 	private static WaarpInternalLogger logger;
 	
 	protected static String _INFO_ARGS =
-			"Needs 5 arguments:\n" +
-					"  the XML client configuration file,\n" +
-					"  '-to' the remoteHost Id,\n" +
-					"  '-msg' the message\n";
+			Messages.getString("Message.0"); //$NON-NLS-1$
 
 	final private NetworkTransaction networkTransaction;
 
@@ -78,6 +76,7 @@ public class Message implements Runnable {
 	 * @return True if all parameters were found and correct
 	 */
 	protected static boolean getParams(String[] args) {
+		 _INFO_ARGS = Messages.getString("Message.0"); //$NON-NLS-1$
 		if (args.length < 5) {
 			logger
 					.error(_INFO_ARGS);
@@ -86,7 +85,7 @@ public class Message implements Runnable {
 		if (!FileBasedConfiguration
 				.setClientConfigurationFromXml(Configuration.configuration, args[0])) {
 			logger
-					.error("Needs a correct configuration file as first argument");
+					.error(Messages.getString("Configuration.NeedCorrectConfig")); //$NON-NLS-1$
 			return false;
 		}
 		for (int i = 1; i < args.length; i++) {
@@ -99,7 +98,7 @@ public class Message implements Runnable {
 			}
 		}
 		if (srequested == null) {
-			logger.error("Requested HostId must be set\n"+_INFO_ARGS);
+			logger.error(Messages.getString("Message.HostIdMustBeSet")+_INFO_ARGS); //$NON-NLS-1$
 			return false;
 		}
 		return true;
@@ -143,14 +142,14 @@ public class Message implements Runnable {
 			host = hostAuth;
 		}
 		if (host == null) {
-			logger.debug("Requested host cannot be found: " + requested);
+			logger.debug(Messages.getString("Message.HostNotFound") + requested); //$NON-NLS-1$
 			R66Result result = new R66Result(null, true, ErrorCode.ConnectionImpossible, null);
 			this.future.setResult(result);
 			this.future.cancel();
 			return;
 		}
 		if (host.isClient()) {
-			logger.error("Requested host is a client and cannot be requested: " + requested);
+			logger.error(Messages.getString("Message.HostIsClient") + requested); //$NON-NLS-1$
 			R66Result result = new R66Result(null, true, ErrorCode.ConnectionImpossible, null);
 			this.future.setResult(result);
 			this.future.cancel();
@@ -163,7 +162,7 @@ public class Message implements Runnable {
 				.createConnectionWithRetry(socketAddress, isSSL, future);
 		socketAddress = null;
 		if (localChannelReference == null) {
-			logger.debug("Cannot connect to server: " + requested);
+			logger.debug(Messages.getString("AdminR66OperationsGui.188") + requested); //$NON-NLS-1$
 			R66Result result = new R66Result(null, true, ErrorCode.ConnectionImpossible, null);
 			this.future.setResult(result);
 			this.future.cancel();
@@ -191,7 +190,7 @@ public class Message implements Runnable {
 			System.exit(1);
 		}
 		if (!getParams(args)) {
-			logger.error("Wrong initialization");
+			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
 			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
 				DbConstant.admin.close();
 			}
@@ -214,10 +213,10 @@ public class Message implements Runnable {
 				value = 0;
 				R66Result r66result = result.getResult();
 				ValidPacket info = (ValidPacket) r66result.other;
-				logger.warn("Test Message     SUCCESS     " + info.getSheader());
+				logger.warn(Messages.getString("Message.11")+Messages.getString("RequestInformation.Success") + info.getSheader()); //$NON-NLS-1$
 			} else {
 				value = 2;
-				logger.error("Test Message     FAILURE     " +
+				logger.error(Messages.getString("Message.11")+Messages.getString("RequestInformation.Failure") + //$NON-NLS-1$
 						result.getResult().toString());
 			}
 		} finally {

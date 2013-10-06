@@ -214,6 +214,7 @@ public abstract class AbstractTransfer implements Runnable {
 	 * @return True if all parameters were found and correct
 	 */
 	protected static boolean getParams(String[] args, boolean submitOnly) {
+		_INFO_ARGS = Messages.getString("AbstractTransfer.0"); //$NON-NLS-1$
 		if (args.length < 2) {
 			logger
 					.error(_INFO_ARGS);

@@ -35,6 +35,7 @@ import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
@@ -65,31 +66,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 	static protected volatile WaarpInternalLogger logger;
 
 	protected static String _INFO_ARGS = 
-			"Needs at least 11 arguments:\n"
-					+
-					"  the XML client configuration file,\n"
-					+
-					"  '-to' the remoteHost Id or Ids as a comma separated list,\n"
-					+
-					"  '-directory' the directory to spool,\n" +
-					"  '-statusfile' file (file to use as permanent status (if process is killed or aborts)),\n" +
-					"  '-stopfile' file (when this file is created, the daemon stops),\n"
-					+
-					"  '-rule' the rule\n"
-					+
-					"Other options:\n"
-					+
-					"  '-info' \"information to send\",\n"
-					+
-					"  '-md5' to force MD5 (or other hash as configured) by packet control,\n"
-					+
-					"  '-block' size of packet > 1K (prefered is 64K),\n"
-					+
-					"  '-nolog' to not log locally this action,\n" +
-					"  '-regex' regex (regular expression to filter file names from directory source),\n" +
-					"  '-elapse' elapse (elapse time between 2 checks of the directory),\n" +
-					"  '-submit' (to submit only: default),\n" +
-					"  '-direct' (to directly transfer only)";
+			Messages.getString("SpooledDirectoryTransfer.0"); //$NON-NLS-1$
 	
 	
 	protected static final String NO_INFO_ARGS = "noinfo";
@@ -170,7 +147,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 	@Override
 	public void run() {
 		if (submit && ! DbConstant.admin.isConnected) {
-			logger.error("To submit transfer, client must be connected to the database of the server");
+			logger.error(Messages.getString("SpooledDirectoryTransfer.2")); //$NON-NLS-1$
 			this.future.cancel();
 			return;
 		}
@@ -182,34 +159,34 @@ public class SpooledDirectoryTransfer implements Runnable {
 		try {
 			dbrule = new DbRule(DbConstant.admin.session, rulename);
 		} catch (WaarpDatabaseException e1) {
-			logger.error("Rule error: ", e1);
+			logger.error(Messages.getString("Transfer.18"), e1); //$NON-NLS-1$
 			this.future.setFailure(e1);
 			return;
 		}
 		if (dbrule.isRecvMode()) {
-			logger.error("Rule error: not SEND MODE");
+			logger.error(Messages.getString("SpooledDirectoryTransfer.5")); //$NON-NLS-1$
 			this.future.cancel();
 			return;
 		}
 		File status = new File(statusFile);
 		if (status.isDirectory()) {
-			logger.error("Status File is a directory but must be a file");
+			logger.error(Messages.getString("SpooledDirectoryTransfer.6")); //$NON-NLS-1$
 			this.future.cancel();
 			return;
 		}
 		File stop = new File(stopFile);
 		if (stop.isDirectory()) {
-			logger.error("Stop File is a directory but must be a file");
+			logger.error(Messages.getString("SpooledDirectoryTransfer.7")); //$NON-NLS-1$
 			this.future.cancel();
 			return;
 		} else if (stop.exists()) {
-			logger.warn("Stop File is found");
+			logger.warn(Messages.getString("SpooledDirectoryTransfer.8")); //$NON-NLS-1$
 			this.future.setSuccess();
 			return;
 		}
 		File dir = new File(directory);
 		if (!dir.isDirectory()) {
-			logger.error("Directory is not a directory but must be a directory");
+			logger.error(Messages.getString("SpooledDirectoryTransfer.9")); //$NON-NLS-1$
 			this.future.cancel();
 			return;
 		}
@@ -248,9 +225,9 @@ public class SpooledDirectoryTransfer implements Runnable {
 							if (result != null) {
 								runner = result.runner;
 								if (runner != null) {
-									String status = "SUCCESS";
+									String status = Messages.getString("RequestInformation.Success"); //$NON-NLS-1$
 									if (runner.getErrorInfo() == ErrorCode.Warning) {
-										status = "WARNED";
+										status = Messages.getString("RequestInformation.Warned"); //$NON-NLS-1$
 									}
 									logger.warn(text+" in status: "+status+"     "
 											+ runner.toShortString()
@@ -270,11 +247,11 @@ public class SpooledDirectoryTransfer implements Runnable {
 										}
 									}
 								} else {
-									logger.warn(text+" in     SUCCESS     " 
+									logger.warn(text+Messages.getString("RequestInformation.Success")  //$NON-NLS-1$
 											+"<REMOTE>" + host + "</REMOTE>");
 								}
 							} else {
-								logger.warn(text+" in     SUCCESS     " 
+								logger.warn(text+Messages.getString("RequestInformation.Success")  //$NON-NLS-1$
 										+"<REMOTE>" + host + "</REMOTE>");
 							}
 						} else {
@@ -283,15 +260,15 @@ public class SpooledDirectoryTransfer implements Runnable {
 							if (result != null) {
 								runner = result.runner;
 								if (runner != null) {
-									logger.error(text+" in     FAILURE      " + 
+									logger.error(text+Messages.getString("RequestInformation.Failure") +  //$NON-NLS-1$
 											runner.toShortString() +
 										"<REMOTE>" + host + "</REMOTE>", future.getCause());
 								} else {
-									logger.error(text+" in     FAILURE      ", 
+									logger.error(text+Messages.getString("RequestInformation.Failure"),  //$NON-NLS-1$
 											future.getCause());
 								}
 							} else {
-								logger.error(text+" in     FAILURE      "
+								logger.error(text+Messages.getString("RequestInformation.Failure") //$NON-NLS-1$
 										+"<REMOTE>" + host + "</REMOTE>", 
 										future.getCause());
 							}
@@ -330,6 +307,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 	 * @return True if all parameters were found and correct
 	 */
 	protected static boolean getParams(String[] args) {
+		_INFO_ARGS = Messages.getString("SpooledDirectoryTransfer.0"); //$NON-NLS-1$
 		if (args.length < 11) {
 			logger
 					.error(_INFO_ARGS);
@@ -338,7 +316,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 		if (!FileBasedConfiguration
 				.setClientConfigurationFromXml(Configuration.configuration, args[0])) {
 			logger
-					.error("Needs a correct configuration file as first argument");
+					.error(Messages.getString("Configuration.NeedCorrectConfig")); //$NON-NLS-1$
 			return false;
 		}
 		// Now set default values from configuration
@@ -370,7 +348,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 					i++;
 					block = Integer.parseInt(args[i]);
 					if (block < 100) {
-						logger.error("Block size is too small: " + block);
+						logger.error(Messages.getString("AbstractTransfer.1") + block); //$NON-NLS-1$
 						return false;
 					}
 				} else if (args[i].equalsIgnoreCase("-nolog")) {
@@ -388,20 +366,20 @@ public class SpooledDirectoryTransfer implements Runnable {
 				}
 			}
 		} catch (NumberFormatException e) {
-			logger.error("Number Format exception at Rank "+i);
+			logger.error(Messages.getString("AbstractTransfer.20")+i); //$NON-NLS-1$
 			return false;
 		}
 		if (fileInfo == null) {
 			fileInfo = NO_INFO_ARGS;
 		}
 		if (tosubmit && ! DbConstant.admin.isConnected) {
-			logger.error("To submit transfer, client must be connected to the database of the server");
+			logger.error(Messages.getString("SpooledDirectoryTransfer.2")); //$NON-NLS-1$
 			return false;
 		}
 		if (rhosts != null && rule != null && localDirectory != null && statusfile != null && stopfile != null) {
 			return true;
 		}
-		logger.error("All params are not set! Need at least (-to -rule -statusfile and -directory)\n"+
+		logger.error(Messages.getString("SpooledDirectoryTransfer.56")+ //$NON-NLS-1$
 				_INFO_ARGS);
 		return false;
 	}
@@ -412,7 +390,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 			logger = WaarpInternalLoggerFactory.getLogger(SpooledDirectoryTransfer.class);
 		}
 		if (!getParams(args)) {
-			logger.error("Wrong initialization");
+			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
 			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
 				DbConstant.admin.close();
 			}
@@ -430,7 +408,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 							networkTransaction);
 			spooled.run();
 			future.awaitUninterruptibly();
-			logger.warn("End of SpooledDirectory with "+spooled.sent+" sent and "+spooled.error+" in error");
+			logger.warn(Messages.getString("SpooledDirectoryTransfer.58")+spooled.sent+" sent and "+spooled.error+Messages.getString("SpooledDirectoryTransfer.60")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		} catch (Exception e) {
 			logger.warn("exc", e);
 		} finally {

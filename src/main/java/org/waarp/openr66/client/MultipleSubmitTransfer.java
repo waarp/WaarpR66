@@ -30,6 +30,7 @@ import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
@@ -79,7 +80,7 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 		try {
 			dbrule = new DbRule(DbConstant.admin.session, rulename);
 		} catch (WaarpDatabaseException e) {
-			logger.error("Rule is not found: "+rule);
+			logger.error(Messages.getString("SubmitTransfer.2")+rule); //$NON-NLS-1$
 			ChannelUtils.stopLogger();
 			System.exit(2);
 		}
@@ -109,15 +110,15 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 						future.awaitUninterruptibly();
 						DbTaskRunner runner = future.getResult().runner;
 						if (future.isSuccess()) {
-							logger.warn("Prepare transfer in     SUCCESS     " + runner.toShortString() +
+							logger.warn(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Success") + runner.toShortString() + //$NON-NLS-1$
 									"<REMOTE>" + rhost + "</REMOTE>");
 							doneMultiple++;
 						} else {
 							if (runner != null) {
-								logger.error("Prepare transfer in     FAILURE      " + runner.toShortString() +
+								logger.error(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Failure") + runner.toShortString() + //$NON-NLS-1$
 										"<REMOTE>" + rhost + "</REMOTE>", future.getCause());
 							} else {
-								logger.error("Prepare transfer in     FAILURE      ", future.getCause());
+								logger.error(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Failure"), future.getCause()); //$NON-NLS-1$
 							}
 							errorMultiple++;
 							resultError = future.getResult();
@@ -156,7 +157,7 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 			}
 		}
 		if (!getParams(args, submit)) {
-			logger.error("Wrong initialization");
+			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
 			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
 				DbConstant.admin.close();
 			}
@@ -176,13 +177,13 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 			transaction.run();
 			future.awaitUninterruptibly();
 			if (future.isSuccess()) {
-				logger.warn("Prepare Transfers in status: SUCCESS      for "+transaction.doneMultiple
-						+ " transfers");
+				logger.warn(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Success")+transaction.doneMultiple //$NON-NLS-1$
+						+ Messages.getString("SubmitTransfer.Transfers")); //$NON-NLS-1$
 			} else {
-				logger.error("Some Prepare Transfers in status:     FAILURE     for ko: "+
+				logger.error(Messages.getString("SubmitTransfer.14")+ //$NON-NLS-1$
 						transaction.errorMultiple +
 						" ok: "+ transaction.doneMultiple
-						+ " transfers");
+						+ Messages.getString("SubmitTransfer.Transfers")); //$NON-NLS-1$
 				if (networkTransaction != null)  {
 					networkTransaction.closeAll();
 					networkTransaction = null;
