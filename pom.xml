@@ -126,7 +126,8 @@
     <dependency>
     	<groupId>Waarp</groupId>
     	<artifactId>WaarpFtpClient</artifactId>
-    	<version>1.0.2</version>
+    	<version>1.0.3</version>
+    	<optional>true</optional>
     </dependency>
     <dependency>
     	<groupId>org.postgresql</groupId>
