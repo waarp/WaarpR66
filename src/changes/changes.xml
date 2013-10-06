@@ -5,6 +5,21 @@
 		<author email="waarp1 at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+	    <release version="2.4.19" date="2013-10-06" description="Fix release">
+		    <action dev="Frederic Bregier" type="fix">Fix Submit command by testing if the client is really connected to the database (affect also SpooledDirectoryTransfer)</action>
+	        <action dev="Frederic Bregier" type="add">Improve File size checking in start of request</action>
+		    <action dev="Frederic Bregier" type="add">Add check on available space if receive operation</action>
+	        <action dev="Frederic Bregier" type="add">Add deny of service check - temptative to send same block over and over, to send more data than file size -</action>
+		    <action dev="Frederic Bregier" type="add">Add Restart support in Shutdown operation</action>
+		    <action dev="Frederic Bregier" type="add">Add restart capability both in admin and tasks in order to allow remote upgrade procedure</action>
+   			<action dev="Frederic Bregier" type="fix">Fix Database access when using configuration with Database support</action>
+   			<action dev="Frederic Bregier" type="fix">Small fix on path setup in move/copy tasks</action>
+   			<action dev="Frederic Bregier" type="add">Add first step of internationalization support through -Dopenr66.locale=en|fr</action>
+   			<action dev="Frederic Bregier" type="add">Add option -dos2unix -unix2dos to TRANSCODE task</action>
+   			<action dev="Frederic Bregier" type="fix">Fix File getBasename</action>
+   			<action dev="Frederic Bregier" type="fix">Fix self request handling when using Database connexion</action>
+   			<action dev="Frederic Bregier" type="add">Add support to limit log of startup with option -Dopenr66.startup.warning=0</action>
+   		</release>
 	    <release version="2.4.18" date="2013-09-15" description="Fix release">
 		    <action dev="Frederic Bregier" type="fix">Fix Multiple commands</action>
 		    <action dev="Frederic Bregier" type="fix">Fix Issue on null String</action>

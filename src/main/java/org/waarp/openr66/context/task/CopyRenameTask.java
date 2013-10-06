@@ -56,7 +56,7 @@ public class CopyRenameTask extends AbstractTask {
 	@Override
 	public void run() {
 		String finalname = argRule;
-		finalname = getReplacedValue(finalname, argTransfer.split(" "));
+		finalname = getReplacedValue(finalname, argTransfer.split(" ")).replace('\\', '/');
 		logger.info("Copy and Rename to " + finalname + " with " + argRule +
 				":" + argTransfer + " and {}", session);
 		File from = session.getFile().getTrueFile();

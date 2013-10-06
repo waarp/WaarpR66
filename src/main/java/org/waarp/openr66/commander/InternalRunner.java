@@ -111,6 +111,15 @@ public class InternalRunner {
 	}
 
 	/**
+	 * To schedule an action in a fixed delay
+	 * @param thread
+	 * @param delay
+	 * @param unit
+	 */
+	public void submitExternalTask(Thread thread, long delay, TimeUnit unit) {
+		scheduledExecutorService.schedule(thread, delay, unit);
+	}
+	/**
 	 * First step while shutting down the service
 	 */
 	public void prepareStopInternalRunner() {

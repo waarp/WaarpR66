@@ -17,6 +17,8 @@
  */
 package org.waarp.openr66.context;
 
+import org.waarp.openr66.protocol.configuration.Messages;
+
 /**
  * This enum class keeps all code that will be returned into the result and store (char
  * representation) into the runner.
@@ -28,146 +30,150 @@ public enum ErrorCode {
 	/**
 	 * Code stands for initialization ok (internal connection, authentication)
 	 */
-	InitOk("Initialization step ok", 'i'),
+	InitOk(Messages.getString("ErrorCode.0"), 'i'), //$NON-NLS-1$
 	/**
 	 * Code stands for pre processing ok
 	 */
 	PreProcessingOk(
-			"PreProcessing step ok",
+			Messages.getString("ErrorCode.1"), //$NON-NLS-1$
 			'B'),
 	/**
 	 * Code stands for transfer OK
 	 */
-	TransferOk("Transfer step ok", 'X'),
+	TransferOk(Messages.getString("ErrorCode.2"), 'X'), //$NON-NLS-1$
 	/**
 	 * Code stands for post processing ok
 	 */
 	PostProcessingOk(
-			"PostProcessing step ok",
+			Messages.getString("ErrorCode.3"), //$NON-NLS-1$
 			'P'),
 	/**
 	 * Code stands for All action are completed ok
 	 */
-	CompleteOk("Operation completed", 'O'),
+	CompleteOk(Messages.getString("ErrorCode.4"), 'O'), //$NON-NLS-1$
 	/**
 	 * Code stands for connection is impossible (remote or local reason)
 	 */
 	ConnectionImpossible(
-			"Connection Impossible",
+			Messages.getString("ErrorCode.5"), //$NON-NLS-1$
 			'C'),
 	/**
 	 * Code stands for connection is impossible now due to limits(remote or local reason)
 	 */
 	ServerOverloaded(
-			"Connection delayed due to exceed of capacity",
+			Messages.getString("ErrorCode.6"), //$NON-NLS-1$
 			'l'),
 	/**
 	 * Code stands for bad authentication (remote or local)
 	 */
-	BadAuthent("Bad Authentication", 'A'),
+	BadAuthent(Messages.getString("ErrorCode.7"), 'A'), //$NON-NLS-1$
 	/**
 	 * Code stands for External operation in error (pre, post or error processing)
 	 */
 	ExternalOp(
-			"External Operation as Task in error",
+			Messages.getString("ErrorCode.8"), //$NON-NLS-1$
 			'E'),
 	/**
 	 * Code stands for Transfer is in error
 	 */
-	TransferError("Bad Transfer", 'T'),
+	TransferError(Messages.getString("ErrorCode.9"), 'T'), //$NON-NLS-1$
 	/**
 	 * Code stands for Transfer in error due to MD5
 	 */
 	MD5Error(
-			"MD5 (or other hash as configured) during transfer in error",
+			Messages.getString("ErrorCode.10"), //$NON-NLS-1$
 			'M'),
 	/**
 	 * Code stands for Network disconnection
 	 */
-	Disconnection("Disconnection before end", 'D'),
+	Disconnection(Messages.getString("ErrorCode.11"), 'D'), //$NON-NLS-1$
 	/**
 	 * Code stands for Remote Shutdown
 	 */
-	RemoteShutdown("Disconnection before end due to a remote shutdown", 'r'),
+	RemoteShutdown(Messages.getString("ErrorCode.12"), 'r'), //$NON-NLS-1$
 	/**
 	 * Code stands for final action (like moving file) is in error
 	 */
 	FinalOp(
-			"Final Operation on the result file in error",
+			Messages.getString("ErrorCode.13"), //$NON-NLS-1$
 			'F'),
 	/**
 	 * Code stands for unimplemented feature
 	 */
-	Unimplemented("Function not implemented", 'U'),
+	Unimplemented(Messages.getString("ErrorCode.14"), 'U'), //$NON-NLS-1$
 	/**
 	 * Code stands for shutdown is in progress
 	 */
 	Shutdown(
-			"Shutdown order",
+			Messages.getString("ErrorCode.15"), //$NON-NLS-1$
 			'S'),
 	/**
 	 * Code stands for a remote error is received
 	 */
-	RemoteError("Error due to remote", 'R'),
+	RemoteError(Messages.getString("ErrorCode.16"), 'R'), //$NON-NLS-1$
 	/**
 	 * Code stands for an internal error
 	 */
 	Internal(
-			"Internal Error",
+			Messages.getString("ErrorCode.17"), //$NON-NLS-1$
 			'I'),
 	/**
 	 * Code stands for a request of stopping transfer
 	 */
-	StoppedTransfer("Stopped Transfer", 'H'),
+	StoppedTransfer(Messages.getString("ErrorCode.18"), 'H'), //$NON-NLS-1$
 	/**
 	 * Code stands for a request of canceling transfer
 	 */
-	CanceledTransfer("Canceled Transfer", 'K'),
+	CanceledTransfer(Messages.getString("ErrorCode.19"), 'K'), //$NON-NLS-1$
 	/**
 	 * Warning in execution
 	 */
-	Warning("Warning during pre or post execution", 'W'),
+	Warning(Messages.getString("ErrorCode.20"), 'W'), //$NON-NLS-1$
 	/**
 	 * Code stands for unknown type of error
 	 */
-	Unknown("Unknown status", '-'),
+	Unknown(Messages.getString("ErrorCode.21"), '-'), //$NON-NLS-1$
 	/**
 	 * Code stands for a request that is already remotely finished
 	 */
-	QueryAlreadyFinished("Restart Query for a transfer already finished", 'Q'),
+	QueryAlreadyFinished(Messages.getString("ErrorCode.22"), 'Q'), //$NON-NLS-1$
 	/**
 	 * Code stands for request that is still running
 	 */
-	QueryStillRunning("Restart Query for a transfer still running", 's'),
+	QueryStillRunning(Messages.getString("ErrorCode.23"), 's'), //$NON-NLS-1$
 	/**
 	 * Code stands for not known host
 	 */
-	NotKnownHost("Not known remote host", 'N'),
+	NotKnownHost(Messages.getString("ErrorCode.24"), 'N'), //$NON-NLS-1$
 	/**
 	 * Code stands for self requested host starting request is invalid
 	 */
-	LoopSelfRequestedHost("Host tries to start a self requested transfer", 'N'),
+	LoopSelfRequestedHost(Messages.getString("ErrorCode.25"), 'N'), //$NON-NLS-1$
 	/**
 	 * Code stands for request should exist but is not found on remote host
 	 */
-	QueryRemotelyUnknown("Not known remote asked query", 'u'),
+	QueryRemotelyUnknown(Messages.getString("ErrorCode.26"), 'u'), //$NON-NLS-1$
 	/**
 	 * Code stands for File not found error
 	 */
-	FileNotFound("File not found", 'f'),
+	FileNotFound(Messages.getString("ErrorCode.27"), 'f'), //$NON-NLS-1$
 	/**
 	 * Code stands for Command not found error
 	 */
-	CommandNotFound("Command not found", 'c'),
+	CommandNotFound(Messages.getString("ErrorCode.28"), 'c'), //$NON-NLS-1$
 	/**
 	 * Code stands for a request in PassThroughMode and required action is incompatible with this
 	 * mode
 	 */
-	PassThroughMode("Error since action cannot be taken on PassThroughMode", 'p'),
+	PassThroughMode(Messages.getString("ErrorCode.29"), 'p'), //$NON-NLS-1$
 	/**
 	 * Code stands for running step
 	 */
-	Running("Current step in running", 'z');
+	Running(Messages.getString("ErrorCode.30"), 'z'), //$NON-NLS-1$
+	/**
+	 * Code stands for Incorrect command
+	 */
+	IncorrectCommand(Messages.getString("ErrorCode.31"), 'n'); //$NON-NLS-1$
 
 	/**
 	 * Literal for this code
@@ -257,6 +263,8 @@ public enum ErrorCode {
 				return PassThroughMode;
 			case 'l':
 				return ServerOverloaded;
+			case 'n':
+				return IncorrectCommand;
 			default:
 				ErrorCode ecode = Unknown;
 				try {
@@ -293,6 +301,7 @@ public enum ErrorCode {
 			case StoppedTransfer:
 			case TransferError:
 			case Unimplemented:
+			case IncorrectCommand:
 				return true;
 			case CompleteOk:
 			case InitOk:

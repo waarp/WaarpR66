@@ -42,6 +42,7 @@ import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66DatabaseGlobalException;
 import org.waarp.openr66.protocol.exception.OpenR66Exception;
@@ -71,20 +72,7 @@ public class RequestTransfer implements Runnable {
 	static volatile WaarpInternalLogger logger;
 
 	protected static String _INFO_ARGS = 
-			"Needs at least 5 arguments:\n" +
-					"  the XML client configuration file,\n" +
-					"  '-id' the transfer Id,\n" +
-					"  '-to' the requested host Id or '-from' the requester host Id " +
-					"(localhost will be the opposite),\n" +
-					"Other options (only one):\n" +
-					"  '-cancel' to cancel completely the transfer,\n" +
-					"  '-stop' to stop the transfer (maybe restarted),\n" +
-					"  '-restart' to restart if possible a transfer and optionnally the following arguments may be specified for a restart:\n"+
-					"      '-start' \"time start\" as yyyyMMddHHmmss (override previous -delay options)\n"
-					+
-					"      '-delay' \"+delay in ms\" as delay in ms from current time(override previous -start options)\n"
-					+
-					"      '-delay' \"delay in ms\" as time in ms (override previous -start options)";
+			Messages.getString("RequestTransfer.0"); //$NON-NLS-1$
 	
 	protected final NetworkTransaction networkTransaction;
 	final R66Future future;
@@ -111,6 +99,7 @@ public class RequestTransfer implements Runnable {
 	 * @return True if all parameters were found and correct
 	 */
 	protected static boolean getParams(String[] args) {
+		_INFO_ARGS = Messages.getString("RequestTransfer.0"); //$NON-NLS-1$
 		if (args.length < 5) {
 			logger
 					.error(_INFO_ARGS);
@@ -119,7 +108,7 @@ public class RequestTransfer implements Runnable {
 		if (!FileBasedConfiguration
 				.setClientConfigurationFromXml(Configuration.configuration, args[0])) {
 			logger
-					.error("Needs a correct configuration file as first argument");
+					.error(Messages.getString("Configuration.NeedCorrectConfig")); //$NON-NLS-1$
 			return false;
 		}
 		for (int i = 1; i < args.length; i++) {
@@ -128,7 +117,7 @@ public class RequestTransfer implements Runnable {
 				try {
 					sspecialId = Long.parseLong(args[i]);
 				} catch (NumberFormatException e) {
-					logger.error("Cannot value Id: "+args[i],e);
+					logger.error(Messages.getString("RequestTransfer.1")+args[i],e); //$NON-NLS-1$
 					return false;
 				}
 			} else if (args[i].equalsIgnoreCase("-to")) {
@@ -138,7 +127,7 @@ public class RequestTransfer implements Runnable {
 					srequester = Configuration.configuration.getHostId(DbConstant.admin.session,
 							srequested);
 				} catch (WaarpDatabaseException e) {
-					logger.error("Cannot get Host Id: " + srequester, e);
+					logger.error(Messages.getString("RequestTransfer.5") + srequester, e); //$NON-NLS-1$
 					return false;
 				}
 			} else if (args[i].equalsIgnoreCase("-from")) {
@@ -148,7 +137,7 @@ public class RequestTransfer implements Runnable {
 					srequested = Configuration.configuration.getHostId(DbConstant.admin.session,
 							srequester);
 				} catch (WaarpDatabaseException e) {
-					logger.error("Cannot get Host Id: " + srequested, e);
+					logger.error(Messages.getString("RequestTransfer.5") + srequested, e); //$NON-NLS-1$
 					return false;
 				}
 			} else if (args[i].equalsIgnoreCase("-cancel")) {
@@ -175,11 +164,11 @@ public class RequestTransfer implements Runnable {
 			}
 		}
 		if ((scancel && srestart) || (scancel && sstop) || (srestart && sstop)) {
-			logger.error("Cannot cancel or restart or stop at the same time\n"+_INFO_ARGS);
+			logger.error(Messages.getString("RequestTransfer.15")+_INFO_ARGS); //$NON-NLS-1$
 			return false;
 		}
 		if (sspecialId == DbConstant.ILLEGALVALUE || srequested == null) {
-			logger.error("TransferId and Requested/Requester HostId must be set\n"+_INFO_ARGS);
+			logger.error(Messages.getString("RequestTransfer.16")+_INFO_ARGS); //$NON-NLS-1$
 			return false;
 		}
 
@@ -250,7 +239,7 @@ public class RequestTransfer implements Runnable {
 				try {
 					document = DocumentHelper.parseText(xml);
 				} catch (DocumentException e1) {
-					logger.error("Cannot find the transfer");
+					logger.error(Messages.getString("RequestTransfer.18")); //$NON-NLS-1$
 					future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e1), null, true,
 							ErrorCode.Internal, null));
 					future.setFailure(e);
@@ -260,28 +249,28 @@ public class RequestTransfer implements Runnable {
 					runner = DbTaskRunner.fromXml(DbConstant.admin.session, document.getRootElement(), true);
 					logger.info("Get Runner from remote: "+runner.toString());
 					if (runner.getSpecialId() == DbConstant.ILLEGALVALUE || ! runner.isSender()) {
-						logger.error("Cannot find the transfer");
+						logger.error(Messages.getString("RequestTransfer.18")); //$NON-NLS-1$
 						future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
 								ErrorCode.Internal, null));
 						future.setFailure(e);
 						return;
 					}
 					if (runner.isAllDone()) {
-						logger.error("Transfer already finished");
+						logger.error(Messages.getString("RequestTransfer.21")); //$NON-NLS-1$
 						future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
 								ErrorCode.Internal, null));
 						future.setFailure(e);
 						return;
 					}
 				} catch (OpenR66ProtocolBusinessException e1) {
-					logger.error("Cannot find the transfer");
+					logger.error(Messages.getString("RequestTransfer.18")); //$NON-NLS-1$
 					future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e1), null, true,
 							ErrorCode.Internal, null));
 					future.setFailure(e);
 					return;
 				}
 			} else {
-				logger.error("Cannot find the transfer");
+				logger.error(Messages.getString("RequestTransfer.18")); //$NON-NLS-1$
 				future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e), null, true,
 						ErrorCode.Internal, null));
 				future.setFailure(e);
@@ -394,7 +383,7 @@ public class RequestTransfer implements Runnable {
 		host = R66Auth.getServerAuth(DbConstant.admin.session,
 				this.requester);
 		if (host == null) {
-			logger.error("Requester host cannot be found: " + this.requester);
+			logger.error(Messages.getString("RequestTransfer.39") + this.requester); //$NON-NLS-1$
 			OpenR66Exception e =
 					new OpenR66RunnerErrorException("Requester host cannot be found");
 			future.setResult(new R66Result(
@@ -408,7 +397,7 @@ public class RequestTransfer implements Runnable {
 		logger.debug("Requester Host isClient: "+host.isClient());
 		if (host.isClient()) {
 			if (code == LocalPacketFactory.VALIDPACKET) {
-				logger.warn("RequestTransfer from Client as requester, so use DirectTransfer instead: "+
+				logger.warn(Messages.getString("RequestTransfer.42")+ //$NON-NLS-1$
 						runner.toShortString());
 				R66Future transfer = new R66Future(true);
 				DirectTransfer transaction = new DirectTransfer(transfer,
@@ -439,7 +428,7 @@ public class RequestTransfer implements Runnable {
 				host = R66Auth.getServerAuth(DbConstant.admin.session,
 						this.requested);
 				if (host == null) {
-					logger.error("Requested host cannot be found: " + this.requested);
+					logger.error(Messages.getString("Message.HostNotFound") + this.requested); //$NON-NLS-1$
 					OpenR66Exception e =
 							new OpenR66RunnerErrorException("Requested host cannot be found");
 					future.setResult(new R66Result(
@@ -507,7 +496,7 @@ public class RequestTransfer implements Runnable {
 		try {
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false);
 		} catch (OpenR66ProtocolPacketException e) {
-			logger.error("Cannot transfer request to " + host.toString());
+			logger.error(Messages.getString("RequestTransfer.63") + host.toString()); //$NON-NLS-1$
 			Channels.close(localChannelReference.getLocalChannel());
 			localChannelReference = null;
 			host = null;
@@ -542,7 +531,7 @@ public class RequestTransfer implements Runnable {
 			logger = WaarpInternalLoggerFactory.getLogger(RequestTransfer.class);
 		}
 		if (!getParams(args)) {
-			logger.error("Wrong initialization");
+			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
 			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
 				DbConstant.admin.close();
 			}
@@ -565,24 +554,24 @@ public class RequestTransfer implements Runnable {
 				if (scancel) {
 					if (result.isSuccess()) {
 						value = 0;
-						logger.warn("Transfer already finished:     " +
+						logger.warn(Messages.getString("RequestTransfer.21") + //$NON-NLS-1$
 								finalValue.runner.toShortString());
 					} else {
 						switch (finalValue.code) {
 							case CompleteOk:
 								value = 0;
-								logger.warn("Transfer cancel requested and done:     " +
+								logger.warn(Messages.getString("RequestTransfer.70") + //$NON-NLS-1$
 										finalValue.runner.toShortString());
 								break;
 							case TransferOk:
 								value = 3;
-								logger.warn("Transfer cancel requested but already finished:     "
+								logger.warn(Messages.getString("RequestTransfer.71") //$NON-NLS-1$
 										+
 										finalValue.runner.toShortString());
 								break;
 							default:
 								value = 4;
-								logger.error("Transfer cancel requested but internal error:     " +
+								logger.error(Messages.getString("RequestTransfer.72") + //$NON-NLS-1$
 										finalValue.runner.toShortString());
 								break;
 						}
@@ -591,17 +580,17 @@ public class RequestTransfer implements Runnable {
 					switch (finalValue.code) {
 						case CompleteOk:
 							value = 0;
-							logger.warn("Transfer stop requested and done:     " +
+							logger.warn(Messages.getString("RequestTransfer.73") + //$NON-NLS-1$
 									finalValue.runner.toShortString());
 							break;
 						case TransferOk:
 							value = 0;
-							logger.warn("Transfer stop requested but already finished:     " +
+							logger.warn(Messages.getString("RequestTransfer.74") + //$NON-NLS-1$
 									finalValue.runner.toShortString());
 							break;
 						default:
 							value = 3;
-							logger.error("Transfer stop requested but internal error:     " +
+							logger.error(Messages.getString("RequestTransfer.75") + //$NON-NLS-1$
 									finalValue.runner.toShortString());
 							break;
 					}
@@ -609,39 +598,39 @@ public class RequestTransfer implements Runnable {
 					switch (finalValue.code) {
 						case QueryStillRunning:
 							value = 0;
-							logger.warn("Transfer restart requested but already active and running:     "
+							logger.warn(Messages.getString("RequestTransfer.76") //$NON-NLS-1$
 									+
 									finalValue.runner.toShortString());
 							break;
 						case Running:
 							value = 0;
-							logger.warn("Transfer restart requested but already running:     " +
+							logger.warn(Messages.getString("RequestTransfer.77") + //$NON-NLS-1$
 									finalValue.runner.toShortString());
 							break;
 						case PreProcessingOk:
 							value = 0;
-							logger.warn("Transfer restart requested and restarted:     " +
+							logger.warn(Messages.getString("RequestTransfer.78") + //$NON-NLS-1$
 									finalValue.runner.toShortString());
 							break;
 						case CompleteOk:
 							value = 4;
-							logger.warn("Transfer restart requested but already finished:     " +
+							logger.warn(Messages.getString("RequestTransfer.79") + //$NON-NLS-1$
 									finalValue.runner.toShortString());
 							break;
 						case RemoteError:
 							value = 5;
-							logger.error("Transfer restart requested but remote error:     " +
+							logger.error(Messages.getString("RequestTransfer.80") + //$NON-NLS-1$
 									finalValue.runner.toShortString());
 							break;
 						case PassThroughMode:
 							value = 6;
-							logger.warn("Transfer not restarted since it is in PassThrough mode:     "
+							logger.warn(Messages.getString("RequestTransfer.81") //$NON-NLS-1$
 									+
 									finalValue.runner.toShortString());
 							break;
 						default:
 							value = 3;
-							logger.error("Transfer restart requested but internal error:     " +
+							logger.error(Messages.getString("RequestTransfer.82") + //$NON-NLS-1$
 									finalValue.runner.toShortString());
 							break;
 					}
@@ -649,7 +638,7 @@ public class RequestTransfer implements Runnable {
 			} else {
 				value = 0;
 				// Only request
-				logger.warn("Transfer information:     " +
+				logger.warn(Messages.getString("RequestTransfer.83") + //$NON-NLS-1$
 						finalValue.runner.toShortString());
 			}
 		} finally {

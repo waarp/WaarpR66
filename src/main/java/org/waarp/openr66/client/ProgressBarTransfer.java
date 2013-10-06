@@ -148,7 +148,7 @@ public abstract class ProgressBarTransfer extends AbstractTransfer {
 				future.setResult(new R66Result(e, null, true,
 						ErrorCode.ConnectionImpossible, taskRunner));
 				// since no connection : just forget it
-				if (nolog) {
+				if (nolog || taskRunner.shallIgnoreSave()) {
 					try {
 						taskRunner.delete();
 					} catch (WaarpDatabaseException e1) {
@@ -177,7 +177,7 @@ public abstract class ProgressBarTransfer extends AbstractTransfer {
 					ErrorCode.ConnectionImpossible, taskRunner));
 			lastCallBack(false, taskRunner.getRank(), taskRunner.getBlocksize());
 			// since no connection : just forget it
-			if (nolog) {
+			if (nolog || taskRunner.shallIgnoreSave()) {
 				try {
 					taskRunner.delete();
 				} catch (WaarpDatabaseException e1) {

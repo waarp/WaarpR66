@@ -89,4 +89,17 @@ public class BandwidthJsonPacket extends JsonPacket {
 	public void setReadsession(long readsession) {
 		this.readsession = readsession;
 	}
+	
+	@Override
+	public void fromJson(JsonPacket other) {
+		super.fromJson(other);
+		if (other instanceof BandwidthJsonPacket) {
+			BandwidthJsonPacket other2 = (BandwidthJsonPacket) other;
+			this.setter = other2.setter;
+			this.writeglobal = other2.writeglobal;
+			this.readglobal = other2.readglobal;
+			this.writesession = other2.writeglobal;
+			this.readsession = other2.readsession;
+		}
+	}
 }

@@ -22,6 +22,7 @@ import java.io.File;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.transcode.CharsetsUtil;
+import org.waarp.common.utility.FileConvert;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.context.R66Session;
@@ -33,6 +34,7 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
  * Transcode the current file from one Charset to another Charset as specified<br>
  * <br>
  * Arguments are:<br>
+ * -dos2unix or -unix2dos (only one) ; optional argument, but if present -from and -to might be omitted;<br>
  * -from charset<br>
  * -to charset<br>
  * -newfile newfilename ; optional argument ; if not used, will be current filename.extension ; 
@@ -80,15 +82,7 @@ public class TranscodeTask extends AbstractTask {
 		String arg = argRule;
 		arg = getReplacedValue(arg, argTransfer.split(" "));
 		String [] args = arg.split(" ");
-		if (args.length < 4) {
-			R66Result result = new R66Result(session, false, ErrorCode.Warning,
-					runner);
-			futureCompletion.setResult(result);
-			logger.warn("Not enough argument in Transcode: " + runner.toShortString());
-			futureCompletion.setFailure(new OpenR66ProtocolSystemException(
-					"Not enough argument in Transcode"));
-			return;
-		}
+		boolean dos2unix = false, unix2dos = false;
 		String fromCharset = null;
 		String toCharset = null;
 		String newfilename = null;
@@ -114,30 +108,73 @@ public class TranscodeTask extends AbstractTask {
 				if (i < args.length) {
 					extension = args[i];
 				}
+			} else if (args[i].equalsIgnoreCase("-dos2unix")) {
+				dos2unix = true;
+			} else if (args[i].equalsIgnoreCase("-unix2dos")) {
+				unix2dos = true;
 			}
 		}
-		if (fromCharset == null || toCharset == null) {
+		if (dos2unix && unix2dos) {
 			R66Result result = new R66Result(session, false, ErrorCode.Warning,
 					runner);
 			futureCompletion.setResult(result);
-			logger.warn("Not enough argument in Transcode: " + runner.toShortString());
+			logger.warn("Dos2Unix and Unix2Dos cannot be used simultaneously in Transcode: " + runner.toShortString());
 			futureCompletion.setFailure(new OpenR66ProtocolSystemException(
-					"Not enough argument in Transcode"));
+					"Dos2Unix and Unix2Dos cannot be used simultaneously in Transcode"));
+			return;
+		}
+		if (fromCharset == null || toCharset == null) {
+			if (!(dos2unix || unix2dos)) {
+				R66Result result = new R66Result(session, false, ErrorCode.Warning,
+						runner);
+				futureCompletion.setResult(result);
+				logger.warn("Not enough argument in Transcode: " + runner.toShortString());
+				futureCompletion.setFailure(new OpenR66ProtocolSystemException(
+						"Not enough argument in Transcode"));
+			} else {
+				// only 1 of Dos2Unix/Unix2Dos
+				FileConvert convert = new FileConvert(null, unix2dos, false, null);
+				File from = session.getFile().getTrueFile();
+				if (convert.convert(from, unix2dos)) {
+					futureCompletion.setSuccess();
+				} else {
+					R66Result result = new R66Result(session, false, ErrorCode.Internal,
+							runner);
+					futureCompletion.setResult(result);
+					logger.error("Cannot Transcode " +
+							argRule + ":" + argTransfer + " and " + session);
+					futureCompletion.setFailure(new OpenR66ProtocolSystemException(
+							"Cannot Transcode file"));
+				}
+			}
 			return;
 		}
 		File from = session.getFile().getTrueFile();
+		String finalname = newfilename;
 		if (newfilename != null) {
-			success = CharsetsUtil.transcode(from.getAbsolutePath(), fromCharset, 
-					newfilename, toCharset, 
-					Configuration.BUFFERSIZEDEFAULT);
+			finalname = newfilename;
 		} else if (extension != null) {
-			success = CharsetsUtil.transcode(from.getAbsolutePath(), fromCharset, 
-					from.getAbsolutePath()+"."+extension, toCharset, 
-					Configuration.BUFFERSIZEDEFAULT);
+			finalname = from.getAbsolutePath()+"."+extension;
 		} else {
-			success = CharsetsUtil.transcode(from.getAbsolutePath(), fromCharset, 
-					from.getAbsolutePath()+".transcode", toCharset, 
-					Configuration.BUFFERSIZEDEFAULT);
+			finalname = from.getAbsolutePath()+".transcode";
+		}
+		success = CharsetsUtil.transcode(from.getAbsolutePath(), fromCharset, 
+				finalname, toCharset, 
+				Configuration.BUFFERSIZEDEFAULT);
+		if (success && (dos2unix || unix2dos)) {
+			// now convert it
+			// only 1 of Dos2Unix/Unix2Dos
+			FileConvert convert = new FileConvert(null, unix2dos, false, null);
+			File to = new File(finalname);
+			if (convert.convert(to, unix2dos)) {
+				futureCompletion.setSuccess();
+			} else {
+				// only warning
+				logger.warn("Cannot Unix/Dos Transcode " +to+" : "+
+						argRule + ":" + argTransfer + " and " + session);
+				futureCompletion.setSuccess();
+			}
+			return;
 		}
 		if (success) {
 			futureCompletion.setSuccess();

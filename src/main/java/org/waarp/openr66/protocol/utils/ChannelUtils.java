@@ -43,6 +43,7 @@ import org.waarp.openr66.context.task.localexec.LocalExecClient;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 import org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket;
@@ -289,7 +290,7 @@ public class ChannelUtils extends Thread {
 			networkPacket = new NetworkPacket(localChannelReference
 					.getLocalId(), localChannelReference.getRemoteId(), packet, localChannelReference);
 		} catch (OpenR66ProtocolPacketException e) {
-			logger.error("Cannot construct message from " + packet.toString(),
+			logger.error(Messages.getString("ChannelUtils.6") + packet.toString(), //$NON-NLS-1$
 					e);
 			throw e;
 		}
@@ -399,7 +400,7 @@ public class ChannelUtils extends Thread {
 			Configuration.configuration.getLocalTransaction()
 				.shutdownLocalChannels();
 		}
-		logger.warn("Exit: Give a delay of " + delay + " ms");
+		logger.warn(Messages.getString("ChannelUtils.7") + delay + " ms"); //$NON-NLS-1$
 		try {
 			Thread.sleep(delay);
 		} catch (final InterruptedException e) {
@@ -428,8 +429,8 @@ public class ChannelUtils extends Thread {
 		DbAdmin.closeAllConnection();
 		logger.info("Exit Shutdown ServerStop");
 		Configuration.configuration.serverStop();
-		logger.warn("Exit end of Shutdown");
-		System.err.println("Exit end of Shutdown");
+		logger.warn(Messages.getString("ChannelUtils.15")); //$NON-NLS-1$
+		System.err.println(Messages.getString("ChannelUtils.15")); //$NON-NLS-1$
 		//Thread.currentThread().interrupt();
 	}
 

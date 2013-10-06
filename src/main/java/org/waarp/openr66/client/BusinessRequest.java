@@ -26,6 +26,7 @@ import org.waarp.openr66.client.AbstractBusinessRequest;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.localhandler.packet.BusinessRequestPacket;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
@@ -60,13 +61,13 @@ public class BusinessRequest extends AbstractBusinessRequest {
 		}
 		if (args.length < 5) {
 			logger
-					.error("Needs at least the configuration file as first argument and Business Java class and -to host as second and third arguments and -arg arguments\n"+
+					.error(Messages.getString("BusinessRequest.1")+ //$NON-NLS-1$
 							_INFO_ARGS);
 			return;
 		}
 		classname = DEFAULT_CLASS;
 		if (!getParams(args) || classarg == null) {
-			logger.error("Wrong initialization");
+			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
 			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
 				DbConstant.admin.close();
 			}
@@ -91,14 +92,14 @@ public class BusinessRequest extends AbstractBusinessRequest {
 		logger.debug("Finish Business Request: " + future.isSuccess());
 		long delay = time2 - time1;
 		if (future.isSuccess()) {
-			logger.info("Business Request in status: SUCCESS" +
+			logger.info(Messages.getString("BusinessRequest.6")+Messages.getString("RequestInformation.Success") + //$NON-NLS-1$
 					"    <REMOTE>" + rhost + "</REMOTE>" +
-					"    delay: " + delay);
+					Messages.getString("R66Environnement.13") + delay); //$NON-NLS-1$
 		} else {
-			logger.info("Business Request in status: FAILURE" +
+			logger.info(Messages.getString("BusinessRequest.6")+Messages.getString("RequestInformation.Failure") + //$NON-NLS-1$
 					"    <REMOTE>" + rhost + "</REMOTE>" +
 					"    <ERROR>" + future.getCause() + "</ERROR>" +
-					"    delay: " + delay);
+					Messages.getString("R66Environnement.13") + delay); //$NON-NLS-1$
 			networkTransaction.closeAll();
 			System.exit(ErrorCode.Unknown.ordinal());
 		}
