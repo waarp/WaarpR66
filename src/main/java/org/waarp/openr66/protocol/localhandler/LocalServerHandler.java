@@ -3033,7 +3033,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 
 	/**
 	 * @param json
-	 * @return
+	 * @return the packet to answer
 	 * @throws OpenR66ProtocolNotAuthenticatedException
 	 */
 	public BandwidthJsonPacket bandwidth(JsonPacket json)
@@ -3097,7 +3097,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 
 	/**
 	 * @param json
-	 * @return
+	 * @return the packet to answer
 	 * @throws OpenR66ProtocolNotAuthenticatedException
 	 * @throws OpenR66ProtocolSystemException
 	 */
@@ -3383,7 +3383,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 
 	/**
 	 * @param json
-	 * @return
+	 * @return the packet to answer
 	 * @throws OpenR66ProtocolNotAuthenticatedException
 	 */
 	public ConfigExportResponseJsonPacket configExport(JsonPacket json)
@@ -3526,7 +3526,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 	/**
 	 * @param packet
 	 * @param json
-	 * @return
+	 * @return the packet to answer
 	 * @throws OpenR66ProtocolNotAuthenticatedException
 	 */
 	public JsonCommandPacket requestRestart(JsonCommandPacket packet, JsonPacket json)
@@ -3617,8 +3617,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
 
 	/**
 	 * @param packet
-	 * @param json
-	 * @return
+	 * @param node
+	 * @return the packet to answer
 	 * @throws OpenR66ProtocolNotAuthenticatedException
 	 * @throws OpenR66ProtocolBusinessException
 	 */
@@ -3729,7 +3729,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 	/**
 	 * @param packet
 	 * @param node
-	 * @return
+	 * @return the packet to answer
 	 * @throws OpenR66ProtocolNotAuthenticatedException
 	 */
 	public R66Result stopOrCancel(JsonCommandPacket packet, StopOrCancelJsonPacket node)
@@ -3749,9 +3749,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
 	}
 
 	/**
-	 * @param packet
-	 * @param json
-	 * @return
+	 * 
+	 * @param type
+	 * @param reqd
+	 * @param reqr
+	 * @param id
+	 * @return the packet to answer
 	 * @throws OpenR66ProtocolNotAuthenticatedException
 	 */
 	private R66Result stopOrCancel(byte type, String reqd, String reqr, long id)
