@@ -25,13 +25,14 @@ import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 /**
  * Shutdown Message class for packet
  * 
- * 1 string: spassword(or key)
+ * 1 string: spassword(or key) + 1 byte (optional) to restart (if not null)
  * 
  * @author frederic bregier
  */
 public class ShutdownPacket extends AbstractLocalPacket {
 	private final byte[] key;
-
+	private byte restart = 0;
+	
 	/**
 	 * @param headerLength
 	 * @param middleLength
@@ -50,7 +51,11 @@ public class ShutdownPacket extends AbstractLocalPacket {
 		if (headerLength - 1 > 0) {
 			buf.readBytes(bpassword);
 		}
-		return new ShutdownPacket(bpassword);
+		byte torestart = 0;
+		if (middleLength > 0) {
+			torestart = buf.readByte();
+		}
+		return new ShutdownPacket(bpassword, torestart);
 	}
 
 	/**
@@ -58,6 +63,16 @@ public class ShutdownPacket extends AbstractLocalPacket {
 	 */
 	public ShutdownPacket(byte[] spassword) {
 		key = spassword;
+		restart = 0;
+	}
+
+	/**
+	 * @param spassword
+	 * @param restart
+	 */
+	public ShutdownPacket(byte[] spassword, byte restart) {
+		key = spassword;
+		this.restart = restart;
 	}
 
 	@Override
@@ -74,7 +89,12 @@ public class ShutdownPacket extends AbstractLocalPacket {
 
 	@Override
 	public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		middle = ChannelBuffers.EMPTY_BUFFER;
+		if (restart != 0) {
+			byte [] array = {restart};
+			middle = ChannelBuffers.wrappedBuffer(array);
+		} else {
+			middle = ChannelBuffers.EMPTY_BUFFER;
+		}
 	}
 
 	/*
@@ -83,7 +103,7 @@ public class ShutdownPacket extends AbstractLocalPacket {
 	 */
 	@Override
 	public String toString() {
-		return "ShutdownPacket";
+		return "ShutdownPacket"+ (restart != 0 ? " and restart" : "");
 	}
 
 	@Override
@@ -98,4 +118,7 @@ public class ShutdownPacket extends AbstractLocalPacket {
 		return key;
 	}
 
+	public boolean isRestart() {
+		return restart != 0;
+	}
 }

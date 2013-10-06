@@ -81,7 +81,7 @@ public class PartnerConfiguration {
 	/**
 	 * Constructor for an external HostId
 	 * @param id
-	 * @param version
+	 * @param json mainly the version information
 	 */
 	public PartnerConfiguration(String id, String json) {
 		this.id = id;

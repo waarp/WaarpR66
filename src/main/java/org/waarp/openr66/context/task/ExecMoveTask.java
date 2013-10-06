@@ -259,7 +259,7 @@ public class ExecMoveTask extends AbstractTask {
 	}
 
 	private void move(int status, String newName, String commandLine) {
-		String newname = newName;
+		String newname = newName.replace('\\', '/');
 		if (status == 0) {
 			if (newname.indexOf(' ') > 0) {
 				logger.warn("Exec returns a multiple string in final line: " +

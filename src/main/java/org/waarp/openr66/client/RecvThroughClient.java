@@ -144,7 +144,7 @@ public class RecvThroughClient extends AbstractTransfer {
 			}
 		} finally {
 			if (taskRunner != null) {
-				if (future.isFailed() || nolog) {
+				if (future.isFailed() || nolog || taskRunner.shallIgnoreSave()) {
 					try {
 						taskRunner.delete();
 					} catch (WaarpDatabaseException e) {

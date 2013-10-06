@@ -34,6 +34,7 @@ import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbHostConfiguration;
 import org.waarp.openr66.database.model.DbModelFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 
@@ -50,16 +51,7 @@ public class ServerInitDatabase {
 	static volatile WaarpInternalLogger logger;
 
 	protected static String _INFO_ARGS = 
-			"Need at least the configuration file as first argument then optionally\n"
-					+
-					"    -initdb\n" +
-					"    -loadBusiness xmlfile for Business configuration\n" +
-					"    -loadAlias xmlfile for Alias configuration\n" +
-					"    -loadRoles xmlfile for Roles configuration\n" +
-					"    -dir directory for rules configuration\n" +
-					"    -limit xmlfile containing limit of bandwidth\n" +
-					"    -auth xml file containing the authentication of hosts\n" +
-					"    -upgradeDb";
+			Messages.getString("ServerInitDatabase.Help"); //$NON-NLS-1$
 	
 	static String sxml = null;
 	static boolean database = false;
@@ -128,7 +120,7 @@ public class ServerInitDatabase {
 			if (!FileBasedConfiguration
 					.setConfigurationInitDatabase(Configuration.configuration, args[0])) {
 				logger
-						.error("Needs a correct configuration file as first argument");
+						.error(Messages.getString("Configuration.NeedCorrectConfig")); //$NON-NLS-1$
 				if (DbConstant.admin != null) {
 					DbConstant.admin.close();
 				}
@@ -141,15 +133,15 @@ public class ServerInitDatabase {
 				try {
 					initdb();
 				} catch (WaarpDatabaseNoConnectionException e) {
-					logger.error("Cannot connect to database");
+					logger.error(Messages.getString("ServerInitDatabase.ErrDatabase")); //$NON-NLS-1$
 					return;
 				}
-				System.out.println("End creation");
+				System.out.println(Messages.getString("ServerInitDatabase.EndCreation")); //$NON-NLS-1$
 			}
 			if (upgradeDb) {
 				// try to upgrade DB schema
 				upgradedb();
-				System.out.println("End upgrade");
+				System.out.println(Messages.getString("ServerInitDatabase.EndUpgrade")); //$NON-NLS-1$
 			}
 			if (sdirconfig != null) {
 				// load Rules
@@ -157,7 +149,7 @@ public class ServerInitDatabase {
 				if (dirConfig.isDirectory()) {
 					loadRules(dirConfig);
 				} else {
-					System.err.println("Dir is not a directory: " + sdirconfig);
+					System.err.println(Messages.getString("ServerInitDatabase.NotDirectory") + sdirconfig); //$NON-NLS-1$
 				}
 			}
 			if (shostauth != null) {
@@ -259,7 +251,7 @@ public class ServerInitDatabase {
 					}
 				}
 			}
-			System.out.println("Load done");
+			System.out.println(Messages.getString("ServerInitDatabase.LoadDone")); //$NON-NLS-1$
 		} finally {
 			if (DbConstant.admin != null) {
 				DbConstant.admin.close();
@@ -291,13 +283,13 @@ public class ServerInitDatabase {
 				uptodate = DbModelFactory.dbModel.needUpgradeDb(DbConstant.admin.session, "1.1.0", true);
 			}
 			if (uptodate) {
-				logger.error("Database schema is not up to date: you must run ServerInitDatabase with the option -upgradeDb");
+				logger.error(Messages.getString("ServerInitDatabase.SchemaNotUptodate")); //$NON-NLS-1$
 				return false;
 			} else {
-				logger.debug("Database schema is up to date");
+				logger.debug(Messages.getString("ServerInitDatabase.SchemaUptodate")); //$NON-NLS-1$
 			}
 		} catch (WaarpDatabaseNoConnectionException e) {
-			logger.error("Unable to Connect to DB", e);
+			logger.error(Messages.getString("Database.CannotConnect"), e); //$NON-NLS-1$
 			return false;
 		}
 		return ! uptodate;

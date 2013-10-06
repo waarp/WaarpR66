@@ -33,7 +33,7 @@ import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
 public enum TaskType {
 	LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, LINKRENAME, TRANSFER,
 	VALIDFILEPATH, DELETE, TAR, ZIP, EXECOUTPUT, RESCHEDULE, EXECJAVA, TRANSCODE, SNMP, FTP,
-	RENAME;
+	RENAME, RESTART;
 
 	public int type;
 
@@ -122,6 +122,9 @@ public enum TaskType {
 			case RENAME:
 				return new RenameTask(argRule, delay, session.getRunner().
 						getFileInformation(), session);
+			case RESTART:
+				return new RestartServerTask(argRule, delay, session.getRunner().
+						getFileInformation(), session);
 			default:
 				logger.error("name unknown: " + type.name);
 				throw new OpenR66RunnerErrorException("Unvalid Task: " +
@@ -198,6 +201,8 @@ public enum TaskType {
 				return new SnmpTask(argRule, delay, "", session);
 			case FTP:
 				return new FtpTransferTask(argRule, delay, "", session);
+			case RESTART:
+				return new RestartServerTask(argRule, delay, "", session);
 			case MOVE:
 			case MOVERENAME:
 			case COPY:
