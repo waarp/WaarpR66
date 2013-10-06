@@ -55,7 +55,7 @@ public class MoveRenameTask extends AbstractTask {
 	public void run() {
 		boolean success = false;
 		String finalname = argRule;
-		finalname = getReplacedValue(finalname, argTransfer.split(" ")).split(" ")[0];
+		finalname = getReplacedValue(finalname, argTransfer.split(" ")).split(" ")[0].replace('\\', '/');
 		logger.debug("Move and Rename to " + finalname + " with " + argRule +
 				":" + argTransfer + " and {}", session);
 		try {

@@ -41,6 +41,7 @@ import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.database.data.DbTaskRunner.TASKSTEP;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 import org.waarp.openr66.protocol.localhandler.packet.ErrorPacket;
@@ -65,21 +66,20 @@ public class TransferUtils {
 	 * @return the associated Result
 	 * @throws WaarpDatabaseException
 	 */
-	@SuppressWarnings("unused")
 	public static R66Result restartTransfer(DbTaskRunner taskRunner, LocalChannelReference lcr)
 			throws WaarpDatabaseException {
 		R66Result finalResult = new R66Result(null, true, ErrorCode.InitOk, taskRunner);
 		if (lcr != null) {
 			finalResult.code = ErrorCode.QueryStillRunning;
-			finalResult.other = "Transfer is still running so not restartable";
+			finalResult.other = Messages.getString("TransferUtils.0"); //$NON-NLS-1$
 		} else {
 			if (taskRunner.isSendThrough()) {
 				// XXX FIXME TODO cannot be restarted... Really?
-				if (false) {
+				/*if (false) {
 					finalResult.code = ErrorCode.PassThroughMode;
 					finalResult.other = "Transfer cannot be restarted since it is in PassThrough mode";
 					return finalResult;
-				}
+				}*/
 			}
 			// Transfer is not running
 			// but maybe need action on database
@@ -87,7 +87,7 @@ public class TransferUtils {
 				if (taskRunner.restart(true)) {
 					taskRunner.forceSaveStatus();
 					finalResult.code = ErrorCode.PreProcessingOk;
-					finalResult.other = "Transfer is restarted";
+					finalResult.other = Messages.getString("TransferUtils.1"); //$NON-NLS-1$
 				} else {
 					if (taskRunner.isSelfRequested() &&
 							(taskRunner.getGloballaststep() < TASKSTEP.POSTTASK.ordinal())) {
@@ -97,11 +97,11 @@ public class TransferUtils {
 						if (host == null || host.isClient()) {
 							// cannot be relaunch from there
 							finalResult.code = ErrorCode.ConnectionImpossible;
-							finalResult.other = "Transfer cannot be restarted since requester is a client";
-							logger.warn("Should not ask to restart since the requester is a client. Use DirectTransfer instead!");
+							finalResult.other = Messages.getString("TransferUtils.2"); //$NON-NLS-1$
+							logger.warn(Messages.getString("TransferUtils.3")); //$NON-NLS-1$
 						} else {
 							R66Future result = new R66Future(true);
-							logger.info("Try to request a transfer from restart: "+taskRunner.toShortString());
+							logger.info(Messages.getString("TransferUtils.4")+taskRunner.toShortString()); //$NON-NLS-1$
 							RequestTransfer requestTransfer =
 									new RequestTransfer(result, taskRunner.getSpecialId(),
 											taskRunner.getRequested(), taskRunner.getRequester(),
@@ -114,19 +114,19 @@ public class TransferUtils {
 							switch (finalValue.code) {
 								case QueryStillRunning:
 									finalResult.code = ErrorCode.QueryStillRunning;
-									finalResult.other = "Transfer restart requested but already active and running";
+									finalResult.other = Messages.getString("TransferUtils.5"); //$NON-NLS-1$
 									break;
 								case Running:
 									finalResult.code = ErrorCode.Running;
-									finalResult.other = "Transfer restart requested but already running";
+									finalResult.other = Messages.getString("TransferUtils.6"); //$NON-NLS-1$
 									break;
 								case PreProcessingOk:
 									finalResult.code = ErrorCode.PreProcessingOk;
-									finalResult.other = "Transfer restart requested and restarted";
+									finalResult.other = Messages.getString("TransferUtils.7"); //$NON-NLS-1$
 									break;
 								case CompleteOk:
 									finalResult.code = ErrorCode.CompleteOk;
-									finalResult.other = "Transfer restart requested but already finished so try to run Post Action";
+									finalResult.other = Messages.getString("TransferUtils.8"); //$NON-NLS-1$
 									taskRunner.setPostTask();
 									TransferUtils.finalizeTaskWithNoSession(taskRunner, lcr);
 									taskRunner.setErrorExecutionStatus(ErrorCode.QueryAlreadyFinished);
@@ -134,17 +134,17 @@ public class TransferUtils {
 									break;
 								case RemoteError:
 									finalResult.code = ErrorCode.RemoteError;
-									finalResult.other = "Transfer restart requested but remote error";
+									finalResult.other = Messages.getString("TransferUtils.9"); //$NON-NLS-1$
 									break;
 								default:
 									finalResult.code = ErrorCode.Internal;
-									finalResult.other = "Transfer restart requested but internal error";
+									finalResult.other = Messages.getString("TransferUtils.10"); //$NON-NLS-1$
 									break;
 							}
 						}
 					} else {
 						finalResult.code = ErrorCode.CompleteOk;
-						finalResult.other = "Transfer is finished so not restartable";
+						finalResult.other = Messages.getString("TransferUtils.11"); //$NON-NLS-1$
 						taskRunner.setPostTask();
 						TransferUtils.finalizeTaskWithNoSession(taskRunner, lcr);
 						taskRunner.setErrorExecutionStatus(ErrorCode.QueryAlreadyFinished);
@@ -153,7 +153,7 @@ public class TransferUtils {
 				}
 			} catch (OpenR66RunnerErrorException e) {
 				finalResult.code = ErrorCode.PreProcessingOk;
-				finalResult.other = "Transfer is restarted";
+				finalResult.other = Messages.getString("TransferUtils.1"); //$NON-NLS-1$
 			}
 		}
 		return finalResult;
@@ -169,7 +169,7 @@ public class TransferUtils {
 		if (lcr != null) {
 			int rank = taskRunner.getRank();
 			lcr.sessionNewState(R66FiniteDualStates.ERROR);
-			ErrorPacket perror = new ErrorPacket("Transfer Stopped at " + rank,
+			ErrorPacket perror = new ErrorPacket(Messages.getString("TransferUtils.13") + rank, //$NON-NLS-1$
 					code.getCode(), ErrorPacket.FORWARDCLOSECODE);
 			try {
 				// XXX ChannelUtils.writeAbstractLocalPacket(lcr, perror);
@@ -255,7 +255,7 @@ public class TransferUtils {
 			if (preparedStatement != null) {
 				preparedStatement.realClose();
 			}
-			logger.error("OpenR66 Error {}", e.getMessage());
+			logger.error(Messages.getString("TransferUtils.14"), e.getMessage()); //$NON-NLS-1$
 			return null;
 		}
 	}
@@ -278,9 +278,9 @@ public class TransferUtils {
 					if (file != null) {
 						name = file.getFile();
 						if (file.exists()) {
-							logger.info("Will delete file: "+file);
+							logger.info(Messages.getString("TransferUtils.18")+file); //$NON-NLS-1$
 							if (! file.delete()) {
-								logger.warn("Cannot delete temporary empty file: "+file);
+								logger.warn(Messages.getString("TransferUtils.19")+file); //$NON-NLS-1$
 							} else {
 								taskRunner.setRankAtStartup(0);
 								taskRunner.setFilename("###FILE DELETED### "+name);
@@ -294,7 +294,7 @@ public class TransferUtils {
 					}
 				}
 			} catch (CommandAbstractException e1) {
-				logger.warn("Cannot delete temporary empty file: "+name, e1);
+				logger.warn(Messages.getString("TransferUtils.19")+name, e1); //$NON-NLS-1$
 			} catch (WaarpDatabaseException e) {
 			}
 		}
@@ -361,7 +361,7 @@ public class TransferUtils {
 			if (preparedStatement != null) {
 				preparedStatement.realClose();
 			}
-			logger.error("OpenR66 Error {}", e.getMessage());
+			logger.error(Messages.getString("TransferUtils.14"), e.getMessage()); //$NON-NLS-1$
 			return null;
 		}
 	}
@@ -405,14 +405,14 @@ public class TransferUtils {
 				throw new OpenR66RunnerErrorException(e);
 			}
 		} catch (OpenR66RunnerErrorException e) {
-			logger.error("Cannot recreate file: {}", taskRunner.getFilename());
+			logger.error(Messages.getString("TransferUtils.27"), taskRunner.getFilename()); //$NON-NLS-1$
 			taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);
 			taskRunner.setErrorExecutionStatus(ErrorCode.FileNotFound);
 			try {
 				taskRunner.update();
 			} catch (WaarpDatabaseException e1) {
 			}
-			throw new OpenR66RunnerErrorException("Cannot recreate file", e);
+			throw new OpenR66RunnerErrorException(Messages.getString("TransferUtils.28"), e); //$NON-NLS-1$
 		}
 		R66File file = session.getFile();
 		R66Result finalValue = new R66Result(null, true, ErrorCode.CompleteOk, taskRunner);
@@ -422,14 +422,14 @@ public class TransferUtils {
 		try {
 			taskRunner.finalizeTransfer(localChannelReference, file, finalValue, true);
 		} catch (OpenR66ProtocolSystemException e) {
-			logger.error("Cannot validate runner:     {}", taskRunner.toShortString());
+			logger.error(Messages.getString("TransferUtils.29"), taskRunner.toShortString()); //$NON-NLS-1$
 			taskRunner.changeUpdatedInfo(UpdatedInfo.INERROR);
 			taskRunner.setErrorExecutionStatus(ErrorCode.Internal);
 			try {
 				taskRunner.update();
 			} catch (WaarpDatabaseException e1) {
 			}
-			throw new OpenR66RunnerErrorException("Cannot validate runner", e);
+			throw new OpenR66RunnerErrorException(Messages.getString("TransferUtils.30"), e); //$NON-NLS-1$
 		}
 	}
 }

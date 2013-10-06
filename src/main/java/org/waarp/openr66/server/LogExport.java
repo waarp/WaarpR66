@@ -112,7 +112,7 @@ public class LogExport implements Runnable {
 
 		// first clean if ask
 		if (clean && (host.getHostid().equals(Configuration.configuration.HOST_ID)
-				|| host.getHostid().equals(Configuration.configuration.HOST_SSLAUTH))) {
+				|| host.getHostid().equals(Configuration.configuration.HOST_SSLID))) {
 			// Update all UpdatedInfo to DONE
 			// where GlobalLastStep = ALLDONETASK and status = CompleteOk
 			try {

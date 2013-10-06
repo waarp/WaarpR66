@@ -23,19 +23,25 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
+import org.waarp.openr66.context.R66Session;
+import org.waarp.openr66.context.filesystem.R66File;
+import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66DatabaseGlobalException;
 import org.waarp.openr66.protocol.localhandler.packet.RequestPacket;
+import org.waarp.openr66.protocol.utils.FileUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
 
 /**
@@ -51,37 +57,7 @@ public abstract class AbstractTransfer implements Runnable {
 	static protected volatile WaarpInternalLogger logger;
 	
 	protected static String _INFO_ARGS = 
-			"Needs at least 3 or 4 arguments:\n"
-					+
-					"  the XML client configuration file,\n"
-					+
-					"  '-to' the remoteHost Id,\n"
-					+
-					"  '-file' the file to transfer,\n"
-					+
-					"  '-rule' the rule\n"
-					+
-					"Or\n"
-					+
-					"  '-to' the remoteHost Id,\n"
-					+
-					"  '-id' \"Id of a previous transfer\",\n"
-					+
-					"Other options:\n"
-					+
-					"  '-info' \"information to send\",\n"
-					+
-					"  '-md5' to force MD5 (or other hash as configured) by packet control,\n"
-					+
-					"  '-block' size of packet > 1K (prefered is 64K),\n"
-					+
-					"  '-nolog' to not log locally this action\n"
-					+
-					"  '-start' \"time start\" as yyyyMMddHHmmss (override previous -delay options)\n"
-					+
-					"  '-delay' \"+delay in ms\" as delay in ms from current time(override previous -start options)\n"
-					+
-					"  '-delay' \"delay in ms\" as time in ms (override previous -start options)";
+			Messages.getString("AbstractTransfer.0"); //$NON-NLS-1$
 	
 	protected static final String NO_INFO_ARGS = "noinfo";
 
@@ -180,10 +156,21 @@ public abstract class AbstractTransfer implements Runnable {
 			long originalSize = -1;
 			if (RequestPacket.isSendMode(mode) && ! RequestPacket.isThroughMode(mode)) {
 				File file = new File(filename);
+				// Change dir
+				try {
+					R66Session session = new R66Session();
+					session.getAuth().specialNoSessionAuth(false, Configuration.configuration.HOST_ID);
+					session.getDir().changeDirectory(rule.getSendPath());
+					R66File filer66 = FileUtils.getFile(logger, session, filename, true, true, false, null);
+					file = filer66.getTrueFile();
+				} catch (CommandAbstractException e) {
+				} catch (OpenR66RunnerErrorException e) {
+				}
 				if (file.canRead()) {
 					originalSize = file.length();
 				}
 			}
+			logger.debug("Filesize: "+originalSize);
 			String sep = PartnerConfiguration.getSeparator(remoteHost);
 			RequestPacket request = new RequestPacket(rulename,
 					mode, filename, blocksize, 0,
@@ -227,6 +214,7 @@ public abstract class AbstractTransfer implements Runnable {
 	 * @return True if all parameters were found and correct
 	 */
 	protected static boolean getParams(String[] args, boolean submitOnly) {
+		_INFO_ARGS = Messages.getString("AbstractTransfer.0"); //$NON-NLS-1$
 		if (args.length < 2) {
 			logger
 					.error(_INFO_ARGS);
@@ -236,13 +224,13 @@ public abstract class AbstractTransfer implements Runnable {
 			if (!FileBasedConfiguration
 					.setSubmitClientConfigurationFromXml(Configuration.configuration, args[0])) {
 				logger
-						.error("Needs a correct configuration file as first argument");
+						.error(Messages.getString("Configuration.NeedCorrectConfig")); //$NON-NLS-1$
 				return false;
 			}
 		} else if (!FileBasedConfiguration
 				.setClientConfigurationFromXml(Configuration.configuration, args[0])) {
 			logger
-					.error("Needs a correct configuration file as first argument");
+					.error(Messages.getString("Configuration.NeedCorrectConfig")); //$NON-NLS-1$
 			return false;
 		}
 		// Now set default values from configuration
@@ -268,7 +256,7 @@ public abstract class AbstractTransfer implements Runnable {
 					i++;
 					block = Integer.parseInt(args[i]);
 					if (block < 100) {
-						logger.error("Block size is too small: " + block);
+						logger.error(Messages.getString("AbstractTransfer.1") + block); //$NON-NLS-1$
 						return false;
 					}
 				} else if (args[i].equalsIgnoreCase("-nolog")) {
@@ -295,7 +283,7 @@ public abstract class AbstractTransfer implements Runnable {
 				}
 			}
 		} catch (NumberFormatException e) {
-			logger.error("Number Format exception at Rank "+i);
+			logger.error(Messages.getString("AbstractTransfer.20")+i); //$NON-NLS-1$
 			return false;
 		}
 		if (fileInfo == null) {
@@ -312,14 +300,14 @@ public abstract class AbstractTransfer implements Runnable {
 				return true;
 			} catch (WaarpDatabaseException e) {
 				logger.error(
-						"All params are not correctly set! Need at least (-to -rule and -file)" +
-								" or (-to and -id) params", e);
+						Messages.getString("AbstractTransfer.21") //$NON-NLS-1$
+								, e);
 				return false;
 			}
 
 		}
-		logger.error("All params are not set! Need at least (-to -rule and -file)" +
-				" or (-to and -id) params\n" + _INFO_ARGS);
+		logger.error(Messages.getString("AbstractTransfer.21") + //$NON-NLS-1$
+				_INFO_ARGS);
 		return false;
 	}
 }

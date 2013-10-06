@@ -185,7 +185,7 @@ public class TestSendThroughClient extends SendThroughClient {
 							(result.file != null ? result.file.toString() : "no file")
 							+ " delay: " + delay);
 				}
-				if (nolog) {
+				if (nolog || result.runner.shallIgnoreSave()) {
 					// In case of success, delete the runner
 					try {
 						result.runner.delete();

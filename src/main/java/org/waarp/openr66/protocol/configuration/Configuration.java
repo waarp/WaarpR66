@@ -102,6 +102,7 @@ public class Configuration {
 	 * General Configuration object
 	 */
 	public static Configuration configuration = new Configuration();
+	
 	public static final String SnmpName = "Waarp OpenR66 SNMP";
 	public static final int SnmpPrivateId = 66666;
 	public static final int SnmpR66Id = 66;
@@ -573,6 +574,8 @@ public class Configuration {
 	
 	public boolean isHostProxyfied = false;
 	
+	public boolean warnOnStartup = true;
+	
 	public Configuration() {
 		// Init signal handler
 		shutdownConfiguration.timeout = TIMEOUTCON;
@@ -580,13 +583,14 @@ public class Configuration {
 		computeNbThreads();
 		// Init FiniteStates
 		R66FiniteDualStates.initR66FiniteStates();
-		boolean value = SystemPropertyUtil.getBoolean("openr66.executebeforetransferred", true);
+		boolean value = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_EXECUTEBEFORETRANSFERRED, true);
 		isExecuteErrorBeforeTransferAllowed = value;
-		boolean useSpaceSeparator = SystemPropertyUtil.getBoolean("openr66.usespaceseparator", false);
+		boolean useSpaceSeparator = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_USESPACESEPARATOR, false);
 		if (useSpaceSeparator) {
 			PartnerConfiguration.SEPARATOR_FIELD = PartnerConfiguration.BLANK_SEPARATOR_FIELD;
 		}
-		isHostProxyfied = SystemPropertyUtil.getBoolean("openr66.ishostproxyfied", false);
+		isHostProxyfied = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_ISHOSTPROXYFIED, false);
+		warnOnStartup = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_STARTUP_WARNING, true);
 	}
 
 	/**
@@ -601,8 +605,13 @@ public class Configuration {
 				.getDefaultFactory());
 		objectSizeEstimator = new NetworkPacketSizeEstimator();
 		httpPipelineInit();
-		logger.warn("Server Thread: " + SERVER_THREAD + " Client Thread: " + CLIENT_THREAD
+		if (warnOnStartup) {
+			logger.warn("Server Thread: " + SERVER_THREAD + " Client Thread: " + CLIENT_THREAD
 				+ " Runner Thread: " + RUNNER_THREAD);
+		} else {
+			logger.info("Server Thread: " + SERVER_THREAD + " Client Thread: " + CLIENT_THREAD
+					+ " Runner Thread: " + RUNNER_THREAD);
+		}
 		serverPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
 				CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory, 1000,
 				TimeUnit.MILLISECONDS, objectSizeEstimator,
@@ -639,7 +648,7 @@ public class Configuration {
 		shutdownConfiguration.timeout = TIMEOUTCON;
 		R66ShutdownHook.addShutdownHook();
 		if ((!useNOSSL) && (!useSSL)) {
-			logger.error("OpenR66 has neither NOSSL nor SSL support included! Stop here!");
+			logger.error(Messages.getString("Configuration.NoSSL")); //$NON-NLS-1$
 			System.exit(-1);
 		}
 		pipelineInit();
@@ -649,7 +658,7 @@ public class Configuration {
 	}
 
 	public void r66Startup() throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
-		logger.info("Start R66: " + SERVER_PORT + ":" + useNOSSL + ":" + HOST_ID + 
+		logger.info(Messages.getString("Configuration.Start") + SERVER_PORT + ":" + useNOSSL + ":" + HOST_ID +  //$NON-NLS-1$
 				" " + SERVER_SSLPORT + ":" + useSSL + ":" + HOST_SSLID);
 		// add into configuration
 		this.constraintLimitHandler.setServer(true);
@@ -674,7 +683,7 @@ public class Configuration {
 					SERVER_PORT)));
 		} else {
 			networkServerPipelineFactory = null;
-			logger.warn("NOSSL mode is deactivated");
+			logger.warn(Messages.getString("Configuration.NOSSLDeactivated")); //$NON-NLS-1$
 		}
 
 		if (useSSL && HOST_SSLID != null) {
@@ -694,7 +703,7 @@ public class Configuration {
 					SERVER_SSLPORT)));
 		} else {
 			networkSslServerPipelineFactory = null;
-			logger.warn("SSL mode is desactivated");
+			logger.warn(Messages.getString("Configuration.SSLMODEDeactivated")); //$NON-NLS-1$
 		}
 
 		// Factory for TrafficShapingHandler
@@ -717,7 +726,7 @@ public class Configuration {
 
 	public void startHttpSupport() {
 		// Now start the HTTP support
-		logger.info("Start R66 HTTP: " + SERVER_HTTPPORT + 
+		logger.info(Messages.getString("Configuration.HTTPStart") + SERVER_HTTPPORT +  //$NON-NLS-1$
 				" HTTPS: " + SERVER_HTTPSPORT);
 		httpChannelGroup = new DefaultChannelGroup("HttpOpenR66");
 		// Configure the server.
@@ -779,7 +788,7 @@ public class Configuration {
 			try {
 				agentSnmp.start();
 			} catch (IOException e) {
-				throw new WaarpDatabaseSqlException("AgentSnmp Error while starting", e);
+				throw new WaarpDatabaseSqlException(Messages.getString("Configuration.SNMPError"), e); //$NON-NLS-1$
 			}
 		}
 	}
@@ -893,6 +902,23 @@ public class Configuration {
 	}
 
 	/**
+	 * submit a task in a fixed delay
+	 * @param thread
+	 * @param delay
+	 * @param unit
+	 */
+	public void launchInFixedDelay(Thread thread, long delay, TimeUnit unit) {
+		if (internalRunner != null) {
+			internalRunner.submitExternalTask(thread, delay, unit);
+		} else {
+			try {
+				Thread.sleep(delay);
+			} catch (InterruptedException e) {
+			}
+			thread.start();
+		}
+	}
+	/**
 	 * Reset the global monitor for bandwidth limitation and change future channel monitors
 	 * 
 	 * @param writeGlobalLimit
@@ -919,7 +945,7 @@ public class Configuration {
 		if (globalTrafficShapingHandler != null) {
 			globalTrafficShapingHandler.configure(serverGlobalWriteLimit, serverGlobalReadLimit,
 					delayLimit);
-			logger.warn("Bandwidth limits change: {}", globalTrafficShapingHandler);
+			logger.warn(Messages.getString("Configuration.BandwidthChange"), globalTrafficShapingHandler); //$NON-NLS-1$
 		}
 		newWriteLimit = writeSessionLimit > 1024 ? writeSessionLimit
 				: serverChannelWriteLimit;
@@ -947,7 +973,7 @@ public class Configuration {
 			nb = Runtime.getRuntime().availableProcessors() + 1;
 		}
 		if (SERVER_THREAD < nb) {
-			logger.info("Change default number of threads to " + nb);
+			logger.info(Messages.getString("Configuration.ThreadNumberChange") + nb); //$NON-NLS-1$
 			SERVER_THREAD = nb;
 			CLIENT_THREAD = SERVER_THREAD * 10;
 		}
@@ -960,7 +986,7 @@ public class Configuration {
 	public ChannelTrafficShapingHandler newChannelTrafficShapingHandler()
 			throws OpenR66ProtocolNoDataException {
 		if (serverChannelReadLimit == 0 && serverChannelWriteLimit == 0) {
-			throw new OpenR66ProtocolNoDataException("No limit for channel");
+			throw new OpenR66ProtocolNoDataException(Messages.getString("Configuration.ExcNoLimit")); //$NON-NLS-1$
 		}
 		return new ChannelTrafficHandler(objectSizeEstimator,
 				timerTrafficCounter, serverChannelWriteLimit,
@@ -1108,7 +1134,7 @@ public class Configuration {
 	public String getHostId(boolean isSSL) throws OpenR66ProtocolNoSslException {
 		if (isSSL) {
 			if (HOST_SSLID == null) {
-				throw new OpenR66ProtocolNoSslException("No SSL support");
+				throw new OpenR66ProtocolNoSslException(Messages.getString("Configuration.ExcNoSSL")); //$NON-NLS-1$
 			}
 			return HOST_SSLID;
 		} else {

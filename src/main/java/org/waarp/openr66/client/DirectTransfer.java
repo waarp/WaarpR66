@@ -28,6 +28,7 @@ import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNotYetConnectionException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
@@ -82,7 +83,7 @@ public class DirectTransfer extends AbstractTransfer {
 				future.setResult(new R66Result(e, null, true,
 						ErrorCode.ConnectionImpossible, taskRunner));
 				// since no connection : just forget it
-				if (nolog) {
+				if (nolog || taskRunner.shallIgnoreSave()) {
 					try {
 						taskRunner.delete();
 					} catch (WaarpDatabaseException e1) {
@@ -108,7 +109,7 @@ public class DirectTransfer extends AbstractTransfer {
 			future.setResult(new R66Result(exc, null, true,
 					ErrorCode.ConnectionImpossible, taskRunner));
 			// since no connection : just forget it
-			if (nolog) {
+			if (nolog || taskRunner.shallIgnoreSave()) {
 				try {
 					taskRunner.delete();
 				} catch (WaarpDatabaseException e1) {
@@ -125,7 +126,7 @@ public class DirectTransfer extends AbstractTransfer {
 			logger = WaarpInternalLoggerFactory.getLogger(DirectTransfer.class);
 		}
 		if (!getParams(args, false)) {
-			logger.error("Wrong initialization");
+			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
 			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
 				DbConstant.admin.close();
 			}
@@ -150,7 +151,7 @@ public class DirectTransfer extends AbstractTransfer {
 			R66Result result = future.getResult();
 			if (future.isSuccess()) {
 				if (result.runner.getErrorInfo() == ErrorCode.Warning) {
-					logger.warn("Transfer in status: WARNED     "
+					logger.warn(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Warned") //$NON-NLS-1$
 							+ result.runner.toShortString()
 							+
 							"     <REMOTE>"
@@ -163,7 +164,7 @@ public class DirectTransfer extends AbstractTransfer {
 									: "no file")
 							+ "     delay: " + delay);
 				} else {
-					logger.info("Transfer in status: SUCCESS     "
+					logger.info(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Success") //$NON-NLS-1$
 							+ result.runner.toShortString()
 							+
 							"     <REMOTE>"
@@ -176,7 +177,7 @@ public class DirectTransfer extends AbstractTransfer {
 									: "no file")
 							+ "     delay: " + delay);
 				}
-				if (nolog) {
+				if (nolog || result.runner.shallIgnoreSave()) {
 					// In case of success, delete the runner
 					try {
 						result.runner.delete();
@@ -187,17 +188,17 @@ public class DirectTransfer extends AbstractTransfer {
 				}
 			} else {
 				if (result == null || result.runner == null) {
-					logger.error("Transfer in     FAILURE with no Id", future.getCause());
+					logger.error(Messages.getString("Transfer.FailedNoId"), future.getCause()); //$NON-NLS-1$
 					networkTransaction.closeAll();
 					System.exit(ErrorCode.Unknown.ordinal());
 				}
 				if (result.runner.getErrorInfo() == ErrorCode.Warning) {
-					logger.warn("Transfer is     WARNED     " + result.runner.toShortString() +
+					logger.warn(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Warned") + result.runner.toShortString() + //$NON-NLS-1$
 							"     <REMOTE>" + rhost + "</REMOTE>", future.getCause());
 					networkTransaction.closeAll();
 					System.exit(result.code.ordinal());
 				} else {
-					logger.error("Transfer in     FAILURE     " + result.runner.toShortString() +
+					logger.error(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Failure") + result.runner.toShortString() + //$NON-NLS-1$
 							"     <REMOTE>" + rhost + "</REMOTE>", future.getCause());
 					networkTransaction.closeAll();
 					System.exit(result.code.ordinal());

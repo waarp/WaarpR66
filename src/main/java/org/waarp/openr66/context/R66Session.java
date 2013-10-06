@@ -17,10 +17,9 @@
  */
 package org.waarp.openr66.context;
 
-import java.io.UnsupportedEncodingException;
+import java.io.File;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.net.URLDecoder;
 import java.util.HashMap;
 
 import org.waarp.common.command.exception.CommandAbstractException;
@@ -32,7 +31,6 @@ import org.waarp.common.file.filesystembased.FilesystemBasedFileParameterImpl;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.state.MachineState;
-import org.waarp.common.utility.DetectionUtils;
 import org.waarp.openr66.context.authentication.R66Auth;
 import org.waarp.openr66.context.filesystem.R66Dir;
 import org.waarp.openr66.context.filesystem.R66File;
@@ -43,6 +41,7 @@ import org.waarp.openr66.database.data.DbTaskRunner.TASKSTEP;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
+import org.waarp.openr66.protocol.utils.FileUtils;
 
 /**
  * The global object session in OpenR66, a session by local channel
@@ -90,6 +89,10 @@ public class R66Session implements SessionInterface {
 	 * Does this session is Ready to server a request
 	 */
 	private volatile boolean isReady = false;
+	/**
+	 * Used to prevent deny of service
+	 */
+	private volatile int numOfError = 0;
 
 	/**
 	 * Current Restart information
@@ -353,68 +356,26 @@ public class R66Session implements SessionInterface {
 	 */
 	public void setFileBeforePreRunner() throws OpenR66RunnerErrorException {
 		// check first if the next step is the PRE task from beginning
-		String filename;
-		if (this.runner.isPreTaskStarting()) {
-			logger.debug("Dir is: "+dir.getFullPath());
-			logger.debug("File is: "+this.runner.getOriginalFilename());
-			filename = R66Dir.normalizePath(this.runner.getOriginalFilename());
-			if (filename.startsWith("file:/")) {
-				if (DetectionUtils.isWindows()) {
-					filename = filename.substring("file:/".length());
-				} else {
-					filename = filename.substring("file:".length());
-				}
-				try {
-					filename = URLDecoder.decode(filename, "UTF-8");
-				} catch (UnsupportedEncodingException e) {
-					this.runner.setErrorExecutionStatus(ErrorCode.FileNotFound);
-					throw new OpenR66RunnerErrorException("File cannot be read: " +
-							filename);
-				}
-			}
-			logger.debug("File becomes: "+filename);
-			this.runner.setOriginalFilename(filename);
-		} else {
-			filename = this.runner.getFilename();
+		try {
+			file = FileUtils.getFile(logger, this, this.runner.getOriginalFilename(), 
+					this.runner.isPreTaskStarting(), this.runner.isSender(), 
+					this.runner.isSendThrough(), file);
+		} catch (OpenR66RunnerErrorException e) {
+			this.runner.setErrorExecutionStatus(ErrorCode.FileNotFound);
+			throw e;
 		}
-		if (this.runner.isSender()) {
+		if (this.runner.isSender() && ! runner.isSendThrough()) {
+			// possibly resolved filename
 			try {
-				if (file == null) {
-					try {
-						file = (R66File) dir.setFile(filename, false);
-					} catch (CommandAbstractException e) {
-						logger.warn("File not placed in normal directory", e);
-						// file is not under normal base directory, so is external
-						// File should already exist but can be using special code ('*?')
-						file = dir.setFileNoCheck(filename);
-					}
-				}
-				if (runner.isSendThrough()) {
-					// no test on file since it does not really exist
-					logger.debug("File is in through mode: {}", file);
-				} else if (!file.canRead()) {
-					// file is not under normal base directory, so is external
-					// File should already exist but cannot use special code ('*?')
-					file = new R66File(this, dir, filename);
-					if (!file.canRead()) {
-						this.runner.setErrorExecutionStatus(ErrorCode.FileNotFound);
-						throw new OpenR66RunnerErrorException("File cannot be read: " +
-								file.getTrueFile().getAbsolutePath());
-					}
-				} else {
-					// possibly resolved filename
-					runner.setOriginalFilename(file.getFile());
-					runner.setFilename(file.getFile());
-				}
+				runner.setOriginalFilename(file.getFile());
+				runner.setFilename(file.getFile());
+				logger.debug("Old size: "+runner.getOriginalSize()+" => "+file.length());
 				if (runner.getOriginalSize() <= 0) {
 					runner.setOriginalSize(file.length());
 				}
 			} catch (CommandAbstractException e) {
 				throw new OpenR66RunnerErrorException(e);
 			}
-		} else {
-			// not sender so file is just registered as is but no test of existence
-			file = new R66File(this, dir, filename);
 		}
 	}
 
@@ -527,8 +488,11 @@ public class R66Session implements SessionInterface {
 		}
 		// check fileSize
 		if (runner.isSender() && file != null) {
-			long originalSize = file.length();
-			this.runner.setOriginalSize(originalSize);
+			logger.debug("could change size: "+this.runner.getOriginalSize()+" => "+file.length());
+			if (this.runner.getOriginalSize() < 0) {
+				long originalSize = file.length();
+				this.runner.setOriginalSize(originalSize);
+			}
 		}
 	}
 
@@ -579,6 +543,7 @@ public class R66Session implements SessionInterface {
 	public void setRunner(DbTaskRunner runner)
 			throws OpenR66RunnerErrorException {
 		this.runner = runner;
+		logger.debug("Runner to set: {} {}", runner.shallIgnoreSave(), runner);
 		setBusinessObject(Configuration.configuration.r66BusinessFactory.getBusinessInterface(this));
 		this.runner.checkThroughMode();
 		if (this.businessObject != null) {
@@ -626,12 +591,22 @@ public class R66Session implements SessionInterface {
 		} else {
 			restart.restartMarker(0);
 		}
+		logger.debug("GlobalLastStep: "+runner.getGloballaststep() + " vs " +TASKSTEP.NOTASK.ordinal()+":"+TASKSTEP.PRETASK.ordinal());
 		if (runner.getGloballaststep() == TASKSTEP.NOTASK.ordinal() ||
 				runner.getGloballaststep() == TASKSTEP.PRETASK.ordinal()) {
 			setFileBeforePreRunner();
 			this.runner.setPreTask();
 			runner.saveStatus();
 			this.runner.run();
+			if (runner.isSender() && ! runner.isSendThrough()) {
+				if (file != null) {
+					try {
+						runner.setOriginalSize(file.length());
+					} catch (CommandAbstractException e) {
+						// ignore
+					}
+				}
+			}
 			runner.saveStatus();
 			runner.setTransferTask(runner.getRank());
 		} else {
@@ -655,13 +630,40 @@ public class R66Session implements SessionInterface {
 				if (runner.isRecvThrough()) {
 					// no size can be checked
 				} else {
+					long length = 0;
+					if (file != null) {
+						try {
+							length = file.length();
+						} catch (CommandAbstractException e) {
+						}
+					}
+					long needed = this.runner.getOriginalSize() - length;
+					long available = 0;
+					String targetDir = null;
+					try {
+						available = this.dir.getFreeSpace();
+						targetDir = this.dir.getPwd();
+					} catch (CommandAbstractException e1) {
+					}
+					if (file != null) {
+						File truefile = file.getTrueFile().getParentFile();
+						available = truefile.getFreeSpace();
+						targetDir = truefile.getPath();
+					}
+					logger.debug("Check available space: "+available+" >? "+needed+"(+"+length+")");
+					if (needed > available) {
+						// not enough space
+						this.runner.setErrorExecutionStatus(ErrorCode.Internal);
+						throw new OpenR66RunnerErrorException("File cannot be written due to unsufficient space available: " +
+								targetDir+" need "+needed+" more while available is "+available);
+					}
 					if (file == null) {
 						this.runner.saveStatus();
 						logger.info("Final PARTIAL init: {}", this.runner);
 						return;
 					}
+					// First check available space
 					try {
-						long length = file.length();
 						long oldPosition = restart.getPosition();
 						restart.setSet(true);
 						if (oldPosition > length) {
@@ -683,9 +685,6 @@ public class R66Session implements SessionInterface {
 							this.runner.deleteTempFile();
 							throw new OpenR66RunnerErrorException(e);
 						}
-					} catch (CommandAbstractException e1) {
-						// length wrong
-						throw new OpenR66RunnerErrorException("File length is wrong", e1);
 					} catch (NoRestartException e) {
 						// length is not to be changed
 					}
@@ -905,6 +904,15 @@ public class R66Session implements SessionInterface {
 		return file;
 	}
 
+	/**
+	 * 
+	 * @return True if the number of Error is still acceptable
+	 */
+	public boolean addError() {
+		numOfError ++;
+		return (numOfError < Configuration.RETRYNB);
+	}
+	
 	@Override
 	public String toString() {
 		return "Session: FS[" + state.getCurrent() + "] " + status + "  " +

@@ -49,7 +49,8 @@ import org.waarp.openr66.protocol.utils.ChannelUtils;
 public class ServerShutdown {
 
 	protected static String _INFO_ARGS = "Needs a correct configuration file as first argument and optionally [-nossl].\n" +
-			"If '-block' or '-unblock' is specified, it will only block or unblock new request, but no shutdown will occur.";
+			"If '-block' or '-unblock' is specified, it will only block or unblock new request, but no shutdown will occur.\n" +
+			"If '-restart' is specified, the server will shutdown then restart immediately";
 	
 	/**
 	 * @param args
@@ -82,6 +83,7 @@ public class ServerShutdown {
 		boolean useSsl = true;
 		boolean isblock = false;
 		boolean isunblock = false;
+		boolean isRestart = false;
 		if (args.length > 1) {
 			for (int i = 1; i < args.length; i++) {
 				if (args[i].equalsIgnoreCase("-nossl")) {
@@ -90,6 +92,8 @@ public class ServerShutdown {
 					isblock = true;
 				} else if (args[i].equalsIgnoreCase("-unblock")) {
 					isunblock = true;
+				} else if (args[i].equalsIgnoreCase("-restart")) {
+					isRestart = true;
 				}
 			}
 		}
@@ -124,7 +128,11 @@ public class ServerShutdown {
 		if (isblock || isunblock) {
 			packet = new BlockRequestPacket(isblock, key);
 		} else {
-			packet = new ShutdownPacket(key);
+			if (isRestart) {
+				packet = new ShutdownPacket(key, (byte) 1);
+			} else {
+				packet = new ShutdownPacket(key);
+			}
 		}
 		final NetworkTransaction networkTransaction = new NetworkTransaction();
 		final SocketAddress socketServerAddress = host.getSocketAddress();

@@ -34,6 +34,7 @@ import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
+import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 import org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket;
@@ -112,6 +113,14 @@ public class ConfigExport implements Runnable {
 	public void run() {
 		if (logger == null) {
 			logger = WaarpInternalLoggerFactory.getLogger(ConfigExport.class);
+		}
+		if (! (host || rule || business || alias || role)) {
+			logger.error("No action required");
+			future.setResult(new R66Result(
+					new OpenR66ProtocolNoDataException("No action required"),
+					null, true, ErrorCode.IncorrectCommand, null));
+			future.setFailure(future.getResult().exception);
+			return;
 		}
 		SocketAddress socketAddress = dbhost.getSocketAddress();
 		boolean isSSL = dbhost.isSsl();
