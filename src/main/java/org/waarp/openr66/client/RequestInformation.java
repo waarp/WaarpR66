@@ -241,7 +241,7 @@ public class RequestInformation implements Runnable {
 				value = 0;
 				R66Result r66result = result.getResult();
 				ValidPacket info = (ValidPacket) r66result.other;
-				logger.warn(Messages.getString("RequestInformation.Success") + info.getSmiddle() + "     " + info.getSheader()); //$NON-NLS-1$
+				logger.warn(Messages.getString("RequestInformation.Success") + "\n" + info.getSmiddle() + "\n" + info.getSheader()); //$NON-NLS-1$
 			} else {
 				value = 2;
 				logger.error(Messages.getString("RequestInformation.Failure") + //$NON-NLS-1$
