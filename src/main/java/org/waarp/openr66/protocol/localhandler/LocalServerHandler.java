@@ -1275,7 +1275,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		try {
 			session.setRunner(runner);
 			// Fix to ensure that recv request are not trying to access to not chroot files
-			if ((! Configuration.configuration.chrootNotChecked) && packet.isToValidate() && runner.isSender()) {
+			if (Configuration.configuration.chrootChecked && packet.isToValidate() && runner.isSender()) {
 				session.startup(true);
 			} else {
 				session.startup(false);

@@ -54,6 +54,6 @@ public class R66SystemProperties {
 	/**
 	 * Shall we allow or not a request as RECV that will access to file outside Rule Out directory
 	 */
-	public static final String OPENR66_CHROOT_NOTCHECKED = "openr66.chroot.notchecked";
+	public static final String OPENR66_CHROOT_CHECKED = "openr66.chroot.checked";
 
 }

@@ -576,7 +576,7 @@ public class Configuration {
 	
 	public boolean warnOnStartup = true;
 
-	public boolean chrootNotChecked = true;
+	public boolean chrootChecked = true;
 	
 	public boolean quietClient = false;
 	
@@ -594,7 +594,7 @@ public class Configuration {
 		}
 		isHostProxyfied = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_ISHOSTPROXYFIED, false);
 		warnOnStartup = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_STARTUP_WARNING, true);
-		chrootNotChecked = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_CHROOT_NOTCHECKED, true);
+		chrootChecked = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_CHROOT_CHECKED, true);
 	}
 
 	/**
