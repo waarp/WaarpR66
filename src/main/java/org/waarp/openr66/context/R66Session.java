@@ -534,7 +534,9 @@ public class R66Session implements SessionInterface {
 	}
 
 	/**
-	 * Set the runner, START from the PreTask if necessary, and prepare the file
+	 * Set the runner, and setup the directory first.
+	 * 
+	 * This call should be followed by a startup() call.
 	 * 
 	 * @param runner
 	 *            the runner to set
@@ -584,6 +586,14 @@ public class R66Session implements SessionInterface {
 			}
 		}
 		logger.debug("Dir is: "+dir.getFullPath());
+	}
+	/**
+	 * START from the PreTask if necessary, and prepare the file
+	 * 
+	 * @param checkNotExternal if True, the file as Sender should not be external to current directory
+	 * @throws OpenR66RunnerErrorException
+	 */
+	public void startup(boolean checkNotExternal) throws OpenR66RunnerErrorException {
 		if (runner.getRank() > 0) {
 			logger.debug("restart at " + runner.getRank() + " {}", runner);
 			runner.setTransferTask(runner.getRank());
@@ -595,6 +605,19 @@ public class R66Session implements SessionInterface {
 		if (runner.getGloballaststep() == TASKSTEP.NOTASK.ordinal() ||
 				runner.getGloballaststep() == TASKSTEP.PRETASK.ordinal()) {
 			setFileBeforePreRunner();
+			if (runner.isSender() && ! runner.isSendThrough() && file != null && checkNotExternal) {
+				String path = null;
+				try {
+					path = file.getFile();
+				} catch (CommandAbstractException e1) {
+				}
+				if (file.isExternal() || (path != null && ! dir.isPathInCurrentDir(path))) {
+					// should not be
+					logger.error("File cannot be found in the current output directory: {} not in {}", file, dir);
+					this.runner.setErrorExecutionStatus(ErrorCode.FileNotAllowed);
+					throw new OpenR66RunnerErrorException("File cannot be found in the current output directory");
+				}
+			}
 			this.runner.setPreTask();
 			runner.saveStatus();
 			this.runner.run();

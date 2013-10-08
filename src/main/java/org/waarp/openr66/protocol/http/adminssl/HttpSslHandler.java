@@ -120,7 +120,6 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 	private final StringBuilder responseContent = new StringBuilder();
 	private volatile String uriRequest;
 	private volatile Map<String, List<String>> params;
-	private volatile QueryStringDecoder queryStringDecoder;
 	private volatile boolean forceClose = false;
 	private volatile boolean shutdown = false;
 
@@ -1816,7 +1815,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 	@Override
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
 		HttpRequest request = this.request = (HttpRequest) e.getMessage();
-		queryStringDecoder = new QueryStringDecoder(request.getUri());
+		QueryStringDecoder queryStringDecoder = new QueryStringDecoder(request.getUri());
 		uriRequest = queryStringDecoder.getPath();
 		logger.debug("Msg: " + uriRequest);
 		if (uriRequest.contains("gre/") || uriRequest.contains("img/") ||

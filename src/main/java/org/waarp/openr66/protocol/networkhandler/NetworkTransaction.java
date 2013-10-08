@@ -144,18 +144,16 @@ public class NetworkTransaction {
 			channelClientFactory);
 	private final ChannelGroup networkChannelGroup = new DefaultChannelGroup(
 			"NetworkChannels");
-	private final NetworkServerPipelineFactory networkServerPipelineFactory;
-	private final NetworkSslServerPipelineFactory networkSslServerPipelineFactory;
 
 	public NetworkTransaction() {
-		networkServerPipelineFactory = new NetworkServerPipelineFactory(false);
+		NetworkServerPipelineFactory networkServerPipelineFactory = new NetworkServerPipelineFactory(false);
 		clientBootstrap.setPipelineFactory(networkServerPipelineFactory);
 		clientBootstrap.setOption("tcpNoDelay", true);
 		clientBootstrap.setOption("reuseAddress", true);
 		clientBootstrap.setOption("connectTimeoutMillis",
 				Configuration.configuration.TIMEOUTCON);
 		if (Configuration.configuration.useSSL && Configuration.configuration.HOST_SSLID != null) {
-			networkSslServerPipelineFactory =
+			NetworkSslServerPipelineFactory networkSslServerPipelineFactory =
 					new NetworkSslServerPipelineFactory(true, execServerWorker);
 			clientSslBootstrap.setPipelineFactory(networkSslServerPipelineFactory);
 			clientSslBootstrap.setOption("tcpNoDelay", true);
@@ -163,8 +161,11 @@ public class NetworkTransaction {
 			clientSslBootstrap.setOption("connectTimeoutMillis",
 					Configuration.configuration.TIMEOUTCON);
 		} else {
-			networkSslServerPipelineFactory = null;
-			logger.warn("No SSL support configured");
+			if (Configuration.configuration.warnOnStartup) {
+				logger.warn("No SSL support configured");
+			} else {
+				logger.info("No SSL support configured");
+			}
 		}
 	}
 

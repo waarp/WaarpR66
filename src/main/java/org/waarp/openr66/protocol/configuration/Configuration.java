@@ -575,6 +575,8 @@ public class Configuration {
 	public boolean isHostProxyfied = false;
 	
 	public boolean warnOnStartup = true;
+
+	public boolean chrootNotChecked = true;
 	
 	public Configuration() {
 		// Init signal handler
@@ -583,14 +585,14 @@ public class Configuration {
 		computeNbThreads();
 		// Init FiniteStates
 		R66FiniteDualStates.initR66FiniteStates();
-		boolean value = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_EXECUTEBEFORETRANSFERRED, true);
-		isExecuteErrorBeforeTransferAllowed = value;
+		isExecuteErrorBeforeTransferAllowed = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_EXECUTEBEFORETRANSFERRED, true);
 		boolean useSpaceSeparator = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_USESPACESEPARATOR, false);
 		if (useSpaceSeparator) {
 			PartnerConfiguration.SEPARATOR_FIELD = PartnerConfiguration.BLANK_SEPARATOR_FIELD;
 		}
 		isHostProxyfied = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_ISHOSTPROXYFIED, false);
 		warnOnStartup = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_STARTUP_WARNING, true);
+		chrootNotChecked = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_CHROOT_NOTCHECKED, true);
 	}
 
 	/**

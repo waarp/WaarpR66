@@ -51,5 +51,9 @@ public class R66SystemProperties {
 	 * Shall we print info of startup in Warning mode (true) or Info mode (false)
 	 */
 	public static final String OPENR66_STARTUP_WARNING = "openr66.startup.warning";
+	/**
+	 * Shall we allow or not a request as RECV that will access to file outside Rule Out directory
+	 */
+	public static final String OPENR66_CHROOT_NOTCHECKED = "openr66.chroot.notchecked";
 
 }

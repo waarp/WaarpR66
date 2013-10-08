@@ -72,7 +72,7 @@ public class Monitoring implements WaarpInterfaceMonitor {
 	private long minimalDelay = 0;
 	private long lastTry = 0;
 	private DbSession dbSession = null;
-	private TrafficCounter trafficCounter =
+	private final TrafficCounter trafficCounter =
 			Configuration.configuration
 					.getGlobalTrafficShapingHandler()
 					.getTrafficCounter();
