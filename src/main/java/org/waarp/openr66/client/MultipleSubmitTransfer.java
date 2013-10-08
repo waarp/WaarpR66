@@ -158,6 +158,9 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 		}
 		if (!getParams(args, submit)) {
 			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
+			if (! Configuration.configuration.quietClient) {
+				System.out.println(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
+			}
 			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
 				DbConstant.admin.close();
 			}
@@ -179,11 +182,21 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 			if (future.isSuccess()) {
 				logger.warn(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Success")+transaction.doneMultiple //$NON-NLS-1$
 						+ Messages.getString("SubmitTransfer.Transfers")); //$NON-NLS-1$
+				if (! Configuration.configuration.quietClient) {
+					System.out.println(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Success")+"\n"+transaction.doneMultiple //$NON-NLS-1$
+							+ "\n" +Messages.getString("SubmitTransfer.Transfers")); //$NON-NLS-1$
+				}
 			} else {
 				logger.error(Messages.getString("SubmitTransfer.14")+ //$NON-NLS-1$
 						transaction.errorMultiple +
 						" ok: "+ transaction.doneMultiple
 						+ Messages.getString("SubmitTransfer.Transfers")); //$NON-NLS-1$
+				if (! Configuration.configuration.quietClient) {
+					System.out.println(Messages.getString("SubmitTransfer.14")+ //$NON-NLS-1$
+							"\n"+transaction.errorMultiple +"\n" +
+							" ok: "+ "\n"+transaction.doneMultiple
+							+"\n" + Messages.getString("SubmitTransfer.Transfers")); //$NON-NLS-1$
+				}
 				if (networkTransaction != null)  {
 					networkTransaction.closeAll();
 					networkTransaction = null;

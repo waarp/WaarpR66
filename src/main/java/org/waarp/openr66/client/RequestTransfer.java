@@ -161,6 +161,8 @@ public class RequestTransfer implements Runnable {
 					SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 					srestarttime = dateFormat.format(date);
 				}
+			} else if (args[i].equalsIgnoreCase("-quiet")) {
+				Configuration.configuration.quietClient = true;
 			}
 		}
 		if ((scancel && srestart) || (scancel && sstop) || (srestart && sstop)) {
@@ -532,6 +534,9 @@ public class RequestTransfer implements Runnable {
 		}
 		if (!getParams(args)) {
 			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
+			if (! Configuration.configuration.quietClient) {
+				System.out.println(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
+			}
 			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
 				DbConstant.admin.close();
 			}
@@ -556,23 +561,40 @@ public class RequestTransfer implements Runnable {
 						value = 0;
 						logger.warn(Messages.getString("RequestTransfer.21") + //$NON-NLS-1$
 								finalValue.runner.toShortString());
+						if (! Configuration.configuration.quietClient) {
+							System.out.println(Messages.getString("RequestTransfer.21") + //$NON-NLS-1$
+									"\n"+finalValue.runner.toShortString());
+						}
 					} else {
 						switch (finalValue.code) {
 							case CompleteOk:
 								value = 0;
 								logger.warn(Messages.getString("RequestTransfer.70") + //$NON-NLS-1$
 										finalValue.runner.toShortString());
+								if (! Configuration.configuration.quietClient) {
+									System.out.println(Messages.getString("RequestTransfer.70") + //$NON-NLS-1$
+											"\n"+finalValue.runner.toShortString());
+								}
 								break;
 							case TransferOk:
 								value = 3;
 								logger.warn(Messages.getString("RequestTransfer.71") //$NON-NLS-1$
 										+
 										finalValue.runner.toShortString());
+								if (! Configuration.configuration.quietClient) {
+									System.out.println(Messages.getString("RequestTransfer.71") //$NON-NLS-1$
+											+
+											"\n"+finalValue.runner.toShortString());
+								}
 								break;
 							default:
 								value = 4;
 								logger.error(Messages.getString("RequestTransfer.72") + //$NON-NLS-1$
 										finalValue.runner.toShortString());
+								if (! Configuration.configuration.quietClient) {
+									System.out.println(Messages.getString("RequestTransfer.72") + //$NON-NLS-1$
+											"\n"+finalValue.runner.toShortString());
+								}
 								break;
 						}
 					}
@@ -582,16 +604,28 @@ public class RequestTransfer implements Runnable {
 							value = 0;
 							logger.warn(Messages.getString("RequestTransfer.73") + //$NON-NLS-1$
 									finalValue.runner.toShortString());
+							if (! Configuration.configuration.quietClient) {
+								System.out.println(Messages.getString("RequestTransfer.73") + //$NON-NLS-1$
+										"\n"+finalValue.runner.toShortString());
+							}
 							break;
 						case TransferOk:
 							value = 0;
 							logger.warn(Messages.getString("RequestTransfer.74") + //$NON-NLS-1$
 									finalValue.runner.toShortString());
+							if (! Configuration.configuration.quietClient) {
+								System.out.println(Messages.getString("RequestTransfer.74") + //$NON-NLS-1$
+										"\n"+finalValue.runner.toShortString());
+							}
 							break;
 						default:
 							value = 3;
 							logger.error(Messages.getString("RequestTransfer.75") + //$NON-NLS-1$
 									finalValue.runner.toShortString());
+							if (! Configuration.configuration.quietClient) {
+								System.out.println(Messages.getString("RequestTransfer.75") + //$NON-NLS-1$
+										"\n"+finalValue.runner.toShortString());
+							}
 							break;
 					}
 				} else if (srestart) {
@@ -601,37 +635,65 @@ public class RequestTransfer implements Runnable {
 							logger.warn(Messages.getString("RequestTransfer.76") //$NON-NLS-1$
 									+
 									finalValue.runner.toShortString());
+							if (! Configuration.configuration.quietClient) {
+								System.out.println(Messages.getString("RequestTransfer.76") + //$NON-NLS-1$
+										"\n"+finalValue.runner.toShortString());
+							}
 							break;
 						case Running:
 							value = 0;
 							logger.warn(Messages.getString("RequestTransfer.77") + //$NON-NLS-1$
 									finalValue.runner.toShortString());
+							if (! Configuration.configuration.quietClient) {
+								System.out.println(Messages.getString("RequestTransfer.77") + //$NON-NLS-1$
+										"\n"+finalValue.runner.toShortString());
+							}
 							break;
 						case PreProcessingOk:
 							value = 0;
 							logger.warn(Messages.getString("RequestTransfer.78") + //$NON-NLS-1$
 									finalValue.runner.toShortString());
+							if (! Configuration.configuration.quietClient) {
+								System.out.println(Messages.getString("RequestTransfer.78") + //$NON-NLS-1$
+										"\n"+finalValue.runner.toShortString());
+							}
 							break;
 						case CompleteOk:
 							value = 4;
 							logger.warn(Messages.getString("RequestTransfer.79") + //$NON-NLS-1$
 									finalValue.runner.toShortString());
+							if (! Configuration.configuration.quietClient) {
+								System.out.println(Messages.getString("RequestTransfer.79") + //$NON-NLS-1$
+										"\n"+finalValue.runner.toShortString());
+							}
 							break;
 						case RemoteError:
 							value = 5;
 							logger.error(Messages.getString("RequestTransfer.80") + //$NON-NLS-1$
 									finalValue.runner.toShortString());
+							if (! Configuration.configuration.quietClient) {
+								System.out.println(Messages.getString("RequestTransfer.80") + //$NON-NLS-1$
+										"\n"+finalValue.runner.toShortString());
+							}
 							break;
 						case PassThroughMode:
 							value = 6;
 							logger.warn(Messages.getString("RequestTransfer.81") //$NON-NLS-1$
 									+
 									finalValue.runner.toShortString());
+							if (! Configuration.configuration.quietClient) {
+								System.out.println(Messages.getString("RequestTransfer.81") + //$NON-NLS-1$
+										"\n"+finalValue.runner.toShortString());
+							}
 							break;
 						default:
 							value = 3;
 							logger.error(Messages.getString("RequestTransfer.82") + //$NON-NLS-1$
 									finalValue.runner.toShortString());
+							if (! Configuration.configuration.quietClient) {
+								System.out.println(Messages.getString("RequestTransfer.82") + //$NON-NLS-1$
+										"\n"+finalValue.runner.toShortString());
+							}
 							break;
 					}
 				}
@@ -640,6 +702,10 @@ public class RequestTransfer implements Runnable {
 				// Only request
 				logger.warn(Messages.getString("RequestTransfer.83") + //$NON-NLS-1$
 						finalValue.runner.toShortString());
+				if (! Configuration.configuration.quietClient) {
+					System.out.println(Messages.getString("RequestTransfer.83") + //$NON-NLS-1$
+							"\n"+finalValue.runner.toShortString());
+				}
 			}
 		} finally {
 			if (DbConstant.admin != null) {

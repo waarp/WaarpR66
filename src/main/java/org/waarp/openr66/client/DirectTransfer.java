@@ -127,6 +127,9 @@ public class DirectTransfer extends AbstractTransfer {
 		}
 		if (!getParams(args, false)) {
 			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
+			if (! Configuration.configuration.quietClient) {
+				System.out.println(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
+			}
 			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
 				DbConstant.admin.close();
 			}
@@ -163,6 +166,20 @@ public class DirectTransfer extends AbstractTransfer {
 							(result.file != null ? result.file.toString() + "</FILEFINAL>"
 									: "no file")
 							+ "     delay: " + delay);
+					if (! Configuration.configuration.quietClient) {
+						System.out.println(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Warned") //$NON-NLS-1$
+								+ "\n" + result.runner.toShortString()
+								+
+								"     <REMOTE>"
+								+ rhost
+								+ "</REMOTE>"
+								+
+								"     <FILEFINAL>"
+								+
+								(result.file != null ? result.file.toString() + "</FILEFINAL>"
+										: "no file")
+								+ "\n     delay: " + "\n"+delay);
+					}
 				} else {
 					logger.info(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Success") //$NON-NLS-1$
 							+ result.runner.toShortString()
@@ -176,6 +193,20 @@ public class DirectTransfer extends AbstractTransfer {
 							(result.file != null ? result.file.toString() + "</FILEFINAL>"
 									: "no file")
 							+ "     delay: " + delay);
+					if (! Configuration.configuration.quietClient) {
+						System.out.println(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Success") //$NON-NLS-1$
+								+ "\n" + result.runner.toShortString()
+								+
+								"     <REMOTE>"
+								+ rhost
+								+ "</REMOTE>"
+								+
+								"     <FILEFINAL>"
+								+
+								(result.file != null ? result.file.toString() + "</FILEFINAL>"
+										: "no file")
+								+ "\n     delay: " + "\n"+delay);
+					}
 				}
 				if (nolog || result.runner.shallIgnoreSave()) {
 					// In case of success, delete the runner
@@ -189,17 +220,30 @@ public class DirectTransfer extends AbstractTransfer {
 			} else {
 				if (result == null || result.runner == null) {
 					logger.error(Messages.getString("Transfer.FailedNoId"), future.getCause()); //$NON-NLS-1$
+					if (! Configuration.configuration.quietClient) {
+						System.out.println(Messages.getString("Transfer.FailedNoId") + "\n" + future.getCause()); //$NON-NLS-1$
+					}
 					networkTransaction.closeAll();
 					System.exit(ErrorCode.Unknown.ordinal());
 				}
 				if (result.runner.getErrorInfo() == ErrorCode.Warning) {
 					logger.warn(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Warned") + result.runner.toShortString() + //$NON-NLS-1$
 							"     <REMOTE>" + rhost + "</REMOTE>", future.getCause());
+					if (! Configuration.configuration.quietClient) {
+						System.out.println(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Warned") + "\n" +
+								result.runner.toShortString() + //$NON-NLS-1$
+								"     <REMOTE>" + rhost + "</REMOTE>" + "\n" + future.getCause());
+					}
 					networkTransaction.closeAll();
 					System.exit(result.code.ordinal());
 				} else {
 					logger.error(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Failure") + result.runner.toShortString() + //$NON-NLS-1$
 							"     <REMOTE>" + rhost + "</REMOTE>", future.getCause());
+					if (! Configuration.configuration.quietClient) {
+						System.out.println(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Failure") + "\n" + 
+								result.runner.toShortString() + //$NON-NLS-1$
+								"     <REMOTE>" + rhost + "</REMOTE>" + "\n" + future.getCause());
+					}
 					networkTransaction.closeAll();
 					System.exit(result.code.ordinal());
 				}

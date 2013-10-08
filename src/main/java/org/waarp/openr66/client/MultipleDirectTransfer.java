@@ -251,6 +251,9 @@ public class MultipleDirectTransfer extends DirectTransfer {
 		}
 		if (!getParams(args, false)) {
 			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
+			if (! Configuration.configuration.quietClient) {
+				System.out.println(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
+			}
 			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
 				DbConstant.admin.close();
 			}
@@ -275,11 +278,21 @@ public class MultipleDirectTransfer extends DirectTransfer {
 			if (future.isSuccess()) {
 				logger.warn(Messages.getString("Transfer.48")+multipleDirectTransfer.doneMultiple //$NON-NLS-1$
 						+ Messages.getString("Transfer.0") + delay); //$NON-NLS-1$
+				if (! Configuration.configuration.quietClient) {
+					System.out.println(Messages.getString("Transfer.48")+"\n"+multipleDirectTransfer.doneMultiple //$NON-NLS-1$
+							+"\n" + Messages.getString("Transfer.0") + "\n" +delay); //$NON-NLS-1$
+				}
 			} else {
 				logger.error(Messages.getString("Transfer.50")+ //$NON-NLS-1$
 						multipleDirectTransfer.errorMultiple +
-						" ok: "+ multipleDirectTransfer.doneMultiple
+						" ok: "+ "\n"+multipleDirectTransfer.doneMultiple
 						+ Messages.getString("Transfer.0") + delay); //$NON-NLS-1$
+				if (! Configuration.configuration.quietClient) {
+					System.out.println(Messages.getString("Transfer.50")+ //$NON-NLS-1$
+							"\n"+multipleDirectTransfer.errorMultiple +"\n" +
+							" ok: "+ "\n"+multipleDirectTransfer.doneMultiple
+							+ "\n" +Messages.getString("Transfer.0") + "\n" +delay); //$NON-NLS-1$
+				}
 				networkTransaction.closeAll();
 				System.exit(multipleDirectTransfer.errorMultiple);
 			}

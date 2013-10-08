@@ -31,6 +31,7 @@ import org.waarp.openr66.context.authentication.R66Auth;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
@@ -51,13 +52,7 @@ public abstract class AbstractBusinessRequest implements Runnable {
 	 */
 	static protected volatile WaarpInternalLogger logger;
 	
-	protected static String _INFO_ARGS = "Needs at least 3 or 4 arguments:\n" +
-			"  the XML client configuration file,\n" +
-			"  '-to' the remoteHost Id,\n" +
-			"  '-class' the Business full class name,\n" +
-			"  '-arg' the argument to pass (optional)\n" +
-			"Other options:\n" +
-			"  '-nolog' to not log locally this action\n";
+	protected static String _INFO_ARGS = Messages.getString("AbstractBusinessRequest.0"); //$NON-NLS-1$
 
 	protected final R66Future future;
 
@@ -102,7 +97,7 @@ public abstract class AbstractBusinessRequest implements Runnable {
 			future.setResult(null);
 			OpenR66ProtocolNoConnectionException e =
 					new OpenR66ProtocolNoConnectionException(
-							"Cannot connect to server " + host.toString());
+							Messages.getString("AdminR66OperationsGui.188") + host.toString()); //$NON-NLS-1$
 			future.setFailure(e);
 			throw e;
 		}
@@ -187,6 +182,7 @@ public abstract class AbstractBusinessRequest implements Runnable {
 	 * @return True if all parameters were found and correct
 	 */
 	protected static boolean getParams(String[] args) {
+		_INFO_ARGS = Messages.getString("AbstractBusinessRequest.0"); //$NON-NLS-1$
 		if (args.length < 3) {
 			logger
 					.error(_INFO_ARGS);
@@ -195,7 +191,7 @@ public abstract class AbstractBusinessRequest implements Runnable {
 		if (!FileBasedConfiguration
 				.setClientConfigurationFromXml(Configuration.configuration, args[0])) {
 			logger
-					.error("Needs a correct configuration file as first argument");
+					.error(Messages.getString("Configuration.NeedCorrectConfig")); //$NON-NLS-1$
 			return false;
 		}
 		// Now set default values from configuration
@@ -217,7 +213,7 @@ public abstract class AbstractBusinessRequest implements Runnable {
 		if (rhost != null && classname != null) {
 			return true;
 		}
-		logger.error("All params are not set! Need at least (-to -class)\n"+_INFO_ARGS);
+		logger.error(Messages.getString("AbstractBusinessRequest.21")+_INFO_ARGS); //$NON-NLS-1$
 		return false;
 	}
 

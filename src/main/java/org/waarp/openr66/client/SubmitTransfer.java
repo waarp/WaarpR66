@@ -28,6 +28,7 @@ import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbTaskRunner;
+import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.exception.OpenR66DatabaseGlobalException;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
@@ -125,6 +126,9 @@ public class SubmitTransfer extends AbstractTransfer {
 		}
 		if (!getParams(args, true)) {
 			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
+			if (! Configuration.configuration.quietClient) {
+				System.out.println(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
+			}
 			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
 				DbConstant.admin.close();
 			}
@@ -141,12 +145,23 @@ public class SubmitTransfer extends AbstractTransfer {
 		if (future.isSuccess()) {
 			logger.warn(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Success") + runner.toShortString() + //$NON-NLS-1$
 					"<REMOTE>" + rhost + "</REMOTE>");
+			if (! Configuration.configuration.quietClient) {
+				System.out.println(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Success") + "\n"+runner.toShortString() + //$NON-NLS-1$
+						"<REMOTE>" + rhost + "</REMOTE>");
+			}
 		} else {
 			if (runner != null) {
 				logger.error(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Failure") + runner.toShortString() + //$NON-NLS-1$
 						"<REMOTE>" + rhost + "</REMOTE>", future.getCause());
+				if (! Configuration.configuration.quietClient) {
+					System.out.println(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Failure") +"\n"+ runner.toShortString() + //$NON-NLS-1$
+							"<REMOTE>" + rhost + "</REMOTE>"+"\n"+ future.getCause());
+				}
 			} else {
 				logger.error(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Failure"), future.getCause()); //$NON-NLS-1$
+				if (! Configuration.configuration.quietClient) {
+					System.out.println(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Failure")+"\n"+ future.getCause()); //$NON-NLS-1$
+				}
 			}
 			DbConstant.admin.close();
 			ChannelUtils.stopLogger();

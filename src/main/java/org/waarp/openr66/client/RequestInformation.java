@@ -70,7 +70,7 @@ public class RequestInformation implements Runnable {
 	static byte scode = -1;
 	static long sid = DbConstant.ILLEGALVALUE;
 	static boolean sisTo = true;
-
+	
 	/**
 	 * Parse the parameter and set current values
 	 * 
@@ -115,6 +115,8 @@ public class RequestInformation implements Runnable {
 				sisTo = true;
 			} else if (args[i].equalsIgnoreCase("-reqto")) {
 				sisTo = false;
+			} else if (args[i].equalsIgnoreCase("-quiet")) {
+				Configuration.configuration.quietClient = true;
 			}
 		}
 		if (sfilename != null && scode == -1) {
@@ -160,7 +162,6 @@ public class RequestInformation implements Runnable {
 		}
 		InformationPacket request = null;
 		if (code != -1) {
-			
 			request = new InformationPacket(rulename, code, filename);
 		} else {
 			request = new InformationPacket(""+id, code, (isTo ? "1" : "0"));
@@ -219,6 +220,9 @@ public class RequestInformation implements Runnable {
 		}
 		if (!getParams(args)) {
 			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
+			if (! Configuration.configuration.quietClient) {
+				System.out.println(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
+			}
 			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
 				DbConstant.admin.close();
 			}
@@ -241,11 +245,19 @@ public class RequestInformation implements Runnable {
 				value = 0;
 				R66Result r66result = result.getResult();
 				ValidPacket info = (ValidPacket) r66result.other;
-				logger.warn(Messages.getString("RequestInformation.Success") + "\n" + info.getSmiddle() + "\n" + info.getSheader()); //$NON-NLS-1$
+				logger.warn(Messages.getString("RequestInformation.Success") + " " + info.getSmiddle() + " " + info.getSheader()); //$NON-NLS-1$
+				if (! Configuration.configuration.quietClient) {
+					System.out.println(Messages.getString("RequestInformation.Success") + "\n" + info.getSmiddle() + "\n" + info.getSheader()); //$NON-NLS-1$
+				}
+
 			} else {
 				value = 2;
 				logger.error(Messages.getString("RequestInformation.Failure") + //$NON-NLS-1$
 						result.getResult().toString());
+				if (! Configuration.configuration.quietClient) {
+					System.out.println(Messages.getString("RequestInformation.Failure") + //$NON-NLS-1$
+							"\n" +result.getResult().toString());
+				}
 			}
 
 		} finally {

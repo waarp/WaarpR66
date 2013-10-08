@@ -49,7 +49,6 @@ import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.role.RoleDefault;
 import org.waarp.common.role.RoleDefault.ROLE;
-import org.waarp.common.utility.SystemPropertyUtil;
 import org.waarp.common.xml.XmlDecl;
 import org.waarp.common.xml.XmlHash;
 import org.waarp.common.xml.XmlType;
@@ -64,7 +63,6 @@ import org.waarp.openr66.database.model.DbModelFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
-import org.waarp.openr66.protocol.configuration.R66SystemProperties;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
 import org.waarp.openr66.protocol.networkhandler.R66ConstraintLimitHandler;
 import org.waarp.openr66.protocol.networkhandler.ssl.NetworkSslServerPipelineFactory;
@@ -670,7 +668,6 @@ public class FileBasedConfiguration {
 		XmlValue value = hashConfig.get(XML_LOCALE);
 		if (value != null && (!value.isEmpty())) {
 			String locale = value.getString();
-			locale = SystemPropertyUtil.get(R66SystemProperties.OPENR66_LOCALE, locale);
 			if (locale == null || locale.isEmpty()) {
 				return;
 			}

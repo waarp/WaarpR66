@@ -4,11 +4,21 @@ import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
+import org.waarp.common.utility.SystemPropertyUtil;
+
 public class Messages {
 	private static final String BUNDLE_NAME = "messages"; //$NON-NLS-1$
 
-	private static ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME, new Locale("en"));
+	private static ResourceBundle RESOURCE_BUNDLE = null;
 
+	static {
+		String locale = SystemPropertyUtil.get(R66SystemProperties.OPENR66_LOCALE, "en");
+		if (locale == null || locale.isEmpty()) {
+			locale = "en";
+		}
+		init(new Locale(locale));
+	}
+	
 	public static void init(Locale locale) {
 		if (locale == null) {
 			locale = new Locale("en");

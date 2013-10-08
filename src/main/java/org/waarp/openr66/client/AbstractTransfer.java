@@ -60,7 +60,7 @@ public abstract class AbstractTransfer implements Runnable {
 			Messages.getString("AbstractTransfer.0"); //$NON-NLS-1$
 	
 	protected static final String NO_INFO_ARGS = "noinfo";
-
+	
 	protected final R66Future future;
 
 	protected final String filename;
@@ -280,6 +280,8 @@ public abstract class AbstractTransfer implements Runnable {
 					} else {
 						ttimestart = new Timestamp(Long.parseLong(args[i]));
 					}
+				} else if (args[i].equalsIgnoreCase("-quiet")) {
+					Configuration.configuration.quietClient = true;
 				}
 			}
 		} catch (NumberFormatException e) {
