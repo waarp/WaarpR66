@@ -59,6 +59,8 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 	public int doneMultiple = 0;
 	protected boolean submit = false;
 	protected NetworkTransaction networkTransaction = null;
+	public List<R66Result> resultsSuccess = new ArrayList<R66Result>();
+	public List<R66Future> futuresError = new ArrayList<R66Future>();
 
 	public MultipleSubmitTransfer(R66Future future, String remoteHost,
 			String filename, String rulename, String fileinfo, boolean isMD5, int blocksize,
@@ -110,10 +112,12 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 						future.awaitUninterruptibly();
 						DbTaskRunner runner = future.getResult().runner;
 						if (future.isSuccess()) {
+							resultsSuccess.add(future.getResult());
 							logger.warn(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Success") + runner.toShortString() + //$NON-NLS-1$
 									"<REMOTE>" + rhost + "</REMOTE>");
 							doneMultiple++;
 						} else {
+							futuresError.add(future);
 							if (runner != null) {
 								logger.error(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Failure") + runner.toShortString() + //$NON-NLS-1$
 										"<REMOTE>" + rhost + "</REMOTE>", future.getCause());
@@ -185,6 +189,11 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 				if (! Configuration.configuration.quietClient) {
 					System.out.println(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Success")+"\n"+transaction.doneMultiple //$NON-NLS-1$
 							+ "\n" +Messages.getString("SubmitTransfer.Transfers")); //$NON-NLS-1$
+					for (R66Result result : transaction.resultsSuccess) {
+						System.out.println(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Success") + "\n"+
+								result.runner.toShortString() + //$NON-NLS-1$
+								"<REMOTE>" + rhost + "</REMOTE>");
+					}
 				}
 			} else {
 				logger.error(Messages.getString("SubmitTransfer.14")+ //$NON-NLS-1$
@@ -196,6 +205,17 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 							"\n"+transaction.errorMultiple +"\n" +
 							" ok: "+ "\n"+transaction.doneMultiple
 							+"\n" + Messages.getString("SubmitTransfer.Transfers")); //$NON-NLS-1$
+					for (R66Future subfuture : transaction.futuresError) {
+						R66Result result = subfuture.getResult();
+						if (result.runner != null) {
+							System.out.println(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Failure") + "\n"+
+									result.runner.toShortString() + //$NON-NLS-1$
+									"<REMOTE>" + rhost + "</REMOTE>" + "\n"+ future.getCause());
+						} else {
+							System.out.println(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Failure") +"\n"+
+									future.getCause()); //$NON-NLS-1$
+						}
+					}
 				}
 				if (networkTransaction != null)  {
 					networkTransaction.closeAll();
