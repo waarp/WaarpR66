@@ -192,7 +192,6 @@ public class OutputFormat extends JsonHandler {
 		String inString = writeAsString(node);
 		switch (format) {
 			case QUIET:
-				return "";
 			case JSON:
 				return inString;
 			case CSV:
