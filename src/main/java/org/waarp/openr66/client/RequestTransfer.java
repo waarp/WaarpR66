@@ -21,10 +21,8 @@ import java.net.SocketAddress;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.DocumentHelper;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
@@ -32,6 +30,9 @@ import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
+import org.waarp.openr66.client.OutputFormat.FIELDS;
+import org.waarp.openr66.client.OutputFormat.OUTPUTFORMAT;
+import org.waarp.openr66.commander.CommanderNoDb;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66FiniteDualStates;
@@ -72,7 +73,7 @@ public class RequestTransfer implements Runnable {
 	static volatile WaarpInternalLogger logger;
 
 	protected static String _INFO_ARGS = 
-			Messages.getString("RequestTransfer.0"); //$NON-NLS-1$
+			Messages.getString("RequestTransfer.0")+ Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
 	
 	protected final NetworkTransaction networkTransaction;
 	final R66Future future;
@@ -87,6 +88,7 @@ public class RequestTransfer implements Runnable {
 	static long sspecialId;
 	static String srequested = null;
 	static String srequester = null;
+	static String rhost = null;
 	static boolean scancel = false;
 	static boolean sstop = false;
 	static boolean srestart = false;
@@ -99,7 +101,7 @@ public class RequestTransfer implements Runnable {
 	 * @return True if all parameters were found and correct
 	 */
 	protected static boolean getParams(String[] args) {
-		_INFO_ARGS = Messages.getString("RequestTransfer.0"); //$NON-NLS-1$
+		_INFO_ARGS = Messages.getString("RequestTransfer.0")+ Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
 		if (args.length < 5) {
 			logger
 					.error(_INFO_ARGS);
@@ -122,7 +124,7 @@ public class RequestTransfer implements Runnable {
 				}
 			} else if (args[i].equalsIgnoreCase("-to")) {
 				i++;
-				srequested = args[i];
+				rhost = srequested = args[i];
 				try {
 					srequester = Configuration.configuration.getHostId(DbConstant.admin.session,
 							srequested);
@@ -132,7 +134,7 @@ public class RequestTransfer implements Runnable {
 				}
 			} else if (args[i].equalsIgnoreCase("-from")) {
 				i++;
-				srequester = args[i];
+				rhost = srequester = args[i];
 				try {
 					srequested = Configuration.configuration.getHostId(DbConstant.admin.session,
 							srequester);
@@ -161,9 +163,8 @@ public class RequestTransfer implements Runnable {
 					SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 					srestarttime = dateFormat.format(date);
 				}
-			} else if (args[i].equalsIgnoreCase("-quiet")) {
-				Configuration.configuration.quietClient = true;
 			}
+			OutputFormat.getParams(args);
 		}
 		if ((scancel && srestart) || (scancel && sstop) || (srestart && sstop)) {
 			logger.error(Messages.getString("RequestTransfer.15")+_INFO_ARGS); //$NON-NLS-1$
@@ -237,18 +238,12 @@ public class RequestTransfer implements Runnable {
 				R66Result r66result = futureInfo.getResult();
 				ValidPacket info = (ValidPacket) r66result.other;
 				String xml = info.getSheader();
-				Document document;
 				try {
-					document = DocumentHelper.parseText(xml);
-				} catch (DocumentException e1) {
-					logger.error(Messages.getString("RequestTransfer.18")); //$NON-NLS-1$
-					future.setResult(new R66Result(new OpenR66DatabaseGlobalException(e1), null, true,
-							ErrorCode.Internal, null));
-					future.setFailure(e);
-					return;
-				}
-				try {
-					runner = DbTaskRunner.fromXml(DbConstant.admin.session, document.getRootElement(), true);
+					runner = DbTaskRunner.fromStringXml(xml, true);
+					runner.changeUpdatedInfo(UpdatedInfo.TOSUBMIT);
+					// useful ?
+					CommanderNoDb.todoList.add(runner);
+
 					logger.info("Get Runner from remote: "+runner.toString());
 					if (runner.getSpecialId() == DbConstant.ILLEGALVALUE || ! runner.isSender()) {
 						logger.error(Messages.getString("RequestTransfer.18")); //$NON-NLS-1$
@@ -534,7 +529,7 @@ public class RequestTransfer implements Runnable {
 		}
 		if (!getParams(args)) {
 			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
-			if (! Configuration.configuration.quietClient) {
+			if (! OutputFormat.isQuiet()) {
 				System.out.println(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
 			}
 			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
@@ -555,157 +550,150 @@ public class RequestTransfer implements Runnable {
 			requestTransfer.run();
 			result.awaitUninterruptibly();
 			R66Result finalValue = result.getResult();
+			OutputFormat outputFormat = new OutputFormat();
 			if (scancel || sstop || srestart) {
 				if (scancel) {
 					if (result.isSuccess()) {
 						value = 0;
-						logger.warn(Messages.getString("RequestTransfer.21") + //$NON-NLS-1$
-								finalValue.runner.toShortString());
-						if (! Configuration.configuration.quietClient) {
-							System.out.println(Messages.getString("RequestTransfer.21") + //$NON-NLS-1$
-									"\n"+finalValue.runner.toShortString());
-						}
+						outputFormat.setValue(FIELDS.status.name(), value);
+						outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.21")); //$NON-NLS-1$
+						outputFormat.setValue(FIELDS.remote.name(), rhost);
+						Map<String, String> map = DbTaskRunner.getMapFromRunner(result.runner);
+						outputFormat.setValueString(map);
+						logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+						outputFormat.sysout();
 					} else {
+						outputFormat.setValue(FIELDS.remote.name(), rhost);
+						Map<String, String> map = DbTaskRunner.getMapFromRunner(result.runner);
+						outputFormat.setValueString(map);
 						switch (finalValue.code) {
 							case CompleteOk:
 								value = 0;
-								logger.warn(Messages.getString("RequestTransfer.70") + //$NON-NLS-1$
-										finalValue.runner.toShortString());
-								if (! Configuration.configuration.quietClient) {
-									System.out.println(Messages.getString("RequestTransfer.70") + //$NON-NLS-1$
-											"\n"+finalValue.runner.toShortString());
-								}
+								outputFormat.setValue(FIELDS.status.name(), value);
+								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.70")); //$NON-NLS-1$
+								logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+								outputFormat.sysout();
 								break;
 							case TransferOk:
 								value = 3;
-								logger.warn(Messages.getString("RequestTransfer.71") //$NON-NLS-1$
-										+
-										finalValue.runner.toShortString());
-								if (! Configuration.configuration.quietClient) {
-									System.out.println(Messages.getString("RequestTransfer.71") //$NON-NLS-1$
-											+
-											"\n"+finalValue.runner.toShortString());
-								}
+								outputFormat.setValue(FIELDS.status.name(), value);
+								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.71")); //$NON-NLS-1$
+								logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+								outputFormat.sysout();
 								break;
 							default:
 								value = 4;
-								logger.error(Messages.getString("RequestTransfer.72") + //$NON-NLS-1$
-										finalValue.runner.toShortString());
-								if (! Configuration.configuration.quietClient) {
-									System.out.println(Messages.getString("RequestTransfer.72") + //$NON-NLS-1$
-											"\n"+finalValue.runner.toShortString());
+								outputFormat.setValue(FIELDS.status.name(), value);
+								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.72")); //$NON-NLS-1$
+								if (result.getCause() != null) {
+									outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
 								}
+								logger.error(outputFormat.toString(OUTPUTFORMAT.JSON));
+								outputFormat.sysout();
 								break;
 						}
 					}
 				} else if (sstop) {
+					outputFormat.setValue(FIELDS.remote.name(), rhost);
+					Map<String, String> map = DbTaskRunner.getMapFromRunner(result.runner);
+					outputFormat.setValueString(map);
+
 					switch (finalValue.code) {
 						case CompleteOk:
 							value = 0;
-							logger.warn(Messages.getString("RequestTransfer.73") + //$NON-NLS-1$
-									finalValue.runner.toShortString());
-							if (! Configuration.configuration.quietClient) {
-								System.out.println(Messages.getString("RequestTransfer.73") + //$NON-NLS-1$
-										"\n"+finalValue.runner.toShortString());
-							}
+							outputFormat.setValue(FIELDS.status.name(), value);
+							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.73")); //$NON-NLS-1$
+							logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+							outputFormat.sysout();
 							break;
 						case TransferOk:
 							value = 0;
-							logger.warn(Messages.getString("RequestTransfer.74") + //$NON-NLS-1$
-									finalValue.runner.toShortString());
-							if (! Configuration.configuration.quietClient) {
-								System.out.println(Messages.getString("RequestTransfer.74") + //$NON-NLS-1$
-										"\n"+finalValue.runner.toShortString());
-							}
+							outputFormat.setValue(FIELDS.status.name(), value);
+							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.74")); //$NON-NLS-1$
+							logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+							outputFormat.sysout();
 							break;
 						default:
 							value = 3;
-							logger.error(Messages.getString("RequestTransfer.75") + //$NON-NLS-1$
-									finalValue.runner.toShortString());
-							if (! Configuration.configuration.quietClient) {
-								System.out.println(Messages.getString("RequestTransfer.75") + //$NON-NLS-1$
-										"\n"+finalValue.runner.toShortString());
+							outputFormat.setValue(FIELDS.status.name(), value);
+							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.75")); //$NON-NLS-1$
+							if (result.getCause() != null) {
+								outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
 							}
+							logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+							outputFormat.sysout();
 							break;
 					}
 				} else if (srestart) {
+					outputFormat.setValue(FIELDS.remote.name(), rhost);
+					Map<String, String> map = DbTaskRunner.getMapFromRunner(result.runner);
+					outputFormat.setValueString(map);
+
 					switch (finalValue.code) {
 						case QueryStillRunning:
 							value = 0;
-							logger.warn(Messages.getString("RequestTransfer.76") //$NON-NLS-1$
-									+
-									finalValue.runner.toShortString());
-							if (! Configuration.configuration.quietClient) {
-								System.out.println(Messages.getString("RequestTransfer.76") + //$NON-NLS-1$
-										"\n"+finalValue.runner.toShortString());
-							}
+							outputFormat.setValue(FIELDS.status.name(), value);
+							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.76")); //$NON-NLS-1$
+							logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+							outputFormat.sysout();
 							break;
 						case Running:
 							value = 0;
-							logger.warn(Messages.getString("RequestTransfer.77") + //$NON-NLS-1$
-									finalValue.runner.toShortString());
-							if (! Configuration.configuration.quietClient) {
-								System.out.println(Messages.getString("RequestTransfer.77") + //$NON-NLS-1$
-										"\n"+finalValue.runner.toShortString());
-							}
+							outputFormat.setValue(FIELDS.status.name(), value);
+							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.77")); //$NON-NLS-1$
+							logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+							outputFormat.sysout();
 							break;
 						case PreProcessingOk:
 							value = 0;
-							logger.warn(Messages.getString("RequestTransfer.78") + //$NON-NLS-1$
-									finalValue.runner.toShortString());
-							if (! Configuration.configuration.quietClient) {
-								System.out.println(Messages.getString("RequestTransfer.78") + //$NON-NLS-1$
-										"\n"+finalValue.runner.toShortString());
-							}
+							outputFormat.setValue(FIELDS.status.name(), value);
+							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.78")); //$NON-NLS-1$
+							logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+							outputFormat.sysout();
 							break;
 						case CompleteOk:
 							value = 4;
-							logger.warn(Messages.getString("RequestTransfer.79") + //$NON-NLS-1$
-									finalValue.runner.toShortString());
-							if (! Configuration.configuration.quietClient) {
-								System.out.println(Messages.getString("RequestTransfer.79") + //$NON-NLS-1$
-										"\n"+finalValue.runner.toShortString());
-							}
+							outputFormat.setValue(FIELDS.status.name(), value);
+							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.79")); //$NON-NLS-1$
+							logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+							outputFormat.sysout();
 							break;
 						case RemoteError:
 							value = 5;
-							logger.error(Messages.getString("RequestTransfer.80") + //$NON-NLS-1$
-									finalValue.runner.toShortString());
-							if (! Configuration.configuration.quietClient) {
-								System.out.println(Messages.getString("RequestTransfer.80") + //$NON-NLS-1$
-										"\n"+finalValue.runner.toShortString());
-							}
+							outputFormat.setValue(FIELDS.status.name(), value);
+							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.80")); //$NON-NLS-1$
+							logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+							outputFormat.sysout();
 							break;
 						case PassThroughMode:
 							value = 6;
-							logger.warn(Messages.getString("RequestTransfer.81") //$NON-NLS-1$
-									+
-									finalValue.runner.toShortString());
-							if (! Configuration.configuration.quietClient) {
-								System.out.println(Messages.getString("RequestTransfer.81") + //$NON-NLS-1$
-										"\n"+finalValue.runner.toShortString());
-							}
+							outputFormat.setValue(FIELDS.status.name(), value);
+							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.81")); //$NON-NLS-1$
+							logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+							outputFormat.sysout();
 							break;
 						default:
 							value = 3;
-							logger.error(Messages.getString("RequestTransfer.82") + //$NON-NLS-1$
-									finalValue.runner.toShortString());
-							if (! Configuration.configuration.quietClient) {
-								System.out.println(Messages.getString("RequestTransfer.82") + //$NON-NLS-1$
-										"\n"+finalValue.runner.toShortString());
+							outputFormat.setValue(FIELDS.status.name(), value);
+							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.82")); //$NON-NLS-1$
+							if (result.getCause() != null) {
+								outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
 							}
+							logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+							outputFormat.sysout();
 							break;
 					}
 				}
 			} else {
 				value = 0;
 				// Only request
-				logger.warn(Messages.getString("RequestTransfer.83") + //$NON-NLS-1$
-						finalValue.runner.toShortString());
-				if (! Configuration.configuration.quietClient) {
-					System.out.println(Messages.getString("RequestTransfer.83") + //$NON-NLS-1$
-							"\n"+finalValue.runner.toShortString());
-				}
+				outputFormat.setValue(FIELDS.status.name(), value);
+				outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.83")); //$NON-NLS-1$
+				outputFormat.setValue(FIELDS.remote.name(), rhost);
+				Map<String, String> map = DbTaskRunner.getMapFromRunner(result.runner);
+				outputFormat.setValueString(map);
+				logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+				outputFormat.sysout();
 			}
 		} finally {
 			if (DbConstant.admin != null) {

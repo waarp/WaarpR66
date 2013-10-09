@@ -57,7 +57,7 @@ public abstract class AbstractTransfer implements Runnable {
 	static protected volatile WaarpInternalLogger logger;
 	
 	protected static String _INFO_ARGS = 
-			Messages.getString("AbstractTransfer.0"); //$NON-NLS-1$
+			Messages.getString("AbstractTransfer.0")+ Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
 	
 	protected static final String NO_INFO_ARGS = "noinfo";
 	
@@ -214,7 +214,7 @@ public abstract class AbstractTransfer implements Runnable {
 	 * @return True if all parameters were found and correct
 	 */
 	protected static boolean getParams(String[] args, boolean submitOnly) {
-		_INFO_ARGS = Messages.getString("AbstractTransfer.0"); //$NON-NLS-1$
+		_INFO_ARGS = Messages.getString("AbstractTransfer.0")+ Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
 		if (args.length < 2) {
 			logger
 					.error(_INFO_ARGS);
@@ -280,10 +280,9 @@ public abstract class AbstractTransfer implements Runnable {
 					} else {
 						ttimestart = new Timestamp(Long.parseLong(args[i]));
 					}
-				} else if (args[i].equalsIgnoreCase("-quiet")) {
-					Configuration.configuration.quietClient = true;
 				}
 			}
+			OutputFormat.getParams(args);
 		} catch (NumberFormatException e) {
 			logger.error(Messages.getString("AbstractTransfer.20")+i); //$NON-NLS-1$
 			return false;
@@ -302,13 +301,13 @@ public abstract class AbstractTransfer implements Runnable {
 				return true;
 			} catch (WaarpDatabaseException e) {
 				logger.error(
-						Messages.getString("AbstractTransfer.21") //$NON-NLS-1$
+						Messages.getString("AbstractBusinessRequest.NeedMoreArgs", "(-to -rule -file | -to -id)") //$NON-NLS-1$
 								, e);
 				return false;
 			}
 
 		}
-		logger.error(Messages.getString("AbstractTransfer.21") + //$NON-NLS-1$
+		logger.error(Messages.getString("AbstractBusinessRequest.NeedMoreArgs", "(-to -rule -file | -to -id)") + //$NON-NLS-1$
 				_INFO_ARGS);
 		return false;
 	}

@@ -213,7 +213,7 @@ public abstract class AbstractBusinessRequest implements Runnable {
 		if (rhost != null && classname != null) {
 			return true;
 		}
-		logger.error(Messages.getString("AbstractBusinessRequest.21")+_INFO_ARGS); //$NON-NLS-1$
+		logger.error(Messages.getString("AbstractBusinessRequest.NeedMoreArgs", "(-to -class)")+_INFO_ARGS); //$NON-NLS-1$
 		return false;
 	}
 

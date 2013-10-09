@@ -18,17 +18,19 @@
 package org.waarp.openr66.client;
 
 import java.sql.Timestamp;
+import java.util.Map;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
+import org.waarp.openr66.client.OutputFormat.FIELDS;
+import org.waarp.openr66.client.OutputFormat.OUTPUTFORMAT;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbTaskRunner;
-import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.exception.OpenR66DatabaseGlobalException;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
@@ -126,7 +128,7 @@ public class SubmitTransfer extends AbstractTransfer {
 		}
 		if (!getParams(args, true)) {
 			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
-			if (! Configuration.configuration.quietClient) {
+			if (! OutputFormat.isQuiet()) {
 				System.out.println(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
 			}
 			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
@@ -142,27 +144,30 @@ public class SubmitTransfer extends AbstractTransfer {
 		transaction.run();
 		future.awaitUninterruptibly();
 		DbTaskRunner runner = future.getResult().runner;
+		OutputFormat outputFormat = new OutputFormat();
 		if (future.isSuccess()) {
-			logger.warn(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Success") + runner.toShortString() + //$NON-NLS-1$
-					"<REMOTE>" + rhost + "</REMOTE>");
-			if (! Configuration.configuration.quietClient) {
-				System.out.println(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Success") + "\n"+runner.toShortString() + //$NON-NLS-1$
-						"<REMOTE>" + rhost + "</REMOTE>");
-			}
+			outputFormat.setValue(FIELDS.status.name(), 0);
+			outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
+			outputFormat.setValue(FIELDS.remote.name(), rhost);
+			Map<String, String> map = DbTaskRunner.getMapFromRunner(runner);
+			outputFormat.setValueString(map);
+			logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+			outputFormat.sysout();
 		} else {
-			if (runner != null) {
-				logger.error(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Failure") + runner.toShortString() + //$NON-NLS-1$
-						"<REMOTE>" + rhost + "</REMOTE>", future.getCause());
-				if (! Configuration.configuration.quietClient) {
-					System.out.println(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Failure") +"\n"+ runner.toShortString() + //$NON-NLS-1$
-							"<REMOTE>" + rhost + "</REMOTE>"+"\n"+ future.getCause());
-				}
+			outputFormat.setValue(FIELDS.status.name(), 2);
+			outputFormat.setValue(FIELDS.remote.name(), rhost);
+			if (runner == null) {
+				outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("SubmitTransfer.3")+Messages.getString("Transfer.FailedNoId")); //$NON-NLS-1$
 			} else {
-				logger.error(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Failure"), future.getCause()); //$NON-NLS-1$
-				if (! Configuration.configuration.quietClient) {
-					System.out.println(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Failure")+"\n"+ future.getCause()); //$NON-NLS-1$
-				}
+				outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Failure")); //$NON-NLS-1$
+				Map<String, String> map = DbTaskRunner.getMapFromRunner(runner);
+				outputFormat.setValueString(map);
 			}
+			logger.error(outputFormat.toString(OUTPUTFORMAT.JSON), future.getCause());
+			if (future.getCause() != null) {
+				outputFormat.setValue(FIELDS.error.name(), future.getCause().getMessage());
+			}
+			outputFormat.sysout();
 			DbConstant.admin.close();
 			ChannelUtils.stopLogger();
 			System.exit(future.getResult().code.ordinal());

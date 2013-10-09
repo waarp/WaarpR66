@@ -20,18 +20,22 @@ package org.waarp.openr66.client;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
+import org.waarp.openr66.client.OutputFormat.FIELDS;
+import org.waarp.openr66.client.OutputFormat.OUTPUTFORMAT;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.context.filesystem.R66Dir;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbRule;
+import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.localhandler.packet.InformationPacket;
@@ -60,8 +64,7 @@ import org.waarp.openr66.protocol.utils.R66Future;
 public class MultipleDirectTransfer extends DirectTransfer {
 	public int errorMultiple = 0;
 	public int doneMultiple = 0;
-	public List<R66Result> resultsSuccess = new ArrayList<R66Result>();
-	public List<R66Future> futuresError = new ArrayList<R66Future>();
+	public List<OutputFormat> results = new ArrayList<OutputFormat>();
 	
 	public MultipleDirectTransfer(R66Future future, String remoteHost,
 			String filename, String rulename, String fileinfo, boolean isMD5, int blocksize,
@@ -169,43 +172,30 @@ public class MultipleDirectTransfer extends DirectTransfer {
 						DirectTransfer transaction = new DirectTransfer(future,
 								host, filename, rule, fileInfo, ismd5, block, idt,
 								networkTransaction);
-						logger.debug("rhost: "+rhost+":"+transaction.remoteHost);
+						logger.debug("rhost: "+host+":"+transaction.remoteHost);
 						transaction.run();
 						future.awaitUninterruptibly();
 						long time2 = System.currentTimeMillis();
 						logger.debug("finish transfer: " + future.isSuccess());
 						long delay = time2 - time1;
 						R66Result result = future.getResult();
+						OutputFormat outputFormat = new OutputFormat();
 						if (future.isSuccess()) {
-							resultsSuccess.add(result);
-							doneMultiple++;
 							if (result.runner.getErrorInfo() == ErrorCode.Warning) {
-								logger.warn(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Warned")
-										+ result.runner.toShortString()
-										+
-										"     <REMOTE>"
-										+ rhost
-										+ "</REMOTE>"
-										+
-										"     <FILEFINAL>"
-										+
-										(result.file != null ? result.file.toString() + "</FILEFINAL>"
-												: "no file")
-										+ Messages.getString("R66Environment.13") + delay); //$NON-NLS-1$
+								outputFormat.setValue(FIELDS.status.name(), 1);
+								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Warned")); //$NON-NLS-1$
 							} else {
-								logger.warn(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Success")
-										+ result.runner.toShortString()
-										+
-										"     <REMOTE>"
-										+ rhost
-										+ "</REMOTE>"
-										+
-										"     <FILEFINAL>"
-										+
-										(result.file != null ? result.file.toString() + "</FILEFINAL>"
-												: "no file")
-										+ Messages.getString("R66Environment.13") + delay); //$NON-NLS-1$
+								outputFormat.setValue(FIELDS.status.name(), 0);
+								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
 							}
+							outputFormat.setValue(FIELDS.remote.name(), host);
+							Map<String, String> map = DbTaskRunner.getMapFromRunner(result.runner);
+							outputFormat.setValueString(map);
+							outputFormat.setValue("filefinal", (result.file != null ? result.file.toString() : "no file"));
+							outputFormat.setValue("delay", delay);
+							results.add(outputFormat);
+							doneMultiple++;
+							logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
 							if (nolog || result.runner.shallIgnoreSave()) {
 								// In case of success, delete the runner
 								try {
@@ -216,19 +206,36 @@ public class MultipleDirectTransfer extends DirectTransfer {
 								}
 							}
 						} else {
-							futuresError.add(future);
-							errorMultiple++;
 							if (result == null || result.runner == null) {
-								logger.error(Messages.getString("Transfer.FailedNoId"), future.getCause());
-								inError = true;
-							} else if (result.runner.getErrorInfo() == ErrorCode.Warning) {
-								logger.warn(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Warned") + result.runner.toShortString() +
-										"     <REMOTE>" + rhost + "</REMOTE>", future.getCause());
-								inError = true;
-								resultError = result;
+								outputFormat.setValue(FIELDS.status.name(), 2);
+								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("Transfer.FailedNoId")); //$NON-NLS-1$
+								outputFormat.setValue(FIELDS.remote.name(), host);
+								logger.error(outputFormat.toString(OUTPUTFORMAT.JSON), future.getCause());
+								outputFormat.setValue(FIELDS.error.name(), future.getCause().getMessage());
+								outputFormat.sysout();
+								networkTransaction.closeAll();
+								System.exit(ErrorCode.Unknown.ordinal());
+							}
+							if (result.runner.getErrorInfo() == ErrorCode.Warning) {
+								outputFormat.setValue(FIELDS.status.name(), 1);
+								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Warned")); //$NON-NLS-1$
 							} else {
-								logger.error(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Failure") + result.runner.toShortString() +
-										"     <REMOTE>" + rhost + "</REMOTE>", future.getCause());
+								outputFormat.setValue(FIELDS.status.name(), 2);
+								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Failure")); //$NON-NLS-1$
+							}
+							outputFormat.setValue(FIELDS.remote.name(), host);
+							Map<String, String> map = DbTaskRunner.getMapFromRunner(result.runner);
+							outputFormat.setValueString(map);
+							if (result.runner.getErrorInfo() == ErrorCode.Warning) {
+								logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON), future.getCause());
+							} else {
+								logger.error(outputFormat.toString(OUTPUTFORMAT.JSON), future.getCause());
+							}
+							outputFormat.setValue(FIELDS.error.name(), future.getCause().getMessage());
+							results.add(outputFormat);
+							errorMultiple++;
+							inError = true;
+							if (result != null) {
 								inError = true;
 								resultError = result;
 							}
@@ -254,7 +261,7 @@ public class MultipleDirectTransfer extends DirectTransfer {
 		}
 		if (!getParams(args, false)) {
 			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
-			if (! Configuration.configuration.quietClient) {
+			if (! OutputFormat.isQuiet()) {
 				System.out.println(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
 			}
 			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
@@ -278,88 +285,34 @@ public class MultipleDirectTransfer extends DirectTransfer {
 			long time2 = System.currentTimeMillis();
 			logger.debug("finish all transfers: " + future.isSuccess());
 			long delay = time2 - time1;
+			OutputFormat outputFormat = new OutputFormat();
 			if (future.isSuccess()) {
-				logger.warn(Messages.getString("Transfer.48")+multipleDirectTransfer.doneMultiple //$NON-NLS-1$
-						+ Messages.getString("Transfer.0") + delay); //$NON-NLS-1$
-				if (! Configuration.configuration.quietClient) {
-					System.out.println(Messages.getString("Transfer.48")+"\n"+multipleDirectTransfer.doneMultiple //$NON-NLS-1$
-							+"\n" + Messages.getString("Transfer.0") + "\n" +delay); //$NON-NLS-1$
-					for (R66Result result : multipleDirectTransfer.resultsSuccess) {
-						if (result.runner.getErrorInfo() == ErrorCode.Warning) {
-							System.out.println(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Warned")
-									+ "\n"+result.runner.toShortString()
-									+
-									"     <REMOTE>"
-									+ rhost
-									+ "</REMOTE>"
-									+
-									"     <FILEFINAL>"
-									+
-									(result.file != null ? result.file.toString() + "</FILEFINAL>"
-											: "no file"));
-						} else {
-							System.out.println(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Success")
-									+ "\n"+result.runner.toShortString()
-									+
-									"     <REMOTE>"
-									+ rhost
-									+ "</REMOTE>"
-									+
-									"     <FILEFINAL>"
-									+
-									(result.file != null ? result.file.toString() + "</FILEFINAL>"
-											: "no file"));
-						}
+				outputFormat.setValue(FIELDS.status.name(), 0);
+				outputFormat.setValue(FIELDS.statusTxt.name(), "Multiple "+Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
+				outputFormat.setValue(FIELDS.remote.name(), rhost);
+				outputFormat.setValue("ok", multipleDirectTransfer.doneMultiple);
+				outputFormat.setValue("delay", delay);
+				logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+				if (! OutputFormat.isQuiet()) {
+					outputFormat.sysout();
+					for (OutputFormat result : multipleDirectTransfer.results) {
+						System.out.println();
+						result.sysout();
 					}
 				}
 			} else {
-				logger.error(Messages.getString("Transfer.50")+ //$NON-NLS-1$
-						multipleDirectTransfer.errorMultiple +
-						" ok: "+ multipleDirectTransfer.doneMultiple
-						+ Messages.getString("Transfer.0") + delay); //$NON-NLS-1$
-				if (! Configuration.configuration.quietClient) {
-					System.out.println(Messages.getString("Transfer.50")+ //$NON-NLS-1$
-							"\n"+multipleDirectTransfer.errorMultiple +"\n" +
-							" ok: "+ "\n"+multipleDirectTransfer.doneMultiple
-							+ "\n" +Messages.getString("Transfer.0") + "\n" +delay); //$NON-NLS-1$
-					for (R66Result result : multipleDirectTransfer.resultsSuccess) {
-						if (result.runner.getErrorInfo() == ErrorCode.Warning) {
-							System.out.println(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Warned")
-									+ "\n"+result.runner.toShortString()
-									+
-									"     <REMOTE>"
-									+ rhost
-									+ "</REMOTE>"
-									+
-									"     <FILEFINAL>"
-									+
-									(result.file != null ? result.file.toString() + "</FILEFINAL>"
-											: "no file"));
-						} else {
-							System.out.println(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Success")
-									+ "\n"+result.runner.toShortString()
-									+
-									"     <REMOTE>"
-									+ rhost
-									+ "</REMOTE>"
-									+
-									"     <FILEFINAL>"
-									+
-									(result.file != null ? result.file.toString() + "</FILEFINAL>"
-											: "no file"));
-						}
-					}
-					for (R66Future subfuture : multipleDirectTransfer.futuresError) {
-						R66Result result = subfuture.getResult();
-						if (result == null || result.runner == null) {
-							System.out.println(Messages.getString("Transfer.FailedNoId") +"\n"+ subfuture.getCause());
-						} else if (result.runner.getErrorInfo() == ErrorCode.Warning) {
-							System.out.println(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Warned") + "\n"+result.runner.toShortString() +
-									"     <REMOTE>" + rhost + "</REMOTE>"  +"\n"+  subfuture.getCause());
-						} else {
-							System.out.println(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Failure") + "\n"+result.runner.toShortString() +
-									"     <REMOTE>" + rhost + "</REMOTE>"  +"\n"+  subfuture.getCause());
-						}
+				outputFormat.setValue(FIELDS.status.name(), 2);
+				outputFormat.setValue(FIELDS.statusTxt.name(), "Multiple "+Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Failure")); //$NON-NLS-1$
+				outputFormat.setValue(FIELDS.remote.name(), rhost);
+				outputFormat.setValue("ok", multipleDirectTransfer.doneMultiple);
+				outputFormat.setValue("ko", multipleDirectTransfer.errorMultiple);
+				outputFormat.setValue("delay", delay);
+				logger.error(outputFormat.toString(OUTPUTFORMAT.JSON));
+				if (! OutputFormat.isQuiet()) {
+					outputFormat.sysout();
+					for (OutputFormat result : multipleDirectTransfer.results) {
+						System.out.println();
+						result.sysout();
 					}
 				}
 				networkTransaction.closeAll();

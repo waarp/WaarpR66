@@ -578,8 +578,6 @@ public class Configuration {
 
 	public boolean chrootChecked = true;
 	
-	public boolean quietClient = false;
-	
 	public Configuration() {
 		// Init signal handler
 		shutdownConfiguration.timeout = TIMEOUTCON;

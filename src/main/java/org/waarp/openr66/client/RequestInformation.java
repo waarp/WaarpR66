@@ -18,11 +18,14 @@
 package org.waarp.openr66.client;
 
 import java.net.SocketAddress;
+import java.util.Map;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
+import org.waarp.openr66.client.OutputFormat.FIELDS;
+import org.waarp.openr66.client.OutputFormat.OUTPUTFORMAT;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66FiniteDualStates;
@@ -30,8 +33,10 @@ import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.context.authentication.R66Auth;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbHostAuth;
+import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.Messages;
+import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 import org.waarp.openr66.protocol.localhandler.packet.InformationPacket;
@@ -53,7 +58,7 @@ public class RequestInformation implements Runnable {
 	static volatile WaarpInternalLogger logger;
 
 	protected static String _INFO_ARGS = 
-			Messages.getString("RequestInformation.0"); //$NON-NLS-1$
+			Messages.getString("RequestInformation.0")+ Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
 	
 	protected final NetworkTransaction networkTransaction;
 	final R66Future future;
@@ -78,7 +83,7 @@ public class RequestInformation implements Runnable {
 	 * @return True if all parameters were found and correct
 	 */
 	protected static boolean getParams(String[] args) {
-		_INFO_ARGS = Messages.getString("RequestInformation.0"); //$NON-NLS-1$
+		_INFO_ARGS = Messages.getString("RequestInformation.0")+ Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
 		if (args.length < 5) {
 			logger
 					.error(_INFO_ARGS);
@@ -115,10 +120,9 @@ public class RequestInformation implements Runnable {
 				sisTo = true;
 			} else if (args[i].equalsIgnoreCase("-reqto")) {
 				sisTo = false;
-			} else if (args[i].equalsIgnoreCase("-quiet")) {
-				Configuration.configuration.quietClient = true;
 			}
 		}
+		OutputFormat.getParams(args);
 		if (sfilename != null && scode == -1) {
 			scode = (byte) InformationPacket.ASKENUM.ASKEXIST.ordinal();
 		}
@@ -220,7 +224,7 @@ public class RequestInformation implements Runnable {
 		}
 		if (!getParams(args)) {
 			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
-			if (! Configuration.configuration.quietClient) {
+			if (! OutputFormat.isQuiet()) {
 				System.out.println(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
 			}
 			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
@@ -241,25 +245,47 @@ public class RequestInformation implements Runnable {
 							networkTransaction);
 			requestInformation.run();
 			result.awaitUninterruptibly();
+			// if transfer information request (code = -1) => middle empty and header = Runner as XML
+			// if listing request => middle = nb of files, header = list of files in native/list/mlsx/exist (true/false) format, 1 file per line
+			OutputFormat outputFormat = new OutputFormat();
 			if (result.isSuccess()) {
 				value = 0;
 				R66Result r66result = result.getResult();
 				ValidPacket info = (ValidPacket) r66result.other;
-				logger.warn(Messages.getString("RequestInformation.Success") + " " + info.getSmiddle() + " " + info.getSheader()); //$NON-NLS-1$
-				if (! Configuration.configuration.quietClient) {
-					System.out.println(Messages.getString("RequestInformation.Success") + "\n" + info.getSmiddle() + "\n" + info.getSheader()); //$NON-NLS-1$
+				outputFormat.setValue(FIELDS.status.name(), 0);
+				outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
+				outputFormat.setValue(FIELDS.remote.name(), srequested);
+				if (requestInformation.code != -1) {
+					outputFormat.setValue("nb", Integer.parseInt(info.getSmiddle()));
+					String [] files = info.getSheader().split("\n");
+					int i = 0;
+					for (String file : files) {
+						i++;
+						outputFormat.setValue("file"+i, file);
+					}
+				} else {
+					try {
+						DbTaskRunner runner = DbTaskRunner.fromStringXml(info.getSheader(), false);
+						Map<String, String> map = DbTaskRunner.getMapFromRunner(runner);
+						outputFormat.setValueString(map);
+					} catch (OpenR66ProtocolBusinessException e) {
+						outputFormat.setValue("Id", requestInformation.id);
+						outputFormat.setValue(FIELDS.transfer.name(), info.getSheader());
+					}
 				}
-
+				logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+				outputFormat.sysout();
 			} else {
 				value = 2;
-				logger.error(Messages.getString("RequestInformation.Failure") + //$NON-NLS-1$
-						result.getResult().toString());
-				if (! Configuration.configuration.quietClient) {
-					System.out.println(Messages.getString("RequestInformation.Failure") + //$NON-NLS-1$
-							"\n" +result.getResult().toString());
-				}
+				outputFormat.setValue(FIELDS.status.name(), 2);
+				outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestInformation.Failure")); //$NON-NLS-1$
+				outputFormat.setValue(FIELDS.remote.name(), srequested);
+				outputFormat.setValue(FIELDS.error.name(), result.getResult().toString());
+				logger.error(outputFormat.toString(OUTPUTFORMAT.JSON));
+				outputFormat.sysout();
 			}
-
+		} catch (Exception e) {
+			logger.warn("Exception", e);
 		} finally {
 			if (networkTransaction != null) {
 				networkTransaction.closeAll();

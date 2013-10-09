@@ -17,10 +17,14 @@
  */
 package org.waarp.openr66.client;
 
+import java.util.Map;
+
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
+import org.waarp.openr66.client.OutputFormat.FIELDS;
+import org.waarp.openr66.client.OutputFormat.OUTPUTFORMAT;
 import org.waarp.openr66.commander.ClientRunner;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
@@ -127,7 +131,7 @@ public class DirectTransfer extends AbstractTransfer {
 		}
 		if (!getParams(args, false)) {
 			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
-			if (! Configuration.configuration.quietClient) {
+			if (! OutputFormat.isQuiet()) {
 				System.out.println(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
 			}
 			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
@@ -152,62 +156,22 @@ public class DirectTransfer extends AbstractTransfer {
 			logger.debug("finish transfer: " + future.isSuccess());
 			long delay = time2 - time1;
 			R66Result result = future.getResult();
+			OutputFormat outputFormat = new OutputFormat();
 			if (future.isSuccess()) {
 				if (result.runner.getErrorInfo() == ErrorCode.Warning) {
-					logger.warn(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Warned") //$NON-NLS-1$
-							+ result.runner.toShortString()
-							+
-							"     <REMOTE>"
-							+ rhost
-							+ "</REMOTE>"
-							+
-							"     <FILEFINAL>"
-							+
-							(result.file != null ? result.file.toString() + "</FILEFINAL>"
-									: "no file")
-							+ "     delay: " + delay);
-					if (! Configuration.configuration.quietClient) {
-						System.out.println(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Warned") //$NON-NLS-1$
-								+ "\n" + result.runner.toShortString()
-								+
-								"     <REMOTE>"
-								+ rhost
-								+ "</REMOTE>"
-								+
-								"     <FILEFINAL>"
-								+
-								(result.file != null ? result.file.toString() + "</FILEFINAL>"
-										: "no file")
-								+ "\n     delay: " + "\n"+delay);
-					}
+					outputFormat.setValue(FIELDS.status.name(), 1);
+					outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Warned")); //$NON-NLS-1$
 				} else {
-					logger.info(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Success") //$NON-NLS-1$
-							+ result.runner.toShortString()
-							+
-							"     <REMOTE>"
-							+ rhost
-							+ "</REMOTE>"
-							+
-							"     <FILEFINAL>"
-							+
-							(result.file != null ? result.file.toString() + "</FILEFINAL>"
-									: "no file")
-							+ "     delay: " + delay);
-					if (! Configuration.configuration.quietClient) {
-						System.out.println(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Success") //$NON-NLS-1$
-								+ "\n" + result.runner.toShortString()
-								+
-								"     <REMOTE>"
-								+ rhost
-								+ "</REMOTE>"
-								+
-								"     <FILEFINAL>"
-								+
-								(result.file != null ? result.file.toString() + "</FILEFINAL>"
-										: "no file")
-								+ "\n     delay: " + "\n"+delay);
-					}
+					outputFormat.setValue(FIELDS.status.name(), 0);
+					outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
 				}
+				outputFormat.setValue(FIELDS.remote.name(), rhost);
+				Map<String, String> map = DbTaskRunner.getMapFromRunner(result.runner);
+				outputFormat.setValueString(map);
+				outputFormat.setValue("filefinal", (result.file != null ? result.file.toString() : "no file"));
+				outputFormat.setValue("delay", delay);
+				logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+				outputFormat.sysout();
 				if (nolog || result.runner.shallIgnoreSave()) {
 					// In case of success, delete the runner
 					try {
@@ -219,34 +183,34 @@ public class DirectTransfer extends AbstractTransfer {
 				}
 			} else {
 				if (result == null || result.runner == null) {
-					logger.error(Messages.getString("Transfer.FailedNoId"), future.getCause()); //$NON-NLS-1$
-					if (! Configuration.configuration.quietClient) {
-						System.out.println(Messages.getString("Transfer.FailedNoId") + "\n" + future.getCause()); //$NON-NLS-1$
-					}
+					outputFormat.setValue(FIELDS.status.name(), 2);
+					outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("Transfer.FailedNoId")); //$NON-NLS-1$
+					outputFormat.setValue(FIELDS.remote.name(), rhost);
+					logger.error(outputFormat.toString(OUTPUTFORMAT.JSON), future.getCause());
+					outputFormat.setValue(FIELDS.error.name(), future.getCause().getMessage());
+					outputFormat.sysout();
 					networkTransaction.closeAll();
 					System.exit(ErrorCode.Unknown.ordinal());
 				}
 				if (result.runner.getErrorInfo() == ErrorCode.Warning) {
-					logger.warn(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Warned") + result.runner.toShortString() + //$NON-NLS-1$
-							"     <REMOTE>" + rhost + "</REMOTE>", future.getCause());
-					if (! Configuration.configuration.quietClient) {
-						System.out.println(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Warned") + "\n" +
-								result.runner.toShortString() + //$NON-NLS-1$
-								"     <REMOTE>" + rhost + "</REMOTE>" + "\n" + future.getCause());
-					}
-					networkTransaction.closeAll();
-					System.exit(result.code.ordinal());
+					outputFormat.setValue(FIELDS.status.name(), 1);
+					outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Warned")); //$NON-NLS-1$
 				} else {
-					logger.error(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Failure") + result.runner.toShortString() + //$NON-NLS-1$
-							"     <REMOTE>" + rhost + "</REMOTE>", future.getCause());
-					if (! Configuration.configuration.quietClient) {
-						System.out.println(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Failure") + "\n" + 
-								result.runner.toShortString() + //$NON-NLS-1$
-								"     <REMOTE>" + rhost + "</REMOTE>" + "\n" + future.getCause());
-					}
-					networkTransaction.closeAll();
-					System.exit(result.code.ordinal());
+					outputFormat.setValue(FIELDS.status.name(), 2);
+					outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Failure")); //$NON-NLS-1$
 				}
+				outputFormat.setValue(FIELDS.remote.name(), rhost);
+				Map<String, String> map = DbTaskRunner.getMapFromRunner(result.runner);
+				outputFormat.setValueString(map);
+				if (result.runner.getErrorInfo() == ErrorCode.Warning) {
+					logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON), future.getCause());
+				} else {
+					logger.error(outputFormat.toString(OUTPUTFORMAT.JSON), future.getCause());
+				}
+				outputFormat.setValue(FIELDS.error.name(), future.getCause().getMessage());
+				outputFormat.sysout();
+				networkTransaction.closeAll();
+				System.exit(result.code.ordinal());
 			}
 		} catch (Exception e) {
 			logger.debug("exc", e);
