@@ -66,14 +66,14 @@ public class SpooledEngine extends EngineAbstract {
 				String key = (String) okey;
 				String val = prop.getProperty(key);
 				if (key.equals("xmlfile")) {
-					if (val != null) {
+					if (val != null && ! val.trim().isEmpty()) {
 						array.add(0, val);
 					} else {
 						throw new Exception("Initialization in error: missing xmlfile");
 					}
 				} else {
-					array.add(key);
-					if (val != null) {
+					array.add("-"+key);
+					if (val != null && ! val.trim().isEmpty()) {
 						array.add(val);
 					}
 				}

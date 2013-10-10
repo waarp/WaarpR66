@@ -53,7 +53,7 @@ rem -- Logback configuration file: ATTENTION recommendation is to configure outp
 set LOGBACK_CONF=%EXEC_PATH%\..\conf\logback.xml
 
 rem -- R66 configuration file
-set R66_CONF=%EXEC_PATH%\..\conf\config-serverA2-2.xml
+set R66_CONF=%EXEC_PATH%\..\conf\spooled.conf
 
 rem -- prunsrv.exe location
 set PRUNSRVEXEC=%EXEC_PATH%\windows\prunsrv.exe
