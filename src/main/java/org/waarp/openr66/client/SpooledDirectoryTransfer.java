@@ -212,7 +212,8 @@ public class SpooledDirectoryTransfer implements Runnable {
 			filter = new RegexFileFilter(regexFilter);
 		}
 		FileMonitorCommand commandValidFile = new FileMonitorCommand() {
-			public void run(File file) {
+			public boolean run(File file) {
+				boolean finalStatus = false;
 				for (String host : allrhosts) {
 					host = host.trim();
 					if (host != null && ! host.isEmpty()) {
@@ -237,6 +238,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 						future.awaitUninterruptibly();
 						R66Result result = future.getResult();
 						if (future.isSuccess()) {
+							finalStatus = true;
 							sent++;
 							DbTaskRunner runner = null;
 							if (result != null) {
@@ -292,6 +294,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 						}
 					}
 				}
+				return finalStatus;
 			}
 		};
 		FileMonitorCommand waarpHostCommand = null;
@@ -301,7 +304,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 		if (waarpHosts != null && ! waarpHosts.isEmpty()) {
 			final String [] allwaarps = waarpHosts.split(",");
 			waarpHostCommand = new FileMonitorCommand() {
-				public void run(File notused) {
+				public boolean run(File notused) {
 					String status = monitor.getStatus();
 					for (String host : allwaarps) {
 						host = host.trim();
@@ -318,6 +321,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 							}
 						}
 					}
+					return true;
 				}
 			};
 			monitor.setCommandCheckIteration(waarpHostCommand);
