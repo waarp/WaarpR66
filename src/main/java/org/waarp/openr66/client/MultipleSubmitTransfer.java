@@ -27,7 +27,6 @@ import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.client.OutputFormat.FIELDS;
-import org.waarp.openr66.client.OutputFormat.OUTPUTFORMAT;
 import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbRule;
@@ -121,7 +120,7 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 							Map<String, String> map = DbTaskRunner.getMapFromRunner(runner);
 							outputFormat.setValueString(map);
 							results.add(outputFormat);
-							logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+							logger.warn(outputFormat.loggerOut());
 							doneMultiple++;
 						} else {
 							outputFormat.setValue(FIELDS.status.name(), 2);
@@ -133,7 +132,7 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 								Map<String, String> map = DbTaskRunner.getMapFromRunner(runner);
 								outputFormat.setValueString(map);
 							}
-							logger.error(outputFormat.toString(OUTPUTFORMAT.JSON), future.getCause());
+							logger.error(outputFormat.loggerOut(), future.getCause());
 							if (future.getCause() != null) {
 								outputFormat.setValue(FIELDS.error.name(), future.getCause().getMessage());
 							}
@@ -203,7 +202,7 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 				outputFormat.setValue(FIELDS.statusTxt.name(), "Multiple "+Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
 				outputFormat.setValue(FIELDS.remote.name(), rhost);
 				outputFormat.setValue("ok", transaction.doneMultiple);
-				logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+				logger.warn(outputFormat.loggerOut());
 				if (! OutputFormat.isQuiet()) {
 					outputFormat.sysout();
 					for (OutputFormat result : transaction.results) {
@@ -217,7 +216,7 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 				outputFormat.setValue(FIELDS.remote.name(), rhost);
 				outputFormat.setValue("ok", transaction.doneMultiple);
 				outputFormat.setValue("ko", transaction.errorMultiple);
-				logger.error(outputFormat.toString(OUTPUTFORMAT.JSON));
+				logger.error(outputFormat.loggerOut());
 				if (! OutputFormat.isQuiet()) {
 					outputFormat.sysout();
 					for (OutputFormat result : transaction.results) {

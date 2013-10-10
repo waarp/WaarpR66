@@ -26,7 +26,6 @@ import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.client.OutputFormat.FIELDS;
-import org.waarp.openr66.client.OutputFormat.OUTPUTFORMAT;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.database.DbConstant;
@@ -151,7 +150,7 @@ public class SubmitTransfer extends AbstractTransfer {
 			outputFormat.setValue(FIELDS.remote.name(), rhost);
 			Map<String, String> map = DbTaskRunner.getMapFromRunner(runner);
 			outputFormat.setValueString(map);
-			logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+			logger.warn(outputFormat.loggerOut());
 			outputFormat.sysout();
 		} else {
 			outputFormat.setValue(FIELDS.status.name(), 2);
@@ -163,7 +162,7 @@ public class SubmitTransfer extends AbstractTransfer {
 				Map<String, String> map = DbTaskRunner.getMapFromRunner(runner);
 				outputFormat.setValueString(map);
 			}
-			logger.error(outputFormat.toString(OUTPUTFORMAT.JSON), future.getCause());
+			logger.error(outputFormat.loggerOut(), future.getCause());
 			if (future.getCause() != null) {
 				outputFormat.setValue(FIELDS.error.name(), future.getCause().getMessage());
 			}

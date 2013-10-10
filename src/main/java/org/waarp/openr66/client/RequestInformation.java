@@ -25,7 +25,6 @@ import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.client.OutputFormat.FIELDS;
-import org.waarp.openr66.client.OutputFormat.OUTPUTFORMAT;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66FiniteDualStates;
@@ -273,7 +272,7 @@ public class RequestInformation implements Runnable {
 						outputFormat.setValue(FIELDS.transfer.name(), info.getSheader());
 					}
 				}
-				logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+				logger.warn(outputFormat.loggerOut());
 				outputFormat.sysout();
 			} else {
 				value = 2;
@@ -281,7 +280,7 @@ public class RequestInformation implements Runnable {
 				outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestInformation.Failure")); //$NON-NLS-1$
 				outputFormat.setValue(FIELDS.remote.name(), srequested);
 				outputFormat.setValue(FIELDS.error.name(), result.getResult().toString());
-				logger.error(outputFormat.toString(OUTPUTFORMAT.JSON));
+				logger.error(outputFormat.loggerOut());
 				outputFormat.sysout();
 			}
 		} catch (Exception e) {

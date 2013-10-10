@@ -31,7 +31,6 @@ import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.client.OutputFormat.FIELDS;
-import org.waarp.openr66.client.OutputFormat.OUTPUTFORMAT;
 import org.waarp.openr66.commander.CommanderNoDb;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.context.ErrorCode;
@@ -560,7 +559,7 @@ public class RequestTransfer implements Runnable {
 						outputFormat.setValue(FIELDS.remote.name(), rhost);
 						Map<String, String> map = DbTaskRunner.getMapFromRunner(result.runner);
 						outputFormat.setValueString(map);
-						logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+						logger.warn(outputFormat.loggerOut());
 						outputFormat.sysout();
 					} else {
 						outputFormat.setValue(FIELDS.remote.name(), rhost);
@@ -571,14 +570,14 @@ public class RequestTransfer implements Runnable {
 								value = 0;
 								outputFormat.setValue(FIELDS.status.name(), value);
 								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.70")); //$NON-NLS-1$
-								logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+								logger.warn(outputFormat.loggerOut());
 								outputFormat.sysout();
 								break;
 							case TransferOk:
 								value = 3;
 								outputFormat.setValue(FIELDS.status.name(), value);
 								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.71")); //$NON-NLS-1$
-								logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+								logger.warn(outputFormat.loggerOut());
 								outputFormat.sysout();
 								break;
 							default:
@@ -588,7 +587,7 @@ public class RequestTransfer implements Runnable {
 								if (result.getCause() != null) {
 									outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
 								}
-								logger.error(outputFormat.toString(OUTPUTFORMAT.JSON));
+								logger.error(outputFormat.loggerOut());
 								outputFormat.sysout();
 								break;
 						}
@@ -603,14 +602,14 @@ public class RequestTransfer implements Runnable {
 							value = 0;
 							outputFormat.setValue(FIELDS.status.name(), value);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.73")); //$NON-NLS-1$
-							logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+							logger.warn(outputFormat.loggerOut());
 							outputFormat.sysout();
 							break;
 						case TransferOk:
 							value = 0;
 							outputFormat.setValue(FIELDS.status.name(), value);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.74")); //$NON-NLS-1$
-							logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+							logger.warn(outputFormat.loggerOut());
 							outputFormat.sysout();
 							break;
 						default:
@@ -620,7 +619,7 @@ public class RequestTransfer implements Runnable {
 							if (result.getCause() != null) {
 								outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
 							}
-							logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+							logger.warn(outputFormat.loggerOut());
 							outputFormat.sysout();
 							break;
 					}
@@ -634,42 +633,42 @@ public class RequestTransfer implements Runnable {
 							value = 0;
 							outputFormat.setValue(FIELDS.status.name(), value);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.76")); //$NON-NLS-1$
-							logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+							logger.warn(outputFormat.loggerOut());
 							outputFormat.sysout();
 							break;
 						case Running:
 							value = 0;
 							outputFormat.setValue(FIELDS.status.name(), value);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.77")); //$NON-NLS-1$
-							logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+							logger.warn(outputFormat.loggerOut());
 							outputFormat.sysout();
 							break;
 						case PreProcessingOk:
 							value = 0;
 							outputFormat.setValue(FIELDS.status.name(), value);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.78")); //$NON-NLS-1$
-							logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+							logger.warn(outputFormat.loggerOut());
 							outputFormat.sysout();
 							break;
 						case CompleteOk:
 							value = 4;
 							outputFormat.setValue(FIELDS.status.name(), value);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.79")); //$NON-NLS-1$
-							logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+							logger.warn(outputFormat.loggerOut());
 							outputFormat.sysout();
 							break;
 						case RemoteError:
 							value = 5;
 							outputFormat.setValue(FIELDS.status.name(), value);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.80")); //$NON-NLS-1$
-							logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+							logger.warn(outputFormat.loggerOut());
 							outputFormat.sysout();
 							break;
 						case PassThroughMode:
 							value = 6;
 							outputFormat.setValue(FIELDS.status.name(), value);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.81")); //$NON-NLS-1$
-							logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+							logger.warn(outputFormat.loggerOut());
 							outputFormat.sysout();
 							break;
 						default:
@@ -679,7 +678,7 @@ public class RequestTransfer implements Runnable {
 							if (result.getCause() != null) {
 								outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
 							}
-							logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+							logger.warn(outputFormat.loggerOut());
 							outputFormat.sysout();
 							break;
 					}
@@ -692,7 +691,7 @@ public class RequestTransfer implements Runnable {
 				outputFormat.setValue(FIELDS.remote.name(), rhost);
 				Map<String, String> map = DbTaskRunner.getMapFromRunner(result.runner);
 				outputFormat.setValueString(map);
-				logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+				logger.warn(outputFormat.loggerOut());
 				outputFormat.sysout();
 			}
 		} finally {

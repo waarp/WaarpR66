@@ -178,6 +178,14 @@ public class OutputFormat extends JsonHandler {
 		}
 	}
 	
+	/**
+	 * Helper for Logger
+	 * @return the String to print in logger
+	 */
+	public String loggerOut() {
+		return getValue(node, FIELDS.statusTxt, "") + " => " + toString(OUTPUTFORMAT.JSON);
+	}
+	
 	@Override
 	public String toString() {
 		return toString(format);
@@ -202,8 +210,8 @@ public class OutputFormat extends JsonHandler {
 					boolean next = false;
 					for (String key : map.keySet()) {
 						if (next) {
-							builderKeys.append(',');
-							builderValues.append(',');
+							builderKeys.append(';');
+							builderValues.append(';');
 						} else {
 							next = true;
 						}

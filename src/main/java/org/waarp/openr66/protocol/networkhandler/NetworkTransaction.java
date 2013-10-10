@@ -759,7 +759,7 @@ public class NetworkTransaction {
 	}
 
 	/**
-	 * Get NetworkChannel as client
+	 * Shutdown NetworkChannel as client
 	 * 
 	 * @param requester
 	 * @return NetworkChannel associated with this host as client (only 1 allow even if more are
@@ -890,12 +890,14 @@ public class NetworkTransaction {
 							System.currentTimeMillis();
 					if (time > Configuration.RETRYINMS) {
 						// will re execute this request later on
+						time = (time / 10) * 10; // round to 10
 						Configuration.configuration.getTimerClose().newTimeout(this, time,
 								TimeUnit.MILLISECONDS);
 						return;
 					}
-					if (requester != null)
+					if (requester != null) {
 						NetworkTransaction.removeClient(requester, networkChannel);
+					}
 					networkChannelOnSocketAddressConcurrentHashMap
 							.remove(address.hashCode());
 					logger.info("Will close NETWORK channel");

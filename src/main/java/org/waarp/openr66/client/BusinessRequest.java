@@ -24,7 +24,6 @@ import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.client.AbstractBusinessRequest;
 import org.waarp.openr66.client.OutputFormat.FIELDS;
-import org.waarp.openr66.client.OutputFormat.OUTPUTFORMAT;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.protocol.configuration.Configuration;
@@ -99,14 +98,14 @@ public class BusinessRequest extends AbstractBusinessRequest {
 			outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("BusinessRequest.6")+Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
 			outputFormat.setValue(FIELDS.remote.name(), rhost);
 			outputFormat.setValue("delay", delay);
-			logger.info(outputFormat.toString(OUTPUTFORMAT.JSON));
+			logger.info(outputFormat.loggerOut());
 			outputFormat.sysout();
 		} else {
 			outputFormat.setValue(FIELDS.status.name(), 2);
 			outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("BusinessRequest.6")+Messages.getString("RequestInformation.Failure")); //$NON-NLS-1$
 			outputFormat.setValue(FIELDS.remote.name(), rhost);
 			outputFormat.setValue("delay", delay);
-			logger.error(outputFormat.toString(OUTPUTFORMAT.JSON), future.getCause());
+			logger.error(outputFormat.loggerOut(), future.getCause());
 			outputFormat.setValue(FIELDS.error.name(), future.getCause().toString());
 			outputFormat.sysout();
 			networkTransaction.closeAll();

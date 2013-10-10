@@ -52,7 +52,7 @@ public abstract class AbstractBusinessRequest implements Runnable {
 	 */
 	static protected volatile WaarpInternalLogger logger;
 	
-	protected static String _INFO_ARGS = Messages.getString("AbstractBusinessRequest.0"); //$NON-NLS-1$
+	protected static String _INFO_ARGS = Messages.getString("AbstractBusinessRequest.0")+ Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
 
 	protected final R66Future future;
 
@@ -182,7 +182,7 @@ public abstract class AbstractBusinessRequest implements Runnable {
 	 * @return True if all parameters were found and correct
 	 */
 	protected static boolean getParams(String[] args) {
-		_INFO_ARGS = Messages.getString("AbstractBusinessRequest.0"); //$NON-NLS-1$
+		_INFO_ARGS = Messages.getString("AbstractBusinessRequest.0")+ Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
 		if (args.length < 3) {
 			logger
 					.error(_INFO_ARGS);
@@ -210,6 +210,7 @@ public abstract class AbstractBusinessRequest implements Runnable {
 				i++;
 			}
 		}
+		OutputFormat.getParams(args);
 		if (rhost != null && classname != null) {
 			return true;
 		}

@@ -24,7 +24,6 @@ import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.client.OutputFormat.FIELDS;
-import org.waarp.openr66.client.OutputFormat.OUTPUTFORMAT;
 import org.waarp.openr66.commander.ClientRunner;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
@@ -170,7 +169,7 @@ public class DirectTransfer extends AbstractTransfer {
 				outputFormat.setValueString(map);
 				outputFormat.setValue("filefinal", (result.file != null ? result.file.toString() : "no file"));
 				outputFormat.setValue("delay", delay);
-				logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON));
+				logger.warn(outputFormat.loggerOut());
 				outputFormat.sysout();
 				if (nolog || result.runner.shallIgnoreSave()) {
 					// In case of success, delete the runner
@@ -186,7 +185,7 @@ public class DirectTransfer extends AbstractTransfer {
 					outputFormat.setValue(FIELDS.status.name(), 2);
 					outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("Transfer.FailedNoId")); //$NON-NLS-1$
 					outputFormat.setValue(FIELDS.remote.name(), rhost);
-					logger.error(outputFormat.toString(OUTPUTFORMAT.JSON), future.getCause());
+					logger.error(outputFormat.loggerOut(), future.getCause());
 					outputFormat.setValue(FIELDS.error.name(), future.getCause().getMessage());
 					outputFormat.sysout();
 					networkTransaction.closeAll();
@@ -203,9 +202,9 @@ public class DirectTransfer extends AbstractTransfer {
 				Map<String, String> map = DbTaskRunner.getMapFromRunner(result.runner);
 				outputFormat.setValueString(map);
 				if (result.runner.getErrorInfo() == ErrorCode.Warning) {
-					logger.warn(outputFormat.toString(OUTPUTFORMAT.JSON), future.getCause());
+					logger.warn(outputFormat.loggerOut(), future.getCause());
 				} else {
-					logger.error(outputFormat.toString(OUTPUTFORMAT.JSON), future.getCause());
+					logger.error(outputFormat.loggerOut(), future.getCause());
 				}
 				outputFormat.setValue(FIELDS.error.name(), future.getCause().getMessage());
 				outputFormat.sysout();

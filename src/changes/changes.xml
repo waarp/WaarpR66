@@ -7,7 +7,11 @@
 	<body>
 	    <release version="2.4.20" date="2013-10-06" description="Fix release">
 		    <action dev="Frederic Bregier" type="fix">Fix check of real locality in Out directory of the rule when submitting a RECV request (to prevent unallowed access)</action>
-   		</release>
+		    <action dev="Frederic Bregier" type="add">Add recursive and multiple directories support in SpooledDirectory</action>
+		    <action dev="Frederic Bregier" type="add">Add support for information send by the SpooledDirectory to one or more Waarp Server</action>
+		    <action dev="Frederic Bregier" type="add">Add and Improve output with xml, csv, json or property format</action>
+			<action dev="Frederic Bregier" type="add">Add service startip for SpooledDirectory</action>
+		</release>
 		<release version="2.4.19" date="2013-10-06" description="Fix release">
 		    <action dev="Frederic Bregier" type="fix">Fix Submit command by testing if the client is really connected to the database (affect also SpooledDirectoryTransfer)</action>
 	        <action dev="Frederic Bregier" type="add">Improve File size checking in start of request</action>

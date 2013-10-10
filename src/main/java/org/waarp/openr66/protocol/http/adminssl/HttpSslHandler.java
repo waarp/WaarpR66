@@ -17,10 +17,12 @@
  */
 package org.waarp.openr66.protocol.http.adminssl;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.sql.Timestamp;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -56,8 +58,10 @@ import org.waarp.common.database.DbSession;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
+import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.exception.FileTransferException;
 import org.waarp.common.exception.InvalidArgumentException;
+import org.waarp.common.filemonitor.FileMonitor.FileItem;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
@@ -69,6 +73,8 @@ import org.waarp.openr66.context.R66FiniteDualStates;
 import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.context.filesystem.R66Dir;
+import org.waarp.openr66.context.task.SpooledInformTask;
+import org.waarp.openr66.context.task.SpooledInformTask.SpooledInformation;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.database.data.DbHostConfiguration;
@@ -139,7 +145,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				"Hosts_end.html"),
 		Rules("Rules_head.html", "Rules_body0.html", "Rules_body.html", "Rules_body1.html",
 				"Rules_end.html"),
-		System("System.html");
+		System("System.html"),
+		Spooled("Spooled.html");
 
 		private String header;
 		private String headerBody;
@@ -1463,6 +1470,91 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		return head + body0 + body + body1 + end;
 	}
 
+	private String Spooled() {
+		// XXXSPOOLEDXXX
+		String spooled = REQUEST.Spooled.readFileUnique(this);
+		StringBuilder builder = new StringBuilder();
+		builder.append("<TABLE BORDER=1><CAPTION>SpooledDirectory daemons information</CAPTION>");
+		// title first
+		builder.append("<TR><TH>Name</TH><TH>Host</TH><TH>Last Time</TH><TH>Elapse</TH><TH>StopFile</TH><TH>StatusFile</TH><TH>SubDir</TH><TH>Directories</TH><TH>Files</TH></TR>");
+		// get current information
+		Set<String> names = SpooledInformTask.spooledInformationMap.keySet();
+		for (String name : names) {
+			// per Name
+			synchronized (SpooledInformTask.spooledInformationMap) {
+				SpooledInformation inform = SpooledInformTask.spooledInformationMap.get(name);
+				builder.append("<TR>");
+				builder.append("<TH>");
+				builder.append(name);
+				builder.append("</TH>");
+				builder.append("<TD>");
+				builder.append(inform.host);
+				builder.append("</TD>");
+				long time = inform.lastUpdate.getTime() + Configuration.configuration.TIMEOUTCON;
+				if (time + Configuration.configuration.TIMEOUTCON < System.currentTimeMillis()) {
+					builder.append("<TD bgcolor=Red>");
+				} else if (time < System.currentTimeMillis()) {
+					builder.append("<TD bgcolor=Orange>");
+				} else {
+					builder.append("<TD bgcolor=LightGreen>");
+				}
+				builder.append(inform.lastUpdate);
+				builder.append("</TD>");
+				if (inform.fileMonitorInformation != null) {
+					builder.append("<TD>");
+					builder.append(inform.fileMonitorInformation.elapseTime);
+					builder.append("</TD>");
+					builder.append("<TD>");
+					builder.append(inform.fileMonitorInformation.stopFile);
+					builder.append("</TD>");
+					builder.append("<TD>");
+					builder.append(inform.fileMonitorInformation.statusFile);
+					builder.append("</TD>");
+					builder.append("<TD>");
+					builder.append(inform.fileMonitorInformation.scanSubDir);
+					builder.append("</TD>");
+					String dirs = "";
+					for (File dir : inform.fileMonitorInformation.directories) {
+						dirs += dir + "<br>";
+					}
+					builder.append("<TD>");
+					builder.append(dirs);
+					builder.append("</TD>");
+					if (inform.fileMonitorInformation.fileItems != null) {
+						builder.append("<TD><TABLE BORDER=1><TR><TH>File</TH><TH>Hash</TH><TH>LastTimeModif</TH><TH>TimeUsed</TH><TH>Used</TH></TR>");
+						for (FileItem fileItem : inform.fileMonitorInformation.fileItems.values()) {
+							builder.append("<TR><TD>");
+							builder.append(fileItem.file);
+							builder.append("</TD>");
+							builder.append("<TD>");
+							if (fileItem.hash != null) {
+								builder.append(FilesystemBasedDigest.getHex(fileItem.hash));
+							}
+							builder.append("</TD>");
+							builder.append("<TD>");
+							if (fileItem.lastTime > 0) {
+								builder.append(new Date(fileItem.lastTime));
+							}
+							builder.append("</TD>");
+							builder.append("<TD>");
+							if (fileItem.timeUsed > 0) {
+								builder.append(new Date(fileItem.timeUsed));
+							}
+							builder.append("</TD>");
+							builder.append("<TD>");
+							builder.append(fileItem.used);
+							builder.append("</TD></TR>");
+						}
+						builder.append("</TABLE></TD>");
+					}
+				}
+				builder.append("</TR>");
+			}
+		}
+		builder.append("</TABLE>");
+		return spooled.replace("XXXSPOOLEDXXX", builder.toString());
+	}
+	
 	private String System() {
 		getParams();
 		DbHostConfiguration config = null;
@@ -1870,6 +1962,9 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				break;
 			case Transfers:
 				responseContent.append(Transfers());
+				break;
+			case Spooled:
+				responseContent.append(Spooled());
 				break;
 			default:
 				responseContent.append(index());

@@ -18,7 +18,7 @@ export EXEC_PATH=/waarp/run
 export DAEMON_ROOT=/waarp/classpath
 
 # Change this by the name of your daemon
-export DAEMON_NAME="WaarpDaemon"
+export DAEMON_NAME="WaarpSpooledDaemon"
 
 # Change this to match your classpath
 export DAEMON_CLASSPATH=" ${DAEMON_ROOT}/WaarpR66-2.4.20.jar:${DAEMON_ROOT}/* "
@@ -27,7 +27,7 @@ export DAEMON_CLASSPATH=" ${DAEMON_ROOT}/WaarpR66-2.4.20.jar:${DAEMON_ROOT}/* "
 export PID_FILE=${EXEC_PATH}/service.pid
 
 # Change this to match you Daemon class
-export MAIN_DAEMON_CLASS=org.waarp.xxx.service.ServiceLauncher
+export MAIN_DAEMON_CLASS=org.waarp.openr66.client.spooledService.SpooledServiceLauncher
 
 # Change this to specify the stdout file
 export STDOUT_FILE=${EXEC_PATH}/../logs/stdout.txt
