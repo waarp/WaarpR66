@@ -314,7 +314,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 							transaction.run();
 							future.awaitUninterruptibly();
 							if (! future.isSuccess()) {
-								logger.warn("Can't inform Waarp server: "+host + " since " + future.getCause());
+								logger.info("Can't inform Waarp server: "+host + " since " + future.getCause());
 							}
 						}
 					}
