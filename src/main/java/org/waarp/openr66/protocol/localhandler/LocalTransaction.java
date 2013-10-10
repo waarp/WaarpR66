@@ -185,9 +185,10 @@ public class LocalTransaction {
 			if (channelFuture.isSuccess()) {
 				final Channel channel = channelFuture.getChannel();
 				localChannelGroup.add(channel);
+				logger.debug("Will start localChannelReference and eventually generate a new Db Connection if not-thread-safe");
 				final LocalChannelReference localChannelReference = new LocalChannelReference(
 						channel, networkChannel, remoteId, futureRequest);
-				logger.debug("Create LocalChannel entry: " + i + " {}",
+				logger.debug("Db connection done and Create LocalChannel entry: " + i + " {}",
 						localChannelReference);
 				channel.getCloseFuture().addListener(remover);
 				localChannelHashMap.put(channel.getId(), localChannelReference);
