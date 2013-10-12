@@ -102,6 +102,7 @@ public class RequestInformation implements Runnable {
 			} else if (args[i].equalsIgnoreCase("-file")) {
 				i++;
 				sfilename = args[i];
+				sfilename = sfilename.replace('§', '*');
 			} else if (args[i].equalsIgnoreCase("-rule")) {
 				i++;
 				srulename = args[i];

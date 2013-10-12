@@ -245,6 +245,7 @@ public abstract class AbstractTransfer implements Runnable {
 				} else if (args[i].equalsIgnoreCase("-file")) {
 					i++;
 					localFilename = args[i];
+					localFilename = localFilename.replace('§', '*');
 				} else if (args[i].equalsIgnoreCase("-rule")) {
 					i++;
 					rule = args[i];

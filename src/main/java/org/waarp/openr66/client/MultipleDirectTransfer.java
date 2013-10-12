@@ -118,6 +118,7 @@ public class MultipleDirectTransfer extends DirectTransfer {
 		if (localfilenames != null) {
 			for (String filename : localfilenames) {
 				if (!(filename.contains("*") || filename.contains("?") || filename.contains("~"))) {
+					logger.info("Direct add: "+filename);
 					files.add(filename);
 				} else {
 					// local: must check
