@@ -24,7 +24,8 @@ import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
-import org.waarp.openr66.client.OutputFormat.FIELDS;
+import org.waarp.openr66.client.utils.OutputFormat;
+import org.waarp.openr66.client.utils.OutputFormat.FIELDS;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66FiniteDualStates;
@@ -246,7 +247,7 @@ public class RequestInformation implements Runnable {
 			result.awaitUninterruptibly();
 			// if transfer information request (code = -1) => middle empty and header = Runner as XML
 			// if listing request => middle = nb of files, header = list of files in native/list/mlsx/exist (true/false) format, 1 file per line
-			OutputFormat outputFormat = new OutputFormat();
+			OutputFormat outputFormat = new OutputFormat(RequestInformation.class.getSimpleName(), args);
 			if (result.isSuccess()) {
 				value = 0;
 				R66Result r66result = result.getResult();

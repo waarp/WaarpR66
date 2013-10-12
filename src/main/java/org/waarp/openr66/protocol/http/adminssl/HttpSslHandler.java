@@ -1474,7 +1474,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		// XXXSPOOLEDXXX
 		String spooled = REQUEST.Spooled.readFileUnique(this);
 		StringBuilder builder = new StringBuilder();
-		builder.append("<TABLE BORDER=1><CAPTION>SpooledDirectory daemons information</CAPTION>");
+		builder.append("<TABLE BORDER=1><CAPTION><A HREF=Spooled.html>SpooledDirectory daemons information</A></CAPTION>");
 		// title first
 		builder.append("<TR><TH>Name</TH><TH>Host</TH><TH>Last Time</TH><TH>Elapse</TH><TH>StopFile</TH><TH>StatusFile</TH><TH>SubDir</TH><TH>Directories</TH><TH>Files</TH></TR>");
 		// get current information
@@ -1485,7 +1485,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				SpooledInformation inform = SpooledInformTask.spooledInformationMap.get(name);
 				builder.append("<TR>");
 				builder.append("<TH>");
-				builder.append(name);
+				builder.append(name.replace(',', ' '));
 				builder.append("</TH>");
 				builder.append("<TD>");
 				builder.append(inform.host);
@@ -1785,7 +1785,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				lsession.clear();
 			}
 			if (ldbsession != null) {
-				ldbsession.disconnect();
+				ldbsession.forceDisconnect();
 				DbAdmin.nbHttpSession--;
 			}
 		}

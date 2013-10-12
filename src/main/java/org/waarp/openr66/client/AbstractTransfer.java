@@ -27,6 +27,7 @@ import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.openr66.client.utils.OutputFormat;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;

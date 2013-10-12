@@ -30,7 +30,8 @@ import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
-import org.waarp.openr66.client.OutputFormat.FIELDS;
+import org.waarp.openr66.client.utils.OutputFormat;
+import org.waarp.openr66.client.utils.OutputFormat.FIELDS;
 import org.waarp.openr66.commander.CommanderNoDb;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.context.ErrorCode;
@@ -549,7 +550,7 @@ public class RequestTransfer implements Runnable {
 			requestTransfer.run();
 			result.awaitUninterruptibly();
 			R66Result finalValue = result.getResult();
-			OutputFormat outputFormat = new OutputFormat();
+			OutputFormat outputFormat = new OutputFormat(RequestTransfer.class.getSimpleName(), args);
 			if (scancel || sstop || srestart) {
 				if (scancel) {
 					if (result.isSuccess()) {
@@ -562,14 +563,14 @@ public class RequestTransfer implements Runnable {
 						logger.warn(outputFormat.loggerOut());
 						outputFormat.sysout();
 					} else {
-						outputFormat.setValue(FIELDS.remote.name(), rhost);
 						Map<String, String> map = DbTaskRunner.getMapFromRunner(result.runner);
-						outputFormat.setValueString(map);
 						switch (finalValue.code) {
 							case CompleteOk:
 								value = 0;
 								outputFormat.setValue(FIELDS.status.name(), value);
 								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.70")); //$NON-NLS-1$
+								outputFormat.setValue(FIELDS.remote.name(), rhost);
+								outputFormat.setValueString(map);
 								logger.warn(outputFormat.loggerOut());
 								outputFormat.sysout();
 								break;
@@ -577,6 +578,8 @@ public class RequestTransfer implements Runnable {
 								value = 3;
 								outputFormat.setValue(FIELDS.status.name(), value);
 								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.71")); //$NON-NLS-1$
+								outputFormat.setValue(FIELDS.remote.name(), rhost);
+								outputFormat.setValueString(map);
 								logger.warn(outputFormat.loggerOut());
 								outputFormat.sysout();
 								break;
@@ -584,6 +587,8 @@ public class RequestTransfer implements Runnable {
 								value = 4;
 								outputFormat.setValue(FIELDS.status.name(), value);
 								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.72")); //$NON-NLS-1$
+								outputFormat.setValue(FIELDS.remote.name(), rhost);
+								outputFormat.setValueString(map);
 								if (result.getCause() != null) {
 									outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
 								}
@@ -593,15 +598,14 @@ public class RequestTransfer implements Runnable {
 						}
 					}
 				} else if (sstop) {
-					outputFormat.setValue(FIELDS.remote.name(), rhost);
 					Map<String, String> map = DbTaskRunner.getMapFromRunner(result.runner);
-					outputFormat.setValueString(map);
-
 					switch (finalValue.code) {
 						case CompleteOk:
 							value = 0;
 							outputFormat.setValue(FIELDS.status.name(), value);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.73")); //$NON-NLS-1$
+							outputFormat.setValue(FIELDS.remote.name(), rhost);
+							outputFormat.setValueString(map);
 							logger.warn(outputFormat.loggerOut());
 							outputFormat.sysout();
 							break;
@@ -609,6 +613,8 @@ public class RequestTransfer implements Runnable {
 							value = 0;
 							outputFormat.setValue(FIELDS.status.name(), value);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.74")); //$NON-NLS-1$
+							outputFormat.setValue(FIELDS.remote.name(), rhost);
+							outputFormat.setValueString(map);
 							logger.warn(outputFormat.loggerOut());
 							outputFormat.sysout();
 							break;
@@ -616,6 +622,8 @@ public class RequestTransfer implements Runnable {
 							value = 3;
 							outputFormat.setValue(FIELDS.status.name(), value);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.75")); //$NON-NLS-1$
+							outputFormat.setValue(FIELDS.remote.name(), rhost);
+							outputFormat.setValueString(map);
 							if (result.getCause() != null) {
 								outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
 							}
@@ -624,15 +632,14 @@ public class RequestTransfer implements Runnable {
 							break;
 					}
 				} else if (srestart) {
-					outputFormat.setValue(FIELDS.remote.name(), rhost);
 					Map<String, String> map = DbTaskRunner.getMapFromRunner(result.runner);
-					outputFormat.setValueString(map);
-
 					switch (finalValue.code) {
 						case QueryStillRunning:
 							value = 0;
 							outputFormat.setValue(FIELDS.status.name(), value);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.76")); //$NON-NLS-1$
+							outputFormat.setValue(FIELDS.remote.name(), rhost);
+							outputFormat.setValueString(map);
 							logger.warn(outputFormat.loggerOut());
 							outputFormat.sysout();
 							break;
@@ -640,6 +647,8 @@ public class RequestTransfer implements Runnable {
 							value = 0;
 							outputFormat.setValue(FIELDS.status.name(), value);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.77")); //$NON-NLS-1$
+							outputFormat.setValue(FIELDS.remote.name(), rhost);
+							outputFormat.setValueString(map);
 							logger.warn(outputFormat.loggerOut());
 							outputFormat.sysout();
 							break;
@@ -647,6 +656,8 @@ public class RequestTransfer implements Runnable {
 							value = 0;
 							outputFormat.setValue(FIELDS.status.name(), value);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.78")); //$NON-NLS-1$
+							outputFormat.setValue(FIELDS.remote.name(), rhost);
+							outputFormat.setValueString(map);
 							logger.warn(outputFormat.loggerOut());
 							outputFormat.sysout();
 							break;
@@ -654,6 +665,8 @@ public class RequestTransfer implements Runnable {
 							value = 4;
 							outputFormat.setValue(FIELDS.status.name(), value);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.79")); //$NON-NLS-1$
+							outputFormat.setValue(FIELDS.remote.name(), rhost);
+							outputFormat.setValueString(map);
 							logger.warn(outputFormat.loggerOut());
 							outputFormat.sysout();
 							break;
@@ -661,6 +674,8 @@ public class RequestTransfer implements Runnable {
 							value = 5;
 							outputFormat.setValue(FIELDS.status.name(), value);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.80")); //$NON-NLS-1$
+							outputFormat.setValue(FIELDS.remote.name(), rhost);
+							outputFormat.setValueString(map);
 							logger.warn(outputFormat.loggerOut());
 							outputFormat.sysout();
 							break;
@@ -668,6 +683,8 @@ public class RequestTransfer implements Runnable {
 							value = 6;
 							outputFormat.setValue(FIELDS.status.name(), value);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.81")); //$NON-NLS-1$
+							outputFormat.setValue(FIELDS.remote.name(), rhost);
+							outputFormat.setValueString(map);
 							logger.warn(outputFormat.loggerOut());
 							outputFormat.sysout();
 							break;
@@ -675,6 +692,8 @@ public class RequestTransfer implements Runnable {
 							value = 3;
 							outputFormat.setValue(FIELDS.status.name(), value);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.82")); //$NON-NLS-1$
+							outputFormat.setValue(FIELDS.remote.name(), rhost);
+							outputFormat.setValueString(map);
 							if (result.getCause() != null) {
 								outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
 							}

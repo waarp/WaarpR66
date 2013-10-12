@@ -101,6 +101,10 @@ public class NetworkTransaction {
 	 */
 	private static final ConcurrentHashMap<String, ClientNetworkChannels> remoteClients = new ConcurrentHashMap<String, ClientNetworkChannels>();
 	/**
+	 * Remote Client NetworkChannels per NetworkChannel
+	 */
+	private static final ConcurrentHashMap<Integer, ClientNetworkChannels> remoteClientsPerNetworkChannel = new ConcurrentHashMap<Integer, ClientNetworkChannels>();
+	/**
 	 * Lock for Client NetworkChannels operations
 	 */
 	private static final ReentrantLock lockClient = new ReentrantLock();
@@ -746,10 +750,21 @@ public class NetworkTransaction {
 			lockClient.lock();
 			try {
 				ClientNetworkChannels clientNetworkChannels = remoteClients.get(requester);
+				logger.debug("removeClient: remove previous exist? "+(clientNetworkChannels!=null) + " for :"+requester);
 				if (clientNetworkChannels != null) {
 					clientNetworkChannels.remove(networkChannel);
+					logger.debug("AddClient: remove previous exist? "+(clientNetworkChannels!=null) + " for :"+requester+ " still "+clientNetworkChannels.size());
 					if (clientNetworkChannels.isEmpty()) {
 						remoteClients.remove(requester);
+					}
+				} else {
+					clientNetworkChannels = remoteClientsPerNetworkChannel.remove(networkChannel.channel.getRemoteAddress().hashCode());
+					if (clientNetworkChannels != null) {
+						clientNetworkChannels.remove(networkChannel);
+						logger.debug("removeClient: remove previous exist? "+(clientNetworkChannels!=null) + " for :"+requester+ " still "+clientNetworkChannels.size());
+						if (clientNetworkChannels.isEmpty()) {
+							remoteClients.remove(requester);
+						}
 					}
 				}
 			} finally {
@@ -769,6 +784,7 @@ public class NetworkTransaction {
 		lockClient.lock();
 		try {
 			ClientNetworkChannels clientNetworkChannels = remoteClients.remove(requester);
+			logger.debug("AddClient: shutdown previous exist? "+(clientNetworkChannels!=null) + " for :"+requester);
 			if (clientNetworkChannels != null) {
 				return clientNetworkChannels.shutdownAll();
 			}
@@ -793,9 +809,12 @@ public class NetworkTransaction {
 			if (networkChannel != null) {
 				lockClient.lock();
 				try {
-					remoteClients.putIfAbsent(requester, new ClientNetworkChannels(requester));
+					ClientNetworkChannels prev = remoteClients.putIfAbsent(requester, new ClientNetworkChannels(requester));
+					logger.debug("AddClient: add previous exist? "+(prev!=null) + " for "+requester);
 					ClientNetworkChannels clientNetworkChannels = remoteClients.get(requester);
+					logger.debug("AddClient: add count? "+clientNetworkChannels.size() + " for "+requester);
 					clientNetworkChannels.add(networkChannel);
+					remoteClientsPerNetworkChannel.put(address.hashCode(), clientNetworkChannels);
 				} finally {
 					lockClient.unlock();
 				}
@@ -820,9 +839,8 @@ public class NetworkTransaction {
 	 * Force remove of NetworkChannel when it is closed
 	 * 
 	 * @param address
-	 * @return the number of still connected Local Channels
 	 */
-	public static int removeForceNetworkChannel(SocketAddress address) {
+	public static void removeForceNetworkChannel(SocketAddress address) {
 		ReentrantLock socketLock = getChannelLock(address);
 		socketLock.lock();
 		try {
@@ -830,20 +848,23 @@ public class NetworkTransaction {
 				NetworkChannel networkChannel = networkChannelOnSocketAddressConcurrentHashMap
 						.get(address.hashCode());
 				if (networkChannel != null) {
-					if (networkChannel.isShuttingDown) {
-						return networkChannel.count.get();
-					}
 					logger.debug("NC left: {}", networkChannel);
-					int count = networkChannel.count.get();
 					networkChannel.shutdownAllLocalChannels();
 					networkChannelOnSocketAddressConcurrentHashMap
 							.remove(address.hashCode());
-					return count;
 				} else {
 					logger.debug("Network not registered");
 				}
+				ClientNetworkChannels clientNetworkChannels = remoteClientsPerNetworkChannel.remove(address.hashCode());
+				if (clientNetworkChannels != null) {
+					String requester = clientNetworkChannels.getHostId();
+					clientNetworkChannels.remove(networkChannel);
+					logger.debug("removeClient: remove previous exist? "+(clientNetworkChannels!=null) + " for :"+requester+ " still "+clientNetworkChannels.size());
+					if (clientNetworkChannels.isEmpty()) {
+						remoteClients.remove(requester);
+					}
+				}
 			}
-			return 0;
 		} finally {
 			socketLock.unlock();
 			removeChannelLock(address);
@@ -884,6 +905,7 @@ public class NetworkTransaction {
 			ReentrantLock socketLock = getChannelLock(address);
 			socketLock.lock();
 			try {
+				logger.debug("NC count: "+networkChannel.count.get()+":"+requester);
 				if (networkChannel.count.get() <= 0) {
 					long time = networkChannel.lastTimeUsed +
 							Configuration.configuration.TIMEOUTCON * 2 -
@@ -897,6 +919,8 @@ public class NetworkTransaction {
 					}
 					if (requester != null) {
 						NetworkTransaction.removeClient(requester, networkChannel);
+					} else if (networkChannel.hostId != null) {
+						NetworkTransaction.removeClient(networkChannel.hostId, networkChannel);
 					}
 					networkChannelOnSocketAddressConcurrentHashMap
 							.remove(address.hashCode());
@@ -968,6 +992,7 @@ public class NetworkTransaction {
 	 * @return True if a connection is still active on this socket or for this host
 	 */
 	public static int existConnection(SocketAddress address, String host) {
+		logger.debug("exist: "+networkChannelOnSocketAddressConcurrentHashMap.containsKey(address.hashCode())+":"+getNumberClients(host));
 		return (networkChannelOnSocketAddressConcurrentHashMap.containsKey(address.hashCode()) ? 1
 				: 0)
 				+ getNumberClients(host);

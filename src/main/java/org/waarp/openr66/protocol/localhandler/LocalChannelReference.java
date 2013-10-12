@@ -215,7 +215,7 @@ public class LocalChannelReference {
 	public void close() {
 		// Now force the close of the database after a wait
 		if (noconcurrencyDbSession != null && DbConstant.admin != null && DbConstant.admin.session != null && ! noconcurrencyDbSession.equals(DbConstant.admin.session)) {
-			noconcurrencyDbSession.disconnect();
+			noconcurrencyDbSession.forceDisconnect();
 			noconcurrencyDbSession = null;
 		}
 	}

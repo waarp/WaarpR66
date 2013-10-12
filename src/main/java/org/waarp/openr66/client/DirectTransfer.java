@@ -23,7 +23,8 @@ import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
-import org.waarp.openr66.client.OutputFormat.FIELDS;
+import org.waarp.openr66.client.utils.OutputFormat;
+import org.waarp.openr66.client.utils.OutputFormat.FIELDS;
 import org.waarp.openr66.commander.ClientRunner;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
@@ -155,7 +156,7 @@ public class DirectTransfer extends AbstractTransfer {
 			logger.debug("finish transfer: " + future.isSuccess());
 			long delay = time2 - time1;
 			R66Result result = future.getResult();
-			OutputFormat outputFormat = new OutputFormat();
+			OutputFormat outputFormat = new OutputFormat(DirectTransfer.class.getSimpleName(), args);
 			if (future.isSuccess()) {
 				if (result.runner.getErrorInfo() == ErrorCode.Warning) {
 					outputFormat.setValue(FIELDS.status.name(), 1);

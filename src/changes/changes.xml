@@ -11,6 +11,8 @@
 		    <action dev="Frederic Bregier" type="add">Add support for information send by the SpooledDirectory to one or more Waarp Server</action>
 		    <action dev="Frederic Bregier" type="add">Add and Improve output with xml, csv, json or property format</action>
 			<action dev="Frederic Bregier" type="add">Add service startup for SpooledDirectory</action>
+			<action dev="Frederic Bregier" type="fix">Fix small issue on closing DB connection</action>
+			<action dev="Frederic Bregier" type="fix">Fix small issue count of remote and active connections</action>
 		</release>
 		<release version="2.4.19" date="2013-10-06" description="Fix release">
 		    <action dev="Frederic Bregier" type="fix">Fix Submit command by testing if the client is really connected to the database (affect also SpooledDirectoryTransfer)</action>

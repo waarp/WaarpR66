@@ -18,7 +18,7 @@
    You should have received a copy of the GNU General Public License
    along with Waarp .  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.waarp.openr66.client;
+package org.waarp.openr66.client.utils;
 
 import java.io.IOException;
 import java.util.Map;
@@ -49,7 +49,7 @@ public class OutputFormat extends JsonHandler {
 	public static OUTPUTFORMAT defaultOutput = OUTPUTFORMAT.JSON;
 
 	public static enum FIELDS {
-		status, statusTxt, transfer, error, remote
+		command, args, status, statusTxt, transfer, error, remote
 	}
 	
 	/**
@@ -75,7 +75,16 @@ public class OutputFormat extends JsonHandler {
 	private OUTPUTFORMAT format = defaultOutput;
 	private ObjectNode node = createObjectNode();
 	
-	public OutputFormat() {
+	public OutputFormat(String command, String []args) {
+		setValue(FIELDS.command.name(), command);
+		if (args != null) {
+			StringBuilder builder = new StringBuilder();
+			for (String string : args) {
+				builder.append(string);
+				builder.append(' ');
+			}
+			setValue(FIELDS.args.name(), builder.toString());
+		}
 	}
 	
 	public void setFormat(OUTPUTFORMAT format) {
@@ -174,16 +183,20 @@ public class OutputFormat extends JsonHandler {
 	 */
 	public void sysout() {
 		if (format != OUTPUTFORMAT.QUIET) {
+			System.out.println(getContext());
 			System.out.println(this.toString(format));
 		}
 	}
 	
+	private String getContext() {
+		return "[" + getValue(node, FIELDS.command, "") + "] " +getValue(node, FIELDS.statusTxt, "");
+	}
 	/**
 	 * Helper for Logger
 	 * @return the String to print in logger
 	 */
 	public String loggerOut() {
-		return getValue(node, FIELDS.statusTxt, "") + " => " + toString(OUTPUTFORMAT.JSON);
+		return getContext() + " => " + toString(OUTPUTFORMAT.JSON);
 	}
 	
 	@Override

@@ -26,7 +26,8 @@ import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
-import org.waarp.openr66.client.OutputFormat.FIELDS;
+import org.waarp.openr66.client.utils.OutputFormat;
+import org.waarp.openr66.client.utils.OutputFormat.FIELDS;
 import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbRule;
@@ -112,7 +113,7 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 						transaction.run();
 						future.awaitUninterruptibly();
 						DbTaskRunner runner = future.getResult().runner;
-						OutputFormat outputFormat = new OutputFormat();
+						OutputFormat outputFormat = new OutputFormat(MultipleSubmitTransfer.class.getSimpleName(), null);
 						if (future.isSuccess()) {
 							outputFormat.setValue(FIELDS.status.name(), 0);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
@@ -124,11 +125,12 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 							doneMultiple++;
 						} else {
 							outputFormat.setValue(FIELDS.status.name(), 2);
-							outputFormat.setValue(FIELDS.remote.name(), host);
 							if (runner == null) {
 								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("SubmitTransfer.3")+Messages.getString("Transfer.FailedNoId")); //$NON-NLS-1$
+								outputFormat.setValue(FIELDS.remote.name(), host);
 							} else {
 								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Failure")); //$NON-NLS-1$
+								outputFormat.setValue(FIELDS.remote.name(), host);
 								Map<String, String> map = DbTaskRunner.getMapFromRunner(runner);
 								outputFormat.setValueString(map);
 							}
@@ -196,7 +198,7 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 					ttimestart, networkTransaction);
 			transaction.run();
 			future.awaitUninterruptibly();
-			OutputFormat outputFormat = new OutputFormat();
+			OutputFormat outputFormat = new OutputFormat("Unique "+MultipleSubmitTransfer.class.getSimpleName(), args);
 			if (future.isSuccess()) {
 				outputFormat.setValue(FIELDS.status.name(), 0);
 				outputFormat.setValue(FIELDS.statusTxt.name(), "Multiple "+Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Success")); //$NON-NLS-1$

@@ -25,7 +25,8 @@ import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
-import org.waarp.openr66.client.OutputFormat.FIELDS;
+import org.waarp.openr66.client.utils.OutputFormat;
+import org.waarp.openr66.client.utils.OutputFormat.FIELDS;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.database.DbConstant;
@@ -143,7 +144,7 @@ public class SubmitTransfer extends AbstractTransfer {
 		transaction.run();
 		future.awaitUninterruptibly();
 		DbTaskRunner runner = future.getResult().runner;
-		OutputFormat outputFormat = new OutputFormat();
+		OutputFormat outputFormat = new OutputFormat(SubmitTransfer.class.getSimpleName(), args);
 		if (future.isSuccess()) {
 			outputFormat.setValue(FIELDS.status.name(), 0);
 			outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
@@ -154,11 +155,12 @@ public class SubmitTransfer extends AbstractTransfer {
 			outputFormat.sysout();
 		} else {
 			outputFormat.setValue(FIELDS.status.name(), 2);
-			outputFormat.setValue(FIELDS.remote.name(), rhost);
 			if (runner == null) {
 				outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("SubmitTransfer.3")+Messages.getString("Transfer.FailedNoId")); //$NON-NLS-1$
+				outputFormat.setValue(FIELDS.remote.name(), rhost);
 			} else {
 				outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Failure")); //$NON-NLS-1$
+				outputFormat.setValue(FIELDS.remote.name(), rhost);
 				Map<String, String> map = DbTaskRunner.getMapFromRunner(runner);
 				outputFormat.setValueString(map);
 			}

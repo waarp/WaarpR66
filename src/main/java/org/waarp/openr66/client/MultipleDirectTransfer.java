@@ -27,7 +27,8 @@ import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
-import org.waarp.openr66.client.OutputFormat.FIELDS;
+import org.waarp.openr66.client.utils.OutputFormat;
+import org.waarp.openr66.client.utils.OutputFormat.FIELDS;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.context.R66Session;
@@ -178,7 +179,7 @@ public class MultipleDirectTransfer extends DirectTransfer {
 						logger.debug("finish transfer: " + future.isSuccess());
 						long delay = time2 - time1;
 						R66Result result = future.getResult();
-						OutputFormat outputFormat = new OutputFormat();
+						OutputFormat outputFormat = new OutputFormat("Unique "+MultipleDirectTransfer.class.getSimpleName(), null);
 						if (future.isSuccess()) {
 							if (result.runner.getErrorInfo() == ErrorCode.Warning) {
 								outputFormat.setValue(FIELDS.status.name(), 1);
@@ -284,7 +285,7 @@ public class MultipleDirectTransfer extends DirectTransfer {
 			long time2 = System.currentTimeMillis();
 			logger.debug("finish all transfers: " + future.isSuccess());
 			long delay = time2 - time1;
-			OutputFormat outputFormat = new OutputFormat();
+			OutputFormat outputFormat = new OutputFormat(MultipleDirectTransfer.class.getSimpleName(), args);
 			if (future.isSuccess()) {
 				outputFormat.setValue(FIELDS.status.name(), 0);
 				outputFormat.setValue(FIELDS.statusTxt.name(), "Multiple "+Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Success")); //$NON-NLS-1$

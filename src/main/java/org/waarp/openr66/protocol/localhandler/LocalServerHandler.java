@@ -724,6 +724,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		if (localChannelReference.getDbSession() != null) {
 			localChannelReference.getDbSession().useConnection();
 		}
+		localChannelReference.getNetworkChannelObject().hostId = packet.getHostId();
 		try {
 			session.getAuth().connection(localChannelReference.getDbSession(),
 					packet.getHostId(), packet.getKey());

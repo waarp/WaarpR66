@@ -302,7 +302,7 @@ public class Monitoring implements WaarpInterfaceMonitor {
 		} catch (NullPointerException e) {
 		}
 		if (! dbSession.equals(DbConstant.admin.session)) {
-			dbSession.disconnect();
+			dbSession.forceDisconnect();
 			dbSession = null;
 		}
 	}

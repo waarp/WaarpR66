@@ -23,7 +23,8 @@ import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.client.AbstractBusinessRequest;
-import org.waarp.openr66.client.OutputFormat.FIELDS;
+import org.waarp.openr66.client.utils.OutputFormat;
+import org.waarp.openr66.client.utils.OutputFormat.FIELDS;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.protocol.configuration.Configuration;
@@ -92,7 +93,7 @@ public class BusinessRequest extends AbstractBusinessRequest {
 		long time2 = System.currentTimeMillis();
 		logger.debug("Finish Business Request: " + future.isSuccess());
 		long delay = time2 - time1;
-		OutputFormat outputFormat = new OutputFormat();
+		OutputFormat outputFormat = new OutputFormat(BusinessRequest.class.getSimpleName(), args);
 		if (future.isSuccess()) {
 			outputFormat.setValue(FIELDS.status.name(), 0);
 			outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("BusinessRequest.6")+Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
