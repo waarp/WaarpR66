@@ -75,6 +75,11 @@ public class OutputFormat extends JsonHandler {
 	private OUTPUTFORMAT format = defaultOutput;
 	private ObjectNode node = createObjectNode();
 	
+	/**
+	 * Create an OutputFormat helper using the default Format defined in defaultOutput
+	 * @param command
+	 * @param args
+	 */
 	public OutputFormat(String command, String []args) {
 		setValue(FIELDS.command.name(), command);
 		if (args != null) {
@@ -87,14 +92,17 @@ public class OutputFormat extends JsonHandler {
 		}
 	}
 	
+	/**
+	 * To change the applied format
+	 * @param format
+	 */
 	public void setFormat(OUTPUTFORMAT format) {
 		this.format = format;
 	}
 
 	/**
 	 * 
-	 * @param field
-	 * @param value
+	 * @param values
 	 */
 	public void setValue(Map<String, Object> values) {
 		String json = writeAsString(values);
@@ -102,6 +110,10 @@ public class OutputFormat extends JsonHandler {
 		node.putAll(temp);
 	}
 
+	/**
+	 * 
+	 * @param values
+	 */
 	public void setValueString(Map<String, String> values) {
 		String json = writeAsString(values);
 		ObjectNode temp = getFromString(json);
