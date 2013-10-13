@@ -18,11 +18,14 @@
 package org.waarp.openr66.client;
 
 import java.net.SocketAddress;
+import java.util.Map;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
+import org.waarp.openr66.client.utils.OutputFormat;
+import org.waarp.openr66.client.utils.OutputFormat.FIELDS;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66FiniteDualStates;
@@ -30,8 +33,10 @@ import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.context.authentication.R66Auth;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbHostAuth;
+import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.Messages;
+import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 import org.waarp.openr66.protocol.localhandler.packet.InformationPacket;
@@ -53,7 +58,7 @@ public class RequestInformation implements Runnable {
 	static volatile WaarpInternalLogger logger;
 
 	protected static String _INFO_ARGS = 
-			Messages.getString("RequestInformation.0"); //$NON-NLS-1$
+			Messages.getString("RequestInformation.0")+ Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
 	
 	protected final NetworkTransaction networkTransaction;
 	final R66Future future;
@@ -70,7 +75,7 @@ public class RequestInformation implements Runnable {
 	static byte scode = -1;
 	static long sid = DbConstant.ILLEGALVALUE;
 	static boolean sisTo = true;
-
+	
 	/**
 	 * Parse the parameter and set current values
 	 * 
@@ -78,7 +83,7 @@ public class RequestInformation implements Runnable {
 	 * @return True if all parameters were found and correct
 	 */
 	protected static boolean getParams(String[] args) {
-		_INFO_ARGS = Messages.getString("RequestInformation.0"); //$NON-NLS-1$
+		_INFO_ARGS = Messages.getString("RequestInformation.0")+ Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
 		if (args.length < 5) {
 			logger
 					.error(_INFO_ARGS);
@@ -97,6 +102,7 @@ public class RequestInformation implements Runnable {
 			} else if (args[i].equalsIgnoreCase("-file")) {
 				i++;
 				sfilename = args[i];
+				sfilename = sfilename.replace('§', '*');
 			} else if (args[i].equalsIgnoreCase("-rule")) {
 				i++;
 				srulename = args[i];
@@ -117,6 +123,7 @@ public class RequestInformation implements Runnable {
 				sisTo = false;
 			}
 		}
+		OutputFormat.getParams(args);
 		if (sfilename != null && scode == -1) {
 			scode = (byte) InformationPacket.ASKENUM.ASKEXIST.ordinal();
 		}
@@ -160,7 +167,6 @@ public class RequestInformation implements Runnable {
 		}
 		InformationPacket request = null;
 		if (code != -1) {
-			
 			request = new InformationPacket(rulename, code, filename);
 		} else {
 			request = new InformationPacket(""+id, code, (isTo ? "1" : "0"));
@@ -219,6 +225,9 @@ public class RequestInformation implements Runnable {
 		}
 		if (!getParams(args)) {
 			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
+			if (! OutputFormat.isQuiet()) {
+				System.out.println(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
+			}
 			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
 				DbConstant.admin.close();
 			}
@@ -237,17 +246,47 @@ public class RequestInformation implements Runnable {
 							networkTransaction);
 			requestInformation.run();
 			result.awaitUninterruptibly();
+			// if transfer information request (code = -1) => middle empty and header = Runner as XML
+			// if listing request => middle = nb of files, header = list of files in native/list/mlsx/exist (true/false) format, 1 file per line
+			OutputFormat outputFormat = new OutputFormat(RequestInformation.class.getSimpleName(), args);
 			if (result.isSuccess()) {
 				value = 0;
 				R66Result r66result = result.getResult();
 				ValidPacket info = (ValidPacket) r66result.other;
-				logger.warn(Messages.getString("RequestInformation.Success") + "\n" + info.getSmiddle() + "\n" + info.getSheader()); //$NON-NLS-1$
+				outputFormat.setValue(FIELDS.status.name(), 0);
+				outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
+				outputFormat.setValue(FIELDS.remote.name(), srequested);
+				if (requestInformation.code != -1) {
+					outputFormat.setValue("nb", Integer.parseInt(info.getSmiddle()));
+					String [] files = info.getSheader().split("\n");
+					int i = 0;
+					for (String file : files) {
+						i++;
+						outputFormat.setValue("file"+i, file);
+					}
+				} else {
+					try {
+						DbTaskRunner runner = DbTaskRunner.fromStringXml(info.getSheader(), false);
+						Map<String, String> map = DbTaskRunner.getMapFromRunner(runner);
+						outputFormat.setValueString(map);
+					} catch (OpenR66ProtocolBusinessException e) {
+						outputFormat.setValue("Id", requestInformation.id);
+						outputFormat.setValue(FIELDS.transfer.name(), info.getSheader());
+					}
+				}
+				logger.warn(outputFormat.loggerOut());
+				outputFormat.sysout();
 			} else {
 				value = 2;
-				logger.error(Messages.getString("RequestInformation.Failure") + //$NON-NLS-1$
-						result.getResult().toString());
+				outputFormat.setValue(FIELDS.status.name(), 2);
+				outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestInformation.Failure")); //$NON-NLS-1$
+				outputFormat.setValue(FIELDS.remote.name(), srequested);
+				outputFormat.setValue(FIELDS.error.name(), result.getResult().toString());
+				logger.error(outputFormat.loggerOut());
+				outputFormat.sysout();
 			}
-
+		} catch (Exception e) {
+			logger.warn("Exception", e);
 		} finally {
 			if (networkTransaction != null) {
 				networkTransaction.closeAll();

@@ -173,7 +173,11 @@ public enum ErrorCode {
 	/**
 	 * Code stands for Incorrect command
 	 */
-	IncorrectCommand(Messages.getString("ErrorCode.31"), 'n'); //$NON-NLS-1$
+	IncorrectCommand(Messages.getString("ErrorCode.31"), 'n'), //$NON-NLS-1$
+	/**
+	 * Code stands for File not allowed
+	 */
+	FileNotAllowed(Messages.getString("ErrorCode.32"), 'a'); //$NON-NLS-1$
 
 	/**
 	 * Literal for this code
@@ -265,6 +269,8 @@ public enum ErrorCode {
 				return ServerOverloaded;
 			case 'n':
 				return IncorrectCommand;
+			case 'a':
+				return FileNotAllowed;
 			default:
 				ErrorCode ecode = Unknown;
 				try {
@@ -302,6 +308,7 @@ public enum ErrorCode {
 			case TransferError:
 			case Unimplemented:
 			case IncorrectCommand:
+			case FileNotAllowed:
 				return true;
 			case CompleteOk:
 			case InitOk:

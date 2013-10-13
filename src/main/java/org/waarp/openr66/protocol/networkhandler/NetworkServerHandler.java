@@ -68,10 +68,6 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 			.getLogger(NetworkServerHandler.class);
 
 	/**
-	 * The underlying Network Channel
-	 */
-	private volatile Channel networkChannel;
-	/**
 	 * The associated Remote Address
 	 */
 	private volatile SocketAddress remoteAddress;
@@ -126,7 +122,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 		NetworkTransaction.removeForceNetworkChannel(remoteAddress);
 		// Now force the close of the database after a wait
 		if (dbSession != null && DbConstant.admin != null && DbConstant.admin.session != null && ! dbSession.equals(DbConstant.admin.session)) {
-			dbSession.disconnect();
+			dbSession.forceDisconnect();
 			dbSession = null;
 		}
 	}
@@ -139,8 +135,8 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 	@Override
 	public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
 			throws OpenR66ProtocolNetworkException {
-		this.networkChannel = e.getChannel();
-		this.remoteAddress = this.networkChannel.getRemoteAddress();
+		Channel networkChannel = e.getChannel();
+		this.remoteAddress = networkChannel.getRemoteAddress();
 		try {
 			if (DbConstant.admin.isConnected) {
 				if (DbConstant.admin.isCompatibleWithThreadSharedConnexion()) {

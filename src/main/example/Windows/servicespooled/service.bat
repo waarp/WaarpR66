@@ -18,16 +18,16 @@ rem -- Change this by the path where all jars are
 set DAEMON_ROOT=C:\Waarp\Classpath
 
 rem -- Service description
-set SERVICE_DESCRIPTION="Waarp R66 Server"
+set SERVICE_DESCRIPTION="Waarp R66 SpooledDirectory Service"
 
 rem -- Service name
-set SERVICE_NAME=WaarpR66
+set SERVICE_NAME=WaarpSpooled
 
 rem -- Service CLASSPATH
-set SERVICE_CLASSPATH=%DAEMON_ROOT%\commons-codec-1.6.jar;%DAEMON_ROOT%\commons-compress-1.4.1.jar;%DAEMON_ROOT%\commons-exec-1.1.jar;%DAEMON_ROOT%\commons-io-2.4.jar;%DAEMON_ROOT%\dom4j-1.6.1.jar;%DAEMON_ROOT%\h2-1.3.167.jar;%DAEMON_ROOT%\javasysmon-0.3.3.jar;%DAEMON_ROOT%\jaxen-1.1.3.jar;%DAEMON_ROOT%\log4j-1.2.14.jar;%DAEMON_ROOT%\logback-access-1.0.6.jar;%DAEMON_ROOT%\logback-classic-1.0.6.jar;%DAEMON_ROOT%\logback-core-1.0.6.jar;%DAEMON_ROOT%\netty-3.5.5.Final.jar;%DAEMON_ROOT%\slf4j-api-1.6.6.jar;%DAEMON_ROOT%\snmp4j-2.1.0.jar;%DAEMON_ROOT%\snmp4j-agent-2.0.6.jar;%DAEMON_ROOT%\WaarpCommon-1.2.6.jar;%DAEMON_ROOT%\WaarpDigest-1.1.5.jar;%DAEMON_ROOT%\WaarpExec-1.1.3.jar;%DAEMON_ROOT%\WaarpPassword-1.1.1.jar;%DAEMON_ROOT%\WaarpR66-2.4.7-beta.jar;%DAEMON_ROOT%\WaarpR66Gui-2.1.2.jar;%DAEMON_ROOT%\WaarpSnmp-1.1.1.jar;%DAEMON_ROOT%\WaarpThrift-1.0.0.jar;%DAEMON_ROOT%\WaarpXmlEditor-1.0.0.jar;%DAEMON_ROOT%\xercesImpl.jar;%DAEMON_ROOT%\xml-apis.jar;%DAEMON_ROOT%\xmleditor.jar;%DAEMON_ROOT%\commons-daemon-1.0.10.jar;%DAEMON_ROOT%\libthrift-0.8.0.jar
+set SERVICE_CLASSPATH=" %DAEMON_ROOT%\WaarpR66-2.4.20.jar;%DAEMON_ROOT%\* "
 
 rem -- Service main class
-set MAIN_SERVICE_CLASS=org.waarp.openr66.service.R66ServiceLauncher
+set MAIN_SERVICE_CLASS=org.waarp.openr66.client.spooledService.SpooledServiceLauncher
 
 rem -- Path for log files
 set LOG_PATH=%EXEC_PATH%\..\logs
@@ -53,7 +53,7 @@ rem -- Logback configuration file: ATTENTION recommendation is to configure outp
 set LOGBACK_CONF=%EXEC_PATH%\..\conf\logback.xml
 
 rem -- R66 configuration file
-set R66_CONF=%EXEC_PATH%\..\conf\config-serverA2-2.xml
+set R66_CONF=%EXEC_PATH%\..\conf\spooled.conf
 
 rem -- prunsrv.exe location
 set PRUNSRVEXEC=%EXEC_PATH%\windows\prunsrv.exe

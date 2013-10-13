@@ -651,7 +651,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 			future.addListener(ChannelFutureListener.CLOSE);
 		}
 		if (this.isPrivateDbSession && dbSession != null) {
-			dbSession.disconnect();
+			dbSession.forceDisconnect();
 			DbAdmin.nbHttpSession--;
 			dbSession = null;
 		}
@@ -688,7 +688,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 			if (!(exception instanceof OpenR66ProtocolBusinessNoWriteBackException)) {
 				if (e.getCause() instanceof IOException) {
 					if (this.isPrivateDbSession && dbSession != null) {
-						dbSession.disconnect();
+						dbSession.forceDisconnect();
 						DbAdmin.nbHttpSession--;
 						dbSession = null;
 					}
@@ -702,7 +702,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 			}
 		} else {
 			if (this.isPrivateDbSession && dbSession != null) {
-				dbSession.disconnect();
+				dbSession.forceDisconnect();
 				dbSession = null;
 			}
 			// Nothing to do
@@ -721,7 +721,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 		logger.debug("Closed");
 		super.channelClosed(ctx, e);
 		if (this.isPrivateDbSession && dbSession != null) {
-			dbSession.disconnect();
+			dbSession.forceDisconnect();
 			DbAdmin.nbHttpSession--;
 		}
 	}
