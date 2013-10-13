@@ -53,8 +53,18 @@ a img {
 	}
 //]]>
 	</script>
+	<meta http-equiv="refresh" content="11">
+  <script language="JavaScript"><!--
+var sURL = unescape(window.location.pathname);function doLoad(){setTimeout( 'refresh()', 10000 );}function refresh(){window.location.href = sURL;}//-->
+  </script>
+  <script language="JavaScript1.1"><!--
+function refresh(){window.location.replace( sURL );}//-->
+  </script>
+  <script language="JavaScript1.2"><!--
+function refresh(){window.location.reload( false );}//-->
+  </script>
 </head>
-<body class="normal" style="margin:0px;padding:0px;background-color:#FFFFFF;">
+<body class="normal" style="margin:0px;padding:0px;background-color:#FFFFFF;" onload="doLoad()">
 <table style="border:none;" cellspacing="0" cellpadding="0" width="100%">
 <tbody>
 <tr>
@@ -101,18 +111,11 @@ a img {
 <a href="Export.html"><img id="mvg1_2_img" src="gre/gre26.png" width="142" height="17" alt="Export" style="display:block;border:none;margin-top:3px;" /></a>
 </div></div></td>
 <td style="vertical-align:top;">
-<h1 class="h1">Transfers</h1>
-<div id="Comp1_sys_doctext"><p>In this menu, you can administrate transfers.</p>
-<ul>
-<li>
-<div class="normal">Listing helps you to list all transfers according to some criteria.</div></li>
-<li>
-<div class="normal">Cancel-Restart helps you to stop (cancel) active transfers or to restart&nbsp;pending transfers.</div></li>
-<li>
-<div class="normal">Export helps you to export to an XML file the current log of the transfers.</div></li>
-<li>
-<div class="normal"><A HREF="Spooled.html">List of current SpooledDirectory services informing back this server.</A></div></li>
-</ul></div></td></tr></tbody></table>
+<h1 class="h1">Spooled</h1>
+<div id="Comp1_sys_doctext"><p>Vous pouvez avoir une vue des services SpooledDirectory qui sont actuellement en fonction et connectes depuis ici.</p>
+<p>&nbsp;</p>
+<p>XXXSPOOLEDXXX</p>
+<p>&nbsp;</p></div></td></tr></tbody></table>
 <div style="height:36px;background-color:#EF6D00;text-align:left;">
 <p>&nbsp;</p></div>
 </body>

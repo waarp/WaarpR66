@@ -53,7 +53,6 @@ public class InternalRunner {
 	private CommanderInterface commander = null;
 	private volatile boolean isRunning = true;
 	private final ThreadPoolExecutor threadPoolExecutor;
-	private final BlockingQueue<Runnable> workQueue;
 	private final NetworkTransaction networkTransaction;
 
 	/**
@@ -70,7 +69,7 @@ public class InternalRunner {
 		}
 		scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
 		isRunning = true;
-		workQueue = new ArrayBlockingQueue<Runnable>(10);
+		BlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<Runnable>(10);
 		threadPoolExecutor = new ThreadPoolExecutor(10, Configuration.configuration.RUNNER_THREAD,
 				1000, TimeUnit.MILLISECONDS, workQueue);
 		scheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(commander,

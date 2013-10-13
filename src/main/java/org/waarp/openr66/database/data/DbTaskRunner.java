@@ -26,6 +26,7 @@ import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -3514,6 +3515,29 @@ public class DbTaskRunner extends AbstractDbData {
 	}
 
 	/**
+	 * Need to call 'setToArray' before
+	 * 
+	 * @param runner
+	 * @return The HashMap representing the given Runner
+	 * @throws WaarpDatabaseSqlException
+	 */
+	public static Map<String, String> getMapFromRunner(DbTaskRunner runner) {
+		HashMap<String, String> values = new HashMap<String, String>();
+		for (DbValue value : runner.allFields) {
+			if (value.column.equals(Columns.UPDATEDINFO.name()) ||
+					value.column.equals(Columns.TRANSFERINFO.name())) {
+				continue;
+			}
+			try {
+				values.put(value.column.toLowerCase(), value.getValueAsString());
+			} catch (WaarpDatabaseSqlException e) {
+				// ignore but put wring value
+				values.put(value.column.toLowerCase(), "UNREADABLE");
+			}
+		}
+		return values;
+	}
+	/**
 	 * Construct a new Element with value
 	 * 
 	 * @param name
@@ -3728,8 +3752,7 @@ public class DbTaskRunner extends AbstractDbData {
 			logger.error("Cannot read Data", e);
 			throw new OpenR66ProtocolBusinessException("Cannot read Data: " + e.getMessage());
 		}
-		Document document = DocumentHelper.createDocument(node);
-		return document.asXML();
+		return node.asXML();
 	}
 	
 	/**
@@ -3758,16 +3781,22 @@ public class DbTaskRunner extends AbstractDbData {
 	}
 	
 	/**
-	 * Reload a to submitted runner from a remote partner's log (so reverse should be true)
-	 * @param session
-	 * @param root
-	 * @param reverse should the way be invert (isSender)
-	 * @return the TaskRunner from the XML element
+	 * Reload a to submitted runner from a remote partner's log (so reversing isSender should be true)
+	 * @param xml
+	 * @param reverse
+	 * @return the TaskRunner from the XML source element
 	 * @throws OpenR66ProtocolBusinessException
 	 */
-	public static DbTaskRunner fromXml(DbSession session, Element root, boolean reverse) throws OpenR66ProtocolBusinessException {
-		DbTaskRunner runner = new DbTaskRunner(session);
-		setRunnerFromElementNoException(runner, root);
+	public static DbTaskRunner fromStringXml(String xml, boolean reverse) throws OpenR66ProtocolBusinessException {
+		Document document;
+		try {
+			document = DocumentHelper.parseText(xml);
+		} catch (DocumentException e1) {
+			logger.warn("Cant parse XML", e1);
+			throw new OpenR66ProtocolBusinessException("Cannot parse the XML input");
+		}
+		DbTaskRunner runner = new DbTaskRunner(null);
+		setRunnerFromElementNoException(runner, document.getRootElement());
 		try {
 			runner.setFromArray();
 		} catch (WaarpDatabaseSqlException e) {
@@ -3781,9 +3810,11 @@ public class DbTaskRunner extends AbstractDbData {
 				runner.filename = runner.originalFilename;
 			}
 		}
-		runner.updatedInfo = UpdatedInfo.TOSUBMIT.ordinal();
+		// Void keep stop
+		Timestamp stop = runner.stop;
 		runner.setToArray();
-		CommanderNoDb.todoList.add(runner);
+		runner.stop = stop;
+		runner.allFields[Columns.STOPTRANS.ordinal()].setValue(stop);
 		return runner;
 	}
 	

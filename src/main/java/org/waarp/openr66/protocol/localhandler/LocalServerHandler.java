@@ -724,6 +724,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		if (localChannelReference.getDbSession() != null) {
 			localChannelReference.getDbSession().useConnection();
 		}
+		localChannelReference.getNetworkChannelObject().hostId = packet.getHostId();
 		try {
 			session.getAuth().connection(localChannelReference.getDbSession(),
 					packet.getHostId(), packet.getKey());
@@ -1274,6 +1275,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		boolean shouldInformBack = false;
 		try {
 			session.setRunner(runner);
+			// Fix to ensure that recv request are not trying to access to not chroot files
+			if (Configuration.configuration.chrootChecked && packet.isToValidate() && runner.isSender()) {
+				session.startup(true);
+			} else {
+				session.startup(false);
+			}
 			if (runner.isSender() && ! runner.isSendThrough()) {
 				if (packet.getOriginalSize() != runner.getOriginalSize()) {
 					packet.setOriginalSize(runner.getOriginalSize());
@@ -2359,8 +2366,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				}
 				String sstart = packet.getSheader();
 				String sstop = packet.getSmiddle();
-				boolean isPurge = (packet.getTypeValid() == LocalPacketFactory.LOGPURGEPACKET) ?
-						true : false;
+				boolean isPurge = (packet.getTypeValid() == LocalPacketFactory.LOGPURGEPACKET);
 				Timestamp start = (sstart == null || sstart.isEmpty()) ? null :
 						Timestamp.valueOf(sstart);
 				Timestamp stop = (sstop == null || sstop.isEmpty()) ? null :
@@ -3036,7 +3042,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 	 * @return the packet to answer
 	 * @throws OpenR66ProtocolNotAuthenticatedException
 	 */
-	public BandwidthJsonPacket bandwidth(JsonPacket json)
+	private BandwidthJsonPacket bandwidth(JsonPacket json)
 			throws OpenR66ProtocolNotAuthenticatedException {
 		session.newState(VALIDOTHER);
 		// Authentication must be the local server or LIMIT authorization
@@ -3101,7 +3107,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 	 * @throws OpenR66ProtocolNotAuthenticatedException
 	 * @throws OpenR66ProtocolSystemException
 	 */
-	public ConfigImportResponseJsonPacket configImport(JsonPacket json)
+	private ConfigImportResponseJsonPacket configImport(JsonPacket json)
 			throws OpenR66ProtocolNotAuthenticatedException, OpenR66ProtocolSystemException {
 		session.newState(VALIDOTHER);
 		// Authentication must be the local server or CONFIGADMIN authorization
@@ -3386,7 +3392,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 	 * @return the packet to answer
 	 * @throws OpenR66ProtocolNotAuthenticatedException
 	 */
-	public ConfigExportResponseJsonPacket configExport(JsonPacket json)
+	private ConfigExportResponseJsonPacket configExport(JsonPacket json)
 			throws OpenR66ProtocolNotAuthenticatedException {
 		session.newState(VALIDOTHER);
 		// Authentication must be the local server or CONFIGADMIN authorization
@@ -3529,7 +3535,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 	 * @return the packet to answer
 	 * @throws OpenR66ProtocolNotAuthenticatedException
 	 */
-	public JsonCommandPacket requestRestart(JsonCommandPacket packet, JsonPacket json)
+	private JsonCommandPacket requestRestart(JsonCommandPacket packet, JsonPacket json)
 			throws OpenR66ProtocolNotAuthenticatedException {
 		session.newState(VALIDOTHER);
 		// should be from the local server or from an authorized hosts: TRANSFER
@@ -3622,7 +3628,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 	 * @throws OpenR66ProtocolNotAuthenticatedException
 	 * @throws OpenR66ProtocolBusinessException
 	 */
-	public LogResponseJsonPacket logPurge(JsonCommandPacket packet, LogJsonPacket node)
+	private LogResponseJsonPacket logPurge(JsonCommandPacket packet, LogJsonPacket node)
 			throws OpenR66ProtocolNotAuthenticatedException, OpenR66ProtocolBusinessException {
 		session.newState(VALIDOTHER);
 		// should be from the local server or from an authorized hosts: LOGCONTROL
@@ -3652,8 +3658,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		boolean transfer = node.isStatustransfer();
 		boolean done = node.isStatusdone();
 		boolean error = node.isStatuserror();
-		boolean isPurge = (packet.getTypeValid() == LocalPacketFactory.LOGPURGEPACKET || purge) ?
-				true : false;
+		boolean isPurge = (packet.getTypeValid() == LocalPacketFactory.LOGPURGEPACKET || purge);
 
 		// first clean if ask
 		if (clean) {
@@ -3732,7 +3737,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 	 * @return the packet to answer
 	 * @throws OpenR66ProtocolNotAuthenticatedException
 	 */
-	public R66Result stopOrCancel(JsonCommandPacket packet, StopOrCancelJsonPacket node)
+	private R66Result stopOrCancel(JsonCommandPacket packet, StopOrCancelJsonPacket node)
 			throws OpenR66ProtocolNotAuthenticatedException {
 		R66Result resulttest;
 		if (node.getRequested() == null || node.getRequester() == null || node.getSpecialid() == DbConstant.ILLEGALVALUE) {

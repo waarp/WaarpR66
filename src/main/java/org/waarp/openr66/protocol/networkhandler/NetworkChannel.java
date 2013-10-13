@@ -49,6 +49,10 @@ public class NetworkChannel {
 	 */
 	public final Channel channel;
 	/**
+	 * Remote Host Id
+	 */
+	public String hostId;
+	/**
 	 * Last Time in ms this channel was used by a LocalChannel
 	 */
 	public long lastTimeUsed;
@@ -82,10 +86,10 @@ public class NetworkChannel {
 			localChannel = localChannels.poll();
 		}
 	}
-
+	
 	@Override
 	public String toString() {
-		return "NC: " + channel.isConnected() + " " +
+		return "NC: " + hostId+":"+ channel.isConnected() + " " +
 				channel.getRemoteAddress() + " Count: " + count;
 	}
 
