@@ -751,15 +751,18 @@ public class NetworkTransaction {
 			try {
 				ClientNetworkChannels clientNetworkChannels = remoteClients.get(requester);
 				logger.debug("removeClient: remove previous exist? "+(clientNetworkChannels!=null) + " for :"+requester);
+				SocketAddress address = networkChannel.channel.getRemoteAddress();
 				if (clientNetworkChannels != null) {
 					clientNetworkChannels.remove(networkChannel);
 					logger.debug("AddClient: remove previous exist? "+(clientNetworkChannels!=null) + " for :"+requester+ " still "+clientNetworkChannels.size());
 					if (clientNetworkChannels.isEmpty()) {
 						remoteClients.remove(requester);
 					}
-					remoteClientsPerNetworkChannel.remove(networkChannel.channel.getRemoteAddress().hashCode());
-				} else {
-					clientNetworkChannels = remoteClientsPerNetworkChannel.remove(networkChannel.channel.getRemoteAddress().hashCode());
+					if (address != null) {
+						remoteClientsPerNetworkChannel.remove(address.hashCode());
+					}
+				} else if (address != null) {
+					clientNetworkChannels = remoteClientsPerNetworkChannel.remove(address.hashCode());
 					if (clientNetworkChannels != null) {
 						clientNetworkChannels.remove(networkChannel);
 						logger.debug("removeClient: remove previous exist? "+(clientNetworkChannels!=null) + " for :"+requester+ " still "+clientNetworkChannels.size());
