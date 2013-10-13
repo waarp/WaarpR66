@@ -101,6 +101,10 @@ public class NetworkTransaction {
 	 */
 	private static final ConcurrentHashMap<String, ClientNetworkChannels> remoteClients = new ConcurrentHashMap<String, ClientNetworkChannels>();
 	/**
+	 * Remote Client NetworkChannels per NetworkChannel
+	 */
+	private static final ConcurrentHashMap<Integer, ClientNetworkChannels> remoteClientsPerNetworkChannel = new ConcurrentHashMap<Integer, ClientNetworkChannels>();
+	/**
 	 * Lock for Client NetworkChannels operations
 	 */
 	private static final ReentrantLock lockClient = new ReentrantLock();
@@ -144,18 +148,16 @@ public class NetworkTransaction {
 			channelClientFactory);
 	private final ChannelGroup networkChannelGroup = new DefaultChannelGroup(
 			"NetworkChannels");
-	private final NetworkServerPipelineFactory networkServerPipelineFactory;
-	private final NetworkSslServerPipelineFactory networkSslServerPipelineFactory;
 
 	public NetworkTransaction() {
-		networkServerPipelineFactory = new NetworkServerPipelineFactory(false);
+		NetworkServerPipelineFactory networkServerPipelineFactory = new NetworkServerPipelineFactory(false);
 		clientBootstrap.setPipelineFactory(networkServerPipelineFactory);
 		clientBootstrap.setOption("tcpNoDelay", true);
 		clientBootstrap.setOption("reuseAddress", true);
 		clientBootstrap.setOption("connectTimeoutMillis",
 				Configuration.configuration.TIMEOUTCON);
 		if (Configuration.configuration.useSSL && Configuration.configuration.HOST_SSLID != null) {
-			networkSslServerPipelineFactory =
+			NetworkSslServerPipelineFactory networkSslServerPipelineFactory =
 					new NetworkSslServerPipelineFactory(true, execServerWorker);
 			clientSslBootstrap.setPipelineFactory(networkSslServerPipelineFactory);
 			clientSslBootstrap.setOption("tcpNoDelay", true);
@@ -163,8 +165,11 @@ public class NetworkTransaction {
 			clientSslBootstrap.setOption("connectTimeoutMillis",
 					Configuration.configuration.TIMEOUTCON);
 		} else {
-			networkSslServerPipelineFactory = null;
-			logger.warn("No SSL support configured");
+			if (Configuration.configuration.warnOnStartup) {
+				logger.warn("No SSL support configured");
+			} else {
+				logger.info("No SSL support configured");
+			}
 		}
 	}
 
@@ -745,10 +750,22 @@ public class NetworkTransaction {
 			lockClient.lock();
 			try {
 				ClientNetworkChannels clientNetworkChannels = remoteClients.get(requester);
+				logger.debug("removeClient: remove previous exist? "+(clientNetworkChannels!=null) + " for :"+requester);
 				if (clientNetworkChannels != null) {
 					clientNetworkChannels.remove(networkChannel);
+					logger.debug("AddClient: remove previous exist? "+(clientNetworkChannels!=null) + " for :"+requester+ " still "+clientNetworkChannels.size());
 					if (clientNetworkChannels.isEmpty()) {
 						remoteClients.remove(requester);
+					}
+					remoteClientsPerNetworkChannel.remove(networkChannel.channel.getRemoteAddress().hashCode());
+				} else {
+					clientNetworkChannels = remoteClientsPerNetworkChannel.remove(networkChannel.channel.getRemoteAddress().hashCode());
+					if (clientNetworkChannels != null) {
+						clientNetworkChannels.remove(networkChannel);
+						logger.debug("removeClient: remove previous exist? "+(clientNetworkChannels!=null) + " for :"+requester+ " still "+clientNetworkChannels.size());
+						if (clientNetworkChannels.isEmpty()) {
+							remoteClients.remove(requester);
+						}
 					}
 				}
 			} finally {
@@ -758,7 +775,7 @@ public class NetworkTransaction {
 	}
 
 	/**
-	 * Get NetworkChannel as client
+	 * Shutdown NetworkChannel as client
 	 * 
 	 * @param requester
 	 * @return NetworkChannel associated with this host as client (only 1 allow even if more are
@@ -768,6 +785,7 @@ public class NetworkTransaction {
 		lockClient.lock();
 		try {
 			ClientNetworkChannels clientNetworkChannels = remoteClients.remove(requester);
+			logger.debug("AddClient: shutdown previous exist? "+(clientNetworkChannels!=null) + " for :"+requester);
 			if (clientNetworkChannels != null) {
 				return clientNetworkChannels.shutdownAll();
 			}
@@ -792,9 +810,12 @@ public class NetworkTransaction {
 			if (networkChannel != null) {
 				lockClient.lock();
 				try {
-					remoteClients.putIfAbsent(requester, new ClientNetworkChannels(requester));
+					ClientNetworkChannels prev = remoteClients.putIfAbsent(requester, new ClientNetworkChannels(requester));
+					logger.debug("AddClient: add previous exist? "+(prev!=null) + " for "+requester);
 					ClientNetworkChannels clientNetworkChannels = remoteClients.get(requester);
+					logger.debug("AddClient: add count? "+clientNetworkChannels.size() + " for "+requester);
 					clientNetworkChannels.add(networkChannel);
+					remoteClientsPerNetworkChannel.put(address.hashCode(), clientNetworkChannels);
 				} finally {
 					lockClient.unlock();
 				}
@@ -819,9 +840,8 @@ public class NetworkTransaction {
 	 * Force remove of NetworkChannel when it is closed
 	 * 
 	 * @param address
-	 * @return the number of still connected Local Channels
 	 */
-	public static int removeForceNetworkChannel(SocketAddress address) {
+	public static void removeForceNetworkChannel(SocketAddress address) {
 		ReentrantLock socketLock = getChannelLock(address);
 		socketLock.lock();
 		try {
@@ -829,20 +849,23 @@ public class NetworkTransaction {
 				NetworkChannel networkChannel = networkChannelOnSocketAddressConcurrentHashMap
 						.get(address.hashCode());
 				if (networkChannel != null) {
-					if (networkChannel.isShuttingDown) {
-						return networkChannel.count.get();
-					}
 					logger.debug("NC left: {}", networkChannel);
-					int count = networkChannel.count.get();
 					networkChannel.shutdownAllLocalChannels();
 					networkChannelOnSocketAddressConcurrentHashMap
 							.remove(address.hashCode());
-					return count;
 				} else {
 					logger.debug("Network not registered");
 				}
+				ClientNetworkChannels clientNetworkChannels = remoteClientsPerNetworkChannel.remove(address.hashCode());
+				if (clientNetworkChannels != null) {
+					String requester = clientNetworkChannels.getHostId();
+					clientNetworkChannels.remove(networkChannel);
+					logger.debug("removeClient: remove previous exist? "+(clientNetworkChannels!=null) + " for :"+requester+ " still "+clientNetworkChannels.size());
+					if (clientNetworkChannels.isEmpty()) {
+						remoteClients.remove(requester);
+					}
+				}
 			}
-			return 0;
 		} finally {
 			socketLock.unlock();
 			removeChannelLock(address);
@@ -883,18 +906,23 @@ public class NetworkTransaction {
 			ReentrantLock socketLock = getChannelLock(address);
 			socketLock.lock();
 			try {
+				logger.debug("NC count: "+networkChannel.count.get()+":"+requester);
 				if (networkChannel.count.get() <= 0) {
 					long time = networkChannel.lastTimeUsed +
 							Configuration.configuration.TIMEOUTCON * 2 -
 							System.currentTimeMillis();
 					if (time > Configuration.RETRYINMS) {
 						// will re execute this request later on
+						time = (time / 10) * 10; // round to 10
 						Configuration.configuration.getTimerClose().newTimeout(this, time,
 								TimeUnit.MILLISECONDS);
 						return;
 					}
-					if (requester != null)
+					if (requester != null) {
 						NetworkTransaction.removeClient(requester, networkChannel);
+					} else if (networkChannel.hostId != null) {
+						NetworkTransaction.removeClient(networkChannel.hostId, networkChannel);
+					}
 					networkChannelOnSocketAddressConcurrentHashMap
 							.remove(address.hashCode());
 					logger.info("Will close NETWORK channel");
@@ -965,6 +993,7 @@ public class NetworkTransaction {
 	 * @return True if a connection is still active on this socket or for this host
 	 */
 	public static int existConnection(SocketAddress address, String host) {
+		logger.debug("exist: "+networkChannelOnSocketAddressConcurrentHashMap.containsKey(address.hashCode())+":"+getNumberClients(host));
 		return (networkChannelOnSocketAddressConcurrentHashMap.containsKey(address.hashCode()) ? 1
 				: 0)
 				+ getNumberClients(host);

@@ -31,11 +31,13 @@ import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
+import org.waarp.openr66.context.task.SpooledInformTask;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.Messages;
+import org.waarp.openr66.protocol.localhandler.packet.BusinessRequestPacket;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
@@ -44,10 +46,10 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * Direct Transfer from a client with or without database connection 
  * or Submit Transfer from a client with database connection 
  * to transfer files from a spooled directory to possibly multiple hosts at once.<br>
- * Hosts will have to be separated by ','.<br>
+ * -to Hosts will have to be separated by ','.<br>
  * <br>
  * Mandatory additional elements:<br>
- * -directory source (directory to spooled on)<br>
+ * -directory source (directory to spooled on ; many directories can be specified using a comma separated list as "directory1,directory2,directory3")<br>
  * -statusfile file (file to use as permanent status (if process is killed or aborts))<br>
  * -stopfile file (file when created will stop the dameon)<br>
  * Other options:<br>
@@ -55,6 +57,8 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * -elapse elapse (elapse time between 2 checks of the directory)<br>
  * -submit (to submit only: default)<br>
  * -direct (to directly transfer only)<br>
+ * -recursive (to scan recursively from the root)<br>
+ * -waarp WaarpHosts (seperated by ',') to inform of running spooled directory (information stays in memory of Waarp servers, not in database)<br>
  * 
  * @author Frederic Bregier
  * 
@@ -72,6 +76,8 @@ public class SpooledDirectoryTransfer implements Runnable {
 	protected static final String NO_INFO_ARGS = "noinfo";
 
 	protected final R66Future future;
+	
+	protected final String name;
 
 	protected final String directory;
 
@@ -89,6 +95,8 @@ public class SpooledDirectoryTransfer implements Runnable {
 
 	protected final String regexFilter;
 
+	protected final String waarpHosts;
+
 	protected final int blocksize;
 
 	protected final long elapseTime;
@@ -96,6 +104,8 @@ public class SpooledDirectoryTransfer implements Runnable {
 	protected final boolean submit;
 	
 	protected final boolean nolog;
+	
+	protected final boolean recurs;
 	
 	protected final NetworkTransaction networkTransaction;
 	
@@ -119,15 +129,17 @@ public class SpooledDirectoryTransfer implements Runnable {
 	 * @param nolog
 	 * @param networkTransaction
 	 */
-	public SpooledDirectoryTransfer(R66Future future, String directory, 
+	public SpooledDirectoryTransfer(R66Future future, String name, String directory, 
 			String statusfile, String stopfile, String rulename,
 			String fileinfo, boolean isMD5, 
 			String remoteHosts, int blocksize, String regex,
-			long elapse, boolean submit, boolean nolog, NetworkTransaction networkTransaction) {
+			long elapse, boolean submit, boolean nolog, boolean recursive, 
+			String waarphost, NetworkTransaction networkTransaction) {
 		if (logger == null) {
 			logger = WaarpInternalLoggerFactory.getLogger(SpooledDirectoryTransfer.class);
 		}
 		this.future = future;
+		this.name = name;
 		this.directory = directory;
 		this.statusFile = statusfile;
 		this.stopFile = stopfile;
@@ -141,6 +153,8 @@ public class SpooledDirectoryTransfer implements Runnable {
 		this.submit = submit;
 		this.nolog = nolog && (!submit);
 		AbstractTransfer.nolog = this.nolog;
+		this.recurs = recursive;
+		this.waarpHosts = waarphost;
 		this.networkTransaction = networkTransaction;
 	}
 
@@ -184,18 +198,22 @@ public class SpooledDirectoryTransfer implements Runnable {
 			this.future.setSuccess();
 			return;
 		}
-		File dir = new File(directory);
-		if (!dir.isDirectory()) {
-			logger.error(Messages.getString("SpooledDirectoryTransfer.9")); //$NON-NLS-1$
-			this.future.cancel();
-			return;
+		String [] directories = directory.split(",");
+		for (String dirname : directories) {
+			File dir = new File(dirname);
+			if (!dir.isDirectory()) {
+				logger.error(Messages.getString("SpooledDirectoryTransfer.9")+" : "+dir); //$NON-NLS-1$
+				this.future.cancel();
+				return;
+			}
 		}
 		FileFilter filter = null;
 		if (regexFilter != null) {
 			filter = new RegexFileFilter(regexFilter);
 		}
 		FileMonitorCommand commandValidFile = new FileMonitorCommand() {
-			public void run(File file) {
+			public boolean run(File file) {
+				boolean finalStatus = false;
 				for (String host : allrhosts) {
 					host = host.trim();
 					if (host != null && ! host.isEmpty()) {
@@ -220,6 +238,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 						future.awaitUninterruptibly();
 						R66Result result = future.getResult();
 						if (future.isSuccess()) {
+							finalStatus = true;
 							sent++;
 							DbTaskRunner runner = null;
 							if (result != null) {
@@ -275,16 +294,48 @@ public class SpooledDirectoryTransfer implements Runnable {
 						}
 					}
 				}
+				return finalStatus;
 			}
 		};
-		FileMonitor monitor = new FileMonitor(status, stop, dir, null, elapsed, filter, 
-				commandValidFile, null);
+		FileMonitorCommand waarpHostCommand = null;
+		File dir = new File(directories[0]);
+		final FileMonitor monitor = new FileMonitor(name, status, stop, dir, null, elapsed, filter, 
+				recurs, commandValidFile, null, null);
+		if (waarpHosts != null && ! waarpHosts.isEmpty()) {
+			final String [] allwaarps = waarpHosts.split(",");
+			waarpHostCommand = new FileMonitorCommand() {
+				public boolean run(File notused) {
+					String status = monitor.getStatus();
+					for (String host : allwaarps) {
+						host = host.trim();
+						if (host != null && ! host.isEmpty()) {
+							R66Future future = new R66Future(true);
+							BusinessRequestPacket packet =
+									new BusinessRequestPacket(SpooledInformTask.class.getName() + " " + status, 0);
+							BusinessRequest transaction = new BusinessRequest(
+									networkTransaction, future, host, packet);
+							transaction.run();
+							future.awaitUninterruptibly();
+							if (! future.isSuccess()) {
+								logger.info("Can't inform Waarp server: "+host + " since " + future.getCause());
+							}
+						}
+					}
+					return true;
+				}
+			};
+			monitor.setCommandCheckIteration(waarpHostCommand);
+		}
+		for (int i = 1; i < directories.length; i++) {
+			dir = new File(directories[i]);
+			monitor.addDirectory(dir);
+		}
 		monitor.start();
 		monitor.waitForStopFile();
 		this.future.setSuccess();
 	}
 
-	
+	static protected String sname = null;
 	static protected String rhosts = null;
 	static protected String localDirectory = null;
 	static protected String rule = null;
@@ -299,6 +350,8 @@ public class SpooledDirectoryTransfer implements Runnable {
 	static protected long elapsed = 1000;
 	static protected boolean tosubmit = true;
 	static protected boolean noLog = false;
+	static protected boolean recursive = false;
+	static protected String waarphosts = null;
 	
 	/**
 	 * Parse the parameter and set current values
@@ -327,6 +380,9 @@ public class SpooledDirectoryTransfer implements Runnable {
 				if (args[i].equalsIgnoreCase("-to")) {
 					i++;
 					rhosts = args[i];
+				} else if (args[i].equalsIgnoreCase("-name")) {
+					i++;
+					sname = args[i];
 				} else if (args[i].equalsIgnoreCase("-directory")) {
 					i++;
 					localDirectory = args[i];
@@ -357,9 +413,14 @@ public class SpooledDirectoryTransfer implements Runnable {
 					tosubmit = true;
 				} else if (args[i].equalsIgnoreCase("-direct")) {
 					tosubmit = false;
+				} else if (args[i].equalsIgnoreCase("-recursive")) {
+					recursive = true;
 				} else if (args[i].equalsIgnoreCase("-regex")) {
 					i++;
 					regex = args[i];
+				} else if (args[i].equalsIgnoreCase("-waarp")) {
+					i++;
+					waarphosts = args[i];
 				} else if (args[i].equalsIgnoreCase("-elapse")) {
 					i++;
 					elapsed = Long.parseLong(args[i]);
@@ -371,6 +432,9 @@ public class SpooledDirectoryTransfer implements Runnable {
 		}
 		if (fileInfo == null) {
 			fileInfo = NO_INFO_ARGS;
+		}
+		if (sname == null) {
+			sname = localDirectory;
 		}
 		if (tosubmit && ! DbConstant.admin.isConnected) {
 			logger.error(Messages.getString("SpooledDirectoryTransfer.2")); //$NON-NLS-1$
@@ -389,13 +453,26 @@ public class SpooledDirectoryTransfer implements Runnable {
 		if (logger == null) {
 			logger = WaarpInternalLoggerFactory.getLogger(SpooledDirectoryTransfer.class);
 		}
+		initialize(args, true);
+	}
+
+	/**
+	 * @param args
+	 */
+	public static boolean initialize(String[] args, boolean normalStart) {
+		if (logger == null) {
+			logger = WaarpInternalLoggerFactory.getLogger(SpooledDirectoryTransfer.class);
+		}
 		if (!getParams(args)) {
 			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
 			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
 				DbConstant.admin.close();
 			}
-			ChannelUtils.stopLogger();
-			System.exit(2);
+			if (normalStart) {
+				ChannelUtils.stopLogger();
+				System.exit(2);
+			}
+			return false;
 		}
 
 		Configuration.configuration.pipelineInit();
@@ -403,17 +480,23 @@ public class SpooledDirectoryTransfer implements Runnable {
 		try {
 			R66Future future = new R66Future(true);
 			SpooledDirectoryTransfer spooled =
-					new SpooledDirectoryTransfer(future, localDirectory, statusfile, stopfile,
-							rule, fileInfo, ismd5, rhosts, block, regex, elapsed, tosubmit, noLog,
-							networkTransaction);
+					new SpooledDirectoryTransfer(future, sname, localDirectory, statusfile, stopfile,
+							rule, fileInfo, ismd5, rhosts, block, regex, elapsed, tosubmit, noLog, recursive,
+							waarphosts, networkTransaction);
 			spooled.run();
-			future.awaitUninterruptibly();
-			logger.warn(Messages.getString("SpooledDirectoryTransfer.58")+spooled.sent+" sent and "+spooled.error+Messages.getString("SpooledDirectoryTransfer.60")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+			if (normalStart) {
+				future.awaitUninterruptibly();
+				logger.warn(Messages.getString("SpooledDirectoryTransfer.58")+spooled.sent+" sent and "+spooled.error+Messages.getString("SpooledDirectoryTransfer.60")); //$NON-NLS-1$
+			}
+			return true;
 		} catch (Exception e) {
 			logger.warn("exc", e);
+			return false;
 		} finally {
-			networkTransaction.closeAll();
-			System.exit(0);
+			if (normalStart) {
+				networkTransaction.closeAll();
+				System.exit(0);
+			}
 		}
 	}
 

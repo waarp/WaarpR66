@@ -48,8 +48,12 @@ public class R66SystemProperties {
 	 */
 	public static final String OPENR66_CONFIGFILE = "org.waarp.r66.config.file";
 	/**
-	 * Shall we print info of startup in Warning mode (true) or Info mode (false)
+	 * Shall we print info of startup in Warning mode (true, default) or Info mode (false)
 	 */
 	public static final String OPENR66_STARTUP_WARNING = "openr66.startup.warning";
+	/**
+	 * Shall we allow or not a request as RECV that will access to file outside Rule Out directory (default = false)
+	 */
+	public static final String OPENR66_CHROOT_CHECKED = "openr66.chroot.checked";
 
 }

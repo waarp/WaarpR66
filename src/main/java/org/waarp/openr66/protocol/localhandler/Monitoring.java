@@ -72,7 +72,7 @@ public class Monitoring implements WaarpInterfaceMonitor {
 	private long minimalDelay = 0;
 	private long lastTry = 0;
 	private DbSession dbSession = null;
-	private TrafficCounter trafficCounter =
+	private final TrafficCounter trafficCounter =
 			Configuration.configuration
 					.getGlobalTrafficShapingHandler()
 					.getTrafficCounter();
@@ -302,7 +302,7 @@ public class Monitoring implements WaarpInterfaceMonitor {
 		} catch (NullPointerException e) {
 		}
 		if (! dbSession.equals(DbConstant.admin.session)) {
-			dbSession.disconnect();
+			dbSession.forceDisconnect();
 			dbSession = null;
 		}
 	}

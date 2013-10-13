@@ -23,6 +23,8 @@ import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.openr66.client.AbstractBusinessRequest;
+import org.waarp.openr66.client.utils.OutputFormat;
+import org.waarp.openr66.client.utils.OutputFormat.FIELDS;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.protocol.configuration.Configuration;
@@ -91,15 +93,22 @@ public class BusinessRequest extends AbstractBusinessRequest {
 		long time2 = System.currentTimeMillis();
 		logger.debug("Finish Business Request: " + future.isSuccess());
 		long delay = time2 - time1;
+		OutputFormat outputFormat = new OutputFormat(BusinessRequest.class.getSimpleName(), args);
 		if (future.isSuccess()) {
-			logger.info(Messages.getString("BusinessRequest.6")+Messages.getString("RequestInformation.Success") + //$NON-NLS-1$
-					"    <REMOTE>" + rhost + "</REMOTE>" +
-					Messages.getString("R66Environnement.13") + delay); //$NON-NLS-1$
+			outputFormat.setValue(FIELDS.status.name(), 0);
+			outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("BusinessRequest.6")+Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
+			outputFormat.setValue(FIELDS.remote.name(), rhost);
+			outputFormat.setValue("delay", delay);
+			logger.info(outputFormat.loggerOut());
+			outputFormat.sysout();
 		} else {
-			logger.info(Messages.getString("BusinessRequest.6")+Messages.getString("RequestInformation.Failure") + //$NON-NLS-1$
-					"    <REMOTE>" + rhost + "</REMOTE>" +
-					"    <ERROR>" + future.getCause() + "</ERROR>" +
-					Messages.getString("R66Environnement.13") + delay); //$NON-NLS-1$
+			outputFormat.setValue(FIELDS.status.name(), 2);
+			outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("BusinessRequest.6")+Messages.getString("RequestInformation.Failure")); //$NON-NLS-1$
+			outputFormat.setValue(FIELDS.remote.name(), rhost);
+			outputFormat.setValue("delay", delay);
+			logger.error(outputFormat.loggerOut(), future.getCause());
+			outputFormat.setValue(FIELDS.error.name(), future.getCause().toString());
+			outputFormat.sysout();
 			networkTransaction.closeAll();
 			System.exit(ErrorCode.Unknown.ordinal());
 		}

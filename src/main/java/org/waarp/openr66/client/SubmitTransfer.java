@@ -18,12 +18,15 @@
 package org.waarp.openr66.client;
 
 import java.sql.Timestamp;
+import java.util.Map;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
+import org.waarp.openr66.client.utils.OutputFormat;
+import org.waarp.openr66.client.utils.OutputFormat.FIELDS;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.database.DbConstant;
@@ -125,6 +128,9 @@ public class SubmitTransfer extends AbstractTransfer {
 		}
 		if (!getParams(args, true)) {
 			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
+			if (! OutputFormat.isQuiet()) {
+				System.out.println(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
+			}
 			if (DbConstant.admin != null && DbConstant.admin.isConnected) {
 				DbConstant.admin.close();
 			}
@@ -138,16 +144,31 @@ public class SubmitTransfer extends AbstractTransfer {
 		transaction.run();
 		future.awaitUninterruptibly();
 		DbTaskRunner runner = future.getResult().runner;
+		OutputFormat outputFormat = new OutputFormat(SubmitTransfer.class.getSimpleName(), args);
 		if (future.isSuccess()) {
-			logger.warn(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Success") + runner.toShortString() + //$NON-NLS-1$
-					"<REMOTE>" + rhost + "</REMOTE>");
+			outputFormat.setValue(FIELDS.status.name(), 0);
+			outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
+			outputFormat.setValue(FIELDS.remote.name(), rhost);
+			Map<String, String> map = DbTaskRunner.getMapFromRunner(runner);
+			outputFormat.setValueString(map);
+			logger.warn(outputFormat.loggerOut());
+			outputFormat.sysout();
 		} else {
-			if (runner != null) {
-				logger.error(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Failure") + runner.toShortString() + //$NON-NLS-1$
-						"<REMOTE>" + rhost + "</REMOTE>", future.getCause());
+			outputFormat.setValue(FIELDS.status.name(), 2);
+			if (runner == null) {
+				outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("SubmitTransfer.3")+Messages.getString("Transfer.FailedNoId")); //$NON-NLS-1$
+				outputFormat.setValue(FIELDS.remote.name(), rhost);
 			} else {
-				logger.error(Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Failure"), future.getCause()); //$NON-NLS-1$
+				outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Failure")); //$NON-NLS-1$
+				outputFormat.setValue(FIELDS.remote.name(), rhost);
+				Map<String, String> map = DbTaskRunner.getMapFromRunner(runner);
+				outputFormat.setValueString(map);
 			}
+			logger.error(outputFormat.loggerOut(), future.getCause());
+			if (future.getCause() != null) {
+				outputFormat.setValue(FIELDS.error.name(), future.getCause().getMessage());
+			}
+			outputFormat.sysout();
 			DbConstant.admin.close();
 			ChannelUtils.stopLogger();
 			System.exit(future.getResult().code.ordinal());

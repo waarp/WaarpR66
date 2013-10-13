@@ -24,6 +24,7 @@ import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
+import org.waarp.openr66.client.utils.OutputFormat;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66FiniteDualStates;
@@ -54,7 +55,7 @@ public class Message implements Runnable {
 	private static WaarpInternalLogger logger;
 	
 	protected static String _INFO_ARGS =
-			Messages.getString("Message.0"); //$NON-NLS-1$
+			Messages.getString("Message.0")+ Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
 
 	final private NetworkTransaction networkTransaction;
 
@@ -76,7 +77,7 @@ public class Message implements Runnable {
 	 * @return True if all parameters were found and correct
 	 */
 	protected static boolean getParams(String[] args) {
-		 _INFO_ARGS = Messages.getString("Message.0"); //$NON-NLS-1$
+		 _INFO_ARGS = Messages.getString("Message.0")+ Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
 		if (args.length < 5) {
 			logger
 					.error(_INFO_ARGS);
@@ -97,6 +98,7 @@ public class Message implements Runnable {
 				smessage = args[i];
 			}
 		}
+		OutputFormat.getParams(args);
 		if (srequested == null) {
 			logger.error(Messages.getString("Message.HostIdMustBeSet")+_INFO_ARGS); //$NON-NLS-1$
 			return false;
@@ -214,10 +216,17 @@ public class Message implements Runnable {
 				R66Result r66result = result.getResult();
 				ValidPacket info = (ValidPacket) r66result.other;
 				logger.warn(Messages.getString("Message.11")+Messages.getString("RequestInformation.Success") + info.getSheader()); //$NON-NLS-1$
+				if (! OutputFormat.isQuiet()) {
+					System.out.println(Messages.getString("Message.11")+Messages.getString("RequestInformation.Success") + info.getSheader()); //$NON-NLS-1$
+				}
 			} else {
 				value = 2;
 				logger.error(Messages.getString("Message.11")+Messages.getString("RequestInformation.Failure") + //$NON-NLS-1$
 						result.getResult().toString());
+				if (! OutputFormat.isQuiet()) {
+					System.out.println(Messages.getString("Message.11")+Messages.getString("RequestInformation.Failure") + //$NON-NLS-1$
+							result.getResult().toString());
+				}
 			}
 		} finally {
 			if (networkTransaction != null) {

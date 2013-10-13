@@ -27,6 +27,7 @@ import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.openr66.client.utils.OutputFormat;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
@@ -57,10 +58,10 @@ public abstract class AbstractTransfer implements Runnable {
 	static protected volatile WaarpInternalLogger logger;
 	
 	protected static String _INFO_ARGS = 
-			Messages.getString("AbstractTransfer.0"); //$NON-NLS-1$
+			Messages.getString("AbstractTransfer.0")+ Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
 	
 	protected static final String NO_INFO_ARGS = "noinfo";
-
+	
 	protected final R66Future future;
 
 	protected final String filename;
@@ -214,7 +215,7 @@ public abstract class AbstractTransfer implements Runnable {
 	 * @return True if all parameters were found and correct
 	 */
 	protected static boolean getParams(String[] args, boolean submitOnly) {
-		_INFO_ARGS = Messages.getString("AbstractTransfer.0"); //$NON-NLS-1$
+		_INFO_ARGS = Messages.getString("AbstractTransfer.0")+ Messages.getString("Message.OutputFormat"); //$NON-NLS-1$
 		if (args.length < 2) {
 			logger
 					.error(_INFO_ARGS);
@@ -244,6 +245,7 @@ public abstract class AbstractTransfer implements Runnable {
 				} else if (args[i].equalsIgnoreCase("-file")) {
 					i++;
 					localFilename = args[i];
+					localFilename = localFilename.replace('§', '*');
 				} else if (args[i].equalsIgnoreCase("-rule")) {
 					i++;
 					rule = args[i];
@@ -282,6 +284,7 @@ public abstract class AbstractTransfer implements Runnable {
 					}
 				}
 			}
+			OutputFormat.getParams(args);
 		} catch (NumberFormatException e) {
 			logger.error(Messages.getString("AbstractTransfer.20")+i); //$NON-NLS-1$
 			return false;
@@ -300,13 +303,13 @@ public abstract class AbstractTransfer implements Runnable {
 				return true;
 			} catch (WaarpDatabaseException e) {
 				logger.error(
-						Messages.getString("AbstractTransfer.21") //$NON-NLS-1$
+						Messages.getString("AbstractBusinessRequest.NeedMoreArgs", "(-to -rule -file | -to -id)") //$NON-NLS-1$
 								, e);
 				return false;
 			}
 
 		}
-		logger.error(Messages.getString("AbstractTransfer.21") + //$NON-NLS-1$
+		logger.error(Messages.getString("AbstractBusinessRequest.NeedMoreArgs", "(-to -rule -file | -to -id)") + //$NON-NLS-1$
 				_INFO_ARGS);
 		return false;
 	}
