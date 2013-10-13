@@ -82,7 +82,7 @@
 <a class="jxr_linenumber" name="72" href="#72">72</a>  	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">long</strong> minimalDelay = 0;
 <a class="jxr_linenumber" name="73" href="#73">73</a>  	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">long</strong> lastTry = 0;
 <a class="jxr_linenumber" name="74" href="#74">74</a>  	<strong class="jxr_keyword">private</strong> DbSession dbSession = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="75" href="#75">75</a>  	<strong class="jxr_keyword">private</strong> TrafficCounter trafficCounter =
+<a class="jxr_linenumber" name="75" href="#75">75</a>  	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> TrafficCounter trafficCounter =
 <a class="jxr_linenumber" name="76" href="#76">76</a>  			Configuration.configuration
 <a class="jxr_linenumber" name="77" href="#77">77</a>  					.getGlobalTrafficShapingHandler()
 <a class="jxr_linenumber" name="78" href="#78">78</a>  					.getTrafficCounter();
@@ -312,7 +312,7 @@
 <a class="jxr_linenumber" name="302" href="#302">302</a> 		} <strong class="jxr_keyword">catch</strong> (NullPointerException e) {
 <a class="jxr_linenumber" name="303" href="#303">303</a> 		}
 <a class="jxr_linenumber" name="304" href="#304">304</a> 		<strong class="jxr_keyword">if</strong> (! dbSession.equals(DbConstant.admin.session)) {
-<a class="jxr_linenumber" name="305" href="#305">305</a> 			dbSession.disconnect();
+<a class="jxr_linenumber" name="305" href="#305">305</a> 			dbSession.forceDisconnect();
 <a class="jxr_linenumber" name="306" href="#306">306</a> 			dbSession = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="307" href="#307">307</a> 		}
 <a class="jxr_linenumber" name="308" href="#308">308</a> 	}

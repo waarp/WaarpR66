@@ -1,5 +1,7 @@
 org.waarp.openr66
 org.waarp.openr66.client
+org.waarp.openr66.client.spooledService
+org.waarp.openr66.client.utils
 org.waarp.openr66.commander
 org.waarp.openr66.configuration
 org.waarp.openr66.context
