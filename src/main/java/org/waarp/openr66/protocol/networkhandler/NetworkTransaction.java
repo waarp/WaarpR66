@@ -757,6 +757,7 @@ public class NetworkTransaction {
 					if (clientNetworkChannels.isEmpty()) {
 						remoteClients.remove(requester);
 					}
+					remoteClientsPerNetworkChannel.remove(networkChannel.channel.getRemoteAddress().hashCode());
 				} else {
 					clientNetworkChannels = remoteClientsPerNetworkChannel.remove(networkChannel.channel.getRemoteAddress().hashCode());
 					if (clientNetworkChannels != null) {
