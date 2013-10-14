@@ -66,6 +66,7 @@ import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66Exception;
 import org.waarp.openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
+import org.waarp.openr66.protocol.http.adminssl.HttpSslHandler;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 
 /**
@@ -264,6 +265,8 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 			cval = '5';
 			nb = 0; // since it could be the default or setup by request
 			isCurrentRequestXml = true;
+		} else if (uriRequest.equalsIgnoreCase("/spooled")) {
+			cval = '6';
 		}
 		// Get the params according to get or post
 		if (request.getMethod() == HttpMethod.GET) {
@@ -333,6 +336,9 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 					break;
 				case '5':
 					statusxml(ctx, nb, extraBoolean);
+					break;
+				case '6':
+					spooled(ctx, extraBoolean);
 					break;
 				default:
 					responseContent.append(REQUEST.index.readFileUnique(this));
@@ -591,6 +597,16 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 		Configuration.configuration.monitoring.run(nb, detail);
 		responseContent.append(Configuration.configuration.monitoring.exportXml(detail));
 	}
+	
+	private void spooled(ChannelHandlerContext ctx, boolean detail) {
+		responseContent.append(REQUEST.status.readHeader(this));
+		if (detail) {
+			responseContent.append(HttpSslHandler.buildSpooledTable(true, "spooled?DETAIL=1"));
+		} else {
+			responseContent.append(HttpSslHandler.buildSpooledTable(false, "spooled"));
+		}
+		responseContent.append(REQUEST.status.readEnd());
+	}
 
 	/**
 	 * Write the response
@@ -674,6 +690,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 		responseContent.append(REQUEST.error.readEnd());
 		response.setContent(ChannelBuffers.copiedBuffer(responseContent
 				.toString(), WaarpStringUtils.UTF8));
+		responseContent.setLength(0);
 		// Close the connection as soon as the error message is sent.
 		ctx.getChannel().write(response).addListener(
 				ChannelFutureListener.CLOSE);

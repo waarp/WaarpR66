@@ -146,7 +146,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		Rules("Rules_head.html", "Rules_body0.html", "Rules_body.html", "Rules_body1.html",
 				"Rules_end.html"),
 		System("System.html"),
-		Spooled("Spooled.html");
+		Spooled("Spooled.html"),
+		SpooledDetailed("Spooled.html");
 
 		private String header;
 		private String headerBody;
@@ -1470,11 +1471,28 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		return head + body0 + body + body1 + end;
 	}
 
-	private String Spooled() {
+	private String Spooled(boolean detailed) {
 		// XXXSPOOLEDXXX
 		String spooled = REQUEST.Spooled.readFileUnique(this);
+		String uri = null;
+		if (detailed) {
+			uri = "SpooledDetailed.html";
+		} else {
+			uri = "Spooled.html";
+		}
+		StringBuilder builder = buildSpooledTable(detailed, uri);
+		return spooled.replace("XXXSPOOLEDXXX", builder.toString());
+	}
+
+	/**
+	 * @param detailed
+	 * @return
+	 */
+	public static StringBuilder buildSpooledTable(boolean detailed, String uri) {
 		StringBuilder builder = new StringBuilder();
-		builder.append("<TABLE BORDER=1><CAPTION><A HREF=Spooled.html>SpooledDirectory daemons information</A></CAPTION>");
+		builder.append("<TABLE BORDER=1><CAPTION><A HREF=");
+		builder.append(uri);
+		builder.append(">SpooledDirectory daemons information</A></CAPTION>");
 		// title first
 		builder.append("<TR><TH>Name</TH><TH>Host</TH><TH>Last Time</TH><TH>Elapse</TH><TH>StopFile</TH><TH>StatusFile</TH><TH>SubDir</TH><TH>Directories</TH><TH>Files</TH></TR>");
 		// get current information
@@ -1520,7 +1538,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					builder.append("<TD>");
 					builder.append(dirs);
 					builder.append("</TD>");
-					if (inform.fileMonitorInformation.fileItems != null) {
+					if (detailed && inform.fileMonitorInformation.fileItems != null) {
 						builder.append("<TD><TABLE BORDER=1><TR><TH>File</TH><TH>Hash</TH><TH>LastTimeModif</TH><TH>TimeUsed</TH><TH>Used</TH></TR>");
 						for (FileItem fileItem : inform.fileMonitorInformation.fileItems.values()) {
 							builder.append("<TR><TD>");
@@ -1552,7 +1570,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 			}
 		}
 		builder.append("</TABLE>");
-		return spooled.replace("XXXSPOOLEDXXX", builder.toString());
+		return builder;
 	}
 	
 	private String System() {
@@ -1964,7 +1982,10 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				responseContent.append(Transfers());
 				break;
 			case Spooled:
-				responseContent.append(Spooled());
+				responseContent.append(Spooled(false));
+				break;
+			case SpooledDetailed:
+				responseContent.append(Spooled(true));
 				break;
 			default:
 				responseContent.append(index());
