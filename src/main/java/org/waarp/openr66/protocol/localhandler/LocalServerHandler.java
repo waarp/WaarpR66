@@ -48,6 +48,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
@@ -202,7 +203,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			if (localChannelReference != null) {
 				R66Future fvr = localChannelReference.getFutureValidRequest();
 				try {
-					fvr.await();
+					fvr.await(Configuration.configuration.TIMEOUTCON*2, TimeUnit.MILLISECONDS);
 				} catch (InterruptedException e1) {
 				}
 				if (fvr.isDone()) {
