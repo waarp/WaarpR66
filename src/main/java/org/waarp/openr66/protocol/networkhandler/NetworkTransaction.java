@@ -745,9 +745,11 @@ public class NetworkTransaction {
 	 * @param requester
 	 * @param networkChannel
 	 */
-	public static void removeClient(String requester, NetworkChannel networkChannel) {
+	public static void removeClient(String requester, NetworkChannel networkChannel, boolean lock) {
 		if (networkChannel != null) {
-			lockClient.lock();
+			if (lock) {
+				lockClient.lock();
+			}
 			try {
 				ClientNetworkChannels clientNetworkChannels = remoteClients.get(requester);
 				logger.debug("removeClient: remove previous exist? "+(clientNetworkChannels!=null) + " for :"+requester);
@@ -771,8 +773,12 @@ public class NetworkTransaction {
 						}
 					}
 				}
+			} catch (Exception e) {
+				logger.error("Bad removeClient", e);
 			} finally {
-				lockClient.unlock();
+				if (lock) {
+					lockClient.unlock();
+				}
 			}
 		}
 	}
@@ -845,6 +851,9 @@ public class NetworkTransaction {
 	 * @param address
 	 */
 	public static void removeForceNetworkChannel(SocketAddress address) {
+		if (address == null) {
+			return;
+		}
 		ReentrantLock socketLock = getChannelLock(address);
 		socketLock.lock();
 		try {
@@ -852,6 +861,9 @@ public class NetworkTransaction {
 				NetworkChannel networkChannel = networkChannelOnSocketAddressConcurrentHashMap
 						.get(address.hashCode());
 				if (networkChannel != null) {
+					if (networkChannel.isShuttingDown) {
+						return;
+					}
 					logger.debug("NC left: {}", networkChannel);
 					networkChannel.shutdownAllLocalChannels();
 					networkChannelOnSocketAddressConcurrentHashMap
@@ -922,9 +934,9 @@ public class NetworkTransaction {
 						return;
 					}
 					if (requester != null) {
-						NetworkTransaction.removeClient(requester, networkChannel);
+						NetworkTransaction.removeClient(requester, networkChannel, true);
 					} else if (networkChannel.hostId != null) {
-						NetworkTransaction.removeClient(networkChannel.hostId, networkChannel);
+						NetworkTransaction.removeClient(networkChannel.hostId, networkChannel, false);
 					}
 					networkChannelOnSocketAddressConcurrentHashMap
 							.remove(address.hashCode());
