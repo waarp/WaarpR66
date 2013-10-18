@@ -59,6 +59,7 @@ import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Session;
+import org.waarp.openr66.context.task.SpooledInformTask;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.database.data.DbTaskRunner.TASKSTEP;
@@ -66,7 +67,6 @@ import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66Exception;
 import org.waarp.openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
-import org.waarp.openr66.protocol.http.adminssl.HttpSslHandler;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 
 /**
@@ -601,9 +601,9 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 	private void spooled(ChannelHandlerContext ctx, boolean detail) {
 		responseContent.append(REQUEST.status.readHeader(this));
 		if (detail) {
-			responseContent.append(HttpSslHandler.buildSpooledTable(true, "spooled?DETAIL=1"));
+			responseContent.append(SpooledInformTask.buildSpooledTable(true, "spooled?DETAIL=1"));
 		} else {
-			responseContent.append(HttpSslHandler.buildSpooledTable(false, "spooled"));
+			responseContent.append(SpooledInformTask.buildSpooledTable(false, "spooled"));
 		}
 		responseContent.append(REQUEST.status.readEnd());
 	}

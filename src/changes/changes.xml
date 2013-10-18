@@ -6,6 +6,8 @@
 	</properties>
 	<body>
 	    <release version="2.4.21" date="2013-10-12" description="Fix release">
+		    <action dev="Frederic Bregier" type="fix">Fix Database close issue</action>
+		    <action dev="Frederic Bregier" type="fix">Fix file length = 0 as an error</action>
 		    <action dev="Frederic Bregier" type="fix">Fix SpooledDirectory listing in Administrator</action>
 		    <action dev="Frederic Bregier" type="add">Add SpooledDirectory listing in Supervision</action>
 		</release>

@@ -1304,6 +1304,20 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			errorToSend("PreTask in error: " + e.getMessage(), runner.getErrorInfo(), channel, 38);
 			return;
 		}
+		// now check that filesize is NOT 0
+		if (runner.getOriginalSize() == 0) {
+			// not valid so create an error from there
+			ErrorCode code = ErrorCode.FileNotAllowed;
+			runner.setErrorExecutionStatus(code);
+			runner.saveStatus();
+			session.setBadRunner(runner, code);
+			session.newState(ERROR);
+			logger.error("File length is 0 and should not be {} {}", packet, session);
+			ErrorPacket errorPacket = new ErrorPacket("File length is 0 and should not be",
+					code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+			errorMesg(channel, errorPacket);
+			return;
+		}
 		if (packet.isToValidate()) {
 			session.newState(REQUESTR);
 		}
@@ -1362,7 +1376,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			// File could be modified at the very beginning (using wildcards)
 			// and the remote host has already received the request packet
 			// => Informs the receiver of the new name
-			logger.debug("Will send a modification of filename due to wildcard: " +
+			logger.debug("Will send a modification of filename due to wildcard in SelfMode: " +
 					runner.getFilename());
 			session.newState(VALID);
 			if (localChannelReference.getPartner().useJson()) {
@@ -2650,7 +2664,41 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					try {
 						newSize = Long.parseLong(fields[fields.length-1]);
 						if (session.getRunner() != null) {
-							session.getRunner().setOriginalSize(newSize);
+							if (newSize > 0) {
+								session.getRunner().setOriginalSize(newSize);
+							} else if (newSize == 0) {
+								DbTaskRunner runner = session.getRunner();
+								// now check that filesize is NOT 0
+								if (runner.getOriginalSize() == 0) {
+									// not valid so create an error from there
+									ErrorCode code = ErrorCode.FileNotAllowed;
+									runner.setErrorExecutionStatus(code);
+									runner.saveStatus();
+									session.setBadRunner(runner, code);
+									session.newState(ERROR);
+									logger.error("File length is 0 and should not be {} {}", packet, session);
+									ErrorPacket errorPacket = new ErrorPacket("File length is 0 and should not be",
+											code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+									try {
+										ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+												errorPacket, true);
+									} catch (OpenR66ProtocolPacketException e2) {
+									}
+									try {
+										session.setFinalizeTransfer(false, new R66Result(new OpenR66RunnerErrorException(errorPacket.getSheader()), session,
+												true, runner.getErrorInfo(), runner));
+									} catch (OpenR66RunnerErrorException e1) {
+										localChannelReference.invalidateRequest(new R66Result(new OpenR66RunnerErrorException(errorPacket.getSheader()), session,
+												true, runner.getErrorInfo(), runner));
+									} catch (OpenR66ProtocolSystemException e1) {
+										localChannelReference.invalidateRequest(new R66Result(new OpenR66RunnerErrorException(errorPacket.getSheader()), session,
+												true, runner.getErrorInfo(), runner));
+									}
+									session.setStatus(97);
+									ChannelCloseTimer.closeFutureChannel(channel);
+									return;
+								}
+							}
 						}
 					} catch (NumberFormatException e) {
 						newfilename += PartnerConfiguration.BAR_SEPARATOR_FIELD + fields[fields.length-1];
@@ -2966,6 +3014,38 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				if (newSize > 0) {
 					if (session.getRunner() != null) {
 						session.getRunner().setOriginalSize(newSize);
+					}
+				} else if (newSize == 0) {
+					DbTaskRunner runner = session.getRunner();
+					// now check that filesize is NOT 0
+					if (runner.getOriginalSize() == 0) {
+						// not valid so create an error from there
+						ErrorCode code = ErrorCode.FileNotAllowed;
+						runner.setErrorExecutionStatus(code);
+						runner.saveStatus();
+						session.setBadRunner(runner, code);
+						session.newState(ERROR);
+						logger.error("File length is 0 and should not be {} {}", packet, session);
+						ErrorPacket errorPacket = new ErrorPacket("File length is 0 and should not be",
+								code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+						try {
+							ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+									errorPacket, true);
+						} catch (OpenR66ProtocolPacketException e2) {
+						}
+						try {
+							session.setFinalizeTransfer(false, new R66Result(new OpenR66RunnerErrorException(errorPacket.getSheader()), session,
+									true, runner.getErrorInfo(), runner));
+						} catch (OpenR66RunnerErrorException e1) {
+							localChannelReference.invalidateRequest(new R66Result(new OpenR66RunnerErrorException(errorPacket.getSheader()), session,
+									true, runner.getErrorInfo(), runner));
+						} catch (OpenR66ProtocolSystemException e1) {
+							localChannelReference.invalidateRequest(new R66Result(new OpenR66RunnerErrorException(errorPacket.getSheader()), session,
+									true, runner.getErrorInfo(), runner));
+						}
+						session.setStatus(97);
+						ChannelCloseTimer.closeFutureChannel(channel);
+						return;
 					}
 				}
 				// check if send is already on going
@@ -3897,7 +3977,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		session.setStatus(201);
 		if (task.isSuccess()) {
 			session.setStatus(202);
-			logger.info("Task done: " + argRule);
+			logger.info("Task done: " + argRule.split(" ")[0]);
 		} else {
 			R66Result result = task.getFutureCompletion().getResult();
 			if (result == null) {

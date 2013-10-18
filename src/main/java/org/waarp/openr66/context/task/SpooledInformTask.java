@@ -17,15 +17,20 @@
  */
 package org.waarp.openr66.context.task;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Set;
 
+import org.waarp.common.digest.FilesystemBasedDigest;
+import org.waarp.common.filemonitor.FileMonitor.FileItem;
 import org.waarp.common.filemonitor.FileMonitor.FileMonitorInformation;
 import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.openr66.context.task.AbstractExecJavaTask;
+import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.packet.BusinessRequestPacket;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
@@ -109,5 +114,98 @@ public class SpooledInformTask extends AbstractExecJavaTask {
 			logger.warn("SpooledInformTask not allowed as Java Task: "+fullarg);
 			invalid();
 		}
+	}
+
+	/**
+	 * @param detailed
+	 * @return
+	 */
+	public static StringBuilder buildSpooledTable(boolean detailed, String uri) {
+		StringBuilder builder = new StringBuilder();
+		builder.append("<TABLE BORDER=1><CAPTION><A HREF=");
+		builder.append(uri);
+		builder.append(">SpooledDirectory daemons information</A></CAPTION>");
+		// title first
+		if (detailed) {
+			builder.append("<TR><TH>Name</TH><TH>Host</TH><TH>Last Time</TH><TH>Elapse</TH><TH>StopFile</TH><TH>StatusFile</TH><TH>SubDir</TH><TH>Directories</TH><TH>Files</TH></TR>");
+		} else {
+			builder.append("<TR><TH>Name</TH><TH>Host</TH><TH>Last Time</TH><TH>Elapse</TH><TH>StopFile</TH><TH>StatusFile</TH><TH>SubDir</TH><TH>Directories</TH></TR>");
+		}
+		// get current information
+		Set<String> names = spooledInformationMap.keySet();
+		for (String name : names) {
+			// per Name
+			synchronized (spooledInformationMap) {
+				SpooledInformation inform = spooledInformationMap.get(name);
+				builder.append("<TR>");
+				builder.append("<TH>");
+				builder.append(name.replace(',', ' '));
+				builder.append("</TH>");
+				builder.append("<TD>");
+				builder.append(inform.host);
+				builder.append("</TD>");
+				long time = inform.lastUpdate.getTime() + Configuration.configuration.TIMEOUTCON;
+				if (time + Configuration.configuration.TIMEOUTCON < System.currentTimeMillis()) {
+					builder.append("<TD bgcolor=Red>");
+				} else if (time < System.currentTimeMillis()) {
+					builder.append("<TD bgcolor=Orange>");
+				} else {
+					builder.append("<TD bgcolor=LightGreen>");
+				}
+				builder.append(inform.lastUpdate);
+				builder.append("</TD>");
+				if (inform.fileMonitorInformation != null) {
+					builder.append("<TD>");
+					builder.append(inform.fileMonitorInformation.elapseTime);
+					builder.append("</TD>");
+					builder.append("<TD>");
+					builder.append(inform.fileMonitorInformation.stopFile);
+					builder.append("</TD>");
+					builder.append("<TD>");
+					builder.append(inform.fileMonitorInformation.statusFile);
+					builder.append("</TD>");
+					builder.append("<TD>");
+					builder.append(inform.fileMonitorInformation.scanSubDir);
+					builder.append("</TD>");
+					String dirs = "";
+					for (File dir : inform.fileMonitorInformation.directories) {
+						dirs += dir + "<br>";
+					}
+					builder.append("<TD>");
+					builder.append(dirs);
+					builder.append("</TD>");
+					if (detailed && inform.fileMonitorInformation.fileItems != null) {
+						builder.append("<TD><TABLE BORDER=1><TR><TH>File</TH><TH>Hash</TH><TH>LastTimeModif</TH><TH>TimeUsed</TH><TH>Used</TH></TR>");
+						for (FileItem fileItem : inform.fileMonitorInformation.fileItems.values()) {
+							builder.append("<TR><TD>");
+							builder.append(fileItem.file);
+							builder.append("</TD>");
+							builder.append("<TD>");
+							if (fileItem.hash != null) {
+								builder.append(FilesystemBasedDigest.getHex(fileItem.hash));
+							}
+							builder.append("</TD>");
+							builder.append("<TD>");
+							if (fileItem.lastTime > 0) {
+								builder.append(new Date(fileItem.lastTime));
+							}
+							builder.append("</TD>");
+							builder.append("<TD>");
+							if (fileItem.timeUsed > 0) {
+								builder.append(new Date(fileItem.timeUsed));
+							}
+							builder.append("</TD>");
+							builder.append("<TD>");
+							builder.append(fileItem.used);
+							builder.append("</TD></TR>");
+						}
+						builder.append("</TABLE></TD>");
+					}
+				}
+				builder.append("</TR>");
+			}
+		}
+		builder.append("</TABLE>");
+		return builder;
 	}
 }

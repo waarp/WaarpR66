@@ -371,7 +371,10 @@ public class R66Session implements SessionInterface {
 				runner.setFilename(file.getFile());
 				logger.debug("Old size: "+runner.getOriginalSize()+" => "+file.length());
 				if (runner.getOriginalSize() <= 0) {
-					runner.setOriginalSize(file.length());
+					long originalSize = file.length();
+					if (originalSize > 0) {
+						this.runner.setOriginalSize(originalSize);
+					}
 				}
 			} catch (CommandAbstractException e) {
 				throw new OpenR66RunnerErrorException(e);
@@ -491,7 +494,9 @@ public class R66Session implements SessionInterface {
 			logger.debug("could change size: "+this.runner.getOriginalSize()+" => "+file.length());
 			if (this.runner.getOriginalSize() < 0) {
 				long originalSize = file.length();
-				this.runner.setOriginalSize(originalSize);
+				if (originalSize > 0) {
+					this.runner.setOriginalSize(originalSize);
+				}
 			}
 		}
 	}
@@ -624,7 +629,10 @@ public class R66Session implements SessionInterface {
 			if (runner.isSender() && ! runner.isSendThrough()) {
 				if (file != null) {
 					try {
-						runner.setOriginalSize(file.length());
+						long originalSize = file.length();
+						if (originalSize > 0) {
+							this.runner.setOriginalSize(originalSize);
+						}
 					} catch (CommandAbstractException e) {
 						// ignore
 					}
