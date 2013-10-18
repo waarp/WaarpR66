@@ -465,7 +465,11 @@ public class R66File extends FilesystemBasedFileImpl {
 	public long length() throws CommandAbstractException {
 		if (isExternal) {
 			File file = new File(currentFile);
-			return file.length();
+			if (file.canRead()) {
+				return file.length();
+			} else {
+				return -1;
+			}
 		}
 		return super.length();
 	}

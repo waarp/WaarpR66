@@ -73,8 +73,6 @@ public class ExecJavaTask extends AbstractTask {
 		 * from the replacements. Return 0 if OK, else 1 for a warning else as an error. No change
 		 * should be done in the FILENAME
 		 */
-		logger.debug("Exec with " + argRule + ":" + argTransfer + " and {}",
-				session);
 		String finalname = argRule;
 		if (argTransfer != null) {
 			finalname = getReplacedValue(finalname, argTransfer.split(" "));
@@ -82,6 +80,14 @@ public class ExecJavaTask extends AbstractTask {
 		// First get the Class Name
 		String[] args = finalname.split(" ");
 		String className = args[0];
+		boolean isSpooled = className.equals(SpooledInformTask.class.getName());
+		if (isSpooled) {
+			logger.debug("Exec with " + className + ":" + argTransfer + " and {}",
+					session);
+		} else {
+			logger.debug("Exec with " + argRule + ":" + argTransfer + " and {}",
+					session);
+		}
 		R66Runnable runnable = null;
 		try {
 			runnable = (R66Runnable) Class.forName(className).newInstance();
@@ -149,7 +155,11 @@ public class ExecJavaTask extends AbstractTask {
 			if (waitForValidation) {
 				futureCompletion.setSuccess();
 			}
-			logger.info("Exec OK with {}", runnable);
+			if (isSpooled) {
+				logger.info("Exec OK with {}", className);
+			} else {
+				logger.info("Exec OK with {}", runnable);
+			}
 		} else if (status == 1) {
 			logger.warn("Exec in warning with " + runnable);
 			if (waitForValidation) {
