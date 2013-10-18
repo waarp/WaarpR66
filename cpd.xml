@@ -1189,8 +1189,8 @@
 </codefragment>
 </duplication>
 <duplication lines="45" tokens="281">
-<file line="388" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<file line="498" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="384" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="494" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
 <codefragment>
 <![CDATA[
 				DbPreparedStatement preparedStatement = null;
@@ -1380,8 +1380,8 @@
 </codefragment>
 </duplication>
 <duplication lines="23" tokens="267">
-<file line="1571" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<file line="1725" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="1495" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="1649" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
 <codefragment>
 <![CDATA[
 			String system = REQUEST.System.readFileUnique(this);
@@ -1411,8 +1411,8 @@
 </codefragment>
 </duplication>
 <duplication lines="46" tokens="260">
-<file line="1724" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="1791" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="1739" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="1806" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
 <codefragment>
 <![CDATA[
 				session.newState(ENDTRANSFERR);
@@ -1465,8 +1465,8 @@
 </codefragment>
 </duplication>
 <duplication lines="34" tokens="241">
-<file line="352" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<file line="462" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="348" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="458" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
 <codefragment>
 <![CDATA[
 			body0 = REQUEST.Listing.readBodyHeader();
@@ -1507,8 +1507,8 @@
 </codefragment>
 </duplication>
 <duplication lines="44" tokens="236">
-<file line="2656" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="2968" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="2705" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="3049" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
 <codefragment>
 <![CDATA[
 					}
@@ -1612,6 +1612,47 @@
 			return false;
 		}
 		if (!DbConstant.admin.isConnected) {
+]]>
+</codefragment>
+</duplication>
+<duplication lines="33" tokens="231">
+<file line="2669" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="3018" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<codefragment>
+<![CDATA[
+							} else if (newSize == 0) {
+								DbTaskRunner runner = session.getRunner();
+								// now check that filesize is NOT 0
+								if (runner.getOriginalSize() == 0) {
+									// not valid so create an error from there
+									ErrorCode code = ErrorCode.FileNotAllowed;
+									runner.setErrorExecutionStatus(code);
+									runner.saveStatus();
+									session.setBadRunner(runner, code);
+									session.newState(ERROR);
+									logger.error("File length is 0 and should not be {} {}", packet, session);
+									ErrorPacket errorPacket = new ErrorPacket("File length is 0 and should not be",
+											code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+									try {
+										ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+												errorPacket, true);
+									} catch (OpenR66ProtocolPacketException e2) {
+									}
+									try {
+										session.setFinalizeTransfer(false, new R66Result(new OpenR66RunnerErrorException(errorPacket.getSheader()), session,
+												true, runner.getErrorInfo(), runner));
+									} catch (OpenR66RunnerErrorException e1) {
+										localChannelReference.invalidateRequest(new R66Result(new OpenR66RunnerErrorException(errorPacket.getSheader()), session,
+												true, runner.getErrorInfo(), runner));
+									} catch (OpenR66ProtocolSystemException e1) {
+										localChannelReference.invalidateRequest(new R66Result(new OpenR66RunnerErrorException(errorPacket.getSheader()), session,
+												true, runner.getErrorInfo(), runner));
+									}
+									session.setStatus(97);
+									ChannelCloseTimer.closeFutureChannel(channel);
+									return;
+								}
+							}
 ]]>
 </codefragment>
 </duplication>
@@ -1897,8 +1938,8 @@
 </codefragment>
 </duplication>
 <duplication lines="21" tokens="168">
-<file line="1014" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<file line="1066" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="1010" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="1062" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
 <codefragment>
 <![CDATA[
 			} else if ("TestConn".equalsIgnoreCase(parm)) {
@@ -1922,40 +1963,6 @@
 				}
 				DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
 						ssl, key.getBytes(), admin, isclient);
-]]>
-</codefragment>
-</duplication>
-<duplication lines="26" tokens="164">
-<file line="1333" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="1358" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<codefragment>
-<![CDATA[
-		} else if ((!packet.getFilename().equals(runner.getOriginalFilename())) 
-				&& runner.isSender() && runner.isInTransfer()
-				&& runner.getRank() == 0 && (!packet.isToValidate())) {
-			// File was modify at the very beginning (using wildcards)
-			// and the remote host has already received the request packet
-			// => Informs the receiver of the new name
-			logger.debug("Will send a modification of filename due to wildcard: " +
-					runner.getFilename());
-			session.newState(VALID);
-			if (localChannelReference.getPartner().useJson()) {
-				RequestJsonPacket request = new RequestJsonPacket();
-				request.setComment("Change Filename by Wildcard on sender");
-				request.setFilename(runner.getFilename());
-				request.setFilesize(packet.getOriginalSize());
-				JsonCommandPacket validPacket = new JsonCommandPacket(request,
-						LocalPacketFactory.REQUESTPACKET);
-				ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-						validPacket, true);
-			} else {
-				ValidPacket validPacket = new ValidPacket("Change Filename by Wildcard on sender",
-					runner.getFilename()+PartnerConfiguration.BAR_SEPARATOR_FIELD+packet.getOriginalSize(), 
-					LocalPacketFactory.REQUESTPACKET);
-				ChannelUtils.writeAbstractLocalPacket(localChannelReference,
-					validPacket, true);
-			}
-		} else if (runner.isSelfRequest() && runner.isSender() && runner.isInTransfer()
 ]]>
 </codefragment>
 </duplication>
@@ -2138,8 +2145,8 @@
 </codefragment>
 </duplication>
 <duplication lines="34" tokens="144">
-<file line="490" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\filesystem\R66File.java"/>
-<file line="554" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\filesystem\R66File.java"/>
+<file line="494" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\filesystem\R66File.java"/>
+<file line="558" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\context\filesystem\R66File.java"/>
 <codefragment>
 <![CDATA[
 			File newFile = getFileFromPath(path);
@@ -2247,8 +2254,8 @@
 </codefragment>
 </duplication>
 <duplication lines="12" tokens="136">
-<file line="705" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
-<file line="746" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="701" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
+<file line="742" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\http\adminssl\HttpSslHandler.java"/>
 <codefragment>
 <![CDATA[
 					body = REQUEST.CancelRestart.readBody();
@@ -2298,8 +2305,8 @@
 </codefragment>
 </duplication>
 <duplication lines="21" tokens="134">
-<file line="2737" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="3074" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="2786" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="3155" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
 <codefragment>
 <![CDATA[
 				long rsl = (Long.parseLong(splitsession[1]) / 10) * 10;
@@ -2458,6 +2465,34 @@
 ]]>
 </codefragment>
 </duplication>
+<duplication lines="20" tokens="127">
+<file line="1354" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="1379" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<codefragment>
+<![CDATA[
+			logger.debug("Will send a modification of filename due to wildcard: " +
+					runner.getFilename());
+			session.newState(VALID);
+			if (localChannelReference.getPartner().useJson()) {
+				RequestJsonPacket request = new RequestJsonPacket();
+				request.setComment("Change Filename by Wildcard on sender");
+				request.setFilename(runner.getFilename());
+				request.setFilesize(packet.getOriginalSize());
+				JsonCommandPacket validPacket = new JsonCommandPacket(request,
+						LocalPacketFactory.REQUESTPACKET);
+				ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+						validPacket, true);
+			} else {
+				ValidPacket validPacket = new ValidPacket("Change Filename by Wildcard on sender",
+					runner.getFilename()+PartnerConfiguration.BAR_SEPARATOR_FIELD+packet.getOriginalSize(), 
+					LocalPacketFactory.REQUESTPACKET);
+				ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+					validPacket, true);
+			}
+		} else if (runner.isSelfRequest() && runner.isSender() && runner.isInTransfer()
+]]>
+</codefragment>
+</duplication>
 <duplication lines="27" tokens="123">
 <file line="1824" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
 <file line="1909" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\configuration\FileBasedConfiguration.java"/>
@@ -2495,8 +2530,8 @@
 </codefragment>
 </duplication>
 <duplication lines="37" tokens="123">
-<file line="2760" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="3014" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="2809" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="3095" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
 <codefragment>
 <![CDATA[
 				ValidPacket valid = new ValidPacket("Bandwidth changed", result.code.getCode(),
@@ -2598,10 +2633,10 @@
 </codefragment>
 </duplication>
 <duplication lines="22" tokens="121">
-<file line="1727" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="1748" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="1794" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="1815" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="1742" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="1763" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="1809" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="1830" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
 <codefragment>
 <![CDATA[
 				} catch (OpenR66RunnerErrorException e) {
@@ -2795,8 +2830,8 @@
 </codefragment>
 </duplication>
 <duplication lines="18" tokens="112">
-<file line="2507" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="3111" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="2522" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="3192" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
 <codefragment>
 <![CDATA[
 			case LocalPacketFactory.CONFIMPORTPACKET: {
@@ -2821,8 +2856,8 @@
 </codefragment>
 </duplication>
 <duplication lines="18" tokens="112">
-<file line="2427" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="3396" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="2442" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="3477" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
 <codefragment>
 <![CDATA[
 			case LocalPacketFactory.CONFEXPORTPACKET: {
@@ -2976,8 +3011,8 @@
 </codefragment>
 </duplication>
 <duplication lines="21" tokens="108">
-<file line="2487" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="2611" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="2502" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="2626" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
 <codefragment>
 <![CDATA[
 					}
@@ -3299,8 +3334,8 @@
 </codefragment>
 </duplication>
 <duplication lines="16" tokens="100">
-<file line="2427" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
-<file line="2507" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="2442" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
+<file line="2522" path="J:\Git\github\waarp-digest\WaarpR66\src\main\java\org\waarp\openr66\protocol\localhandler\LocalServerHandler.java"/>
 <codefragment>
 <![CDATA[
 			case LocalPacketFactory.CONFEXPORTPACKET: {
