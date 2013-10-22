@@ -1567,7 +1567,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		}
 		// Check global size
 		long originalSize = session.getRunner().getOriginalSize();
-		if (originalSize > 0) {
+		if (originalSize >= 0) {
 			if (session.getRunner().getBlocksize() * (session.getRunner().getRank()-1) > originalSize) {
 				// cannot continue
 				logger.error(Messages.getString("LocalServerHandler.16") + packet.getPacketRank() + " : " + //$NON-NLS-1$

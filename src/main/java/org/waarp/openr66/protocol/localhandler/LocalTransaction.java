@@ -384,11 +384,8 @@ public class LocalTransaction {
 				}
 			}
 			logger.debug("Will close local channel");
-			try {
-				Channels.close(localChannelReference.getLocalChannel()).await();
-			} catch (InterruptedException e) {
-			}
 			localTransaction.remove(localChannelReference.getLocalChannel());
+			Channels.close(localChannelReference.getLocalChannel());
 			semaphore.decrementAndGet();
 		}
 

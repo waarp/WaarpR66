@@ -169,6 +169,9 @@ public abstract class AbstractTransfer implements Runnable {
 				}
 				if (file.canRead()) {
 					originalSize = file.length();
+					if (originalSize == 0) {
+						originalSize = -1;
+					}
 				}
 			}
 			logger.debug("Filesize: "+originalSize);
