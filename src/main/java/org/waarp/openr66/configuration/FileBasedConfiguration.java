@@ -572,24 +572,6 @@ public class FileBasedConfiguration {
 			new XmlDecl(XmlType.STRING, XML_WORKINGPATH),
 			new XmlDecl(XmlType.STRING, XML_CONFIGPATH)
 	};
-	/**
-	 * Structure of the Configuration file
-	 * 
-	 */
-	private static final XmlDecl[] configRoleDecls = {
-			// roles
-			new XmlDecl(XmlType.STRING, DbHostConfiguration.XML_ROLEID),
-			new XmlDecl(XmlType.STRING, DbHostConfiguration.XML_ROLESET)
-	};
-	/**
-	 * Structure of the Configuration file
-	 * 
-	 */
-	private static final XmlDecl[] configAliasDecls = {
-			// roles
-			new XmlDecl(XmlType.STRING, DbHostConfiguration.XML_REALID),
-			new XmlDecl(XmlType.STRING, DbHostConfiguration.XML_ALIASID)
-	};
 
 	/**
 	 * Overall structure of the Configuration file
@@ -621,9 +603,9 @@ public class FileBasedConfiguration {
 			new XmlDecl(DbHostConfiguration.XML_BUSINESS, XmlType.STRING, XML_ROOT + DbHostConfiguration.XML_BUSINESS + "/"
 					+ DbHostConfiguration.XML_BUSINESSID, true),
 			new XmlDecl(DbHostConfiguration.XML_ROLES, XmlType.XVAL, XML_ROOT + DbHostConfiguration.XML_ROLES + "/"
-					+ DbHostConfiguration.XML_ROLE, configRoleDecls, true),
+					+ DbHostConfiguration.XML_ROLE, DbHostConfiguration.configRoleDecls, true),
 			new XmlDecl(DbHostConfiguration.XML_ALIASES, XmlType.XVAL, XML_ROOT + DbHostConfiguration.XML_ALIASES + "/"
-					+ DbHostConfiguration.XML_ALIAS, configAliasDecls, true)
+					+ DbHostConfiguration.XML_ALIAS, DbHostConfiguration.configAliasDecls, true)
 	};
 	/**
 	 * Global Structure for Client Configuration
@@ -641,7 +623,7 @@ public class FileBasedConfiguration {
 			new XmlDecl(DbHostConfiguration.XML_BUSINESS, XmlType.STRING, XML_ROOT + DbHostConfiguration.XML_BUSINESS + "/"
 					+ DbHostConfiguration.XML_BUSINESSID, true),
 			new XmlDecl(DbHostConfiguration.XML_ALIASES, XmlType.XVAL, XML_ROOT + DbHostConfiguration.XML_ALIASES + "/"
-					+ DbHostConfiguration.XML_ALIAS, configAliasDecls, true)
+					+ DbHostConfiguration.XML_ALIAS, DbHostConfiguration.configAliasDecls, true)
 	};
 	/**
 	 * Global Structure for Submit only Client Configuration
@@ -655,7 +637,7 @@ public class FileBasedConfiguration {
 					false),
 			new XmlDecl(XML_DB, XmlType.XVAL, XML_ROOT + XML_DB, configDbDecls, false),
 			new XmlDecl(DbHostConfiguration.XML_ALIASES, XmlType.XVAL, XML_ROOT + DbHostConfiguration.XML_ALIASES + "/"
-					+ DbHostConfiguration.XML_ALIAS, configAliasDecls, true)
+					+ DbHostConfiguration.XML_ALIAS, DbHostConfiguration.configAliasDecls, true)
 	};
 	private static XmlValue[] configuration = null;
 	private static XmlHash hashConfig = null;
@@ -1131,7 +1113,7 @@ public class FileBasedConfiguration {
 		double highcpuLimit = 0;
 		double percentageDecrease = 0;
 		long delay = 1000000;
-		long limitLowBandwidth = 4096;
+		long limitLowBandwidth = R66ConstraintLimitHandler.LOWBANDWIDTH_DEFAULT;
 		value = hashConfig.get(XML_CSTRT_LOWCPULIMIT);
 		if (value != null && (!value.isEmpty())) {
 			lowcpuLimit = value.getDouble();

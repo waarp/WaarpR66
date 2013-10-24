@@ -165,6 +165,10 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 			throws Exception {
 		if (Configuration.configuration.isShutdown)
 			return;
+		if (NetworkTransaction.checkLastTimeUsed(e.getChannel(), Configuration.configuration.TIMEOUTCON*2)) {
+			keepAlivedSent = false;
+			return;
+		}
 		if (keepAlivedSent) {
 			logger.error("Not getting KAlive: closing channel");
 			if (Configuration.configuration.r66Mib != null) {
@@ -195,6 +199,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 	@Override
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) {
 		final NetworkPacket packet = (NetworkPacket) e.getMessage();
+		NetworkTransaction.updateLastTimeUsed(e.getChannel());
 		if (packet.getCode() == LocalPacketFactory.NOOPPACKET) {
 			// Do nothing
 			return;
@@ -230,6 +235,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 									ChannelUtils.NOCHANNEL, keepAlivePacket, null);
 					logger.info("Answer KAlive");
 					Channels.write(e.getChannel(), response);
+					NetworkTransaction.updateLastTimeUsed(e.getChannel());
 				} else {
 					logger.info("Get KAlive");
 				}

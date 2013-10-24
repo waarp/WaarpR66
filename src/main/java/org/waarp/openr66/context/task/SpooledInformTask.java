@@ -126,11 +126,7 @@ public class SpooledInformTask extends AbstractExecJavaTask {
 		builder.append(uri);
 		builder.append(">SpooledDirectory daemons information</A></CAPTION>");
 		// title first
-		if (detailed) {
-			builder.append("<TR><TH>Name</TH><TH>Host</TH><TH>Last Time</TH><TH>Elapse</TH><TH>StopFile</TH><TH>StatusFile</TH><TH>SubDir</TH><TH>Directories</TH><TH>Files</TH></TR>");
-		} else {
-			builder.append("<TR><TH>Name</TH><TH>Host</TH><TH>Last Time</TH><TH>Elapse</TH><TH>StopFile</TH><TH>StatusFile</TH><TH>SubDir</TH><TH>Directories</TH></TR>");
-		}
+		builder.append("<TR><TH>Name</TH><TH>Host</TH><TH>Last Time</TH><TH>Elapse</TH><TH>StopFile</TH><TH>StatusFile</TH><TH>SubDir</TH><TH>Directories</TH><TH>Files</TH></TR>");
 		// get current information
 		Set<String> names = spooledInformationMap.keySet();
 		for (String name : names) {
@@ -175,7 +171,7 @@ public class SpooledInformTask extends AbstractExecJavaTask {
 					builder.append(dirs);
 					builder.append("</TD>");
 					if (detailed && inform.fileMonitorInformation.fileItems != null) {
-						builder.append("<TD><TABLE BORDER=1><TR><TH>File</TH><TH>Hash</TH><TH>LastTimeModif</TH><TH>TimeUsed</TH><TH>Used</TH></TR>");
+						builder.append("<TD><TABLE BORDER=1><TR><TH>File</TH><TH>Hash</TH><TH>LastTimeModif</TH><TH>TimeUsed</TH><TH>Used</TH><TH>SpecialId</TH></TR>");
 						for (FileItem fileItem : inform.fileMonitorInformation.fileItems.values()) {
 							builder.append("<TR><TD>");
 							builder.append(fileItem.file);
@@ -197,9 +193,21 @@ public class SpooledInformTask extends AbstractExecJavaTask {
 							builder.append("</TD>");
 							builder.append("<TD>");
 							builder.append(fileItem.used);
+							builder.append("</TD>");
+							builder.append("<TD>");
+							builder.append(fileItem.specialId);
 							builder.append("</TD></TR>");
 						}
 						builder.append("</TABLE></TD>");
+					} else {
+						// simply print number of files
+						builder.append("<TD>");
+						if (inform.fileMonitorInformation.fileItems != null) {
+							builder.append(inform.fileMonitorInformation.fileItems.size());
+						} else {
+							builder.append(0);
+						}
+						builder.append("</TD>");
 					}
 				}
 				builder.append("</TR>");

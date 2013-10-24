@@ -24,7 +24,11 @@ import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.filemonitor.FileMonitor;
 import org.waarp.common.filemonitor.FileMonitorCommand;
+import org.waarp.common.filemonitor.FileMonitorCommandFactory;
+import org.waarp.common.filemonitor.FileMonitorCommandRunnableFuture;
+import org.waarp.common.filemonitor.FileMonitorResult;
 import org.waarp.common.filemonitor.RegexFileFilter;
+import org.waarp.common.filemonitor.FileMonitor.FileItem;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
@@ -109,6 +113,8 @@ public class SpooledDirectoryTransfer implements Runnable {
 	
 	protected final NetworkTransaction networkTransaction;
 	
+	protected String[] allrhosts = null;
+	
 	public long sent = 0;
 	public long error = 0;
 	
@@ -167,7 +173,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 		}
 		sent = 0;
 		error  = 0;
-		final String [] allrhosts = remoteHosts.split(",");
+		allrhosts = remoteHosts.split(",");
 		// first check if rule is for SEND
 		DbRule dbrule = null;
 		try {
@@ -225,13 +231,14 @@ public class SpooledDirectoryTransfer implements Runnable {
 							text = "Submit Transfer";
 							SubmitTransfer transaction = new SubmitTransfer(future,
 									host, filename, rulename, fileinfo, isMD5, blocksize, 
-									DbConstant.ILLEGALVALUE, null);
+									specialId, null);
 							transaction.run();
 						} else {
 							text = "Direct Transfer";
+							long specid = DbConstant.admin.isConnected ? specialId : DbConstant.ILLEGALVALUE; 
 							DirectTransfer transaction = new DirectTransfer(future,
 									host, filename, rule, fileInfo, ismd5, block, 
-									DbConstant.ILLEGALVALUE, networkTransaction);
+									specid, networkTransaction);
 							logger.debug("rhost: "+host+":"+transaction.remoteHost);
 							transaction.run();
 						}
@@ -244,6 +251,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 							if (result != null) {
 								runner = result.runner;
 								if (runner != null) {
+									specialId = runner.getSpecialId();
 									String status = Messages.getString("RequestInformation.Success"); //$NON-NLS-1$
 									if (runner.getErrorInfo() == ErrorCode.Warning) {
 										status = Messages.getString("RequestInformation.Warned"); //$NON-NLS-1$
@@ -279,6 +287,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 							if (result != null) {
 								runner = result.runner;
 								if (runner != null) {
+									specialId = runner.getSpecialId();
 									logger.error(text+Messages.getString("RequestInformation.Failure") +  //$NON-NLS-1$
 											runner.toShortString() +
 										"<REMOTE>" + host + "</REMOTE>", future.getCause());
@@ -297,10 +306,25 @@ public class SpooledDirectoryTransfer implements Runnable {
 				return finalStatus;
 			}
 		};
+		FileMonitorCommand waarpRemovedCommand = new FileMonitorCommand() {
+			public boolean run(File file) {
+				logger.warn("File removed: {}", file);
+				return true;
+			}
+		};
 		FileMonitorCommand waarpHostCommand = null;
 		File dir = new File(directories[0]);
+		// XXX FIXME change to threads
+		FileMonitorCommandFactory factory = new FileMonitorCommandFactory() {
+			
+			@Override
+			public FileMonitorCommandRunnableFuture create(FileItem fileItem) {
+				return new SpooledRunner(fileItem);
+			}
+		};
 		final FileMonitor monitor = new FileMonitor(name, status, stop, dir, null, elapsed, filter, 
-				recurs, commandValidFile, null, null);
+				recurs, commandValidFile, waarpRemovedCommand, null);
+		monitor.setCommandValidFileFactory(factory);
 		if (waarpHosts != null && ! waarpHosts.isEmpty()) {
 			final String [] allwaarps = waarpHosts.split(",");
 			waarpHostCommand = new FileMonitorCommand() {
@@ -333,6 +357,138 @@ public class SpooledDirectoryTransfer implements Runnable {
 		monitor.start();
 		monitor.waitForStopFile();
 		this.future.setSuccess();
+	}
+	
+	public class SpooledRunner extends FileMonitorCommandRunnableFuture {
+		public SpooledRunner(FileItem fileItem) {
+			super(fileItem);
+		}
+		
+		private void finalize(boolean status) {
+			result.status = status;
+			if (status == false) {
+				this.invalidate(new Exception("False result"));
+			} else {
+				this.validate();
+			}
+		}
+
+		@Override
+		public FileMonitorResult call() {
+			super.call();
+			boolean finalStatus = false;
+			for (String host : allrhosts) {
+				if (this.isCancelled()) {
+					// stop
+					finalize(false);
+					return result;
+				}
+				host = host.trim();
+				if (host != null && ! host.isEmpty()) {
+					String filename = result.fileItem.file.getAbsolutePath();
+					logger.info("Launch transfer to "+host+" with file "+filename);
+					R66Future future = new R66Future(true);
+					String text = null;
+					if (submit) {
+						text = "Submit Transfer";
+						SubmitTransfer transaction = new SubmitTransfer(future,
+								host, filename, rulename, fileinfo, isMD5, blocksize, 
+								result.fileItem.specialId, null);
+						logger.info("SubmitTransfer: "+host);
+						transaction.run();
+					} else {
+						long specid = DbConstant.admin.isConnected ? result.fileItem.specialId : DbConstant.ILLEGALVALUE;
+						if (specid != DbConstant.ILLEGALVALUE) {
+							text = "Request Transfer Restart";
+							try {
+								String srequester = Configuration.configuration.getHostId(DbConstant.admin.session,
+										host);
+								RequestTransfer transaction = new RequestTransfer(future, specid, host, srequester, 
+										false, false, true, networkTransaction);
+								logger.info("RequestTransfer: "+host);
+								transaction.run();
+							} catch (WaarpDatabaseException e) {
+								logger.warn(Messages.getString("RequestTransfer.5") + host, e); //$NON-NLS-1$
+								text = "Direct Transfer";
+								DirectTransfer transaction = new DirectTransfer(future,
+										host, filename, rule, fileInfo, ismd5, block, 
+										specid, networkTransaction);
+								logger.info("DirectTransfer2: "+host);
+								transaction.run();
+							}
+						} else {
+							text = "Direct Transfer";
+							DirectTransfer transaction = new DirectTransfer(future,
+									host, filename, rule, fileInfo, ismd5, block, 
+									specid, networkTransaction);
+							logger.info("DirectTransfer: "+host);
+							transaction.run();
+						}
+					}
+					future.awaitUninterruptibly();
+					R66Result r66result = future.getResult();
+					if (future.isSuccess()) {
+						finalStatus = true;
+						sent++;
+						DbTaskRunner runner = null;
+						if (r66result != null) {
+							runner = r66result.runner;
+							if (runner != null) {
+								result.fileItem.specialId = runner.getSpecialId();
+								String status = Messages.getString("RequestInformation.Success"); //$NON-NLS-1$
+								if (runner.getErrorInfo() == ErrorCode.Warning) {
+									status = Messages.getString("RequestInformation.Warned"); //$NON-NLS-1$
+								}
+								logger.warn(text+" in status: "+status+"     "
+										+ runner.toShortString()
+										+"     <REMOTE>"+ host+ "</REMOTE>"
+										+"     <FILEFINAL>"+
+										(r66result.file != null ? 
+												r66result.file.toString() + "</FILEFINAL>"
+												: "no file"));
+								if (nolog && !submit) {
+									// In case of success, delete the runner
+									try {
+										runner.delete();
+									} catch (WaarpDatabaseException e) {
+										logger.warn("Cannot apply nolog to     " +
+												runner.toShortString(),
+												e);
+									}
+								}
+							} else {
+								logger.warn(text+Messages.getString("RequestInformation.Success")  //$NON-NLS-1$
+										+"<REMOTE>" + host + "</REMOTE>");
+							}
+						} else {
+							logger.warn(text+Messages.getString("RequestInformation.Success")  //$NON-NLS-1$
+									+"<REMOTE>" + host + "</REMOTE>");
+						}
+					} else {
+						error++;
+						DbTaskRunner runner = null;
+						if (r66result != null) {
+							runner = r66result.runner;
+							if (runner != null) {
+								result.fileItem.specialId = runner.getSpecialId();
+								logger.error(text+Messages.getString("RequestInformation.Failure") +  //$NON-NLS-1$
+										runner.toShortString() +
+									"<REMOTE>" + host + "</REMOTE>", future.getCause());
+							} else {
+								logger.error(text+Messages.getString("RequestInformation.Failure"),  //$NON-NLS-1$
+										future.getCause());
+							}
+						} else {
+							logger.error(text+Messages.getString("RequestInformation.Failure") //$NON-NLS-1$
+									+"<REMOTE>" + host + "</REMOTE>", 
+									future.getCause());
+						}
+					}
+				}
+			}
+			finalize(finalStatus);
+			return result;
+		}
 	}
 
 	static protected String sname = null;
@@ -434,7 +590,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 			fileInfo = NO_INFO_ARGS;
 		}
 		if (sname == null) {
-			sname = localDirectory;
+			sname = Configuration.configuration.HOST_ID+" : "+localDirectory;
 		}
 		if (tosubmit && ! DbConstant.admin.isConnected) {
 			logger.error(Messages.getString("SpooledDirectoryTransfer.2")); //$NON-NLS-1$

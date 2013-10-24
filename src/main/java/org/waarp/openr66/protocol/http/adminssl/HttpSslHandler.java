@@ -1040,7 +1040,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					body = dbhost.toSpecializedHtml(authentHttp, body, false);
 					body += Messages.getString("HttpSslHandler.18"); //$NON-NLS-1$
 				} else {
-					boolean resultShutDown = false;
+					/*boolean resultShutDown = false;
 					if (!dbhost.isClient()) {
 						SocketAddress socketAddress = dbhost.getSocketAddress();
 						resultShutDown =
@@ -1057,7 +1057,11 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 						body = dbhost.toSpecializedHtml(authentHttp, body, false);
 						body += Messages.getString("HttpSslHandler.20") + //$NON-NLS-1$
 								result.getResult().code.mesg + "</b></center></p>";
-					}
+					}*/
+					body = dbhost.toSpecializedHtml(authentHttp, body, false);
+					body += Messages.getString("HttpSslHandler.19") //$NON-NLS-1$
+							+
+							result.getResult().code.mesg + "</b></center></p>";
 				}
 			} else if ("CloseConn".equalsIgnoreCase(parm)) {
 				String host = getTrimValue("host");

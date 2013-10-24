@@ -129,7 +129,7 @@ public class RequestTransfer implements Runnable {
 					srequester = Configuration.configuration.getHostId(DbConstant.admin.session,
 							srequested);
 				} catch (WaarpDatabaseException e) {
-					logger.error(Messages.getString("RequestTransfer.5") + srequester, e); //$NON-NLS-1$
+					logger.error(Messages.getString("RequestTransfer.5") + srequested, e); //$NON-NLS-1$
 					return false;
 				}
 			} else if (args[i].equalsIgnoreCase("-from")) {
@@ -139,7 +139,7 @@ public class RequestTransfer implements Runnable {
 					srequested = Configuration.configuration.getHostId(DbConstant.admin.session,
 							srequester);
 				} catch (WaarpDatabaseException e) {
-					logger.error(Messages.getString("RequestTransfer.5") + srequested, e); //$NON-NLS-1$
+					logger.error(Messages.getString("RequestTransfer.5") + srequester, e); //$NON-NLS-1$
 					return false;
 				}
 			} else if (args[i].equalsIgnoreCase("-cancel")) {

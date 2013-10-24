@@ -114,7 +114,7 @@ public class ExecJavaTask extends AbstractTask {
 			logger.info("Exec will start but no WAIT with {}", runnable);
 		}
 		int status = -1;
-		if (waitForValidation && delay <= 0) {
+		if (waitForValidation && delay <= 100) {
 			runnable.run();
 			status = runnable.getFinalStatus();
 		} else {
@@ -124,7 +124,7 @@ public class ExecJavaTask extends AbstractTask {
 				Thread.yield();
 				executorService.shutdown();
 				if (waitForValidation) {
-					if (delay > 0) {
+					if (delay > 100) {
 						if (!executorService.awaitTermination(delay, TimeUnit.MILLISECONDS)) {
 							executorService.shutdownNow();
 							logger.error("Exec is in Time Out");

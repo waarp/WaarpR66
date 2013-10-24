@@ -204,6 +204,9 @@ public enum ErrorCode {
 	 * @return the ErrorCode according to the code
 	 */
 	public static ErrorCode getFromCode(String code) {
+		if (code.isEmpty()) {
+			return Unknown;
+		}
 		switch (code.charAt(0)) {
 			case 'i':
 				return InitOk;

@@ -234,7 +234,9 @@ public class ChannelUtils extends Thread {
 		if (RequestPacket.isMD5Mode(runner.getMode())) {
 			md5 = FileUtils.getHash(block.getBlock(), Configuration.configuration.digest);
 		}
-		localChannelReference.sessionNewState(R66FiniteDualStates.DATAS);
+		if (runner.getRank() % 100 == 1 || localChannelReference.getSessionState() != R66FiniteDualStates.DATAS) {
+			localChannelReference.sessionNewState(R66FiniteDualStates.DATAS);
+		}
 		DataPacket data = new DataPacket(runner.getRank(), block.getBlock()
 				.copy(), md5);
 		ChannelFuture future = writeAbstractLocalPacket(localChannelReference, data, false);
@@ -297,6 +299,7 @@ public class ChannelUtils extends Thread {
 		if (wait) {
 			ChannelFuture future = Channels.write(localChannelReference.getNetworkChannel(),
 					networkPacket);
+			NetworkTransaction.updateLastTimeUsed(localChannelReference.getNetworkChannel());
 			try {
 				return future.await();
 			} catch (InterruptedException e) {

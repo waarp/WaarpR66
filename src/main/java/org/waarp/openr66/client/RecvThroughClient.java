@@ -101,6 +101,10 @@ public class RecvThroughClient extends AbstractTransfer {
 			logger = WaarpInternalLoggerFactory.getLogger(RecvThroughClient.class);
 		}
 		DbTaskRunner taskRunner = this.initRequest();
+		if (taskRunner == null) {
+			// already an error from there
+			return;
+		}
 		try {
 			ClientRunner runner = new ClientRunner(networkTransaction, taskRunner, future);
 			runner.setRecvThroughHandler(handler);

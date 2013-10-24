@@ -31,6 +31,7 @@ import org.waarp.openr66.protocol.localhandler.packet.LocalPacketCodec;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 import org.waarp.openr66.protocol.localhandler.packet.NoOpPacket;
 import org.waarp.openr66.protocol.networkhandler.NetworkServerHandler;
+import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 
 /**
@@ -80,6 +81,7 @@ public class NetworkPacketCodec extends FrameDecoder implements
 				NetworkPacket response =
 						new NetworkPacket(ChannelUtils.NOCHANNEL,
 								ChannelUtils.NOCHANNEL, keepAlivePacket, null);
+				NetworkTransaction.updateLastTimeUsed(channel);
 				Channels.write(channel, response);
 			}
 			// Replaced by a NoOp packet
