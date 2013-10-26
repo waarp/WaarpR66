@@ -299,7 +299,7 @@ public class Monitoring implements WaarpInterfaceMonitor {
 
 			// Error Status on all transfers
 			countStatus.realClose();
-		} catch (NullPointerException e) {
+		} catch (Exception e) {
 		}
 		if (! dbSession.equals(DbConstant.admin.session)) {
 			dbSession.forceDisconnect();

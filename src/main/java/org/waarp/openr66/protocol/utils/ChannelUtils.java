@@ -403,6 +403,8 @@ public class ChannelUtils extends Thread {
 			Configuration.configuration.getLocalTransaction()
 				.shutdownLocalChannels();
 		}
+		logger.info("Unbind server network services");
+		Configuration.configuration.unbindServer();
 		logger.warn(Messages.getString("ChannelUtils.7") + delay + " ms"); //$NON-NLS-1$
 		try {
 			Thread.sleep(delay);
@@ -422,12 +424,12 @@ public class ChannelUtils extends Thread {
 		if (Configuration.configuration.getLocalTransaction() != null) {
 			Configuration.configuration.getLocalTransaction().closeAll();
 		}
-		logger.info("Exit Shutdown Command");
-		terminateCommandChannels();
 		logger.info("Exit Shutdown LocalExec");
 		if (Configuration.configuration.useLocalExec) {
 			LocalExecClient.releaseResources();
 		}
+		logger.info("Exit Shutdown Command");
+		terminateCommandChannels();
 		logger.info("Exit Shutdown Db Connection");
 		DbAdmin.closeAllConnection();
 		logger.info("Exit Shutdown ServerStop");
@@ -449,6 +451,7 @@ public class ChannelUtils extends Thread {
 	 */
 	@Override
 	public void run() {
+		logger.info("Should restart? "+R66ShutdownHook.isRestart());
 		R66ShutdownHook.terminate(false);
 	}
 
@@ -457,7 +460,7 @@ public class ChannelUtils extends Thread {
 	 */
 	public final static void startShutdown() {
 		Thread thread = new Thread(new ChannelUtils(), "R66 Shutdown Thread");
-		thread.setDaemon(true);
+		thread.setDaemon(false);
 		thread.start();
 	}
 }

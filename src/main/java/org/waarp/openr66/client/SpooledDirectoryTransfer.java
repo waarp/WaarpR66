@@ -71,6 +71,7 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * -elapseWaarp elapse to specify a specific timing > 1000ms between to information sent to Waarp servers (default: 5000ms)<br>
  * -parallel to allow (default) parallelism in send actions (submit are always sequential)<br>
  * -sequential to not allow parallelism in send actions (submit are always sequential)<br>
+ * -limitParallel limit to specify the number of concurrent actions in -direct mode and if parallel mode is active<br>
  * 
  * @author Frederic Bregier
  * 
@@ -116,6 +117,8 @@ public class SpooledDirectoryTransfer implements Runnable {
 	protected final long elapseWaarpTime;
 
 	protected final boolean parallel;
+	
+	protected final int limitParallelTasks;
 
 	protected final boolean submit;
 	
@@ -157,7 +160,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 			String fileinfo, boolean isMD5, 
 			String remoteHosts, int blocksize, String regex,
 			long elapse, boolean submit, boolean nolog, boolean recursive, 
-			long elapseWaarp, boolean parallel,
+			long elapseWaarp, boolean parallel, int limitParallel,
 			String waarphost, NetworkTransaction networkTransaction) {
 		if (logger == null) {
 			logger = WaarpInternalLoggerFactory.getLogger(SpooledDirectoryTransfer.class);
@@ -179,6 +182,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 		AbstractTransfer.nolog = this.nolog;
 		this.recurs = recursive;
 		this.elapseWaarpTime = elapseWaarp;
+		this.limitParallelTasks = limitParallel;
 		if (this.submit) {
 			this.parallel = false;
 		} else {
@@ -339,18 +343,17 @@ public class SpooledDirectoryTransfer implements Runnable {
 		};
 		FileMonitorCommand waarpHostCommand = null;
 		File dir = new File(directories[0]);
-		// XXX FIXME change to threads
-		FileMonitorCommandFactory factory = new FileMonitorCommandFactory() {
-			
-			@Override
-			public FileMonitorCommandRunnableFuture create(FileItem fileItem) {
-				return new SpooledRunner(fileItem);
-			}
-		};
 		final FileMonitor monitor = new FileMonitor(name, status, stop, dir, null, elapseTime, filter, 
 				recurs, commandValidFile, waarpRemovedCommand, null);
 		if (parallel) {
-			monitor.setCommandValidFileFactory(factory, 5);
+			FileMonitorCommandFactory factory = new FileMonitorCommandFactory() {
+				
+				@Override
+				public FileMonitorCommandRunnableFuture create(FileItem fileItem) {
+					return new SpooledRunner(fileItem);
+				}
+			};
+			monitor.setCommandValidFileFactory(factory, limitParallelTasks);
 		}
 		if (waarpHosts != null && ! waarpHosts.isEmpty()) {
 			final String [] allwaarps = waarpHosts.split(",");
@@ -523,6 +526,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 	static protected boolean recursive = false;
 	static protected String waarphosts = null;
 	static protected boolean isparallel = true;
+	static protected int limitParallel = 0;
 	
 	/**
 	 * Parse the parameter and set current values
@@ -598,6 +602,9 @@ public class SpooledDirectoryTransfer implements Runnable {
 				} else if (args[i].equalsIgnoreCase("-elapseWaarp")) {
 					i++;
 					elapsedWaarp = Long.parseLong(args[i]);
+				} else if (args[i].equalsIgnoreCase("-limitParallel")) {
+					i++;
+					limitParallel = Integer.parseInt(args[i]);
 				} else if (args[i].equalsIgnoreCase("-parallel")) {
 					isparallel = true;
 				} else if (args[i].equalsIgnoreCase("-sequential")) {
@@ -660,7 +667,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 			SpooledDirectoryTransfer spooled =
 					new SpooledDirectoryTransfer(future, sname, localDirectory, statusfile, stopfile,
 							rule, fileInfo, ismd5, rhosts, block, regex, elapsed, tosubmit, noLog, recursive,
-							elapsedWaarp, isparallel, waarphosts, networkTransaction);
+							elapsedWaarp, isparallel, limitParallel, waarphosts, networkTransaction);
 			spooled.run();
 			if (normalStart) {
 				future.awaitUninterruptibly();

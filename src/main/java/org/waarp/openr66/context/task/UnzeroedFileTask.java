@@ -28,9 +28,9 @@ import org.waarp.openr66.context.filesystem.R66Dir;
 import org.waarp.openr66.context.task.exception.OpenR66RunnerException;
 
 /**
- * This task add 1 byte to empty file if the current file is empty (0 length).<br>
+ * This task add 1 byte to empty file if the current file is empty (0 length).<br><br>
  * 
- * The task will be in error only if the file is of length 0 but cannot be unzeroed.
+ * The task will be in error only if the file is of length 0 but cannot be unzeroed.<br>
  * 
  * delay >= 1 will make a log using info level for 1, warn level for 2.
  * @author Frederic Bregier

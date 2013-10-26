@@ -28,6 +28,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.jboss.netty.bootstrap.ServerBootstrap;
+import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFactory;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
@@ -373,6 +374,15 @@ public class Configuration {
 	 */
 	protected ChannelGroup serverChannelGroup = null;
 	/**
+	 * Main bind address in no ssl mode
+	 */
+	protected Channel bindNoSSL = null;
+	/**
+	 * Main bind address in ssl mode
+	 */
+	protected Channel bindSSL = null;
+	
+	/**
 	 * Does the current program running as Server
 	 */
 	public boolean isServer = false;
@@ -680,9 +690,8 @@ public class Configuration {
 			serverBootstrap.setOption("tcpNoDelay", true);
 			serverBootstrap.setOption("reuseAddress", true);
 			serverBootstrap.setOption("connectTimeoutMillis", TIMEOUTCON);
-
-			serverChannelGroup.add(serverBootstrap.bind(new InetSocketAddress(
-					SERVER_PORT)));
+			bindNoSSL = serverBootstrap.bind(new InetSocketAddress(SERVER_PORT));
+			serverChannelGroup.add(bindNoSSL);
 		} else {
 			networkServerPipelineFactory = null;
 			logger.warn(Messages.getString("Configuration.NOSSLDeactivated")); //$NON-NLS-1$
@@ -700,9 +709,8 @@ public class Configuration {
 			serverSslBootstrap.setOption("tcpNoDelay", true);
 			serverSslBootstrap.setOption("reuseAddress", true);
 			serverSslBootstrap.setOption("connectTimeoutMillis", TIMEOUTCON);
-
-			serverChannelGroup.add(serverSslBootstrap.bind(new InetSocketAddress(
-					SERVER_SSLPORT)));
+			bindSSL = serverSslBootstrap.bind(new InetSocketAddress(SERVER_SSLPORT));
+			serverChannelGroup.add(bindSSL);
 		} else {
 			networkSslServerPipelineFactory = null;
 			logger.warn(Messages.getString("Configuration.SSLMODEDeactivated")); //$NON-NLS-1$
@@ -810,6 +818,20 @@ public class Configuration {
 		}
 		if (internalRunner != null) {
 			internalRunner.prepareStopInternalRunner();
+		}
+	}
+	
+	/**
+	 * Unbind network connectors
+	 */
+	public void unbindServer() {
+		if (bindNoSSL != null) {
+			bindNoSSL.unbind();
+			bindNoSSL = null;
+		}
+		if (bindSSL != null) {
+			bindSSL.unbind();
+			bindSSL = null;
 		}
 	}
 
