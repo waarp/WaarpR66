@@ -370,11 +370,8 @@ a img {
 <p style="text-align:justify;"><span style="font-size:11pt;">After Path is transformed according to above dynamic replacements, it is then used as a String Format where Transfer Information is used as input (String.format(Path,Info)). </span></p>
 <ul>
 <li><div style="text-align:justify;"><span style="font-family:Courier New;font-size:11pt;">"-from fromCharset"</span></div></li>
-
 <li><div style="text-align:justify;"><span style="font-family:Courier New;font-size:11pt;">"-to toCharset"</span></div></li>
-
 <li><div style="text-align:justify;"><span style="font-family:Courier New;"><span style="font-size:11pt;">"-newfile filename" <span style="font-family:Verdana;">optional argument ; if not used, will be current filename.extension ; if used, extension is ignored</span></span></span></div></li>
-
 <li>
 <div style="text-align:justify;"><span style="font-family:Courier New;"><span style="font-size:11pt;">"-extension extension" <span style="font-family:Verdana;">optional argument ; if not used, will be filename.transcode</span></span></span></div></li></ul>
 <p style="text-align:justify;"></p>
@@ -393,6 +390,72 @@ a img {
 <p style="text-align:justify;">&nbsp;</p>
 <p style="text-align:justify;">&nbsp;</p>
 <p style="text-align:justify;">&nbsp;</p></blockquote></blockquote>
+<ul>
+<li>
+<p style="text-align:justify;"><strong><span style="font-size:11pt;">SNMP</span></strong></p></li></ul>
+<blockquote>
+<p style="text-align:justify;"><span style="font-size:11pt;">This task sends a SNMP trap or info according to snmp configuration with the info field:</span></p>
+<ul>
+<li><p style="text-align:justify;"><span style="font-size:11pt;">if delay is 0, only a warning trap/info is sent with the field info and the Transfer ID</span></p></li>
+<li>
+<p style="text-align:justify;"><span style="font-size:11pt;">if delay is 1, a trap/info with full transfer information plus the field info is sent</span></p></li></ul>
+<p style="text-align:justify;">&nbsp;</p></blockquote>
+<ul>
+<li>
+<p style="text-align:justify;"><strong><span style="font-size:11pt;">RENAME</span></strong></p></li></ul>
+<blockquote>
+<p style="text-align:justify;"><span style="font-size:11pt;">This task rename the current file without really touching the real file, which means that the target is changed, while no other action is taken:</span></p>
+<ul>
+<li><span style="font-size:11pt;">
+<p style="text-align:justify;"><span style="font-size:11pt;">After Path is transformed according to above dynamic replacements, it is then used as a String Format where Transfer Information is used as input (String.format(Path,Info)).&nbsp;The path obtained must be an absolute path (not a relative path). </span></p></span></li>
+<li><span style="font-size:11pt;">
+<p style="text-align:justify;"><span style="font-size:11pt;">Delay is ignored.</span></p></span></li>
+<li>
+<p style="text-align:justify;"><span style="font-size:11pt;">The file is marked as moved.</span></p></li></ul></blockquote>
+<ul><li><p style="text-align:justify;"><strong><span style="font-size:11pt;">FTP</span></strong></p></li></ul>
+<blockquote>
+<div id="Comp1_sys_doctext"><p style="text-align:justify;"><span style="font-size:11pt;">This task FTP allows to have a synchronous file transfer using FTP in a task. It uses the following parameters:</span></p>
+<blockquote style="margin-right:0px;" dir="ltr">
+<p style="text-align:justify;"><span style="font-size:11pt;"><span style="font-family:Courier New;">"-file filepath <br />-to requestedHost <br />-port port <br />-user user <br />-pwd pwd <br />[-account account] <br />[-mode active/passive] <br />[-ssl no/implicit/explicit]<br />[-cwd remotepath] <br />[-digest (crc,md5,sha1)] <br />[-pre extraCommand1 with ',' as separator of arguments] <br />-command command from (get,put,append) <br />[-post extraCommand2 with ',' as separator of arguments]"</span> <br /><br />The order of commands will be:</span></p></blockquote>
+<ol>
+<li><p style="text-align:justify;"><span style="font-size:11pt;">connection to requestHost on port (if ssl native =&gt; using native ssl link)</span></p></li>
+
+<li><p style="text-align:justify;"><span style="font-size:11pt;">User user</span></p></li>
+
+<li><p style="text-align:justify;"><span style="font-size:11pt;">PASS pwd</span></p></li>
+
+<li><p style="text-align:justify;"><span style="font-size:11pt;">if account =&gt; ACCT account</span></p></li>
+
+<li><p style="text-align:justify;"><span style="font-size:11pt;">if -ssl &amp; auth =&gt; AUTH, PBSZ 0, PROT P </span></p></li>
+
+<li><p style="text-align:justify;"><span style="font-size:11pt;">if passive =&gt; PASV</span></p></li>
+
+<li><p style="text-align:justify;"><span style="font-size:11pt;">CWD remotepath; if error =&gt; MKD remotepath then CWD remotepath (and ignoring any error)</span></p></li>
+
+<li><p style="text-align:justify;"><span style="font-size:11pt;">if pre =&gt; extraCommand1 with ',' replaced by ' ' (note: do not use standard commands from FTP like <span style="font-family:Courier New;">ACCT,PASS,REIN,USER,APPE,STOR,STOU,RETR,RMD,RNFR,RNTO,ABOR,CWD,CDUP,MODE,PASV,PORT,STRU,TYPE,MDTM,MLSD,MLST,SIZE,AUTH</span>) </span></p></li>
+
+<li><p style="text-align:justify;"><span style="font-size:11pt;">BINARY (binary format)</span></p></li>
+
+<li><p style="text-align:justify;"><span style="font-size:11pt;">if get =&gt; RETR filepath.basename ; if put =&gt; STOR filepath ; if append =&gt; APPE filepath.basename</span></p></li>
+
+<li><p style="text-align:justify;"><span style="font-size:11pt;">if digest &amp; get/put/append &amp; remote site compatible with XCRC,XMD5,XSHA1 =&gt; FEAT (parsing if found corresponding XCRC,XMD5,XSHA1) ; then XCRC/XMD5/XSHA1 filepath.basename ; then locally comparing this XCRC/XMD5/XSHA1 with the local file</span></p></li>
+
+<li><p style="text-align:justify;"><span style="font-size:11pt;">if post =&gt; extraCommand2 with ',' replaced by ' ' (note: do not use standard commands from FTP like <span style="font-family:Courier New;">ACCT,PASS,REIN,USER,APPE,STOR,STOU,RETR,RMD,RNFR,RNTO,ABOR,CWD,CDUP,MODE,PASV,PORT,STRU,TYPE,MDTM,MLSD,MLST,SIZE,AUTH</span>)</span></p></li>
+
+<li>
+<p style="text-align:justify;"><span style="font-size:11pt;">QUIT</span></p></li></ol>
+<p style="text-align:justify;"><span style="font-size:11pt;">The current file is not touched and is not marked as moved.</span></p>
+</blockquote>
+
+<ul><li><p style="text-align:justify;"><strong><span style="font-size:11pt;">UNZEROED</span></strong></p></li></ul>
+<blockquote><p style="text-align:justify;"><span style="font-size:11pt;">This task unzeroed file, ie if a file has a length of 0, it adds one byte to it (blank).</span></p>
+<ul>
+<li><p style="text-align:justify;"><span style="font-size:11pt;">if delay is 1 or 2, a log with respectively info or warn level is generated</span></p></li>
+</ul>
+<p style="text-align:justify;">&nbsp;</p>
+</blockquote>
+
+
 <p style="text-align:justify;"><strong><em><span style="font-size:11pt;">Example:</span></em></strong></p>
 <p style="text-align:justify;">&nbsp;</p>
 <p style="text-align:justify;"><span style="font-family:MS Sans Serif;"><span style="font-size:11pt;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family:Courier New;">&lt;tasks&gt;</span></span></span></p>

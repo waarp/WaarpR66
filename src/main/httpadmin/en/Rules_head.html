@@ -9,6 +9,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=windows-1252" />
 <meta http-equiv="expires" content="MON, 1 SEP 2003 12:00:00 GMT" />
 <link rel="stylesheet" href="res/OpenR66Admin.css" type="text/css" />
+<link rel="stylesheet" href="res/rulefield.css" type="text/css">
 <style type="text/css">
 a {
 	color:#0000FF;
@@ -52,6 +53,8 @@ a img {
 //]]>
 	</script>
 	<script type="text/javascript" src="res/fieldhelp.js"></script>
+	<script type="text/javascript" src="res/marknote.js"></script>
+	<script type="text/javascript" src="res/rulefield.js"></script>
 </head>
 <body class="normal" style="margin:0px;padding:0px;background-color:#FFFFFF;">
 <table style="border:none;" cellspacing="0" cellpadding="0" width="100%">
@@ -99,6 +102,17 @@ a img {
 <td style="vertical-align:top;">
 <h1 class="h1">Rules</h1>
 <div id="Comp1_sys_doctext"><p>You can edit Rules configuration from here.</p>
+ <!-- Dialog Box Rule Helper    -->
+<div id="dialog_background" class='divicone' >
+</div>
+  <div id="dialog_box">
+    <div id="dialog_title">
+      Rule Helper
+    </div>        
+	<div id="dialog_content"  >  
+    </div>
+  </div> 
+ <!-- End of Dialog Box -->
 <p>&nbsp;</p>
   <form method="post" name="CREATE" action="/Rules.html">
     <table border="1" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="100%" id="AutoNumber2">
@@ -170,7 +184,7 @@ a img {
         <td width="8%">&nbsp;</td>
       </tr>
       <tr>
-        <td width="7%"><textarea rows="8" name="rpre" cols="20"><tasks></tasks></textarea>
+        <td width="7%"><textarea rows="8" name="rpre" cols="20" id="rpre0" class="dialog_input" onclick="dialog_open('rpre0','Rule Helper');"><tasks></tasks></textarea>
 <img id="rprehelp" alt="help for Recv Pre Actions field"  class="help" width="16" height="16" src="img/help_small.gif" />
 	<div id="containerrprehelp"><p class="cshelp">
 	It specifies all actions to do BEFORE the transfer operation as receiver host(SEND and requested,
@@ -181,11 +195,11 @@ a img {
   <delay>x</delay>
  </task>
 </tasks></xmp>where<br>
--type is one of LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, EXECOUTPUT, EXECJAVA, TRANSFER, VALIDFILEPATH, DELETE, LINKRENAME, TAR, ZIP, TRANSCODE<br>
+-type is one of LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, EXECOUTPUT, EXECJAVA, TRANSFER, VALIDFILEPATH, DELETE, LINKRENAME, TAR, ZIP, TRANSCODE, SNMP, FTP, RENAME, RESTART, UNZEROED<br>
 -path is a static argument where some replacement will be done<br>
 -delay is usually the maximum delay of execution<br>
 <a href="res/OpenR66TaskOptions.html" target="_blank">See the API or doc for the specific conditions.</a></p></div></td>
-        <td width="7%"><textarea rows="8" name="rpost" cols="20"><tasks></tasks></textarea>
+        <td width="7%"><textarea rows="8" name="rpost" cols="20" id="rpost0" class="dialog_input" onclick="dialog_open('rpost0','Rule Helper');"><tasks></tasks></textarea>
 <img id="rposthelp" alt="help for Recv Post Actions field"  class="help" width="16" height="16" src="img/help_small.gif" />
 	<div id="containerrposthelp"><p class="cshelp">
 	It specifies all actions to do AFTER the transfer operation as receiver host(SEND and requested,
@@ -196,11 +210,11 @@ a img {
   <delay>x</delay>
  </task>
 </tasks></xmp>where<br>
--type is one of LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, EXECOUTPUT, EXECJAVA, TRANSFER, VALIDFILEPATH, DELETE, LINKRENAME, TAR, ZIP, TRANSCODE<br>
+-type is one of LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, EXECOUTPUT, EXECJAVA, TRANSFER, VALIDFILEPATH, DELETE, LINKRENAME, TAR, ZIP, TRANSCODE, SNMP, FTP, RENAME, RESTART, UNZEROED<br>
 -path is a static argument where some replacement will be done<br>
 -delay is usually the maximum delay of execution<br>
 <a href="res/OpenR66TaskOptions.html" target="_blank">See the API or doc for the specific conditions.</a></p></div></td>
-        <td width="7%"><textarea rows="8" name="rerr" cols="20"><tasks></tasks></textarea>
+        <td width="7%"><textarea rows="8" name="rerr" cols="20" id="rerr0" class="dialog_input" onclick="dialog_open('rerr0','Rule Helper');"><tasks></tasks></textarea>
 <img id="rerrhelp" alt="help for Recv Error Actions field"  class="help" width="16" height="16" src="img/help_small.gif" />
 	<div id="containerrerrhelp"><p class="cshelp">
 	It specifies all actions to do AFTER AN ERROR OCCURS as receiver host(SEND and requested,
@@ -211,11 +225,11 @@ a img {
   <delay>x</delay>
  </task>
 </tasks></xmp>where<br>
--type is one of LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, EXECOUTPUT, EXECJAVA, TRANSFER, VALIDFILEPATH, DELETE, LINKRENAME, RESCHEDULE, TAR, ZIP, TRANSCODE<br>
+-type is one of LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, EXECOUTPUT, EXECJAVA, TRANSFER, VALIDFILEPATH, DELETE, LINKRENAME, RESCHEDULE, TAR, ZIP, TRANSCODE, SNMP, FTP, RENAME, RESTART, UNZEROED<br>
 -path is a static argument where some replacement will be done<br>
 -delay is usually the maximum delay of execution<br>
 <a href="res/OpenR66TaskOptions.html" target="_blank">See the API or doc for the specific conditions.</a></p></div></td>
-        <td width="7%"><textarea rows="8" name="spre" cols="20"><tasks></tasks></textarea>
+        <td width="7%"><textarea rows="8" name="spre" cols="20" id="spre0" class="dialog_input" onclick="dialog_open('spre0','Rule Helper');"><tasks></tasks></textarea>
 <img id="sprehelp" alt="help for Send Pre Actions field"  class="help" width="16" height="16" src="img/help_small.gif" />
 	<div id="containersprehelp"><p class="cshelp">
 	It specifies all actions to do BEFORE the transfer operation as sender host(SEND and requester,
@@ -226,11 +240,11 @@ a img {
   <delay>x</delay>
  </task>
 </tasks></xmp>where<br>
--type is one of LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, EXECOUTPUT, EXECJAVA, TRANSFER, VALIDFILEPATH, DELETE, LINKRENAME, TAR, ZIP, TRANSCODE<br>
+-type is one of LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, EXECOUTPUT, EXECJAVA, TRANSFER, VALIDFILEPATH, DELETE, LINKRENAME, TAR, ZIP, TRANSCODE, SNMP, FTP, RENAME, RESTART, UNZEROED<br>
 -path is a static argument where some replacement will be done<br>
 -delay is usually the maximum delay of execution<br>
 <a href="res/OpenR66TaskOptions.html" target="_blank">See the API or doc for the specific conditions.</a></p></div></td>
-        <td width="8%"><textarea rows="8" name="spost" cols="20"><tasks></tasks></textarea>
+        <td width="8%"><textarea rows="8" name="spost" cols="20" id="spost0" class="dialog_input" onclick="dialog_open('spost0','Rule Helper');"><tasks></tasks></textarea>
 <img id="sposthelp" alt="help for Send Post Actions field"  class="help" width="16" height="16" src="img/help_small.gif" />
 	<div id="containersposthelp"><p class="cshelp">
 	It specifies all actions to do AFTER the transfer operation as sender host(SEND and requester,
@@ -241,11 +255,11 @@ a img {
   <delay>x</delay>
  </task>
 </tasks></xmp>where<br>
--type is one of LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, EXECOUTPUT, EXECJAVA, TRANSFER, VALIDFILEPATH, DELETE, LINKRENAME, TAR, ZIP, TRANSCODE<br>
+-type is one of LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, EXECOUTPUT, EXECJAVA, TRANSFER, VALIDFILEPATH, DELETE, LINKRENAME, TAR, ZIP, TRANSCODE, SNMP, FTP, RENAME, RESTART, UNZEROED<br>
 -path is a static argument where some replacement will be done<br>
 -delay is usually the maximum delay of execution<br>
 <a href="res/OpenR66TaskOptions.html" target="_blank">See the API or doc for the specific conditions.</a></p></div></td>
-        <td width="8%"><textarea rows="8" name="serr" cols="20"><tasks></tasks></textarea>
+        <td width="8%"><textarea rows="8" name="serr" cols="20" id="serr0" class="dialog_input" onclick="dialog_open('serr0','Rule Helper');"><tasks></tasks></textarea>
 <img id="serrhelp" alt="help for Send Error Actions field"  class="help" width="16" height="16" src="img/help_small.gif" />
 	<div id="containerserrhelp"><p class="cshelp">
 	It specifies all actions to do AFTER AN ERROR OCCURS as sender host(SEND and requester,
@@ -256,7 +270,7 @@ a img {
   <delay>x</delay>
  </task>
 </tasks></xmp>where<br>
--type is one of LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, EXECOUTPUT, EXECJAVA, TRANSFER, VALIDFILEPATH, DELETE, LINKRENAME, RESCHEDULE, TAR, ZIP, TRANSCODE<br>
+-type is one of LOG, MOVE, MOVERENAME, COPY, COPYRENAME, EXEC, EXECMOVE, EXECOUTPUT, EXECJAVA, TRANSFER, VALIDFILEPATH, DELETE, LINKRENAME, RESCHEDULE, TAR, ZIP, TRANSCODE, SNMP, FTP, RENAME, RESTART, UNZEROED<br>
 -path is a static argument where some replacement will be done<br>
 -delay is usually the maximum delay of execution<br>
 <a href="res/OpenR66TaskOptions.html" target="_blank">See the API or doc for the specific conditions.</a></p></div></td>

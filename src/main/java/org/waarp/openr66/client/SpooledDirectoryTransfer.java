@@ -68,9 +68,9 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * -recursive (to scan recursively from the root)<br>
  * -waarp WaarpHosts (seperated by ',') to inform of running spooled directory (information stays in memory of Waarp servers, not in database)<br>
  * -name name to be used as name in list printing in Waarp servers. Note this name must be unique globally.<br>
- * -elapseWaarp elapse to specify a specific timing > 1000ms between to information sent to Waarp servers (default: 5000ms)
- * -parallel to allow (default) parallelism in send actions (submit are always sequential)
- * -sequential to not allow parallelism in send actions (submit are always sequential)
+ * -elapseWaarp elapse to specify a specific timing > 1000ms between to information sent to Waarp servers (default: 5000ms)<br>
+ * -parallel to allow (default) parallelism in send actions (submit are always sequential)<br>
+ * -sequential to not allow parallelism in send actions (submit are always sequential)<br>
  * 
  * @author Frederic Bregier
  * 
@@ -350,7 +350,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 		final FileMonitor monitor = new FileMonitor(name, status, stop, dir, null, elapseTime, filter, 
 				recurs, commandValidFile, waarpRemovedCommand, null);
 		if (parallel) {
-			monitor.setCommandValidFileFactory(factory);
+			monitor.setCommandValidFileFactory(factory, 5);
 		}
 		if (waarpHosts != null && ! waarpHosts.isEmpty()) {
 			final String [] allwaarps = waarpHosts.split(",");
