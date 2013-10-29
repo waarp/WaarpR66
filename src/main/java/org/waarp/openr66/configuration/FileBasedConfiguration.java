@@ -1102,15 +1102,21 @@ public class FileBasedConfiguration {
 			value = hashConfig.get(XML_CSTRT_CPULIMIT);
 			if (value != null && (!value.isEmpty())) {
 				cpulimit = value.getDouble();
+				if (cpulimit > 0.99) {
+					cpulimit = 1.0;
+				}
 			}
 		}
 		int connlimit = 0;
 		value = hashConfig.get(XML_CSTRT_CONNLIMIT);
 		if (value != null && (!value.isEmpty())) {
 			connlimit = value.getInteger();
+			if (connlimit < 100) {
+				connlimit = 0;
+			}
 		}
-		double lowcpuLimit = 0;
-		double highcpuLimit = 0;
+		double lowcpuLimit = 0.0;
+		double highcpuLimit = 0.0;
 		double percentageDecrease = 0;
 		long delay = 1000000;
 		long limitLowBandwidth = R66ConstraintLimitHandler.LOWBANDWIDTH_DEFAULT;
@@ -1121,6 +1127,9 @@ public class FileBasedConfiguration {
 		value = hashConfig.get(XML_CSTRT_HIGHCPULIMIT);
 		if (value != null && (!value.isEmpty())) {
 			highcpuLimit = value.getDouble();
+			if (highcpuLimit < 0.1) {
+				highcpuLimit = 0.0;
+			}
 		}
 		value = hashConfig.get(XML_CSTRT_PERCENTDECREASE);
 		if (value != null && (!value.isEmpty())) {
@@ -1129,6 +1138,9 @@ public class FileBasedConfiguration {
 		value = hashConfig.get(XML_CSTRT_DELAYTHROTTLE);
 		if (value != null && (!value.isEmpty())) {
 			delay = (value.getLong() / 10) * 10;
+			if (delay < 100) {
+				delay = 100;
+			}
 		}
 		value = hashConfig.get(XML_CSTRT_LIMITLOWBANDWIDTH);
 		if (value != null && (!value.isEmpty())) {

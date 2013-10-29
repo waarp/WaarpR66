@@ -319,10 +319,15 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 						// ignore
 						return;
 					}
+					if (Configuration.configuration
+							.getLocalTransaction().isRecentlyRemoved(packet.getLocalId())) {
+						// ignore
+						return;
+					}
 					logger.debug("Cannot get LocalChannel: " + packet + " due to " +
 							e1.getMessage());
 					final ConnectionErrorPacket error = new ConnectionErrorPacket(
-							"Cannot get localChannel since cannot retrieve it", null);
+							"Cannot get localChannel since cannot retrieve it", ""+packet.getLocalId());
 					writeError(e.getChannel(), packet.getRemoteId(), packet
 							.getLocalId(), error);
 					return;

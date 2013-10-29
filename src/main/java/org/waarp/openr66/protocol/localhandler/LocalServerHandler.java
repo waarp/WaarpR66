@@ -267,7 +267,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			 * localChannelReference.getNetworkChannelObject()); }
 			 */
 			session.setStatus(52);
-			Configuration.configuration.getLocalTransaction().remove(e.getChannel());
+			//Configuration.configuration.getLocalTransaction().remove(e.getChannel());
 		} else {
 			logger
 					.error("Local Server Channel Closed but no LocalChannelReference: " +
@@ -647,8 +647,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
 	 */
 	private void startup(Channel channel, StartupPacket packet)
 			throws OpenR66ProtocolPacketException {
-		localChannelReference = Configuration.configuration
+		for (int i = 0; i < Configuration.RETRYNB; i++) {
+			localChannelReference = Configuration.configuration
 				.getLocalTransaction().getFromId(packet.getLocalId());
+			if (localChannelReference != null) {
+				break;
+			}
+		}
 		if (localChannelReference == null) {
 			session.newState(ERROR);
 			logger.error(Messages.getString("LocalServerHandler.1")); //$NON-NLS-1$

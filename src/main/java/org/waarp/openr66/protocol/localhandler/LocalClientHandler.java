@@ -101,6 +101,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
 					return;
 				}
 				Thread.sleep(Configuration.RETRYINMS);
+				Thread.yield();
 			}
 			logger.warn("Cannot find local connection");
 		}
