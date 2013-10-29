@@ -199,7 +199,7 @@ public class LocalTransaction {
 				logger.debug("Db connection done and Create LocalChannel entry: " + i + " {}",
 						localChannelReference);
 				channel.getCloseFuture().addListener(remover);
-				logger.debug("Will add one localChannel to a Network Channel: "+channel.getId());
+				logger.info("Will add one localChannel to a Network Channel: "+channel.getId());
 				localChannelHashMap.put(channel.getId(), localChannelReference);
 				try {
 					NetworkTransaction.addLocalChannelToNetworkChannel(
@@ -292,7 +292,7 @@ public class LocalTransaction {
 				.remove(channel.getId());
 		if (localChannelReference != null) {
 			removedLocalChannelHashMap.put(channel.getId(), channel.getId());
-			logger.debug("Will remove one localChannel: "+channel.getId());
+			logger.info("Will remove one localChannel: "+channel.getId());
 			R66Future validLCR = validLocalChannelHashMap
 					.remove(localChannelReference.getRemoteId());
 			if (validLCR != null && ! validLCR.isDone()) {
@@ -407,7 +407,7 @@ public class LocalTransaction {
 	 * @param networkChannel
 	 */
 	public void closeLocalChannelsFromNetworkChannel(Channel networkChannel) {
-		logger.debug("Will close all localChannel since Network Channel is closing");
+		logger.info("Will close all localChannel since Network Channel is closing");
 		Collection<LocalChannelReference> collection = localChannelHashMap
 				.values();
 		AtomicInteger semaphore = new AtomicInteger();

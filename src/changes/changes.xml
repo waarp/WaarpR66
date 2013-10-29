@@ -11,6 +11,7 @@
 		    <action dev="Frederic Bregier" type="fix">Improve SpooledDirectory with parallelism on main action and controlling parallism</action>
 		    <action dev="Frederic Bregier" type="fix">Fix condition of closing network connections by setting lastTimeUsed</action>
 		    <action dev="Frederic Bregier" type="fix">Fix shutdown and restart processus</action>
+		    <action dev="Frederic Bregier" type="fix">Fix thread handling, in particular for Business requests</action>
 		    <action dev="Frederic Bregier" type="fix">Various small fixes</action>
 		    <action dev="Frederic Bregier" type="add">Add Unzeroed task for file with 0 length</action>
 		</release>

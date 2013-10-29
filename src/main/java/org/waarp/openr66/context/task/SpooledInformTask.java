@@ -106,7 +106,6 @@ public class SpooledInformTask extends AbstractExecJavaTask {
 				} catch (OpenR66ProtocolPacketException e) {
 				}
 				this.status = 0;
-				return;
 			}
 			finalValidate("Validated");
 		} else {

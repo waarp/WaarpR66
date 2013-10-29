@@ -528,6 +528,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					code = ErrorCode.QueryAlreadyFinished;
 					try {
 						tryFinalizeRequest(new R66Result(session, true, code, session.getRunner()));
+						ChannelCloseTimer.closeFutureChannel(e.getChannel());
 						return;
 					} catch (OpenR66RunnerErrorException e1) {
 					} catch (OpenR66ProtocolSystemException e1) {
@@ -1932,7 +1933,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		} else {
 			session.newState(ENDREQUESTR);
 		}
-		if (runner != null && runner.isSelfRequested()) {
+		if (runner != null && (runner.isSelfRequested() || runner.isSelfRequest())) {
 			ChannelCloseTimer.closeFutureChannel(channel);
 		}
 	}
@@ -2668,6 +2669,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			case LocalPacketFactory.REQUESTPACKET: {
 				session.newState(VALID);
 				// The filename or filesize from sender is changed due to PreTask so change it too in receiver
+				// Close only if an error occurs!
 				String [] fields = packet.getSmiddle().split(PartnerConfiguration.BAR_SEPARATOR_FIELD);
 				String newfilename = fields[0];
 				// potential file size changed
@@ -3015,6 +3017,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				session.newState(VALID);
 				// The filename or filesize from sender is changed due to PreTask so change it too in receiver
 				// comment, filename, filesize
+				// Close only if an error occurs!
 				RequestJsonPacket node = (RequestJsonPacket) json;
 				String newfilename = node.getFilename();
 				if (newfilename == null) {
