@@ -210,6 +210,9 @@ public class SpooledDirectoryTransfer implements Runnable {
 		if (submit && ! DbConstant.admin.isConnected) {
 			logger.error(Messages.getString("SpooledDirectoryTransfer.2")); //$NON-NLS-1$
 			this.future.cancel();
+			if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
+				Configuration.configuration.shutdownConfiguration.serviceFuture.setFailure(new Exception(Messages.getString("SpooledDirectoryTransfer.2")));
+			}
 			return;
 		}
 		sent = 0;
@@ -221,27 +224,42 @@ public class SpooledDirectoryTransfer implements Runnable {
 		} catch (WaarpDatabaseException e1) {
 			logger.error(Messages.getString("Transfer.18"), e1); //$NON-NLS-1$
 			this.future.setFailure(e1);
+			if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
+				Configuration.configuration.shutdownConfiguration.serviceFuture.setFailure(new Exception(Messages.getString("Transfer.18")+e1.getMessage()));
+			}
 			return;
 		}
 		if (dbrule.isRecvMode()) {
 			logger.error(Messages.getString("SpooledDirectoryTransfer.5")); //$NON-NLS-1$
 			this.future.cancel();
+			if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
+				Configuration.configuration.shutdownConfiguration.serviceFuture.setFailure(new Exception(Messages.getString("SpooledDirectoryTransfer.5")));
+			}
 			return;
 		}
 		File status = new File(statusFile);
 		if (status.isDirectory()) {
 			logger.error(Messages.getString("SpooledDirectoryTransfer.6")); //$NON-NLS-1$
 			this.future.cancel();
+			if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
+				Configuration.configuration.shutdownConfiguration.serviceFuture.setFailure(new Exception(Messages.getString("SpooledDirectoryTransfer.6")));
+			}
 			return;
 		}
 		File stop = new File(stopFile);
 		if (stop.isDirectory()) {
 			logger.error(Messages.getString("SpooledDirectoryTransfer.7")); //$NON-NLS-1$
 			this.future.cancel();
+			if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
+				Configuration.configuration.shutdownConfiguration.serviceFuture.setFailure(new Exception(Messages.getString("SpooledDirectoryTransfer.7")));
+			}
 			return;
 		} else if (stop.exists()) {
 			logger.warn(Messages.getString("SpooledDirectoryTransfer.8")); //$NON-NLS-1$
 			this.future.setSuccess();
+			if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
+				Configuration.configuration.shutdownConfiguration.serviceFuture.setFailure(new Exception(Messages.getString("SpooledDirectoryTransfer.8")));
+			}
 			return;
 		}
 		for (String dirname : directory) {
@@ -249,6 +267,9 @@ public class SpooledDirectoryTransfer implements Runnable {
 			if (!dir.isDirectory()) {
 				logger.error(Messages.getString("SpooledDirectoryTransfer.9")+" : "+dir); //$NON-NLS-1$
 				this.future.cancel();
+				if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
+					Configuration.configuration.shutdownConfiguration.serviceFuture.setFailure(new Exception(Messages.getString("SpooledDirectoryTransfer.9")));
+				}
 				return;
 			}
 		}
@@ -312,6 +333,9 @@ public class SpooledDirectoryTransfer implements Runnable {
 		monitor.start();
 		monitor.waitForStopFile();
 		this.future.setSuccess();
+		if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
+			Configuration.configuration.shutdownConfiguration.serviceFuture.setSuccess();
+		}
 	}
 	
 	public void stop() {

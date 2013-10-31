@@ -1,4 +1,4 @@
-@echo off
+@echo on
 
 rem -- DO NOT CHANGE THIS ! OR YOU REALLY KNOW WHAT YOU ARE DOING ;)
 
@@ -67,6 +67,9 @@ set R66_CONF=%EXEC_PATH%\conf\config-serverA2-2.xml
 rem -- prunsrv.exe location
 set PRUNSRVEXEC=%EXEC_PATH%\bin\windows\service\prunsrv.exe
 
+rem -- prunmgr.exe location
+set PRUNMGREXEC=%EXEC_PATH%\bin\windows\service\prunmgr.exe
+
 rem -- Loglevel of Daemon between debug, info, warn, error
 set LOGLEVEL=info
 
@@ -85,6 +88,7 @@ if /I "%1" == "console" ( goto CONSOLE )
 if /I "%1" == "restart" ( goto RESTART )
 if /I "%1" == "install" ( goto INSTALL )
 if /I "%1" == "remove" ( goto REMOVE )
+if /I "%1" == "monitor" ( goto MONITOR )
 
 goto HELP
 
@@ -92,7 +96,7 @@ rem -- START ------------------------------------------------------------------
 :START
 
 echo Start service %SERVICE_NAME%
-%PRUNSRVEXEC% //RS/%SERVICE_NAME% %SERVICE_OPTIONS%
+%PRUNSRVEXEC% //ES/%SERVICE_NAME% 
 
 goto FIN
 
@@ -108,7 +112,7 @@ rem -- STOP -------------------------------------------------------------------
 :STOP
 
 echo Stop service %SERVICE_NAME%
-%PRUNSRVEXEC% //SS/%SERVICE_NAME% %SERVICE_OPTIONS%
+%PRUNSRVEXEC% //SS/%SERVICE_NAME% 
 
 if "%RESTART%" == "1" ( goto START )
 goto FIN
@@ -117,14 +121,14 @@ rem -- REMOVE -----------------------------------------------------------------
 :REMOVE
 
 echo Remove service %SERVICE_NAME%
-%PRUNSRVEXEC% //DS/%SERVICE_NAME% %SERVICE_OPTIONS%
+%PRUNSRVEXEC% //DS/%SERVICE_NAME%
 
 goto FIN
 
 rem -- CONSOLE ----------------------------------------------------------------
 :CONSOLE
 
-%PRUNSRVEXEC% //TS/%SERVICE_NAME% %SERVICE_OPTIONS%
+%PRUNSRVEXEC% //TS/%SERVICE_NAME%
 
 goto FIN
 
@@ -135,10 +139,17 @@ set RESTART=1
 
 goto STOP
 
+rem -- MONITOR ----------------------------------------------------------------
+:MONITOR
+
+%PRUNMGREXEC% //MS/%SERVICE_NAME%
+
+goto FIN
+
 rem -- HELP -------------------------------------------------------------------
 :HELP
 
-echo "service.bat install|remove|start|stop|restart"
+echo "service.bat install|remove|start|stop|restart|console|monitor"
 goto FIN
 
 :FIN
