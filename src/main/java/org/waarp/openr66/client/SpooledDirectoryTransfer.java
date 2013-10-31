@@ -105,7 +105,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 	
 	public final String name;
 
-	protected final String directory;
+	protected final List<String> directory;
 
 	protected final String statusFile;
 
@@ -117,11 +117,11 @@ public class SpooledDirectoryTransfer implements Runnable {
 
 	protected final boolean isMD5;
 
-	protected final String remoteHosts;
+	protected final List<String> remoteHosts;
 
 	protected final String regexFilter;
 
-	protected final String waarpHosts;
+	protected final List<String> waarpHosts;
 
 	protected final int blocksize;
 
@@ -140,8 +140,6 @@ public class SpooledDirectoryTransfer implements Runnable {
 	protected final boolean recurs;
 	
 	protected final NetworkTransaction networkTransaction;
-	
-	protected String[] allrhosts = null;
 	
 	protected FileMonitor monitor = null;
 	
@@ -170,13 +168,13 @@ public class SpooledDirectoryTransfer implements Runnable {
 	 * @param waarphost
 	 * @param networkTransaction
 	 */
-	public SpooledDirectoryTransfer(R66Future future, String name, String directory, 
+	public SpooledDirectoryTransfer(R66Future future, String name, List<String> directory, 
 			String statusfile, String stopfile, String rulename,
 			String fileinfo, boolean isMD5, 
-			String remoteHosts, int blocksize, String regex,
+			List<String> remoteHosts, int blocksize, String regex,
 			long elapse, boolean submit, boolean nolog, boolean recursive, 
 			long elapseWaarp, boolean parallel, int limitParallel,
-			String waarphost, NetworkTransaction networkTransaction) {
+			List<String> waarphost, NetworkTransaction networkTransaction) {
 		if (logger == null) {
 			logger = WaarpInternalLoggerFactory.getLogger(SpooledDirectoryTransfer.class);
 		}
@@ -216,7 +214,6 @@ public class SpooledDirectoryTransfer implements Runnable {
 		}
 		sent = 0;
 		error  = 0;
-		allrhosts = remoteHosts.split(",");
 		// first check if rule is for SEND
 		DbRule dbrule = null;
 		try {
@@ -247,8 +244,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 			this.future.setSuccess();
 			return;
 		}
-		String [] directories = directory.split(",");
-		for (String dirname : directories) {
+		for (String dirname : directory) {
 			File dir = new File(dirname);
 			if (!dir.isDirectory()) {
 				logger.error(Messages.getString("SpooledDirectoryTransfer.9")+" : "+dir); //$NON-NLS-1$
@@ -268,7 +264,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 			}
 		};
 		FileMonitorCommandRunnableFuture waarpHostCommand = null;
-		File dir = new File(directories[0]);
+		File dir = new File(directory.get(0));
 		monitor = new FileMonitor(name, status, stop, dir, null, elapseTime, filter, 
 				recurs, commandValidFile, waarpRemovedCommand, null);
 		if (parallel) {
@@ -282,11 +278,10 @@ public class SpooledDirectoryTransfer implements Runnable {
 			monitor.setCommandValidFileFactory(factory, limitParallelTasks);
 		}
 		if (waarpHosts != null && ! waarpHosts.isEmpty()) {
-			final String [] allwaarps = waarpHosts.split(",");
 			waarpHostCommand = new FileMonitorCommandRunnableFuture() {
 				public void run(FileItem notused) {
 					String status = monitor.getStatus();
-					for (String host : allwaarps) {
+					for (String host : waarpHosts) {
 						host = host.trim();
 						if (host != null && ! host.isEmpty()) {
 							R66Future future = new R66Future(true);
@@ -306,8 +301,8 @@ public class SpooledDirectoryTransfer implements Runnable {
 			monitor.setCommandCheckIteration(waarpHostCommand);
 			monitor.setElapseWaarpTime(elapseWaarpTime);
 		}
-		for (int i = 1; i < directories.length; i++) {
-			dir = new File(directories[i]);
+		for (int i = 1; i < directory.size(); i++) {
+			dir = new File(directory.get(i));
 			monitor.addDirectory(dir);
 		}
 		logger.warn("SpooledDirectoryTransfer starts name:"+name+" directory:"+directory+" statusFile:"+statusFile+" stopFile:"+stopFile+
@@ -337,8 +332,8 @@ public class SpooledDirectoryTransfer implements Runnable {
 		public void run(FileItem fileItem) {
 			this.fileItem = fileItem;
 			boolean finalStatus = false;
-			long specialId = allrhosts.length > 1 ? DbConstant.ILLEGALVALUE : fileItem.specialId;
-			for (String host : allrhosts) {
+			long specialId = waarpHosts.size() > 1 ? DbConstant.ILLEGALVALUE : fileItem.specialId;
+			for (String host : waarpHosts) {
 				host = host.trim();
 				if (host != null && ! host.isEmpty()) {
 					String filename = fileItem.file.getAbsolutePath();
@@ -441,7 +436,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 					}
 				}
 			}
-			specialId = allrhosts.length > 1 ? DbConstant.ILLEGALVALUE : specialId;
+			specialId = waarpHosts.size() > 1 ? DbConstant.ILLEGALVALUE : specialId;
 			finalize(finalStatus, specialId);
 		}
 	}
@@ -453,8 +448,8 @@ public class SpooledDirectoryTransfer implements Runnable {
 	 */
 	protected static class Arguments {
 		protected String sname = null;
-		protected String rhosts = null;
-		protected String localDirectory = null;
+		protected List<String> rhosts = new ArrayList<String>();
+		protected List<String> localDirectory = new ArrayList<String>();
 		protected String rule = null;
 		protected String fileInfo = null;
 		protected boolean ismd5 = false;
@@ -467,7 +462,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 		protected boolean tosubmit = true;
 		protected boolean noLog = false;
 		protected boolean recursive = false;
-		protected String waarphosts = null;
+		protected List<String> waarphosts = new ArrayList<String>();
 		protected boolean isparallel = true;
 		protected int limitParallel = 0;
 	}
@@ -556,12 +551,18 @@ public class SpooledDirectoryTransfer implements Runnable {
 				}
 				value = subHash.get(XML_to);
 				if (value != null && (value.getList() != null)) {
-					arg.rhosts = "";
 					for (String to : (List<String>) value.getList()) {
-						arg.rhosts += to+",";
+						if (to.trim().isEmpty()) {
+							continue;
+						}
+						arg.rhosts.add(to.trim());
 					}
-					arg.rhosts = arg.rhosts.substring(0, arg.rhosts.length()-1);
+					if (arg.rhosts.isEmpty()) {
+						logger.warn("to directive is empty but must not");
+						continue;
+					}
 				} else {
+					logger.warn("to directive is empty but must not");
 					continue;
 				}
 				value = subHash.get(XML_rule);
@@ -578,12 +579,18 @@ public class SpooledDirectoryTransfer implements Runnable {
 				}
 				value = subHash.get(XML_directory);
 				if (value != null && (value.getList() != null)) {
-					arg.localDirectory = "";
 					for (String dir : (List<String>) value.getList()) {
-						arg.localDirectory += dir+",";
+						if (dir.trim().isEmpty()) {
+							continue;
+						}
+						arg.localDirectory.add(dir.trim());
 					}
-					arg.localDirectory = arg.localDirectory.substring(0, arg.localDirectory.length()-1);
+					if (arg.localDirectory.isEmpty()) {
+						logger.warn("directory directive is empty but must not");
+						continue;
+					}
 				} else {
+					logger.warn("directory directive is empty but must not");
 					continue;
 				}
 				value = subHash.get(XML_regex);
@@ -628,11 +635,12 @@ public class SpooledDirectoryTransfer implements Runnable {
 				}
 				value = subHash.get(XML_waarp);
 				if (value != null && (value.getList() != null)) {
-					arg.waarphosts = "";
 					for (String host : (List<String>) value.getList()) {
-						arg.waarphosts += host+",";
+						if (host.trim().isEmpty()) {
+							continue;
+						}
+						arg.waarphosts.add(host.trim());
 					}
-					arg.waarphosts = arg.waarphosts.substring(0, arg.waarphosts.length()-1);
 				}
 				value = subHash.get(XML_elapseWaarp);
 				if (value != null && (!value.isEmpty())) {
@@ -682,13 +690,25 @@ public class SpooledDirectoryTransfer implements Runnable {
 				for (i = 1; i < args.length; i++) {
 					if (args[i].equalsIgnoreCase("-to")) {
 						i++;
-						arg.rhosts = args[i];
+						String [] rhosts = args[i].split(",");
+						for (String string : rhosts) {
+							if (string.trim().isEmpty()) {
+								continue;
+							}
+							arg.rhosts.add(string.trim());
+						}
 					} else if (args[i].equalsIgnoreCase("-name")) {
 						i++;
 						arg.sname = args[i];
 					} else if (args[i].equalsIgnoreCase("-directory")) {
 						i++;
-						arg.localDirectory = args[i];
+						String [] dir = args[i].split(",");
+						for (String string : dir) {
+							if (string.trim().isEmpty()) {
+								continue;
+							}
+							arg.localDirectory.add(string.trim());
+						}
 					} else if (args[i].equalsIgnoreCase("-rule")) {
 						i++;
 						arg.rule = args[i];
@@ -723,7 +743,13 @@ public class SpooledDirectoryTransfer implements Runnable {
 						arg.regex = args[i];
 					} else if (args[i].equalsIgnoreCase("-waarp")) {
 						i++;
-						arg.waarphosts = args[i];
+						String [] host = args[i].split(",");
+						for (String string : host) {
+							if (string.trim().isEmpty()) {
+								continue;
+							}
+							arg.waarphosts.add(string.trim());
+						}
 					} else if (args[i].equalsIgnoreCase("-elapse")) {
 						i++;
 						arg.elapsed = Long.parseLong(args[i]);
@@ -753,8 +779,8 @@ public class SpooledDirectoryTransfer implements Runnable {
 				logger.error(Messages.getString("SpooledDirectoryTransfer.2")); //$NON-NLS-1$
 				return false;
 			}
-			if (arg.rhosts != null && arg.rule != null && 
-					arg.localDirectory != null && 
+			if (! arg.rhosts.isEmpty() && arg.rule != null && 
+					! arg.localDirectory.isEmpty() && 
 							arg.statusfile != null && arg.stopfile != null) {
 				arguments.add(arg);
 				return true;

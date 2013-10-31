@@ -44,7 +44,7 @@ export JAVASERVER=-jvm=server
 #export JAVASERVER=-jvm=client
 
 # Logback configuration file
-export LOGBACK_CONF=-Dlogback.configurationFile=/waarp/conf/logback.xml
+export LOGBACK_CONF=-Dlogback.configurationFile=/waarp/conf/logback-client.xml
 
 # Add -debug if you want to run in debug mode
 export JSVC_OPTIONS=${JAVAxMS} ${JAVAxMX} ${JAVASERVER} ${LOGBACK_CONF}  
