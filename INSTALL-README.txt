@@ -6,3 +6,4 @@ The primary installation of a server is done using the following steps:
 4) Create the database (dependent on the one choose between Oracle, PostgreSql, MySQL or H2 database, the initial creation is out of this documentation).
 5) Initialize the database (once created and the user/password and the JDBC access fill in the Server configuration XML file)
 6) Now you can run the server and use the various commands or Administration interface to continue the configuration (Limit, Rule, Authent).
+
