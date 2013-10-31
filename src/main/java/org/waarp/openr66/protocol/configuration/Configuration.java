@@ -391,19 +391,19 @@ public class Configuration {
 	 * ExecutorService Server Boss
 	 */
 	protected ExecutorService execServerBoss = Executors
-			.newCachedThreadPool();
+			.newCachedThreadPool(new WaarpThreadFactory("ServerBoss"));
 
 	/**
 	 * ExecutorService Server Worker
 	 */
 	protected ExecutorService execServerWorker = Executors
-			.newCachedThreadPool();
+			.newCachedThreadPool(new WaarpThreadFactory("ServerWorker"));
 
 	/**
 	 * ExecutorService Other Worker
 	 */
 	protected ExecutorService execOtherWorker = Executors
-			.newCachedThreadPool();
+			.newCachedThreadPool(new WaarpThreadFactory("OtherWorker"));
 
 	/**
 	 * ChannelFactory for Server part

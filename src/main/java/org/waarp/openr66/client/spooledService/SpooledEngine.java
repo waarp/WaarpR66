@@ -23,6 +23,7 @@ package org.waarp.openr66.client.spooledService;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import org.waarp.common.future.WaarpFuture;
 import org.waarp.common.logging.WaarpInternalLogger;
@@ -31,8 +32,9 @@ import org.waarp.common.service.EngineAbstract;
 import org.waarp.common.utility.SystemPropertyUtil;
 import org.waarp.openr66.client.SpooledDirectoryTransfer;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.configuration.R66SystemProperties;
-import org.waarp.openr66.protocol.utils.R66ShutdownHook;
+import org.waarp.openr66.protocol.utils.ChannelUtils;
 
 /**
  * Engine used to start and stop the SpooledDirectory service
@@ -78,7 +80,7 @@ public class SpooledEngine extends EngineAbstract {
 					}
 				}
 			}
-			if (! SpooledDirectoryTransfer.initialize((String[]) array.toArray(), false)) {
+			if (! SpooledDirectoryTransfer.initialize((String[]) array.toArray(new String[]{}), false)) {
 				throw new Exception("Initialization in error");
 			}
 		} catch (Throwable e) {
@@ -92,7 +94,27 @@ public class SpooledEngine extends EngineAbstract {
 
 	@Override
 	public void shutdown() {
-		R66ShutdownHook.terminate(false);
+		logger.info("Shutdown");
+		for (SpooledDirectoryTransfer spooled : SpooledDirectoryTransfer.list) {
+			spooled.stop();
+		}
+		Configuration.configuration.TIMEOUTCON /= 10;
+		try {
+			while (! SpooledDirectoryTransfer.executorService.awaitTermination(Configuration.configuration.TIMEOUTCON, TimeUnit.MILLISECONDS)) {
+				Thread.sleep(Configuration.configuration.TIMEOUTCON);
+			}
+		} catch (InterruptedException e) {
+		}
+		for (SpooledDirectoryTransfer spooledDirectoryTransfer : SpooledDirectoryTransfer.list) {
+			logger.warn(Messages.getString("SpooledDirectoryTransfer.58")+spooledDirectoryTransfer.name+": "+spooledDirectoryTransfer.sent
+					+" success, "+spooledDirectoryTransfer.error
+					+Messages.getString("SpooledDirectoryTransfer.60")); //$NON-NLS-1$
+		}
+		SpooledDirectoryTransfer.list.clear();
+		logger.info("Shutdown network");
+		SpooledDirectoryTransfer.networkTransactionStatic.closeAll();
+		logger.info("All");
+		ChannelUtils.startShutdown();
 		closeFuture.setSuccess();
 		logger.info("SpooledDirectory Service stopped");
 	}
@@ -105,6 +127,7 @@ public class SpooledEngine extends EngineAbstract {
 	@Override
 	public boolean waitShutdown() throws InterruptedException {
 		closeFuture.await();
+		logger.info("Shutdown on going: "+closeFuture.isSuccess());
 		return closeFuture.isSuccess();
 	}
 }

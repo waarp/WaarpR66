@@ -30,6 +30,7 @@ import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.utility.WaarpThreadFactory;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
@@ -67,7 +68,7 @@ public class InternalRunner {
 		} else {
 			commander = new CommanderNoDb(this, true);
 		}
-		scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+		scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(new WaarpThreadFactory("InternalRunner"));
 		isRunning = true;
 		BlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<Runnable>(10);
 		threadPoolExecutor = new ThreadPoolExecutor(10, Configuration.configuration.RUNNER_THREAD,

@@ -46,6 +46,7 @@ import org.waarp.common.database.DbAdmin;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.utility.WaarpThreadFactory;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.context.R66Session;
@@ -123,19 +124,19 @@ public class NetworkTransaction {
 	 * ExecutorService for RetrieveOperation
 	 */
 	private static final ExecutorService retrieveExecutor = Executors
-			.newCachedThreadPool();
+			.newCachedThreadPool(new WaarpThreadFactory("RetrieveExecutor"));
 
 	/**
 	 * ExecutorService Server Boss
 	 */
 	private final ExecutorService execServerBoss = Executors
-			.newCachedThreadPool();
+			.newCachedThreadPool(new WaarpThreadFactory("ServerBossRetrieve"));
 
 	/**
 	 * ExecutorService Server Worker
 	 */
 	private final ExecutorService execServerWorker = Executors
-			.newCachedThreadPool();
+			.newCachedThreadPool(new WaarpThreadFactory("ServerWorkerRetrieve"));
 
 	private final ChannelFactory channelClientFactory = new NioClientSocketChannelFactory(
 			execServerBoss,
@@ -621,8 +622,10 @@ public class NetworkTransaction {
 		}
 		DbAdmin.closeAllConnection();
 		Configuration.configuration.clientStop();
-		logger.debug("Last action before exit");
-		ChannelUtils.stopLogger();
+		if (! Configuration.configuration.isServer) {
+			logger.debug("Last action before exit");
+			ChannelUtils.stopLogger();
+		}
 	}
 
 	/**

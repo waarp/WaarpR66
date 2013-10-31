@@ -436,6 +436,7 @@ public class ChannelUtils extends Thread {
 		Configuration.configuration.serverStop();
 		logger.warn(Messages.getString("ChannelUtils.15")); //$NON-NLS-1$
 		System.err.println(Messages.getString("ChannelUtils.15")); //$NON-NLS-1$
+		stopLogger();
 		//Thread.currentThread().interrupt();
 	}
 
@@ -459,6 +460,9 @@ public class ChannelUtils extends Thread {
 	 * Start Shutdown
 	 */
 	public final static void startShutdown() {
+		if (R66ShutdownHook.isInShutdown()) {
+			return;
+		}
 		Thread thread = new Thread(new ChannelUtils(), "R66 Shutdown Thread");
 		thread.setDaemon(false);
 		thread.start();
