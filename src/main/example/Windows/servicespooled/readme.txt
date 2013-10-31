@@ -1,6 +1,7 @@
 
 Install prunmgr.exe and prunsrv.exe in the sub directory windows to be able to run Waarp R66 as a service under Windows.
 Fix the service.bat file to fit your installation.
+Note that you must use the correct version (32 or 64 bits) according to your system, and the same for the JVM used.
 
 See:
 http://commons.apache.org/proper/commons-daemon/binaries.html
