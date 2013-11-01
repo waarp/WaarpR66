@@ -20,8 +20,8 @@ package org.waarp.openr66.context.task;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.filemonitor.FileMonitor.FileItem;
@@ -52,7 +52,7 @@ public class SpooledInformTask extends AbstractExecJavaTask {
 	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
 			.getLogger(SpooledInformTask.class);
 
-	public static HashMap<String, SpooledInformation> spooledInformationMap = new HashMap<String, SpooledInformTask.SpooledInformation>();
+	public static TreeMap<String, SpooledInformation> spooledInformationMap = new TreeMap<String, SpooledInformTask.SpooledInformation>();
 	
 	public static class SpooledInformation {
 		public String host;
