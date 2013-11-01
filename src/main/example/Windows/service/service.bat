@@ -1,4 +1,4 @@
-@echo on
+@echo off
 
 rem -- DO NOT CHANGE THIS ! OR YOU REALLY KNOW WHAT YOU ARE DOING ;)
 

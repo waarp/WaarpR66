@@ -298,10 +298,11 @@ public class SpooledDirectoryTransfer implements Runnable {
 			};
 			monitor.setCommandValidFileFactory(factory, limitParallelTasks);
 		}
+		final FileMonitor monitorArg = monitor;
 		if (waarpHosts != null && ! waarpHosts.isEmpty()) {
 			waarpHostCommand = new FileMonitorCommandRunnableFuture() {
 				public void run(FileItem notused) {
-					String status = monitor.getStatus();
+					String status = monitorArg.getStatus();
 					for (String host : waarpHosts) {
 						host = host.trim();
 						if (host != null && ! host.isEmpty()) {
@@ -365,37 +366,37 @@ public class SpooledDirectoryTransfer implements Runnable {
 					R66Future future = new R66Future(true);
 					String text = null;
 					if (submit) {
-						text = "Submit Transfer";
+						text = "Submit Transfer: ";
 						SubmitTransfer transaction = new SubmitTransfer(future,
 								host, filename, rulename, fileinfo, isMD5, blocksize, 
 								specialId, null);
-						logger.info("SubmitTransfer: "+host);
+						logger.info(text+host);
 						transaction.run();
 					} else {
 						if (specialId != DbConstant.ILLEGALVALUE) {
-							text = "Request Transfer Restart";
+							text = "Request Transfer Restart: ";
 							try {
 								String srequester = Configuration.configuration.getHostId(DbConstant.admin.session,
 										host);
 								RequestTransfer transaction = new RequestTransfer(future, specialId, host, srequester, 
 										false, false, true, networkTransaction);
-								logger.info("RequestTransfer: "+host);
+								logger.info(text+host);
 								transaction.run();
 							} catch (WaarpDatabaseException e) {
 								logger.warn(Messages.getString("RequestTransfer.5") + host, e); //$NON-NLS-1$
-								text = "Direct Transfer";
+								text = "Direct Transfer: ";
 								DirectTransfer transaction = new DirectTransfer(future,
 										host, filename, rulename, fileinfo, isMD5, blocksize, 
 										specialId, networkTransaction);
-								logger.info("DirectTransfer2: "+host);
+								logger.info(text+host);
 								transaction.run();
 							}
 						} else {
-							text = "Direct Transfer";
+							text = "Direct Transfer: ";
 							DirectTransfer transaction = new DirectTransfer(future,
 									host, filename, rulename, fileinfo, isMD5, blocksize,
 									specialId, networkTransaction);
-							logger.info("DirectTransfer: "+host);
+							logger.info(text+host);
 							transaction.run();
 						}
 					}
@@ -413,7 +414,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 								if (runner.getErrorInfo() == ErrorCode.Warning) {
 									status = Messages.getString("RequestInformation.Warned"); //$NON-NLS-1$
 								}
-								logger.warn(text+" in status: "+status+"     "
+								logger.warn(text+" status: "+status+"     "
 										+ runner.toShortString()
 										+"     <REMOTE>"+ host+ "</REMOTE>"
 										+"     <FILEFINAL>"+

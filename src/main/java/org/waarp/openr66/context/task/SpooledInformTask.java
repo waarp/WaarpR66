@@ -125,7 +125,7 @@ public class SpooledInformTask extends AbstractExecJavaTask {
 		builder.append(uri);
 		builder.append(">SpooledDirectory daemons information</A></CAPTION>");
 		// title first
-		builder.append("<TR><TH>Name</TH><TH>Host</TH><TH>Last Time</TH><TH>Elapse</TH><TH>StopFile</TH><TH>StatusFile</TH><TH>SubDir</TH><TH>Directories</TH><TH>Files</TH></TR>");
+		builder.append("<TR><TH>Name</TH><TH>Host</TH><TH>Last Time</TH><TH>Statistics</TH><TH>Elapse</TH><TH>StopFile</TH><TH>StatusFile</TH><TH>SubDir</TH><TH>Directories</TH><TH>Files</TH></TR>");
 		// get current information
 		Set<String> names = spooledInformationMap.keySet();
 		for (String name : names) {
@@ -150,6 +150,15 @@ public class SpooledInformTask extends AbstractExecJavaTask {
 				builder.append(inform.lastUpdate);
 				builder.append("</TD>");
 				if (inform.fileMonitorInformation != null) {
+					builder.append("<TD>AllOk:");
+					builder.append(inform.fileMonitorInformation.globalok);
+					builder.append(" AllError:");
+					builder.append(inform.fileMonitorInformation.globalerror);
+					builder.append("<br>TodayOk:");
+					builder.append(inform.fileMonitorInformation.todayok);
+					builder.append(" TodayError:");
+					builder.append(inform.fileMonitorInformation.todayerror);
+					builder.append("</TD>");
 					builder.append("<TD>");
 					builder.append(inform.fileMonitorInformation.elapseTime);
 					builder.append("</TD>");
