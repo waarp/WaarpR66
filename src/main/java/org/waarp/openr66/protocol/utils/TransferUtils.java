@@ -197,7 +197,7 @@ public class TransferUtils {
 		taskRunner.setErrorExecutionStatus(result);
 		if (builder != null) {
 			builder.append(taskRunner.toSpecializedHtml(session, body,
-					lcr != null ? "Active" : "NotActive"));
+					lcr != null ? Messages.getString("HttpSslHandler.Active") : Messages.getString("HttpSslHandler.NotActive")));
 		}
 		taskRunner.setErrorExecutionStatus(last);
 	}
@@ -303,7 +303,7 @@ public class TransferUtils {
 					Configuration.configuration.getLocalTransaction().
 							getFromRequest(taskRunner.getKey());
 			builder.append(taskRunner.toSpecializedHtml(session, body,
-					lcr != null ? "Active" : "NotActive"));
+					lcr != null ? Messages.getString("HttpSslHandler.Active") : Messages.getString("HttpSslHandler.NotActive")));
 		}
 	}
 	/**

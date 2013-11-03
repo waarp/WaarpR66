@@ -19,8 +19,14 @@ package org.waarp.openr66.protocol.http;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Set;
+import java.util.TimeZone;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.handler.codec.http.Cookie;
@@ -42,7 +48,21 @@ import org.jboss.netty.handler.stream.ChunkedNioFile;
  * 
  */
 public class HttpWriteCacheEnable {
+	/**
+     * US locale - all HTTP dates are in english
+     */
+    public final static Locale LOCALE_US = Locale.US;
 
+    /**
+     * GMT timezone - all HTTP dates are on GMT
+     */
+    public final static TimeZone GMT_ZONE = TimeZone.getTimeZone("GMT");
+
+    /**
+     * format for RFC 1123 date string -- "Sun, 06 Nov 1994 08:49:37 GMT"
+     */
+    public final static String RFC1123_PATTERN =
+        "EEE, dd MMM yyyyy HH:mm:ss z";
 	/**
 	 * Write a file, taking into account cache enabled and removing session cookie
 	 * 
@@ -55,13 +75,6 @@ public class HttpWriteCacheEnable {
 			String cookieNameToRemove) {
 		// Convert the response content to a ChannelBuffer.
         HttpResponse response;
-        if (request.containsHeader(HttpHeaders.Names.IF_MODIFIED_SINCE)) {
-            response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
-                    HttpResponseStatus.NOT_MODIFIED);
-            handleCookies(request, response, cookieNameToRemove);
-            channel.write(response);
-            return;
-        }
         File file = new File(filename);
         if (!file.isFile() || !file.canRead()) {
             response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
@@ -69,6 +82,23 @@ public class HttpWriteCacheEnable {
             handleCookies(request, response, cookieNameToRemove);
             channel.write(response);
             return;
+        }
+        DateFormat rfc1123Format = new SimpleDateFormat(RFC1123_PATTERN, LOCALE_US);
+        rfc1123Format.setTimeZone(GMT_ZONE);
+        Date lastModifDate = new Date(file.lastModified());
+        if (request.containsHeader(HttpHeaders.Names.IF_MODIFIED_SINCE)) {
+        	String sdate = request.getHeader(HttpHeaders.Names.IF_MODIFIED_SINCE);
+        	try {
+				Date ifmodif = rfc1123Format.parse(sdate);
+				if (ifmodif.after(lastModifDate)) {
+		            response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
+		                    HttpResponseStatus.NOT_MODIFIED);
+		            handleCookies(request, response, cookieNameToRemove);
+		            channel.write(response);
+		            return;
+				}
+			} catch (ParseException e) {
+			}
         }
         long size = file.length();
         ChunkedNioFile nioFile;
@@ -87,10 +117,10 @@ public class HttpWriteCacheEnable {
                 String.valueOf(size));
         ArrayList<String> cache_control = new ArrayList<String>(2);
         cache_control.add(HttpHeaders.Values.PUBLIC);
-        cache_control.add(HttpHeaders.Values.MAX_AGE + "=" + 31536000);// 1 year
+        cache_control.add(HttpHeaders.Values.MAX_AGE + "=" + 604800);// 1 week
         response.setHeader(HttpHeaders.Names.CACHE_CONTROL, cache_control);
         response.setHeader(HttpHeaders.Names.LAST_MODIFIED,
-                "Tue, 15 Nov 1994 12:45:26 GMT");
+                rfc1123Format.format(lastModifDate));
         handleCookies(request, response, cookieNameToRemove);
         // Write the response.
         channel.write(response);

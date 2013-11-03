@@ -4,3 +4,5 @@ Dans votre fichier XML de configuration, positionnez server/httpadmin au reperto
 - en-light : light version of english Web waarp administrator
 - en : full version in english
 - fr : version complete en francais
+- i18n : adaptable version, and dynamic (fr,en supported) PREFERED VERSION
+

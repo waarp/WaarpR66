@@ -261,7 +261,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 				NetworkTransaction.removeNetworkChannel(e.getChannel(), null, null);
 				return;
 			} catch (OpenR66ProtocolRemoteShutdownException e1) {
-				logger.warn("Will Close Local from Network Channel");
+				logger.info("Will Close Local from Network Channel");
 				Configuration.configuration.getLocalTransaction()
 						.closeLocalChannelsFromNetworkChannel(e.getChannel());
 				WaarpSslUtility.closingSslChannel(e.getChannel());

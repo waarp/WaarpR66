@@ -22,6 +22,7 @@ import java.net.SocketAddress;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -121,10 +122,12 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 	private final StringBuilder responseContent = new StringBuilder();
 	private volatile String uriRequest;
 	private volatile Map<String, List<String>> params;
+	private volatile String lang = Messages.slocale;
 	private volatile boolean forceClose = false;
 	private volatile boolean shutdown = false;
 
 	private static final String R66SESSION = "R66SESSION";
+	private static final String I18NEXT = "i18next";
 
 	private static enum REQUEST {
 		Logon("Logon.html"),
@@ -218,7 +221,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		XXXXDELAYCOMMDXXX, XXXXDELAYRETRYXXX,
 		XXXLOCALXXX, XXXNETWORKXXX,
 		XXXERRORMESGXXX,
-		XXXXBUSINESSXXX, XXXXROLESXXX, XXXXALIASESXXX, XXXXOTHERXXX, XXXLIMITROWXXX;
+		XXXXBUSINESSXXX, XXXXROLESXXX, XXXXALIASESXXX, XXXXOTHERXXX, XXXLIMITROWXXX, 
+		XXXLANGXXX, XXXCURLANGENXXX, XXXCURLANGFRXXX, XXXCURSYSLANGENXXX, XXXCURSYSLANGFRXXX;
 	}
 
 	public static final String sLIMITROW = "LIMITROW";
@@ -267,11 +271,12 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		TrafficCounter trafficCounter =
 				Configuration.configuration.getGlobalTrafficShapingHandler().getTrafficCounter();
 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXBANDWIDTHXXX.toString(),
-				"IN:" + (trafficCounter.getLastReadThroughput() >> 17) +
-						"Mbits&nbsp;<br>&nbsp;OUT:" +
+				Messages.getString("HttpSslHandler.IN") + (trafficCounter.getLastReadThroughput() >> 17) + //$NON-NLS-1$
+						Messages.getString("HttpSslHandler.OUT") + //$NON-NLS-1$
 						(trafficCounter.getLastWriteThroughput() >> 17) + "Mbits");
 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXLIMITROWXXX.toString(),
 				""+LIMITROW);
+		WaarpStringUtils.replace(builder, REPLACEMENT.XXXLANGXXX.toString(), lang);
 		return builder.toString();
 	}
 
@@ -403,7 +408,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 									Configuration.configuration.getLocalTransaction().
 											getFromRequest(taskRunner.getKey());
 							builder.append(taskRunner.toSpecializedHtml(authentHttp, body,
-									lcr != null ? "Active" : "NotActive"));
+									lcr != null ? Messages.getString("HttpSslHandler.Active") : Messages.getString("HttpSslHandler.NotActive")));
 							if (i > LIMITROW) {
 								break;
 							}
@@ -513,7 +518,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 									Configuration.configuration.getLocalTransaction().
 											getFromRequest(taskRunner.getKey());
 							builder.append(taskRunner.toSpecializedHtml(authentHttp, body,
-									lcr != null ? "Active" : "NotActive"));
+									lcr != null ? Messages.getString("HttpSslHandler.Active") : Messages.getString("HttpSslHandler.NotActive")));
 							if (i > LIMITROW) {
 								break;
 							}
@@ -608,7 +613,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 								ErrorCode last = taskRunner.getErrorInfo();
 								taskRunner.setErrorExecutionStatus(result);
 								builder.append(taskRunner.toSpecializedHtml(authentHttp, body,
-										lcr != null ? "Active" : "NotActive"));
+										lcr != null ? Messages.getString("HttpSslHandler.Active") : Messages.getString("HttpSslHandler.NotActive")));
 								taskRunner.setErrorExecutionStatus(last);
 								/*if (i > LIMITROW) {
 									break;
@@ -700,7 +705,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					}
 					body = REQUEST.CancelRestart.readBody();
 					body = taskRunner.toSpecializedHtml(authentHttp, body,
-							lcr != null ? "Active" : "NotActive");
+							lcr != null ? Messages.getString("HttpSslHandler.Active") : Messages.getString("HttpSslHandler.NotActive")); //$NON-NLS-1$ //$NON-NLS-2$
 					String tstart = taskRunner.getStart().toString();
 					tstart = tstart.substring(0, tstart.length());
 					String tstop = taskRunner.getStop().toString();
@@ -741,7 +746,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					comment = (String) finalResult.other;
 					body = REQUEST.CancelRestart.readBody();
 					body = taskRunner.toSpecializedHtml(authentHttp, body,
-							lcr != null ? "Active" : "NotActive");
+							lcr != null ? Messages.getString("HttpSslHandler.Active") : Messages.getString("HttpSslHandler.NotActive")); //$NON-NLS-1$ //$NON-NLS-2$
 					String tstart = taskRunner.getStart().toString();
 					tstart = tstart.substring(0, tstart.length());
 					String tstop = taskRunner.getStop().toString();
@@ -1482,6 +1487,18 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		StringBuilder builder = SpooledInformTask.buildSpooledTable(detailed, uri);
 		return spooled.replace("XXXSPOOLEDXXX", builder.toString());
 	}
+	
+	/**
+	 * Applied current lang to system page
+	 * @param builder
+	 */
+	private void langHandle(StringBuilder builder) {
+		// i18n: add here any new languages
+		WaarpStringUtils.replace(builder, REPLACEMENT.XXXCURLANGENXXX.name(), lang.equalsIgnoreCase("en") ? "checked" : "");
+		WaarpStringUtils.replace(builder, REPLACEMENT.XXXCURLANGFRXXX.name(), lang.equalsIgnoreCase("fr") ? "checked" : "");
+		WaarpStringUtils.replace(builder, REPLACEMENT.XXXCURSYSLANGENXXX.name(), Messages.slocale.equalsIgnoreCase("en") ? "checked" : "");
+		WaarpStringUtils.replace(builder, REPLACEMENT.XXXCURSYSLANGFRXXX.name(), Messages.slocale.equalsIgnoreCase("fr") ? "checked" : "");
+	}
 
 	private String System() {
 		getParams();
@@ -1519,16 +1536,22 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITRXXX.toString(),
 					Long.toString(Configuration.configuration.serverGlobalReadLimit));
 			WaarpStringUtils.replace(builder, "XXXBLOCKXXX", Configuration.configuration.isShutdown ? "checked" : "");
+			langHandle(builder);
 			return builder.toString();
 		}
 		String extraInformation = null;
 		if (params.containsKey("ACTION")) {
 			List<String> action = params.get("ACTION");
 			for (String act : action) {
-				if (act.equalsIgnoreCase("ExportConfig")) {
+				if (act.equalsIgnoreCase("Language")) {
+					lang = getTrimValue("change");
+					String sys = getTrimValue("changesys");
+					Messages.init(new Locale(sys));
+					extraInformation = Messages.getString("HttpSslHandler.LangIs")+"Web: "+lang+" OpenR66: "+Messages.slocale; //$NON-NLS-1$
+				} else if (act.equalsIgnoreCase("ExportConfig")) {
 					String directory = Configuration.configuration.baseDirectory +
 							R66Dir.SEPARATOR + Configuration.configuration.archivePath;
-					extraInformation = "Export Directory: " + directory + "<br>";
+					extraInformation = Messages.getString("HttpSslHandler.ExportDir") + directory + "<br>"; //$NON-NLS-1$
 					try {
 						RuleFileBasedConfiguration.writeXml(directory,
 								Configuration.configuration.HOST_ID);
@@ -1673,6 +1696,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITRXXX.toString(),
 				Long.toString(Configuration.configuration.serverGlobalReadLimit));
 		WaarpStringUtils.replace(builder, "XXXBLOCKXXX", Configuration.configuration.isShutdown ? "checked" : "");
+		langHandle(builder);
 		if (extraInformation != null) {
 			builder.append(extraInformation);
 		}
@@ -1839,7 +1863,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		uriRequest = queryStringDecoder.getPath();
 		logger.debug("Msg: " + uriRequest);
 		if (uriRequest.contains("gre/") || uriRequest.contains("img/") ||
-				uriRequest.contains("res/")) {
+				uriRequest.contains("res/") || uriRequest.contains("favicon.ico")) {
 			HttpWriteCacheEnable.writeFile(request,
 					e.getChannel(), Configuration.configuration.httpBasePath + uriRequest,
 					R66SESSION);
@@ -1941,6 +1965,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 
 	private void handleCookies(HttpResponse response) {
 		String cookieString = request.getHeader(HttpHeaders.Names.COOKIE);
+		boolean i18nextFound = false;
 		if (cookieString != null) {
 			CookieDecoder cookieDecoder = new CookieDecoder();
 			Set<Cookie> cookies = cookieDecoder.decode(cookieString);
@@ -1958,11 +1983,23 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 							response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
 							cookieEncoder = new CookieEncoder(true);
 						}
+					} else if (cookie.getName().equalsIgnoreCase(I18NEXT)) {
+						i18nextFound = true;
+						cookie.setValue(lang);
+						cookieEncoder.addCookie(cookie);
+						response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+						cookieEncoder = new CookieEncoder(true);
 					} else {
 						cookieEncoder.addCookie(cookie);
 						response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
 						cookieEncoder = new CookieEncoder(true);
 					}
+				}
+				if (! i18nextFound) {
+					Cookie cookie = new DefaultCookie(I18NEXT, lang);
+					cookieEncoder.addCookie(cookie);
+					response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+					cookieEncoder = new CookieEncoder(true);
 				}
 				newSession = false;
 				if (!findSession) {
@@ -1973,11 +2010,17 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					}
 				}
 			}
-		} else if (admin != null) {
+		} else {
 			CookieEncoder cookieEncoder = new CookieEncoder(true);
-			cookieEncoder.addCookie(admin);
-			logger.debug("AddSession: " + uriRequest + ":{}", admin);
+			Cookie cookie = new DefaultCookie(I18NEXT, lang);
+			cookieEncoder.addCookie(cookie);
 			response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+			if (admin != null) {
+				cookieEncoder = new CookieEncoder(true);
+				cookieEncoder.addCookie(admin);
+				logger.debug("AddSession: " + uriRequest + ":{}", admin);
+				response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+			}
 		}
 	}
 

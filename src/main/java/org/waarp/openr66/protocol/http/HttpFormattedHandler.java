@@ -36,6 +36,7 @@ import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.handler.codec.http.Cookie;
 import org.jboss.netty.handler.codec.http.CookieDecoder;
 import org.jboss.netty.handler.codec.http.CookieEncoder;
+import org.jboss.netty.handler.codec.http.DefaultCookie;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMethod;
@@ -64,6 +65,7 @@ import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.database.data.DbTaskRunner.TASKSTEP;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.exception.OpenR66Exception;
 import org.waarp.openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
@@ -135,7 +137,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 	}
 
 	private static enum REPLACEMENT {
-		XXXHOSTIDXXX, XXXLOCACTIVEXXX, XXXNETACTIVEXXX, XXXBANDWIDTHXXX, XXXDATEXXX;
+		XXXHOSTIDXXX, XXXLOCACTIVEXXX, XXXNETACTIVEXXX, XXXBANDWIDTHXXX, XXXDATEXXX, XXXLANGXXX;
 	}
 
 	public static final int LIMITROW = 60; // better
@@ -146,8 +148,11 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 											// divided
 											// by
 											// 4
-
+	private static final String I18NEXT = "i18next";
+	
 	public final R66Session authentHttp = new R66Session();
+
+	private volatile String lang = Messages.slocale;
 
 	private volatile HttpRequest request;
 
@@ -204,6 +209,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 				"IN:" + (trafficCounter.getLastReadThroughput() / 131072) +
 						"Mbits&nbsp;&nbsp;OUT:" +
 						(trafficCounter.getLastWriteThroughput() / 131072) + "Mbits");
+		WaarpStringUtils.replace(builder, REPLACEMENT.XXXLANGXXX.toString(), lang);
 		return builder.toString();
 	}
 
@@ -242,7 +248,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 		uriRequest = queryStringDecoder.getPath();
 		logger.debug("Msg: " + uriRequest);
 		if (uriRequest.contains("gre/") || uriRequest.contains("img/") ||
-				uriRequest.contains("res/")) {
+				uriRequest.contains("res/") || uriRequest.contains("favicon.ico")) {
 			HttpWriteCacheEnable.writeFile(request,
 					e.getChannel(), Configuration.configuration.httpBasePath + uriRequest,
 					"XYZR66NOSESSION");
@@ -313,6 +319,10 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 				} catch (Exception e1) {
 				}
 			}
+			String langarg = getTrimValue("setLng");
+			if (langarg != null && ! langarg.isEmpty()) {
+				lang = langarg;
+			}
 		}
 		if (getMenu) {
 			responseContent.append(REQUEST.index.readFileUnique(this));
@@ -379,7 +389,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 						Configuration.configuration.getLocalTransaction().
 								getFromRequest(taskRunner.getKey());
 				responseContent.append(taskRunner.toHtml(authentHttp,
-						lcr != null ? "Active" : "NotActive"));
+						lcr != null ? Messages.getString("HttpSslHandler.Active") : Messages.getString("HttpSslHandler.NotActive")));
 				responseContent.append("</tr>\r\n");
 				if (nb > 0) {
 					i++;
@@ -648,20 +658,39 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 		if (cookieString != null) {
 			CookieDecoder cookieDecoder = new CookieDecoder();
 			Set<Cookie> cookies = cookieDecoder.decode(cookieString);
+			boolean i18nextFound = false;
 			if (!cookies.isEmpty()) {
 				// Reset the cookies if necessary.
 				CookieEncoder cookieEncoder = new CookieEncoder(true);
 				for (Cookie cookie : cookies) {
+					if (cookie.getName().equalsIgnoreCase(I18NEXT)) {
+						i18nextFound = true;
+						cookie.setValue(lang);
+						cookieEncoder.addCookie(cookie);
+						response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+						cookieEncoder = new CookieEncoder(true);
+					} else {
+						cookieEncoder.addCookie(cookie);
+						response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+						cookieEncoder = new CookieEncoder(true);
+					}
+				}
+				if (! i18nextFound) {
+					Cookie cookie = new DefaultCookie(I18NEXT, lang);
 					cookieEncoder.addCookie(cookie);
 					response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
-					cookieEncoder = new CookieEncoder(true);
 				}
+			}
+			if (! i18nextFound) {
+				Cookie cookie = new DefaultCookie(I18NEXT, lang);
+				CookieEncoder cookieEncoder = new CookieEncoder(true);
+				cookieEncoder.addCookie(cookie);
+				response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
 			}
 		}
 
 		// Write the response.
 		ChannelFuture future = e.getChannel().write(response);
-
 		// Close the connection after the write operation is done if necessary.
 		if (close) {
 			future.addListener(ChannelFutureListener.CLOSE);

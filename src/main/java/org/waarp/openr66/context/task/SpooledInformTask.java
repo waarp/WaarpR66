@@ -31,6 +31,7 @@ import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.openr66.context.task.AbstractExecJavaTask;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.packet.BusinessRequestPacket;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
@@ -123,9 +124,33 @@ public class SpooledInformTask extends AbstractExecJavaTask {
 		StringBuilder builder = new StringBuilder();
 		builder.append("<TABLE BORDER=1><CAPTION><A HREF=");
 		builder.append(uri);
-		builder.append(">SpooledDirectory daemons information</A></CAPTION>");
+		if (detailed) {
+			builder.append(Messages.getString("SpooledInformTask.TitleDetailed")); //$NON-NLS-1$
+		} else {
+			builder.append(Messages.getString("SpooledInformTask.TitleNormal")); //$NON-NLS-1$
+		}
 		// title first
-		builder.append("<TR><TH>Name</TH><TH>Host</TH><TH>Last Time</TH><TH>Statistics</TH><TH>Elapse</TH><TH>StopFile</TH><TH>StatusFile</TH><TH>SubDir</TH><TH>Directories</TH><TH>Files</TH></TR>");
+		builder.append("<TR><TH>");
+		builder.append(Messages.getString("SpooledInformTask.0")); //$NON-NLS-1$
+		builder.append("</TH><TH>");
+		builder.append(Messages.getString("SpooledInformTask.1")); //$NON-NLS-1$
+		builder.append("</TH><TH>");
+		builder.append(Messages.getString("SpooledInformTask.2")); //$NON-NLS-1$
+		builder.append("</TH><TH>");
+		builder.append(Messages.getString("SpooledInformTask.3")); //$NON-NLS-1$
+		builder.append("</TH><TH>");
+		builder.append(Messages.getString("SpooledInformTask.4")); //$NON-NLS-1$
+		builder.append("</TH><TH>");
+		builder.append(Messages.getString("SpooledInformTask.5")); //$NON-NLS-1$
+		builder.append("</TH><TH>");
+		builder.append(Messages.getString("SpooledInformTask.6")); //$NON-NLS-1$
+		builder.append("</TH><TH>");
+		builder.append(Messages.getString("SpooledInformTask.7")); //$NON-NLS-1$
+		builder.append("</TH><TH>");
+		builder.append(Messages.getString("SpooledInformTask.8")); //$NON-NLS-1$
+		builder.append("</TH><TH>");
+		builder.append(Messages.getString("SpooledInformTask.9")); //$NON-NLS-1$
+		builder.append("</TH></TR>");
 		// get current information
 		Set<String> names = spooledInformationMap.keySet();
 		for (String name : names) {
@@ -150,13 +175,13 @@ public class SpooledInformTask extends AbstractExecJavaTask {
 				builder.append(inform.lastUpdate);
 				builder.append("</TD>");
 				if (inform.fileMonitorInformation != null) {
-					builder.append("<TD>AllOk:");
+					builder.append(Messages.getString("SpooledInformTask.AllOk")); //$NON-NLS-1$
 					builder.append(inform.fileMonitorInformation.globalok);
-					builder.append(" AllError:");
+					builder.append(Messages.getString("SpooledInformTask.AllError")); //$NON-NLS-1$
 					builder.append(inform.fileMonitorInformation.globalerror);
-					builder.append("<br>TodayOk:");
+					builder.append(Messages.getString("SpooledInformTask.TodayOk")); //$NON-NLS-1$
 					builder.append(inform.fileMonitorInformation.todayok);
-					builder.append(" TodayError:");
+					builder.append(Messages.getString("SpooledInformTask.TodayError")); //$NON-NLS-1$
 					builder.append(inform.fileMonitorInformation.todayerror);
 					builder.append("</TD>");
 					builder.append("<TD>");
@@ -179,7 +204,19 @@ public class SpooledInformTask extends AbstractExecJavaTask {
 					builder.append(dirs);
 					builder.append("</TD>");
 					if (detailed && inform.fileMonitorInformation.fileItems != null) {
-						builder.append("<TD><TABLE BORDER=1><TR><TH>File</TH><TH>Hash</TH><TH>LastTimeModif</TH><TH>TimeUsed</TH><TH>Used</TH><TH>SpecialId</TH></TR>");
+						builder.append("<TD><TABLE BORDER=1><TR><TH>");
+						builder.append(Messages.getString("SpooledInformTask.10")); //$NON-NLS-1$
+						builder.append("</TH><TH>");
+						builder.append(Messages.getString("SpooledInformTask.11")); //$NON-NLS-1$
+						builder.append("</TH><TH>");
+						builder.append(Messages.getString("SpooledInformTask.12")); //$NON-NLS-1$
+						builder.append("</TH><TH>");
+						builder.append(Messages.getString("SpooledInformTask.13")); //$NON-NLS-1$
+						builder.append("</TH><TH>");
+						builder.append(Messages.getString("SpooledInformTask.14")); //$NON-NLS-1$
+						builder.append("</TH><TH>");
+						builder.append(Messages.getString("SpooledInformTask.15")); //$NON-NLS-1$
+						builder.append("</TH></TR>");
 						for (FileItem fileItem : inform.fileMonitorInformation.fileItems.values()) {
 							builder.append("<TR><TD>");
 							builder.append(fileItem.file);

@@ -6,25 +6,31 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 import org.waarp.common.utility.SystemPropertyUtil;
+import org.waarp.openr66.context.ErrorCode;
 
 public class Messages {
 	private static final String BUNDLE_NAME = "messages"; //$NON-NLS-1$
 
 	private static ResourceBundle RESOURCE_BUNDLE = null;
-
+	public static String slocale = "en";
+	
 	static {
-		String locale = SystemPropertyUtil.get(R66SystemProperties.OPENR66_LOCALE, "en");
-		if (locale == null || locale.isEmpty()) {
-			locale = "en";
+		slocale = SystemPropertyUtil.get(R66SystemProperties.OPENR66_LOCALE, "en");
+		if (slocale == null || slocale.isEmpty()) {
+			slocale = "en";
 		}
-		init(new Locale(locale));
+		init(new Locale(slocale));
 	}
 	
 	public static void init(Locale locale) {
 		if (locale == null) {
-			locale = new Locale("en");
+			slocale = "en";
+			locale = new Locale(slocale);
+		} else {
+			slocale = locale.getLanguage();
 		}
 		RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME, locale);
+		ErrorCode.updateLang();
 	}
 
 	public static String getString(String key) {

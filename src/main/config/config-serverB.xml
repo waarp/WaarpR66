@@ -14,7 +14,7 @@
         <usessl>False</usessl>
         <usehttpcomp>False</usehttpcomp>
         <uselocalexec>False</uselocalexec>
-        <httpadmin>D:\NEWSOURCE\GoldenGateR66\src\main\admin</httpadmin>
+        <httpadmin>D:\GG\R66\httpadmin\i18n</httpadmin>
         <admkeypath>D:\GG\R66\certs\testsslnocert.jks</admkeypath>
         <admkeystorepass>testsslnocert</admkeystorepass>
         <admkeypass>testalias</admkeypass>
