@@ -28,6 +28,8 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.TimeZone;
 
+import javax.activation.MimetypesFileTypeMap;
+
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.handler.codec.http.Cookie;
 import org.jboss.netty.handler.codec.http.CookieDecoder;
@@ -63,6 +65,23 @@ public class HttpWriteCacheEnable {
      */
     public final static String RFC1123_PATTERN =
         "EEE, dd MMM yyyyy HH:mm:ss z";
+    /**
+     * set MIME TYPE if possible
+     */
+    public static final MimetypesFileTypeMap mimetypesFileTypeMap = new MimetypesFileTypeMap();
+    static {
+    	mimetypesFileTypeMap.addMimeTypes("text/css css CSS");
+    	mimetypesFileTypeMap.addMimeTypes("text/javascript js JS");
+    	//Official but not supported mimetypesFileTypeMap.addMimeTypes("application/javascript js JS");
+    	mimetypesFileTypeMap.addMimeTypes("application/json json JSON");
+    	mimetypesFileTypeMap.addMimeTypes("text/plain txt text TXT");
+    	mimetypesFileTypeMap.addMimeTypes("text/html htm html HTM HTML htmls htx");
+    	mimetypesFileTypeMap.addMimeTypes("image/jpeg jpe jpeg jpg JPG");
+    	mimetypesFileTypeMap.addMimeTypes("image/png png PNG");
+    	mimetypesFileTypeMap.addMimeTypes("image/gif gif GIF");
+    	mimetypesFileTypeMap.addMimeTypes("image/x-icon ico ICO");
+    }
+
 	/**
 	 * Write a file, taking into account cache enabled and removing session cookie
 	 * 
@@ -115,6 +134,11 @@ public class HttpWriteCacheEnable {
                 HttpResponseStatus.OK);
         response.setHeader(HttpHeaders.Names.CONTENT_LENGTH,
                 String.valueOf(size));
+        
+        String type = mimetypesFileTypeMap.getContentType(filename);
+        System.err.println("MT: "+type + ": "+filename);
+        
+        response.setHeader(HttpHeaders.Names.CONTENT_TYPE, type);
         ArrayList<String> cache_control = new ArrayList<String>(2);
         cache_control.add(HttpHeaders.Values.PUBLIC);
         cache_control.add(HttpHeaders.Values.MAX_AGE + "=" + 604800);// 1 week

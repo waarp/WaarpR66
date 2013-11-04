@@ -1045,24 +1045,6 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					body = dbhost.toSpecializedHtml(authentHttp, body, false);
 					body += Messages.getString("HttpSslHandler.18"); //$NON-NLS-1$
 				} else {
-					/*boolean resultShutDown = false;
-					if (!dbhost.isClient()) {
-						SocketAddress socketAddress = dbhost.getSocketAddress();
-						resultShutDown =
-								NetworkTransaction.shuttingdownNetworkChannel(socketAddress, null);
-					}
-					resultShutDown = resultShutDown ||
-							NetworkTransaction.shuttingdownNetworkChannels(host);
-					if (resultShutDown) {
-						body = dbhost.toSpecializedHtml(authentHttp, body, false);
-						body += Messages.getString("HttpSslHandler.19") //$NON-NLS-1$
-								+
-								result.getResult().code.mesg + "</b></center></p>";
-					} else {
-						body = dbhost.toSpecializedHtml(authentHttp, body, false);
-						body += Messages.getString("HttpSslHandler.20") + //$NON-NLS-1$
-								result.getResult().code.mesg + "</b></center></p>";
-					}*/
 					body = dbhost.toSpecializedHtml(authentHttp, body, false);
 					body += Messages.getString("HttpSslHandler.19") //$NON-NLS-1$
 							+
