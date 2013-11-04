@@ -136,8 +136,6 @@ public class HttpWriteCacheEnable {
                 String.valueOf(size));
         
         String type = mimetypesFileTypeMap.getContentType(filename);
-        System.err.println("MT: "+type + ": "+filename);
-        
         response.setHeader(HttpHeaders.Names.CONTENT_TYPE, type);
         ArrayList<String> cache_control = new ArrayList<String>(2);
         cache_control.add(HttpHeaders.Values.PUBLIC);
