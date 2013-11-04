@@ -288,12 +288,15 @@ public class SpooledDirectoryTransfer implements Runnable {
 		File dir = new File(directory.get(0));
 		monitor = new FileMonitor(name, status, stop, dir, null, elapseTime, filter, 
 				recurs, commandValidFile, waarpRemovedCommand, null);
+		commandValidFile.setMonitor(monitor);
 		if (parallel) {
 			FileMonitorCommandFactory factory = new FileMonitorCommandFactory() {
 				
 				@Override
 				public FileMonitorCommandRunnableFuture create(FileItem fileItem) {
-					return new SpooledRunner(fileItem);
+					SpooledRunner runner = new SpooledRunner(fileItem);
+					runner.setMonitor(monitor);
+					return runner;
 				}
 			};
 			monitor.setCommandValidFileFactory(factory, limitParallelTasks);
