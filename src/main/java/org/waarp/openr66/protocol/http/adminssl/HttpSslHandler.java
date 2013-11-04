@@ -1953,7 +1953,9 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 							admin = null;
 							continue;
 						}
-						break;
+					} else if (elt.getName().equalsIgnoreCase(I18NEXT)) {
+						logger.debug("Found i18next: "+elt);
+						lang = elt.getValue();
 					}
 				}
 			}
