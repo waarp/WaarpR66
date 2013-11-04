@@ -905,9 +905,18 @@ public class FileBasedConfiguration {
 		value = hashConfig.get(XML_MULTIPLE_MONITORS);
 		if (value != null && (!value.isEmpty())) {
 			config.multipleMonitors = value.getInteger();
-			logger.warn(Messages.getString("FileBasedConfiguration.MMOn") //$NON-NLS-1$
-					+ config.multipleMonitors
-					+ Messages.getString("FileBasedConfiguration.MMOn2")); //$NON-NLS-1$
+			if (config.multipleMonitors > 1) {
+				logger.warn(Messages.getString("FileBasedConfiguration.MMOn") //$NON-NLS-1$
+						+ config.multipleMonitors
+						+ Messages.getString("FileBasedConfiguration.MMOn2")); //$NON-NLS-1$
+			} else {
+				config.multipleMonitors = 1;
+				if (config.warnOnStartup) {
+					logger.warn(Messages.getString("FileBasedConfiguration.MMOff")); //$NON-NLS-1$
+				} else {
+					logger.info(Messages.getString("FileBasedConfiguration.MMOff")); //$NON-NLS-1$
+				}
+			}
 		} else {
 			config.multipleMonitors = 1;
 			if (config.warnOnStartup) {

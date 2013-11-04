@@ -73,7 +73,7 @@ set LOGLEVEL=info
 
 rem ---------------------------------------------------------------------------
 rem -- Various Java options
-set JAVA_OPTS=%JVMMODE% --JvmMs=%JAVAxMS% --JvmMx=%JAVAxMX% ++JvmOptions=-Dlogback.configurationFile=%LOGBACK_CONF% ++JvmOptions=-Dorg.waarp.r66.config.file=%R66_CONF%
+set JAVA_OPTS=%JVMMODE% --JvmMs=%JAVAxMS% --JvmMx=%JAVAxMX% ++JvmOptions=-Dlogback.configurationFile=%LOGBACK_CONF% ++JvmOptions=-Dorg.waarp.r66.config.file=%R66_CONF% ++JvmOptions=-Dopenr66.locale=en 
 
 set SERVICE_OPTIONS=%JAVA_OPTS% --Description=%SERVICE_DESCRIPTION% --Classpath=%SERVICE_CLASSPATH% --StartMode=jvm --StartClass=%MAIN_SERVICE_CLASS% --StartMethod=windowsStart --StopMode=jvm --StopClass=%MAIN_SERVICE_CLASS% --StopMethod=windowsStop --LogPath=%LOG_PATH% --StdOutput=%OUT_LOG_FILE% --StdError=%ERR_LOG_FILE% --Startup=%SERVICE_STARTUP% --PidFile=service-%SERVICE_NAME%.pid --LogLevel=%LOGLEVEL%
 
