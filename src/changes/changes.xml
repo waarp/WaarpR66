@@ -14,6 +14,7 @@
 		    <action dev="Frederic Bregier" type="fix">Fix thread handling, in particular for Business requests</action>
 		    <action dev="Frederic Bregier" type="fix">Various small fixes</action>
 		    <action dev="Frederic Bregier" type="add">Add Unzeroed task for file with 0 length</action>
+		    <action dev="Frederic Bregier" type="add">Add Support for WebAdministrator login with limited rights</action>
 		    <action dev="Frederic Bregier" type="add">Add dynamic i18n support on server and web interface</action>
 		</release>
 	    <release version="2.4.21" date="2013-10-12" description="Fix release">

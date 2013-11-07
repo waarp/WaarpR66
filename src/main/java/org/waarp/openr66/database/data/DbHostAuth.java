@@ -750,8 +750,12 @@ public class DbHostAuth extends AbstractDbData {
 		WaarpStringUtils.replace(builder, "XXXADMXXX", adminrole ? "checked" : "");
 		WaarpStringUtils.replace(builder, "XXXISCXXX", isClient ? "checked" : "");
 		WaarpStringUtils.replace(builder, "XXXVERSIONXXX", getVersion(hostid).replace(",", ", "));
-		
-		int nb = NetworkTransaction.existConnection(getSocketAddress(), getHostid());
+		int nb = 0;
+		try {
+			nb = NetworkTransaction.existConnection(getSocketAddress(), getHostid());
+		} catch (Exception e) {
+			nb = -1;
+		}
 		WaarpStringUtils.replace(builder, "XXXCONNXXX", (nb > 0)
 				? "(" + nb + " Connected) " : "");
 		return builder.toString();

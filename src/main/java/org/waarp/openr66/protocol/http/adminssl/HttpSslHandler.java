@@ -50,6 +50,8 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.handler.codec.http.QueryStringDecoder;
 import org.jboss.netty.handler.traffic.TrafficCounter;
+import org.waarp.common.command.exception.Reply421Exception;
+import org.waarp.common.command.exception.Reply530Exception;
 import org.waarp.common.crypto.ssl.WaarpSslUtility;
 import org.waarp.common.database.DbAdmin;
 import org.waarp.common.database.DbPreparedStatement;
@@ -57,10 +59,12 @@ import org.waarp.common.database.DbSession;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
+import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.exception.FileTransferException;
 import org.waarp.common.exception.InvalidArgumentException;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.role.RoleDefault.ROLE;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.openr66.client.Message;
 import org.waarp.openr66.configuration.AuthenticationFileBasedConfiguration;
@@ -133,6 +137,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		Logon("Logon.html"),
 		index("index.html"),
 		error("error.html"),
+		unallowed("NotAllowed.html"),
 		Transfers("Transfers.html"),
 		Listing("Listing_head.html", "Listing_body0.html", "Listing_body.html",
 				"Listing_body1.html", "Listing_end.html"),
@@ -144,6 +149,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		Rules("Rules_head.html", "Rules_body0.html", "Rules_body.html", "Rules_body1.html",
 				"Rules_end.html"),
 		System("System.html"),
+		SystemLimited("SystemLimited.html"),
 		Spooled("Spooled.html"),
 		SpooledDetailed("Spooled.html");
 
@@ -306,6 +312,15 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 
 	private String error(String mesg) {
 		String index = REQUEST.error.readFileUnique(this);
+		return index.replaceAll(REPLACEMENT.XXXERRORMESGXXX.toString(),
+				mesg);
+	}
+
+	private String unallowed(String mesg) {
+		String index = REQUEST.unallowed.readFileUnique(this);
+		if (index == null || index.isEmpty()) {
+			return error(mesg);
+		}
 		return index.replaceAll(REPLACEMENT.XXXERRORMESGXXX.toString(),
 				mesg);
 	}
@@ -1482,6 +1497,101 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXCURSYSLANGFRXXX.name(), Messages.slocale.equalsIgnoreCase("fr") ? "checked" : "");
 	}
 
+	private String SystemLimitedSource() {
+		String system = REQUEST.SystemLimited.readFileUnique(this);
+		if (system == null || system.isEmpty()) {
+			return REQUEST.System.readFileUnique(this);
+		}
+		return system;
+	}
+	private String SystemLimited() {
+		getParams();
+		DbHostConfiguration config = null;
+		try {
+			config = new DbHostConfiguration(dbSession, Configuration.configuration.HOST_ID);
+		} catch (WaarpDatabaseException e2) {
+			config = new DbHostConfiguration(dbSession, Configuration.configuration.HOST_ID, "", "", "", "");
+			try {
+				config.insert();
+			} catch (WaarpDatabaseException e) {
+			}
+		}
+		if (params == null) {
+			String system = SystemLimitedSource();
+			StringBuilder builder = new StringBuilder(system);
+			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXBUSINESSXXX.toString(),
+					config.getBusiness());
+			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXROLESXXX.toString(),
+					config.getRoles());
+			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXALIASESXXX.toString(),
+					config.getAliases());
+			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXOTHERXXX.toString(),
+					config.getOthers());
+			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITWXXX.toString(),
+					Long.toString(Configuration.configuration.serverChannelWriteLimit));
+			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITRXXX.toString(),
+					Long.toString(Configuration.configuration.serverChannelReadLimit));
+			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXDELAYCOMMDXXX.toString(),
+					Long.toString(Configuration.configuration.delayCommander));
+			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXDELAYRETRYXXX.toString(),
+					Long.toString(Configuration.configuration.delayRetry));
+			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITWXXX.toString(),
+					Long.toString(Configuration.configuration.serverGlobalWriteLimit));
+			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITRXXX.toString(),
+					Long.toString(Configuration.configuration.serverGlobalReadLimit));
+			WaarpStringUtils.replace(builder, "XXXBLOCKXXX", Configuration.configuration.isShutdown ? "checked" : "");
+			langHandle(builder);
+			return builder.toString();
+		}
+		String extraInformation = null;
+		if (params.containsKey("ACTION")) {
+			List<String> action = params.get("ACTION");
+			for (String act : action) {
+				if (act.equalsIgnoreCase("Language")) {
+					lang = getTrimValue("change");
+					extraInformation = Messages.getString("HttpSslHandler.LangIs")+"Web: "+lang+" OpenR66: "+Messages.slocale; //$NON-NLS-1$
+				} else if (act.equalsIgnoreCase("Disconnect")) {
+					String logon = Logon();
+					logon = logon.replaceAll(REPLACEMENT.XXXERRORMESGXXX.toString(),
+							Messages.getString("HttpSslHandler.Disconnected"));
+					newSession = true;
+					clearSession();
+					forceClose = true;
+					return logon;
+				}
+			}
+		}
+		String system = SystemLimitedSource();
+		StringBuilder builder = new StringBuilder(system);
+		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXBUSINESSXXX.toString(),
+				config.getBusiness());
+		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXROLESXXX.toString(),
+				config.getRoles());
+		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXALIASESXXX.toString(),
+				config.getAliases());
+		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXOTHERXXX.toString(),
+				config.getOthers());
+		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITWXXX.toString(),
+				Long.toString(Configuration.configuration.serverChannelWriteLimit));
+		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITRXXX.toString(),
+				Long.toString(Configuration.configuration.serverChannelReadLimit));
+		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXDELAYCOMMDXXX.toString(),
+				Long.toString(Configuration.configuration.delayCommander));
+		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXDELAYRETRYXXX.toString(),
+				Long.toString(Configuration.configuration.delayRetry));
+		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITWXXX.toString(),
+				Long.toString(Configuration.configuration.serverGlobalWriteLimit));
+		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITRXXX.toString(),
+				Long.toString(Configuration.configuration.serverGlobalReadLimit));
+		WaarpStringUtils.replace(builder, "XXXBLOCKXXX", Configuration.configuration.isShutdown ? "checked" : "");
+		langHandle(builder);
+		if (extraInformation != null) {
+			builder.append(extraInformation);
+		}
+		return builder.toString();
+	}
+	
+
 	private String System() {
 		getParams();
 		DbHostConfiguration config = null;
@@ -1555,6 +1665,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					}
 				} else if (act.equalsIgnoreCase("Disconnect")) {
 					String logon = Logon();
+					logon = logon.replaceAll(REPLACEMENT.XXXERRORMESGXXX.toString(),
+							Messages.getString("HttpSslHandler.Disconnected"));
 					newSession = true;
 					clearSession();
 					forceClose = true;
@@ -1729,6 +1841,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		newSession = true;
 		if (request.getMethod() == HttpMethod.GET) {
 			String logon = Logon();
+			logon = logon.replaceAll(REPLACEMENT.XXXERRORMESGXXX.toString(),
+					"");
 			responseContent.append(logon);
 			clearSession();
 			writeResponse(e.getChannel());
@@ -1737,6 +1851,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 			getParams();
 			if (params == null) {
 				String logon = Logon();
+				logon = logon.replaceAll(REPLACEMENT.XXXERRORMESGXXX.toString(),
+						Messages.getString("HttpSslHandler.EmptyLogin"));
 				responseContent.append(logon);
 				clearSession();
 				writeResponse(e.getChannel());
@@ -1791,7 +1907,13 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 							Configuration.configuration.HOST_ID);
 					authentHttp.setStatus(70);
 				} else {
-					getMenu = true;
+					try {
+						authentHttp.getAuth().connectionHttps(DbConstant.admin.session, name, FilesystemBasedDigest.passwdCrypt(password.getBytes()));
+					} catch (Reply530Exception e1) {
+						getMenu = true;
+					} catch (Reply421Exception e1) {
+						getMenu = true;
+					}
 				}
 				if (!authentHttp.isAuthenticated()) {
 					authentHttp.setStatus(71);
@@ -1799,30 +1921,36 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					getMenu = true;
 				}
 				logger.debug("Identified: "+authentHttp.getAuth().isIdentified()+":"+authentHttp.isAuthenticated());
-				// load DbSession
-				if (this.dbSession == null) {
-					try {
-						if (DbConstant.admin.isConnected) {
-							this.dbSession = new DbSession(DbConstant.admin, false);
-							DbAdmin.nbHttpSession++;
-							this.isPrivateDbSession = true;
-						}
-					} catch (WaarpDatabaseNoConnectionException e1) {
-						// Cannot connect so use default connection
-						logger.warn("Use default database connection");
-						this.dbSession = DbConstant.admin.session;
-					}
-				}
 			}
 		} else {
 			getMenu = true;
 		}
 		if (getMenu) {
 			String logon = Logon();
+			logon = logon.replaceAll(REPLACEMENT.XXXERRORMESGXXX.toString(),
+					Messages.getString("HttpSslHandler.BadLogin"));
 			responseContent.append(logon);
 			clearSession();
 			writeResponse(e.getChannel());
 		} else {
+			// load DbSession
+			if (this.dbSession != null) {
+				clearSession();
+				this.dbSession = null;
+			}
+			if (this.dbSession == null) {
+				try {
+					if (DbConstant.admin.isConnected) {
+						this.dbSession = new DbSession(DbConstant.admin, false);
+						DbAdmin.nbHttpSession++;
+						this.isPrivateDbSession = true;
+					}
+				} catch (WaarpDatabaseNoConnectionException e1) {
+					// Cannot connect so use default connection
+					logger.warn("Use default database connection");
+					this.dbSession = DbConstant.admin.session;
+				}
+			}
 			String index = index();
 			responseContent.append(index);
 			clearSession();
@@ -1871,13 +1999,25 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		}
 		switch (req) {
 			case CancelRestart:
-				responseContent.append(CancelRestart());
+				if (authentHttp.getAuth().isValidRole(ROLE.SYSTEM)) {
+					responseContent.append(CancelRestart());
+				} else {
+					responseContent.append(unallowed(Messages.getString("HttpSslHandler.CancelRestartUnallowed")));
+				}
 				break;
 			case Export:
-				responseContent.append(Export());
+				if (authentHttp.getAuth().isValidRole(ROLE.SYSTEM)) {
+					responseContent.append(Export());
+				} else {
+					responseContent.append(unallowed(Messages.getString("HttpSslHandler.ExportUnallowed")));
+				}
 				break;
 			case Hosts:
-				responseContent.append(Hosts());
+				if (authentHttp.getAuth().isValidRole(ROLE.CONFIGADMIN)) {
+					responseContent.append(Hosts());
+				} else {
+					responseContent.append(unallowed(Messages.getString("HttpSslHandler.HostUnallowed")));
+				}
 				break;
 			case index:
 				responseContent.append(index());
@@ -1889,10 +2029,18 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				responseContent.append(index());
 				break;
 			case Rules:
-				responseContent.append(Rules());
+				if (authentHttp.getAuth().isValidRole(ROLE.CONFIGADMIN)) {
+					responseContent.append(Rules());
+				} else {
+					responseContent.append(unallowed(Messages.getString("HttpSslHandler.RulesUnallowed")));
+				}
 				break;
 			case System:
-				responseContent.append(System());
+				if (authentHttp.getAuth().isValidRole(ROLE.SYSTEM)) {
+					responseContent.append(System());
+				} else {
+					responseContent.append(SystemLimited());
+				}
 				break;
 			case Transfers:
 				responseContent.append(Transfers());
@@ -1930,6 +2078,9 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 						}
 						DbSession dbSession = dbSessions.get(admin.getValue());
 						if (dbSession != null) {
+							if (dbSession.isDisconnected) {
+								clearSession();
+							}
 							this.dbSession = dbSession;
 						} else {
 							admin = null;

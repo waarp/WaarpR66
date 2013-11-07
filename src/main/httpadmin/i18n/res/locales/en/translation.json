@@ -10,7 +10,8 @@
     "haut2": "Network:",
     "haut3": "Host:",
     "haut4": "Authent:",
-    "erreur": "An event occurs that forces to close the connection..."
+    "erreur": "An event occurs that forces to close the connection...",
+	"erreur2": "Your profile does not allow this function."
   },
   "menu1": {
   	"titre": "Start",
@@ -100,7 +101,7 @@
   	"text1": "You can edit hosts configuration from here.",
   	"text2": "The host id that will be used.",
   	"text3": "The IP or DNS name of the host.",
-  	"text4": "The port to be used.",
+  	"text4": "The port to be used. Use -1 for special Authentication in Web Administrator only (port is unusable) and checked the IsClient option",
   	"text5": "If checked, this host will describe a host with SSL support.",
   	"text6": "The Key to be used when Administration action are taken.",
   	"text7": "If checked, this host can be used in local client for administration purpose (using the above key).",

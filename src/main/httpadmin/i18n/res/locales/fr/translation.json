@@ -10,7 +10,8 @@
     "haut2": "Réseau:",
     "haut3": "Serveur:",
     "haut4": "Connexion:",
-    "erreur": "Une erreur est survenue forçant la fermeture de la connexion..."
+    "erreur": "Une erreur est survenue forçant la fermeture de la connexion...",
+	"erreur2": "Votre profil n'autorise pas cette fonction."
   },
   "menu1": {
   	"titre": "Accueil",
@@ -100,7 +101,7 @@
   	"text1": "Vous pouvez configurer les Serveurs ici.",
   	"text2": "L'identifiant qui sera utilisé pour le serveur.",
   	"text3": "L'adresse IP ou le DNS du serveur.",
-  	"text4": "Le port qui doit être utilisé.",
+  	"text4": "Le port qui doit être utilisé. Utiliser -1 pour les identifications spéciales dans l'Administrateur Web seulement (le port est inutilisable) et côchez l'option Est Client",
   	"text5": "Si cochée, ce serveur décrira un serveur avec support SSL.",
   	"text6": "La clé à utiliser pour les actions d'administration.",
   	"text7": "Si cochée, ce serveur peut être utilisé en client local pour un but d'administration (en utilisant la clé ci-contre).",
