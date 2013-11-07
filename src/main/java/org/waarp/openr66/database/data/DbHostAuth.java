@@ -287,6 +287,9 @@ public class DbHostAuth extends AbstractDbData {
 	 */
 	public DbHostAuth(DbSession dbSession, String hostid) throws WaarpDatabaseException {
 		super(dbSession);
+		if (hostid == null) {
+			throw new WaarpDatabaseException("No host id passed");
+		}
 		this.hostid = hostid;
 		if (Configuration.configuration.aliases.containsKey(hostid)) {
 			this.hostid = Configuration.configuration.aliases.get(hostid);

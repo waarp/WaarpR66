@@ -449,6 +449,9 @@ public class SpooledDirectoryTransfer implements Runnable {
 							runner = r66result.runner;
 							if (runner != null) {
 								specialId = runner.getSpecialId();
+								if (DbConstant.admin.isConnected) {
+									specialId = DbConstant.ILLEGALVALUE;
+								}
 								logger.error(text+Messages.getString("RequestInformation.Failure") +  //$NON-NLS-1$
 										runner.toShortString() +
 									"<REMOTE>" + host + "</REMOTE>", future.getCause());
