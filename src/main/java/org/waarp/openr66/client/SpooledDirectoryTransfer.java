@@ -360,8 +360,8 @@ public class SpooledDirectoryTransfer implements Runnable {
 		public void run(FileItem fileItem) {
 			this.fileItem = fileItem;
 			boolean finalStatus = false;
-			long specialId = waarpHosts.size() > 1 ? DbConstant.ILLEGALVALUE : fileItem.specialId;
-			for (String host : waarpHosts) {
+			long specialId = remoteHosts.size() > 1 ? DbConstant.ILLEGALVALUE : fileItem.specialId;
+			for (String host : remoteHosts) {
 				host = host.trim();
 				if (host != null && ! host.isEmpty()) {
 					String filename = fileItem.file.getAbsolutePath();
@@ -464,7 +464,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 					}
 				}
 			}
-			specialId = waarpHosts.size() > 1 ? DbConstant.ILLEGALVALUE : specialId;
+			specialId = remoteHosts.size() > 1 ? DbConstant.ILLEGALVALUE : specialId;
 			finalize(finalStatus, specialId);
 		}
 	}

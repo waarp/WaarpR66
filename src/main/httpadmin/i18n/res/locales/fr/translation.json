@@ -198,7 +198,7 @@
   	"text12": "Cliquer sur ce bouton entraîne le blocage ou le déblocage de toute nouvelle requête (les requêtes actives ne sont pas impactées).",
   	"text13": "Changer la langue utilisée dans l'interface Web",
   	"text14": "Changer la langue pour le Serveur OpenR66",
-	"text15": "Vous pouvez choisir parmi les langues disponibles. Vous pouvez changer soit seulement l'interface web ou l'ensemble de la langue pour le serveur."
+	"text15": "Vous pouvez choisir parmi les langues disponibles. Vous pouvez changer soit seulement l'interface web ou l'ensemble de la langue pour le serveur. Note: IE peut ne pas accepter le changement de langue sauf en mode de compatibilité."
   }, 
   "menu6": {
   	"titre": "Connexion",

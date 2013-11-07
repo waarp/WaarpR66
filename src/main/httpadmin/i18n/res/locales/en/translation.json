@@ -198,7 +198,7 @@
   	"text12": "By clicking on this button will result in blocking/unblocking any new request (all active transfers will still continue).",
   	"text13": "Change language mode of Web interface",
   	"text14": "Change language mode of All OpenR66 Server",
-	"text15": "You can choose between available languages. You can change only the web interface or all the server language support."
+	"text15": "You can choose between available languages. You can change only the web interface or all the server language support. Note: IE might not work except in compatibility mode."
   },    
   "menu6": {
   	"titre": "Logon",
