@@ -139,7 +139,7 @@
 <a class="jxr_linenumber" name="129" href="#129">129</a> 					srequester = Configuration.configuration.getHostId(DbConstant.admin.session,
 <a class="jxr_linenumber" name="130" href="#130">130</a> 							srequested);
 <a class="jxr_linenumber" name="131" href="#131">131</a> 				} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
-<a class="jxr_linenumber" name="132" href="#132">132</a> 					logger.error(Messages.getString(<span class="jxr_string">"RequestTransfer.5"</span>) + srequester, e); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="132" href="#132">132</a> 					logger.error(Messages.getString(<span class="jxr_string">"RequestTransfer.5"</span>) + srequested, e); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="133" href="#133">133</a> 					<strong class="jxr_keyword">return</strong> false;
 <a class="jxr_linenumber" name="134" href="#134">134</a> 				}
 <a class="jxr_linenumber" name="135" href="#135">135</a> 			} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-from"</span>)) {
@@ -149,7 +149,7 @@
 <a class="jxr_linenumber" name="139" href="#139">139</a> 					srequested = Configuration.configuration.getHostId(DbConstant.admin.session,
 <a class="jxr_linenumber" name="140" href="#140">140</a> 							srequester);
 <a class="jxr_linenumber" name="141" href="#141">141</a> 				} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
-<a class="jxr_linenumber" name="142" href="#142">142</a> 					logger.error(Messages.getString(<span class="jxr_string">"RequestTransfer.5"</span>) + srequested, e); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="142" href="#142">142</a> 					logger.error(Messages.getString(<span class="jxr_string">"RequestTransfer.5"</span>) + srequester, e); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="143" href="#143">143</a> 					<strong class="jxr_keyword">return</strong> false;
 <a class="jxr_linenumber" name="144" href="#144">144</a> 				}
 <a class="jxr_linenumber" name="145" href="#145">145</a> 			} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-cancel"</span>)) {
@@ -443,295 +443,305 @@
 <a class="jxr_linenumber" name="433" href="#433">433</a> 							<strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
 <a class="jxr_linenumber" name="434" href="#434">434</a> 							ErrorCode.TransferError, <strong class="jxr_keyword">null</strong>));
 <a class="jxr_linenumber" name="435" href="#435">435</a> 					future.setFailure(e);
-<a class="jxr_linenumber" name="436" href="#436">436</a> 					<strong class="jxr_keyword">return</strong> ErrorCode.Internal;
+<a class="jxr_linenumber" name="436" href="#436">436</a> 					<strong class="jxr_keyword">return</strong> ErrorCode.ConnectionImpossible;
 <a class="jxr_linenumber" name="437" href="#437">437</a> 				}
 <a class="jxr_linenumber" name="438" href="#438">438</a> 			}
 <a class="jxr_linenumber" name="439" href="#439">439</a> 		}
 <a class="jxr_linenumber" name="440" href="#440">440</a> 
 <a class="jxr_linenumber" name="441" href="#441">441</a> 		logger.info(<span class="jxr_string">"Try RequestTransfer to "</span>+host.toString());
-<a class="jxr_linenumber" name="442" href="#442">442</a> 		SocketAddress socketAddress = host.getSocketAddress();
-<a class="jxr_linenumber" name="443" href="#443">443</a> 		<strong class="jxr_keyword">boolean</strong> isSSL = host.isSsl();
-<a class="jxr_linenumber" name="444" href="#444">444</a> 
-<a class="jxr_linenumber" name="445" href="#445">445</a> 		LocalChannelReference localChannelReference = networkTransaction
-<a class="jxr_linenumber" name="446" href="#446">446</a> 				.createConnectionWithRetry(socketAddress, isSSL, future);
-<a class="jxr_linenumber" name="447" href="#447">447</a> 		socketAddress = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="448" href="#448">448</a> 		<strong class="jxr_keyword">if</strong> (localChannelReference == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="449" href="#449">449</a> 			logger.debug(<span class="jxr_string">"Cannot connect to "</span> + host.toString());
-<a class="jxr_linenumber" name="450" href="#450">450</a> 			host = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="451" href="#451">451</a> 			future.setResult(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
-<a class="jxr_linenumber" name="452" href="#452">452</a> 					ErrorCode.ConnectionImpossible, <strong class="jxr_keyword">null</strong>));
-<a class="jxr_linenumber" name="453" href="#453">453</a> 			future.cancel();
-<a class="jxr_linenumber" name="454" href="#454">454</a> 			<strong class="jxr_keyword">return</strong> ErrorCode.Internal;
-<a class="jxr_linenumber" name="455" href="#455">455</a> 		}
-<a class="jxr_linenumber" name="456" href="#456">456</a> 		<strong class="jxr_keyword">boolean</strong> useJson = PartnerConfiguration.useJson(host.getHostid());
-<a class="jxr_linenumber" name="457" href="#457">457</a> 		logger.debug(<span class="jxr_string">"UseJson: "</span>+useJson);
-<a class="jxr_linenumber" name="458" href="#458">458</a> 		AbstractLocalPacket packet = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="459" href="#459">459</a> 		<strong class="jxr_keyword">if</strong> (useJson) {
-<a class="jxr_linenumber" name="460" href="#460">460</a> 			ValidJsonPacket node = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/localhandler/packet/json/ValidJsonPacket.html">ValidJsonPacket</a>();
-<a class="jxr_linenumber" name="461" href="#461">461</a> 			node.setComment(<span class="jxr_string">"Request on Transfer"</span>);
-<a class="jxr_linenumber" name="462" href="#462">462</a> 			node.setRequested(requested);
-<a class="jxr_linenumber" name="463" href="#463">463</a> 			node.setRequester(requester);
-<a class="jxr_linenumber" name="464" href="#464">464</a> 			node.setSpecialid(specialId);
-<a class="jxr_linenumber" name="465" href="#465">465</a> 			<strong class="jxr_keyword">if</strong> (restarttime != <strong class="jxr_keyword">null</strong> &amp;&amp; code == LocalPacketFactory.VALIDPACKET) {
-<a class="jxr_linenumber" name="466" href="#466">466</a> 				<em class="jxr_comment">// restart time set</em>
-<a class="jxr_linenumber" name="467" href="#467">467</a> 				logger.debug(<span class="jxr_string">"Restart with time: "</span>+restarttime);
-<a class="jxr_linenumber" name="468" href="#468">468</a> 				<em class="jxr_comment">// time to reschedule in yyyyMMddHHmmss format</em>
-<a class="jxr_linenumber" name="469" href="#469">469</a> 				SimpleDateFormat dateFormat = <strong class="jxr_keyword">new</strong> SimpleDateFormat(<span class="jxr_string">"yyyyMMddHHmmss"</span>);
-<a class="jxr_linenumber" name="470" href="#470">470</a> 				<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="471" href="#471">471</a> 					Date date = dateFormat.parse(restarttime);
-<a class="jxr_linenumber" name="472" href="#472">472</a> 					node.setRestarttime(date);
-<a class="jxr_linenumber" name="473" href="#473">473</a> 				} <strong class="jxr_keyword">catch</strong> (ParseException e) {
-<a class="jxr_linenumber" name="474" href="#474">474</a> 				}
-<a class="jxr_linenumber" name="475" href="#475">475</a> 				packet = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/localhandler/packet/JsonCommandPacket.html">JsonCommandPacket</a>(node, code);
-<a class="jxr_linenumber" name="476" href="#476">476</a> 			} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="477" href="#477">477</a> 				packet = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/localhandler/packet/JsonCommandPacket.html">JsonCommandPacket</a>(node, code);
-<a class="jxr_linenumber" name="478" href="#478">478</a> 			}
-<a class="jxr_linenumber" name="479" href="#479">479</a> 		} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="480" href="#480">480</a> 			<strong class="jxr_keyword">if</strong> (restarttime != <strong class="jxr_keyword">null</strong> &amp;&amp; code == LocalPacketFactory.VALIDPACKET) {
-<a class="jxr_linenumber" name="481" href="#481">481</a> 				<em class="jxr_comment">// restart time set</em>
-<a class="jxr_linenumber" name="482" href="#482">482</a> 				logger.debug(<span class="jxr_string">"Restart with time: "</span>+restarttime);
-<a class="jxr_linenumber" name="483" href="#483">483</a> 				packet = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/localhandler/packet/ValidPacket.html">ValidPacket</a>(<span class="jxr_string">"Request on Transfer"</span>,
-<a class="jxr_linenumber" name="484" href="#484">484</a> 						<strong class="jxr_keyword">this</strong>.requested + <span class="jxr_string">" "</span> + <strong class="jxr_keyword">this</strong>.requester + <span class="jxr_string">" "</span> + <strong class="jxr_keyword">this</strong>.specialId+<span class="jxr_string">" "</span>+restarttime,
-<a class="jxr_linenumber" name="485" href="#485">485</a> 						code);
+<a class="jxr_linenumber" name="442" href="#442">442</a> 		SocketAddress socketAddress;
+<a class="jxr_linenumber" name="443" href="#443">443</a> 		<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="444" href="#444">444</a> 			socketAddress = host.getSocketAddress();
+<a class="jxr_linenumber" name="445" href="#445">445</a> 		} <strong class="jxr_keyword">catch</strong> (IllegalArgumentException e) {
+<a class="jxr_linenumber" name="446" href="#446">446</a> 			logger.debug(<span class="jxr_string">"Cannot connect to "</span> + host.toString());
+<a class="jxr_linenumber" name="447" href="#447">447</a> 			host = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="448" href="#448">448</a> 			future.setResult(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
+<a class="jxr_linenumber" name="449" href="#449">449</a> 					ErrorCode.ConnectionImpossible, <strong class="jxr_keyword">null</strong>));
+<a class="jxr_linenumber" name="450" href="#450">450</a> 			future.cancel();
+<a class="jxr_linenumber" name="451" href="#451">451</a> 			<strong class="jxr_keyword">return</strong> ErrorCode.ConnectionImpossible;
+<a class="jxr_linenumber" name="452" href="#452">452</a> 		}
+<a class="jxr_linenumber" name="453" href="#453">453</a> 		<strong class="jxr_keyword">boolean</strong> isSSL = host.isSsl();
+<a class="jxr_linenumber" name="454" href="#454">454</a> 
+<a class="jxr_linenumber" name="455" href="#455">455</a> 		LocalChannelReference localChannelReference = networkTransaction
+<a class="jxr_linenumber" name="456" href="#456">456</a> 				.createConnectionWithRetry(socketAddress, isSSL, future);
+<a class="jxr_linenumber" name="457" href="#457">457</a> 		socketAddress = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="458" href="#458">458</a> 		<strong class="jxr_keyword">if</strong> (localChannelReference == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="459" href="#459">459</a> 			logger.debug(<span class="jxr_string">"Cannot connect to "</span> + host.toString());
+<a class="jxr_linenumber" name="460" href="#460">460</a> 			host = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="461" href="#461">461</a> 			future.setResult(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
+<a class="jxr_linenumber" name="462" href="#462">462</a> 					ErrorCode.ConnectionImpossible, <strong class="jxr_keyword">null</strong>));
+<a class="jxr_linenumber" name="463" href="#463">463</a> 			future.cancel();
+<a class="jxr_linenumber" name="464" href="#464">464</a> 			<strong class="jxr_keyword">return</strong> ErrorCode.ConnectionImpossible;
+<a class="jxr_linenumber" name="465" href="#465">465</a> 		}
+<a class="jxr_linenumber" name="466" href="#466">466</a> 		<strong class="jxr_keyword">boolean</strong> useJson = PartnerConfiguration.useJson(host.getHostid());
+<a class="jxr_linenumber" name="467" href="#467">467</a> 		logger.debug(<span class="jxr_string">"UseJson: "</span>+useJson);
+<a class="jxr_linenumber" name="468" href="#468">468</a> 		AbstractLocalPacket packet = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="469" href="#469">469</a> 		<strong class="jxr_keyword">if</strong> (useJson) {
+<a class="jxr_linenumber" name="470" href="#470">470</a> 			ValidJsonPacket node = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/localhandler/packet/json/ValidJsonPacket.html">ValidJsonPacket</a>();
+<a class="jxr_linenumber" name="471" href="#471">471</a> 			node.setComment(<span class="jxr_string">"Request on Transfer"</span>);
+<a class="jxr_linenumber" name="472" href="#472">472</a> 			node.setRequested(requested);
+<a class="jxr_linenumber" name="473" href="#473">473</a> 			node.setRequester(requester);
+<a class="jxr_linenumber" name="474" href="#474">474</a> 			node.setSpecialid(specialId);
+<a class="jxr_linenumber" name="475" href="#475">475</a> 			<strong class="jxr_keyword">if</strong> (restarttime != <strong class="jxr_keyword">null</strong> &amp;&amp; code == LocalPacketFactory.VALIDPACKET) {
+<a class="jxr_linenumber" name="476" href="#476">476</a> 				<em class="jxr_comment">// restart time set</em>
+<a class="jxr_linenumber" name="477" href="#477">477</a> 				logger.debug(<span class="jxr_string">"Restart with time: "</span>+restarttime);
+<a class="jxr_linenumber" name="478" href="#478">478</a> 				<em class="jxr_comment">// time to reschedule in yyyyMMddHHmmss format</em>
+<a class="jxr_linenumber" name="479" href="#479">479</a> 				SimpleDateFormat dateFormat = <strong class="jxr_keyword">new</strong> SimpleDateFormat(<span class="jxr_string">"yyyyMMddHHmmss"</span>);
+<a class="jxr_linenumber" name="480" href="#480">480</a> 				<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="481" href="#481">481</a> 					Date date = dateFormat.parse(restarttime);
+<a class="jxr_linenumber" name="482" href="#482">482</a> 					node.setRestarttime(date);
+<a class="jxr_linenumber" name="483" href="#483">483</a> 				} <strong class="jxr_keyword">catch</strong> (ParseException e) {
+<a class="jxr_linenumber" name="484" href="#484">484</a> 				}
+<a class="jxr_linenumber" name="485" href="#485">485</a> 				packet = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/localhandler/packet/JsonCommandPacket.html">JsonCommandPacket</a>(node, code);
 <a class="jxr_linenumber" name="486" href="#486">486</a> 			} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="487" href="#487">487</a> 				packet = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/localhandler/packet/ValidPacket.html">ValidPacket</a>(<span class="jxr_string">"Request on Transfer"</span>,
-<a class="jxr_linenumber" name="488" href="#488">488</a> 					<strong class="jxr_keyword">this</strong>.requested + <span class="jxr_string">" "</span> + <strong class="jxr_keyword">this</strong>.requester + <span class="jxr_string">" "</span> + <strong class="jxr_keyword">this</strong>.specialId,
-<a class="jxr_linenumber" name="489" href="#489">489</a> 					code);
-<a class="jxr_linenumber" name="490" href="#490">490</a> 			}
-<a class="jxr_linenumber" name="491" href="#491">491</a> 		}
-<a class="jxr_linenumber" name="492" href="#492">492</a> 		localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
-<a class="jxr_linenumber" name="493" href="#493">493</a> 		<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="494" href="#494">494</a> 			ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false);
-<a class="jxr_linenumber" name="495" href="#495">495</a> 		} <strong class="jxr_keyword">catch</strong> (OpenR66ProtocolPacketException e) {
-<a class="jxr_linenumber" name="496" href="#496">496</a> 			logger.error(Messages.getString(<span class="jxr_string">"RequestTransfer.63"</span>) + host.toString()); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="497" href="#497">497</a> 			Channels.close(localChannelReference.getLocalChannel());
-<a class="jxr_linenumber" name="498" href="#498">498</a> 			localChannelReference = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="499" href="#499">499</a> 			host = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="500" href="#500">500</a> 			packet = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="501" href="#501">501</a> 			logger.debug(<span class="jxr_string">"Bad Protocol"</span>, e);
-<a class="jxr_linenumber" name="502" href="#502">502</a> 			future.setResult(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(e, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
-<a class="jxr_linenumber" name="503" href="#503">503</a> 					ErrorCode.TransferError, <strong class="jxr_keyword">null</strong>));
-<a class="jxr_linenumber" name="504" href="#504">504</a> 			future.setFailure(e);
-<a class="jxr_linenumber" name="505" href="#505">505</a> 			<strong class="jxr_keyword">return</strong> ErrorCode.Internal;
-<a class="jxr_linenumber" name="506" href="#506">506</a> 		}
-<a class="jxr_linenumber" name="507" href="#507">507</a> 		packet = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="508" href="#508">508</a> 		host = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="509" href="#509">509</a> 		future.awaitUninterruptibly();
-<a class="jxr_linenumber" name="510" href="#510">510</a> 
-<a class="jxr_linenumber" name="511" href="#511">511</a> 		Channels.close(localChannelReference.getLocalChannel());
-<a class="jxr_linenumber" name="512" href="#512">512</a> 		localChannelReference = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="513" href="#513">513</a> 
-<a class="jxr_linenumber" name="514" href="#514">514</a> 		logger.info(<span class="jxr_string">"Request done with "</span> + (future.isSuccess() ? <span class="jxr_string">"success"</span> : <span class="jxr_string">"error"</span>));
-<a class="jxr_linenumber" name="515" href="#515">515</a> 		R66Result result = future.getResult();
-<a class="jxr_linenumber" name="516" href="#516">516</a> 		<strong class="jxr_keyword">if</strong> (result != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="517" href="#517">517</a> 			<strong class="jxr_keyword">return</strong> result.code;
-<a class="jxr_linenumber" name="518" href="#518">518</a> 		}
-<a class="jxr_linenumber" name="519" href="#519">519</a> 		<strong class="jxr_keyword">return</strong> ErrorCode.Internal;
-<a class="jxr_linenumber" name="520" href="#520">520</a> 	}
-<a class="jxr_linenumber" name="521" href="#521">521</a> 
-<a class="jxr_linenumber" name="522" href="#522">522</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="523" href="#523">523</a> <em class="jxr_javadoccomment">	 * @param args</em>
-<a class="jxr_linenumber" name="524" href="#524">524</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="525" href="#525">525</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> main(String[] args) {
-<a class="jxr_linenumber" name="526" href="#526">526</a> 		InternalLoggerFactory.setDefaultFactory(<strong class="jxr_keyword">new</strong> WaarpSlf4JLoggerFactory(<strong class="jxr_keyword">null</strong>));
-<a class="jxr_linenumber" name="527" href="#527">527</a> 		<strong class="jxr_keyword">if</strong> (logger == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="528" href="#528">528</a> 			logger = WaarpInternalLoggerFactory.getLogger(RequestTransfer.<strong class="jxr_keyword">class</strong>);
-<a class="jxr_linenumber" name="529" href="#529">529</a> 		}
-<a class="jxr_linenumber" name="530" href="#530">530</a> 		<strong class="jxr_keyword">if</strong> (!getParams(args)) {
-<a class="jxr_linenumber" name="531" href="#531">531</a> 			logger.error(Messages.getString(<span class="jxr_string">"Configuration.WrongInit"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="532" href="#532">532</a> 			<strong class="jxr_keyword">if</strong> (! OutputFormat.isQuiet()) {
-<a class="jxr_linenumber" name="533" href="#533">533</a> 				System.out.println(Messages.getString(<span class="jxr_string">"Configuration.WrongInit"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="534" href="#534">534</a> 			}
-<a class="jxr_linenumber" name="535" href="#535">535</a> 			<strong class="jxr_keyword">if</strong> (DbConstant.admin != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.isConnected) {
-<a class="jxr_linenumber" name="536" href="#536">536</a> 				DbConstant.admin.close();
-<a class="jxr_linenumber" name="537" href="#537">537</a> 			}
-<a class="jxr_linenumber" name="538" href="#538">538</a> 			ChannelUtils.stopLogger();
-<a class="jxr_linenumber" name="539" href="#539">539</a> 			System.exit(1);
-<a class="jxr_linenumber" name="540" href="#540">540</a> 		}
-<a class="jxr_linenumber" name="541" href="#541">541</a> 		<strong class="jxr_keyword">int</strong> value = 99;
-<a class="jxr_linenumber" name="542" href="#542">542</a> 		<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="543" href="#543">543</a> 			Configuration.configuration.pipelineInit();
-<a class="jxr_linenumber" name="544" href="#544">544</a> 			NetworkTransaction networkTransaction = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/networkhandler/NetworkTransaction.html">NetworkTransaction</a>();
-<a class="jxr_linenumber" name="545" href="#545">545</a> 			R66Future result = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/utils/R66Future.html">R66Future</a>(<strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="546" href="#546">546</a> 			RequestTransfer requestTransfer =
-<a class="jxr_linenumber" name="547" href="#547">547</a> 					<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/client/RequestTransfer.html">RequestTransfer</a>(result, sspecialId, srequested, srequester,
-<a class="jxr_linenumber" name="548" href="#548">548</a> 							scancel, sstop, srestart, srestarttime,
-<a class="jxr_linenumber" name="549" href="#549">549</a> 							networkTransaction);
-<a class="jxr_linenumber" name="550" href="#550">550</a> 			requestTransfer.run();
-<a class="jxr_linenumber" name="551" href="#551">551</a> 			result.awaitUninterruptibly();
-<a class="jxr_linenumber" name="552" href="#552">552</a> 			R66Result finalValue = result.getResult();
-<a class="jxr_linenumber" name="553" href="#553">553</a> 			OutputFormat outputFormat = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/client/utils/OutputFormat.html">OutputFormat</a>(RequestTransfer.<strong class="jxr_keyword">class</strong>.getSimpleName(), args);
-<a class="jxr_linenumber" name="554" href="#554">554</a> 			<strong class="jxr_keyword">if</strong> (scancel || sstop || srestart) {
-<a class="jxr_linenumber" name="555" href="#555">555</a> 				<strong class="jxr_keyword">if</strong> (scancel) {
-<a class="jxr_linenumber" name="556" href="#556">556</a> 					<strong class="jxr_keyword">if</strong> (result.isSuccess()) {
-<a class="jxr_linenumber" name="557" href="#557">557</a> 						value = 0;
-<a class="jxr_linenumber" name="558" href="#558">558</a> 						outputFormat.setValue(FIELDS.status.name(), value);
-<a class="jxr_linenumber" name="559" href="#559">559</a> 						outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.21"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="560" href="#560">560</a> 						outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="561" href="#561">561</a> 						Map&lt;String, String&gt; map = DbTaskRunner.getMapFromRunner(result.runner);
-<a class="jxr_linenumber" name="562" href="#562">562</a> 						outputFormat.setValueString(map);
-<a class="jxr_linenumber" name="563" href="#563">563</a> 						logger.warn(outputFormat.loggerOut());
-<a class="jxr_linenumber" name="564" href="#564">564</a> 						outputFormat.sysout();
-<a class="jxr_linenumber" name="565" href="#565">565</a> 					} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="566" href="#566">566</a> 						Map&lt;String, String&gt; map = DbTaskRunner.getMapFromRunner(result.runner);
-<a class="jxr_linenumber" name="567" href="#567">567</a> 						<strong class="jxr_keyword">switch</strong> (finalValue.code) {
-<a class="jxr_linenumber" name="568" href="#568">568</a> 							<strong class="jxr_keyword">case</strong> CompleteOk:
-<a class="jxr_linenumber" name="569" href="#569">569</a> 								value = 0;
-<a class="jxr_linenumber" name="570" href="#570">570</a> 								outputFormat.setValue(FIELDS.status.name(), value);
-<a class="jxr_linenumber" name="571" href="#571">571</a> 								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.70"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="572" href="#572">572</a> 								outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="573" href="#573">573</a> 								outputFormat.setValueString(map);
-<a class="jxr_linenumber" name="574" href="#574">574</a> 								logger.warn(outputFormat.loggerOut());
-<a class="jxr_linenumber" name="575" href="#575">575</a> 								outputFormat.sysout();
-<a class="jxr_linenumber" name="576" href="#576">576</a> 								<strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="577" href="#577">577</a> 							<strong class="jxr_keyword">case</strong> TransferOk:
-<a class="jxr_linenumber" name="578" href="#578">578</a> 								value = 3;
-<a class="jxr_linenumber" name="579" href="#579">579</a> 								outputFormat.setValue(FIELDS.status.name(), value);
-<a class="jxr_linenumber" name="580" href="#580">580</a> 								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.71"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="581" href="#581">581</a> 								outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="582" href="#582">582</a> 								outputFormat.setValueString(map);
-<a class="jxr_linenumber" name="583" href="#583">583</a> 								logger.warn(outputFormat.loggerOut());
-<a class="jxr_linenumber" name="584" href="#584">584</a> 								outputFormat.sysout();
-<a class="jxr_linenumber" name="585" href="#585">585</a> 								<strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="586" href="#586">586</a> 							<strong class="jxr_keyword">default</strong>:
-<a class="jxr_linenumber" name="587" href="#587">587</a> 								value = 4;
-<a class="jxr_linenumber" name="588" href="#588">588</a> 								outputFormat.setValue(FIELDS.status.name(), value);
-<a class="jxr_linenumber" name="589" href="#589">589</a> 								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.72"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="590" href="#590">590</a> 								outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="591" href="#591">591</a> 								outputFormat.setValueString(map);
-<a class="jxr_linenumber" name="592" href="#592">592</a> 								<strong class="jxr_keyword">if</strong> (result.getCause() != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="593" href="#593">593</a> 									outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
-<a class="jxr_linenumber" name="594" href="#594">594</a> 								}
-<a class="jxr_linenumber" name="595" href="#595">595</a> 								logger.error(outputFormat.loggerOut());
-<a class="jxr_linenumber" name="596" href="#596">596</a> 								outputFormat.sysout();
-<a class="jxr_linenumber" name="597" href="#597">597</a> 								<strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="598" href="#598">598</a> 						}
-<a class="jxr_linenumber" name="599" href="#599">599</a> 					}
-<a class="jxr_linenumber" name="600" href="#600">600</a> 				} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (sstop) {
-<a class="jxr_linenumber" name="601" href="#601">601</a> 					Map&lt;String, String&gt; map = DbTaskRunner.getMapFromRunner(result.runner);
-<a class="jxr_linenumber" name="602" href="#602">602</a> 					<strong class="jxr_keyword">switch</strong> (finalValue.code) {
-<a class="jxr_linenumber" name="603" href="#603">603</a> 						<strong class="jxr_keyword">case</strong> CompleteOk:
-<a class="jxr_linenumber" name="604" href="#604">604</a> 							value = 0;
-<a class="jxr_linenumber" name="605" href="#605">605</a> 							outputFormat.setValue(FIELDS.status.name(), value);
-<a class="jxr_linenumber" name="606" href="#606">606</a> 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.73"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="607" href="#607">607</a> 							outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="608" href="#608">608</a> 							outputFormat.setValueString(map);
-<a class="jxr_linenumber" name="609" href="#609">609</a> 							logger.warn(outputFormat.loggerOut());
-<a class="jxr_linenumber" name="610" href="#610">610</a> 							outputFormat.sysout();
-<a class="jxr_linenumber" name="611" href="#611">611</a> 							<strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="612" href="#612">612</a> 						<strong class="jxr_keyword">case</strong> TransferOk:
-<a class="jxr_linenumber" name="613" href="#613">613</a> 							value = 0;
-<a class="jxr_linenumber" name="614" href="#614">614</a> 							outputFormat.setValue(FIELDS.status.name(), value);
-<a class="jxr_linenumber" name="615" href="#615">615</a> 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.74"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="616" href="#616">616</a> 							outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="617" href="#617">617</a> 							outputFormat.setValueString(map);
-<a class="jxr_linenumber" name="618" href="#618">618</a> 							logger.warn(outputFormat.loggerOut());
-<a class="jxr_linenumber" name="619" href="#619">619</a> 							outputFormat.sysout();
-<a class="jxr_linenumber" name="620" href="#620">620</a> 							<strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="621" href="#621">621</a> 						<strong class="jxr_keyword">default</strong>:
-<a class="jxr_linenumber" name="622" href="#622">622</a> 							value = 3;
-<a class="jxr_linenumber" name="623" href="#623">623</a> 							outputFormat.setValue(FIELDS.status.name(), value);
-<a class="jxr_linenumber" name="624" href="#624">624</a> 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.75"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="625" href="#625">625</a> 							outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="626" href="#626">626</a> 							outputFormat.setValueString(map);
-<a class="jxr_linenumber" name="627" href="#627">627</a> 							<strong class="jxr_keyword">if</strong> (result.getCause() != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="628" href="#628">628</a> 								outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
-<a class="jxr_linenumber" name="629" href="#629">629</a> 							}
-<a class="jxr_linenumber" name="630" href="#630">630</a> 							logger.warn(outputFormat.loggerOut());
-<a class="jxr_linenumber" name="631" href="#631">631</a> 							outputFormat.sysout();
-<a class="jxr_linenumber" name="632" href="#632">632</a> 							<strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="633" href="#633">633</a> 					}
-<a class="jxr_linenumber" name="634" href="#634">634</a> 				} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (srestart) {
-<a class="jxr_linenumber" name="635" href="#635">635</a> 					Map&lt;String, String&gt; map = DbTaskRunner.getMapFromRunner(result.runner);
-<a class="jxr_linenumber" name="636" href="#636">636</a> 					<strong class="jxr_keyword">switch</strong> (finalValue.code) {
-<a class="jxr_linenumber" name="637" href="#637">637</a> 						<strong class="jxr_keyword">case</strong> QueryStillRunning:
-<a class="jxr_linenumber" name="638" href="#638">638</a> 							value = 0;
-<a class="jxr_linenumber" name="639" href="#639">639</a> 							outputFormat.setValue(FIELDS.status.name(), value);
-<a class="jxr_linenumber" name="640" href="#640">640</a> 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.76"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="641" href="#641">641</a> 							outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="642" href="#642">642</a> 							outputFormat.setValueString(map);
-<a class="jxr_linenumber" name="643" href="#643">643</a> 							logger.warn(outputFormat.loggerOut());
-<a class="jxr_linenumber" name="644" href="#644">644</a> 							outputFormat.sysout();
-<a class="jxr_linenumber" name="645" href="#645">645</a> 							<strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="646" href="#646">646</a> 						<strong class="jxr_keyword">case</strong> Running:
-<a class="jxr_linenumber" name="647" href="#647">647</a> 							value = 0;
-<a class="jxr_linenumber" name="648" href="#648">648</a> 							outputFormat.setValue(FIELDS.status.name(), value);
-<a class="jxr_linenumber" name="649" href="#649">649</a> 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.77"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="650" href="#650">650</a> 							outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="651" href="#651">651</a> 							outputFormat.setValueString(map);
-<a class="jxr_linenumber" name="652" href="#652">652</a> 							logger.warn(outputFormat.loggerOut());
-<a class="jxr_linenumber" name="653" href="#653">653</a> 							outputFormat.sysout();
-<a class="jxr_linenumber" name="654" href="#654">654</a> 							<strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="655" href="#655">655</a> 						<strong class="jxr_keyword">case</strong> PreProcessingOk:
-<a class="jxr_linenumber" name="656" href="#656">656</a> 							value = 0;
-<a class="jxr_linenumber" name="657" href="#657">657</a> 							outputFormat.setValue(FIELDS.status.name(), value);
-<a class="jxr_linenumber" name="658" href="#658">658</a> 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.78"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="659" href="#659">659</a> 							outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="660" href="#660">660</a> 							outputFormat.setValueString(map);
-<a class="jxr_linenumber" name="661" href="#661">661</a> 							logger.warn(outputFormat.loggerOut());
-<a class="jxr_linenumber" name="662" href="#662">662</a> 							outputFormat.sysout();
-<a class="jxr_linenumber" name="663" href="#663">663</a> 							<strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="664" href="#664">664</a> 						<strong class="jxr_keyword">case</strong> CompleteOk:
-<a class="jxr_linenumber" name="665" href="#665">665</a> 							value = 4;
-<a class="jxr_linenumber" name="666" href="#666">666</a> 							outputFormat.setValue(FIELDS.status.name(), value);
-<a class="jxr_linenumber" name="667" href="#667">667</a> 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.79"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="668" href="#668">668</a> 							outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="669" href="#669">669</a> 							outputFormat.setValueString(map);
-<a class="jxr_linenumber" name="670" href="#670">670</a> 							logger.warn(outputFormat.loggerOut());
-<a class="jxr_linenumber" name="671" href="#671">671</a> 							outputFormat.sysout();
-<a class="jxr_linenumber" name="672" href="#672">672</a> 							<strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="673" href="#673">673</a> 						<strong class="jxr_keyword">case</strong> RemoteError:
-<a class="jxr_linenumber" name="674" href="#674">674</a> 							value = 5;
-<a class="jxr_linenumber" name="675" href="#675">675</a> 							outputFormat.setValue(FIELDS.status.name(), value);
-<a class="jxr_linenumber" name="676" href="#676">676</a> 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.80"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="677" href="#677">677</a> 							outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="678" href="#678">678</a> 							outputFormat.setValueString(map);
-<a class="jxr_linenumber" name="679" href="#679">679</a> 							logger.warn(outputFormat.loggerOut());
-<a class="jxr_linenumber" name="680" href="#680">680</a> 							outputFormat.sysout();
-<a class="jxr_linenumber" name="681" href="#681">681</a> 							<strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="682" href="#682">682</a> 						<strong class="jxr_keyword">case</strong> PassThroughMode:
-<a class="jxr_linenumber" name="683" href="#683">683</a> 							value = 6;
-<a class="jxr_linenumber" name="684" href="#684">684</a> 							outputFormat.setValue(FIELDS.status.name(), value);
-<a class="jxr_linenumber" name="685" href="#685">685</a> 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.81"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="686" href="#686">686</a> 							outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="687" href="#687">687</a> 							outputFormat.setValueString(map);
-<a class="jxr_linenumber" name="688" href="#688">688</a> 							logger.warn(outputFormat.loggerOut());
-<a class="jxr_linenumber" name="689" href="#689">689</a> 							outputFormat.sysout();
-<a class="jxr_linenumber" name="690" href="#690">690</a> 							<strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="691" href="#691">691</a> 						<strong class="jxr_keyword">default</strong>:
-<a class="jxr_linenumber" name="692" href="#692">692</a> 							value = 3;
-<a class="jxr_linenumber" name="693" href="#693">693</a> 							outputFormat.setValue(FIELDS.status.name(), value);
-<a class="jxr_linenumber" name="694" href="#694">694</a> 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.82"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="695" href="#695">695</a> 							outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="696" href="#696">696</a> 							outputFormat.setValueString(map);
-<a class="jxr_linenumber" name="697" href="#697">697</a> 							<strong class="jxr_keyword">if</strong> (result.getCause() != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="698" href="#698">698</a> 								outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
-<a class="jxr_linenumber" name="699" href="#699">699</a> 							}
-<a class="jxr_linenumber" name="700" href="#700">700</a> 							logger.warn(outputFormat.loggerOut());
-<a class="jxr_linenumber" name="701" href="#701">701</a> 							outputFormat.sysout();
-<a class="jxr_linenumber" name="702" href="#702">702</a> 							<strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="703" href="#703">703</a> 					}
-<a class="jxr_linenumber" name="704" href="#704">704</a> 				}
-<a class="jxr_linenumber" name="705" href="#705">705</a> 			} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="706" href="#706">706</a> 				value = 0;
-<a class="jxr_linenumber" name="707" href="#707">707</a> 				<em class="jxr_comment">// Only request</em>
-<a class="jxr_linenumber" name="708" href="#708">708</a> 				outputFormat.setValue(FIELDS.status.name(), value);
-<a class="jxr_linenumber" name="709" href="#709">709</a> 				outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.83"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="710" href="#710">710</a> 				outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="711" href="#711">711</a> 				Map&lt;String, String&gt; map = DbTaskRunner.getMapFromRunner(result.runner);
-<a class="jxr_linenumber" name="712" href="#712">712</a> 				outputFormat.setValueString(map);
-<a class="jxr_linenumber" name="713" href="#713">713</a> 				logger.warn(outputFormat.loggerOut());
-<a class="jxr_linenumber" name="714" href="#714">714</a> 				outputFormat.sysout();
-<a class="jxr_linenumber" name="715" href="#715">715</a> 			}
-<a class="jxr_linenumber" name="716" href="#716">716</a> 		} <strong class="jxr_keyword">finally</strong> {
-<a class="jxr_linenumber" name="717" href="#717">717</a> 			<strong class="jxr_keyword">if</strong> (DbConstant.admin != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="718" href="#718">718</a> 				DbConstant.admin.close();
-<a class="jxr_linenumber" name="719" href="#719">719</a> 			}
-<a class="jxr_linenumber" name="720" href="#720">720</a> 			System.exit(value);
-<a class="jxr_linenumber" name="721" href="#721">721</a> 		}
-<a class="jxr_linenumber" name="722" href="#722">722</a> 	}
-<a class="jxr_linenumber" name="723" href="#723">723</a> 
-<a class="jxr_linenumber" name="724" href="#724">724</a> }
+<a class="jxr_linenumber" name="487" href="#487">487</a> 				packet = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/localhandler/packet/JsonCommandPacket.html">JsonCommandPacket</a>(node, code);
+<a class="jxr_linenumber" name="488" href="#488">488</a> 			}
+<a class="jxr_linenumber" name="489" href="#489">489</a> 		} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="490" href="#490">490</a> 			<strong class="jxr_keyword">if</strong> (restarttime != <strong class="jxr_keyword">null</strong> &amp;&amp; code == LocalPacketFactory.VALIDPACKET) {
+<a class="jxr_linenumber" name="491" href="#491">491</a> 				<em class="jxr_comment">// restart time set</em>
+<a class="jxr_linenumber" name="492" href="#492">492</a> 				logger.debug(<span class="jxr_string">"Restart with time: "</span>+restarttime);
+<a class="jxr_linenumber" name="493" href="#493">493</a> 				packet = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/localhandler/packet/ValidPacket.html">ValidPacket</a>(<span class="jxr_string">"Request on Transfer"</span>,
+<a class="jxr_linenumber" name="494" href="#494">494</a> 						<strong class="jxr_keyword">this</strong>.requested + <span class="jxr_string">" "</span> + <strong class="jxr_keyword">this</strong>.requester + <span class="jxr_string">" "</span> + <strong class="jxr_keyword">this</strong>.specialId+<span class="jxr_string">" "</span>+restarttime,
+<a class="jxr_linenumber" name="495" href="#495">495</a> 						code);
+<a class="jxr_linenumber" name="496" href="#496">496</a> 			} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="497" href="#497">497</a> 				packet = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/localhandler/packet/ValidPacket.html">ValidPacket</a>(<span class="jxr_string">"Request on Transfer"</span>,
+<a class="jxr_linenumber" name="498" href="#498">498</a> 					<strong class="jxr_keyword">this</strong>.requested + <span class="jxr_string">" "</span> + <strong class="jxr_keyword">this</strong>.requester + <span class="jxr_string">" "</span> + <strong class="jxr_keyword">this</strong>.specialId,
+<a class="jxr_linenumber" name="499" href="#499">499</a> 					code);
+<a class="jxr_linenumber" name="500" href="#500">500</a> 			}
+<a class="jxr_linenumber" name="501" href="#501">501</a> 		}
+<a class="jxr_linenumber" name="502" href="#502">502</a> 		localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
+<a class="jxr_linenumber" name="503" href="#503">503</a> 		<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="504" href="#504">504</a> 			ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false);
+<a class="jxr_linenumber" name="505" href="#505">505</a> 		} <strong class="jxr_keyword">catch</strong> (OpenR66ProtocolPacketException e) {
+<a class="jxr_linenumber" name="506" href="#506">506</a> 			logger.error(Messages.getString(<span class="jxr_string">"RequestTransfer.63"</span>) + host.toString()); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="507" href="#507">507</a> 			Channels.close(localChannelReference.getLocalChannel());
+<a class="jxr_linenumber" name="508" href="#508">508</a> 			localChannelReference = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="509" href="#509">509</a> 			host = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="510" href="#510">510</a> 			packet = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="511" href="#511">511</a> 			logger.debug(<span class="jxr_string">"Bad Protocol"</span>, e);
+<a class="jxr_linenumber" name="512" href="#512">512</a> 			future.setResult(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(e, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
+<a class="jxr_linenumber" name="513" href="#513">513</a> 					ErrorCode.TransferError, <strong class="jxr_keyword">null</strong>));
+<a class="jxr_linenumber" name="514" href="#514">514</a> 			future.setFailure(e);
+<a class="jxr_linenumber" name="515" href="#515">515</a> 			<strong class="jxr_keyword">return</strong> ErrorCode.Internal;
+<a class="jxr_linenumber" name="516" href="#516">516</a> 		}
+<a class="jxr_linenumber" name="517" href="#517">517</a> 		packet = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="518" href="#518">518</a> 		host = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="519" href="#519">519</a> 		future.awaitUninterruptibly();
+<a class="jxr_linenumber" name="520" href="#520">520</a> 
+<a class="jxr_linenumber" name="521" href="#521">521</a> 		Channels.close(localChannelReference.getLocalChannel());
+<a class="jxr_linenumber" name="522" href="#522">522</a> 		localChannelReference = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="523" href="#523">523</a> 
+<a class="jxr_linenumber" name="524" href="#524">524</a> 		logger.info(<span class="jxr_string">"Request done with "</span> + (future.isSuccess() ? <span class="jxr_string">"success"</span> : <span class="jxr_string">"error"</span>));
+<a class="jxr_linenumber" name="525" href="#525">525</a> 		R66Result result = future.getResult();
+<a class="jxr_linenumber" name="526" href="#526">526</a> 		<strong class="jxr_keyword">if</strong> (result != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="527" href="#527">527</a> 			<strong class="jxr_keyword">return</strong> result.code;
+<a class="jxr_linenumber" name="528" href="#528">528</a> 		}
+<a class="jxr_linenumber" name="529" href="#529">529</a> 		<strong class="jxr_keyword">return</strong> ErrorCode.Internal;
+<a class="jxr_linenumber" name="530" href="#530">530</a> 	}
+<a class="jxr_linenumber" name="531" href="#531">531</a> 
+<a class="jxr_linenumber" name="532" href="#532">532</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="533" href="#533">533</a> <em class="jxr_javadoccomment">	 * @param args</em>
+<a class="jxr_linenumber" name="534" href="#534">534</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="535" href="#535">535</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> main(String[] args) {
+<a class="jxr_linenumber" name="536" href="#536">536</a> 		InternalLoggerFactory.setDefaultFactory(<strong class="jxr_keyword">new</strong> WaarpSlf4JLoggerFactory(<strong class="jxr_keyword">null</strong>));
+<a class="jxr_linenumber" name="537" href="#537">537</a> 		<strong class="jxr_keyword">if</strong> (logger == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="538" href="#538">538</a> 			logger = WaarpInternalLoggerFactory.getLogger(RequestTransfer.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="539" href="#539">539</a> 		}
+<a class="jxr_linenumber" name="540" href="#540">540</a> 		<strong class="jxr_keyword">if</strong> (!getParams(args)) {
+<a class="jxr_linenumber" name="541" href="#541">541</a> 			logger.error(Messages.getString(<span class="jxr_string">"Configuration.WrongInit"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="542" href="#542">542</a> 			<strong class="jxr_keyword">if</strong> (! OutputFormat.isQuiet()) {
+<a class="jxr_linenumber" name="543" href="#543">543</a> 				System.out.println(Messages.getString(<span class="jxr_string">"Configuration.WrongInit"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="544" href="#544">544</a> 			}
+<a class="jxr_linenumber" name="545" href="#545">545</a> 			<strong class="jxr_keyword">if</strong> (DbConstant.admin != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.isConnected) {
+<a class="jxr_linenumber" name="546" href="#546">546</a> 				DbConstant.admin.close();
+<a class="jxr_linenumber" name="547" href="#547">547</a> 			}
+<a class="jxr_linenumber" name="548" href="#548">548</a> 			ChannelUtils.stopLogger();
+<a class="jxr_linenumber" name="549" href="#549">549</a> 			System.exit(1);
+<a class="jxr_linenumber" name="550" href="#550">550</a> 		}
+<a class="jxr_linenumber" name="551" href="#551">551</a> 		<strong class="jxr_keyword">int</strong> value = 99;
+<a class="jxr_linenumber" name="552" href="#552">552</a> 		<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="553" href="#553">553</a> 			Configuration.configuration.pipelineInit();
+<a class="jxr_linenumber" name="554" href="#554">554</a> 			NetworkTransaction networkTransaction = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/networkhandler/NetworkTransaction.html">NetworkTransaction</a>();
+<a class="jxr_linenumber" name="555" href="#555">555</a> 			R66Future result = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/utils/R66Future.html">R66Future</a>(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="556" href="#556">556</a> 			RequestTransfer requestTransfer =
+<a class="jxr_linenumber" name="557" href="#557">557</a> 					<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/client/RequestTransfer.html">RequestTransfer</a>(result, sspecialId, srequested, srequester,
+<a class="jxr_linenumber" name="558" href="#558">558</a> 							scancel, sstop, srestart, srestarttime,
+<a class="jxr_linenumber" name="559" href="#559">559</a> 							networkTransaction);
+<a class="jxr_linenumber" name="560" href="#560">560</a> 			requestTransfer.run();
+<a class="jxr_linenumber" name="561" href="#561">561</a> 			result.awaitUninterruptibly();
+<a class="jxr_linenumber" name="562" href="#562">562</a> 			R66Result finalValue = result.getResult();
+<a class="jxr_linenumber" name="563" href="#563">563</a> 			OutputFormat outputFormat = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/client/utils/OutputFormat.html">OutputFormat</a>(RequestTransfer.<strong class="jxr_keyword">class</strong>.getSimpleName(), args);
+<a class="jxr_linenumber" name="564" href="#564">564</a> 			<strong class="jxr_keyword">if</strong> (scancel || sstop || srestart) {
+<a class="jxr_linenumber" name="565" href="#565">565</a> 				<strong class="jxr_keyword">if</strong> (scancel) {
+<a class="jxr_linenumber" name="566" href="#566">566</a> 					<strong class="jxr_keyword">if</strong> (result.isSuccess()) {
+<a class="jxr_linenumber" name="567" href="#567">567</a> 						value = 0;
+<a class="jxr_linenumber" name="568" href="#568">568</a> 						outputFormat.setValue(FIELDS.status.name(), value);
+<a class="jxr_linenumber" name="569" href="#569">569</a> 						outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.21"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="570" href="#570">570</a> 						outputFormat.setValue(FIELDS.remote.name(), rhost);
+<a class="jxr_linenumber" name="571" href="#571">571</a> 						Map&lt;String, String&gt; map = DbTaskRunner.getMapFromRunner(result.runner);
+<a class="jxr_linenumber" name="572" href="#572">572</a> 						outputFormat.setValueString(map);
+<a class="jxr_linenumber" name="573" href="#573">573</a> 						logger.warn(outputFormat.loggerOut());
+<a class="jxr_linenumber" name="574" href="#574">574</a> 						outputFormat.sysout();
+<a class="jxr_linenumber" name="575" href="#575">575</a> 					} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="576" href="#576">576</a> 						Map&lt;String, String&gt; map = DbTaskRunner.getMapFromRunner(result.runner);
+<a class="jxr_linenumber" name="577" href="#577">577</a> 						<strong class="jxr_keyword">switch</strong> (finalValue.code) {
+<a class="jxr_linenumber" name="578" href="#578">578</a> 							<strong class="jxr_keyword">case</strong> CompleteOk:
+<a class="jxr_linenumber" name="579" href="#579">579</a> 								value = 0;
+<a class="jxr_linenumber" name="580" href="#580">580</a> 								outputFormat.setValue(FIELDS.status.name(), value);
+<a class="jxr_linenumber" name="581" href="#581">581</a> 								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.70"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="582" href="#582">582</a> 								outputFormat.setValue(FIELDS.remote.name(), rhost);
+<a class="jxr_linenumber" name="583" href="#583">583</a> 								outputFormat.setValueString(map);
+<a class="jxr_linenumber" name="584" href="#584">584</a> 								logger.warn(outputFormat.loggerOut());
+<a class="jxr_linenumber" name="585" href="#585">585</a> 								outputFormat.sysout();
+<a class="jxr_linenumber" name="586" href="#586">586</a> 								<strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="587" href="#587">587</a> 							<strong class="jxr_keyword">case</strong> TransferOk:
+<a class="jxr_linenumber" name="588" href="#588">588</a> 								value = 3;
+<a class="jxr_linenumber" name="589" href="#589">589</a> 								outputFormat.setValue(FIELDS.status.name(), value);
+<a class="jxr_linenumber" name="590" href="#590">590</a> 								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.71"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="591" href="#591">591</a> 								outputFormat.setValue(FIELDS.remote.name(), rhost);
+<a class="jxr_linenumber" name="592" href="#592">592</a> 								outputFormat.setValueString(map);
+<a class="jxr_linenumber" name="593" href="#593">593</a> 								logger.warn(outputFormat.loggerOut());
+<a class="jxr_linenumber" name="594" href="#594">594</a> 								outputFormat.sysout();
+<a class="jxr_linenumber" name="595" href="#595">595</a> 								<strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="596" href="#596">596</a> 							<strong class="jxr_keyword">default</strong>:
+<a class="jxr_linenumber" name="597" href="#597">597</a> 								value = 4;
+<a class="jxr_linenumber" name="598" href="#598">598</a> 								outputFormat.setValue(FIELDS.status.name(), value);
+<a class="jxr_linenumber" name="599" href="#599">599</a> 								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.72"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="600" href="#600">600</a> 								outputFormat.setValue(FIELDS.remote.name(), rhost);
+<a class="jxr_linenumber" name="601" href="#601">601</a> 								outputFormat.setValueString(map);
+<a class="jxr_linenumber" name="602" href="#602">602</a> 								<strong class="jxr_keyword">if</strong> (result.getCause() != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="603" href="#603">603</a> 									outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
+<a class="jxr_linenumber" name="604" href="#604">604</a> 								}
+<a class="jxr_linenumber" name="605" href="#605">605</a> 								logger.error(outputFormat.loggerOut());
+<a class="jxr_linenumber" name="606" href="#606">606</a> 								outputFormat.sysout();
+<a class="jxr_linenumber" name="607" href="#607">607</a> 								<strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="608" href="#608">608</a> 						}
+<a class="jxr_linenumber" name="609" href="#609">609</a> 					}
+<a class="jxr_linenumber" name="610" href="#610">610</a> 				} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (sstop) {
+<a class="jxr_linenumber" name="611" href="#611">611</a> 					Map&lt;String, String&gt; map = DbTaskRunner.getMapFromRunner(result.runner);
+<a class="jxr_linenumber" name="612" href="#612">612</a> 					<strong class="jxr_keyword">switch</strong> (finalValue.code) {
+<a class="jxr_linenumber" name="613" href="#613">613</a> 						<strong class="jxr_keyword">case</strong> CompleteOk:
+<a class="jxr_linenumber" name="614" href="#614">614</a> 							value = 0;
+<a class="jxr_linenumber" name="615" href="#615">615</a> 							outputFormat.setValue(FIELDS.status.name(), value);
+<a class="jxr_linenumber" name="616" href="#616">616</a> 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.73"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="617" href="#617">617</a> 							outputFormat.setValue(FIELDS.remote.name(), rhost);
+<a class="jxr_linenumber" name="618" href="#618">618</a> 							outputFormat.setValueString(map);
+<a class="jxr_linenumber" name="619" href="#619">619</a> 							logger.warn(outputFormat.loggerOut());
+<a class="jxr_linenumber" name="620" href="#620">620</a> 							outputFormat.sysout();
+<a class="jxr_linenumber" name="621" href="#621">621</a> 							<strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="622" href="#622">622</a> 						<strong class="jxr_keyword">case</strong> TransferOk:
+<a class="jxr_linenumber" name="623" href="#623">623</a> 							value = 0;
+<a class="jxr_linenumber" name="624" href="#624">624</a> 							outputFormat.setValue(FIELDS.status.name(), value);
+<a class="jxr_linenumber" name="625" href="#625">625</a> 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.74"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="626" href="#626">626</a> 							outputFormat.setValue(FIELDS.remote.name(), rhost);
+<a class="jxr_linenumber" name="627" href="#627">627</a> 							outputFormat.setValueString(map);
+<a class="jxr_linenumber" name="628" href="#628">628</a> 							logger.warn(outputFormat.loggerOut());
+<a class="jxr_linenumber" name="629" href="#629">629</a> 							outputFormat.sysout();
+<a class="jxr_linenumber" name="630" href="#630">630</a> 							<strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="631" href="#631">631</a> 						<strong class="jxr_keyword">default</strong>:
+<a class="jxr_linenumber" name="632" href="#632">632</a> 							value = 3;
+<a class="jxr_linenumber" name="633" href="#633">633</a> 							outputFormat.setValue(FIELDS.status.name(), value);
+<a class="jxr_linenumber" name="634" href="#634">634</a> 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.75"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="635" href="#635">635</a> 							outputFormat.setValue(FIELDS.remote.name(), rhost);
+<a class="jxr_linenumber" name="636" href="#636">636</a> 							outputFormat.setValueString(map);
+<a class="jxr_linenumber" name="637" href="#637">637</a> 							<strong class="jxr_keyword">if</strong> (result.getCause() != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="638" href="#638">638</a> 								outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
+<a class="jxr_linenumber" name="639" href="#639">639</a> 							}
+<a class="jxr_linenumber" name="640" href="#640">640</a> 							logger.warn(outputFormat.loggerOut());
+<a class="jxr_linenumber" name="641" href="#641">641</a> 							outputFormat.sysout();
+<a class="jxr_linenumber" name="642" href="#642">642</a> 							<strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="643" href="#643">643</a> 					}
+<a class="jxr_linenumber" name="644" href="#644">644</a> 				} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (srestart) {
+<a class="jxr_linenumber" name="645" href="#645">645</a> 					Map&lt;String, String&gt; map = DbTaskRunner.getMapFromRunner(result.runner);
+<a class="jxr_linenumber" name="646" href="#646">646</a> 					<strong class="jxr_keyword">switch</strong> (finalValue.code) {
+<a class="jxr_linenumber" name="647" href="#647">647</a> 						<strong class="jxr_keyword">case</strong> QueryStillRunning:
+<a class="jxr_linenumber" name="648" href="#648">648</a> 							value = 0;
+<a class="jxr_linenumber" name="649" href="#649">649</a> 							outputFormat.setValue(FIELDS.status.name(), value);
+<a class="jxr_linenumber" name="650" href="#650">650</a> 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.76"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="651" href="#651">651</a> 							outputFormat.setValue(FIELDS.remote.name(), rhost);
+<a class="jxr_linenumber" name="652" href="#652">652</a> 							outputFormat.setValueString(map);
+<a class="jxr_linenumber" name="653" href="#653">653</a> 							logger.warn(outputFormat.loggerOut());
+<a class="jxr_linenumber" name="654" href="#654">654</a> 							outputFormat.sysout();
+<a class="jxr_linenumber" name="655" href="#655">655</a> 							<strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="656" href="#656">656</a> 						<strong class="jxr_keyword">case</strong> Running:
+<a class="jxr_linenumber" name="657" href="#657">657</a> 							value = 0;
+<a class="jxr_linenumber" name="658" href="#658">658</a> 							outputFormat.setValue(FIELDS.status.name(), value);
+<a class="jxr_linenumber" name="659" href="#659">659</a> 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.77"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="660" href="#660">660</a> 							outputFormat.setValue(FIELDS.remote.name(), rhost);
+<a class="jxr_linenumber" name="661" href="#661">661</a> 							outputFormat.setValueString(map);
+<a class="jxr_linenumber" name="662" href="#662">662</a> 							logger.warn(outputFormat.loggerOut());
+<a class="jxr_linenumber" name="663" href="#663">663</a> 							outputFormat.sysout();
+<a class="jxr_linenumber" name="664" href="#664">664</a> 							<strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="665" href="#665">665</a> 						<strong class="jxr_keyword">case</strong> PreProcessingOk:
+<a class="jxr_linenumber" name="666" href="#666">666</a> 							value = 0;
+<a class="jxr_linenumber" name="667" href="#667">667</a> 							outputFormat.setValue(FIELDS.status.name(), value);
+<a class="jxr_linenumber" name="668" href="#668">668</a> 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.78"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="669" href="#669">669</a> 							outputFormat.setValue(FIELDS.remote.name(), rhost);
+<a class="jxr_linenumber" name="670" href="#670">670</a> 							outputFormat.setValueString(map);
+<a class="jxr_linenumber" name="671" href="#671">671</a> 							logger.warn(outputFormat.loggerOut());
+<a class="jxr_linenumber" name="672" href="#672">672</a> 							outputFormat.sysout();
+<a class="jxr_linenumber" name="673" href="#673">673</a> 							<strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="674" href="#674">674</a> 						<strong class="jxr_keyword">case</strong> CompleteOk:
+<a class="jxr_linenumber" name="675" href="#675">675</a> 							value = 4;
+<a class="jxr_linenumber" name="676" href="#676">676</a> 							outputFormat.setValue(FIELDS.status.name(), value);
+<a class="jxr_linenumber" name="677" href="#677">677</a> 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.79"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="678" href="#678">678</a> 							outputFormat.setValue(FIELDS.remote.name(), rhost);
+<a class="jxr_linenumber" name="679" href="#679">679</a> 							outputFormat.setValueString(map);
+<a class="jxr_linenumber" name="680" href="#680">680</a> 							logger.warn(outputFormat.loggerOut());
+<a class="jxr_linenumber" name="681" href="#681">681</a> 							outputFormat.sysout();
+<a class="jxr_linenumber" name="682" href="#682">682</a> 							<strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="683" href="#683">683</a> 						<strong class="jxr_keyword">case</strong> RemoteError:
+<a class="jxr_linenumber" name="684" href="#684">684</a> 							value = 5;
+<a class="jxr_linenumber" name="685" href="#685">685</a> 							outputFormat.setValue(FIELDS.status.name(), value);
+<a class="jxr_linenumber" name="686" href="#686">686</a> 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.80"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="687" href="#687">687</a> 							outputFormat.setValue(FIELDS.remote.name(), rhost);
+<a class="jxr_linenumber" name="688" href="#688">688</a> 							outputFormat.setValueString(map);
+<a class="jxr_linenumber" name="689" href="#689">689</a> 							logger.warn(outputFormat.loggerOut());
+<a class="jxr_linenumber" name="690" href="#690">690</a> 							outputFormat.sysout();
+<a class="jxr_linenumber" name="691" href="#691">691</a> 							<strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="692" href="#692">692</a> 						<strong class="jxr_keyword">case</strong> PassThroughMode:
+<a class="jxr_linenumber" name="693" href="#693">693</a> 							value = 6;
+<a class="jxr_linenumber" name="694" href="#694">694</a> 							outputFormat.setValue(FIELDS.status.name(), value);
+<a class="jxr_linenumber" name="695" href="#695">695</a> 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.81"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="696" href="#696">696</a> 							outputFormat.setValue(FIELDS.remote.name(), rhost);
+<a class="jxr_linenumber" name="697" href="#697">697</a> 							outputFormat.setValueString(map);
+<a class="jxr_linenumber" name="698" href="#698">698</a> 							logger.warn(outputFormat.loggerOut());
+<a class="jxr_linenumber" name="699" href="#699">699</a> 							outputFormat.sysout();
+<a class="jxr_linenumber" name="700" href="#700">700</a> 							<strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="701" href="#701">701</a> 						<strong class="jxr_keyword">default</strong>:
+<a class="jxr_linenumber" name="702" href="#702">702</a> 							value = 3;
+<a class="jxr_linenumber" name="703" href="#703">703</a> 							outputFormat.setValue(FIELDS.status.name(), value);
+<a class="jxr_linenumber" name="704" href="#704">704</a> 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.82"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="705" href="#705">705</a> 							outputFormat.setValue(FIELDS.remote.name(), rhost);
+<a class="jxr_linenumber" name="706" href="#706">706</a> 							outputFormat.setValueString(map);
+<a class="jxr_linenumber" name="707" href="#707">707</a> 							<strong class="jxr_keyword">if</strong> (result.getCause() != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="708" href="#708">708</a> 								outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
+<a class="jxr_linenumber" name="709" href="#709">709</a> 							}
+<a class="jxr_linenumber" name="710" href="#710">710</a> 							logger.warn(outputFormat.loggerOut());
+<a class="jxr_linenumber" name="711" href="#711">711</a> 							outputFormat.sysout();
+<a class="jxr_linenumber" name="712" href="#712">712</a> 							<strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="713" href="#713">713</a> 					}
+<a class="jxr_linenumber" name="714" href="#714">714</a> 				}
+<a class="jxr_linenumber" name="715" href="#715">715</a> 			} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="716" href="#716">716</a> 				value = 0;
+<a class="jxr_linenumber" name="717" href="#717">717</a> 				<em class="jxr_comment">// Only request</em>
+<a class="jxr_linenumber" name="718" href="#718">718</a> 				outputFormat.setValue(FIELDS.status.name(), value);
+<a class="jxr_linenumber" name="719" href="#719">719</a> 				outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"RequestTransfer.83"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="720" href="#720">720</a> 				outputFormat.setValue(FIELDS.remote.name(), rhost);
+<a class="jxr_linenumber" name="721" href="#721">721</a> 				Map&lt;String, String&gt; map = DbTaskRunner.getMapFromRunner(result.runner);
+<a class="jxr_linenumber" name="722" href="#722">722</a> 				outputFormat.setValueString(map);
+<a class="jxr_linenumber" name="723" href="#723">723</a> 				logger.warn(outputFormat.loggerOut());
+<a class="jxr_linenumber" name="724" href="#724">724</a> 				outputFormat.sysout();
+<a class="jxr_linenumber" name="725" href="#725">725</a> 			}
+<a class="jxr_linenumber" name="726" href="#726">726</a> 		} <strong class="jxr_keyword">finally</strong> {
+<a class="jxr_linenumber" name="727" href="#727">727</a> 			<strong class="jxr_keyword">if</strong> (DbConstant.admin != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="728" href="#728">728</a> 				DbConstant.admin.close();
+<a class="jxr_linenumber" name="729" href="#729">729</a> 			}
+<a class="jxr_linenumber" name="730" href="#730">730</a> 			System.exit(value);
+<a class="jxr_linenumber" name="731" href="#731">731</a> 		}
+<a class="jxr_linenumber" name="732" href="#732">732</a> 	}
+<a class="jxr_linenumber" name="733" href="#733">733</a> 
+<a class="jxr_linenumber" name="734" href="#734">734</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>

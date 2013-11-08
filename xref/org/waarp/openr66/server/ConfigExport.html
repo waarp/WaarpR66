@@ -132,176 +132,187 @@
 <a class="jxr_linenumber" name="122" href="#122">122</a> 			future.setFailure(future.getResult().exception);
 <a class="jxr_linenumber" name="123" href="#123">123</a> 			<strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="124" href="#124">124</a> 		}
-<a class="jxr_linenumber" name="125" href="#125">125</a> 		SocketAddress socketAddress = dbhost.getSocketAddress();
-<a class="jxr_linenumber" name="126" href="#126">126</a> 		<strong class="jxr_keyword">boolean</strong> isSSL = dbhost.isSsl();
-<a class="jxr_linenumber" name="127" href="#127">127</a> 
-<a class="jxr_linenumber" name="128" href="#128">128</a> 		LocalChannelReference localChannelReference = networkTransaction
-<a class="jxr_linenumber" name="129" href="#129">129</a> 				.createConnectionWithRetry(socketAddress, isSSL, future);
-<a class="jxr_linenumber" name="130" href="#130">130</a> 		socketAddress = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="131" href="#131">131</a> 		<strong class="jxr_keyword">if</strong> (localChannelReference == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="132" href="#132">132</a> 			dbhost = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="133" href="#133">133</a> 			logger.error(<span class="jxr_string">"Cannot Connect"</span>);
-<a class="jxr_linenumber" name="134" href="#134">134</a> 			future.setResult(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(
-<a class="jxr_linenumber" name="135" href="#135">135</a> 					<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolNoConnectionException.html">OpenR66ProtocolNoConnectionException</a>(<span class="jxr_string">"Cannot connect to server"</span>),
-<a class="jxr_linenumber" name="136" href="#136">136</a> 					<strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>, ErrorCode.Internal, <strong class="jxr_keyword">null</strong>));
-<a class="jxr_linenumber" name="137" href="#137">137</a> 			future.setFailure(future.getResult().exception);
-<a class="jxr_linenumber" name="138" href="#138">138</a> 			<strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="139" href="#139">139</a> 		}
-<a class="jxr_linenumber" name="140" href="#140">140</a> 		localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
-<a class="jxr_linenumber" name="141" href="#141">141</a> 		AbstractLocalPacket valid = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="142" href="#142">142</a> 		<strong class="jxr_keyword">boolean</strong> useJson = PartnerConfiguration.useJson(dbhost.getHostid());
-<a class="jxr_linenumber" name="143" href="#143">143</a> 		logger.debug(<span class="jxr_string">"UseJson: "</span>+useJson);
-<a class="jxr_linenumber" name="144" href="#144">144</a> 		<strong class="jxr_keyword">if</strong> (useJson) {
-<a class="jxr_linenumber" name="145" href="#145">145</a> 			ConfigExportJsonPacket node = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/localhandler/packet/json/ConfigExportJsonPacket.html">ConfigExportJsonPacket</a>();
-<a class="jxr_linenumber" name="146" href="#146">146</a> 			node.setHost(host);
-<a class="jxr_linenumber" name="147" href="#147">147</a> 			node.setRule(rule);
-<a class="jxr_linenumber" name="148" href="#148">148</a> 			node.setBusiness(business);
-<a class="jxr_linenumber" name="149" href="#149">149</a> 			node.setAlias(alias);
-<a class="jxr_linenumber" name="150" href="#150">150</a> 			node.setRoles(role);
-<a class="jxr_linenumber" name="151" href="#151">151</a> 			valid = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/localhandler/packet/JsonCommandPacket.html">JsonCommandPacket</a>(node, LocalPacketFactory.CONFEXPORTPACKET);
-<a class="jxr_linenumber" name="152" href="#152">152</a> 		} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="153" href="#153">153</a> 			valid = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/localhandler/packet/ValidPacket.html">ValidPacket</a>(Boolean.toString(host), Boolean.toString(rule),
-<a class="jxr_linenumber" name="154" href="#154">154</a> 				LocalPacketFactory.CONFEXPORTPACKET);
-<a class="jxr_linenumber" name="155" href="#155">155</a> 		}
-<a class="jxr_linenumber" name="156" href="#156">156</a> 		<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="157" href="#157">157</a> 			ChannelUtils.writeAbstractLocalPacket(localChannelReference, valid, false);
-<a class="jxr_linenumber" name="158" href="#158">158</a> 		} <strong class="jxr_keyword">catch</strong> (OpenR66ProtocolPacketException e) {
-<a class="jxr_linenumber" name="159" href="#159">159</a> 			logger.error(<span class="jxr_string">"Bad Protocol"</span>, e);
-<a class="jxr_linenumber" name="160" href="#160">160</a> 			Channels.close(localChannelReference.getLocalChannel());
-<a class="jxr_linenumber" name="161" href="#161">161</a> 			localChannelReference = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="162" href="#162">162</a> 			dbhost = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="163" href="#163">163</a> 			valid = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="164" href="#164">164</a> 			future.setResult(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(e, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
-<a class="jxr_linenumber" name="165" href="#165">165</a> 					ErrorCode.TransferError, <strong class="jxr_keyword">null</strong>));
-<a class="jxr_linenumber" name="166" href="#166">166</a> 			future.setFailure(e);
-<a class="jxr_linenumber" name="167" href="#167">167</a> 			<strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="168" href="#168">168</a> 		}
-<a class="jxr_linenumber" name="169" href="#169">169</a> 		dbhost = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="170" href="#170">170</a> 		future.awaitUninterruptibly();
-<a class="jxr_linenumber" name="171" href="#171">171</a> 		String sresult = <span class="jxr_string">"no information"</span>;
-<a class="jxr_linenumber" name="172" href="#172">172</a> 		<strong class="jxr_keyword">if</strong> (future.isSuccess() &amp;&amp; future.getResult() != <strong class="jxr_keyword">null</strong> &amp;&amp; future.getResult().other != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="173" href="#173">173</a> 			sresult = (useJson ? ((JsonCommandPacket) future.getResult().other).getRequest() : 
-<a class="jxr_linenumber" name="174" href="#174">174</a> 				((ValidPacket) future.getResult().other).toString());
-<a class="jxr_linenumber" name="175" href="#175">175</a> 		}
-<a class="jxr_linenumber" name="176" href="#176">176</a> 		logger.info(<span class="jxr_string">"Config Export done with "</span> + (future.isSuccess() ? <span class="jxr_string">"success"</span> : <span class="jxr_string">"error"</span>) + <span class="jxr_string">" ("</span>+sresult+<span class="jxr_string">")"</span>);
-<a class="jxr_linenumber" name="177" href="#177">177</a> 		Channels.close(localChannelReference.getLocalChannel());
-<a class="jxr_linenumber" name="178" href="#178">178</a> 		localChannelReference = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="179" href="#179">179</a> 	}
-<a class="jxr_linenumber" name="180" href="#180">180</a> 
-<a class="jxr_linenumber" name="181" href="#181">181</a> 	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> shost = false;
-<a class="jxr_linenumber" name="182" href="#182">182</a> 	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> srule = false;
-<a class="jxr_linenumber" name="183" href="#183">183</a> 	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> sbusiness = false;
-<a class="jxr_linenumber" name="184" href="#184">184</a> 	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> salias = false;
-<a class="jxr_linenumber" name="185" href="#185">185</a> 	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> srole = false;
-<a class="jxr_linenumber" name="186" href="#186">186</a> 	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> String stohost = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="187" href="#187">187</a> 	
-<a class="jxr_linenumber" name="188" href="#188">188</a> 	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> getParams(String[] args) {
-<a class="jxr_linenumber" name="189" href="#189">189</a> 		<strong class="jxr_keyword">if</strong> (args.length &lt; 2) {
-<a class="jxr_linenumber" name="190" href="#190">190</a> 			logger.error(_INFO_ARGS);
-<a class="jxr_linenumber" name="191" href="#191">191</a> 			<strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="192" href="#192">192</a> 		}
-<a class="jxr_linenumber" name="193" href="#193">193</a> 		<strong class="jxr_keyword">if</strong> (!FileBasedConfiguration
-<a class="jxr_linenumber" name="194" href="#194">194</a> 				.setClientConfigurationFromXml(Configuration.configuration, args[0])) {
-<a class="jxr_linenumber" name="195" href="#195">195</a> 			logger.error(_INFO_ARGS);
-<a class="jxr_linenumber" name="196" href="#196">196</a> 			<strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="197" href="#197">197</a> 		}
-<a class="jxr_linenumber" name="198" href="#198">198</a> 		<strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 1; i &lt; args.length; i++) {
-<a class="jxr_linenumber" name="199" href="#199">199</a> 			<strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-hosts"</span>)) {
-<a class="jxr_linenumber" name="200" href="#200">200</a> 				shost = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="201" href="#201">201</a> 			} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-rules"</span>)) {
-<a class="jxr_linenumber" name="202" href="#202">202</a> 				srule = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="203" href="#203">203</a> 			} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-business"</span>)) {
-<a class="jxr_linenumber" name="204" href="#204">204</a> 				sbusiness = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="205" href="#205">205</a> 			} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-alias"</span>)) {
-<a class="jxr_linenumber" name="206" href="#206">206</a> 				salias = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="207" href="#207">207</a> 			} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-roles"</span>)) {
-<a class="jxr_linenumber" name="208" href="#208">208</a> 				srole = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="209" href="#209">209</a> 			} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-host"</span>)) {
-<a class="jxr_linenumber" name="210" href="#210">210</a> 				i++;
-<a class="jxr_linenumber" name="211" href="#211">211</a> 				stohost = args[i];
-<a class="jxr_linenumber" name="212" href="#212">212</a> 			}
-<a class="jxr_linenumber" name="213" href="#213">213</a> 		}
-<a class="jxr_linenumber" name="214" href="#214">214</a> 		<strong class="jxr_keyword">if</strong> ((!shost) &amp;&amp; (!srule)) {
-<a class="jxr_linenumber" name="215" href="#215">215</a> 			logger.error(<span class="jxr_string">"Need at least one of -hosts - rules"</span>);
-<a class="jxr_linenumber" name="216" href="#216">216</a> 			<strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="217" href="#217">217</a> 		}
-<a class="jxr_linenumber" name="218" href="#218">218</a> 		<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="219" href="#219">219</a> 	}
-<a class="jxr_linenumber" name="220" href="#220">220</a> 
-<a class="jxr_linenumber" name="221" href="#221">221</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> main(String[] args) {
-<a class="jxr_linenumber" name="222" href="#222">222</a> 		InternalLoggerFactory.setDefaultFactory(<strong class="jxr_keyword">new</strong> WaarpSlf4JLoggerFactory(<strong class="jxr_keyword">null</strong>));
-<a class="jxr_linenumber" name="223" href="#223">223</a> 		<strong class="jxr_keyword">if</strong> (logger == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="224" href="#224">224</a> 			logger = WaarpInternalLoggerFactory.getLogger(ConfigExport.<strong class="jxr_keyword">class</strong>);
-<a class="jxr_linenumber" name="225" href="#225">225</a> 		}
-<a class="jxr_linenumber" name="226" href="#226">226</a> 		<strong class="jxr_keyword">if</strong> (!getParams(args)) {
-<a class="jxr_linenumber" name="227" href="#227">227</a> 			logger.error(<span class="jxr_string">"Wrong initialization"</span>);
-<a class="jxr_linenumber" name="228" href="#228">228</a> 			<strong class="jxr_keyword">if</strong> (DbConstant.admin != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.isConnected) {
-<a class="jxr_linenumber" name="229" href="#229">229</a> 				DbConstant.admin.close();
-<a class="jxr_linenumber" name="230" href="#230">230</a> 			}
-<a class="jxr_linenumber" name="231" href="#231">231</a> 			System.exit(1);
-<a class="jxr_linenumber" name="232" href="#232">232</a> 		}
-<a class="jxr_linenumber" name="233" href="#233">233</a> 		<strong class="jxr_keyword">long</strong> time1 = System.currentTimeMillis();
-<a class="jxr_linenumber" name="234" href="#234">234</a> 		R66Future future = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/utils/R66Future.html">R66Future</a>(<strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="235" href="#235">235</a> 
-<a class="jxr_linenumber" name="236" href="#236">236</a> 		Configuration.configuration.pipelineInit();
-<a class="jxr_linenumber" name="237" href="#237">237</a> 		NetworkTransaction networkTransaction = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/networkhandler/NetworkTransaction.html">NetworkTransaction</a>();
-<a class="jxr_linenumber" name="238" href="#238">238</a> 		<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="239" href="#239">239</a> 			ConfigExport transaction = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/server/ConfigExport.html">ConfigExport</a>(future,
-<a class="jxr_linenumber" name="240" href="#240">240</a> 					shost, srule, sbusiness, salias, srole,
-<a class="jxr_linenumber" name="241" href="#241">241</a> 					networkTransaction);
-<a class="jxr_linenumber" name="242" href="#242">242</a> 			<strong class="jxr_keyword">if</strong> (stohost != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="243" href="#243">243</a> 				<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="244" href="#244">244</a> 					transaction.setHost(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a>(DbConstant.admin.session, stohost));
-<a class="jxr_linenumber" name="245" href="#245">245</a> 				} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
-<a class="jxr_linenumber" name="246" href="#246">246</a> 					logger.error(<span class="jxr_string">"COnfigExport in     FAILURE since Host is not found: "</span>+stohost, e);
-<a class="jxr_linenumber" name="247" href="#247">247</a> 					networkTransaction.closeAll();
-<a class="jxr_linenumber" name="248" href="#248">248</a> 					System.exit(10);
-<a class="jxr_linenumber" name="249" href="#249">249</a> 				}
-<a class="jxr_linenumber" name="250" href="#250">250</a> 			} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="251" href="#251">251</a> 				stohost = Configuration.configuration.HOST_SSLID;
-<a class="jxr_linenumber" name="252" href="#252">252</a> 			}
-<a class="jxr_linenumber" name="253" href="#253">253</a> 			transaction.run();
-<a class="jxr_linenumber" name="254" href="#254">254</a> 			future.awaitUninterruptibly();
-<a class="jxr_linenumber" name="255" href="#255">255</a> 			<strong class="jxr_keyword">long</strong> time2 = System.currentTimeMillis();
-<a class="jxr_linenumber" name="256" href="#256">256</a> 			<strong class="jxr_keyword">long</strong> delay = time2 - time1;
-<a class="jxr_linenumber" name="257" href="#257">257</a> 			R66Result result = future.getResult();
-<a class="jxr_linenumber" name="258" href="#258">258</a> 			<strong class="jxr_keyword">if</strong> (future.isSuccess()) {
-<a class="jxr_linenumber" name="259" href="#259">259</a> 				<strong class="jxr_keyword">boolean</strong> useJson = PartnerConfiguration.useJson(stohost);
-<a class="jxr_linenumber" name="260" href="#260">260</a> 				logger.debug(<span class="jxr_string">"UseJson: "</span>+useJson);
-<a class="jxr_linenumber" name="261" href="#261">261</a> 				String message = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="262" href="#262">262</a> 				<strong class="jxr_keyword">if</strong> (useJson) {
-<a class="jxr_linenumber" name="263" href="#263">263</a> 					message = (result.other != <strong class="jxr_keyword">null</strong> ? ((JsonCommandPacket) result.other).getRequest() :
-<a class="jxr_linenumber" name="264" href="#264">264</a> 							<span class="jxr_string">"no file"</span>);
-<a class="jxr_linenumber" name="265" href="#265">265</a> 				} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="266" href="#266">266</a> 					message = (result.other != <strong class="jxr_keyword">null</strong> ? ((ValidPacket) result.other).getSheader() :
-<a class="jxr_linenumber" name="267" href="#267">267</a> 							<span class="jxr_string">"no file"</span>);
-<a class="jxr_linenumber" name="268" href="#268">268</a> 				}
-<a class="jxr_linenumber" name="269" href="#269">269</a> 				<strong class="jxr_keyword">if</strong> (result.code == ErrorCode.Warning) {
-<a class="jxr_linenumber" name="270" href="#270">270</a> 					logger.warn(<span class="jxr_string">"WARNED on files:     "</span> +
-<a class="jxr_linenumber" name="271" href="#271">271</a> 							message
-<a class="jxr_linenumber" name="272" href="#272">272</a> 							+ <span class="jxr_string">"     delay: "</span> + delay);
-<a class="jxr_linenumber" name="273" href="#273">273</a> 				} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="274" href="#274">274</a> 					logger.warn(<span class="jxr_string">"SUCCESS on Final files:     "</span> +
-<a class="jxr_linenumber" name="275" href="#275">275</a> 							message
-<a class="jxr_linenumber" name="276" href="#276">276</a> 							+ <span class="jxr_string">"     delay: "</span> + delay);
-<a class="jxr_linenumber" name="277" href="#277">277</a> 				}
-<a class="jxr_linenumber" name="278" href="#278">278</a> 			} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="279" href="#279">279</a> 				<strong class="jxr_keyword">if</strong> (result.code == ErrorCode.Warning) {
-<a class="jxr_linenumber" name="280" href="#280">280</a> 					logger.warn(<span class="jxr_string">"ConfigExport is     WARNED"</span>, future.getCause());
-<a class="jxr_linenumber" name="281" href="#281">281</a> 					networkTransaction.closeAll();
-<a class="jxr_linenumber" name="282" href="#282">282</a> 					System.exit(result.code.ordinal());
-<a class="jxr_linenumber" name="283" href="#283">283</a> 				} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="284" href="#284">284</a> 					logger.error(<span class="jxr_string">"ConfigExport in     FAILURE"</span>, future.getCause());
-<a class="jxr_linenumber" name="285" href="#285">285</a> 					networkTransaction.closeAll();
-<a class="jxr_linenumber" name="286" href="#286">286</a> 					System.exit(result.code.ordinal());
-<a class="jxr_linenumber" name="287" href="#287">287</a> 				}
-<a class="jxr_linenumber" name="288" href="#288">288</a> 			}
-<a class="jxr_linenumber" name="289" href="#289">289</a> 		} <strong class="jxr_keyword">finally</strong> {
-<a class="jxr_linenumber" name="290" href="#290">290</a> 			networkTransaction.closeAll();
-<a class="jxr_linenumber" name="291" href="#291">291</a> 		}
-<a class="jxr_linenumber" name="292" href="#292">292</a> 	}
-<a class="jxr_linenumber" name="293" href="#293">293</a> 
-<a class="jxr_linenumber" name="294" href="#294">294</a> }
+<a class="jxr_linenumber" name="125" href="#125">125</a> 		SocketAddress socketAddress;
+<a class="jxr_linenumber" name="126" href="#126">126</a> 		<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="127" href="#127">127</a> 			socketAddress = dbhost.getSocketAddress();
+<a class="jxr_linenumber" name="128" href="#128">128</a> 		} <strong class="jxr_keyword">catch</strong> (IllegalArgumentException e) {
+<a class="jxr_linenumber" name="129" href="#129">129</a> 			logger.error(<span class="jxr_string">"Cannot Connect to "</span>+dbhost.getHostid());
+<a class="jxr_linenumber" name="130" href="#130">130</a> 			future.setResult(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(
+<a class="jxr_linenumber" name="131" href="#131">131</a> 					<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolNoConnectionException.html">OpenR66ProtocolNoConnectionException</a>(<span class="jxr_string">"Cannot connect to server "</span>+dbhost.getHostid()),
+<a class="jxr_linenumber" name="132" href="#132">132</a> 					<strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>, ErrorCode.ConnectionImpossible, <strong class="jxr_keyword">null</strong>));
+<a class="jxr_linenumber" name="133" href="#133">133</a> 			dbhost = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="134" href="#134">134</a> 			future.setFailure(future.getResult().exception);
+<a class="jxr_linenumber" name="135" href="#135">135</a> 			<strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="136" href="#136">136</a> 		}
+<a class="jxr_linenumber" name="137" href="#137">137</a> 		<strong class="jxr_keyword">boolean</strong> isSSL = dbhost.isSsl();
+<a class="jxr_linenumber" name="138" href="#138">138</a> 
+<a class="jxr_linenumber" name="139" href="#139">139</a> 		LocalChannelReference localChannelReference = networkTransaction
+<a class="jxr_linenumber" name="140" href="#140">140</a> 				.createConnectionWithRetry(socketAddress, isSSL, future);
+<a class="jxr_linenumber" name="141" href="#141">141</a> 		socketAddress = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="142" href="#142">142</a> 		<strong class="jxr_keyword">if</strong> (localChannelReference == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="143" href="#143">143</a> 			logger.error(<span class="jxr_string">"Cannot Connect to "</span>+dbhost.getHostid());
+<a class="jxr_linenumber" name="144" href="#144">144</a> 			future.setResult(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(
+<a class="jxr_linenumber" name="145" href="#145">145</a> 					<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolNoConnectionException.html">OpenR66ProtocolNoConnectionException</a>(<span class="jxr_string">"Cannot connect to server "</span>+dbhost.getHostid()),
+<a class="jxr_linenumber" name="146" href="#146">146</a> 					<strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>, ErrorCode.ConnectionImpossible, <strong class="jxr_keyword">null</strong>));
+<a class="jxr_linenumber" name="147" href="#147">147</a> 			dbhost = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="148" href="#148">148</a> 			future.setFailure(future.getResult().exception);
+<a class="jxr_linenumber" name="149" href="#149">149</a> 			<strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="150" href="#150">150</a> 		}
+<a class="jxr_linenumber" name="151" href="#151">151</a> 		localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
+<a class="jxr_linenumber" name="152" href="#152">152</a> 		AbstractLocalPacket valid = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="153" href="#153">153</a> 		<strong class="jxr_keyword">boolean</strong> useJson = PartnerConfiguration.useJson(dbhost.getHostid());
+<a class="jxr_linenumber" name="154" href="#154">154</a> 		logger.debug(<span class="jxr_string">"UseJson: "</span>+useJson);
+<a class="jxr_linenumber" name="155" href="#155">155</a> 		<strong class="jxr_keyword">if</strong> (useJson) {
+<a class="jxr_linenumber" name="156" href="#156">156</a> 			ConfigExportJsonPacket node = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/localhandler/packet/json/ConfigExportJsonPacket.html">ConfigExportJsonPacket</a>();
+<a class="jxr_linenumber" name="157" href="#157">157</a> 			node.setHost(host);
+<a class="jxr_linenumber" name="158" href="#158">158</a> 			node.setRule(rule);
+<a class="jxr_linenumber" name="159" href="#159">159</a> 			node.setBusiness(business);
+<a class="jxr_linenumber" name="160" href="#160">160</a> 			node.setAlias(alias);
+<a class="jxr_linenumber" name="161" href="#161">161</a> 			node.setRoles(role);
+<a class="jxr_linenumber" name="162" href="#162">162</a> 			valid = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/localhandler/packet/JsonCommandPacket.html">JsonCommandPacket</a>(node, LocalPacketFactory.CONFEXPORTPACKET);
+<a class="jxr_linenumber" name="163" href="#163">163</a> 		} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="164" href="#164">164</a> 			valid = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/localhandler/packet/ValidPacket.html">ValidPacket</a>(Boolean.toString(host), Boolean.toString(rule),
+<a class="jxr_linenumber" name="165" href="#165">165</a> 				LocalPacketFactory.CONFEXPORTPACKET);
+<a class="jxr_linenumber" name="166" href="#166">166</a> 		}
+<a class="jxr_linenumber" name="167" href="#167">167</a> 		<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="168" href="#168">168</a> 			ChannelUtils.writeAbstractLocalPacket(localChannelReference, valid, false);
+<a class="jxr_linenumber" name="169" href="#169">169</a> 		} <strong class="jxr_keyword">catch</strong> (OpenR66ProtocolPacketException e) {
+<a class="jxr_linenumber" name="170" href="#170">170</a> 			logger.error(<span class="jxr_string">"Bad Protocol"</span>, e);
+<a class="jxr_linenumber" name="171" href="#171">171</a> 			Channels.close(localChannelReference.getLocalChannel());
+<a class="jxr_linenumber" name="172" href="#172">172</a> 			localChannelReference = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="173" href="#173">173</a> 			dbhost = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="174" href="#174">174</a> 			valid = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="175" href="#175">175</a> 			future.setResult(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(e, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
+<a class="jxr_linenumber" name="176" href="#176">176</a> 					ErrorCode.TransferError, <strong class="jxr_keyword">null</strong>));
+<a class="jxr_linenumber" name="177" href="#177">177</a> 			future.setFailure(e);
+<a class="jxr_linenumber" name="178" href="#178">178</a> 			<strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="179" href="#179">179</a> 		}
+<a class="jxr_linenumber" name="180" href="#180">180</a> 		dbhost = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="181" href="#181">181</a> 		future.awaitUninterruptibly();
+<a class="jxr_linenumber" name="182" href="#182">182</a> 		String sresult = <span class="jxr_string">"no information"</span>;
+<a class="jxr_linenumber" name="183" href="#183">183</a> 		<strong class="jxr_keyword">if</strong> (future.isSuccess() &amp;&amp; future.getResult() != <strong class="jxr_keyword">null</strong> &amp;&amp; future.getResult().other != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="184" href="#184">184</a> 			sresult = (useJson ? ((JsonCommandPacket) future.getResult().other).getRequest() : 
+<a class="jxr_linenumber" name="185" href="#185">185</a> 				((ValidPacket) future.getResult().other).toString());
+<a class="jxr_linenumber" name="186" href="#186">186</a> 		}
+<a class="jxr_linenumber" name="187" href="#187">187</a> 		logger.info(<span class="jxr_string">"Config Export done with "</span> + (future.isSuccess() ? <span class="jxr_string">"success"</span> : <span class="jxr_string">"error"</span>) + <span class="jxr_string">" ("</span>+sresult+<span class="jxr_string">")"</span>);
+<a class="jxr_linenumber" name="188" href="#188">188</a> 		Channels.close(localChannelReference.getLocalChannel());
+<a class="jxr_linenumber" name="189" href="#189">189</a> 		localChannelReference = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="190" href="#190">190</a> 	}
+<a class="jxr_linenumber" name="191" href="#191">191</a> 
+<a class="jxr_linenumber" name="192" href="#192">192</a> 	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> shost = false;
+<a class="jxr_linenumber" name="193" href="#193">193</a> 	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> srule = false;
+<a class="jxr_linenumber" name="194" href="#194">194</a> 	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> sbusiness = false;
+<a class="jxr_linenumber" name="195" href="#195">195</a> 	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> salias = false;
+<a class="jxr_linenumber" name="196" href="#196">196</a> 	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> srole = false;
+<a class="jxr_linenumber" name="197" href="#197">197</a> 	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> String stohost = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="198" href="#198">198</a> 	
+<a class="jxr_linenumber" name="199" href="#199">199</a> 	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> getParams(String[] args) {
+<a class="jxr_linenumber" name="200" href="#200">200</a> 		<strong class="jxr_keyword">if</strong> (args.length &lt; 2) {
+<a class="jxr_linenumber" name="201" href="#201">201</a> 			logger.error(_INFO_ARGS);
+<a class="jxr_linenumber" name="202" href="#202">202</a> 			<strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="203" href="#203">203</a> 		}
+<a class="jxr_linenumber" name="204" href="#204">204</a> 		<strong class="jxr_keyword">if</strong> (!FileBasedConfiguration
+<a class="jxr_linenumber" name="205" href="#205">205</a> 				.setClientConfigurationFromXml(Configuration.configuration, args[0])) {
+<a class="jxr_linenumber" name="206" href="#206">206</a> 			logger.error(_INFO_ARGS);
+<a class="jxr_linenumber" name="207" href="#207">207</a> 			<strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="208" href="#208">208</a> 		}
+<a class="jxr_linenumber" name="209" href="#209">209</a> 		<strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 1; i &lt; args.length; i++) {
+<a class="jxr_linenumber" name="210" href="#210">210</a> 			<strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-hosts"</span>)) {
+<a class="jxr_linenumber" name="211" href="#211">211</a> 				shost = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="212" href="#212">212</a> 			} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-rules"</span>)) {
+<a class="jxr_linenumber" name="213" href="#213">213</a> 				srule = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="214" href="#214">214</a> 			} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-business"</span>)) {
+<a class="jxr_linenumber" name="215" href="#215">215</a> 				sbusiness = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="216" href="#216">216</a> 			} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-alias"</span>)) {
+<a class="jxr_linenumber" name="217" href="#217">217</a> 				salias = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="218" href="#218">218</a> 			} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-roles"</span>)) {
+<a class="jxr_linenumber" name="219" href="#219">219</a> 				srole = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="220" href="#220">220</a> 			} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-host"</span>)) {
+<a class="jxr_linenumber" name="221" href="#221">221</a> 				i++;
+<a class="jxr_linenumber" name="222" href="#222">222</a> 				stohost = args[i];
+<a class="jxr_linenumber" name="223" href="#223">223</a> 			}
+<a class="jxr_linenumber" name="224" href="#224">224</a> 		}
+<a class="jxr_linenumber" name="225" href="#225">225</a> 		<strong class="jxr_keyword">if</strong> ((!shost) &amp;&amp; (!srule)) {
+<a class="jxr_linenumber" name="226" href="#226">226</a> 			logger.error(<span class="jxr_string">"Need at least one of -hosts - rules"</span>);
+<a class="jxr_linenumber" name="227" href="#227">227</a> 			<strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="228" href="#228">228</a> 		}
+<a class="jxr_linenumber" name="229" href="#229">229</a> 		<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="230" href="#230">230</a> 	}
+<a class="jxr_linenumber" name="231" href="#231">231</a> 
+<a class="jxr_linenumber" name="232" href="#232">232</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> main(String[] args) {
+<a class="jxr_linenumber" name="233" href="#233">233</a> 		InternalLoggerFactory.setDefaultFactory(<strong class="jxr_keyword">new</strong> WaarpSlf4JLoggerFactory(<strong class="jxr_keyword">null</strong>));
+<a class="jxr_linenumber" name="234" href="#234">234</a> 		<strong class="jxr_keyword">if</strong> (logger == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="235" href="#235">235</a> 			logger = WaarpInternalLoggerFactory.getLogger(ConfigExport.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="236" href="#236">236</a> 		}
+<a class="jxr_linenumber" name="237" href="#237">237</a> 		<strong class="jxr_keyword">if</strong> (!getParams(args)) {
+<a class="jxr_linenumber" name="238" href="#238">238</a> 			logger.error(<span class="jxr_string">"Wrong initialization"</span>);
+<a class="jxr_linenumber" name="239" href="#239">239</a> 			<strong class="jxr_keyword">if</strong> (DbConstant.admin != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.isConnected) {
+<a class="jxr_linenumber" name="240" href="#240">240</a> 				DbConstant.admin.close();
+<a class="jxr_linenumber" name="241" href="#241">241</a> 			}
+<a class="jxr_linenumber" name="242" href="#242">242</a> 			System.exit(1);
+<a class="jxr_linenumber" name="243" href="#243">243</a> 		}
+<a class="jxr_linenumber" name="244" href="#244">244</a> 		<strong class="jxr_keyword">long</strong> time1 = System.currentTimeMillis();
+<a class="jxr_linenumber" name="245" href="#245">245</a> 		R66Future future = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/utils/R66Future.html">R66Future</a>(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="246" href="#246">246</a> 
+<a class="jxr_linenumber" name="247" href="#247">247</a> 		Configuration.configuration.pipelineInit();
+<a class="jxr_linenumber" name="248" href="#248">248</a> 		NetworkTransaction networkTransaction = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/networkhandler/NetworkTransaction.html">NetworkTransaction</a>();
+<a class="jxr_linenumber" name="249" href="#249">249</a> 		<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="250" href="#250">250</a> 			ConfigExport transaction = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/server/ConfigExport.html">ConfigExport</a>(future,
+<a class="jxr_linenumber" name="251" href="#251">251</a> 					shost, srule, sbusiness, salias, srole,
+<a class="jxr_linenumber" name="252" href="#252">252</a> 					networkTransaction);
+<a class="jxr_linenumber" name="253" href="#253">253</a> 			<strong class="jxr_keyword">if</strong> (stohost != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="254" href="#254">254</a> 				<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="255" href="#255">255</a> 					transaction.setHost(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbHostAuth.html">DbHostAuth</a>(DbConstant.admin.session, stohost));
+<a class="jxr_linenumber" name="256" href="#256">256</a> 				} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
+<a class="jxr_linenumber" name="257" href="#257">257</a> 					logger.error(<span class="jxr_string">"COnfigExport in     FAILURE since Host is not found: "</span>+stohost, e);
+<a class="jxr_linenumber" name="258" href="#258">258</a> 					networkTransaction.closeAll();
+<a class="jxr_linenumber" name="259" href="#259">259</a> 					System.exit(10);
+<a class="jxr_linenumber" name="260" href="#260">260</a> 				}
+<a class="jxr_linenumber" name="261" href="#261">261</a> 			} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="262" href="#262">262</a> 				stohost = Configuration.configuration.HOST_SSLID;
+<a class="jxr_linenumber" name="263" href="#263">263</a> 			}
+<a class="jxr_linenumber" name="264" href="#264">264</a> 			transaction.run();
+<a class="jxr_linenumber" name="265" href="#265">265</a> 			future.awaitUninterruptibly();
+<a class="jxr_linenumber" name="266" href="#266">266</a> 			<strong class="jxr_keyword">long</strong> time2 = System.currentTimeMillis();
+<a class="jxr_linenumber" name="267" href="#267">267</a> 			<strong class="jxr_keyword">long</strong> delay = time2 - time1;
+<a class="jxr_linenumber" name="268" href="#268">268</a> 			R66Result result = future.getResult();
+<a class="jxr_linenumber" name="269" href="#269">269</a> 			<strong class="jxr_keyword">if</strong> (future.isSuccess()) {
+<a class="jxr_linenumber" name="270" href="#270">270</a> 				<strong class="jxr_keyword">boolean</strong> useJson = PartnerConfiguration.useJson(stohost);
+<a class="jxr_linenumber" name="271" href="#271">271</a> 				logger.debug(<span class="jxr_string">"UseJson: "</span>+useJson);
+<a class="jxr_linenumber" name="272" href="#272">272</a> 				String message = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="273" href="#273">273</a> 				<strong class="jxr_keyword">if</strong> (useJson) {
+<a class="jxr_linenumber" name="274" href="#274">274</a> 					message = (result.other != <strong class="jxr_keyword">null</strong> ? ((JsonCommandPacket) result.other).getRequest() :
+<a class="jxr_linenumber" name="275" href="#275">275</a> 							<span class="jxr_string">"no file"</span>);
+<a class="jxr_linenumber" name="276" href="#276">276</a> 				} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="277" href="#277">277</a> 					message = (result.other != <strong class="jxr_keyword">null</strong> ? ((ValidPacket) result.other).getSheader() :
+<a class="jxr_linenumber" name="278" href="#278">278</a> 							<span class="jxr_string">"no file"</span>);
+<a class="jxr_linenumber" name="279" href="#279">279</a> 				}
+<a class="jxr_linenumber" name="280" href="#280">280</a> 				<strong class="jxr_keyword">if</strong> (result.code == ErrorCode.Warning) {
+<a class="jxr_linenumber" name="281" href="#281">281</a> 					logger.warn(<span class="jxr_string">"WARNED on files:     "</span> +
+<a class="jxr_linenumber" name="282" href="#282">282</a> 							message
+<a class="jxr_linenumber" name="283" href="#283">283</a> 							+ <span class="jxr_string">"     delay: "</span> + delay);
+<a class="jxr_linenumber" name="284" href="#284">284</a> 				} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="285" href="#285">285</a> 					logger.warn(<span class="jxr_string">"SUCCESS on Final files:     "</span> +
+<a class="jxr_linenumber" name="286" href="#286">286</a> 							message
+<a class="jxr_linenumber" name="287" href="#287">287</a> 							+ <span class="jxr_string">"     delay: "</span> + delay);
+<a class="jxr_linenumber" name="288" href="#288">288</a> 				}
+<a class="jxr_linenumber" name="289" href="#289">289</a> 			} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="290" href="#290">290</a> 				<strong class="jxr_keyword">if</strong> (result.code == ErrorCode.Warning) {
+<a class="jxr_linenumber" name="291" href="#291">291</a> 					logger.warn(<span class="jxr_string">"ConfigExport is     WARNED"</span>, future.getCause());
+<a class="jxr_linenumber" name="292" href="#292">292</a> 					networkTransaction.closeAll();
+<a class="jxr_linenumber" name="293" href="#293">293</a> 					System.exit(result.code.ordinal());
+<a class="jxr_linenumber" name="294" href="#294">294</a> 				} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="295" href="#295">295</a> 					logger.error(<span class="jxr_string">"ConfigExport in     FAILURE"</span>, future.getCause());
+<a class="jxr_linenumber" name="296" href="#296">296</a> 					networkTransaction.closeAll();
+<a class="jxr_linenumber" name="297" href="#297">297</a> 					System.exit(result.code.ordinal());
+<a class="jxr_linenumber" name="298" href="#298">298</a> 				}
+<a class="jxr_linenumber" name="299" href="#299">299</a> 			}
+<a class="jxr_linenumber" name="300" href="#300">300</a> 		} <strong class="jxr_keyword">finally</strong> {
+<a class="jxr_linenumber" name="301" href="#301">301</a> 			networkTransaction.closeAll();
+<a class="jxr_linenumber" name="302" href="#302">302</a> 		}
+<a class="jxr_linenumber" name="303" href="#303">303</a> 	}
+<a class="jxr_linenumber" name="304" href="#304">304</a> 
+<a class="jxr_linenumber" name="305" href="#305">305</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>

@@ -207,7 +207,7 @@
 <a class="jxr_linenumber" name="197" href="#197">197</a> 		taskRunner.setErrorExecutionStatus(result);
 <a class="jxr_linenumber" name="198" href="#198">198</a> 		<strong class="jxr_keyword">if</strong> (builder != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="199" href="#199">199</a> 			builder.append(taskRunner.toSpecializedHtml(session, body,
-<a class="jxr_linenumber" name="200" href="#200">200</a> 					lcr != <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">"Active"</span> : <span class="jxr_string">"NotActive"</span>));
+<a class="jxr_linenumber" name="200" href="#200">200</a> 					lcr != <strong class="jxr_keyword">null</strong> ? Messages.getString(<span class="jxr_string">"HttpSslHandler.Active"</span>) : Messages.getString(<span class="jxr_string">"HttpSslHandler.NotActive"</span>)));
 <a class="jxr_linenumber" name="201" href="#201">201</a> 		}
 <a class="jxr_linenumber" name="202" href="#202">202</a> 		taskRunner.setErrorExecutionStatus(last);
 <a class="jxr_linenumber" name="203" href="#203">203</a> 	}
@@ -313,7 +313,7 @@
 <a class="jxr_linenumber" name="303" href="#303">303</a> 					Configuration.configuration.getLocalTransaction().
 <a class="jxr_linenumber" name="304" href="#304">304</a> 							getFromRequest(taskRunner.getKey());
 <a class="jxr_linenumber" name="305" href="#305">305</a> 			builder.append(taskRunner.toSpecializedHtml(session, body,
-<a class="jxr_linenumber" name="306" href="#306">306</a> 					lcr != <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">"Active"</span> : <span class="jxr_string">"NotActive"</span>));
+<a class="jxr_linenumber" name="306" href="#306">306</a> 					lcr != <strong class="jxr_keyword">null</strong> ? Messages.getString(<span class="jxr_string">"HttpSslHandler.Active"</span>) : Messages.getString(<span class="jxr_string">"HttpSslHandler.NotActive"</span>)));
 <a class="jxr_linenumber" name="307" href="#307">307</a> 		}
 <a class="jxr_linenumber" name="308" href="#308">308</a> 	}
 <a class="jxr_linenumber" name="309" href="#309">309</a> 	<em class="jxr_javadoccomment">/**</em>
