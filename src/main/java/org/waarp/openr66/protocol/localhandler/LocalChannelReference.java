@@ -287,6 +287,7 @@ public class LocalChannelReference {
 		if (networkServerHandler != null) {
 			return networkServerHandler.getDbSession();
 		}
+		logger.info("SHOULD NOT BE");
 		return DbConstant.admin.session;
 	}
 

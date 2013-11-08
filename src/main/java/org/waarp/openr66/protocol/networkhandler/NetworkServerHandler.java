@@ -141,6 +141,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 			if (DbConstant.admin.isConnected) {
 				if (DbConstant.admin.isCompatibleWithThreadSharedConnexion()) {
 					this.dbSession = new DbSession(DbConstant.admin, false);
+					this.dbSession.useConnection();
 				} else {
 					logger.debug("DbSession will be adjusted on LocalChannelReference");
 					this.dbSession = DbConstant.admin.session;
