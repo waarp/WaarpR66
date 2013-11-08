@@ -275,7 +275,7 @@ public class LocalTransaction {
 	
 	/**
 	 * 
-	 * @param channel
+	 * @param Id
 	 * @return True if the localChannel was recently removed
 	 */
 	public boolean isRecentlyRemoved(Integer Id) {
