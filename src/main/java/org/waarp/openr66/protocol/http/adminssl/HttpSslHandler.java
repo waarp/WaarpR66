@@ -1999,7 +1999,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		}
 		switch (req) {
 			case CancelRestart:
-				if (authentHttp.getAuth().isValidRole(ROLE.SYSTEM)) {
+				if (authentHttp.getAuth().isValidRole(ROLE.TRANSFER)) {
 					responseContent.append(CancelRestart());
 				} else {
 					responseContent.append(unallowed(Messages.getString("HttpSslHandler.CancelRestartUnallowed")));
