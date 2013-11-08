@@ -433,13 +433,23 @@ public class RequestTransfer implements Runnable {
 							null, true,
 							ErrorCode.TransferError, null));
 					future.setFailure(e);
-					return ErrorCode.Internal;
+					return ErrorCode.ConnectionImpossible;
 				}
 			}
 		}
 
 		logger.info("Try RequestTransfer to "+host.toString());
-		SocketAddress socketAddress = host.getSocketAddress();
+		SocketAddress socketAddress;
+		try {
+			socketAddress = host.getSocketAddress();
+		} catch (IllegalArgumentException e) {
+			logger.debug("Cannot connect to " + host.toString());
+			host = null;
+			future.setResult(new R66Result(null, true,
+					ErrorCode.ConnectionImpossible, null));
+			future.cancel();
+			return ErrorCode.ConnectionImpossible;
+		}
 		boolean isSSL = host.isSsl();
 
 		LocalChannelReference localChannelReference = networkTransaction
@@ -451,7 +461,7 @@ public class RequestTransfer implements Runnable {
 			future.setResult(new R66Result(null, true,
 					ErrorCode.ConnectionImpossible, null));
 			future.cancel();
-			return ErrorCode.Internal;
+			return ErrorCode.ConnectionImpossible;
 		}
 		boolean useJson = PartnerConfiguration.useJson(host.getHostid());
 		logger.debug("UseJson: "+useJson);

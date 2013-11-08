@@ -121,7 +121,6 @@ public class ServerShutdown {
 			System.exit(1);
 			return;
 		}
-		Configuration.configuration.pipelineInit();
 		byte[] key;
 		key = FilesystemBasedDigest.passwdCrypt(Configuration.configuration.getSERVERADMINKEY());
 		final AbstractLocalPacket packet;
@@ -134,13 +133,23 @@ public class ServerShutdown {
 				packet = new ShutdownPacket(key);
 			}
 		}
+		final SocketAddress socketServerAddress;
+		try {
+			socketServerAddress = host.getSocketAddress();
+		} catch (IllegalArgumentException e) {
+			logger
+				.error("Needs a correct configuration file as first argument");
+			ChannelUtils.stopLogger();
+			System.exit(1);
+			return;
+		}
+		Configuration.configuration.pipelineInit();
 		final NetworkTransaction networkTransaction = new NetworkTransaction();
-		final SocketAddress socketServerAddress = host.getSocketAddress();
 		LocalChannelReference localChannelReference = null;
 		localChannelReference = networkTransaction
 				.createConnectionWithRetry(socketServerAddress, useSsl, null);
 		if (localChannelReference == null) {
-			logger.error("Cannot connect to " + host.getSocketAddress());
+			logger.error("Cannot connect to " + host.getHostid());
 			networkTransaction.closeAll();
 			return;
 		}

@@ -47,6 +47,8 @@ import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
  * 
  */
 public class DbHostAuth extends AbstractDbData {
+	public static final String DEFAULT_CLIENT_ADDRESS = "0.0.0.0";
+
 	/**
 	 * Internal Logger
 	 */
@@ -276,6 +278,10 @@ public class DbHostAuth extends AbstractDbData {
 		}
 		this.adminrole = adminrole;
 		this.isClient = isClient;
+		if (this.port < 0) {
+			this.isClient = true;
+			this.address = DEFAULT_CLIENT_ADDRESS;
+		}
 		setToArray();
 		isSaved = false;
 	}
@@ -653,23 +659,27 @@ public class DbHostAuth extends AbstractDbData {
 	 * @return True if the address is a client address (0.0.0.0) or isClient
 	 */
 	public boolean isClient() {
-		return isClient || (this.address.equals("0.0.0.0"));
+		return isClient || isNoAddress();
 	}
 
 	/**
-	 * True if the address is a client address (0.0.0.0)
+	 * True if the address is a client address (0.0.0.0) or if the port is < 0
 	 * 
-	 * @return True if the address is a client address (0.0.0.0)
+	 * @return True if the address is a client address (0.0.0.0) or if the port is < 0
 	 */
 	public boolean isNoAddress() {
-		return (this.address.equals("0.0.0.0"));
+		return (this.address.equals(DEFAULT_CLIENT_ADDRESS) || this.port < 0);
 	}
 
 	/**
 	 * 
 	 * @return the SocketAddress from the address and port
+	 * @exception IllegalArgumentException when the address is for a Client and therefore cannot be checked
 	 */
-	public SocketAddress getSocketAddress() {
+	public SocketAddress getSocketAddress() throws IllegalArgumentException {
+		if (isNoAddress()) {
+			throw new IllegalArgumentException("Not a server");
+		}
 		return new InetSocketAddress(this.address, this.port);
 	}
 

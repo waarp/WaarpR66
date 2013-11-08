@@ -107,7 +107,18 @@ public class LogExport implements Runnable {
 		String lstop = (stop != null) ? stop.toString() : null;
 		byte type = (purgeLog) ? LocalPacketFactory.LOGPURGEPACKET : LocalPacketFactory.LOGPACKET;
 		ValidPacket valid = new ValidPacket(lstart, lstop, type);
-		SocketAddress socketAddress = host.getSocketAddress();
+		SocketAddress socketAddress;
+		try {
+			socketAddress = host.getSocketAddress();
+		} catch (IllegalArgumentException e) {
+			logger.error("Cannot Connect to "+host.getHostid());
+			future.setResult(new R66Result(
+					new OpenR66ProtocolNoConnectionException("Cannot connect to server "+host.getHostid()),
+					null, true, ErrorCode.ConnectionImpossible, null));
+			host = null;
+			future.setFailure(future.getResult().exception);
+			return;
+		}
 		boolean isSSL = host.isSsl();
 
 		// first clean if ask
@@ -125,11 +136,11 @@ public class LogExport implements Runnable {
 				.createConnectionWithRetry(socketAddress, isSSL, future);
 		socketAddress = null;
 		if (localChannelReference == null) {
-			host = null;
-			logger.error("Cannot Connect");
+			logger.error("Cannot Connect to "+host.getHostid());
 			future.setResult(new R66Result(
-					new OpenR66ProtocolNoConnectionException("Cannot connect to server"),
-					null, true, ErrorCode.Internal, null));
+					new OpenR66ProtocolNoConnectionException("Cannot connect to server "+host.getHostid()),
+					null, true, ErrorCode.ConnectionImpossible, null));
+			host = null;
 			future.setFailure(future.getResult().exception);
 			return;
 		}
