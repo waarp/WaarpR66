@@ -287,6 +287,7 @@ public class LocalChannelReference {
 		if (networkServerHandler != null) {
 			return networkServerHandler.getDbSession();
 		}
+		logger.info("SHOULD NOT BE");
 		return DbConstant.admin.session;
 	}
 
@@ -664,6 +665,17 @@ public class LocalChannelReference {
 		if (session != null) {
 			session.newState(desiredState);
 		}
+	}
+	
+	/**
+	 * 
+	 * @return the current state or TEST if no session exists
+	 */
+	public R66FiniteDualStates getSessionState() {
+		if (session != null) {
+			return session.getState();
+		}
+		return R66FiniteDualStates.TEST;
 	}
 
 	/**

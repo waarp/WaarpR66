@@ -234,7 +234,9 @@ public class ChannelUtils extends Thread {
 		if (RequestPacket.isMD5Mode(runner.getMode())) {
 			md5 = FileUtils.getHash(block.getBlock(), Configuration.configuration.digest);
 		}
-		localChannelReference.sessionNewState(R66FiniteDualStates.DATAS);
+		if (runner.getRank() % 100 == 1 || localChannelReference.getSessionState() != R66FiniteDualStates.DATAS) {
+			localChannelReference.sessionNewState(R66FiniteDualStates.DATAS);
+		}
 		DataPacket data = new DataPacket(runner.getRank(), block.getBlock()
 				.copy(), md5);
 		ChannelFuture future = writeAbstractLocalPacket(localChannelReference, data, false);
@@ -297,6 +299,7 @@ public class ChannelUtils extends Thread {
 		if (wait) {
 			ChannelFuture future = Channels.write(localChannelReference.getNetworkChannel(),
 					networkPacket);
+			NetworkTransaction.updateLastTimeUsed(localChannelReference.getNetworkChannel());
 			try {
 				return future.await();
 			} catch (InterruptedException e) {
@@ -400,6 +403,8 @@ public class ChannelUtils extends Thread {
 			Configuration.configuration.getLocalTransaction()
 				.shutdownLocalChannels();
 		}
+		logger.info("Unbind server network services");
+		Configuration.configuration.unbindServer();
 		logger.warn(Messages.getString("ChannelUtils.7") + delay + " ms"); //$NON-NLS-1$
 		try {
 			Thread.sleep(delay);
@@ -419,18 +424,19 @@ public class ChannelUtils extends Thread {
 		if (Configuration.configuration.getLocalTransaction() != null) {
 			Configuration.configuration.getLocalTransaction().closeAll();
 		}
-		logger.info("Exit Shutdown Command");
-		terminateCommandChannels();
 		logger.info("Exit Shutdown LocalExec");
 		if (Configuration.configuration.useLocalExec) {
 			LocalExecClient.releaseResources();
 		}
+		logger.info("Exit Shutdown Command");
+		terminateCommandChannels();
 		logger.info("Exit Shutdown Db Connection");
 		DbAdmin.closeAllConnection();
 		logger.info("Exit Shutdown ServerStop");
 		Configuration.configuration.serverStop();
 		logger.warn(Messages.getString("ChannelUtils.15")); //$NON-NLS-1$
 		System.err.println(Messages.getString("ChannelUtils.15")); //$NON-NLS-1$
+		stopLogger();
 		//Thread.currentThread().interrupt();
 	}
 
@@ -446,6 +452,7 @@ public class ChannelUtils extends Thread {
 	 */
 	@Override
 	public void run() {
+		logger.info("Should restart? "+R66ShutdownHook.isRestart());
 		R66ShutdownHook.terminate(false);
 	}
 
@@ -453,8 +460,11 @@ public class ChannelUtils extends Thread {
 	 * Start Shutdown
 	 */
 	public final static void startShutdown() {
+		if (R66ShutdownHook.isInShutdown()) {
+			return;
+		}
 		Thread thread = new Thread(new ChannelUtils(), "R66 Shutdown Thread");
-		thread.setDaemon(true);
+		thread.setDaemon(false);
 		thread.start();
 	}
 }

@@ -183,7 +183,18 @@ public class LogExtendedExport implements Runnable {
 		
 		JsonCommandPacket valid = new JsonCommandPacket(node, type);
 		logger.debug("ExtendedLogCommand: " +valid.getRequest());
-		SocketAddress socketAddress = host.getSocketAddress();
+		SocketAddress socketAddress;
+		try {
+			socketAddress = host.getSocketAddress();
+		} catch (IllegalArgumentException e) {
+			logger.error("Cannot Connect to "+host.getHostid());
+			future.setResult(new R66Result(
+					new OpenR66ProtocolNoConnectionException("Cannot connect to server "+host.getHostid()),
+					null, true, ErrorCode.ConnectionImpossible, null));
+			host = null;
+			future.setFailure(future.getResult().exception);
+			return;
+		}
 		boolean isSSL = host.isSsl();
 
 		R66Future newFuture = new R66Future(true);
@@ -191,11 +202,11 @@ public class LogExtendedExport implements Runnable {
 				.createConnectionWithRetry(socketAddress, isSSL, newFuture);
 		socketAddress = null;
 		if (localChannelReference == null) {
-			host = null;
-			logger.error("Cannot Connect");
+			logger.error("Cannot Connect to "+host.getHostid());
 			future.setResult(new R66Result(
-					new OpenR66ProtocolNoConnectionException("Cannot connect to server"),
-					null, true, ErrorCode.Internal, null));
+					new OpenR66ProtocolNoConnectionException("Cannot connect to server "+host.getHostid()),
+					null, true, ErrorCode.ConnectionImpossible, null));
+			host = null;
 			future.setFailure(future.getResult().exception);
 			return;
 		}

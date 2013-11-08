@@ -40,6 +40,7 @@ import org.jboss.netty.util.Timeout;
 import org.jboss.netty.util.TimerTask;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.lru.SoftReferenceSynchronizedLruCache;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66FiniteDualStates;
 import org.waarp.openr66.context.R66Result;
@@ -74,6 +75,10 @@ public class LocalTransaction {
 	 * HashMap of LocalChannelReference using LocalChannelId
 	 */
 	final ConcurrentHashMap<Integer, LocalChannelReference> localChannelHashMap = new ConcurrentHashMap<Integer, LocalChannelReference>();
+	/**
+	 * HashMap of LocalChannelReference using LocalChannelId when removed (last 100.000 items kept during 30s)
+	 */
+	final SoftReferenceSynchronizedLruCache<Integer, Integer> removedLocalChannelHashMap = new SoftReferenceSynchronizedLruCache<Integer, Integer>(100000, 30000);
 
 	/**
 	 * HashMap of Validation of LocalChannelReference using LocalChannelId
@@ -91,8 +96,7 @@ public class LocalTransaction {
 	private final ChannelFutureListener remover = new ChannelFutureListener() {
 		public void operationComplete(
 				ChannelFuture future) {
-			remove(future
-					.getChannel());
+			remove(future.getChannel());
 		}
 	};
 
@@ -143,6 +147,10 @@ public class LocalTransaction {
 			}
 			return localChannelReference;
 		}
+		if (isRecentlyRemoved(localId)) {
+			throw new OpenR66ProtocolSystemException(
+					"Already removed recently");
+		}
 		throw new OpenR66ProtocolSystemException(
 				"Cannot find LocalChannelReference");
 	}
@@ -191,6 +199,7 @@ public class LocalTransaction {
 				logger.debug("Db connection done and Create LocalChannel entry: " + i + " {}",
 						localChannelReference);
 				channel.getCloseFuture().addListener(remover);
+				logger.info("Will add one localChannel to a Network Channel: "+channel.getId());
 				localChannelHashMap.put(channel.getId(), localChannelReference);
 				try {
 					NetworkTransaction.addLocalChannelToNetworkChannel(
@@ -246,24 +255,15 @@ public class LocalTransaction {
 	 * @return the LocalChannelReference
 	 */
 	public LocalChannelReference getFromId(Integer id) {
-		for (int i = 0; i < Configuration.RETRYNB * 4; i++) {
+		for (int i = 0; i < Configuration.RETRYNB * 10; i++) {
 			LocalChannelReference lcr = localChannelHashMap.get(id);
 			if (lcr == null) {
-				/*
-				 * R66Future future = validLocalChannelHashMap.get(id);
-				 * logger.debug("DEBUG Future ValidLocalChannel: not found: " + id + (future !=
-				 * null)); if (future != null) { try {
-				 * future.await(Configuration.configuration.TIMEOUTCON); } catch
-				 * (InterruptedException e) { return localChannelHashMap.get(id); }
-				 * logger.debug("DEBUG Future ValidLocalChannel: " + id + future.isDone() + ":" +
-				 * future.isSuccess()); if (future.isSuccess()) { return
-				 * localChannelHashMap.get(id); } else if (future.isFailed()) { return null; } }
-				 * else { logger.debug("DEBUG Future ValidLocalChannel: Sleep" + id); try {
-				 * Thread.sleep(Configuration.RETRYINMS); } catch (InterruptedException e) { }
-				 * continue; }
-				 */
+				if (isRecentlyRemoved(id)) {
+					return null;
+				}
 				try {
 					Thread.sleep(Configuration.RETRYINMS * 2);
+					Thread.yield();
 				} catch (InterruptedException e) {
 				}
 			} else {
@@ -271,6 +271,15 @@ public class LocalTransaction {
 			}
 		}
 		return localChannelHashMap.get(id);
+	}
+	
+	/**
+	 * 
+	 * @param Id
+	 * @return True if the localChannel was recently removed
+	 */
+	public boolean isRecentlyRemoved(Integer Id) {
+		return removedLocalChannelHashMap.contains(Id);
 	}
 
 	/**
@@ -282,10 +291,11 @@ public class LocalTransaction {
 		LocalChannelReference localChannelReference = localChannelHashMap
 				.remove(channel.getId());
 		if (localChannelReference != null) {
-			logger.debug("Remove LocalChannel");
+			removedLocalChannelHashMap.put(channel.getId(), channel.getId());
+			logger.info("Will remove one localChannel: "+channel.getId());
 			R66Future validLCR = validLocalChannelHashMap
 					.remove(localChannelReference.getRemoteId());
-			if (validLCR != null) {
+			if (validLCR != null && ! validLCR.isDone()) {
 				validLCR.cancel();
 			}
 			DbTaskRunner runner = null;
@@ -384,11 +394,8 @@ public class LocalTransaction {
 				}
 			}
 			logger.debug("Will close local channel");
-			try {
-				Channels.close(localChannelReference.getLocalChannel()).await();
-			} catch (InterruptedException e) {
-			}
 			localTransaction.remove(localChannelReference.getLocalChannel());
+			Channels.close(localChannelReference.getLocalChannel());
 			semaphore.decrementAndGet();
 		}
 
@@ -400,6 +407,7 @@ public class LocalTransaction {
 	 * @param networkChannel
 	 */
 	public void closeLocalChannelsFromNetworkChannel(Channel networkChannel) {
+		logger.info("Will close all localChannel since Network Channel is closing");
 		Collection<LocalChannelReference> collection = localChannelHashMap
 				.values();
 		AtomicInteger semaphore = new AtomicInteger();

@@ -141,6 +141,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 			if (DbConstant.admin.isConnected) {
 				if (DbConstant.admin.isCompatibleWithThreadSharedConnexion()) {
 					this.dbSession = new DbSession(DbConstant.admin, false);
+					this.dbSession.useConnection();
 				} else {
 					logger.debug("DbSession will be adjusted on LocalChannelReference");
 					this.dbSession = DbConstant.admin.session;
@@ -165,6 +166,10 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 			throws Exception {
 		if (Configuration.configuration.isShutdown)
 			return;
+		if (NetworkTransaction.checkLastTimeUsed(e.getChannel(), Configuration.configuration.TIMEOUTCON*2)) {
+			keepAlivedSent = false;
+			return;
+		}
 		if (keepAlivedSent) {
 			logger.error("Not getting KAlive: closing channel");
 			if (Configuration.configuration.r66Mib != null) {
@@ -195,6 +200,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 	@Override
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) {
 		final NetworkPacket packet = (NetworkPacket) e.getMessage();
+		NetworkTransaction.updateLastTimeUsed(e.getChannel());
 		if (packet.getCode() == LocalPacketFactory.NOOPPACKET) {
 			// Do nothing
 			return;
@@ -230,6 +236,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 									ChannelUtils.NOCHANNEL, keepAlivePacket, null);
 					logger.info("Answer KAlive");
 					Channels.write(e.getChannel(), response);
+					NetworkTransaction.updateLastTimeUsed(e.getChannel());
 				} else {
 					logger.info("Get KAlive");
 				}
@@ -255,7 +262,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 				NetworkTransaction.removeNetworkChannel(e.getChannel(), null, null);
 				return;
 			} catch (OpenR66ProtocolRemoteShutdownException e1) {
-				logger.warn("Will Close Local from Network Channel");
+				logger.info("Will Close Local from Network Channel");
 				Configuration.configuration.getLocalTransaction()
 						.closeLocalChannelsFromNetworkChannel(e.getChannel());
 				WaarpSslUtility.closingSslChannel(e.getChannel());
@@ -313,10 +320,15 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 						// ignore
 						return;
 					}
+					if (Configuration.configuration
+							.getLocalTransaction().isRecentlyRemoved(packet.getLocalId())) {
+						// ignore
+						return;
+					}
 					logger.debug("Cannot get LocalChannel: " + packet + " due to " +
 							e1.getMessage());
 					final ConnectionErrorPacket error = new ConnectionErrorPacket(
-							"Cannot get localChannel since cannot retrieve it", null);
+							"Cannot get localChannel since cannot retrieve it", ""+packet.getLocalId());
 					writeError(e.getChannel(), packet.getRemoteId(), packet
 							.getLocalId(), error);
 					return;

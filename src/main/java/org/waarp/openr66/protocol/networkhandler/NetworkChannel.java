@@ -55,7 +55,7 @@ public class NetworkChannel {
 	/**
 	 * Last Time in ms this channel was used by a LocalChannel
 	 */
-	public long lastTimeUsed;
+	public long lastTimeUsed = System.currentTimeMillis();
 
 	public NetworkChannel(Channel networkChannel) {
 		this.channel = networkChannel;
@@ -68,6 +68,13 @@ public class NetworkChannel {
 		}
 		lastTimeUsed = System.currentTimeMillis();
 		localChannels.add(localChannel);
+	}
+	
+	/**
+	 * To set the last time used
+	 */
+	public void use() {
+		lastTimeUsed = System.currentTimeMillis();
 	}
 
 	synchronized public void remove(Channel localChannel) {

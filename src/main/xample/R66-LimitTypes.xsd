@@ -244,16 +244,16 @@ Usage of CPU limitation based on Native JDK support, else (False) on Java Sysmon
             </xsd:element>
             <xsd:element
                 name="cpulimit"
-                default="0.0"
+                default="1.0"
                 maxOccurs="1"
                 minOccurs="0"
                 type="decimalType" >
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <fg:node-info message="Limit of CPU usage in percentage from 0 to 1" />
+                        <fg:node-info message="Limit of CPU usage in percentage from 0 to 1, 1 meaning no limitation" />
                     </xsd:appinfo>
                     <xsd:documentation>
-Limit of CPU usage in percentage from 0 to 1
+Limit of CPU usage in percentage from 0 to 1, 1 meaning no limitation
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -265,10 +265,10 @@ Limit of CPU usage in percentage from 0 to 1
                 type="nonNegInteger" >
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <fg:node-info message="Limit of concurrent connections usage from 0" />
+                        <fg:node-info message="Limit of concurrent connections usage from 0, 0 meaning no limitation" />
                     </xsd:appinfo>
                     <xsd:documentation>
-Limit of concurrent connections usage from 0
+Limit of concurrent connections usage from 0, 0 meaning no limitation
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -304,7 +304,7 @@ High Limit of CPU usage in percentage from 0 to 1, 0 meaning no throttle activat
             </xsd:element>
             <xsd:element
                 name="percentdecrease"
-                default="0.25"
+                default="0.01"
                 maxOccurs="1"
                 minOccurs="0"
                 type="decimalType" >
@@ -339,22 +339,22 @@ Delay in ms, minimal as 500ms, best around 1000ms
             </xsd:element>
             <xsd:element
                 name="limitlowbandwidth"
-                default="4096"
+                default="1000000"
                 maxOccurs="1"
                 minOccurs="0"
                 type="nonNegInteger" >
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <fg:node-info message="Low Limit of Bandwidth when decreasing from 4096" />
+                        <fg:node-info message="Low Limit of Bandwidth when decreasing from 1000000 (1MB)" />
                     </xsd:appinfo>
                     <xsd:documentation>
-Low Limit of Bandwidth when decreasing from 4096
+Low Limit of Bandwidth when decreasing from 1000000 (1MB)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element
                 name="digest"
-                default="0"
+                default="2"
                 maxOccurs="1"
                 minOccurs="0" >
                 <xsd:annotation>

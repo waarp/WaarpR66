@@ -38,6 +38,7 @@ import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.database.data.DbTaskRunner.TASKSTEP;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNotYetConnectionException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
@@ -157,27 +158,27 @@ public class ClientRunner extends Thread {
 			R66Result result = transfer.getResult();
 			if (result != null) {
 				if (result.code == ErrorCode.QueryAlreadyFinished) {
-					logger.warn("TRANSFER RESULT:     " +
-							(transfer.isSuccess() ? "SUCCESS" : "FAILURE") +
+					logger.warn(Messages.getString("Transfer.Status")+
+							(transfer.isSuccess() ? Messages.getString("RequestInformation.Success") : Messages.getString("RequestInformation.Failure")) +
 							"     " + ErrorCode.QueryAlreadyFinished.mesg +
 							":" +
 							(result != null ? result.toString() : "no result"));
 				} else {
 					if (transfer.isSuccess()) {
-						logger.info("TRANSFER RESULT:     SUCCESS     " +
+						logger.info(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Success")+"     " +
 								(result != null ? result.toString()
 										: "no result"));
 					} else {
-						logger.error("TRANSFER RESULT:     FAILURE     " +
+						logger.error(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Success")+"     " +
 								(result != null ? result.toString()
 										: "no result"));
 					}
 				}
 			} else {
 				if (transfer.isSuccess()) {
-					logger.warn("TRANSFER REQUESTED RESULT:     SUCCESS     no result");
+					logger.warn(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Success")+"     no result");
 				} else {
-					logger.error("TRANSFER REQUESTED RESULT:     FAILURE     no result");
+					logger.error(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Failure")+"     no result");
 				}
 			}
 			transfer = null;

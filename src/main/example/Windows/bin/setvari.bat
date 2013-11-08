@@ -14,10 +14,10 @@ REM Logger
 SET LOGSERVER=" -Dlogback.configurationFile=%R66HOME%\conf\logback.xml "
 SET LOGCLIENT=" -Dlogback.configurationFile=%R66HOME%\conf\logback-client.xml "
 
-SET R66_CLASSPATH=" %R66BIN%\WaarpR66-2.4.20.jar;%R66BIN%\* "
+SET R66_CLASSPATH=" %R66BIN%\WaarpR66-2.4.22.jar;%R66BIN%\* "
 
-SET JAVARUNCLIENT=%JAVA_RUN% -cp %R66_CLASSPATH% %LOGCLIENT% 
-SET JAVARUNSERVER=%JAVASERVER_RUN% -cp %R66_CLASSPATH% %LOGSERVER% 
+SET JAVARUNCLIENT=%JAVA_RUN% -cp %R66_CLASSPATH% %LOGCLIENT% -Dopenr66.locale=en 
+SET JAVARUNSERVER=%JAVASERVER_RUN% -cp %R66_CLASSPATH% %LOGSERVER% -Dopenr66.locale=en 
 
 SET SERVER_CONFIG="%R66HOME%/conf/config-serverA.xml"
 SET CLIENT_CONFIG="%R66HOME%/conf/config-clientA.xml"
@@ -115,6 +115,8 @@ REM # (-to hostId,hostid -file filepath,filepath -rule ruleId) | (-to hostId -id
 set R66MULTISYNCSEND=%JAVARUNCLIENT% org.waarp.openr66.client.MultipleDirectTransfer %CLIENT_CONFIG% 
 
 
-REM # R66 Spooled directory transfer
-REM # (-to hostId,hostid -directory directory -statusfile file -stopfile file -rule ruleId) [-md5] [-block size] [-nolog ] [-elapse elapse] [-regex regex] [-submit|-direct] [-info "information"]
+REM # R66 Spooled directory transfer launch with options as arguments
+REM # (-to hostId,hostId -directory directory,directory -statusfile file -stopfile file -rule ruleId) [-name name] [-md5] [-block size] [-nolog ] [-elapse elapse] [-regex regex] [-submit|-direct [-parallel [-limitParallel limit]|-sequential]] [-recursive] [-info "information"] [-waarp hostId,hostId [-elapseWaarp elapse]]
 set R66SPOOLEDSEND=%JAVARUNCLIENT% org.waarp.openr66.client.SpooledDirectoryTransfer %CLIENT_CONFIG% 
+REM # R66 Spooled directory transfer launch with only xml configuration file as option with all configuration in it (SpooledConfiguration)
+set R66SPOOLEDDEMON=%JAVARUNCLIENT% org.waarp.openr66.client.SpooledDirectoryTransfer 

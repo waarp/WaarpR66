@@ -198,12 +198,53 @@ public enum ErrorCode {
 	}
 
 	/**
+	 * Update messages from current Language
+	 */
+	public static void updateLang() {
+		InitOk.mesg = Messages.getString("ErrorCode.0");
+		PreProcessingOk.mesg = Messages.getString("ErrorCode.1");
+		TransferOk.mesg = Messages.getString("ErrorCode.2");
+		PostProcessingOk.mesg = Messages.getString("ErrorCode.3");
+		CompleteOk.mesg = Messages.getString("ErrorCode.4");
+		ConnectionImpossible.mesg = Messages.getString("ErrorCode.5");
+		ServerOverloaded.mesg = Messages.getString("ErrorCode.6");
+		BadAuthent.mesg = Messages.getString("ErrorCode.7");
+		ExternalOp.mesg = Messages.getString("ErrorCode.8");
+		TransferError.mesg = Messages.getString("ErrorCode.9");
+		MD5Error.mesg = Messages.getString("ErrorCode.10");
+		Disconnection.mesg = Messages.getString("ErrorCode.11");
+		RemoteShutdown.mesg = Messages.getString("ErrorCode.12");
+		FinalOp.mesg = Messages.getString("ErrorCode.13");
+		Unimplemented.mesg = Messages.getString("ErrorCode.14");
+		Shutdown.mesg = Messages.getString("ErrorCode.15");
+		RemoteError.mesg = Messages.getString("ErrorCode.16");
+		Internal.mesg = Messages.getString("ErrorCode.17");
+		StoppedTransfer.mesg = Messages.getString("ErrorCode.18");
+		CanceledTransfer.mesg = Messages.getString("ErrorCode.19");
+		Warning.mesg = Messages.getString("ErrorCode.20");
+		Unknown.mesg = Messages.getString("ErrorCode.21");
+		QueryAlreadyFinished.mesg = Messages.getString("ErrorCode.22");
+		QueryStillRunning.mesg = Messages.getString("ErrorCode.23");
+		NotKnownHost.mesg = Messages.getString("ErrorCode.24");
+		LoopSelfRequestedHost.mesg = Messages.getString("ErrorCode.25");
+		QueryRemotelyUnknown.mesg = Messages.getString("ErrorCode.26");
+		FileNotFound.mesg = Messages.getString("ErrorCode.27");
+		CommandNotFound.mesg = Messages.getString("ErrorCode.28");
+		PassThroughMode.mesg = Messages.getString("ErrorCode.29");
+		Running.mesg = Messages.getString("ErrorCode.30");
+		IncorrectCommand.mesg = Messages.getString("ErrorCode.31");
+		FileNotAllowed.mesg = Messages.getString("ErrorCode.32");
+	}
+	/**
 	 * Code is either the 1 char code or the exact name in Enum
 	 * 
 	 * @param code
 	 * @return the ErrorCode according to the code
 	 */
 	public static ErrorCode getFromCode(String code) {
+		if (code.isEmpty()) {
+			return Unknown;
+		}
 		switch (code.charAt(0)) {
 			case 'i':
 				return InitOk;

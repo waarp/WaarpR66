@@ -1168,7 +1168,9 @@ public class DbTaskRunner extends AbstractDbData {
 			request += " WHERE " + getLimitWhereCondition();
 		}
 		request += " ORDER BY " + Columns.STARTTRANS.name() + " DESC ";
-		request = DbModelFactory.dbModel.limitRequest(selectAllFields, request, limit);
+		if (limit > 0) {
+			request = DbModelFactory.dbModel.limitRequest(selectAllFields, request, limit);
+		}
 		return new DbPreparedStatement(session, request);
 	}
 

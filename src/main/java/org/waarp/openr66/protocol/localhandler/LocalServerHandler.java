@@ -80,6 +80,7 @@ import org.waarp.openr66.commander.ClientRunner;
 import org.waarp.openr66.configuration.AuthenticationFileBasedConfiguration;
 import org.waarp.openr66.configuration.RuleFileBasedConfiguration;
 import org.waarp.openr66.context.ErrorCode;
+import org.waarp.openr66.context.R66FiniteDualStates;
 import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.context.authentication.R66Auth;
@@ -266,7 +267,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			 * localChannelReference.getNetworkChannelObject()); }
 			 */
 			session.setStatus(52);
-			Configuration.configuration.getLocalTransaction().remove(e.getChannel());
+			//Configuration.configuration.getLocalTransaction().remove(e.getChannel());
 		} else {
 			logger
 					.error("Local Server Channel Closed but no LocalChannelReference: " +
@@ -346,9 +347,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				}
 				// Already done case LocalPacketFactory.STARTUPPACKET:
 				case LocalPacketFactory.DATAPACKET: {
-					session.newState(DATAR);
-					logger.debug("DATA RANK: " + ((DataPacket) packet).getPacketRank() + " : " +
-							session.getRunner().getRank());
+					if (((DataPacket) packet).getPacketRank() % 100 == 1 || session.getState() != R66FiniteDualStates.DATAR) {
+						session.newState(DATAR);
+						logger.debug("DATA RANK: " + ((DataPacket) packet).getPacketRank() + " : " +
+								session.getRunner().getRank());
+					}
 					data(e.getChannel(), (DataPacket) packet);
 					break;
 				}
@@ -525,6 +528,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					code = ErrorCode.QueryAlreadyFinished;
 					try {
 						tryFinalizeRequest(new R66Result(session, true, code, session.getRunner()));
+						ChannelCloseTimer.closeFutureChannel(e.getChannel());
 						return;
 					} catch (OpenR66RunnerErrorException e1) {
 					} catch (OpenR66ProtocolSystemException e1) {
@@ -644,8 +648,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
 	 */
 	private void startup(Channel channel, StartupPacket packet)
 			throws OpenR66ProtocolPacketException {
-		localChannelReference = Configuration.configuration
+		for (int i = 0; i < Configuration.RETRYNB; i++) {
+			localChannelReference = Configuration.configuration
 				.getLocalTransaction().getFromId(packet.getLocalId());
+			if (localChannelReference != null) {
+				break;
+			}
+		}
 		if (localChannelReference == null) {
 			session.newState(ERROR);
 			logger.error(Messages.getString("LocalServerHandler.1")); //$NON-NLS-1$
@@ -1038,6 +1047,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			throw new OpenR66ProtocolNotAuthenticatedException(
 					Messages.getString("LocalServerHandler.3")); //$NON-NLS-1$
 		}
+		if (packet.isToValidate()) {
+			session.newState(REQUESTR);
+		}
 		// XXX validLimit only on requested side
 		if (packet.isToValidate()) {
 			if (Configuration.configuration.isShutdown) {
@@ -1318,9 +1330,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			errorMesg(channel, errorPacket);
 			return;
 		}
-		if (packet.isToValidate()) {
-			session.newState(REQUESTR);
-		}
 		if (runner.isFileMoved() && runner.isSender() && runner.isInTransfer()
 				&& runner.getRank() == 0 && (!packet.isToValidate())) {
 			// File was moved during PreTask and very beginning of the transfer
@@ -1567,7 +1576,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		}
 		// Check global size
 		long originalSize = session.getRunner().getOriginalSize();
-		if (originalSize > 0) {
+		if (originalSize >= 0) {
 			if (session.getRunner().getBlocksize() * (session.getRunner().getRank()-1) > originalSize) {
 				// cannot continue
 				logger.error(Messages.getString("LocalServerHandler.16") + packet.getPacketRank() + " : " + //$NON-NLS-1$
@@ -1621,15 +1630,19 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		if (session.getRunner().isRecvThrough() && localChannelReference.isRecvThroughMode()) {
 			localChannelReference.getRecvThroughHandler().writeChannelBuffer(packet.getData());
 			session.getRunner().incrementRank();
-			logger.debug("Good RANK: " + packet.getPacketRank() + " : " +
+			if (packet.getPacketRank() % 100 == 1) {
+				logger.debug("Good RANK: " + packet.getPacketRank() + " : " +
 					session.getRunner().getRank());
+			}
 		} else {
 			dataBlock.setBlock(packet.getData());
 			try {
 				session.getFile().writeDataBlock(dataBlock);
 				session.getRunner().incrementRank();
-				logger.debug("Good RANK: " + packet.getPacketRank() + " : " +
-					session.getRunner().getRank());
+				if (packet.getPacketRank() % 100 == 1) {
+					logger.debug("Good RANK: " + packet.getPacketRank() + " : " +
+							session.getRunner().getRank());
+				}
 			} catch (FileTransferException e) {
 				errorToSend("Transfer in error",
 						ErrorCode.TransferError, channel, 22);
@@ -1920,7 +1933,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		} else {
 			session.newState(ENDREQUESTR);
 		}
-		if (runner != null && runner.isSelfRequested()) {
+		if (runner != null && (runner.isSelfRequested() || runner.isSelfRequest())) {
 			ChannelCloseTimer.closeFutureChannel(channel);
 		}
 	}
@@ -2656,6 +2669,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			case LocalPacketFactory.REQUESTPACKET: {
 				session.newState(VALID);
 				// The filename or filesize from sender is changed due to PreTask so change it too in receiver
+				// Close only if an error occurs!
 				String [] fields = packet.getSmiddle().split(PartnerConfiguration.BAR_SEPARATOR_FIELD);
 				String newfilename = fields[0];
 				// potential file size changed
@@ -3003,6 +3017,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				session.newState(VALID);
 				// The filename or filesize from sender is changed due to PreTask so change it too in receiver
 				// comment, filename, filesize
+				// Close only if an error occurs!
 				RequestJsonPacket node = (RequestJsonPacket) json;
 				String newfilename = node.getFilename();
 				if (newfilename == null) {
@@ -3959,17 +3974,18 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			throw new OpenR66ProtocolNotAuthenticatedException(
 					"Not authenticated while BusinessRequest received");
 		}
-		if (!Configuration.configuration.businessWhiteSet.contains(session.getAuth().getUser())) {
+		boolean argTransfer = packet.isToValidate();
+		if (argTransfer) {
+			session.newState(BUSINESSD);
+		}
+		if (argTransfer && !Configuration.configuration.businessWhiteSet.contains(session.getAuth().getUser())) {
+			logger.warn("Not allow to execute a BusinessRequest: "+session.getAuth().getUser());
 			throw new OpenR66ProtocolNotAuthenticatedException(
 					"Not allow to execute a BusinessRequest");
 		}
 		session.setStatus(200);
 		String argRule = packet.getSheader();
 		int delay = packet.getDelay();
-		boolean argTransfer = packet.isToValidate();
-		if (argTransfer) {
-			session.newState(BUSINESSD);
-		}
 		ExecJavaTask task = new ExecJavaTask(argRule + " " + argTransfer,
 				delay, null, session);
 		task.setBusinessRequest(true);

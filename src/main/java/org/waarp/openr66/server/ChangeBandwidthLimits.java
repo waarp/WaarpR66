@@ -99,17 +99,28 @@ public class ChangeBandwidthLimits implements Runnable {
 		if (logger == null) {
 			logger = WaarpInternalLoggerFactory.getLogger(ChangeBandwidthLimits.class);
 		}
-		SocketAddress socketAddress = host.getSocketAddress();
+		SocketAddress socketAddress;
+		try {
+			socketAddress = host.getSocketAddress();
+		} catch (IllegalArgumentException e) {
+			logger.error("Cannot Connect to "+host.getHostid());
+			future.setResult(new R66Result(
+					new OpenR66ProtocolNoConnectionException("Cannot connect to server "+host.getHostid()),
+					null, true, ErrorCode.ConnectionImpossible, null));
+			host = null;
+			future.setFailure(future.getResult().exception);
+			return;
+		}
 		boolean isSSL = host.isSsl();
 		LocalChannelReference localChannelReference = networkTransaction
 				.createConnectionWithRetry(socketAddress, isSSL, future);
 		socketAddress = null;
 		if (localChannelReference == null) {
 			host = null;
-			logger.error("Cannot Connect");
+			logger.error("Cannot Connect to "+host.getHostid());
 			future.setResult(new R66Result(
-					new OpenR66ProtocolNoConnectionException("Cannot connect to server"),
-					null, true, ErrorCode.Internal, null));
+					new OpenR66ProtocolNoConnectionException("Cannot connect to server "+host.getHostid()),
+					null, true, ErrorCode.ConnectionImpossible, null));
 			future.setFailure(future.getResult().exception);
 			return;
 		}
