@@ -168,6 +168,14 @@ public class R66Session implements SessionInterface {
 			state.setDryCurrent(desiredstate);
 		}
 	}
+	
+	/**
+	 * 
+	 * @return the current state in the finite state machine
+	 */
+	public R66FiniteDualStates getState() {
+		return state.getCurrent();
+	}
 
 	/**
 	 * Debugging purpose

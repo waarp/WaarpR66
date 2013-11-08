@@ -572,24 +572,6 @@ public class FileBasedConfiguration {
 			new XmlDecl(XmlType.STRING, XML_WORKINGPATH),
 			new XmlDecl(XmlType.STRING, XML_CONFIGPATH)
 	};
-	/**
-	 * Structure of the Configuration file
-	 * 
-	 */
-	private static final XmlDecl[] configRoleDecls = {
-			// roles
-			new XmlDecl(XmlType.STRING, DbHostConfiguration.XML_ROLEID),
-			new XmlDecl(XmlType.STRING, DbHostConfiguration.XML_ROLESET)
-	};
-	/**
-	 * Structure of the Configuration file
-	 * 
-	 */
-	private static final XmlDecl[] configAliasDecls = {
-			// roles
-			new XmlDecl(XmlType.STRING, DbHostConfiguration.XML_REALID),
-			new XmlDecl(XmlType.STRING, DbHostConfiguration.XML_ALIASID)
-	};
 
 	/**
 	 * Overall structure of the Configuration file
@@ -621,9 +603,9 @@ public class FileBasedConfiguration {
 			new XmlDecl(DbHostConfiguration.XML_BUSINESS, XmlType.STRING, XML_ROOT + DbHostConfiguration.XML_BUSINESS + "/"
 					+ DbHostConfiguration.XML_BUSINESSID, true),
 			new XmlDecl(DbHostConfiguration.XML_ROLES, XmlType.XVAL, XML_ROOT + DbHostConfiguration.XML_ROLES + "/"
-					+ DbHostConfiguration.XML_ROLE, configRoleDecls, true),
+					+ DbHostConfiguration.XML_ROLE, DbHostConfiguration.configRoleDecls, true),
 			new XmlDecl(DbHostConfiguration.XML_ALIASES, XmlType.XVAL, XML_ROOT + DbHostConfiguration.XML_ALIASES + "/"
-					+ DbHostConfiguration.XML_ALIAS, configAliasDecls, true)
+					+ DbHostConfiguration.XML_ALIAS, DbHostConfiguration.configAliasDecls, true)
 	};
 	/**
 	 * Global Structure for Client Configuration
@@ -641,7 +623,7 @@ public class FileBasedConfiguration {
 			new XmlDecl(DbHostConfiguration.XML_BUSINESS, XmlType.STRING, XML_ROOT + DbHostConfiguration.XML_BUSINESS + "/"
 					+ DbHostConfiguration.XML_BUSINESSID, true),
 			new XmlDecl(DbHostConfiguration.XML_ALIASES, XmlType.XVAL, XML_ROOT + DbHostConfiguration.XML_ALIASES + "/"
-					+ DbHostConfiguration.XML_ALIAS, configAliasDecls, true)
+					+ DbHostConfiguration.XML_ALIAS, DbHostConfiguration.configAliasDecls, true)
 	};
 	/**
 	 * Global Structure for Submit only Client Configuration
@@ -655,7 +637,7 @@ public class FileBasedConfiguration {
 					false),
 			new XmlDecl(XML_DB, XmlType.XVAL, XML_ROOT + XML_DB, configDbDecls, false),
 			new XmlDecl(DbHostConfiguration.XML_ALIASES, XmlType.XVAL, XML_ROOT + DbHostConfiguration.XML_ALIASES + "/"
-					+ DbHostConfiguration.XML_ALIAS, configAliasDecls, true)
+					+ DbHostConfiguration.XML_ALIAS, DbHostConfiguration.configAliasDecls, true)
 	};
 	private static XmlValue[] configuration = null;
 	private static XmlHash hashConfig = null;
@@ -923,9 +905,18 @@ public class FileBasedConfiguration {
 		value = hashConfig.get(XML_MULTIPLE_MONITORS);
 		if (value != null && (!value.isEmpty())) {
 			config.multipleMonitors = value.getInteger();
-			logger.warn(Messages.getString("FileBasedConfiguration.MMOn") //$NON-NLS-1$
-					+ config.multipleMonitors
-					+ Messages.getString("FileBasedConfiguration.MMOn2")); //$NON-NLS-1$
+			if (config.multipleMonitors > 1) {
+				logger.warn(Messages.getString("FileBasedConfiguration.MMOn") //$NON-NLS-1$
+						+ config.multipleMonitors
+						+ Messages.getString("FileBasedConfiguration.MMOn2")); //$NON-NLS-1$
+			} else {
+				config.multipleMonitors = 1;
+				if (config.warnOnStartup) {
+					logger.warn(Messages.getString("FileBasedConfiguration.MMOff")); //$NON-NLS-1$
+				} else {
+					logger.info(Messages.getString("FileBasedConfiguration.MMOff")); //$NON-NLS-1$
+				}
+			}
 		} else {
 			config.multipleMonitors = 1;
 			if (config.warnOnStartup) {
@@ -1120,18 +1111,24 @@ public class FileBasedConfiguration {
 			value = hashConfig.get(XML_CSTRT_CPULIMIT);
 			if (value != null && (!value.isEmpty())) {
 				cpulimit = value.getDouble();
+				if (cpulimit > 0.99) {
+					cpulimit = 1.0;
+				}
 			}
 		}
 		int connlimit = 0;
 		value = hashConfig.get(XML_CSTRT_CONNLIMIT);
 		if (value != null && (!value.isEmpty())) {
 			connlimit = value.getInteger();
+			if (connlimit < 100) {
+				connlimit = 0;
+			}
 		}
-		double lowcpuLimit = 0;
-		double highcpuLimit = 0;
+		double lowcpuLimit = 0.0;
+		double highcpuLimit = 0.0;
 		double percentageDecrease = 0;
 		long delay = 1000000;
-		long limitLowBandwidth = 4096;
+		long limitLowBandwidth = R66ConstraintLimitHandler.LOWBANDWIDTH_DEFAULT;
 		value = hashConfig.get(XML_CSTRT_LOWCPULIMIT);
 		if (value != null && (!value.isEmpty())) {
 			lowcpuLimit = value.getDouble();
@@ -1139,6 +1136,9 @@ public class FileBasedConfiguration {
 		value = hashConfig.get(XML_CSTRT_HIGHCPULIMIT);
 		if (value != null && (!value.isEmpty())) {
 			highcpuLimit = value.getDouble();
+			if (highcpuLimit < 0.1) {
+				highcpuLimit = 0.0;
+			}
 		}
 		value = hashConfig.get(XML_CSTRT_PERCENTDECREASE);
 		if (value != null && (!value.isEmpty())) {
@@ -1147,6 +1147,9 @@ public class FileBasedConfiguration {
 		value = hashConfig.get(XML_CSTRT_DELAYTHROTTLE);
 		if (value != null && (!value.isEmpty())) {
 			delay = (value.getLong() / 10) * 10;
+			if (delay < 100) {
+				delay = 100;
+			}
 		}
 		value = hashConfig.get(XML_CSTRT_LIMITLOWBANDWIDTH);
 		if (value != null && (!value.isEmpty())) {

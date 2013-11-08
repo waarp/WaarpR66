@@ -69,6 +69,10 @@ public class DirectTransfer extends AbstractTransfer {
 			logger = WaarpInternalLoggerFactory.getLogger(DirectTransfer.class);
 		}
 		DbTaskRunner taskRunner = this.initRequest();
+		if (taskRunner == null) {
+			// already an error from there
+			return;
+		}
 		ClientRunner runner = new ClientRunner(networkTransaction, taskRunner, future);
 		OpenR66ProtocolNotYetConnectionException exc = null;
 		for (int i = 0; i < Configuration.RETRYNB; i++) {

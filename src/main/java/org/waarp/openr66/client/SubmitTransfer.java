@@ -68,6 +68,9 @@ public class SubmitTransfer extends AbstractTransfer {
 		DbTaskRunner taskRunner = this.initRequest();
 		if (taskRunner == null) {
 			logger.debug("Cannot prepare task");
+			if (future.isFailed() && future.getResult() != null) {
+				return;
+			}
 			R66Result result = new R66Result(new OpenR66DatabaseGlobalException(), null, true,
 					ErrorCode.Internal, taskRunner);
 			future.setResult(result);

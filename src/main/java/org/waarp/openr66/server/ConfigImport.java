@@ -158,18 +158,29 @@ public class ConfigImport implements Runnable {
 		if (logger == null) {
 			logger = WaarpInternalLoggerFactory.getLogger(ConfigImport.class);
 		}
-		SocketAddress socketAddress = dbhost.getSocketAddress();
+		SocketAddress socketAddress;
+		try {
+			socketAddress = dbhost.getSocketAddress();
+		} catch (IllegalArgumentException e) {
+			logger.error("Cannot Connect to "+dbhost.getHostid());
+			future.setResult(new R66Result(
+					new OpenR66ProtocolNoConnectionException("Cannot connect to server "+dbhost.getHostid()),
+					null, true, ErrorCode.ConnectionImpossible, null));
+			dbhost = null;
+			future.setFailure(future.getResult().exception);
+			return;
+		}
 		boolean isSSL = dbhost.isSsl();
 
 		LocalChannelReference localChannelReference = networkTransaction
 				.createConnectionWithRetry(socketAddress, isSSL, future);
 		socketAddress = null;
 		if (localChannelReference == null) {
-			dbhost = null;
-			logger.error("Cannot Connect");
+			logger.error("Cannot Connect to "+dbhost.getHostid());
 			future.setResult(new R66Result(
-					new OpenR66ProtocolNoConnectionException("Cannot connect to server"),
-					null, true, ErrorCode.Internal, null));
+					new OpenR66ProtocolNoConnectionException("Cannot connect to server "+dbhost.getHostid()),
+					null, true, ErrorCode.ConnectionImpossible, null));
+			dbhost = null;
 			future.setFailure(future.getResult().exception);
 			return;
 		}

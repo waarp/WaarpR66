@@ -109,7 +109,7 @@ public class MultipleDirectTransfer extends DirectTransfer {
 	public static List<String> getLocalFiles(DbRule dbrule, String []localfilenames) {
 		List<String> files = new ArrayList<String>();
 		R66Session session = new R66Session();
-		session.getAuth().specialNoSessionAuth(true, Configuration.configuration.HOST_ID);
+		session.getAuth().specialNoSessionAuth(false, Configuration.configuration.HOST_ID);
 		R66Dir dir = new R66Dir(session);
 		try {
 			dir.changeDirectory(dbrule.getSendPath());

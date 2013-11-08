@@ -12,7 +12,7 @@
         <serverpasswd>c5f4876737cf351a</serverpasswd>
         <usenossl>True</usenossl>
         <usessl>True</usessl>
-        <httpadmin>J:\GG\R66\admin2</httpadmin>
+        <httpadmin>D:\GG\R66\httpadmin\i18n</httpadmin>
         <admkeypath>D:\GG\R66\certs\testsslnocert.jks</admkeypath>
         <admkeystorepass>testsslnocert</admkeystorepass>
         <admkeypass>testalias</admkeypass>

@@ -46,6 +46,7 @@ import org.waarp.common.database.DbAdmin;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.utility.WaarpThreadFactory;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.context.R66Session;
@@ -123,19 +124,19 @@ public class NetworkTransaction {
 	 * ExecutorService for RetrieveOperation
 	 */
 	private static final ExecutorService retrieveExecutor = Executors
-			.newCachedThreadPool();
+			.newCachedThreadPool(new WaarpThreadFactory("RetrieveExecutor"));
 
 	/**
 	 * ExecutorService Server Boss
 	 */
 	private final ExecutorService execServerBoss = Executors
-			.newCachedThreadPool();
+			.newCachedThreadPool(new WaarpThreadFactory("ServerBossRetrieve"));
 
 	/**
 	 * ExecutorService Server Worker
 	 */
 	private final ExecutorService execServerWorker = Executors
-			.newCachedThreadPool();
+			.newCachedThreadPool(new WaarpThreadFactory("ServerWorkerRetrieve"));
 
 	private final ChannelFactory channelClientFactory = new NioClientSocketChannelFactory(
 			execServerBoss,
@@ -347,6 +348,7 @@ public class NetworkTransaction {
 				logger.info("Already Connected: {}", networkChannel);
 				return networkChannel;
 			}
+			logger.debug("NEW PHYSICAL CONNECTION REQUIRED");
 			ChannelFuture channelFuture = null;
 			for (int i = 0; i < Configuration.RETRYNB; i++) {
 				try {
@@ -620,8 +622,10 @@ public class NetworkTransaction {
 		}
 		DbAdmin.closeAllConnection();
 		Configuration.configuration.clientStop();
-		logger.debug("Last action before exit");
-		ChannelUtils.stopLogger();
+		if (! Configuration.configuration.isServer) {
+			logger.debug("Last action before exit");
+			ChannelUtils.stopLogger();
+		}
 	}
 
 	/**
@@ -1135,6 +1139,40 @@ public class NetworkTransaction {
 		throw new OpenR66ProtocolNoConnectionException("Address is not correct");
 	}
 
+	/**
+	 * To update the last time used
+	 * @param networkChannel
+	 */
+	public static void updateLastTimeUsed(Channel networkChannel) {
+		SocketAddress address = networkChannel.getRemoteAddress();
+		if (address != null) {
+			NetworkChannel nc = networkChannelOnSocketAddressConcurrentHashMap.get(address.hashCode());
+			if (nc != null) {
+				nc.use();
+			}
+		}
+	}
+	
+	/**
+	 * Check if the last time used is ok with a delay applied to the current time (timeout)
+	 * @param networkChannel
+	 * @param delay
+	 * @return True if OK, else False (should send a KeepAlive)
+	 */
+	public static boolean checkLastTimeUsed(Channel networkChannel, long delay) {
+		SocketAddress address = networkChannel.getRemoteAddress();
+		if (address != null) {
+			NetworkChannel nc = networkChannelOnSocketAddressConcurrentHashMap.get(address.hashCode());
+			if (nc != null) {
+				long lastTime = nc.lastTimeUsed;
+				logger.debug("CheckLastTime for: "+address.toString()+" "+lastTime+":"+System.currentTimeMillis()+" ok? "+(lastTime + delay > System.currentTimeMillis()));
+				if (lastTime + delay > System.currentTimeMillis()) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 	/**
 	 * Remover of Shutdown Remote Host
 	 * 

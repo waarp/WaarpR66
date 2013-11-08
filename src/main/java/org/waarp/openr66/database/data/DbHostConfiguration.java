@@ -42,8 +42,14 @@ import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.role.RoleDefault;
 import org.waarp.common.role.RoleDefault.ROLE;
+import org.waarp.common.xml.XmlDecl;
+import org.waarp.common.xml.XmlHash;
+import org.waarp.common.xml.XmlType;
+import org.waarp.common.xml.XmlUtil;
+import org.waarp.common.xml.XmlValue;
 import org.waarp.openr66.commander.CommanderNoDb;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.utils.Version;
 
 /**
@@ -133,6 +139,30 @@ public class DbHostConfiguration extends AbstractDbData {
 	 * Check version in protocol
 	 */
 	public static final String XML_BUSINESSID = "businessid";
+	private static final XmlDecl [] businessDecl = { new XmlDecl(XML_BUSINESS, XmlType.STRING, XML_BUSINESS + "/"
+			+ XML_BUSINESSID, true) };
+	/**
+	 * Structure of the Configuration file
+	 * 
+	 */
+	public static final XmlDecl[] configRoleDecls = {
+			// roles
+			new XmlDecl(XmlType.STRING, XML_ROLEID),
+			new XmlDecl(XmlType.STRING, XML_ROLESET)
+	};
+	private static final XmlDecl [] roleDecl = { new XmlDecl(XML_ROLES, XmlType.XVAL, XML_ROLES + "/"
+			+ XML_ROLE, configRoleDecls, true) };
+	/**
+	 * Structure of the Configuration file
+	 * 
+	 */
+	public static final XmlDecl[] configAliasDecls = {
+			// roles
+			new XmlDecl(XmlType.STRING, XML_REALID),
+			new XmlDecl(XmlType.STRING, XML_ALIASID)
+	};
+	private static final XmlDecl [] aliasDecl = { new XmlDecl(XML_ALIASES, XmlType.XVAL, XML_ALIASES + "/"
+			+ XML_ALIAS, configAliasDecls, true) };
 
 	public static enum OtherFields {root, version};
 	
@@ -388,10 +418,14 @@ public class DbHostConfiguration extends AbstractDbData {
 			this.business = this.business.replaceAll("\\s+", " ");
 		}
 		while (len != this.business.length());
+		Configuration.configuration.businessWhiteSet.clear();
+		if (! this.business.isEmpty()) {
+			readValuesFromXml(this.business, businessDecl);
+		}
 		allFields[Columns.BUSINESS.ordinal()].setValue(business);
 		isSaved = false;
 	}
-
+	
 	/**
 	 * @return the roles
 	 */
@@ -410,6 +444,10 @@ public class DbHostConfiguration extends AbstractDbData {
 			this.roles = this.roles.replaceAll("\\s+", " ");
 		}
 		while (len != this.roles.length());
+		Configuration.configuration.roles.clear();
+		if (! this.roles.isEmpty()) {
+			readValuesFromXml(this.roles, roleDecl);
+		}
 		allFields[Columns.ROLES.ordinal()].setValue(roles);
 		isSaved = false;
 	}
@@ -432,8 +470,104 @@ public class DbHostConfiguration extends AbstractDbData {
 			this.aliases = this.aliases.replaceAll("\\s+", " ");
 		}
 		while (len != this.aliases.length());
+		Configuration.configuration.aliases.clear();
+		if (! this.aliases.isEmpty()) {
+			readValuesFromXml(this.aliases, aliasDecl);
+		}
 		allFields[Columns.ALIASES.ordinal()].setValue(aliases);
 		isSaved = false;
+	}
+
+
+	@SuppressWarnings("unchecked")
+	private void readValuesFromXml(String input, XmlDecl []config) {
+		Document document = null;
+		StringReader reader = new StringReader(input);
+		// Open config file
+		try {
+			document = new SAXReader().read(reader);
+		} catch (DocumentException e) {
+			logger.error(Messages.getString("FileBasedConfiguration.CannotReadXml") + input, e); //$NON-NLS-1$
+			return;
+		}
+		if (document == null) {
+			logger.error(Messages.getString("FileBasedConfiguration.CannotReadXml") + input); //$NON-NLS-1$
+			return;
+		}
+		XmlValue [] configuration = XmlUtil.read(document, config);
+		XmlHash hashConfig = new XmlHash(configuration);
+		XmlValue value = hashConfig.get(DbHostConfiguration.XML_BUSINESS);
+		if (value != null && (value.getList() != null)) {
+			List<String> ids = (List<String>) value.getList();
+			if (ids != null) {
+				for (String sval : ids) {
+					if (sval.isEmpty()) {
+						continue;
+					}
+					logger.info("Business Allow: " + sval);
+					Configuration.configuration.businessWhiteSet.add(sval.trim());
+				}
+				ids.clear();
+				ids = null;
+			}
+		}
+		value = hashConfig.get(DbHostConfiguration.XML_ALIASES);
+		if (value != null && (value.getList() != null)) {
+			for (XmlValue[] xml : (List<XmlValue[]>) value.getList()) {
+				XmlHash subHash = new XmlHash(xml);
+				value = subHash.get(DbHostConfiguration.XML_REALID);
+				if (value == null || (value.isEmpty())) {
+					continue;
+				}
+				String refHostId = value.getString();
+				value = subHash.get(DbHostConfiguration.XML_ALIASID);
+				if (value == null || (value.isEmpty())) {
+					continue;
+				}
+				String aliasset = value.getString();
+				String [] alias = aliasset.split(" |\\|");
+				for (String namealias : alias) {
+					Configuration.configuration.aliases.put(namealias, refHostId);
+				}
+				logger.info("Aliases for: " + refHostId +" = "+ aliasset);
+			}
+		}
+		value = hashConfig.get(DbHostConfiguration.XML_ROLES);
+		if (value != null && (value.getList() != null)) {
+			for (XmlValue[] xml : (List<XmlValue[]>) value.getList()) {
+				XmlHash subHash = new XmlHash(xml);
+				value = subHash.get(DbHostConfiguration.XML_ROLEID);
+				if (value == null || (value.isEmpty())) {
+					continue;
+				}
+				String refHostId = value.getString();
+				value = subHash.get(DbHostConfiguration.XML_ROLESET);
+				if (value == null || (value.isEmpty())) {
+					continue;
+				}
+				String roleset = value.getString();
+				String [] roles = roleset.split(" |\\|");
+				RoleDefault newrole = new RoleDefault();
+				for (String role : roles) {
+					try {
+						RoleDefault.ROLE roletype = RoleDefault.ROLE.valueOf(role.toUpperCase());
+						if (roletype == ROLE.NOACCESS) {
+							// reset
+							newrole.setRole(roletype);
+						} else {
+							newrole.addRole(roletype);
+						}
+					} catch (IllegalArgumentException e) {
+						// ignore
+					}
+				}
+				logger.info("New Role: " + refHostId + ":" + newrole);
+				Configuration.configuration.roles.put(refHostId, newrole);
+			}
+		}
+		hashConfig.clear();
+		hashConfig = null;
+		configuration = null;
 	}
 
 	/**

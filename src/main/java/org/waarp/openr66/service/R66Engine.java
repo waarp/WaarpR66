@@ -27,7 +27,7 @@ import org.waarp.common.service.EngineAbstract;
 import org.waarp.common.utility.SystemPropertyUtil;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.R66SystemProperties;
-import org.waarp.openr66.protocol.utils.R66ShutdownHook;
+import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.server.R66Server;
 
 /**
@@ -69,7 +69,8 @@ public class R66Engine extends EngineAbstract {
 
 	@Override
 	public void shutdown() {
-		R66ShutdownHook.terminate(false);
+		logger.warn("Shutdown");
+		ChannelUtils.startShutdown();
 		closeFuture.setSuccess();
 		logger.info("Service stopped");
 	}
@@ -82,6 +83,7 @@ public class R66Engine extends EngineAbstract {
 	@Override
 	public boolean waitShutdown() throws InterruptedException {
 		closeFuture.await();
+		logger.info("Shutdown on going: "+closeFuture.isSuccess());
 		return closeFuture.isSuccess();
 	}
 }

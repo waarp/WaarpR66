@@ -137,6 +137,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 					}
 				}
 			}
+			logger.debug(this.role.toString());
 			return true;
 		}
 		throw new Reply530Exception("Key is not valid for this HostId");
@@ -224,7 +225,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 	public String toString() {
 		return "Auth:" + isIdentified + " " +
 				(currentAuth != null ? currentAuth.toString()
-						: "no Internal Auth");
+						: "no Internal Auth") + " "+this.role.toString();
 	}
 
 	/**
@@ -237,7 +238,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 		try {
 			auth = new DbHostAuth(dbSession, server);
 		} catch (WaarpDatabaseException e) {
-			logger.warn("Cannot find the authentication", e);
+			logger.warn("Cannot find the authentication {}", server, e);
 			return null;
 		}
 		return auth;
@@ -270,7 +271,61 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 		getSession().getDir().initAfterIdentification();
 		isAdmin = isSSL;
 		if (isSSL) {
+			role.setRole(ROLE.FULLADMIN);
 			this.user = Configuration.configuration.ADMINNAME;
 		}
+	}
+	/**
+	 * connection from HTTPS (no default rights, must be set either as admin or specifically through ROLEs).
+	 * Only "false client" with port with negative values are allowed.
+	 * @param dbSession
+	 * @param hostId
+	 * @param arg0
+	 * @return True if the connection is OK (authentication is OK)
+	 * @throws Reply530Exception
+	 *             if the authentication is wrong
+	 * @throws Reply421Exception
+	 *             If the service is not available
+	 */
+	public boolean connectionHttps(DbSession dbSession, String hostId, byte[] arg0)
+			throws Reply530Exception, Reply421Exception {
+		DbHostAuth auth = R66Auth
+				.getServerAuth(dbSession, hostId);
+		if (auth == null) {
+			logger.error("Cannot find authentication for " + hostId);
+			setIsIdentified(false);
+			currentAuth = null;
+			throw new Reply530Exception("HostId not allowed");
+		}
+		if (auth.getPort() >= 0) {
+			logger.error("Authentication is unacceptable for " + hostId);
+			setIsIdentified(false);
+			currentAuth = null;
+			throw new Reply530Exception("HostId not allowed");
+		}
+		currentAuth = auth;
+		if (currentAuth.isKeyValid(arg0)) {
+			setIsIdentified(true);
+			user = hostId;
+			setRootFromAuth();
+			getSession().getDir().initAfterIdentification();
+			isAdmin = currentAuth.isAdminrole();
+			if (Configuration.configuration.roles.isEmpty()) {
+				if (isAdmin) {
+					role.setRole(ROLE.FULLADMIN);
+				}
+			} else {
+				RoleDefault configRole = Configuration.configuration.roles.get(hostId);
+				if (configRole != null) {
+					role.setRole(configRole);
+					if (this.role.isContaining(ROLE.FULLADMIN)) {
+						isAdmin = true;
+					}
+				}
+			}
+			logger.debug(this.role.toString());
+			return true;
+		}
+		throw new Reply530Exception("Key is not valid for this HostId");
 	}
 }

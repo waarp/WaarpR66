@@ -90,7 +90,17 @@ public abstract class AbstractBusinessRequest implements Runnable {
 	public void initRequest() throws OpenR66ProtocolNoConnectionException {
 		DbHostAuth host = R66Auth.getServerAuth(DbConstant.admin.session,
 				remoteHost);
-		final SocketAddress socketServerAddress = host.getSocketAddress();
+		final SocketAddress socketServerAddress;
+		try {
+			socketServerAddress = host.getSocketAddress();
+		} catch (IllegalArgumentException e) {
+			future.setResult(null);
+			OpenR66ProtocolNoConnectionException e2 =
+					new OpenR66ProtocolNoConnectionException(
+							Messages.getString("AdminR66OperationsGui.188") + host.toString()); //$NON-NLS-1$
+			future.setFailure(e2);
+			throw e;
+		}
 		boolean isSSL = host.isSsl();
 		localChannelReference = networkTransaction
 				.createConnectionWithRetry(socketServerAddress, isSSL, future);

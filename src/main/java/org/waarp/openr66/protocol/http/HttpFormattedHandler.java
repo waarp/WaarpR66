@@ -36,6 +36,7 @@ import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.handler.codec.http.Cookie;
 import org.jboss.netty.handler.codec.http.CookieDecoder;
 import org.jboss.netty.handler.codec.http.CookieEncoder;
+import org.jboss.netty.handler.codec.http.DefaultCookie;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMethod;
@@ -64,6 +65,7 @@ import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.database.data.DbTaskRunner.TASKSTEP;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.exception.OpenR66Exception;
 import org.waarp.openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
@@ -135,7 +137,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 	}
 
 	private static enum REPLACEMENT {
-		XXXHOSTIDXXX, XXXLOCACTIVEXXX, XXXNETACTIVEXXX, XXXBANDWIDTHXXX, XXXDATEXXX;
+		XXXHOSTIDXXX, XXXLOCACTIVEXXX, XXXNETACTIVEXXX, XXXBANDWIDTHXXX, XXXDATEXXX, XXXLANGXXX;
 	}
 
 	public static final int LIMITROW = 60; // better
@@ -146,8 +148,11 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 											// divided
 											// by
 											// 4
-
+	private static final String I18NEXT = "i18next";
+	
 	public final R66Session authentHttp = new R66Session();
+
+	private volatile String lang = Messages.slocale;
 
 	private volatile HttpRequest request;
 
@@ -164,7 +169,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 	 * The Database connection attached to this NetworkChannel shared among all associated
 	 * LocalChannels
 	 */
-	private DbSession dbSession;
+	private DbSession dbSession = null;
 
 	/**
 	 * Does this dbSession is private and so should be closed
@@ -204,6 +209,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 				"IN:" + (trafficCounter.getLastReadThroughput() / 131072) +
 						"Mbits&nbsp;&nbsp;OUT:" +
 						(trafficCounter.getLastWriteThroughput() / 131072) + "Mbits");
+		WaarpStringUtils.replace(builder, REPLACEMENT.XXXLANGXXX.toString(), lang);
 		return builder.toString();
 	}
 
@@ -225,6 +231,18 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 			throws Exception {
 		isCurrentRequestXml = false;
 		status = HttpResponseStatus.OK;
+		HttpRequest request = this.request = (HttpRequest) e.getMessage();
+		QueryStringDecoder queryStringDecoder = new QueryStringDecoder(request
+				.getUri());
+		uriRequest = queryStringDecoder.getPath();
+		logger.debug("Msg: " + uriRequest);
+		if (uriRequest.contains("gre/") || uriRequest.contains("img/") ||
+				uriRequest.contains("res/") || uriRequest.contains("favicon.ico")) {
+			HttpWriteCacheEnable.writeFile(request,
+					e.getChannel(), Configuration.configuration.httpBasePath + uriRequest,
+					"XYZR66NOSESSION");
+			return;
+		}
 		try {
 			if (DbConstant.admin.isConnected) {
 				this.dbSession = new DbSession(DbConstant.admin, false);
@@ -236,115 +254,115 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 			logger.warn("Use default database connection");
 			this.dbSession = DbConstant.admin.session;
 		}
-		HttpRequest request = this.request = (HttpRequest) e.getMessage();
-		QueryStringDecoder queryStringDecoder = new QueryStringDecoder(request
-				.getUri());
-		uriRequest = queryStringDecoder.getPath();
-		logger.debug("Msg: " + uriRequest);
-		if (uriRequest.contains("gre/") || uriRequest.contains("img/") ||
-				uriRequest.contains("res/")) {
-			HttpWriteCacheEnable.writeFile(request,
-					e.getChannel(), Configuration.configuration.httpBasePath + uriRequest,
-					"XYZR66NOSESSION");
-			return;
-		}
-		char cval = 'z';
-		long nb = LIMITROW;
-		// check the URI
-		if (uriRequest.equalsIgnoreCase("/active")) {
-			cval = '0';
-		} else if (uriRequest.equalsIgnoreCase("/error")) {
-			cval = '1';
-		} else if (uriRequest.equalsIgnoreCase("/done")) {
-			cval = '2';
-		} else if (uriRequest.equalsIgnoreCase("/all")) {
-			cval = '3';
-		} else if (uriRequest.equalsIgnoreCase("/status")) {
-			cval = '4';
-		} else if (uriRequest.equalsIgnoreCase("/statusxml")) {
-			cval = '5';
-			nb = 0; // since it could be the default or setup by request
-			isCurrentRequestXml = true;
-		} else if (uriRequest.equalsIgnoreCase("/spooled")) {
-			cval = '6';
-		}
-		// Get the params according to get or post
-		if (request.getMethod() == HttpMethod.GET) {
-			params = queryStringDecoder.getParameters();
-		} else if (request.getMethod() == HttpMethod.POST) {
-			ChannelBuffer content = request.getContent();
-			if (content.readable()) {
-				String param = content.toString(WaarpStringUtils.UTF8);
-				queryStringDecoder = new QueryStringDecoder("/?" + param);
-			} else {
-				responseContent.append(REQUEST.index.readFileUnique(this));
-				writeResponse(e);
-				return;
+		try {
+			char cval = 'z';
+			long nb = LIMITROW;
+			// check the URI
+			if (uriRequest.equalsIgnoreCase("/active")) {
+				cval = '0';
+			} else if (uriRequest.equalsIgnoreCase("/error")) {
+				cval = '1';
+			} else if (uriRequest.equalsIgnoreCase("/done")) {
+				cval = '2';
+			} else if (uriRequest.equalsIgnoreCase("/all")) {
+				cval = '3';
+			} else if (uriRequest.equalsIgnoreCase("/status")) {
+				cval = '4';
+			} else if (uriRequest.equalsIgnoreCase("/statusxml")) {
+				cval = '5';
+				nb = 0; // since it could be the default or setup by request
+				isCurrentRequestXml = true;
+			} else if (uriRequest.equalsIgnoreCase("/spooled")) {
+				cval = '6';
 			}
-			params = queryStringDecoder.getParameters();
-		}
-		boolean getMenu = (cval == 'z');
-		boolean extraBoolean = false;
-		if (!params.isEmpty()) {
-			// if not uri, from get or post
-			if (getMenu) {
-				String info = getTrimValue(sINFO);
-				if (info != null) {
-					getMenu = false;
-					cval = info.charAt(0);
+			// Get the params according to get or post
+			if (request.getMethod() == HttpMethod.GET) {
+				params = queryStringDecoder.getParameters();
+			} else if (request.getMethod() == HttpMethod.POST) {
+				ChannelBuffer content = request.getContent();
+				if (content.readable()) {
+					String param = content.toString(WaarpStringUtils.UTF8);
+					queryStringDecoder = new QueryStringDecoder("/?" + param);
 				} else {
-					getMenu = true;
-				}
-			}
-			// search the nb param
-			String snb = getTrimValue(sNB);
-			if (snb != null) {
-				try {
-					nb = Long.parseLong(snb);
-				} catch (Exception e1) {
-				}
-			}
-			// search the detail param
-			String sdetail = getTrimValue(sDETAIL);
-			if (sdetail != null) {
-				try {
-					if (Integer.parseInt(sdetail) > 0)
-						extraBoolean = true;
-				} catch (Exception e1) {
-				}
-			}
-		}
-		if (getMenu) {
-			responseContent.append(REQUEST.index.readFileUnique(this));
-		} else {
-			// Use value 0=Active 1=Error 2=Done 3=All
-			switch (cval) {
-				case '0':
-					active(ctx, (int) nb);
-					break;
-				case '1':
-					error(ctx, (int) nb);
-					break;
-				case '2':
-					done(ctx, (int) nb);
-					break;
-				case '3':
-					all(ctx, (int) nb);
-					break;
-				case '4':
-					status(ctx, (int) nb);
-					break;
-				case '5':
-					statusxml(ctx, nb, extraBoolean);
-					break;
-				case '6':
-					spooled(ctx, extraBoolean);
-					break;
-				default:
 					responseContent.append(REQUEST.index.readFileUnique(this));
+					writeResponse(e);
+					return;
+				}
+				params = queryStringDecoder.getParameters();
+			}
+			boolean getMenu = (cval == 'z');
+			boolean extraBoolean = false;
+			if (!params.isEmpty()) {
+				// if not uri, from get or post
+				if (getMenu) {
+					String info = getTrimValue(sINFO);
+					if (info != null) {
+						getMenu = false;
+						cval = info.charAt(0);
+					} else {
+						getMenu = true;
+					}
+				}
+				// search the nb param
+				String snb = getTrimValue(sNB);
+				if (snb != null) {
+					try {
+						nb = Long.parseLong(snb);
+					} catch (Exception e1) {
+					}
+				}
+				// search the detail param
+				String sdetail = getTrimValue(sDETAIL);
+				if (sdetail != null) {
+					try {
+						if (Integer.parseInt(sdetail) > 0)
+							extraBoolean = true;
+					} catch (Exception e1) {
+					}
+				}
+				String langarg = getTrimValue("setLng");
+				if (langarg != null && ! langarg.isEmpty()) {
+					lang = langarg;
+				}
+			}
+			if (getMenu) {
+				responseContent.append(REQUEST.index.readFileUnique(this));
+			} else {
+				// Use value 0=Active 1=Error 2=Done 3=All
+				switch (cval) {
+					case '0':
+						active(ctx, (int) nb);
+						break;
+					case '1':
+						error(ctx, (int) nb);
+						break;
+					case '2':
+						done(ctx, (int) nb);
+						break;
+					case '3':
+						all(ctx, (int) nb);
+						break;
+					case '4':
+						status(ctx, (int) nb);
+						break;
+					case '5':
+						statusxml(ctx, nb, extraBoolean);
+						break;
+					case '6':
+						spooled(ctx, extraBoolean);
+						break;
+					default:
+						responseContent.append(REQUEST.index.readFileUnique(this));
+				}
+			}
+			writeResponse(e);
+		} finally {
+			if (this.isPrivateDbSession && dbSession != null) {
+				dbSession.forceDisconnect();
+				DbAdmin.nbHttpSession--;
+				dbSession = null;
 			}
 		}
-		writeResponse(e);
 	}
 
 	/**
@@ -379,7 +397,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 						Configuration.configuration.getLocalTransaction().
 								getFromRequest(taskRunner.getKey());
 				responseContent.append(taskRunner.toHtml(authentHttp,
-						lcr != null ? "Active" : "NotActive"));
+						lcr != null ? Messages.getString("HttpSslHandler.Active") : Messages.getString("HttpSslHandler.NotActive")));
 				responseContent.append("</tr>\r\n");
 				if (nb > 0) {
 					i++;
@@ -648,28 +666,47 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 		if (cookieString != null) {
 			CookieDecoder cookieDecoder = new CookieDecoder();
 			Set<Cookie> cookies = cookieDecoder.decode(cookieString);
+			boolean i18nextFound = false;
 			if (!cookies.isEmpty()) {
 				// Reset the cookies if necessary.
 				CookieEncoder cookieEncoder = new CookieEncoder(true);
 				for (Cookie cookie : cookies) {
+					if (cookie.getName().equalsIgnoreCase(I18NEXT)) {
+						i18nextFound = true;
+						cookie.setValue(lang);
+						cookieEncoder.addCookie(cookie);
+						response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+						cookieEncoder = new CookieEncoder(true);
+					} else {
+						cookieEncoder.addCookie(cookie);
+						response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+						cookieEncoder = new CookieEncoder(true);
+					}
+				}
+				if (! i18nextFound) {
+					Cookie cookie = new DefaultCookie(I18NEXT, lang);
 					cookieEncoder.addCookie(cookie);
 					response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
-					cookieEncoder = new CookieEncoder(true);
 				}
+			}
+			if (! i18nextFound) {
+				Cookie cookie = new DefaultCookie(I18NEXT, lang);
+				CookieEncoder cookieEncoder = new CookieEncoder(true);
+				cookieEncoder.addCookie(cookie);
+				response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
 			}
 		}
 
 		// Write the response.
 		ChannelFuture future = e.getChannel().write(response);
-
 		// Close the connection after the write operation is done if necessary.
 		if (close) {
 			future.addListener(ChannelFutureListener.CLOSE);
-		}
-		if (this.isPrivateDbSession && dbSession != null) {
-			dbSession.forceDisconnect();
-			DbAdmin.nbHttpSession--;
-			dbSession = null;
+			if (this.isPrivateDbSession && dbSession != null) {
+				dbSession.forceDisconnect();
+				DbAdmin.nbHttpSession--;
+				dbSession = null;
+			}
 		}
 	}
 
@@ -720,6 +757,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 		} else {
 			if (this.isPrivateDbSession && dbSession != null) {
 				dbSession.forceDisconnect();
+				DbAdmin.nbHttpSession--;
 				dbSession = null;
 			}
 			// Nothing to do
@@ -740,6 +778,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 		if (this.isPrivateDbSession && dbSession != null) {
 			dbSession.forceDisconnect();
 			DbAdmin.nbHttpSession--;
+			dbSession = null;
 		}
 	}
 

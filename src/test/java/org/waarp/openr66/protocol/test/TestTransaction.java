@@ -129,11 +129,18 @@ public class TestTransaction implements Runnable {
 					.error("Needs a correct configuration file as first argument");
 			return;
 		}
+		DbHostAuth host = Configuration.configuration.HOST_AUTH;
+		final SocketAddress socketServerAddress;
+		try {
+			socketServerAddress = host.getSocketAddress();
+		} catch (IllegalArgumentException e) {
+			logger
+				.error("Needs a correct configuration file as first argument");
+			return;
+		}
 		Configuration.configuration.pipelineInit();
 
 		final NetworkTransaction networkTransaction = new NetworkTransaction();
-		DbHostAuth host = Configuration.configuration.HOST_AUTH;
-		final SocketAddress socketServerAddress = host.getSocketAddress();
 		ExecutorService executorService = Executors.newCachedThreadPool();
 		int nb = 100;
 
