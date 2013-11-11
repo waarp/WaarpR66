@@ -271,7 +271,7 @@ public class DbHostAuth extends AbstractDbData {
 		} else {
 			try {
 				// Save as crypted with the local Key and Base64
-				this.hostkey = Configuration.configuration.cryptoKey.cryptToHex(hostkey).getBytes();
+				this.hostkey = Configuration.configuration.cryptoKey.cryptToHex(hostkey).getBytes(WaarpStringUtils.UTF8);
 			} catch (Exception e) {
 				this.hostkey = new byte[0];
 			}
@@ -746,12 +746,12 @@ public class DbHostAuth extends AbstractDbData {
 		WaarpStringUtils.replace(builder, "XXXADDRXXX", address);
 		WaarpStringUtils.replace(builder, "XXXPORTXXX", Integer.toString(port));
 		if (crypted) {
-			WaarpStringUtils.replace(builder, "XXXKEYXXX", new String(hostkey));
+			WaarpStringUtils.replace(builder, "XXXKEYXXX", new String(hostkey, WaarpStringUtils.UTF8));
 		} else {
 			try {
 				WaarpStringUtils.replace(builder, "XXXKEYXXX",
 						Configuration.configuration.cryptoKey.decryptHexInString(new String(
-								this.hostkey)));
+								this.hostkey, WaarpStringUtils.UTF8)));
 			} catch (Exception e) {
 				WaarpStringUtils.replace(builder, "XXXKEYXXX", "BAD DECRYPT");
 			}

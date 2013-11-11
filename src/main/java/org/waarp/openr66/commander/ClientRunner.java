@@ -202,7 +202,7 @@ public class ClientRunner extends Thread {
 		Integer tries = taskRunnerRetryHashMap.get(key);
 		logger.debug("try to find integer: " + tries);
 		if (tries == null) {
-			tries = new Integer(1);
+			tries = Integer.valueOf(1);
 		} else {
 			tries = tries + 1;
 		}

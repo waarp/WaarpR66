@@ -19,6 +19,7 @@ package org.waarp.openr66.protocol.localhandler.packet;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
+import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 
@@ -67,8 +68,8 @@ public class InformationPacket extends AbstractLocalPacket {
 		if (endLength > 0) {
 			buf.readBytes(bend);
 		}
-		final String sheader = new String(bheader);
-		final String send = new String(bend);
+		final String sheader = new String(bheader, WaarpStringUtils.UTF8);
+		final String send = new String(bend, WaarpStringUtils.UTF8);
 		return new InformationPacket(sheader, request, send);
 	}
 
@@ -86,7 +87,7 @@ public class InformationPacket extends AbstractLocalPacket {
 	@Override
 	public void createEnd(LocalChannelReference lcr) {
 		if (filename != null) {
-			end = ChannelBuffers.wrappedBuffer(filename.getBytes());
+			end = ChannelBuffers.wrappedBuffer(filename.getBytes(WaarpStringUtils.UTF8));
 		}
 	}
 
@@ -95,7 +96,7 @@ public class InformationPacket extends AbstractLocalPacket {
 		if (rulename == null) {
 			throw new OpenR66ProtocolPacketException("Not enough data");
 		}
-		header = ChannelBuffers.wrappedBuffer(rulename.getBytes());
+		header = ChannelBuffers.wrappedBuffer(rulename.getBytes(WaarpStringUtils.UTF8));
 	}
 
 	@Override

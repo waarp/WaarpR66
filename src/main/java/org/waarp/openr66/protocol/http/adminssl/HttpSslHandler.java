@@ -941,7 +941,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     return head+body0+body+body1+end;
 				}
 				DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
-						ssl, key.getBytes(), admin, isclient);
+						ssl, key.getBytes(WaarpStringUtils.UTF8), admin, isclient);
 				try {
 					dbhost.insert();
 				} catch (WaarpDatabaseException e) {
@@ -1011,7 +1011,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     return head+body0+body+body1+end;
 				}
 				DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
-						ssl, key.getBytes(), admin, isclient);
+						ssl, key.getBytes(WaarpStringUtils.UTF8), admin, isclient);
 				try {
 					if (dbhost.exist()) {
 						dbhost.update();
@@ -1047,7 +1047,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     return head+body0+body+body1+end;
 				}
 				DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
-						ssl, key.getBytes(), admin, isclient);
+						ssl, key.getBytes(WaarpStringUtils.UTF8), admin, isclient);
 				R66Future result = new R66Future(true);
 				TestPacket packet = new TestPacket("MSG", "CheckConnection", 100);
 				Message transaction = new Message(
@@ -1085,7 +1085,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
                     return head+body0+body+body1+end;
 				}
 				DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
-						ssl, key.getBytes(), admin, isclient);
+						ssl, key.getBytes(WaarpStringUtils.UTF8), admin, isclient);
 				body = REQUEST.Hosts.readBody();
 				boolean resultShutDown = false;
 				if (!dbhost.isClient()) {
@@ -1898,17 +1898,17 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 			if (!getMenu) {
 				logger.debug("Name? "
 						+ name.equals(Configuration.configuration.ADMINNAME) +
-						" Passwd? " + Arrays.equals(password.getBytes(),
+						" Passwd? " + Arrays.equals(password.getBytes(WaarpStringUtils.UTF8),
 								Configuration.configuration.getSERVERADMINKEY()));
 				if (name.equals(Configuration.configuration.ADMINNAME) &&
-						Arrays.equals(password.getBytes(),
+						Arrays.equals(password.getBytes(WaarpStringUtils.UTF8),
 								Configuration.configuration.getSERVERADMINKEY())) {
 					authentHttp.getAuth().specialNoSessionAuth(true,
 							Configuration.configuration.HOST_ID);
 					authentHttp.setStatus(70);
 				} else {
 					try {
-						authentHttp.getAuth().connectionHttps(DbConstant.admin.session, name, FilesystemBasedDigest.passwdCrypt(password.getBytes()));
+						authentHttp.getAuth().connectionHttps(DbConstant.admin.session, name, FilesystemBasedDigest.passwdCrypt(password.getBytes(WaarpStringUtils.UTF8)));
 					} catch (Reply530Exception e1) {
 						getMenu = true;
 					} catch (Reply421Exception e1) {

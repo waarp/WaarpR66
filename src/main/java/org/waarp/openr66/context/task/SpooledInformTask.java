@@ -29,7 +29,6 @@ import org.waarp.common.filemonitor.FileMonitor.FileMonitorInformation;
 import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
-import org.waarp.openr66.context.task.AbstractExecJavaTask;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
@@ -53,7 +52,7 @@ public class SpooledInformTask extends AbstractExecJavaTask {
 	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
 			.getLogger(SpooledInformTask.class);
 
-	public static TreeMap<String, SpooledInformation> spooledInformationMap = new TreeMap<String, SpooledInformTask.SpooledInformation>();
+	public static final TreeMap<String, SpooledInformation> spooledInformationMap = new TreeMap<String, SpooledInformTask.SpooledInformation>();
 	
 	public static class SpooledInformation {
 		public String host;

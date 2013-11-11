@@ -108,7 +108,7 @@ public class NetworkChannel {
 	public boolean equals(Object obj) {
 		if (obj instanceof NetworkChannel) {
 			NetworkChannel obj2 = (NetworkChannel) obj;
-			return (obj2.channel.getId() == this.channel.getId());
+			return (obj2.channel.getId().compareTo(this.channel.getId()) == 0);
 		}
 		return false;
 	}

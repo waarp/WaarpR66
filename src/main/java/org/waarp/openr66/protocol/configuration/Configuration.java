@@ -569,7 +569,7 @@ public class Configuration {
 
 	protected volatile boolean configured = false;
 
-	public static WaarpSecureKeyStore WaarpSecureKeyStore;
+	public static WaarpSecureKeyStore waarpSecureKeyStore;
 
 	public static WaarpSslContextFactory waarpSslContextFactory;
 	/**

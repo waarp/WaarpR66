@@ -869,7 +869,7 @@ public class FileBasedConfiguration {
 				return false;
 			}
 			try {
-				Configuration.WaarpSecureKeyStore =
+				Configuration.waarpSecureKeyStore =
 						new WaarpSecureKeyStore(keypath, keystorepass,
 								keypass);
 			} catch (CryptoException e) {
@@ -877,10 +877,10 @@ public class FileBasedConfiguration {
 				return false;
 			}
 			// No client authentication
-			Configuration.WaarpSecureKeyStore.initEmptyTrustStore();
+			Configuration.waarpSecureKeyStore.initEmptyTrustStore();
 			Configuration.waarpSslContextFactory =
 					new WaarpSslContextFactory(
-							Configuration.WaarpSecureKeyStore, true);
+							Configuration.waarpSecureKeyStore, true);
 		}
 		value = hashConfig.get(XML_MONITOR_PASTLIMIT);
 		if (value != null && (!value.isEmpty())) {
@@ -1255,7 +1255,7 @@ public class FileBasedConfiguration {
 		if (value == null || (value.isEmpty())) {
 			logger.info("Unable to find Key Path");
 			try {
-				NetworkSslServerPipelineFactory.WaarpSecureKeyStore =
+				NetworkSslServerPipelineFactory.waarpSecureKeyStore =
 						new WaarpSecureKeyStore("secret", "secret");
 			} catch (CryptoException e) {
 				logger.error("Bad SecureKeyStore construction");
@@ -1288,7 +1288,7 @@ public class FileBasedConfiguration {
 				return false;
 			}
 			try {
-				NetworkSslServerPipelineFactory.WaarpSecureKeyStore =
+				NetworkSslServerPipelineFactory.waarpSecureKeyStore =
 						new WaarpSecureKeyStore(keypath, keystorepass,
 								keypass);
 			} catch (CryptoException e) {
@@ -1301,7 +1301,7 @@ public class FileBasedConfiguration {
 		value = hashConfig.get(XML_PATH_TRUSTKEYPATH);
 		if (value == null || (value.isEmpty())) {
 			logger.info("Unable to find TRUST Key Path");
-			NetworkSslServerPipelineFactory.WaarpSecureKeyStore.initEmptyTrustStore();
+			NetworkSslServerPipelineFactory.waarpSecureKeyStore.initEmptyTrustStore();
 		} else {
 			String keypath = value.getString();
 			if ((keypath == null) || (keypath.isEmpty())) {
@@ -1324,7 +1324,7 @@ public class FileBasedConfiguration {
 				useClientAuthent = value.getBoolean();
 			}
 			try {
-				NetworkSslServerPipelineFactory.WaarpSecureKeyStore.initTrustStore(keypath,
+				NetworkSslServerPipelineFactory.waarpSecureKeyStore.initTrustStore(keypath,
 						keystorepass, useClientAuthent);
 			} catch (CryptoException e) {
 				logger.error("Bad TrustKeyStore construction");
@@ -1333,7 +1333,7 @@ public class FileBasedConfiguration {
 		}
 		NetworkSslServerPipelineFactory.waarpSslContextFactory =
 				new WaarpSslContextFactory(
-						NetworkSslServerPipelineFactory.WaarpSecureKeyStore);
+						NetworkSslServerPipelineFactory.waarpSecureKeyStore);
 		return true;
 	}
 

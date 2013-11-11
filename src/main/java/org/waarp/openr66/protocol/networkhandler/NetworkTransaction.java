@@ -489,9 +489,9 @@ public class NetworkTransaction {
 					new OpenR66ProtocolSystemException("No SSL support", e1),
 					localChannelReference.getSession(), true, ErrorCode.ConnectionImpossible, null);
 			logger.error("Authent is Invalid due to no SSL: {}", e1.getMessage());
-			if (localChannelReference.getRemoteId() != ChannelUtils.NOCHANNEL) {
+			if (localChannelReference.getRemoteId().compareTo(ChannelUtils.NOCHANNEL) == 0) {
 				ConnectionErrorPacket error = new ConnectionErrorPacket(
-						"Cannot connect to localChannel since no SSL is supported", null);
+						"Cannot connect to localChannel since SSL is not supported", null);
 				try {
 					ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
 				} catch (OpenR66ProtocolPacketException e) {

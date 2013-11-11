@@ -19,6 +19,7 @@ package org.waarp.openr66.protocol.localhandler.packet;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
+import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 
@@ -55,7 +56,8 @@ public class ValidPacket extends AbstractLocalPacket {
 			buf.readBytes(bmiddle);
 		}
 		bend = buf.readByte();
-		return new ValidPacket(new String(bheader), new String(bmiddle), bend);
+		return new ValidPacket(new String(bheader, WaarpStringUtils.UTF8), 
+				new String(bmiddle, WaarpStringUtils.UTF8), bend);
 	}
 
 	/**
@@ -78,14 +80,14 @@ public class ValidPacket extends AbstractLocalPacket {
 	@Override
 	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		if (sheader != null) {
-			header = ChannelBuffers.wrappedBuffer(sheader.getBytes());
+			header = ChannelBuffers.wrappedBuffer(sheader.getBytes(WaarpStringUtils.UTF8));
 		}
 	}
 
 	@Override
 	public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		if (smiddle != null) {
-			middle = ChannelBuffers.wrappedBuffer(smiddle.getBytes());
+			middle = ChannelBuffers.wrappedBuffer(smiddle.getBytes(WaarpStringUtils.UTF8));
 		}
 	}
 

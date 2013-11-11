@@ -498,7 +498,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 		protected int limitParallel = 0;
 	}
 	
-	protected static List<Arguments> arguments = new ArrayList<Arguments>();
+	protected static final List<Arguments> arguments = new ArrayList<Arguments>();
 	private static final String XML_ROOT = "/config/";
 	private static final String XML_SPOOLEDDAEMON = "spooleddaemon";
 	private static final String XML_stopfile = "stopfile";
@@ -831,7 +831,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 		initialize(args, true);
 	}
 
-	public static List<SpooledDirectoryTransfer> list = new ArrayList<SpooledDirectoryTransfer>();
+	public static final List<SpooledDirectoryTransfer> list = new ArrayList<SpooledDirectoryTransfer>();
 	public static NetworkTransaction networkTransactionStatic = null;
 	public static ExecutorService executorService = null;
 	/**
@@ -842,6 +842,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 		if (logger == null) {
 			logger = WaarpInternalLoggerFactory.getLogger(SpooledDirectoryTransfer.class);
 		}
+		arguments.clear();
 		if (!getParams(args)) {
 			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
 			if (DbConstant.admin != null && DbConstant.admin.isConnected) {

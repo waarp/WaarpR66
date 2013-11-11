@@ -855,7 +855,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 	 * @author Frederic Bregier
 	 * 
 	 */
-	private class RunnerChannelFutureListener implements ChannelFutureListener {
+	private static class RunnerChannelFutureListener implements ChannelFutureListener {
 		private LocalChannelReference localChannelReference;
 		private R66Result result;
 
@@ -866,8 +866,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		}
 
 		public void operationComplete(ChannelFuture future) throws Exception {
-			localChannelReference.invalidateRequest(
-					result);
+			localChannelReference.invalidateRequest(result);
 			ChannelCloseTimer.closeFutureChannel(localChannelReference.getLocalChannel());
 		}
 
@@ -3562,7 +3561,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				if (sbusiness != null) {
 					String filename = dir + File.separator + hostname + "_Business.xml";
 					FileOutputStream outputStream = new FileOutputStream(filename);
-					outputStream.write(sbusiness.getBytes());
+					outputStream.write(sbusiness.getBytes(WaarpStringUtils.UTF8));
 					outputStream.flush();
 					outputStream.close();
 					sbusiness = filename;
@@ -3574,7 +3573,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				if (salias != null) {
 					String filename = dir + File.separator + hostname + "_Aliases.xml";
 					FileOutputStream outputStream = new FileOutputStream(filename);
-					outputStream.write(salias.getBytes());
+					outputStream.write(salias.getBytes(WaarpStringUtils.UTF8));
 					outputStream.flush();
 					outputStream.close();
 					salias = filename;
@@ -3586,7 +3585,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				if (sroles != null) {
 					String filename = dir + File.separator + hostname + "_Roles.xml";
 					FileOutputStream outputStream = new FileOutputStream(filename);
-					outputStream.write(sroles.getBytes());
+					outputStream.write(sroles.getBytes(WaarpStringUtils.UTF8));
 					outputStream.flush();
 					outputStream.close();
 					sroles = filename;

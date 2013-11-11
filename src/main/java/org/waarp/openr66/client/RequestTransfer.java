@@ -153,14 +153,13 @@ public class RequestTransfer implements Runnable {
 				srestarttime = args[i];
 			} else if (args[i].equalsIgnoreCase("-delay")) {
 				i++;
+				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 				if (args[i].charAt(0) == '+') {
 					Date date = new Date(System.currentTimeMillis() +
 							Long.parseLong(args[i].substring(1)));
-					SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 					srestarttime = dateFormat.format(date);
 				} else {
 					Date date = new Date(Long.parseLong(args[i]));
-					SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 					srestarttime = dateFormat.format(date);
 				}
 			}

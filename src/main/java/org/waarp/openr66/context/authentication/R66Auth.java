@@ -113,6 +113,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 			throw new Reply530Exception("HostId not allowed");
 		}
 		currentAuth = auth;
+		role.clear();
 		if (currentAuth.isKeyValid(arg0)) {
 			setIsIdentified(true);
 			user = hostId;
@@ -261,6 +262,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 		if (auth == null) {
 			auth = new DbHostAuth(DbConstant.admin.session, hostid, "127.0.0.1", 6666, isSSL, null, true, false);
 		}
+		role.clear();
 		currentAuth = auth;
 		setIsIdentified(true);
 		user = auth.getHostid();
@@ -303,6 +305,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 			currentAuth = null;
 			throw new Reply530Exception("HostId not allowed");
 		}
+		role.clear();
 		currentAuth = auth;
 		if (currentAuth.isKeyValid(arg0)) {
 			setIsIdentified(true);
@@ -322,8 +325,11 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 						isAdmin = true;
 					}
 				}
+				if (isAdmin) {
+					role.setRole(ROLE.FULLADMIN);
+				}
 			}
-			logger.debug(this.role.toString());
+			logger.info(this.role.toString()+":"+this.currentAuth);
 			return true;
 		}
 		throw new Reply530Exception("Key is not valid for this HostId");
