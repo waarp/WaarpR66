@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PipedInputStream;
 
+import org.waarp.common.utility.WaarpStringUtils;
+
 /**
  * This class is used with external process in order to get the last echo from the stdout of the
  * process.
@@ -37,7 +39,7 @@ class LastLineReader implements Runnable {
 	public String lastLine = null;
 
 	public LastLineReader(PipedInputStream inputStream) {
-		reader = new BufferedReader(new InputStreamReader(inputStream));
+		reader = new BufferedReader(new InputStreamReader(inputStream, WaarpStringUtils.UTF8));
 	}
 
 	public void run() {

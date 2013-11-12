@@ -20,7 +20,6 @@
         <include>**/license/**</include>
         <include>**/lib/**</include>
         <include>**/src/**</include>
-        <include>**/src/main/java/*.properties</include>
         </includes>
       <excludes>
         <exclude>**/target/**</exclude>
