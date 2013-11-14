@@ -1481,8 +1481,36 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		} else {
 			uri = "Spooled.html";
 		}
-		StringBuilder builder = SpooledInformTask.buildSpooledTable(detailed, uri);
-		return spooled.replace("XXXSPOOLEDXXX", builder.toString());
+		QueryStringDecoder queryStringDecoder = new QueryStringDecoder(request.getUri());
+		params = queryStringDecoder.getParameters();
+		String name = null;
+		if (params.containsKey("name")) {
+			name = getTrimValue("name");
+		}
+		int istatus = 0;
+		if (params.containsKey("status")) {
+			String status = getTrimValue("status");
+			try {
+				istatus = Integer.parseInt(status);
+			} catch (NumberFormatException e1) {
+				istatus = 0;
+			}
+		}
+		if (name != null && ! name.isEmpty()) {
+			// name is specified
+			uri = request.getUri();
+			if (istatus != 0) {
+				uri += "&status="+istatus;
+			}
+			StringBuilder builder = SpooledInformTask.buildSpooledUniqueTable(uri, name);
+			return spooled.replace("XXXSPOOLEDXXX", builder.toString());
+		} else {
+			if (istatus != 0) {
+				uri += "&status="+istatus;
+			}
+			StringBuilder builder = SpooledInformTask.buildSpooledTable(detailed, istatus, uri);
+			return spooled.replace("XXXSPOOLEDXXX", builder.toString());
+		}
 	}
 	
 	/**

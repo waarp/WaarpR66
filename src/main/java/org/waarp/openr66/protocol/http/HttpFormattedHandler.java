@@ -169,7 +169,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 	 * The Database connection attached to this NetworkChannel shared among all associated
 	 * LocalChannels
 	 */
-	private DbSession dbSession = null;
+	private DbSession dbSession = DbConstant.admin.session;
 
 	/**
 	 * Does this dbSession is private and so should be closed
@@ -243,7 +243,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 					"XYZR66NOSESSION");
 			return;
 		}
-		try {
+		/*try {
 			if (DbConstant.admin.isConnected) {
 				this.dbSession = new DbSession(DbConstant.admin, false);
 				DbAdmin.nbHttpSession++;
@@ -253,7 +253,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 			// Cannot connect so use default connection
 			logger.warn("Use default database connection");
 			this.dbSession = DbConstant.admin.session;
-		}
+		}*/
 		try {
 			char cval = 'z';
 			long nb = LIMITROW;
@@ -272,7 +272,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 				cval = '5';
 				nb = 0; // since it could be the default or setup by request
 				isCurrentRequestXml = true;
-			} else if (uriRequest.equalsIgnoreCase("/spooled")) {
+			} else if (uriRequest.toLowerCase().startsWith("/spooled")) {
 				cval = '6';
 			}
 			// Get the params according to get or post
@@ -315,8 +315,9 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 				String sdetail = getTrimValue(sDETAIL);
 				if (sdetail != null) {
 					try {
-						if (Integer.parseInt(sdetail) > 0)
+						if (Integer.parseInt(sdetail) > 0) {
 							extraBoolean = true;
+						}
 					} catch (Exception e1) {
 					}
 				}
@@ -349,7 +350,23 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 						statusxml(ctx, nb, extraBoolean);
 						break;
 					case '6':
-						spooled(ctx, extraBoolean);
+						String name = null;
+						if (params.containsKey("name")) {
+							name = getTrimValue("name");
+						}
+						int istatus = 0;
+						if (params.containsKey("status")) {
+							String status = getTrimValue("status");
+							try {
+								istatus = Integer.parseInt(status);
+							} catch (NumberFormatException e1) {
+								istatus = 0;
+							}
+						}
+						if (uriRequest.toLowerCase().startsWith("/spooleddetail")) {
+							extraBoolean = true;
+						}
+						spooled(ctx, extraBoolean, name, istatus);
 						break;
 					default:
 						responseContent.append(REQUEST.index.readFileUnique(this));
@@ -616,12 +633,42 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 		responseContent.append(Configuration.configuration.monitoring.exportXml(detail));
 	}
 	
-	private void spooled(ChannelHandlerContext ctx, boolean detail) {
+	private void spooled(ChannelHandlerContext ctx, boolean detail, String name, int istatus) {
 		responseContent.append(REQUEST.status.readHeader(this));
+		responseContent.append("<p><table border='0' cellpadding='0' cellspacing='0' >" +
+				"<tr style='background-image:url(gre/gresm.png);background-repeat:repeat-x;background-position:left top;'><td class='col_MenuHaut'>" +
+				"<a data-i18n='menu2.sous-menu4a' href='Spooled.html' style='display:block;width:100%;height:100%;line-height:15px;'>" +
+				"SPOOLED DIRECTORY no detail</a></td><td></td><td><img src='gre/gre11.png' height='15' width='1' style='border: none; display: block;' alt='' /></td>" +
+				"<td></td><td class='col_MenuHaut'><a data-i18n='menu2.sous-menu4c' href='Spooled.html?status=-1' style='display:block;width:100%;height:100%;line-height:15px;'>" +
+				"SPOOLED DIRECTORY no detail KO</a></td><td></td><td><img src='gre/gre11.png' height='15' width='1' style='border: none; display: block;' alt='' /></td>" +
+				"<td></td><td class='col_MenuHaut'><a data-i18n='menu2.sous-menu4d' href='Spooled.html?status=1' style='display:block;width:100%;height:100%;line-height:15px;'>" +
+				"SPOOLED DIRECTORY no detail OK</a></td></tr><tr style='background-image:url(gre/gre11.png);background-repeat:repeat-x;background-position:left top;'>" +
+				"<td><img src='gre/gre11.png' height='1' width='100%' style='border: none; display: block;' alt='' /></td></tr>" +
+				"<tr style='background-image:url(gre/gresm.png);background-repeat:repeat-x;background-position:left top;'>" +
+				"<td class='col_MenuHaut'><a data-i18n='menu2.sous-menu4b' href='SpooledDetailed.html' style='display:block;width:100%;height:100%;line-height:15px;'>" +
+				"SPOOLED DIRECTORY detailed</a></td><td></td><td><img src='gre/gre11.png' height='15' width='1' style='border: none; display: block;' alt='' /></td>" +
+				"<td></td><td class='col_MenuHaut'><a data-i18n='menu2.sous-menu4e' href='SpooledDetailed.html?status=-1' style='display:block;width:100%;height:100%;line-height:15px;'>" +
+				"SPOOLED DIRECTORY detailed KO</a></td><td></td><td><img src='gre/gre11.png' height='15' width='1' style='border: none; display: block;' alt='' /></td>" +
+				"<td></td><td class='col_MenuHaut'><a data-i18n='menu2.sous-menu4f' href='SpooledDetailed.html?status=1' style='display:block;width:100%;height:100%;line-height:15px;'>" +
+				"SPOOLED DIRECTORY detailed OK</a></td></tr></table></p>");
+		String uri = null;
 		if (detail) {
-			responseContent.append(SpooledInformTask.buildSpooledTable(true, "spooled?DETAIL=1"));
+			uri = "SpooledDetailed.html";
 		} else {
-			responseContent.append(SpooledInformTask.buildSpooledTable(false, "spooled"));
+			uri = "Spooled.html";
+		}
+		if (name != null && ! name.isEmpty()) {
+			// name is specified
+			uri = request.getUri();
+			if (istatus != 0) {
+				uri += "&status="+istatus;
+			}
+			responseContent.append(SpooledInformTask.buildSpooledUniqueTable(uri, name));
+		} else {
+			if (istatus != 0) {
+				uri += "&status="+istatus;
+			}
+			responseContent.append(SpooledInformTask.buildSpooledTable(detail, istatus, uri));
 		}
 		responseContent.append(REQUEST.status.readEnd());
 	}
@@ -702,11 +749,11 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 		// Close the connection after the write operation is done if necessary.
 		if (close) {
 			future.addListener(ChannelFutureListener.CLOSE);
-			if (this.isPrivateDbSession && dbSession != null) {
+			/*if (this.isPrivateDbSession && dbSession != null) {
 				dbSession.forceDisconnect();
 				DbAdmin.nbHttpSession--;
 				dbSession = null;
-			}
+			}*/
 		}
 	}
 

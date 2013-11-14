@@ -117,9 +117,57 @@ public class SpooledInformTask extends AbstractExecJavaTask {
 
 	/**
 	 * @param detailed
+	 * @param status 1 for ok, -1 for ko, 0 for all
+	 * @param uri 
 	 * @return the StringBuilder containing the HTML format as a Table of the current Spooled information 
 	 */
-	public static StringBuilder buildSpooledTable(boolean detailed, String uri) {
+	public static StringBuilder buildSpooledTable(boolean detailed, int status, String uri) {
+		StringBuilder builder = beginSpooledTable(detailed, uri);
+		// get current information
+		synchronized (spooledInformationMap) {
+			Set<String> names = spooledInformationMap.keySet();
+			for (String name : names) {
+				// per Name
+				buildSpooledTableElement(detailed, status, builder, name);
+			}
+		}
+		endSpooledTable(builder);
+		return builder;
+	}
+	
+	/**
+	 * @param detailed
+	 * @param uri
+	 * @return the StringBuilder containing the HTML format as a Table of the current Spooled information 
+	 */
+	public static StringBuilder buildSpooledUniqueTable(String uri, String name) {
+		StringBuilder builder = beginSpooledTable(false, uri);
+		// get current information
+		synchronized (spooledInformationMap) {
+			// per Name
+			SpooledInformation inform = buildSpooledTableElement(false, 0, builder, name);
+			endSpooledTable(builder);
+			builder.append("<BR>");
+			if (inform != null) {
+				buildSpooledTableFiles(builder, inform);
+			}
+		}
+		return builder;
+	}
+
+	/**
+	 * @param builder
+	 */
+	private static void endSpooledTable(StringBuilder builder) {
+		builder.append("</TABLE>");
+	}
+
+	/**
+	 * @param detailed
+	 * @param uri
+	 * @return
+	 */
+	private static StringBuilder beginSpooledTable(boolean detailed, String uri) {
 		StringBuilder builder = new StringBuilder();
 		builder.append("<TABLE BORDER=1><CAPTION><A HREF=");
 		builder.append(uri);
@@ -150,114 +198,139 @@ public class SpooledInformTask extends AbstractExecJavaTask {
 		builder.append("</TH><TH>");
 		builder.append(Messages.getString("SpooledInformTask.9")); //$NON-NLS-1$
 		builder.append("</TH></TR>");
-		// get current information
-		Set<String> names = spooledInformationMap.keySet();
-		for (String name : names) {
-			// per Name
-			synchronized (spooledInformationMap) {
-				SpooledInformation inform = spooledInformationMap.get(name);
-				builder.append("<TR>");
-				builder.append("<TH>");
-				builder.append(name.replace(',', ' '));
-				builder.append("</TH>");
-				builder.append("<TD>");
-				builder.append(inform.host);
-				builder.append("</TD>");
-				long time = inform.lastUpdate.getTime() + Configuration.configuration.TIMEOUTCON;
-				if (time + Configuration.configuration.TIMEOUTCON < System.currentTimeMillis()) {
-					builder.append("<TD bgcolor=Red>");
-				} else if (time < System.currentTimeMillis()) {
-					builder.append("<TD bgcolor=Orange>");
-				} else {
-					builder.append("<TD bgcolor=LightGreen>");
-				}
-				builder.append(inform.lastUpdate);
-				builder.append("</TD>");
-				if (inform.fileMonitorInformation != null) {
-					builder.append(Messages.getString("SpooledInformTask.AllOk")); //$NON-NLS-1$
-					builder.append(inform.fileMonitorInformation.globalok);
-					builder.append(Messages.getString("SpooledInformTask.AllError")); //$NON-NLS-1$
-					builder.append(inform.fileMonitorInformation.globalerror);
-					builder.append(Messages.getString("SpooledInformTask.TodayOk")); //$NON-NLS-1$
-					builder.append(inform.fileMonitorInformation.todayok);
-					builder.append(Messages.getString("SpooledInformTask.TodayError")); //$NON-NLS-1$
-					builder.append(inform.fileMonitorInformation.todayerror);
-					builder.append("</TD>");
-					builder.append("<TD>");
-					builder.append(inform.fileMonitorInformation.elapseTime);
-					builder.append("</TD>");
-					builder.append("<TD>");
-					builder.append(inform.fileMonitorInformation.stopFile);
-					builder.append("</TD>");
-					builder.append("<TD>");
-					builder.append(inform.fileMonitorInformation.statusFile);
-					builder.append("</TD>");
-					builder.append("<TD>");
-					builder.append(inform.fileMonitorInformation.scanSubDir);
-					builder.append("</TD>");
-					String dirs = "";
-					for (File dir : inform.fileMonitorInformation.directories) {
-						dirs += dir + "<br>";
-					}
-					builder.append("<TD>");
-					builder.append(dirs);
-					builder.append("</TD>");
-					if (detailed && inform.fileMonitorInformation.fileItems != null) {
-						builder.append("<TD><TABLE BORDER=1><TR><TH>");
-						builder.append(Messages.getString("SpooledInformTask.10")); //$NON-NLS-1$
-						builder.append("</TH><TH>");
-						builder.append(Messages.getString("SpooledInformTask.11")); //$NON-NLS-1$
-						builder.append("</TH><TH>");
-						builder.append(Messages.getString("SpooledInformTask.12")); //$NON-NLS-1$
-						builder.append("</TH><TH>");
-						builder.append(Messages.getString("SpooledInformTask.13")); //$NON-NLS-1$
-						builder.append("</TH><TH>");
-						builder.append(Messages.getString("SpooledInformTask.14")); //$NON-NLS-1$
-						builder.append("</TH><TH>");
-						builder.append(Messages.getString("SpooledInformTask.15")); //$NON-NLS-1$
-						builder.append("</TH></TR>");
-						for (FileItem fileItem : inform.fileMonitorInformation.fileItems.values()) {
-							builder.append("<TR><TD>");
-							builder.append(fileItem.file);
-							builder.append("</TD>");
-							builder.append("<TD>");
-							if (fileItem.hash != null) {
-								builder.append(FilesystemBasedDigest.getHex(fileItem.hash));
-							}
-							builder.append("</TD>");
-							builder.append("<TD>");
-							if (fileItem.lastTime > 0) {
-								builder.append(new Date(fileItem.lastTime));
-							}
-							builder.append("</TD>");
-							builder.append("<TD>");
-							if (fileItem.timeUsed > 0) {
-								builder.append(new Date(fileItem.timeUsed));
-							}
-							builder.append("</TD>");
-							builder.append("<TD>");
-							builder.append(fileItem.used);
-							builder.append("</TD>");
-							builder.append("<TD>");
-							builder.append(fileItem.specialId);
-							builder.append("</TD></TR>");
-						}
-						builder.append("</TABLE></TD>");
-					} else {
-						// simply print number of files
-						builder.append("<TD>");
-						if (inform.fileMonitorInformation.fileItems != null) {
-							builder.append(inform.fileMonitorInformation.fileItems.size());
-						} else {
-							builder.append(0);
-						}
-						builder.append("</TD>");
-					}
-				}
-				builder.append("</TR>");
+		return builder;
+	}
+
+	/**
+	 * @param detailed
+	 * @param status
+	 * @param builder
+	 * @param name
+	 */
+	private static SpooledInformation buildSpooledTableElement(boolean detailed, int status, StringBuilder builder, String name) {
+		SpooledInformation inform = spooledInformationMap.get(name);
+		if (inform == null) {
+			return null;
+		}
+		long time = inform.lastUpdate.getTime() + Configuration.configuration.TIMEOUTCON;
+		long curtime = System.currentTimeMillis();
+		if (time + Configuration.configuration.TIMEOUTCON < curtime) {
+			if (status > 0) {
+				return inform;
+			}
+		} else {
+			if (status < 0) {
+				return inform;
 			}
 		}
+		builder.append("<TR>");
+		builder.append("<TH>");
+		builder.append(name.replace(',', ' '));
+		builder.append("</TH>");
+		builder.append("<TD>");
+		builder.append(inform.host);
+		builder.append("</TD>");
+		if (time + Configuration.configuration.TIMEOUTCON < curtime) {
+			builder.append("<TD bgcolor=Red>");
+		} else if (time < curtime) {
+			builder.append("<TD bgcolor=Orange>");
+		} else {
+			builder.append("<TD bgcolor=LightGreen>");
+		}
+		builder.append(inform.lastUpdate);
+		builder.append("</TD>");
+		if (inform.fileMonitorInformation != null) {
+			builder.append(Messages.getString("SpooledInformTask.AllOk")); //$NON-NLS-1$
+			builder.append(inform.fileMonitorInformation.globalok);
+			builder.append(Messages.getString("SpooledInformTask.AllError")); //$NON-NLS-1$
+			builder.append(inform.fileMonitorInformation.globalerror);
+			builder.append(Messages.getString("SpooledInformTask.TodayOk")); //$NON-NLS-1$
+			builder.append(inform.fileMonitorInformation.todayok);
+			builder.append(Messages.getString("SpooledInformTask.TodayError")); //$NON-NLS-1$
+			builder.append(inform.fileMonitorInformation.todayerror);
+			builder.append("</TD>");
+			builder.append("<TD>");
+			builder.append(inform.fileMonitorInformation.elapseTime);
+			builder.append("</TD>");
+			builder.append("<TD>");
+			builder.append(inform.fileMonitorInformation.stopFile);
+			builder.append("</TD>");
+			builder.append("<TD>");
+			builder.append(inform.fileMonitorInformation.statusFile);
+			builder.append("</TD>");
+			builder.append("<TD>");
+			builder.append(inform.fileMonitorInformation.scanSubDir);
+			builder.append("</TD>");
+			String dirs = "";
+			for (File dir : inform.fileMonitorInformation.directories) {
+				dirs += dir + "<br>";
+			}
+			builder.append("<TD>");
+			builder.append(dirs);
+			builder.append("</TD><TD>");
+			if (detailed && inform.fileMonitorInformation.fileItems != null) {
+				buildSpooledTableFiles(builder, inform);
+			} else {
+				// simply print number of files
+				if (inform.fileMonitorInformation.fileItems != null) {
+					builder.append(inform.fileMonitorInformation.fileItems.size());
+				} else {
+					builder.append(0);
+				}
+				// Form GET to ensure encoding
+				builder.append("<FORM name='DETAIL' method='GET' action='/SpooledDetailed.html'><input type=hidden name='name' value='");
+				builder.append(name);
+				builder.append("'/><INPUT type='submit' value='DETAIL'/></FORM>");
+			}
+		}
+		builder.append("</TD></TR>");
+		return inform;
+	}
+
+	/**
+	 * @param builder
+	 * @param inform
+	 */
+	private static void buildSpooledTableFiles(StringBuilder builder, SpooledInformation inform) {
+		builder.append("<TABLE BORDER=1><TR><TH>");
+		builder.append(Messages.getString("SpooledInformTask.10")); //$NON-NLS-1$
+		builder.append("</TH><TH>");
+		builder.append(Messages.getString("SpooledInformTask.11")); //$NON-NLS-1$
+		builder.append("</TH><TH>");
+		builder.append(Messages.getString("SpooledInformTask.12")); //$NON-NLS-1$
+		builder.append("</TH><TH>");
+		builder.append(Messages.getString("SpooledInformTask.13")); //$NON-NLS-1$
+		builder.append("</TH><TH>");
+		builder.append(Messages.getString("SpooledInformTask.14")); //$NON-NLS-1$
+		builder.append("</TH><TH>");
+		builder.append(Messages.getString("SpooledInformTask.15")); //$NON-NLS-1$
+		builder.append("</TH></TR>");
+		for (FileItem fileItem : inform.fileMonitorInformation.fileItems.values()) {
+			builder.append("<TR><TD>");
+			builder.append(fileItem.file);
+			builder.append("</TD>");
+			builder.append("<TD>");
+			if (fileItem.hash != null) {
+				builder.append(FilesystemBasedDigest.getHex(fileItem.hash));
+			}
+			builder.append("</TD>");
+			builder.append("<TD>");
+			if (fileItem.lastTime > 0) {
+				builder.append(new Date(fileItem.lastTime));
+			}
+			builder.append("</TD>");
+			builder.append("<TD>");
+			if (fileItem.timeUsed > 0) {
+				builder.append(new Date(fileItem.timeUsed));
+			}
+			builder.append("</TD>");
+			builder.append("<TD>");
+			builder.append(fileItem.used);
+			builder.append("</TD>");
+			builder.append("<TD>");
+			builder.append(fileItem.specialId);
+			builder.append("</TD></TR>");
+		}
 		builder.append("</TABLE>");
-		return builder;
 	}
 }

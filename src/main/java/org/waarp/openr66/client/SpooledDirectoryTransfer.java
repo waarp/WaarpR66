@@ -305,6 +305,9 @@ public class SpooledDirectoryTransfer implements Runnable {
 		if (waarpHosts != null && ! waarpHosts.isEmpty()) {
 			waarpHostCommand = new FileMonitorCommandRunnableFuture() {
 				public void run(FileItem notused) {
+					if (DbConstant.admin.session != null) {
+						DbConstant.admin.session.checkConnectionNoException();
+					}
 					String status = monitorArg.getStatus();
 					for (String host : waarpHosts) {
 						host = host.trim();
@@ -359,6 +362,9 @@ public class SpooledDirectoryTransfer implements Runnable {
 
 		public void run(FileItem fileItem) {
 			this.fileItem = fileItem;
+			if (DbConstant.admin.session != null) {
+				DbConstant.admin.session.checkConnectionNoException();
+			}
 			boolean finalStatus = false;
 			long specialId = remoteHosts.size() > 1 ? DbConstant.ILLEGALVALUE : fileItem.specialId;
 			for (String host : remoteHosts) {
