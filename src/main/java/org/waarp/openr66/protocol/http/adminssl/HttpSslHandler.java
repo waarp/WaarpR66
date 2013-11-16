@@ -64,6 +64,8 @@ import org.waarp.common.exception.FileTransferException;
 import org.waarp.common.exception.InvalidArgumentException;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.logging.WaarpInternalLoggerInterface;
+import org.waarp.common.logging.WaarpInternalLoggerInterface.WaarpLevel;
 import org.waarp.common.role.RoleDefault.ROLE;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.openr66.client.Message;
@@ -1547,27 +1549,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		if (params == null) {
 			String system = SystemLimitedSource();
 			StringBuilder builder = new StringBuilder(system);
-			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXBUSINESSXXX.toString(),
-					config.getBusiness());
-			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXROLESXXX.toString(),
-					config.getRoles());
-			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXALIASESXXX.toString(),
-					config.getAliases());
-			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXOTHERXXX.toString(),
-					config.getOthers());
-			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITWXXX.toString(),
-					Long.toString(Configuration.configuration.serverChannelWriteLimit));
-			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITRXXX.toString(),
-					Long.toString(Configuration.configuration.serverChannelReadLimit));
-			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXDELAYCOMMDXXX.toString(),
-					Long.toString(Configuration.configuration.delayCommander));
-			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXDELAYRETRYXXX.toString(),
-					Long.toString(Configuration.configuration.delayRetry));
-			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITWXXX.toString(),
-					Long.toString(Configuration.configuration.serverGlobalWriteLimit));
-			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITRXXX.toString(),
-					Long.toString(Configuration.configuration.serverGlobalReadLimit));
-			WaarpStringUtils.replace(builder, "XXXBLOCKXXX", Configuration.configuration.isShutdown ? "checked" : "");
+			replaceStringSystem(config, builder);
 			langHandle(builder);
 			return builder.toString();
 		}
@@ -1591,6 +1573,19 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		}
 		String system = SystemLimitedSource();
 		StringBuilder builder = new StringBuilder(system);
+		replaceStringSystem(config, builder);
+		langHandle(builder);
+		if (extraInformation != null) {
+			builder.append(extraInformation);
+		}
+		return builder.toString();
+	}
+
+	/**
+	 * @param config
+	 * @param builder
+	 */
+	private void replaceStringSystem(DbHostConfiguration config, StringBuilder builder) {
 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXBUSINESSXXX.toString(),
 				config.getBusiness());
 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXROLESXXX.toString(),
@@ -1612,11 +1607,39 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITRXXX.toString(),
 				Long.toString(Configuration.configuration.serverGlobalReadLimit));
 		WaarpStringUtils.replace(builder, "XXXBLOCKXXX", Configuration.configuration.isShutdown ? "checked" : "");
-		langHandle(builder);
-		if (extraInformation != null) {
-			builder.append(extraInformation);
+		switch (WaarpInternalLoggerFactory.currentLevel) {
+			case DEBUG:
+				WaarpStringUtils.replace(builder, "XXXLEVEL1XXX", "checked");
+				WaarpStringUtils.replace(builder, "XXXLEVEL2XXX", "");
+				WaarpStringUtils.replace(builder, "XXXLEVEL3XXX", "");
+				WaarpStringUtils.replace(builder, "XXXLEVEL4XXX", "");
+				break;
+			case INFO:
+				WaarpStringUtils.replace(builder, "XXXLEVEL1XXX", "");
+				WaarpStringUtils.replace(builder, "XXXLEVEL2XXX", "checked");
+				WaarpStringUtils.replace(builder, "XXXLEVEL3XXX", "");
+				WaarpStringUtils.replace(builder, "XXXLEVEL4XXX", "");
+				break;
+			case WARN:
+				WaarpStringUtils.replace(builder, "XXXLEVEL1XXX", "");
+				WaarpStringUtils.replace(builder, "XXXLEVEL2XXX", "");
+				WaarpStringUtils.replace(builder, "XXXLEVEL3XXX", "checked");
+				WaarpStringUtils.replace(builder, "XXXLEVEL4XXX", "");
+				break;
+			case ERROR:
+				WaarpStringUtils.replace(builder, "XXXLEVEL1XXX", "");
+				WaarpStringUtils.replace(builder, "XXXLEVEL2XXX", "");
+				WaarpStringUtils.replace(builder, "XXXLEVEL3XXX", "");
+				WaarpStringUtils.replace(builder, "XXXLEVEL4XXX", "checked");
+				break;
+			default:
+				WaarpStringUtils.replace(builder, "XXXLEVEL1XXX", "");
+				WaarpStringUtils.replace(builder, "XXXLEVEL2XXX", "");
+				WaarpStringUtils.replace(builder, "XXXLEVEL3XXX", "");
+				WaarpStringUtils.replace(builder, "XXXLEVEL4XXX", "");
+				break;
+			
 		}
-		return builder.toString();
 	}
 	
 
@@ -1635,27 +1658,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		if (params == null) {
 			String system = REQUEST.System.readFileUnique(this);
 			StringBuilder builder = new StringBuilder(system);
-			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXBUSINESSXXX.toString(),
-					config.getBusiness());
-			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXROLESXXX.toString(),
-					config.getRoles());
-			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXALIASESXXX.toString(),
-					config.getAliases());
-			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXOTHERXXX.toString(),
-					config.getOthers());
-			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITWXXX.toString(),
-					Long.toString(Configuration.configuration.serverChannelWriteLimit));
-			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITRXXX.toString(),
-					Long.toString(Configuration.configuration.serverChannelReadLimit));
-			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXDELAYCOMMDXXX.toString(),
-					Long.toString(Configuration.configuration.delayCommander));
-			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXDELAYRETRYXXX.toString(),
-					Long.toString(Configuration.configuration.delayRetry));
-			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITWXXX.toString(),
-					Long.toString(Configuration.configuration.serverGlobalWriteLimit));
-			WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITRXXX.toString(),
-					Long.toString(Configuration.configuration.serverGlobalReadLimit));
-			WaarpStringUtils.replace(builder, "XXXBLOCKXXX", Configuration.configuration.isShutdown ? "checked" : "");
+			replaceStringSystem(config, builder);
 			langHandle(builder);
 			return builder.toString();
 		}
@@ -1668,6 +1671,20 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					String sys = getTrimValue("changesys");
 					Messages.init(new Locale(sys));
 					extraInformation = Messages.getString("HttpSslHandler.LangIs")+"Web: "+lang+" OpenR66: "+Messages.slocale; //$NON-NLS-1$
+				} else if (act.equalsIgnoreCase("Level")) {
+					String loglevel = getTrimValue("loglevel");
+					WaarpInternalLoggerInterface.WaarpLevel level = WaarpLevel.WARN;
+					if (loglevel.equalsIgnoreCase("debug")) {
+						level = WaarpLevel.DEBUG;
+					} else if (loglevel.equalsIgnoreCase("info")) {
+						level = WaarpLevel.INFO;
+					} else if (loglevel.equalsIgnoreCase("warn")) {
+						level = WaarpLevel.WARN;
+					} else if (loglevel.equalsIgnoreCase("error")) {
+						level = WaarpLevel.ERROR;
+					}
+					WaarpInternalLoggerFactory.setLogLevel(level);
+					extraInformation = Messages.getString("HttpSslHandler.LangIs")+level.name(); //$NON-NLS-1$
 				} else if (act.equalsIgnoreCase("ExportConfig")) {
 					String directory = Configuration.configuration.baseDirectory +
 							R66Dir.SEPARATOR + Configuration.configuration.archivePath;
@@ -1797,27 +1814,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		}
 		String system = REQUEST.System.readFileUnique(this);
 		StringBuilder builder = new StringBuilder(system);
-		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXBUSINESSXXX.toString(),
-				config.getBusiness());
-		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXROLESXXX.toString(),
-				config.getRoles());
-		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXALIASESXXX.toString(),
-				config.getAliases());
-		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXOTHERXXX.toString(),
-				config.getOthers());
-		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITWXXX.toString(),
-				Long.toString(Configuration.configuration.serverChannelWriteLimit));
-		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXSESSIONLIMITRXXX.toString(),
-				Long.toString(Configuration.configuration.serverChannelReadLimit));
-		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXDELAYCOMMDXXX.toString(),
-				Long.toString(Configuration.configuration.delayCommander));
-		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXDELAYRETRYXXX.toString(),
-				Long.toString(Configuration.configuration.delayRetry));
-		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITWXXX.toString(),
-				Long.toString(Configuration.configuration.serverGlobalWriteLimit));
-		WaarpStringUtils.replace(builder, REPLACEMENT.XXXXCHANNELLIMITRXXX.toString(),
-				Long.toString(Configuration.configuration.serverGlobalReadLimit));
-		WaarpStringUtils.replace(builder, "XXXBLOCKXXX", Configuration.configuration.isShutdown ? "checked" : "");
+		replaceStringSystem(config, builder);
 		langHandle(builder);
 		if (extraInformation != null) {
 			builder.append(extraInformation);
