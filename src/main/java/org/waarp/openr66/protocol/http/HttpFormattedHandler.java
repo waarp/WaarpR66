@@ -686,7 +686,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 		// Decide whether to close the connection or not.
 		boolean keepAlive = HttpHeaders.isKeepAlive(request);
 		boolean close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(request
-				.getHeader(HttpHeaders.Names.CONNECTION)) ||
+				.headers().get(HttpHeaders.Names.CONNECTION)) ||
 				(!keepAlive);
 
 		// Build the response object.
@@ -694,22 +694,22 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 				status);
 		response.setContent(buf);
 		if (isCurrentRequestXml) {
-			response.setHeader(HttpHeaders.Names.CONTENT_TYPE, "text/xml");
+			response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml");
 		} else {
-			response.setHeader(HttpHeaders.Names.CONTENT_TYPE, "text/html");
+			response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
 		}
 		if (keepAlive) {
-			response.setHeader(HttpHeaders.Names.CONNECTION,
+			response.headers().set(HttpHeaders.Names.CONNECTION,
 					HttpHeaders.Values.KEEP_ALIVE);
 		}
 		if (!close) {
 			// There's no need to add 'Content-Length' header
 			// if this is the last response.
-			response.setHeader(HttpHeaders.Names.CONTENT_LENGTH, String
+			response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, String
 					.valueOf(buf.readableBytes()));
 		}
 
-		String cookieString = request.getHeader(HttpHeaders.Names.COOKIE);
+		String cookieString = request.headers().get(HttpHeaders.Names.COOKIE);
 		if (cookieString != null) {
 			CookieDecoder cookieDecoder = new CookieDecoder();
 			Set<Cookie> cookies = cookieDecoder.decode(cookieString);
@@ -722,25 +722,25 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 						i18nextFound = true;
 						cookie.setValue(lang);
 						cookieEncoder.addCookie(cookie);
-						response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+						response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
 						cookieEncoder = new CookieEncoder(true);
 					} else {
 						cookieEncoder.addCookie(cookie);
-						response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+						response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
 						cookieEncoder = new CookieEncoder(true);
 					}
 				}
 				if (! i18nextFound) {
 					Cookie cookie = new DefaultCookie(I18NEXT, lang);
 					cookieEncoder.addCookie(cookie);
-					response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+					response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
 				}
 			}
 			if (! i18nextFound) {
 				Cookie cookie = new DefaultCookie(I18NEXT, lang);
 				CookieEncoder cookieEncoder = new CookieEncoder(true);
 				cookieEncoder.addCookie(cookie);
-				response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+				response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
 			}
 		}
 
@@ -766,7 +766,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 	private void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
 		HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
 				status);
-		response.setHeader(HttpHeaders.Names.CONTENT_TYPE, "text/html");
+		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
 		responseContent.setLength(0);
 		responseContent.append(REQUEST.error.readHeader(this));
 		responseContent.append("OpenR66 Web Failure: ");

@@ -2084,7 +2084,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 	}
 
 	private void checkSession(Channel channel) {
-		String cookieString = request.getHeader(HttpHeaders.Names.COOKIE);
+		String cookieString = request.headers().get(HttpHeaders.Names.COOKIE);
 		if (cookieString != null) {
 			CookieDecoder cookieDecoder = new CookieDecoder();
 			Set<Cookie> cookies = cookieDecoder.decode(cookieString);
@@ -2124,7 +2124,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 	}
 
 	private void handleCookies(HttpResponse response) {
-		String cookieString = request.getHeader(HttpHeaders.Names.COOKIE);
+		String cookieString = request.headers().get(HttpHeaders.Names.COOKIE);
 		boolean i18nextFound = false;
 		if (cookieString != null) {
 			CookieDecoder cookieDecoder = new CookieDecoder();
@@ -2140,32 +2140,32 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 						} else {
 							findSession = true;
 							cookieEncoder.addCookie(cookie);
-							response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+							response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
 							cookieEncoder = new CookieEncoder(true);
 						}
 					} else if (cookie.getName().equalsIgnoreCase(I18NEXT)) {
 						i18nextFound = true;
 						cookie.setValue(lang);
 						cookieEncoder.addCookie(cookie);
-						response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+						response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
 						cookieEncoder = new CookieEncoder(true);
 					} else {
 						cookieEncoder.addCookie(cookie);
-						response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+						response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
 						cookieEncoder = new CookieEncoder(true);
 					}
 				}
 				if (! i18nextFound) {
 					Cookie cookie = new DefaultCookie(I18NEXT, lang);
 					cookieEncoder.addCookie(cookie);
-					response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+					response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
 					cookieEncoder = new CookieEncoder(true);
 				}
 				newSession = false;
 				if (!findSession) {
 					if (admin != null) {
 						cookieEncoder.addCookie(admin);
-						response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+						response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
 						logger.debug("AddSession: " + uriRequest + ":{}", admin);
 					}
 				}
@@ -2174,12 +2174,12 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 			CookieEncoder cookieEncoder = new CookieEncoder(true);
 			Cookie cookie = new DefaultCookie(I18NEXT, lang);
 			cookieEncoder.addCookie(cookie);
-			response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+			response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
 			if (admin != null) {
 				cookieEncoder = new CookieEncoder(true);
 				cookieEncoder.addCookie(admin);
 				logger.debug("AddSession: " + uriRequest + ":{}", admin);
-				response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+				response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
 			}
 		}
 	}
@@ -2198,20 +2198,20 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		// Decide whether to close the connection or not.
 		boolean keepAlive = HttpHeaders.isKeepAlive(request);
 		boolean close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(request
-				.getHeader(HttpHeaders.Names.CONNECTION)) ||
+				.headers().get(HttpHeaders.Names.CONNECTION)) ||
 				(!keepAlive) || forceClose;
 
 		// Build the response object.
 		HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
 		response.setContent(buf);
-		response.setHeader(HttpHeaders.Names.CONTENT_TYPE, "text/html");
+		response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
 		if (keepAlive) {
-			response.setHeader(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+			response.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 		}
 		if (!close) {
 			// There's no need to add 'Content-Length' header
 			// if this is the last response.
-			response.setHeader(HttpHeaders.Names.CONTENT_LENGTH,
+			response.headers().set(HttpHeaders.Names.CONTENT_LENGTH,
 					String.valueOf(buf.readableBytes()));
 		}
 
@@ -2237,7 +2237,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 	private void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
 		HttpResponse response = new DefaultHttpResponse(
 				HttpVersion.HTTP_1_1, status);
-		response.setHeader(
+		response.headers().set(
 				HttpHeaders.Names.CONTENT_TYPE, "text/html");
 		responseContent.setLength(0);
 		responseContent.append(error(status.toString()));

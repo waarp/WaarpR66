@@ -391,12 +391,23 @@ public class SpooledDirectoryTransfer implements Runnable {
 										false, false, true, networkTransaction);
 								logger.info(text+host);
 								transaction.run();
+								// special task
+								future.awaitUninterruptibly();
+								if (! future.isSuccess()) {
+									text = "Direct Transfer: ";
+									future = new R66Future(true);
+									DirectTransfer transaction2 = new DirectTransfer(future,
+											host, filename, rulename, fileinfo, isMD5, blocksize, 
+											DbConstant.ILLEGALVALUE, networkTransaction);
+									logger.info(text+host);
+									transaction2.run();
+								}
 							} catch (WaarpDatabaseException e) {
 								logger.warn(Messages.getString("RequestTransfer.5") + host, e); //$NON-NLS-1$
 								text = "Direct Transfer: ";
 								DirectTransfer transaction = new DirectTransfer(future,
 										host, filename, rulename, fileinfo, isMD5, blocksize, 
-										specialId, networkTransaction);
+										DbConstant.ILLEGALVALUE, networkTransaction);
 								logger.info(text+host);
 								transaction.run();
 							}

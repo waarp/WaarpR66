@@ -1061,6 +1061,12 @@ public class DbTaskRunner extends AbstractDbData {
 	 */
 	public boolean specialSubmit() throws WaarpDatabaseException {
 		if (shallIgnoreSave()) {
+			if (specialId == DbConstant.ILLEGALVALUE) {
+				specialId = DbModelFactory.dbModel.nextSequence(dbSession);
+				logger.debug("Try Insert create a new Id from sequence: " +
+						specialId);
+				setPrimaryKey();
+			}
 			super.insert();
 			return true;
 		}

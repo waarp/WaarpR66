@@ -105,8 +105,8 @@ public class HttpWriteCacheEnable {
         DateFormat rfc1123Format = new SimpleDateFormat(RFC1123_PATTERN, LOCALE_US);
         rfc1123Format.setTimeZone(GMT_ZONE);
         Date lastModifDate = new Date(file.lastModified());
-        if (request.containsHeader(HttpHeaders.Names.IF_MODIFIED_SINCE)) {
-        	String sdate = request.getHeader(HttpHeaders.Names.IF_MODIFIED_SINCE);
+        if (request.headers().contains(HttpHeaders.Names.IF_MODIFIED_SINCE)) {
+        	String sdate = request.headers().get(HttpHeaders.Names.IF_MODIFIED_SINCE);
         	try {
 				Date ifmodif = rfc1123Format.parse(sdate);
 				if (ifmodif.after(lastModifDate)) {
@@ -132,16 +132,16 @@ public class HttpWriteCacheEnable {
 		}
         response = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
                 HttpResponseStatus.OK);
-        response.setHeader(HttpHeaders.Names.CONTENT_LENGTH,
+        response.headers().set(HttpHeaders.Names.CONTENT_LENGTH,
                 String.valueOf(size));
         
         String type = mimetypesFileTypeMap.getContentType(filename);
-        response.setHeader(HttpHeaders.Names.CONTENT_TYPE, type);
+        response.headers().set(HttpHeaders.Names.CONTENT_TYPE, type);
         ArrayList<String> cache_control = new ArrayList<String>(2);
         cache_control.add(HttpHeaders.Values.PUBLIC);
         cache_control.add(HttpHeaders.Values.MAX_AGE + "=" + 604800);// 1 week
-        response.setHeader(HttpHeaders.Names.CACHE_CONTROL, cache_control);
-        response.setHeader(HttpHeaders.Names.LAST_MODIFIED,
+        response.headers().set(HttpHeaders.Names.CACHE_CONTROL, cache_control);
+        response.headers().set(HttpHeaders.Names.LAST_MODIFIED,
                 rfc1123Format.format(lastModifDate));
         handleCookies(request, response, cookieNameToRemove);
         // Write the response.
@@ -158,7 +158,7 @@ public class HttpWriteCacheEnable {
 	 */
 	public static void handleCookies(HttpRequest request, HttpResponse response,
 			String cookieNameToRemove) {
-		String cookieString = request.getHeader(HttpHeaders.Names.COOKIE);
+		String cookieString = request.headers().get(HttpHeaders.Names.COOKIE);
 		if (cookieString != null) {
 			CookieDecoder cookieDecoder = new CookieDecoder();
 			Set<Cookie> cookies = cookieDecoder.decode(cookieString);
@@ -170,7 +170,7 @@ public class HttpWriteCacheEnable {
 					if (cookie.getName().equalsIgnoreCase(cookieNameToRemove)) {
 					} else {
 						cookieEncoder.addCookie(cookie);
-						response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+						response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
 						cookieEncoder = new CookieEncoder(true);
 					}
 				}
