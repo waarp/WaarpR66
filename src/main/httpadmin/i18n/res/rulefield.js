@@ -6,7 +6,7 @@ var dialog_inputName = '';
 // Current tasks array
 var arrayTasks = new Array();
 // Available Task's types
-var availableTasks = new Array("LOG", "MOVE", "MOVERENAME", "COPY", "COPYRENAME", "EXEC", "EXECMOVE", "EXECOUTPUT", "EXECJAVA", "TRANSFER", "VALIDFILEPATH", "DELETE", "LINKRENAME", "RESCHEDULE", "TAR", "ZIP", "TRANSCODE", "FTP", "RENAME", "RESTART", "UNZEROED");
+var availableTasks = new Array("LOG", "MOVE", "MOVERENAME", "COPY", "COPYRENAME", "EXEC", "EXECMOVE", "EXECOUTPUT", "EXECJAVA", "TRANSFER", "VALIDFILEPATH", "DELETE", "LINKRENAME", "RESCHEDULE", "TAR", "ZIP", "TRANSCODE", "FTP", "RENAME", "RESTART", "UNZEROED", "CHMOD");
 // Load dialog
 function dialog_load() {
 	// get container

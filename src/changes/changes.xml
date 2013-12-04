@@ -11,6 +11,7 @@
 	        <action dev="Frederic Bregier" type="fix">Fix Db closed when main VM gets down</action>
 		    <action dev="Frederic Bregier" type="add">Improve SpooledDirectory monitoring</action>
 		    <action dev="Frederic Bregier" type="add">Add capacity to change Log level dynamically</action>
+		    <action dev="Frederic Bregier" type="add">Add TASK CHMOD to allow changing the access mode of the files -with Java limitation-</action>
 		</release>
 	    <release version="2.4.22" date="2013-11-09" description="Fix release">
 		    <action dev="Frederic Bregier" type="fix">Fix wait issue on closing channel</action>
