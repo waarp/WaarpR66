@@ -107,6 +107,7 @@ a img {
       <td width="13%" align="center"><b data-i18n="menu3.entete5">HostKey</b></td>
       <td width="5%" align="center"><b data-i18n="menu3.entete6">Admin Role</b></td>
       <td width="5%" align="center"><b data-i18n="menu3.entete7">IsClient</b></td>
+      <td width="5%" align="center"><b data-i18n="menu3.entete13">IsActive</b></td>
 					      </tr>
 					      <tr>
 					        <td width="12%" align="center">
@@ -172,6 +173,15 @@ a img {
 									</p>
 								</div>
 							 </td>
+						    <td width="8%" align="center">
+						        <input type="checkbox" name="isactive" value="on"/>
+						        <img id="isahelp" alt="help for IsActive field"  class="help" width="16" height="16" src="img/help_small.gif" />
+								<div id="containerisahelp">
+									<p data-i18n="menu3.text8" class="cshelp">
+										If checked, this host is active. If unchecked, this host is inactive, ie not allow to do any action with the current server.
+									</p>
+								</div>
+							 </td>
 					    	</tr>
     </table>
     <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -200,6 +210,13 @@ a img {
 						    <div id="containerfsslhelp">
 						    <p data-i18n="menu3.filtre6" class="cshelp">
 								If checked, only SSL Hosts will be listed. If not, only not SSL Hosts will be listed.
+							</p>
+							</div>&nbsp;&nbsp;&nbsp;
+						    <label data-i18n="menu3.filtre7">Filter on Active:</label>&nbsp;<input type="checkbox" name="active" value="on" XXXFACTIVXXX>
+						    <img id="factivhelp" alt="help for Active Filter field"  class="help" width="16" height="16" src="img/help_small.gif" />
+						    <div id="containerfactivhelp">
+						    <p data-i18n="menu3.filtre8" class="cshelp">
+								If checked, only ACtive Hosts will be listed. If not, only not Active Hosts will be listed.
 							</p>
 							</div>
     <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
