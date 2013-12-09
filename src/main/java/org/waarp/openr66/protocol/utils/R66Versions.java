@@ -12,7 +12,11 @@ public enum R66Versions {
 	/**
 	 * Add TransferInformation to TaskRunner table
 	 */
-	V2_4_17;
+	V2_4_17,
+	/**
+	 * Add IsActive on DbHostAuth table
+	 */
+	V2_4_23;
 	
 	public String getVersion() {
 		return this.name().substring(1).replace('_', '.');

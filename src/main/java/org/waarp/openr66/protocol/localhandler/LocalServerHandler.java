@@ -695,7 +695,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			throws OpenR66ProtocolPacketException {
 		logger.error(Messages.getString("LocalServerHandler.5")+ //$NON-NLS-1$
 			localChannelReference.getNetworkChannel().getRemoteAddress()+
-			" : " + packet.getHostId(), e1);
+			" : " + packet.getHostId());
+		logger.debug(Messages.getString("LocalServerHandler.5")+ //$NON-NLS-1$
+				localChannelReference.getNetworkChannel().getRemoteAddress()+
+				" : " + packet.getHostId(), e1);
 		if (Configuration.configuration.r66Mib != null) {
 			Configuration.configuration.r66Mib.notifyError(
 					"Connection not allowed from "+

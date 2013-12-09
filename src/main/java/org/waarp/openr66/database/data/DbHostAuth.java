@@ -56,12 +56,12 @@ public class DbHostAuth extends AbstractDbData {
 			.getLogger(DbHostAuth.class);
 	
 	public static enum Columns {
-		ADDRESS, PORT, ISSSL, HOSTKEY, ADMINROLE, ISCLIENT, UPDATEDINFO, HOSTID
+		ADDRESS, PORT, ISSSL, HOSTKEY, ADMINROLE, ISCLIENT, ISACTIVE, UPDATEDINFO, HOSTID
 	}
 
 	public static final int[] dbTypes = {
 			Types.VARCHAR, Types.INTEGER, Types.BIT,
-			Types.VARBINARY, Types.BIT, Types.BIT, Types.INTEGER, Types.VARCHAR };
+			Types.VARBINARY, Types.BIT, Types.BIT, Types.BIT, Types.INTEGER, Types.VARCHAR };
 
 	public static final String table = " HOSTS ";
 
@@ -84,6 +84,8 @@ public class DbHostAuth extends AbstractDbData {
 	private boolean adminrole;
 
 	private boolean isClient;
+	
+	private boolean isActive = true;
 
 	private int updatedInfo = UpdatedInfo.UNKNOWN
 			.ordinal();
@@ -110,6 +112,9 @@ public class DbHostAuth extends AbstractDbData {
 					.name()
 			+ ","
 			+ Columns.ISCLIENT
+					.name()
+			+ ","
+			+ Columns.ISACTIVE
 					.name()
 			+ ","
 			+
@@ -143,11 +148,15 @@ public class DbHostAuth extends AbstractDbData {
 							.name()
 					+ "=?,"
 					+
+					Columns.ISACTIVE
+							.name()
+					+ "=?,"
+					+
 					Columns.UPDATEDINFO
 							.name()
 					+ "=?";
 
-	protected static final String insertAllValues = " (?,?,?,?,?,?,?,?) ";
+	protected static final String insertAllValues = " (?,?,?,?,?,?,?,?,?) ";
 
 	/*
 	 * (non-Javadoc)
@@ -164,10 +173,11 @@ public class DbHostAuth extends AbstractDbData {
 				new DbValue(hostkey, Columns.HOSTKEY.name()),
 				new DbValue(adminrole, Columns.ADMINROLE.name()),
 				new DbValue(isClient, Columns.ISCLIENT.name()),
+				new DbValue(isActive, Columns.ISACTIVE.name()),
 				new DbValue(updatedInfo, Columns.UPDATEDINFO.name()) };
 		allFields = new DbValue[] {
 				otherFields[0], otherFields[1], otherFields[2],
-				otherFields[3], otherFields[4], otherFields[5], otherFields[6], primaryKey[0] };
+				otherFields[3], otherFields[4], otherFields[5], otherFields[6], otherFields[7], primaryKey[0] };
 	}
 
 	/*
@@ -214,6 +224,7 @@ public class DbHostAuth extends AbstractDbData {
 		allFields[Columns.HOSTKEY.ordinal()].setValue(hostkey);
 		allFields[Columns.ADMINROLE.ordinal()].setValue(adminrole);
 		allFields[Columns.ISCLIENT.ordinal()].setValue(isClient);
+		allFields[Columns.ISACTIVE.ordinal()].setValue(isActive);
 		allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
 		allFields[Columns.HOSTID.ordinal()].setValue(hostid);
 	}
@@ -226,6 +237,7 @@ public class DbHostAuth extends AbstractDbData {
 		hostkey = (byte[]) allFields[Columns.HOSTKEY.ordinal()].getValue();
 		adminrole = (Boolean) allFields[Columns.ADMINROLE.ordinal()].getValue();
 		isClient = (Boolean) allFields[Columns.ISCLIENT.ordinal()].getValue();
+		isActive = (Boolean) allFields[Columns.ISACTIVE.ordinal()].getValue();
 		updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()]
 				.getValue();
 		hostid = (String) allFields[Columns.HOSTID.ordinal()].getValue();
@@ -562,7 +574,7 @@ public class DbHostAuth extends AbstractDbData {
 	 * @throws WaarpDatabaseSqlException
 	 */
 	public static DbPreparedStatement getFilterPrepareStament(DbSession session,
-			String host, String addr, boolean ssl)
+			String host, String addr, boolean ssl, boolean active)
 			throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
 		DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
 		String request = "SELECT " + selectAllFields + " FROM " + table + " WHERE ";
@@ -583,11 +595,13 @@ public class DbHostAuth extends AbstractDbData {
 		} else {
 			condition = "";
 		}
-		condition += Columns.ISSSL.name() + " = ?";
+		condition += Columns.ISSSL.name() + " = ? AND ";
+		condition += Columns.ISACTIVE.name() + " = ? ";
 		preparedStatement.createPrepareStatement(request + condition +
 				" ORDER BY " + Columns.HOSTID.name());
 		try {
 			preparedStatement.getPreparedStatement().setBoolean(1, ssl);
+			preparedStatement.getPreparedStatement().setBoolean(2, active);
 		} catch (SQLException e) {
 			preparedStatement.realClose();
 			throw new WaarpDatabaseSqlException(e);
@@ -608,6 +622,23 @@ public class DbHostAuth extends AbstractDbData {
 		}
 	}
 
+	
+	/**
+	 * @return the isActive
+	 */
+	public boolean isActive() {
+		return isActive;
+	}
+
+	/**
+	 * @param isActive the isActive to set
+	 */
+	public void setActive(boolean isActive) {
+		this.isActive = isActive;
+		allFields[Columns.ISACTIVE.ordinal()].setValue(this.isActive);
+		isSaved = false;
+	}
+
 	/**
 	 * Is the given key a valid one
 	 * 
@@ -619,7 +650,8 @@ public class DbHostAuth extends AbstractDbData {
 		if (this.hostkey == null) {
 			return true;
 		}
-		if (newkey == null) {
+		// Check before if any key is passed or if account is active
+		if (newkey == null || ! isActive) {
 			return false;
 		}
 		try {
@@ -728,7 +760,7 @@ public class DbHostAuth extends AbstractDbData {
 	public String toString() {
 		//System.err.println(hostid+" Version: "+Configuration.configuration.versions.get(hostid)+":"+Configuration.configuration.versions.containsKey(hostid));
 		return "HostAuth: " + hostid + " address: " + address + ":" + port + " isSSL: " + isSsl +
-				" admin: " + adminrole + " isClient: " + isClient + " ("
+				" admin: " + adminrole + " isClient: " + isClient + " isActive: " + isActive + " ("
 				+ (hostkey != null ? hostkey.length : 0) + ") Version: "
 				+ getVersion(hostid);
 	}
@@ -759,6 +791,7 @@ public class DbHostAuth extends AbstractDbData {
 		WaarpStringUtils.replace(builder, "XXXSSLXXX", isSsl ? "checked" : "");
 		WaarpStringUtils.replace(builder, "XXXADMXXX", adminrole ? "checked" : "");
 		WaarpStringUtils.replace(builder, "XXXISCXXX", isClient ? "checked" : "");
+		WaarpStringUtils.replace(builder, "XXXISAXXX", isActive ? "checked" : "");
 		WaarpStringUtils.replace(builder, "XXXVERSIONXXX", getVersion(hostid).replace(",", ", "));
 		int nb = 0;
 		try {

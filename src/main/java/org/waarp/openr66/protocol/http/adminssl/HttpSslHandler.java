@@ -894,11 +894,12 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 	}
 
 	private String resetOptionHosts(String header,
-			String host, String addr, boolean ssl) {
+			String host, String addr, boolean ssl, boolean active) {
 		StringBuilder builder = new StringBuilder(header);
 		WaarpStringUtils.replace(builder, "XXXFHOSTXXX", host);
 		WaarpStringUtils.replace(builder, "XXXFADDRXXX", addr);
 		WaarpStringUtils.replace(builder, "XXXFSSLXXX", ssl ? "checked" : "");
+		WaarpStringUtils.replace(builder, "XXXFACTIVXXX", active ? "checked" : "");
 		return builder.toString();
 	}
 
@@ -908,7 +909,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		String end;
 		end = REQUEST.Hosts.readEnd();
 		if (params == null) {
-			head = resetOptionHosts(head, "", "", false);
+			head = resetOptionHosts(head, "", "", false, true);
 			return head + end;
 		}
 		String body0, body, body1;
@@ -922,35 +923,37 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				String addr = getTrimValue("address");
 				String port = getTrimValue("port");
 				String key = getTrimValue("hostkey");
-				boolean ssl, admin, isclient;
+				boolean ssl, admin, isclient, isactive;
 				ssl = params.containsKey("ssl");
 				admin = params.containsKey("admin");
 				isclient = params.containsKey("isclient");
+				isactive = params.containsKey("isactive");
 				if (host == null || addr == null || port == null || key == null) {
 					body0 = body1 = body = "";
 					body = Messages.getString("HttpSslHandler.13"); //$NON-NLS-1$
-					head = resetOptionHosts(head, "", "", false);
+					head = resetOptionHosts(head, "", "", ssl, isactive);
 					return head + body0 + body + body1 + end;
 				}
-				head = resetOptionHosts(head, host, addr, ssl);
+				head = resetOptionHosts(head, host, addr, ssl, isactive);
                 int iport;
 				try {
 					iport = Integer.parseInt(port);
 				} catch (NumberFormatException e1) {
 					body0 = body1 = body = "";
                     body = Messages.getString("HttpSslHandler.14")+e1.getMessage()+"</b></center></p>"; //$NON-NLS-1$
-                    head = resetOptionHosts(head, "", "", false);
+                    head = resetOptionHosts(head, "", "", ssl, isactive);
                     return head+body0+body+body1+end;
 				}
 				DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
 						ssl, key.getBytes(WaarpStringUtils.UTF8), admin, isclient);
+				dbhost.setActive(isactive);
 				try {
 					dbhost.insert();
 				} catch (WaarpDatabaseException e) {
 					body0 = body1 = body = "";
 					body = Messages.getString("HttpSslHandler.14") + e.getMessage() //$NON-NLS-1$
 							+ "</b></center></p>";
-					head = resetOptionHosts(head, "", "", false);
+					head = resetOptionHosts(head, "", "", ssl, isactive);
 					return head + body0 + body + body1 + end;
 				}
 				body = REQUEST.Hosts.readBody();
@@ -959,14 +962,15 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				String host = getTrimValue("host");
 				String addr = getTrimValue("address");
 				boolean ssl = params.containsKey("ssl");
+				boolean isactive = params.containsKey("active");
 				head = resetOptionHosts(head, host == null ? "" : host,
-						addr == null ? "" : addr, ssl);
+						addr == null ? "" : addr, ssl, isactive);
 				body = REQUEST.Hosts.readBody();
 				DbPreparedStatement preparedStatement = null;
 				try {
 					preparedStatement =
 							DbHostAuth.getFilterPrepareStament(dbSession,
-									host, addr, ssl);
+									host, addr, ssl, isactive);
 					preparedStatement.executeQuery();
 					StringBuilder builder = new StringBuilder();
 					int i = 0;
@@ -992,28 +996,30 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				String addr = getTrimValue("address");
 				String port = getTrimValue("port");
 				String key = getTrimValue("hostkey");
-				boolean ssl, admin, isclient;
+				boolean ssl, admin, isclient, isactive;
 				ssl = params.containsKey("ssl");
 				admin = params.containsKey("admin");
 				isclient = params.containsKey("isclient");
+				isactive = params.containsKey("isactive");
 				if (host == null || addr == null || port == null || key == null) {
 					body0 = body1 = body = "";
 					body = Messages.getString("HttpSslHandler.15"); //$NON-NLS-1$
-					head = resetOptionHosts(head, "", "", false);
+					head = resetOptionHosts(head, "", "", ssl, isactive);
 					return head + body0 + body + body1 + end;
 				}
-				head = resetOptionHosts(head, host, addr, ssl);
+				head = resetOptionHosts(head, host, addr, ssl, isactive);
                 int iport;
 				try {
 					iport = Integer.parseInt(port);
 				} catch (NumberFormatException e1) {
 					body0 = body1 = body = "";
                     body = Messages.getString("HttpSslHandler.16")+e1.getMessage()+"</b></center></p>"; //$NON-NLS-1$
-                    head = resetOptionHosts(head, "", "", false);
+                    head = resetOptionHosts(head, "", "", ssl, isactive);
                     return head+body0+body+body1+end;
 				}
 				DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
 						ssl, key.getBytes(WaarpStringUtils.UTF8), admin, isclient);
+				dbhost.setActive(isactive);
 				try {
 					if (dbhost.exist()) {
 						dbhost.update();
@@ -1024,32 +1030,29 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					body0 = body1 = body = "";
 					body = Messages.getString("HttpSslHandler.16") + e.getMessage() //$NON-NLS-1$
 							+ "</b></center></p>";
-					head = resetOptionHosts(head, "", "", false);
+					head = resetOptionHosts(head, "", "", ssl, isactive);
 					return head + body0 + body + body1 + end;
 				}
 				body = REQUEST.Hosts.readBody();
 				body = dbhost.toSpecializedHtml(authentHttp, body, false);
 			} else if ("TestConn".equalsIgnoreCase(parm)) {
 				String host = getTrimValue("host");
-				String addr = getTrimValue("address");
-				String port = getTrimValue("port");
-				String key = getTrimValue("hostkey");
-				boolean ssl, admin, isclient;
-				ssl = params.containsKey("ssl");
-				admin = params.containsKey("admin");
-				isclient = params.containsKey("isclient");
-				head = resetOptionHosts(head, host, addr, ssl);
-                int iport;
-				try {
-					iport = Integer.parseInt(port);
-				} catch (NumberFormatException e1) {
+				if (host == null || host.isEmpty()) {
 					body0 = body1 = body = "";
-                    body = Messages.getString("HttpSslHandler.17")+e1.getMessage()+"</b></center></p>"; //$NON-NLS-1$
-                    head = resetOptionHosts(head, "", "", false);
-                    return head+body0+body+body1+end;
+					body = Messages.getString("HttpSslHandler.17"); //$NON-NLS-1$
+					head = resetOptionHosts(head, "", "", false, true);
+					return head + body0 + body + body1 + end;
 				}
-				DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
-						ssl, key.getBytes(WaarpStringUtils.UTF8), admin, isclient);
+				DbHostAuth dbhost;
+				try {
+					dbhost = new DbHostAuth(dbSession, host);
+				} catch (WaarpDatabaseException e) {
+					body0 = body1 = body = "";
+					body = Messages.getString("HttpSslHandler.17") + e.getMessage() //$NON-NLS-1$
+							+ "</b></center></p>";
+					head = resetOptionHosts(head, "", "", false, true);
+					return head + body0 + body + body1 + end;
+				}
 				R66Future result = new R66Future(true);
 				TestPacket packet = new TestPacket("MSG", "CheckConnection", 100);
 				Message transaction = new Message(
@@ -1069,25 +1072,22 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				}
 			} else if ("CloseConn".equalsIgnoreCase(parm)) {
 				String host = getTrimValue("host");
-				String addr = getTrimValue("address");
-				String port = getTrimValue("port");
-				String key = getTrimValue("hostkey");
-				boolean ssl, admin, isclient;
-				ssl = params.containsKey("ssl");
-				admin = params.containsKey("admin");
-				isclient = params.containsKey("isclient");
-				head = resetOptionHosts(head, host, addr, ssl);
-                int iport;
-				try {
-					iport = Integer.parseInt(port);
-				} catch (NumberFormatException e1) {
+				if (host == null || host.isEmpty()) {
 					body0 = body1 = body = "";
-                    body = Messages.getString("HttpSslHandler.17")+e1.getMessage()+"</b></center></p>"; //$NON-NLS-1$
-                    head = resetOptionHosts(head, "", "", false);
-                    return head+body0+body+body1+end;
+					body = Messages.getString("HttpSslHandler.17"); //$NON-NLS-1$
+					head = resetOptionHosts(head, "", "", false, true);
+					return head + body0 + body + body1 + end;
 				}
-				DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
-						ssl, key.getBytes(WaarpStringUtils.UTF8), admin, isclient);
+				DbHostAuth dbhost;
+				try {
+					dbhost = new DbHostAuth(dbSession, host);
+				} catch (WaarpDatabaseException e) {
+					body0 = body1 = body = "";
+					body = Messages.getString("HttpSslHandler.17") + e.getMessage() //$NON-NLS-1$
+							+ "</b></center></p>";
+					head = resetOptionHosts(head, "", "", false, true);
+					return head + body0 + body + body1 + end;
+				}
 				body = REQUEST.Hosts.readBody();
 				boolean resultShutDown = false;
 				if (!dbhost.isClient()) {
@@ -1109,7 +1109,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				if (host == null || host.isEmpty()) {
 					body0 = body1 = body = "";
 					body = Messages.getString("HttpSslHandler.23"); //$NON-NLS-1$
-					head = resetOptionHosts(head, "", "", false);
+					head = resetOptionHosts(head, "", "", false, true);
 					return head + body0 + body + body1 + end;
 				}
 				DbHostAuth dbhost;
@@ -1119,7 +1119,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					body0 = body1 = body = "";
 					body = Messages.getString("HttpSslHandler.24") + e.getMessage() //$NON-NLS-1$
 							+ "</b></center></p>";
-					head = resetOptionHosts(head, "", "", false);
+					head = resetOptionHosts(head, "", "", false, true);
 					return head + body0 + body + body1 + end;
 				}
 				try {
@@ -1128,19 +1128,19 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					body0 = body1 = body = "";
 					body = Messages.getString("HttpSslHandler.24") + e.getMessage() //$NON-NLS-1$
 							+ "</b></center></p>";
-					head = resetOptionHosts(head, "", "", false);
+					head = resetOptionHosts(head, "", "", dbhost.isSsl(), dbhost.isActive());
 					return head + body0 + body + body1 + end;
 				}
 				body0 = body1 = body = "";
 				body = Messages.getString("HttpSslHandler.25") + host + "</b></center></p>"; //$NON-NLS-1$
-				head = resetOptionHosts(head, "", "", false);
+				head = resetOptionHosts(head, "", "", false, dbhost.isActive());
 				return head + body0 + body + body1 + end;
 			} else {
-				head = resetOptionHosts(head, "", "", false);
+				head = resetOptionHosts(head, "", "", false, true);
 			}
 			body1 = REQUEST.Hosts.readBodyEnd();
 		} else {
-			head = resetOptionHosts(head, "", "", false);
+			head = resetOptionHosts(head, "", "", false, true);
 		}
 		return head + body0 + body + body1 + end;
 	}

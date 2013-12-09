@@ -263,58 +263,6 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
 			request.close();
 		}
 	}
-
-	public boolean upgradeDb(DbSession session, String version) throws WaarpDatabaseNoConnectionException {
-		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_13.getVersion())) {
-			System.out.println(version+" to "+R66Versions.V2_4_13.getVersion()+"? "+true);
-			String createTableH2 = "CREATE TABLE ";
-			String constraint = " CONSTRAINT ";
-			String primaryKey = " PRIMARY KEY ";
-			String notNull = " NOT NULL ";
-	
-			// HostConfiguration
-			String action = createTableH2 + DbHostConfiguration.table + "(";
-			DbHostConfiguration.Columns[] chcolumns = DbHostConfiguration.Columns
-					.values();
-			for (int i = 0; i < chcolumns.length - 1; i++) {
-				action += chcolumns[i].name() +
-						DBType.getType(DbHostConfiguration.dbTypes[i]) + notNull +
-						", ";
-			}
-			action += chcolumns[chcolumns.length - 1].name() +
-					DBType.getType(DbHostConfiguration.dbTypes[chcolumns.length - 1]) +
-					notNull + ",";
-			action += constraint + " hostconf_pk " + primaryKey + "("
-					+ chcolumns[chcolumns.length - 1].name() + "))";
-			System.out.println(action);
-			DbRequest request = new DbRequest(session);
-			try {
-				request.query(action);
-			} catch (WaarpDatabaseSqlException e) {
-				e.printStackTrace();
-				return false;
-			} finally {
-				request.close();
-			}
-		}
-		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_17.getVersion())) {
-			System.out.println(version+" to "+R66Versions.V2_4_17.getVersion()+"? "+true);
-			String command = "ALTER TABLE "+DbTaskRunner.table+" ADD ( "+
-					DbTaskRunner.Columns.TRANSFERINFO.name()+ " "+
-					DBType.getType(DbTaskRunner.dbTypes[DbTaskRunner.Columns.TRANSFERINFO.ordinal()]) + 
-					" DEFAULT '{}' NOT NULL ) ";
-			DbRequest request = new DbRequest(session);
-			try {
-				request.query(command);
-			} catch (WaarpDatabaseSqlException e) {
-				e.printStackTrace();
-				return false;
-			} finally {
-				request.close();
-			}
-		}
-		return true;
-	}
 	
 	/*
 	 * (non-Javadoc)
@@ -375,6 +323,75 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
 			preparedStatement.realClose();
 		}
 	}
+
+	public boolean upgradeDb(DbSession session, String version) throws WaarpDatabaseNoConnectionException {
+		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_13.getVersion())) {
+			System.out.println(version+" to "+R66Versions.V2_4_13.getVersion()+"? "+true);
+			String createTableH2 = "CREATE TABLE ";
+			String constraint = " CONSTRAINT ";
+			String primaryKey = " PRIMARY KEY ";
+			String notNull = " NOT NULL ";
+	
+			// HostConfiguration
+			String action = createTableH2 + DbHostConfiguration.table + "(";
+			DbHostConfiguration.Columns[] chcolumns = DbHostConfiguration.Columns
+					.values();
+			for (int i = 0; i < chcolumns.length - 1; i++) {
+				action += chcolumns[i].name() +
+						DBType.getType(DbHostConfiguration.dbTypes[i]) + notNull +
+						", ";
+			}
+			action += chcolumns[chcolumns.length - 1].name() +
+					DBType.getType(DbHostConfiguration.dbTypes[chcolumns.length - 1]) +
+					notNull + ",";
+			action += constraint + " hostconf_pk " + primaryKey + "("
+					+ chcolumns[chcolumns.length - 1].name() + "))";
+			System.out.println(action);
+			DbRequest request = new DbRequest(session);
+			try {
+				request.query(action);
+			} catch (WaarpDatabaseSqlException e) {
+				e.printStackTrace();
+				return false;
+			} finally {
+				request.close();
+			}
+		}
+		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_17.getVersion())) {
+			System.out.println(version+" to "+R66Versions.V2_4_17.getVersion()+"? "+true);
+			String command = "ALTER TABLE "+DbTaskRunner.table+" ADD ( "+
+					DbTaskRunner.Columns.TRANSFERINFO.name()+ " "+
+					DBType.getType(DbTaskRunner.dbTypes[DbTaskRunner.Columns.TRANSFERINFO.ordinal()]) + 
+					" DEFAULT '{}' NOT NULL ) ";
+			DbRequest request = new DbRequest(session);
+			try {
+				request.query(command);
+			} catch (WaarpDatabaseSqlException e) {
+				e.printStackTrace();
+				//return false;
+			} finally {
+				request.close();
+			}
+		}
+		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_23.getVersion())) {
+			System.out.println(version+" to "+R66Versions.V2_4_23.getVersion()+"? "+true);
+			String command = "ALTER TABLE "+DbHostAuth.table+" ADD ( "+
+					DbHostAuth.Columns.ISACTIVE.name()+ " "+
+					DBType.getType(DbHostAuth.dbTypes[DbHostAuth.Columns.ISACTIVE.ordinal()]) + 
+					" DEFAULT "+true+" NOT NULL ) ";
+			DbRequest request = new DbRequest(session);
+			try {
+				request.query(command);
+			} catch (WaarpDatabaseSqlException e) {
+				e.printStackTrace();
+				//return false;
+			} finally {
+				request.close();
+			}
+		}
+		DbHostConfiguration.updateVersionDb(session, Configuration.configuration.HOST_ID, R66Versions.V2_4_23.getVersion());
+		return true;
+	}
 	
 	public boolean needUpgradeDb(DbSession session, String version, boolean tryFix)
 			throws WaarpDatabaseNoConnectionException {
@@ -403,6 +420,22 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
 						" where "+DbTaskRunner.Columns.SPECIALID+" = "+DbConstant.ILLEGALVALUE);
 				request.close();
 				DbHostConfiguration.updateVersionDb(session, Configuration.configuration.HOST_ID, R66Versions.V2_4_17.getVersion());
+			} catch (WaarpDatabaseSqlException e) {
+				return ! upgradeDb(session, version);
+			} finally {
+				if (request != null) {
+					request.close();
+				}
+			}
+		}
+		request = null;
+		if (PartnerConfiguration.isVersion2GEQVersion1(version, R66Versions.V2_4_23.getVersion())) {
+			try {
+				request = new DbRequest(session);
+				request.select("select "+DbHostAuth.Columns.ISACTIVE.name()+" from "+DbHostAuth.table+
+						" where "+DbHostAuth.Columns.PORT+" = "+0);
+				request.close();
+				DbHostConfiguration.updateVersionDb(session, Configuration.configuration.HOST_ID, R66Versions.V2_4_23.getVersion());
 			} catch (WaarpDatabaseSqlException e) {
 				return ! upgradeDb(session, version);
 			} finally {
