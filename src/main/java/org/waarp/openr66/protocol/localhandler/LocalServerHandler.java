@@ -214,6 +214,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
 							// ignore
 							mustFinalize = false;
 						}
+					} else {
+						mustFinalize = false;
 					}
 				}
 				logger.debug("Must Finalize: " + mustFinalize);
@@ -909,12 +911,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			R66Result result = new R66Result(exception, session,
 					true, code, runner);
 			// now try to inform other
+			session.setFinalizeTransfer(false, result);
 			try {
 				ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false).
 						addListener(new RunnerChannelFutureListener(localChannelReference, result));
 			} catch (OpenR66ProtocolPacketException e) {
 			}
-			session.setFinalizeTransfer(false, result);
 			return;
 		} else if (code.code == ErrorCode.StoppedTransfer.code) {
 			exception =
@@ -932,12 +934,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			R66Result result = new R66Result(exception, session,
 					true, code, runner);
 			// now try to inform other
+			session.setFinalizeTransfer(false, result);
 			try {
 				ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false).
 						addListener(new RunnerChannelFutureListener(localChannelReference, result));
 			} catch (OpenR66ProtocolPacketException e) {
 			}
-			session.setFinalizeTransfer(false, result);
 			return;
 		} else if (code.code == ErrorCode.QueryAlreadyFinished.code) {
 			DbTaskRunner runner = session.getRunner();

@@ -20,6 +20,7 @@ package org.waarp.openr66.protocol.utils;
 import java.util.concurrent.TimeUnit;
 
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.util.Timeout;
 import org.jboss.netty.util.TimerTask;
 import org.waarp.common.crypto.ssl.WaarpSslUtility;
@@ -34,12 +35,20 @@ import org.waarp.openr66.protocol.configuration.Configuration;
 public class ChannelCloseTimer implements TimerTask {
 
 	private Channel channel;
+	private ChannelFuture future = null;
 
 	public ChannelCloseTimer(Channel channel) {
 		this.channel = channel;
 	}
+	public ChannelCloseTimer(Channel channel, ChannelFuture future) {
+		this.channel = channel;
+		this.future = future;
+	}
 
 	public void run(Timeout timeout) throws Exception {
+		if (this.future != null) {
+			this.future.awaitUninterruptibly();
+		}
 		WaarpSslUtility.closingSslChannel(channel);
 	}
 
@@ -51,6 +60,17 @@ public class ChannelCloseTimer implements TimerTask {
 	public static void closeFutureChannel(Channel channel) {
 		Configuration.configuration.getTimerClose().newTimeout(
 				new ChannelCloseTimer(channel),
+				Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
+	}
+	/**
+	 * Close in the future this channel
+	 * 
+	 * @param channel
+	 * @param future future to wait in addition to other constraints
+	 */
+	public static void closeFutureChannel(Channel channel, ChannelFuture future) {
+		Configuration.configuration.getTimerClose().newTimeout(
+				new ChannelCloseTimer(channel, future),
 				Configuration.WAITFORNETOP, TimeUnit.MILLISECONDS);
 	}
 }
