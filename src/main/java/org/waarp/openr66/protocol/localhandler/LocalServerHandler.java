@@ -720,7 +720,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				ErrorPacket.FORWARDCLOSECODE);
 		ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
 		localChannelReference.validateConnection(false, result);
+		Channel networkchannel = localChannelReference.getNetworkChannel();
+		boolean valid = NetworkTransaction.shuttingDownNetworkChannelBlackList(networkchannel);
+		logger.warn("Closing and blacklisting NetworkChannel since LocalChannel is not authenticated: "+valid);
 		ChannelCloseTimer.closeFutureChannel(channel);
+		ChannelCloseTimer.closeFutureChannel(networkchannel);
 	}
 
 	/**
@@ -1080,7 +1084,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				endInitRequestInError(channel,
 						ErrorCode.ServerOverloaded, null,
 						new OpenR66ProtocolNotYetConnectionException(
-								"Limit exceeded"), packet);
+								"Limit exceeded "+Configuration.configuration.constraintLimitHandler.lastAlert), packet);
 				session.setStatus(100);
 				return;
 			}
@@ -2270,8 +2274,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				// Try to validate a restarting transfer
 				// validLimit on requested side
 				if (Configuration.configuration.constraintLimitHandler.checkConstraints()) {
-					logger.error("Limit exceeded while asking to relaunch a task"
-							+ packet.getSmiddle());
+					logger.error("Limit exceeded {} while asking to relaunch a task"
+							+ packet.getSmiddle(), Configuration.configuration.constraintLimitHandler.lastAlert);
 					session.setStatus(100);
 					ValidPacket valid;
 					valid = new ValidPacket(packet.getSmiddle(),
@@ -3654,8 +3658,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		// validLimit on requested side
 		JsonCommandPacket valid;
 		if (Configuration.configuration.constraintLimitHandler.checkConstraints()) {
-			logger.error("Limit exceeded while asking to relaunch a task"
-					+ packet.getRequest());
+			logger.error("Limit exceeded {} while asking to relaunch a task"
+					+ packet.getRequest(), Configuration.configuration.constraintLimitHandler.lastAlert);
 			session.setStatus(100);
 			valid = new JsonCommandPacket(json,
 					ErrorCode.ServerOverloaded.getCode(),

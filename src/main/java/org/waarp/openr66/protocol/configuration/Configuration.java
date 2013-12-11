@@ -588,6 +588,8 @@ public class Configuration {
 
 	public boolean chrootChecked = true;
 	
+	public boolean blacklistBadAuthent = false;
+	
 	public Configuration() {
 		// Init signal handler
 		shutdownConfiguration.timeout = TIMEOUTCON;
@@ -603,6 +605,10 @@ public class Configuration {
 		isHostProxyfied = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_ISHOSTPROXYFIED, false);
 		warnOnStartup = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_STARTUP_WARNING, true);
 		chrootChecked = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_CHROOT_CHECKED, true);
+		blacklistBadAuthent = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_BLACKLIST_BADAUTHENT, false);
+		if (isHostProxyfied) {
+			blacklistBadAuthent = false;
+		}
 	}
 
 	/**
