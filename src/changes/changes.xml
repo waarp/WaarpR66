@@ -9,10 +9,12 @@
 			<action dev="Frederic Bregier" type="fix">Fix following FindBugs process</action>
 			<action dev="Frederic Bregier" type="fix">Fix following upgrading dependencies</action>
 	        <action dev="Frederic Bregier" type="fix">Fix Db closed when main VM gets down</action>
-		    <action dev="Frederic Bregier" type="add">Improve SpooledDirectory monitoring</action>
+	        <action dev="Frederic Bregier" type="fix">Fix Log on capacity exceeded</action>
+	        <action dev="Frederic Bregier" type="add">Improve SpooledDirectory monitoring</action>
 		    <action dev="Frederic Bregier" type="add">Add capacity to change Log level dynamically</action>
 		    <action dev="Frederic Bregier" type="add">Add TASK CHMOD to allow changing the access mode of the files -with Java limitation-</action>
 		    <action dev="Frederic Bregier" type="add">Add capacity to unvalidate a partner without removing its configuration</action>
+		    <action dev="Frederic Bregier" type="add">Add dynamic blacklist from refused partner's authentication if openr66.blacklist.badauthent is set to true</action>
 		</release>
 	    <release version="2.4.22" date="2013-11-09" description="Fix release">
 		    <action dev="Frederic Bregier" type="fix">Fix wait issue on closing channel</action>
