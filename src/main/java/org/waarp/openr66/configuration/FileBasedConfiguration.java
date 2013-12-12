@@ -1200,11 +1200,7 @@ public class FileBasedConfiguration {
 				config.digest = PartnerConfiguration.getDigestAlgo(val);
 			}
 		}
-		if (config.warnOnStartup) {
-			logger.warn("DigestAlgo used: {}", config.digest);
-		} else {
-			logger.info("DigestAlgo used: {}", config.digest);
-		}
+		logger.info("DigestAlgo used: {}", config.digest);
 		value = hashConfig.get(XML_USEFASTMD5);
 		if (value != null && (!value.isEmpty())) {
 			FilesystemBasedDigest.useFastMd5 = value.getBoolean();

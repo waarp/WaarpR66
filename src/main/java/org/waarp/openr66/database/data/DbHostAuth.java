@@ -54,16 +54,14 @@ public class DbHostAuth extends AbstractDbData {
 	 */
 	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
 			.getLogger(DbHostAuth.class);
-	/*
-	 * Note : ajout isproxified plus select count(*) from table where isproxified = true + set checkknownproxified + test pour blacklist
-	 */
+
 	public static enum Columns {
-		ADDRESS, PORT, ISSSL, HOSTKEY, ADMINROLE, ISCLIENT, ISACTIVE, UPDATEDINFO, HOSTID
+		ADDRESS, PORT, ISSSL, HOSTKEY, ADMINROLE, ISCLIENT, ISACTIVE, ISPROXIFIED, UPDATEDINFO, HOSTID
 	}
 
 	public static final int[] dbTypes = {
 			Types.VARCHAR, Types.INTEGER, Types.BIT,
-			Types.VARBINARY, Types.BIT, Types.BIT, Types.BIT, Types.INTEGER, Types.VARCHAR };
+			Types.VARBINARY, Types.BIT, Types.BIT, Types.BIT, Types.BIT, Types.INTEGER, Types.VARCHAR };
 
 	public static final String table = " HOSTS ";
 
@@ -88,6 +86,8 @@ public class DbHostAuth extends AbstractDbData {
 	private boolean isClient;
 	
 	private boolean isActive = true;
+	
+	private boolean isProxified = false;
 
 	private int updatedInfo = UpdatedInfo.UNKNOWN
 			.ordinal();
@@ -117,6 +117,9 @@ public class DbHostAuth extends AbstractDbData {
 					.name()
 			+ ","
 			+ Columns.ISACTIVE
+					.name()
+			+ ","
+			+ Columns.ISPROXIFIED
 					.name()
 			+ ","
 			+
@@ -154,11 +157,15 @@ public class DbHostAuth extends AbstractDbData {
 							.name()
 					+ "=?,"
 					+
+					Columns.ISPROXIFIED
+							.name()
+					+ "=?,"
+					+
 					Columns.UPDATEDINFO
 							.name()
 					+ "=?";
 
-	protected static final String insertAllValues = " (?,?,?,?,?,?,?,?,?) ";
+	protected static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?) ";
 
 	/*
 	 * (non-Javadoc)
@@ -176,10 +183,11 @@ public class DbHostAuth extends AbstractDbData {
 				new DbValue(adminrole, Columns.ADMINROLE.name()),
 				new DbValue(isClient, Columns.ISCLIENT.name()),
 				new DbValue(isActive, Columns.ISACTIVE.name()),
+				new DbValue(isProxified, Columns.ISPROXIFIED.name()),
 				new DbValue(updatedInfo, Columns.UPDATEDINFO.name()) };
 		allFields = new DbValue[] {
 				otherFields[0], otherFields[1], otherFields[2],
-				otherFields[3], otherFields[4], otherFields[5], otherFields[6], otherFields[7], primaryKey[0] };
+				otherFields[3], otherFields[4], otherFields[5], otherFields[6], otherFields[7], otherFields[8], primaryKey[0] };
 	}
 
 	/*
@@ -227,6 +235,7 @@ public class DbHostAuth extends AbstractDbData {
 		allFields[Columns.ADMINROLE.ordinal()].setValue(adminrole);
 		allFields[Columns.ISCLIENT.ordinal()].setValue(isClient);
 		allFields[Columns.ISACTIVE.ordinal()].setValue(isActive);
+		allFields[Columns.ISPROXIFIED.ordinal()].setValue(isProxified);
 		allFields[Columns.UPDATEDINFO.ordinal()].setValue(updatedInfo);
 		allFields[Columns.HOSTID.ordinal()].setValue(hostid);
 	}
@@ -240,6 +249,7 @@ public class DbHostAuth extends AbstractDbData {
 		adminrole = (Boolean) allFields[Columns.ADMINROLE.ordinal()].getValue();
 		isClient = (Boolean) allFields[Columns.ISCLIENT.ordinal()].getValue();
 		isActive = (Boolean) allFields[Columns.ISACTIVE.ordinal()].getValue();
+		isProxified = (Boolean) allFields[Columns.ISPROXIFIED.ordinal()].getValue();
 		updatedInfo = (Integer) allFields[Columns.UPDATEDINFO.ordinal()]
 				.getValue();
 		hostid = (String) allFields[Columns.HOSTID.ordinal()].getValue();
@@ -642,6 +652,25 @@ public class DbHostAuth extends AbstractDbData {
 	}
 
 	/**
+	 * @return the isProxified
+	 */
+	public boolean isProxified() {
+		return isProxified;
+	}
+
+	/**
+	 * @param isProxified the isProxified to set
+	 */
+	public void setProxified(boolean isProxified) {
+		this.isProxified = isProxified;
+		allFields[Columns.ISPROXIFIED.ordinal()].setValue(this.isProxified);
+		isSaved = false;
+		if (this.isProxified) {
+			Configuration.configuration.blacklistBadAuthent = false;
+		}
+	}
+
+	/**
 	 * Is the given key a valid one
 	 * 
 	 * @param newkey
@@ -762,7 +791,8 @@ public class DbHostAuth extends AbstractDbData {
 	public String toString() {
 		//System.err.println(hostid+" Version: "+Configuration.configuration.versions.get(hostid)+":"+Configuration.configuration.versions.containsKey(hostid));
 		return "HostAuth: " + hostid + " address: " + address + ":" + port + " isSSL: " + isSsl +
-				" admin: " + adminrole + " isClient: " + isClient + " isActive: " + isActive + " ("
+				" admin: " + adminrole + " isClient: " + isClient + " isActive: " + isActive 
+				+ " isProxified: " + isProxified + " ("
 				+ (hostkey != null ? hostkey.length : 0) + ") Version: "
 				+ getVersion(hostid);
 	}
@@ -794,6 +824,7 @@ public class DbHostAuth extends AbstractDbData {
 		WaarpStringUtils.replace(builder, "XXXADMXXX", adminrole ? "checked" : "");
 		WaarpStringUtils.replace(builder, "XXXISCXXX", isClient ? "checked" : "");
 		WaarpStringUtils.replace(builder, "XXXISAXXX", isActive ? "checked" : "");
+		WaarpStringUtils.replace(builder, "XXXISPXXX", isProxified ? "checked" : "");
 		WaarpStringUtils.replace(builder, "XXXVERSIONXXX", getVersion(hostid).replace(",", ", "));
 		int nb = 0;
 		try {
@@ -804,5 +835,41 @@ public class DbHostAuth extends AbstractDbData {
 		WaarpStringUtils.replace(builder, "XXXCONNXXX", (nb > 0)
 				? "(" + nb + " Connected) " : "");
 		return builder.toString();
+	}
+	
+	/**
+	 * 
+	 * @param session
+	 * @return True if any of the server has the isProxified property
+	 */
+	public static boolean hasProxifiedHosts(DbSession session) {
+		if (session == null) {
+			for (DbHostAuth host : dbR66HostAuthHashMap.values()) {
+				if (host.isProxified) {
+					return true;
+				}
+			}
+			return false;
+		}
+		DbPreparedStatement preparedStatement = null;
+		int val = 0;
+		try {
+			preparedStatement = new DbPreparedStatement(session, 
+					"SELECT count(*) FROM "+table+" WHERE "+Columns.ISPROXIFIED+" = "+true);
+			preparedStatement.executeQuery();
+			preparedStatement.getNext();
+			val = preparedStatement.getResultSet().getInt(1);
+		} catch (WaarpDatabaseNoConnectionException e) {
+			return false;
+		} catch (WaarpDatabaseSqlException e) {
+			return false;
+		} catch (SQLException e) {
+			return false;
+		} finally {
+			if (preparedStatement != null) {
+				preparedStatement.realClose();
+			}
+		}
+		return val > 0;
 	}
 }

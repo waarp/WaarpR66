@@ -388,6 +388,19 @@ public class DbModelOracle extends org.waarp.common.database.model.DbModelOracle
 			} finally {
 				request.close();
 			}
+			command = "ALTER TABLE "+DbHostAuth.table+" ADD ( "+
+					DbHostAuth.Columns.ISPROXIFIED.name()+ " "+
+					DBType.getType(DbHostAuth.dbTypes[DbHostAuth.Columns.ISPROXIFIED.ordinal()]) + 
+					" DEFAULT "+false+" NOT NULL ) ";
+			request = new DbRequest(session);
+			try {
+				request.query(command);
+			} catch (WaarpDatabaseSqlException e) {
+				e.printStackTrace();
+				//return false;
+			} finally {
+				request.close();
+			}
 		}
 		DbHostConfiguration.updateVersionDb(session, Configuration.configuration.HOST_ID, R66Versions.V2_4_23.getVersion());
 		return true;

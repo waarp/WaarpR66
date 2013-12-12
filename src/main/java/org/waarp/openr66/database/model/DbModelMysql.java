@@ -434,6 +434,26 @@ public class DbModelMysql extends org.waarp.common.database.model.DbModelMysql {
 			} finally {
 				request.close();
 			}
+			try {
+				String command = "ALTER TABLE "
+						+ DbHostAuth.table
+						+ " ADD COLUMN "
+						+
+						DbHostAuth.Columns.ISPROXIFIED.name()
+						+ " "
+						+
+						DBType.getType(DbHostAuth.dbTypes[DbHostAuth.Columns.ISPROXIFIED
+								.ordinal()]) +
+						" AFTER " + DbHostAuth.Columns.ISACTIVE.name();
+				request.query(command);
+				command = "UPDATE "+ DbHostAuth.table+" SET "+DbHostAuth.Columns.ISPROXIFIED.name()+" = "+false;
+				request.query(command);
+			} catch (WaarpDatabaseSqlException e) {
+				e.printStackTrace();
+				//return false;
+			} finally {
+				request.close();
+			}
 		}
 		DbHostConfiguration.updateVersionDb(session, Configuration.configuration.HOST_ID, R66Versions.V2_4_23.getVersion());
 		return true;

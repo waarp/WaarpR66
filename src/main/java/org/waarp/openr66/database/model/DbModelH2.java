@@ -377,6 +377,21 @@ public class DbModelH2 extends org.waarp.common.database.model.DbModelH2 {
 			} finally {
 				request.close();
 			}
+			command = "ALTER TABLE "+DbHostAuth.table+" ADD COLUMN IF NOT EXISTS "+
+					DbHostAuth.Columns.ISPROXIFIED.name()+ " "+
+					DBType.getType(DbHostAuth.dbTypes[DbHostAuth.Columns.ISPROXIFIED.ordinal()]) + 
+					" NOT NULL DEFAULT " + false +
+					" AFTER "+DbHostAuth.Columns.ISACTIVE.name();
+			request = new DbRequest(session);
+			try {
+				System.out.println("Command: "+command);
+				request.query(command);
+			} catch (WaarpDatabaseSqlException e) {
+				e.printStackTrace();
+				return false;
+			} finally {
+				request.close();
+			}
 		}
 		DbHostConfiguration.updateVersionDb(session, Configuration.configuration.HOST_ID, R66Versions.V2_4_23.getVersion());
 		return true;

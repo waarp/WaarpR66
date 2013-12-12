@@ -774,17 +774,19 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			DbHostAuth host = R66Auth.getServerAuth(localChannelReference.getDbSession(),
 					packet.getHostId());
 			boolean toTest = false;
-			if (host.isClient()) {
-				if (Configuration.configuration.checkClientAddress) {
-					if (host.isNoAddress()) {
-						// 0.0.0.0 so nothing
-						toTest = false;
-					} else {
-						toTest = true;
+			if (! host.isProxified()) {
+				if (host.isClient()) {
+					if (Configuration.configuration.checkClientAddress) {
+						if (host.isNoAddress()) {
+							// 0.0.0.0 so nothing
+							toTest = false;
+						} else {
+							toTest = true;
+						}
 					}
+				} else {
+					toTest = true;
 				}
-			} else {
-				toTest = true;
 			}
 			if (toTest) {
 				// Real address so compare

@@ -923,11 +923,12 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				String addr = getTrimValue("address");
 				String port = getTrimValue("port");
 				String key = getTrimValue("hostkey");
-				boolean ssl, admin, isclient, isactive;
+				boolean ssl, admin, isclient, isactive, isproxified;
 				ssl = params.containsKey("ssl");
 				admin = params.containsKey("admin");
 				isclient = params.containsKey("isclient");
 				isactive = params.containsKey("isactive");
+				isproxified = params.containsKey("isproxified");
 				if (host == null || addr == null || port == null || key == null) {
 					body0 = body1 = body = "";
 					body = Messages.getString("HttpSslHandler.13"); //$NON-NLS-1$
@@ -947,6 +948,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
 						ssl, key.getBytes(WaarpStringUtils.UTF8), admin, isclient);
 				dbhost.setActive(isactive);
+				dbhost.setProxified(isproxified);
 				try {
 					dbhost.insert();
 				} catch (WaarpDatabaseException e) {
@@ -996,11 +998,12 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				String addr = getTrimValue("address");
 				String port = getTrimValue("port");
 				String key = getTrimValue("hostkey");
-				boolean ssl, admin, isclient, isactive;
+				boolean ssl, admin, isclient, isactive, isproxified;
 				ssl = params.containsKey("ssl");
 				admin = params.containsKey("admin");
 				isclient = params.containsKey("isclient");
 				isactive = params.containsKey("isactive");
+				isproxified = params.containsKey("isproxified");
 				if (host == null || addr == null || port == null || key == null) {
 					body0 = body1 = body = "";
 					body = Messages.getString("HttpSslHandler.15"); //$NON-NLS-1$
@@ -1020,6 +1023,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				DbHostAuth dbhost = new DbHostAuth(dbSession, host, addr, iport,
 						ssl, key.getBytes(WaarpStringUtils.UTF8), admin, isclient);
 				dbhost.setActive(isactive);
+				dbhost.setProxified(isproxified);
 				try {
 					if (dbhost.exist()) {
 						dbhost.update();
