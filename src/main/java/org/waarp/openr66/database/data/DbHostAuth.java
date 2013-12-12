@@ -54,7 +54,9 @@ public class DbHostAuth extends AbstractDbData {
 	 */
 	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
 			.getLogger(DbHostAuth.class);
-	
+	/*
+	 * Note : ajout isproxified plus select count(*) from table where isproxified = true + set checkknownproxified + test pour blacklist
+	 */
 	public static enum Columns {
 		ADDRESS, PORT, ISSSL, HOSTKEY, ADMINROLE, ISCLIENT, ISACTIVE, UPDATEDINFO, HOSTID
 	}
