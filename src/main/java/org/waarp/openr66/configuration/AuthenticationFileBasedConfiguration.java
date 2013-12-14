@@ -109,6 +109,14 @@ public class AuthenticationFileBasedConfiguration {
 	 * Authentication Fields
 	 */
 	private static final String XML_AUTHENTIFICATION_ISCLIENT = "isclient";
+	/**
+	 * Authentication Fields
+	 */
+	private static final String XML_AUTHENTIFICATION_ISACTIVE = "isactive";
+	/**
+	 * Authentication Fields
+	 */
+	private static final String XML_AUTHENTIFICATION_ISPROXIFIED = "isproxified";
 
 	/**
 	 * Structure of the Configuration file
@@ -123,7 +131,9 @@ public class AuthenticationFileBasedConfiguration {
 			new XmlDecl(XmlType.STRING, XML_AUTHENTIFICATION_ADDRESS),
 			new XmlDecl(XmlType.INTEGER, XML_AUTHENTIFICATION_PORT),
 			new XmlDecl(XmlType.BOOLEAN, XML_AUTHENTIFICATION_ISSSL),
-			new XmlDecl(XmlType.BOOLEAN, XML_AUTHENTIFICATION_ISCLIENT)
+			new XmlDecl(XmlType.BOOLEAN, XML_AUTHENTIFICATION_ISCLIENT),
+			new XmlDecl(XmlType.BOOLEAN, XML_AUTHENTIFICATION_ISACTIVE),
+			new XmlDecl(XmlType.BOOLEAN, XML_AUTHENTIFICATION_ISPROXIFIED)
 	};
 	/**
 	 * Global Structure for Server Configuration
@@ -235,8 +245,20 @@ public class AuthenticationFileBasedConfiguration {
 			if (value != null && (!value.isEmpty())) {
 				isClient = value.getBoolean();
 			}
+			boolean isActive = true;
+			value = subHash.get(XML_AUTHENTIFICATION_ISACTIVE);
+			if (value != null && (!value.isEmpty())) {
+				isActive = value.getBoolean();
+			}
+			boolean isProxified = false;
+			value = subHash.get(XML_AUTHENTIFICATION_ISPROXIFIED);
+			if (value != null && (!value.isEmpty())) {
+				isProxified = value.getBoolean();
+			}
 			DbHostAuth auth = new DbHostAuth(DbConstant.admin.session,
 					refHostId, address, port, isSsl, byteKeys, isAdmin, isClient);
+			auth.setActive(isActive);
+			auth.setProxified(isProxified);
 			try {
 				if (auth.exist()) {
 					auth.update();
@@ -299,6 +321,9 @@ public class AuthenticationFileBasedConfiguration {
 			entry.add(newElement(XML_AUTHENTIFICATION_ADDRESS, auth.getAddress()));
 			entry.add(newElement(XML_AUTHENTIFICATION_PORT, Integer.toString(auth.getPort())));
 			entry.add(newElement(XML_AUTHENTIFICATION_ISSSL, Boolean.toString(auth.isSsl())));
+			entry.add(newElement(XML_AUTHENTIFICATION_ISCLIENT, Boolean.toString(auth.isClient())));
+			entry.add(newElement(XML_AUTHENTIFICATION_ISACTIVE, Boolean.toString(auth.isActive())));
+			entry.add(newElement(XML_AUTHENTIFICATION_ISPROXIFIED, Boolean.toString(auth.isProxified())));
 			root.add(entry);
 		}
 		try {
