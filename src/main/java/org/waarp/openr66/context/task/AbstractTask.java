@@ -230,6 +230,14 @@ public abstract class AbstractTask implements Runnable {
 		this.session = session;
 		futureCompletion = new R66Future(true);
 	}
+	
+	/**
+	 * 
+	 * @return the TaskType of this AbstractTask
+	 */
+	public TaskType getType() {
+		return type;
+	}
 
 	/**
 	 * This is the only interface to execute an operator.

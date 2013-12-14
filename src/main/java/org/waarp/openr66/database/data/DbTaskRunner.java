@@ -2665,29 +2665,40 @@ public class DbTaskRunner extends AbstractDbData {
 		if (tasks.length <= step) {
 			throw new OpenR66RunnerEndTasksException();
 		}
-		String name = tasks[step][0];
-		String arg = tasks[step][1];
-		int delay = 0;
-		try {
-			delay = Integer.parseInt(tasks[step][2]);
-		} catch (NumberFormatException e) {
-			logger.warn("Malformed task so stop the execution: " + this.toShortString());
-			throw new OpenR66RunnerErrorException("Malformed task so stop the execution");
-		}
-		AbstractTask task = TaskType.getTaskFromId(name, arg, delay, tempSession);
+		AbstractTask task = getTask(tasks[step], tempSession);
 		logger.debug(this.toLogRunStep() + " Task: " + task.getClass().getName());
 		task.run();
 		try {
 			task.getFutureCompletion().await();
 		} catch (InterruptedException e) {
 		}
-		if (name.equals(TaskType.RESCHEDULE.name)) {
+		if (task.getType() == TaskType.RESCHEDULE) {
 			// Special case : must test if exec is OK since it must be the last
 			if (this.isRescheduledTransfer()) {
 				throw new OpenR66RunnerEndTasksException();
 			}
 		}
 		return task.getFutureCompletion();
+	}
+	
+	/**
+	 * 
+	 * @param task
+	 * @param tempSession
+	 * @return the corresponding AbstractTask
+	 * @throws OpenR66RunnerErrorException
+	 */
+	public final AbstractTask getTask(String[] task, R66Session tempSession) throws OpenR66RunnerErrorException {
+		String name = task[0];
+		String arg = task[1];
+		int delay = 0;
+		try {
+			delay = Integer.parseInt(task[2]);
+		} catch (NumberFormatException e) {
+			logger.warn("Malformed task so stop the execution: " + this.toShortString());
+			throw new OpenR66RunnerErrorException("Malformed task so stop the execution");
+		}
+		return TaskType.getTaskFromId(name, arg, delay, tempSession);
 	}
 
 	/**
@@ -3228,9 +3239,25 @@ public class DbTaskRunner extends AbstractDbData {
 
 	/**
 	 * @param session
-	 * @return The associated freespace of the current directory
+	 * @return The associated freespace of the current directory (in MB)
 	 */
 	public long freespace(R66Session session) {
+		if (this.globallaststep == TASKSTEP.ALLDONETASK.ordinal() || 
+				this.globallaststep == TASKSTEP.POSTTASK.ordinal()) {
+			// All finished or Post task
+			return freespace(session, false) / 0x100000L;
+		} else {
+			// are we in sending or receive
+			return freespace(session, true) / 0x100000L;
+		}
+	}
+
+	/**
+	 * @param session
+	 * @param isWorkingPath
+	 * @return The associated freespace of the directory (Working if True, Recv if False) (in B, not MB)
+	 */
+	public long freespace(R66Session session, boolean isWorkingPath) {
 		long freespace = -1;
 		DbRule rule = null;
 		try {
@@ -3245,16 +3272,10 @@ public class DbTaskRunner extends AbstractDbData {
 			if (!this.isSender) {
 				try {
 					String sdir;
-					if (this.globallaststep == TASKSTEP.ALLDONETASK.ordinal()) {
-						// all finished
-						sdir = rule.getRecvPath();
-					} else if (this.globallaststep == TASKSTEP.POSTTASK
-							.ordinal()) {
-						// Post task
-						sdir = rule.getRecvPath();
-					} else {
-						// are we in sending or receive
+					if (isWorkingPath) {
 						sdir = rule.getWorkPath();
+					} else {
+						sdir = rule.getRecvPath();
 					}
 					R66Dir dir;
 					if (session.dirsFromSession.containsKey(sdir)) {
@@ -3264,7 +3285,7 @@ public class DbTaskRunner extends AbstractDbData {
 						dir.changeDirectory(sdir);
 						session.dirsFromSession.put(sdir, dir);
 					}
-					freespace = dir.getFreeSpace() / 0x100000L;
+					freespace = dir.getFreeSpace();
 				} catch (CommandAbstractException e) {
 					logger.warn("Error while freespace compute {}", e.getMessage(), e);
 				}
@@ -3543,6 +3564,13 @@ public class DbTaskRunner extends AbstractDbData {
 				values.put(value.column.toLowerCase(), "UNREADABLE");
 			}
 		}
+		if (runner.rescheduledTransfer) {
+			values.put("RESCHEDULE", ""+true);
+		}
+		if (runner.isRecvThrough || runner.isSendThrough) {
+			values.put("THROUGHMODE", ""+true);
+		}
+		values.put("ORIGINALSIZE", ""+runner.originalSize);
 		return values;
 	}
 	/**

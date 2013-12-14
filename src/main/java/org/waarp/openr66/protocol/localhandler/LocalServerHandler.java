@@ -86,7 +86,9 @@ import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.context.authentication.R66Auth;
 import org.waarp.openr66.context.filesystem.R66Dir;
 import org.waarp.openr66.context.filesystem.R66File;
+import org.waarp.openr66.context.task.AbstractTask;
 import org.waarp.openr66.context.task.ExecJavaTask;
+import org.waarp.openr66.context.task.TaskType;
 import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
 import org.waarp.openr66.context.task.exception.OpenR66RunnerException;
 import org.waarp.openr66.database.DbConstant;
@@ -200,6 +202,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		if (localChannelReference != null &&
 				localChannelReference.getFutureRequest().isDone()) {
 			// already done
+			mustFinalize = false;
 		} else {
 			if (localChannelReference != null) {
 				R66Future fvr = localChannelReference.getFutureValidRequest();
@@ -1289,10 +1292,15 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		if (runner.isSender()) {
 			logger.debug("Rank was: " + runner.getRank() + " -> " + packet.getRank());
 			runner.setRankAtStartup(packet.getRank());
-		} else if (runner.getRank() > packet.getRank()) {
-			logger.debug("Recv Rank was: " + runner.getRank() + " -> " + packet.getRank());
-			// if receiver, change only if current rank is upper proposed rank
-			runner.setRankAtStartup(packet.getRank());
+		} else {
+			if (runner.getRank() > packet.getRank()) {
+				logger.debug("Recv Rank was: " + runner.getRank() + " -> " + packet.getRank());
+				// if receiver, change only if current rank is upper proposed rank
+				runner.setRankAtStartup(packet.getRank());
+			}
+			if (packet.getOriginalSize() > 0) {
+				runner.setOriginalSize(packet.getOriginalSize());
+			}
 		}
 		logger.debug("Filesize: "+packet.getOriginalSize()+":"+runner.isSender());
 		boolean shouldInformBack = false;
@@ -1326,6 +1334,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			errorToSend("PreTask in error: " + e.getMessage(), runner.getErrorInfo(), channel, 38);
 			return;
 		}
+		logger.debug("Filesize: "+packet.getOriginalSize()+":"+runner.isSender());
 		// now check that filesize is NOT 0
 		if (runner.getOriginalSize() == 0) {
 			// not valid so create an error from there
@@ -1414,7 +1423,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				ChannelUtils.writeAbstractLocalPacket(localChannelReference,
 					validPacket, true);
 			}
-		} else if (shouldInformBack) {
+		} else if (shouldInformBack && (!packet.isToValidate())) {
 			// File length is now known, so inform back
 			logger.debug("Will send a modification of filesize: " +
 					runner.getOriginalSize());
@@ -2687,11 +2696,55 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				if (fields.length > 1) {
 					try {
 						newSize = Long.parseLong(fields[fields.length-1]);
-						if (session.getRunner() != null) {
+						DbTaskRunner runner = session.getRunner();
+						if (runner != null) {
 							if (newSize > 0) {
-								session.getRunner().setOriginalSize(newSize);
+								runner.setOriginalSize(newSize);
+								// Check if a CHKFILE task was supposely needed to run
+								String [][] rpretasks = runner.getRule().rpreTasksArray;
+								if (rpretasks != null) {
+									for (String[] strings : rpretasks) {
+										AbstractTask task = runner.getTask(strings, session);
+										if (task.getType() == TaskType.CHKFILE) {
+											// re run this in case
+											task.run();
+											try {
+												task.getFutureCompletion().await();
+											} catch (InterruptedException e) {
+											}
+											if (! task.getFutureCompletion().isSuccess()) {
+												// not valid so create an error from there
+												ErrorCode code = ErrorCode.SizeNotAllowed;
+												runner.setErrorExecutionStatus(code);
+												runner.saveStatus();
+												session.setBadRunner(runner, code);
+												session.newState(ERROR);
+												logger.error("File length is not compatible with Rule or capacity {} {}", packet, session);
+												ErrorPacket errorPacket = new ErrorPacket("File length is not compatible with Rule or capacity",
+														code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+												try {
+													ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+															errorPacket, true);
+												} catch (OpenR66ProtocolPacketException e2) {
+												}
+												try {
+													session.setFinalizeTransfer(false, new R66Result(new OpenR66RunnerErrorException(errorPacket.getSheader()), session,
+															true, runner.getErrorInfo(), runner));
+												} catch (OpenR66RunnerErrorException e1) {
+													localChannelReference.invalidateRequest(new R66Result(new OpenR66RunnerErrorException(errorPacket.getSheader()), session,
+															true, runner.getErrorInfo(), runner));
+												} catch (OpenR66ProtocolSystemException e1) {
+													localChannelReference.invalidateRequest(new R66Result(new OpenR66RunnerErrorException(errorPacket.getSheader()), session,
+															true, runner.getErrorInfo(), runner));
+												}
+												session.setStatus(97);
+												ChannelCloseTimer.closeFutureChannel(channel);
+												return;
+											}
+										}
+									}
+								}
 							} else if (newSize == 0) {
-								DbTaskRunner runner = session.getRunner();
 								// now check that filesize is NOT 0
 								if (runner.getOriginalSize() == 0) {
 									// not valid so create an error from there
@@ -3035,10 +3088,56 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					break;
 				}
 				long newSize = node.getFilesize();
+				logger.debug("NewSize "+ newSize + " NewName "+newfilename);
 				// potential file size changed
 				if (newSize > 0) {
-					if (session.getRunner() != null) {
-						session.getRunner().setOriginalSize(newSize);
+					DbTaskRunner runner = session.getRunner();
+					if (runner != null) {
+						runner.setOriginalSize(newSize);
+						// Check if a CHKFILE task was supposely needed to run
+						String [][] rpretasks = runner.getRule().rpreTasksArray;
+						if (rpretasks != null) {
+							for (String[] strings : rpretasks) {
+								AbstractTask task = runner.getTask(strings, session);
+								if (task.getType() == TaskType.CHKFILE) {
+									// re run this in case
+									task.run();
+									try {
+										task.getFutureCompletion().await();
+									} catch (InterruptedException e) {
+									}
+									if (! task.getFutureCompletion().isSuccess()) {
+										// not valid so create an error from there
+										ErrorCode code = ErrorCode.SizeNotAllowed;
+										runner.setErrorExecutionStatus(code);
+										runner.saveStatus();
+										session.setBadRunner(runner, code);
+										session.newState(ERROR);
+										logger.error("File length is not compatible with Rule or capacity {} {}", packet, session);
+										ErrorPacket errorPacket = new ErrorPacket("File length is not compatible with Rule or capacity",
+												code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+										try {
+											ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+													errorPacket, true);
+										} catch (OpenR66ProtocolPacketException e2) {
+										}
+										try {
+											session.setFinalizeTransfer(false, new R66Result(new OpenR66RunnerErrorException(errorPacket.getSheader()), session,
+													true, runner.getErrorInfo(), runner));
+										} catch (OpenR66RunnerErrorException e1) {
+											localChannelReference.invalidateRequest(new R66Result(new OpenR66RunnerErrorException(errorPacket.getSheader()), session,
+													true, runner.getErrorInfo(), runner));
+										} catch (OpenR66ProtocolSystemException e1) {
+											localChannelReference.invalidateRequest(new R66Result(new OpenR66RunnerErrorException(errorPacket.getSheader()), session,
+													true, runner.getErrorInfo(), runner));
+										}
+										session.setStatus(97);
+										ChannelCloseTimer.closeFutureChannel(channel);
+										return;
+									}
+								}
+							}
+						}
 					}
 				} else if (newSize == 0) {
 					DbTaskRunner runner = session.getRunner();

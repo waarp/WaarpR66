@@ -26,7 +26,7 @@ import org.waarp.openr66.context.filesystem.R66Dir;
 import org.waarp.openr66.context.task.exception.OpenR66RunnerException;
 
 /**
- * This task validate the File Path according to the follwing argument:<br>
+ * This task validate the File Path according to the following argument:<br>
  * - the full path is get from the current file<br>
  * - the arg path is transformed as usual (static and dynamic from information transfer) and should
  * be the beginning of the correct valid path<br>

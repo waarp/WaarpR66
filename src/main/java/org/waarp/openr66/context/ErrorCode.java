@@ -177,7 +177,11 @@ public enum ErrorCode {
 	/**
 	 * Code stands for File not allowed
 	 */
-	FileNotAllowed(Messages.getString("ErrorCode.32"), 'a'); //$NON-NLS-1$
+	FileNotAllowed(Messages.getString("ErrorCode.32"), 'a'), //$NON-NLS-1$
+	/**
+	 * Code stands for Size not allowed
+	 */
+	SizeNotAllowed(Messages.getString("ErrorCode.33"), 'd'); //$NON-NLS-1$
 
 	/**
 	 * Literal for this code
@@ -234,6 +238,7 @@ public enum ErrorCode {
 		Running.mesg = Messages.getString("ErrorCode.30");
 		IncorrectCommand.mesg = Messages.getString("ErrorCode.31");
 		FileNotAllowed.mesg = Messages.getString("ErrorCode.32");
+		SizeNotAllowed.mesg = Messages.getString("ErrorCode.33");
 	}
 	/**
 	 * Code is either the 1 char code or the exact name in Enum
@@ -312,6 +317,8 @@ public enum ErrorCode {
 				return IncorrectCommand;
 			case 'a':
 				return FileNotAllowed;
+			case 'd':
+				return SizeNotAllowed;
 			default:
 				ErrorCode ecode = Unknown;
 				try {
@@ -350,6 +357,7 @@ public enum ErrorCode {
 			case Unimplemented:
 			case IncorrectCommand:
 			case FileNotAllowed:
+			case SizeNotAllowed:
 				return true;
 			case CompleteOk:
 			case InitOk:
