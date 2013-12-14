@@ -1424,6 +1424,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					validPacket, true);
 			}
 		} else if (shouldInformBack && (!packet.isToValidate())) {
+			// Was only for (shouldInformBack)
 			// File length is now known, so inform back
 			logger.debug("Will send a modification of filesize: " +
 					runner.getOriginalSize());
