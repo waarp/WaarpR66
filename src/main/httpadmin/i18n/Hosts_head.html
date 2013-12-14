@@ -108,6 +108,7 @@ a img {
       <td width="5%" align="center"><b data-i18n="menu3.entete6">Admin Role</b></td>
       <td width="5%" align="center"><b data-i18n="menu3.entete7">IsClient</b></td>
       <td width="5%" align="center"><b data-i18n="menu3.entete13">IsActive</b></td>
+      <td width="5%" align="center"><b data-i18n="menu3.entete14">IsProxified</b></td>
 					      </tr>
 					      <tr>
 					        <td width="12%" align="center">
@@ -138,7 +139,7 @@ a img {
 								</div>
 							</td>
 						    <td width="12%" align="center">
-						        <input type="checkbox" name="ssl" value="on"/>
+						        <input type="checkbox" name="ssl" value="off"/>
 						        <img id="sslhelp" alt="help for SSL field"  class="help" width="16" height="16" src="img/help_small.gif" />
 								<div id="containersslhelp">
 									<p data-i18n="menu3.text5" class="cshelp">
@@ -156,7 +157,7 @@ a img {
 								</div>
 							</td>
 						    <td width="13%" align="center">
-						        <input type="checkbox" name="admin" value="on"/>
+						        <input type="checkbox" name="admin" value="off"/>
 						        <img id="admhelp" alt="help for Admin field"  class="help" width="16" height="16" src="img/help_small.gif" />
 								<div id="containeradmhelp">
 									<p data-i18n="menu3.text7" class="cshelp">
@@ -165,7 +166,7 @@ a img {
 								</div>
 							</td>
 						    <td width="8%" align="center">
-						        <input type="checkbox" name="isclient" value="on"/>
+						        <input type="checkbox" name="isclient" value="off"/>
 						        <img id="ischelp" alt="help for IsClient field"  class="help" width="16" height="16" src="img/help_small.gif" />
 								<div id="containerischelp">
 									<p data-i18n="menu3.text8" class="cshelp">
@@ -177,8 +178,17 @@ a img {
 						        <input type="checkbox" name="isactive" value="on"/>
 						        <img id="isahelp" alt="help for IsActive field"  class="help" width="16" height="16" src="img/help_small.gif" />
 								<div id="containerisahelp">
-									<p data-i18n="menu3.text8" class="cshelp">
+									<p data-i18n="menu3.text9" class="cshelp">
 										If checked, this host is active. If unchecked, this host is inactive, ie not allow to do any action with the current server.
+									</p>
+								</div>
+							 </td>
+						    <td width="8%" align="center">
+						        <input type="checkbox" name="isproxified" value="off"/>
+						        <img id="isphelp" alt="help for IsProxified field"  class="help" width="16" height="16" src="img/help_small.gif" />
+								<div id="containerisphelp">
+									<p data-i18n="menu3.text10" class="cshelp">
+										If checked, this host is proxified, meaning that IP check cannot be done. If unchecked, this host is not proxified, ie IP checking could be done if active.
 									</p>
 								</div>
 							 </td>

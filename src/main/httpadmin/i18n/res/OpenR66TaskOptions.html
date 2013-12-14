@@ -303,7 +303,6 @@ a img {
 <blockquote>
 <p style="text-align:justify;"><span style="font-size:11pt;">Reschedule Transfer task to a time delayed by the specified number of milliseconds, if the error code is one of the specified codes and the optional intervals of date are compatible with the new time schedule<br /><br />Result of arguments will be as following options (the two first are mandatory):</span></p></blockquote>
 <ul>
-<li>
 <ul>
 <li><div style="text-align:justify;"><span style="font-size:11pt;">"-delay ms" where ms is the added number of ms on current time before retry on schedule </span></div></li>
 
@@ -312,7 +311,7 @@ a img {
 <li><div style="text-align:justify;"><span style="font-size:11pt;">"-between start;end" and/or "-notbetween start;end" (multiple times are allowed, start or end can be not set) and where start and stop are in the following format:<br />Yn:Mn:Dn:Hn:mn:Sn where n is a number for each time specification, each specification is optional, as Y=Year, M=Month, D=Day, H=Hour, m=minute, s=second.<br />Format can be X+n, X-n, X=n or Xn where X+-n means adding/subtracting n to current date value, while X=n or Xn means setting exact value<br />If one time specification is not set, it is based on the current date.<br /><br />If "-notbetween" is specified, the planned date must not be in the area.<br />If "-between" is specified, the planned date must be found in any such specified areas (could be in any of the occurrence). If not specified, it only depends on "-notbetween".<br />If none is specified, the planned date is always valid.</span></div></li>
 
 <li>
-<div style="text-align:justify;"><span style="font-size:11pt;">"-count limit" will be the limit of retry. The value limit is computed internally using transfer information.</span></div></li></ul></li></ul>
+<div style="text-align:justify;"><span style="font-size:11pt;">"-count limit" will be the limit of retry. The value limit is computed internally using transfer information.</span></div></li></ul></ul>
 <blockquote>
 <blockquote style="margin-right:0px;" dir="ltr">
 <p style="text-align:justify;"><span style="font-size:11pt;">Each time this function is called, the limit value will be replaced as newlimit = limit - 1 in the "transfer information". </span></p>
@@ -330,6 +329,8 @@ a img {
 <p style="text-align:justify;"><span style="font-size:11pt;">"-delay 3600000 -case ConnectionImpossible,ServerOverloaded,Shutdown -notbetween H7:m0:S0;H19:m0:S0 -notbetween H1:m0:S0;H=3:m0:S0 -count 1"<br />
 <blockquote>
 <p style="text-align:justify;"><span style="font-size:11pt;">means retry in case of error during initialization of connection in 1 hour if not between 7AM to 7PM and not between 1AM to 3AM and with a limit of 3 retries (retry will be reset to 1 in case of 3 attempts).</span></p></blockquote></blockquote>
+</blockquote>
+
 <ul>
 <li>
 <div style="text-align:justify;"><strong><span style="font-size:11pt;">TAR</span></strong></div></li></ul>
@@ -411,6 +412,7 @@ a img {
 <p style="text-align:justify;"><span style="font-size:11pt;">Delay is ignored.</span></p></span></li>
 <li>
 <p style="text-align:justify;"><span style="font-size:11pt;">The file is marked as moved.</span></p></li></ul></blockquote>
+
 <ul><li><p style="text-align:justify;"><strong><span style="font-size:11pt;">FTP</span></strong></p></li></ul>
 <blockquote>
 <div id="Comp1_sys_doctext"><p style="text-align:justify;"><span style="font-size:11pt;">This task FTP allows to have a synchronous file transfer using FTP in a task. It uses the following parameters:</span></p>
@@ -455,21 +457,30 @@ a img {
 </blockquote>
 
 <ul><li><p style="text-align:justify;"><strong><span style="font-size:11pt;">CHMOD</span></strong></p></li></ul>
-<blockquote><p style="text-align:justify;"><span style="font-size:11pt;">This task allows to change the mode of the file (as in Unix CHMOD command) according to the following argument:<br>
-- the full path is get from the current file<br>
-- the arg path is transformed as usual (static and dynamic from information transfer)<br>
-- this final path arg should be of the form [ua][+-=][rwx] where multiple elements could be specified, separated by blank character<br>
-- u/a meaning user(Waarp system user)/all (group and other do not exist in Java), +/-/= meaning add/remove/set (set means all other values are removed), r/w/x meaning Read/Write/Execute<br>
+<blockquote><p style="text-align:justify;"><span style="font-size:11pt;">This task allows to change the mode of the file (as in Unix CHMOD command) according to the following argument:</span></p>
+<ul>
+<li>the full path is get from the current file</li>
+<li>the arg path is transformed as usual (static and dynamic from information transfer)</li>
+<li>this final path arg should be of the form [ua][+-=][rwx] where multiple elements could be specified, separated by blank character</li>
+<li>u/a meaning user(Waarp system user)/all (group and other do not exist in Java), +/-/= meaning add/remove/set (set means all other values are removed), r/w/x meaning Read/Write/Execute</li></ul>
 <br>
 For instance, the final path arg could be:<br>
-<br>
-u=rwx a=r<br>
-ua+rw<br>
-u=rw a-wx<br>
-a+rw<br>
+<ul><li>u=rwx a=r</li><li>ua+rw</li><li>u=rw a-wx</li><li>a+rw</li></ul>
 Current access mode for the application will be applied as default "user" access mode, and no access mode (-rwx) will be the default for "all" access mode.<br>
 If several access mode are set in sequence, the result will be the sum of the results, step by step.<br>
-"a=r a+w a-r" will result in a=w (first step is r--, second step is rw-, third step is -w-).</span></p>
+"a=r a+w a-r" will result in a=w (first step is r--, second step is rw-, third step is -w-)
+
+<p style="text-align:justify;">&nbsp;</p>
+</blockquote>
+
+<ul><li><p style="text-align:justify;"><strong><span style="font-size:11pt;">CHKFILE</span></strong></p></li></ul>
+<blockquote><p style="text-align:justify;"><span style="font-size:11pt;">This task checks some properties relative to the File according to the following argument:</span></p>
+<ul>
+<li>SIZE LT/GT/LTE/GTE/EQ number : to check the file size according to a limit (less than, greater than, less than or equal, greater than or equal, equal)</li>
+<li>DFCHECK : to check if the future received file size is compatible with the space left on both working and received directories (from general configuration or rule configuration)</li></ul>
+<br>
+For instance "SIZE LT 10000000 SIZE GT 1000 DFCHECK" will test that the current file size is less than 10 MB (base 10), 
+and greater than 1000 bytes, and that the working and received directories have enough space to receive the file.
 <p style="text-align:justify;">&nbsp;</p>
 </blockquote>
 
