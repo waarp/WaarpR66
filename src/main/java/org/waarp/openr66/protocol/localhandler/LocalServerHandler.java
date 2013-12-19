@@ -1066,13 +1066,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		// XXX validLimit only on requested side
 		if (packet.isToValidate()) {
 			if (Configuration.configuration.isShutdown) {
-				logger.info(Messages.getString("LocalServerHandler.7") //$NON-NLS-1$
+				logger.warn(Messages.getString("LocalServerHandler.7") //$NON-NLS-1$
 						+ packet.getRulename() + " from " + session.getAuth().toString());
 				session.setStatus(100);
 				endInitRequestInError(channel,
 						ErrorCode.ServerOverloaded, null,
 						new OpenR66ProtocolNotYetConnectionException(
-								"Limit exceeded"), packet);
+								"All new Request blocked"), packet);
 				session.setStatus(100);
 				return;
 			}
@@ -1083,8 +1083,9 @@ public class LocalServerHandler extends SimpleChannelHandler {
 									+ session.getAuth().toString(),
 									Configuration.configuration.constraintLimitHandler.lastAlert);
 				}
-				logger.info(Messages.getString("LocalServerHandler.8") //$NON-NLS-1$
-						+ packet.getRulename() + " from " + session.getAuth().toString());
+				logger.warn(Messages.getString("LocalServerHandler.8") //$NON-NLS-1$
+						+ packet.getRulename() + " while " + Configuration.configuration.constraintLimitHandler.lastAlert +
+						" from " + session.getAuth().toString());
 				session.setStatus(100);
 				endInitRequestInError(channel,
 						ErrorCode.ServerOverloaded, null,

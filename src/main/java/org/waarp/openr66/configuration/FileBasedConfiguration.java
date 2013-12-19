@@ -1157,15 +1157,18 @@ public class FileBasedConfiguration {
 		}
 		if (useCpuLimit || highcpuLimit > 0) {
 			if (highcpuLimit > 0) {
+				logger.debug("full setup of ContraintLimitHandler");
 				config.constraintLimitHandler =
 						new R66ConstraintLimitHandler(useCpuLimit, useCpuLimitJDK, cpulimit, connlimit,
 								lowcpuLimit, highcpuLimit, percentageDecrease, null, delay,
 								limitLowBandwidth);
 			} else {
+				logger.debug("partial setup of ContraintLimitHandler");
 				config.constraintLimitHandler =
 						new R66ConstraintLimitHandler(useCpuLimit, useCpuLimitJDK, cpulimit, connlimit);
 			}
 		} else {
+			logger.debug("No setup of ContraintLimitHandler");
 			config.constraintLimitHandler =
 					new R66ConstraintLimitHandler();
 		}
