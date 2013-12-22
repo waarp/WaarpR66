@@ -23,6 +23,8 @@
 <MENU_INSERTION nom="isssl"/>
 <MENU_INSERTION nom="admin"/>
 <MENU_INSERTION nom="isclient"/>
+<MENU_INSERTION nom="isactive"/>
+<MENU_INSERTION nom="isproxified"/>
 <MENU_INSERTION nom="keyfile"/>
 <MENU_INSERTION nom="key"/>
 </MENU>
@@ -46,6 +48,8 @@
 <AFFICHAGE_ELEMENT type="typesimple" element="isssl"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="admin"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="isclient"/>
+<AFFICHAGE_ELEMENT type="typesimple" element="isactive"/>
+<AFFICHAGE_ELEMENT type="typesimple" element="isproxified"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="keyfile"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="key"/>
 </AFFICHAGE_NOEUDS>
@@ -130,6 +134,14 @@ Note from version 2.4.9, it could be override if roles are specified on general 
 <STRINGS_ELEMENT element="isclient">
 <TITRE>isclient</TITRE>
 <DOCUMENTATION>True if this Address Entry is for a Client</DOCUMENTATION>
+</STRINGS_ELEMENT>
+<STRINGS_ELEMENT element="isactive">
+<TITRE>isactive</TITRE>
+<DOCUMENTATION>True if this Address Entry is active (allowed)</DOCUMENTATION>
+</STRINGS_ELEMENT>
+<STRINGS_ELEMENT element="isproxified">
+<TITRE>isproxified</TITRE>
+<DOCUMENTATION>True if this Address Entry is proxified, meanning no IP check could be done</DOCUMENTATION>
 </STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="keyfile">
 <TITRE>keyfile</TITRE>

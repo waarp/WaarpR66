@@ -1020,8 +1020,8 @@ public class DbHostConfiguration extends AbstractDbData {
 		if ((newroles != null && ! newroles.isEmpty()) || purged) {
 			Document document = DocumentHelper.createDocument(DocumentHelper.createElement(XML_ROLES));
 			Element root = document.getRootElement();
-			RoleDefault newrole = new RoleDefault();
 			for (Entry<String, HashSet<String>> entry : map.entrySet()) {
+				RoleDefault newrole = new RoleDefault();
 				Element elt = root.addElement(XML_ROLE);
 				elt.addElement(XML_ROLEID).setText(entry.getKey());
 				String cumul = null;
@@ -1059,8 +1059,8 @@ public class DbHostConfiguration extends AbstractDbData {
 			document.clearContent();
 			document = null;
 		} else {
-			RoleDefault newrole = new RoleDefault();
 			for (Entry<String, HashSet<String>> entry : map.entrySet()) {
+				RoleDefault newrole = new RoleDefault();
 				if (entry.getValue().contains(ROLE.NOACCESS.name())) {
 					newrole.setRole(ROLE.NOACCESS);
 				}

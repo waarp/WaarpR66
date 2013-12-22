@@ -64,6 +64,7 @@ import org.waarp.openr66.context.R66BusinessFactoryInterface;
 import org.waarp.openr66.context.R66DefaultBusinessFactory;
 import org.waarp.openr66.context.R66FiniteDualStates;
 import org.waarp.openr66.context.task.localexec.LocalExecClient;
+import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoSslException;
@@ -569,7 +570,7 @@ public class Configuration {
 
 	protected volatile boolean configured = false;
 
-	public static WaarpSecureKeyStore WaarpSecureKeyStore;
+	public static WaarpSecureKeyStore waarpSecureKeyStore;
 
 	public static WaarpSslContextFactory waarpSslContextFactory;
 	/**
@@ -588,6 +589,8 @@ public class Configuration {
 
 	public boolean chrootChecked = true;
 	
+	public boolean blacklistBadAuthent = false;
+	
 	public Configuration() {
 		// Init signal handler
 		shutdownConfiguration.timeout = TIMEOUTCON;
@@ -603,8 +606,19 @@ public class Configuration {
 		isHostProxyfied = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_ISHOSTPROXYFIED, false);
 		warnOnStartup = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_STARTUP_WARNING, true);
 		chrootChecked = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_CHROOT_CHECKED, true);
+		blacklistBadAuthent = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_BLACKLIST_BADAUTHENT, true);
+		if (isHostProxyfied) {
+			blacklistBadAuthent = false;
+		}
 	}
 
+	public String toString() {
+		return "Config: { ServerPort: "+ SERVER_PORT+", ServerSslPort: "+SERVER_SSLPORT+", ServerView: "+SERVER_HTTPPORT+", ServerAdmin: "+SERVER_HTTPSPORT+
+				", TimeOut: "+TIMEOUTCON+", BaseDir: '"+baseDirectory+ "', DigestAlgo: '"+digest.name+ "', checkRemote: "+checkRemoteAddress+
+				", checkClient: "+checkClientAddress+ ", snmpActive: "+(agentSnmp!=null)+ ", chrootChecked: "+chrootChecked+
+				", blacklist: "+blacklistBadAuthent + ", isHostProxified: "+isHostProxyfied +"}";
+	}
+	
 	/**
 	 * Configure the pipeline for client (to be called ony once)
 	 */
@@ -657,6 +671,9 @@ public class Configuration {
 	public void serverStartup() throws WaarpDatabaseNoConnectionException,
 			WaarpDatabaseSqlException {
 		isServer = true;
+		if (blacklistBadAuthent) {
+			blacklistBadAuthent = ! DbHostAuth.hasProxifiedHosts(DbConstant.admin.session);
+		}
 		shutdownConfiguration.timeout = TIMEOUTCON;
 		R66ShutdownHook.addShutdownHook();
 		if ((!useNOSSL) && (!useSSL)) {

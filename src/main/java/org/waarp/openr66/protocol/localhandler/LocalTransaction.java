@@ -142,7 +142,7 @@ public class LocalTransaction {
 			throws OpenR66ProtocolSystemException {
 		LocalChannelReference localChannelReference = getFromId(localId);
 		if (localChannelReference != null) {
-			if (localChannelReference.getRemoteId() != remoteId) {
+			if (localChannelReference.getRemoteId().compareTo(remoteId) != 0) {
 				localChannelReference.setRemoteId(remoteId);
 			}
 			return localChannelReference;

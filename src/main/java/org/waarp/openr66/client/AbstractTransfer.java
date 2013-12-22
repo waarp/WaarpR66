@@ -207,7 +207,6 @@ public abstract class AbstractTransfer implements Runnable {
 	static protected boolean nolog = false;
 	static protected long idt = DbConstant.ILLEGALVALUE;
 	static protected Timestamp ttimestart = null;
-	static protected SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 
 	/**
 	 * Parse the parameter and set current values
@@ -272,6 +271,7 @@ public abstract class AbstractTransfer implements Runnable {
 				} else if (args[i].equalsIgnoreCase("-start")) {
 					i++;
 					Date date;
+					SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 					try {
 						date = dateFormat.parse(args[i]);
 						ttimestart = new Timestamp(date.getTime());

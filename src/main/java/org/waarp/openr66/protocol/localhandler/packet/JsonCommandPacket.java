@@ -21,6 +21,7 @@ import java.io.IOException;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
+import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 import org.waarp.openr66.protocol.localhandler.packet.json.JsonPacket;
@@ -61,7 +62,8 @@ public class JsonCommandPacket extends AbstractLocalPacket {
 			buf.readBytes(bmiddle);
 		}
 		bend = buf.readByte();
-		return new JsonCommandPacket(new String(bheader), new String(bmiddle), bend);
+		return new JsonCommandPacket(new String(bheader, WaarpStringUtils.UTF8), 
+				new String(bmiddle, WaarpStringUtils.UTF8), bend);
 	}
 
 	/**
@@ -105,14 +107,14 @@ public class JsonCommandPacket extends AbstractLocalPacket {
 	@Override
 	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		if (request != null) {
-			header = ChannelBuffers.wrappedBuffer(request.getBytes());
+			header = ChannelBuffers.wrappedBuffer(request.getBytes(WaarpStringUtils.UTF8));
 		}
 	}
 
 	@Override
 	public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		if (result != null) {
-			middle = ChannelBuffers.wrappedBuffer(result.getBytes());
+			middle = ChannelBuffers.wrappedBuffer(result.getBytes(WaarpStringUtils.UTF8));
 		}
 	}
 

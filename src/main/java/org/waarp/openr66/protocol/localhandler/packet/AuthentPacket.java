@@ -20,6 +20,7 @@ package org.waarp.openr66.protocol.localhandler.packet;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.waarp.common.digest.FilesystemBasedDigest;
+import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
@@ -86,9 +87,9 @@ public class AuthentPacket extends AbstractLocalPacket {
 			// version
 			byte [] bversion = new byte[endLength-5];
 			buf.readBytes(bversion);
-			version = new String(bversion);
+			version = new String(bversion, WaarpStringUtils.UTF8);
 		}
-		final String sheader = new String(bheader);
+		final String sheader = new String(bheader, WaarpStringUtils.UTF8);
 		return new AuthentPacket(sheader, bmiddle, newId, valid, version);
 	}
 
@@ -124,11 +125,12 @@ public class AuthentPacket extends AbstractLocalPacket {
 
 	@Override
 	public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		end = ChannelBuffers.buffer(5+(version != null ? version.getBytes().length : 0));
+		byte [] bversion = version != null ? version.getBytes(WaarpStringUtils.UTF8) : null;
+		end = ChannelBuffers.buffer(5+(version != null ? bversion.length : 0));
 		end.writeInt(localId);
 		end.writeByte(way);
 		if (version != null) {
-			end.writeBytes(version.getBytes());
+			end.writeBytes(bversion);
 		}
 	}
 
@@ -137,7 +139,7 @@ public class AuthentPacket extends AbstractLocalPacket {
 		if (hostId == null) {
 			throw new OpenR66ProtocolPacketException("Not enough data");
 		}
-		header = ChannelBuffers.wrappedBuffer(hostId.getBytes());
+		header = ChannelBuffers.wrappedBuffer(hostId.getBytes(WaarpStringUtils.UTF8));
 	}
 
 	@Override

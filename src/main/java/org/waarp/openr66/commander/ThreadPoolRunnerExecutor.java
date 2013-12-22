@@ -40,7 +40,7 @@ public class ThreadPoolRunnerExecutor extends ThreadPoolExecutor {
 	 * @author Frederic Bregier
 	 * 
 	 */
-	private class RunnerRejectedExecutionHandler implements RejectedExecutionHandler {
+	private static class RunnerRejectedExecutionHandler implements RejectedExecutionHandler {
 
 		public void rejectedExecution(Runnable arg0, ThreadPoolExecutor arg1) {
 			ClientRunner runner = (ClientRunner) arg0;

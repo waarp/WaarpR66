@@ -90,6 +90,14 @@ public abstract class AbstractBusinessRequest implements Runnable {
 	public void initRequest() throws OpenR66ProtocolNoConnectionException {
 		DbHostAuth host = R66Auth.getServerAuth(DbConstant.admin.session,
 				remoteHost);
+		if (host == null) {
+			future.setResult(null);
+			OpenR66ProtocolNoConnectionException e2 =
+					new OpenR66ProtocolNoConnectionException(
+							Messages.getString("AdminR66OperationsGui.188") + remoteHost); //$NON-NLS-1$
+			future.setFailure(e2);
+			throw e2;
+		}
 		final SocketAddress socketServerAddress;
 		try {
 			socketServerAddress = host.getSocketAddress();
@@ -99,7 +107,7 @@ public abstract class AbstractBusinessRequest implements Runnable {
 					new OpenR66ProtocolNoConnectionException(
 							Messages.getString("AdminR66OperationsGui.188") + host.toString()); //$NON-NLS-1$
 			future.setFailure(e2);
-			throw e;
+			throw e2;
 		}
 		boolean isSSL = host.isSsl();
 		localChannelReference = networkTransaction

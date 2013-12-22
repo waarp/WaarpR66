@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>WaarpR66</artifactId>
   <name>Waarp OpenR66</name>
-  <version>2.4.22</version>
+  <version>2.4.23</version>
   <description>
   OpenR66 is a File Transfer Monitor to be used in real production to transfer files between servers.
   It allows to start/restart a transfer, check the remote MD5, check status, make pre or post
@@ -15,7 +15,7 @@
   <parent>
     <groupId>Waarp</groupId>
     <artifactId>persistence-deps</artifactId>
-    <version>1.3</version>
+    <version>1.4</version>
   </parent>
   <issueManagement>
 	<system>GitHub</system>
@@ -49,7 +49,7 @@
     <dependency>
       <groupId>Waarp</groupId>
       <artifactId>WaarpCommon</artifactId>
-      <version>1.2.19</version>
+      <version>1.2.20</version>
       <exclusions>
       	<exclusion>
       		<artifactId>xml-apis</artifactId>
@@ -72,13 +72,13 @@
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
-      <version>1.3.172</version>
+      <version>1.3.174</version>
       <optional>true</optional>
     </dependency>
     <dependency>
     	<groupId>mysql</groupId>
     	<artifactId>mysql-connector-java</artifactId>
-    	<version>5.1.25</version>
+    	<version>5.1.27</version>
     	<optional>true</optional>
     </dependency>
     <dependency>
@@ -90,6 +90,7 @@
     	<groupId>Waarp</groupId>
     	<artifactId>WaarpExec</artifactId>
     	<version>1.1.3</version>
+    	<optional>true</optional>
     </dependency>
     <dependency>
     	<groupId>Waarp</groupId>
@@ -126,13 +127,13 @@
     <dependency>
     	<groupId>Waarp</groupId>
     	<artifactId>WaarpFtpClient</artifactId>
-    	<version>1.0.3</version>
+    	<version>1.0.4</version>
     	<optional>true</optional>
     </dependency>
     <dependency>
     	<groupId>org.postgresql</groupId>
     	<artifactId>postgresql</artifactId>
-    	<version>9.2-1003-jdbc4</version>
+    	<version>9.3-1100-jdbc4</version>
     	<optional>true</optional>
     </dependency>
     <dependency>
@@ -151,7 +152,6 @@
     <plugins>
       <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
-        <version>1.7</version>
         <executions>
           <execution>
             <id>write-version</id>
@@ -165,6 +165,9 @@
                 <mkdir dir="${project.build.directory}/classes"/>
                 <echo message="${project.version}" file="${project.build.directory}/version.txt" />
                 <echo message="// DO NOT MODIFY - WILL BE OVERWRITTEN DURING THE BUILD PROCESS${line.separator}package org.waarp.openr66.protocol.utils;${line.separator}/** Provides the version information of Waarp OpenR66. */${line.separator}public final class Version {${line.separator} /** The version identifier. */${line.separator} public static final String ID = &quot;${project.version}&quot;;${line.separator} /** Prints out the version identifier to stdout. */${line.separator} public static void main(String[] args) { System.out.println(ID); }${line.separator} private Version() { super(); }${line.separator}}${line.separator}" file="${basedir}/src/main/java/org/waarp/openr66/protocol/utils/Version.java" />
+                <copy todir="${project.build.directory}/classes/" >
+                	<fileset dir="${basedir}/src/main/java/"><include name="*.properties"/></fileset>
+                </copy>
                 <echo message="${project.artifactId}" />
                 <taskdef resource="net/sf/antcontrib/antlib.xml" />
                 <if>
@@ -197,9 +200,6 @@
                         <include name="LICENSE.*" />
                         <include name="NOTICE.*" />
                         <include name="COPYRIGHT.*" />
-                      </zipfileset>
-                      <zipfileset dir="${basedir}/src/main/java" >
-                        <include name="*.properties" />
                       </zipfileset>
                       <zipfileset dir="${basedir}/license" prefix="META-INF/license/">
                         <exclude name="**/.*/**" />
@@ -238,10 +238,40 @@
   </build>
   <reporting>
   	<plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <configuration>
+          <xmlOutput>true</xmlOutput>
+          <xmlOutputDirectory>target/site</xmlOutputDirectory>
+          <failOnError>false</failOnError>
+          <effort>Default</effort>
+        </configuration>
+      </plugin>
+      <plugin>
+      	<groupId>org.apache.maven.plugins</groupId>
+      	<artifactId>maven-pmd-plugin</artifactId>
+      	<version>3.0.1</version>
+      	<configuration>
+      		<targetJdk>1.6</targetJdk>
+      		<rulesets>
+      			<ruleset>rulesets/java/basic.xml</ruleset>
+      			<!-- <ruleset>rulesets/java/design.xml</ruleset>
+      			<ruleset>rulesets/java/optimizations.xml</ruleset> -->
+      		</rulesets>
+      		<format>xml</format>
+      		<linkXref>true</linkXref>
+      		<sourceEncoding>utf-8</sourceEncoding>
+      		<minimumTokens>100</minimumTokens>
+      		<failOnViolation>false</failOnViolation>
+      		<aggregate>true</aggregate>
+      	</configuration>
+      </plugin>
+      
 	  <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.8.1</version>
+        <version>2.9.1</version>
         <reportSets>
          <reportSet>
           <id>aggregate</id>
@@ -251,7 +281,7 @@
 	          <docletArtifact>
 	            <groupId>org.jboss.apiviz</groupId>
 	            <artifactId>apiviz</artifactId>
-	            <version>1.3.1.GA</version>
+	            <version>1.3.2.GA</version>
 	          </docletArtifact>
 	          <attach>false</attach>
 	          <useStandardDocletOptions>true</useStandardDocletOptions>

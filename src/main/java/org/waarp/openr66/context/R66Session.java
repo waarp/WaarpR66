@@ -805,12 +805,10 @@ public class R66Session implements SessionInterface {
 			return;
 		}
 		if (this.businessObject != null) {
-			if (this.businessObject != null) {
-				if (status) {
-					this.businessObject.checkAfterTransfer(this);
-				} else {
-					this.businessObject.checkAtError(this);
-				}
+			if (status) {
+				this.businessObject.checkAfterTransfer(this);
+			} else {
+				this.businessObject.checkAtError(this);
 			}
 		}
 		if (runner.isAllDone()) {

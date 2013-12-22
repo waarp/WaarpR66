@@ -55,5 +55,10 @@ public class R66SystemProperties {
 	 * Shall we allow or not a request as RECV that will access to file outside Rule Out directory (default = false)
 	 */
 	public static final String OPENR66_CHROOT_CHECKED = "openr66.chroot.checked";
+	/**
+	 * Shall we blacklist badly authenticated servers (default = true, if OPENR66_ISHOSTPROXYFIED is true, then is mandatory false).
+	 * Note that this must not be true if several partners might have the same IP (proxyfied for instance), since they will all be banned.
+	 */
+	public static final String OPENR66_BLACKLIST_BADAUTHENT = "openr66.blacklist.badauthent";
 
 }
