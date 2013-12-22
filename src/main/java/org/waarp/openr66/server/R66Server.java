@@ -52,7 +52,7 @@ public class R66Server {
 		}
 		R66ShutdownHook.registerMain(R66Server.class, args);
 		if (initialize(args[0])) {
-			logger.warn(Messages.getString("R66Server.ServerStart") + Configuration.configuration.HOST_ID); //$NON-NLS-1$
+			logger.warn(Messages.getString("R66Server.ServerStart") + Configuration.configuration.HOST_ID + " : " + Configuration.configuration.toString()); //$NON-NLS-1$
 			System.err.println(Messages.getString("R66Server.ServerStart") + Configuration.configuration.HOST_ID); //$NON-NLS-1$
 		} else {
 			logger.error(Messages.getString("R66Server.CannotStart") + Configuration.configuration.HOST_ID); //$NON-NLS-1$

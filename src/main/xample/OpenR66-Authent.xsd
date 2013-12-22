@@ -69,6 +69,22 @@ Note from version 2.4.9, it could be override if roles are specified on general 
                             	</xsd:appinfo>
                             	<xsd:documentation>True if this Address Entry is for a Client</xsd:documentation></xsd:annotation>
 						</xsd:element>
+						<xsd:element name="isactive" minOccurs="0" maxOccurs="1" type="booleanType" default="False">
+                            <xsd:annotation>
+                            	<xsd:appinfo>
+                            		<fg:node-info
+                            			message="True if this Address Entry is Active (allowed)" />
+                            	</xsd:appinfo>
+                            	<xsd:documentation>True if this Address Entry is Active (allowed)</xsd:documentation></xsd:annotation>
+						</xsd:element>
+						<xsd:element name="isproxified" minOccurs="0" maxOccurs="1" type="booleanType" default="False">
+                            <xsd:annotation>
+                            	<xsd:appinfo>
+                            		<fg:node-info
+                            			message="True if this Address Entry is proxified, meanning no IP check could be done" />
+                            	</xsd:appinfo>
+                            	<xsd:documentation>True if this Address Entry is proxified, meanning no IP check could be done</xsd:documentation></xsd:annotation>
+						</xsd:element>
                         <xsd:choice minOccurs="1" maxOccurs="1">
                             <xsd:element name="keyfile" type="GGP-File">
                                 <xsd:annotation>

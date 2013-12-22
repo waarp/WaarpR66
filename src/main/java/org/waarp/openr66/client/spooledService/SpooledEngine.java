@@ -48,7 +48,7 @@ public class SpooledEngine extends EngineAbstract {
 	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
 			.getLogger(SpooledEngine.class);
 	
-	public static WaarpFuture closeFuture = new WaarpFuture(true);
+	public static final WaarpFuture closeFuture = new WaarpFuture(true);
 	
 	@Override
 	public void run() {
@@ -62,26 +62,31 @@ public class SpooledEngine extends EngineAbstract {
 		Configuration.configuration.shutdownConfiguration.serviceFuture = closeFuture;
 		try {
 			Properties prop = new Properties();
-			prop.load(new FileInputStream(config));
-			ArrayList<String> array = new ArrayList<String>();
-			for (Object okey : prop.keySet()) {
-				String key = (String) okey;
-				String val = prop.getProperty(key);
-				if (key.equals("xmlfile")) {
-					if (val != null && ! val.trim().isEmpty()) {
-						array.add(0, val);
+			FileInputStream in = new FileInputStream(config);
+			try {
+				prop.load(in);
+				ArrayList<String> array = new ArrayList<String>();
+				for (Object okey : prop.keySet()) {
+					String key = (String) okey;
+					String val = prop.getProperty(key);
+					if (key.equals("xmlfile")) {
+						if (val != null && ! val.trim().isEmpty()) {
+							array.add(0, val);
+						} else {
+							throw new Exception("Initialization in error: missing xmlfile");
+						}
 					} else {
-						throw new Exception("Initialization in error: missing xmlfile");
-					}
-				} else {
-					array.add("-"+key);
-					if (val != null && ! val.trim().isEmpty()) {
-						array.add(val);
+						array.add("-"+key);
+						if (val != null && ! val.trim().isEmpty()) {
+							array.add(val);
+						}
 					}
 				}
-			}
-			if (! SpooledDirectoryTransfer.initialize((String[]) array.toArray(new String[]{}), false)) {
-				throw new Exception("Initialization in error");
+				if (! SpooledDirectoryTransfer.initialize((String[]) array.toArray(new String[]{}), false)) {
+					throw new Exception("Initialization in error");
+				}
+			} finally {
+				in.close();
 			}
 		} catch (Throwable e) {
 			logger.error("Cannot start SpooledDirectory", e);

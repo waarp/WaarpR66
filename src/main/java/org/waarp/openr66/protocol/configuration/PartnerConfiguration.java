@@ -123,6 +123,9 @@ public class PartnerConfiguration {
 				root.putAll(info);
 			}
 		}
+		if (this.isProxified()) {
+			Configuration.configuration.blacklistBadAuthent = false;
+		}
 		logger.debug("Info HostId: "+root.toString());
 	}
 	

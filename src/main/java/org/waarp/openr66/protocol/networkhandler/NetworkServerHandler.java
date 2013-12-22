@@ -137,6 +137,12 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 			throws OpenR66ProtocolNetworkException {
 		Channel networkChannel = e.getChannel();
 		this.remoteAddress = networkChannel.getRemoteAddress();
+		if (NetworkTransaction.isBlacklisted(networkChannel)) {
+			logger.warn("Connection refused since Partner is in BlackListed from "+remoteAddress.toString());
+			// close immediately the connection
+			WaarpSslUtility.closingSslChannel(networkChannel);
+			return;
+		}
 		try {
 			if (DbConstant.admin.isConnected) {
 				if (DbConstant.admin.isCompatibleWithThreadSharedConnexion()) {

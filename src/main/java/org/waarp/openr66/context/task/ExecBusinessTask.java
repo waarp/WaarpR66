@@ -19,7 +19,6 @@ package org.waarp.openr66.context.task;
 
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
-import org.waarp.openr66.context.task.AbstractExecJavaTask;
 import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.packet.BusinessRequestPacket;

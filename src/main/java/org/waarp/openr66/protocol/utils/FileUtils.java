@@ -393,7 +393,7 @@ public class FileUtils {
 	 * @param _Path
 	 * @return true if the file exist in the specified path
 	 */
-	public final static boolean FileExist(String _FileName, String _Path) {
+	public final static boolean fileExist(String _FileName, String _Path) {
 		boolean exist = false;
 		String fileString = _Path + File.separator + _FileName;
 		File file = new File(fileString);

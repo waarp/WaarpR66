@@ -15,7 +15,7 @@
         <usessl>True</usessl>
         <usehttpcomp>False</usehttpcomp>
         <uselocalexec>False</uselocalexec>
-        <httpadmin>J:\GG\R66\httpadmin\i18n</httpadmin>
+        <httpadmin>J:\GG\R66\admin2</httpadmin>
         <admkeypath>J:\GG\R66\certs\testsslnocert.jks</admkeypath>
         <admkeystorepass>testsslnocert</admkeystorepass>
         <admkeypass>testalias</admkeypass>

@@ -271,6 +271,7 @@ public class FtpTransferTask extends AbstractTask {
 						algo = DigestAlgo.MD5;
 						break;
 					case 3: // SHA1
+					default:
 						params = "XSHA1 ";
 						algo = DigestAlgo.SHA1;
 						break;

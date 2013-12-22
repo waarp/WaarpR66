@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="imagetoolbar" content="no" />
-<meta http-equiv="Content-type" content="text/html; charset=iso-8859-1" />
+<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
 <meta http-equiv="Cache-Control" content="no-cache" />
 <meta http-equiv="Expires" content="Mon, 15 Jan 2007 12:00:00 GMT" />
 <meta name="robots" content="noindex,nofollow" />
@@ -234,6 +234,19 @@ a img {
 	<div id="containerblockchelp"><p data-i18n="menu5.text12" class="cshelp">
 	By clicking on this button will result in blocking/unblocking any new request (all active transfers
 	will still continue).
+	</p></div>
+  </form>
+<p>&nbsp;</p>
+  <form method="post" name="SYSTEM" action="/System.html">
+    <label data-i18n="menu5.text16">Change Logging Level in OpenR66 Server</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <input type="radio" name="loglevel" value="DEBUG" XXXLEVEL1XXX><label data-i18n="menu5.text17">DEBUG</label>&nbsp;&nbsp;
+    <input type="radio" name="loglevel" value="INFO" XXXLEVEL2XXX><label data-i18n="menu5.text18">INFO</label>&nbsp;&nbsp;
+    <input type="radio" name="loglevel" value="WARN" XXXLEVEL3XXX><label data-i18n="menu5.text19">WARN</label>&nbsp;&nbsp;
+    <input type="radio" name="loglevel" value="ERROR" XXXLEVEL4XXX><label data-i18n="menu5.text20">ERROR</label>&nbsp;&nbsp;
+    <input type="submit" value="Level" name="ACTION">
+    <img id="levelchelp" alt="help for Log"  class="help" width="16" height="16" src="img/help_small.gif" />
+	<div id="containerlevelchelp"><p data-i18n="menu5.text21" class="cshelp">
+	You can change dynamically the Logging level of the program from here (in addition to being able to fixing it in configuration file).
 	</p></div>
   </form>
 					</div>

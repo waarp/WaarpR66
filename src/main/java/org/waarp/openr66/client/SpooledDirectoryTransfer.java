@@ -305,6 +305,9 @@ public class SpooledDirectoryTransfer implements Runnable {
 		if (waarpHosts != null && ! waarpHosts.isEmpty()) {
 			waarpHostCommand = new FileMonitorCommandRunnableFuture() {
 				public void run(FileItem notused) {
+					if (DbConstant.admin.session != null) {
+						DbConstant.admin.session.checkConnectionNoException();
+					}
 					String status = monitorArg.getStatus();
 					for (String host : waarpHosts) {
 						host = host.trim();
@@ -359,6 +362,9 @@ public class SpooledDirectoryTransfer implements Runnable {
 
 		public void run(FileItem fileItem) {
 			this.fileItem = fileItem;
+			if (DbConstant.admin.session != null) {
+				DbConstant.admin.session.checkConnectionNoException();
+			}
 			boolean finalStatus = false;
 			long specialId = remoteHosts.size() > 1 ? DbConstant.ILLEGALVALUE : fileItem.specialId;
 			for (String host : remoteHosts) {
@@ -385,12 +391,23 @@ public class SpooledDirectoryTransfer implements Runnable {
 										false, false, true, networkTransaction);
 								logger.info(text+host);
 								transaction.run();
+								// special task
+								future.awaitUninterruptibly();
+								if (! future.isSuccess()) {
+									text = "Direct Transfer: ";
+									future = new R66Future(true);
+									DirectTransfer transaction2 = new DirectTransfer(future,
+											host, filename, rulename, fileinfo, isMD5, blocksize, 
+											DbConstant.ILLEGALVALUE, networkTransaction);
+									logger.info(text+host);
+									transaction2.run();
+								}
 							} catch (WaarpDatabaseException e) {
 								logger.warn(Messages.getString("RequestTransfer.5") + host, e); //$NON-NLS-1$
 								text = "Direct Transfer: ";
 								DirectTransfer transaction = new DirectTransfer(future,
 										host, filename, rulename, fileinfo, isMD5, blocksize, 
-										specialId, networkTransaction);
+										DbConstant.ILLEGALVALUE, networkTransaction);
 								logger.info(text+host);
 								transaction.run();
 							}
@@ -498,7 +515,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 		protected int limitParallel = 0;
 	}
 	
-	protected static List<Arguments> arguments = new ArrayList<Arguments>();
+	protected static final List<Arguments> arguments = new ArrayList<Arguments>();
 	private static final String XML_ROOT = "/config/";
 	private static final String XML_SPOOLEDDAEMON = "spooleddaemon";
 	private static final String XML_stopfile = "stopfile";
@@ -831,7 +848,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 		initialize(args, true);
 	}
 
-	public static List<SpooledDirectoryTransfer> list = new ArrayList<SpooledDirectoryTransfer>();
+	public static final List<SpooledDirectoryTransfer> list = new ArrayList<SpooledDirectoryTransfer>();
 	public static NetworkTransaction networkTransactionStatic = null;
 	public static ExecutorService executorService = null;
 	/**
@@ -842,6 +859,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 		if (logger == null) {
 			logger = WaarpInternalLoggerFactory.getLogger(SpooledDirectoryTransfer.class);
 		}
+		arguments.clear();
 		if (!getParams(args)) {
 			logger.error(Messages.getString("Configuration.WrongInit")); //$NON-NLS-1$
 			if (DbConstant.admin != null && DbConstant.admin.isConnected) {

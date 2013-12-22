@@ -86,7 +86,9 @@ import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.context.authentication.R66Auth;
 import org.waarp.openr66.context.filesystem.R66Dir;
 import org.waarp.openr66.context.filesystem.R66File;
+import org.waarp.openr66.context.task.AbstractTask;
 import org.waarp.openr66.context.task.ExecJavaTask;
+import org.waarp.openr66.context.task.TaskType;
 import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
 import org.waarp.openr66.context.task.exception.OpenR66RunnerException;
 import org.waarp.openr66.database.DbConstant;
@@ -200,6 +202,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		if (localChannelReference != null &&
 				localChannelReference.getFutureRequest().isDone()) {
 			// already done
+			mustFinalize = false;
 		} else {
 			if (localChannelReference != null) {
 				R66Future fvr = localChannelReference.getFutureValidRequest();
@@ -214,6 +217,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
 							// ignore
 							mustFinalize = false;
 						}
+					} else {
+						mustFinalize = false;
 					}
 				}
 				logger.debug("Must Finalize: " + mustFinalize);
@@ -693,9 +698,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
 	 */
 	private void refusedConnection(Channel channel, AuthentPacket packet, Exception e1)
 			throws OpenR66ProtocolPacketException {
-		logger.error(Messages.getString("LocalServerHandler.5")+ //$NON-NLS-1$
+		logger.error(Messages.getString("LocalServerHandler.6")+ //$NON-NLS-1$
 			localChannelReference.getNetworkChannel().getRemoteAddress()+
-			" : " + packet.getHostId(), e1);
+			" : " + packet.getHostId());
+		logger.debug(Messages.getString("LocalServerHandler.6")+ //$NON-NLS-1$
+				localChannelReference.getNetworkChannel().getRemoteAddress()+
+				" : " + packet.getHostId(), e1);
 		if (Configuration.configuration.r66Mib != null) {
 			Configuration.configuration.r66Mib.notifyError(
 					"Connection not allowed from "+
@@ -715,7 +723,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				ErrorPacket.FORWARDCLOSECODE);
 		ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
 		localChannelReference.validateConnection(false, result);
+		Channel networkchannel = localChannelReference.getNetworkChannel();
+		boolean valid = NetworkTransaction.shuttingDownNetworkChannelBlackList(networkchannel);
+		logger.warn("Closing and blacklisting NetworkChannel since LocalChannel is not authenticated: "+valid);
 		ChannelCloseTimer.closeFutureChannel(channel);
+		ChannelCloseTimer.closeFutureChannel(networkchannel);
 	}
 
 	/**
@@ -765,17 +777,19 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			DbHostAuth host = R66Auth.getServerAuth(localChannelReference.getDbSession(),
 					packet.getHostId());
 			boolean toTest = false;
-			if (host.isClient()) {
-				if (Configuration.configuration.checkClientAddress) {
-					if (host.isNoAddress()) {
-						// 0.0.0.0 so nothing
-						toTest = false;
-					} else {
-						toTest = true;
+			if (! host.isProxified()) {
+				if (host.isClient()) {
+					if (Configuration.configuration.checkClientAddress) {
+						if (host.isNoAddress()) {
+							// 0.0.0.0 so nothing
+							toTest = false;
+						} else {
+							toTest = true;
+						}
 					}
+				} else {
+					toTest = true;
 				}
-			} else {
-				toTest = true;
 			}
 			if (toTest) {
 				// Real address so compare
@@ -855,7 +869,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 	 * @author Frederic Bregier
 	 * 
 	 */
-	private class RunnerChannelFutureListener implements ChannelFutureListener {
+	private static class RunnerChannelFutureListener implements ChannelFutureListener {
 		private LocalChannelReference localChannelReference;
 		private R66Result result;
 
@@ -866,8 +880,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		}
 
 		public void operationComplete(ChannelFuture future) throws Exception {
-			localChannelReference.invalidateRequest(
-					result);
+			localChannelReference.invalidateRequest(result);
 			ChannelCloseTimer.closeFutureChannel(localChannelReference.getLocalChannel());
 		}
 
@@ -907,12 +920,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			R66Result result = new R66Result(exception, session,
 					true, code, runner);
 			// now try to inform other
+			session.setFinalizeTransfer(false, result);
 			try {
 				ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false).
 						addListener(new RunnerChannelFutureListener(localChannelReference, result));
 			} catch (OpenR66ProtocolPacketException e) {
 			}
-			session.setFinalizeTransfer(false, result);
 			return;
 		} else if (code.code == ErrorCode.StoppedTransfer.code) {
 			exception =
@@ -930,12 +943,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			R66Result result = new R66Result(exception, session,
 					true, code, runner);
 			// now try to inform other
+			session.setFinalizeTransfer(false, result);
 			try {
 				ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false).
 						addListener(new RunnerChannelFutureListener(localChannelReference, result));
 			} catch (OpenR66ProtocolPacketException e) {
 			}
-			session.setFinalizeTransfer(false, result);
 			return;
 		} else if (code.code == ErrorCode.QueryAlreadyFinished.code) {
 			DbTaskRunner runner = session.getRunner();
@@ -1053,13 +1066,13 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		// XXX validLimit only on requested side
 		if (packet.isToValidate()) {
 			if (Configuration.configuration.isShutdown) {
-				logger.info(Messages.getString("LocalServerHandler.7") //$NON-NLS-1$
+				logger.warn(Messages.getString("LocalServerHandler.7") //$NON-NLS-1$
 						+ packet.getRulename() + " from " + session.getAuth().toString());
 				session.setStatus(100);
 				endInitRequestInError(channel,
 						ErrorCode.ServerOverloaded, null,
 						new OpenR66ProtocolNotYetConnectionException(
-								"Limit exceeded"), packet);
+								"All new Request blocked"), packet);
 				session.setStatus(100);
 				return;
 			}
@@ -1070,13 +1083,14 @@ public class LocalServerHandler extends SimpleChannelHandler {
 									+ session.getAuth().toString(),
 									Configuration.configuration.constraintLimitHandler.lastAlert);
 				}
-				logger.info(Messages.getString("LocalServerHandler.8") //$NON-NLS-1$
-						+ packet.getRulename() + " from " + session.getAuth().toString());
+				logger.warn(Messages.getString("LocalServerHandler.8") //$NON-NLS-1$
+						+ packet.getRulename() + " while " + Configuration.configuration.constraintLimitHandler.lastAlert +
+						" from " + session.getAuth().toString());
 				session.setStatus(100);
 				endInitRequestInError(channel,
 						ErrorCode.ServerOverloaded, null,
 						new OpenR66ProtocolNotYetConnectionException(
-								"Limit exceeded"), packet);
+								"Limit exceeded "+Configuration.configuration.constraintLimitHandler.lastAlert), packet);
 				session.setStatus(100);
 				return;
 			}
@@ -1279,10 +1293,15 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		if (runner.isSender()) {
 			logger.debug("Rank was: " + runner.getRank() + " -> " + packet.getRank());
 			runner.setRankAtStartup(packet.getRank());
-		} else if (runner.getRank() > packet.getRank()) {
-			logger.debug("Recv Rank was: " + runner.getRank() + " -> " + packet.getRank());
-			// if receiver, change only if current rank is upper proposed rank
-			runner.setRankAtStartup(packet.getRank());
+		} else {
+			if (runner.getRank() > packet.getRank()) {
+				logger.debug("Recv Rank was: " + runner.getRank() + " -> " + packet.getRank());
+				// if receiver, change only if current rank is upper proposed rank
+				runner.setRankAtStartup(packet.getRank());
+			}
+			if (packet.getOriginalSize() > 0) {
+				runner.setOriginalSize(packet.getOriginalSize());
+			}
 		}
 		logger.debug("Filesize: "+packet.getOriginalSize()+":"+runner.isSender());
 		boolean shouldInformBack = false;
@@ -1316,6 +1335,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			errorToSend("PreTask in error: " + e.getMessage(), runner.getErrorInfo(), channel, 38);
 			return;
 		}
+		logger.debug("Filesize: "+packet.getOriginalSize()+":"+runner.isSender());
 		// now check that filesize is NOT 0
 		if (runner.getOriginalSize() == 0) {
 			// not valid so create an error from there
@@ -1404,7 +1424,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				ChannelUtils.writeAbstractLocalPacket(localChannelReference,
 					validPacket, true);
 			}
-		} else if (shouldInformBack) {
+		} else if (shouldInformBack && (!packet.isToValidate())) {
+			// Was only for (shouldInformBack)
 			// File length is now known, so inform back
 			logger.debug("Will send a modification of filesize: " +
 					runner.getOriginalSize());
@@ -2266,8 +2287,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				// Try to validate a restarting transfer
 				// validLimit on requested side
 				if (Configuration.configuration.constraintLimitHandler.checkConstraints()) {
-					logger.error("Limit exceeded while asking to relaunch a task"
-							+ packet.getSmiddle());
+					logger.error("Limit exceeded {} while asking to relaunch a task"
+							+ packet.getSmiddle(), Configuration.configuration.constraintLimitHandler.lastAlert);
 					session.setStatus(100);
 					ValidPacket valid;
 					valid = new ValidPacket(packet.getSmiddle(),
@@ -2677,11 +2698,55 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				if (fields.length > 1) {
 					try {
 						newSize = Long.parseLong(fields[fields.length-1]);
-						if (session.getRunner() != null) {
+						DbTaskRunner runner = session.getRunner();
+						if (runner != null) {
 							if (newSize > 0) {
-								session.getRunner().setOriginalSize(newSize);
+								runner.setOriginalSize(newSize);
+								// Check if a CHKFILE task was supposely needed to run
+								String [][] rpretasks = runner.getRule().rpreTasksArray;
+								if (rpretasks != null) {
+									for (String[] strings : rpretasks) {
+										AbstractTask task = runner.getTask(strings, session);
+										if (task.getType() == TaskType.CHKFILE) {
+											// re run this in case
+											task.run();
+											try {
+												task.getFutureCompletion().await();
+											} catch (InterruptedException e) {
+											}
+											if (! task.getFutureCompletion().isSuccess()) {
+												// not valid so create an error from there
+												ErrorCode code = ErrorCode.SizeNotAllowed;
+												runner.setErrorExecutionStatus(code);
+												runner.saveStatus();
+												session.setBadRunner(runner, code);
+												session.newState(ERROR);
+												logger.error("File length is not compatible with Rule or capacity {} {}", packet, session);
+												ErrorPacket errorPacket = new ErrorPacket("File length is not compatible with Rule or capacity",
+														code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+												try {
+													ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+															errorPacket, true);
+												} catch (OpenR66ProtocolPacketException e2) {
+												}
+												try {
+													session.setFinalizeTransfer(false, new R66Result(new OpenR66RunnerErrorException(errorPacket.getSheader()), session,
+															true, runner.getErrorInfo(), runner));
+												} catch (OpenR66RunnerErrorException e1) {
+													localChannelReference.invalidateRequest(new R66Result(new OpenR66RunnerErrorException(errorPacket.getSheader()), session,
+															true, runner.getErrorInfo(), runner));
+												} catch (OpenR66ProtocolSystemException e1) {
+													localChannelReference.invalidateRequest(new R66Result(new OpenR66RunnerErrorException(errorPacket.getSheader()), session,
+															true, runner.getErrorInfo(), runner));
+												}
+												session.setStatus(97);
+												ChannelCloseTimer.closeFutureChannel(channel);
+												return;
+											}
+										}
+									}
+								}
 							} else if (newSize == 0) {
-								DbTaskRunner runner = session.getRunner();
 								// now check that filesize is NOT 0
 								if (runner.getOriginalSize() == 0) {
 									// not valid so create an error from there
@@ -3025,10 +3090,56 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					break;
 				}
 				long newSize = node.getFilesize();
+				logger.debug("NewSize "+ newSize + " NewName "+newfilename);
 				// potential file size changed
 				if (newSize > 0) {
-					if (session.getRunner() != null) {
-						session.getRunner().setOriginalSize(newSize);
+					DbTaskRunner runner = session.getRunner();
+					if (runner != null) {
+						runner.setOriginalSize(newSize);
+						// Check if a CHKFILE task was supposely needed to run
+						String [][] rpretasks = runner.getRule().rpreTasksArray;
+						if (rpretasks != null) {
+							for (String[] strings : rpretasks) {
+								AbstractTask task = runner.getTask(strings, session);
+								if (task.getType() == TaskType.CHKFILE) {
+									// re run this in case
+									task.run();
+									try {
+										task.getFutureCompletion().await();
+									} catch (InterruptedException e) {
+									}
+									if (! task.getFutureCompletion().isSuccess()) {
+										// not valid so create an error from there
+										ErrorCode code = ErrorCode.SizeNotAllowed;
+										runner.setErrorExecutionStatus(code);
+										runner.saveStatus();
+										session.setBadRunner(runner, code);
+										session.newState(ERROR);
+										logger.error("File length is not compatible with Rule or capacity {} {}", packet, session);
+										ErrorPacket errorPacket = new ErrorPacket("File length is not compatible with Rule or capacity",
+												code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+										try {
+											ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+													errorPacket, true);
+										} catch (OpenR66ProtocolPacketException e2) {
+										}
+										try {
+											session.setFinalizeTransfer(false, new R66Result(new OpenR66RunnerErrorException(errorPacket.getSheader()), session,
+													true, runner.getErrorInfo(), runner));
+										} catch (OpenR66RunnerErrorException e1) {
+											localChannelReference.invalidateRequest(new R66Result(new OpenR66RunnerErrorException(errorPacket.getSheader()), session,
+													true, runner.getErrorInfo(), runner));
+										} catch (OpenR66ProtocolSystemException e1) {
+											localChannelReference.invalidateRequest(new R66Result(new OpenR66RunnerErrorException(errorPacket.getSheader()), session,
+													true, runner.getErrorInfo(), runner));
+										}
+										session.setStatus(97);
+										ChannelCloseTimer.closeFutureChannel(channel);
+										return;
+									}
+								}
+							}
+						}
 					}
 				} else if (newSize == 0) {
 					DbTaskRunner runner = session.getRunner();
@@ -3562,7 +3673,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				if (sbusiness != null) {
 					String filename = dir + File.separator + hostname + "_Business.xml";
 					FileOutputStream outputStream = new FileOutputStream(filename);
-					outputStream.write(sbusiness.getBytes());
+					outputStream.write(sbusiness.getBytes(WaarpStringUtils.UTF8));
 					outputStream.flush();
 					outputStream.close();
 					sbusiness = filename;
@@ -3574,7 +3685,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				if (salias != null) {
 					String filename = dir + File.separator + hostname + "_Aliases.xml";
 					FileOutputStream outputStream = new FileOutputStream(filename);
-					outputStream.write(salias.getBytes());
+					outputStream.write(salias.getBytes(WaarpStringUtils.UTF8));
 					outputStream.flush();
 					outputStream.close();
 					salias = filename;
@@ -3586,7 +3697,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				if (sroles != null) {
 					String filename = dir + File.separator + hostname + "_Roles.xml";
 					FileOutputStream outputStream = new FileOutputStream(filename);
-					outputStream.write(sroles.getBytes());
+					outputStream.write(sroles.getBytes(WaarpStringUtils.UTF8));
 					outputStream.flush();
 					outputStream.close();
 					sroles = filename;
@@ -3650,8 +3761,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		// validLimit on requested side
 		JsonCommandPacket valid;
 		if (Configuration.configuration.constraintLimitHandler.checkConstraints()) {
-			logger.error("Limit exceeded while asking to relaunch a task"
-					+ packet.getRequest());
+			logger.error("Limit exceeded {} while asking to relaunch a task"
+					+ packet.getRequest(), Configuration.configuration.constraintLimitHandler.lastAlert);
 			session.setStatus(100);
 			valid = new JsonCommandPacket(json,
 					ErrorCode.ServerOverloaded.getCode(),

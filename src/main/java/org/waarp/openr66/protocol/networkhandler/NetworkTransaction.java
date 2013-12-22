@@ -20,6 +20,7 @@ package org.waarp.openr66.protocol.networkhandler;
 import static org.waarp.openr66.context.R66FiniteDualStates.AUTHENTR;
 
 import java.net.ConnectException;
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Collections;
 import java.util.SortedSet;
@@ -88,6 +89,10 @@ public class NetworkTransaction {
 	 * Hashmap for Currently Shutdown remote host
 	 */
 	private static final ConcurrentHashMap<Integer, NetworkChannel> networkChannelShutdownOnSocketAddressConcurrentHashMap = new ConcurrentHashMap<Integer, NetworkChannel>();
+	/**
+	 * Hashmap for Currently blacklisted remote host
+	 */
+	private static final ConcurrentHashMap<Integer, NetworkChannel> networkChannelBlacklistedOnInetSocketAddressConcurrentHashMap = new ConcurrentHashMap<Integer, NetworkChannel>();
 
 	/**
 	 * Hashmap for currently active remote host
@@ -489,9 +494,9 @@ public class NetworkTransaction {
 					new OpenR66ProtocolSystemException("No SSL support", e1),
 					localChannelReference.getSession(), true, ErrorCode.ConnectionImpossible, null);
 			logger.error("Authent is Invalid due to no SSL: {}", e1.getMessage());
-			if (localChannelReference.getRemoteId() != ChannelUtils.NOCHANNEL) {
+			if (localChannelReference.getRemoteId().compareTo(ChannelUtils.NOCHANNEL) == 0) {
 				ConnectionErrorPacket error = new ConnectionErrorPacket(
-						"Cannot connect to localChannel since no SSL is supported", null);
+						"Cannot connect to localChannel since SSL is not supported", null);
 				try {
 					ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
 				} catch (OpenR66ProtocolPacketException e) {
@@ -728,6 +733,50 @@ public class NetworkTransaction {
 		return false;
 	}
 
+	/**
+	 * 
+	 * @param channel
+	 * @return True if this channel is now blacklisted for a while
+	 */
+	public static boolean shuttingDownNetworkChannelBlackList(Channel channel) {
+		SocketAddress address = channel.getRemoteAddress();
+		shuttingdownNetworkChannel(channel);
+		if (! Configuration.configuration.blacklistBadAuthent) {
+			return false;
+		}
+		InetSocketAddress inetaddress = (InetSocketAddress) address;
+		String remote = inetaddress.getAddress().getHostAddress();
+		NetworkChannel networkChannel = networkChannelBlacklistedOnInetSocketAddressConcurrentHashMap.get(remote.hashCode());
+		if (networkChannel != null) {
+			return false;
+		}
+		networkChannel = networkChannelShutdownOnSocketAddressConcurrentHashMap.get(address.hashCode());
+		if (networkChannel == null) {
+			networkChannel = new NetworkChannel(channel);
+		}
+		R66ShutdownNetworkChannelTimerTask timerTask = new R66ShutdownNetworkChannelTimerTask(remote.hashCode());
+		timerTask.isBlacklisted = true;
+		Configuration.configuration.getTimerClose().newTimeout(timerTask,
+				Configuration.configuration.TIMEOUTCON * 3, TimeUnit.MILLISECONDS);
+		networkChannelBlacklistedOnInetSocketAddressConcurrentHashMap.put(remote.hashCode(), networkChannel);
+		return true;
+	}
+	/**
+	 * 
+	 * @param channel
+	 * @return True if this channel is blacklisted
+	 */
+	public static boolean isBlacklisted(Channel channel) {
+		if (! Configuration.configuration.blacklistBadAuthent) {
+			return false;
+		}
+		SocketAddress address = channel.getRemoteAddress();
+		InetSocketAddress inetaddress = (InetSocketAddress) address;
+		String remote = inetaddress.getAddress().getHostAddress();
+		NetworkChannel networkChannel = networkChannelBlacklistedOnInetSocketAddressConcurrentHashMap.get(remote.hashCode());
+		return (networkChannel != null);
+	}
+	
 	/**
 	 * 
 	 * @param address
@@ -1184,6 +1233,7 @@ public class NetworkTransaction {
 		 * href to remove
 		 */
 		private final int href;
+		private boolean isBlacklisted = false;
 
 		/**
 		 * Constructor from type
@@ -1197,6 +1247,10 @@ public class NetworkTransaction {
 
 		public void run(Timeout timeout) throws Exception {
 			logger.debug("DEBUG: Will remove shutdown for : " + href);
+			if (isBlacklisted) {
+				networkChannelBlacklistedOnInetSocketAddressConcurrentHashMap.remove(href);
+				return;
+			}
 			NetworkChannel networkChannel =
 					networkChannelShutdownOnSocketAddressConcurrentHashMap.remove(href);
 			if (networkChannel != null && networkChannel.channel != null

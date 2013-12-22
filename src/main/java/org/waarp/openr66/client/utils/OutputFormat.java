@@ -22,6 +22,7 @@ package org.waarp.openr66.client.utils;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.waarp.common.json.JsonHandler;
 import org.waarp.openr66.protocol.configuration.Messages;
@@ -233,15 +234,15 @@ public class OutputFormat extends JsonHandler {
 					StringBuilder builderKeys = new StringBuilder();
 					StringBuilder builderValues = new StringBuilder();
 					boolean next = false;
-					for (String key : map.keySet()) {
+					for (Entry<String, Object> entry : map.entrySet()) {
 						if (next) {
 							builderKeys.append(';');
 							builderValues.append(';');
 						} else {
 							next = true;
 						}
-						builderKeys.append(key);
-						builderValues.append(map.get(key));
+						builderKeys.append(entry.getKey());
+						builderValues.append(entry.getValue());
 					}
 					return builderKeys.toString()+"\n"+builderValues.toString();
 				} catch (JsonParseException e) {
@@ -256,15 +257,15 @@ public class OutputFormat extends JsonHandler {
 					Map<String, Object> map =  mapper.readValue(inString, new TypeReference<Map<String, Object>>() {});
 					StringBuilder builder = new StringBuilder();
 					boolean next = false;
-					for (String key : map.keySet()) {
+					for (Entry<String, Object> entry : map.entrySet()) {
 						if (next) {
 							builder.append('\n');
 						} else {
 							next = true;
 						}
-						builder.append(key);
+						builder.append(entry.getKey());
 						builder.append('=');
-						builder.append(map.get(key));
+						builder.append(entry.getValue());
 					}
 					return builder.toString();
 				} catch (JsonParseException e) {
@@ -278,13 +279,13 @@ public class OutputFormat extends JsonHandler {
 				try {
 					Map<String, Object> map =  mapper.readValue(inString, new TypeReference<Map<String, Object>>() {});
 					StringBuilder builder = new StringBuilder("<xml>");
-					for (String key : map.keySet()) {
+					for (Entry<String, Object> entry : map.entrySet()) {
 						builder.append('<');
-						builder.append(key);
+						builder.append(entry.getKey());
 						builder.append('>');
-						builder.append(map.get(key));
+						builder.append(entry.getValue());
 						builder.append("</");
-						builder.append(key);
+						builder.append(entry.getKey());
 						builder.append('>');
 					}
 					builder.append("</xml>");

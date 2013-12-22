@@ -271,8 +271,8 @@ public class R66EmbeddedServiceImpl implements R66Service.Iface {
 		// Try to validate a restarting transfer
 		// validLimit on requested side
 		if (Configuration.configuration.constraintLimitHandler.checkConstraints()) {
-			logger.warn("Limit exceeded while asking to relaunch a task "
-					+ request.toString());
+			logger.warn("Limit exceeded {} while asking to relaunch a task "
+					+ request.toString(), Configuration.configuration.constraintLimitHandler.lastAlert);
 			return new R66Result(request.getMode(), ErrorCode.ServerOverloaded, 
 					"Limit exceeded while asking to relaunch a task");
 		}
