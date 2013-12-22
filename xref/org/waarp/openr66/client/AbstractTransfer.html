@@ -72,7 +72,7 @@
 <a class="jxr_linenumber" name="62" href="#62">62</a>  	
 <a class="jxr_linenumber" name="63" href="#63">63</a>  	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String NO_INFO_ARGS = <span class="jxr_string">"noinfo"</span>;
 <a class="jxr_linenumber" name="64" href="#64">64</a>  	
-<a class="jxr_linenumber" name="65" href="#65">65</a>  	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">final</strong> <a href="../../../../org/waarp/openr66/protocol/utils/R66Future.html">R66Future</a> future;
+<a class="jxr_linenumber" name="65" href="#65">65</a>  	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">final</strong> R66Future future;
 <a class="jxr_linenumber" name="66" href="#66">66</a>  
 <a class="jxr_linenumber" name="67" href="#67">67</a>  	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">final</strong> String filename;
 <a class="jxr_linenumber" name="68" href="#68">68</a>  
@@ -102,7 +102,7 @@
 <a class="jxr_linenumber" name="92" href="#92">92</a>  <em class="jxr_javadoccomment">	 * @param blocksize</em>
 <a class="jxr_linenumber" name="93" href="#93">93</a>  <em class="jxr_javadoccomment">	 * @param id</em>
 <a class="jxr_linenumber" name="94" href="#94">94</a>  <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="95" href="#95">95</a>  	<strong class="jxr_keyword">public</strong> <a href="../../../../org/waarp/openr66/client/AbstractTransfer.html">AbstractTransfer</a>(Class&lt;?&gt; clasz, <a href="../../../../org/waarp/openr66/protocol/utils/R66Future.html">R66Future</a> future, String filename,
+<a class="jxr_linenumber" name="95" href="#95">95</a>  	<strong class="jxr_keyword">public</strong> <a href="../../../../org/waarp/openr66/client/AbstractTransfer.html">AbstractTransfer</a>(Class&lt;?&gt; clasz, R66Future future, String filename,
 <a class="jxr_linenumber" name="96" href="#96">96</a>  			String rulename, String fileinfo,
 <a class="jxr_linenumber" name="97" href="#97">97</a>  			<strong class="jxr_keyword">boolean</strong> isMD5, String remoteHost, <strong class="jxr_keyword">int</strong> blocksize, <strong class="jxr_keyword">long</strong> id, Timestamp timestart) {
 <a class="jxr_linenumber" name="98" href="#98">98</a>  		<strong class="jxr_keyword">if</strong> (logger == <strong class="jxr_keyword">null</strong>) {
@@ -134,7 +134,7 @@
 <a class="jxr_linenumber" name="124" href="#124">124</a> 			rule = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a>(DbConstant.admin.session, rulename);
 <a class="jxr_linenumber" name="125" href="#125">125</a> 		} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="126" href="#126">126</a> 			logger.error(<span class="jxr_string">"Cannot get Rule: "</span> + rulename, e);
-<a class="jxr_linenumber" name="127" href="#127">127</a> 			future.setResult(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66DatabaseGlobalException.html">OpenR66DatabaseGlobalException</a>(e), <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
+<a class="jxr_linenumber" name="127" href="#127">127</a> 			future.setResult(<strong class="jxr_keyword">new</strong> R66Result(<strong class="jxr_keyword">new</strong> OpenR66DatabaseGlobalException(e), <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
 <a class="jxr_linenumber" name="128" href="#128">128</a> 					ErrorCode.Internal, <strong class="jxr_keyword">null</strong>));
 <a class="jxr_linenumber" name="129" href="#129">129</a> 			future.setFailure(e);
 <a class="jxr_linenumber" name="130" href="#130">130</a> 			<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
@@ -150,7 +150,7 @@
 <a class="jxr_linenumber" name="140" href="#140">140</a> 						remoteHost);
 <a class="jxr_linenumber" name="141" href="#141">141</a> 			} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="142" href="#142">142</a> 				logger.error(<span class="jxr_string">"Cannot get task"</span>, e);
-<a class="jxr_linenumber" name="143" href="#143">143</a> 				future.setResult(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66DatabaseGlobalException.html">OpenR66DatabaseGlobalException</a>(e), <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
+<a class="jxr_linenumber" name="143" href="#143">143</a> 				future.setResult(<strong class="jxr_keyword">new</strong> R66Result(<strong class="jxr_keyword">new</strong> OpenR66DatabaseGlobalException(e), <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
 <a class="jxr_linenumber" name="144" href="#144">144</a> 						ErrorCode.QueryRemotelyUnknown, <strong class="jxr_keyword">null</strong>));
 <a class="jxr_linenumber" name="145" href="#145">145</a> 				future.setFailure(e);
 <a class="jxr_linenumber" name="146" href="#146">146</a> 				<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
@@ -169,7 +169,7 @@
 <a class="jxr_linenumber" name="159" href="#159">159</a> 				File file = <strong class="jxr_keyword">new</strong> File(filename);
 <a class="jxr_linenumber" name="160" href="#160">160</a> 				<em class="jxr_comment">// Change dir</em>
 <a class="jxr_linenumber" name="161" href="#161">161</a> 				<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="162" href="#162">162</a> 					R66Session session = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Session.html">R66Session</a>();
+<a class="jxr_linenumber" name="162" href="#162">162</a> 					R66Session session = <strong class="jxr_keyword">new</strong> R66Session();
 <a class="jxr_linenumber" name="163" href="#163">163</a> 					session.getAuth().specialNoSessionAuth(false, Configuration.configuration.HOST_ID);
 <a class="jxr_linenumber" name="164" href="#164">164</a> 					session.getDir().changeDirectory(rule.getSendPath());
 <a class="jxr_linenumber" name="165" href="#165">165</a> 					R66File filer66 = FileUtils.getFile(logger, session, filename, <strong class="jxr_keyword">true</strong>, <strong class="jxr_keyword">true</strong>, false, <strong class="jxr_keyword">null</strong>);
@@ -197,7 +197,7 @@
 <a class="jxr_linenumber" name="187" href="#187">187</a> 								remoteHost, startTime);
 <a class="jxr_linenumber" name="188" href="#188">188</a> 			} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
 <a class="jxr_linenumber" name="189" href="#189">189</a> 				logger.error(<span class="jxr_string">"Cannot get task"</span>, e);
-<a class="jxr_linenumber" name="190" href="#190">190</a> 				future.setResult(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66DatabaseGlobalException.html">OpenR66DatabaseGlobalException</a>(e), <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
+<a class="jxr_linenumber" name="190" href="#190">190</a> 				future.setResult(<strong class="jxr_keyword">new</strong> R66Result(<strong class="jxr_keyword">new</strong> OpenR66DatabaseGlobalException(e), <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
 <a class="jxr_linenumber" name="191" href="#191">191</a> 						ErrorCode.Internal, <strong class="jxr_keyword">null</strong>));
 <a class="jxr_linenumber" name="192" href="#192">192</a> 				future.setFailure(e);
 <a class="jxr_linenumber" name="193" href="#193">193</a> 				<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
@@ -217,71 +217,71 @@
 <a class="jxr_linenumber" name="207" href="#207">207</a> 	<strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">boolean</strong> nolog = false;
 <a class="jxr_linenumber" name="208" href="#208">208</a> 	<strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">long</strong> idt = DbConstant.ILLEGALVALUE;
 <a class="jxr_linenumber" name="209" href="#209">209</a> 	<strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">protected</strong> Timestamp ttimestart = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="210" href="#210">210</a> 	<strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">protected</strong> SimpleDateFormat dateFormat = <strong class="jxr_keyword">new</strong> SimpleDateFormat(<span class="jxr_string">"yyyyMMddHHmmss"</span>);
-<a class="jxr_linenumber" name="211" href="#211">211</a> 
-<a class="jxr_linenumber" name="212" href="#212">212</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="213" href="#213">213</a> <em class="jxr_javadoccomment">	 * Parse the parameter and set current values</em>
-<a class="jxr_linenumber" name="214" href="#214">214</a> <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="215" href="#215">215</a> <em class="jxr_javadoccomment">	 * @param args</em>
-<a class="jxr_linenumber" name="216" href="#216">216</a> <em class="jxr_javadoccomment">	 * @param submitOnly</em>
-<a class="jxr_linenumber" name="217" href="#217">217</a> <em class="jxr_javadoccomment">	 *            True if the client is only a submitter (through database)</em>
-<a class="jxr_linenumber" name="218" href="#218">218</a> <em class="jxr_javadoccomment">	 * @return True if all parameters were found and correct</em>
-<a class="jxr_linenumber" name="219" href="#219">219</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="220" href="#220">220</a> 	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> getParams(String[] args, <strong class="jxr_keyword">boolean</strong> submitOnly) {
-<a class="jxr_linenumber" name="221" href="#221">221</a> 		_INFO_ARGS = Messages.getString(<span class="jxr_string">"AbstractTransfer.0"</span>)+ Messages.getString(<span class="jxr_string">"Message.OutputFormat"</span>); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="222" href="#222">222</a> 		<strong class="jxr_keyword">if</strong> (args.length &lt; 2) {
-<a class="jxr_linenumber" name="223" href="#223">223</a> 			logger
-<a class="jxr_linenumber" name="224" href="#224">224</a> 					.error(_INFO_ARGS);
-<a class="jxr_linenumber" name="225" href="#225">225</a> 			<strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="226" href="#226">226</a> 		}
-<a class="jxr_linenumber" name="227" href="#227">227</a> 		<strong class="jxr_keyword">if</strong> (submitOnly) {
-<a class="jxr_linenumber" name="228" href="#228">228</a> 			<strong class="jxr_keyword">if</strong> (!FileBasedConfiguration
-<a class="jxr_linenumber" name="229" href="#229">229</a> 					.setSubmitClientConfigurationFromXml(Configuration.configuration, args[0])) {
-<a class="jxr_linenumber" name="230" href="#230">230</a> 				logger
-<a class="jxr_linenumber" name="231" href="#231">231</a> 						.error(Messages.getString(<span class="jxr_string">"Configuration.NeedCorrectConfig"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="232" href="#232">232</a> 				<strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="233" href="#233">233</a> 			}
-<a class="jxr_linenumber" name="234" href="#234">234</a> 		} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (!FileBasedConfiguration
-<a class="jxr_linenumber" name="235" href="#235">235</a> 				.setClientConfigurationFromXml(Configuration.configuration, args[0])) {
-<a class="jxr_linenumber" name="236" href="#236">236</a> 			logger
-<a class="jxr_linenumber" name="237" href="#237">237</a> 					.error(Messages.getString(<span class="jxr_string">"Configuration.NeedCorrectConfig"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="238" href="#238">238</a> 			<strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="239" href="#239">239</a> 		}
-<a class="jxr_linenumber" name="240" href="#240">240</a> 		<em class="jxr_comment">// Now set default values from configuration</em>
-<a class="jxr_linenumber" name="241" href="#241">241</a> 		block = Configuration.configuration.BLOCKSIZE;
-<a class="jxr_linenumber" name="242" href="#242">242</a> 		<strong class="jxr_keyword">int</strong> i = 1;
-<a class="jxr_linenumber" name="243" href="#243">243</a> 		<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="244" href="#244">244</a> 			<strong class="jxr_keyword">for</strong> (i = 1; i &lt; args.length; i++) {
-<a class="jxr_linenumber" name="245" href="#245">245</a> 				<strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-to"</span>)) {
-<a class="jxr_linenumber" name="246" href="#246">246</a> 					i++;
-<a class="jxr_linenumber" name="247" href="#247">247</a> 					rhost = args[i];
-<a class="jxr_linenumber" name="248" href="#248">248</a> 				} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-file"</span>)) {
-<a class="jxr_linenumber" name="249" href="#249">249</a> 					i++;
-<a class="jxr_linenumber" name="250" href="#250">250</a> 					localFilename = args[i];
-<a class="jxr_linenumber" name="251" href="#251">251</a> 					localFilename = localFilename.replace('§', '*');
-<a class="jxr_linenumber" name="252" href="#252">252</a> 				} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-rule"</span>)) {
-<a class="jxr_linenumber" name="253" href="#253">253</a> 					i++;
-<a class="jxr_linenumber" name="254" href="#254">254</a> 					rule = args[i];
-<a class="jxr_linenumber" name="255" href="#255">255</a> 				} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-info"</span>)) {
-<a class="jxr_linenumber" name="256" href="#256">256</a> 					i++;
-<a class="jxr_linenumber" name="257" href="#257">257</a> 					fileInfo = args[i];
-<a class="jxr_linenumber" name="258" href="#258">258</a> 				} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-md5"</span>)) {
-<a class="jxr_linenumber" name="259" href="#259">259</a> 					ismd5 = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="260" href="#260">260</a> 				} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-block"</span>)) {
-<a class="jxr_linenumber" name="261" href="#261">261</a> 					i++;
-<a class="jxr_linenumber" name="262" href="#262">262</a> 					block = Integer.parseInt(args[i]);
-<a class="jxr_linenumber" name="263" href="#263">263</a> 					<strong class="jxr_keyword">if</strong> (block &lt; 100) {
-<a class="jxr_linenumber" name="264" href="#264">264</a> 						logger.error(Messages.getString(<span class="jxr_string">"AbstractTransfer.1"</span>) + block); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="265" href="#265">265</a> 						<strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="266" href="#266">266</a> 					}
-<a class="jxr_linenumber" name="267" href="#267">267</a> 				} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-nolog"</span>)) {
-<a class="jxr_linenumber" name="268" href="#268">268</a> 					nolog = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="269" href="#269">269</a> 				} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-id"</span>)) {
-<a class="jxr_linenumber" name="270" href="#270">270</a> 					i++;
-<a class="jxr_linenumber" name="271" href="#271">271</a> 					idt = Long.parseLong(args[i]);
-<a class="jxr_linenumber" name="272" href="#272">272</a> 				} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-start"</span>)) {
-<a class="jxr_linenumber" name="273" href="#273">273</a> 					i++;
-<a class="jxr_linenumber" name="274" href="#274">274</a> 					Date date;
+<a class="jxr_linenumber" name="210" href="#210">210</a> 
+<a class="jxr_linenumber" name="211" href="#211">211</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="212" href="#212">212</a> <em class="jxr_javadoccomment">	 * Parse the parameter and set current values</em>
+<a class="jxr_linenumber" name="213" href="#213">213</a> <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="214" href="#214">214</a> <em class="jxr_javadoccomment">	 * @param args</em>
+<a class="jxr_linenumber" name="215" href="#215">215</a> <em class="jxr_javadoccomment">	 * @param submitOnly</em>
+<a class="jxr_linenumber" name="216" href="#216">216</a> <em class="jxr_javadoccomment">	 *            True if the client is only a submitter (through database)</em>
+<a class="jxr_linenumber" name="217" href="#217">217</a> <em class="jxr_javadoccomment">	 * @return True if all parameters were found and correct</em>
+<a class="jxr_linenumber" name="218" href="#218">218</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="219" href="#219">219</a> 	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> getParams(String[] args, <strong class="jxr_keyword">boolean</strong> submitOnly) {
+<a class="jxr_linenumber" name="220" href="#220">220</a> 		_INFO_ARGS = Messages.getString(<span class="jxr_string">"AbstractTransfer.0"</span>)+ Messages.getString(<span class="jxr_string">"Message.OutputFormat"</span>); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="221" href="#221">221</a> 		<strong class="jxr_keyword">if</strong> (args.length &lt; 2) {
+<a class="jxr_linenumber" name="222" href="#222">222</a> 			logger
+<a class="jxr_linenumber" name="223" href="#223">223</a> 					.error(_INFO_ARGS);
+<a class="jxr_linenumber" name="224" href="#224">224</a> 			<strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="225" href="#225">225</a> 		}
+<a class="jxr_linenumber" name="226" href="#226">226</a> 		<strong class="jxr_keyword">if</strong> (submitOnly) {
+<a class="jxr_linenumber" name="227" href="#227">227</a> 			<strong class="jxr_keyword">if</strong> (!FileBasedConfiguration
+<a class="jxr_linenumber" name="228" href="#228">228</a> 					.setSubmitClientConfigurationFromXml(Configuration.configuration, args[0])) {
+<a class="jxr_linenumber" name="229" href="#229">229</a> 				logger
+<a class="jxr_linenumber" name="230" href="#230">230</a> 						.error(Messages.getString(<span class="jxr_string">"Configuration.NeedCorrectConfig"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="231" href="#231">231</a> 				<strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="232" href="#232">232</a> 			}
+<a class="jxr_linenumber" name="233" href="#233">233</a> 		} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (!FileBasedConfiguration
+<a class="jxr_linenumber" name="234" href="#234">234</a> 				.setClientConfigurationFromXml(Configuration.configuration, args[0])) {
+<a class="jxr_linenumber" name="235" href="#235">235</a> 			logger
+<a class="jxr_linenumber" name="236" href="#236">236</a> 					.error(Messages.getString(<span class="jxr_string">"Configuration.NeedCorrectConfig"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="237" href="#237">237</a> 			<strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="238" href="#238">238</a> 		}
+<a class="jxr_linenumber" name="239" href="#239">239</a> 		<em class="jxr_comment">// Now set default values from configuration</em>
+<a class="jxr_linenumber" name="240" href="#240">240</a> 		block = Configuration.configuration.BLOCKSIZE;
+<a class="jxr_linenumber" name="241" href="#241">241</a> 		<strong class="jxr_keyword">int</strong> i = 1;
+<a class="jxr_linenumber" name="242" href="#242">242</a> 		<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="243" href="#243">243</a> 			<strong class="jxr_keyword">for</strong> (i = 1; i &lt; args.length; i++) {
+<a class="jxr_linenumber" name="244" href="#244">244</a> 				<strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-to"</span>)) {
+<a class="jxr_linenumber" name="245" href="#245">245</a> 					i++;
+<a class="jxr_linenumber" name="246" href="#246">246</a> 					rhost = args[i];
+<a class="jxr_linenumber" name="247" href="#247">247</a> 				} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-file"</span>)) {
+<a class="jxr_linenumber" name="248" href="#248">248</a> 					i++;
+<a class="jxr_linenumber" name="249" href="#249">249</a> 					localFilename = args[i];
+<a class="jxr_linenumber" name="250" href="#250">250</a> 					localFilename = localFilename.replace('§', '*');
+<a class="jxr_linenumber" name="251" href="#251">251</a> 				} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-rule"</span>)) {
+<a class="jxr_linenumber" name="252" href="#252">252</a> 					i++;
+<a class="jxr_linenumber" name="253" href="#253">253</a> 					rule = args[i];
+<a class="jxr_linenumber" name="254" href="#254">254</a> 				} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-info"</span>)) {
+<a class="jxr_linenumber" name="255" href="#255">255</a> 					i++;
+<a class="jxr_linenumber" name="256" href="#256">256</a> 					fileInfo = args[i];
+<a class="jxr_linenumber" name="257" href="#257">257</a> 				} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-md5"</span>)) {
+<a class="jxr_linenumber" name="258" href="#258">258</a> 					ismd5 = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="259" href="#259">259</a> 				} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-block"</span>)) {
+<a class="jxr_linenumber" name="260" href="#260">260</a> 					i++;
+<a class="jxr_linenumber" name="261" href="#261">261</a> 					block = Integer.parseInt(args[i]);
+<a class="jxr_linenumber" name="262" href="#262">262</a> 					<strong class="jxr_keyword">if</strong> (block &lt; 100) {
+<a class="jxr_linenumber" name="263" href="#263">263</a> 						logger.error(Messages.getString(<span class="jxr_string">"AbstractTransfer.1"</span>) + block); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="264" href="#264">264</a> 						<strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="265" href="#265">265</a> 					}
+<a class="jxr_linenumber" name="266" href="#266">266</a> 				} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-nolog"</span>)) {
+<a class="jxr_linenumber" name="267" href="#267">267</a> 					nolog = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="268" href="#268">268</a> 				} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-id"</span>)) {
+<a class="jxr_linenumber" name="269" href="#269">269</a> 					i++;
+<a class="jxr_linenumber" name="270" href="#270">270</a> 					idt = Long.parseLong(args[i]);
+<a class="jxr_linenumber" name="271" href="#271">271</a> 				} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (args[i].equalsIgnoreCase(<span class="jxr_string">"-start"</span>)) {
+<a class="jxr_linenumber" name="272" href="#272">272</a> 					i++;
+<a class="jxr_linenumber" name="273" href="#273">273</a> 					Date date;
+<a class="jxr_linenumber" name="274" href="#274">274</a> 					SimpleDateFormat dateFormat = <strong class="jxr_keyword">new</strong> SimpleDateFormat(<span class="jxr_string">"yyyyMMddHHmmss"</span>);
 <a class="jxr_linenumber" name="275" href="#275">275</a> 					<strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="276" href="#276">276</a> 						date = dateFormat.parse(args[i]);
 <a class="jxr_linenumber" name="277" href="#277">277</a> 						ttimestart = <strong class="jxr_keyword">new</strong> Timestamp(date.getTime());

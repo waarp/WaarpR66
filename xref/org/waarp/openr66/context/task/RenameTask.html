@@ -70,7 +70,7 @@
 <a class="jxr_linenumber" name="60" href="#60">60</a>  		} <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
 <a class="jxr_linenumber" name="61" href="#61">61</a>  			logger.error(<span class="jxr_string">"Rename to "</span> + finalname + <span class="jxr_string">" with "</span> +
 <a class="jxr_linenumber" name="62" href="#62">62</a>  					argRule + <span class="jxr_string">":"</span> + argTransfer + <span class="jxr_string">" and "</span> + session, e);
-<a class="jxr_linenumber" name="63" href="#63">63</a>  			futureCompletion.setFailure(<strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(e));
+<a class="jxr_linenumber" name="63" href="#63">63</a>  			futureCompletion.setFailure(<strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException(e));
 <a class="jxr_linenumber" name="64" href="#64">64</a>  			<strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="65" href="#65">65</a>  		}
 <a class="jxr_linenumber" name="66" href="#66">66</a>  		<strong class="jxr_keyword">if</strong> (success) {
@@ -79,7 +79,7 @@
 <a class="jxr_linenumber" name="69" href="#69">69</a>  		} <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="70" href="#70">70</a>  			logger.error(<span class="jxr_string">"Cannot Move and Rename to "</span> + finalname + <span class="jxr_string">" with "</span> +
 <a class="jxr_linenumber" name="71" href="#71">71</a>  					argRule + <span class="jxr_string">":"</span> + argTransfer + <span class="jxr_string">" and "</span> + session);
-<a class="jxr_linenumber" name="72" href="#72">72</a>  			futureCompletion.setFailure(<strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(
+<a class="jxr_linenumber" name="72" href="#72">72</a>  			futureCompletion.setFailure(<strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException(
 <a class="jxr_linenumber" name="73" href="#73">73</a>  					<span class="jxr_string">"Cannot move file"</span>));
 <a class="jxr_linenumber" name="74" href="#74">74</a>  		}
 <a class="jxr_linenumber" name="75" href="#75">75</a>  	}

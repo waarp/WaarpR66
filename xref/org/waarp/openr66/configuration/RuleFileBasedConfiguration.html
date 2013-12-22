@@ -279,12 +279,12 @@
 <a class="jxr_linenumber" name="269" href="#269">269</a> 		} <strong class="jxr_keyword">catch</strong> (DocumentException e) {
 <a class="jxr_linenumber" name="270" href="#270">270</a> 			logger.error(<span class="jxr_string">"Unable to read the XML Rule file: "</span> + file.getName(),
 <a class="jxr_linenumber" name="271" href="#271">271</a> 					e);
-<a class="jxr_linenumber" name="272" href="#272">272</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(
+<a class="jxr_linenumber" name="272" href="#272">272</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException(
 <a class="jxr_linenumber" name="273" href="#273">273</a> 					<span class="jxr_string">"Unable to read the XML Rule file"</span>, e);
 <a class="jxr_linenumber" name="274" href="#274">274</a> 		}
 <a class="jxr_linenumber" name="275" href="#275">275</a> 		<strong class="jxr_keyword">if</strong> (document == <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="276" href="#276">276</a> 			logger.error(<span class="jxr_string">"Unable to read the XML Rule file: "</span> + file.getName());
-<a class="jxr_linenumber" name="277" href="#277">277</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(
+<a class="jxr_linenumber" name="277" href="#277">277</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException(
 <a class="jxr_linenumber" name="278" href="#278">278</a> 					<span class="jxr_string">"Unable to read the XML Rule file"</span>);
 <a class="jxr_linenumber" name="279" href="#279">279</a> 		}
 <a class="jxr_linenumber" name="280" href="#280">280</a> 		XmlValue[] values = XmlUtil.read(document, ruleDecls);
@@ -315,12 +315,12 @@
 <a class="jxr_linenumber" name="305" href="#305">305</a> 		} <strong class="jxr_keyword">catch</strong> (DocumentException e) {
 <a class="jxr_linenumber" name="306" href="#306">306</a> 			logger.error(<span class="jxr_string">"Unable to read the XML Rule file: "</span> + file.getName(),
 <a class="jxr_linenumber" name="307" href="#307">307</a> 					e);
-<a class="jxr_linenumber" name="308" href="#308">308</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(
+<a class="jxr_linenumber" name="308" href="#308">308</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException(
 <a class="jxr_linenumber" name="309" href="#309">309</a> 					<span class="jxr_string">"Unable to read the XML Rule file"</span>, e);
 <a class="jxr_linenumber" name="310" href="#310">310</a> 		}
 <a class="jxr_linenumber" name="311" href="#311">311</a> 		<strong class="jxr_keyword">if</strong> (document == <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="312" href="#312">312</a> 			logger.error(<span class="jxr_string">"Unable to read the XML Rule file: "</span> + file.getName());
-<a class="jxr_linenumber" name="313" href="#313">313</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(
+<a class="jxr_linenumber" name="313" href="#313">313</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException(
 <a class="jxr_linenumber" name="314" href="#314">314</a> 					<span class="jxr_string">"Unable to read the XML Rule file"</span>);
 <a class="jxr_linenumber" name="315" href="#315">315</a> 		}
 <a class="jxr_linenumber" name="316" href="#316">316</a> 		XmlValue[] values = XmlUtil.read(document, multipleruleDecls);
@@ -358,13 +358,13 @@
 <a class="jxr_linenumber" name="348" href="#348">348</a> 		XmlValue value = hash.get(XIDRULE);
 <a class="jxr_linenumber" name="349" href="#349">349</a> 		<strong class="jxr_keyword">if</strong> (value == <strong class="jxr_keyword">null</strong> || (value.isEmpty()) || value.getString().isEmpty()) {
 <a class="jxr_linenumber" name="350" href="#350">350</a> 			logger.error(<span class="jxr_string">"Unable to find in Rule field: "</span> + XIDRULE);
-<a class="jxr_linenumber" name="351" href="#351">351</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>();
+<a class="jxr_linenumber" name="351" href="#351">351</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException();
 <a class="jxr_linenumber" name="352" href="#352">352</a> 		}
 <a class="jxr_linenumber" name="353" href="#353">353</a> 		String idrule = value.getString();
 <a class="jxr_linenumber" name="354" href="#354">354</a> 		value = hash.get(XMODE);
 <a class="jxr_linenumber" name="355" href="#355">355</a> 		<strong class="jxr_keyword">if</strong> (value == <strong class="jxr_keyword">null</strong> || (value.isEmpty())) {
 <a class="jxr_linenumber" name="356" href="#356">356</a> 			logger.error(<span class="jxr_string">"Unable to find in Rule field: "</span> + XMODE);
-<a class="jxr_linenumber" name="357" href="#357">357</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>();
+<a class="jxr_linenumber" name="357" href="#357">357</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException();
 <a class="jxr_linenumber" name="358" href="#358">358</a> 		}
 <a class="jxr_linenumber" name="359" href="#359">359</a> 		<strong class="jxr_keyword">int</strong> mode = value.getInteger();
 <a class="jxr_linenumber" name="360" href="#360">360</a> 		String recvpath;
@@ -621,14 +621,14 @@
 <a class="jxr_linenumber" name="611" href="#611">611</a> <em class="jxr_javadoccomment">	 * @throws OpenR66ProtocolSystemException</em>
 <a class="jxr_linenumber" name="612" href="#612">612</a> <em class="jxr_javadoccomment">	 */</em>
 <a class="jxr_linenumber" name="613" href="#613">613</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">void</strong> writeXML(String filename, <a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a> rule)
-<a class="jxr_linenumber" name="614" href="#614">614</a> 			<strong class="jxr_keyword">throws</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a> {
+<a class="jxr_linenumber" name="614" href="#614">614</a> 			<strong class="jxr_keyword">throws</strong> OpenR66ProtocolSystemException {
 <a class="jxr_linenumber" name="615" href="#615">615</a> 		Document document = DocumentHelper.createDocument();
 <a class="jxr_linenumber" name="616" href="#616">616</a> 		Element root = document.addElement(ROOT);
 <a class="jxr_linenumber" name="617" href="#617">617</a> 		addToElement(root, rule);
 <a class="jxr_linenumber" name="618" href="#618">618</a> 		<strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="619" href="#619">619</a> 			XmlUtil.writeXML(filename, <strong class="jxr_keyword">null</strong>, document);
 <a class="jxr_linenumber" name="620" href="#620">620</a> 		} <strong class="jxr_keyword">catch</strong> (IOException e) {
-<a class="jxr_linenumber" name="621" href="#621">621</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(<span class="jxr_string">"Cannot write file: "</span> + filename, e);
+<a class="jxr_linenumber" name="621" href="#621">621</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException(<span class="jxr_string">"Cannot write file: "</span> + filename, e);
 <a class="jxr_linenumber" name="622" href="#622">622</a> 		}
 <a class="jxr_linenumber" name="623" href="#623">623</a> 	}
 <a class="jxr_linenumber" name="624" href="#624">624</a> 
@@ -687,7 +687,7 @@
 <a class="jxr_linenumber" name="677" href="#677">677</a> 		<strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="678" href="#678">678</a> 			XmlUtil.writeXML(filename, <strong class="jxr_keyword">null</strong>, document);
 <a class="jxr_linenumber" name="679" href="#679">679</a> 		} <strong class="jxr_keyword">catch</strong> (IOException e) {
-<a class="jxr_linenumber" name="680" href="#680">680</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(<span class="jxr_string">"Cannot write file: "</span> + filename, e);
+<a class="jxr_linenumber" name="680" href="#680">680</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException(<span class="jxr_string">"Cannot write file: "</span> + filename, e);
 <a class="jxr_linenumber" name="681" href="#681">681</a> 		}
 <a class="jxr_linenumber" name="682" href="#682">682</a> 		<strong class="jxr_keyword">return</strong> filename;
 <a class="jxr_linenumber" name="683" href="#683">683</a> 	}

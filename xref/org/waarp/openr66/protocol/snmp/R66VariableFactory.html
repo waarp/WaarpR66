@@ -44,7 +44,7 @@
 <a class="jxr_linenumber" name="34" href="#34">34</a>  <em class="jxr_javadoccomment"> * @author Frederic Bregier</em>
 <a class="jxr_linenumber" name="35" href="#35">35</a>  <em class="jxr_javadoccomment"> * </em>
 <a class="jxr_linenumber" name="36" href="#36">36</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="37" href="#37">37</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../org/waarp/openr66/protocol/snmp/R66VariableFactory.html">R66VariableFactory</a> <strong class="jxr_keyword">implements</strong> WaarpInterfaceVariableFactory {
+<a class="jxr_linenumber" name="37" href="#37">37</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> R66VariableFactory <strong class="jxr_keyword">implements</strong> WaarpInterfaceVariableFactory {
 <a class="jxr_linenumber" name="38" href="#38">38</a>  
 <a class="jxr_linenumber" name="39" href="#39">39</a>  	<strong class="jxr_keyword">public</strong> Variable getVariable(OID oid, <strong class="jxr_keyword">int</strong> type, <strong class="jxr_keyword">int</strong> mibLevel, <strong class="jxr_keyword">int</strong> entry) {
 <a class="jxr_linenumber" name="40" href="#40">40</a>  		Variable <strong class="jxr_keyword">var</strong>;
@@ -67,14 +67,14 @@
 <a class="jxr_linenumber" name="57" href="#57">57</a>  				<strong class="jxr_keyword">var</strong> = <strong class="jxr_keyword">new</strong> IpAddress();
 <a class="jxr_linenumber" name="58" href="#58">58</a>  				<strong class="jxr_keyword">break</strong>;
 <a class="jxr_linenumber" name="59" href="#59">59</a>  			<strong class="jxr_keyword">case</strong> SMIConstants.SYNTAX_COUNTER32:
-<a class="jxr_linenumber" name="60" href="#60">60</a>  				<strong class="jxr_keyword">var</strong> = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/snmp/R66Counter32.html">R66Counter32</a>(mibLevel, entry);
+<a class="jxr_linenumber" name="60" href="#60">60</a>  				<strong class="jxr_keyword">var</strong> = <strong class="jxr_keyword">new</strong> R66Counter32(mibLevel, entry);
 <a class="jxr_linenumber" name="61" href="#61">61</a>  				<strong class="jxr_keyword">break</strong>;
 <a class="jxr_linenumber" name="62" href="#62">62</a>  			<strong class="jxr_keyword">case</strong> SMIConstants.SYNTAX_GAUGE32:
 <a class="jxr_linenumber" name="63" href="#63">63</a>  				<em class="jxr_comment">// case SMIConstants.SYNTAX_UNSIGNED_INTEGER32:</em>
-<a class="jxr_linenumber" name="64" href="#64">64</a>  				<strong class="jxr_keyword">var</strong> = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/snmp/R66Gauge32.html">R66Gauge32</a>(mibLevel, entry);
+<a class="jxr_linenumber" name="64" href="#64">64</a>  				<strong class="jxr_keyword">var</strong> = <strong class="jxr_keyword">new</strong> R66Gauge32(mibLevel, entry);
 <a class="jxr_linenumber" name="65" href="#65">65</a>  				<strong class="jxr_keyword">break</strong>;
 <a class="jxr_linenumber" name="66" href="#66">66</a>  			<strong class="jxr_keyword">case</strong> SMIConstants.SYNTAX_TIMETICKS:
-<a class="jxr_linenumber" name="67" href="#67">67</a>  				<strong class="jxr_keyword">var</strong> = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/snmp/R66TimeTicks.html">R66TimeTicks</a>(mibLevel, entry);
+<a class="jxr_linenumber" name="67" href="#67">67</a>  				<strong class="jxr_keyword">var</strong> = <strong class="jxr_keyword">new</strong> R66TimeTicks(mibLevel, entry);
 <a class="jxr_linenumber" name="68" href="#68">68</a>  				<strong class="jxr_keyword">break</strong>;
 <a class="jxr_linenumber" name="69" href="#69">69</a>  			<strong class="jxr_keyword">case</strong> SMIConstants.SYNTAX_OPAQUE:
 <a class="jxr_linenumber" name="70" href="#70">70</a>  				<strong class="jxr_keyword">var</strong> = <strong class="jxr_keyword">new</strong> Opaque();

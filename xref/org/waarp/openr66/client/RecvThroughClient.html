@@ -92,7 +92,7 @@
 <a class="jxr_linenumber" name="82" href="#82">82</a>  <em class="jxr_javadoccomment">	 * @param id</em>
 <a class="jxr_linenumber" name="83" href="#83">83</a>  <em class="jxr_javadoccomment">	 * @param networkTransaction</em>
 <a class="jxr_linenumber" name="84" href="#84">84</a>  <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="85" href="#85">85</a>  	<strong class="jxr_keyword">public</strong> <a href="../../../../org/waarp/openr66/client/RecvThroughClient.html">RecvThroughClient</a>(<a href="../../../../org/waarp/openr66/protocol/utils/R66Future.html">R66Future</a> future, <a href="../../../../org/waarp/openr66/client/RecvThroughHandler.html">RecvThroughHandler</a> handler, String remoteHost,
+<a class="jxr_linenumber" name="85" href="#85">85</a>  	<strong class="jxr_keyword">public</strong> <a href="../../../../org/waarp/openr66/client/RecvThroughClient.html">RecvThroughClient</a>(R66Future future, <a href="../../../../org/waarp/openr66/client/RecvThroughHandler.html">RecvThroughHandler</a> handler, String remoteHost,
 <a class="jxr_linenumber" name="86" href="#86">86</a>  			String filename, String rulename, String fileinfo, <strong class="jxr_keyword">boolean</strong> isMD5,
 <a class="jxr_linenumber" name="87" href="#87">87</a>  			<strong class="jxr_keyword">int</strong> blocksize, <strong class="jxr_keyword">long</strong> id, <a href="../../../../org/waarp/openr66/protocol/networkhandler/NetworkTransaction.html">NetworkTransaction</a> networkTransaction) {
 <a class="jxr_linenumber" name="88" href="#88">88</a>  		<em class="jxr_comment">// timestart since immediate</em>
@@ -126,19 +126,19 @@
 <a class="jxr_linenumber" name="116" href="#116">116</a> 					<strong class="jxr_keyword">break</strong>;
 <a class="jxr_linenumber" name="117" href="#117">117</a> 				} <strong class="jxr_keyword">catch</strong> (OpenR66RunnerErrorException e) {
 <a class="jxr_linenumber" name="118" href="#118">118</a> 					logger.error(<span class="jxr_string">"Cannot Transfer"</span>, e);
-<a class="jxr_linenumber" name="119" href="#119">119</a> 					future.setResult(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(e, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
+<a class="jxr_linenumber" name="119" href="#119">119</a> 					future.setResult(<strong class="jxr_keyword">new</strong> R66Result(e, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
 <a class="jxr_linenumber" name="120" href="#120">120</a> 							ErrorCode.Internal, taskRunner));
 <a class="jxr_linenumber" name="121" href="#121">121</a> 					future.setFailure(e);
 <a class="jxr_linenumber" name="122" href="#122">122</a> 					<strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="123" href="#123">123</a> 				} <strong class="jxr_keyword">catch</strong> (OpenR66ProtocolNoConnectionException e) {
 <a class="jxr_linenumber" name="124" href="#124">124</a> 					logger.error(<span class="jxr_string">"Cannot Connect"</span>, e);
-<a class="jxr_linenumber" name="125" href="#125">125</a> 					future.setResult(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(e, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
+<a class="jxr_linenumber" name="125" href="#125">125</a> 					future.setResult(<strong class="jxr_keyword">new</strong> R66Result(e, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
 <a class="jxr_linenumber" name="126" href="#126">126</a> 							ErrorCode.ConnectionImpossible, taskRunner));
 <a class="jxr_linenumber" name="127" href="#127">127</a> 					future.setFailure(e);
 <a class="jxr_linenumber" name="128" href="#128">128</a> 					<strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="129" href="#129">129</a> 				} <strong class="jxr_keyword">catch</strong> (OpenR66ProtocolPacketException e) {
 <a class="jxr_linenumber" name="130" href="#130">130</a> 					logger.error(<span class="jxr_string">"Bad Protocol"</span>, e);
-<a class="jxr_linenumber" name="131" href="#131">131</a> 					future.setResult(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(e, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
+<a class="jxr_linenumber" name="131" href="#131">131</a> 					future.setResult(<strong class="jxr_keyword">new</strong> R66Result(e, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
 <a class="jxr_linenumber" name="132" href="#132">132</a> 							ErrorCode.TransferError, taskRunner));
 <a class="jxr_linenumber" name="133" href="#133">133</a> 					future.setFailure(e);
 <a class="jxr_linenumber" name="134" href="#134">134</a> 					<strong class="jxr_keyword">return</strong>;
@@ -151,7 +151,7 @@
 <a class="jxr_linenumber" name="141" href="#141">141</a> 			<strong class="jxr_keyword">if</strong> (exc != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="142" href="#142">142</a> 				taskRunner.setLocalChannelReference(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/localhandler/LocalChannelReference.html">LocalChannelReference</a>());
 <a class="jxr_linenumber" name="143" href="#143">143</a> 				logger.error(<span class="jxr_string">"Cannot Connect"</span>, exc);
-<a class="jxr_linenumber" name="144" href="#144">144</a> 				future.setResult(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(exc, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
+<a class="jxr_linenumber" name="144" href="#144">144</a> 				future.setResult(<strong class="jxr_keyword">new</strong> R66Result(exc, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
 <a class="jxr_linenumber" name="145" href="#145">145</a> 						ErrorCode.ConnectionImpossible, taskRunner));
 <a class="jxr_linenumber" name="146" href="#146">146</a> 				future.setFailure(exc);
 <a class="jxr_linenumber" name="147" href="#147">147</a> 				<strong class="jxr_keyword">return</strong>;

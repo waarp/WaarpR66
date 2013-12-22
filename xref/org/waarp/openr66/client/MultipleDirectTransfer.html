@@ -76,7 +76,7 @@
 <a class="jxr_linenumber" name="66" href="#66">66</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> doneMultiple = 0;
 <a class="jxr_linenumber" name="67" href="#67">67</a>  	<strong class="jxr_keyword">public</strong> List&lt;OutputFormat&gt; results = <strong class="jxr_keyword">new</strong> ArrayList&lt;OutputFormat&gt;();
 <a class="jxr_linenumber" name="68" href="#68">68</a>  	
-<a class="jxr_linenumber" name="69" href="#69">69</a>  	<strong class="jxr_keyword">public</strong> <a href="../../../../org/waarp/openr66/client/MultipleDirectTransfer.html">MultipleDirectTransfer</a>(<a href="../../../../org/waarp/openr66/protocol/utils/R66Future.html">R66Future</a> future, String remoteHost,
+<a class="jxr_linenumber" name="69" href="#69">69</a>  	<strong class="jxr_keyword">public</strong> <a href="../../../../org/waarp/openr66/client/MultipleDirectTransfer.html">MultipleDirectTransfer</a>(R66Future future, String remoteHost,
 <a class="jxr_linenumber" name="70" href="#70">70</a>  			String filename, String rulename, String fileinfo, <strong class="jxr_keyword">boolean</strong> isMD5, <strong class="jxr_keyword">int</strong> blocksize,
 <a class="jxr_linenumber" name="71" href="#71">71</a>  			<strong class="jxr_keyword">long</strong> id,
 <a class="jxr_linenumber" name="72" href="#72">72</a>  			NetworkTransaction networkTransaction) {
@@ -91,7 +91,7 @@
 <a class="jxr_linenumber" name="81" href="#81">81</a>  				files.add(filename);
 <a class="jxr_linenumber" name="82" href="#82">82</a>  			} <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="83" href="#83">83</a>  				<em class="jxr_comment">// remote query</em>
-<a class="jxr_linenumber" name="84" href="#84">84</a>  				R66Future futureInfo = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/utils/R66Future.html">R66Future</a>(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="84" href="#84">84</a>  				R66Future futureInfo = <strong class="jxr_keyword">new</strong> R66Future(<strong class="jxr_keyword">true</strong>);
 <a class="jxr_linenumber" name="85" href="#85">85</a>  				logger.info(Messages.getString(<span class="jxr_string">"Transfer.3"</span>)+filename+ <span class="jxr_string">" to "</span>+requested); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="86" href="#86">86</a>  				RequestInformation info = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/client/RequestInformation.html">RequestInformation</a>(futureInfo, requested, rule, filename,
 <a class="jxr_linenumber" name="87" href="#87">87</a>  						(byte) InformationPacket.ASKENUM.ASKLIST.ordinal(), -1, false, networkTransaction);
@@ -118,9 +118,9 @@
 <a class="jxr_linenumber" name="108" href="#108">108</a> 
 <a class="jxr_linenumber" name="109" href="#109">109</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> List&lt;String&gt; getLocalFiles(<a href="../../../../org/waarp/openr66/database/data/DbRule.html">DbRule</a> dbrule, String []localfilenames) {
 <a class="jxr_linenumber" name="110" href="#110">110</a> 		List&lt;String&gt; files = <strong class="jxr_keyword">new</strong> ArrayList&lt;String&gt;();
-<a class="jxr_linenumber" name="111" href="#111">111</a> 		R66Session session = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Session.html">R66Session</a>();
+<a class="jxr_linenumber" name="111" href="#111">111</a> 		R66Session session = <strong class="jxr_keyword">new</strong> R66Session();
 <a class="jxr_linenumber" name="112" href="#112">112</a> 		session.getAuth().specialNoSessionAuth(false, Configuration.configuration.HOST_ID);
-<a class="jxr_linenumber" name="113" href="#113">113</a> 		R66Dir dir = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/filesystem/R66Dir.html">R66Dir</a>(session);
+<a class="jxr_linenumber" name="113" href="#113">113</a> 		R66Dir dir = <strong class="jxr_keyword">new</strong> R66Dir(session);
 <a class="jxr_linenumber" name="114" href="#114">114</a> 		<strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="115" href="#115">115</a> 			dir.changeDirectory(dbrule.getSendPath());
 <a class="jxr_linenumber" name="116" href="#116">116</a> 		} <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
@@ -179,7 +179,7 @@
 <a class="jxr_linenumber" name="169" href="#169">169</a> 					<strong class="jxr_keyword">if</strong> (filename != <strong class="jxr_keyword">null</strong> &amp;&amp; ! filename.isEmpty()) {
 <a class="jxr_linenumber" name="170" href="#170">170</a> 						logger.info(<span class="jxr_string">"Launch transfer to "</span>+host+<span class="jxr_string">" with file "</span>+filename);
 <a class="jxr_linenumber" name="171" href="#171">171</a> 						<strong class="jxr_keyword">long</strong> time1 = System.currentTimeMillis();
-<a class="jxr_linenumber" name="172" href="#172">172</a> 						R66Future future = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/utils/R66Future.html">R66Future</a>(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="172" href="#172">172</a> 						R66Future future = <strong class="jxr_keyword">new</strong> R66Future(<strong class="jxr_keyword">true</strong>);
 <a class="jxr_linenumber" name="173" href="#173">173</a> 						DirectTransfer transaction = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/client/DirectTransfer.html">DirectTransfer</a>(future,
 <a class="jxr_linenumber" name="174" href="#174">174</a> 								host, filename, rule, fileInfo, ismd5, block, idt,
 <a class="jxr_linenumber" name="175" href="#175">175</a> 								networkTransaction);
@@ -285,7 +285,7 @@
 <a class="jxr_linenumber" name="275" href="#275">275</a> 		Configuration.configuration.pipelineInit();
 <a class="jxr_linenumber" name="276" href="#276">276</a> 		NetworkTransaction networkTransaction = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/networkhandler/NetworkTransaction.html">NetworkTransaction</a>();
 <a class="jxr_linenumber" name="277" href="#277">277</a> 		<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="278" href="#278">278</a> 			R66Future future = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/utils/R66Future.html">R66Future</a>(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="278" href="#278">278</a> 			R66Future future = <strong class="jxr_keyword">new</strong> R66Future(<strong class="jxr_keyword">true</strong>);
 <a class="jxr_linenumber" name="279" href="#279">279</a> 			<strong class="jxr_keyword">long</strong> time1 = System.currentTimeMillis();
 <a class="jxr_linenumber" name="280" href="#280">280</a> 			MultipleDirectTransfer multipleDirectTransfer =
 <a class="jxr_linenumber" name="281" href="#281">281</a> 					<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/client/MultipleDirectTransfer.html">MultipleDirectTransfer</a>(future, rhost, localFilename, 

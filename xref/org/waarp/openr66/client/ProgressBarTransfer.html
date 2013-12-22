@@ -55,7 +55,7 @@
 <a class="jxr_linenumber" name="45" href="#45">45</a>  	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">long</strong> INTERVALCALLBACK = 100;
 <a class="jxr_linenumber" name="46" href="#46">46</a>  	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">long</strong> filesize = 0;
 <a class="jxr_linenumber" name="47" href="#47">47</a>  
-<a class="jxr_linenumber" name="48" href="#48">48</a>  	<strong class="jxr_keyword">public</strong> <a href="../../../../org/waarp/openr66/client/ProgressBarTransfer.html">ProgressBarTransfer</a>(<a href="../../../../org/waarp/openr66/protocol/utils/R66Future.html">R66Future</a> future, String remoteHost,
+<a class="jxr_linenumber" name="48" href="#48">48</a>  	<strong class="jxr_keyword">public</strong> <a href="../../../../org/waarp/openr66/client/ProgressBarTransfer.html">ProgressBarTransfer</a>(R66Future future, String remoteHost,
 <a class="jxr_linenumber" name="49" href="#49">49</a>  			String filename, String rulename, String fileinfo, <strong class="jxr_keyword">boolean</strong> isMD5, <strong class="jxr_keyword">int</strong> blocksize,
 <a class="jxr_linenumber" name="50" href="#50">50</a>  			<strong class="jxr_keyword">long</strong> id,
 <a class="jxr_linenumber" name="51" href="#51">51</a>  			NetworkTransaction networkTransaction, <strong class="jxr_keyword">long</strong> callbackdelay) {
@@ -133,7 +133,7 @@
 <a class="jxr_linenumber" name="123" href="#123">123</a> 						i--;
 <a class="jxr_linenumber" name="124" href="#124">124</a> 						<strong class="jxr_keyword">continue</strong>;
 <a class="jxr_linenumber" name="125" href="#125">125</a> 					} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="126" href="#126">126</a> 						<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolNotYetConnectionException.html">OpenR66ProtocolNotYetConnectionException</a>(
+<a class="jxr_linenumber" name="126" href="#126">126</a> 						<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66ProtocolNotYetConnectionException(
 <a class="jxr_linenumber" name="127" href="#127">127</a> 								<span class="jxr_string">"End of retry on ServerOverloaded"</span>);
 <a class="jxr_linenumber" name="128" href="#128">128</a> 					}
 <a class="jxr_linenumber" name="129" href="#129">129</a> 				}
@@ -153,14 +153,14 @@
 <a class="jxr_linenumber" name="143" href="#143">143</a> 				<strong class="jxr_keyword">break</strong>;
 <a class="jxr_linenumber" name="144" href="#144">144</a> 			} <strong class="jxr_keyword">catch</strong> (OpenR66RunnerErrorException e) {
 <a class="jxr_linenumber" name="145" href="#145">145</a> 				logger.error(<span class="jxr_string">"Cannot Transfer"</span>, e);
-<a class="jxr_linenumber" name="146" href="#146">146</a> 				future.setResult(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(e, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
+<a class="jxr_linenumber" name="146" href="#146">146</a> 				future.setResult(<strong class="jxr_keyword">new</strong> R66Result(e, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
 <a class="jxr_linenumber" name="147" href="#147">147</a> 						ErrorCode.Internal, taskRunner));
 <a class="jxr_linenumber" name="148" href="#148">148</a> 				future.setFailure(e);
 <a class="jxr_linenumber" name="149" href="#149">149</a> 				lastCallBack(false, taskRunner.getRank(), taskRunner.getBlocksize());
 <a class="jxr_linenumber" name="150" href="#150">150</a> 				<strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="151" href="#151">151</a> 			} <strong class="jxr_keyword">catch</strong> (OpenR66ProtocolNoConnectionException e) {
 <a class="jxr_linenumber" name="152" href="#152">152</a> 				logger.error(<span class="jxr_string">"Cannot Connect"</span>, e);
-<a class="jxr_linenumber" name="153" href="#153">153</a> 				future.setResult(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(e, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
+<a class="jxr_linenumber" name="153" href="#153">153</a> 				future.setResult(<strong class="jxr_keyword">new</strong> R66Result(e, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
 <a class="jxr_linenumber" name="154" href="#154">154</a> 						ErrorCode.ConnectionImpossible, taskRunner));
 <a class="jxr_linenumber" name="155" href="#155">155</a> 				<em class="jxr_comment">// since no connection : just forget it</em>
 <a class="jxr_linenumber" name="156" href="#156">156</a> 				<strong class="jxr_keyword">if</strong> (nolog || taskRunner.shallIgnoreSave()) {
@@ -174,7 +174,7 @@
 <a class="jxr_linenumber" name="164" href="#164">164</a> 				<strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="165" href="#165">165</a> 			} <strong class="jxr_keyword">catch</strong> (OpenR66ProtocolPacketException e) {
 <a class="jxr_linenumber" name="166" href="#166">166</a> 				logger.error(<span class="jxr_string">"Bad Protocol"</span>, e);
-<a class="jxr_linenumber" name="167" href="#167">167</a> 				future.setResult(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(e, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
+<a class="jxr_linenumber" name="167" href="#167">167</a> 				future.setResult(<strong class="jxr_keyword">new</strong> R66Result(e, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
 <a class="jxr_linenumber" name="168" href="#168">168</a> 						ErrorCode.TransferError, taskRunner));
 <a class="jxr_linenumber" name="169" href="#169">169</a> 				future.setFailure(e);
 <a class="jxr_linenumber" name="170" href="#170">170</a> 				lastCallBack(false, taskRunner.getRank(), taskRunner.getBlocksize());
@@ -188,7 +188,7 @@
 <a class="jxr_linenumber" name="178" href="#178">178</a> 		<strong class="jxr_keyword">if</strong> (exc != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="179" href="#179">179</a> 			taskRunner.setLocalChannelReference(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/localhandler/LocalChannelReference.html">LocalChannelReference</a>());
 <a class="jxr_linenumber" name="180" href="#180">180</a> 			logger.error(<span class="jxr_string">"Cannot Connect"</span>, exc);
-<a class="jxr_linenumber" name="181" href="#181">181</a> 			future.setResult(<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(exc, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
+<a class="jxr_linenumber" name="181" href="#181">181</a> 			future.setResult(<strong class="jxr_keyword">new</strong> R66Result(exc, <strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>,
 <a class="jxr_linenumber" name="182" href="#182">182</a> 					ErrorCode.ConnectionImpossible, taskRunner));
 <a class="jxr_linenumber" name="183" href="#183">183</a> 			lastCallBack(false, taskRunner.getRank(), taskRunner.getBlocksize());
 <a class="jxr_linenumber" name="184" href="#184">184</a> 			<em class="jxr_comment">// since no connection : just forget it</em>

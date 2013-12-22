@@ -69,7 +69,7 @@
 <a class="jxr_linenumber" name="59" href="#59">59</a>  
 <a class="jxr_linenumber" name="60" href="#60">60</a>  	<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">private</strong> <a href="../../../../org/waarp/openr66/protocol/networkhandler/NetworkTransaction.html">NetworkTransaction</a> networkTransaction;
 <a class="jxr_linenumber" name="61" href="#61">61</a>  
-<a class="jxr_linenumber" name="62" href="#62">62</a>  	<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">private</strong> <a href="../../../../org/waarp/openr66/protocol/utils/R66Future.html">R66Future</a> future;
+<a class="jxr_linenumber" name="62" href="#62">62</a>  	<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">private</strong> R66Future future;
 <a class="jxr_linenumber" name="63" href="#63">63</a>  
 <a class="jxr_linenumber" name="64" href="#64">64</a>  	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> String requested;
 <a class="jxr_linenumber" name="65" href="#65">65</a>  
@@ -155,14 +155,14 @@
 <a class="jxr_linenumber" name="145" href="#145">145</a> 		}
 <a class="jxr_linenumber" name="146" href="#146">146</a> 		<strong class="jxr_keyword">if</strong> (host == <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="147" href="#147">147</a> 			logger.debug(Messages.getString(<span class="jxr_string">"Message.HostNotFound"</span>) + requested); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="148" href="#148">148</a> 			R66Result result = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>, ErrorCode.ConnectionImpossible, <strong class="jxr_keyword">null</strong>);
+<a class="jxr_linenumber" name="148" href="#148">148</a> 			R66Result result = <strong class="jxr_keyword">new</strong> R66Result(<strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>, ErrorCode.ConnectionImpossible, <strong class="jxr_keyword">null</strong>);
 <a class="jxr_linenumber" name="149" href="#149">149</a> 			<strong class="jxr_keyword">this</strong>.future.setResult(result);
 <a class="jxr_linenumber" name="150" href="#150">150</a> 			<strong class="jxr_keyword">this</strong>.future.cancel();
 <a class="jxr_linenumber" name="151" href="#151">151</a> 			<strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="152" href="#152">152</a> 		}
 <a class="jxr_linenumber" name="153" href="#153">153</a> 		<strong class="jxr_keyword">if</strong> (host.isClient()) {
 <a class="jxr_linenumber" name="154" href="#154">154</a> 			logger.error(Messages.getString(<span class="jxr_string">"Message.HostIsClient"</span>) + requested); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="155" href="#155">155</a> 			R66Result result = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>, ErrorCode.ConnectionImpossible, <strong class="jxr_keyword">null</strong>);
+<a class="jxr_linenumber" name="155" href="#155">155</a> 			R66Result result = <strong class="jxr_keyword">new</strong> R66Result(<strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>, ErrorCode.ConnectionImpossible, <strong class="jxr_keyword">null</strong>);
 <a class="jxr_linenumber" name="156" href="#156">156</a> 			<strong class="jxr_keyword">this</strong>.future.setResult(result);
 <a class="jxr_linenumber" name="157" href="#157">157</a> 			<strong class="jxr_keyword">this</strong>.future.cancel();
 <a class="jxr_linenumber" name="158" href="#158">158</a> 			<strong class="jxr_keyword">return</strong>;
@@ -175,7 +175,7 @@
 <a class="jxr_linenumber" name="165" href="#165">165</a> 		socketAddress = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="166" href="#166">166</a> 		<strong class="jxr_keyword">if</strong> (localChannelReference == <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="167" href="#167">167</a> 			logger.debug(Messages.getString(<span class="jxr_string">"AdminR66OperationsGui.188"</span>) + requested); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="168" href="#168">168</a> 			R66Result result = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>, ErrorCode.ConnectionImpossible, <strong class="jxr_keyword">null</strong>);
+<a class="jxr_linenumber" name="168" href="#168">168</a> 			R66Result result = <strong class="jxr_keyword">new</strong> R66Result(<strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>, ErrorCode.ConnectionImpossible, <strong class="jxr_keyword">null</strong>);
 <a class="jxr_linenumber" name="169" href="#169">169</a> 			<strong class="jxr_keyword">this</strong>.future.setResult(result);
 <a class="jxr_linenumber" name="170" href="#170">170</a> 			<strong class="jxr_keyword">this</strong>.future.cancel();
 <a class="jxr_linenumber" name="171" href="#171">171</a> 			<strong class="jxr_keyword">return</strong>;
@@ -214,7 +214,7 @@
 <a class="jxr_linenumber" name="204" href="#204">204</a> 		<strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="205" href="#205">205</a> 			Configuration.configuration.pipelineInit();
 <a class="jxr_linenumber" name="206" href="#206">206</a> 			networkTransaction = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/networkhandler/NetworkTransaction.html">NetworkTransaction</a>();
-<a class="jxr_linenumber" name="207" href="#207">207</a> 			R66Future result = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/utils/R66Future.html">R66Future</a>(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="207" href="#207">207</a> 			R66Future result = <strong class="jxr_keyword">new</strong> R66Future(<strong class="jxr_keyword">true</strong>);
 <a class="jxr_linenumber" name="208" href="#208">208</a> 			TestPacket packet = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/protocol/localhandler/packet/TestPacket.html">TestPacket</a>(<span class="jxr_string">"MSG"</span>, smessage, 100);
 <a class="jxr_linenumber" name="209" href="#209">209</a> 			Message transaction = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/client/Message.html">Message</a>(
 <a class="jxr_linenumber" name="210" href="#210">210</a> 					networkTransaction, result, srequested,

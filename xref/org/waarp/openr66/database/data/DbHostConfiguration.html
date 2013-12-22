@@ -1030,8 +1030,8 @@
 <a class="jxr_linenumber" name="1020" href="#1020">1020</a> 		<strong class="jxr_keyword">if</strong> ((newroles != <strong class="jxr_keyword">null</strong> &amp;&amp; ! newroles.isEmpty()) || purged) {
 <a class="jxr_linenumber" name="1021" href="#1021">1021</a> 			Document document = DocumentHelper.createDocument(DocumentHelper.createElement(XML_ROLES));
 <a class="jxr_linenumber" name="1022" href="#1022">1022</a> 			Element root = document.getRootElement();
-<a class="jxr_linenumber" name="1023" href="#1023">1023</a> 			RoleDefault newrole = <strong class="jxr_keyword">new</strong> RoleDefault();
-<a class="jxr_linenumber" name="1024" href="#1024">1024</a> 			<strong class="jxr_keyword">for</strong> (Entry&lt;String, HashSet&lt;String&gt;&gt; entry : map.entrySet()) {
+<a class="jxr_linenumber" name="1023" href="#1023">1023</a> 			<strong class="jxr_keyword">for</strong> (Entry&lt;String, HashSet&lt;String&gt;&gt; entry : map.entrySet()) {
+<a class="jxr_linenumber" name="1024" href="#1024">1024</a> 				RoleDefault newrole = <strong class="jxr_keyword">new</strong> RoleDefault();
 <a class="jxr_linenumber" name="1025" href="#1025">1025</a> 				Element elt = root.addElement(XML_ROLE);
 <a class="jxr_linenumber" name="1026" href="#1026">1026</a> 				elt.addElement(XML_ROLEID).setText(entry.getKey());
 <a class="jxr_linenumber" name="1027" href="#1027">1027</a> 				String cumul = <strong class="jxr_keyword">null</strong>;
@@ -1069,8 +1069,8 @@
 <a class="jxr_linenumber" name="1059" href="#1059">1059</a> 			document.clearContent();
 <a class="jxr_linenumber" name="1060" href="#1060">1060</a> 			document = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="1061" href="#1061">1061</a> 		} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="1062" href="#1062">1062</a> 			RoleDefault newrole = <strong class="jxr_keyword">new</strong> RoleDefault();
-<a class="jxr_linenumber" name="1063" href="#1063">1063</a> 			<strong class="jxr_keyword">for</strong> (Entry&lt;String, HashSet&lt;String&gt;&gt; entry : map.entrySet()) {
+<a class="jxr_linenumber" name="1062" href="#1062">1062</a> 			<strong class="jxr_keyword">for</strong> (Entry&lt;String, HashSet&lt;String&gt;&gt; entry : map.entrySet()) {
+<a class="jxr_linenumber" name="1063" href="#1063">1063</a> 				RoleDefault newrole = <strong class="jxr_keyword">new</strong> RoleDefault();
 <a class="jxr_linenumber" name="1064" href="#1064">1064</a> 				<strong class="jxr_keyword">if</strong> (entry.getValue().contains(ROLE.NOACCESS.name())) {
 <a class="jxr_linenumber" name="1065" href="#1065">1065</a> 					newrole.setRole(ROLE.NOACCESS);
 <a class="jxr_linenumber" name="1066" href="#1066">1066</a> 				}

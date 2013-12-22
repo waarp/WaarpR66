@@ -71,7 +71,7 @@
 <a class="jxr_linenumber" name="61" href="#61">61</a>  <em class="jxr_javadoccomment">	 * @throws OpenR66ProtocolPacketException</em>
 <a class="jxr_linenumber" name="62" href="#62">62</a>  <em class="jxr_javadoccomment">	 */</em>
 <a class="jxr_linenumber" name="63" href="#63">63</a>  	<strong class="jxr_keyword">public</strong> <a href="../../../../../../org/waarp/openr66/protocol/networkhandler/packet/NetworkPacket.html">NetworkPacket</a>(<strong class="jxr_keyword">int</strong> localId, <strong class="jxr_keyword">int</strong> remoteId, <a href="../../../../../../org/waarp/openr66/protocol/localhandler/packet/AbstractLocalPacket.html">AbstractLocalPacket</a> packet, <a href="../../../../../../org/waarp/openr66/protocol/localhandler/LocalChannelReference.html">LocalChannelReference</a> lcr)
-<a class="jxr_linenumber" name="64" href="#64">64</a>  			<strong class="jxr_keyword">throws</strong> <a href="../../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolPacketException.html">OpenR66ProtocolPacketException</a> {
+<a class="jxr_linenumber" name="64" href="#64">64</a>  			<strong class="jxr_keyword">throws</strong> OpenR66ProtocolPacketException {
 <a class="jxr_linenumber" name="65" href="#65">65</a>  		<strong class="jxr_keyword">this</strong>.remoteId = remoteId;
 <a class="jxr_linenumber" name="66" href="#66">66</a>  		<strong class="jxr_keyword">this</strong>.localId = localId;
 <a class="jxr_linenumber" name="67" href="#67">67</a>  		code = packet.getType();

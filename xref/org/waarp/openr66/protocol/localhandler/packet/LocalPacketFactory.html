@@ -99,7 +99,7 @@
 <a class="jxr_linenumber" name="89" href="#89">89</a>  <em class="jxr_javadoccomment">	 */</em>
 <a class="jxr_linenumber" name="90" href="#90">90</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <a href="../../../../../../org/waarp/openr66/protocol/localhandler/packet/AbstractLocalPacket.html">AbstractLocalPacket</a> createPacketFromChannelBuffer(
 <a class="jxr_linenumber" name="91" href="#91">91</a>  			<strong class="jxr_keyword">int</strong> headerLength, <strong class="jxr_keyword">int</strong> middleLength, <strong class="jxr_keyword">int</strong> endLength, ChannelBuffer buf)
-<a class="jxr_linenumber" name="92" href="#92">92</a>  			<strong class="jxr_keyword">throws</strong> <a href="../../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolPacketException.html">OpenR66ProtocolPacketException</a> {
+<a class="jxr_linenumber" name="92" href="#92">92</a>  			<strong class="jxr_keyword">throws</strong> OpenR66ProtocolPacketException {
 <a class="jxr_linenumber" name="93" href="#93">93</a>  		<strong class="jxr_keyword">final</strong> byte packetType = buf.readByte();
 <a class="jxr_linenumber" name="94" href="#94">94</a>  		<strong class="jxr_keyword">switch</strong> (packetType) {
 <a class="jxr_linenumber" name="95" href="#95">95</a>  			<strong class="jxr_keyword">case</strong> AUTHENTPACKET:
@@ -134,7 +134,7 @@
 <a class="jxr_linenumber" name="124" href="#124">124</a> 			<strong class="jxr_keyword">case</strong> CONFEXPORTPACKET:
 <a class="jxr_linenumber" name="125" href="#125">125</a> 			<strong class="jxr_keyword">case</strong> CONFIMPORTPACKET:
 <a class="jxr_linenumber" name="126" href="#126">126</a> 			<strong class="jxr_keyword">case</strong> BANDWIDTHPACKET:
-<a class="jxr_linenumber" name="127" href="#127">127</a> 				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolPacketException.html">OpenR66ProtocolPacketException</a>(
+<a class="jxr_linenumber" name="127" href="#127">127</a> 				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66ProtocolPacketException(
 <a class="jxr_linenumber" name="128" href="#128">128</a> 						<span class="jxr_string">"Unimplemented Packet Type received: "</span> + packetType);
 <a class="jxr_linenumber" name="129" href="#129">129</a> 			<strong class="jxr_keyword">case</strong> TESTPACKET:
 <a class="jxr_linenumber" name="130" href="#130">130</a> 				<strong class="jxr_keyword">return</strong> TestPacket.createFromBuffer(headerLength, middleLength,
@@ -164,7 +164,7 @@
 <a class="jxr_linenumber" name="154" href="#154">154</a> 				<strong class="jxr_keyword">return</strong> JsonCommandPacket.createFromBuffer(headerLength,
 <a class="jxr_linenumber" name="155" href="#155">155</a> 						middleLength, endLength, buf);
 <a class="jxr_linenumber" name="156" href="#156">156</a> 			<strong class="jxr_keyword">default</strong>:
-<a class="jxr_linenumber" name="157" href="#157">157</a> 				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolPacketException.html">OpenR66ProtocolPacketException</a>(
+<a class="jxr_linenumber" name="157" href="#157">157</a> 				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66ProtocolPacketException(
 <a class="jxr_linenumber" name="158" href="#158">158</a> 						<span class="jxr_string">"Unvalid Packet Type received: "</span> + packetType);
 <a class="jxr_linenumber" name="159" href="#159">159</a> 		}
 <a class="jxr_linenumber" name="160" href="#160">160</a> 	}

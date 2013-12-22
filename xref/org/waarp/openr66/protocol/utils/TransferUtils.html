@@ -76,9 +76,9 @@
 <a class="jxr_linenumber" name="66" href="#66">66</a>  <em class="jxr_javadoccomment">	 * @return the associated Result</em>
 <a class="jxr_linenumber" name="67" href="#67">67</a>  <em class="jxr_javadoccomment">	 * @throws WaarpDatabaseException</em>
 <a class="jxr_linenumber" name="68" href="#68">68</a>  <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="69" href="#69">69</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <a href="../../../../../org/waarp/openr66/context/R66Result.html">R66Result</a> restartTransfer(<a href="../../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> taskRunner, <a href="../../../../../org/waarp/openr66/protocol/localhandler/LocalChannelReference.html">LocalChannelReference</a> lcr)
+<a class="jxr_linenumber" name="69" href="#69">69</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> R66Result restartTransfer(<a href="../../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> taskRunner, <a href="../../../../../org/waarp/openr66/protocol/localhandler/LocalChannelReference.html">LocalChannelReference</a> lcr)
 <a class="jxr_linenumber" name="70" href="#70">70</a>  			<strong class="jxr_keyword">throws</strong> WaarpDatabaseException {
-<a class="jxr_linenumber" name="71" href="#71">71</a>  		R66Result finalResult = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>, ErrorCode.InitOk, taskRunner);
+<a class="jxr_linenumber" name="71" href="#71">71</a>  		R66Result finalResult = <strong class="jxr_keyword">new</strong> R66Result(<strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>, ErrorCode.InitOk, taskRunner);
 <a class="jxr_linenumber" name="72" href="#72">72</a>  		<strong class="jxr_keyword">if</strong> (lcr != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="73" href="#73">73</a>  			finalResult.code = ErrorCode.QueryStillRunning;
 <a class="jxr_linenumber" name="74" href="#74">74</a>  			finalResult.other = Messages.getString(<span class="jxr_string">"TransferUtils.0"</span>); <em class="jxr_comment">//$NON-NLS-1$</em>
@@ -110,7 +110,7 @@
 <a class="jxr_linenumber" name="100" href="#100">100</a> 							finalResult.other = Messages.getString(<span class="jxr_string">"TransferUtils.2"</span>); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="101" href="#101">101</a> 							logger.warn(Messages.getString(<span class="jxr_string">"TransferUtils.3"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="102" href="#102">102</a> 						} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="103" href="#103">103</a> 							R66Future result = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/utils/R66Future.html">R66Future</a>(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="103" href="#103">103</a> 							R66Future result = <strong class="jxr_keyword">new</strong> R66Future(<strong class="jxr_keyword">true</strong>);
 <a class="jxr_linenumber" name="104" href="#104">104</a> 							logger.info(Messages.getString(<span class="jxr_string">"TransferUtils.4"</span>)+taskRunner.toShortString()); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="105" href="#105">105</a> 							RequestTransfer requestTransfer =
 <a class="jxr_linenumber" name="106" href="#106">106</a> 									<strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/client/RequestTransfer.html">RequestTransfer</a>(result, taskRunner.getSpecialId(),
@@ -170,7 +170,7 @@
 <a class="jxr_linenumber" name="160" href="#160">160</a> 	}
 <a class="jxr_linenumber" name="161" href="#161">161</a> 
 <a class="jxr_linenumber" name="162" href="#162">162</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> stopOneTransfer(<a href="../../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> taskRunner,
-<a class="jxr_linenumber" name="163" href="#163">163</a> 			StringBuilder builder, <a href="../../../../../org/waarp/openr66/context/R66Session.html">R66Session</a> session, String body) {
+<a class="jxr_linenumber" name="163" href="#163">163</a> 			StringBuilder builder, R66Session session, String body) {
 <a class="jxr_linenumber" name="164" href="#164">164</a> 		LocalChannelReference lcr =
 <a class="jxr_linenumber" name="165" href="#165">165</a> 				Configuration.configuration.getLocalTransaction().
 <a class="jxr_linenumber" name="166" href="#166">166</a> 						getFromRequest(taskRunner.getKey());
@@ -232,7 +232,7 @@
 <a class="jxr_linenumber" name="222" href="#222">222</a> <em class="jxr_javadoccomment">	 * @return the associated StringBuilder if the one given as parameter is not null</em>
 <a class="jxr_linenumber" name="223" href="#223">223</a> <em class="jxr_javadoccomment">	 */</em>
 <a class="jxr_linenumber" name="224" href="#224">224</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> StringBuilder stopSelectedTransfers(DbSession dbSession, <strong class="jxr_keyword">int</strong> limit,
-<a class="jxr_linenumber" name="225" href="#225">225</a> 			StringBuilder builder, <a href="../../../../../org/waarp/openr66/context/R66Session.html">R66Session</a> session, String body,
+<a class="jxr_linenumber" name="225" href="#225">225</a> 			StringBuilder builder, R66Session session, String body,
 <a class="jxr_linenumber" name="226" href="#226">226</a> 			String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,
 <a class="jxr_linenumber" name="227" href="#227">227</a> 			String req, <strong class="jxr_keyword">boolean</strong> pending, <strong class="jxr_keyword">boolean</strong> transfer, <strong class="jxr_keyword">boolean</strong> error) {
 <a class="jxr_linenumber" name="228" href="#228">228</a> 		<strong class="jxr_keyword">if</strong> (dbSession == <strong class="jxr_keyword">null</strong> || dbSession.isDisconnected) {
@@ -277,7 +277,7 @@
 <a class="jxr_linenumber" name="267" href="#267">267</a> <em class="jxr_javadoccomment">	 * @param session</em>
 <a class="jxr_linenumber" name="268" href="#268">268</a> <em class="jxr_javadoccomment">	 * @param body</em>
 <a class="jxr_linenumber" name="269" href="#269">269</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="270" href="#270">270</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> cleanOneTransfer(<a href="../../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> taskRunner, StringBuilder builder, <a href="../../../../../org/waarp/openr66/context/R66Session.html">R66Session</a> session, String body) {
+<a class="jxr_linenumber" name="270" href="#270">270</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> cleanOneTransfer(<a href="../../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> taskRunner, StringBuilder builder, R66Session session, String body) {
 <a class="jxr_linenumber" name="271" href="#271">271</a> 		<strong class="jxr_keyword">if</strong> (! taskRunner.isSender() &amp;&amp; ! taskRunner.isAllDone()) {
 <a class="jxr_linenumber" name="272" href="#272">272</a> 			String name = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="273" href="#273">273</a> 			<strong class="jxr_keyword">try</strong> {
@@ -336,7 +336,7 @@
 <a class="jxr_linenumber" name="326" href="#326">326</a> <em class="jxr_javadoccomment">	 * @return the associated StringBuilder if the one given as parameter is not null</em>
 <a class="jxr_linenumber" name="327" href="#327">327</a> <em class="jxr_javadoccomment">	 */</em>
 <a class="jxr_linenumber" name="328" href="#328">328</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> StringBuilder cleanSelectedTransfers(DbSession dbSession, <strong class="jxr_keyword">int</strong> limit,
-<a class="jxr_linenumber" name="329" href="#329">329</a> 			StringBuilder builder, <a href="../../../../../org/waarp/openr66/context/R66Session.html">R66Session</a> session, String body,
+<a class="jxr_linenumber" name="329" href="#329">329</a> 			StringBuilder builder, R66Session session, String body,
 <a class="jxr_linenumber" name="330" href="#330">330</a> 			String startid, String stopid, Timestamp tstart, Timestamp tstop, String rule,
 <a class="jxr_linenumber" name="331" href="#331">331</a> 			String req, <strong class="jxr_keyword">boolean</strong> pending, <strong class="jxr_keyword">boolean</strong> transfer, <strong class="jxr_keyword">boolean</strong> error) {
 <a class="jxr_linenumber" name="332" href="#332">332</a> 		<strong class="jxr_keyword">if</strong> (dbSession == <strong class="jxr_keyword">null</strong> || dbSession.isDisconnected) {
@@ -385,8 +385,8 @@
 <a class="jxr_linenumber" name="375" href="#375">375</a> <em class="jxr_javadoccomment">	 */</em>
 <a class="jxr_linenumber" name="376" href="#376">376</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> finalizeTaskWithNoSession(<a href="../../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> taskRunner,
 <a class="jxr_linenumber" name="377" href="#377">377</a> 			LocalChannelReference localChannelReference)
-<a class="jxr_linenumber" name="378" href="#378">378</a> 			<strong class="jxr_keyword">throws</strong> <a href="../../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a> {
-<a class="jxr_linenumber" name="379" href="#379">379</a> 		R66Session session = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/R66Session.html">R66Session</a>();
+<a class="jxr_linenumber" name="378" href="#378">378</a> 			<strong class="jxr_keyword">throws</strong> OpenR66RunnerErrorException {
+<a class="jxr_linenumber" name="379" href="#379">379</a> 		R66Session session = <strong class="jxr_keyword">new</strong> R66Session();
 <a class="jxr_linenumber" name="380" href="#380">380</a> 		session.setStatus(50);
 <a class="jxr_linenumber" name="381" href="#381">381</a> 		String remoteId = taskRunner.isSelfRequested() ?
 <a class="jxr_linenumber" name="382" href="#382">382</a> 				taskRunner.getRequester() :
@@ -398,21 +398,21 @@
 <a class="jxr_linenumber" name="388" href="#388">388</a> 			<strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="389" href="#389">389</a> 				session.getDir().changeDirectory(taskRunner.getRule().getSendPath());
 <a class="jxr_linenumber" name="390" href="#390">390</a> 			} <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
-<a class="jxr_linenumber" name="391" href="#391">391</a> 				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(e);
+<a class="jxr_linenumber" name="391" href="#391">391</a> 				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66RunnerErrorException(e);
 <a class="jxr_linenumber" name="392" href="#392">392</a> 			}
 <a class="jxr_linenumber" name="393" href="#393">393</a> 		} <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="394" href="#394">394</a> 			<em class="jxr_comment">// Change dir</em>
 <a class="jxr_linenumber" name="395" href="#395">395</a> 			<strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="396" href="#396">396</a> 				session.getDir().changeDirectory(taskRunner.getRule().getWorkPath());
 <a class="jxr_linenumber" name="397" href="#397">397</a> 			} <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
-<a class="jxr_linenumber" name="398" href="#398">398</a> 				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(e);
+<a class="jxr_linenumber" name="398" href="#398">398</a> 				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66RunnerErrorException(e);
 <a class="jxr_linenumber" name="399" href="#399">399</a> 			}
 <a class="jxr_linenumber" name="400" href="#400">400</a> 		}
 <a class="jxr_linenumber" name="401" href="#401">401</a> 		<strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="402" href="#402">402</a> 			<strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="403" href="#403">403</a> 				session.setFileAfterPreRunner(false);
 <a class="jxr_linenumber" name="404" href="#404">404</a> 			} <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
-<a class="jxr_linenumber" name="405" href="#405">405</a> 				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(e);
+<a class="jxr_linenumber" name="405" href="#405">405</a> 				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66RunnerErrorException(e);
 <a class="jxr_linenumber" name="406" href="#406">406</a> 			}
 <a class="jxr_linenumber" name="407" href="#407">407</a> 		} <strong class="jxr_keyword">catch</strong> (OpenR66RunnerErrorException e) {
 <a class="jxr_linenumber" name="408" href="#408">408</a> 			logger.error(Messages.getString(<span class="jxr_string">"TransferUtils.27"</span>), taskRunner.getFilename()); <em class="jxr_comment">//$NON-NLS-1$</em>
@@ -422,10 +422,10 @@
 <a class="jxr_linenumber" name="412" href="#412">412</a> 				taskRunner.update();
 <a class="jxr_linenumber" name="413" href="#413">413</a> 			} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e1) {
 <a class="jxr_linenumber" name="414" href="#414">414</a> 			}
-<a class="jxr_linenumber" name="415" href="#415">415</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(Messages.getString(<span class="jxr_string">"TransferUtils.28"</span>), e); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="415" href="#415">415</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66RunnerErrorException(Messages.getString(<span class="jxr_string">"TransferUtils.28"</span>), e); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="416" href="#416">416</a> 		}
 <a class="jxr_linenumber" name="417" href="#417">417</a> 		R66File file = session.getFile();
-<a class="jxr_linenumber" name="418" href="#418">418</a> 		R66Result finalValue = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>, ErrorCode.CompleteOk, taskRunner);
+<a class="jxr_linenumber" name="418" href="#418">418</a> 		R66Result finalValue = <strong class="jxr_keyword">new</strong> R66Result(<strong class="jxr_keyword">null</strong>, <strong class="jxr_keyword">true</strong>, ErrorCode.CompleteOk, taskRunner);
 <a class="jxr_linenumber" name="419" href="#419">419</a> 		finalValue.file = file;
 <a class="jxr_linenumber" name="420" href="#420">420</a> 		finalValue.runner = taskRunner;
 <a class="jxr_linenumber" name="421" href="#421">421</a> 		taskRunner.finishTransferTask(ErrorCode.TransferOk);
@@ -439,7 +439,7 @@
 <a class="jxr_linenumber" name="429" href="#429">429</a> 				taskRunner.update();
 <a class="jxr_linenumber" name="430" href="#430">430</a> 			} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e1) {
 <a class="jxr_linenumber" name="431" href="#431">431</a> 			}
-<a class="jxr_linenumber" name="432" href="#432">432</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(Messages.getString(<span class="jxr_string">"TransferUtils.30"</span>), e); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="432" href="#432">432</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66RunnerErrorException(Messages.getString(<span class="jxr_string">"TransferUtils.30"</span>), e); <em class="jxr_comment">//$NON-NLS-1$</em>
 <a class="jxr_linenumber" name="433" href="#433">433</a> 		}
 <a class="jxr_linenumber" name="434" href="#434">434</a> 	}
 <a class="jxr_linenumber" name="435" href="#435">435</a> }

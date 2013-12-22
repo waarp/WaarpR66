@@ -37,15 +37,15 @@
 <a class="jxr_linenumber" name="27" href="#27">27</a>  <em class="jxr_javadoccomment"> * @author Frederic Bregier</em>
 <a class="jxr_linenumber" name="28" href="#28">28</a>  <em class="jxr_javadoccomment"> * </em>
 <a class="jxr_linenumber" name="29" href="#29">29</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="30" href="#30">30</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a> {
+<a class="jxr_linenumber" name="30" href="#30">30</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> R66Result {
 <a class="jxr_linenumber" name="31" href="#31">31</a>  	<em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="32" href="#32">32</a>  <em class="jxr_javadoccomment">	 * The exception associated in case of error (if any exception)</em>
 <a class="jxr_linenumber" name="33" href="#33">33</a>  <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="34" href="#34">34</a>  	<strong class="jxr_keyword">public</strong> <a href="../../../../org/waarp/openr66/protocol/exception/OpenR66Exception.html">OpenR66Exception</a> exception = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="34" href="#34">34</a>  	<strong class="jxr_keyword">public</strong> OpenR66Exception exception = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="35" href="#35">35</a>  	<em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="36" href="#36">36</a>  <em class="jxr_javadoccomment">	 * The file if any</em>
 <a class="jxr_linenumber" name="37" href="#37">37</a>  <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="38" href="#38">38</a>  	<strong class="jxr_keyword">public</strong> <a href="../../../../org/waarp/openr66/context/filesystem/R66File.html">R66File</a> file = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="38" href="#38">38</a>  	<strong class="jxr_keyword">public</strong> R66File file = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="39" href="#39">39</a>  	<em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="40" href="#40">40</a>  <em class="jxr_javadoccomment">	 * The runner if any</em>
 <a class="jxr_linenumber" name="41" href="#41">41</a>  <em class="jxr_javadoccomment">	 */</em>
@@ -70,7 +70,7 @@
 <a class="jxr_linenumber" name="60" href="#60">60</a>  <em class="jxr_javadoccomment">	 * @param code</em>
 <a class="jxr_linenumber" name="61" href="#61">61</a>  <em class="jxr_javadoccomment">	 * @param runner</em>
 <a class="jxr_linenumber" name="62" href="#62">62</a>  <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="63" href="#63">63</a>  	<strong class="jxr_keyword">public</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<a href="../../../../org/waarp/openr66/protocol/exception/OpenR66Exception.html">OpenR66Exception</a> exception, <a href="../../../../org/waarp/openr66/context/R66Session.html">R66Session</a> session,
+<a class="jxr_linenumber" name="63" href="#63">63</a>  	<strong class="jxr_keyword">public</strong> R66Result(OpenR66Exception exception, R66Session session,
 <a class="jxr_linenumber" name="64" href="#64">64</a>  			<strong class="jxr_keyword">boolean</strong> isAnswered, <a href="../../../../org/waarp/openr66/context/ErrorCode.html">ErrorCode</a> code, <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a> runner) {
 <a class="jxr_linenumber" name="65" href="#65">65</a>  		<strong class="jxr_keyword">this</strong>.exception = exception;
 <a class="jxr_linenumber" name="66" href="#66">66</a>  		<strong class="jxr_keyword">this</strong>.runner = runner;
@@ -88,7 +88,7 @@
 <a class="jxr_linenumber" name="78" href="#78">78</a>  <em class="jxr_javadoccomment">	 * @param code</em>
 <a class="jxr_linenumber" name="79" href="#79">79</a>  <em class="jxr_javadoccomment">	 * @param runner</em>
 <a class="jxr_linenumber" name="80" href="#80">80</a>  <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="81" href="#81">81</a>  	<strong class="jxr_keyword">public</strong> <a href="../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(<a href="../../../../org/waarp/openr66/context/R66Session.html">R66Session</a> session, <strong class="jxr_keyword">boolean</strong> isAnswered, <a href="../../../../org/waarp/openr66/context/ErrorCode.html">ErrorCode</a> code,
+<a class="jxr_linenumber" name="81" href="#81">81</a>  	<strong class="jxr_keyword">public</strong> R66Result(R66Session session, <strong class="jxr_keyword">boolean</strong> isAnswered, <a href="../../../../org/waarp/openr66/context/ErrorCode.html">ErrorCode</a> code,
 <a class="jxr_linenumber" name="82" href="#82">82</a>  			DbTaskRunner runner) {
 <a class="jxr_linenumber" name="83" href="#83">83</a>  		<strong class="jxr_keyword">this</strong>.runner = runner;
 <a class="jxr_linenumber" name="84" href="#84">84</a>  		<strong class="jxr_keyword">if</strong> (session != <strong class="jxr_keyword">null</strong>) {

@@ -36,7 +36,7 @@
 <a class="jxr_linenumber" name="26" href="#26">26</a>  <strong class="jxr_keyword">import</strong> org.waarp.openr66.context.task.exception.OpenR66RunnerException;
 <a class="jxr_linenumber" name="27" href="#27">27</a>  
 <a class="jxr_linenumber" name="28" href="#28">28</a>  <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="29" href="#29">29</a>  <em class="jxr_javadoccomment"> * This task validate the File Path according to the follwing argument:&lt;br&gt;</em>
+<a class="jxr_linenumber" name="29" href="#29">29</a>  <em class="jxr_javadoccomment"> * This task validate the File Path according to the following argument:&lt;br&gt;</em>
 <a class="jxr_linenumber" name="30" href="#30">30</a>  <em class="jxr_javadoccomment"> * - the full path is get from the current file&lt;br&gt;</em>
 <a class="jxr_linenumber" name="31" href="#31">31</a>  <em class="jxr_javadoccomment"> * - the arg path is transformed as usual (static and dynamic from information transfer) and should</em>
 <a class="jxr_linenumber" name="32" href="#32">32</a>  <em class="jxr_javadoccomment"> * be the beginning of the correct valid path&lt;br&gt;</em>
@@ -93,7 +93,7 @@
 <a class="jxr_linenumber" name="83" href="#83">83</a>  			logger.error(<span class="jxr_string">"Unvalidate File: "</span> + curpath + <span class="jxr_string">"     "</span> +
 <a class="jxr_linenumber" name="84" href="#84">84</a>  					session.toString());
 <a class="jxr_linenumber" name="85" href="#85">85</a>  		}
-<a class="jxr_linenumber" name="86" href="#86">86</a>  		futureCompletion.setFailure(<strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerException.html">OpenR66RunnerException</a>(<span class="jxr_string">"File not Validated"</span>));
+<a class="jxr_linenumber" name="86" href="#86">86</a>  		futureCompletion.setFailure(<strong class="jxr_keyword">new</strong> OpenR66RunnerException(<span class="jxr_string">"File not Validated"</span>));
 <a class="jxr_linenumber" name="87" href="#87">87</a>  	}
 <a class="jxr_linenumber" name="88" href="#88">88</a>  
 <a class="jxr_linenumber" name="89" href="#89">89</a>  }

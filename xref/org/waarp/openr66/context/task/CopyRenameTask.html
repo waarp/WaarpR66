@@ -76,7 +76,7 @@
 <a class="jxr_linenumber" name="66" href="#66">66</a>  		} <strong class="jxr_keyword">catch</strong> (OpenR66ProtocolSystemException e1) {
 <a class="jxr_linenumber" name="67" href="#67">67</a>  			logger.error(<span class="jxr_string">"Copy and Rename to "</span> + finalname + <span class="jxr_string">" with "</span> +
 <a class="jxr_linenumber" name="68" href="#68">68</a>  					argRule + <span class="jxr_string">":"</span> + argTransfer + <span class="jxr_string">" and "</span> + session, e1);
-<a class="jxr_linenumber" name="69" href="#69">69</a>  			futureCompletion.setFailure(<strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(e1));
+<a class="jxr_linenumber" name="69" href="#69">69</a>  			futureCompletion.setFailure(<strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException(e1));
 <a class="jxr_linenumber" name="70" href="#70">70</a>  			<strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="71" href="#71">71</a>  		}
 <a class="jxr_linenumber" name="72" href="#72">72</a>  		futureCompletion.setSuccess();

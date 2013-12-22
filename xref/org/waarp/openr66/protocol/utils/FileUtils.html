@@ -73,9 +73,9 @@
 <a class="jxr_linenumber" name="63" href="#63">63</a>  <em class="jxr_javadoccomment">	 * @throws OpenR66ProtocolSystemException</em>
 <a class="jxr_linenumber" name="64" href="#64">64</a>  <em class="jxr_javadoccomment">	 */</em>
 <a class="jxr_linenumber" name="65" href="#65">65</a>  	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> copy(File from, File to, <strong class="jxr_keyword">boolean</strong> move, <strong class="jxr_keyword">boolean</strong> append)
-<a class="jxr_linenumber" name="66" href="#66">66</a>  			<strong class="jxr_keyword">throws</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a> {
+<a class="jxr_linenumber" name="66" href="#66">66</a>  			<strong class="jxr_keyword">throws</strong> OpenR66ProtocolSystemException {
 <a class="jxr_linenumber" name="67" href="#67">67</a>  		<strong class="jxr_keyword">if</strong> (from == <strong class="jxr_keyword">null</strong> || to == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="68" href="#68">68</a>  			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(
+<a class="jxr_linenumber" name="68" href="#68">68</a>  			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException(
 <a class="jxr_linenumber" name="69" href="#69">69</a>  					<span class="jxr_string">"Source or Destination is null"</span>);
 <a class="jxr_linenumber" name="70" href="#70">70</a>  		}
 <a class="jxr_linenumber" name="71" href="#71">71</a>  		File directoryTo = to.getParentFile();
@@ -85,7 +85,7 @@
 <a class="jxr_linenumber" name="75" href="#75">75</a>  			}
 <a class="jxr_linenumber" name="76" href="#76">76</a>  			FileChannel fileChannelIn = getFileChannel(from, false, false);
 <a class="jxr_linenumber" name="77" href="#77">77</a>  			<strong class="jxr_keyword">if</strong> (fileChannelIn == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="78" href="#78">78</a>  				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(
+<a class="jxr_linenumber" name="78" href="#78">78</a>  				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException(
 <a class="jxr_linenumber" name="79" href="#79">79</a>  						<span class="jxr_string">"Cannot read source file"</span>);
 <a class="jxr_linenumber" name="80" href="#80">80</a>  				<em class="jxr_comment">// return false;</em>
 <a class="jxr_linenumber" name="81" href="#81">81</a>  			}
@@ -95,7 +95,7 @@
 <a class="jxr_linenumber" name="85" href="#85">85</a>  					fileChannelIn.close();
 <a class="jxr_linenumber" name="86" href="#86">86</a>  				} <strong class="jxr_keyword">catch</strong> (IOException e) {
 <a class="jxr_linenumber" name="87" href="#87">87</a>  				}
-<a class="jxr_linenumber" name="88" href="#88">88</a>  				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(
+<a class="jxr_linenumber" name="88" href="#88">88</a>  				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException(
 <a class="jxr_linenumber" name="89" href="#89">89</a>  						<span class="jxr_string">"Cannot write destination file"</span>);
 <a class="jxr_linenumber" name="90" href="#90">90</a>  			}
 <a class="jxr_linenumber" name="91" href="#91">91</a>  			<strong class="jxr_keyword">if</strong> (write(fileChannelIn, fileChannelOut) &gt; 0) {
@@ -105,9 +105,9 @@
 <a class="jxr_linenumber" name="95" href="#95">95</a>  				}
 <a class="jxr_linenumber" name="96" href="#96">96</a>  				<strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="97" href="#97">97</a>  			}
-<a class="jxr_linenumber" name="98" href="#98">98</a>  			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(<span class="jxr_string">"Cannot copy"</span>);
+<a class="jxr_linenumber" name="98" href="#98">98</a>  			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException(<span class="jxr_string">"Cannot copy"</span>);
 <a class="jxr_linenumber" name="99" href="#99">99</a>  		}
-<a class="jxr_linenumber" name="100" href="#100">100</a> 		<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(
+<a class="jxr_linenumber" name="100" href="#100">100</a> 		<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException(
 <a class="jxr_linenumber" name="101" href="#101">101</a> 				<span class="jxr_string">"Cannot access to parent dir of destination"</span>);
 <a class="jxr_linenumber" name="102" href="#102">102</a> 	}
 <a class="jxr_linenumber" name="103" href="#103">103</a> 
@@ -122,7 +122,7 @@
 <a class="jxr_linenumber" name="112" href="#112">112</a> <em class="jxr_javadoccomment">	 * @throws OpenR66ProtocolSystemException</em>
 <a class="jxr_linenumber" name="113" href="#113">113</a> <em class="jxr_javadoccomment">	 */</em>
 <a class="jxr_linenumber" name="114" href="#114">114</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> File[] copy(File[] from, File directoryTo, <strong class="jxr_keyword">boolean</strong> move)
-<a class="jxr_linenumber" name="115" href="#115">115</a> 			<strong class="jxr_keyword">throws</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a> {
+<a class="jxr_linenumber" name="115" href="#115">115</a> 			<strong class="jxr_keyword">throws</strong> OpenR66ProtocolSystemException {
 <a class="jxr_linenumber" name="116" href="#116">116</a> 		<strong class="jxr_keyword">if</strong> (from == <strong class="jxr_keyword">null</strong> || directoryTo == <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="117" href="#117">117</a> 			<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="118" href="#118">118</a> 		}
@@ -151,9 +151,9 @@
 <a class="jxr_linenumber" name="141" href="#141">141</a> <em class="jxr_javadoccomment">	 * @throws OpenR66ProtocolSystemException</em>
 <a class="jxr_linenumber" name="142" href="#142">142</a> <em class="jxr_javadoccomment">	 */</em>
 <a class="jxr_linenumber" name="143" href="#143">143</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> File copyToDir(File from, File directoryTo, <strong class="jxr_keyword">boolean</strong> move)
-<a class="jxr_linenumber" name="144" href="#144">144</a> 			<strong class="jxr_keyword">throws</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a> {
+<a class="jxr_linenumber" name="144" href="#144">144</a> 			<strong class="jxr_keyword">throws</strong> OpenR66ProtocolSystemException {
 <a class="jxr_linenumber" name="145" href="#145">145</a> 		<strong class="jxr_keyword">if</strong> (from == <strong class="jxr_keyword">null</strong> || directoryTo == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="146" href="#146">146</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(
+<a class="jxr_linenumber" name="146" href="#146">146</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException(
 <a class="jxr_linenumber" name="147" href="#147">147</a> 					<span class="jxr_string">"Source or Destination is null"</span>);
 <a class="jxr_linenumber" name="148" href="#148">148</a> 		}
 <a class="jxr_linenumber" name="149" href="#149">149</a> 		<strong class="jxr_keyword">if</strong> (createDir(directoryTo)) {
@@ -163,7 +163,7 @@
 <a class="jxr_linenumber" name="153" href="#153">153</a> 			}
 <a class="jxr_linenumber" name="154" href="#154">154</a> 			FileChannel fileChannelIn = getFileChannel(from, false, false);
 <a class="jxr_linenumber" name="155" href="#155">155</a> 			<strong class="jxr_keyword">if</strong> (fileChannelIn == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="156" href="#156">156</a> 				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(
+<a class="jxr_linenumber" name="156" href="#156">156</a> 				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException(
 <a class="jxr_linenumber" name="157" href="#157">157</a> 						<span class="jxr_string">"Cannot read source file"</span>);
 <a class="jxr_linenumber" name="158" href="#158">158</a> 			}
 <a class="jxr_linenumber" name="159" href="#159">159</a> 			FileChannel fileChannelOut = getFileChannel(to, <strong class="jxr_keyword">true</strong>, false);
@@ -172,7 +172,7 @@
 <a class="jxr_linenumber" name="162" href="#162">162</a> 					fileChannelIn.close();
 <a class="jxr_linenumber" name="163" href="#163">163</a> 				} <strong class="jxr_keyword">catch</strong> (IOException e) {
 <a class="jxr_linenumber" name="164" href="#164">164</a> 				}
-<a class="jxr_linenumber" name="165" href="#165">165</a> 				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(
+<a class="jxr_linenumber" name="165" href="#165">165</a> 				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException(
 <a class="jxr_linenumber" name="166" href="#166">166</a> 						<span class="jxr_string">"Cannot write destination file"</span>);
 <a class="jxr_linenumber" name="167" href="#167">167</a> 			}
 <a class="jxr_linenumber" name="168" href="#168">168</a> 			<strong class="jxr_keyword">if</strong> (write(fileChannelIn, fileChannelOut) &gt; 0) {
@@ -182,10 +182,10 @@
 <a class="jxr_linenumber" name="172" href="#172">172</a> 				}
 <a class="jxr_linenumber" name="173" href="#173">173</a> 				<strong class="jxr_keyword">return</strong> to;
 <a class="jxr_linenumber" name="174" href="#174">174</a> 			}
-<a class="jxr_linenumber" name="175" href="#175">175</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(
+<a class="jxr_linenumber" name="175" href="#175">175</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException(
 <a class="jxr_linenumber" name="176" href="#176">176</a> 					<span class="jxr_string">"Cannot write destination file"</span>);
 <a class="jxr_linenumber" name="177" href="#177">177</a> 		}
-<a class="jxr_linenumber" name="178" href="#178">178</a> 		<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(
+<a class="jxr_linenumber" name="178" href="#178">178</a> 		<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException(
 <a class="jxr_linenumber" name="179" href="#179">179</a> 				<span class="jxr_string">"Cannot access to parent dir of destination"</span>);
 <a class="jxr_linenumber" name="180" href="#180">180</a> 	}
 <a class="jxr_linenumber" name="181" href="#181">181</a> 
@@ -339,8 +339,8 @@
 <a class="jxr_linenumber" name="329" href="#329">329</a> <em class="jxr_javadoccomment">	 * @return the R66File</em>
 <a class="jxr_linenumber" name="330" href="#330">330</a> <em class="jxr_javadoccomment">	 * @throws OpenR66RunnerErrorException</em>
 <a class="jxr_linenumber" name="331" href="#331">331</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="332" href="#332">332</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> <a href="../../../../../org/waarp/openr66/context/filesystem/R66File.html">R66File</a> getFile(WaarpInternalLogger logger, <a href="../../../../../org/waarp/openr66/context/R66Session.html">R66Session</a> session, String filenameSrc, 
-<a class="jxr_linenumber" name="333" href="#333">333</a> 			<strong class="jxr_keyword">boolean</strong> isPreStart, <strong class="jxr_keyword">boolean</strong> isSender, <strong class="jxr_keyword">boolean</strong> isThrough, <a href="../../../../../org/waarp/openr66/context/filesystem/R66File.html">R66File</a> file) <strong class="jxr_keyword">throws</strong> OpenR66RunnerErrorException {
+<a class="jxr_linenumber" name="332" href="#332">332</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> R66File getFile(WaarpInternalLogger logger, R66Session session, String filenameSrc, 
+<a class="jxr_linenumber" name="333" href="#333">333</a> 			<strong class="jxr_keyword">boolean</strong> isPreStart, <strong class="jxr_keyword">boolean</strong> isSender, <strong class="jxr_keyword">boolean</strong> isThrough, R66File file) <strong class="jxr_keyword">throws</strong> OpenR66RunnerErrorException {
 <a class="jxr_linenumber" name="334" href="#334">334</a> 		String filename;
 <a class="jxr_linenumber" name="335" href="#335">335</a> 		logger.debug(<span class="jxr_string">"PreStart: "</span>+isPreStart);
 <a class="jxr_linenumber" name="336" href="#336">336</a> 		logger.debug(<span class="jxr_string">"Dir is: "</span>+session.getDir().getFullPath());
@@ -356,7 +356,7 @@
 <a class="jxr_linenumber" name="346" href="#346">346</a> 				<strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="347" href="#347">347</a> 					filename = URLDecoder.decode(filename, WaarpStringUtils.UTF8.name());
 <a class="jxr_linenumber" name="348" href="#348">348</a> 				} <strong class="jxr_keyword">catch</strong> (UnsupportedEncodingException e) {
-<a class="jxr_linenumber" name="349" href="#349">349</a> 					<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(<span class="jxr_string">"File cannot be read: "</span> +
+<a class="jxr_linenumber" name="349" href="#349">349</a> 					<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66RunnerErrorException(<span class="jxr_string">"File cannot be read: "</span> +
 <a class="jxr_linenumber" name="350" href="#350">350</a> 							filename);
 <a class="jxr_linenumber" name="351" href="#351">351</a> 				}
 <a class="jxr_linenumber" name="352" href="#352">352</a> 			}
@@ -382,18 +382,18 @@
 <a class="jxr_linenumber" name="372" href="#372">372</a> 				} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (!file.canRead()) {
 <a class="jxr_linenumber" name="373" href="#373">373</a> 					<em class="jxr_comment">// file is not under normal base directory, so is external</em>
 <a class="jxr_linenumber" name="374" href="#374">374</a> 					<em class="jxr_comment">// File should already exist but cannot use special code ('*?')</em>
-<a class="jxr_linenumber" name="375" href="#375">375</a> 					file = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/filesystem/R66File.html">R66File</a>(session, session.getDir(), filename);
+<a class="jxr_linenumber" name="375" href="#375">375</a> 					file = <strong class="jxr_keyword">new</strong> R66File(session, session.getDir(), filename);
 <a class="jxr_linenumber" name="376" href="#376">376</a> 					<strong class="jxr_keyword">if</strong> (!file.canRead()) {
-<a class="jxr_linenumber" name="377" href="#377">377</a> 						<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(<span class="jxr_string">"File cannot be read: "</span> +
+<a class="jxr_linenumber" name="377" href="#377">377</a> 						<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66RunnerErrorException(<span class="jxr_string">"File cannot be read: "</span> +
 <a class="jxr_linenumber" name="378" href="#378">378</a> 								file.getTrueFile().getAbsolutePath());
 <a class="jxr_linenumber" name="379" href="#379">379</a> 					}
 <a class="jxr_linenumber" name="380" href="#380">380</a> 				}
 <a class="jxr_linenumber" name="381" href="#381">381</a> 			} <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
-<a class="jxr_linenumber" name="382" href="#382">382</a> 				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(e);
+<a class="jxr_linenumber" name="382" href="#382">382</a> 				<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66RunnerErrorException(e);
 <a class="jxr_linenumber" name="383" href="#383">383</a> 			}
 <a class="jxr_linenumber" name="384" href="#384">384</a> 		} <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="385" href="#385">385</a> 			<em class="jxr_comment">// not sender so file is just registered as is but no test of existence</em>
-<a class="jxr_linenumber" name="386" href="#386">386</a> 			file = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/filesystem/R66File.html">R66File</a>(session, session.getDir(), filename);
+<a class="jxr_linenumber" name="386" href="#386">386</a> 			file = <strong class="jxr_keyword">new</strong> R66File(session, session.getDir(), filename);
 <a class="jxr_linenumber" name="387" href="#387">387</a> 		}
 <a class="jxr_linenumber" name="388" href="#388">388</a> 		<strong class="jxr_keyword">return</strong> file;
 <a class="jxr_linenumber" name="389" href="#389">389</a> 	}
@@ -403,7 +403,7 @@
 <a class="jxr_linenumber" name="393" href="#393">393</a> <em class="jxr_javadoccomment">	 * @param _Path</em>
 <a class="jxr_linenumber" name="394" href="#394">394</a> <em class="jxr_javadoccomment">	 * @return true if the file exist in the specified path</em>
 <a class="jxr_linenumber" name="395" href="#395">395</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="396" href="#396">396</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> FileExist(String _FileName, String _Path) {
+<a class="jxr_linenumber" name="396" href="#396">396</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> fileExist(String _FileName, String _Path) {
 <a class="jxr_linenumber" name="397" href="#397">397</a> 		<strong class="jxr_keyword">boolean</strong> exist = false;
 <a class="jxr_linenumber" name="398" href="#398">398</a> 		String fileString = _Path + File.separator + _FileName;
 <a class="jxr_linenumber" name="399" href="#399">399</a> 		File file = <strong class="jxr_keyword">new</strong> File(fileString);
@@ -441,7 +441,7 @@
 <a class="jxr_linenumber" name="431" href="#431">431</a> 				}
 <a class="jxr_linenumber" name="432" href="#432">432</a> 			} <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="433" href="#433">433</a> 				<strong class="jxr_keyword">if</strong> (!file.exists()) {
-<a class="jxr_linenumber" name="434" href="#434">434</a> 					<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(
+<a class="jxr_linenumber" name="434" href="#434">434</a> 					<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException(
 <a class="jxr_linenumber" name="435" href="#435">435</a> 							<span class="jxr_string">"File does not exist"</span>);
 <a class="jxr_linenumber" name="436" href="#436">436</a> 				}
 <a class="jxr_linenumber" name="437" href="#437">437</a> 				@SuppressWarnings(<span class="jxr_string">"resource"</span>)
@@ -450,7 +450,7 @@
 <a class="jxr_linenumber" name="440" href="#440">440</a> 				fileChannel = fileInputStream.getChannel();
 <a class="jxr_linenumber" name="441" href="#441">441</a> 			}
 <a class="jxr_linenumber" name="442" href="#442">442</a> 		} <strong class="jxr_keyword">catch</strong> (FileNotFoundException e) {
-<a class="jxr_linenumber" name="443" href="#443">443</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(<span class="jxr_string">"File not found"</span>, e);
+<a class="jxr_linenumber" name="443" href="#443">443</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException(<span class="jxr_string">"File not found"</span>, e);
 <a class="jxr_linenumber" name="444" href="#444">444</a> 		}
 <a class="jxr_linenumber" name="445" href="#445">445</a> 		<strong class="jxr_keyword">return</strong> fileChannel;
 <a class="jxr_linenumber" name="446" href="#446">446</a> 	}
@@ -495,7 +495,7 @@
 <a class="jxr_linenumber" name="485" href="#485">485</a> 			<strong class="jxr_keyword">return</strong> FilesystemBasedDigest.getHex(FilesystemBasedDigest.getHash(f,
 <a class="jxr_linenumber" name="486" href="#486">486</a> 					FilesystemBasedFileParameterImpl.useNio, Configuration.configuration.digest));
 <a class="jxr_linenumber" name="487" href="#487">487</a> 		} <strong class="jxr_keyword">catch</strong> (IOException e) {
-<a class="jxr_linenumber" name="488" href="#488">488</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(e);
+<a class="jxr_linenumber" name="488" href="#488">488</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException(e);
 <a class="jxr_linenumber" name="489" href="#489">489</a> 		}
 <a class="jxr_linenumber" name="490" href="#490">490</a> 	}
 <a class="jxr_linenumber" name="491" href="#491">491</a> 
@@ -599,14 +599,14 @@
 <a class="jxr_linenumber" name="589" href="#589">589</a> 				} <strong class="jxr_keyword">catch</strong> (IOException e) {
 <a class="jxr_linenumber" name="590" href="#590">590</a> 				}
 <a class="jxr_linenumber" name="591" href="#591">591</a> 			}
-<a class="jxr_linenumber" name="592" href="#592">592</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(<span class="jxr_string">"FileChannelIn is null"</span>);
+<a class="jxr_linenumber" name="592" href="#592">592</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException(<span class="jxr_string">"FileChannelIn is null"</span>);
 <a class="jxr_linenumber" name="593" href="#593">593</a> 		}
 <a class="jxr_linenumber" name="594" href="#594">594</a> 		<strong class="jxr_keyword">if</strong> (fileChannelOut == <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="595" href="#595">595</a> 			<strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="596" href="#596">596</a> 				fileChannelIn.close();
 <a class="jxr_linenumber" name="597" href="#597">597</a> 			} <strong class="jxr_keyword">catch</strong> (IOException e) {
 <a class="jxr_linenumber" name="598" href="#598">598</a> 			}
-<a class="jxr_linenumber" name="599" href="#599">599</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(<span class="jxr_string">"FileChannelOut is null"</span>);
+<a class="jxr_linenumber" name="599" href="#599">599</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException(<span class="jxr_string">"FileChannelOut is null"</span>);
 <a class="jxr_linenumber" name="600" href="#600">600</a> 		}
 <a class="jxr_linenumber" name="601" href="#601">601</a> 		<strong class="jxr_keyword">long</strong> size = 0;
 <a class="jxr_linenumber" name="602" href="#602">602</a> 		<strong class="jxr_keyword">long</strong> transfert = 0;
@@ -626,7 +626,7 @@
 <a class="jxr_linenumber" name="616" href="#616">616</a> 				fileChannelIn.close();
 <a class="jxr_linenumber" name="617" href="#617">617</a> 			} <strong class="jxr_keyword">catch</strong> (IOException e1) {
 <a class="jxr_linenumber" name="618" href="#618">618</a> 			}
-<a class="jxr_linenumber" name="619" href="#619">619</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(
+<a class="jxr_linenumber" name="619" href="#619">619</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException(
 <a class="jxr_linenumber" name="620" href="#620">620</a> 					<span class="jxr_string">"An error during copy occurs"</span>, e);
 <a class="jxr_linenumber" name="621" href="#621">621</a> 		}
 <a class="jxr_linenumber" name="622" href="#622">622</a> 		<strong class="jxr_keyword">try</strong> {
@@ -636,7 +636,7 @@
 <a class="jxr_linenumber" name="626" href="#626">626</a> 		}
 <a class="jxr_linenumber" name="627" href="#627">627</a> 		<strong class="jxr_keyword">boolean</strong> retour = size == transfert;
 <a class="jxr_linenumber" name="628" href="#628">628</a> 		<strong class="jxr_keyword">if</strong> (!retour) {
-<a class="jxr_linenumber" name="629" href="#629">629</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(<span class="jxr_string">"Copy is not complete: "</span> +
+<a class="jxr_linenumber" name="629" href="#629">629</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException(<span class="jxr_string">"Copy is not complete: "</span> +
 <a class="jxr_linenumber" name="630" href="#630">630</a> 					transfert + <span class="jxr_string">" bytes instead of "</span> + size + <span class="jxr_string">" original bytes"</span>);
 <a class="jxr_linenumber" name="631" href="#631">631</a> 		}
 <a class="jxr_linenumber" name="632" href="#632">632</a> 		<strong class="jxr_keyword">return</strong> size;

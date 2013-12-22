@@ -36,14 +36,14 @@
 <a class="jxr_linenumber" name="26" href="#26">26</a>  <em class="jxr_javadoccomment"> * @author Frederic Bregier</em>
 <a class="jxr_linenumber" name="27" href="#27">27</a>  <em class="jxr_javadoccomment"> * </em>
 <a class="jxr_linenumber" name="28" href="#28">28</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="29" href="#29">29</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../org/waarp/openr66/context/R66DefaultBusinessFactory.html">R66DefaultBusinessFactory</a> <strong class="jxr_keyword">implements</strong> <a href="../../../../org/waarp/openr66/context/R66BusinessFactoryInterface.html">R66BusinessFactoryInterface</a> {
+<a class="jxr_linenumber" name="29" href="#29">29</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> R66DefaultBusinessFactory <strong class="jxr_keyword">implements</strong> R66BusinessFactoryInterface {
 <a class="jxr_linenumber" name="30" href="#30">30</a>  	<em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="31" href="#31">31</a>  <em class="jxr_javadoccomment">	 * Internal Logger</em>
 <a class="jxr_linenumber" name="32" href="#32">32</a>  <em class="jxr_javadoccomment">	 */</em>
 <a class="jxr_linenumber" name="33" href="#33">33</a>  	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> WaarpInternalLogger logger = WaarpInternalLoggerFactory
 <a class="jxr_linenumber" name="34" href="#34">34</a>  			.getLogger(R66DefaultBusinessFactory.<strong class="jxr_keyword">class</strong>);
 <a class="jxr_linenumber" name="35" href="#35">35</a>  
-<a class="jxr_linenumber" name="36" href="#36">36</a>  	<strong class="jxr_keyword">public</strong> <a href="../../../../org/waarp/openr66/context/R66BusinessInterface.html">R66BusinessInterface</a> getBusinessInterface(<a href="../../../../org/waarp/openr66/context/R66Session.html">R66Session</a> session) {
+<a class="jxr_linenumber" name="36" href="#36">36</a>  	<strong class="jxr_keyword">public</strong> R66BusinessInterface getBusinessInterface(R66Session session) {
 <a class="jxr_linenumber" name="37" href="#37">37</a>  		logger.debug(<span class="jxr_string">"No Business"</span>);
 <a class="jxr_linenumber" name="38" href="#38">38</a>  		<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="39" href="#39">39</a>  	}

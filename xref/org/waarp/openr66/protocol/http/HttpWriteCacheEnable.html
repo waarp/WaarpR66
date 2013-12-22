@@ -115,8 +115,8 @@
 <a class="jxr_linenumber" name="105" href="#105">105</a>         DateFormat rfc1123Format = <strong class="jxr_keyword">new</strong> SimpleDateFormat(RFC1123_PATTERN, LOCALE_US);
 <a class="jxr_linenumber" name="106" href="#106">106</a>         rfc1123Format.setTimeZone(GMT_ZONE);
 <a class="jxr_linenumber" name="107" href="#107">107</a>         Date lastModifDate = <strong class="jxr_keyword">new</strong> Date(file.lastModified());
-<a class="jxr_linenumber" name="108" href="#108">108</a>         <strong class="jxr_keyword">if</strong> (request.containsHeader(HttpHeaders.Names.IF_MODIFIED_SINCE)) {
-<a class="jxr_linenumber" name="109" href="#109">109</a>         	String sdate = request.getHeader(HttpHeaders.Names.IF_MODIFIED_SINCE);
+<a class="jxr_linenumber" name="108" href="#108">108</a>         <strong class="jxr_keyword">if</strong> (request.headers().contains(HttpHeaders.Names.IF_MODIFIED_SINCE)) {
+<a class="jxr_linenumber" name="109" href="#109">109</a>         	String sdate = request.headers().get(HttpHeaders.Names.IF_MODIFIED_SINCE);
 <a class="jxr_linenumber" name="110" href="#110">110</a>         	<strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="111" href="#111">111</a> 				Date ifmodif = rfc1123Format.parse(sdate);
 <a class="jxr_linenumber" name="112" href="#112">112</a> 				<strong class="jxr_keyword">if</strong> (ifmodif.after(lastModifDate)) {
@@ -142,16 +142,16 @@
 <a class="jxr_linenumber" name="132" href="#132">132</a> 		}
 <a class="jxr_linenumber" name="133" href="#133">133</a>         response = <strong class="jxr_keyword">new</strong> DefaultHttpResponse(HttpVersion.HTTP_1_1,
 <a class="jxr_linenumber" name="134" href="#134">134</a>                 HttpResponseStatus.OK);
-<a class="jxr_linenumber" name="135" href="#135">135</a>         response.setHeader(HttpHeaders.Names.CONTENT_LENGTH,
+<a class="jxr_linenumber" name="135" href="#135">135</a>         response.headers().set(HttpHeaders.Names.CONTENT_LENGTH,
 <a class="jxr_linenumber" name="136" href="#136">136</a>                 String.valueOf(size));
 <a class="jxr_linenumber" name="137" href="#137">137</a>         
 <a class="jxr_linenumber" name="138" href="#138">138</a>         String type = mimetypesFileTypeMap.getContentType(filename);
-<a class="jxr_linenumber" name="139" href="#139">139</a>         response.setHeader(HttpHeaders.Names.CONTENT_TYPE, type);
+<a class="jxr_linenumber" name="139" href="#139">139</a>         response.headers().set(HttpHeaders.Names.CONTENT_TYPE, type);
 <a class="jxr_linenumber" name="140" href="#140">140</a>         ArrayList&lt;String&gt; cache_control = <strong class="jxr_keyword">new</strong> ArrayList&lt;String&gt;(2);
 <a class="jxr_linenumber" name="141" href="#141">141</a>         cache_control.add(HttpHeaders.Values.PUBLIC);
 <a class="jxr_linenumber" name="142" href="#142">142</a>         cache_control.add(HttpHeaders.Values.MAX_AGE + <span class="jxr_string">"="</span> + 604800);<em class="jxr_comment">// 1 week</em>
-<a class="jxr_linenumber" name="143" href="#143">143</a>         response.setHeader(HttpHeaders.Names.CACHE_CONTROL, cache_control);
-<a class="jxr_linenumber" name="144" href="#144">144</a>         response.setHeader(HttpHeaders.Names.LAST_MODIFIED,
+<a class="jxr_linenumber" name="143" href="#143">143</a>         response.headers().set(HttpHeaders.Names.CACHE_CONTROL, cache_control);
+<a class="jxr_linenumber" name="144" href="#144">144</a>         response.headers().set(HttpHeaders.Names.LAST_MODIFIED,
 <a class="jxr_linenumber" name="145" href="#145">145</a>                 rfc1123Format.format(lastModifDate));
 <a class="jxr_linenumber" name="146" href="#146">146</a>         handleCookies(request, response, cookieNameToRemove);
 <a class="jxr_linenumber" name="147" href="#147">147</a>         <em class="jxr_comment">// Write the response.</em>
@@ -168,7 +168,7 @@
 <a class="jxr_linenumber" name="158" href="#158">158</a> <em class="jxr_javadoccomment">	 */</em>
 <a class="jxr_linenumber" name="159" href="#159">159</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> handleCookies(HttpRequest request, HttpResponse response,
 <a class="jxr_linenumber" name="160" href="#160">160</a> 			String cookieNameToRemove) {
-<a class="jxr_linenumber" name="161" href="#161">161</a> 		String cookieString = request.getHeader(HttpHeaders.Names.COOKIE);
+<a class="jxr_linenumber" name="161" href="#161">161</a> 		String cookieString = request.headers().get(HttpHeaders.Names.COOKIE);
 <a class="jxr_linenumber" name="162" href="#162">162</a> 		<strong class="jxr_keyword">if</strong> (cookieString != <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="163" href="#163">163</a> 			CookieDecoder cookieDecoder = <strong class="jxr_keyword">new</strong> CookieDecoder();
 <a class="jxr_linenumber" name="164" href="#164">164</a> 			Set&lt;Cookie&gt; cookies = cookieDecoder.decode(cookieString);
@@ -180,7 +180,7 @@
 <a class="jxr_linenumber" name="170" href="#170">170</a> 					<strong class="jxr_keyword">if</strong> (cookie.getName().equalsIgnoreCase(cookieNameToRemove)) {
 <a class="jxr_linenumber" name="171" href="#171">171</a> 					} <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="172" href="#172">172</a> 						cookieEncoder.addCookie(cookie);
-<a class="jxr_linenumber" name="173" href="#173">173</a> 						response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+<a class="jxr_linenumber" name="173" href="#173">173</a> 						response.headers().add(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
 <a class="jxr_linenumber" name="174" href="#174">174</a> 						cookieEncoder = <strong class="jxr_keyword">new</strong> CookieEncoder(<strong class="jxr_keyword">true</strong>);
 <a class="jxr_linenumber" name="175" href="#175">175</a> 					}
 <a class="jxr_linenumber" name="176" href="#176">176</a> 				}

@@ -101,7 +101,7 @@
 <a class="jxr_linenumber" name="91" href="#91">91</a>  <em class="jxr_javadoccomment">	 * @throws OpenR66ProtocolNetworkException</em>
 <a class="jxr_linenumber" name="92" href="#92">92</a>  <em class="jxr_javadoccomment">	 */</em>
 <a class="jxr_linenumber" name="93" href="#93">93</a>  	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> initLocalClientHandler(Channel channel)
-<a class="jxr_linenumber" name="94" href="#94">94</a>  			<strong class="jxr_keyword">throws</strong> InterruptedException, <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolNetworkException.html">OpenR66ProtocolNetworkException</a> {
+<a class="jxr_linenumber" name="94" href="#94">94</a>  			<strong class="jxr_keyword">throws</strong> InterruptedException, OpenR66ProtocolNetworkException {
 <a class="jxr_linenumber" name="95" href="#95">95</a>  		<strong class="jxr_keyword">int</strong> i = 0;
 <a class="jxr_linenumber" name="96" href="#96">96</a>  		<strong class="jxr_keyword">if</strong> (localChannelReference == <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="97" href="#97">97</a>  			<strong class="jxr_keyword">for</strong> (i = 0; i &lt; Configuration.RETRYNB; i++) {
@@ -133,7 +133,7 @@
 <a class="jxr_linenumber" name="123" href="#123">123</a> 		<strong class="jxr_keyword">if</strong> (packet.getType() != LocalPacketFactory.STARTUPPACKET) {
 <a class="jxr_linenumber" name="124" href="#124">124</a> 			logger.error(<span class="jxr_string">"Local Client Channel Recv wrong packet: "</span> +
 <a class="jxr_linenumber" name="125" href="#125">125</a> 					e.getChannel().getId() + <span class="jxr_string">" : "</span> + packet.toString());
-<a class="jxr_linenumber" name="126" href="#126">126</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ProtocolSystemException.html">OpenR66ProtocolSystemException</a>(<span class="jxr_string">"Should not be here"</span>);
+<a class="jxr_linenumber" name="126" href="#126">126</a> 			<strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException(<span class="jxr_string">"Should not be here"</span>);
 <a class="jxr_linenumber" name="127" href="#127">127</a> 		}
 <a class="jxr_linenumber" name="128" href="#128">128</a> 		logger.debug(<span class="jxr_string">"LocalClientHandler initialized: "</span> +
 <a class="jxr_linenumber" name="129" href="#129">129</a> 				(localChannelReference != <strong class="jxr_keyword">null</strong>));
@@ -155,7 +155,7 @@
 <a class="jxr_linenumber" name="145" href="#145">145</a> 			initLocalClientHandler(e.getChannel());
 <a class="jxr_linenumber" name="146" href="#146">146</a> 		}
 <a class="jxr_linenumber" name="147" href="#147">147</a> 		<strong class="jxr_keyword">if</strong> (localChannelReference != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="148" href="#148">148</a> 			OpenR66Exception exception = <a href="../../../../../org/waarp/openr66/protocol/exception/OpenR66ExceptionTrappedFactory.html">OpenR66ExceptionTrappedFactory</a>
+<a class="jxr_linenumber" name="148" href="#148">148</a> 			OpenR66Exception exception = OpenR66ExceptionTrappedFactory
 <a class="jxr_linenumber" name="149" href="#149">149</a> 					.getExceptionFromTrappedException(e.getChannel(), e);
 <a class="jxr_linenumber" name="150" href="#150">150</a> 			localChannelReference.sessionNewState(ERROR);
 <a class="jxr_linenumber" name="151" href="#151">151</a> 			<strong class="jxr_keyword">if</strong> (exception != <strong class="jxr_keyword">null</strong>) {
@@ -178,7 +178,7 @@
 <a class="jxr_linenumber" name="168" href="#168">168</a> 						ErrorCode.RemoteError.getCode(), ErrorPacket.FORWARDCLOSECODE);
 <a class="jxr_linenumber" name="169" href="#169">169</a> 				ChannelUtils.writeAbstractLocalPacket(localChannelReference, errorPacket, <strong class="jxr_keyword">true</strong>);
 <a class="jxr_linenumber" name="170" href="#170">170</a> 				<strong class="jxr_keyword">if</strong> (!localChannelReference.getFutureRequest().isDone()) {
-<a class="jxr_linenumber" name="171" href="#171">171</a> 					localChannelReference.invalidateRequest(<strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(
+<a class="jxr_linenumber" name="171" href="#171">171</a> 					localChannelReference.invalidateRequest(<strong class="jxr_keyword">new</strong> R66Result(
 <a class="jxr_linenumber" name="172" href="#172">172</a> 							exception, localChannelReference.getSession(), <strong class="jxr_keyword">true</strong>,
 <a class="jxr_linenumber" name="173" href="#173">173</a> 							ErrorCode.Internal, <strong class="jxr_keyword">null</strong>));
 <a class="jxr_linenumber" name="174" href="#174">174</a> 				}

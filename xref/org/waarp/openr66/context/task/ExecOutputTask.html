@@ -119,7 +119,7 @@
 <a class="jxr_linenumber" name="109" href="#109">109</a> 		<strong class="jxr_keyword">if</strong> (exec.isAbsolute()) {
 <a class="jxr_linenumber" name="110" href="#110">110</a> 			<strong class="jxr_keyword">if</strong> (!exec.canExecute()) {
 <a class="jxr_linenumber" name="111" href="#111">111</a> 				logger.error(<span class="jxr_string">"Exec command is not executable: "</span> + finalname);
-<a class="jxr_linenumber" name="112" href="#112">112</a> 				R66Result result = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/R66Result.html">R66Result</a>(session, false,
+<a class="jxr_linenumber" name="112" href="#112">112</a> 				R66Result result = <strong class="jxr_keyword">new</strong> R66Result(session, false,
 <a class="jxr_linenumber" name="113" href="#113">113</a> 						ErrorCode.CommandNotFound, session.getRunner());
 <a class="jxr_linenumber" name="114" href="#114">114</a> 				futureCompletion.setResult(result);
 <a class="jxr_linenumber" name="115" href="#115">115</a> 				futureCompletion.cancel();
@@ -301,7 +301,7 @@
 <a class="jxr_linenumber" name="291" href="#291">291</a> 			logger.error(<span class="jxr_string">"Status: "</span> + status + <span class="jxr_string">" Exec in error with "</span> +
 <a class="jxr_linenumber" name="292" href="#292">292</a> 					commandLine + <span class="jxr_string">" returns "</span> + newname);
 <a class="jxr_linenumber" name="293" href="#293">293</a> 			OpenR66RunnerErrorException exc =
-<a class="jxr_linenumber" name="294" href="#294">294</a> 					<strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(<span class="jxr_string">"&lt;STATUS&gt;"</span> + status + <span class="jxr_string">"&lt;/STATUS&gt;&lt;ERROR&gt;"</span>
+<a class="jxr_linenumber" name="294" href="#294">294</a> 					<strong class="jxr_keyword">new</strong> OpenR66RunnerErrorException(<span class="jxr_string">"&lt;STATUS&gt;"</span> + status + <span class="jxr_string">"&lt;/STATUS&gt;&lt;ERROR&gt;"</span>
 <a class="jxr_linenumber" name="295" href="#295">295</a> 							+ newname + <span class="jxr_string">"&lt;/ERROR&gt;"</span>);
 <a class="jxr_linenumber" name="296" href="#296">296</a> 			futureCompletion.setFailure(exc);
 <a class="jxr_linenumber" name="297" href="#297">297</a> 		}
@@ -345,7 +345,7 @@
 <a class="jxr_linenumber" name="335" href="#335">335</a> 		logger.error(<span class="jxr_string">"Status: "</span> + status + <span class="jxr_string">" Exec in error with "</span> +
 <a class="jxr_linenumber" name="336" href="#336">336</a> 				commandLine + <span class="jxr_string">" returns "</span> + result);
 <a class="jxr_linenumber" name="337" href="#337">337</a> 		OpenR66RunnerErrorException exc =
-<a class="jxr_linenumber" name="338" href="#338">338</a> 				<strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/context/task/exception/OpenR66RunnerErrorException.html">OpenR66RunnerErrorException</a>(<span class="jxr_string">"&lt;STATUS&gt;"</span> + status + <span class="jxr_string">"&lt;/STATUS&gt;&lt;ERROR&gt;"</span> + result
+<a class="jxr_linenumber" name="338" href="#338">338</a> 				<strong class="jxr_keyword">new</strong> OpenR66RunnerErrorException(<span class="jxr_string">"&lt;STATUS&gt;"</span> + status + <span class="jxr_string">"&lt;/STATUS&gt;&lt;ERROR&gt;"</span> + result
 <a class="jxr_linenumber" name="339" href="#339">339</a> 						+ <span class="jxr_string">"&lt;/ERROR&gt;"</span>);
 <a class="jxr_linenumber" name="340" href="#340">340</a> 		futureCompletion.setFailure(exc);
 <a class="jxr_linenumber" name="341" href="#341">341</a> 	}

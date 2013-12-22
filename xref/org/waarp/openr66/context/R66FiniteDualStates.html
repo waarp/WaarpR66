@@ -39,7 +39,7 @@
 <a class="jxr_linenumber" name="29" href="#29">29</a>  <em class="jxr_javadoccomment"> * @author Frederic Bregier</em>
 <a class="jxr_linenumber" name="30" href="#30">30</a>  <em class="jxr_javadoccomment"> * </em>
 <a class="jxr_linenumber" name="31" href="#31">31</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="32" href="#32">32</a>  <strong class="jxr_keyword">public</strong> enum <a href="../../../../org/waarp/openr66/context/R66FiniteDualStates.html">R66FiniteDualStates</a> {
+<a class="jxr_linenumber" name="32" href="#32">32</a>  <strong class="jxr_keyword">public</strong> enum R66FiniteDualStates {
 <a class="jxr_linenumber" name="33" href="#33">33</a>  	OPENEDCHANNEL, CLOSEDCHANNEL, ERROR,
 <a class="jxr_linenumber" name="34" href="#34">34</a>  	STARTUP,
 <a class="jxr_linenumber" name="35" href="#35">35</a>  	AUTHENTR, AUTHENTD,
@@ -53,7 +53,7 @@
 <a class="jxr_linenumber" name="43" href="#43">43</a>  	<em class="jxr_comment">// CONNECTERROR,</em>
 <a class="jxr_linenumber" name="44" href="#44">44</a>  	<em class="jxr_comment">// KEEPALIVEPACKET;</em>
 <a class="jxr_linenumber" name="45" href="#45">45</a>  
-<a class="jxr_linenumber" name="46" href="#46">46</a>  	<strong class="jxr_keyword">private</strong> enum <a href="../../../../org/waarp/openr66/context/R66FiniteDualStates.html">R66Transition</a> {
+<a class="jxr_linenumber" name="46" href="#46">46</a>  	<strong class="jxr_keyword">private</strong> enum R66Transition {
 <a class="jxr_linenumber" name="47" href="#47">47</a>  		tOPENEDCHANNEL(OPENEDCHANNEL, EnumSet.of(STARTUP, CLOSEDCHANNEL, ERROR)),
 <a class="jxr_linenumber" name="48" href="#48">48</a>  		tSTARTUP(STARTUP, EnumSet.of(AUTHENTR, AUTHENTD, CLOSEDCHANNEL, ERROR)),
 <a class="jxr_linenumber" name="49" href="#49">49</a>  		tAUTHENTR(AUTHENTR, EnumSet.of(AUTHENTD, CLOSEDCHANNEL, ERROR)),
@@ -79,7 +79,7 @@
 <a class="jxr_linenumber" name="69" href="#69">69</a>  
 <a class="jxr_linenumber" name="70" href="#70">70</a>  		<strong class="jxr_keyword">public</strong> Transition&lt;R66FiniteDualStates&gt; elt;
 <a class="jxr_linenumber" name="71" href="#71">71</a>  
-<a class="jxr_linenumber" name="72" href="#72">72</a>  		<strong class="jxr_keyword">private</strong> <a href="../../../../org/waarp/openr66/context/R66FiniteDualStates.html">R66Transition</a>(<a href="../../../../org/waarp/openr66/context/R66FiniteDualStates.html">R66FiniteDualStates</a> state, EnumSet&lt;R66FiniteDualStates&gt; set) {
+<a class="jxr_linenumber" name="72" href="#72">72</a>  		<strong class="jxr_keyword">private</strong> R66Transition(R66FiniteDualStates state, EnumSet&lt;R66FiniteDualStates&gt; set) {
 <a class="jxr_linenumber" name="73" href="#73">73</a>  			<strong class="jxr_keyword">this</strong>.elt = <strong class="jxr_keyword">new</strong> Transition&lt;R66FiniteDualStates&gt;(state, set);
 <a class="jxr_linenumber" name="74" href="#74">74</a>  		}
 <a class="jxr_linenumber" name="75" href="#75">75</a>  	}

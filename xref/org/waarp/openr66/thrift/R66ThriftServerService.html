@@ -49,7 +49,7 @@
 <a class="jxr_linenumber" name="39" href="#39">39</a>  <em class="jxr_javadoccomment"> * @author Frederic Bregier</em>
 <a class="jxr_linenumber" name="40" href="#40">40</a>  <em class="jxr_javadoccomment"> * </em>
 <a class="jxr_linenumber" name="41" href="#41">41</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="42" href="#42">42</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../org/waarp/openr66/thrift/R66ThriftServerService.html">R66ThriftServerService</a> <strong class="jxr_keyword">implements</strong> Runnable {
+<a class="jxr_linenumber" name="42" href="#42">42</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> R66ThriftServerService <strong class="jxr_keyword">implements</strong> Runnable {
 <a class="jxr_linenumber" name="43" href="#43">43</a>  	<em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="44" href="#44">44</a>  <em class="jxr_javadoccomment">	 * Internal Logger</em>
 <a class="jxr_linenumber" name="45" href="#45">45</a>  <em class="jxr_javadoccomment">	 */</em>
@@ -61,7 +61,7 @@
 <a class="jxr_linenumber" name="51" href="#51">51</a>  	<strong class="jxr_keyword">protected</strong> TServer server = <strong class="jxr_keyword">null</strong>;
 <a class="jxr_linenumber" name="52" href="#52">52</a>  	<strong class="jxr_keyword">protected</strong> WaarpFuture serviceReady;
 <a class="jxr_linenumber" name="53" href="#53">53</a>  	
-<a class="jxr_linenumber" name="54" href="#54">54</a>  	<strong class="jxr_keyword">public</strong> <a href="../../../../org/waarp/openr66/thrift/R66ThriftServerService.html">R66ThriftServerService</a>(WaarpFuture serviceReady, <strong class="jxr_keyword">int</strong> port) {
+<a class="jxr_linenumber" name="54" href="#54">54</a>  	<strong class="jxr_keyword">public</strong> R66ThriftServerService(WaarpFuture serviceReady, <strong class="jxr_keyword">int</strong> port) {
 <a class="jxr_linenumber" name="55" href="#55">55</a>  		<strong class="jxr_keyword">this</strong>.serviceReady = serviceReady;
 <a class="jxr_linenumber" name="56" href="#56">56</a>  		<strong class="jxr_keyword">this</strong>.port = port;
 <a class="jxr_linenumber" name="57" href="#57">57</a>  	}
@@ -98,7 +98,7 @@
 <a class="jxr_linenumber" name="88" href="#88">88</a>  			serverTransport = <strong class="jxr_keyword">new</strong> TServerSocket(address);
 <a class="jxr_linenumber" name="89" href="#89">89</a>  			R66Service.Processor&lt;R66EmbeddedServiceImpl&gt; processor = 
 <a class="jxr_linenumber" name="90" href="#90">90</a>  					<strong class="jxr_keyword">new</strong> R66Service.Processor&lt;R66EmbeddedServiceImpl&gt;(
-<a class="jxr_linenumber" name="91" href="#91">91</a>  					<strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/thrift/R66EmbeddedServiceImpl.html">R66EmbeddedServiceImpl</a>());
+<a class="jxr_linenumber" name="91" href="#91">91</a>  					<strong class="jxr_keyword">new</strong> R66EmbeddedServiceImpl());
 <a class="jxr_linenumber" name="92" href="#92">92</a>  			server = <strong class="jxr_keyword">new</strong> TThreadPoolServer(
 <a class="jxr_linenumber" name="93" href="#93">93</a>  					<strong class="jxr_keyword">new</strong> TThreadPoolServer.Args(serverTransport).processor(processor));
 <a class="jxr_linenumber" name="94" href="#94">94</a>  			serviceReady.setSuccess();
