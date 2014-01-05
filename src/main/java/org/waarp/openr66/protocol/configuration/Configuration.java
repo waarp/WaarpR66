@@ -392,7 +392,7 @@ public class Configuration {
 	 * ExecutorService Server Boss
 	 */
 	protected ExecutorService execServerBoss = Executors
-			.newCachedThreadPool(new WaarpThreadFactory("ServerBoss"));
+			.newCachedThreadPool(new WaarpThreadFactory("ServerBoss", false));
 
 	/**
 	 * ExecutorService Server Worker
@@ -676,6 +676,7 @@ public class Configuration {
 		}
 		shutdownConfiguration.timeout = TIMEOUTCON;
 		R66ShutdownHook.addShutdownHook();
+		logger.debug("Use NoSSL: "+useNOSSL+" Use SSL: "+useSSL);
 		if ((!useNOSSL) && (!useSSL)) {
 			logger.error(Messages.getString("Configuration.NoSSL")); //$NON-NLS-1$
 			System.exit(-1);

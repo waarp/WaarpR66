@@ -690,7 +690,8 @@ public class R66Session implements SessionInterface {
 						targetDir = truefile.getPath();
 					}
 					logger.debug("Check available space: "+available+" >? "+needed+"(+"+length+")");
-					if (needed > available) {
+					// Available > 0 since some system returns 0 (wrong size)
+					if (available > 0 && needed > available) {
 						// not enough space
 						this.runner.setErrorExecutionStatus(ErrorCode.Internal);
 						throw new OpenR66RunnerErrorException("File cannot be written due to unsufficient space available: " +

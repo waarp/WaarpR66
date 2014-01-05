@@ -1983,7 +1983,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 			String index = index();
 			responseContent.append(index);
 			clearSession();
-			admin = new DefaultCookie(R66SESSION, Configuration.configuration.HOST_ID +
+			admin = new DefaultCookie(R66SESSION+Configuration.configuration.HOST_ID, Configuration.configuration.HOST_ID +
 					Long.toHexString(random.nextLong()));
 			sessions.put(admin.getValue(), this.authentHttp);
 			authentHttp.setStatus(72);
@@ -2005,7 +2005,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				uriRequest.contains("res/") || uriRequest.contains("favicon.ico")) {
 			HttpWriteCacheEnable.writeFile(request,
 					e.getChannel(), Configuration.configuration.httpBasePath + uriRequest,
-					R66SESSION);
+					R66SESSION+Configuration.configuration.HOST_ID);
 			return;
 		}
 		checkSession(e.getChannel());
@@ -2094,7 +2094,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 			Set<Cookie> cookies = cookieDecoder.decode(cookieString);
 			if (!cookies.isEmpty()) {
 				for (Cookie elt : cookies) {
-					if (elt.getName().equalsIgnoreCase(R66SESSION)) {
+					if (elt.getName().equalsIgnoreCase(R66SESSION+Configuration.configuration.HOST_ID)) {
 						logger.debug("Found session: "+elt);
 						admin = elt;
 						R66Session session = sessions.get(admin.getValue());
@@ -2138,7 +2138,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 				CookieEncoder cookieEncoder = new CookieEncoder(true);
 				boolean findSession = false;
 				for (Cookie cookie : cookies) {
-					if (cookie.getName().equalsIgnoreCase(R66SESSION)) {
+					if (cookie.getName().equalsIgnoreCase(R66SESSION+Configuration.configuration.HOST_ID)) {
 						if (newSession) {
 							findSession = false;
 						} else {
@@ -2287,4 +2287,5 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		Configuration.configuration.getHttpChannelGroup().add(channel);
 		super.channelOpen(ctx, e);
 	}
+	
 }
