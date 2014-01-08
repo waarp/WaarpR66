@@ -366,6 +366,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 				DbConstant.admin.session.checkConnectionNoException();
 			}
 			boolean finalStatus = false;
+			int ko = 0;
 			long specialId = remoteHosts.size() > 1 ? DbConstant.ILLEGALVALUE : fileItem.specialId;
 			for (String host : remoteHosts) {
 				host = host.trim();
@@ -461,6 +462,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 						}
 					} else {
 						error++;
+						ko++;
 						DbTaskRunner runner = null;
 						if (r66result != null) {
 							runner = r66result.runner;
@@ -485,6 +487,10 @@ public class SpooledDirectoryTransfer implements Runnable {
 				}
 			}
 			specialId = remoteHosts.size() > 1 ? DbConstant.ILLEGALVALUE : specialId;
+			if (ko > 0) {
+				// If at least one is in error, the transfer is in error so should be redone
+				finalStatus = false;
+			}
 			finalize(finalStatus, specialId);
 		}
 	}
