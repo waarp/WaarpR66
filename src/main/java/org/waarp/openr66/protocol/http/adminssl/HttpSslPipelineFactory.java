@@ -17,8 +17,6 @@
  */
 package org.waarp.openr66.protocol.http.adminssl;
 
-import java.util.concurrent.ExecutorService;
-
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.Channels;
@@ -36,23 +34,20 @@ import org.waarp.openr66.protocol.configuration.Configuration;
  * 
  */
 public class HttpSslPipelineFactory implements ChannelPipelineFactory {
-	private final ExecutorService executorService;
 	public boolean useHttpCompression = false;
 	public boolean enableRenegotiation = false;
 
 	public HttpSslPipelineFactory(boolean useHttpCompression,
-			boolean enableRenegotiation,
-			ExecutorService executor) {
+			boolean enableRenegotiation) {
 		this.useHttpCompression = useHttpCompression;
 		this.enableRenegotiation = enableRenegotiation;
-		this.executorService = executor;
 	}
 
 	public ChannelPipeline getPipeline() {
 		final ChannelPipeline pipeline = Channels.pipeline();
 		// Add SSL handler first to encrypt and decrypt everything.
         SslHandler sslhandler = Configuration.waarpSslContextFactory.initPipelineFactory(true,
-				false, enableRenegotiation, executorService);
+				false, enableRenegotiation);
         sslhandler.setIssueHandshake(true);
         pipeline.addLast("ssl", sslhandler);
 
