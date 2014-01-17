@@ -116,7 +116,7 @@ public class LogTask extends AbstractTask {
 				try {
 					int len = args.length -1;
 					for (int i = 0; i < len; i++) {
-						outputStream.write(args[i].getBytes(WaarpStringUtils.UTF8));
+						outputStream.write(args[i].getBytes());
 						outputStream.write(' ');
 					}
 					outputStream.write(' ');

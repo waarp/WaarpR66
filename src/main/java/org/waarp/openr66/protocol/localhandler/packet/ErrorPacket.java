@@ -67,8 +67,8 @@ public class ErrorPacket extends AbstractLocalPacket {
 		if (endLength != 4) {
 			throw new OpenR66ProtocolPacketException("Packet not correct");
 		}
-		return new ErrorPacket(new String(bheader, WaarpStringUtils.UTF8), 
-				new String(bmiddle, WaarpStringUtils.UTF8), buf.readInt());
+		return new ErrorPacket(new String(bheader), 
+				new String(bmiddle), buf.readInt());
 	}
 
 	/**
@@ -91,14 +91,14 @@ public class ErrorPacket extends AbstractLocalPacket {
 	@Override
 	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		if (sheader != null) {
-			header = ChannelBuffers.wrappedBuffer(sheader.getBytes(WaarpStringUtils.UTF8));
+			header = ChannelBuffers.wrappedBuffer(sheader.getBytes());
 		}
 	}
 
 	@Override
 	public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		if (smiddle != null) {
-			middle = ChannelBuffers.wrappedBuffer(smiddle.getBytes(WaarpStringUtils.UTF8));
+			middle = ChannelBuffers.wrappedBuffer(smiddle.getBytes());
 		}
 	}
 

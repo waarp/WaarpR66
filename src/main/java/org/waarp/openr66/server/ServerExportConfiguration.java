@@ -155,7 +155,7 @@ public class ServerExportConfiguration {
 			}
 			filename = dir.getAbsolutePath() + File.separator + hostname + "_Business.xml";
 			String business = dbHostConfiguration.getBusiness();
-			byte [] out = business.getBytes(WaarpStringUtils.UTF8);
+			byte [] out = business.getBytes();
 			FileOutputStream outputStream;
 			try {
 				outputStream = new FileOutputStream(filename);
@@ -170,7 +170,7 @@ public class ServerExportConfiguration {
 			}
 			filename = dir.getAbsolutePath() + File.separator + hostname + "_Alias.xml";
 			String alias = dbHostConfiguration.getAliases();
-			out = alias.getBytes(WaarpStringUtils.UTF8);
+			out = alias.getBytes();
 			try {
 				outputStream = new FileOutputStream(filename);
 				outputStream.write(out, 0, out.length);
@@ -184,7 +184,7 @@ public class ServerExportConfiguration {
 			}
 			filename = dir.getAbsolutePath() + File.separator + hostname + "_Roles.xml";
 			String roles = dbHostConfiguration.getRoles();
-			out = roles.getBytes(WaarpStringUtils.UTF8);
+			out = roles.getBytes();
 			try {
 				outputStream = new FileOutputStream(filename);
 				outputStream.write(out, 0, out.length);

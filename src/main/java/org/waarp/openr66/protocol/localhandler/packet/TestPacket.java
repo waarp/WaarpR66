@@ -49,8 +49,8 @@ public class TestPacket extends AbstractLocalPacket {
 		if (middleLength > 0) {
 			buf.readBytes(bmiddle);
 		}
-		return new TestPacket(new String(bheader, WaarpStringUtils.UTF8), 
-				new String(bmiddle, WaarpStringUtils.UTF8), buf.readInt());
+		return new TestPacket(new String(bheader), 
+				new String(bmiddle), buf.readInt());
 	}
 
 	public TestPacket(String header, String middle, int code) {
@@ -67,12 +67,12 @@ public class TestPacket extends AbstractLocalPacket {
 
 	@Override
 	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		header = ChannelBuffers.wrappedBuffer(sheader.getBytes(WaarpStringUtils.UTF8));
+		header = ChannelBuffers.wrappedBuffer(sheader.getBytes());
 	}
 
 	@Override
 	public void createMiddle(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		middle = ChannelBuffers.wrappedBuffer(smiddle.getBytes(WaarpStringUtils.UTF8));
+		middle = ChannelBuffers.wrappedBuffer(smiddle.getBytes());
 	}
 
 	@Override

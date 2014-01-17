@@ -19,7 +19,6 @@ package org.waarp.openr66.protocol.localhandler.packet;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
-import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 
@@ -58,7 +57,7 @@ public class BusinessRequestPacket extends AbstractLocalPacket {
 			throw new OpenR66ProtocolPacketException("Packet not correct");
 		}
 		byte valid = buf.readByte();
-		return new BusinessRequestPacket(new String(bheader, WaarpStringUtils.UTF8), delay, valid);
+		return new BusinessRequestPacket(new String(bheader), delay, valid);
 	}
 
 	public BusinessRequestPacket(String header, int delay, byte way) {
@@ -81,7 +80,7 @@ public class BusinessRequestPacket extends AbstractLocalPacket {
 
 	@Override
 	public void createHeader(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
-		header = ChannelBuffers.wrappedBuffer(sheader.getBytes(WaarpStringUtils.UTF8));
+		header = ChannelBuffers.wrappedBuffer(sheader.getBytes());
 	}
 
 	@Override
