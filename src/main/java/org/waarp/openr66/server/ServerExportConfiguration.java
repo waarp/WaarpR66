@@ -28,7 +28,6 @@ import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
-import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.openr66.configuration.AuthenticationFileBasedConfiguration;
 import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.configuration.RuleFileBasedConfiguration;

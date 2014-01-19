@@ -721,6 +721,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					localChannelReference.getNetworkChannel().getRemoteAddress()
 					+" since "+e1.getMessage(), packet.getHostId());
 		}
+		DbHostAuth auth = R66Auth.getServerAuth(localChannelReference.getDbSession(),
+				packet.getHostId());
+		if (! auth.isActive()) {
+			e1 = new Reply530Exception("Host is Inactive therefore connection is refused");
+		}
 		R66Result result = new R66Result(
 				new OpenR66ProtocolSystemException(
 						Messages.getString("LocalServerHandler.6")+ //$NON-NLS-1$
@@ -729,7 +734,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				ErrorCode.BadAuthent, null);
 		localChannelReference.invalidateRequest(result);
 		session.newState(ERROR);
-		ErrorPacket error = new ErrorPacket("Connection not allowed",
+		ErrorPacket error = new ErrorPacket(e1.getMessage(),
 				ErrorCode.BadAuthent.getCode(),
 				ErrorPacket.FORWARDCLOSECODE);
 		ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);

@@ -26,7 +26,6 @@ import org.jboss.netty.logging.InternalLogLevel;
 
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
-import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Session;
 

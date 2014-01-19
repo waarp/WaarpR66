@@ -30,6 +30,7 @@ import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNetworkException;
 import org.waarp.openr66.protocol.networkhandler.NetworkServerHandler;
+import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 
 /**
  * @author Frederic Bregier
@@ -108,6 +109,17 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
 	@Override
 	public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
 			throws OpenR66ProtocolNetworkException {
+		// Check first if allowed
+		Channel networkChannel = e.getChannel();
+		if (NetworkTransaction.isBlacklisted(networkChannel)) {
+			logger.warn("Connection refused since Partner is in BlackListed from "+networkChannel.getRemoteAddress().toString());
+			isBlackListed = true;
+			Configuration.configuration.r66Mib.notifyError(
+					"Black Listed connection temptative", "During Handshake");
+			// close immediately the connection
+			WaarpSslUtility.closingSslChannel(networkChannel);
+			return;
+		}
 		// Get the SslHandler in the current pipeline.
 		// We added it in NetworkSslServerPipelineFactory.
 		final ChannelHandler handler = ctx.getPipeline().getFirst();

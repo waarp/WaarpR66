@@ -88,6 +88,10 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 	 * To handle the keep alive
 	 */
 	protected volatile boolean keepAlivedSent = false;
+	/**
+	 * Is this network connection being refused (black listed)
+	 */
+	protected volatile boolean isBlackListed = false;
 
 	/**
 	 * 
@@ -137,8 +141,12 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 			throws OpenR66ProtocolNetworkException {
 		Channel networkChannel = e.getChannel();
 		this.remoteAddress = networkChannel.getRemoteAddress();
+		logger.debug("?? Is Connection refused since Partner is in BlackListed from "+remoteAddress.toString());
 		if (NetworkTransaction.isBlacklisted(networkChannel)) {
 			logger.warn("Connection refused since Partner is in BlackListed from "+remoteAddress.toString());
+			isBlackListed = true;
+			Configuration.configuration.r66Mib.notifyError(
+					"Black Listed connection temptative", "During connection");
 			// close immediately the connection
 			WaarpSslUtility.closingSslChannel(networkChannel);
 			return;
@@ -205,6 +213,10 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 	 */
 	@Override
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) {
+		if (isBlackListed) {
+			// ignore message since close on going
+			return;
+		}
 		final NetworkPacket packet = (NetworkPacket) e.getMessage();
 		NetworkTransaction.updateLastTimeUsed(e.getChannel());
 		if (packet.getCode() == LocalPacketFactory.NOOPPACKET) {
@@ -352,6 +364,12 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 	 */
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
+		if (isBlackListed) {
+			logger.info("While partner is blacklisted, Network Channel Exception: {}", e.getChannel().getId(), e
+					.getCause());
+			// ignore
+			return;
+		}
 		logger.debug("Network Channel Exception: {}", e.getChannel().getId(), e
 				.getCause());
 		if (e.getCause() instanceof ReadTimeoutException) {
