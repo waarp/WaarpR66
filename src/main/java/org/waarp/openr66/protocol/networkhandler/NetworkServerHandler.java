@@ -141,9 +141,9 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 			throws OpenR66ProtocolNetworkException {
 		Channel networkChannel = e.getChannel();
 		this.remoteAddress = networkChannel.getRemoteAddress();
-		logger.debug("?? Is Connection refused since Partner is in BlackListed from "+remoteAddress.toString());
+		logger.debug("Will the Connection be refused if Partner is BlackListed from "+remoteAddress.toString());
 		if (NetworkTransaction.isBlacklisted(networkChannel)) {
-			logger.warn("Connection refused since Partner is in BlackListed from "+remoteAddress.toString());
+			logger.warn("Connection refused since Partner is BlackListed from "+remoteAddress.toString());
 			isBlackListed = true;
 			Configuration.configuration.r66Mib.notifyError(
 					"Black Listed connection temptative", "During connection");
