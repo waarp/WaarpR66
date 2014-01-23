@@ -767,7 +767,7 @@
 <a class="jxr_linenumber" name="757" href="#757">757</a> 		R66ShutdownNetworkChannelTimerTask timerTask = <strong class="jxr_keyword">new</strong> R66ShutdownNetworkChannelTimerTask(remote.hashCode());
 <a class="jxr_linenumber" name="758" href="#758">758</a> 		timerTask.isBlacklisted = <strong class="jxr_keyword">true</strong>;
 <a class="jxr_linenumber" name="759" href="#759">759</a> 		Configuration.configuration.getTimerClose().newTimeout(timerTask,
-<a class="jxr_linenumber" name="760" href="#760">760</a> 				Configuration.configuration.TIMEOUTCON * 3, TimeUnit.MILLISECONDS);
+<a class="jxr_linenumber" name="760" href="#760">760</a> 				Configuration.configuration.TIMEOUTCON * 10, TimeUnit.MILLISECONDS);
 <a class="jxr_linenumber" name="761" href="#761">761</a> 		networkChannelBlacklistedOnInetSocketAddressConcurrentHashMap.put(remote.hashCode(), networkChannel);
 <a class="jxr_linenumber" name="762" href="#762">762</a> 		<strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
 <a class="jxr_linenumber" name="763" href="#763">763</a> 	}

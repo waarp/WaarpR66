@@ -3251,7 +3251,7 @@
 <a class="jxr_linenumber" name="3241" href="#3241">3241</a> <em class="jxr_javadoccomment">	 * @param session</em>
 <a class="jxr_linenumber" name="3242" href="#3242">3242</a> <em class="jxr_javadoccomment">	 * @return The associated freespace of the current directory (in MB)</em>
 <a class="jxr_linenumber" name="3243" href="#3243">3243</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="3244" href="#3244">3244</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">long</strong> freespace(R66Session session) {
+<a class="jxr_linenumber" name="3244" href="#3244">3244</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">long</strong> freespaceMB(R66Session session) {
 <a class="jxr_linenumber" name="3245" href="#3245">3245</a> 		<strong class="jxr_keyword">if</strong> (<strong class="jxr_keyword">this</strong>.globallaststep == TASKSTEP.ALLDONETASK.ordinal() || 
 <a class="jxr_linenumber" name="3246" href="#3246">3246</a> 				<strong class="jxr_keyword">this</strong>.globallaststep == TASKSTEP.POSTTASK.ordinal()) {
 <a class="jxr_linenumber" name="3247" href="#3247">3247</a> 			<em class="jxr_comment">// All finished or Post task</em>
@@ -3377,7 +3377,7 @@
 <a class="jxr_linenumber" name="3367" href="#3367">3367</a> <em class="jxr_javadoccomment">	 * @return the runner in Html format compatible with the header from headerHtml method</em>
 <a class="jxr_linenumber" name="3368" href="#3368">3368</a> <em class="jxr_javadoccomment">	 */</em>
 <a class="jxr_linenumber" name="3369" href="#3369">3369</a> 	<strong class="jxr_keyword">public</strong> String toHtml(R66Session session, String running) {
-<a class="jxr_linenumber" name="3370" href="#3370">3370</a> 		<strong class="jxr_keyword">long</strong> freespace = freespace(session);
+<a class="jxr_linenumber" name="3370" href="#3370">3370</a> 		<strong class="jxr_keyword">long</strong> freespace = freespaceMB(session);
 <a class="jxr_linenumber" name="3371" href="#3371">3371</a> 		String color = getHtmlColor();
 <a class="jxr_linenumber" name="3372" href="#3372">3372</a> 		String updcolor = getInfoHtmlColor();
 <a class="jxr_linenumber" name="3373" href="#3373">3373</a> 		<strong class="jxr_keyword">return</strong> <span class="jxr_string">"&lt;td&gt;"</span> +
@@ -3427,7 +3427,7 @@
 <a class="jxr_linenumber" name="3417" href="#3417">3417</a> <em class="jxr_javadoccomment">	 * @return the runner in Html format specified by body by replacing all instance of fields</em>
 <a class="jxr_linenumber" name="3418" href="#3418">3418</a> <em class="jxr_javadoccomment">	 */</em>
 <a class="jxr_linenumber" name="3419" href="#3419">3419</a> 	<strong class="jxr_keyword">public</strong> String toSpecializedHtml(R66Session session, String body, String running) {
-<a class="jxr_linenumber" name="3420" href="#3420">3420</a> 		<strong class="jxr_keyword">long</strong> freespace = freespace(session);
+<a class="jxr_linenumber" name="3420" href="#3420">3420</a> 		<strong class="jxr_keyword">long</strong> freespace = freespaceMB(session);
 <a class="jxr_linenumber" name="3421" href="#3421">3421</a> 		StringBuilder builder = <strong class="jxr_keyword">new</strong> StringBuilder(body);
 <a class="jxr_linenumber" name="3422" href="#3422">3422</a> 		WaarpStringUtils.replaceAll(builder, <span class="jxr_string">"XXXSpecIdXXX"</span>, Long.toString(specialId));
 <a class="jxr_linenumber" name="3423" href="#3423">3423</a> 		WaarpStringUtils.replace(builder, <span class="jxr_string">"XXXRulXXX"</span>, (rule != <strong class="jxr_keyword">null</strong> ? rule.toShortString()
