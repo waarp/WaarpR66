@@ -50,14 +50,18 @@ public class R66Server {
 					.error(Messages.getString("Configuration.NeedConfig")); //$NON-NLS-1$
 			return;
 		}
-		R66ShutdownHook.registerMain(R66Server.class, args);
-		if (initialize(args[0])) {
-			logger.warn(Messages.getString("R66Server.ServerStart") + Configuration.configuration.HOST_ID + " : " + Configuration.configuration.toString()); //$NON-NLS-1$
-			System.err.println(Messages.getString("R66Server.ServerStart") + Configuration.configuration.HOST_ID); //$NON-NLS-1$
-		} else {
-			logger.error(Messages.getString("R66Server.CannotStart") + Configuration.configuration.HOST_ID); //$NON-NLS-1$
-			System.err.println(Messages.getString("R66Server.CannotStart") + Configuration.configuration.HOST_ID); //$NON-NLS-1$
-			System.exit(1);
+		try {
+			R66ShutdownHook.registerMain(R66Server.class, args);
+			if (initialize(args[0])) {
+				logger.warn(Messages.getString("R66Server.ServerStart") + Configuration.configuration.HOST_ID + " : " + Configuration.configuration.toString()); //$NON-NLS-1$
+				System.err.println(Messages.getString("R66Server.ServerStart") + Configuration.configuration.HOST_ID); //$NON-NLS-1$
+			} else {
+				logger.error(Messages.getString("R66Server.CannotStart") + Configuration.configuration.HOST_ID); //$NON-NLS-1$
+				System.err.println(Messages.getString("R66Server.CannotStart") + Configuration.configuration.HOST_ID); //$NON-NLS-1$
+				System.exit(1);
+			}
+		} catch (Exception e) {
+			logger.error(Messages.getString("R66Server.StartError"), e); //$NON-NLS-1$
 		}
 	}
 

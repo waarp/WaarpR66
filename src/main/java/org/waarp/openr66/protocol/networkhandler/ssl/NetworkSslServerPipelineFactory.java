@@ -70,14 +70,14 @@ public class NetworkSslServerPipelineFactory implements ChannelPipelineFactory {
 			// Not server: no clientAuthent, no renegotiation
 			sslHandler = 
 					waarpSslContextFactory.initPipelineFactory(false,
-							false, false, executorService);
+							false, false);
 			sslHandler.setIssueHandshake(true);
 		} else {
 			// Server: no renegotiation still, but possible clientAuthent
 			sslHandler = 
 					waarpSslContextFactory.initPipelineFactory(true,
 							waarpSslContextFactory.needClientAuthentication(),
-							true, executorService);
+							true);
 		}
 		pipeline.addLast("ssl", sslHandler);
 

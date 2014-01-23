@@ -22,7 +22,6 @@ import org.jboss.netty.buffer.ChannelBuffers;
 import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
-import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
@@ -220,9 +219,9 @@ public class RequestPacket extends AbstractLocalPacket {
 		if (endLength > 0) {
 			buf.readBytes(bend);
 		}
-		final String sheader = new String(bheader, WaarpStringUtils.UTF8);
-		final String smiddle = new String(bmiddle, WaarpStringUtils.UTF8);
-		final String send = new String(bend, WaarpStringUtils.UTF8);
+		final String sheader = new String(bheader);
+		final String smiddle = new String(bmiddle);
+		final String send = new String(bend);
 		
 		// check if JSON on header since it will directly starts with a JSON, in contrary to middle
 		if (sheader.startsWith(PartnerConfiguration.BAR_JSON_FIELD)) {
@@ -317,7 +316,7 @@ public class RequestPacket extends AbstractLocalPacket {
 	@Override
 	public void createEnd(LocalChannelReference lcr) throws OpenR66ProtocolPacketException {
 		if (fileInformation != null) {
-			end = ChannelBuffers.wrappedBuffer(fileInformation.getBytes(WaarpStringUtils.UTF8));
+			end = ChannelBuffers.wrappedBuffer(fileInformation.getBytes());
 		}
 	}
 
@@ -331,11 +330,11 @@ public class RequestPacket extends AbstractLocalPacket {
 			ObjectNode node = JsonHandler.createObjectNode();
 			JsonHandler.setValue(node, FIELDS.rule, rulename);
 			JsonHandler.setValue(node, FIELDS.mode, mode);
-			header = ChannelBuffers.wrappedBuffer(JsonHandler.writeAsString(node).getBytes(WaarpStringUtils.UTF8));
+			header = ChannelBuffers.wrappedBuffer(JsonHandler.writeAsString(node).getBytes());
 		} else {
-			header = ChannelBuffers.wrappedBuffer(rulename.getBytes(WaarpStringUtils.UTF8), 
-					PartnerConfiguration.BLANK_SEPARATOR_FIELD.getBytes(WaarpStringUtils.UTF8), 
-					Integer.toString(mode).getBytes(WaarpStringUtils.UTF8));
+			header = ChannelBuffers.wrappedBuffer(rulename.getBytes(), 
+					PartnerConfiguration.BLANK_SEPARATOR_FIELD.getBytes(), 
+					Integer.toString(mode).getBytes());
 		}
 	}
 
@@ -355,16 +354,16 @@ public class RequestPacket extends AbstractLocalPacket {
 			JsonHandler.setValue(node, FIELDS.id, specialId);
 			JsonHandler.setValue(node, FIELDS.code, code);
 			JsonHandler.setValue(node, FIELDS.length, originalSize);
-			middle = ChannelBuffers.wrappedBuffer(away, JsonHandler.writeAsString(node).getBytes(WaarpStringUtils.UTF8));
+			middle = ChannelBuffers.wrappedBuffer(away, JsonHandler.writeAsString(node).getBytes());
 		} else {
-			middle = ChannelBuffers.wrappedBuffer(away, filename.getBytes(WaarpStringUtils.UTF8), 
-				this.separator.getBytes(WaarpStringUtils.UTF8), 
-				Integer.toString(blocksize).getBytes(WaarpStringUtils.UTF8), 
-				this.separator.getBytes(WaarpStringUtils.UTF8), 
-				Integer.toString(rank).getBytes(WaarpStringUtils.UTF8), this.separator.getBytes(WaarpStringUtils.UTF8), 
-				Long.toString(specialId).getBytes(WaarpStringUtils.UTF8), this.separator.getBytes(WaarpStringUtils.UTF8),
-				Character.toString(code).getBytes(WaarpStringUtils.UTF8), this.separator.getBytes(WaarpStringUtils.UTF8), 
-				Long.toString(originalSize).getBytes(WaarpStringUtils.UTF8));
+			middle = ChannelBuffers.wrappedBuffer(away, filename.getBytes(), 
+				this.separator.getBytes(), 
+				Integer.toString(blocksize).getBytes(), 
+				this.separator.getBytes(), 
+				Integer.toString(rank).getBytes(), this.separator.getBytes(), 
+				Long.toString(specialId).getBytes(), this.separator.getBytes(),
+				Character.toString(code).getBytes(), this.separator.getBytes(), 
+				Long.toString(originalSize).getBytes());
 		}
 	}
 

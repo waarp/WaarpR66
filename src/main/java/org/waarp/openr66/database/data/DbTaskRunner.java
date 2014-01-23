@@ -3241,7 +3241,7 @@ public class DbTaskRunner extends AbstractDbData {
 	 * @param session
 	 * @return The associated freespace of the current directory (in MB)
 	 */
-	public long freespace(R66Session session) {
+	public long freespaceMB(R66Session session) {
 		if (this.globallaststep == TASKSTEP.ALLDONETASK.ordinal() || 
 				this.globallaststep == TASKSTEP.POSTTASK.ordinal()) {
 			// All finished or Post task
@@ -3367,7 +3367,7 @@ public class DbTaskRunner extends AbstractDbData {
 	 * @return the runner in Html format compatible with the header from headerHtml method
 	 */
 	public String toHtml(R66Session session, String running) {
-		long freespace = freespace(session);
+		long freespace = freespaceMB(session);
 		String color = getHtmlColor();
 		String updcolor = getInfoHtmlColor();
 		return "<td>" +
@@ -3417,7 +3417,7 @@ public class DbTaskRunner extends AbstractDbData {
 	 * @return the runner in Html format specified by body by replacing all instance of fields
 	 */
 	public String toSpecializedHtml(R66Session session, String body, String running) {
-		long freespace = freespace(session);
+		long freespace = freespaceMB(session);
 		StringBuilder builder = new StringBuilder(body);
 		WaarpStringUtils.replaceAll(builder, "XXXSpecIdXXX", Long.toString(specialId));
 		WaarpStringUtils.replace(builder, "XXXRulXXX", (rule != null ? rule.toShortString()

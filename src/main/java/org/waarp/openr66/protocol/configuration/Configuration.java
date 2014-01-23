@@ -392,7 +392,7 @@ public class Configuration {
 	 * ExecutorService Server Boss
 	 */
 	protected ExecutorService execServerBoss = Executors
-			.newCachedThreadPool(new WaarpThreadFactory("ServerBoss"));
+			.newCachedThreadPool(new WaarpThreadFactory("ServerBoss", false));
 
 	/**
 	 * ExecutorService Server Worker
@@ -676,6 +676,7 @@ public class Configuration {
 		}
 		shutdownConfiguration.timeout = TIMEOUTCON;
 		R66ShutdownHook.addShutdownHook();
+		logger.debug("Use NoSSL: "+useNOSSL+" Use SSL: "+useSSL);
 		if ((!useNOSSL) && (!useSSL)) {
 			logger.error(Messages.getString("Configuration.NoSSL")); //$NON-NLS-1$
 			System.exit(-1);
@@ -785,7 +786,7 @@ public class Configuration {
 				httpsChannelFactory);
 		// Set up the event pipeline factory.
 		httpsBootstrap.setPipelineFactory(new HttpSslPipelineFactory(useHttpCompression,
-				false, execServerWorker));
+				false));
 		httpsBootstrap.setOption("child.tcpNoDelay", true);
 		httpsBootstrap.setOption("child.keepAlive", true);
 		httpsBootstrap.setOption("child.reuseAddress", true);

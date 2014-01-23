@@ -346,7 +346,7 @@ public class FileUtils {
 				try {
 					filename = URLDecoder.decode(filename, WaarpStringUtils.UTF8.name());
 				} catch (UnsupportedEncodingException e) {
-					throw new OpenR66RunnerErrorException("File cannot be read: " +
+					logger.warn("Filename convertion to UTF8 cannot be read: " +
 							filename);
 				}
 			}
