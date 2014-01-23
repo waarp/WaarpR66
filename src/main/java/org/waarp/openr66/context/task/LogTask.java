@@ -26,7 +26,6 @@ import org.jboss.netty.logging.InternalLogLevel;
 
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
-import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Session;
 
@@ -116,7 +115,7 @@ public class LogTask extends AbstractTask {
 				try {
 					int len = args.length -1;
 					for (int i = 0; i < len; i++) {
-						outputStream.write(args[i].getBytes(WaarpStringUtils.UTF8));
+						outputStream.write(args[i].getBytes());
 						outputStream.write(' ');
 					}
 					outputStream.write(' ');

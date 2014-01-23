@@ -339,6 +339,15 @@ public class DbMultipleMonitor extends AbstractDbData {
 	 */
 	public static DbPreparedStatement getUpdatedPrepareStament(DbSession session)
 			throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
+		DbMultipleMonitor multipleMonitor = new DbMultipleMonitor(session,
+				Configuration.configuration.HOST_ID, 0, 0, 0);
+		try {
+			if (!multipleMonitor.exist()) {
+				multipleMonitor.insert();
+				session.commit();
+			}
+		} catch (WaarpDatabaseException e1) {
+		}
 		String request = "SELECT " + selectAllFields;
 		request += " FROM " + table + " WHERE " + Columns.HOSTID.name() + " = '"
 				+ Configuration.configuration.HOST_ID + "'" +

@@ -679,7 +679,18 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		if (networkChannel != null) {
 			localChannelReference.setNetworkChannelObject(networkChannel);
 		} else {
-			logger.error("No NetworkChannek found!");
+			logger.error("No NetworkChannel found!");
+			session.newState(ERROR);
+			ErrorPacket error = new ErrorPacket("Cannot startup connection since no Network Channel found",
+					ErrorCode.ConnectionImpossible.getCode(), ErrorPacket.FORWARDCLOSECODE);
+			try {
+				Channels.write(channel, error).await();
+			} catch (InterruptedException e) {
+			}
+			// Cannot do writeBack(error, true);
+			session.setStatus(40);
+			ChannelCloseTimer.closeFutureChannel(channel);
+			return;
 		}
 		session.newState(STARTUP);
 		localChannelReference.validateStartup(true);
@@ -710,6 +721,11 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					localChannelReference.getNetworkChannel().getRemoteAddress()
 					+" since "+e1.getMessage(), packet.getHostId());
 		}
+		DbHostAuth auth = R66Auth.getServerAuth(localChannelReference.getDbSession(),
+				packet.getHostId());
+		if (! auth.isActive()) {
+			e1 = new Reply530Exception("Host is Inactive therefore connection is refused");
+		}
 		R66Result result = new R66Result(
 				new OpenR66ProtocolSystemException(
 						Messages.getString("LocalServerHandler.6")+ //$NON-NLS-1$
@@ -718,7 +734,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				ErrorCode.BadAuthent, null);
 		localChannelReference.invalidateRequest(result);
 		session.newState(ERROR);
-		ErrorPacket error = new ErrorPacket("Connection not allowed",
+		ErrorPacket error = new ErrorPacket(e1.getMessage(),
 				ErrorCode.BadAuthent.getCode(),
 				ErrorPacket.FORWARDCLOSECODE);
 		ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
@@ -746,7 +762,24 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		if (localChannelReference.getDbSession() != null) {
 			localChannelReference.getDbSession().useConnection();
 		}
-		localChannelReference.getNetworkChannelObject().hostId = packet.getHostId();
+		if (localChannelReference.getNetworkChannelObject() != null) {
+			localChannelReference.getNetworkChannelObject().hostId = packet.getHostId();
+		} else {
+			session.newState(ERROR);
+			logger.error("Service unavailable: " + packet.getHostId());
+			R66Result result = new R66Result(
+					new OpenR66ProtocolSystemException("Service unavailable"), session, true,
+					ErrorCode.ConnectionImpossible, null);
+			localChannelReference.invalidateRequest(result);
+			ErrorPacket error = new ErrorPacket("Service unavailable",
+					ErrorCode.ConnectionImpossible.getCode(),
+					ErrorPacket.FORWARDCLOSECODE);
+			ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
+			localChannelReference.validateConnection(false, result);
+			ChannelCloseTimer.closeFutureChannel(channel);
+			session.setStatus(43);
+			return;
+		}
 		try {
 			session.getAuth().connection(localChannelReference.getDbSession(),
 					packet.getHostId(), packet.getKey());
@@ -1695,7 +1728,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			// check if possible originalSize
 			if (originalSize >= 0) {
 				try {
-					if (!session.getRunner().isRecvThrough() && session.getFile().length() != originalSize) {
+					if (!session.getRunner().isRecvThrough() && session.getFile().length() != originalSize || 
+							session.getFile().length() == 0) {
 						R66Result result = new R66Result(new OpenR66RunnerErrorException(Messages.getString("LocalServerHandler.18")), //$NON-NLS-1$
 								session, true, ErrorCode.TransferError, session.getRunner());
 						try {
@@ -2695,10 +2729,10 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				String newfilename = fields[0];
 				// potential file size changed
 				long newSize = -1;
+				DbTaskRunner runner = session.getRunner();
 				if (fields.length > 1) {
 					try {
 						newSize = Long.parseLong(fields[fields.length-1]);
-						DbTaskRunner runner = session.getRunner();
 						if (runner != null) {
 							if (newSize > 0) {
 								runner.setOriginalSize(newSize);
@@ -2784,7 +2818,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					}
 				}
 				// check if send is already on going
-				if (session.getRunner() != null && session.getRunner().getRank() > 0) {
+				if (runner != null && runner.getRank() > 0) {
 					// already started so not changing the filename
 					// Success: No write back at all
 					break;
@@ -2794,7 +2828,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				try {
 					session.renameReceiverFile(newfilename);
 				} catch (OpenR66RunnerErrorException e) {
-					DbTaskRunner runner = session.getRunner();
 					runner.saveStatus();
 					runner.setErrorExecutionStatus(ErrorCode.FileNotFound);
 					session.newState(ERROR);
@@ -3092,8 +3125,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				long newSize = node.getFilesize();
 				logger.debug("NewSize "+ newSize + " NewName "+newfilename);
 				// potential file size changed
+				DbTaskRunner runner = session.getRunner();
 				if (newSize > 0) {
-					DbTaskRunner runner = session.getRunner();
 					if (runner != null) {
 						runner.setOriginalSize(newSize);
 						// Check if a CHKFILE task was supposely needed to run
@@ -3142,7 +3175,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
 						}
 					}
 				} else if (newSize == 0) {
-					DbTaskRunner runner = session.getRunner();
 					// now check that filesize is NOT 0
 					if (runner.getOriginalSize() == 0) {
 						// not valid so create an error from there
@@ -3185,7 +3217,6 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				try {
 					session.renameReceiverFile(newfilename);
 				} catch (OpenR66RunnerErrorException e) {
-					DbTaskRunner runner = session.getRunner();
 					runner.saveStatus();
 					runner.setErrorExecutionStatus(ErrorCode.FileNotFound);
 					session.newState(ERROR);
@@ -3673,7 +3704,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				if (sbusiness != null) {
 					String filename = dir + File.separator + hostname + "_Business.xml";
 					FileOutputStream outputStream = new FileOutputStream(filename);
-					outputStream.write(sbusiness.getBytes(WaarpStringUtils.UTF8));
+					outputStream.write(sbusiness.getBytes());
 					outputStream.flush();
 					outputStream.close();
 					sbusiness = filename;
@@ -3685,7 +3716,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				if (salias != null) {
 					String filename = dir + File.separator + hostname + "_Aliases.xml";
 					FileOutputStream outputStream = new FileOutputStream(filename);
-					outputStream.write(salias.getBytes(WaarpStringUtils.UTF8));
+					outputStream.write(salias.getBytes());
 					outputStream.flush();
 					outputStream.close();
 					salias = filename;
@@ -3697,7 +3728,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				if (sroles != null) {
 					String filename = dir + File.separator + hostname + "_Roles.xml";
 					FileOutputStream outputStream = new FileOutputStream(filename);
-					outputStream.write(sroles.getBytes(WaarpStringUtils.UTF8));
+					outputStream.write(sroles.getBytes());
 					outputStream.flush();
 					outputStream.close();
 					sroles = filename;

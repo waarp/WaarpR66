@@ -757,7 +757,7 @@ public class NetworkTransaction {
 		R66ShutdownNetworkChannelTimerTask timerTask = new R66ShutdownNetworkChannelTimerTask(remote.hashCode());
 		timerTask.isBlacklisted = true;
 		Configuration.configuration.getTimerClose().newTimeout(timerTask,
-				Configuration.configuration.TIMEOUTCON * 3, TimeUnit.MILLISECONDS);
+				Configuration.configuration.TIMEOUTCON * 10, TimeUnit.MILLISECONDS);
 		networkChannelBlacklistedOnInetSocketAddressConcurrentHashMap.put(remote.hashCode(), networkChannel);
 		return true;
 	}
