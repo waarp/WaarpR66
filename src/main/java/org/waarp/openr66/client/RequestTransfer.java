@@ -54,6 +54,7 @@ import org.waarp.openr66.protocol.localhandler.packet.AbstractLocalPacket;
 import org.waarp.openr66.protocol.localhandler.packet.JsonCommandPacket;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 import org.waarp.openr66.protocol.localhandler.packet.ValidPacket;
+import org.waarp.openr66.protocol.localhandler.packet.json.StopOrCancelJsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.ValidJsonPacket;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
@@ -286,7 +287,7 @@ public class RequestTransfer implements Runnable {
 					return;
 				} else {
 					// Send a request of cancel
-					ErrorCode code = sendValid(runner, LocalPacketFactory.CANCELPACKET);
+					ErrorCode code = sendStopOrCancel(runner, LocalPacketFactory.CANCELPACKET);
 					switch (code) {
 						case CompleteOk:
 							logger.info("Transfer cancel requested and done: {}",
@@ -305,7 +306,7 @@ public class RequestTransfer implements Runnable {
 			} else if (stop) {
 				// Just stop the task
 				// Send a request
-				ErrorCode code = sendValid(runner, LocalPacketFactory.STOPPACKET);
+				ErrorCode code = sendStopOrCancel(runner, LocalPacketFactory.STOPPACKET);
 				switch (code) {
 					case CompleteOk:
 						logger.info("Transfer stop requested and done: {}", runner);
@@ -497,6 +498,92 @@ public class RequestTransfer implements Runnable {
 					this.requested + " " + this.requester + " " + this.specialId,
 					code);
 			}
+		}
+		localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
+		try {
+			ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false);
+		} catch (OpenR66ProtocolPacketException e) {
+			logger.error(Messages.getString("RequestTransfer.63") + host.toString()); //$NON-NLS-1$
+			Channels.close(localChannelReference.getLocalChannel());
+			localChannelReference = null;
+			host = null;
+			packet = null;
+			logger.debug("Bad Protocol", e);
+			future.setResult(new R66Result(e, null, true,
+					ErrorCode.TransferError, null));
+			future.setFailure(e);
+			return ErrorCode.Internal;
+		}
+		packet = null;
+		host = null;
+		future.awaitUninterruptibly();
+
+		Channels.close(localChannelReference.getLocalChannel());
+		localChannelReference = null;
+
+		logger.info("Request done with " + (future.isSuccess() ? "success" : "error"));
+		R66Result result = future.getResult();
+		if (result != null) {
+			return result.code;
+		}
+		return ErrorCode.Internal;
+	}
+
+	private ErrorCode sendStopOrCancel(DbTaskRunner runner, byte code) {
+		DbHostAuth host;
+		host = R66Auth.getServerAuth(DbConstant.admin.session,
+				this.requester);
+		if (host == null) {
+			logger.error(Messages.getString("RequestTransfer.39") + this.requester); //$NON-NLS-1$
+			OpenR66Exception e =
+					new OpenR66RunnerErrorException("Requester host cannot be found");
+			future.setResult(new R66Result(
+					e,
+					null, true,
+					ErrorCode.TransferError, null));
+			future.setFailure(e);
+			return ErrorCode.Internal;
+		}
+
+		logger.info("Try RequestTransfer to "+host.toString());
+		SocketAddress socketAddress;
+		try {
+			socketAddress = host.getSocketAddress();
+		} catch (IllegalArgumentException e) {
+			logger.debug("Cannot connect to " + host.toString());
+			host = null;
+			future.setResult(new R66Result(null, true,
+					ErrorCode.ConnectionImpossible, null));
+			future.cancel();
+			return ErrorCode.ConnectionImpossible;
+		}
+		boolean isSSL = host.isSsl();
+
+		LocalChannelReference localChannelReference = networkTransaction
+				.createConnectionWithRetry(socketAddress, isSSL, future);
+		socketAddress = null;
+		if (localChannelReference == null) {
+			logger.debug("Cannot connect to " + host.toString());
+			host = null;
+			future.setResult(new R66Result(null, true,
+					ErrorCode.ConnectionImpossible, null));
+			future.cancel();
+			return ErrorCode.ConnectionImpossible;
+		}
+		boolean useJson = PartnerConfiguration.useJson(host.getHostid());
+		logger.debug("UseJson: "+useJson);
+		AbstractLocalPacket packet = null;
+		if (useJson) {
+			StopOrCancelJsonPacket node = new StopOrCancelJsonPacket();
+			node.setComment("Request on Transfer");
+			node.setRequested(requested);
+			node.setRequester(requester);
+			node.setSpecialid(specialId);
+			packet = new JsonCommandPacket(node, code);
+		} else {
+			packet = new ValidPacket("Request on Transfer",
+					this.requested + " " + this.requester + " " + this.specialId,
+					code);
 		}
 		localChannelReference.sessionNewState(R66FiniteDualStates.VALIDOTHER);
 		try {

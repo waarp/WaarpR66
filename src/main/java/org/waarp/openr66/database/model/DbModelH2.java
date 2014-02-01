@@ -241,7 +241,8 @@ public class DbModelH2 extends org.waarp.common.database.model.DbModelH2 {
 
 		// cptrunner
 		action = "CREATE SEQUENCE IF NOT EXISTS " + DbTaskRunner.fieldseq +
-				" START WITH " + (DbConstant.ILLEGALVALUE + 1);
+				" START WITH " + (DbConstant.ILLEGALVALUE + 1) +
+				" MINVALUE " + (DbConstant.ILLEGALVALUE + 1);
 		System.out.println(action);
 		try {
 			request.query(action);
@@ -249,7 +250,21 @@ public class DbModelH2 extends org.waarp.common.database.model.DbModelH2 {
 			e.printStackTrace();
 			return;
 		} catch (WaarpDatabaseSqlException e) {
-			e.printStackTrace();
+			// version <= 1.2.173
+			action = "CREATE SEQUENCE IF NOT EXISTS " + DbTaskRunner.fieldseq +
+					" START WITH " + (DbConstant.ILLEGALVALUE + 1);
+			System.out.println(action);
+			try {
+				request.query(action);
+			} catch (WaarpDatabaseNoConnectionException e2) {
+				e2.printStackTrace();
+				return;
+			} catch (WaarpDatabaseSqlException e2) {
+				e2.printStackTrace();
+				// XXX FIX no return;
+			} finally {
+				request.close();
+			}
 			// XXX FIX no return;
 		} finally {
 			request.close();

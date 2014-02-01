@@ -384,6 +384,29 @@ public class SpooledDirectoryTransfer implements Runnable {
 						transaction.run();
 					} else {
 						if (specialId != DbConstant.ILLEGALVALUE) {
+							// Transfer try at least once but redo it from scratch
+							text = "Request Transfer Cancelled and Restart: "+specialId+" "+filename+" ";
+							try {
+								String srequester = Configuration.configuration.getHostId(DbConstant.admin.session,
+										host);
+								RequestTransfer transaction = new RequestTransfer(future, specialId, host, srequester, 
+										true, false, false, networkTransaction);
+								logger.warn(text+host);
+								transaction.run();
+								// special task
+								future.awaitUninterruptibly();
+							} catch (WaarpDatabaseException e) {
+								logger.warn(Messages.getString("RequestTransfer.5") + host, e); //$NON-NLS-1$
+							}
+							text = "Direct Transfer: ";
+							future = new R66Future(true);
+							DirectTransfer transaction = new DirectTransfer(future,
+									host, filename, rulename, fileinfo, isMD5, blocksize, 
+									DbConstant.ILLEGALVALUE, networkTransaction);
+							logger.info(text+host);
+							transaction.run();
+							
+							/*
 							text = "Request Transfer Restart: ";
 							try {
 								String srequester = Configuration.configuration.getHostId(DbConstant.admin.session,
@@ -412,6 +435,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 								logger.info(text+host);
 								transaction.run();
 							}
+							*/
 						} else {
 							text = "Direct Transfer: ";
 							DirectTransfer transaction = new DirectTransfer(future,

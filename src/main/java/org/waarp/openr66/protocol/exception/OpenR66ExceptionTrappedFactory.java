@@ -33,6 +33,7 @@ import org.jboss.netty.channel.ExceptionEvent;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 
 /**
  * Class that filter exceptions
@@ -157,6 +158,15 @@ public class OpenR66ExceptionTrappedFactory {
 			} else {
 				return new OpenR66ProtocolBusinessNoWriteBackException("Execution aborted", e2);
 			}
+		} else if (e1 instanceof OutOfMemoryError) {
+			final OpenR66ProtocolShutdownException e2 = new OpenR66ProtocolShutdownException("Restart since OOME raized", e1);
+			logger.debug("Force Shutdown and Restart : {}", e2.getMessage());
+			if (Configuration.configuration.r66Mib != null) {
+				Configuration.configuration.r66Mib.notifyWarning(
+						"OOME so shutdown and restart", e1.getMessage());
+			}
+			R66ShutdownHook.setRestart(true);
+			return e2;
 		} else {
 			logger.error("Unexpected exception from downstream" +
 					" Ref Channel: " + channel.toString(), e1);

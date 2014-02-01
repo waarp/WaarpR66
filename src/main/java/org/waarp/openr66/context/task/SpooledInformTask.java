@@ -91,11 +91,11 @@ public class SpooledInformTask extends AbstractExecJavaTask {
 						old = null;
 					}
 				} catch (JsonParseException e1) {
-					logger.warn("Cannot parse SpooledInformation", e1);
+					logger.warn("Cannot parse SpooledInformation: "+ fullarg +" "+ e1.getMessage());
 				} catch (JsonMappingException e1) {
-					logger.warn("Cannot parse SpooledInformation", e1);
+					logger.warn("Cannot parse SpooledInformation: "+ fullarg +" "+ e1.getMessage());
 				} catch (IOException e1) {
-					logger.warn("Cannot parse SpooledInformation", e1);
+					logger.warn("Cannot parse SpooledInformation: "+ e1.getMessage());
 				}
 				BusinessRequestPacket packet =
 						new BusinessRequestPacket(this.getClass().getName() + " informed", 0);
