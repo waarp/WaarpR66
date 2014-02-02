@@ -368,147 +368,136 @@ public class SpooledDirectoryTransfer implements Runnable {
 			boolean finalStatus = false;
 			int ko = 0;
 			long specialId = remoteHosts.size() > 1 ? DbConstant.ILLEGALVALUE : fileItem.specialId;
-			for (String host : remoteHosts) {
-				host = host.trim();
-				if (host != null && ! host.isEmpty()) {
-					String filename = fileItem.file.getAbsolutePath();
-					logger.info("Launch transfer to "+host+" with file "+filename);
-					R66Future future = new R66Future(true);
-					String text = null;
-					if (submit) {
-						text = "Submit Transfer: ";
-						SubmitTransfer transaction = new SubmitTransfer(future,
-								host, filename, rulename, fileinfo, isMD5, blocksize, 
-								specialId, null);
-						logger.info(text+host);
-						transaction.run();
-					} else {
-						if (specialId != DbConstant.ILLEGALVALUE) {
-							// Transfer try at least once but redo it from scratch
-							text = "Request Transfer Cancelled and Restart: "+specialId+" "+filename+" ";
-							try {
-								String srequester = Configuration.configuration.getHostId(DbConstant.admin.session,
-										host);
-								RequestTransfer transaction = new RequestTransfer(future, specialId, host, srequester, 
-										true, false, false, networkTransaction);
-								logger.warn(text+host);
-								transaction.run();
-								// special task
-								future.awaitUninterruptibly();
-							} catch (WaarpDatabaseException e) {
-								logger.warn(Messages.getString("RequestTransfer.5") + host, e); //$NON-NLS-1$
-							}
-							text = "Direct Transfer: ";
-							future = new R66Future(true);
-							DirectTransfer transaction = new DirectTransfer(future,
+			try {
+				for (String host : remoteHosts) {
+					host = host.trim();
+					if (host != null && ! host.isEmpty()) {
+						String filename = fileItem.file.getAbsolutePath();
+						logger.info("Launch transfer to "+host+" with file "+filename);
+						R66Future future = new R66Future(true);
+						String text = null;
+						if (submit) {
+							text = "Submit Transfer: ";
+							SubmitTransfer transaction = new SubmitTransfer(future,
 									host, filename, rulename, fileinfo, isMD5, blocksize, 
-									DbConstant.ILLEGALVALUE, networkTransaction);
+									specialId, null);
 							logger.info(text+host);
 							transaction.run();
-							
-							/*
-							text = "Request Transfer Restart: ";
-							try {
-								String srequester = Configuration.configuration.getHostId(DbConstant.admin.session,
-										host);
-								RequestTransfer transaction = new RequestTransfer(future, specialId, host, srequester, 
-										false, false, true, networkTransaction);
-								logger.info(text+host);
-								transaction.run();
-								// special task
-								future.awaitUninterruptibly();
-								if (! future.isSuccess()) {
+						} else {
+							if (specialId != DbConstant.ILLEGALVALUE) {
+								boolean direct = false;
+								// Transfer try at least once
+								text = "Request Transfer try Restart: "+specialId+" "+filename+" ";
+								try {
+									String srequester = Configuration.configuration.getHostId(DbConstant.admin.session,
+											host);
+									RequestTransfer transaction = new RequestTransfer(future, specialId, host, srequester, 
+											false, false, true, networkTransaction);
+									logger.info(text+host);
+									// special task
+									transaction.run();
+									future.awaitUninterruptibly();
+									if (! future.isSuccess()) {
+										direct = true;
+										text = "Request Transfer Cancelled and Restart: "+specialId+" "+filename+" ";
+										RequestTransfer transaction2 = new RequestTransfer(future, specialId, host, srequester, 
+											true, false, false, networkTransaction);
+										logger.warn(text+host);
+										transaction2.run();
+										// special task
+										future.awaitUninterruptibly();
+									}
+								} catch (WaarpDatabaseException e) {
+									direct = true;
+									logger.warn(Messages.getString("RequestTransfer.5") + host, e); //$NON-NLS-1$
+								}
+								if (direct) {
 									text = "Direct Transfer: ";
 									future = new R66Future(true);
-									DirectTransfer transaction2 = new DirectTransfer(future,
+									DirectTransfer transaction = new DirectTransfer(future,
 											host, filename, rulename, fileinfo, isMD5, blocksize, 
 											DbConstant.ILLEGALVALUE, networkTransaction);
 									logger.info(text+host);
-									transaction2.run();
+									transaction.run();
 								}
-							} catch (WaarpDatabaseException e) {
-								logger.warn(Messages.getString("RequestTransfer.5") + host, e); //$NON-NLS-1$
+							} else {
 								text = "Direct Transfer: ";
 								DirectTransfer transaction = new DirectTransfer(future,
-										host, filename, rulename, fileinfo, isMD5, blocksize, 
-										DbConstant.ILLEGALVALUE, networkTransaction);
+										host, filename, rulename, fileinfo, isMD5, blocksize,
+										specialId, networkTransaction);
 								logger.info(text+host);
 								transaction.run();
 							}
-							*/
-						} else {
-							text = "Direct Transfer: ";
-							DirectTransfer transaction = new DirectTransfer(future,
-									host, filename, rulename, fileinfo, isMD5, blocksize,
-									specialId, networkTransaction);
-							logger.info(text+host);
-							transaction.run();
 						}
-					}
-					future.awaitUninterruptibly();
-					R66Result r66result = future.getResult();
-					if (future.isSuccess()) {
-						finalStatus = true;
-						sent++;
-						DbTaskRunner runner = null;
-						if (r66result != null) {
-							runner = r66result.runner;
-							if (runner != null) {
-								specialId = runner.getSpecialId();
-								String status = Messages.getString("RequestInformation.Success"); //$NON-NLS-1$
-								if (runner.getErrorInfo() == ErrorCode.Warning) {
-									status = Messages.getString("RequestInformation.Warned"); //$NON-NLS-1$
-								}
-								logger.warn(text+" status: "+status+"     "
-										+ runner.toShortString()
-										+"     <REMOTE>"+ host+ "</REMOTE>"
-										+"     <FILEFINAL>"+
-										(r66result.file != null ? 
-												r66result.file.toString() + "</FILEFINAL>"
-												: "no file"));
-								if (nolog && !submit) {
-									// In case of success, delete the runner
-									try {
-										runner.delete();
-									} catch (WaarpDatabaseException e) {
-										logger.warn("Cannot apply nolog to     " +
-												runner.toShortString(),
-												e);
+						future.awaitUninterruptibly();
+						R66Result r66result = future.getResult();
+						if (future.isSuccess()) {
+							finalStatus = true;
+							sent++;
+							DbTaskRunner runner = null;
+							if (r66result != null) {
+								runner = r66result.runner;
+								if (runner != null) {
+									specialId = runner.getSpecialId();
+									String status = Messages.getString("RequestInformation.Success"); //$NON-NLS-1$
+									if (runner.getErrorInfo() == ErrorCode.Warning) {
+										status = Messages.getString("RequestInformation.Warned"); //$NON-NLS-1$
 									}
+									logger.warn(text+" status: "+status+"     "
+											+ runner.toShortString()
+											+"     <REMOTE>"+ host+ "</REMOTE>"
+											+"     <FILEFINAL>"+
+											(r66result.file != null ? 
+													r66result.file.toString() + "</FILEFINAL>"
+													: "no file"));
+									if (nolog && !submit) {
+										// In case of success, delete the runner
+										try {
+											runner.delete();
+										} catch (WaarpDatabaseException e) {
+											logger.warn("Cannot apply nolog to     " +
+													runner.toShortString(),
+													e);
+										}
+									}
+								} else {
+									logger.warn(text+Messages.getString("RequestInformation.Success")  //$NON-NLS-1$
+											+"<REMOTE>" + host + "</REMOTE>");
 								}
 							} else {
 								logger.warn(text+Messages.getString("RequestInformation.Success")  //$NON-NLS-1$
 										+"<REMOTE>" + host + "</REMOTE>");
 							}
 						} else {
-							logger.warn(text+Messages.getString("RequestInformation.Success")  //$NON-NLS-1$
-									+"<REMOTE>" + host + "</REMOTE>");
-						}
-					} else {
-						error++;
-						ko++;
-						DbTaskRunner runner = null;
-						if (r66result != null) {
-							runner = r66result.runner;
-							if (runner != null) {
-								specialId = runner.getSpecialId();
-								if (! DbConstant.admin.isConnected) {
-									specialId = DbConstant.ILLEGALVALUE;
+							error++;
+							ko++;
+							DbTaskRunner runner = null;
+							if (r66result != null) {
+								runner = r66result.runner;
+								if (runner != null) {
+									specialId = runner.getSpecialId();
+									if (! DbConstant.admin.isConnected) {
+										specialId = DbConstant.ILLEGALVALUE;
+									}
+									logger.error(text+Messages.getString("RequestInformation.Failure") +  //$NON-NLS-1$
+											runner.toShortString() +
+										"<REMOTE>" + host + "</REMOTE>", future.getCause());
+								} else {
+									logger.error(text+Messages.getString("RequestInformation.Failure"),  //$NON-NLS-1$
+											future.getCause());
 								}
-								logger.error(text+Messages.getString("RequestInformation.Failure") +  //$NON-NLS-1$
-										runner.toShortString() +
-									"<REMOTE>" + host + "</REMOTE>", future.getCause());
 							} else {
-								logger.error(text+Messages.getString("RequestInformation.Failure"),  //$NON-NLS-1$
+								logger.error(text+Messages.getString("RequestInformation.Failure") //$NON-NLS-1$
+										+"<REMOTE>" + host + "</REMOTE>", 
 										future.getCause());
 							}
-						} else {
-							logger.error(text+Messages.getString("RequestInformation.Failure") //$NON-NLS-1$
-									+"<REMOTE>" + host + "</REMOTE>", 
-									future.getCause());
 						}
 					}
 				}
+			} catch (Exception e) {
+				// catch any exception
+				logger.error("Error in SpooledDirectory", e);
+				finalStatus = false;
 			}
 			specialId = remoteHosts.size() > 1 ? DbConstant.ILLEGALVALUE : specialId;
 			if (ko > 0) {
