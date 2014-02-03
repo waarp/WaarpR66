@@ -102,7 +102,8 @@ public abstract class ProgressBarTransfer extends AbstractTransfer {
 				} catch (InterruptedException e) {
 				}
 				if ((!localChannelReference.getFutureValidRequest().isSuccess()) &&
-						(localChannelReference.getFutureValidRequest().getResult().code ==
+						(localChannelReference.getFutureValidRequest() != null &&
+						localChannelReference.getFutureValidRequest().getResult().code ==
 						ErrorCode.ServerOverloaded)) {
 					switch (taskRunner.getUpdatedInfo()) {
 						case DONE:

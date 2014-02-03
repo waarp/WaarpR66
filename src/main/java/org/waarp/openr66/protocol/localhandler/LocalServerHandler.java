@@ -213,7 +213,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				if (fvr.isDone()) {
 					if (!fvr.isSuccess()) {
 						// test if remote server was Overloaded
-						if (fvr.getResult().code == ErrorCode.ServerOverloaded) {
+						if (fvr.getResult() != null && fvr.getResult().code == ErrorCode.ServerOverloaded) {
 							// ignore
 							mustFinalize = false;
 						}
