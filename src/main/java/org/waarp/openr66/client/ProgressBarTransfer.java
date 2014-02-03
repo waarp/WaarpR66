@@ -136,7 +136,7 @@ public abstract class ProgressBarTransfer extends AbstractTransfer {
 					callBack(future.runner.getRank(), future.runner.getBlocksize());
 				}
 				logger.debug("transfer done on progressBarTransfer");
-				runner.finishTransfer(false, localChannelReference);
+				runner.finishTransfer(localChannelReference);
 				lastCallBack(future.isSuccess(),
 						future.runner.getRank(), future.runner.getBlocksize());
 				exc = null;

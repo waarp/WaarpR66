@@ -235,11 +235,12 @@ public class ClientRunner extends Thread {
 		} catch (InterruptedException e) {
 		}
 		if (localChannelReference.getFutureValidRequest().isSuccess()) {
-			return finishTransfer(true, localChannelReference);
-		} else if (localChannelReference.getFutureValidRequest().getResult().code == ErrorCode.ServerOverloaded) {
+			return finishTransfer(localChannelReference);
+		} else if (localChannelReference.getFutureValidRequest().getResult() != null && 
+				localChannelReference.getFutureValidRequest().getResult().code == ErrorCode.ServerOverloaded) {
 			return tryAgainTransferOnOverloaded(true, localChannelReference);
 		} else
-			return finishTransfer(true, localChannelReference);
+			return finishTransfer(localChannelReference);
 	}
 
 	/**
@@ -301,8 +302,6 @@ public class ClientRunner extends Thread {
 	/**
 	 * Finish the transfer (called at the end of runTransfer)
 	 * 
-	 * @param retry
-	 *            if True, it will retry in case of overloaded remote server, else it just stops
 	 * @param localChannelReference
 	 * @return The R66Future of the transfer operation
 	 * @throws OpenR66ProtocolNotYetConnectionException
@@ -310,8 +309,7 @@ public class ClientRunner extends Thread {
 	 * @throws OpenR66ProtocolNoConnectionException
 	 * @throws OpenR66RunnerErrorException
 	 */
-	public R66Future finishTransfer(boolean retry,
-			LocalChannelReference localChannelReference)
+	public R66Future finishTransfer(LocalChannelReference localChannelReference)
 			throws OpenR66RunnerErrorException {
 		if (this.localChannelReference == null) {
 			this.localChannelReference = localChannelReference;
