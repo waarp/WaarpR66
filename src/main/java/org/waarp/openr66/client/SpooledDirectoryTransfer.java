@@ -290,10 +290,10 @@ public class SpooledDirectoryTransfer implements Runnable {
 				recurs, commandValidFile, waarpRemovedCommand, null);
 		if (! monitor.initialized()) {
 			// wrong
-			logger.error(Messages.getString("Configuration.WrongInit") + " : startup");
+			logger.error(Messages.getString("Configuration.WrongInit") + " : already running");
 			this.future.cancel();
 			if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
-				Configuration.configuration.shutdownConfiguration.serviceFuture.setFailure(new Exception(Messages.getString("Configuration.WrongInit") + " : startup"));
+				Configuration.configuration.shutdownConfiguration.serviceFuture.setFailure(new Exception(Messages.getString("Configuration.WrongInit") + " : already running"));
 			}
 			return;
 		}
