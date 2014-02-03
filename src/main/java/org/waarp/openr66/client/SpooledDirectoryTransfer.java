@@ -82,9 +82,9 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * -waarp WaarpHosts (seperated by ',') to inform of running spooled directory (information stays in memory of Waarp servers, not in database)<br>
  * -name name to be used as name in list printing in Waarp servers. Note this name must be unique globally.<br>
  * -elapseWaarp elapse to specify a specific timing > 1000ms between to information sent to Waarp servers (default: 5000ms)<br>
- * -parallel to allow (default) parallelism in send actions (submit are always sequential)<br>
- * -sequential to not allow parallelism in send actions (submit are always sequential)<br>
- * -limitParallel limit to specify the number of concurrent actions in -direct mode and if parallel mode is active<br>
+ * -parallel to allow (default) parallelism between send actions and information<br>
+ * -sequential to not allow parallelism between send actions and information<br>
+ * -limitParallel limit to specify the number of concurrent actions in -direct mode only<br>
  * 
  * @author Frederic Bregier
  * 
@@ -195,12 +195,12 @@ public class SpooledDirectoryTransfer implements Runnable {
 		AbstractTransfer.nolog = this.nolog;
 		this.recurs = recursive;
 		this.elapseWaarpTime = elapseWaarp;
-		this.limitParallelTasks = limitParallel;
 		if (this.submit) {
 			this.parallel = false;
 		} else {
 			this.parallel = parallel;
 		}
+		this.limitParallelTasks = limitParallel;
 		this.waarpHosts = waarphost;
 		this.networkTransaction = networkTransaction;
 	}
@@ -305,7 +305,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 		if (waarpHosts != null && ! waarpHosts.isEmpty()) {
 			waarpHostCommand = new FileMonitorCommandRunnableFuture() {
 				public void run(FileItem notused) {
-					if (DbConstant.admin.session != null) {
+					if (DbConstant.admin.session != null && DbConstant.admin.session.isDisconnected) {
 						DbConstant.admin.session.checkConnectionNoException();
 					}
 					String status = monitorArg.getStatus();
@@ -363,7 +363,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 
 		public void run(FileItem fileItem) {
 			this.fileItem = fileItem;
-			if (DbConstant.admin.session != null) {
+			if (DbConstant.admin.session != null && DbConstant.admin.session.isDisconnected) {
 				DbConstant.admin.session.checkConnectionNoException();
 			}
 			boolean finalStatus = false;
@@ -410,6 +410,9 @@ public class SpooledDirectoryTransfer implements Runnable {
 									}
 								} catch (WaarpDatabaseException e) {
 									direct = true;
+									if (DbConstant.admin.session != null) {
+										DbConstant.admin.session.checkConnectionNoException();
+									}
 									logger.warn(Messages.getString("RequestTransfer.5") + host, e); //$NON-NLS-1$
 								}
 								if (direct) {

@@ -231,7 +231,7 @@ public class RequestTransfer implements Runnable {
 		} catch (WaarpDatabaseException e) {
 			// Maybe we can ask to the remote
 			R66Future futureInfo = new R66Future(true);
-			RequestInformation requestInformation = new RequestInformation(futureInfo, srequested, null, null, (byte) -1, specialId, true, networkTransaction);
+			RequestInformation requestInformation = new RequestInformation(futureInfo, requested, null, null, (byte) -1, specialId, true, networkTransaction);
 			requestInformation.run();
 			futureInfo.awaitUninterruptibly();
 			if (futureInfo.isSuccess()) {
