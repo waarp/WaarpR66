@@ -76,6 +76,7 @@ public class SpooledInformTask extends AbstractExecJavaTask {
 				try {
 					FileMonitorInformation fileMonitorInformation = 
 							JsonHandler.mapper.readValue(fullarg, FileMonitorInformation.class);
+					logger.info("Receive SpooledInform of size: "+fullarg.length()+" ("+fileMonitorInformation.fileItems.size()+")");
 					String host = this.session.getAuth().getUser();
 					synchronized (spooledInformationMap) {
 						SpooledInformation old = spooledInformationMap.put(fileMonitorInformation.name, new SpooledInformation(host, fileMonitorInformation));

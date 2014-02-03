@@ -123,7 +123,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
 		if (packet.getType() != LocalPacketFactory.STARTUPPACKET) {
 			logger.error("Local Client Channel Recv wrong packet: " +
 					e.getChannel().getId() + " : " + packet.toString());
-			throw new OpenR66ProtocolSystemException("Should not be here");
+			throw new OpenR66ProtocolSystemException("Should not be here: Wrong packet received {" + packet.toString() + "}");
 		}
 		logger.debug("LocalClientHandler initialized: " +
 				(localChannelReference != null));
