@@ -288,6 +288,15 @@ public class SpooledDirectoryTransfer implements Runnable {
 		File dir = new File(directory.get(0));
 		monitor = new FileMonitor(name, status, stop, dir, null, elapseTime, filter, 
 				recurs, commandValidFile, waarpRemovedCommand, null);
+		if (! monitor.initialized()) {
+			// wrong
+			logger.error(Messages.getString("Configuration.WrongInit") + " : startup");
+			this.future.cancel();
+			if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
+				Configuration.configuration.shutdownConfiguration.serviceFuture.setFailure(new Exception(Messages.getString("Configuration.WrongInit") + " : startup"));
+			}
+			return;
+		}
 		commandValidFile.setMonitor(monitor);
 		if (parallel) {
 			FileMonitorCommandFactory factory = new FileMonitorCommandFactory() {
