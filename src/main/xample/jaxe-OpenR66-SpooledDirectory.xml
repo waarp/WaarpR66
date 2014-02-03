@@ -571,13 +571,13 @@ If true, the daemon will make only submitted transfers, while if false it will m
 <STRINGS_ELEMENT element="parallel">
 <TITRE>parallel</TITRE>
 <DOCUMENTATION>
-If True, all direct transfers will be done in parallel, while if false, they will be done sequentially. Only applicable for direct transfers, not for submit.
+If True, all transfers will be done in parallel than information to Waarp servers, else False means that information will be done only after each transfer set.
                                 </DOCUMENTATION>
 </STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="limitParallel">
 <TITRE>limitParallel</TITRE>
 <DOCUMENTATION>
-The value will limit the number of concurrent direct transfers (if parallel is active). 0 means NO LIMIT
+The value will limit the number of concurrent direct transfers. 0 means NO LIMIT, while 1 means sequential.
                                 </DOCUMENTATION>
 </STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="info">
