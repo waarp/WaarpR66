@@ -284,6 +284,21 @@ The interval time in ms used to inform remote Waarp servers. If set to 0, the in
                                 </xsd:documentation>
                             </xsd:annotation>
                         </xsd:element>
+                        <xsd:element
+                            name="minimalSize"
+                            default="1"
+                            maxOccurs="1"
+                            minOccurs="0"
+                            type="nonNegInteger" >
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <fg:node-info message="The minimal size of each file that will be transferred (default: 1 byte)" />
+                                </xsd:appinfo>
+                                <xsd:documentation>
+The minimal size of each file that will be transferred (default: 1 byte)
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
                     </xsd:sequence>
                 </xsd:complexType>
             </xsd:element>

@@ -79,6 +79,7 @@
 <MENU_INSERTION nom="nolog"/>
 <MENU_INSERTION nom="waarp"/>
 <MENU_INSERTION nom="elapseWaarp"/>
+<MENU_INSERTION nom="minimalSize"/>
 <MENU_INSERTION nom="config"/>
 <MENU_INSERTION nom="comment"/>
 <MENU_INSERTION nom="identity"/>
@@ -167,6 +168,7 @@
 <AFFICHAGE_ELEMENT type="typesimple" element="nolog"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="waarp"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="elapseWaarp"/>
+<AFFICHAGE_ELEMENT type="typesimple" element="minimalSize"/>
 <AFFICHAGE_ELEMENT type="division" element="config"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="comment"/>
 <AFFICHAGE_ELEMENT type="zone" element="identity"/>
@@ -614,6 +616,12 @@ The host name for which the status of this daemon will be sent. Note that the cl
 <TITRE>elapseWaarp</TITRE>
 <DOCUMENTATION>
 The interval time in ms used to inform remote Waarp servers. If set to 0, the information will be done after each directory check, possibly long time, depending on the time spent to submit or directly transfer files
+                                </DOCUMENTATION>
+</STRINGS_ELEMENT>
+<STRINGS_ELEMENT element="minimalSize">
+<TITRE>minimalSize</TITRE>
+<DOCUMENTATION>
+The minimal size of each file that will be transferred (default: 1 byte)
                                 </DOCUMENTATION>
 </STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="config">

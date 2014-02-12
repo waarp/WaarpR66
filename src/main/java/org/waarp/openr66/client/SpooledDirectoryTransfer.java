@@ -85,6 +85,7 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * -parallel to allow (default) parallelism between send actions and information<br>
  * -sequential to not allow parallelism between send actions and information<br>
  * -limitParallel limit to specify the number of concurrent actions in -direct mode only<br>
+ * -minimalSize limit to specify the minimal size of each file that will be transferred (default: 1 byte)<br>
  * 
  * @author Frederic Bregier
  * 
@@ -139,6 +140,8 @@ public class SpooledDirectoryTransfer implements Runnable {
 	
 	protected final boolean recurs;
 	
+	protected final long minimalSize;
+	
 	protected final NetworkTransaction networkTransaction;
 	
 	protected FileMonitor monitor = null;
@@ -166,6 +169,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 	 * @param elapseWaarp
 	 * @param parallel
 	 * @param waarphost
+	 * @param minimalSize
 	 * @param networkTransaction
 	 */
 	public SpooledDirectoryTransfer(R66Future future, String name, List<String> directory, 
@@ -174,7 +178,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 			List<String> remoteHosts, int blocksize, String regex,
 			long elapse, boolean submit, boolean nolog, boolean recursive, 
 			long elapseWaarp, boolean parallel, int limitParallel,
-			List<String> waarphost, NetworkTransaction networkTransaction) {
+			List<String> waarphost, long minimalSize, NetworkTransaction networkTransaction) {
 		if (logger == null) {
 			logger = WaarpInternalLoggerFactory.getLogger(SpooledDirectoryTransfer.class);
 		}
@@ -202,6 +206,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 		}
 		this.limitParallelTasks = limitParallel;
 		this.waarpHosts = waarphost;
+		this.minimalSize = minimalSize;
 		this.networkTransaction = networkTransaction;
 	}
 
@@ -275,7 +280,9 @@ public class SpooledDirectoryTransfer implements Runnable {
 		}
 		FileFilter filter = null;
 		if (regexFilter != null) {
-			filter = new RegexFileFilter(regexFilter);
+			filter = new RegexFileFilter(regexFilter, minimalSize);
+		} else {
+			filter = new RegexFileFilter(minimalSize);
 		}
 		// Will be used if no parallelism
 		FileMonitorCommandRunnableFuture commandValidFile = new SpooledRunner(null);
@@ -344,7 +351,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 			monitor.addDirectory(dir);
 		}
 		logger.warn("SpooledDirectoryTransfer starts name:"+name+" directory:"+directory+" statusFile:"+statusFile+" stopFile:"+stopFile+
-				" rulename:"+rulename+" fileinfo:"+fileinfo+" hosts:"+remoteHosts+" regex:"+regexFilter+" waarp:"+waarpHosts+
+				" rulename:"+rulename+" fileinfo:"+fileinfo+" hosts:"+remoteHosts+" regex:"+regexFilter+" minimalSize:"+minimalSize+" waarp:"+waarpHosts+
 				" elapse:"+elapseTime+" waarpElapse:"+elapseWaarpTime+" parallel:"+parallel+" limitParallel:"+limitParallelTasks+
 				" submit:"+submit+" recursive:"+recurs);
 		monitor.start();
@@ -545,6 +552,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 		protected List<String> waarphosts = new ArrayList<String>();
 		protected boolean isparallel = true;
 		protected int limitParallel = 0;
+		protected long minimalSize = 1;
 	}
 	
 	protected static final List<Arguments> arguments = new ArrayList<Arguments>();
@@ -569,6 +577,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 	private static final String XML_nolog = "nolog";
 	private static final String XML_waarp = "waarp";
 	private static final String XML_elapseWaarp = "elapseWaarp";
+	private static final String XML_minimalSize = "minimalSize";
 	
 	private static final XmlDecl[] subSpooled = {
 		new XmlDecl(XmlType.STRING, XML_name),
@@ -587,7 +596,8 @@ public class SpooledDirectoryTransfer implements Runnable {
 		new XmlDecl(XmlType.INTEGER, XML_block),
 		new XmlDecl(XmlType.BOOLEAN, XML_nolog),
 		new XmlDecl(XML_waarp, XmlType.STRING, XML_waarp, true),
-		new XmlDecl(XmlType.LONG, XML_elapseWaarp)
+		new XmlDecl(XmlType.LONG, XML_elapseWaarp),
+		new XmlDecl(XmlType.LONG, XML_minimalSize)
 	};
 	private static final XmlDecl[] spooled = {
 		new XmlDecl(XmlType.STRING, XML_stopfile),
@@ -649,12 +659,14 @@ public class SpooledDirectoryTransfer implements Runnable {
 				if (value != null && (!value.isEmpty())) {
 					arg.rule = value.getString();
 				} else {
+					logger.warn("rule directive is empty but must not");
 					continue;
 				}
 				value = subHash.get(XML_statusfile);
 				if (value != null && (!value.isEmpty())) {
 					arg.statusfile = value.getString();
 				} else {
+					logger.warn("statusfile directive is empty but must not");
 					continue;
 				}
 				value = subHash.get(XML_directory);
@@ -725,8 +737,10 @@ public class SpooledDirectoryTransfer implements Runnable {
 				value = subHash.get(XML_elapseWaarp);
 				if (value != null && (!value.isEmpty())) {
 					arg.elapsedWaarp = value.getLong();
-				} else {
-					continue;
+				}
+				value = subHash.get(XML_minimalSize);
+				if (value != null && (!value.isEmpty())) {
+					arg.minimalSize = value.getLong();
 				}
 				arguments.add(arg);
 			}
@@ -836,6 +850,9 @@ public class SpooledDirectoryTransfer implements Runnable {
 					} else if (args[i].equalsIgnoreCase("-elapseWaarp")) {
 						i++;
 						arg.elapsedWaarp = Long.parseLong(args[i]);
+					} else if (args[i].equalsIgnoreCase("-minimalSize")) {
+						i++;
+						arg.minimalSize = Long.parseLong(args[i]);
 					} else if (args[i].equalsIgnoreCase("-limitParallel")) {
 						i++;
 						arg.limitParallel = Integer.parseInt(args[i]);
@@ -914,7 +931,8 @@ public class SpooledDirectoryTransfer implements Runnable {
 						new SpooledDirectoryTransfer(future, arg.sname, arg.localDirectory, arg.statusfile, arg.stopfile,
 								arg.rule, arg.fileInfo, arg.ismd5, arg.rhosts, arg.block, arg.regex, arg.elapsed, 
 								arg.tosubmit, arg.noLog, arg.recursive,
-								arg.elapsedWaarp, arg.isparallel, arg.limitParallel, arg.waarphosts, networkTransactionStatic);
+								arg.elapsedWaarp, arg.isparallel, arg.limitParallel, arg.waarphosts, arg.minimalSize,
+								networkTransactionStatic);
 				executorService.submit(spooled);
 				list.add(spooled);
 			}

@@ -1370,6 +1370,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		}
 		logger.debug("Filesize: "+packet.getOriginalSize()+":"+runner.isSender());
 		// now check that filesize is NOT 0
+		/* maybe we could ignore this !
 		if (runner.getOriginalSize() == 0) {
 			// not valid so create an error from there
 			ErrorCode code = ErrorCode.FileNotAllowed;
@@ -1383,6 +1384,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			errorMesg(channel, errorPacket);
 			return;
 		}
+		*/
 		if (runner.isFileMoved() && runner.isSender() && runner.isInTransfer()
 				&& runner.getRank() == 0 && (!packet.isToValidate())) {
 			// File was moved during PreTask and very beginning of the transfer
@@ -1726,7 +1728,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 		logger.debug("OSize: "+originalSize+" isSender: "+session.getRunner().isSender());
 		if (packet.isToValidate()) {
 			// check if possible originalSize
-			if (originalSize >= 0) {
+			if (originalSize > 0) {
 				try {
 					if (!session.getRunner().isRecvThrough() && session.getFile().length() != originalSize || 
 							session.getFile().length() == 0) {
@@ -2780,7 +2782,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 										}
 									}
 								}
-							} else if (newSize == 0) {
+							} /*else if (newSize == 0) {
 								// now check that filesize is NOT 0
 								if (runner.getOriginalSize() == 0) {
 									// not valid so create an error from there
@@ -2811,7 +2813,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 									ChannelCloseTimer.closeFutureChannel(channel);
 									return;
 								}
-							}
+							}*/
 						}
 					} catch (NumberFormatException e) {
 						newfilename += PartnerConfiguration.BAR_SEPARATOR_FIELD + fields[fields.length-1];
@@ -3174,7 +3176,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 							}
 						}
 					}
-				} else if (newSize == 0) {
+				} /*else if (newSize == 0) {
 					// now check that filesize is NOT 0
 					if (runner.getOriginalSize() == 0) {
 						// not valid so create an error from there
@@ -3205,7 +3207,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 						ChannelCloseTimer.closeFutureChannel(channel);
 						return;
 					}
-				}
+				}*/
 				// check if send is already on going
 				if (session.getRunner() != null && session.getRunner().getRank() > 0) {
 					// already started so not changing the filename
