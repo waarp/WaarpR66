@@ -85,7 +85,7 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * -parallel to allow (default) parallelism between send actions and information<br>
  * -sequential to not allow parallelism between send actions and information<br>
  * -limitParallel limit to specify the number of concurrent actions in -direct mode only<br>
- * -minimalSize limit to specify the minimal size of each file that will be transferred (default: 1 byte)<br>
+ * -minimalSize limit to specify the minimal size of each file that will be transferred (default: no limit)<br>
  * 
  * @author Frederic Bregier
  * 
@@ -281,7 +281,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 		FileFilter filter = null;
 		if (regexFilter != null) {
 			filter = new RegexFileFilter(regexFilter, minimalSize);
-		} else {
+		} else if (minimalSize > 0) {
 			filter = new RegexFileFilter(minimalSize);
 		}
 		// Will be used if no parallelism
@@ -552,7 +552,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 		protected List<String> waarphosts = new ArrayList<String>();
 		protected boolean isparallel = true;
 		protected int limitParallel = 0;
-		protected long minimalSize = 1;
+		protected long minimalSize = 0;
 	}
 	
 	protected static final List<Arguments> arguments = new ArrayList<Arguments>();
