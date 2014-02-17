@@ -31,6 +31,7 @@ import org.waarp.openr66.context.task.exception.OpenR66RunnerException;
  * This task add 1 byte to empty file if the current file is empty (0 length).<br><br>
  * 
  * The task will be in error only if the file is of length 0 but cannot be unzeroed.<br>
+ * The content of PATH, if not empty, will be the content when unzeroed. If empty, the 'blank' character will be used.<br>
  * 
  * delay >= 1 will make a log using info level for 1, warn level for 2.
  * @author Frederic Bregier
@@ -57,12 +58,13 @@ public class UnzeroedFileTask extends AbstractTask {
 	@Override
 	public void run() {
 		File currentFile = session.getFile().getTrueFile();
+		String toWrite = argRule.isEmpty() ? " " : argRule;
 		String curpath = R66Dir.normalizePath(currentFile.getAbsolutePath());
 		if (currentFile.exists() && currentFile.length() == 0) {
 			FileOutputStream out = null;
 			try {
 				out = new FileOutputStream(currentFile);
-				out.write(' ');
+				out.write(toWrite.getBytes());
 				if (delay > 0) {
 					if (delay > 1) {
 						logger.warn("Unzeroed File: " + curpath + " from " +
