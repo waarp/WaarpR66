@@ -277,7 +277,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 						"Cannot connect to localChannel since cannot create it", null);
 				writeError(e.getChannel(), packet.getRemoteId(), packet
 						.getLocalId(), error);
-				NetworkTransaction.removeNetworkChannel(e.getChannel(), null, null);
+				NetworkTransaction.removeNetworkChannel(e.getChannel().getRemoteAddress(), e.getChannel(), null, null);
 				return;
 			} catch (OpenR66ProtocolRemoteShutdownException e1) {
 				logger.info("Will Close Local from Network Channel");

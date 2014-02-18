@@ -17,6 +17,8 @@
  */
 package org.waarp.openr66.protocol.localhandler;
 
+import java.net.SocketAddress;
+
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler;
 import org.waarp.common.database.DbSession;
@@ -65,7 +67,11 @@ public class LocalChannelReference {
 	 * Network Channel
 	 */
 	private final Channel networkChannel;
-
+	/**
+	 * Remote SocketAddress
+	 */
+	private final SocketAddress remoteAddress;
+	
 	/**
 	 * Traffic handler associated if any
 	 */
@@ -171,6 +177,7 @@ public class LocalChannelReference {
 			Integer remoteId, R66Future futureRequest) {
 		this.localChannel = localChannel;
 		this.networkChannel = networkChannel;
+		this.remoteAddress = this.networkChannel.getRemoteAddress();
 		networkServerHandler = (NetworkServerHandler) this.networkChannel
 				.getPipeline().getLast();
 		localId = this.localChannel.getId();
@@ -204,6 +211,7 @@ public class LocalChannelReference {
 	public LocalChannelReference() {
 		this.localChannel = null;
 		this.networkChannel = null;
+		this.remoteAddress = null;
 		networkServerHandler = null;
 		localId = 0;
 		this.futureRequest = new R66Future(true);
@@ -231,6 +239,14 @@ public class LocalChannelReference {
 	 */
 	public Channel getNetworkChannel() {
 		return networkChannel;
+	}
+
+	
+	/**
+	 * @return the remoteAddress
+	 */
+	public SocketAddress getRemoteAddress() {
+		return remoteAddress;
 	}
 
 	/**

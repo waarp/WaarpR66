@@ -302,7 +302,7 @@ public class NetworkTransaction {
 		} finally {
 			if (!ok) {
 				if (networkChannel != null) {
-					removeNetworkChannel(networkChannel.channel, null, null);
+					removeNetworkChannel(networkChannel.channel.getRemoteAddress(), networkChannel.channel, null, null);
 				}
 			}
 		}
@@ -1014,9 +1014,11 @@ public class NetworkTransaction {
 	 *            Requester since call from LocalChannel close (might be null)
 	 * @return the number of local channel still connected to this channel
 	 */
-	public static int removeNetworkChannel(Channel channel, Channel localChannel,
+	public static int removeNetworkChannel(SocketAddress address, Channel channel, Channel localChannel,
 			String requester) {
-		SocketAddress address = channel.getRemoteAddress();
+		if (address == null) {
+			address = channel.getRemoteAddress();
+		}
 		ReentrantLock socketLock = getChannelLock(address);
 		socketLock.lock();
 		try {

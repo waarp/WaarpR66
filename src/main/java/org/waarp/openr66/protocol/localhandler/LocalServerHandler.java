@@ -262,8 +262,8 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					(runner != null && runner.isSelfRequested() &&
 					localChannelReference.getNetworkChannelObject() != null) ?
 							runner.getRequester() : null;
-			NetworkTransaction.removeNetworkChannel(localChannelReference
-					.getNetworkChannel(), e.getChannel(), requester);
+			NetworkTransaction.removeNetworkChannel(localChannelReference.getRemoteAddress(), 
+					localChannelReference.getNetworkChannel(), e.getChannel(), requester);
 			/*
 			 * // Only requested can has a remote client if (runner != null &&
 			 * runner.isSelfRequested() && localChannelReference.getNetworkChannelObject() != null
