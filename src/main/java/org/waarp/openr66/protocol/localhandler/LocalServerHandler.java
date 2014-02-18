@@ -2331,7 +2331,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 							ErrorCode.ServerOverloaded.getCode(),
 							LocalPacketFactory.REQUESTUSERPACKET);
 					R66Result resulttest = new R66Result(null, session, true,
-							ErrorCode.Internal, null);
+							ErrorCode.ServerOverloaded, null);
 					resulttest.other = packet;
 					localChannelReference.invalidateRequest(resulttest);
 					// inform back the requester
@@ -2351,12 +2351,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
 				if (keys.length < 3) {
 					// not enough args
 					valid = new ValidPacket(packet.getSmiddle(),
-							ErrorCode.Internal.getCode(),
+							ErrorCode.IncorrectCommand.getCode(),
 							LocalPacketFactory.REQUESTUSERPACKET);
 					R66Result resulttest = new R66Result(
 							new OpenR66ProtocolBusinessRemoteFileNotFoundException("Not enough arguments"),
 							session, true,
-							ErrorCode.Internal, null);
+							ErrorCode.IncorrectCommand, null);
 					resulttest.other = packet;
 					localChannelReference.invalidateRequest(resulttest);
 				} else {
@@ -3801,7 +3801,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 					ErrorCode.ServerOverloaded.getCode(),
 					LocalPacketFactory.REQUESTUSERPACKET);
 			R66Result resulttest = new R66Result(null, session, true,
-					ErrorCode.Internal, null);
+					ErrorCode.ServerOverloaded, null);
 			resulttest.other = packet;
 			localChannelReference.invalidateRequest(resulttest);
 		} else {
@@ -3812,12 +3812,12 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			if (node.getRequested() == null || node.getRequester() == null || node.getSpecialid() == DbConstant.ILLEGALVALUE) {
 				// not enough args
 				valid = new JsonCommandPacket(json,
-						ErrorCode.Internal.getCode(),
+						ErrorCode.IncorrectCommand.getCode(),
 						LocalPacketFactory.REQUESTUSERPACKET);
 				R66Result resulttest = new R66Result(
 						new OpenR66ProtocolBusinessRemoteFileNotFoundException("Not enough arguments"),
 						session, true,
-						ErrorCode.Internal, null);
+						ErrorCode.IncorrectCommand, null);
 				resulttest.other = packet;
 				localChannelReference.invalidateRequest(resulttest);
 			} else {

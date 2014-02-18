@@ -1058,7 +1058,7 @@ public class NetworkTransaction {
 	 * 
 	 * @param address
 	 * @param host
-	 * @return True if a connection is still active on this socket or for this host
+	 * @return a number > 0 if a connection is still active on this socket or for this host
 	 */
 	public static int existConnection(SocketAddress address, String host) {
 		logger.debug("exist: "+networkChannelOnSocketAddressConcurrentHashMap.containsKey(address.hashCode())+":"+getNumberClients(host));

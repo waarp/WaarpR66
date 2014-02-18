@@ -198,9 +198,9 @@ public class LocalTransaction {
 						channel, networkChannel, remoteId, futureRequest);
 				logger.debug("Db connection done and Create LocalChannel entry: " + i + " {}",
 						localChannelReference);
-				channel.getCloseFuture().addListener(remover);
 				logger.info("Will add one localChannel to a Network Channel: "+channel.getId());
 				localChannelHashMap.put(channel.getId(), localChannelReference);
+				channel.getCloseFuture().addListener(remover);
 				try {
 					NetworkTransaction.addLocalChannelToNetworkChannel(
 							networkChannel, channel);
@@ -296,6 +296,11 @@ public class LocalTransaction {
 			R66Future validLCR = validLocalChannelHashMap
 					.remove(localChannelReference.getRemoteId());
 			if (validLCR != null && ! validLCR.isDone()) {
+				// Give a last chance
+				try {
+					Thread.sleep(Configuration.RETRYINMS*Configuration.RETRYNB);
+				} catch (InterruptedException e) {
+				}
 				validLCR.cancel();
 			}
 			DbTaskRunner runner = null;
@@ -304,9 +309,14 @@ public class LocalTransaction {
 			}
 			R66Result result = new R66Result(
 					new OpenR66ProtocolSystemException(
-							"While closing Local Channel"),
+							"Validation of the channel is not finished while the Local Channel is already closed: timeout occurs with the partner during validation."),
 					localChannelReference.getSession(), false,
 					ErrorCode.ConnectionImpossible, runner);
+			// Give a very last chance
+			try {
+				Thread.sleep(Configuration.RETRYINMS*Configuration.RETRYNB);
+			} catch (InterruptedException e) {
+			}
 			localChannelReference.validateConnection(false, result);
 			if (localChannelReference.getSession() != null) {
 				if (runner != null) {
@@ -345,18 +355,15 @@ public class LocalTransaction {
 		return localChannelHashMap.size();
 	}
 
-	private static class CloseLocalChannelsFromNetworkChannelTast implements TimerTask {
+	private static class CloseLocalChannelsFromNetworkChannelTask implements TimerTask {
 
-		LocalTransaction localTransaction;
 		AtomicInteger semaphore;
 		LocalChannelReference localChannelReference;
 		boolean analysis;
 
-		public CloseLocalChannelsFromNetworkChannelTast(
-				LocalTransaction localTransaction,
+		public CloseLocalChannelsFromNetworkChannelTask(
 				AtomicInteger semaphore,
 				LocalChannelReference localChannelReference) {
-			this.localTransaction = localTransaction;
 			this.semaphore = semaphore;
 			this.localChannelReference = localChannelReference;
 			analysis = true;
@@ -394,7 +401,6 @@ public class LocalTransaction {
 				}
 			}
 			logger.debug("Will close local channel");
-			localTransaction.remove(localChannelReference.getLocalChannel());
 			Channels.close(localChannelReference.getLocalChannel());
 			semaphore.decrementAndGet();
 		}
@@ -417,8 +423,8 @@ public class LocalTransaction {
 			if (localChannelReference.getNetworkChannel().compareTo(
 					networkChannel) == 0) {
 				semaphore.incrementAndGet();
-				CloseLocalChannelsFromNetworkChannelTast task =
-						new CloseLocalChannelsFromNetworkChannelTast(this,
+				CloseLocalChannelsFromNetworkChannelTask task =
+						new CloseLocalChannelsFromNetworkChannelTask(
 								semaphore, localChannelReference);
 				Configuration.configuration.getTimerClose().newTimeout(task,
 						Configuration.RETRYINMS * 10, TimeUnit.MILLISECONDS);
