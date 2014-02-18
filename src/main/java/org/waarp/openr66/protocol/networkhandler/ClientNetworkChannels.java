@@ -17,7 +17,9 @@
  */
 package org.waarp.openr66.protocol.networkhandler;
 
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Client NetworkChannel attached to one HostId.
@@ -35,7 +37,7 @@ import java.util.HashSet;
 public class ClientNetworkChannels {
 
 	private final String hostId;
-	private final HashSet<NetworkChannel> networkChannels = new HashSet<NetworkChannel>();
+	private final Set<NetworkChannel> networkChannels = Collections.newSetFromMap(new ConcurrentHashMap<NetworkChannel, Boolean>());
 
 	public ClientNetworkChannels(String hostId) {
 		this.hostId = hostId;

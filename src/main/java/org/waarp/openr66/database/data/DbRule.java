@@ -164,6 +164,10 @@ public class DbRule extends AbstractDbData {
 	 * Internal context XML fields
 	 */
 	public static final String TASK_DELAY = "delay";
+	/**
+	 * Internal context XML fields
+	 */
+	public static final String TASK_COMMENT = "comment";
 
 	/**
 	 * Global Id
@@ -995,10 +999,16 @@ public class DbRule extends AbstractDbData {
 				builder.append('<').append(TASK_DELAY).append('>');
 				builder.append(tasksArray[i][2]);
 				builder.append("</").append(TASK_DELAY).append('>');
+				if (tasksArray[i].length > 3) {
+					builder.append('<').append(TASK_COMMENT).append('>');
+					builder.append(tasksArray[i][3]);
+					builder.append("</").append(TASK_COMMENT).append('>');
+				}
 				builder.append(XMLENDTASK).append('\n');
 			}
 			builder.append(XMLENDTASKS);
 		}
+		logger.debug("RuleTask: {}", builder);
 		return builder.toString();
 	}
 

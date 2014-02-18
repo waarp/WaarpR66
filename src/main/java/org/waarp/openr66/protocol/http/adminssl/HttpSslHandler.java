@@ -1286,6 +1286,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					gmode = -1;
 				}
 				head = resetOptionRules(head, rule, tmode, gmode);
+				logger.debug("Recv UpdOrInsert: "+rule+":"+hostids+":"+tmode.ordinal()+":"+
+						recvp+":"+sendp+":"+archp+":"+workp+":"+rpre+":"+rpost+":"+rerr+":"+spre+":"+spost+":"+serr);
 				DbRule dbrule = new DbRule(dbSession, rule, hostids, tmode.ordinal(),
 						recvp, sendp, archp, workp, rpre, rpost, rerr, spre, spost, serr);
 				try {
