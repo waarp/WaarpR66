@@ -20,54 +20,25 @@
  */
 package org.waarp.openr66.protocol.localhandler.packet.json;
 
-import org.waarp.openr66.database.DbConstant;
-
 
 /**
- * Stop or Cancel one request JSON packet
+ * Shutdown current request JSON packet
  * @author "Frederic Bregier"
  *
  */
-public class StopOrCancelJsonPacket extends JsonPacket {
+public class ShutdownRequestJsonPacket extends JsonPacket {
 
-	protected String requester;
-	protected String requested;
-	protected long specialid = DbConstant.ILLEGALVALUE;
+	protected int rank = -1;
 	/**
-	 * @return the requester
+	 * @return the rank
 	 */
-	public String getRequester() {
-		return requester;
+	public int getRank() {
+		return rank;
 	}
 	/**
-	 * @param requester the requester to set
+	 * @param rank the rank to set
 	 */
-	public void setRequester(String requester) {
-		this.requester = requester;
+	public void setRank(int rank) {
+		this.rank = rank;
 	}
-	/**
-	 * @return the requested
-	 */
-	public String getRequested() {
-		return requested;
-	}
-	/**
-	 * @param requested the requested to set
-	 */
-	public void setRequested(String requested) {
-		this.requested = requested;
-	}
-	/**
-	 * @return the specialid
-	 */
-	public long getSpecialid() {
-		return specialid;
-	}
-	/**
-	 * @param specialid the specialid to set
-	 */
-	public void setSpecialid(long specialid) {
-		this.specialid = specialid;
-	}
-	
 }

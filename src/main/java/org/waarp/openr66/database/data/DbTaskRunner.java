@@ -222,7 +222,7 @@ public class DbTaskRunner extends AbstractDbData {
 
 	private volatile boolean continueTransfer = true;
 
-	private volatile boolean rescheduledTransfer = false;
+	private boolean rescheduledTransfer = false;
 	
 	private LocalChannelReference localChannelReference = null;
 

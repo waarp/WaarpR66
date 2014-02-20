@@ -120,17 +120,17 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 	private static final ConcurrentHashMap<String, DbSession> dbSessions = new ConcurrentHashMap<String, DbSession>();
 	private static final Random random = new Random();
 	
-	private volatile R66Session authentHttp = new R66Session();
+	private R66Session authentHttp = new R66Session();
 
-	private volatile HttpRequest request;
-	private volatile boolean newSession = false;
+	private HttpRequest request;
+	private boolean newSession = false;
 	private volatile Cookie admin = null;
 	private final StringBuilder responseContent = new StringBuilder();
-	private volatile String uriRequest;
-	private volatile Map<String, List<String>> params;
-	private volatile String lang = Messages.slocale;
-	private volatile boolean forceClose = false;
-	private volatile boolean shutdown = false;
+	private String uriRequest;
+	private Map<String, List<String>> params;
+	private String lang = Messages.slocale;
+	private boolean forceClose = false;
+	private boolean shutdown = false;
 
 	private static final String R66SESSION = "R66SESSION";
 	private static final String I18NEXT = "i18next";
@@ -242,11 +242,11 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 	 * The Database connection attached to this NetworkChannel shared among all associated
 	 * LocalChannels in the session
 	 */
-	private volatile DbSession dbSession = null;
+	private DbSession dbSession = null;
 	/**
 	 * Does this dbSession is private and so should be closed
 	 */
-	private volatile boolean isPrivateDbSession = false;
+	private boolean isPrivateDbSession = false;
 
 	private String readFileHeader(String filename) {
 		String value;

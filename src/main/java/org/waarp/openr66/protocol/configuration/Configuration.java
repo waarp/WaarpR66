@@ -414,22 +414,22 @@ public class Configuration {
 	/**
 	 * ThreadPoolExecutor for Server
 	 */
-	protected volatile OrderedMemoryAwareThreadPoolExecutor serverPipelineExecutor;
+	protected OrderedMemoryAwareThreadPoolExecutor serverPipelineExecutor;
 
 	/**
 	 * ThreadPoolExecutor for LocalServer
 	 */
-	private volatile OrderedMemoryAwareThreadPoolExecutor localPipelineExecutor;
+	private OrderedMemoryAwareThreadPoolExecutor localPipelineExecutor;
 
 	/**
 	 * ThreadPoolExecutor for LocalClient
 	 */
-	private volatile OrderedMemoryAwareThreadPoolExecutor localClientPipelineExecutor;
+	private OrderedMemoryAwareThreadPoolExecutor localClientPipelineExecutor;
 
 	/**
 	 * ThreadPoolExecutor for Http and Https Server
 	 */
-	protected volatile OrderedMemoryAwareThreadPoolExecutor httpPipelineExecutor;
+	protected OrderedMemoryAwareThreadPoolExecutor httpPipelineExecutor;
 
 	/**
 	 * Bootstrap for server
@@ -494,7 +494,7 @@ public class Configuration {
 	/**
 	 * Global TrafficCounter (set from global configuration)
 	 */
-	protected volatile GlobalTrafficHandler globalTrafficShapingHandler = null;
+	protected GlobalTrafficHandler globalTrafficShapingHandler = null;
 
 	/**
 	 * ObjectSizeEstimator

@@ -24,6 +24,7 @@ import org.waarp.openr66.database.DbConstant;
 
 
 /**
+ * Import Configuration JSON packet
  * @author "Frederic Bregier"
  *
  */

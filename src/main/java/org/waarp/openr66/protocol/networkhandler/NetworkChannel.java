@@ -34,7 +34,7 @@ public class NetworkChannel {
 	/**
 	 * Number of active Local Channel referencing this Network Channel
 	 */
-	public volatile AtomicInteger count = new AtomicInteger(1);
+	public AtomicInteger count = new AtomicInteger(1);
 	/**
 	 * Does this Network Channel is in shutdown
 	 */

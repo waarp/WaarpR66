@@ -26,6 +26,7 @@ import org.waarp.openr66.database.DbConstant;
 
 
 /**
+ * Restarting a request query JSON packet
  * @author "Frederic Bregier"
  *
  */

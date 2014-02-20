@@ -22,6 +22,7 @@ package org.waarp.openr66.protocol.localhandler.packet.json;
 
 
 /**
+ * Export Log response JSON packet
  * @author "Frederic Bregier"
  *
  */

@@ -152,15 +152,15 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 	
 	public final R66Session authentHttp = new R66Session();
 
-	private volatile String lang = Messages.slocale;
+	private String lang = Messages.slocale;
 
-	private volatile HttpRequest request;
+	private HttpRequest request;
 
 	private final StringBuilder responseContent = new StringBuilder();
 
-	private volatile HttpResponseStatus status;
+	private HttpResponseStatus status;
 
-	private volatile String uriRequest;
+	private String uriRequest;
 
 	private static final String sINFO = "INFO",
 			sNB = "NB", sDETAIL = "DETAIL";

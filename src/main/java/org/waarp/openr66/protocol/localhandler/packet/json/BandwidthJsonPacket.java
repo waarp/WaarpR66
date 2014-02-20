@@ -22,6 +22,7 @@ package org.waarp.openr66.protocol.localhandler.packet.json;
 
 
 /**
+ * Bandwidth setting or getting JSON packet
  * @author "Frederic Bregier"
  *
  */

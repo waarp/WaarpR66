@@ -70,16 +70,16 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 	/**
 	 * The associated Remote Address
 	 */
-	private volatile SocketAddress remoteAddress;
+	private SocketAddress remoteAddress;
 	/**
 	 * The Database connection attached to this NetworkChannel shared among all associated
 	 * LocalChannels
 	 */
-	protected volatile DbSession dbSession;
+	protected DbSession dbSession;
 	/**
 	 * Does this Handler is for SSL
 	 */
-	protected volatile boolean isSSL = false;
+	protected boolean isSSL = false;
 	/**
 	 * Is this Handler a server side
 	 */
