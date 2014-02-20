@@ -929,7 +929,7 @@ public class ServerActions extends ServerHandler {
 				break;
 			}
 			case LocalPacketFactory.CONFIMPORTPACKET: {
-				ConfigImportResponseJsonPacket resp = configImport(json);
+				ConfigImportResponseJsonPacket resp = configImport((ConfigImportJsonPacket) json);
 				R66Result result = null;
 				if (resp.isImportedhost() || resp.isImportedrule() || 
 						resp.isImportedbusiness() || resp.isImportedalias() || 
@@ -991,9 +991,10 @@ public class ServerActions extends ServerHandler {
 	}
 	
 	/**
+	 * Shutdown Local Channel after the request is shutdown
 	 * @param channel
 	 */
-	private void shutdownLocalChannel(Channel channel) {
+	private final void shutdownLocalChannel(Channel channel) {
 		session.setStatus(26);
 		try {
 			Thread.sleep(Configuration.WAITFORNETOP * 2);
@@ -1011,12 +1012,14 @@ public class ServerActions extends ServerHandler {
 	}
 
 	/**
-	 * @param result
-	 * @param rank
+	 * Shutdown the current request with an optional rank to set for future restart
+	 * @param result the result to be associated in finalization
+	 * @param rank the future rank to set if restart (<0 if none)
+	 * @return the rank to set for future restart if any (< 0 if none)
 	 * @throws OpenR66RunnerErrorException
 	 * @throws OpenR66ProtocolSystemException
 	 */
-	private int shutdownRequest(R66Result result, int rank)
+	private final int shutdownRequest(R66Result result, int rank)
 			throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException {
 		session.newState(SHUTDOWN);
 		logger.warn("Shutdown received so Will close channel" +
@@ -1046,7 +1049,17 @@ public class ServerActions extends ServerHandler {
 		return -1;
 	}
 
-	private long[] bandwidth(boolean setter, 
+	/**
+	 * Get or Set the bandwidth configuration
+	 * @param setter
+	 * @param writeglobal
+	 * @param readglobal
+	 * @param writesession
+	 * @param readsession
+	 * @return the 4 current values for the bandwidth (in the same order)
+	 * @throws OpenR66ProtocolNotAuthenticatedException
+	 */
+	private final long[] bandwidth(boolean setter, 
 			long writeglobal, long readglobal, 
 			long writesession, long readsession)
 			throws OpenR66ProtocolNotAuthenticatedException {
@@ -1100,12 +1113,13 @@ public class ServerActions extends ServerHandler {
 	}
 
 	/**
+	 * Import configuration from files as parameter
 	 * @param json
 	 * @return the packet to answer
 	 * @throws OpenR66ProtocolNotAuthenticatedException
 	 * @throws OpenR66ProtocolSystemException
 	 */
-	private ConfigImportResponseJsonPacket configImport(JsonPacket json)
+	private final ConfigImportResponseJsonPacket configImport(ConfigImportJsonPacket json)
 			throws OpenR66ProtocolNotAuthenticatedException, OpenR66ProtocolSystemException {
 		session.newState(VALIDOTHER);
 		// Authentication must be the local server or CONFIGADMIN authorization
@@ -1125,7 +1139,7 @@ public class ServerActions extends ServerHandler {
 					"Import Configuration Order received", session.getAuth().getUser());
 		}
 		//purgehost, purgerule, purgebusiness, purgealias, purgeroles, host, rule, business, alias, roles
-		ConfigImportJsonPacket node = (ConfigImportJsonPacket) json;
+		ConfigImportJsonPacket node = json;
 		boolean bhostPurge = node.isPurgehost();
 		boolean brulePurge = node.isPurgerule();
 		boolean bbusinessPurge = node.isPurgebusiness();
@@ -1385,7 +1399,17 @@ public class ServerActions extends ServerHandler {
 		return resp;
 	}
 
-	private String [] configExport(boolean bhost, boolean brule, 
+	/**
+	 * Export configuration and return filenames in order
+	 * @param bhost
+	 * @param brule
+	 * @param bbusiness
+	 * @param balias
+	 * @param broles
+	 * @return filenames in order
+	 * @throws OpenR66ProtocolNotAuthenticatedException
+	 */
+	private final String [] configExport(boolean bhost, boolean brule, 
 			boolean bbusiness, boolean balias, boolean broles)
 			throws OpenR66ProtocolNotAuthenticatedException {
 		session.newState(VALIDOTHER);
@@ -1512,14 +1536,15 @@ public class ServerActions extends ServerHandler {
 	}
 
 	/**
+	 * Request to restart a transfer
 	 * @param reqd requested
 	 * @param reqr requester
 	 * @param id id of the Transfer
 	 * @param date time start if any
-	 * @return the error code to use in return
+	 * @return the Result including the error code to use in return
 	 * @throws OpenR66ProtocolNotAuthenticatedException
 	 */
-	private R66Result requestRestart(String reqd, String reqr, long id, Date date)
+	private final R66Result requestRestart(String reqd, String reqr, long id, Date date)
 			throws OpenR66ProtocolNotAuthenticatedException {
 		session.newState(VALIDOTHER);
 		ErrorCode returnCode = ErrorCode.Internal;
@@ -1584,7 +1609,12 @@ public class ServerActions extends ServerHandler {
 		return resulttest;
 	}
 
-	private boolean isCodeValid(ErrorCode code) {
+	/**
+	 * 
+	 * @param code
+	 * @return True if the code is an OK code and not an error
+	 */
+	private final boolean isCodeValid(ErrorCode code) {
 		switch (code) {
 			case BadAuthent:
 			case CanceledTransfer:
@@ -1628,7 +1658,7 @@ public class ServerActions extends ServerHandler {
 	}
 
 	/**
-	 * 
+	 * Purge the logs as required
 	 * @param purge
 	 * @param clean
 	 * @param start
@@ -1642,11 +1672,11 @@ public class ServerActions extends ServerHandler {
 	 * @param done
 	 * @param error
 	 * @param isPurge
-	 * @return an array of Strings: filename, nb of exported, nb of purged
+	 * @return an array of Strings as: filename, nb of exported, nb of purged
 	 * @throws OpenR66ProtocolNotAuthenticatedException
 	 * @throws OpenR66ProtocolBusinessException
 	 */
-	private String[] logPurge(boolean purge, boolean clean, 
+	private final String[] logPurge(boolean purge, boolean clean, 
 			Timestamp start, Timestamp stop, String startid, String stopid, String rule, String request,
 			boolean pending, boolean transfer, boolean done, boolean error, boolean isPurge)
 			throws OpenR66ProtocolNotAuthenticatedException, OpenR66ProtocolBusinessException {
@@ -1729,15 +1759,15 @@ public class ServerActions extends ServerHandler {
 	}
 
 	/**
-	 * 
+	 * Stop or Cancel a transfer
 	 * @param type
 	 * @param reqd
 	 * @param reqr
 	 * @param id
-	 * @return the packet to answer
+	 * @return the Result to answer
 	 * @throws OpenR66ProtocolNotAuthenticatedException
 	 */
-	private R66Result stopOrCancel(byte type, String reqd, String reqr, long id)
+	private final R66Result stopOrCancel(byte type, String reqd, String reqr, long id)
 			throws OpenR66ProtocolNotAuthenticatedException {
 		session.newState(VALIDOTHER);
 		// should be from the local server or from an authorized hosts: SYSTEM
@@ -1803,7 +1833,7 @@ public class ServerActions extends ServerHandler {
 	 * @param code
 	 * @return True if correctly stopped or canceled
 	 */
-	private boolean stopOrCancelRunner(long id, String reqd, String reqr, ErrorCode code) {
+	private final boolean stopOrCancelRunner(long id, String reqd, String reqr, ErrorCode code) {
 		try {
 			DbTaskRunner taskRunner =
 					new DbTaskRunner(localChannelReference.getDbSession(), session,
@@ -1839,7 +1869,7 @@ public class ServerActions extends ServerHandler {
 	 * @throws OpenR66ProtocolNotAuthenticatedException
 	 * @throws OpenR66ProtocolBusinessException
 	 */
-	private void shutdown(byte []key, boolean isRestart)
+	private final void shutdown(byte []key, boolean isRestart)
 			throws OpenR66ProtocolShutdownException,
 			OpenR66ProtocolNotAuthenticatedException,
 			OpenR66ProtocolBusinessException {
@@ -1922,7 +1952,7 @@ public class ServerActions extends ServerHandler {
 	 * @throws OpenR66ProtocolNotAuthenticatedException
 	 * @throws OpenR66ProtocolPacketException
 	 */
-	private R66Future businessRequest(boolean isToApplied, String className, String arguments, String extraArguments, int delay)
+	private final R66Future businessRequest(boolean isToApplied, String className, String arguments, String extraArguments, int delay)
 			throws OpenR66ProtocolNotAuthenticatedException,
 			OpenR66ProtocolPacketException {
 		if (!session.isAuthenticated()) {
@@ -1988,7 +2018,7 @@ public class ServerActions extends ServerHandler {
 	 * @throws OpenR66ProtocolPacketException
 	 * @throws OpenR66ProtocolBusinessException 
 	 */
-	private R66Result blockRequest(byte []key, boolean isBlocking)
+	private final R66Result blockRequest(byte []key, boolean isBlocking)
 			throws OpenR66ProtocolPacketException, OpenR66ProtocolBusinessException {
 		if (!session.isAuthenticated()) {
 			throw new OpenR66ProtocolNotAuthenticatedException(
@@ -2018,16 +2048,20 @@ public class ServerActions extends ServerHandler {
 	}
 
 	/**
-	 * Receive a request of information
+	 * Receive a request of information (Transfer information or File listing)
 	 * 
-	 * @param channel
-	 * @param packet
-	 * @throws CommandAbstractException
+	 * @param isIdRequest
+	 * @param id
+	 * @param isTo
+	 * @param request
+	 * @param rulename
+	 * @param filename
+	 * @return the ValidPacket to answer containing: Transfer Information as Header, or File Listing as Header and Number of entries as Middle
 	 * @throws OpenR66ProtocolNotAuthenticatedException
 	 * @throws OpenR66ProtocolNoDataException
 	 * @throws OpenR66ProtocolPacketException
 	 */
-	private ValidPacket information(boolean isIdRequest, long id, boolean isTo, byte request, String rulename, String filename)
+	private final ValidPacket information(boolean isIdRequest, long id, boolean isTo, byte request, String rulename, String filename)
 			throws OpenR66ProtocolNotAuthenticatedException,
 			OpenR66ProtocolNoDataException, OpenR66ProtocolPacketException {
 		if (!session.isAuthenticated()) {
@@ -2148,7 +2182,12 @@ public class ServerActions extends ServerHandler {
 		}
 	}
 
-	private R66Result transferRequest(TransferRequestJsonPacket request) {
+	/**
+	 * Receive a TransferRequest in JSON mode: just setting it to be scheduled
+	 * @param request
+	 * @return the result associated with the new transfer request
+	 */
+	private final R66Result transferRequest(TransferRequestJsonPacket request) {
 		DbTaskRunner runner = initTransferRequest(request);
 		if (runner != null) {
 			runner.changeUpdatedInfo(AbstractDbData.UpdatedInfo.TOSUBMIT);
@@ -2175,7 +2214,12 @@ public class ServerActions extends ServerHandler {
 			return result;
 		}
 	}
-	private DbTaskRunner initTransferRequest(TransferRequestJsonPacket request) {
+	/**
+	 * initialize a new Transfer Request
+	 * @param request
+	 * @return the associated DbTaskRunner
+	 */
+	private final DbTaskRunner initTransferRequest(TransferRequestJsonPacket request) {
 		Timestamp ttimestart = null;
 		Date date = request.getStart();
 		if (date != null) {

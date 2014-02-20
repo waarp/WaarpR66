@@ -307,7 +307,7 @@ public abstract class ServerHandler {
 	 * @param e1
 	 * @throws OpenR66ProtocolPacketException
 	 */
-	private void refusedConnection(Channel channel, AuthentPacket packet, Exception e1)
+	private final void refusedConnection(Channel channel, AuthentPacket packet, Exception e1)
 			throws OpenR66ProtocolPacketException {
 		logger.error(Messages.getString("LocalServerHandler.6")+ //$NON-NLS-1$
 			localChannelReference.getNetworkChannel().getRemoteAddress()+
@@ -502,7 +502,7 @@ public abstract class ServerHandler {
 	 * @author Frederic Bregier
 	 * 
 	 */
-	private static class RunnerChannelFutureListener implements ChannelFutureListener {
+	private static final class RunnerChannelFutureListener implements ChannelFutureListener {
 		private LocalChannelReference localChannelReference;
 		private R66Result result;
 
@@ -631,7 +631,7 @@ public abstract class ServerHandler {
 	 * @throws OpenR66ProtocolSystemException
 	 * @throws OpenR66RunnerErrorException
 	 */
-	protected void tryFinalizeRequest(R66Result errorValue)
+	protected final void tryFinalizeRequest(R66Result errorValue)
 			throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException {
 		session.tryFinalizeRequest(errorValue);
 	}

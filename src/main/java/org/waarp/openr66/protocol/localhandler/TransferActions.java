@@ -96,7 +96,7 @@ public class TransferActions extends ServerActions {
 	 * @param packet
 	 * @throws OpenR66ProtocolPacketException
 	 */
-	private void endInitRequestInError(Channel channel, ErrorCode code, DbTaskRunner runner,
+	private final void endInitRequestInError(Channel channel, ErrorCode code, DbTaskRunner runner,
 			OpenR66Exception e1, RequestPacket packet) throws OpenR66ProtocolPacketException {
 		logger.error("TaskRunner initialisation in error: " + code.mesg + " " + session
 				+ " {} runner {}",
@@ -136,7 +136,7 @@ public class TransferActions extends ServerActions {
 	}
 
 	/**
-	 * Receive a request
+	 * Receive a request of Transfer
 	 * 
 	 * @param channel
 	 * @param packet
@@ -510,11 +510,12 @@ public class TransferActions extends ServerActions {
 	}
 
 	/**
+	 * Send a Filename/Filesize change to the partner
 	 * @param packet
 	 * @param runner
 	 * @throws OpenR66ProtocolPacketException
 	 */
-	private void sendFilenameFilesizeChanging(RequestPacket packet, DbTaskRunner runner, String debug, String info)
+	private final void sendFilenameFilesizeChanging(RequestPacket packet, DbTaskRunner runner, String debug, String info)
 			throws OpenR66ProtocolPacketException {
 		logger.debug(debug + runner.getFilename());
 		session.newState(VALID);
@@ -543,7 +544,7 @@ public class TransferActions extends ServerActions {
 	 * @param channel
 	 * @throws OpenR66ProtocolPacketException
 	 */
-	private void errorToSend(String message, ErrorCode code, Channel channel, int status) throws OpenR66ProtocolPacketException {
+	private final void errorToSend(String message, ErrorCode code, Channel channel, int status) throws OpenR66ProtocolPacketException {
 		session.newState(ERROR);
 		try {
 			session.setFinalizeTransfer(false, new R66Result(
@@ -564,7 +565,7 @@ public class TransferActions extends ServerActions {
 		ChannelCloseTimer.closeFutureChannel(channel);
 	}
 	/**
-	 * Receive a data
+	 * Receive a data block
 	 * 
 	 * @param channel
 	 * @param packet
