@@ -508,6 +508,7 @@ public class TransferActions extends ServerActions {
 		}
 		session.setStatus(39);
 	}
+
 	/**
 	 * @param packet
 	 * @param runner

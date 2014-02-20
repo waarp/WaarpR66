@@ -35,6 +35,7 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.Channels;
 import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.database.DbPreparedStatement;
+import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseNoDataException;
@@ -60,6 +61,7 @@ import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.Messages;
+import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66DatabaseGlobalException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessRemoteFileNotFoundException;
@@ -75,6 +77,7 @@ import org.waarp.openr66.protocol.localhandler.packet.ErrorPacket;
 import org.waarp.openr66.protocol.localhandler.packet.InformationPacket;
 import org.waarp.openr66.protocol.localhandler.packet.JsonCommandPacket;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
+import org.waarp.openr66.protocol.localhandler.packet.RequestPacket;
 import org.waarp.openr66.protocol.localhandler.packet.ShutdownPacket;
 import org.waarp.openr66.protocol.localhandler.packet.TestPacket;
 import org.waarp.openr66.protocol.localhandler.packet.ValidPacket;
@@ -91,7 +94,8 @@ import org.waarp.openr66.protocol.localhandler.packet.json.LogResponseJsonPacket
 import org.waarp.openr66.protocol.localhandler.packet.json.ShutdownOrBlockJsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.ShutdownRequestJsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.StopOrCancelJsonPacket;
-import org.waarp.openr66.protocol.localhandler.packet.json.ValidJsonPacket;
+import org.waarp.openr66.protocol.localhandler.packet.json.RestartTransferJsonPacket;
+import org.waarp.openr66.protocol.localhandler.packet.json.TransferRequestJsonPacket;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelCloseTimer;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
@@ -747,6 +751,33 @@ public class ServerActions extends ServerHandler {
 				}
 				break;
 			}
+			case LocalPacketFactory.REQUESTPACKET: {
+				TransferRequestJsonPacket node = (TransferRequestJsonPacket) json;
+				R66Result result = transferRequest(node);
+				if (isCodeValid(result.code)) {
+					JsonCommandPacket valid = new JsonCommandPacket(json, result.code.getCode(),
+							LocalPacketFactory.REQUESTUSERPACKET);
+					result.other = packet;
+					localChannelReference.validateRequest(result);
+					try {
+						ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+								valid, true);
+					} catch (OpenR66ProtocolPacketException e) {
+					}
+					session.setStatus(27);
+					Channels.close(channel);
+				} else {
+					result.other = packet;
+					localChannelReference.invalidateRequest(result);
+					ErrorPacket error = new ErrorPacket(
+							"TransferRequest in error: for " + node.toString() + " since " +
+									result.getMessage(),
+							result.code.getCode(), ErrorPacket.FORWARDCLOSECODE);
+					ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
+					ChannelCloseTimer.closeFutureChannel(channel);
+				}
+				break;
+			}
 			case LocalPacketFactory.STOPPACKET:
 			case LocalPacketFactory.CANCELPACKET: {
 				StopOrCancelJsonPacket node = (StopOrCancelJsonPacket) json;
@@ -776,7 +807,7 @@ public class ServerActions extends ServerHandler {
 				break;
 			}
 			case LocalPacketFactory.VALIDPACKET: {
-				ValidJsonPacket node = (ValidJsonPacket) json;
+				RestartTransferJsonPacket node = (RestartTransferJsonPacket) json;
 				R66Result result = requestRestart(node.getRequested(), node.getRequester(), node.getSpecialid(), node.getRestarttime());
 				result.other = packet;
 				JsonCommandPacket valid = new JsonCommandPacket(node, 
@@ -2117,4 +2148,88 @@ public class ServerActions extends ServerHandler {
 		}
 	}
 
+	private R66Result transferRequest(TransferRequestJsonPacket request) {
+		DbTaskRunner runner = initTransferRequest(request);
+		if (runner != null) {
+			runner.changeUpdatedInfo(AbstractDbData.UpdatedInfo.TOSUBMIT);
+			boolean isSender = runner.isSender();
+			if (! runner.forceSaveStatus()) {
+				logger.warn("Cannot prepare task");
+				return new R66Result(session, false, ErrorCode.CommandNotFound, 
+						runner);
+			}
+			R66Result result = new R66Result(session, false, ErrorCode.InitOk, 
+					runner);
+			try {
+				runner.select();
+			} catch (WaarpDatabaseException e) {
+			}
+			runner.setSender(isSender);
+			request.setFromDbTaskRunner(runner);
+			request.validate();
+			return result;
+		} else {
+			logger.warn("ERROR: Transfer NOT scheduled");
+			R66Result result = new R66Result(session, false, ErrorCode.Internal, 
+					runner);
+			return result;
+		}
+	}
+	private DbTaskRunner initTransferRequest(TransferRequestJsonPacket request) {
+		Timestamp ttimestart = null;
+		Date date = request.getStart();
+		if (date != null) {
+			ttimestart = new Timestamp(date.getTime());
+		} else if (request.getDelay() > 0) {
+			if (request.isAdditionalDelay()) {
+				ttimestart = new Timestamp(System.currentTimeMillis() +
+						request.getDelay());
+			} else {
+				ttimestart = new Timestamp(request.getDelay());
+			}
+		}
+		DbRule rule;
+		try {
+			rule = new DbRule(DbConstant.admin.session, request.getRulename());
+		} catch (WaarpDatabaseException e) {
+			logger.warn("Cannot get Rule: " + request.getRulename(), e);
+			return null;
+		}
+		int mode = rule.mode;
+		if (RequestPacket.isMD5Mode(request.getMode())) {
+			mode = RequestPacket.getModeMD5(mode);
+		}
+		DbTaskRunner taskRunner = null;
+		long tid = DbConstant.ILLEGALVALUE;
+		if (request.getSpecialId() != DbConstant.ILLEGALVALUE) {
+			tid = request.getSpecialId();
+		}
+		if (tid != DbConstant.ILLEGALVALUE) {
+			try {
+				taskRunner = new DbTaskRunner(DbConstant.admin.session, tid,
+						request.getRequested());
+				// requested
+				taskRunner.setSenderByRequestToValidate(true);
+			} catch (WaarpDatabaseException e) {
+				logger.warn("Cannot get task", e);
+				return null;
+			}
+		} else {
+			String sep = PartnerConfiguration.getSeparator(request.getRequested());
+			RequestPacket requestPacket = new RequestPacket(request.getRulename(),
+					mode, request.getFilename(), request.getBlocksize(), 0,
+					tid, request.getFileInformation(), -1, sep);
+			// Not isRecv since it is the requester, so send => isRetrieve is true
+			boolean isRetrieve = !RequestPacket.isRecvMode(requestPacket.getMode());
+			try {
+				taskRunner =
+						new DbTaskRunner(DbConstant.admin.session, rule, isRetrieve, requestPacket,
+								request.getRequested(), ttimestart);
+			} catch (WaarpDatabaseException e) {
+				logger.warn("Cannot get task", e);
+				return null;
+			}
+		}
+		return taskRunner;
+	}
 }

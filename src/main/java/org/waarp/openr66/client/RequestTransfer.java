@@ -55,7 +55,7 @@ import org.waarp.openr66.protocol.localhandler.packet.JsonCommandPacket;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 import org.waarp.openr66.protocol.localhandler.packet.ValidPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.StopOrCancelJsonPacket;
-import org.waarp.openr66.protocol.localhandler.packet.json.ValidJsonPacket;
+import org.waarp.openr66.protocol.localhandler.packet.json.RestartTransferJsonPacket;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
@@ -467,7 +467,7 @@ public class RequestTransfer implements Runnable {
 		logger.debug("UseJson: "+useJson);
 		AbstractLocalPacket packet = null;
 		if (useJson) {
-			ValidJsonPacket node = new ValidJsonPacket();
+			RestartTransferJsonPacket node = new RestartTransferJsonPacket();
 			node.setComment("Request on Transfer");
 			node.setRequested(requested);
 			node.setRequester(requester);

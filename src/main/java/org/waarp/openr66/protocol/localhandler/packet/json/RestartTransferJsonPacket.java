@@ -30,7 +30,7 @@ import org.waarp.openr66.database.DbConstant;
  * @author "Frederic Bregier"
  *
  */
-public class ValidJsonPacket extends JsonPacket {
+public class RestartTransferJsonPacket extends JsonPacket {
 
 	protected String requester;
 	protected String requested;
