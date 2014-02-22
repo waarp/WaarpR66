@@ -986,7 +986,7 @@ public class NetworkTransaction {
 							System.currentTimeMillis();
 					if (time > Configuration.RETRYINMS) {
 						// will re execute this request later on
-						time = (time / 10) * 10; // round to 10
+						time = (time / 10) * 10 + 100; // round to 10
 						Configuration.configuration.getTimerClose().newTimeout(this, time,
 								TimeUnit.MILLISECONDS);
 						return;
