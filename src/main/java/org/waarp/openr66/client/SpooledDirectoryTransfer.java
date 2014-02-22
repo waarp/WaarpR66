@@ -408,6 +408,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 								try {
 									String srequester = Configuration.configuration.getHostId(DbConstant.admin.session,
 											host);
+									// Try restart
 									RequestTransfer transaction = new RequestTransfer(future, specialId, host, srequester, 
 											false, false, true, networkTransaction);
 									logger.info(text+host);
@@ -417,6 +418,8 @@ public class SpooledDirectoryTransfer implements Runnable {
 									if (! future.isSuccess()) {
 										direct = true;
 										text = "Request Transfer Cancelled and Restart: "+specialId+" "+filename+" ";
+										future = new R66Future(true);
+										// Cancel
 										RequestTransfer transaction2 = new RequestTransfer(future, specialId, host, srequester, 
 											true, false, false, networkTransaction);
 										logger.warn(text+host);
