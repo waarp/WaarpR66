@@ -46,9 +46,6 @@ public class TestExecJavaTask extends AbstractExecJavaTask {
 		if (callFromBusiness) {
 			// Business Request to validate?
 			if (isToValidate) {
-				if (fullarg.length() > 50) {
-					logger.warn("Recv: "+fullarg.length());
-				}
 				String [] args = fullarg.split(" ");
 				int rank = Integer.parseInt(args[1]);
 				rank++;

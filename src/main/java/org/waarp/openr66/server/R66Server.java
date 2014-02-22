@@ -60,7 +60,7 @@ public class R66Server {
 				System.err.println(Messages.getString("R66Server.CannotStart") + Configuration.configuration.HOST_ID); //$NON-NLS-1$
 				System.exit(1);
 			}
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			logger.error(Messages.getString("R66Server.StartError"), e); //$NON-NLS-1$
 		}
 	}

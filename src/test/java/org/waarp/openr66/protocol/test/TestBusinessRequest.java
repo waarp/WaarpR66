@@ -141,9 +141,16 @@ public class TestBusinessRequest extends AbstractBusinessRequest {
 		time1 = System.currentTimeMillis();
 		String argsAdd = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
 		String value = " business 0 ";
+		int lastnb = nb;
 		for (int i = 0; i < nb; i++) {
 			arrayFuture[i] = new R66Future(true);
-			value += argsAdd+argsAdd+argsAdd+argsAdd+argsAdd+argsAdd+argsAdd+argsAdd+argsAdd+argsAdd;
+			try {
+				value += argsAdd+argsAdd+argsAdd+argsAdd+argsAdd+argsAdd+argsAdd+argsAdd+argsAdd+argsAdd;
+			} catch (OutOfMemoryError e) {
+				logger.warn("Send size: "+value.length());
+				lastnb = i;
+				break;
+			}
 			packet = new BusinessRequestPacket(
 					TestExecJavaTask.class.getName() + value, 0);
 			TestBusinessRequest transaction2 = new TestBusinessRequest(
@@ -153,7 +160,7 @@ public class TestBusinessRequest extends AbstractBusinessRequest {
 		}
 		success = 0;
 		error = 0;
-		for (int i = 0; i < nb; i++) {
+		for (int i = 0; i < lastnb; i++) {
 			arrayFuture[i].awaitUninterruptibly();
 			if (arrayFuture[i].isSuccess()) {
 				success++;

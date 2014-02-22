@@ -321,25 +321,30 @@ public class SpooledDirectoryTransfer implements Runnable {
 		if (waarpHosts != null && ! waarpHosts.isEmpty()) {
 			waarpHostCommand = new FileMonitorCommandRunnableFuture() {
 				public void run(FileItem notused) {
-					if (DbConstant.admin.session != null && DbConstant.admin.session.isDisconnected) {
-						DbConstant.admin.session.checkConnectionNoException();
-					}
-					String status = monitorArg.getStatus();
-					logger.info("Will inform back Waarp hosts of current history: "+monitorArg.getCurrentHistoryNb());
-					for (String host : waarpHosts) {
-						host = host.trim();
-						if (host != null && ! host.isEmpty()) {
-							R66Future future = new R66Future(true);
-							BusinessRequestPacket packet =
-									new BusinessRequestPacket(SpooledInformTask.class.getName() + " " + status, 0);
-							BusinessRequest transaction = new BusinessRequest(
-									networkTransaction, future, host, packet);
-							transaction.run();
-							future.awaitUninterruptibly();
-							if (! future.isSuccess()) {
-								logger.info("Can't inform Waarp server: "+host + " since " + future.getCause());
+					try {
+						if (DbConstant.admin.session != null && DbConstant.admin.session.isDisconnected) {
+							DbConstant.admin.session.checkConnectionNoException();
+						}
+						String status = monitorArg.getStatus();
+						logger.info("Will inform back Waarp hosts of current history: "+monitorArg.getCurrentHistoryNb());
+						for (String host : waarpHosts) {
+							host = host.trim();
+							if (host != null && ! host.isEmpty()) {
+								R66Future future = new R66Future(true);
+								BusinessRequestPacket packet =
+										new BusinessRequestPacket(SpooledInformTask.class.getName() + " " + status, 0);
+								BusinessRequest transaction = new BusinessRequest(
+										networkTransaction, future, host, packet);
+								transaction.run();
+								future.awaitUninterruptibly();
+								if (! future.isSuccess()) {
+									logger.info("Can't inform Waarp server: "+host + " since " + future.getCause());
+								}
 							}
 						}
+					} catch (Throwable e) {
+						logger.warn("Issue during Waarp information", e);
+						// ignore
 					}
 				}
 			};
@@ -517,7 +522,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 						}
 					}
 				}
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				// catch any exception
 				logger.error("Error in SpooledDirectory", e);
 				finalStatus = false;
@@ -954,7 +959,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 				list.clear();
 			}
 			return true;
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			logger.warn("exc", e);
 			return false;
 		} finally {

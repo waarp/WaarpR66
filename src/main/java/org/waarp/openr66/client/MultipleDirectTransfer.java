@@ -319,7 +319,7 @@ public class MultipleDirectTransfer extends DirectTransfer {
 				networkTransaction.closeAll();
 				System.exit(multipleDirectTransfer.errorMultiple);
 			}
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			logger.warn("exc", e);
 		} finally {
 			networkTransaction.closeAll();
