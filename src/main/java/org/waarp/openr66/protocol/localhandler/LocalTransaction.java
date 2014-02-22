@@ -255,7 +255,7 @@ public class LocalTransaction {
 	 * @return the LocalChannelReference
 	 */
 	public LocalChannelReference getFromId(Integer id) {
-		for (int i = 0; i < Configuration.RETRYNB * 10; i++) {
+		for (int i = 0; i < Configuration.RETRYNB * 20; i++) {
 			LocalChannelReference lcr = localChannelHashMap.get(id);
 			if (lcr == null) {
 				if (isRecentlyRemoved(id)) {

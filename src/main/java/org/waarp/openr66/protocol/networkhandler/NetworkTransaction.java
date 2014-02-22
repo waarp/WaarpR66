@@ -640,15 +640,21 @@ public class NetworkTransaction {
 	 */
 	public static void addNetworkChannel(Channel channel)
 			throws OpenR66ProtocolRemoteShutdownException {
-		if (!isAddressValid(channel.getRemoteAddress())) {
-			throw new OpenR66ProtocolRemoteShutdownException(
-					"Channel is already in shutdown");
-		}
+		ReentrantLock socketLock = getChannelLock(channel.getRemoteAddress());
+		socketLock.lock();
 		try {
-			putRemoteChannel(channel);
-		} catch (OpenR66ProtocolNoConnectionException e) {
-			throw new OpenR66ProtocolRemoteShutdownException(
-					"Channel is already in shutdown");
+			if (!isAddressValid(channel.getRemoteAddress())) {
+				throw new OpenR66ProtocolRemoteShutdownException(
+						"Channel is already in shutdown");
+			}
+			try {
+				putRemoteChannel(channel);
+			} catch (OpenR66ProtocolNoConnectionException e) {
+				throw new OpenR66ProtocolRemoteShutdownException(
+						"Channel is already in shutdown");
+			}
+		} finally {
+			socketLock.unlock();
 		}
 	}
 
@@ -663,8 +669,7 @@ public class NetworkTransaction {
 			Channel localChannel) throws OpenR66ProtocolRemoteShutdownException {
 		SocketAddress address = networkChannel.getRemoteAddress();
 		if (address != null) {
-			NetworkChannel networkChannelObject = networkChannelOnSocketAddressConcurrentHashMap
-					.get(address.hashCode());
+			NetworkChannel networkChannelObject = getNetworkChannel(address);
 			if (networkChannelObject != null) {
 				networkChannelObject.add(localChannel);
 			}
@@ -868,7 +873,7 @@ public class NetworkTransaction {
 		SocketAddress address = channel.getRemoteAddress();
 		if (address != null) {
 			NetworkChannel networkChannel =
-					networkChannelOnSocketAddressConcurrentHashMap.get(address.hashCode());
+					getNetworkChannel(address);
 			if (networkChannel != null) {
 				lockClient.lock();
 				try {
@@ -1077,8 +1082,7 @@ public class NetworkTransaction {
 	public static int getNbLocalChannel(Channel channel) {
 		SocketAddress address = channel.getRemoteAddress();
 		if (address != null) {
-			NetworkChannel networkChannel = networkChannelOnSocketAddressConcurrentHashMap
-					.get(address.hashCode());
+			NetworkChannel networkChannel = getNetworkChannel(address);
 			if (networkChannel != null) {
 				return networkChannel.count.get();
 			}
@@ -1120,13 +1124,27 @@ public class NetworkTransaction {
 	 */
 	public static NetworkChannel getNetworkChannel(Channel channel) {
 		SocketAddress address = channel.getRemoteAddress();
-		if (address != null) {
-			return networkChannelOnSocketAddressConcurrentHashMap.get(address
-					.hashCode());
-		}
-		return null;
+		return getNetworkChannel(address);
 	}
 
+	/**
+	 * 
+	 * @param address
+	 * @return the NetworkChannel while a lock prevent any incompatible access (read/add/delete)
+	 */
+	protected static NetworkChannel getNetworkChannel(SocketAddress address) {
+		if (address == null) {
+			return null;
+		}
+		ReentrantLock socketLock = getChannelLock(address);
+		socketLock.lock();
+		try {
+			return networkChannelOnSocketAddressConcurrentHashMap.get(address
+					.hashCode());
+		} finally {
+			socketLock.unlock();
+		}
+	}
 	/**
 	 * 
 	 * @param address
@@ -1213,7 +1231,7 @@ public class NetworkTransaction {
 	public static boolean checkLastTimeUsed(Channel networkChannel, long delay) {
 		SocketAddress address = networkChannel.getRemoteAddress();
 		if (address != null) {
-			NetworkChannel nc = networkChannelOnSocketAddressConcurrentHashMap.get(address.hashCode());
+			NetworkChannel nc = getNetworkChannel(address);
 			if (nc != null) {
 				long lastTime = nc.lastTimeUsed;
 				logger.debug("CheckLastTime for: "+address.toString()+" "+lastTime+":"+System.currentTimeMillis()+" ok? "+(lastTime + delay > System.currentTimeMillis()));
