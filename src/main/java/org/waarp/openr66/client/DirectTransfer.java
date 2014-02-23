@@ -217,7 +217,7 @@ public class DirectTransfer extends AbstractTransfer {
 				System.exit(result.code.ordinal());
 			}
 		} catch (Throwable e) {
-			logger.debug("exc", e);
+			logger.error("Exception", e);
 		} finally {
 			logger.debug("finish transfer: " + future.isDone() + ":" + future.isSuccess());
 			networkTransaction.closeAll();

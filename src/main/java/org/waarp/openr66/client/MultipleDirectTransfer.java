@@ -320,7 +320,7 @@ public class MultipleDirectTransfer extends DirectTransfer {
 				System.exit(multipleDirectTransfer.errorMultiple);
 			}
 		} catch (Throwable e) {
-			logger.warn("exc", e);
+			logger.error("Exception", e);
 		} finally {
 			networkTransaction.closeAll();
 			System.exit(0);

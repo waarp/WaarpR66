@@ -343,7 +343,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 							}
 						}
 					} catch (Throwable e) {
-						logger.warn("Issue during Waarp information", e);
+						logger.error("Issue during Waarp information", e);
 						// ignore
 					}
 				}
@@ -960,7 +960,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 			}
 			return true;
 		} catch (Throwable e) {
-			logger.warn("exc", e);
+			logger.error("Exception", e);
 			return false;
 		} finally {
 			if (normalStart) {

@@ -286,7 +286,7 @@ public class RequestInformation implements Runnable {
 				outputFormat.sysout();
 			}
 		} catch (Throwable e) {
-			logger.warn("Exception", e);
+			logger.error("Exception", e);
 		} finally {
 			if (networkTransaction != null) {
 				networkTransaction.closeAll();

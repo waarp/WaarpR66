@@ -1807,6 +1807,7 @@ public class ServerActions extends ServerHandler {
 				// inform local instead of remote
 				ChannelUtils.writeAbstractLocalPacketToLocal(lcr, error);
 			} catch (Exception e) {
+				logger.warn("Write local packet error", e);
 			}
 			resulttest = new R66Result(session, true,
 					ErrorCode.CompleteOk, session.getRunner());
