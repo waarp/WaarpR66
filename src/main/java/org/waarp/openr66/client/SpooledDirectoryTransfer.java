@@ -142,6 +142,8 @@ public class SpooledDirectoryTransfer implements Runnable {
 	
 	protected final long minimalSize;
 	
+	protected final boolean logWarn;
+	
 	protected final NetworkTransaction networkTransaction;
 	
 	protected FileMonitor monitor = null;
@@ -178,7 +180,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 			List<String> remoteHosts, int blocksize, String regex,
 			long elapse, boolean submit, boolean nolog, boolean recursive, 
 			long elapseWaarp, boolean parallel, int limitParallel,
-			List<String> waarphost, long minimalSize, NetworkTransaction networkTransaction) {
+			List<String> waarphost, long minimalSize, boolean logWarn, NetworkTransaction networkTransaction) {
 		if (logger == null) {
 			logger = WaarpInternalLoggerFactory.getLogger(SpooledDirectoryTransfer.class);
 		}
@@ -207,6 +209,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 		this.limitParallelTasks = limitParallel;
 		this.waarpHosts = waarphost;
 		this.minimalSize = minimalSize;
+		this.logWarn = logWarn;
 		this.networkTransaction = networkTransaction;
 	}
 
@@ -288,7 +291,11 @@ public class SpooledDirectoryTransfer implements Runnable {
 		FileMonitorCommandRunnableFuture commandValidFile = new SpooledRunner(null);
 		FileMonitorCommandRunnableFuture waarpRemovedCommand = new FileMonitorCommandRunnableFuture() {
 			public void run(FileItem file) {
-				logger.warn("File removed: {}", file.file);
+				if (logWarn) {
+					logger.warn("File removed: {}", file.file);
+				} else {
+					logger.info("File removed: {}", file.file);
+				}
 			}
 		};
 		FileMonitorCommandRunnableFuture waarpHostCommand = null;
@@ -471,13 +478,23 @@ public class SpooledDirectoryTransfer implements Runnable {
 									if (runner.getErrorInfo() == ErrorCode.Warning) {
 										status = Messages.getString("RequestInformation.Warned"); //$NON-NLS-1$
 									}
-									logger.warn(text+" status: "+status+"     "
-											+ runner.toShortString()
-											+"     <REMOTE>"+ host+ "</REMOTE>"
-											+"     <FILEFINAL>"+
-											(r66result.file != null ? 
-													r66result.file.toString() + "</FILEFINAL>"
-													: "no file"));
+									if (logWarn) {
+										logger.warn(text+" status: "+status+"     "
+												+ runner.toShortString()
+												+"     <REMOTE>"+ host+ "</REMOTE>"
+												+"     <FILEFINAL>"+
+												(r66result.file != null ? 
+														r66result.file.toString() + "</FILEFINAL>"
+														: "no file"));
+									} else {
+										logger.info(text+" status: "+status+"     "
+												+ runner.toShortString()
+												+"     <REMOTE>"+ host+ "</REMOTE>"
+												+"     <FILEFINAL>"+
+												(r66result.file != null ? 
+														r66result.file.toString() + "</FILEFINAL>"
+														: "no file"));
+									}
 									if (nolog && !submit) {
 										// In case of success, delete the runner
 										try {
@@ -489,12 +506,22 @@ public class SpooledDirectoryTransfer implements Runnable {
 										}
 									}
 								} else {
-									logger.warn(text+Messages.getString("RequestInformation.Success")  //$NON-NLS-1$
-											+"<REMOTE>" + host + "</REMOTE>");
+									if (logWarn) {
+										logger.warn(text+Messages.getString("RequestInformation.Success")  //$NON-NLS-1$
+												+"<REMOTE>" + host + "</REMOTE>");
+									} else {
+										logger.info(text+Messages.getString("RequestInformation.Success")  //$NON-NLS-1$
+												+"<REMOTE>" + host + "</REMOTE>");
+									}
 								}
 							} else {
-								logger.warn(text+Messages.getString("RequestInformation.Success")  //$NON-NLS-1$
+								if (logWarn) {
+									logger.warn(text+Messages.getString("RequestInformation.Success")  //$NON-NLS-1$
 										+"<REMOTE>" + host + "</REMOTE>");
+								} else {
+									logger.info(text+Messages.getString("RequestInformation.Success")  //$NON-NLS-1$
+											+"<REMOTE>" + host + "</REMOTE>");
+								}
 							}
 						} else {
 							error++;
@@ -561,6 +588,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 		protected boolean isparallel = true;
 		protected int limitParallel = 0;
 		protected long minimalSize = 0;
+		protected boolean logWarn = false;
 	}
 	
 	protected static final List<Arguments> arguments = new ArrayList<Arguments>();
@@ -586,6 +614,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 	private static final String XML_waarp = "waarp";
 	private static final String XML_elapseWaarp = "elapseWaarp";
 	private static final String XML_minimalSize = "minimalSize";
+	private static final String XML_logWarn = "logWarn";
 	
 	private static final XmlDecl[] subSpooled = {
 		new XmlDecl(XmlType.STRING, XML_name),
@@ -609,6 +638,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 	};
 	private static final XmlDecl[] spooled = {
 		new XmlDecl(XmlType.STRING, XML_stopfile),
+		new XmlDecl(XmlType.BOOLEAN, XML_logWarn),
 		new XmlDecl(XML_spooled, XmlType.XVAL, XML_spooled, subSpooled, true)
 	};
 	private static final XmlDecl[] configSpooled = {
@@ -637,11 +667,17 @@ public class SpooledDirectoryTransfer implements Runnable {
 			return false;
 		}
 		stopfile = value.getString();
+		value = hashConfig.get(XML_logWarn);
+		boolean logWarn = false;
+		if (value != null && (!value.isEmpty())) {
+			logWarn = value.getBoolean();
+		}
 		value = hashConfig.get(XML_spooled);
 		if (value != null && (value.getList() != null)) {
 			for (XmlValue[] xml : (List<XmlValue[]>) value.getList()) {
 				Arguments arg = new Arguments();
 				arg.stopfile = stopfile;
+				arg.logWarn = logWarn;
 				XmlHash subHash = new XmlHash(xml);
 				value = subHash.get(XML_name);
 				if (value != null && (!value.isEmpty())) {
@@ -840,6 +876,8 @@ public class SpooledDirectoryTransfer implements Runnable {
 						arg.tosubmit = false;
 					} else if (args[i].equalsIgnoreCase("-recursive")) {
 						arg.recursive = true;
+					} else if (args[i].equalsIgnoreCase("-logWarn")) {
+						arg.logWarn = true;
 					} else if (args[i].equalsIgnoreCase("-regex")) {
 						i++;
 						arg.regex = args[i];
@@ -940,6 +978,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 								arg.rule, arg.fileInfo, arg.ismd5, arg.rhosts, arg.block, arg.regex, arg.elapsed, 
 								arg.tosubmit, arg.noLog, arg.recursive,
 								arg.elapsedWaarp, arg.isparallel, arg.limitParallel, arg.waarphosts, arg.minimalSize,
+								arg.logWarn,
 								networkTransactionStatic);
 				executorService.submit(spooled);
 				list.add(spooled);
