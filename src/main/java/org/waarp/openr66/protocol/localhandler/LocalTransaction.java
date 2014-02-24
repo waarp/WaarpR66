@@ -83,7 +83,7 @@ public class LocalTransaction {
 	/**
 	 * HashMap of Validation of LocalChannelReference using LocalChannelId
 	 */
-	final ConcurrentHashMap<Integer, R66Future> validLocalChannelHashMap = new ConcurrentHashMap<Integer, R66Future>();
+	/*final ConcurrentHashMap<Integer, R66Future> validLocalChannelHashMap = new ConcurrentHashMap<Integer, R66Future>();*/
 
 	/**
 	 * HashMap of LocalChannelReference using requested_requester_specialId
@@ -96,6 +96,7 @@ public class LocalTransaction {
 	private final ChannelFutureListener remover = new ChannelFutureListener() {
 		public void operationComplete(
 				ChannelFuture future) {
+			logger.debug("DEBUG remove: "+future.getChannel().getId());
 			remove(future.getChannel());
 		}
 	};
@@ -130,6 +131,10 @@ public class LocalTransaction {
 		clientBootstrap.setPipelineFactory(new LocalClientPipelineFactory());
 	}
 
+	public String hashStatus() {
+		return "LocalTransaction: [localChannelHashMap: "+localChannelHashMap.size()+" removedLocalChannelHashMap: "+removedLocalChannelHashMap.getSize()+
+				/*" validLocalChannelHashMap: "+validLocalChannelHashMap.size()+*/ " localChannelHashMapExternal: "+localChannelHashMapExternal.size()+"] ";
+	}
 	/**
 	 * Get the corresponding LocalChannelReference
 	 * 
@@ -171,15 +176,15 @@ public class LocalTransaction {
 		logger.debug("Status LocalChannelServer: {} {}", serverChannel
 				.getClass().getName(), serverChannel.getConfig()
 				.getConnectTimeoutMillis() + " " + serverChannel.isBound());
-		R66Future validLCR = new R66Future(true);
-		validLocalChannelHashMap.put(remoteId, validLCR);
+		/*R66Future validLCR = new R66Future(true);
+		validLocalChannelHashMap.put(remoteId, validLCR);*/
 		for (int i = 0; i < Configuration.RETRYNB; i++) {
 			channelFuture = clientBootstrap.connect(socketLocalServerAddress);
 			try {
 				channelFuture.await();
 			} catch (InterruptedException e1) {
-				validLCR.cancel();
-				validLocalChannelHashMap.remove(remoteId);
+				/*validLCR.cancel();
+				validLocalChannelHashMap.remove(remoteId);*/
 				logger.error("LocalChannelServer Interrupted: " +
 						serverChannel.getClass().getName() + " " +
 						serverChannel.getConfig().getConnectTimeoutMillis() +
@@ -205,8 +210,8 @@ public class LocalTransaction {
 					NetworkTransaction.addLocalChannelToNetworkChannel(
 							networkChannel, channel);
 				} catch (OpenR66ProtocolRemoteShutdownException e) {
-					validLCR.cancel();
-					validLocalChannelHashMap.remove(remoteId);
+					/*validLCR.cancel();
+					validLocalChannelHashMap.remove(remoteId);*/
 					Channels.close(channel);
 					throw new OpenR66ProtocolSystemException(
 							"Cannot connect to local handler", e);
@@ -218,12 +223,12 @@ public class LocalTransaction {
 					Channels.write(channel, startup).await();
 				} catch (InterruptedException e) {
 					logger.error("Can't connect to local server due to interruption" + i);
-					validLCR.cancel();
-					validLocalChannelHashMap.remove(remoteId);
+					/*validLCR.cancel();
+					validLocalChannelHashMap.remove(remoteId);*/
 					throw new OpenR66ProtocolSystemException(
 							"Cannot connect to local handler", e);
 				}
-				validLCR.setSuccess();
+				/*validLCR.setSuccess();*/
 				return localChannelReference;
 			} else {
 				logger.error("Can't connect to local server " + i);
@@ -231,14 +236,14 @@ public class LocalTransaction {
 			try {
 				Thread.sleep(Configuration.RETRYINMS);
 			} catch (InterruptedException e) {
-				validLCR.cancel();
-				validLocalChannelHashMap.remove(remoteId);
+				/*validLCR.cancel();
+				validLocalChannelHashMap.remove(remoteId);*/
 				throw new OpenR66ProtocolSystemException(
 						"Cannot connect to local handler", e);
 			}
 		}
-		validLCR.cancel();
-		validLocalChannelHashMap.remove(remoteId);
+		/*validLCR.cancel();
+		validLocalChannelHashMap.remove(remoteId);*/
 		logger.error("LocalChannelServer: " +
 				serverChannel.getClass().getName() + " " +
 				serverChannel.getConfig().getConnectTimeoutMillis() + " " +
@@ -288,12 +293,13 @@ public class LocalTransaction {
 	 * @param channel
 	 */
 	public void remove(Channel channel) {
+		logger.debug("DEBUG remove: "+channel.getId());
 		LocalChannelReference localChannelReference = localChannelHashMap
 				.remove(channel.getId());
 		if (localChannelReference != null) {
 			removedLocalChannelHashMap.put(channel.getId(), channel.getId());
 			logger.info("Will remove one localChannel: "+channel.getId());
-			R66Future validLCR = validLocalChannelHashMap
+			/*R66Future validLCR = validLocalChannelHashMap
 					.remove(localChannelReference.getRemoteId());
 			if (validLCR != null && ! validLCR.isDone()) {
 				// Give a last chance
@@ -302,7 +308,7 @@ public class LocalTransaction {
 				} catch (InterruptedException e) {
 				}
 				validLCR.cancel();
-			}
+			}*/
 			DbTaskRunner runner = null;
 			if (localChannelReference.getSession() != null) {
 				runner = localChannelReference.getSession().getRunner();
@@ -396,7 +402,7 @@ public class LocalTransaction {
 				if (wait) {
 					this.analysis = false;
 					Configuration.configuration.getTimerClose().newTimeout(this,
-							Configuration.RETRYINMS * 10, TimeUnit.MILLISECONDS);
+							Configuration.RETRYINMS * 20, TimeUnit.MILLISECONDS);
 					return;
 				}
 			}

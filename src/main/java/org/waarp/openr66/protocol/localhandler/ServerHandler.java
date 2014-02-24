@@ -234,6 +234,7 @@ public abstract class ServerHandler {
 		if (localChannelReference != null) {
 			localChannelReference.close();
 		}
+		Configuration.configuration.getLocalTransaction().remove(e.getChannel());
 	}
 
 	/**

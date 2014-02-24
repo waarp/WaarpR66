@@ -248,6 +248,10 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 	 */
 	private boolean isPrivateDbSession = false;
 
+	public static String hashStatus() {
+		return "HttpSslHandler: [sessions: "+sessions.size()+" dbSessions: "+dbSessions.size()+"] ";
+	}
+	
 	private String readFileHeader(String filename) {
 		String value;
 		try {
@@ -935,7 +939,6 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					head = resetOptionHosts(head, "", "", ssl, isactive);
 					return head + body0 + body + body1 + end;
 				}
-				head = resetOptionHosts(head, host, addr, ssl, isactive);
                 int iport;
 				try {
 					iport = Integer.parseInt(port);
@@ -958,6 +961,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					head = resetOptionHosts(head, "", "", ssl, isactive);
 					return head + body0 + body + body1 + end;
 				}
+				head = resetOptionHosts(head, host, addr, ssl, isactive);
 				body = REQUEST.Hosts.readBody();
 				body = dbhost.toSpecializedHtml(authentHttp, body, false);
 			} else if ("Filter".equalsIgnoreCase(parm)) {
@@ -1010,7 +1014,6 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					head = resetOptionHosts(head, "", "", ssl, isactive);
 					return head + body0 + body + body1 + end;
 				}
-				head = resetOptionHosts(head, host, addr, ssl, isactive);
                 int iport;
 				try {
 					iport = Integer.parseInt(port);
@@ -1037,6 +1040,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					head = resetOptionHosts(head, "", "", ssl, isactive);
 					return head + body0 + body + body1 + end;
 				}
+				head = resetOptionHosts(head, host, addr, ssl, isactive);
 				body = REQUEST.Hosts.readBody();
 				body = dbhost.toSpecializedHtml(authentHttp, body, false);
 			} else if ("TestConn".equalsIgnoreCase(parm)) {
@@ -1064,6 +1068,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 						result, dbhost, packet);
 				transaction.run();
 				result.awaitUninterruptibly(Configuration.configuration.TIMEOUTCON);
+				head = resetOptionHosts(head, "", "", dbhost.isSsl(), dbhost.isActive());
 				body = REQUEST.Hosts.readBody();
 				if (result.isSuccess()) {
 					body = dbhost.toSpecializedHtml(authentHttp, body, false);
@@ -1099,6 +1104,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					resultShutDown =
 							NetworkTransaction.shuttingdownNetworkChannel(socketAddress, null);
 				}
+				head = resetOptionHosts(head, "", "", dbhost.isSsl(), dbhost.isActive());
 				resultShutDown = resultShutDown ||
 						NetworkTransaction.shuttingdownNetworkChannels(host);
 				if (resultShutDown) {

@@ -68,6 +68,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
 	public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e)
 			throws Exception {
 		logger.debug("Local Client Channel Closed: {}", e.getChannel().getId());
+		Configuration.configuration.getLocalTransaction().remove(e.getChannel());
 	}
 
 	/*

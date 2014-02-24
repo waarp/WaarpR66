@@ -85,6 +85,9 @@ public class ClientRunner extends Thread {
 		this.futureRequest = futureRequest;
 	}
 
+	public static String hashStatus() {
+		return "ClientRunner: [taskRunnerRetryHashMap: "+taskRunnerRetryHashMap.size()+" activeRunners: "+(activeRunners != null ? activeRunners.size() : 0)+"] ";
+	}
 	/**
 	 * @return the networkTransaction
 	 */

@@ -47,6 +47,7 @@ import org.waarp.common.database.DbAdmin;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.lru.SoftReferenceSynchronizedLruCache;
 import org.waarp.common.utility.WaarpThreadFactory;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
@@ -99,9 +100,10 @@ public class NetworkTransaction {
 	 */
 	private static final ConcurrentHashMap<Integer, NetworkChannel> networkChannelOnSocketAddressConcurrentHashMap = new ConcurrentHashMap<Integer, NetworkChannel>();
 	/**
-	 * Hashmap for lock based on remote address
+	 * Hashmap for lock based on remote address (100.000 items for 30s)
 	 */
-	private static final ConcurrentHashMap<Integer, ReentrantLock> reentrantLockOnSocketAddressConcurrentHashMap = new ConcurrentHashMap<Integer, ReentrantLock>();
+	private static final SoftReferenceSynchronizedLruCache<Integer, ReentrantLock> reentrantLockOnSocketAddressConcurrentHashMap = 
+			new SoftReferenceSynchronizedLruCache<Integer, ReentrantLock>(100000, 30000);
 	/**
 	 * Remote Client NetworkChannels
 	 */
@@ -179,6 +181,21 @@ public class NetworkTransaction {
 		}
 	}
 
+	public static String hashStatus() {
+		//reentrantLockOnSocketAddressConcurrentHashMap.forceClearOldest();
+		String partial = "NetworkTransaction: [networkChannelShutdownOnSocketAddressConcurrentHashMap: " +networkChannelShutdownOnSocketAddressConcurrentHashMap.size()+
+				" networkChannelBlacklistedOnInetSocketAddressConcurrentHashMap: "+networkChannelBlacklistedOnInetSocketAddressConcurrentHashMap.size()+
+				" networkChannelOnSocketAddressConcurrentHashMap: "+networkChannelOnSocketAddressConcurrentHashMap.size()+
+				" reentrantLockOnSocketAddressConcurrentHashMap: "+reentrantLockOnSocketAddressConcurrentHashMap.getSize()+
+				" remoteClients: "+remoteClients.size()+
+				" remoteClientsPerNetworkChannel: "+remoteClientsPerNetworkChannel.size()+
+				" retrieveRunnerConcurrentHashMap: "+retrieveRunnerConcurrentHashMap.size();
+		int nb = 0;
+		for (ClientNetworkChannels iterable_element : remoteClients.values()) {
+			nb += iterable_element.size();
+		}
+		return partial+" Sum of ClientNetworkChannels: "+nb+"] ";
+	}
 	private static ReentrantLock getChannelLock(SocketAddress socketAddress) {
 		lock.lock();
 		try {
@@ -188,9 +205,11 @@ public class NetworkTransaction {
 				return lock;
 			}
 			Integer hash = socketAddress.hashCode();
-			ReentrantLock socketLock = new ReentrantLock(true);
-			reentrantLockOnSocketAddressConcurrentHashMap.putIfAbsent(hash, socketLock);
-			socketLock = reentrantLockOnSocketAddressConcurrentHashMap.get(hash);
+			ReentrantLock socketLock = reentrantLockOnSocketAddressConcurrentHashMap.get(hash);
+			if (socketLock == null) {
+				socketLock = new ReentrantLock(true);
+			}
+			reentrantLockOnSocketAddressConcurrentHashMap.put(hash, socketLock);
 			return socketLock;
 		} finally {
 			lock.unlock();

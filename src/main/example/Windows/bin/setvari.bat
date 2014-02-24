@@ -31,11 +31,11 @@ REM ###############
 
 REM # start the OpenR66 server
 REM # no option
-set R66SERVER=%JAVARUNSERVER% openr66.server.R66Server %SERVER_CONFIG%
+set R66SERVER=%JAVARUNSERVER% org.waarp.openr66.server.R66Server %SERVER_CONFIG%
 
 REM # init database from argument
 REM # [ -initdb ] [ -loadBusiness businessConfiguration ] [ -loadRoles roleConfiguration ] [ -loadAlias aliasConfig ] [ -dir rulesDirectory ] [ -limit xmlFileLimit ] [ -auth xmlFileAuthent ] [ -upgradeDb ]
-set R66INIT=%JAVARUNCLIENT% openr66.server.ServerInitDatabase %SERVER_CONFIG%
+set R66INIT=%JAVARUNCLIENT% org.waarp.openr66.server.ServerInitDatabase %SERVER_CONFIG%
 
 REM # export configuration into directory
 REM # directory

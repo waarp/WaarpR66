@@ -71,7 +71,6 @@ public class LocalChannelReference {
 	 * Remote SocketAddress
 	 */
 	private final SocketAddress remoteAddress;
-	
 	/**
 	 * Traffic handler associated if any
 	 */
@@ -178,6 +177,10 @@ public class LocalChannelReference {
 		this.localChannel = localChannel;
 		this.networkChannel = networkChannel;
 		this.remoteAddress = this.networkChannel.getRemoteAddress();
+		/*SocketAddress local = Configuration.configuration.HOST_SSLAUTH.getSocketAddress();
+		SocketAddress locals = Configuration.configuration.HOST_AUTH.getSocketAddress();
+		this.isSelfConnection = ((InetSocketAddress)this.remoteAddress).equals(local) ||
+				((InetSocketAddress)this.remoteAddress).equals(locals);*/
 		networkServerHandler = (NetworkServerHandler) this.networkChannel
 				.getPipeline().getLast();
 		localId = this.localChannel.getId();

@@ -59,6 +59,7 @@ import org.waarp.common.role.RoleDefault;
 import org.waarp.common.utility.SystemPropertyUtil;
 import org.waarp.common.utility.WaarpShutdownHook.ShutdownConfiguration;
 import org.waarp.common.utility.WaarpThreadFactory;
+import org.waarp.openr66.commander.ClientRunner;
 import org.waarp.openr66.commander.InternalRunner;
 import org.waarp.openr66.context.R66BusinessFactoryInterface;
 import org.waarp.openr66.context.R66DefaultBusinessFactory;
@@ -66,9 +67,11 @@ import org.waarp.openr66.context.R66FiniteDualStates;
 import org.waarp.openr66.context.task.localexec.LocalExecClient;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbHostAuth;
+import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import org.waarp.openr66.protocol.http.HttpPipelineFactory;
+import org.waarp.openr66.protocol.http.adminssl.HttpSslHandler;
 import org.waarp.openr66.protocol.http.adminssl.HttpSslPipelineFactory;
 import org.waarp.openr66.protocol.localhandler.LocalTransaction;
 import org.waarp.openr66.protocol.localhandler.Monitoring;
@@ -76,6 +79,7 @@ import org.waarp.openr66.protocol.localhandler.packet.LocalPacketSizeEstimator;
 import org.waarp.openr66.protocol.networkhandler.ChannelTrafficHandler;
 import org.waarp.openr66.protocol.networkhandler.GlobalTrafficHandler;
 import org.waarp.openr66.protocol.networkhandler.NetworkServerPipelineFactory;
+import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.networkhandler.R66ConstraintLimitHandler;
 import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacketSizeEstimator;
 import org.waarp.openr66.protocol.networkhandler.ssl.NetworkSslServerPipelineFactory;
@@ -685,6 +689,10 @@ public class Configuration {
 		r66Startup();
 		startHttpSupport();
 		startMonitoring();
+		if (logger.isDebugEnabled()) {
+			// XXX FIXME for debug
+			launchInFixedDelay(new UsageStatistic(), 10, TimeUnit.SECONDS);
+		}
 	}
 
 	public void r66Startup() throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
@@ -1198,5 +1206,45 @@ public class Configuration {
 		} catch (OpenR66ProtocolNoSslException e) {
 			throw new WaarpDatabaseException(e);
 		}
+	}
+	
+	private static class UsageStatistic extends Thread {
+
+		@Override
+		public void run() {
+			logger.warn(hashStatus());
+			Configuration.configuration.launchInFixedDelay(this, 10, TimeUnit.SECONDS);
+		}
+		
+	}
+	
+	public static String hashStatus() {
+		String result = "\n";
+		try {
+			result += configuration.localTransaction.hashStatus()+"\n";
+		} catch (Exception e) {
+			logger.warn("Issue while debugging", e);
+		}
+		try {
+			result += ClientRunner.hashStatus()+"\n";
+		} catch (Exception e) {
+			logger.warn("Issue while debugging", e);
+		}
+		try {
+			result += DbTaskRunner.hashStatus()+"\n";
+		} catch (Exception e) {
+			logger.warn("Issue while debugging", e);
+		}
+		try {
+			result += HttpSslHandler.hashStatus()+"\n";
+		} catch (Exception e) {
+			logger.warn("Issue while debugging", e);
+		}
+		try {
+			result += NetworkTransaction.hashStatus();
+		} catch (Exception e) {
+			logger.warn("Issue while debugging", e);
+		}
+		return result;
 	}
 }
