@@ -588,7 +588,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 		protected boolean isparallel = true;
 		protected int limitParallel = 0;
 		protected long minimalSize = 0;
-		protected boolean logWarn = false;
+		protected boolean logWarn = true;
 	}
 	
 	protected static final List<Arguments> arguments = new ArrayList<Arguments>();
@@ -668,7 +668,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 		}
 		stopfile = value.getString();
 		value = hashConfig.get(XML_logWarn);
-		boolean logWarn = false;
+		boolean logWarn = true;
 		if (value != null && (!value.isEmpty())) {
 			logWarn = value.getBoolean();
 		}
@@ -878,6 +878,8 @@ public class SpooledDirectoryTransfer implements Runnable {
 						arg.recursive = true;
 					} else if (args[i].equalsIgnoreCase("-logWarn")) {
 						arg.logWarn = true;
+					} else if (args[i].equalsIgnoreCase("-notlogWarn")) {
+						arg.logWarn = false;
 					} else if (args[i].equalsIgnoreCase("-regex")) {
 						i++;
 						arg.regex = args[i];
