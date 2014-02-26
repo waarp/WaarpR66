@@ -810,7 +810,7 @@ public class Configuration {
 		monitoring = new Monitoring(pastLimit, minimalDelay, null);
 		if (snmpConfig != null) {
 			int snmpPortShow = (useNOSSL ? SERVER_PORT : SERVER_SSLPORT);
-			r66Mib =
+			R66PrivateMib r66Mib =
 					new R66PrivateMib(SnmpName,
 							snmpPortShow,
 							SnmpPrivateId,
@@ -826,6 +826,7 @@ public class Configuration {
 			} catch (IOException e) {
 				throw new WaarpDatabaseSqlException(Messages.getString("Configuration.SNMPError"), e); //$NON-NLS-1$
 			}
+			this.r66Mib = r66Mib;
 		}
 	}
 

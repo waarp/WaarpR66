@@ -115,7 +115,17 @@ public class NetworkChannelReference {
 			lastTimeUsed = System.currentTimeMillis();
 		}
 	}
-
+	/**
+	 * To set the last time used when correct
+	 * @return True if last time used is set
+	 */
+	public boolean useIfUsed() {
+		if (! isShuttingDown && ! localChannelReferences.isEmpty()) {
+			lastTimeUsed = System.currentTimeMillis();
+			return true;
+		}
+		return false;
+	}
 	public void remove(LocalChannelReference localChannel) {
 		lock.lock();
 		try {

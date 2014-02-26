@@ -83,8 +83,8 @@ public class NetworkPacketCodec extends FrameDecoder implements
 						new NetworkPacket(ChannelUtils.NOCHANNEL,
 								ChannelUtils.NOCHANNEL, keepAlivePacket, null);
 				NetworkChannelReference nc = NetworkTransaction.getImmediateNetworkChannel(channel);
-				if (nc != null && nc.nbLocalChannels() > 0) {
-					nc.use();
+				if (nc != null) {
+					nc.useIfUsed();
 				}
 				Channels.write(channel, response);
 			}

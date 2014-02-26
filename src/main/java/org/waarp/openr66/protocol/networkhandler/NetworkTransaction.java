@@ -184,7 +184,7 @@ public class NetworkTransaction {
 		for (ClientNetworkChannels clientNetworkChannels : clientNetworkChannelsPerHostId.values()) {
 			nb += clientNetworkChannels.size();
 		}
-		partial += " Sum of ClientNetworkChannels NetworkClients: "+nb+"\n";
+		partial += " Sum of ClientNetworkChannels NetworkClients: "+nb;
 		nb = 0;
 		for (NetworkChannelReference ncr : networkChannelOnSocketAddressConcurrentHashMap.values()) {
 			nb += ncr.nbLocalChannels();
@@ -575,6 +575,10 @@ public class NetworkTransaction {
 				}
 			}
 			Channels.close(localChannelReference.getLocalChannel());
+			try {
+				Thread.sleep(Configuration.RETRYINMS*20);
+			} catch (InterruptedException e) {
+			}
 			throw new OpenR66ProtocolNetworkException(
 					"Cannot validate connection: " + future.getResult(), future
 							.getCause());

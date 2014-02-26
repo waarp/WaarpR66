@@ -91,7 +91,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 	/**
 	 * To handle the keep alive
 	 */
-	private volatile boolean keepAlivedSent = false;
+	private volatile int keepAlivedSent = 0;
 	/**
 	 * Is this network connection being refused (black listed)
 	 */
@@ -180,10 +180,17 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 		if (Configuration.configuration.isShutdown)
 			return;
 		if (this.networkChannelReference.checkLastTime(Configuration.configuration.TIMEOUTCON*2) <= 0) {
-			keepAlivedSent = false;
+			keepAlivedSent = 0;
 			return;
 		}
-		if (keepAlivedSent) {
+		if (keepAlivedSent > 0) {
+			if (this.networkChannelReference != null) {
+				if (this.networkChannelReference.nbLocalChannels() > 0 && keepAlivedSent < 5) {
+					// ignore this time
+					keepAlivedSent++;
+					return;
+				}
+			}
 			logger.error("Not getting KAlive: closing channel");
 			if (Configuration.configuration.r66Mib != null) {
 				Configuration.configuration.r66Mib.notifyWarning(
@@ -191,7 +198,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 			}
 			ChannelCloseTimer.closeFutureChannel(e.getChannel());
 		} else {
-			keepAlivedSent = true;
+			keepAlivedSent = 1;
 			KeepAlivePacket keepAlivePacket = new KeepAlivePacket();
 			NetworkPacket response =
 					new NetworkPacket(ChannelUtils.NOCHANNEL,
@@ -202,7 +209,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 	}
 
 	public void setKeepAlivedSent() {
-		keepAlivedSent = false;
+		keepAlivedSent = 0;
 	}
 
 	@Override
@@ -213,6 +220,9 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 		}
 		final NetworkPacket packet = (NetworkPacket) e.getMessage();
 		if (packet.getCode() == LocalPacketFactory.NOOPPACKET) {
+			if (networkChannelReference != null) {
+				networkChannelReference.useIfUsed();
+			}
 			// Do nothing
 			return;
 		} else if (packet.getCode() == LocalPacketFactory.CONNECTERRORPACKET) {
@@ -236,7 +246,10 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 				return;
 			}
 		} else if (packet.getCode() == LocalPacketFactory.KEEPALIVEPACKET) {
-			keepAlivedSent = false;
+			if (networkChannelReference != null) {
+				networkChannelReference.useIfUsed();
+			}
+			keepAlivedSent = 0;
 			try {
 				KeepAlivePacket keepAlivePacket = (KeepAlivePacket)
 						LocalPacketCodec.decodeNetworkPacket(packet.getBuffer());

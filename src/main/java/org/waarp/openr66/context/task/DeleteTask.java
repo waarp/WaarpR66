@@ -60,12 +60,18 @@ public class DeleteTask extends AbstractTask {
 				session);
 		try {
 			if (!session.getFile().delete()) {
+				/*
 				logger.debug("CANNOT Delete file {} from session {}", session.getFile().getFile(),
 						session);
 				R66Result result = new R66Result(session, false,
 						ErrorCode.FileNotFound, session.getRunner());
 				futureCompletion.setResult(result);
 				futureCompletion.setFailure(new OpenR66ProtocolSystemException("File not deleted: "+session.getFile().getFile()));
+				*/
+				logger.warn("CANNOT Delete file {} from session {}", session.getFile().getFile(),
+						session);
+				session.getRunner().setErrorExecutionStatus(ErrorCode.Warning);
+				futureCompletion.setSuccess();
 				return;
 			}
 		} catch (CommandAbstractException e1) {
