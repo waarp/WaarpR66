@@ -72,10 +72,14 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 	 */
 	private SocketAddress remoteAddress;
 	/**
-	 * The Database connection attached to this NetworkChannel shared among all associated
+	 * The associated NetworkChannelReference
+	 */
+	private NetworkChannelReference networkChannelReference;
+	/**
+	 * The Database connection attached to this NetworkChannelReference shared among all associated
 	 * LocalChannels
 	 */
-	protected DbSession dbSession;
+	private DbSession dbSession;
 	/**
 	 * Does this Handler is for SSL
 	 */
@@ -87,7 +91,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 	/**
 	 * To handle the keep alive
 	 */
-	protected volatile boolean keepAlivedSent = false;
+	private volatile boolean keepAlivedSent = false;
 	/**
 	 * Is this network connection being refused (black listed)
 	 */
@@ -101,29 +105,26 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 		this.isServer = isServer;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.jboss.netty.channel.SimpleChannelHandler#channelClosed(org.jboss.
-	 * netty.channel.ChannelHandlerContext, org.jboss.netty.channel.ChannelStateEvent)
-	 */
 	@Override
 	public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) {
-		if (NetworkTransaction.getNbLocalChannel(e.getChannel()) > 0) {
-			logger.info("Network Channel Closed: {} LocalChannels Left: {}",
-					e.getChannel().getId(),
-					NetworkTransaction.getNbLocalChannel(e.getChannel()));
-			// close if necessary the local channel
-			try {
-				Thread.sleep(Configuration.WAITFORNETOP);
-			} catch (InterruptedException e1) {
+		if (networkChannelReference != null) {
+			if (networkChannelReference.nbLocalChannels() > 0) {
+				logger.info("Network Channel Closed: {} LocalChannels Left: {}",
+						e.getChannel().getId(),
+						networkChannelReference.nbLocalChannels());
+				// Give an extra time if necessary to let the local channel being closed
+				try {
+					Thread.sleep(Configuration.WAITFORNETOP);
+				} catch (InterruptedException e1) {
+				}
 			}
-			Configuration.configuration.getLocalTransaction()
-					.closeLocalChannelsFromNetworkChannel(e.getChannel());
+			NetworkTransaction.closedNetworkChannel(networkChannelReference);
+		} else {
+			if (remoteAddress == null) {
+				remoteAddress = e.getChannel().getRemoteAddress();
+			}
+			NetworkTransaction.closedNetworkChannel(remoteAddress);
 		}
-		if (remoteAddress == null) {
-			remoteAddress = e.getChannel().getRemoteAddress();
-		}
-		NetworkTransaction.removeForceNetworkChannel(remoteAddress);
 		// Now force the close of the database after a wait
 		if (dbSession != null && DbConstant.admin != null && DbConstant.admin.session != null && ! dbSession.equals(DbConstant.admin.session)) {
 			dbSession.forceDisconnect();
@@ -131,24 +132,28 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.jboss.netty.channel.SimpleChannelHandler#channelConnected(org.jboss
-	 * .netty.channel.ChannelHandlerContext, org.jboss.netty.channel.ChannelStateEvent)
-	 */
 	@Override
 	public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
 			throws OpenR66ProtocolNetworkException {
-		Channel networkChannel = e.getChannel();
-		this.remoteAddress = networkChannel.getRemoteAddress();
+		Channel netChannel = e.getChannel();
+		this.remoteAddress = netChannel.getRemoteAddress();
 		logger.debug("Will the Connection be refused if Partner is BlackListed from "+remoteAddress.toString());
-		if (NetworkTransaction.isBlacklisted(networkChannel)) {
+		if (NetworkTransaction.isBlacklisted(netChannel)) {
 			logger.warn("Connection refused since Partner is BlackListed from "+remoteAddress.toString());
 			isBlackListed = true;
 			Configuration.configuration.r66Mib.notifyError(
 					"Black Listed connection temptative", "During connection");
 			// close immediately the connection
-			WaarpSslUtility.closingSslChannel(networkChannel);
+			WaarpSslUtility.closingSslChannel(netChannel);
+			return;
+		}
+		try {
+			this.networkChannelReference = NetworkTransaction.addNetworkChannel(netChannel);
+		} catch (OpenR66ProtocolRemoteShutdownException e2) {
+			logger.warn("Connection refused since Partner is in Shutdown from "+remoteAddress.toString()+" : {}", e2.getMessage());
+			isBlackListed = true;
+			// close immediately the connection
+			WaarpSslUtility.closingSslChannel(netChannel);
 			return;
 		}
 		try {
@@ -169,18 +174,12 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 		logger.debug("Network Channel Connected: {} ", e.getChannel().getId());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * org.jboss.netty.handler.timeout.IdleStateAwareChannelHandler#channelIdle(org.jboss.netty.
-	 * channel.ChannelHandlerContext, org.jboss.netty.handler.timeout.IdleStateEvent)
-	 */
 	@Override
 	public void channelIdle(ChannelHandlerContext ctx, IdleStateEvent e)
 			throws Exception {
 		if (Configuration.configuration.isShutdown)
 			return;
-		if (NetworkTransaction.checkLastTimeUsed(e.getChannel(), Configuration.configuration.TIMEOUTCON*2)) {
+		if (this.networkChannelReference.checkLastTime(Configuration.configuration.TIMEOUTCON*2) <= 0) {
 			keepAlivedSent = false;
 			return;
 		}
@@ -206,11 +205,6 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 		keepAlivedSent = false;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.jboss.netty.channel.SimpleChannelHandler#messageReceived(org.jboss
-	 * .netty.channel.ChannelHandlerContext, org.jboss.netty.channel.MessageEvent)
-	 */
 	@Override
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) {
 		if (isBlackListed) {
@@ -218,7 +212,6 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 			return;
 		}
 		final NetworkPacket packet = (NetworkPacket) e.getMessage();
-		NetworkTransaction.updateLastTimeUsed(e.getChannel());
 		if (packet.getCode() == LocalPacketFactory.NOOPPACKET) {
 			// Do nothing
 			return;
@@ -226,15 +219,15 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 			logger.debug("NetworkRecv: {}", packet);
 			// Special code to STOP here
 			if (packet.getLocalId() == ChannelUtils.NOCHANNEL) {
-				int nb = NetworkTransaction.getNbLocalChannel(e.getChannel());
+				int nb = this.networkChannelReference.nbLocalChannels();
 				if (nb > 0) {
-					logger.warn("Temptative of connection failed but still some connection are there so not closing the server channel: "+nb);
+					logger.warn("Temptative of connection failed but still some connection are there so not closing the server channel immediately: "+nb);
+					NetworkTransaction.shuttingDownNetworkChannel(networkChannelReference);
 					return;
 				}
 				// No way to know what is wrong: close all connections with
 				// remote host
-				logger
-						.error("Will close NETWORK channel, Cannot continue connection with remote Host: "
+				logger.error("Will close NETWORK channel, Cannot continue connection with remote Host: "
 								+
 								packet.toString() +
 								" : " +
@@ -254,7 +247,6 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 									ChannelUtils.NOCHANNEL, keepAlivePacket, null);
 					logger.info("Answer KAlive");
 					Channels.write(e.getChannel(), response);
-					NetworkTransaction.updateLastTimeUsed(e.getChannel());
 				} else {
 					logger.info("Get KAlive");
 				}
@@ -262,6 +254,8 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 			}
 			return;
 		}
+		logger.debug("GET MSG: "+packet.getCode());
+		this.networkChannelReference.use();
 		LocalChannelReference localChannelReference = null;
 		if (packet.getLocalId() == ChannelUtils.NOCHANNEL) {
 			logger.debug("NetworkRecv Create: {} {}", packet,
@@ -269,7 +263,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 			try {
 				localChannelReference =
 						NetworkTransaction.createConnectionFromNetworkChannelStartup(
-								e.getChannel(), packet);
+								this.networkChannelReference, packet);
 			} catch (OpenR66ProtocolSystemException e1) {
 				logger.error("Cannot create LocalChannel for: " + packet + " due to "
 						+ e1.getMessage());
@@ -277,15 +271,11 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 						"Cannot connect to localChannel since cannot create it", null);
 				writeError(e.getChannel(), packet.getRemoteId(), packet
 						.getLocalId(), error);
-				NetworkTransaction.removeNetworkChannel(e.getChannel().getRemoteAddress(), e.getChannel(), null, null);
+				NetworkTransaction.checkClosingNetworkChannel(this.networkChannelReference, null);
 				return;
 			} catch (OpenR66ProtocolRemoteShutdownException e1) {
 				logger.info("Will Close Local from Network Channel");
-				Configuration.configuration.getLocalTransaction()
-						.closeLocalChannelsFromNetworkChannel(e.getChannel());
 				WaarpSslUtility.closingSslChannel(e.getChannel());
-				// NetworkTransaction.removeForceNetworkChannel(e.getChannel());
-				// ignore since no more valid
 				return;
 			}
 		} else {
@@ -338,11 +328,6 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 						// ignore
 						return;
 					}
-					if (Configuration.configuration
-							.getLocalTransaction().isRecentlyRemoved(packet.getLocalId())) {
-						// ignore
-						return;
-					}
 					logger.debug("Cannot get LocalChannel: " + packet + " due to " +
 							e1.getMessage());
 					final ConnectionErrorPacket error = new ConnectionErrorPacket(
@@ -357,11 +342,6 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 				.getBuffer());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.jboss.netty.channel.SimpleChannelHandler#exceptionCaught(org.jboss
-	 * .netty.channel.ChannelHandlerContext, org.jboss.netty.channel.ExceptionEvent)
-	 */
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
 		if (isBlackListed) {
@@ -389,7 +369,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 				.getExceptionFromTrappedException(e.getChannel(), e);
 		if (exception != null) {
 			if (exception instanceof OpenR66ProtocolBusinessNoWriteBackException) {
-				if (NetworkTransaction.getNbLocalChannel(e.getChannel()) > 0) {
+				if (this.networkChannelReference != null && this.networkChannelReference.nbLocalChannels() > 0) {
 					logger.debug(
 							"Network Channel Exception: {} {}", e.getChannel().getId(),
 							exception.getMessage());

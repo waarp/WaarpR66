@@ -96,6 +96,7 @@ import org.waarp.openr66.protocol.localhandler.packet.json.ShutdownRequestJsonPa
 import org.waarp.openr66.protocol.localhandler.packet.json.StopOrCancelJsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.RestartTransferJsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.TransferRequestJsonPacket;
+import org.waarp.openr66.protocol.networkhandler.NetworkChannelReference;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelCloseTimer;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
@@ -1002,12 +1003,9 @@ public class ServerActions extends ServerHandler {
 			Thread.currentThread().interrupt();
 		}
 		logger.warn("Will Close Local from Network Channel");
-		Configuration.configuration.getLocalTransaction()
-				.closeLocalChannelsFromNetworkChannel(localChannelReference
-						.getNetworkChannel());
-		NetworkTransaction
-				.shuttingdownNetworkChannel(localChannelReference
-						.getNetworkChannel());
+		NetworkChannelReference ncr = localChannelReference.getNetworkChannelObject();
+		NetworkTransaction.shuttingDownNetworkChannel(ncr);
+		NetworkTransaction.shuttingdownNetworkChannelsPerHostID(ncr.getHostId());
 		ChannelCloseTimer.closeFutureChannel(channel);
 	}
 

@@ -62,7 +62,6 @@ import org.waarp.openr66.protocol.localhandler.packet.AuthentPacket;
 import org.waarp.openr66.protocol.localhandler.packet.ConnectionErrorPacket;
 import org.waarp.openr66.protocol.localhandler.packet.ErrorPacket;
 import org.waarp.openr66.protocol.localhandler.packet.StartupPacket;
-import org.waarp.openr66.protocol.networkhandler.NetworkChannel;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelCloseTimer;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
@@ -136,105 +135,103 @@ public abstract class ServerHandler {
 	 * @param e
 	 */
 	public void channelClosed(ChannelStateEvent e) {
-		logger.debug("Local Server Channel Closed: {} {}",
-				(localChannelReference != null ? localChannelReference
-						: "no LocalChannelReference"), (session.getRunner() != null ?
-						session.getRunner().toShortString() : "no runner"));
-		// clean session objects like files
-		DbTaskRunner runner = session.getRunner();
-		boolean mustFinalize = true;
-		if (localChannelReference != null &&
-				localChannelReference.getFutureRequest().isDone()) {
-			// already done
-			mustFinalize = false;
-		} else {
-			if (localChannelReference != null) {
-				R66Future fvr = localChannelReference.getFutureValidRequest();
-				try {
-					fvr.await(Configuration.configuration.TIMEOUTCON*2, TimeUnit.MILLISECONDS);
-				} catch (InterruptedException e1) {
-				}
-				if (fvr.isDone()) {
-					if (!fvr.isSuccess()) {
-						// test if remote server was Overloaded
-						if (fvr.getResult() != null && fvr.getResult().code == ErrorCode.ServerOverloaded) {
-							// ignore
+		try {
+			logger.debug("Local Server Channel Closed: {} {}",
+					(localChannelReference != null ? localChannelReference
+							: "no LocalChannelReference"), (session.getRunner() != null ?
+							session.getRunner().toShortString() : "no runner"));
+			// clean session objects like files
+			DbTaskRunner runner = session.getRunner();
+			boolean mustFinalize = true;
+			if (localChannelReference != null &&
+					localChannelReference.getFutureRequest().isDone()) {
+				// already done
+				mustFinalize = false;
+			} else {
+				if (localChannelReference != null) {
+					R66Future fvr = localChannelReference.getFutureValidRequest();
+					try {
+						fvr.await(Configuration.configuration.TIMEOUTCON*2, TimeUnit.MILLISECONDS);
+					} catch (InterruptedException e1) {
+					}
+					if (fvr.isDone()) {
+						if (!fvr.isSuccess()) {
+							// test if remote server was Overloaded
+							if (fvr.getResult() != null && fvr.getResult().code == ErrorCode.ServerOverloaded) {
+								// ignore
+								mustFinalize = false;
+							}
+						} else {
 							mustFinalize = false;
 						}
+					}
+					logger.debug("Must Finalize: " + mustFinalize);
+					if (mustFinalize) {
+						session.newState(ERROR);
+						R66Result finalValue = new R66Result(
+								new OpenR66ProtocolSystemException(
+										Messages.getString("LocalServerHandler.4")), //$NON-NLS-1$
+								session, true, ErrorCode.FinalOp, runner); // True since closed
+						try {
+							tryFinalizeRequest(finalValue);
+						} catch (OpenR66Exception e2) {
+						}
+					}
+				}
+			}
+			if (mustFinalize && runner != null) {
+				if (runner.isSelfRequested() && localChannelReference != null) {
+					R66Future transfer = localChannelReference.getFutureRequest();
+					// Since requested : log
+					R66Result result = transfer.getResult();
+					if (transfer.isDone() && transfer.isSuccess()) {
+						logger.info("TRANSFER REQUESTED RESULT:     SUCCESS     " +
+								(result != null ? result.toString() : "no result"));
 					} else {
-						mustFinalize = false;
+						logger.error("TRANSFER REQUESTED RESULT:     FAILURE     " +
+								(result != null ? result.toString() : "no result"));
 					}
 				}
-				logger.debug("Must Finalize: " + mustFinalize);
-				if (mustFinalize) {
-					session.newState(ERROR);
-					R66Result finalValue = new R66Result(
-							new OpenR66ProtocolSystemException(
-									Messages.getString("LocalServerHandler.4")), //$NON-NLS-1$
-							session, true, ErrorCode.FinalOp, runner); // True since closed
+			}
+			session.setStatus(50);
+			session.newState(CLOSEDCHANNEL);
+			session.clear();
+			session.setStatus(51);
+			if (localChannelReference != null) {
+				if (localChannelReference.getDbSession() != null) {
+					localChannelReference.getDbSession().endUseConnection();
+					logger.debug("End Use Connection");
+				}
+				NetworkTransaction.checkClosingNetworkChannel(localChannelReference.getNetworkChannelObject(), 
+						localChannelReference);
+				session.setStatus(52);
+			} else {
+				logger.error("Local Server Channel Closed but no LocalChannelReference: " +
+								e.getChannel().getId());
+			}
+			// Now if runner is not yet finished, finish it by force
+			if (mustFinalize && localChannelReference != null
+					&& (!localChannelReference.getFutureRequest().isDone())) {
+				R66Result finalValue = new R66Result(
+						new OpenR66ProtocolSystemException(
+								Messages.getString("LocalServerHandler.11")), //$NON-NLS-1$
+						session, true, ErrorCode.FinalOp, runner);
+				localChannelReference.invalidateRequest(finalValue);
+				// In case stop the attached thread if any
+				ClientRunner clientRunner = localChannelReference.getClientRunner();
+				if (clientRunner != null) {
 					try {
-						tryFinalizeRequest(finalValue);
-					} catch (OpenR66Exception e2) {
+						Thread.sleep(Configuration.WAITFORNETOP);
+					} catch (InterruptedException e1) {
 					}
+					clientRunner.interrupt();
 				}
 			}
-		}
-		if (mustFinalize && runner != null) {
-			if (runner.isSelfRequested() && localChannelReference != null) {
-				R66Future transfer = localChannelReference.getFutureRequest();
-				// Since requested : log
-				R66Result result = transfer.getResult();
-				if (transfer.isDone() && transfer.isSuccess()) {
-					logger.info("TRANSFER REQUESTED RESULT:     SUCCESS     " +
-							(result != null ? result.toString() : "no result"));
-				} else {
-					logger.error("TRANSFER REQUESTED RESULT:     FAILURE     " +
-							(result != null ? result.toString() : "no result"));
-				}
+		} finally {
+			if (localChannelReference != null) {
+				localChannelReference.close();
 			}
 		}
-		session.setStatus(50);
-		session.newState(CLOSEDCHANNEL);
-		session.clear();
-		session.setStatus(51);
-		if (localChannelReference != null) {
-			if (localChannelReference.getDbSession() != null) {
-				localChannelReference.getDbSession().endUseConnection();
-				logger.debug("End Use Connection");
-			}
-			String requester =
-					(runner != null && runner.isSelfRequested() &&
-					localChannelReference.getNetworkChannelObject() != null) ?
-							runner.getRequester() : null;
-			NetworkTransaction.removeNetworkChannel(localChannelReference.getRemoteAddress(), 
-					localChannelReference.getNetworkChannel(), e.getChannel(), requester);
-			session.setStatus(52);
-		} else {
-			logger.error("Local Server Channel Closed but no LocalChannelReference: " +
-							e.getChannel().getId());
-		}
-		// Now if runner is not yet finished, finish it by force
-		if (mustFinalize && localChannelReference != null
-				&& (!localChannelReference.getFutureRequest().isDone())) {
-			R66Result finalValue = new R66Result(
-					new OpenR66ProtocolSystemException(
-							Messages.getString("LocalServerHandler.11")), //$NON-NLS-1$
-					session, true, ErrorCode.FinalOp, runner);
-			localChannelReference.invalidateRequest(finalValue);
-			// In case stop the attached thread if any
-			ClientRunner clientRunner = localChannelReference.getClientRunner();
-			if (clientRunner != null) {
-				try {
-					Thread.sleep(Configuration.WAITFORNETOP);
-				} catch (InterruptedException e1) {
-				}
-				clientRunner.interrupt();
-			}
-		}
-		if (localChannelReference != null) {
-			localChannelReference.close();
-		}
-		Configuration.configuration.getLocalTransaction().remove(e.getChannel());
 	}
 
 	/**
@@ -265,24 +262,6 @@ public abstract class ServerHandler {
 			session.newState(ERROR);
 			logger.error(Messages.getString("LocalServerHandler.1")); //$NON-NLS-1$
 			ErrorPacket error = new ErrorPacket("Cannot startup connection",
-					ErrorCode.ConnectionImpossible.getCode(), ErrorPacket.FORWARDCLOSECODE);
-			try {
-				Channels.write(channel, error).await();
-			} catch (InterruptedException e) {
-			}
-			// Cannot do writeBack(error, true);
-			session.setStatus(40);
-			ChannelCloseTimer.closeFutureChannel(channel);
-			return;
-		}
-		NetworkChannel networkChannel =
-				NetworkTransaction.getNetworkChannel(localChannelReference.getNetworkChannel());
-		if (networkChannel != null) {
-			localChannelReference.setNetworkChannelObject(networkChannel);
-		} else {
-			logger.error("No NetworkChannel found!");
-			session.newState(ERROR);
-			ErrorPacket error = new ErrorPacket("Cannot startup connection since no Network Channel found",
 					ErrorCode.ConnectionImpossible.getCode(), ErrorPacket.FORWARDCLOSECODE);
 			try {
 				Channels.write(channel, error).await();
@@ -341,8 +320,8 @@ public abstract class ServerHandler {
 		ChannelUtils.writeAbstractLocalPacket(localChannelReference, error, true);
 		localChannelReference.validateConnection(false, result);
 		Channel networkchannel = localChannelReference.getNetworkChannel();
-		boolean valid = NetworkTransaction.shuttingDownNetworkChannelBlackList(networkchannel);
-		logger.warn("Closing and blacklisting NetworkChannel since LocalChannel is not authenticated: "+valid);
+		boolean valid = NetworkTransaction.shuttingDownNetworkChannelBlackList(localChannelReference.getNetworkChannelObject());
+		logger.warn("Closing and blacklisting NetworkChannelReference since LocalChannel is not authenticated: "+valid);
 		ChannelCloseTimer.closeFutureChannel(channel);
 		ChannelCloseTimer.closeFutureChannel(networkchannel);
 	}
@@ -364,7 +343,7 @@ public abstract class ServerHandler {
 			localChannelReference.getDbSession().useConnection();
 		}
 		if (localChannelReference.getNetworkChannelObject() != null) {
-			localChannelReference.getNetworkChannelObject().hostId = packet.getHostId();
+			localChannelReference.getNetworkChannelObject().setHostId(packet.getHostId());
 		} else {
 			session.newState(ERROR);
 			logger.error("Service unavailable: " + packet.getHostId());
@@ -464,10 +443,9 @@ public abstract class ServerHandler {
 				(localChannelReference != null ? localChannelReference
 						: "no LocalChannelReference"));
 		session.setStatus(44);
+		NetworkTransaction.addClient(localChannelReference.getNetworkChannelObject(), packet.getHostId());
 		if (packet.isToValidate()) {
 			// only requested
-			NetworkTransaction.addClient(localChannelReference.getNetworkChannel(),
-					packet.getHostId());
 			packet.validate(session.getAuth().isSsl());
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference, packet, false);
 			session.setStatus(98);

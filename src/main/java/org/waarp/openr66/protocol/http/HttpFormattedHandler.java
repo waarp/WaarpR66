@@ -166,7 +166,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 			sNB = "NB", sDETAIL = "DETAIL";
 
 	/**
-	 * The Database connection attached to this NetworkChannel shared among all associated
+	 * The Database connection attached to this NetworkChannelReference shared among all associated
 	 * LocalChannels
 	 */
 	private DbSession dbSession = DbConstant.admin.session;

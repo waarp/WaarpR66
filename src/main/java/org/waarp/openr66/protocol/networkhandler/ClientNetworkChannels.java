@@ -22,7 +22,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Client NetworkChannel attached to one HostId.
+ * Client NetworkChannelReference attached to one HostId.
  * 
  * 
  * 
@@ -37,35 +37,37 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ClientNetworkChannels {
 
 	private final String hostId;
-	private final Set<NetworkChannel> networkChannels = Collections.newSetFromMap(new ConcurrentHashMap<NetworkChannel, Boolean>());
+	private final Set<NetworkChannelReference> networkChannelReferences = Collections.newSetFromMap(new ConcurrentHashMap<NetworkChannelReference, Boolean>());
 
 	public ClientNetworkChannels(String hostId) {
 		this.hostId = hostId;
 	}
 
-	public void add(NetworkChannel networkChannel) {
-		networkChannels.add(networkChannel);
+	public void add(NetworkChannelReference networkChannelReference) {
+		networkChannelReferences.add(networkChannelReference);
+		networkChannelReference.clientNetworkChannels = this;
+		networkChannelReference.setHostId(this.hostId);
 	}
 
-	public void remove(NetworkChannel networkChannel) {
-		networkChannels.remove(networkChannel);
+	public void remove(NetworkChannelReference networkChannelReference) {
+		networkChannelReferences.remove(networkChannelReference);
 	}
 
 	public boolean isEmpty() {
-		return networkChannels.isEmpty();
+		return networkChannelReferences.isEmpty();
 	}
 
 	public int size() {
-		return networkChannels.size();
+		return networkChannelReferences.size();
 	}
 
-	public boolean shutdownAll() {
+	public boolean shutdownAllNetworkChannels() {
 		boolean status = false;
-		for (NetworkChannel networkChannel : networkChannels) {
-			NetworkTransaction.shuttingdownNetworkChannel(networkChannel.channel);
+		for (NetworkChannelReference networkChannelReference : networkChannelReferences) {
+			NetworkTransaction.shuttingDownNetworkChannel(networkChannelReference);
 			status = true;
 		}
-		networkChannels.clear();
+		networkChannelReferences.clear();
 		return status;
 	}
 

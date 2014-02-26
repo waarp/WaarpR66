@@ -299,7 +299,7 @@ public class ChannelUtils extends Thread {
 		if (wait) {
 			ChannelFuture future = Channels.write(localChannelReference.getNetworkChannel(),
 					networkPacket);
-			NetworkTransaction.updateLastTimeUsed(localChannelReference.getNetworkChannel());
+			localChannelReference.getNetworkChannelObject().use();
 			try {
 				return future.await();
 			} catch (InterruptedException e) {

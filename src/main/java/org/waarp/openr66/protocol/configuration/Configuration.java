@@ -689,7 +689,7 @@ public class Configuration {
 		r66Startup();
 		startHttpSupport();
 		startMonitoring();
-		if (logger.isDebugEnabled()) {
+		if (logger.isDebugEnabled() || true) {
 			// XXX FIXME for debug
 			launchInFixedDelay(new UsageStatistic(), 10, TimeUnit.SECONDS);
 		}

@@ -18,7 +18,6 @@
 package org.waarp.openr66.protocol.http.adminssl;
 
 import java.io.IOException;
-import java.net.SocketAddress;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
@@ -239,7 +238,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 											// be divided by 4
 
 	/**
-	 * The Database connection attached to this NetworkChannel shared among all associated
+	 * The Database connection attached to this NetworkChannelReference shared among all associated
 	 * LocalChannels in the session
 	 */
 	private DbSession dbSession = null;
@@ -1098,15 +1097,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					return head + body0 + body + body1 + end;
 				}
 				body = REQUEST.Hosts.readBody();
-				boolean resultShutDown = false;
-				if (!dbhost.isClient()) {
-					SocketAddress socketAddress = dbhost.getSocketAddress();
-					resultShutDown =
-							NetworkTransaction.shuttingdownNetworkChannel(socketAddress, null);
-				}
+				boolean resultShutDown = NetworkTransaction.shuttingdownNetworkChannelsPerHostID(dbhost.getHostid());
 				head = resetOptionHosts(head, "", "", dbhost.isSsl(), dbhost.isActive());
-				resultShutDown = resultShutDown ||
-						NetworkTransaction.shuttingdownNetworkChannels(host);
 				if (resultShutDown) {
 					body = dbhost.toSpecializedHtml(authentHttp, body, false);
 					body += Messages.getString("HttpSslHandler.21"); //$NON-NLS-1$

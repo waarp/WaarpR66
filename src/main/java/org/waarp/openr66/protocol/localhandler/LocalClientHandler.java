@@ -59,23 +59,12 @@ public class LocalClientHandler extends SimpleChannelHandler {
 	 */
 	private volatile LocalChannelReference localChannelReference = null;
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.jboss.netty.channel.SimpleChannelHandler#channelClosed(org.jboss.
-	 * netty.channel.ChannelHandlerContext, org.jboss.netty.channel.ChannelStateEvent)
-	 */
 	@Override
 	public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e)
 			throws Exception {
 		logger.debug("Local Client Channel Closed: {}", e.getChannel().getId());
-		Configuration.configuration.getLocalTransaction().remove(e.getChannel());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.jboss.netty.channel.SimpleChannelHandler#channelConnected(org.jboss
-	 * .netty.channel.ChannelHandlerContext, org.jboss.netty.channel.ChannelStateEvent)
-	 */
 	@Override
 	public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
 			throws Exception {
@@ -108,11 +97,6 @@ public class LocalClientHandler extends SimpleChannelHandler {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.jboss.netty.channel.SimpleChannelHandler#messageReceived(org.jboss
-	 * .netty.channel.ChannelHandlerContext, org.jboss.netty.channel.MessageEvent)
-	 */
 	@Override
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
 			throws Exception {
