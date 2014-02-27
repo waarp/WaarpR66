@@ -59,12 +59,14 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
 		
 		WaarpFuture futureSSL = WaarpSslUtility.getFutureSslHandshake(channel);
 		if (futureSSL == null) {
-			for (int i = 0; i < Configuration.RETRYNB; i++) {
+			int maxtry = (int) (Configuration.configuration.TIMEOUTCON / Configuration.RETRYINMS) / 2;
+			for (int i = 0; i < maxtry; i++) {
 				futureSSL = WaarpSslUtility.getFutureSslHandshake(channel);
 				if (futureSSL != null)
 					break;
 				try {
 					Thread.sleep(Configuration.RETRYINMS);
+					Thread.yield();
 				} catch (InterruptedException e) {
 				}
 			}

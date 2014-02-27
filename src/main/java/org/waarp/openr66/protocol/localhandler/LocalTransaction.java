@@ -204,11 +204,12 @@ public class LocalTransaction {
 	 * @return the LocalChannelReference
 	 */
 	public LocalChannelReference getFromId(Integer id) {
-		for (int i = 0; i < Configuration.RETRYNB * 20; i++) {
+		int maxtry = (int) (Configuration.configuration.TIMEOUTCON / Configuration.RETRYINMS) / 2;
+		for (int i = 0; i < maxtry; i++) {
 			LocalChannelReference lcr = localChannelHashMap.get(id);
 			if (lcr == null) {
 				try {
-					Thread.sleep(Configuration.RETRYINMS * 2);
+					Thread.sleep(Configuration.RETRYINMS);
 					Thread.yield();
 				} catch (InterruptedException e) {
 				}
@@ -265,8 +266,7 @@ public class LocalTransaction {
 	 * Debug function (while shutdown for instance)
 	 */
 	public void debugPrintActiveLocalChannels() {
-		Collection<LocalChannelReference> collection = localChannelHashMap
-				.values();
+		Collection<LocalChannelReference> collection = localChannelHashMap.values();
 		Iterator<LocalChannelReference> iterator = collection.iterator();
 		while (iterator.hasNext()) {
 			LocalChannelReference localChannelReference = iterator.next();
