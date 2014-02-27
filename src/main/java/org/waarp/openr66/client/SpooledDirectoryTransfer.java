@@ -143,7 +143,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 	
 	protected final long minimalSize;
 	
-	protected final boolean logWarn;
+	protected final boolean normalInfoAsWarn;
 	
 	protected final NetworkTransaction networkTransaction;
 	
@@ -210,7 +210,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 		this.limitParallelTasks = limitParallel;
 		this.waarpHosts = waarphost;
 		this.minimalSize = minimalSize;
-		this.logWarn = logWarn;
+		this.normalInfoAsWarn = logWarn;
 		this.networkTransaction = networkTransaction;
 	}
 
@@ -292,7 +292,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 		FileMonitorCommandRunnableFuture commandValidFile = new SpooledRunner(null);
 		FileMonitorCommandRunnableFuture waarpRemovedCommand = new FileMonitorCommandRunnableFuture() {
 			public void run(FileItem file) {
-				if (logWarn) {
+				if (normalInfoAsWarn) {
 					logger.warn("File removed: {}", file.file);
 				} else {
 					logger.info("File removed: {}", file.file);
@@ -411,7 +411,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 							SubmitTransfer transaction = new SubmitTransfer(future,
 									host, filename, rulename, fileinfo, isMD5, blocksize, 
 									specialId, null);
-							transaction.normalInfoAsWarn = logWarn;
+							transaction.normalInfoAsWarn = normalInfoAsWarn;
 							logger.info(text+host);
 							transaction.run();
 						} else {
@@ -425,6 +425,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 									// Try restart
 									RequestTransfer transaction = new RequestTransfer(future, specialId, host, srequester, 
 											false, false, true, networkTransaction);
+									transaction.normalInfoAsWarn = normalInfoAsWarn;
 									logger.info(text+host);
 									// special task
 									transaction.run();
@@ -436,6 +437,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 										// Cancel
 										RequestTransfer transaction2 = new RequestTransfer(future, specialId, host, srequester, 
 											true, false, false, networkTransaction);
+										transaction.normalInfoAsWarn = normalInfoAsWarn;
 										logger.warn(text+host);
 										transaction2.run();
 										// special task
@@ -454,7 +456,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 									DirectTransfer transaction = new DirectTransfer(future,
 											host, filename, rulename, fileinfo, isMD5, blocksize, 
 											DbConstant.ILLEGALVALUE, networkTransaction);
-									transaction.normalInfoAsWarn = logWarn;
+									transaction.normalInfoAsWarn = normalInfoAsWarn;
 									logger.info(text+host);
 									transaction.run();
 								}
@@ -463,7 +465,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 								DirectTransfer transaction = new DirectTransfer(future,
 										host, filename, rulename, fileinfo, isMD5, blocksize,
 										specialId, networkTransaction);
-								transaction.normalInfoAsWarn = logWarn;
+								transaction.normalInfoAsWarn = normalInfoAsWarn;
 								logger.info(text+host);
 								transaction.run();
 							}
@@ -482,7 +484,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 									if (runner.getErrorInfo() == ErrorCode.Warning) {
 										status = Messages.getString("RequestInformation.Warned"); //$NON-NLS-1$
 									}
-									if (logWarn) {
+									if (normalInfoAsWarn) {
 										logger.warn(text+" status: "+status+"     "
 												+ runner.toShortString()
 												+"     <REMOTE>"+ host+ "</REMOTE>"
@@ -510,7 +512,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 										}
 									}
 								} else {
-									if (logWarn) {
+									if (normalInfoAsWarn) {
 										logger.warn(text+Messages.getString("RequestInformation.Success")  //$NON-NLS-1$
 												+"<REMOTE>" + host + "</REMOTE>");
 									} else {
@@ -519,7 +521,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 									}
 								}
 							} else {
-								if (logWarn) {
+								if (normalInfoAsWarn) {
 									logger.warn(text+Messages.getString("RequestInformation.Success")  //$NON-NLS-1$
 										+"<REMOTE>" + host + "</REMOTE>");
 								} else {

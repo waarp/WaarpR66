@@ -27,6 +27,20 @@ The unique stop file
                 </xsd:annotation>
             </xsd:element>
             <xsd:element
+                name="logWarn"
+                maxOccurs="1"
+                minOccurs="0"
+                type="booleanType" default="True">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <fg:node-info message="If True (default) will log as WARN level send and removed files, while False will log it as INFO level." />
+                    </xsd:appinfo>
+                    <xsd:documentation>
+If True (default) will log as WARN level send and removed files, while False will log it as INFO level.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element
                 name="spooled"
                 maxOccurs="unbounded"
                 minOccurs="0" >

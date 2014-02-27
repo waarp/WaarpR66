@@ -85,6 +85,7 @@ public class RequestTransfer implements Runnable {
 	boolean stop = false;
 	boolean restart = false;
 	String restarttime = null;
+	boolean normalInfoAsWarn = true;
 
 	static long sspecialId;
 	static String srequested = null;
@@ -94,7 +95,8 @@ public class RequestTransfer implements Runnable {
 	static boolean sstop = false;
 	static boolean srestart = false;
 	static String srestarttime = null;
-
+	static protected boolean snormalInfoAsWarn = true;
+	
 	/**
 	 * Parse the parameter and set current values
 	 * 
@@ -152,6 +154,10 @@ public class RequestTransfer implements Runnable {
 			} else if (args[i].equalsIgnoreCase("-start")) {
 				i++;
 				srestarttime = args[i];
+			} else if (args[i].equalsIgnoreCase("-logWarn")) {
+				snormalInfoAsWarn = true;
+			} else if (args[i].equalsIgnoreCase("-notlogWarn")) {
+				snormalInfoAsWarn = false;
 			} else if (args[i].equalsIgnoreCase("-delay")) {
 				i++;
 				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
@@ -232,6 +238,7 @@ public class RequestTransfer implements Runnable {
 			// Maybe we can ask to the remote
 			R66Future futureInfo = new R66Future(true);
 			RequestInformation requestInformation = new RequestInformation(futureInfo, requested, null, null, (byte) -1, specialId, true, networkTransaction);
+			requestInformation.normalInfoAsWarn = normalInfoAsWarn;
 			requestInformation.run();
 			futureInfo.awaitUninterruptibly();
 			if (futureInfo.isSuccess()) {
@@ -401,6 +408,7 @@ public class RequestTransfer implements Runnable {
 						runner.getRequested(), runner.getOriginalFilename(), 
 						runner.getRuleId(), runner.getFileInformation(), false, 
 						runner.getBlocksize(), runner.getSpecialId(), networkTransaction);
+				transaction.normalInfoAsWarn = normalInfoAsWarn;
 				transaction.run();
 				transfer.awaitUninterruptibly();
 				logger.info("Request done with " + (transfer.isSuccess() ? "success" : "error"));
@@ -643,6 +651,7 @@ public class RequestTransfer implements Runnable {
 					new RequestTransfer(result, sspecialId, srequested, srequester,
 							scancel, sstop, srestart, srestarttime,
 							networkTransaction);
+			requestTransfer.normalInfoAsWarn = snormalInfoAsWarn;
 			requestTransfer.run();
 			result.awaitUninterruptibly();
 			R66Result finalValue = result.getResult();
@@ -656,7 +665,11 @@ public class RequestTransfer implements Runnable {
 						outputFormat.setValue(FIELDS.remote.name(), rhost);
 						Map<String, String> map = DbTaskRunner.getMapFromRunner(result.runner);
 						outputFormat.setValueString(map);
-						logger.warn(outputFormat.loggerOut());
+						if (requestTransfer.normalInfoAsWarn) {
+							logger.warn(outputFormat.loggerOut());
+						} else {
+							logger.info(outputFormat.loggerOut());
+						}
 						if (! OutputFormat.isQuiet()) {
 							outputFormat.sysout();
 						}
@@ -710,7 +723,11 @@ public class RequestTransfer implements Runnable {
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.73")); //$NON-NLS-1$
 							outputFormat.setValue(FIELDS.remote.name(), rhost);
 							outputFormat.setValueString(map);
-							logger.warn(outputFormat.loggerOut());
+							if (requestTransfer.normalInfoAsWarn) {
+								logger.warn(outputFormat.loggerOut());
+							} else {
+								logger.info(outputFormat.loggerOut());
+							}
 							if (! OutputFormat.isQuiet()) {
 								outputFormat.sysout();
 							}
@@ -772,7 +789,11 @@ public class RequestTransfer implements Runnable {
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.78")); //$NON-NLS-1$
 							outputFormat.setValue(FIELDS.remote.name(), rhost);
 							outputFormat.setValueString(map);
-							logger.warn(outputFormat.loggerOut());
+							if (requestTransfer.normalInfoAsWarn) {
+								logger.warn(outputFormat.loggerOut());
+							} else {
+								logger.info(outputFormat.loggerOut());
+							}
 							if (! OutputFormat.isQuiet()) {
 								outputFormat.sysout();
 							}
@@ -834,7 +855,11 @@ public class RequestTransfer implements Runnable {
 				outputFormat.setValue(FIELDS.remote.name(), rhost);
 				Map<String, String> map = DbTaskRunner.getMapFromRunner(result.runner);
 				outputFormat.setValueString(map);
-				logger.warn(outputFormat.loggerOut());
+				if (requestTransfer.normalInfoAsWarn) {
+					logger.warn(outputFormat.loggerOut());
+				} else {
+					logger.info(outputFormat.loggerOut());
+				}
 				if (! OutputFormat.isQuiet()) {
 					outputFormat.sysout();
 				}

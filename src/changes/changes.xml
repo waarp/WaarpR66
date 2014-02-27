@@ -5,7 +5,31 @@
 		<author email="waarp1 at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
-	    <release version="2.4.24" date="2014-01-05" description="Fix release">
+        <release version="2.4.25" date="2014-03-01" description="Fix release">
+            <action dev="Frederic Bregier" type="fix">Fix exception handling and future handling in SpooledDirectoryTransfer</action>
+            <action dev="Frederic Bregier" type="fix">Improve logging in SpooledDirectory and LocalClientHandler</action>
+            <action dev="Frederic Bregier" type="fix">Fix ConstraintLimitHandler default value</action>
+            <action dev="Frederic Bregier" type="fix">Fix Thread deadlock when database connectivity testing</action>
+            <action dev="Frederic Bregier" type="fix">Fix initialization of SpooledDirectory (limitParallel)</action>
+            <action dev="Frederic Bregier" type="add">Improve SpooledDirectory startup checking for another same SpooledDirectory daemon already running</action>
+            <action dev="Frederic Bregier" type="add">Improve SpooledDirectory by adding minimalSize option to control file candidat</action>
+            <action dev="Frederic Bregier" type="add">Allow nul size file transfer</action>
+            <action dev="Frederic Bregier" type="add">UNZEROED task allow to specify which content will be added if nul size</action>
+            <action dev="Frederic Bregier" type="fix">Fix comment not taken into account in Administration web interface for Rules</action>
+            <action dev="Frederic Bregier" type="fix">Fix concurrency in data access (using when possible a Concurrent data structure)</action>
+            <action dev="Frederic Bregier" type="fix">Removing useless "volatile" keyword</action>
+            <action dev="Frederic Bregier" type="fix">Splitting protocol in multiple methods and objects to make it clearer</action>
+            <action dev="Frederic Bregier" type="fix">Sharing most of the code between JSON and not JSON protocol</action>
+            <action dev="Frederic Bregier" type="add">Add JSON new message capabilities (Business, ShutdownOrBlock, ShutdownRequest, Information, TransferRequest)</action>
+            <action dev="Frederic Bregier" type="add">Prepare to REST interface</action>
+            <action dev="Frederic Bregier" type="add">Add logWarn|nologWarn option to all Transfer requests and SpooledDirectory</action>
+            <action dev="Frederic Bregier" type="add">Add logging of server of global information in fixed rate time processus</action>
+            <action dev="Frederic Bregier" type="fix">Fix Network and Local transactions model to improve stability and maintainability</action>
+            <action dev="Frederic Bregier" type="fix">DELETE task is in Warning not Error if the file cannot be deleted</action>
+            <action dev="Frederic Bregier" type="add">Fix filename length on receive part to default 255 (can be changed using -Dopenr66.filename.maxlength value)</action>
+            <action dev="Frederic Bregier" type="fix">Fix VARCHAR from 256 to 8096 (for Filename and OriginalFilename)</action>
+        </release>
+        <release version="2.4.24" date="2014-01-23" description="Fix release">
 			<action dev="Frederic Bregier" type="fix">Fix Space available not correctly computed with some JDK</action>
 			<action dev="Frederic Bregier" type="fix">Fix Web session not compatible with multiple waarp servers sharing the same IP</action>
 			<action dev="Frederic Bregier" type="fix">Fix information on SpooledDirectory (digest kept)</action>

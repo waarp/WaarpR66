@@ -61,6 +61,7 @@
 <MENU_INSERTION nom="realid"/>
 <MENU_INSERTION nom="aliasid"/>
 <MENU_INSERTION nom="stopfile"/>
+<MENU_INSERTION nom="logWarn"/>
 <MENU_INSERTION nom="spooled"/>
 <MENU_INSERTION nom="name"/>
 <MENU_INSERTION nom="to"/>
@@ -150,6 +151,7 @@
 <AFFICHAGE_ELEMENT type="typesimple" element="realid"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="aliasid"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="stopfile"/>
+<AFFICHAGE_ELEMENT type="typesimple" element="logWarn"/>
 <AFFICHAGE_ELEMENT type="zone" element="spooled"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="name"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="to"/>
@@ -509,6 +511,12 @@ The set of aliases assign to this host separated by '|' or blank space
 <DOCUMENTATION>
 The unique stop file
 					</DOCUMENTATION>
+</STRINGS_ELEMENT>
+<STRINGS_ELEMENT element="logWarn">
+<TITRE>logWarn</TITRE>
+<DOCUMENTATION>
+If True (default) will log as WARN level send and removed files, while False will log it as INFO level.
+                    </DOCUMENTATION>
 </STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="spooled">
 <TITRE>spooled</TITRE>
