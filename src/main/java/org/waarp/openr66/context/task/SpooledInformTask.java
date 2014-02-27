@@ -137,7 +137,7 @@ public class SpooledInformTask extends AbstractExecJavaTask {
 	}
 	
 	/**
-	 * @param detailed
+	 * @param name
 	 * @param uri
 	 * @return the StringBuilder containing the HTML format as a Table of the current Spooled information 
 	 */
@@ -166,7 +166,7 @@ public class SpooledInformTask extends AbstractExecJavaTask {
 	/**
 	 * @param detailed
 	 * @param uri
-	 * @return
+	 * @return the associated StringBuilder as temporary result
 	 */
 	private static StringBuilder beginSpooledTable(boolean detailed, String uri) {
 		StringBuilder builder = new StringBuilder();

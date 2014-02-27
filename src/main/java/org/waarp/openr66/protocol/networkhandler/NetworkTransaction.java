@@ -490,7 +490,7 @@ public class NetworkTransaction {
 	/**
 	 * Create the LocalChannelReference when a remote local channel starts its connection
 	 * 
-	 * @param channel
+	 * @param networkChannelReference
 	 * @param packet
 	 * @return the LocalChannelReference
 	 * @throws OpenR66ProtocolRemoteShutdownException
