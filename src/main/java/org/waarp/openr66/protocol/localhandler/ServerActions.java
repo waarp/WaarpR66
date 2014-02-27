@@ -997,16 +997,16 @@ public class ServerActions extends ServerHandler {
 	 */
 	private final void shutdownLocalChannel(Channel channel) {
 		session.setStatus(26);
+		logger.warn("Will Close Local from Network Channel since Remote shutdown received");
+		ChannelCloseTimer.closeFutureChannel(channel);
 		try {
 			Thread.sleep(Configuration.WAITFORNETOP * 2);
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
-		logger.warn("Will Close Local from Network Channel");
 		NetworkChannelReference ncr = localChannelReference.getNetworkChannelObject();
 		NetworkTransaction.shuttingDownNetworkChannel(ncr);
 		NetworkTransaction.shuttingdownNetworkChannelsPerHostID(ncr.getHostId());
-		ChannelCloseTimer.closeFutureChannel(channel);
 	}
 
 	/**

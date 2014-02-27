@@ -153,6 +153,7 @@ public class DirectTransfer extends AbstractTransfer {
 			DirectTransfer transaction = new DirectTransfer(future,
 					rhost, localFilename, rule, fileInfo, ismd5, block, idt,
 					networkTransaction);
+			transaction.normalInfoAsWarn = snormalInfoAsWarn;
 			logger.debug("rhost: "+rhost+":"+transaction.remoteHost);
 			transaction.run();
 			future.awaitUninterruptibly();
@@ -174,8 +175,14 @@ public class DirectTransfer extends AbstractTransfer {
 				outputFormat.setValueString(map);
 				outputFormat.setValue("filefinal", (result.file != null ? result.file.toString() : "no file"));
 				outputFormat.setValue("delay", delay);
-				logger.warn(outputFormat.loggerOut());
-				outputFormat.sysout();
+				if (transaction.normalInfoAsWarn) {
+					logger.warn(outputFormat.loggerOut());
+				} else {
+					logger.info(outputFormat.loggerOut());
+				}
+				if (! OutputFormat.isQuiet()) {
+					outputFormat.sysout();
+				}
 				if (nolog || result.runner.shallIgnoreSave()) {
 					// In case of success, delete the runner
 					try {
@@ -192,7 +199,9 @@ public class DirectTransfer extends AbstractTransfer {
 					outputFormat.setValue(FIELDS.remote.name(), rhost);
 					logger.error(outputFormat.loggerOut(), future.getCause());
 					outputFormat.setValue(FIELDS.error.name(), future.getCause().getMessage());
-					outputFormat.sysout();
+					if (! OutputFormat.isQuiet()) {
+						outputFormat.sysout();
+					}
 					networkTransaction.closeAll();
 					System.exit(ErrorCode.Unknown.ordinal());
 				}
@@ -212,7 +221,9 @@ public class DirectTransfer extends AbstractTransfer {
 					logger.error(outputFormat.loggerOut(), future.getCause());
 				}
 				outputFormat.setValue(FIELDS.error.name(), future.getCause().getMessage());
-				outputFormat.sysout();
+				if (! OutputFormat.isQuiet()) {
+					outputFormat.sysout();
+				}
 				networkTransaction.closeAll();
 				System.exit(result.code.ordinal());
 			}

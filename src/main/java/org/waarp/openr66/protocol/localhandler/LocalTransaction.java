@@ -282,6 +282,7 @@ public class LocalTransaction {
 	 * Informs all remote client that the server is shutting down
 	 */
 	public void shutdownLocalChannels() {
+		logger.warn("Will inform LocalChannels of Shutdown: " + localChannelHashMap.size());
 		Collection<LocalChannelReference> collection = localChannelHashMap.values();
 		Iterator<LocalChannelReference> iterator = collection.iterator();
 		ValidPacket packet = new ValidPacket("Shutdown forced", null,
@@ -289,7 +290,7 @@ public class LocalTransaction {
 		ChannelBuffer buffer = null;
 		while (iterator.hasNext()) {
 			LocalChannelReference localChannelReference = iterator.next();
-			logger.debug("Inform Shutdown {}", localChannelReference);
+			logger.info("Inform Shutdown {}", localChannelReference);
 			packet.setSmiddle(null);
 			// If a transfer is running, save the current rank and inform remote
 			// host
@@ -306,6 +307,8 @@ public class LocalTransaction {
 						runner.saveStatus();
 					} catch (OpenR66RunnerErrorException e) {
 					}
+				}
+				if (runner != null && ! runner.isFinished()) {
 					R66Result result = new R66Result(
 							new OpenR66ProtocolShutdownException(), session,
 							true, ErrorCode.Shutdown, runner);
@@ -314,8 +317,7 @@ public class LocalTransaction {
 						buffer = packet.getLocalPacket(localChannelReference);
 					} catch (OpenR66ProtocolPacketException e1) {
 					}
-					localChannelReference
-							.sessionNewState(R66FiniteDualStates.SHUTDOWN);
+					localChannelReference.sessionNewState(R66FiniteDualStates.SHUTDOWN);
 					NetworkPacket message = new NetworkPacket(
 							localChannelReference.getLocalId(),
 							localChannelReference.getRemoteId(),

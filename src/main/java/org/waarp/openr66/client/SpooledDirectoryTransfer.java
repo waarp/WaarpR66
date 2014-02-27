@@ -86,6 +86,7 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * -sequential to not allow parallelism between send actions and information<br>
  * -limitParallel limit to specify the number of concurrent actions in -direct mode only<br>
  * -minimalSize limit to specify the minimal size of each file that will be transferred (default: no limit)<br>
+ * -notlogWarn | -logWarn to deactivate or activate (default) the logging in Warn mode of Send/Remove information of the spool<br>
  * 
  * @author Frederic Bregier
  * 
@@ -410,6 +411,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 							SubmitTransfer transaction = new SubmitTransfer(future,
 									host, filename, rulename, fileinfo, isMD5, blocksize, 
 									specialId, null);
+							transaction.normalInfoAsWarn = logWarn;
 							logger.info(text+host);
 							transaction.run();
 						} else {
@@ -452,6 +454,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 									DirectTransfer transaction = new DirectTransfer(future,
 											host, filename, rulename, fileinfo, isMD5, blocksize, 
 											DbConstant.ILLEGALVALUE, networkTransaction);
+									transaction.normalInfoAsWarn = logWarn;
 									logger.info(text+host);
 									transaction.run();
 								}
@@ -460,6 +463,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 								DirectTransfer transaction = new DirectTransfer(future,
 										host, filename, rulename, fileinfo, isMD5, blocksize,
 										specialId, networkTransaction);
+								transaction.normalInfoAsWarn = logWarn;
 								logger.info(text+host);
 								transaction.run();
 							}
@@ -528,6 +532,10 @@ public class SpooledDirectoryTransfer implements Runnable {
 							ko++;
 							DbTaskRunner runner = null;
 							if (r66result != null) {
+								String errMsg = "Unknown Error Message";
+								if (future.getCause() != null) {
+									errMsg = future.getCause().getMessage();
+								}
 								runner = r66result.runner;
 								if (runner != null) {
 									specialId = runner.getSpecialId();
@@ -536,7 +544,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 									}
 									logger.error(text+Messages.getString("RequestInformation.Failure") +  //$NON-NLS-1$
 											runner.toShortString() +
-										"<REMOTE>" + host + "</REMOTE>", future.getCause());
+										"<REMOTE>" + host + "</REMOTE><REASON>" +errMsg+"</REASON>");
 								} else {
 									logger.error(text+Messages.getString("RequestInformation.Failure"),  //$NON-NLS-1$
 											future.getCause());

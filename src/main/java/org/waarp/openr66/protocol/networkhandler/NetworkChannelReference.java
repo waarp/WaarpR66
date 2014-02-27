@@ -92,6 +92,13 @@ public class NetworkChannelReference {
 		this.hostAddress = ((InetSocketAddress) this.networkAddress).getAddress().getHostAddress();
 		this.lock = lock;
 	}
+	
+	public NetworkChannelReference(SocketAddress address, ReentrantLock lock) {
+		this.channel = null;
+		this.networkAddress = address;
+		this.hostAddress = ((InetSocketAddress) this.networkAddress).getAddress().getHostAddress();
+		this.lock = lock;
+	}
 
 	public void add(LocalChannelReference localChannel)
 			throws OpenR66ProtocolRemoteShutdownException {
@@ -183,14 +190,17 @@ public class NetworkChannelReference {
 	
 	@Override
 	public String toString() {
-		return "NC: " + hostId+":"+ channel.isConnected() + " " +
-				channel.getRemoteAddress() + " Count: " + localChannelReferences.size();
+		return "NC: " + hostId+":"+ (channel != null ? channel.isConnected() : false) + " " +
+				networkAddress + " Count: " + localChannelReferences.size();
 	}
 
 	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof NetworkChannelReference) {
 			NetworkChannelReference obj2 = (NetworkChannelReference) obj;
+			if (obj2.channel == null || this.channel == null) {
+				return false;
+			}
 			return (obj2.channel.getId().compareTo(this.channel.getId()) == 0);
 		}
 		return false;
@@ -198,6 +208,9 @@ public class NetworkChannelReference {
 
 	@Override
 	public int hashCode() {
+		if (this.channel == null) {
+			return Integer.MIN_VALUE;
+		}
 		return this.channel.getId();
 	}
 

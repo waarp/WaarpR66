@@ -144,6 +144,7 @@ public class SubmitTransfer extends AbstractTransfer {
 		SubmitTransfer transaction = new SubmitTransfer(future,
 				rhost, localFilename, rule, fileInfo, ismd5, block, idt,
 				ttimestart);
+		transaction.normalInfoAsWarn = snormalInfoAsWarn;
 		transaction.run();
 		future.awaitUninterruptibly();
 		DbTaskRunner runner = future.getResult().runner;
@@ -154,8 +155,14 @@ public class SubmitTransfer extends AbstractTransfer {
 			outputFormat.setValue(FIELDS.remote.name(), rhost);
 			Map<String, String> map = DbTaskRunner.getMapFromRunner(runner);
 			outputFormat.setValueString(map);
-			logger.warn(outputFormat.loggerOut());
-			outputFormat.sysout();
+			if (transaction.normalInfoAsWarn) {
+				logger.warn(outputFormat.loggerOut());
+			} else {
+				logger.info(outputFormat.loggerOut());
+			}
+			if (! OutputFormat.isQuiet()) {
+				outputFormat.sysout();
+			}
 		} else {
 			outputFormat.setValue(FIELDS.status.name(), 2);
 			if (runner == null) {
@@ -171,7 +178,9 @@ public class SubmitTransfer extends AbstractTransfer {
 			if (future.getCause() != null) {
 				outputFormat.setValue(FIELDS.error.name(), future.getCause().getMessage());
 			}
-			outputFormat.sysout();
+			if (! OutputFormat.isQuiet()) {
+				outputFormat.sysout();
+			}
 			DbConstant.admin.close();
 			ChannelUtils.stopLogger();
 			System.exit(future.getResult().code.ordinal());

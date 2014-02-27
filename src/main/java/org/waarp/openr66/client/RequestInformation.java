@@ -275,7 +275,9 @@ public class RequestInformation implements Runnable {
 					}
 				}
 				logger.warn(outputFormat.loggerOut());
-				outputFormat.sysout();
+				if (! OutputFormat.isQuiet()) {
+					outputFormat.sysout();
+				}
 			} else {
 				value = 2;
 				outputFormat.setValue(FIELDS.status.name(), 2);
@@ -283,7 +285,9 @@ public class RequestInformation implements Runnable {
 				outputFormat.setValue(FIELDS.remote.name(), srequested);
 				outputFormat.setValue(FIELDS.error.name(), result.getResult().toString());
 				logger.error(outputFormat.loggerOut());
-				outputFormat.sysout();
+				if (! OutputFormat.isQuiet()) {
+					outputFormat.sysout();
+				}
 			}
 		} catch (Throwable e) {
 			logger.error("Exception", e);

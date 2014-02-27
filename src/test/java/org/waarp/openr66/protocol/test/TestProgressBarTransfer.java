@@ -109,6 +109,7 @@ public class TestProgressBarTransfer extends ProgressBarTransfer {
 			TestProgressBarTransfer transaction = new TestProgressBarTransfer(future,
 					rhost, localFilename, rule, fileInfo, ismd5, block, idt,
 					networkTransaction, 100);
+			transaction.normalInfoAsWarn = snormalInfoAsWarn;
 			transaction.run();
 			future.awaitUninterruptibly();
 			long time2 = System.currentTimeMillis();

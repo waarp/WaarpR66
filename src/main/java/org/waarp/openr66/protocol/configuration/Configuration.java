@@ -595,6 +595,8 @@ public class Configuration {
 	
 	public boolean blacklistBadAuthent = false;
 	
+	public int maxfilenamelength = 200;
+	
 	public Configuration() {
 		// Init signal handler
 		shutdownConfiguration.timeout = TIMEOUTCON;
@@ -611,6 +613,7 @@ public class Configuration {
 		warnOnStartup = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_STARTUP_WARNING, true);
 		chrootChecked = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_CHROOT_CHECKED, true);
 		blacklistBadAuthent = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_BLACKLIST_BADAUTHENT, true);
+		maxfilenamelength = SystemPropertyUtil.getInt(R66SystemProperties.OPENR66_FILENAME_MAXLENGTH, 200);
 		if (isHostProxyfied) {
 			blacklistBadAuthent = false;
 		}

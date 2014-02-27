@@ -200,7 +200,7 @@ public class ClientRunner extends Thread {
 	 * @param limit
 	 * @return True if the task was run less than limit, else False
 	 */
-	public boolean incrementTaskRunerTry(DbTaskRunner runner, int limit) {
+	public boolean incrementTaskRunnerTry(DbTaskRunner runner, int limit) {
 		String key = runner.getKey();
 		Integer tries = taskRunnerRetryHashMap.get(key);
 		logger.debug("try to find integer: " + tries);
@@ -267,7 +267,7 @@ public class ClientRunner extends Thread {
 		if (this.localChannelReference == null) {
 			this.localChannelReference = localChannelReference;
 		}
-		boolean incRetry = incrementTaskRunerTry(taskRunner,
+		boolean incRetry = incrementTaskRunnerTry(taskRunner,
 				Configuration.RETRYNB);
 		logger.debug("tryAgainTransferOnOverloaded: " + retry + ":" + incRetry);
 		switch (taskRunner.getUpdatedInfo()) {
@@ -460,12 +460,11 @@ public class ClientRunner extends Thread {
 		LocalChannelReference localChannelReference = networkTransaction
 				.createConnectionWithRetry(socketAddress, isSSL, futureRequest);
 		taskRunner.setLocalChannelReference(localChannelReference);
-		socketAddress = null;
 		if (localChannelReference == null) {
 			// propose to redo
 			// See if reprogramming is ok (not too many tries)
 			String retry;
-			if (incrementTaskRunerTry(taskRunner, Configuration.RETRYNB)) {
+			if (incrementTaskRunnerTry(taskRunner, Configuration.RETRYNB)) {
 				logger.debug("Will retry since Cannot connect to {}", host);
 				retry = " but will retry";
 				// now wait
@@ -496,10 +495,13 @@ public class ClientRunner extends Thread {
 						ErrorCode.ConnectionImpossible, true);
 				taskRunner
 						.setLocalChannelReference(new LocalChannelReference());
+				// set this server as being in shutdown status
+				NetworkTransaction.proposeShutdownNetworkChannel(socketAddress);
 				throw new OpenR66ProtocolNoConnectionException(
 						"Cannot connect to server " + host.toString() + retry);
 			}
 		}
+		socketAddress = null;
 		if (handler != null) {
 			localChannelReference.setRecvThroughHandler(handler);
 		}

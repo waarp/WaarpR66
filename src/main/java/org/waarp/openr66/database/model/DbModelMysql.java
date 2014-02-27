@@ -455,7 +455,38 @@ public class DbModelMysql extends org.waarp.common.database.model.DbModelMysql {
 				request.close();
 			}
 		}
-		DbHostConfiguration.updateVersionDb(session, Configuration.configuration.HOST_ID, R66Versions.V2_4_23.getVersion());
+		if (PartnerConfiguration.isVersion2GTVersion1(version, R66Versions.V2_4_25.getVersion())) {
+			System.out.println(version+" to "+R66Versions.V2_4_25.getVersion()+"? "+true);
+			String command = "ALTER TABLE "+DbTaskRunner.table+" MODIFY "+
+				DbTaskRunner.Columns.FILENAME.name()+ " "+
+				DBType.getType(DbTaskRunner.dbTypes[DbTaskRunner.Columns.FILENAME.ordinal()]) + 
+				" NOT NULL ";
+			DbRequest request = new DbRequest(session);
+			try {
+				System.out.println("Command: "+command);
+				request.query(command);
+			} catch (WaarpDatabaseSqlException e) {
+				e.printStackTrace();
+				return false;
+			} finally {
+				request.close();
+			}
+			command = "ALTER TABLE "+DbTaskRunner.table+" MODIFY "+
+					DbTaskRunner.Columns.ORIGINALNAME.name()+ " "+
+					DBType.getType(DbTaskRunner.dbTypes[DbTaskRunner.Columns.ORIGINALNAME.ordinal()]) + 
+					" NOT NULL ";
+			request = new DbRequest(session);
+			try {
+				System.out.println("Command: "+command);
+				request.query(command);
+			} catch (WaarpDatabaseSqlException e) {
+				e.printStackTrace();
+				return false;
+			} finally {
+				request.close();
+			}
+		}
+		DbHostConfiguration.updateVersionDb(session, Configuration.configuration.HOST_ID, R66Versions.V2_4_25.getVersion());
 		return true;
 	}
 	
@@ -508,6 +539,17 @@ public class DbModelMysql extends org.waarp.common.database.model.DbModelMysql {
 				if (request != null) {
 					request.close();
 				}
+			}
+		}
+		request = null;
+		if (PartnerConfiguration.isVersion2GTVersion1(version, R66Versions.V2_4_25.getVersion())) {
+			try {
+				if (upgradeDb(session, version)) {
+					DbHostConfiguration.updateVersionDb(session, Configuration.configuration.HOST_ID, R66Versions.V2_4_25.getVersion());
+				} else {
+					return true;
+				}
+			} finally {
 			}
 		}
 		return false;

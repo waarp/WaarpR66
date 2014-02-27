@@ -657,7 +657,9 @@ public class RequestTransfer implements Runnable {
 						Map<String, String> map = DbTaskRunner.getMapFromRunner(result.runner);
 						outputFormat.setValueString(map);
 						logger.warn(outputFormat.loggerOut());
-						outputFormat.sysout();
+						if (! OutputFormat.isQuiet()) {
+							outputFormat.sysout();
+						}
 					} else {
 						Map<String, String> map = DbTaskRunner.getMapFromRunner(result.runner);
 						switch (finalValue.code) {
@@ -668,7 +670,9 @@ public class RequestTransfer implements Runnable {
 								outputFormat.setValue(FIELDS.remote.name(), rhost);
 								outputFormat.setValueString(map);
 								logger.warn(outputFormat.loggerOut());
-								outputFormat.sysout();
+								if (! OutputFormat.isQuiet()) {
+									outputFormat.sysout();
+								}
 								break;
 							case TransferOk:
 								value = 3;
@@ -677,7 +681,9 @@ public class RequestTransfer implements Runnable {
 								outputFormat.setValue(FIELDS.remote.name(), rhost);
 								outputFormat.setValueString(map);
 								logger.warn(outputFormat.loggerOut());
-								outputFormat.sysout();
+								if (! OutputFormat.isQuiet()) {
+									outputFormat.sysout();
+								}
 								break;
 							default:
 								value = 4;
@@ -689,7 +695,9 @@ public class RequestTransfer implements Runnable {
 									outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
 								}
 								logger.error(outputFormat.loggerOut());
-								outputFormat.sysout();
+								if (! OutputFormat.isQuiet()) {
+									outputFormat.sysout();
+								}
 								break;
 						}
 					}
@@ -703,7 +711,9 @@ public class RequestTransfer implements Runnable {
 							outputFormat.setValue(FIELDS.remote.name(), rhost);
 							outputFormat.setValueString(map);
 							logger.warn(outputFormat.loggerOut());
-							outputFormat.sysout();
+							if (! OutputFormat.isQuiet()) {
+								outputFormat.sysout();
+							}
 							break;
 						case TransferOk:
 							value = 0;
@@ -712,7 +722,9 @@ public class RequestTransfer implements Runnable {
 							outputFormat.setValue(FIELDS.remote.name(), rhost);
 							outputFormat.setValueString(map);
 							logger.warn(outputFormat.loggerOut());
-							outputFormat.sysout();
+							if (! OutputFormat.isQuiet()) {
+								outputFormat.sysout();
+							}
 							break;
 						default:
 							value = 3;
@@ -724,7 +736,9 @@ public class RequestTransfer implements Runnable {
 								outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
 							}
 							logger.warn(outputFormat.loggerOut());
-							outputFormat.sysout();
+							if (! OutputFormat.isQuiet()) {
+								outputFormat.sysout();
+							}
 							break;
 					}
 				} else if (srestart) {
@@ -737,7 +751,9 @@ public class RequestTransfer implements Runnable {
 							outputFormat.setValue(FIELDS.remote.name(), rhost);
 							outputFormat.setValueString(map);
 							logger.warn(outputFormat.loggerOut());
-							outputFormat.sysout();
+							if (! OutputFormat.isQuiet()) {
+								outputFormat.sysout();
+							}
 							break;
 						case Running:
 							value = 0;
@@ -746,7 +762,9 @@ public class RequestTransfer implements Runnable {
 							outputFormat.setValue(FIELDS.remote.name(), rhost);
 							outputFormat.setValueString(map);
 							logger.warn(outputFormat.loggerOut());
-							outputFormat.sysout();
+							if (! OutputFormat.isQuiet()) {
+								outputFormat.sysout();
+							}
 							break;
 						case PreProcessingOk:
 							value = 0;
@@ -755,7 +773,9 @@ public class RequestTransfer implements Runnable {
 							outputFormat.setValue(FIELDS.remote.name(), rhost);
 							outputFormat.setValueString(map);
 							logger.warn(outputFormat.loggerOut());
-							outputFormat.sysout();
+							if (! OutputFormat.isQuiet()) {
+								outputFormat.sysout();
+							}
 							break;
 						case CompleteOk:
 							value = 4;
@@ -764,7 +784,9 @@ public class RequestTransfer implements Runnable {
 							outputFormat.setValue(FIELDS.remote.name(), rhost);
 							outputFormat.setValueString(map);
 							logger.warn(outputFormat.loggerOut());
-							outputFormat.sysout();
+							if (! OutputFormat.isQuiet()) {
+								outputFormat.sysout();
+							}
 							break;
 						case RemoteError:
 							value = 5;
@@ -773,7 +795,9 @@ public class RequestTransfer implements Runnable {
 							outputFormat.setValue(FIELDS.remote.name(), rhost);
 							outputFormat.setValueString(map);
 							logger.warn(outputFormat.loggerOut());
-							outputFormat.sysout();
+							if (! OutputFormat.isQuiet()) {
+								outputFormat.sysout();
+							}
 							break;
 						case PassThroughMode:
 							value = 6;
@@ -782,7 +806,9 @@ public class RequestTransfer implements Runnable {
 							outputFormat.setValue(FIELDS.remote.name(), rhost);
 							outputFormat.setValueString(map);
 							logger.warn(outputFormat.loggerOut());
-							outputFormat.sysout();
+							if (! OutputFormat.isQuiet()) {
+								outputFormat.sysout();
+							}
 							break;
 						default:
 							value = 3;
@@ -794,7 +820,9 @@ public class RequestTransfer implements Runnable {
 								outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
 							}
 							logger.warn(outputFormat.loggerOut());
-							outputFormat.sysout();
+							if (! OutputFormat.isQuiet()) {
+								outputFormat.sysout();
+							}
 							break;
 					}
 				}
@@ -807,7 +835,9 @@ public class RequestTransfer implements Runnable {
 				Map<String, String> map = DbTaskRunner.getMapFromRunner(result.runner);
 				outputFormat.setValueString(map);
 				logger.warn(outputFormat.loggerOut());
-				outputFormat.sysout();
+				if (! OutputFormat.isQuiet()) {
+					outputFormat.sysout();
+				}
 			}
 		} finally {
 			if (DbConstant.admin != null) {

@@ -399,12 +399,13 @@ public class LocalChannelReference {
 		R66Result result;
 		try {
 			for (int i = 0; i < Configuration.RETRYNB; i++) {
-				if (this.networkChannelRef.getChannel().isConnected()) {
+				Channel channel = this.networkChannelRef.getChannel();
+				if (channel != null && channel.isConnected()) {
 					if (!futureConnection.await(Configuration.configuration.TIMEOUTCON)) {
 						if (futureConnection.isDone()) {
 							return futureConnection;
 						} else {
-							if (this.networkChannelRef.getChannel().isConnected()) {
+							if (channel.isConnected()) {
 								continue;
 							}
 							result = new R66Result(

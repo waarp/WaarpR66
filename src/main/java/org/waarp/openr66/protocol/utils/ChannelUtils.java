@@ -400,8 +400,7 @@ public class ChannelUtils extends Thread {
 		final long delay = Configuration.configuration.TIMEOUTCON;
 		// Inform others that shutdown
 		if (Configuration.configuration.getLocalTransaction() != null) {
-			Configuration.configuration.getLocalTransaction()
-				.shutdownLocalChannels();
+			Configuration.configuration.getLocalTransaction().shutdownLocalChannels();
 		}
 		logger.info("Unbind server network services");
 		Configuration.configuration.unbindServer();

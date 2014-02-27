@@ -213,6 +213,9 @@ public class NetworkTransaction {
 	private static final NetworkChannelReference getNCR(SocketAddress sa) {
 		return networkChannelOnSocketAddressConcurrentHashMap.get(sa.hashCode());
 	}
+	private static final boolean containsNCR(SocketAddress address) {
+		return networkChannelOnSocketAddressConcurrentHashMap.containsKey(address.hashCode());
+	}
 	private static final void addShutdownNCR(NetworkChannelReference ncr) {
 		networkChannelShutdownOnSocketAddressConcurrentHashMap.put(ncr.getSocketHashCode(), ncr);
 	}
@@ -221,6 +224,9 @@ public class NetworkTransaction {
 	}
 	private static final boolean containsShutdownNCR(NetworkChannelReference ncr) {
 		return networkChannelShutdownOnSocketAddressConcurrentHashMap.containsKey(ncr.getSocketHashCode());
+	}
+	private static final boolean containsShutdownNCR(SocketAddress sa) {
+		return networkChannelShutdownOnSocketAddressConcurrentHashMap.containsKey(sa.hashCode());
 	}
 	private static final NetworkChannelReference getShutdownNCR(SocketAddress sa) {
 		return networkChannelShutdownOnSocketAddressConcurrentHashMap.get(sa.hashCode());
@@ -233,6 +239,9 @@ public class NetworkTransaction {
 	}
 	private static final boolean containsBlacklistNCR(NetworkChannelReference ncr) {
 		return networkChannelBlacklistedOnInetSocketAddressConcurrentHashMap.containsKey(ncr.getAddressHashCode());
+	}
+	private static final boolean containsBlacklistNCR(SocketAddress address) {
+		return networkChannelBlacklistedOnInetSocketAddressConcurrentHashMap.containsKey(address.hashCode());
 	}
 	private static final NetworkChannelReference getBlacklistNCR(SocketAddress sa) {
 		return networkChannelBlacklistedOnInetSocketAddressConcurrentHashMap.get(((InetSocketAddress) sa).getAddress().getHostAddress().hashCode());
@@ -301,7 +310,7 @@ public class NetworkTransaction {
 				lastException = e1;
 				localChannelReference = null;
 				try {
-					Thread.sleep(Configuration.WAITFORNETOP);
+					Thread.sleep(Configuration.configuration.delayRetry);
 				} catch (InterruptedException e) {
 					break;
 				}
@@ -609,6 +618,46 @@ public class NetworkTransaction {
 			return nc;
 		} finally {
 			socketLock.unlock();
+		}
+	}
+	
+	/**
+	 * To be called when a remote server seems to be down for a while, so to not retry immediately
+	 * @param socketAddress
+	 */
+	public static void proposeShutdownNetworkChannel(SocketAddress socketAddress) {
+		ReentrantLock lock = getChannelLock(socketAddress);
+		lock.lock();
+		try {
+			logger.info("Seem Shutdown: {}", socketAddress);
+			if (containsShutdownNCR(socketAddress)) {
+				// already done
+				logger.debug("Already set as shutdown");
+				return;
+			}
+			if (containsBlacklistNCR(socketAddress)) {
+				// already done
+				logger.debug("Already set as blocked");
+				return;
+			}
+			if (containsNCR(socketAddress)) {
+				// already done
+				logger.debug("Still existing so shutdown is refused");
+				return;
+			}
+			logger.warn("This host address will be set as unavailable for 3xTIMEOUT: {}", socketAddress);
+			NetworkChannelReference networkChannelReference = new NetworkChannelReference(socketAddress, lock);
+			addShutdownNCR(networkChannelReference);
+			R66ShutdownNetworkChannelTimerTask timerTask;
+			try {
+				timerTask = new R66ShutdownNetworkChannelTimerTask(networkChannelReference, false);
+				Configuration.configuration.getTimerClose().newTimeout(timerTask,
+						Configuration.configuration.TIMEOUTCON * 3, TimeUnit.MILLISECONDS);
+			} catch (OpenR66RunnerErrorException e) {
+				// ignore
+			}
+		} finally {
+			lock.unlock();
 		}
 	}
 
@@ -1014,7 +1063,7 @@ public class NetworkTransaction {
 					throw new OpenR66RunnerErrorException("Already scheduled");
 				}
 			} else {
-				if (!inShutdownRunning.add(ncr.channel.getId())) {
+				if (ncr.channel != null && !inShutdownRunning.add(ncr.channel.getId())) {
 					throw new OpenR66RunnerErrorException("Already scheduled");
 				}
 			}
@@ -1034,7 +1083,9 @@ public class NetworkTransaction {
 				WaarpSslUtility.closingSslChannel(ncr.channel);
 			}
 			removeShutdownNCR(ncr);
-			inShutdownRunning.remove(ncr.channel.getId());
+			if (ncr.channel != null) {
+				inShutdownRunning.remove(ncr.channel.getId());
+			}
 		}
 	}
 	

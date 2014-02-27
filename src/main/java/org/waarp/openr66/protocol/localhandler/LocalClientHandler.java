@@ -136,8 +136,11 @@ public class LocalClientHandler extends SimpleChannelHandler {
 			if (exception != null) {
 				if (exception instanceof OpenR66ProtocolShutdownException) {
 					ChannelUtils.startShutdown();
+					/*
+					 * Dont close, thread will do
 					logger.debug("Will close channel");
 					Channels.close(e.getChannel());
+					 */
 					return;
 				} else if (exception instanceof OpenR66ProtocolBusinessNoWriteBackException) {
 					logger.error("Will close channel", exception);

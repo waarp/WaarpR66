@@ -60,5 +60,9 @@ public class R66SystemProperties {
 	 * Note that this must not be true if several partners might have the same IP (proxyfied for instance), since they will all be banned.
 	 */
 	public static final String OPENR66_BLACKLIST_BADAUTHENT = "openr66.blacklist.badauthent";
+	/**
+	 * Filename max length (default = 200), only for Basename (not full path)
+	 */
+	public static final String OPENR66_FILENAME_MAXLENGTH = "openr66.filename.maxlength";
 
 }
