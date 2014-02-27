@@ -572,7 +572,7 @@ public class NetworkTransaction {
 					new OpenR66ProtocolSystemException(
 							"Out of time or Connection invalid during Authentication"),
 					localChannelReference.getSession(), true, ErrorCode.ConnectionImpossible, null);
-			logger.warn("Authent is Invalid due to: {} {}", finalValue.exception.getMessage(),
+			logger.info("Authent is Invalid due to: {} {}", finalValue.exception.getMessage(),
 					future.toString());
 			localChannelReference.invalidateRequest(finalValue);
 			if (localChannelReference.getRemoteId() != ChannelUtils.NOCHANNEL) {

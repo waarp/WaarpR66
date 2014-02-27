@@ -538,18 +538,32 @@ public class SpooledDirectoryTransfer implements Runnable {
 								if (future.getCause() != null) {
 									errMsg = future.getCause().getMessage();
 								}
+								boolean isConnectionImpossible = (r66result.code == ErrorCode.ConnectionImpossible) && ! normalInfoAsWarn;
 								runner = r66result.runner;
 								if (runner != null) {
 									specialId = runner.getSpecialId();
 									if (! DbConstant.admin.isConnected) {
 										specialId = DbConstant.ILLEGALVALUE;
 									}
-									logger.error(text+Messages.getString("RequestInformation.Failure") +  //$NON-NLS-1$
+									if (isConnectionImpossible) {
+										logger.info(text+Messages.getString("RequestInformation.Failure") +  //$NON-NLS-1$
+												runner.toShortString() +
+												"<REMOTE>" + host + "</REMOTE><REASON>" +errMsg+"</REASON>");
+									} else {
+										logger.error(text+Messages.getString("RequestInformation.Failure") +  //$NON-NLS-1$
 											runner.toShortString() +
-										"<REMOTE>" + host + "</REMOTE><REASON>" +errMsg+"</REASON>");
+											"<REMOTE>" + host + "</REMOTE><REASON>" +errMsg+"</REASON>");
+									}
 								} else {
-									logger.error(text+Messages.getString("RequestInformation.Failure"),  //$NON-NLS-1$
+									if (isConnectionImpossible) {
+										logger.info(text+Messages.getString("RequestInformation.Failure") +  //$NON-NLS-1$
+												"<REMOTE>" + host + "</REMOTE>",
 											future.getCause());
+									} else {
+										logger.error(text+Messages.getString("RequestInformation.Failure") +  //$NON-NLS-1$
+												"<REMOTE>" + host + "</REMOTE>",
+												future.getCause());
+									}
 								}
 							} else {
 								logger.error(text+Messages.getString("RequestInformation.Failure") //$NON-NLS-1$

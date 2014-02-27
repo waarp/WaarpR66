@@ -430,7 +430,7 @@ public class LocalChannelReference {
 			validateConnection(false, result);
 			return futureConnection;
 		}
-		logger.warn("Cannot get Connection due to out of Time: {}", this);
+		logger.info("Cannot get Connection due to out of Time: {}", this);
 		result = new R66Result(
 				new OpenR66ProtocolNoConnectionException(
 						"Out of time"), session, false,
