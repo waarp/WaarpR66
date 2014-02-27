@@ -71,8 +71,8 @@ public class R66Dir extends FilesystemBasedDirImpl {
 			prename = "xx_" + prename;
 		}
 		String basename = R66File.getBasename(filename);
-		if (basename.length() > Configuration.configuration.maxfilenamelength) {
-			basename = basename.substring(basename.length() - Configuration.configuration.maxfilenamelength);
+		if (basename.length() > Configuration.configuration.maxfilenamelength - 55) {
+			basename = basename.substring(basename.length() - Configuration.configuration.maxfilenamelength + 55);
 		}
 		try {
 			file = File.createTempFile(prename, "_" + basename +

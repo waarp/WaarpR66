@@ -61,7 +61,9 @@ public class R66SystemProperties {
 	 */
 	public static final String OPENR66_BLACKLIST_BADAUTHENT = "openr66.blacklist.badauthent";
 	/**
-	 * Filename max length (default = 200), only for Basename (not full path)
+	 * Filename max length (default = 255), only for Basename (not full path).
+	 * to choose the default max filename length used when receiving a file (for the temporary filename and final filename). 
+	 * This does not prevent to change the filename after (and #ORIGINALFILENAME# does still contain the full filename, not truncated).
 	 */
 	public static final String OPENR66_FILENAME_MAXLENGTH = "openr66.filename.maxlength";
 
