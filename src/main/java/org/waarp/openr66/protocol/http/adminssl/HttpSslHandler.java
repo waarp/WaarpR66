@@ -18,7 +18,6 @@
 package org.waarp.openr66.protocol.http.adminssl;
 
 import java.io.IOException;
-import java.net.SocketAddress;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
@@ -120,17 +119,17 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 	private static final ConcurrentHashMap<String, DbSession> dbSessions = new ConcurrentHashMap<String, DbSession>();
 	private static final Random random = new Random();
 	
-	private volatile R66Session authentHttp = new R66Session();
+	private R66Session authentHttp = new R66Session();
 
-	private volatile HttpRequest request;
-	private volatile boolean newSession = false;
+	private HttpRequest request;
+	private boolean newSession = false;
 	private volatile Cookie admin = null;
 	private final StringBuilder responseContent = new StringBuilder();
-	private volatile String uriRequest;
-	private volatile Map<String, List<String>> params;
-	private volatile String lang = Messages.slocale;
-	private volatile boolean forceClose = false;
-	private volatile boolean shutdown = false;
+	private String uriRequest;
+	private Map<String, List<String>> params;
+	private String lang = Messages.slocale;
+	private boolean forceClose = false;
+	private boolean shutdown = false;
 
 	private static final String R66SESSION = "R66SESSION";
 	private static final String I18NEXT = "i18next";
@@ -239,15 +238,19 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 											// be divided by 4
 
 	/**
-	 * The Database connection attached to this NetworkChannel shared among all associated
+	 * The Database connection attached to this NetworkChannelReference shared among all associated
 	 * LocalChannels in the session
 	 */
-	private volatile DbSession dbSession = null;
+	private DbSession dbSession = null;
 	/**
 	 * Does this dbSession is private and so should be closed
 	 */
-	private volatile boolean isPrivateDbSession = false;
+	private boolean isPrivateDbSession = false;
 
+	public static String hashStatus() {
+		return "HttpSslHandler: [sessions: "+sessions.size()+" dbSessions: "+dbSessions.size()+"] ";
+	}
+	
 	private String readFileHeader(String filename) {
 		String value;
 		try {
@@ -935,7 +938,6 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					head = resetOptionHosts(head, "", "", ssl, isactive);
 					return head + body0 + body + body1 + end;
 				}
-				head = resetOptionHosts(head, host, addr, ssl, isactive);
                 int iport;
 				try {
 					iport = Integer.parseInt(port);
@@ -958,6 +960,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					head = resetOptionHosts(head, "", "", ssl, isactive);
 					return head + body0 + body + body1 + end;
 				}
+				head = resetOptionHosts(head, host, addr, ssl, isactive);
 				body = REQUEST.Hosts.readBody();
 				body = dbhost.toSpecializedHtml(authentHttp, body, false);
 			} else if ("Filter".equalsIgnoreCase(parm)) {
@@ -1010,7 +1013,6 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					head = resetOptionHosts(head, "", "", ssl, isactive);
 					return head + body0 + body + body1 + end;
 				}
-				head = resetOptionHosts(head, host, addr, ssl, isactive);
                 int iport;
 				try {
 					iport = Integer.parseInt(port);
@@ -1037,6 +1039,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					head = resetOptionHosts(head, "", "", ssl, isactive);
 					return head + body0 + body + body1 + end;
 				}
+				head = resetOptionHosts(head, host, addr, ssl, isactive);
 				body = REQUEST.Hosts.readBody();
 				body = dbhost.toSpecializedHtml(authentHttp, body, false);
 			} else if ("TestConn".equalsIgnoreCase(parm)) {
@@ -1064,6 +1067,7 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 						result, dbhost, packet);
 				transaction.run();
 				result.awaitUninterruptibly(Configuration.configuration.TIMEOUTCON);
+				head = resetOptionHosts(head, "", "", dbhost.isSsl(), dbhost.isActive());
 				body = REQUEST.Hosts.readBody();
 				if (result.isSuccess()) {
 					body = dbhost.toSpecializedHtml(authentHttp, body, false);
@@ -1093,14 +1097,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					return head + body0 + body + body1 + end;
 				}
 				body = REQUEST.Hosts.readBody();
-				boolean resultShutDown = false;
-				if (!dbhost.isClient()) {
-					SocketAddress socketAddress = dbhost.getSocketAddress();
-					resultShutDown =
-							NetworkTransaction.shuttingdownNetworkChannel(socketAddress, null);
-				}
-				resultShutDown = resultShutDown ||
-						NetworkTransaction.shuttingdownNetworkChannels(host);
+				boolean resultShutDown = NetworkTransaction.shuttingdownNetworkChannelsPerHostID(dbhost.getHostid());
+				head = resetOptionHosts(head, "", "", dbhost.isSsl(), dbhost.isActive());
 				if (resultShutDown) {
 					body = dbhost.toSpecializedHtml(authentHttp, body, false);
 					body += Messages.getString("HttpSslHandler.21"); //$NON-NLS-1$
@@ -1286,6 +1284,8 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					gmode = -1;
 				}
 				head = resetOptionRules(head, rule, tmode, gmode);
+				logger.debug("Recv UpdOrInsert: "+rule+":"+hostids+":"+tmode.ordinal()+":"+
+						recvp+":"+sendp+":"+archp+":"+workp+":"+rpre+":"+rpost+":"+rerr+":"+spre+":"+spost+":"+serr);
 				DbRule dbrule = new DbRule(dbSession, rule, hostids, tmode.ordinal(),
 						recvp, sendp, archp, workp, rpre, rpost, rerr, spre, spost, serr);
 				try {

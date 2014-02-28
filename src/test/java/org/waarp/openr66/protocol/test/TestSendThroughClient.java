@@ -158,6 +158,7 @@ public class TestSendThroughClient extends SendThroughClient {
 			TestSendThroughClient transaction = new TestSendThroughClient(future,
 					rhost, localFilename, rule, fileInfo, ismd5, block,
 					networkTransaction);
+			transaction.normalInfoAsWarn = snormalInfoAsWarn;
 			long time1 = System.currentTimeMillis();
 			if (!transaction.initiateRequest()) {
 				logger.error("Transfer in Error", future.getCause());

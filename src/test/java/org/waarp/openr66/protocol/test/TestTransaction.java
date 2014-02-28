@@ -30,11 +30,7 @@ import org.waarp.openr66.configuration.FileBasedConfiguration;
 import org.waarp.openr66.context.R66FiniteDualStates;
 import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.protocol.configuration.Configuration;
-import org.waarp.openr66.protocol.exception.OpenR66Exception;
-import org.waarp.openr66.protocol.exception.OpenR66ProtocolNetworkException;
-import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
-import org.waarp.openr66.protocol.exception.OpenR66ProtocolRemoteShutdownException;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 import org.waarp.openr66.protocol.localhandler.packet.TestPacket;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
@@ -73,33 +69,13 @@ public class TestTransaction implements Runnable {
 	}
 
 	public void run() {
-		LocalChannelReference localChannelReference = null;
-		OpenR66Exception lastException = null;
-		for (int i = 0; i < Configuration.RETRYNB; i++) {
-			try {
-				localChannelReference = networkTransaction
-						.createConnection(socketAddress, false, future);
-				break;
-			} catch (OpenR66ProtocolNetworkException e1) {
-				lastException = e1;
-				localChannelReference = null;
-			} catch (OpenR66ProtocolRemoteShutdownException e1) {
-				lastException = e1;
-				localChannelReference = null;
-				break;
-			} catch (OpenR66ProtocolNoConnectionException e1) {
-				lastException = e1;
-				localChannelReference = null;
-				break;
-			}
-		}
+		LocalChannelReference localChannelReference = networkTransaction
+				.createConnectionWithRetry(socketAddress, false, future);
 		if (localChannelReference == null) {
-			logger.error("Cannot connect: " + lastException.getMessage());
+			logger.error("Cannot connect: ", future.getCause());
 			future.setResult(null);
-			future.setFailure(lastException);
+			future.setFailure(future.getCause());
 			return;
-		} else if (lastException != null) {
-			logger.info("Connection retry since ", lastException);
 		}
 		localChannelReference.sessionNewState(R66FiniteDualStates.TEST);
 		try {

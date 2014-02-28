@@ -76,6 +76,7 @@ public class SpooledInformTask extends AbstractExecJavaTask {
 				try {
 					FileMonitorInformation fileMonitorInformation = 
 							JsonHandler.mapper.readValue(fullarg, FileMonitorInformation.class);
+					logger.info("Receive SpooledInform of size: "+fullarg.length()+" ("+fileMonitorInformation.fileItems.size()+")");
 					String host = this.session.getAuth().getUser();
 					synchronized (spooledInformationMap) {
 						SpooledInformation old = spooledInformationMap.put(fileMonitorInformation.name, new SpooledInformation(host, fileMonitorInformation));
@@ -91,11 +92,11 @@ public class SpooledInformTask extends AbstractExecJavaTask {
 						old = null;
 					}
 				} catch (JsonParseException e1) {
-					logger.warn("Cannot parse SpooledInformation", e1);
+					logger.warn("Cannot parse SpooledInformation: "+ fullarg +" "+ e1.getMessage());
 				} catch (JsonMappingException e1) {
-					logger.warn("Cannot parse SpooledInformation", e1);
+					logger.warn("Cannot parse SpooledInformation: "+ fullarg +" "+ e1.getMessage());
 				} catch (IOException e1) {
-					logger.warn("Cannot parse SpooledInformation", e1);
+					logger.warn("Cannot parse SpooledInformation: "+ e1.getMessage());
 				}
 				BusinessRequestPacket packet =
 						new BusinessRequestPacket(this.getClass().getName() + " informed", 0);
@@ -136,7 +137,7 @@ public class SpooledInformTask extends AbstractExecJavaTask {
 	}
 	
 	/**
-	 * @param detailed
+	 * @param name
 	 * @param uri
 	 * @return the StringBuilder containing the HTML format as a Table of the current Spooled information 
 	 */
@@ -165,7 +166,7 @@ public class SpooledInformTask extends AbstractExecJavaTask {
 	/**
 	 * @param detailed
 	 * @param uri
-	 * @return
+	 * @return the associated StringBuilder as temporary result
 	 */
 	private static StringBuilder beginSpooledTable(boolean detailed, String uri) {
 		StringBuilder builder = new StringBuilder();

@@ -61,9 +61,9 @@ public class RestartServerTask extends AbstractTask {
 		boolean isAdmin = session.getAuth().isValidRole(ROLE.SYSTEM);
 		if (! isAdmin) {
 			// not allowed
-			logger.error("Shutdown order received but unallowed: " +
+			logger.error("Shutdown order asked through task but unallowed: " +
 					session.getAuth().getUser());
-			futureCompletion.setFailure(new OpenR66ProtocolSystemException("Shutdown order received but unallowed: " +
+			futureCompletion.setFailure(new OpenR66ProtocolSystemException("Shutdown order asked through task but unallowed: " +
 					session.getAuth().getUser()));
 			return;
 		}

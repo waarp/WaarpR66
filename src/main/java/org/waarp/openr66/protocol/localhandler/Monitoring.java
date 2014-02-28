@@ -371,7 +371,7 @@ public class Monitoring implements WaarpInterfaceMonitor {
 			} else {
 				nbMs = nbSecond * 1000;
 			}
-			if (dbSession != null) {
+			if (dbSession != null && dbSession.isDisconnected) {
 				dbSession.checkConnectionNoException();
 			}
 			if (dbSession == null || dbSession.isDisconnected) {

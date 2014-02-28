@@ -201,7 +201,7 @@ public class Commander implements CommanderInterface {
 
 	public void run() {
 		Thread.currentThread().setName("OpenR66Commander");
-		if (DbConstant.admin.session != null) {
+		if (DbConstant.admin.session != null && DbConstant.admin.session.isDisconnected) {
 			DbConstant.admin.session.checkConnectionNoException();
 		}
 		// each time it is runned, it parses all database for updates

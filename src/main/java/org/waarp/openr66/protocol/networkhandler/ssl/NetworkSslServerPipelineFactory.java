@@ -17,7 +17,6 @@
  */
 package org.waarp.openr66.protocol.networkhandler.ssl;
 
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.jboss.netty.channel.ChannelPipeline;
@@ -44,7 +43,6 @@ public class NetworkSslServerPipelineFactory implements ChannelPipelineFactory {
 	protected final boolean isClient;
 	public static WaarpSslContextFactory waarpSslContextFactory;
 	public static WaarpSecureKeyStore waarpSecureKeyStore;
-	protected final ExecutorService executorService;
 	/**
 	 * Global HashedWheelTimer
 	 */
@@ -56,10 +54,9 @@ public class NetworkSslServerPipelineFactory implements ChannelPipelineFactory {
 	 * @param isClient
 	 *            True if this Factory is to be used in Client mode
 	 */
-	public NetworkSslServerPipelineFactory(boolean isClient, ExecutorService executor) {
+	public NetworkSslServerPipelineFactory(boolean isClient) {
 		super();
 		this.isClient = isClient;
-		this.executorService = executor;
 	}
 
 	public ChannelPipeline getPipeline() {

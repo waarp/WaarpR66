@@ -299,7 +299,7 @@ public class ChannelUtils extends Thread {
 		if (wait) {
 			ChannelFuture future = Channels.write(localChannelReference.getNetworkChannel(),
 					networkPacket);
-			NetworkTransaction.updateLastTimeUsed(localChannelReference.getNetworkChannel());
+			localChannelReference.getNetworkChannelObject().use();
 			try {
 				return future.await();
 			} catch (InterruptedException e) {
@@ -400,8 +400,7 @@ public class ChannelUtils extends Thread {
 		final long delay = Configuration.configuration.TIMEOUTCON;
 		// Inform others that shutdown
 		if (Configuration.configuration.getLocalTransaction() != null) {
-			Configuration.configuration.getLocalTransaction()
-				.shutdownLocalChannels();
+			Configuration.configuration.getLocalTransaction().shutdownLocalChannels();
 		}
 		logger.info("Unbind server network services");
 		Configuration.configuration.unbindServer();

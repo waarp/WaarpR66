@@ -22,35 +22,88 @@ package org.waarp.openr66.protocol.localhandler.packet.json;
 
 
 /**
+ * Information (on request or on filesystem) JSON packet
  * @author "Frederic Bregier"
  *
  */
 public class InformationJsonPacket extends JsonPacket {
 
-	protected String information;
-	protected long nbitems;
+	protected boolean isIdRequest;
+	protected long id;
+	protected boolean isTo;
+	protected byte request;
+	protected String rulename;
+	protected String filename;
 	/**
-	 * @return the information
+	 * @return the isIdRequest
 	 */
-	public String getInformation() {
-		return information;
+	public boolean isIdRequest() {
+		return isIdRequest;
 	}
 	/**
-	 * @param information the information to set
+	 * @param isIdRequest the isIdRequest to set
 	 */
-	public void setInformation(String information) {
-		this.information = information;
+	public void setIdRequest(boolean isIdRequest) {
+		this.isIdRequest = isIdRequest;
 	}
 	/**
-	 * @return the nbitems
+	 * @return the id
 	 */
-	public long getNbitems() {
-		return nbitems;
+	public long getId() {
+		return id;
 	}
 	/**
-	 * @param nbitems the nbitems to set
+	 * @param id the id to set
 	 */
-	public void setNbitems(long nbitems) {
-		this.nbitems = nbitems;
+	public void setId(long id) {
+		this.id = id;
+	}
+	/**
+	 * @return the isTo
+	 */
+	public boolean isTo() {
+		return isTo;
+	}
+	/**
+	 * @param isTo the isTo to set
+	 */
+	public void setTo(boolean isTo) {
+		this.isTo = isTo;
+	}
+	/**
+	 * @return the request
+	 */
+	public byte getRequest() {
+		return request;
+	}
+	/**
+	 * @param request the request to set
+	 */
+	public void setRequest(byte request) {
+		this.request = request;
+	}
+	/**
+	 * @return the rulename
+	 */
+	public String getRulename() {
+		return rulename;
+	}
+	/**
+	 * @param rulename the rulename to set
+	 */
+	public void setRulename(String rulename) {
+		this.rulename = rulename;
+	}
+	/**
+	 * @return the filename
+	 */
+	public String getFilename() {
+		return filename;
+	}
+	/**
+	 * @param filename the filename to set
+	 */
+	public void setFilename(String filename) {
+		this.filename = filename;
 	}
 }

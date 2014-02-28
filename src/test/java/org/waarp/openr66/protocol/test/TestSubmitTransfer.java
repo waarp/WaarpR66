@@ -90,6 +90,7 @@ public class TestSubmitTransfer extends SubmitTransfer {
 			}
 			TestSubmitTransfer transaction = new TestSubmitTransfer(arrayFuture[i],
 					rhost, localFilename, rule, fileInfo, ismd5, block, newstart);
+			transaction.normalInfoAsWarn = snormalInfoAsWarn;
 			// executorService.execute(transaction);
 			transaction.run();
 		}

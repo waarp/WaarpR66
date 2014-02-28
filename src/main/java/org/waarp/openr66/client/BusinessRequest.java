@@ -99,7 +99,9 @@ public class BusinessRequest extends AbstractBusinessRequest {
 			outputFormat.setValue(FIELDS.remote.name(), rhost);
 			outputFormat.setValue("delay", delay);
 			logger.info(outputFormat.loggerOut());
-			outputFormat.sysout();
+			if (! OutputFormat.isQuiet()) {
+				outputFormat.sysout();
+			}
 		} else {
 			outputFormat.setValue(FIELDS.status.name(), 2);
 			outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("BusinessRequest.6")+Messages.getString("RequestInformation.Failure")); //$NON-NLS-1$
@@ -107,7 +109,9 @@ public class BusinessRequest extends AbstractBusinessRequest {
 			outputFormat.setValue("delay", delay);
 			logger.error(outputFormat.loggerOut(), future.getCause());
 			outputFormat.setValue(FIELDS.error.name(), future.getCause().toString());
-			outputFormat.sysout();
+			if (! OutputFormat.isQuiet()) {
+				outputFormat.sysout();
+			}
 			networkTransaction.closeAll();
 			System.exit(ErrorCode.Unknown.ordinal());
 		}

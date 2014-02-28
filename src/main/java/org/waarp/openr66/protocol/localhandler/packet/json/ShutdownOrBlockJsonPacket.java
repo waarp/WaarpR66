@@ -20,54 +20,57 @@
  */
 package org.waarp.openr66.protocol.localhandler.packet.json;
 
-import org.waarp.openr66.database.DbConstant;
-
 
 /**
- * Stop or Cancel one request JSON packet
+ * Shutdown or Block JSON packet
  * @author "Frederic Bregier"
  *
  */
-public class StopOrCancelJsonPacket extends JsonPacket {
+public class ShutdownOrBlockJsonPacket extends JsonPacket {
 
-	protected String requester;
-	protected String requested;
-	protected long specialid = DbConstant.ILLEGALVALUE;
+	protected byte []key;
 	/**
-	 * @return the requester
+	 * Shutdown: isRestart, Block: block/unblock
 	 */
-	public String getRequester() {
-		return requester;
+	protected boolean isRestartOrBlock;
+	/**
+	 * True: Shutdown, False: Block
+	 */
+	protected boolean isShutdownOrBlock;
+	/**
+	 * @return the key
+	 */
+	public byte[] getKey() {
+		return key;
 	}
 	/**
-	 * @param requester the requester to set
+	 * @param key the key to set
 	 */
-	public void setRequester(String requester) {
-		this.requester = requester;
+	public void setKey(byte[] key) {
+		this.key = key;
 	}
 	/**
-	 * @return the requested
+	 * @return the isRestartOrBlock
 	 */
-	public String getRequested() {
-		return requested;
+	public boolean isRestartOrBlock() {
+		return isRestartOrBlock;
 	}
 	/**
-	 * @param requested the requested to set
+	 * @param isRestartOrBlock the isRestartOrBlock to set
 	 */
-	public void setRequested(String requested) {
-		this.requested = requested;
+	public void setRestartOrBlock(boolean isRestartOrBlock) {
+		this.isRestartOrBlock = isRestartOrBlock;
 	}
 	/**
-	 * @return the specialid
+	 * @return the isShutdownOrBlock
 	 */
-	public long getSpecialid() {
-		return specialid;
+	public boolean isShutdownOrBlock() {
+		return isShutdownOrBlock;
 	}
 	/**
-	 * @param specialid the specialid to set
+	 * @param isShutdownOrBlock the isShutdownOrBlock to set
 	 */
-	public void setSpecialid(long specialid) {
-		this.specialid = specialid;
+	public void setShutdownOrBlock(boolean isShutdownOrBlock) {
+		this.isShutdownOrBlock = isShutdownOrBlock;
 	}
-	
 }

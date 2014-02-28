@@ -241,7 +241,8 @@ public class DbModelH2 extends org.waarp.common.database.model.DbModelH2 {
 
 		// cptrunner
 		action = "CREATE SEQUENCE IF NOT EXISTS " + DbTaskRunner.fieldseq +
-				" START WITH " + (DbConstant.ILLEGALVALUE + 1);
+				" START WITH " + (DbConstant.ILLEGALVALUE + 1) +
+				" MINVALUE " + (DbConstant.ILLEGALVALUE + 1);
 		System.out.println(action);
 		try {
 			request.query(action);
@@ -249,7 +250,21 @@ public class DbModelH2 extends org.waarp.common.database.model.DbModelH2 {
 			e.printStackTrace();
 			return;
 		} catch (WaarpDatabaseSqlException e) {
-			e.printStackTrace();
+			// version <= 1.2.173
+			action = "CREATE SEQUENCE IF NOT EXISTS " + DbTaskRunner.fieldseq +
+					" START WITH " + (DbConstant.ILLEGALVALUE + 1);
+			System.out.println(action);
+			try {
+				request.query(action);
+			} catch (WaarpDatabaseNoConnectionException e2) {
+				e2.printStackTrace();
+				return;
+			} catch (WaarpDatabaseSqlException e2) {
+				e2.printStackTrace();
+				// XXX FIX no return;
+			} finally {
+				request.close();
+			}
 			// XXX FIX no return;
 		} finally {
 			request.close();
@@ -393,7 +408,38 @@ public class DbModelH2 extends org.waarp.common.database.model.DbModelH2 {
 				request.close();
 			}
 		}
-		DbHostConfiguration.updateVersionDb(session, Configuration.configuration.HOST_ID, R66Versions.V2_4_23.getVersion());
+		if (PartnerConfiguration.isVersion2GTVersion1(version, R66Versions.V2_4_25.getVersion())) {
+			System.out.println(version+" to "+R66Versions.V2_4_25.getVersion()+"? "+true);
+			String command = "ALTER TABLE "+DbTaskRunner.table+" ALTER COLUMN "+
+				DbTaskRunner.Columns.FILENAME.name()+ " "+
+				DBType.getType(DbTaskRunner.dbTypes[DbTaskRunner.Columns.FILENAME.ordinal()]) + 
+				" NOT NULL ";
+			DbRequest request = new DbRequest(session);
+			try {
+				System.out.println("Command: "+command);
+				request.query(command);
+			} catch (WaarpDatabaseSqlException e) {
+				e.printStackTrace();
+				return false;
+			} finally {
+				request.close();
+			}
+			command = "ALTER TABLE "+DbTaskRunner.table+" ALTER COLUMN "+
+					DbTaskRunner.Columns.ORIGINALNAME.name()+ " "+
+					DBType.getType(DbTaskRunner.dbTypes[DbTaskRunner.Columns.ORIGINALNAME.ordinal()]) + 
+					" NOT NULL ";
+			request = new DbRequest(session);
+			try {
+				System.out.println("Command: "+command);
+				request.query(command);
+			} catch (WaarpDatabaseSqlException e) {
+				e.printStackTrace();
+				return false;
+			} finally {
+				request.close();
+			}
+		}
+		DbHostConfiguration.updateVersionDb(session, Configuration.configuration.HOST_ID, R66Versions.V2_4_25.getVersion());
 		return true;
 	}
 	
@@ -446,6 +492,17 @@ public class DbModelH2 extends org.waarp.common.database.model.DbModelH2 {
 				if (request != null) {
 					request.close();
 				}
+			}
+		}
+		request = null;
+		if (PartnerConfiguration.isVersion2GTVersion1(version, R66Versions.V2_4_25.getVersion())) {
+			try {
+				if (upgradeDb(session, version)) {
+					DbHostConfiguration.updateVersionDb(session, Configuration.configuration.HOST_ID, R66Versions.V2_4_25.getVersion());
+				} else {
+					return true;
+				}
+			} finally {
 			}
 		}
 		return false;

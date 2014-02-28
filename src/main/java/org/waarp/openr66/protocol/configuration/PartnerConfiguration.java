@@ -268,6 +268,35 @@ public class PartnerConfiguration {
 	}
 
 	/**
+	 * Compare strictly 2 versions
+	 * @param version1
+	 * @param version2
+	 * @return True if version2 > version1
+	 */
+	public final static boolean isVersion2GTVersion1(String version1, String version2) {
+		if (version1 == null || version2 == null) {
+			return false;
+		}
+		int major1 = 0;
+		int rank1 = 0;
+		int subversion1 = 0;
+		String [] vals = version1.split("\\.");
+		major1 = Integer.parseInt(vals[0]);
+		rank1 = Integer.parseInt(vals[1]);
+		subversion1 = Integer.parseInt(vals[2]);
+		int major2 = 0;
+		int rank2 = 0;
+		int subversion2 = 0;
+		vals = version2.split("\\.");
+		major2 = Integer.parseInt(vals[0]);
+		rank2 = Integer.parseInt(vals[1]);
+		subversion2 = Integer.parseInt(vals[2]);
+		logger.debug("1: "+major1+":"+rank1+":"+subversion1+" <? "+major2+":"+rank2+":"+subversion2+ " = "+
+				(major1 < major2 || (major1 == major2 && (rank1 < rank2 || (rank1 == rank2 && subversion1 < subversion2)))));
+		return (major1 < major2 || (major1 == major2 && (rank1 < rank2 || (rank1 == rank2 && subversion1 < subversion2))));
+	}
+
+	/**
 	 * 
 	 * @param host
 	 * @return True if this host is referenced as using Json

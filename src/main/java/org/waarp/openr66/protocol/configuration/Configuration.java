@@ -59,6 +59,7 @@ import org.waarp.common.role.RoleDefault;
 import org.waarp.common.utility.SystemPropertyUtil;
 import org.waarp.common.utility.WaarpShutdownHook.ShutdownConfiguration;
 import org.waarp.common.utility.WaarpThreadFactory;
+import org.waarp.openr66.commander.ClientRunner;
 import org.waarp.openr66.commander.InternalRunner;
 import org.waarp.openr66.context.R66BusinessFactoryInterface;
 import org.waarp.openr66.context.R66DefaultBusinessFactory;
@@ -66,9 +67,11 @@ import org.waarp.openr66.context.R66FiniteDualStates;
 import org.waarp.openr66.context.task.localexec.LocalExecClient;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbHostAuth;
+import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import org.waarp.openr66.protocol.http.HttpPipelineFactory;
+import org.waarp.openr66.protocol.http.adminssl.HttpSslHandler;
 import org.waarp.openr66.protocol.http.adminssl.HttpSslPipelineFactory;
 import org.waarp.openr66.protocol.localhandler.LocalTransaction;
 import org.waarp.openr66.protocol.localhandler.Monitoring;
@@ -76,6 +79,7 @@ import org.waarp.openr66.protocol.localhandler.packet.LocalPacketSizeEstimator;
 import org.waarp.openr66.protocol.networkhandler.ChannelTrafficHandler;
 import org.waarp.openr66.protocol.networkhandler.GlobalTrafficHandler;
 import org.waarp.openr66.protocol.networkhandler.NetworkServerPipelineFactory;
+import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.networkhandler.R66ConstraintLimitHandler;
 import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacketSizeEstimator;
 import org.waarp.openr66.protocol.networkhandler.ssl.NetworkSslServerPipelineFactory;
@@ -414,22 +418,22 @@ public class Configuration {
 	/**
 	 * ThreadPoolExecutor for Server
 	 */
-	protected volatile OrderedMemoryAwareThreadPoolExecutor serverPipelineExecutor;
+	protected OrderedMemoryAwareThreadPoolExecutor serverPipelineExecutor;
 
 	/**
 	 * ThreadPoolExecutor for LocalServer
 	 */
-	private volatile OrderedMemoryAwareThreadPoolExecutor localPipelineExecutor;
+	private OrderedMemoryAwareThreadPoolExecutor localPipelineExecutor;
 
 	/**
 	 * ThreadPoolExecutor for LocalClient
 	 */
-	private volatile OrderedMemoryAwareThreadPoolExecutor localClientPipelineExecutor;
+	private OrderedMemoryAwareThreadPoolExecutor localClientPipelineExecutor;
 
 	/**
 	 * ThreadPoolExecutor for Http and Https Server
 	 */
-	protected volatile OrderedMemoryAwareThreadPoolExecutor httpPipelineExecutor;
+	protected OrderedMemoryAwareThreadPoolExecutor httpPipelineExecutor;
 
 	/**
 	 * Bootstrap for server
@@ -494,7 +498,7 @@ public class Configuration {
 	/**
 	 * Global TrafficCounter (set from global configuration)
 	 */
-	protected volatile GlobalTrafficHandler globalTrafficShapingHandler = null;
+	protected GlobalTrafficHandler globalTrafficShapingHandler = null;
 
 	/**
 	 * ObjectSizeEstimator
@@ -591,6 +595,8 @@ public class Configuration {
 	
 	public boolean blacklistBadAuthent = false;
 	
+	public int maxfilenamelength = 255;
+	
 	public Configuration() {
 		// Init signal handler
 		shutdownConfiguration.timeout = TIMEOUTCON;
@@ -607,6 +613,7 @@ public class Configuration {
 		warnOnStartup = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_STARTUP_WARNING, true);
 		chrootChecked = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_CHROOT_CHECKED, true);
 		blacklistBadAuthent = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_BLACKLIST_BADAUTHENT, true);
+		maxfilenamelength = SystemPropertyUtil.getInt(R66SystemProperties.OPENR66_FILENAME_MAXLENGTH, 255);
 		if (isHostProxyfied) {
 			blacklistBadAuthent = false;
 		}
@@ -685,6 +692,10 @@ public class Configuration {
 		r66Startup();
 		startHttpSupport();
 		startMonitoring();
+		if (logger.isDebugEnabled()) {
+			// XXX FIXME for debug
+			launchInFixedDelay(new UsageStatistic(), 10, TimeUnit.SECONDS);
+		}
 	}
 
 	public void r66Startup() throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
@@ -717,8 +728,7 @@ public class Configuration {
 
 		if (useSSL && HOST_SSLID != null) {
 			serverSslBootstrap = new ServerBootstrap(serverChannelFactory);
-			networkSslServerPipelineFactory = new NetworkSslServerPipelineFactory(false,
-					execServerWorker);
+			networkSslServerPipelineFactory = new NetworkSslServerPipelineFactory(false);
 			serverSslBootstrap.setPipelineFactory(networkSslServerPipelineFactory);
 			serverSslBootstrap.setOption("child.tcpNoDelay", true);
 			serverSslBootstrap.setOption("child.keepAlive", true);
@@ -802,7 +812,7 @@ public class Configuration {
 		monitoring = new Monitoring(pastLimit, minimalDelay, null);
 		if (snmpConfig != null) {
 			int snmpPortShow = (useNOSSL ? SERVER_PORT : SERVER_SSLPORT);
-			r66Mib =
+			R66PrivateMib r66Mib =
 					new R66PrivateMib(SnmpName,
 							snmpPortShow,
 							SnmpPrivateId,
@@ -818,6 +828,7 @@ public class Configuration {
 			} catch (IOException e) {
 				throw new WaarpDatabaseSqlException(Messages.getString("Configuration.SNMPError"), e); //$NON-NLS-1$
 			}
+			this.r66Mib = r66Mib;
 		}
 	}
 
@@ -1198,5 +1209,45 @@ public class Configuration {
 		} catch (OpenR66ProtocolNoSslException e) {
 			throw new WaarpDatabaseException(e);
 		}
+	}
+	
+	private static class UsageStatistic extends Thread {
+
+		@Override
+		public void run() {
+			logger.warn(hashStatus());
+			Configuration.configuration.launchInFixedDelay(this, 10, TimeUnit.SECONDS);
+		}
+		
+	}
+	
+	public static String hashStatus() {
+		String result = "\n";
+		try {
+			result += configuration.localTransaction.hashStatus()+"\n";
+		} catch (Exception e) {
+			logger.warn("Issue while debugging", e);
+		}
+		try {
+			result += ClientRunner.hashStatus()+"\n";
+		} catch (Exception e) {
+			logger.warn("Issue while debugging", e);
+		}
+		try {
+			result += DbTaskRunner.hashStatus()+"\n";
+		} catch (Exception e) {
+			logger.warn("Issue while debugging", e);
+		}
+		try {
+			result += HttpSslHandler.hashStatus()+"\n";
+		} catch (Exception e) {
+			logger.warn("Issue while debugging", e);
+		}
+		try {
+			result += NetworkTransaction.hashStatus();
+		} catch (Exception e) {
+			logger.warn("Issue while debugging", e);
+		}
+		return result;
 	}
 }

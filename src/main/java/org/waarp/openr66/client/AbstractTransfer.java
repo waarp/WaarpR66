@@ -79,6 +79,8 @@ public abstract class AbstractTransfer implements Runnable {
 	protected final long id;
 
 	protected final Timestamp startTime;
+	
+	protected boolean normalInfoAsWarn = true;
 
 	/**
 	 * @param clasz
@@ -207,6 +209,7 @@ public abstract class AbstractTransfer implements Runnable {
 	static protected boolean nolog = false;
 	static protected long idt = DbConstant.ILLEGALVALUE;
 	static protected Timestamp ttimestart = null;
+	static protected boolean snormalInfoAsWarn = true;
 
 	/**
 	 * Parse the parameter and set current values
@@ -256,6 +259,10 @@ public abstract class AbstractTransfer implements Runnable {
 					fileInfo = args[i];
 				} else if (args[i].equalsIgnoreCase("-md5")) {
 					ismd5 = true;
+				} else if (args[i].equalsIgnoreCase("-logWarn")) {
+					snormalInfoAsWarn = true;
+				} else if (args[i].equalsIgnoreCase("-notlogWarn")) {
+					snormalInfoAsWarn = false;
 				} else if (args[i].equalsIgnoreCase("-block")) {
 					i++;
 					block = Integer.parseInt(args[i]);

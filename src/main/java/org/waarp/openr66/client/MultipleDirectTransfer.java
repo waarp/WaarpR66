@@ -173,6 +173,7 @@ public class MultipleDirectTransfer extends DirectTransfer {
 						DirectTransfer transaction = new DirectTransfer(future,
 								host, filename, rule, fileInfo, ismd5, block, idt,
 								networkTransaction);
+						transaction.normalInfoAsWarn = normalInfoAsWarn;
 						logger.debug("rhost: "+host+":"+transaction.remoteHost);
 						transaction.run();
 						future.awaitUninterruptibly();
@@ -196,7 +197,11 @@ public class MultipleDirectTransfer extends DirectTransfer {
 							outputFormat.setValue("delay", delay);
 							results.add(outputFormat);
 							doneMultiple++;
-							logger.warn(outputFormat.loggerOut());
+							if (transaction.normalInfoAsWarn) {
+								logger.warn(outputFormat.loggerOut());
+							} else {
+								logger.info(outputFormat.loggerOut());
+							}
 							if (nolog || result.runner.shallIgnoreSave()) {
 								// In case of success, delete the runner
 								try {
@@ -281,6 +286,7 @@ public class MultipleDirectTransfer extends DirectTransfer {
 					new MultipleDirectTransfer(future, rhost, localFilename, 
 							rule, fileInfo, ismd5, block, idt,
 							networkTransaction);
+			multipleDirectTransfer.normalInfoAsWarn = snormalInfoAsWarn;
 			multipleDirectTransfer.run();
 			future.awaitUninterruptibly();
 			long time2 = System.currentTimeMillis();
@@ -293,7 +299,11 @@ public class MultipleDirectTransfer extends DirectTransfer {
 				outputFormat.setValue(FIELDS.remote.name(), rhost);
 				outputFormat.setValue("ok", multipleDirectTransfer.doneMultiple);
 				outputFormat.setValue("delay", delay);
-				logger.warn(outputFormat.loggerOut());
+				if (multipleDirectTransfer.normalInfoAsWarn) {
+					logger.warn(outputFormat.loggerOut());
+				} else {
+					logger.info(outputFormat.loggerOut());
+				}
 				if (! OutputFormat.isQuiet()) {
 					outputFormat.sysout();
 					for (OutputFormat result : multipleDirectTransfer.results) {
@@ -319,8 +329,8 @@ public class MultipleDirectTransfer extends DirectTransfer {
 				networkTransaction.closeAll();
 				System.exit(multipleDirectTransfer.errorMultiple);
 			}
-		} catch (Exception e) {
-			logger.warn("exc", e);
+		} catch (Throwable e) {
+			logger.error("Exception", e);
 		} finally {
 			networkTransaction.closeAll();
 			System.exit(0);

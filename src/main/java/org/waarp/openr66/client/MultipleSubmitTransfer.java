@@ -110,6 +110,7 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 						SubmitTransfer transaction = new SubmitTransfer(future,
 								host, filename, rule, fileInfo, ismd5, block, idt,
 								ttimestart);
+						transaction.normalInfoAsWarn = normalInfoAsWarn;
 						transaction.run();
 						future.awaitUninterruptibly();
 						DbTaskRunner runner = future.getResult().runner;
@@ -121,7 +122,11 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 							Map<String, String> map = DbTaskRunner.getMapFromRunner(runner);
 							outputFormat.setValueString(map);
 							results.add(outputFormat);
-							logger.warn(outputFormat.loggerOut());
+							if (transaction.normalInfoAsWarn) {
+								logger.warn(outputFormat.loggerOut());
+							} else {
+								logger.info(outputFormat.loggerOut());
+							}
 							doneMultiple++;
 						} else {
 							outputFormat.setValue(FIELDS.status.name(), 2);
@@ -196,6 +201,7 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 			MultipleSubmitTransfer transaction = new MultipleSubmitTransfer(future,
 					rhost, localFilename, rule, fileInfo, ismd5, block, idt,
 					ttimestart, networkTransaction);
+			transaction.normalInfoAsWarn = snormalInfoAsWarn;
 			transaction.run();
 			future.awaitUninterruptibly();
 			OutputFormat outputFormat = new OutputFormat("Unique "+MultipleSubmitTransfer.class.getSimpleName(), args);
@@ -204,7 +210,11 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 				outputFormat.setValue(FIELDS.statusTxt.name(), "Multiple "+Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
 				outputFormat.setValue(FIELDS.remote.name(), rhost);
 				outputFormat.setValue("ok", transaction.doneMultiple);
-				logger.warn(outputFormat.loggerOut());
+				if (transaction.normalInfoAsWarn) {
+					logger.warn(outputFormat.loggerOut());
+				} else {
+					logger.info(outputFormat.loggerOut());
+				}
 				if (! OutputFormat.isQuiet()) {
 					outputFormat.sysout();
 					for (OutputFormat result : transaction.results) {

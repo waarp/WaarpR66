@@ -102,7 +102,8 @@ public abstract class ProgressBarTransfer extends AbstractTransfer {
 				} catch (InterruptedException e) {
 				}
 				if ((!localChannelReference.getFutureValidRequest().isSuccess()) &&
-						(localChannelReference.getFutureValidRequest().getResult().code ==
+						(localChannelReference.getFutureValidRequest() != null &&
+						localChannelReference.getFutureValidRequest().getResult().code ==
 						ErrorCode.ServerOverloaded)) {
 					switch (taskRunner.getUpdatedInfo()) {
 						case DONE:
@@ -114,7 +115,7 @@ public abstract class ProgressBarTransfer extends AbstractTransfer {
 									ErrorCode.ServerOverloaded, true);
 					}
 					// redo if possible
-					if (runner.incrementTaskRunerTry(taskRunner, Configuration.RETRYNB)) {
+					if (runner.incrementTaskRunnerTry(taskRunner, Configuration.RETRYNB)) {
 						try {
 							Thread.sleep(Configuration.configuration.constraintLimitHandler
 									.getSleepTime());
@@ -136,7 +137,7 @@ public abstract class ProgressBarTransfer extends AbstractTransfer {
 					callBack(future.runner.getRank(), future.runner.getBlocksize());
 				}
 				logger.debug("transfer done on progressBarTransfer");
-				runner.finishTransfer(false, localChannelReference);
+				runner.finishTransfer(localChannelReference);
 				lastCallBack(future.isSuccess(),
 						future.runner.getRank(), future.runner.getBlocksize());
 				exc = null;

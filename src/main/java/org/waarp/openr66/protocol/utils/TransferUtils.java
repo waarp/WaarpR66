@@ -176,6 +176,7 @@ public class TransferUtils {
 				// inform local instead of remote
 				ChannelUtils.writeAbstractLocalPacketToLocal(lcr, perror);
 			} catch (Exception e) {
+				logger.warn("Write local packet error", e);
 			}
 			result = ErrorCode.StoppedTransfer;
 		} else {

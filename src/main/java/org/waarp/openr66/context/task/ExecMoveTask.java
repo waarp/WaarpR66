@@ -168,7 +168,10 @@ public class ExecMoveTask extends AbstractTask {
 						inputStream.close();
 					} catch (IOException e2) {
 					}
-					pumpStreamHandler.stop();
+					try {
+						pumpStreamHandler.stop();
+					} catch (IOException e2) {
+					}
 					logger.error("ExecuteException: " + e.getMessage() +
 							" . Exec in error with " + commandLine.toString());
 					futureCompletion.setFailure(e);
@@ -183,7 +186,10 @@ public class ExecMoveTask extends AbstractTask {
 						inputStream.close();
 					} catch (IOException e2) {
 					}
-					pumpStreamHandler.stop();
+					try {
+						pumpStreamHandler.stop();
+					} catch (IOException e2) {
+					}
 					logger.error("IOException: " + e.getMessage() +
 							" . Exec in error with " + commandLine.toString());
 					futureCompletion.setFailure(e);
@@ -199,7 +205,10 @@ public class ExecMoveTask extends AbstractTask {
 					inputStream.close();
 				} catch (IOException e1) {
 				}
-				pumpStreamHandler.stop();
+				try {
+					pumpStreamHandler.stop();
+				} catch (IOException e2) {
+				}
 				logger.error("ExecuteException: " + e.getMessage() +
 						" . Exec in error with " + commandLine.toString());
 				futureCompletion.setFailure(e);
@@ -215,7 +224,10 @@ public class ExecMoveTask extends AbstractTask {
 				inputStream.close();
 			} catch (IOException e1) {
 			}
-			pumpStreamHandler.stop();
+			try {
+				pumpStreamHandler.stop();
+			} catch (IOException e2) {
+			}
 			logger.error("IOException: " + e.getMessage() +
 					" . Exec in error with " + commandLine.toString());
 			futureCompletion.setFailure(e);
@@ -229,7 +241,10 @@ public class ExecMoveTask extends AbstractTask {
 			outputStream.close();
 		} catch (IOException e) {
 		}
-		pumpStreamHandler.stop();
+		try {
+			pumpStreamHandler.stop();
+		} catch (IOException e2) {
+		}
 		try {
 			if (delay > 0) {
 				thread.join(delay);

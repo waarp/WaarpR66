@@ -59,22 +59,12 @@ public class LocalClientHandler extends SimpleChannelHandler {
 	 */
 	private volatile LocalChannelReference localChannelReference = null;
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.jboss.netty.channel.SimpleChannelHandler#channelClosed(org.jboss.
-	 * netty.channel.ChannelHandlerContext, org.jboss.netty.channel.ChannelStateEvent)
-	 */
 	@Override
 	public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e)
 			throws Exception {
 		logger.debug("Local Client Channel Closed: {}", e.getChannel().getId());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.jboss.netty.channel.SimpleChannelHandler#channelConnected(org.jboss
-	 * .netty.channel.ChannelHandlerContext, org.jboss.netty.channel.ChannelStateEvent)
-	 */
 	@Override
 	public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
 			throws Exception {
@@ -107,11 +97,6 @@ public class LocalClientHandler extends SimpleChannelHandler {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.jboss.netty.channel.SimpleChannelHandler#messageReceived(org.jboss
-	 * .netty.channel.ChannelHandlerContext, org.jboss.netty.channel.MessageEvent)
-	 */
 	@Override
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
 			throws Exception {
@@ -123,7 +108,7 @@ public class LocalClientHandler extends SimpleChannelHandler {
 		if (packet.getType() != LocalPacketFactory.STARTUPPACKET) {
 			logger.error("Local Client Channel Recv wrong packet: " +
 					e.getChannel().getId() + " : " + packet.toString());
-			throw new OpenR66ProtocolSystemException("Should not be here");
+			throw new OpenR66ProtocolSystemException("Should not be here: Wrong packet received {" + packet.toString() + "}");
 		}
 		logger.debug("LocalClientHandler initialized: " +
 				(localChannelReference != null));
@@ -151,8 +136,11 @@ public class LocalClientHandler extends SimpleChannelHandler {
 			if (exception != null) {
 				if (exception instanceof OpenR66ProtocolShutdownException) {
 					ChannelUtils.startShutdown();
+					/*
+					 * Dont close, thread will do
 					logger.debug("Will close channel");
 					Channels.close(e.getChannel());
+					 */
 					return;
 				} else if (exception instanceof OpenR66ProtocolBusinessNoWriteBackException) {
 					logger.error("Will close channel", exception);
