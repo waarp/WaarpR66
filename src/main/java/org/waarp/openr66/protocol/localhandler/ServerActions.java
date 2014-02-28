@@ -106,11 +106,15 @@ import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 import org.waarp.openr66.protocol.utils.TransferUtils;
 
 /**
- * Class to implement actions
+ * Class to implement actions related to extra server actions: shutdown, bandwidth control, 
+ * configuration import/export, log purge, request restart/stop/cancel, business request, block new request control, 
+ * information request and transfer request.
+ * 
+ * Can be used in both standard mode (original packet), or in JSON mode.
  * @author "Frederic Bregier"
  *
  */
-public class ServerActions extends ServerHandler {
+public class ServerActions extends ConnectionActions {
 	/**
 	 * Internal Logger
 	 */

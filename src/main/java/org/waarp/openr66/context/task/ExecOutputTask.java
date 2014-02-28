@@ -185,7 +185,10 @@ public class ExecOutputTask extends AbstractTask {
 						inputStream.close();
 					} catch (IOException e2) {
 					}
-					pumpStreamHandler.stop();
+					try {
+						pumpStreamHandler.stop();
+					} catch (IOException e2) {
+					}
 					logger.error("IOException: " + e.getMessage() +
 							" . Exec in error with " + commandLine.toString());
 					futureCompletion.setFailure(e);
@@ -211,7 +214,10 @@ public class ExecOutputTask extends AbstractTask {
 				inputStream.close();
 			} catch (IOException e1) {
 			}
-			pumpStreamHandler.stop();
+			try {
+				pumpStreamHandler.stop();
+			} catch (IOException e2) {
+			}
 			logger.error("IOException: " + e.getMessage() +
 					" . Exec in error with " + commandLine.toString());
 			futureCompletion.setFailure(e);
@@ -225,7 +231,10 @@ public class ExecOutputTask extends AbstractTask {
 			outputStream.close();
 		} catch (IOException e) {
 		}
-		pumpStreamHandler.stop();
+		try {
+			pumpStreamHandler.stop();
+		} catch (IOException e2) {
+		}
 		try {
 			if (delay > 0) {
 				thread.join(delay);
@@ -326,7 +335,10 @@ public class ExecOutputTask extends AbstractTask {
 			Thread.sleep(Configuration.RETRYINMS);
 		} catch (InterruptedException e) {
 		}
-		pumpStreamHandler.stop();
+		try {
+			pumpStreamHandler.stop();
+		} catch (IOException e2) {
+		}
 		try {
 			Thread.sleep(Configuration.RETRYINMS);
 		} catch (InterruptedException e) {

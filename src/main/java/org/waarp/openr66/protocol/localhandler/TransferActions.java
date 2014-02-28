@@ -72,7 +72,8 @@ import org.waarp.openr66.protocol.utils.FileUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
 
 /**
- * Class to implement actions
+ * Class to implement actions related to real transfer: request initialization, data transfer, end of transfer and of request, changing filename or filesize.
+ * 
  * @author "Frederic Bregier"
  *
  */

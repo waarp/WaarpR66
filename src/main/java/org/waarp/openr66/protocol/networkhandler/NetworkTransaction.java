@@ -160,7 +160,7 @@ public class NetworkTransaction {
 				Configuration.configuration.TIMEOUTCON);
 		if (Configuration.configuration.useSSL && Configuration.configuration.HOST_SSLID != null) {
 			NetworkSslServerPipelineFactory networkSslServerPipelineFactory =
-					new NetworkSslServerPipelineFactory(true, execServerWorker);
+					new NetworkSslServerPipelineFactory(true);
 			clientSslBootstrap.setPipelineFactory(networkSslServerPipelineFactory);
 			clientSslBootstrap.setOption("tcpNoDelay", true);
 			clientSslBootstrap.setOption("reuseAddress", true);

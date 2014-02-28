@@ -728,8 +728,7 @@ public class Configuration {
 
 		if (useSSL && HOST_SSLID != null) {
 			serverSslBootstrap = new ServerBootstrap(serverChannelFactory);
-			networkSslServerPipelineFactory = new NetworkSslServerPipelineFactory(false,
-					execServerWorker);
+			networkSslServerPipelineFactory = new NetworkSslServerPipelineFactory(false);
 			serverSslBootstrap.setPipelineFactory(networkSslServerPipelineFactory);
 			serverSslBootstrap.setOption("child.tcpNoDelay", true);
 			serverSslBootstrap.setOption("child.keepAlive", true);

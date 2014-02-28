@@ -68,16 +68,17 @@ import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
 
 /**
- * Class to implement actions
+ * Class to implement actions related to general connection handler: channelClosed, startup, authentication, and error. 
+ * Used to store and retrieve the session information.
  * @author "Frederic Bregier"
  *
  */
-public abstract class ServerHandler {
+public abstract class ConnectionActions {
 	/**
 	 * Internal Logger
 	 */
 	private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
-			.getLogger(ServerHandler.class);
+			.getLogger(ConnectionActions.class);
 
 	/**
 	 * Session
@@ -96,7 +97,7 @@ public abstract class ServerHandler {
 	 */
 	protected FilesystemBasedDigest localDigest;
 
-	protected void setFrom(ServerHandler handler) {
+	protected void setFrom(ConnectionActions handler) {
 		this.globalDigest = handler.globalDigest;
 		this.localChannelReference = handler.localChannelReference;
 		this.localDigest = handler.localDigest;
