@@ -172,122 +172,125 @@ public class R66PrivateMib extends WaarpPrivateMib {
 	 * @param runner
 	 */
 	public void notifyInternalTask(String message, DbTaskRunner runner) {
-		long delay = (runner.getStart().getTime() -
-				agent.getUptimeSystemTime()) / 10;
-		if (delay < 0)
-			delay = 0;
-		agent.getNotificationOriginator()
-				.notify(new OctetString("public"),
-						NotificationElements.InfoTask
-								.getOID(rootOIDWaarpNotif),
-						new VariableBinding[] {
-								new VariableBinding(
-										NotificationElements.InfoTask.getOID(
-												rootOIDWaarpNotif, 1),
-										new OctetString(
-												NotificationElements.InfoTask
-														.name())),
-								new VariableBinding(
-										NotificationElements.InfoTask.getOID(
-												rootOIDWaarpNotif, 1),
-										new OctetString(message)),
-								// Start of Task
-								new VariableBinding(
-										NotificationElements.InfoTask
-												.getOID(rootOIDWaarpNotif,
-														NotificationTasks.globalStepInfo
-																.getOID()),
-										new Gauge32(runner.getGloballaststep())),
-								new VariableBinding(
-										NotificationElements.InfoTask
-												.getOID(rootOIDWaarpNotif,
-														NotificationTasks.stepInfo
-																.getOID()),
-										new Gauge32(runner.getStep() + 1)),
-								new VariableBinding(
-										NotificationElements.InfoTask
-												.getOID(rootOIDWaarpNotif,
-														NotificationTasks.rankFileInfo
-																.getOID()),
-										new Gauge32(runner.getRank())),
-								new VariableBinding(
-										NotificationElements.InfoTask
-												.getOID(rootOIDWaarpNotif,
-														NotificationTasks.stepStatusInfo
-																.getOID()),
-										new OctetString(runner.getStatus().mesg)),
-								new VariableBinding(
-										NotificationElements.InfoTask
-												.getOID(rootOIDWaarpNotif,
-														NotificationTasks.filenameInfo
-																.getOID()),
-										new OctetString(runner.getFilename())),
-								new VariableBinding(
-										NotificationElements.InfoTask
-												.getOID(rootOIDWaarpNotif,
-														NotificationTasks.originalNameInfo
-																.getOID()),
-										new OctetString(runner.getOriginalFilename())),
-								new VariableBinding(
-										NotificationElements.InfoTask
-												.getOID(rootOIDWaarpNotif,
-														NotificationTasks.idRuleInfo
-																.getOID()),
-										new OctetString(runner.getRuleId())),
-								new VariableBinding(
-										NotificationElements.InfoTask
-												.getOID(rootOIDWaarpNotif,
-														NotificationTasks.modeTransInfo
-																.getOID()),
-										new OctetString(TRANSFERMODE.values()[runner.getMode()]
-												.name())),
-								new VariableBinding(
-										NotificationElements.InfoTask
-												.getOID(rootOIDWaarpNotif,
-														NotificationTasks.retrieveModeInfo
-																.getOID()),
-										new OctetString(runner.isSender() ? "Sender" : "Receiver")),
-								new VariableBinding(
-										NotificationElements.InfoTask
-												.getOID(rootOIDWaarpNotif,
-														NotificationTasks.startTransInfo
-																.getOID()),
-										new TimeTicks(delay)),
-								new VariableBinding(
-										NotificationElements.InfoTask
-												.getOID(rootOIDWaarpNotif,
-														NotificationTasks.infoStatusInfo
-																.getOID()),
-										new OctetString(runner.getErrorInfo().mesg)),
-								new VariableBinding(
-										NotificationElements.InfoTask
-												.getOID(rootOIDWaarpNotif,
-														NotificationTasks.requesterInfo
-																.getOID()),
-										new OctetString(runner.getRequester())),
-								new VariableBinding(
-										NotificationElements.InfoTask
-												.getOID(rootOIDWaarpNotif,
-														NotificationTasks.requestedInfo
-																.getOID()),
-										new OctetString(runner.getRequested())),
-								new VariableBinding(
-										NotificationElements.InfoTask
-												.getOID(rootOIDWaarpNotif,
-														NotificationTasks.specialIdInfo
-																.getOID()),
-										new OctetString("" + runner.getSpecialId())),
-								// End of Task
-								new VariableBinding(SnmpConstants.sysDescr,
-										snmpv2.getDescr()),
-								new VariableBinding(SnmpConstants.sysObjectID,
-										snmpv2.getObjectID()),
-								new VariableBinding(SnmpConstants.sysContact,
-										snmpv2.getContact()),
-								new VariableBinding(SnmpConstants.sysName,
-										snmpv2.getName()),
-								new VariableBinding(SnmpConstants.sysLocation,
-										snmpv2.getLocation()) });
+		try {
+			long delay = (runner.getStart().getTime() -
+					agent.getUptimeSystemTime()) / 10;
+			if (delay < 0)
+				delay = 0;
+			agent.getNotificationOriginator()
+					.notify(new OctetString("public"),
+							NotificationElements.InfoTask
+									.getOID(rootOIDWaarpNotif),
+							new VariableBinding[] {
+									new VariableBinding(
+											NotificationElements.InfoTask.getOID(
+													rootOIDWaarpNotif, 1),
+											new OctetString(
+													NotificationElements.InfoTask
+															.name())),
+									new VariableBinding(
+											NotificationElements.InfoTask.getOID(
+													rootOIDWaarpNotif, 1),
+											new OctetString(message)),
+									// Start of Task
+									new VariableBinding(
+											NotificationElements.InfoTask
+													.getOID(rootOIDWaarpNotif,
+															NotificationTasks.globalStepInfo
+																	.getOID()),
+											new Gauge32(runner.getGloballaststep())),
+									new VariableBinding(
+											NotificationElements.InfoTask
+													.getOID(rootOIDWaarpNotif,
+															NotificationTasks.stepInfo
+																	.getOID()),
+											new Gauge32(runner.getStep() + 1)),
+									new VariableBinding(
+											NotificationElements.InfoTask
+													.getOID(rootOIDWaarpNotif,
+															NotificationTasks.rankFileInfo
+																	.getOID()),
+											new Gauge32(runner.getRank())),
+									new VariableBinding(
+											NotificationElements.InfoTask
+													.getOID(rootOIDWaarpNotif,
+															NotificationTasks.stepStatusInfo
+																	.getOID()),
+											new OctetString(runner.getStatus().mesg)),
+									new VariableBinding(
+											NotificationElements.InfoTask
+													.getOID(rootOIDWaarpNotif,
+															NotificationTasks.filenameInfo
+																	.getOID()),
+											new OctetString(runner.getFilename())),
+									new VariableBinding(
+											NotificationElements.InfoTask
+													.getOID(rootOIDWaarpNotif,
+															NotificationTasks.originalNameInfo
+																	.getOID()),
+											new OctetString(runner.getOriginalFilename())),
+									new VariableBinding(
+											NotificationElements.InfoTask
+													.getOID(rootOIDWaarpNotif,
+															NotificationTasks.idRuleInfo
+																	.getOID()),
+											new OctetString(runner.getRuleId())),
+									new VariableBinding(
+											NotificationElements.InfoTask
+													.getOID(rootOIDWaarpNotif,
+															NotificationTasks.modeTransInfo
+																	.getOID()),
+											new OctetString(TRANSFERMODE.values()[runner.getMode()]
+													.name())),
+									new VariableBinding(
+											NotificationElements.InfoTask
+													.getOID(rootOIDWaarpNotif,
+															NotificationTasks.retrieveModeInfo
+																	.getOID()),
+											new OctetString(runner.isSender() ? "Sender" : "Receiver")),
+									new VariableBinding(
+											NotificationElements.InfoTask
+													.getOID(rootOIDWaarpNotif,
+															NotificationTasks.startTransInfo
+																	.getOID()),
+											new TimeTicks(delay)),
+									new VariableBinding(
+											NotificationElements.InfoTask
+													.getOID(rootOIDWaarpNotif,
+															NotificationTasks.infoStatusInfo
+																	.getOID()),
+											new OctetString(runner.getErrorInfo().mesg)),
+									new VariableBinding(
+											NotificationElements.InfoTask
+													.getOID(rootOIDWaarpNotif,
+															NotificationTasks.requesterInfo
+																	.getOID()),
+											new OctetString(runner.getRequester())),
+									new VariableBinding(
+											NotificationElements.InfoTask
+													.getOID(rootOIDWaarpNotif,
+															NotificationTasks.requestedInfo
+																	.getOID()),
+											new OctetString(runner.getRequested())),
+									new VariableBinding(
+											NotificationElements.InfoTask
+													.getOID(rootOIDWaarpNotif,
+															NotificationTasks.specialIdInfo
+																	.getOID()),
+											new OctetString("" + runner.getSpecialId())),
+									// End of Task
+									new VariableBinding(SnmpConstants.sysDescr,
+											snmpv2.getDescr()),
+									new VariableBinding(SnmpConstants.sysObjectID,
+											snmpv2.getObjectID()),
+									new VariableBinding(SnmpConstants.sysContact,
+											snmpv2.getContact()),
+									new VariableBinding(SnmpConstants.sysName,
+											snmpv2.getName()),
+									new VariableBinding(SnmpConstants.sysLocation,
+											snmpv2.getLocation()) });
+		} catch (NullPointerException e) {
+		}
 	}
 
 	/**
@@ -327,27 +330,30 @@ public class R66PrivateMib extends WaarpPrivateMib {
 	 * @param message2
 	 */
 	private void notify(NotificationElements element, String message, String message2) {
-		if (logger.isDebugEnabled())
-			logger.debug("Notify: " + element + ":" + message + ":" + message2);
-		agent.getNotificationOriginator().notify(
-				new OctetString("public"),
-				element.getOID(rootOIDWaarpNotif),
-				new VariableBinding[] {
-						new VariableBinding(
-								element.getOID(rootOIDWaarpNotif, 1),
-								new OctetString(element.name())),
-						new VariableBinding(
-								element.getOID(rootOIDWaarpNotif, 1),
-								new OctetString(message)),
-						new VariableBinding(
-								element.getOID(rootOIDWaarpNotif, 1),
-								new OctetString(message2)),
-						new VariableBinding(SnmpConstants.sysDescr, snmpv2.getDescr()),
-						new VariableBinding(SnmpConstants.sysObjectID, snmpv2.getObjectID()),
-						new VariableBinding(SnmpConstants.sysContact, snmpv2.getContact()),
-						new VariableBinding(SnmpConstants.sysName, snmpv2.getName()),
-						new VariableBinding(SnmpConstants.sysLocation, snmpv2.getLocation())
-				});
+		try {
+			if (logger.isDebugEnabled())
+				logger.debug("Notify: " + element + ":" + message + ":" + message2);
+			agent.getNotificationOriginator().notify(
+					new OctetString("public"),
+					element.getOID(rootOIDWaarpNotif),
+					new VariableBinding[] {
+							new VariableBinding(
+									element.getOID(rootOIDWaarpNotif, 1),
+									new OctetString(element.name())),
+							new VariableBinding(
+									element.getOID(rootOIDWaarpNotif, 1),
+									new OctetString(message)),
+							new VariableBinding(
+									element.getOID(rootOIDWaarpNotif, 1),
+									new OctetString(message2)),
+							new VariableBinding(SnmpConstants.sysDescr, snmpv2.getDescr()),
+							new VariableBinding(SnmpConstants.sysObjectID, snmpv2.getObjectID()),
+							new VariableBinding(SnmpConstants.sysContact, snmpv2.getContact()),
+							new VariableBinding(SnmpConstants.sysName, snmpv2.getName()),
+							new VariableBinding(SnmpConstants.sysLocation, snmpv2.getLocation())
+					});
+		} catch (NullPointerException e) {
+		}
 	}
 
 	public void updateServices(WaarpMOScalar scalar) {

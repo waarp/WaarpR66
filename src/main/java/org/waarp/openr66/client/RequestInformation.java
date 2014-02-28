@@ -68,6 +68,7 @@ public class RequestInformation implements Runnable {
 	byte code;
 	long id = DbConstant.ILLEGALVALUE;
 	boolean isTo = true;
+	boolean normalInfoAsWarn = true;
 
 	static String srequested = null;
 	static String sfilename = null;
@@ -75,6 +76,7 @@ public class RequestInformation implements Runnable {
 	static byte scode = -1;
 	static long sid = DbConstant.ILLEGALVALUE;
 	static boolean sisTo = true;
+	static protected boolean snormalInfoAsWarn = true;
 	
 	/**
 	 * Parse the parameter and set current values
@@ -106,6 +108,10 @@ public class RequestInformation implements Runnable {
 			} else if (args[i].equalsIgnoreCase("-rule")) {
 				i++;
 				srulename = args[i];
+			} else if (args[i].equalsIgnoreCase("-logWarn")) {
+				snormalInfoAsWarn = true;
+			} else if (args[i].equalsIgnoreCase("-notlogWarn")) {
+				snormalInfoAsWarn = false;
 			} else if (args[i].equalsIgnoreCase("-exist")) {
 				scode = (byte) InformationPacket.ASKENUM.ASKEXIST.ordinal();
 			} else if (args[i].equalsIgnoreCase("-detail")) {
@@ -244,6 +250,7 @@ public class RequestInformation implements Runnable {
 					new RequestInformation(result, srequested, srulename,
 							sfilename, scode, sid, sisTo,
 							networkTransaction);
+			requestInformation.normalInfoAsWarn = snormalInfoAsWarn;
 			requestInformation.run();
 			result.awaitUninterruptibly();
 			// if transfer information request (code = -1) => middle empty and header = Runner as XML
@@ -274,8 +281,14 @@ public class RequestInformation implements Runnable {
 						outputFormat.setValue(FIELDS.transfer.name(), info.getSheader());
 					}
 				}
-				logger.warn(outputFormat.loggerOut());
-				outputFormat.sysout();
+				if (requestInformation.normalInfoAsWarn) {
+					logger.warn(outputFormat.loggerOut());
+				} else {
+					logger.info(outputFormat.loggerOut());
+				}
+				if (! OutputFormat.isQuiet()) {
+					outputFormat.sysout();
+				}
 			} else {
 				value = 2;
 				outputFormat.setValue(FIELDS.status.name(), 2);
@@ -283,10 +296,12 @@ public class RequestInformation implements Runnable {
 				outputFormat.setValue(FIELDS.remote.name(), srequested);
 				outputFormat.setValue(FIELDS.error.name(), result.getResult().toString());
 				logger.error(outputFormat.loggerOut());
-				outputFormat.sysout();
+				if (! OutputFormat.isQuiet()) {
+					outputFormat.sysout();
+				}
 			}
-		} catch (Exception e) {
-			logger.warn("Exception", e);
+		} catch (Throwable e) {
+			logger.error("Exception", e);
 		} finally {
 			if (networkTransaction != null) {
 				networkTransaction.closeAll();

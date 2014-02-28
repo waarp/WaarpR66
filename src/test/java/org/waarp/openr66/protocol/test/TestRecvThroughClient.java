@@ -99,6 +99,7 @@ public class TestRecvThroughClient extends RecvThroughClient {
 					handler,
 					rhost, localFilename, rule, fileInfo, ismd5, block,
 					networkTransaction);
+			transaction.normalInfoAsWarn = snormalInfoAsWarn;
 			long time1 = System.currentTimeMillis();
 			transaction.run();
 			future.awaitUninterruptibly();

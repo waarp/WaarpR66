@@ -16,7 +16,11 @@ public enum R66Versions {
 	/**
 	 * Add IsActive on DbHostAuth table
 	 */
-	V2_4_23;
+	V2_4_23,
+	/**
+	 * Change VARCHAR(255) to VARCHAR(8096)
+	 */
+	V2_4_25;
 	
 	public String getVersion() {
 		return this.name().substring(1).replace('_', '.');

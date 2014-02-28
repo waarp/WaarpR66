@@ -96,6 +96,7 @@ public class TestTransferNoDb extends DirectTransfer {
 						rhost, localFilename, rule, fileInfo, ismd5, block,
 						DbConstant.ILLEGALVALUE,
 						networkTransaction);
+				transaction.normalInfoAsWarn = snormalInfoAsWarn;
 				executorService.execute(transaction);
 				try {
 					Thread.sleep(10);

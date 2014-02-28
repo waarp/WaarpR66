@@ -61,6 +61,7 @@
 <MENU_INSERTION nom="realid"/>
 <MENU_INSERTION nom="aliasid"/>
 <MENU_INSERTION nom="stopfile"/>
+<MENU_INSERTION nom="logWarn"/>
 <MENU_INSERTION nom="spooled"/>
 <MENU_INSERTION nom="name"/>
 <MENU_INSERTION nom="to"/>
@@ -79,6 +80,7 @@
 <MENU_INSERTION nom="nolog"/>
 <MENU_INSERTION nom="waarp"/>
 <MENU_INSERTION nom="elapseWaarp"/>
+<MENU_INSERTION nom="minimalSize"/>
 <MENU_INSERTION nom="config"/>
 <MENU_INSERTION nom="comment"/>
 <MENU_INSERTION nom="identity"/>
@@ -149,6 +151,7 @@
 <AFFICHAGE_ELEMENT type="typesimple" element="realid"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="aliasid"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="stopfile"/>
+<AFFICHAGE_ELEMENT type="typesimple" element="logWarn"/>
 <AFFICHAGE_ELEMENT type="zone" element="spooled"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="name"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="to"/>
@@ -167,6 +170,7 @@
 <AFFICHAGE_ELEMENT type="typesimple" element="nolog"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="waarp"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="elapseWaarp"/>
+<AFFICHAGE_ELEMENT type="typesimple" element="minimalSize"/>
 <AFFICHAGE_ELEMENT type="division" element="config"/>
 <AFFICHAGE_ELEMENT type="typesimple" element="comment"/>
 <AFFICHAGE_ELEMENT type="zone" element="identity"/>
@@ -508,6 +512,12 @@ The set of aliases assign to this host separated by '|' or blank space
 The unique stop file
 					</DOCUMENTATION>
 </STRINGS_ELEMENT>
+<STRINGS_ELEMENT element="logWarn">
+<TITRE>logWarn</TITRE>
+<DOCUMENTATION>
+If True (default) will log as WARN level send and removed files, while False will log it as INFO level.
+                    </DOCUMENTATION>
+</STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="spooled">
 <TITRE>spooled</TITRE>
 <DOCUMENTATION>
@@ -571,13 +581,13 @@ If true, the daemon will make only submitted transfers, while if false it will m
 <STRINGS_ELEMENT element="parallel">
 <TITRE>parallel</TITRE>
 <DOCUMENTATION>
-If True, all direct transfers will be done in parallel, while if false, they will be done sequentially. Only applicable for direct transfers, not for submit.
+If True, all transfers will be done in parallel than information to Waarp servers, else False means that information will be done only after each transfer set.
                                 </DOCUMENTATION>
 </STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="limitParallel">
 <TITRE>limitParallel</TITRE>
 <DOCUMENTATION>
-The value will limit the number of concurrent direct transfers (if parallel is active). 0 means NO LIMIT
+The value will limit the number of concurrent direct transfers. 0 means NO LIMIT, while 1 means sequential.
                                 </DOCUMENTATION>
 </STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="info">
@@ -614,6 +624,12 @@ The host name for which the status of this daemon will be sent. Note that the cl
 <TITRE>elapseWaarp</TITRE>
 <DOCUMENTATION>
 The interval time in ms used to inform remote Waarp servers. If set to 0, the information will be done after each directory check, possibly long time, depending on the time spent to submit or directly transfer files
+                                </DOCUMENTATION>
+</STRINGS_ELEMENT>
+<STRINGS_ELEMENT element="minimalSize">
+<TITRE>minimalSize</TITRE>
+<DOCUMENTATION>
+The minimal size of each file that will be transferred (default: 1 byte)
                                 </DOCUMENTATION>
 </STRINGS_ELEMENT>
 <STRINGS_ELEMENT element="config">

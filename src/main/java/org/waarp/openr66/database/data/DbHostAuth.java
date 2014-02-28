@@ -828,7 +828,7 @@ public class DbHostAuth extends AbstractDbData {
 		WaarpStringUtils.replace(builder, "XXXVERSIONXXX", getVersion(hostid).replace(",", ", "));
 		int nb = 0;
 		try {
-			nb = NetworkTransaction.existConnection(getSocketAddress(), getHostid());
+			nb = NetworkTransaction.nbAttachedConnection(getSocketAddress(), getHostid());
 		} catch (Exception e) {
 			nb = -1;
 		}

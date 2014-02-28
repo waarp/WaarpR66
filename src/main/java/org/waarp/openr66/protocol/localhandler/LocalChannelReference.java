@@ -36,7 +36,8 @@ import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.PartnerConfiguration;
 import org.waarp.openr66.protocol.exception.OpenR66Exception;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
-import org.waarp.openr66.protocol.networkhandler.NetworkChannel;
+import org.waarp.openr66.protocol.exception.OpenR66ProtocolRemoteShutdownException;
+import org.waarp.openr66.protocol.networkhandler.NetworkChannelReference;
 import org.waarp.openr66.protocol.networkhandler.NetworkServerHandler;
 import org.waarp.openr66.protocol.networkhandler.NetworkServerPipelineFactory;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
@@ -62,19 +63,13 @@ public class LocalChannelReference {
 	private final Channel localChannel;
 
 	/**
-	 * Network Channel
+	 * Network Channel Ref
 	 */
-	private final Channel networkChannel;
-
+	private final NetworkChannelReference networkChannelRef;
 	/**
 	 * Traffic handler associated if any
 	 */
-	private ChannelTrafficShapingHandler cts;
-
-	/**
-	 * Associated NetworkChannel
-	 */
-	private NetworkChannel networkChannelObject;
+	private final ChannelTrafficShapingHandler cts;
 
 	/**
 	 * Network Server Handler
@@ -92,6 +87,10 @@ public class LocalChannelReference {
 	private Integer remoteId;
 
 	/**
+	 * Requested_requester_specialId
+	 */
+	private String requestId;
+	/**
 	 * Future on Request
 	 */
 	private final R66Future futureRequest;
@@ -99,7 +98,7 @@ public class LocalChannelReference {
 	/**
 	 * Future on Valid Starting Request
 	 */
-	private R66Future futureValidRequest = new R66Future(true);
+	private final R66Future futureValidRequest = new R66Future(true);
 
 	/**
 	 * Future on Transfer
@@ -163,16 +162,16 @@ public class LocalChannelReference {
 	/**
 	 * 
 	 * @param localChannel
-	 * @param networkChannel
+	 * @param networkChannelRef
 	 * @param remoteId
 	 * @param futureRequest
+	 * @throws OpenR66ProtocolRemoteShutdownException 
 	 */
-	public LocalChannelReference(Channel localChannel, Channel networkChannel,
-			Integer remoteId, R66Future futureRequest) {
+	public LocalChannelReference(Channel localChannel, NetworkChannelReference networkChannelRef,
+			Integer remoteId, R66Future futureRequest) throws OpenR66ProtocolRemoteShutdownException {
 		this.localChannel = localChannel;
-		this.networkChannel = networkChannel;
-		networkServerHandler = (NetworkServerHandler) this.networkChannel
-				.getPipeline().getLast();
+		this.networkChannelRef = networkChannelRef;
+		networkServerHandler = (NetworkServerHandler) this.networkChannelRef.getChannel().getPipeline().getLast();
 		localId = this.localChannel.getId();
 		this.remoteId = remoteId;
 		if (futureRequest == null) {
@@ -183,8 +182,7 @@ public class LocalChannelReference {
 			}
 			this.futureRequest = futureRequest;
 		}
-		cts = (ChannelTrafficShapingHandler) networkChannel.getPipeline().get(
-				NetworkServerPipelineFactory.LIMITCHANNEL);
+		cts = (ChannelTrafficShapingHandler) networkChannelRef.getChannel().getPipeline().get(NetworkServerPipelineFactory.LIMITCHANNEL);
 		if (DbConstant.admin.isConnected && ! DbConstant.admin.isCompatibleWithThreadSharedConnexion()) {
 			try {
 				this.noconcurrencyDbSession = new DbSession(DbConstant.admin, false);
@@ -196,6 +194,7 @@ public class LocalChannelReference {
 		} else {
 			this.noconcurrencyDbSession = null;
 		}
+		networkChannelRef.add(this);
 	}
 
 	/**
@@ -203,16 +202,18 @@ public class LocalChannelReference {
 	 */
 	public LocalChannelReference() {
 		this.localChannel = null;
-		this.networkChannel = null;
+		this.networkChannelRef = null;
 		networkServerHandler = null;
 		localId = 0;
 		this.futureRequest = new R66Future(true);
+		cts = null;
 	}
 
 	/**
 	 * Close the localChannelReference
 	 */
 	public void close() {
+		Configuration.configuration.getLocalTransaction().remove(this);
 		// Now force the close of the database after a wait
 		if (noconcurrencyDbSession != null && DbConstant.admin != null && DbConstant.admin.session != null && ! noconcurrencyDbSession.equals(DbConstant.admin.session)) {
 			noconcurrencyDbSession.forceDisconnect();
@@ -227,10 +228,10 @@ public class LocalChannelReference {
 	}
 
 	/**
-	 * @return the networkChannel
+	 * @return the networkChannelRef
 	 */
 	public Channel getNetworkChannel() {
-		return networkChannel;
+		return networkChannelRef.getChannel();
 	}
 
 	/**
@@ -257,16 +258,8 @@ public class LocalChannelReference {
 	/**
 	 * @return the networkChannelObject
 	 */
-	public NetworkChannel getNetworkChannelObject() {
-		return networkChannelObject;
-	}
-
-	/**
-	 * @param networkChannelObject
-	 *            the networkChannelObject to set
-	 */
-	public void setNetworkChannelObject(NetworkChannel networkChannelObject) {
-		this.networkChannelObject = networkChannelObject;
+	public NetworkChannelReference getNetworkChannelObject() {
+		return networkChannelRef;
 	}
 
 	/**
@@ -371,6 +364,13 @@ public class LocalChannelReference {
 	}
 
 	/**
+	 * 
+	 * @return True if the connection is validated (in OK or KO status)
+	 */
+	public boolean isConnectionValidate() {
+		return futureConnection.isDone();
+	}
+	/**
 	 * Validate or Invalidate the connection (authentication)
 	 * 
 	 * @param validate
@@ -399,12 +399,13 @@ public class LocalChannelReference {
 		R66Result result;
 		try {
 			for (int i = 0; i < Configuration.RETRYNB; i++) {
-				if (this.networkChannel.isConnected()) {
+				Channel channel = this.networkChannelRef.getChannel();
+				if (channel != null && channel.isConnected()) {
 					if (!futureConnection.await(Configuration.configuration.TIMEOUTCON)) {
 						if (futureConnection.isDone()) {
 							return futureConnection;
 						} else {
-							if (this.networkChannel.isConnected()) {
+							if (channel.isConnected()) {
 								continue;
 							}
 							result = new R66Result(
@@ -429,7 +430,7 @@ public class LocalChannelReference {
 			validateConnection(false, result);
 			return futureConnection;
 		}
-		logger.warn("Cannot get Connection due to out of Time: {}", this);
+		logger.info("Cannot get Connection due to out of Time: {}", this);
 		result = new R66Result(
 				new OpenR66ProtocolNoConnectionException(
 						"Out of time"), session, false,
@@ -717,4 +718,19 @@ public class LocalChannelReference {
 			partner = new PartnerConfiguration(hostId, R66Versions.V2_4_12.getVersion());
 		}
 	}
+
+	/**
+	 * @return the requestId
+	 */
+	public String getRequestId() {
+		return requestId;
+	}
+
+	/**
+	 * @param requestId the requestId to set
+	 */
+	public void setRequestId(String requestId) {
+		this.requestId = requestId;
+	}
+	
 }

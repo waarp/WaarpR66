@@ -82,9 +82,11 @@ import org.waarp.openr66.protocol.utils.R66Future;
  * -waarp WaarpHosts (seperated by ',') to inform of running spooled directory (information stays in memory of Waarp servers, not in database)<br>
  * -name name to be used as name in list printing in Waarp servers. Note this name must be unique globally.<br>
  * -elapseWaarp elapse to specify a specific timing > 1000ms between to information sent to Waarp servers (default: 5000ms)<br>
- * -parallel to allow (default) parallelism in send actions (submit are always sequential)<br>
- * -sequential to not allow parallelism in send actions (submit are always sequential)<br>
- * -limitParallel limit to specify the number of concurrent actions in -direct mode and if parallel mode is active<br>
+ * -parallel to allow (default) parallelism between send actions and information<br>
+ * -sequential to not allow parallelism between send actions and information<br>
+ * -limitParallel limit to specify the number of concurrent actions in -direct mode only<br>
+ * -minimalSize limit to specify the minimal size of each file that will be transferred (default: no limit)<br>
+ * -notlogWarn | -logWarn to deactivate or activate (default) the logging in Warn mode of Send/Remove information of the spool<br>
  * 
  * @author Frederic Bregier
  * 
@@ -139,6 +141,10 @@ public class SpooledDirectoryTransfer implements Runnable {
 	
 	protected final boolean recurs;
 	
+	protected final long minimalSize;
+	
+	protected final boolean normalInfoAsWarn;
+	
 	protected final NetworkTransaction networkTransaction;
 	
 	protected FileMonitor monitor = null;
@@ -166,6 +172,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 	 * @param elapseWaarp
 	 * @param parallel
 	 * @param waarphost
+	 * @param minimalSize
 	 * @param networkTransaction
 	 */
 	public SpooledDirectoryTransfer(R66Future future, String name, List<String> directory, 
@@ -174,7 +181,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 			List<String> remoteHosts, int blocksize, String regex,
 			long elapse, boolean submit, boolean nolog, boolean recursive, 
 			long elapseWaarp, boolean parallel, int limitParallel,
-			List<String> waarphost, NetworkTransaction networkTransaction) {
+			List<String> waarphost, long minimalSize, boolean logWarn, NetworkTransaction networkTransaction) {
 		if (logger == null) {
 			logger = WaarpInternalLoggerFactory.getLogger(SpooledDirectoryTransfer.class);
 		}
@@ -195,13 +202,15 @@ public class SpooledDirectoryTransfer implements Runnable {
 		AbstractTransfer.nolog = this.nolog;
 		this.recurs = recursive;
 		this.elapseWaarpTime = elapseWaarp;
-		this.limitParallelTasks = limitParallel;
 		if (this.submit) {
 			this.parallel = false;
 		} else {
 			this.parallel = parallel;
 		}
+		this.limitParallelTasks = limitParallel;
 		this.waarpHosts = waarphost;
+		this.minimalSize = minimalSize;
+		this.normalInfoAsWarn = logWarn;
 		this.networkTransaction = networkTransaction;
 	}
 
@@ -275,19 +284,34 @@ public class SpooledDirectoryTransfer implements Runnable {
 		}
 		FileFilter filter = null;
 		if (regexFilter != null) {
-			filter = new RegexFileFilter(regexFilter);
+			filter = new RegexFileFilter(regexFilter, minimalSize);
+		} else if (minimalSize > 0) {
+			filter = new RegexFileFilter(minimalSize);
 		}
 		// Will be used if no parallelism
 		FileMonitorCommandRunnableFuture commandValidFile = new SpooledRunner(null);
 		FileMonitorCommandRunnableFuture waarpRemovedCommand = new FileMonitorCommandRunnableFuture() {
 			public void run(FileItem file) {
-				logger.warn("File removed: {}", file.file);
+				if (normalInfoAsWarn) {
+					logger.warn("File removed: {}", file.file);
+				} else {
+					logger.info("File removed: {}", file.file);
+				}
 			}
 		};
 		FileMonitorCommandRunnableFuture waarpHostCommand = null;
 		File dir = new File(directory.get(0));
 		monitor = new FileMonitor(name, status, stop, dir, null, elapseTime, filter, 
 				recurs, commandValidFile, waarpRemovedCommand, null);
+		if (! monitor.initialized()) {
+			// wrong
+			logger.error(Messages.getString("Configuration.WrongInit") + " : already running");
+			this.future.cancel();
+			if (Configuration.configuration.shutdownConfiguration.serviceFuture != null) {
+				Configuration.configuration.shutdownConfiguration.serviceFuture.setFailure(new Exception(Messages.getString("Configuration.WrongInit") + " : already running"));
+			}
+			return;
+		}
 		commandValidFile.setMonitor(monitor);
 		if (parallel) {
 			FileMonitorCommandFactory factory = new FileMonitorCommandFactory() {
@@ -305,24 +329,30 @@ public class SpooledDirectoryTransfer implements Runnable {
 		if (waarpHosts != null && ! waarpHosts.isEmpty()) {
 			waarpHostCommand = new FileMonitorCommandRunnableFuture() {
 				public void run(FileItem notused) {
-					if (DbConstant.admin.session != null) {
-						DbConstant.admin.session.checkConnectionNoException();
-					}
-					String status = monitorArg.getStatus();
-					for (String host : waarpHosts) {
-						host = host.trim();
-						if (host != null && ! host.isEmpty()) {
-							R66Future future = new R66Future(true);
-							BusinessRequestPacket packet =
-									new BusinessRequestPacket(SpooledInformTask.class.getName() + " " + status, 0);
-							BusinessRequest transaction = new BusinessRequest(
-									networkTransaction, future, host, packet);
-							transaction.run();
-							future.awaitUninterruptibly();
-							if (! future.isSuccess()) {
-								logger.info("Can't inform Waarp server: "+host + " since " + future.getCause());
+					try {
+						if (DbConstant.admin.session != null && DbConstant.admin.session.isDisconnected) {
+							DbConstant.admin.session.checkConnectionNoException();
+						}
+						String status = monitorArg.getStatus();
+						logger.info("Will inform back Waarp hosts of current history: "+monitorArg.getCurrentHistoryNb());
+						for (String host : waarpHosts) {
+							host = host.trim();
+							if (host != null && ! host.isEmpty()) {
+								R66Future future = new R66Future(true);
+								BusinessRequestPacket packet =
+										new BusinessRequestPacket(SpooledInformTask.class.getName() + " " + status, 0);
+								BusinessRequest transaction = new BusinessRequest(
+										networkTransaction, future, host, packet);
+								transaction.run();
+								future.awaitUninterruptibly();
+								if (! future.isSuccess()) {
+									logger.info("Can't inform Waarp server: "+host + " since " + future.getCause());
+								}
 							}
 						}
+					} catch (Throwable e) {
+						logger.error("Issue during Waarp information", e);
+						// ignore
 					}
 				}
 			};
@@ -334,7 +364,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 			monitor.addDirectory(dir);
 		}
 		logger.warn("SpooledDirectoryTransfer starts name:"+name+" directory:"+directory+" statusFile:"+statusFile+" stopFile:"+stopFile+
-				" rulename:"+rulename+" fileinfo:"+fileinfo+" hosts:"+remoteHosts+" regex:"+regexFilter+" waarp:"+waarpHosts+
+				" rulename:"+rulename+" fileinfo:"+fileinfo+" hosts:"+remoteHosts+" regex:"+regexFilter+" minimalSize:"+minimalSize+" waarp:"+waarpHosts+
 				" elapse:"+elapseTime+" waarpElapse:"+elapseWaarpTime+" parallel:"+parallel+" limitParallel:"+limitParallelTasks+
 				" submit:"+submit+" recursive:"+recurs);
 		monitor.start();
@@ -362,129 +392,191 @@ public class SpooledDirectoryTransfer implements Runnable {
 
 		public void run(FileItem fileItem) {
 			this.fileItem = fileItem;
-			if (DbConstant.admin.session != null) {
+			if (DbConstant.admin.session != null && DbConstant.admin.session.isDisconnected) {
 				DbConstant.admin.session.checkConnectionNoException();
 			}
 			boolean finalStatus = false;
 			int ko = 0;
 			long specialId = remoteHosts.size() > 1 ? DbConstant.ILLEGALVALUE : fileItem.specialId;
-			for (String host : remoteHosts) {
-				host = host.trim();
-				if (host != null && ! host.isEmpty()) {
-					String filename = fileItem.file.getAbsolutePath();
-					logger.info("Launch transfer to "+host+" with file "+filename);
-					R66Future future = new R66Future(true);
-					String text = null;
-					if (submit) {
-						text = "Submit Transfer: ";
-						SubmitTransfer transaction = new SubmitTransfer(future,
-								host, filename, rulename, fileinfo, isMD5, blocksize, 
-								specialId, null);
-						logger.info(text+host);
-						transaction.run();
-					} else {
-						if (specialId != DbConstant.ILLEGALVALUE) {
-							text = "Request Transfer Restart: ";
-							try {
-								String srequester = Configuration.configuration.getHostId(DbConstant.admin.session,
-										host);
-								RequestTransfer transaction = new RequestTransfer(future, specialId, host, srequester, 
-										false, false, true, networkTransaction);
-								logger.info(text+host);
-								transaction.run();
-								// special task
-								future.awaitUninterruptibly();
-								if (! future.isSuccess()) {
+			try {
+				for (String host : remoteHosts) {
+					host = host.trim();
+					if (host != null && ! host.isEmpty()) {
+						String filename = fileItem.file.getAbsolutePath();
+						logger.info("Launch transfer to "+host+" with file "+filename);
+						R66Future future = new R66Future(true);
+						String text = null;
+						if (submit) {
+							text = "Submit Transfer: ";
+							SubmitTransfer transaction = new SubmitTransfer(future,
+									host, filename, rulename, fileinfo, isMD5, blocksize, 
+									specialId, null);
+							transaction.normalInfoAsWarn = normalInfoAsWarn;
+							logger.info(text+host);
+							transaction.run();
+						} else {
+							if (specialId != DbConstant.ILLEGALVALUE) {
+								boolean direct = false;
+								// Transfer try at least once
+								text = "Request Transfer try Restart: "+specialId+" "+filename+" ";
+								try {
+									String srequester = Configuration.configuration.getHostId(DbConstant.admin.session,
+											host);
+									// Try restart
+									RequestTransfer transaction = new RequestTransfer(future, specialId, host, srequester, 
+											false, false, true, networkTransaction);
+									transaction.normalInfoAsWarn = normalInfoAsWarn;
+									logger.info(text+host);
+									// special task
+									transaction.run();
+									future.awaitUninterruptibly();
+									if (! future.isSuccess()) {
+										direct = true;
+										text = "Request Transfer Cancelled and Restart: "+specialId+" "+filename+" ";
+										future = new R66Future(true);
+										// Cancel
+										RequestTransfer transaction2 = new RequestTransfer(future, specialId, host, srequester, 
+											true, false, false, networkTransaction);
+										transaction.normalInfoAsWarn = normalInfoAsWarn;
+										logger.warn(text+host);
+										transaction2.run();
+										// special task
+										future.awaitUninterruptibly();
+									}
+								} catch (WaarpDatabaseException e) {
+									direct = true;
+									if (DbConstant.admin.session != null) {
+										DbConstant.admin.session.checkConnectionNoException();
+									}
+									logger.warn(Messages.getString("RequestTransfer.5") + host, e); //$NON-NLS-1$
+								}
+								if (direct) {
 									text = "Direct Transfer: ";
 									future = new R66Future(true);
-									DirectTransfer transaction2 = new DirectTransfer(future,
+									DirectTransfer transaction = new DirectTransfer(future,
 											host, filename, rulename, fileinfo, isMD5, blocksize, 
 											DbConstant.ILLEGALVALUE, networkTransaction);
+									transaction.normalInfoAsWarn = normalInfoAsWarn;
 									logger.info(text+host);
-									transaction2.run();
+									transaction.run();
 								}
-							} catch (WaarpDatabaseException e) {
-								logger.warn(Messages.getString("RequestTransfer.5") + host, e); //$NON-NLS-1$
+							} else {
 								text = "Direct Transfer: ";
 								DirectTransfer transaction = new DirectTransfer(future,
-										host, filename, rulename, fileinfo, isMD5, blocksize, 
-										DbConstant.ILLEGALVALUE, networkTransaction);
+										host, filename, rulename, fileinfo, isMD5, blocksize,
+										specialId, networkTransaction);
+								transaction.normalInfoAsWarn = normalInfoAsWarn;
 								logger.info(text+host);
 								transaction.run();
 							}
-						} else {
-							text = "Direct Transfer: ";
-							DirectTransfer transaction = new DirectTransfer(future,
-									host, filename, rulename, fileinfo, isMD5, blocksize,
-									specialId, networkTransaction);
-							logger.info(text+host);
-							transaction.run();
 						}
-					}
-					future.awaitUninterruptibly();
-					R66Result r66result = future.getResult();
-					if (future.isSuccess()) {
-						finalStatus = true;
-						sent++;
-						DbTaskRunner runner = null;
-						if (r66result != null) {
-							runner = r66result.runner;
-							if (runner != null) {
-								specialId = runner.getSpecialId();
-								String status = Messages.getString("RequestInformation.Success"); //$NON-NLS-1$
-								if (runner.getErrorInfo() == ErrorCode.Warning) {
-									status = Messages.getString("RequestInformation.Warned"); //$NON-NLS-1$
-								}
-								logger.warn(text+" status: "+status+"     "
-										+ runner.toShortString()
-										+"     <REMOTE>"+ host+ "</REMOTE>"
-										+"     <FILEFINAL>"+
-										(r66result.file != null ? 
-												r66result.file.toString() + "</FILEFINAL>"
-												: "no file"));
-								if (nolog && !submit) {
-									// In case of success, delete the runner
-									try {
-										runner.delete();
-									} catch (WaarpDatabaseException e) {
-										logger.warn("Cannot apply nolog to     " +
-												runner.toShortString(),
-												e);
+						future.awaitUninterruptibly();
+						R66Result r66result = future.getResult();
+						if (future.isSuccess()) {
+							finalStatus = true;
+							sent++;
+							DbTaskRunner runner = null;
+							if (r66result != null) {
+								runner = r66result.runner;
+								if (runner != null) {
+									specialId = runner.getSpecialId();
+									String status = Messages.getString("RequestInformation.Success"); //$NON-NLS-1$
+									if (runner.getErrorInfo() == ErrorCode.Warning) {
+										status = Messages.getString("RequestInformation.Warned"); //$NON-NLS-1$
+									}
+									if (normalInfoAsWarn) {
+										logger.warn(text+" status: "+status+"     "
+												+ runner.toShortString()
+												+"     <REMOTE>"+ host+ "</REMOTE>"
+												+"     <FILEFINAL>"+
+												(r66result.file != null ? 
+														r66result.file.toString() + "</FILEFINAL>"
+														: "no file"));
+									} else {
+										logger.info(text+" status: "+status+"     "
+												+ runner.toShortString()
+												+"     <REMOTE>"+ host+ "</REMOTE>"
+												+"     <FILEFINAL>"+
+												(r66result.file != null ? 
+														r66result.file.toString() + "</FILEFINAL>"
+														: "no file"));
+									}
+									if (nolog && !submit) {
+										// In case of success, delete the runner
+										try {
+											runner.delete();
+										} catch (WaarpDatabaseException e) {
+											logger.warn("Cannot apply nolog to     " +
+													runner.toShortString(),
+													e);
+										}
+									}
+								} else {
+									if (normalInfoAsWarn) {
+										logger.warn(text+Messages.getString("RequestInformation.Success")  //$NON-NLS-1$
+												+"<REMOTE>" + host + "</REMOTE>");
+									} else {
+										logger.info(text+Messages.getString("RequestInformation.Success")  //$NON-NLS-1$
+												+"<REMOTE>" + host + "</REMOTE>");
 									}
 								}
 							} else {
-								logger.warn(text+Messages.getString("RequestInformation.Success")  //$NON-NLS-1$
+								if (normalInfoAsWarn) {
+									logger.warn(text+Messages.getString("RequestInformation.Success")  //$NON-NLS-1$
 										+"<REMOTE>" + host + "</REMOTE>");
+								} else {
+									logger.info(text+Messages.getString("RequestInformation.Success")  //$NON-NLS-1$
+											+"<REMOTE>" + host + "</REMOTE>");
+								}
 							}
 						} else {
-							logger.warn(text+Messages.getString("RequestInformation.Success")  //$NON-NLS-1$
-									+"<REMOTE>" + host + "</REMOTE>");
-						}
-					} else {
-						error++;
-						ko++;
-						DbTaskRunner runner = null;
-						if (r66result != null) {
-							runner = r66result.runner;
-							if (runner != null) {
-								specialId = runner.getSpecialId();
-								if (! DbConstant.admin.isConnected) {
-									specialId = DbConstant.ILLEGALVALUE;
+							error++;
+							ko++;
+							DbTaskRunner runner = null;
+							if (r66result != null) {
+								String errMsg = "Unknown Error Message";
+								if (future.getCause() != null) {
+									errMsg = future.getCause().getMessage();
 								}
-								logger.error(text+Messages.getString("RequestInformation.Failure") +  //$NON-NLS-1$
-										runner.toShortString() +
-									"<REMOTE>" + host + "</REMOTE>", future.getCause());
+								boolean isConnectionImpossible = (r66result.code == ErrorCode.ConnectionImpossible) && ! normalInfoAsWarn;
+								runner = r66result.runner;
+								if (runner != null) {
+									specialId = runner.getSpecialId();
+									if (! DbConstant.admin.isConnected) {
+										specialId = DbConstant.ILLEGALVALUE;
+									}
+									if (isConnectionImpossible) {
+										logger.info(text+Messages.getString("RequestInformation.Failure") +  //$NON-NLS-1$
+												runner.toShortString() +
+												"<REMOTE>" + host + "</REMOTE><REASON>" +errMsg+"</REASON>");
+									} else {
+										logger.error(text+Messages.getString("RequestInformation.Failure") +  //$NON-NLS-1$
+											runner.toShortString() +
+											"<REMOTE>" + host + "</REMOTE><REASON>" +errMsg+"</REASON>");
+									}
+								} else {
+									if (isConnectionImpossible) {
+										logger.info(text+Messages.getString("RequestInformation.Failure") +  //$NON-NLS-1$
+												"<REMOTE>" + host + "</REMOTE>",
+											future.getCause());
+									} else {
+										logger.error(text+Messages.getString("RequestInformation.Failure") +  //$NON-NLS-1$
+												"<REMOTE>" + host + "</REMOTE>",
+												future.getCause());
+									}
+								}
 							} else {
-								logger.error(text+Messages.getString("RequestInformation.Failure"),  //$NON-NLS-1$
+								logger.error(text+Messages.getString("RequestInformation.Failure") //$NON-NLS-1$
+										+"<REMOTE>" + host + "</REMOTE>", 
 										future.getCause());
 							}
-						} else {
-							logger.error(text+Messages.getString("RequestInformation.Failure") //$NON-NLS-1$
-									+"<REMOTE>" + host + "</REMOTE>", 
-									future.getCause());
 						}
 					}
 				}
+			} catch (Throwable e) {
+				// catch any exception
+				logger.error("Error in SpooledDirectory", e);
+				finalStatus = false;
 			}
 			specialId = remoteHosts.size() > 1 ? DbConstant.ILLEGALVALUE : specialId;
 			if (ko > 0) {
@@ -519,6 +611,8 @@ public class SpooledDirectoryTransfer implements Runnable {
 		protected List<String> waarphosts = new ArrayList<String>();
 		protected boolean isparallel = true;
 		protected int limitParallel = 0;
+		protected long minimalSize = 0;
+		protected boolean logWarn = true;
 	}
 	
 	protected static final List<Arguments> arguments = new ArrayList<Arguments>();
@@ -543,6 +637,8 @@ public class SpooledDirectoryTransfer implements Runnable {
 	private static final String XML_nolog = "nolog";
 	private static final String XML_waarp = "waarp";
 	private static final String XML_elapseWaarp = "elapseWaarp";
+	private static final String XML_minimalSize = "minimalSize";
+	private static final String XML_logWarn = "logWarn";
 	
 	private static final XmlDecl[] subSpooled = {
 		new XmlDecl(XmlType.STRING, XML_name),
@@ -561,10 +657,12 @@ public class SpooledDirectoryTransfer implements Runnable {
 		new XmlDecl(XmlType.INTEGER, XML_block),
 		new XmlDecl(XmlType.BOOLEAN, XML_nolog),
 		new XmlDecl(XML_waarp, XmlType.STRING, XML_waarp, true),
-		new XmlDecl(XmlType.LONG, XML_elapseWaarp)
+		new XmlDecl(XmlType.LONG, XML_elapseWaarp),
+		new XmlDecl(XmlType.LONG, XML_minimalSize)
 	};
 	private static final XmlDecl[] spooled = {
 		new XmlDecl(XmlType.STRING, XML_stopfile),
+		new XmlDecl(XmlType.BOOLEAN, XML_logWarn),
 		new XmlDecl(XML_spooled, XmlType.XVAL, XML_spooled, subSpooled, true)
 	};
 	private static final XmlDecl[] configSpooled = {
@@ -593,11 +691,17 @@ public class SpooledDirectoryTransfer implements Runnable {
 			return false;
 		}
 		stopfile = value.getString();
+		value = hashConfig.get(XML_logWarn);
+		boolean logWarn = true;
+		if (value != null && (!value.isEmpty())) {
+			logWarn = value.getBoolean();
+		}
 		value = hashConfig.get(XML_spooled);
 		if (value != null && (value.getList() != null)) {
 			for (XmlValue[] xml : (List<XmlValue[]>) value.getList()) {
 				Arguments arg = new Arguments();
 				arg.stopfile = stopfile;
+				arg.logWarn = logWarn;
 				XmlHash subHash = new XmlHash(xml);
 				value = subHash.get(XML_name);
 				if (value != null && (!value.isEmpty())) {
@@ -623,12 +727,14 @@ public class SpooledDirectoryTransfer implements Runnable {
 				if (value != null && (!value.isEmpty())) {
 					arg.rule = value.getString();
 				} else {
+					logger.warn("rule directive is empty but must not");
 					continue;
 				}
 				value = subHash.get(XML_statusfile);
 				if (value != null && (!value.isEmpty())) {
 					arg.statusfile = value.getString();
 				} else {
+					logger.warn("statusfile directive is empty but must not");
 					continue;
 				}
 				value = subHash.get(XML_directory);
@@ -699,8 +805,10 @@ public class SpooledDirectoryTransfer implements Runnable {
 				value = subHash.get(XML_elapseWaarp);
 				if (value != null && (!value.isEmpty())) {
 					arg.elapsedWaarp = value.getLong();
-				} else {
-					continue;
+				}
+				value = subHash.get(XML_minimalSize);
+				if (value != null && (!value.isEmpty())) {
+					arg.minimalSize = value.getLong();
 				}
 				arguments.add(arg);
 			}
@@ -792,6 +900,10 @@ public class SpooledDirectoryTransfer implements Runnable {
 						arg.tosubmit = false;
 					} else if (args[i].equalsIgnoreCase("-recursive")) {
 						arg.recursive = true;
+					} else if (args[i].equalsIgnoreCase("-logWarn")) {
+						arg.logWarn = true;
+					} else if (args[i].equalsIgnoreCase("-notlogWarn")) {
+						arg.logWarn = false;
 					} else if (args[i].equalsIgnoreCase("-regex")) {
 						i++;
 						arg.regex = args[i];
@@ -810,6 +922,9 @@ public class SpooledDirectoryTransfer implements Runnable {
 					} else if (args[i].equalsIgnoreCase("-elapseWaarp")) {
 						i++;
 						arg.elapsedWaarp = Long.parseLong(args[i]);
+					} else if (args[i].equalsIgnoreCase("-minimalSize")) {
+						i++;
+						arg.minimalSize = Long.parseLong(args[i]);
 					} else if (args[i].equalsIgnoreCase("-limitParallel")) {
 						i++;
 						arg.limitParallel = Integer.parseInt(args[i]);
@@ -888,7 +1003,9 @@ public class SpooledDirectoryTransfer implements Runnable {
 						new SpooledDirectoryTransfer(future, arg.sname, arg.localDirectory, arg.statusfile, arg.stopfile,
 								arg.rule, arg.fileInfo, arg.ismd5, arg.rhosts, arg.block, arg.regex, arg.elapsed, 
 								arg.tosubmit, arg.noLog, arg.recursive,
-								arg.elapsedWaarp, arg.isparallel, arg.limitParallel, arg.waarphosts, networkTransactionStatic);
+								arg.elapsedWaarp, arg.isparallel, arg.limitParallel, arg.waarphosts, arg.minimalSize,
+								arg.logWarn,
+								networkTransactionStatic);
 				executorService.submit(spooled);
 				list.add(spooled);
 			}
@@ -907,8 +1024,8 @@ public class SpooledDirectoryTransfer implements Runnable {
 				list.clear();
 			}
 			return true;
-		} catch (Exception e) {
-			logger.warn("exc", e);
+		} catch (Throwable e) {
+			logger.error("Exception", e);
 			return false;
 		} finally {
 			if (normalStart) {

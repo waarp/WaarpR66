@@ -1170,7 +1170,7 @@ public class FileBasedConfiguration {
 		} else {
 			logger.debug("No setup of ContraintLimitHandler");
 			config.constraintLimitHandler =
-					new R66ConstraintLimitHandler();
+					new R66ConstraintLimitHandler(false, false, 1.0, connlimit);
 		}
 		value = hashConfig.get(XML_SERVER_THREAD);
 		if (value != null && (!value.isEmpty())) {

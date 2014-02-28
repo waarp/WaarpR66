@@ -85,6 +85,9 @@ public class ClientRunner extends Thread {
 		this.futureRequest = futureRequest;
 	}
 
+	public static String hashStatus() {
+		return "ClientRunner: [taskRunnerRetryHashMap: "+taskRunnerRetryHashMap.size()+" activeRunners: "+(activeRunners != null ? activeRunners.size() : 0)+"] ";
+	}
 	/**
 	 * @return the networkTransaction
 	 */
@@ -197,7 +200,7 @@ public class ClientRunner extends Thread {
 	 * @param limit
 	 * @return True if the task was run less than limit, else False
 	 */
-	public boolean incrementTaskRunerTry(DbTaskRunner runner, int limit) {
+	public boolean incrementTaskRunnerTry(DbTaskRunner runner, int limit) {
 		String key = runner.getKey();
 		Integer tries = taskRunnerRetryHashMap.get(key);
 		logger.debug("try to find integer: " + tries);
@@ -235,11 +238,12 @@ public class ClientRunner extends Thread {
 		} catch (InterruptedException e) {
 		}
 		if (localChannelReference.getFutureValidRequest().isSuccess()) {
-			return finishTransfer(true, localChannelReference);
-		} else if (localChannelReference.getFutureValidRequest().getResult().code == ErrorCode.ServerOverloaded) {
+			return finishTransfer(localChannelReference);
+		} else if (localChannelReference.getFutureValidRequest().getResult() != null && 
+				localChannelReference.getFutureValidRequest().getResult().code == ErrorCode.ServerOverloaded) {
 			return tryAgainTransferOnOverloaded(true, localChannelReference);
 		} else
-			return finishTransfer(true, localChannelReference);
+			return finishTransfer(localChannelReference);
 	}
 
 	/**
@@ -263,7 +267,7 @@ public class ClientRunner extends Thread {
 		if (this.localChannelReference == null) {
 			this.localChannelReference = localChannelReference;
 		}
-		boolean incRetry = incrementTaskRunerTry(taskRunner,
+		boolean incRetry = incrementTaskRunnerTry(taskRunner,
 				Configuration.RETRYNB);
 		logger.debug("tryAgainTransferOnOverloaded: " + retry + ":" + incRetry);
 		switch (taskRunner.getUpdatedInfo()) {
@@ -301,8 +305,6 @@ public class ClientRunner extends Thread {
 	/**
 	 * Finish the transfer (called at the end of runTransfer)
 	 * 
-	 * @param retry
-	 *            if True, it will retry in case of overloaded remote server, else it just stops
 	 * @param localChannelReference
 	 * @return The R66Future of the transfer operation
 	 * @throws OpenR66ProtocolNotYetConnectionException
@@ -310,8 +312,7 @@ public class ClientRunner extends Thread {
 	 * @throws OpenR66ProtocolNoConnectionException
 	 * @throws OpenR66RunnerErrorException
 	 */
-	public R66Future finishTransfer(boolean retry,
-			LocalChannelReference localChannelReference)
+	public R66Future finishTransfer(LocalChannelReference localChannelReference)
 			throws OpenR66RunnerErrorException {
 		if (this.localChannelReference == null) {
 			this.localChannelReference = localChannelReference;
@@ -459,12 +460,11 @@ public class ClientRunner extends Thread {
 		LocalChannelReference localChannelReference = networkTransaction
 				.createConnectionWithRetry(socketAddress, isSSL, futureRequest);
 		taskRunner.setLocalChannelReference(localChannelReference);
-		socketAddress = null;
 		if (localChannelReference == null) {
 			// propose to redo
 			// See if reprogramming is ok (not too many tries)
 			String retry;
-			if (incrementTaskRunerTry(taskRunner, Configuration.RETRYNB)) {
+			if (incrementTaskRunnerTry(taskRunner, Configuration.RETRYNB)) {
 				logger.debug("Will retry since Cannot connect to {}", host);
 				retry = " but will retry";
 				// now wait
@@ -495,10 +495,13 @@ public class ClientRunner extends Thread {
 						ErrorCode.ConnectionImpossible, true);
 				taskRunner
 						.setLocalChannelReference(new LocalChannelReference());
+				// set this server as being in shutdown status
+				NetworkTransaction.proposeShutdownNetworkChannel(socketAddress);
 				throw new OpenR66ProtocolNoConnectionException(
 						"Cannot connect to server " + host.toString() + retry);
 			}
 		}
+		socketAddress = null;
 		if (handler != null) {
 			localChannelReference.setRecvThroughHandler(handler);
 		}

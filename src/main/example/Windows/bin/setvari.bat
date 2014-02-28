@@ -14,7 +14,7 @@ REM Logger
 SET LOGSERVER=" -Dlogback.configurationFile=%R66HOME%\conf\logback.xml "
 SET LOGCLIENT=" -Dlogback.configurationFile=%R66HOME%\conf\logback-client.xml "
 
-SET R66_CLASSPATH=" %R66BIN%\WaarpR66-2.4.24.jar;%R66BIN%\* "
+SET R66_CLASSPATH=" %R66BIN%\WaarpR66-2.4.25.jar;%R66BIN%\* "
 
 SET JAVARUNCLIENT=%JAVA_RUN% -cp %R66_CLASSPATH% %LOGCLIENT% -Dopenr66.locale=en 
 SET JAVARUNSERVER=%JAVASERVER_RUN% -cp %R66_CLASSPATH% %LOGSERVER% -Dopenr66.locale=en 
@@ -31,11 +31,11 @@ REM ###############
 
 REM # start the OpenR66 server
 REM # no option
-set R66SERVER=%JAVARUNSERVER% openr66.server.R66Server %SERVER_CONFIG%
+set R66SERVER=%JAVARUNSERVER% org.waarp.openr66.server.R66Server %SERVER_CONFIG%
 
 REM # init database from argument
 REM # [ -initdb ] [ -loadBusiness businessConfiguration ] [ -loadRoles roleConfiguration ] [ -loadAlias aliasConfig ] [ -dir rulesDirectory ] [ -limit xmlFileLimit ] [ -auth xmlFileAuthent ] [ -upgradeDb ]
-set R66INIT=%JAVARUNCLIENT% openr66.server.ServerInitDatabase %SERVER_CONFIG%
+set R66INIT=%JAVARUNCLIENT% org.waarp.openr66.server.ServerInitDatabase %SERVER_CONFIG%
 
 REM # export configuration into directory
 REM # directory

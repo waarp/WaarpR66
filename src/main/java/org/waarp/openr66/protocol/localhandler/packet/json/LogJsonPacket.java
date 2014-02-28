@@ -24,6 +24,7 @@ import java.util.Date;
 
 
 /**
+ * Export Log JSON packet
  * @author "Frederic Bregier"
  *
  */

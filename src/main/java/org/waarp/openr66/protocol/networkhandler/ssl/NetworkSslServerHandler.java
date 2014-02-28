@@ -59,12 +59,14 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
 		
 		WaarpFuture futureSSL = WaarpSslUtility.getFutureSslHandshake(channel);
 		if (futureSSL == null) {
-			for (int i = 0; i < Configuration.RETRYNB; i++) {
+			int maxtry = (int) (Configuration.configuration.TIMEOUTCON / Configuration.RETRYINMS) / 2;
+			for (int i = 0; i < maxtry; i++) {
 				futureSSL = WaarpSslUtility.getFutureSslHandshake(channel);
 				if (futureSSL != null)
 					break;
 				try {
 					Thread.sleep(Configuration.RETRYINMS);
+					Thread.yield();
 				} catch (InterruptedException e) {
 				}
 			}
@@ -86,11 +88,6 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.jboss.netty.channel.SimpleChannelHandler#channelOpen(org.jboss.netty.channel.
-	 * ChannelHandlerContext, org.jboss.netty.channel.ChannelStateEvent)
-	 */
 	@Override
 	public void channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e)
 			throws Exception {
@@ -101,11 +98,6 @@ public class NetworkSslServerHandler extends NetworkServerHandler {
 		super.channelOpen(ctx, e);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.protocol.networkhandler.NetworkServerHandler#channelConnected
-	 * (org.jboss.netty.channel.ChannelHandlerContext, org.jboss.netty.channel.ChannelStateEvent)
-	 */
 	@Override
 	public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
 			throws OpenR66ProtocolNetworkException {

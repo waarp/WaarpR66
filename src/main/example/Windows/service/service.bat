@@ -28,7 +28,7 @@ rem -- Service name
 set SERVICE_NAME=WaarpR66
 
 rem -- Service CLASSPATH
-set SERVICE_CLASSPATH=%DAEMON_ROOT%\WaarpR66-2.4.23.jar;%DAEMON_ROOT%\*
+set SERVICE_CLASSPATH=%DAEMON_ROOT%\WaarpR66-2.4.25.jar;%DAEMON_ROOT%\*
 
 rem -- Service main class
 set MAIN_SERVICE_CLASS=org.waarp.openr66.service.R66ServiceLauncher

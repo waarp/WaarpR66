@@ -137,6 +137,41 @@ public class TestBusinessRequest extends AbstractBusinessRequest {
 		logger.warn("Success: " + success + " Error: " + error + " NB/s: " +
 				1000 / (time4 - time3));
 
+		logger.info("Start Test of Increasing Transaction");
+		time1 = System.currentTimeMillis();
+		String argsAdd = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
+		String value = " business 0 ";
+		int lastnb = nb;
+		for (int i = 0; i < nb; i++) {
+			arrayFuture[i] = new R66Future(true);
+			try {
+				value += argsAdd+argsAdd+argsAdd+argsAdd+argsAdd+argsAdd+argsAdd+argsAdd+argsAdd+argsAdd;
+			} catch (OutOfMemoryError e) {
+				logger.warn("Send size: "+value.length());
+				lastnb = i;
+				break;
+			}
+			packet = new BusinessRequestPacket(
+					TestExecJavaTask.class.getName() + value, 0);
+			TestBusinessRequest transaction2 = new TestBusinessRequest(
+					networkTransaction, arrayFuture[i], host.getHostid(),
+					packet);
+			executorService.execute(transaction2);
+		}
+		success = 0;
+		error = 0;
+		for (int i = 0; i < lastnb; i++) {
+			arrayFuture[i].awaitUninterruptibly();
+			if (arrayFuture[i].isSuccess()) {
+				success++;
+			} else {
+				error++;
+			}
+		}
+		time2 = System.currentTimeMillis();
+		logger.warn("Success: " + success + " Error: " + error + " NB/s: " +
+				success * 100 * 1000 / (time2 - time1));
+
 		executorService.shutdown();
 		networkTransaction.closeAll();
 	}

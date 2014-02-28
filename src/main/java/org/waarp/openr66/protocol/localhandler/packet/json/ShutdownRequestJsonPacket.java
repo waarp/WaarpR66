@@ -22,24 +22,23 @@ package org.waarp.openr66.protocol.localhandler.packet.json;
 
 
 /**
+ * Shutdown current request JSON packet
  * @author "Frederic Bregier"
  *
  */
-public class RequestUserJsonPacket extends JsonPacket {
+public class ShutdownRequestJsonPacket extends JsonPacket {
 
-	protected byte command;
-
+	protected int rank = -1;
 	/**
-	 * @return the command
+	 * @return the rank
 	 */
-	public byte getCommand() {
-		return command;
+	public int getRank() {
+		return rank;
 	}
-
 	/**
-	 * @param command the command to set
+	 * @param rank the rank to set
 	 */
-	public void setCommand(byte command) {
-		this.command = command;
+	public void setRank(int rank) {
+		this.rank = rank;
 	}
 }

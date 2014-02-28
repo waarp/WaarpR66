@@ -101,6 +101,10 @@ public class DbTaskRunner extends AbstractDbData {
 	private static final ConcurrentHashMap<Long, DbTaskRunner> dbR66TaskHashMap =
 			new ConcurrentHashMap<Long, DbTaskRunner>();
 
+	public static String hashStatus() {
+		return "DbTaskRunner: [dbR66TaskHashMap: "+dbR66TaskHashMap.size()+"] ";
+	}
+	
 	public static enum Columns {
 		GLOBALSTEP,
 		GLOBALLASTSTEP,
@@ -222,7 +226,7 @@ public class DbTaskRunner extends AbstractDbData {
 
 	private volatile boolean continueTransfer = true;
 
-	private volatile boolean rescheduledTransfer = false;
+	private boolean rescheduledTransfer = false;
 	
 	private LocalChannelReference localChannelReference = null;
 
