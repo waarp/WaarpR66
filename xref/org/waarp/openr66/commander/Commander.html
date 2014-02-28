@@ -211,7 +211,7 @@
 <a class="jxr_linenumber" name="201" href="#201">201</a> 
 <a class="jxr_linenumber" name="202" href="#202">202</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> run() {
 <a class="jxr_linenumber" name="203" href="#203">203</a> 		Thread.currentThread().setName(<span class="jxr_string">"OpenR66Commander"</span>);
-<a class="jxr_linenumber" name="204" href="#204">204</a> 		<strong class="jxr_keyword">if</strong> (DbConstant.admin.session != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="204" href="#204">204</a> 		<strong class="jxr_keyword">if</strong> (DbConstant.admin.session != <strong class="jxr_keyword">null</strong> &amp;&amp; DbConstant.admin.session.isDisconnected) {
 <a class="jxr_linenumber" name="205" href="#205">205</a> 			DbConstant.admin.session.checkConnectionNoException();
 <a class="jxr_linenumber" name="206" href="#206">206</a> 		}
 <a class="jxr_linenumber" name="207" href="#207">207</a> 		<em class="jxr_comment">// each time it is runned, it parses all database for updates</em>

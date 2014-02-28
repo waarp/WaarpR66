@@ -147,11 +147,46 @@
 <a class="jxr_linenumber" name="137" href="#137">137</a> 		logger.warn(<span class="jxr_string">"Success: "</span> + success + <span class="jxr_string">" Error: "</span> + error + <span class="jxr_string">" NB/s: "</span> +
 <a class="jxr_linenumber" name="138" href="#138">138</a> 				1000 / (time4 - time3));
 <a class="jxr_linenumber" name="139" href="#139">139</a> 
-<a class="jxr_linenumber" name="140" href="#140">140</a> 		executorService.shutdown();
-<a class="jxr_linenumber" name="141" href="#141">141</a> 		networkTransaction.closeAll();
-<a class="jxr_linenumber" name="142" href="#142">142</a> 	}
-<a class="jxr_linenumber" name="143" href="#143">143</a> 
-<a class="jxr_linenumber" name="144" href="#144">144</a> }
+<a class="jxr_linenumber" name="140" href="#140">140</a> 		logger.info(<span class="jxr_string">"Start Test of Increasing Transaction"</span>);
+<a class="jxr_linenumber" name="141" href="#141">141</a> 		time1 = System.currentTimeMillis();
+<a class="jxr_linenumber" name="142" href="#142">142</a> 		String argsAdd = <span class="jxr_string">"0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"</span>;
+<a class="jxr_linenumber" name="143" href="#143">143</a> 		String value = <span class="jxr_string">" business 0 "</span>;
+<a class="jxr_linenumber" name="144" href="#144">144</a> 		<strong class="jxr_keyword">int</strong> lastnb = nb;
+<a class="jxr_linenumber" name="145" href="#145">145</a> 		<strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; nb; i++) {
+<a class="jxr_linenumber" name="146" href="#146">146</a> 			arrayFuture[i] = <strong class="jxr_keyword">new</strong> R66Future(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="147" href="#147">147</a> 			<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="148" href="#148">148</a> 				value += argsAdd+argsAdd+argsAdd+argsAdd+argsAdd+argsAdd+argsAdd+argsAdd+argsAdd+argsAdd;
+<a class="jxr_linenumber" name="149" href="#149">149</a> 			} <strong class="jxr_keyword">catch</strong> (OutOfMemoryError e) {
+<a class="jxr_linenumber" name="150" href="#150">150</a> 				logger.warn(<span class="jxr_string">"Send size: "</span>+value.length());
+<a class="jxr_linenumber" name="151" href="#151">151</a> 				lastnb = i;
+<a class="jxr_linenumber" name="152" href="#152">152</a> 				<strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="153" href="#153">153</a> 			}
+<a class="jxr_linenumber" name="154" href="#154">154</a> 			packet = <strong class="jxr_keyword">new</strong> BusinessRequestPacket(
+<a class="jxr_linenumber" name="155" href="#155">155</a> 					TestExecJavaTask.<strong class="jxr_keyword">class</strong>.getName() + value, 0);
+<a class="jxr_linenumber" name="156" href="#156">156</a> 			TestBusinessRequest transaction2 = <strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/test/TestBusinessRequest.html">TestBusinessRequest</a>(
+<a class="jxr_linenumber" name="157" href="#157">157</a> 					networkTransaction, arrayFuture[i], host.getHostid(),
+<a class="jxr_linenumber" name="158" href="#158">158</a> 					packet);
+<a class="jxr_linenumber" name="159" href="#159">159</a> 			executorService.execute(transaction2);
+<a class="jxr_linenumber" name="160" href="#160">160</a> 		}
+<a class="jxr_linenumber" name="161" href="#161">161</a> 		success = 0;
+<a class="jxr_linenumber" name="162" href="#162">162</a> 		error = 0;
+<a class="jxr_linenumber" name="163" href="#163">163</a> 		<strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; lastnb; i++) {
+<a class="jxr_linenumber" name="164" href="#164">164</a> 			arrayFuture[i].awaitUninterruptibly();
+<a class="jxr_linenumber" name="165" href="#165">165</a> 			<strong class="jxr_keyword">if</strong> (arrayFuture[i].isSuccess()) {
+<a class="jxr_linenumber" name="166" href="#166">166</a> 				success++;
+<a class="jxr_linenumber" name="167" href="#167">167</a> 			} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="168" href="#168">168</a> 				error++;
+<a class="jxr_linenumber" name="169" href="#169">169</a> 			}
+<a class="jxr_linenumber" name="170" href="#170">170</a> 		}
+<a class="jxr_linenumber" name="171" href="#171">171</a> 		time2 = System.currentTimeMillis();
+<a class="jxr_linenumber" name="172" href="#172">172</a> 		logger.warn(<span class="jxr_string">"Success: "</span> + success + <span class="jxr_string">" Error: "</span> + error + <span class="jxr_string">" NB/s: "</span> +
+<a class="jxr_linenumber" name="173" href="#173">173</a> 				success * 100 * 1000 / (time2 - time1));
+<a class="jxr_linenumber" name="174" href="#174">174</a> 
+<a class="jxr_linenumber" name="175" href="#175">175</a> 		executorService.shutdown();
+<a class="jxr_linenumber" name="176" href="#176">176</a> 		networkTransaction.closeAll();
+<a class="jxr_linenumber" name="177" href="#177">177</a> 	}
+<a class="jxr_linenumber" name="178" href="#178">178</a> 
+<a class="jxr_linenumber" name="179" href="#179">179</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>

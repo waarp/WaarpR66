@@ -381,7 +381,7 @@
 <a class="jxr_linenumber" name="371" href="#371">371</a> 			} <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="372" href="#372">372</a> 				nbMs = nbSecond * 1000;
 <a class="jxr_linenumber" name="373" href="#373">373</a> 			}
-<a class="jxr_linenumber" name="374" href="#374">374</a> 			<strong class="jxr_keyword">if</strong> (dbSession != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="374" href="#374">374</a> 			<strong class="jxr_keyword">if</strong> (dbSession != <strong class="jxr_keyword">null</strong> &amp;&amp; dbSession.isDisconnected) {
 <a class="jxr_linenumber" name="375" href="#375">375</a> 				dbSession.checkConnectionNoException();
 <a class="jxr_linenumber" name="376" href="#376">376</a> 			}
 <a class="jxr_linenumber" name="377" href="#377">377</a> 			<strong class="jxr_keyword">if</strong> (dbSession == <strong class="jxr_keyword">null</strong> || dbSession.isDisconnected) {

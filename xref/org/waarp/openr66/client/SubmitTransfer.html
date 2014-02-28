@@ -154,42 +154,51 @@
 <a class="jxr_linenumber" name="144" href="#144">144</a> 		SubmitTransfer transaction = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/client/SubmitTransfer.html">SubmitTransfer</a>(future,
 <a class="jxr_linenumber" name="145" href="#145">145</a> 				rhost, localFilename, rule, fileInfo, ismd5, block, idt,
 <a class="jxr_linenumber" name="146" href="#146">146</a> 				ttimestart);
-<a class="jxr_linenumber" name="147" href="#147">147</a> 		transaction.run();
-<a class="jxr_linenumber" name="148" href="#148">148</a> 		future.awaitUninterruptibly();
-<a class="jxr_linenumber" name="149" href="#149">149</a> 		DbTaskRunner runner = future.getResult().runner;
-<a class="jxr_linenumber" name="150" href="#150">150</a> 		OutputFormat outputFormat = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/client/utils/OutputFormat.html">OutputFormat</a>(SubmitTransfer.<strong class="jxr_keyword">class</strong>.getSimpleName(), args);
-<a class="jxr_linenumber" name="151" href="#151">151</a> 		<strong class="jxr_keyword">if</strong> (future.isSuccess()) {
-<a class="jxr_linenumber" name="152" href="#152">152</a> 			outputFormat.setValue(FIELDS.status.name(), 0);
-<a class="jxr_linenumber" name="153" href="#153">153</a> 			outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"SubmitTransfer.3"</span>)+Messages.getString(<span class="jxr_string">"RequestInformation.Success"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="154" href="#154">154</a> 			outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="155" href="#155">155</a> 			Map&lt;String, String&gt; map = DbTaskRunner.getMapFromRunner(runner);
-<a class="jxr_linenumber" name="156" href="#156">156</a> 			outputFormat.setValueString(map);
-<a class="jxr_linenumber" name="157" href="#157">157</a> 			logger.warn(outputFormat.loggerOut());
-<a class="jxr_linenumber" name="158" href="#158">158</a> 			outputFormat.sysout();
-<a class="jxr_linenumber" name="159" href="#159">159</a> 		} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="160" href="#160">160</a> 			outputFormat.setValue(FIELDS.status.name(), 2);
-<a class="jxr_linenumber" name="161" href="#161">161</a> 			<strong class="jxr_keyword">if</strong> (runner == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="162" href="#162">162</a> 				outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"SubmitTransfer.3"</span>)+Messages.getString(<span class="jxr_string">"Transfer.FailedNoId"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="163" href="#163">163</a> 				outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="164" href="#164">164</a> 			} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="165" href="#165">165</a> 				outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"SubmitTransfer.3"</span>)+Messages.getString(<span class="jxr_string">"RequestInformation.Failure"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="166" href="#166">166</a> 				outputFormat.setValue(FIELDS.remote.name(), rhost);
-<a class="jxr_linenumber" name="167" href="#167">167</a> 				Map&lt;String, String&gt; map = DbTaskRunner.getMapFromRunner(runner);
-<a class="jxr_linenumber" name="168" href="#168">168</a> 				outputFormat.setValueString(map);
-<a class="jxr_linenumber" name="169" href="#169">169</a> 			}
-<a class="jxr_linenumber" name="170" href="#170">170</a> 			logger.error(outputFormat.loggerOut(), future.getCause());
-<a class="jxr_linenumber" name="171" href="#171">171</a> 			<strong class="jxr_keyword">if</strong> (future.getCause() != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="172" href="#172">172</a> 				outputFormat.setValue(FIELDS.error.name(), future.getCause().getMessage());
-<a class="jxr_linenumber" name="173" href="#173">173</a> 			}
-<a class="jxr_linenumber" name="174" href="#174">174</a> 			outputFormat.sysout();
-<a class="jxr_linenumber" name="175" href="#175">175</a> 			DbConstant.admin.close();
-<a class="jxr_linenumber" name="176" href="#176">176</a> 			ChannelUtils.stopLogger();
-<a class="jxr_linenumber" name="177" href="#177">177</a> 			System.exit(future.getResult().code.ordinal());
-<a class="jxr_linenumber" name="178" href="#178">178</a> 		}
-<a class="jxr_linenumber" name="179" href="#179">179</a> 		DbConstant.admin.close();
-<a class="jxr_linenumber" name="180" href="#180">180</a> 	}
-<a class="jxr_linenumber" name="181" href="#181">181</a> 
-<a class="jxr_linenumber" name="182" href="#182">182</a> }
+<a class="jxr_linenumber" name="147" href="#147">147</a> 		transaction.normalInfoAsWarn = snormalInfoAsWarn;
+<a class="jxr_linenumber" name="148" href="#148">148</a> 		transaction.run();
+<a class="jxr_linenumber" name="149" href="#149">149</a> 		future.awaitUninterruptibly();
+<a class="jxr_linenumber" name="150" href="#150">150</a> 		DbTaskRunner runner = future.getResult().runner;
+<a class="jxr_linenumber" name="151" href="#151">151</a> 		OutputFormat outputFormat = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/client/utils/OutputFormat.html">OutputFormat</a>(SubmitTransfer.<strong class="jxr_keyword">class</strong>.getSimpleName(), args);
+<a class="jxr_linenumber" name="152" href="#152">152</a> 		<strong class="jxr_keyword">if</strong> (future.isSuccess()) {
+<a class="jxr_linenumber" name="153" href="#153">153</a> 			outputFormat.setValue(FIELDS.status.name(), 0);
+<a class="jxr_linenumber" name="154" href="#154">154</a> 			outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"SubmitTransfer.3"</span>)+Messages.getString(<span class="jxr_string">"RequestInformation.Success"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="155" href="#155">155</a> 			outputFormat.setValue(FIELDS.remote.name(), rhost);
+<a class="jxr_linenumber" name="156" href="#156">156</a> 			Map&lt;String, String&gt; map = DbTaskRunner.getMapFromRunner(runner);
+<a class="jxr_linenumber" name="157" href="#157">157</a> 			outputFormat.setValueString(map);
+<a class="jxr_linenumber" name="158" href="#158">158</a> 			<strong class="jxr_keyword">if</strong> (transaction.normalInfoAsWarn) {
+<a class="jxr_linenumber" name="159" href="#159">159</a> 				logger.warn(outputFormat.loggerOut());
+<a class="jxr_linenumber" name="160" href="#160">160</a> 			} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="161" href="#161">161</a> 				logger.info(outputFormat.loggerOut());
+<a class="jxr_linenumber" name="162" href="#162">162</a> 			}
+<a class="jxr_linenumber" name="163" href="#163">163</a> 			<strong class="jxr_keyword">if</strong> (! OutputFormat.isQuiet()) {
+<a class="jxr_linenumber" name="164" href="#164">164</a> 				outputFormat.sysout();
+<a class="jxr_linenumber" name="165" href="#165">165</a> 			}
+<a class="jxr_linenumber" name="166" href="#166">166</a> 		} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="167" href="#167">167</a> 			outputFormat.setValue(FIELDS.status.name(), 2);
+<a class="jxr_linenumber" name="168" href="#168">168</a> 			<strong class="jxr_keyword">if</strong> (runner == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="169" href="#169">169</a> 				outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"SubmitTransfer.3"</span>)+Messages.getString(<span class="jxr_string">"Transfer.FailedNoId"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="170" href="#170">170</a> 				outputFormat.setValue(FIELDS.remote.name(), rhost);
+<a class="jxr_linenumber" name="171" href="#171">171</a> 			} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="172" href="#172">172</a> 				outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString(<span class="jxr_string">"SubmitTransfer.3"</span>)+Messages.getString(<span class="jxr_string">"RequestInformation.Failure"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="173" href="#173">173</a> 				outputFormat.setValue(FIELDS.remote.name(), rhost);
+<a class="jxr_linenumber" name="174" href="#174">174</a> 				Map&lt;String, String&gt; map = DbTaskRunner.getMapFromRunner(runner);
+<a class="jxr_linenumber" name="175" href="#175">175</a> 				outputFormat.setValueString(map);
+<a class="jxr_linenumber" name="176" href="#176">176</a> 			}
+<a class="jxr_linenumber" name="177" href="#177">177</a> 			logger.error(outputFormat.loggerOut(), future.getCause());
+<a class="jxr_linenumber" name="178" href="#178">178</a> 			<strong class="jxr_keyword">if</strong> (future.getCause() != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="179" href="#179">179</a> 				outputFormat.setValue(FIELDS.error.name(), future.getCause().getMessage());
+<a class="jxr_linenumber" name="180" href="#180">180</a> 			}
+<a class="jxr_linenumber" name="181" href="#181">181</a> 			<strong class="jxr_keyword">if</strong> (! OutputFormat.isQuiet()) {
+<a class="jxr_linenumber" name="182" href="#182">182</a> 				outputFormat.sysout();
+<a class="jxr_linenumber" name="183" href="#183">183</a> 			}
+<a class="jxr_linenumber" name="184" href="#184">184</a> 			DbConstant.admin.close();
+<a class="jxr_linenumber" name="185" href="#185">185</a> 			ChannelUtils.stopLogger();
+<a class="jxr_linenumber" name="186" href="#186">186</a> 			System.exit(future.getResult().code.ordinal());
+<a class="jxr_linenumber" name="187" href="#187">187</a> 		}
+<a class="jxr_linenumber" name="188" href="#188">188</a> 		DbConstant.admin.close();
+<a class="jxr_linenumber" name="189" href="#189">189</a> 	}
+<a class="jxr_linenumber" name="190" href="#190">190</a> 
+<a class="jxr_linenumber" name="191" href="#191">191</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>

@@ -278,17 +278,46 @@
 <a class="jxr_linenumber" name="268" href="#268">268</a> 	}
 <a class="jxr_linenumber" name="269" href="#269">269</a> 
 <a class="jxr_linenumber" name="270" href="#270">270</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="271" href="#271">271</a> <em class="jxr_javadoccomment">	 * </em>
-<a class="jxr_linenumber" name="272" href="#272">272</a> <em class="jxr_javadoccomment">	 * @param host</em>
-<a class="jxr_linenumber" name="273" href="#273">273</a> <em class="jxr_javadoccomment">	 * @return True if this host is referenced as using Json</em>
-<a class="jxr_linenumber" name="274" href="#274">274</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="275" href="#275">275</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> useJson(String host) {
-<a class="jxr_linenumber" name="276" href="#276">276</a> 		logger.debug(<span class="jxr_string">"UseJson host: '"</span>+host+<span class="jxr_string">"':"</span>+(Configuration.configuration.versions.containsKey(host) ?  
-<a class="jxr_linenumber" name="277" href="#277">277</a> 			Configuration.configuration.versions.get(host).useJson(): <span class="jxr_string">"no:"</span>+Configuration.configuration.versions.keySet()) );
-<a class="jxr_linenumber" name="278" href="#278">278</a> 		<strong class="jxr_keyword">return</strong> (Configuration.configuration.versions.containsKey(host) &amp;&amp; 
-<a class="jxr_linenumber" name="279" href="#279">279</a> 				Configuration.configuration.versions.get(host).useJson());
-<a class="jxr_linenumber" name="280" href="#280">280</a> 	}
-<a class="jxr_linenumber" name="281" href="#281">281</a> }
+<a class="jxr_linenumber" name="271" href="#271">271</a> <em class="jxr_javadoccomment">	 * Compare strictly 2 versions</em>
+<a class="jxr_linenumber" name="272" href="#272">272</a> <em class="jxr_javadoccomment">	 * @param version1</em>
+<a class="jxr_linenumber" name="273" href="#273">273</a> <em class="jxr_javadoccomment">	 * @param version2</em>
+<a class="jxr_linenumber" name="274" href="#274">274</a> <em class="jxr_javadoccomment">	 * @return True if version2 &gt; version1</em>
+<a class="jxr_linenumber" name="275" href="#275">275</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="276" href="#276">276</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> isVersion2GTVersion1(String version1, String version2) {
+<a class="jxr_linenumber" name="277" href="#277">277</a> 		<strong class="jxr_keyword">if</strong> (version1 == <strong class="jxr_keyword">null</strong> || version2 == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="278" href="#278">278</a> 			<strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="279" href="#279">279</a> 		}
+<a class="jxr_linenumber" name="280" href="#280">280</a> 		<strong class="jxr_keyword">int</strong> major1 = 0;
+<a class="jxr_linenumber" name="281" href="#281">281</a> 		<strong class="jxr_keyword">int</strong> rank1 = 0;
+<a class="jxr_linenumber" name="282" href="#282">282</a> 		<strong class="jxr_keyword">int</strong> subversion1 = 0;
+<a class="jxr_linenumber" name="283" href="#283">283</a> 		String [] vals = version1.split(<span class="jxr_string">"&#92;&#92;."</span>);
+<a class="jxr_linenumber" name="284" href="#284">284</a> 		major1 = Integer.parseInt(vals[0]);
+<a class="jxr_linenumber" name="285" href="#285">285</a> 		rank1 = Integer.parseInt(vals[1]);
+<a class="jxr_linenumber" name="286" href="#286">286</a> 		subversion1 = Integer.parseInt(vals[2]);
+<a class="jxr_linenumber" name="287" href="#287">287</a> 		<strong class="jxr_keyword">int</strong> major2 = 0;
+<a class="jxr_linenumber" name="288" href="#288">288</a> 		<strong class="jxr_keyword">int</strong> rank2 = 0;
+<a class="jxr_linenumber" name="289" href="#289">289</a> 		<strong class="jxr_keyword">int</strong> subversion2 = 0;
+<a class="jxr_linenumber" name="290" href="#290">290</a> 		vals = version2.split(<span class="jxr_string">"&#92;&#92;."</span>);
+<a class="jxr_linenumber" name="291" href="#291">291</a> 		major2 = Integer.parseInt(vals[0]);
+<a class="jxr_linenumber" name="292" href="#292">292</a> 		rank2 = Integer.parseInt(vals[1]);
+<a class="jxr_linenumber" name="293" href="#293">293</a> 		subversion2 = Integer.parseInt(vals[2]);
+<a class="jxr_linenumber" name="294" href="#294">294</a> 		logger.debug(<span class="jxr_string">"1: "</span>+major1+<span class="jxr_string">":"</span>+rank1+<span class="jxr_string">":"</span>+subversion1+<span class="jxr_string">" &lt;? "</span>+major2+<span class="jxr_string">":"</span>+rank2+<span class="jxr_string">":"</span>+subversion2+ <span class="jxr_string">" = "</span>+
+<a class="jxr_linenumber" name="295" href="#295">295</a> 				(major1 &lt; major2 || (major1 == major2 &amp;&amp; (rank1 &lt; rank2 || (rank1 == rank2 &amp;&amp; subversion1 &lt; subversion2)))));
+<a class="jxr_linenumber" name="296" href="#296">296</a> 		<strong class="jxr_keyword">return</strong> (major1 &lt; major2 || (major1 == major2 &amp;&amp; (rank1 &lt; rank2 || (rank1 == rank2 &amp;&amp; subversion1 &lt; subversion2))));
+<a class="jxr_linenumber" name="297" href="#297">297</a> 	}
+<a class="jxr_linenumber" name="298" href="#298">298</a> 
+<a class="jxr_linenumber" name="299" href="#299">299</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="300" href="#300">300</a> <em class="jxr_javadoccomment">	 * </em>
+<a class="jxr_linenumber" name="301" href="#301">301</a> <em class="jxr_javadoccomment">	 * @param host</em>
+<a class="jxr_linenumber" name="302" href="#302">302</a> <em class="jxr_javadoccomment">	 * @return True if this host is referenced as using Json</em>
+<a class="jxr_linenumber" name="303" href="#303">303</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="304" href="#304">304</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> useJson(String host) {
+<a class="jxr_linenumber" name="305" href="#305">305</a> 		logger.debug(<span class="jxr_string">"UseJson host: '"</span>+host+<span class="jxr_string">"':"</span>+(Configuration.configuration.versions.containsKey(host) ?  
+<a class="jxr_linenumber" name="306" href="#306">306</a> 			Configuration.configuration.versions.get(host).useJson(): <span class="jxr_string">"no:"</span>+Configuration.configuration.versions.keySet()) );
+<a class="jxr_linenumber" name="307" href="#307">307</a> 		<strong class="jxr_keyword">return</strong> (Configuration.configuration.versions.containsKey(host) &amp;&amp; 
+<a class="jxr_linenumber" name="308" href="#308">308</a> 				Configuration.configuration.versions.get(host).useJson());
+<a class="jxr_linenumber" name="309" href="#309">309</a> 	}
+<a class="jxr_linenumber" name="310" href="#310">310</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>

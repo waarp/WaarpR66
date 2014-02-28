@@ -1180,7 +1180,7 @@
 <a class="jxr_linenumber" name="1170" href="#1170">1170</a> 		} <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="1171" href="#1171">1171</a> 			logger.debug(<span class="jxr_string">"No setup of ContraintLimitHandler"</span>);
 <a class="jxr_linenumber" name="1172" href="#1172">1172</a> 			config.constraintLimitHandler =
-<a class="jxr_linenumber" name="1173" href="#1173">1173</a> 					<strong class="jxr_keyword">new</strong> R66ConstraintLimitHandler();
+<a class="jxr_linenumber" name="1173" href="#1173">1173</a> 					<strong class="jxr_keyword">new</strong> R66ConstraintLimitHandler(false, false, 1.0, connlimit);
 <a class="jxr_linenumber" name="1174" href="#1174">1174</a> 		}
 <a class="jxr_linenumber" name="1175" href="#1175">1175</a> 		value = hashConfig.get(XML_SERVER_THREAD);
 <a class="jxr_linenumber" name="1176" href="#1176">1176</a> 		<strong class="jxr_keyword">if</strong> (value != <strong class="jxr_keyword">null</strong> &amp;&amp; (!value.isEmpty())) {

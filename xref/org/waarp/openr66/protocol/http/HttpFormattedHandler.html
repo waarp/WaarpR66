@@ -162,21 +162,21 @@
 <a class="jxr_linenumber" name="152" href="#152">152</a> 	
 <a class="jxr_linenumber" name="153" href="#153">153</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> R66Session authentHttp = <strong class="jxr_keyword">new</strong> R66Session();
 <a class="jxr_linenumber" name="154" href="#154">154</a> 
-<a class="jxr_linenumber" name="155" href="#155">155</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">volatile</strong> String lang = Messages.slocale;
+<a class="jxr_linenumber" name="155" href="#155">155</a> 	<strong class="jxr_keyword">private</strong> String lang = Messages.slocale;
 <a class="jxr_linenumber" name="156" href="#156">156</a> 
-<a class="jxr_linenumber" name="157" href="#157">157</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">volatile</strong> HttpRequest request;
+<a class="jxr_linenumber" name="157" href="#157">157</a> 	<strong class="jxr_keyword">private</strong> HttpRequest request;
 <a class="jxr_linenumber" name="158" href="#158">158</a> 
 <a class="jxr_linenumber" name="159" href="#159">159</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> StringBuilder responseContent = <strong class="jxr_keyword">new</strong> StringBuilder();
 <a class="jxr_linenumber" name="160" href="#160">160</a> 
-<a class="jxr_linenumber" name="161" href="#161">161</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">volatile</strong> HttpResponseStatus status;
+<a class="jxr_linenumber" name="161" href="#161">161</a> 	<strong class="jxr_keyword">private</strong> HttpResponseStatus status;
 <a class="jxr_linenumber" name="162" href="#162">162</a> 
-<a class="jxr_linenumber" name="163" href="#163">163</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">volatile</strong> String uriRequest;
+<a class="jxr_linenumber" name="163" href="#163">163</a> 	<strong class="jxr_keyword">private</strong> String uriRequest;
 <a class="jxr_linenumber" name="164" href="#164">164</a> 
 <a class="jxr_linenumber" name="165" href="#165">165</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String sINFO = <span class="jxr_string">"INFO"</span>,
 <a class="jxr_linenumber" name="166" href="#166">166</a> 			sNB = <span class="jxr_string">"NB"</span>, sDETAIL = <span class="jxr_string">"DETAIL"</span>;
 <a class="jxr_linenumber" name="167" href="#167">167</a> 
 <a class="jxr_linenumber" name="168" href="#168">168</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="169" href="#169">169</a> <em class="jxr_javadoccomment">	 * The Database connection attached to this NetworkChannel shared among all associated</em>
+<a class="jxr_linenumber" name="169" href="#169">169</a> <em class="jxr_javadoccomment">	 * The Database connection attached to this NetworkChannelReference shared among all associated</em>
 <a class="jxr_linenumber" name="170" href="#170">170</a> <em class="jxr_javadoccomment">	 * LocalChannels</em>
 <a class="jxr_linenumber" name="171" href="#171">171</a> <em class="jxr_javadoccomment">	 */</em>
 <a class="jxr_linenumber" name="172" href="#172">172</a> 	<strong class="jxr_keyword">private</strong> DbSession dbSession = DbConstant.admin.session;

@@ -71,9 +71,9 @@
 <a class="jxr_linenumber" name="61" href="#61">61</a>  		<strong class="jxr_keyword">boolean</strong> isAdmin = session.getAuth().isValidRole(ROLE.SYSTEM);
 <a class="jxr_linenumber" name="62" href="#62">62</a>  		<strong class="jxr_keyword">if</strong> (! isAdmin) {
 <a class="jxr_linenumber" name="63" href="#63">63</a>  			<em class="jxr_comment">// not allowed</em>
-<a class="jxr_linenumber" name="64" href="#64">64</a>  			logger.error(<span class="jxr_string">"Shutdown order received but unallowed: "</span> +
+<a class="jxr_linenumber" name="64" href="#64">64</a>  			logger.error(<span class="jxr_string">"Shutdown order asked through task but unallowed: "</span> +
 <a class="jxr_linenumber" name="65" href="#65">65</a>  					session.getAuth().getUser());
-<a class="jxr_linenumber" name="66" href="#66">66</a>  			futureCompletion.setFailure(<strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException(<span class="jxr_string">"Shutdown order received but unallowed: "</span> +
+<a class="jxr_linenumber" name="66" href="#66">66</a>  			futureCompletion.setFailure(<strong class="jxr_keyword">new</strong> OpenR66ProtocolSystemException(<span class="jxr_string">"Shutdown order asked through task but unallowed: "</span> +
 <a class="jxr_linenumber" name="67" href="#67">67</a>  					session.getAuth().getUser()));
 <a class="jxr_linenumber" name="68" href="#68">68</a>  			<strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="69" href="#69">69</a>  		}

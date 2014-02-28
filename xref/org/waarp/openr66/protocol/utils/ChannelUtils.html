@@ -309,7 +309,7 @@
 <a class="jxr_linenumber" name="299" href="#299">299</a> 		<strong class="jxr_keyword">if</strong> (wait) {
 <a class="jxr_linenumber" name="300" href="#300">300</a> 			ChannelFuture future = Channels.write(localChannelReference.getNetworkChannel(),
 <a class="jxr_linenumber" name="301" href="#301">301</a> 					networkPacket);
-<a class="jxr_linenumber" name="302" href="#302">302</a> 			NetworkTransaction.updateLastTimeUsed(localChannelReference.getNetworkChannel());
+<a class="jxr_linenumber" name="302" href="#302">302</a> 			localChannelReference.getNetworkChannelObject().use();
 <a class="jxr_linenumber" name="303" href="#303">303</a> 			<strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="304" href="#304">304</a> 				<strong class="jxr_keyword">return</strong> future.await();
 <a class="jxr_linenumber" name="305" href="#305">305</a> 			} <strong class="jxr_keyword">catch</strong> (InterruptedException e) {
@@ -410,74 +410,73 @@
 <a class="jxr_linenumber" name="400" href="#400">400</a> 		<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> delay = Configuration.configuration.TIMEOUTCON;
 <a class="jxr_linenumber" name="401" href="#401">401</a> 		<em class="jxr_comment">// Inform others that shutdown</em>
 <a class="jxr_linenumber" name="402" href="#402">402</a> 		<strong class="jxr_keyword">if</strong> (Configuration.configuration.getLocalTransaction() != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="403" href="#403">403</a> 			Configuration.configuration.getLocalTransaction()
-<a class="jxr_linenumber" name="404" href="#404">404</a> 				.shutdownLocalChannels();
-<a class="jxr_linenumber" name="405" href="#405">405</a> 		}
-<a class="jxr_linenumber" name="406" href="#406">406</a> 		logger.info(<span class="jxr_string">"Unbind server network services"</span>);
-<a class="jxr_linenumber" name="407" href="#407">407</a> 		Configuration.configuration.unbindServer();
-<a class="jxr_linenumber" name="408" href="#408">408</a> 		logger.warn(Messages.getString(<span class="jxr_string">"ChannelUtils.7"</span>) + delay + <span class="jxr_string">" ms"</span>); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="409" href="#409">409</a> 		<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="410" href="#410">410</a> 			Thread.sleep(delay);
-<a class="jxr_linenumber" name="411" href="#411">411</a> 		} <strong class="jxr_keyword">catch</strong> (<strong class="jxr_keyword">final</strong> InterruptedException e) {
-<a class="jxr_linenumber" name="412" href="#412">412</a> 		}
-<a class="jxr_linenumber" name="413" href="#413">413</a> 		NetworkTransaction.closeRetrieveExecutors();
-<a class="jxr_linenumber" name="414" href="#414">414</a> 		<strong class="jxr_keyword">if</strong> (Configuration.configuration.getLocalTransaction() != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="415" href="#415">415</a> 			Configuration.configuration.getLocalTransaction().debugPrintActiveLocalChannels();
-<a class="jxr_linenumber" name="416" href="#416">416</a> 		}
-<a class="jxr_linenumber" name="417" href="#417">417</a> 		<strong class="jxr_keyword">if</strong> (Configuration.configuration.getGlobalTrafficShapingHandler() != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="418" href="#418">418</a> 			Configuration.configuration.getGlobalTrafficShapingHandler()
-<a class="jxr_linenumber" name="419" href="#419">419</a> 				.releaseExternalResources();
-<a class="jxr_linenumber" name="420" href="#420">420</a> 		}
-<a class="jxr_linenumber" name="421" href="#421">421</a> 		logger.info(<span class="jxr_string">"Exit Shutdown Http"</span>);
-<a class="jxr_linenumber" name="422" href="#422">422</a> 		terminateHttpChannels();
-<a class="jxr_linenumber" name="423" href="#423">423</a> 		logger.info(<span class="jxr_string">"Exit Shutdown Local"</span>);
-<a class="jxr_linenumber" name="424" href="#424">424</a> 		<strong class="jxr_keyword">if</strong> (Configuration.configuration.getLocalTransaction() != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="425" href="#425">425</a> 			Configuration.configuration.getLocalTransaction().closeAll();
-<a class="jxr_linenumber" name="426" href="#426">426</a> 		}
-<a class="jxr_linenumber" name="427" href="#427">427</a> 		logger.info(<span class="jxr_string">"Exit Shutdown LocalExec"</span>);
-<a class="jxr_linenumber" name="428" href="#428">428</a> 		<strong class="jxr_keyword">if</strong> (Configuration.configuration.useLocalExec) {
-<a class="jxr_linenumber" name="429" href="#429">429</a> 			LocalExecClient.releaseResources();
-<a class="jxr_linenumber" name="430" href="#430">430</a> 		}
-<a class="jxr_linenumber" name="431" href="#431">431</a> 		logger.info(<span class="jxr_string">"Exit Shutdown Command"</span>);
-<a class="jxr_linenumber" name="432" href="#432">432</a> 		terminateCommandChannels();
-<a class="jxr_linenumber" name="433" href="#433">433</a> 		logger.info(<span class="jxr_string">"Exit Shutdown Db Connection"</span>);
-<a class="jxr_linenumber" name="434" href="#434">434</a> 		DbAdmin.closeAllConnection();
-<a class="jxr_linenumber" name="435" href="#435">435</a> 		logger.info(<span class="jxr_string">"Exit Shutdown ServerStop"</span>);
-<a class="jxr_linenumber" name="436" href="#436">436</a> 		Configuration.configuration.serverStop();
-<a class="jxr_linenumber" name="437" href="#437">437</a> 		logger.warn(Messages.getString(<span class="jxr_string">"ChannelUtils.15"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="438" href="#438">438</a> 		System.err.println(Messages.getString(<span class="jxr_string">"ChannelUtils.15"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
-<a class="jxr_linenumber" name="439" href="#439">439</a> 		stopLogger();
-<a class="jxr_linenumber" name="440" href="#440">440</a> 		<em class="jxr_comment">//Thread.currentThread().interrupt();</em>
-<a class="jxr_linenumber" name="441" href="#441">441</a> 	}
-<a class="jxr_linenumber" name="442" href="#442">442</a> 
-<a class="jxr_linenumber" name="443" href="#443">443</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> stopLogger() {
-<a class="jxr_linenumber" name="444" href="#444">444</a> 		<strong class="jxr_keyword">if</strong> (WaarpInternalLoggerFactory.getDefaultFactory() instanceof WaarpSlf4JLoggerFactory) {
-<a class="jxr_linenumber" name="445" href="#445">445</a> 			LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
-<a class="jxr_linenumber" name="446" href="#446">446</a> 			lc.stop();
-<a class="jxr_linenumber" name="447" href="#447">447</a> 		}
-<a class="jxr_linenumber" name="448" href="#448">448</a> 	}
-<a class="jxr_linenumber" name="449" href="#449">449</a> 
-<a class="jxr_linenumber" name="450" href="#450">450</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="451" href="#451">451</a> <em class="jxr_javadoccomment">	 * This function is the top function to be called when the server is to be shutdown.</em>
-<a class="jxr_linenumber" name="452" href="#452">452</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="453" href="#453">453</a> 	@Override
-<a class="jxr_linenumber" name="454" href="#454">454</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> run() {
-<a class="jxr_linenumber" name="455" href="#455">455</a> 		logger.info(<span class="jxr_string">"Should restart? "</span>+R66ShutdownHook.isRestart());
-<a class="jxr_linenumber" name="456" href="#456">456</a> 		R66ShutdownHook.terminate(false);
-<a class="jxr_linenumber" name="457" href="#457">457</a> 	}
-<a class="jxr_linenumber" name="458" href="#458">458</a> 
-<a class="jxr_linenumber" name="459" href="#459">459</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="460" href="#460">460</a> <em class="jxr_javadoccomment">	 * Start Shutdown</em>
-<a class="jxr_linenumber" name="461" href="#461">461</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="462" href="#462">462</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> startShutdown() {
-<a class="jxr_linenumber" name="463" href="#463">463</a> 		<strong class="jxr_keyword">if</strong> (R66ShutdownHook.isInShutdown()) {
-<a class="jxr_linenumber" name="464" href="#464">464</a> 			<strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="465" href="#465">465</a> 		}
-<a class="jxr_linenumber" name="466" href="#466">466</a> 		Thread thread = <strong class="jxr_keyword">new</strong> Thread(<strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/utils/ChannelUtils.html">ChannelUtils</a>(), <span class="jxr_string">"R66 Shutdown Thread"</span>);
-<a class="jxr_linenumber" name="467" href="#467">467</a> 		thread.setDaemon(false);
-<a class="jxr_linenumber" name="468" href="#468">468</a> 		thread.start();
-<a class="jxr_linenumber" name="469" href="#469">469</a> 	}
-<a class="jxr_linenumber" name="470" href="#470">470</a> }
+<a class="jxr_linenumber" name="403" href="#403">403</a> 			Configuration.configuration.getLocalTransaction().shutdownLocalChannels();
+<a class="jxr_linenumber" name="404" href="#404">404</a> 		}
+<a class="jxr_linenumber" name="405" href="#405">405</a> 		logger.info(<span class="jxr_string">"Unbind server network services"</span>);
+<a class="jxr_linenumber" name="406" href="#406">406</a> 		Configuration.configuration.unbindServer();
+<a class="jxr_linenumber" name="407" href="#407">407</a> 		logger.warn(Messages.getString(<span class="jxr_string">"ChannelUtils.7"</span>) + delay + <span class="jxr_string">" ms"</span>); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="408" href="#408">408</a> 		<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="409" href="#409">409</a> 			Thread.sleep(delay);
+<a class="jxr_linenumber" name="410" href="#410">410</a> 		} <strong class="jxr_keyword">catch</strong> (<strong class="jxr_keyword">final</strong> InterruptedException e) {
+<a class="jxr_linenumber" name="411" href="#411">411</a> 		}
+<a class="jxr_linenumber" name="412" href="#412">412</a> 		NetworkTransaction.closeRetrieveExecutors();
+<a class="jxr_linenumber" name="413" href="#413">413</a> 		<strong class="jxr_keyword">if</strong> (Configuration.configuration.getLocalTransaction() != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="414" href="#414">414</a> 			Configuration.configuration.getLocalTransaction().debugPrintActiveLocalChannels();
+<a class="jxr_linenumber" name="415" href="#415">415</a> 		}
+<a class="jxr_linenumber" name="416" href="#416">416</a> 		<strong class="jxr_keyword">if</strong> (Configuration.configuration.getGlobalTrafficShapingHandler() != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="417" href="#417">417</a> 			Configuration.configuration.getGlobalTrafficShapingHandler()
+<a class="jxr_linenumber" name="418" href="#418">418</a> 				.releaseExternalResources();
+<a class="jxr_linenumber" name="419" href="#419">419</a> 		}
+<a class="jxr_linenumber" name="420" href="#420">420</a> 		logger.info(<span class="jxr_string">"Exit Shutdown Http"</span>);
+<a class="jxr_linenumber" name="421" href="#421">421</a> 		terminateHttpChannels();
+<a class="jxr_linenumber" name="422" href="#422">422</a> 		logger.info(<span class="jxr_string">"Exit Shutdown Local"</span>);
+<a class="jxr_linenumber" name="423" href="#423">423</a> 		<strong class="jxr_keyword">if</strong> (Configuration.configuration.getLocalTransaction() != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="424" href="#424">424</a> 			Configuration.configuration.getLocalTransaction().closeAll();
+<a class="jxr_linenumber" name="425" href="#425">425</a> 		}
+<a class="jxr_linenumber" name="426" href="#426">426</a> 		logger.info(<span class="jxr_string">"Exit Shutdown LocalExec"</span>);
+<a class="jxr_linenumber" name="427" href="#427">427</a> 		<strong class="jxr_keyword">if</strong> (Configuration.configuration.useLocalExec) {
+<a class="jxr_linenumber" name="428" href="#428">428</a> 			LocalExecClient.releaseResources();
+<a class="jxr_linenumber" name="429" href="#429">429</a> 		}
+<a class="jxr_linenumber" name="430" href="#430">430</a> 		logger.info(<span class="jxr_string">"Exit Shutdown Command"</span>);
+<a class="jxr_linenumber" name="431" href="#431">431</a> 		terminateCommandChannels();
+<a class="jxr_linenumber" name="432" href="#432">432</a> 		logger.info(<span class="jxr_string">"Exit Shutdown Db Connection"</span>);
+<a class="jxr_linenumber" name="433" href="#433">433</a> 		DbAdmin.closeAllConnection();
+<a class="jxr_linenumber" name="434" href="#434">434</a> 		logger.info(<span class="jxr_string">"Exit Shutdown ServerStop"</span>);
+<a class="jxr_linenumber" name="435" href="#435">435</a> 		Configuration.configuration.serverStop();
+<a class="jxr_linenumber" name="436" href="#436">436</a> 		logger.warn(Messages.getString(<span class="jxr_string">"ChannelUtils.15"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="437" href="#437">437</a> 		System.err.println(Messages.getString(<span class="jxr_string">"ChannelUtils.15"</span>)); <em class="jxr_comment">//$NON-NLS-1$</em>
+<a class="jxr_linenumber" name="438" href="#438">438</a> 		stopLogger();
+<a class="jxr_linenumber" name="439" href="#439">439</a> 		<em class="jxr_comment">//Thread.currentThread().interrupt();</em>
+<a class="jxr_linenumber" name="440" href="#440">440</a> 	}
+<a class="jxr_linenumber" name="441" href="#441">441</a> 
+<a class="jxr_linenumber" name="442" href="#442">442</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> stopLogger() {
+<a class="jxr_linenumber" name="443" href="#443">443</a> 		<strong class="jxr_keyword">if</strong> (WaarpInternalLoggerFactory.getDefaultFactory() instanceof WaarpSlf4JLoggerFactory) {
+<a class="jxr_linenumber" name="444" href="#444">444</a> 			LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
+<a class="jxr_linenumber" name="445" href="#445">445</a> 			lc.stop();
+<a class="jxr_linenumber" name="446" href="#446">446</a> 		}
+<a class="jxr_linenumber" name="447" href="#447">447</a> 	}
+<a class="jxr_linenumber" name="448" href="#448">448</a> 
+<a class="jxr_linenumber" name="449" href="#449">449</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="450" href="#450">450</a> <em class="jxr_javadoccomment">	 * This function is the top function to be called when the server is to be shutdown.</em>
+<a class="jxr_linenumber" name="451" href="#451">451</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="452" href="#452">452</a> 	@Override
+<a class="jxr_linenumber" name="453" href="#453">453</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> run() {
+<a class="jxr_linenumber" name="454" href="#454">454</a> 		logger.info(<span class="jxr_string">"Should restart? "</span>+R66ShutdownHook.isRestart());
+<a class="jxr_linenumber" name="455" href="#455">455</a> 		R66ShutdownHook.terminate(false);
+<a class="jxr_linenumber" name="456" href="#456">456</a> 	}
+<a class="jxr_linenumber" name="457" href="#457">457</a> 
+<a class="jxr_linenumber" name="458" href="#458">458</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="459" href="#459">459</a> <em class="jxr_javadoccomment">	 * Start Shutdown</em>
+<a class="jxr_linenumber" name="460" href="#460">460</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="461" href="#461">461</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> startShutdown() {
+<a class="jxr_linenumber" name="462" href="#462">462</a> 		<strong class="jxr_keyword">if</strong> (R66ShutdownHook.isInShutdown()) {
+<a class="jxr_linenumber" name="463" href="#463">463</a> 			<strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="464" href="#464">464</a> 		}
+<a class="jxr_linenumber" name="465" href="#465">465</a> 		Thread thread = <strong class="jxr_keyword">new</strong> Thread(<strong class="jxr_keyword">new</strong> <a href="../../../../../org/waarp/openr66/protocol/utils/ChannelUtils.html">ChannelUtils</a>(), <span class="jxr_string">"R66 Shutdown Thread"</span>);
+<a class="jxr_linenumber" name="466" href="#466">466</a> 		thread.setDaemon(false);
+<a class="jxr_linenumber" name="467" href="#467">467</a> 		thread.start();
+<a class="jxr_linenumber" name="468" href="#468">468</a> 	}
+<a class="jxr_linenumber" name="469" href="#469">469</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>
