@@ -138,64 +138,69 @@ public class LocalTransaction {
 	public LocalChannelReference createNewClient(NetworkChannelReference networkChannelReference,
 			Integer remoteId, R66Future futureRequest)
 			throws OpenR66ProtocolSystemException, OpenR66ProtocolRemoteShutdownException {
-		ChannelFuture channelFuture = null;
-		logger.debug("Status LocalChannelServer: {} {}", serverChannel
-				.getClass().getName(), serverChannel.getConfig()
-				.getConnectTimeoutMillis() + " " + serverChannel.isBound());
-		for (int i = 0; i < Configuration.RETRYNB; i++) {
-			channelFuture = clientBootstrap.connect(socketLocalServerAddress);
-			try {
-				channelFuture.await();
-			} catch (InterruptedException e1) {
-				logger.error("LocalChannelServer Interrupted: " +
-						serverChannel.getClass().getName() + " " +
-						serverChannel.getConfig().getConnectTimeoutMillis() +
-						" " + serverChannel.isBound());
-				throw new OpenR66ProtocolSystemException(
-						"Interruption - Cannot connect to local handler: " +
-								socketLocalServerAddress + " " +
-								serverChannel.isBound() + " " + serverChannel,
-						e1);
-			}
-			if (channelFuture.isSuccess()) {
-				final Channel channel = channelFuture.getChannel();
-				localChannelGroup.add(channel);
-				logger.debug("Will start localChannelReference and eventually generate a new Db Connection if not-thread-safe");
-				final LocalChannelReference localChannelReference = new LocalChannelReference(
-						channel, networkChannelReference, remoteId, futureRequest);
-				localChannelHashMap.put(channel.getId(), localChannelReference);
-				logger.debug("Db connection done and Create LocalChannel entry: " + i + " {}",
-						localChannelReference);
-				logger.info("Add one localChannel to a Network Channel: "+channel.getId());
-				// Now send first a Startup message
-				StartupPacket startup = new StartupPacket(
-						localChannelReference.getLocalId());
+		networkChannelReference.getLock().lock();
+		try {
+			ChannelFuture channelFuture = null;
+			logger.debug("Status LocalChannelServer: {} {}", serverChannel
+					.getClass().getName(), serverChannel.getConfig()
+					.getConnectTimeoutMillis() + " " + serverChannel.isBound());
+			for (int i = 0; i < Configuration.RETRYNB; i++) {
+				channelFuture = clientBootstrap.connect(socketLocalServerAddress);
 				try {
-					Channels.write(channel, startup).await();
+					channelFuture.await();
+				} catch (InterruptedException e1) {
+					logger.error("LocalChannelServer Interrupted: " +
+							serverChannel.getClass().getName() + " " +
+							serverChannel.getConfig().getConnectTimeoutMillis() +
+							" " + serverChannel.isBound());
+					throw new OpenR66ProtocolSystemException(
+							"Interruption - Cannot connect to local handler: " +
+									socketLocalServerAddress + " " +
+									serverChannel.isBound() + " " + serverChannel,
+							e1);
+				}
+				if (channelFuture.isSuccess()) {
+					final Channel channel = channelFuture.getChannel();
+					localChannelGroup.add(channel);
+					logger.debug("Will start localChannelReference and eventually generate a new Db Connection if not-thread-safe");
+					final LocalChannelReference localChannelReference = new LocalChannelReference(
+							channel, networkChannelReference, remoteId, futureRequest);
+					localChannelHashMap.put(channel.getId(), localChannelReference);
+					logger.debug("Db connection done and Create LocalChannel entry: " + i + " {}",
+							localChannelReference);
+					logger.info("Add one localChannel to a Network Channel: "+channel.getId());
+					// Now send first a Startup message
+					StartupPacket startup = new StartupPacket(
+							localChannelReference.getLocalId());
+					try {
+						Channels.write(channel, startup).await();
+					} catch (InterruptedException e) {
+						logger.error("Can't connect to local server due to interruption" + i);
+						throw new OpenR66ProtocolSystemException(
+								"Cannot connect to local handler", e);
+					}
+					return localChannelReference;
+				} else {
+					logger.error("Can't connect to local server " + i);
+				}
+				try {
+					Thread.sleep(Configuration.RETRYINMS);
 				} catch (InterruptedException e) {
-					logger.error("Can't connect to local server due to interruption" + i);
 					throw new OpenR66ProtocolSystemException(
 							"Cannot connect to local handler", e);
 				}
-				return localChannelReference;
-			} else {
-				logger.error("Can't connect to local server " + i);
 			}
-			try {
-				Thread.sleep(Configuration.RETRYINMS);
-			} catch (InterruptedException e) {
-				throw new OpenR66ProtocolSystemException(
-						"Cannot connect to local handler", e);
-			}
+			logger.error("LocalChannelServer: " +
+					serverChannel.getClass().getName() + " " +
+					serverChannel.getConfig().getConnectTimeoutMillis() + " " +
+					serverChannel.isBound());
+			throw new OpenR66ProtocolSystemException(
+					"Cannot connect to local handler: " + socketLocalServerAddress +
+							" " + serverChannel.isBound() + " " + serverChannel,
+					channelFuture.getCause());
+		} finally {
+			networkChannelReference.getLock().unlock();
 		}
-		logger.error("LocalChannelServer: " +
-				serverChannel.getClass().getName() + " " +
-				serverChannel.getConfig().getConnectTimeoutMillis() + " " +
-				serverChannel.isBound());
-		throw new OpenR66ProtocolSystemException(
-				"Cannot connect to local handler: " + socketLocalServerAddress +
-						" " + serverChannel.isBound() + " " + serverChannel,
-				channelFuture.getCause());
 	}
 
 	/**

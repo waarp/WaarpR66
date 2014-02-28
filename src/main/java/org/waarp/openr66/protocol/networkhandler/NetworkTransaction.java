@@ -645,7 +645,7 @@ public class NetworkTransaction {
 				logger.debug("Still existing so shutdown is refused");
 				return;
 			}
-			logger.warn("This host address will be set as unavailable for 3xTIMEOUT: {}", socketAddress);
+			logger.warn("This host address will be set as unavailable for 3xTIMEOUT since not reacheable multiple times: {}", socketAddress);
 			NetworkChannelReference networkChannelReference = new NetworkChannelReference(socketAddress, lock);
 			addShutdownNCR(networkChannelReference);
 			R66ShutdownNetworkChannelTimerTask timerTask;
