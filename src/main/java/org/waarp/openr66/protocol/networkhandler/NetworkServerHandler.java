@@ -179,7 +179,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 			throws Exception {
 		if (Configuration.configuration.isShutdown)
 			return;
-		if (this.networkChannelReference.checkLastTime(Configuration.configuration.TIMEOUTCON*2) <= 0) {
+		if (this.networkChannelReference != null && this.networkChannelReference.checkLastTime(Configuration.configuration.TIMEOUTCON*2) <= 0) {
 			keepAlivedSent = 0;
 			return;
 		}
