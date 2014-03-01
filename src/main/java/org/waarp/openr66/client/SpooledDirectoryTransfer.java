@@ -442,6 +442,9 @@ public class SpooledDirectoryTransfer implements Runnable {
 										transaction2.run();
 										// special task
 										future.awaitUninterruptibly();
+										if (! DbConstant.admin.isConnected) {
+											DbTaskRunner.removeNoDbSpecialId(specialId);
+										}
 									}
 								} catch (WaarpDatabaseException e) {
 									direct = true;
@@ -511,6 +514,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 													e);
 										}
 									}
+									DbTaskRunner.removeNoDbSpecialId(specialId);
 								} else {
 									if (normalInfoAsWarn) {
 										logger.warn(text+Messages.getString("RequestInformation.Success")  //$NON-NLS-1$
@@ -542,8 +546,11 @@ public class SpooledDirectoryTransfer implements Runnable {
 								runner = r66result.runner;
 								if (runner != null) {
 									specialId = runner.getSpecialId();
-									if (! DbConstant.admin.isConnected) {
+									if (! DbConstant.admin.isConnected && remoteHosts.size() > 1) {
+										DbTaskRunner.removeNoDbSpecialId(specialId);
 										specialId = DbConstant.ILLEGALVALUE;
+									} else if (DbConstant.admin.isConnected) {
+										DbTaskRunner.removeNoDbSpecialId(specialId);
 									}
 									if (isConnectionImpossible) {
 										logger.info(text+Messages.getString("RequestInformation.Failure") +  //$NON-NLS-1$
@@ -1012,6 +1019,10 @@ public class SpooledDirectoryTransfer implements Runnable {
 			arguments.clear();
 			Thread.sleep(1000);
 			executorService.shutdown();
+			if (logger.isDebugEnabled()) {
+				// XXX FIXME for debug
+				Configuration.configuration.launchStatistics();
+			}
 			if (normalStart) {
 				while (! executorService.awaitTermination(Configuration.configuration.TIMEOUTCON, TimeUnit.MILLISECONDS)) {
 					Thread.sleep(Configuration.configuration.TIMEOUTCON);

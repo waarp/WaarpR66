@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.jboss.netty.bootstrap.ServerBootstrap;
@@ -409,7 +410,12 @@ public class Configuration {
 	 */
 	protected ExecutorService execOtherWorker = Executors
 			.newCachedThreadPool(new WaarpThreadFactory("OtherWorker"));
-
+	
+	/**
+	 * ExecutorService Scheduled tasks
+	 */
+	protected final ScheduledExecutorService scheduledExecutorService;
+	
 	/**
 	 * ChannelFactory for Server part
 	 */
@@ -602,6 +608,7 @@ public class Configuration {
 		shutdownConfiguration.timeout = TIMEOUTCON;
 		new R66ShutdownHook(shutdownConfiguration);
 		computeNbThreads();
+		scheduledExecutorService = Executors.newScheduledThreadPool(this.SERVER_THREAD, new WaarpThreadFactory("ScheduledTask"));
 		// Init FiniteStates
 		R66FiniteDualStates.initR66FiniteStates();
 		isExecuteErrorBeforeTransferAllowed = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_EXECUTEBEFORETRANSFERRED, true);
@@ -621,6 +628,7 @@ public class Configuration {
 
 	public String toString() {
 		return "Config: { ServerPort: "+ SERVER_PORT+", ServerSslPort: "+SERVER_SSLPORT+", ServerView: "+SERVER_HTTPPORT+", ServerAdmin: "+SERVER_HTTPSPORT+
+				", ThriftPort: "+(thriftport > 0 ? thriftport : "'NoThriftSupport'")+
 				", TimeOut: "+TIMEOUTCON+", BaseDir: '"+baseDirectory+ "', DigestAlgo: '"+digest.name+ "', checkRemote: "+checkRemoteAddress+
 				", checkClient: "+checkClientAddress+ ", snmpActive: "+(agentSnmp!=null)+ ", chrootChecked: "+chrootChecked+
 				", blacklist: "+blacklistBadAuthent + ", isHostProxified: "+isHostProxyfied +"}";
@@ -694,10 +702,16 @@ public class Configuration {
 		startMonitoring();
 		if (logger.isDebugEnabled()) {
 			// XXX FIXME for debug
-			launchInFixedDelay(new UsageStatistic(), 10, TimeUnit.SECONDS);
+			launchStatistics();
 		}
 	}
-
+	/**
+	 * Used to log statistics information regularly
+	 */
+	public void launchStatistics() {
+		launchInFixedDelay(new UsageStatistic(), 10, TimeUnit.SECONDS);
+	}
+	
 	public void r66Startup() throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
 		logger.info(Messages.getString("Configuration.Start") + SERVER_PORT + ":" + useNOSSL + ":" + HOST_ID +  //$NON-NLS-1$
 				" " + SERVER_SSLPORT + ":" + useSSL + ":" + HOST_SSLID);
@@ -874,6 +888,9 @@ public class Configuration {
 		if (internalRunner != null) {
 			internalRunner.stopInternalRunner();
 		}
+		if (scheduledExecutorService != null) {
+			scheduledExecutorService.shutdown();
+		}
 		if (agentSnmp != null) {
 			agentSnmp.stop();
 		} else if (monitoring != null) {
@@ -905,6 +922,9 @@ public class Configuration {
 	 */
 	public void clientStop() {
 		WaarpSslUtility.forceCloseAllSslChannels();
+		if (scheduledExecutorService != null) {
+			scheduledExecutorService.shutdown();
+		}
 		if (localTransaction != null) {
 			localTransaction.closeAll();
 			localTransaction = null;
@@ -961,15 +981,7 @@ public class Configuration {
 	 * @param unit
 	 */
 	public void launchInFixedDelay(Thread thread, long delay, TimeUnit unit) {
-		if (internalRunner != null) {
-			internalRunner.submitExternalTask(thread, delay, unit);
-		} else {
-			try {
-				Thread.sleep(delay);
-			} catch (InterruptedException e) {
-			}
-			thread.start();
-		}
+		scheduledExecutorService.schedule(thread, delay, unit);
 	}
 	/**
 	 * Reset the global monitor for bandwidth limitation and change future channel monitors
