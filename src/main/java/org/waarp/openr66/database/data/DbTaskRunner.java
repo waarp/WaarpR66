@@ -29,7 +29,6 @@ import java.sql.Types;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.dom4j.Document;
@@ -53,6 +52,7 @@ import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.lru.SimpleLRUCache;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.openr66.commander.CommanderNoDb;
 import org.waarp.openr66.context.ErrorCode;
@@ -96,13 +96,17 @@ public class DbTaskRunner extends AbstractDbData {
 			.getLogger(DbTaskRunner.class);
 	
 	/**
-	 * HashTable in case of lack of database
+	 * HashTable in case of lack of database using LRU mode with
+	 * 20 000 items maximum (< 200 MB?) for 180s
 	 */
-	private static final ConcurrentHashMap<Long, DbTaskRunner> dbR66TaskHashMap =
-			new ConcurrentHashMap<Long, DbTaskRunner>();
+	private static final //Cache<Long, DbTaskRunner> dbR66TaskHashMap = CacheBuilder.newBuilder().maximumSize(2000).expireAfterAccess(180000, TimeUnit.MILLISECONDS).build(); 
+		//SynchronizedLruCache<Long, DbTaskRunner> dbR66TaskHashMap = new SynchronizedLruCache<Long, DbTaskRunner>(2000, 1800);
+		Map<Long, DbTaskRunner> dbR66TaskHashMap = SimpleLRUCache.create(20000);
 
 	public static String hashStatus() {
-		return "DbTaskRunner: [dbR66TaskHashMap: "+dbR66TaskHashMap.size()+"] ";
+		return "DbTaskRunner: [dbR66TaskHashMap: "+dbR66TaskHashMap.size()+
+				//":"+dbR66TaskHashMap.getCapacity()+
+				"] ";
 	}
 	
 	public static enum Columns {
@@ -740,10 +744,17 @@ public class DbTaskRunner extends AbstractDbData {
 	/**
 	 * Remove a Spcieal Id for NoDb Client
 	 */
-	private void removeNoDbSpecialId() {
-		dbR66TaskHashMap.remove(this.specialId);
+	private final void removeNoDbSpecialId() {
+		removeNoDbSpecialId(specialId);
 	}
-
+	/**
+	 * To allow to remove specifically one SpecialId from MemoryHashmap
+	 * @param specialId
+	 */
+	public static final void removeNoDbSpecialId(long specialId) {
+		dbR66TaskHashMap.remove(specialId);
+		//dbR66TaskHashMap.invalidate(specialId);
+	}
 	/*
 	 * (non-Javadoc)
 	 * @see org.waarp.openr66.databaseold.data.AbstractDbData#delete()
@@ -925,7 +936,7 @@ public class DbTaskRunner extends AbstractDbData {
 				return existXmlWorkNoDb();
 			}
 			if (shallIgnore) {
-				return dbR66TaskHashMap.containsKey(specialId);
+				return dbR66TaskHashMap.containsKey(specialId);//getIfPresent(specialId) != null; //contains(specialId);
 			}
 			return false;
 		}
@@ -951,6 +962,7 @@ public class DbTaskRunner extends AbstractDbData {
 				}
 				isSaved = true;
 				checkThroughMode();
+				dbR66TaskHashMap.put(specialId, this); //putIfAbsent(specialId, this);
 				return;
 			}
 			for (AbstractDbData data : CommanderNoDb.todoList) {
@@ -973,12 +985,33 @@ public class DbTaskRunner extends AbstractDbData {
 						rule = new DbRule(this.dbSession, ruleId);
 					}
 					checkThroughMode();
+					dbR66TaskHashMap.put(specialId, this); //putIfAbsent(specialId, this);
 					return;
 				}
 			}
+			DbTaskRunner runner = dbR66TaskHashMap.get(specialId);//getIfPresent(specialId);//getSetUsed(specialId);
+			if (runner != null) {
+				DbValue[] temp = this.allFields;
+				this.allFields = runner.allFields;
+				try {
+					this.setFromArray();
+				} catch (WaarpDatabaseSqlException e) {
+				}
+				this.allFields = temp;
+				this.setToArray();
+				this.isRecvThrough = runner.isRecvThrough;
+				this.isSendThrough = runner.isSendThrough;
+				this.rule = runner.rule;
+				this.isSaved = true;
+				if (rule == null) {
+					rule = new DbRule(this.dbSession, ruleId);
+				}
+				checkThroughMode();
+				return;
+			}
 			throw new WaarpDatabaseNoDataException("No row found");
 		}
-		DbTaskRunner previous = dbR66TaskHashMap.get(specialId);
+		DbTaskRunner previous = dbR66TaskHashMap.get(specialId);//getIfPresent(specialId);//getSetUsed(specialId);
 		if (previous != null) {
 			DbValue[] temp = this.allFields;
 			this.allFields = previous.allFields;
@@ -1023,6 +1056,14 @@ public class DbTaskRunner extends AbstractDbData {
 					this.writeXmlWorkNoDb();
 				} catch (OpenR66ProtocolBusinessException e) {
 					// Ignore
+				}
+			}
+			if (shallIgnore) {
+				// Remove in Memory when completely done
+				if (this.isAllDone()) {
+					removeNoDbSpecialId();
+				} else {
+					dbR66TaskHashMap.put(specialId, this); //putIfAbsent(specialId, this);
 				}
 			}
 			if (this.updatedInfo == UpdatedInfo.TOSUBMIT.ordinal()) {
@@ -3470,7 +3511,7 @@ public class DbTaskRunner extends AbstractDbData {
 	 * @return True if this is a self request and current action is on Requested
 	 */
 	public boolean shallIgnoreSave() {
-		return isSelfRequest() && ((isSender && getRule().isSendMode()) || (! isSender && getRule().isRecvMode()));
+		return dbSession == null || (isSelfRequest() && ((isSender && getRule().isSendMode()) || (! isSender && getRule().isRecvMode())));
 	}
 	/**
 	 * 
