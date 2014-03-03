@@ -118,6 +118,13 @@ public class DbTaskRunner extends AbstractDbData {
 	public static int clearCache() {
 		return dbR66TaskHashMap.forceClearOldest();
 	}
+	/**
+	 * To update the TTL for the cache (to 10xTIMEOUT)
+	 * @param ttl
+	 */
+	public static void updateLruCacheTimeout(long ttl) {
+		dbR66TaskHashMap.setNewTtl(ttl);
+	}
 	
 	public static enum Columns {
 		GLOBALSTEP,

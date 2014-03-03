@@ -344,7 +344,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 					logger.debug("Cannot get LocalChannel: " + packet + " due to " +
 							e1.getMessage());
 					final ConnectionErrorPacket error = new ConnectionErrorPacket(
-							"Cannot get localChannel since cannot retrieve it", ""+packet.getLocalId());
+							"Cannot get localChannel since localId is not found anymore", ""+packet.getLocalId());
 					writeError(e.getChannel(), packet.getRemoteId(), packet
 							.getLocalId(), error);
 					return;

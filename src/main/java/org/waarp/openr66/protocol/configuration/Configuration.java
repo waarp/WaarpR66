@@ -709,6 +709,10 @@ public class Configuration {
 			blacklistBadAuthent = ! DbHostAuth.hasProxifiedHosts(DbConstant.admin.session);
 		}
 		shutdownConfiguration.timeout = TIMEOUTCON;
+		if (timeLimitCache < TIMEOUTCON*10) {
+			timeLimitCache = TIMEOUTCON*10;
+			DbTaskRunner.updateLruCacheTimeout(timeLimitCache);
+		}
 		R66ShutdownHook.addShutdownHook();
 		logger.debug("Use NoSSL: "+useNOSSL+" Use SSL: "+useSSL);
 		if ((!useNOSSL) && (!useSSL)) {
