@@ -52,7 +52,7 @@ import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
-import org.waarp.common.lru.SimpleLRUCache;
+import org.waarp.common.lru.SynchronizedLruCache;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.openr66.commander.CommanderNoDb;
 import org.waarp.openr66.context.ErrorCode;
@@ -99,14 +99,24 @@ public class DbTaskRunner extends AbstractDbData {
 	 * HashTable in case of lack of database using LRU mode with
 	 * 20 000 items maximum (< 200 MB?) for 180s
 	 */
-	private static final //Cache<Long, DbTaskRunner> dbR66TaskHashMap = CacheBuilder.newBuilder().maximumSize(2000).expireAfterAccess(180000, TimeUnit.MILLISECONDS).build(); 
-		//SynchronizedLruCache<Long, DbTaskRunner> dbR66TaskHashMap = new SynchronizedLruCache<Long, DbTaskRunner>(2000, 1800);
-		Map<Long, DbTaskRunner> dbR66TaskHashMap = SimpleLRUCache.create(20000);
-
+	private static SynchronizedLruCache<Long, DbTaskRunner> dbR66TaskHashMap;
+	/**
+	 * Create the LRU cache
+	 * @param limit limit of number of entries in the cache
+	 * @param ttl time to leave used
+	 */
+	public static void createLruCache(int limit, long ttl) {
+		dbR66TaskHashMap = new SynchronizedLruCache<Long, DbTaskRunner>(limit, ttl);
+	}
 	public static String hashStatus() {
-		return "DbTaskRunner: [dbR66TaskHashMap: "+dbR66TaskHashMap.size()+
-				//":"+dbR66TaskHashMap.getCapacity()+
-				"] ";
+		return "DbTaskRunner: [dbR66TaskHashMap: "+dbR66TaskHashMap.size()+"] ";
+	}
+	/**
+	 * To enable clear of oldest entries in the cache
+	 * @return the number of elements removed
+	 */
+	public static int clearCache() {
+		return dbR66TaskHashMap.forceClearOldest();
 	}
 	
 	public static enum Columns {
@@ -683,6 +693,8 @@ public class DbTaskRunner extends AbstractDbData {
 		ownerRequest = Configuration.configuration.HOST_ID;
 
 		select();
+		updateUsed(specialId);
+
 		if (rule != null) {
 			if (!ruleId.equals(rule.idRule)) {
 				throw new WaarpDatabaseNoDataException(
@@ -715,6 +727,7 @@ public class DbTaskRunner extends AbstractDbData {
 		ownerRequest = Configuration.configuration.HOST_ID;
 
 		select();
+		updateUsed(specialId);
 	}
 
 	/**
@@ -753,7 +766,13 @@ public class DbTaskRunner extends AbstractDbData {
 	 */
 	public static final void removeNoDbSpecialId(long specialId) {
 		dbR66TaskHashMap.remove(specialId);
-		//dbR66TaskHashMap.invalidate(specialId);
+	}
+	/**
+	 * To update the usage TTL of the associated object
+	 * @param specialId
+	 */
+	public static final void updateUsed(long specialId) {
+		dbR66TaskHashMap.updateTtl(specialId);
 	}
 	/*
 	 * (non-Javadoc)
@@ -936,7 +955,7 @@ public class DbTaskRunner extends AbstractDbData {
 				return existXmlWorkNoDb();
 			}
 			if (shallIgnore) {
-				return dbR66TaskHashMap.containsKey(specialId);//getIfPresent(specialId) != null; //contains(specialId);
+				return dbR66TaskHashMap.contains(specialId);//containsKey(specialId);
 			}
 			return false;
 		}
@@ -962,7 +981,7 @@ public class DbTaskRunner extends AbstractDbData {
 				}
 				isSaved = true;
 				checkThroughMode();
-				dbR66TaskHashMap.put(specialId, this); //putIfAbsent(specialId, this);
+				dbR66TaskHashMap.put(specialId, this);
 				return;
 			}
 			for (AbstractDbData data : CommanderNoDb.todoList) {
@@ -985,11 +1004,11 @@ public class DbTaskRunner extends AbstractDbData {
 						rule = new DbRule(this.dbSession, ruleId);
 					}
 					checkThroughMode();
-					dbR66TaskHashMap.put(specialId, this); //putIfAbsent(specialId, this);
+					dbR66TaskHashMap.put(specialId, this);
 					return;
 				}
 			}
-			DbTaskRunner runner = dbR66TaskHashMap.get(specialId);//getIfPresent(specialId);//getSetUsed(specialId);
+			DbTaskRunner runner = dbR66TaskHashMap.get(specialId);
 			if (runner != null) {
 				DbValue[] temp = this.allFields;
 				this.allFields = runner.allFields;
@@ -1011,7 +1030,7 @@ public class DbTaskRunner extends AbstractDbData {
 			}
 			throw new WaarpDatabaseNoDataException("No row found");
 		}
-		DbTaskRunner previous = dbR66TaskHashMap.get(specialId);//getIfPresent(specialId);//getSetUsed(specialId);
+		DbTaskRunner previous = dbR66TaskHashMap.get(specialId);
 		if (previous != null) {
 			DbValue[] temp = this.allFields;
 			this.allFields = previous.allFields;
@@ -1063,7 +1082,7 @@ public class DbTaskRunner extends AbstractDbData {
 				if (this.isAllDone()) {
 					removeNoDbSpecialId();
 				} else {
-					dbR66TaskHashMap.put(specialId, this); //putIfAbsent(specialId, this);
+					dbR66TaskHashMap.put(specialId, this);
 				}
 			}
 			if (this.updatedInfo == UpdatedInfo.TOSUBMIT.ordinal()) {

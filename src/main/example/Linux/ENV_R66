@@ -18,7 +18,7 @@ export R66BIN="${R66HOME}/lib"
 LOGSERVER=" -Dlogback.configurationFile=${R66HOME}/conf/logback.xml "
 LOGCLIENT=" -Dlogback.configurationFile=${R66HOME}/conf/logback-client.xml "
 
-R66_CLASSPATH=" ${R66BIN}/WaarpR66-2.4.25.jar:${R66BIN}/* "
+R66_CLASSPATH=" ${R66BIN}/WaarpR66-2.4.26.jar:${R66BIN}/* "
 
 export JAVARUNCLIENT="${JAVA_RUN} -cp ${R66_CLASSPATH} ${LOGCLIENT} -Dopenr66.locale=en "
 export JAVARUNSERVER="${JAVA_RUN} -cp ${R66_CLASSPATH} ${LOGSERVER} -Dopenr66.locale=en "

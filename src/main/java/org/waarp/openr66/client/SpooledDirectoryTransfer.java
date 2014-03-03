@@ -467,7 +467,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 								text = "Direct Transfer: ";
 								DirectTransfer transaction = new DirectTransfer(future,
 										host, filename, rulename, fileinfo, isMD5, blocksize,
-										specialId, networkTransaction);
+										DbConstant.ILLEGALVALUE, networkTransaction);
 								transaction.normalInfoAsWarn = normalInfoAsWarn;
 								logger.info(text+host);
 								transaction.run();
@@ -1019,10 +1019,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 			arguments.clear();
 			Thread.sleep(1000);
 			executorService.shutdown();
-			if (logger.isDebugEnabled()) {
-				// XXX FIXME for debug
-				Configuration.configuration.launchStatistics();
-			}
+			Configuration.configuration.launchStatistics();
 			if (normalStart) {
 				while (! executorService.awaitTermination(Configuration.configuration.TIMEOUTCON, TimeUnit.MILLISECONDS)) {
 					Thread.sleep(Configuration.configuration.TIMEOUTCON);
