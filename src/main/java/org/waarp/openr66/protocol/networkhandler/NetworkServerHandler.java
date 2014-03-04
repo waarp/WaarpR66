@@ -53,6 +53,7 @@ import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacket;
 import org.waarp.openr66.protocol.utils.ChannelCloseTimer;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
+import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 
 /**
  * Network Server Handler (Requester side)
@@ -337,7 +338,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 					if (remoteAddress == null) {
 						remoteAddress = e.getChannel().getRemoteAddress();
 					}
-					if (NetworkTransaction.isShuttingdownNetworkChannel(remoteAddress)) {
+					if (NetworkTransaction.isShuttingdownNetworkChannel(remoteAddress) || R66ShutdownHook.isInShutdown()) {
 						// ignore
 						return;
 					}

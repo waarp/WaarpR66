@@ -1037,6 +1037,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 			return false;
 		} finally {
 			if (normalStart) {
+				ChannelUtils.startShutdown();
 				networkTransactionStatic.closeAll();
 				System.exit(0);
 			}

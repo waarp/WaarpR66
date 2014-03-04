@@ -120,7 +120,6 @@ public class NetworkTransaction {
 	 */
 	private static final ConcurrentHashMap<Integer, RetrieveRunner> retrieveRunnerConcurrentHashMap = new ConcurrentHashMap<Integer, RetrieveRunner>();
 
-
 	/**
 	 * ExecutorService for RetrieveOperation
 	 */
@@ -293,6 +292,10 @@ public class NetworkTransaction {
 		LocalChannelReference localChannelReference = null;
 		OpenR66Exception lastException = null;
 		for (int i = 0; i < Configuration.RETRYNB; i++) {
+			if (R66ShutdownHook.isInShutdown()) {
+				lastException = new OpenR66ProtocolSystemException("Local system in shutdown");
+				break;
+			}
 			try {
 				localChannelReference =
 						createConnection(socketAddress, isSSL, futureRequest);
@@ -427,6 +430,9 @@ public class NetworkTransaction {
 			logger.debug("NEW PHYSICAL CONNECTION REQUIRED");
 			ChannelFuture channelFuture = null;
 			for (int i = 0; i < Configuration.RETRYNB; i++) {
+				if (R66ShutdownHook.isInShutdown()) {
+					throw new OpenR66ProtocolNoConnectionException("Local system in shutdown");
+				}
 				try {
 					if (isSSL) {
 						if (Configuration.configuration.HOST_SSLID != null) {
