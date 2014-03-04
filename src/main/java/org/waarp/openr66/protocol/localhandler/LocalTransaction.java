@@ -52,6 +52,7 @@ import org.waarp.openr66.protocol.localhandler.packet.ValidPacket;
 import org.waarp.openr66.protocol.networkhandler.NetworkChannelReference;
 import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacket;
 import org.waarp.openr66.protocol.utils.R66Future;
+import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 
 /**
  * This class handles Local Transaction connections
@@ -145,6 +146,13 @@ public class LocalTransaction {
 					.getClass().getName(), serverChannel.getConfig()
 					.getConnectTimeoutMillis() + " " + serverChannel.isBound());
 			for (int i = 0; i < Configuration.RETRYNB; i++) {
+				if (R66ShutdownHook.isInShutdown()) {
+					// Do not try since already locally in shutdown
+					throw new OpenR66ProtocolSystemException(
+							"Cannot connect to local handler: " + socketLocalServerAddress +
+									" " + serverChannel.isBound() + " " + serverChannel +
+									" since the local server is in shutdown.");
+				}
 				channelFuture = clientBootstrap.connect(socketLocalServerAddress);
 				try {
 					channelFuture.await();
