@@ -450,7 +450,7 @@ public class Commander implements CommanderInterface {
 			} finally {
 				preparedStatementRule.close();
 			}
-			if (R66ShutdownHook.isInShutdown()) {
+			if (R66ShutdownHook.isShutdownStarting()) {
 				// no more task to submit
 				return;
 			}
@@ -461,6 +461,10 @@ public class Commander implements CommanderInterface {
 				// No specific HA mode since the other servers will wait for the commit on Lock
 				preparedStatementRunner.executeQuery();
 				while (preparedStatementRunner.getNext()) {
+					if (R66ShutdownHook.isShutdownStarting()) {
+						// no more task to submit
+						return;
+					}
 					DbTaskRunner taskRunner = DbTaskRunner
 							.getFromStatement(preparedStatementRunner);
 					logger.debug("get a task: {}", taskRunner);

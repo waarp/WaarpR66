@@ -291,6 +291,15 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 				logger.info("Will Close Local from Network Channel");
 				WaarpSslUtility.closingSslChannel(e.getChannel());
 				return;
+			} catch (OpenR66ProtocolNoConnectionException e1) {
+				logger.error("Cannot create LocalChannel for: " + packet + " due to "
+						+ e1.getMessage());
+				final ConnectionErrorPacket error = new ConnectionErrorPacket(
+						"Cannot connect to localChannel since cannot create it", null);
+				writeError(e.getChannel(), packet.getRemoteId(), packet
+						.getLocalId(), error);
+				NetworkTransaction.checkClosingNetworkChannel(this.networkChannelReference, null);
+				return;
 			}
 		} else {
 			if (packet.getCode() == LocalPacketFactory.ENDREQUESTPACKET) {
@@ -338,7 +347,7 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 					if (remoteAddress == null) {
 						remoteAddress = e.getChannel().getRemoteAddress();
 					}
-					if (NetworkTransaction.isShuttingdownNetworkChannel(remoteAddress) || R66ShutdownHook.isInShutdown()) {
+					if (NetworkTransaction.isShuttingdownNetworkChannel(remoteAddress) || R66ShutdownHook.isShutdownStarting()) {
 						// ignore
 						return;
 					}
@@ -429,7 +438,9 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 		} catch (OpenR66ProtocolPacketException e) {
 		}
 		try {
-			Channels.write(channel, networkPacket).await();
+			if (channel.isConnected()) {
+				Channels.write(channel, networkPacket).await();
+			}
 		} catch (InterruptedException e) {
 		}
 	}

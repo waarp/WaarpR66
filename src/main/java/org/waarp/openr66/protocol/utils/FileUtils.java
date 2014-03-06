@@ -370,13 +370,15 @@ public class FileUtils {
 					// no test on file since it does not really exist
 					logger.debug("File is in through mode: {}", file);
 				} else if (!file.canRead()) {
+					logger.debug("File {} cannot be read, so try external from "+filename, file);
 					// file is not under normal base directory, so is external
 					// File should already exist but cannot use special code ('*?')
-					file = new R66File(session, session.getDir(), filename);
-					if (!file.canRead()) {
+					R66File file2 = new R66File(session, session.getDir(), filename);
+					if (!file2.canRead()) {
 						throw new OpenR66RunnerErrorException("File cannot be read: " +
 								file.getTrueFile().getAbsolutePath());
 					}
+					file = file2;
 				}
 			} catch (CommandAbstractException e) {
 				throw new OpenR66RunnerErrorException(e);

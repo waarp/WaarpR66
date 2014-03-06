@@ -57,6 +57,7 @@ import org.waarp.openr66.protocol.localhandler.packet.BusinessRequestPacket;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
+import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 
 /**
  * Direct Transfer from a client with or without database connection 
@@ -1037,7 +1038,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 			return false;
 		} finally {
 			if (normalStart) {
-				ChannelUtils.startShutdown();
+				R66ShutdownHook.shutdownWillStart();
 				networkTransactionStatic.closeAll();
 				System.exit(0);
 			}

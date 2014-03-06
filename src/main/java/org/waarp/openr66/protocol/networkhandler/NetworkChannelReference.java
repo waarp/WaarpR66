@@ -102,16 +102,12 @@ public class NetworkChannelReference {
 
 	public void add(LocalChannelReference localChannel)
 			throws OpenR66ProtocolRemoteShutdownException {
-		lock.lock();
-		try {
-			if (isShuttingDown) {
-				throw new OpenR66ProtocolRemoteShutdownException("Current NetworkChannelReference is closed");
-			}
-			use();
-			localChannelReferences.add(localChannel);
-		} finally {
-			lock.unlock();
+		// lock is of no use since caller is itself in locked situation for the very same lock
+		if (isShuttingDown) {
+			throw new OpenR66ProtocolRemoteShutdownException("Current NetworkChannelReference is closed");
 		}
+		use();
+		localChannelReferences.add(localChannel);
 	}
 	
 	/**
@@ -133,6 +129,11 @@ public class NetworkChannelReference {
 		}
 		return false;
 	}
+	
+	/**
+	 * Remove one LocalChanelReference, closing it if necessary.
+	 * @param localChannel
+	 */
 	public void remove(LocalChannelReference localChannel) {
 		lock.lock();
 		try {
