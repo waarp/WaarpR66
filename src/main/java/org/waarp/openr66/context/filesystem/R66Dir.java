@@ -205,6 +205,9 @@ public class R66Dir extends FilesystemBasedDirImpl {
 		if (session.getAuth() == null) {
 			return currentDir;
 		}
+		if (isAbsolute(currentDir)) {
+			return currentDir;
+		}
 		return ((R66Auth) session.getAuth()).getAbsolutePath(currentDir);
 	}
 

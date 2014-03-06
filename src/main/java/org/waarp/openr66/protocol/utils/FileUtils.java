@@ -343,11 +343,13 @@ public class FileUtils {
 				} else {
 					filename = filename.substring("file:".length());
 				}
-				try {
-					filename = URLDecoder.decode(filename, WaarpStringUtils.UTF8.name());
-				} catch (UnsupportedEncodingException e) {
-					logger.warn("Filename convertion to UTF8 cannot be read: " +
-							filename);
+				if (filename.contains("%")) {
+					try {
+						filename = URLDecoder.decode(filename, WaarpStringUtils.UTF8.name());
+					} catch (UnsupportedEncodingException e) {
+						logger.warn("Filename convertion to UTF8 cannot be read: " +
+								filename);
+					}
 				}
 			}
 			logger.debug("File becomes: "+filename);
