@@ -1075,6 +1075,11 @@ public class NetworkTransaction {
 					"Remote Host is blacklisted");
 		}
 		nc = getNCR(address);
+		if (nc != null && (nc.isShuttingDown || ! nc.getChannel().isConnected())) {
+			logger.debug("HOST IS DISCONNECTED: {}", address);
+			throw new OpenR66ProtocolRemoteShutdownException(
+					"Remote Host is disconnected");
+		}
 		if (nc == null) {
 			throw new OpenR66ProtocolNoDataException("Channel not found");
 		}

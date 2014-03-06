@@ -29,7 +29,6 @@ import java.sql.Types;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -53,6 +52,7 @@ import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.lru.SynchronizedLruCache;
+import org.waarp.common.utility.LongUuid;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.openr66.commander.CommanderNoDb;
 import org.waarp.openr66.context.ErrorCode;
@@ -324,9 +324,9 @@ public class DbTaskRunner extends AbstractDbData {
 
 	protected static final String insertAllValues = " (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
 
-	private static final AtomicLong clientNoDbSpecialIdLast =
+	/*private static final AtomicLong clientNoDbSpecialIdLast =
 			new AtomicLong(
-					System.currentTimeMillis());
+					System.currentTimeMillis());*/
 
 	/*
 	 * (non-Javadoc)
@@ -617,6 +617,7 @@ public class DbTaskRunner extends AbstractDbData {
 		}
 		checkThroughMode();
 		create();
+		requestPacket.setSpecialId(specialId);
 	}
 
 	/**
@@ -668,6 +669,7 @@ public class DbTaskRunner extends AbstractDbData {
 		}
 		checkThroughMode();
 		insert();
+		requestPacket.setSpecialId(specialId);
 	}
 
 	/**
@@ -749,7 +751,9 @@ public class DbTaskRunner extends AbstractDbData {
 	 * Create a Special Id for NoDb client
 	 */
 	private void createNoDbSpecialId() {
-		synchronized (clientNoDbSpecialIdLast) {
+		specialId = new LongUuid().getLong();
+		setPrimaryKey();
+		/*synchronized (clientNoDbSpecialIdLast) {
 			// New SpecialId is not possible with No Database Model
 			specialId = System.currentTimeMillis();
 			if (clientNoDbSpecialIdLast.get() >= specialId) {
@@ -757,8 +761,9 @@ public class DbTaskRunner extends AbstractDbData {
 			} else {
 				clientNoDbSpecialIdLast.set(specialId);
 			}
+			setPrimaryKey();
 			return;
-		}
+		}*/
 	}
 
 	/**

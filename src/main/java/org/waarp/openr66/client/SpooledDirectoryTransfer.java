@@ -335,7 +335,11 @@ public class SpooledDirectoryTransfer implements Runnable {
 							DbConstant.admin.session.checkConnectionNoException();
 						}
 						String status = monitorArg.getStatus();
-						logger.info("Will inform back Waarp hosts of current history: "+monitorArg.getCurrentHistoryNb());
+						if (normalInfoAsWarn) {
+							logger.warn("Will inform back Waarp hosts of current history: "+monitorArg.getCurrentHistoryNb());
+						} else {
+							logger.info("Will inform back Waarp hosts of current history: "+monitorArg.getCurrentHistoryNb());
+						}
 						for (String host : waarpHosts) {
 							host = host.trim();
 							if (host != null && ! host.isEmpty()) {
