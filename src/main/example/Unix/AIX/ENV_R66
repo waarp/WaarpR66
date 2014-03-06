@@ -25,8 +25,8 @@ export R66BIN="${R66HOME}/lib"
 
 # command for Client
 # Logger
-LOGSERVER=" -Dlogback.configurationFile=${R66HOME}/conf/logback.xml -Dopenr66.locale=en "
-LOGCLIENT=" -Dlogback.configurationFile=${R66HOME}/conf/logback-client.xml -Dopenr66.locale=en "
+LOGSERVER=" -Dlogback.configurationFile=${R66HOME}/conf/logback.xml -Dopenr66.locale=en -Dfile.encoding=UTF-8 "
+LOGCLIENT=" -Dlogback.configurationFile=${R66HOME}/conf/logback-client.xml -Dopenr66.locale=en -Dfile.encoding=UTF-8 "
 
 R66_CLASSPATH=" ${R66BIN}/WaarpR66-2.4.26.jar:${R66BIN}/* "
 
