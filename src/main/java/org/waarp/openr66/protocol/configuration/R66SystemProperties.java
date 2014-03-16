@@ -66,5 +66,19 @@ public class R66SystemProperties {
 	 * This does not prevent to change the filename after (and #ORIGINALFILENAME# does still contain the full filename, not truncated).
 	 */
 	public static final String OPENR66_FILENAME_MAXLENGTH = "openr66.filename.maxlength";
+	/**
+	 * Debug by making a trace of consumption every x s, where x is specify as value in the definition. If 0 or less, means not activated.
+	 */
+	public static final String OPENR66_TRACE_STATS = "openr66.trace.stats";
+	/**
+	 * Maximum number of DbTaskRunners to keep in LRU cache (used in self request and for instance without database).
+	 * Minimal value is 100.
+	 */
+	public static final String OPENR66_CACHE_LIMIT = "openr66.cache.limit";
+	/**
+	 * Maximum time in ms of valid element once created, used or updated (used in self request and for instance without database).
+	 * Minimal value is 1000 ms (1s). If set to 1000, the value will not be regularly deleted.
+	 */
+	public static final String OPENR66_CACHE_TIMELIMIT = "openr66.cache.timelimit";
 
 }

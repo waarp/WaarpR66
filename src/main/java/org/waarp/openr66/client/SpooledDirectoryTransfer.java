@@ -57,6 +57,7 @@ import org.waarp.openr66.protocol.localhandler.packet.BusinessRequestPacket;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
+import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 
 /**
  * Direct Transfer from a client with or without database connection 
@@ -330,23 +331,33 @@ public class SpooledDirectoryTransfer implements Runnable {
 			waarpHostCommand = new FileMonitorCommandRunnableFuture() {
 				public void run(FileItem notused) {
 					try {
+						Thread.currentThread().setName("FileMonitorInformation_"+name);
 						if (DbConstant.admin.session != null && DbConstant.admin.session.isDisconnected) {
 							DbConstant.admin.session.checkConnectionNoException();
 						}
 						String status = monitorArg.getStatus();
-						logger.info("Will inform back Waarp hosts of current history: "+monitorArg.getCurrentHistoryNb());
+						if (normalInfoAsWarn) {
+							logger.warn("Will inform back Waarp hosts of current history: "+monitorArg.getCurrentHistoryNb());
+						} else {
+							logger.info("Will inform back Waarp hosts of current history: "+monitorArg.getCurrentHistoryNb());
+						}
 						for (String host : waarpHosts) {
 							host = host.trim();
 							if (host != null && ! host.isEmpty()) {
 								R66Future future = new R66Future(true);
 								BusinessRequestPacket packet =
 										new BusinessRequestPacket(SpooledInformTask.class.getName() + " " + status, 0);
-								BusinessRequest transaction = new BusinessRequest(
-										networkTransaction, future, host, packet);
+								BusinessRequest transaction = new BusinessRequest(networkTransaction, future, host, packet);
 								transaction.run();
-								future.awaitUninterruptibly();
+								future.awaitUninterruptibly(Configuration.configuration.TIMEOUTCON, TimeUnit.MILLISECONDS);
+								while (! future.isDone()) {
+									logger.warn("Out of time during information to Waarp server: "+host);
+									future.awaitUninterruptibly(Configuration.configuration.TIMEOUTCON, TimeUnit.MILLISECONDS);
+								}
 								if (! future.isSuccess()) {
 									logger.info("Can't inform Waarp server: "+host + " since " + future.getCause());
+								} else {
+									logger.debug("Inform back Waarp hosts over for: "+host);
 								}
 							}
 						}
@@ -467,7 +478,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 								text = "Direct Transfer: ";
 								DirectTransfer transaction = new DirectTransfer(future,
 										host, filename, rulename, fileinfo, isMD5, blocksize,
-										specialId, networkTransaction);
+										DbConstant.ILLEGALVALUE, networkTransaction);
 								transaction.normalInfoAsWarn = normalInfoAsWarn;
 								logger.info(text+host);
 								transaction.run();
@@ -1019,10 +1030,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 			arguments.clear();
 			Thread.sleep(1000);
 			executorService.shutdown();
-			if (logger.isDebugEnabled()) {
-				// XXX FIXME for debug
-				Configuration.configuration.launchStatistics();
-			}
+			Configuration.configuration.launchStatistics();
 			if (normalStart) {
 				while (! executorService.awaitTermination(Configuration.configuration.TIMEOUTCON, TimeUnit.MILLISECONDS)) {
 					Thread.sleep(Configuration.configuration.TIMEOUTCON);
@@ -1040,6 +1048,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 			return false;
 		} finally {
 			if (normalStart) {
+				R66ShutdownHook.shutdownWillStart();
 				networkTransactionStatic.closeAll();
 				System.exit(0);
 			}

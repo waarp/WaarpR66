@@ -68,8 +68,6 @@ import org.waarp.common.logging.WaarpInternalLoggerInterface.WaarpLevel;
 import org.waarp.common.role.RoleDefault.ROLE;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.openr66.client.Message;
-import org.waarp.openr66.configuration.AuthenticationFileBasedConfiguration;
-import org.waarp.openr66.configuration.RuleFileBasedConfiguration;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66FiniteDualStates;
 import org.waarp.openr66.context.R66Result;
@@ -87,9 +85,9 @@ import org.waarp.openr66.protocol.exception.OpenR66Exception;
 import org.waarp.openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
-import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
 import org.waarp.openr66.protocol.http.HttpWriteCacheEnable;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
+import org.waarp.openr66.protocol.localhandler.ServerActions;
 import org.waarp.openr66.protocol.localhandler.packet.ErrorPacket;
 import org.waarp.openr66.protocol.localhandler.packet.RequestPacket;
 import org.waarp.openr66.protocol.localhandler.packet.RequestPacket.TRANSFERMODE;
@@ -1693,24 +1691,22 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 					String directory = Configuration.configuration.baseDirectory +
 							R66Dir.SEPARATOR + Configuration.configuration.archivePath;
 					extraInformation = Messages.getString("HttpSslHandler.ExportDir") + directory + "<br>"; //$NON-NLS-1$
-					try {
-						RuleFileBasedConfiguration.writeXml(directory,
-								Configuration.configuration.HOST_ID);
-						extraInformation += Messages.getString("HttpSslHandler.32"); //$NON-NLS-1$
-					} catch (WaarpDatabaseNoConnectionException e1) {
-					} catch (WaarpDatabaseSqlException e1) {
-					} catch (OpenR66ProtocolSystemException e1) {
-					}
-					String filename =
-							directory + R66Dir.SEPARATOR + Configuration.configuration.HOST_ID +
-									"_Authentications.xml";
-					try {
-						AuthenticationFileBasedConfiguration.writeXML(Configuration.configuration,
-								filename);
+					String [] filenames = ServerActions.staticConfigExport(dbSession, directory, true, true, true, true, true);
+					// hosts, rules, business, alias, roles
+					if (filenames[0] != null) {
 						extraInformation += Messages.getString("HttpSslHandler.33"); //$NON-NLS-1$
-					} catch (WaarpDatabaseNoConnectionException e) {
-					} catch (WaarpDatabaseSqlException e) {
-					} catch (OpenR66ProtocolSystemException e) {
+					}
+					if (filenames[1] != null) {
+						extraInformation += Messages.getString("HttpSslHandler.32"); //$NON-NLS-1$
+					}
+					if (filenames[2] != null) {
+						extraInformation += Messages.getString("HttpSslHandler.44"); //$NON-NLS-1$
+					}
+					if (filenames[3] != null) {
+						extraInformation += Messages.getString("HttpSslHandler.45"); //$NON-NLS-1$
+					}
+					if (filenames[4] != null) {
+						extraInformation += Messages.getString("HttpSslHandler.46"); //$NON-NLS-1$
 					}
 				} else if (act.equalsIgnoreCase("Disconnect")) {
 					String logon = Logon();

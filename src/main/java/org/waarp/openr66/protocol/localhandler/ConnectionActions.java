@@ -262,15 +262,17 @@ public abstract class ConnectionActions {
 		if (localChannelReference == null) {
 			session.newState(ERROR);
 			logger.error(Messages.getString("LocalServerHandler.1")); //$NON-NLS-1$
-			ErrorPacket error = new ErrorPacket("Cannot startup connection",
-					ErrorCode.ConnectionImpossible.getCode(), ErrorPacket.FORWARDCLOSECODE);
-			try {
-				Channels.write(channel, error).await();
-			} catch (InterruptedException e) {
+			if (channel.isConnected()) {
+				ErrorPacket error = new ErrorPacket("Cannot startup connection",
+						ErrorCode.ConnectionImpossible.getCode(), ErrorPacket.FORWARDCLOSECODE);
+				try {
+					Channels.write(channel, error).await();
+				} catch (InterruptedException e) {
+				}
+				// Cannot do writeBack(error, true);
+				session.setStatus(40);
+				ChannelCloseTimer.closeFutureChannel(channel);
 			}
-			// Cannot do writeBack(error, true);
-			session.setStatus(40);
-			ChannelCloseTimer.closeFutureChannel(channel);
 			return;
 		}
 		session.newState(STARTUP);
