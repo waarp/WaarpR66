@@ -53,6 +53,7 @@ import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacket;
 import org.waarp.openr66.protocol.utils.ChannelCloseTimer;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
+import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 
 /**
  * Network Server Handler (Requester side)
@@ -290,6 +291,15 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 				logger.info("Will Close Local from Network Channel");
 				WaarpSslUtility.closingSslChannel(e.getChannel());
 				return;
+			} catch (OpenR66ProtocolNoConnectionException e1) {
+				logger.error("Cannot create LocalChannel for: " + packet + " due to "
+						+ e1.getMessage());
+				final ConnectionErrorPacket error = new ConnectionErrorPacket(
+						"Cannot connect to localChannel since cannot create it", null);
+				writeError(e.getChannel(), packet.getRemoteId(), packet
+						.getLocalId(), error);
+				NetworkTransaction.checkClosingNetworkChannel(this.networkChannelReference, null);
+				return;
 			}
 		} else {
 			if (packet.getCode() == LocalPacketFactory.ENDREQUESTPACKET) {
@@ -337,14 +347,14 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 					if (remoteAddress == null) {
 						remoteAddress = e.getChannel().getRemoteAddress();
 					}
-					if (NetworkTransaction.isShuttingdownNetworkChannel(remoteAddress)) {
+					if (NetworkTransaction.isShuttingdownNetworkChannel(remoteAddress) || R66ShutdownHook.isShutdownStarting()) {
 						// ignore
 						return;
 					}
 					logger.debug("Cannot get LocalChannel: " + packet + " due to " +
 							e1.getMessage());
 					final ConnectionErrorPacket error = new ConnectionErrorPacket(
-							"Cannot get localChannel since cannot retrieve it", ""+packet.getLocalId());
+							"Cannot get localChannel since localId is not found anymore", ""+packet.getLocalId());
 					writeError(e.getChannel(), packet.getRemoteId(), packet
 							.getLocalId(), error);
 					return;
@@ -428,7 +438,9 @@ public class NetworkServerHandler extends IdleStateAwareChannelHandler {
 		} catch (OpenR66ProtocolPacketException e) {
 		}
 		try {
-			Channels.write(channel, networkPacket).await();
+			if (channel.isConnected()) {
+				Channels.write(channel, networkPacket).await();
+			}
 		} catch (InterruptedException e) {
 		}
 	}

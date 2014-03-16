@@ -283,6 +283,7 @@ public class R66File extends FilesystemBasedFileImpl {
 	public boolean canRead() throws CommandAbstractException {
 		if (isExternal) {
 			File file = new File(currentFile);
+			logger.debug("Final File: "+file+" CanRead: "+file.canRead());
 			return file.canRead();
 		}
 		return super.canRead();
