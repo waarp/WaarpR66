@@ -86,6 +86,7 @@ import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacketSizeEstimat
 import org.waarp.openr66.protocol.networkhandler.ssl.NetworkSslServerPipelineFactory;
 import org.waarp.openr66.protocol.snmp.R66PrivateMib;
 import org.waarp.openr66.protocol.snmp.R66VariableFactory;
+import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 import org.waarp.openr66.protocol.utils.Version;
 import org.waarp.openr66.thrift.R66ThriftServerService;
@@ -617,6 +618,10 @@ public class Configuration {
 		scheduledExecutorService = Executors.newScheduledThreadPool(this.SERVER_THREAD, new WaarpThreadFactory("ScheduledTask"));
 		// Init FiniteStates
 		R66FiniteDualStates.initR66FiniteStates();
+		if (! SystemPropertyUtil.isFileEncodingCorrect()) {
+			logger.error("Issue while trying to set UTF-8 as default file encoding: use -Dfile.encoding=UTF-8 as java command argument");
+			logger.warn("Currently file.encoding is: "+ SystemPropertyUtil.get(SystemPropertyUtil.FILE_ENCODING));
+		}
 		isExecuteErrorBeforeTransferAllowed = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_EXECUTEBEFORETRANSFERRED, true);
 		boolean useSpaceSeparator = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_USESPACESEPARATOR, false);
 		if (useSpaceSeparator) {
@@ -944,6 +949,9 @@ public class Configuration {
 	 */
 	public void clientStop() {
 		WaarpSslUtility.forceCloseAllSslChannels();
+		if (! Configuration.configuration.isServer) {
+			ChannelUtils.stopLogger();
+		}
 		if (scheduledExecutorService != null) {
 			scheduledExecutorService.shutdown();
 		}

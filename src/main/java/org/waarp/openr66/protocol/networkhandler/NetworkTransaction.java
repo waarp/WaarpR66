@@ -107,24 +107,29 @@ public class NetworkTransaction {
 	/**
 	 * Hashmap for Currently Shutdown remote host based on socketAddress.hashCode()
 	 */
-	private static final ConcurrentHashMap<Integer, NetworkChannelReference> networkChannelShutdownOnSocketAddressConcurrentHashMap = new ConcurrentHashMap<Integer, NetworkChannelReference>();
+	private static final ConcurrentHashMap<Integer, NetworkChannelReference> networkChannelShutdownOnSocketAddressConcurrentHashMap = 
+			new ConcurrentHashMap<Integer, NetworkChannelReference>();
 	/**
 	 * Hashmap for Currently blacklisted remote host based on IP address(String).hashCode()
 	 */
-	private static final ConcurrentHashMap<Integer, NetworkChannelReference> networkChannelBlacklistedOnInetSocketAddressConcurrentHashMap = new ConcurrentHashMap<Integer, NetworkChannelReference>();
+	private static final ConcurrentHashMap<Integer, NetworkChannelReference> networkChannelBlacklistedOnInetSocketAddressConcurrentHashMap = 
+			new ConcurrentHashMap<Integer, NetworkChannelReference>();
 
 	/**
 	 * Hashmap for currently active remote host based on socketAddress.hashCode()
 	 */
-	private static final ConcurrentHashMap<Integer, NetworkChannelReference> networkChannelOnSocketAddressConcurrentHashMap = new ConcurrentHashMap<Integer, NetworkChannelReference>();
+	private static final ConcurrentHashMap<Integer, NetworkChannelReference> networkChannelOnSocketAddressConcurrentHashMap = 
+			new ConcurrentHashMap<Integer, NetworkChannelReference>();
 	/**
 	 * Remote Client NetworkChannels: used to centralize remote requester hosts (possible different address used)
 	 */
-	private static final ConcurrentHashMap<String, ClientNetworkChannels> clientNetworkChannelsPerHostId = new ConcurrentHashMap<String, ClientNetworkChannels>();
+	private static final ConcurrentHashMap<String, ClientNetworkChannels> clientNetworkChannelsPerHostId = 
+			new ConcurrentHashMap<String, ClientNetworkChannels>();
 	/**
 	 * Hashmap for currently active Retrieve Runner (sender)
 	 */
-	private static final ConcurrentHashMap<Integer, RetrieveRunner> retrieveRunnerConcurrentHashMap = new ConcurrentHashMap<Integer, RetrieveRunner>();
+	private static final ConcurrentHashMap<Integer, RetrieveRunner> retrieveRunnerConcurrentHashMap = 
+			new ConcurrentHashMap<Integer, RetrieveRunner>();
 
 	/**
 	 * ExecutorService for RetrieveOperation

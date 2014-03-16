@@ -5,6 +5,16 @@
 		<author email="waarp1 at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
+        <release version="2.4.26" date="2014-03-15" description="Fix release">
+            <action dev="Frederic Bregier" type="fix">Fix DbTaskRunner LRU cache</action>
+            <action dev="Frederic Bregier" type="add">Add option -Dopenr66.cache.limit and -Dopenr66.cache.timelimit</action>
+            <action dev="Frederic Bregier" type="fix">Improve Log in SpooledDirectory</action>
+            <action dev="Frederic Bregier" type="fix">Improve Directory and File implementation</action>
+            <action dev="Frederic Bregier" type="fix">Improve Shutdown for SpooledDirectory</action>
+            <action dev="Frederic Bregier" type="add">Add programmatic support of equivalent of -Dfile.encoding=UTF-8</action>
+            <action dev="Frederic Bregier" type="add">Use LongUuid support for SpecialId when no database is used</action>
+            <action dev="Frederic Bregier" type="fix">Improve LRU cache usage, lock and preventing deadlock in NetworkTransaction</action>
+        </release>
         <release version="2.4.25" date="2014-03-01" description="Fix release">
             <action dev="Frederic Bregier" type="fix">Fix exception handling and future handling in SpooledDirectoryTransfer</action>
             <action dev="Frederic Bregier" type="fix">Improve logging in SpooledDirectory and LocalClientHandler</action>

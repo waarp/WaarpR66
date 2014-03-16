@@ -331,6 +331,7 @@ public class SpooledDirectoryTransfer implements Runnable {
 			waarpHostCommand = new FileMonitorCommandRunnableFuture() {
 				public void run(FileItem notused) {
 					try {
+						Thread.currentThread().setName("FileMonitorInformation_"+name);
 						if (DbConstant.admin.session != null && DbConstant.admin.session.isDisconnected) {
 							DbConstant.admin.session.checkConnectionNoException();
 						}
@@ -346,12 +347,17 @@ public class SpooledDirectoryTransfer implements Runnable {
 								R66Future future = new R66Future(true);
 								BusinessRequestPacket packet =
 										new BusinessRequestPacket(SpooledInformTask.class.getName() + " " + status, 0);
-								BusinessRequest transaction = new BusinessRequest(
-										networkTransaction, future, host, packet);
+								BusinessRequest transaction = new BusinessRequest(networkTransaction, future, host, packet);
 								transaction.run();
-								future.awaitUninterruptibly();
+								future.awaitUninterruptibly(Configuration.configuration.TIMEOUTCON, TimeUnit.MILLISECONDS);
+								while (! future.isDone()) {
+									logger.warn("Out of time during information to Waarp server: "+host);
+									future.awaitUninterruptibly(Configuration.configuration.TIMEOUTCON, TimeUnit.MILLISECONDS);
+								}
 								if (! future.isSuccess()) {
 									logger.info("Can't inform Waarp server: "+host + " since " + future.getCause());
+								} else {
+									logger.debug("Inform back Waarp hosts over for: "+host);
 								}
 							}
 						}

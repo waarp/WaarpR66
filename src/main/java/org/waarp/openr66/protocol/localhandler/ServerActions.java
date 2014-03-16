@@ -35,6 +35,7 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.Channels;
 import org.waarp.common.command.exception.CommandAbstractException;
 import org.waarp.common.database.DbPreparedStatement;
+import org.waarp.common.database.DbSession;
 import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
@@ -1431,9 +1432,25 @@ public class ServerActions extends ConnectionActions {
 			Configuration.configuration.r66Mib.notifyWarning(
 					"Export Configuration Order received", session.getAuth().getUser());
 		}
-		String shost = null, srule = null, sbusiness = null, salias = null, sroles = null;
 		String dir = Configuration.configuration.baseDirectory +
 				Configuration.configuration.archivePath;
+		return staticConfigExport(localChannelReference.getDbSession(), dir, bhost, brule, bbusiness, balias, broles);
+	}
+	
+	/**
+	 * Export configuration and return filenames in order
+	 * @param dbSession
+	 * @param dir
+	 * @param bhost
+	 * @param brule
+	 * @param bbusiness
+	 * @param balias
+	 * @param broles
+	 * @return filenames in order
+	 */
+	public static String [] staticConfigExport(DbSession dbSession, String dir, boolean bhost, boolean brule, 
+			boolean bbusiness, boolean balias, boolean broles) {
+		String shost = null, srule = null, sbusiness = null, salias = null, sroles = null;
 		String hostname = Configuration.configuration.HOST_ID;
 		if (bhost) {
 			String filename = dir + File.separator + hostname + "_Authentications.xml";
@@ -1474,7 +1491,7 @@ public class ServerActions extends ConnectionActions {
 		}
 		if (bbusiness || balias || broles) {
 			try {
-				DbHostConfiguration host = new DbHostConfiguration(localChannelReference.getDbSession(), Configuration.configuration.HOST_ID);
+				DbHostConfiguration host = new DbHostConfiguration(dbSession, Configuration.configuration.HOST_ID);
 				if (bbusiness) {
 					sbusiness = host.getBusiness();
 					if (sbusiness != null) {
