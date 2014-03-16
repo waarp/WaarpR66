@@ -86,6 +86,7 @@ import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacketSizeEstimat
 import org.waarp.openr66.protocol.networkhandler.ssl.NetworkSslServerPipelineFactory;
 import org.waarp.openr66.protocol.snmp.R66PrivateMib;
 import org.waarp.openr66.protocol.snmp.R66VariableFactory;
+import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 import org.waarp.openr66.protocol.utils.Version;
 import org.waarp.openr66.thrift.R66ThriftServerService;
@@ -603,6 +604,12 @@ public class Configuration {
 	
 	public int maxfilenamelength = 255;
 	
+	public int timeStat = 0;
+	
+	public int limitCache = 20000;
+	
+	public long timeLimitCache = 180000;
+	
 	public Configuration() {
 		// Init signal handler
 		shutdownConfiguration.timeout = TIMEOUTCON;
@@ -611,6 +618,10 @@ public class Configuration {
 		scheduledExecutorService = Executors.newScheduledThreadPool(this.SERVER_THREAD, new WaarpThreadFactory("ScheduledTask"));
 		// Init FiniteStates
 		R66FiniteDualStates.initR66FiniteStates();
+		if (! SystemPropertyUtil.isFileEncodingCorrect()) {
+			logger.error("Issue while trying to set UTF-8 as default file encoding: use -Dfile.encoding=UTF-8 as java command argument");
+			logger.warn("Currently file.encoding is: "+ SystemPropertyUtil.get(SystemPropertyUtil.FILE_ENCODING));
+		}
 		isExecuteErrorBeforeTransferAllowed = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_EXECUTEBEFORETRANSFERRED, true);
 		boolean useSpaceSeparator = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_USESPACESEPARATOR, false);
 		if (useSpaceSeparator) {
@@ -621,6 +632,19 @@ public class Configuration {
 		chrootChecked = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_CHROOT_CHECKED, true);
 		blacklistBadAuthent = SystemPropertyUtil.getBoolean(R66SystemProperties.OPENR66_BLACKLIST_BADAUTHENT, true);
 		maxfilenamelength = SystemPropertyUtil.getInt(R66SystemProperties.OPENR66_FILENAME_MAXLENGTH, 255);
+		timeStat = SystemPropertyUtil.getInt(R66SystemProperties.OPENR66_TRACE_STATS, 0);
+		limitCache = SystemPropertyUtil.getInt(R66SystemProperties.OPENR66_CACHE_LIMIT, 20000);
+		if (limitCache <= 100) {
+			limitCache = 100;
+		}
+		timeLimitCache = SystemPropertyUtil.getLong(R66SystemProperties.OPENR66_CACHE_TIMELIMIT, 180000);
+		if (timeLimitCache < 1000) {
+			timeLimitCache = 1000;
+		}
+		DbTaskRunner.createLruCache(limitCache, timeLimitCache);
+		if (limitCache > 0 && timeLimitCache > 1000) {
+			launchInFixedDelay(new CleanLruCache(), timeLimitCache, TimeUnit.MILLISECONDS);
+		}
 		if (isHostProxyfied) {
 			blacklistBadAuthent = false;
 		}
@@ -690,6 +714,10 @@ public class Configuration {
 			blacklistBadAuthent = ! DbHostAuth.hasProxifiedHosts(DbConstant.admin.session);
 		}
 		shutdownConfiguration.timeout = TIMEOUTCON;
+		if (timeLimitCache < TIMEOUTCON*10) {
+			timeLimitCache = TIMEOUTCON*10;
+			DbTaskRunner.updateLruCacheTimeout(timeLimitCache);
+		}
 		R66ShutdownHook.addShutdownHook();
 		logger.debug("Use NoSSL: "+useNOSSL+" Use SSL: "+useSSL);
 		if ((!useNOSSL) && (!useSSL)) {
@@ -700,16 +728,15 @@ public class Configuration {
 		r66Startup();
 		startHttpSupport();
 		startMonitoring();
-		if (logger.isDebugEnabled()) {
-			// XXX FIXME for debug
-			launchStatistics();
-		}
+		launchStatistics();
 	}
 	/**
 	 * Used to log statistics information regularly
 	 */
 	public void launchStatistics() {
-		launchInFixedDelay(new UsageStatistic(), 10, TimeUnit.SECONDS);
+		if (timeStat > 0) {
+			launchInFixedDelay(new UsageStatistic(), timeStat, TimeUnit.SECONDS);
+		}
 	}
 	
 	public void r66Startup() throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
@@ -922,6 +949,9 @@ public class Configuration {
 	 */
 	public void clientStop() {
 		WaarpSslUtility.forceCloseAllSslChannels();
+		if (! Configuration.configuration.isServer) {
+			ChannelUtils.stopLogger();
+		}
 		if (scheduledExecutorService != null) {
 			scheduledExecutorService.shutdown();
 		}
@@ -1261,5 +1291,16 @@ public class Configuration {
 			logger.warn("Issue while debugging", e);
 		}
 		return result;
+	}
+	
+	private static class CleanLruCache extends Thread {
+
+		@Override
+		public void run() {
+			int nb = DbTaskRunner.clearCache();
+			logger.info("Clear Cache: "+nb);
+			Configuration.configuration.launchInFixedDelay(this, Configuration.configuration.timeLimitCache, TimeUnit.MILLISECONDS);
+		}
+		
 	}
 }

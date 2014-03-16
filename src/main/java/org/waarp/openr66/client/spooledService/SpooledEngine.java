@@ -35,6 +35,7 @@ import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.configuration.R66SystemProperties;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
+import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 
 /**
  * Engine used to start and stop the SpooledDirectory service
@@ -99,6 +100,7 @@ public class SpooledEngine extends EngineAbstract {
 
 	@Override
 	public void shutdown() {
+		R66ShutdownHook.shutdownWillStart();
 		logger.info("Shutdown");
 		for (SpooledDirectoryTransfer spooled : SpooledDirectoryTransfer.list) {
 			spooled.stop();

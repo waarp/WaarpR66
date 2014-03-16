@@ -181,7 +181,7 @@ public class CommanderNoDb implements CommanderInterface {
 					}
 					taskRunner = null;
 				}
-				if (R66ShutdownHook.isInShutdown()) {
+				if (R66ShutdownHook.isShutdownStarting()) {
 					// no more task to submit
 					return;
 				}

@@ -76,6 +76,7 @@ import org.waarp.openr66.protocol.localhandler.packet.json.JsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.RequestJsonPacket;
 import org.waarp.openr66.protocol.utils.ChannelCloseTimer;
 import org.waarp.openr66.protocol.utils.ChannelUtils;
+import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 
 /**
  * The local server handler handles real end file operations.
@@ -340,6 +341,7 @@ public class LocalServerHandler extends SimpleChannelHandler {
 			serverHandler.getSession().newState(ERROR);
 			boolean isAnswered = false;
 			if (exception instanceof OpenR66ProtocolShutdownException) {
+				R66ShutdownHook.shutdownWillStart();
 				logger.warn(Messages.getString("LocalServerHandler.0") + //$NON-NLS-1$
 						serverHandler.getSession().getAuth().getUser());
 				if (serverHandler.getLocalChannelReference() != null) {

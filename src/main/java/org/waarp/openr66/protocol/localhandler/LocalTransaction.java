@@ -42,6 +42,7 @@ import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoConnectionException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolRemoteShutdownException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolShutdownException;
@@ -52,6 +53,7 @@ import org.waarp.openr66.protocol.localhandler.packet.ValidPacket;
 import org.waarp.openr66.protocol.networkhandler.NetworkChannelReference;
 import org.waarp.openr66.protocol.networkhandler.packet.NetworkPacket;
 import org.waarp.openr66.protocol.utils.R66Future;
+import org.waarp.openr66.protocol.utils.R66ShutdownHook;
 
 /**
  * This class handles Local Transaction connections
@@ -134,10 +136,11 @@ public class LocalTransaction {
 	 * @return the LocalChannelReference
 	 * @throws OpenR66ProtocolSystemException
 	 * @throws OpenR66ProtocolRemoteShutdownException 
+	 * @throws OpenR66ProtocolNoConnectionException 
 	 */
 	public LocalChannelReference createNewClient(NetworkChannelReference networkChannelReference,
 			Integer remoteId, R66Future futureRequest)
-			throws OpenR66ProtocolSystemException, OpenR66ProtocolRemoteShutdownException {
+			throws OpenR66ProtocolSystemException, OpenR66ProtocolRemoteShutdownException, OpenR66ProtocolNoConnectionException {
 		networkChannelReference.getLock().lock();
 		try {
 			ChannelFuture channelFuture = null;
@@ -145,6 +148,13 @@ public class LocalTransaction {
 					.getClass().getName(), serverChannel.getConfig()
 					.getConnectTimeoutMillis() + " " + serverChannel.isBound());
 			for (int i = 0; i < Configuration.RETRYNB; i++) {
+				if (R66ShutdownHook.isShutdownStarting()) {
+					// Do not try since already locally in shutdown
+					throw new OpenR66ProtocolNoConnectionException(
+							"Cannot connect to local handler: " + socketLocalServerAddress +
+									" " + serverChannel.isBound() + " " + serverChannel +
+									" since the local server is in shutdown.");
+				}
 				channelFuture = clientBootstrap.connect(socketLocalServerAddress);
 				try {
 					channelFuture.await();

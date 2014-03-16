@@ -47,6 +47,7 @@ import org.waarp.common.database.DbAdmin;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.lru.SynchronizedLruCache;
 import org.waarp.common.utility.WaarpThreadFactory;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
@@ -90,36 +91,45 @@ public class NetworkTransaction {
 	 */
 	private static final ReentrantLock emptyLock = new ReentrantLock();
 	/**
-	 * Lock for NetworkChannelReference operations
+	 * Lock for Lock management operations
 	 */
-	private static final ReentrantLock lock = new ReentrantLock();
+	private static final ReentrantLock lockOfLock = new ReentrantLock();
 	/**
 	 * Hashmap for lock based on remote address 
 	 */
-	private static final ConcurrentHashMap<Integer, ReentrantLock> reentrantLockOnSocketAddressConcurrentHashMap = 
-			new ConcurrentHashMap<Integer, ReentrantLock>();
+	private static final SynchronizedLruCache<Integer, ReentrantLock> reentrantLockOnSocketAddressConcurrentHashMap = 
+			new SynchronizedLruCache<Integer, ReentrantLock>(20000, 180000);
+	/**
+	 * Hashmap for lock based on remote string address 
+	 */
+	private static final SynchronizedLruCache<String, ReentrantLock> reentrantLockOnStringAddressConcurrentHashMap = 
+			new SynchronizedLruCache<String, ReentrantLock>(20000, 180000);
 	/**
 	 * Hashmap for Currently Shutdown remote host based on socketAddress.hashCode()
 	 */
-	private static final ConcurrentHashMap<Integer, NetworkChannelReference> networkChannelShutdownOnSocketAddressConcurrentHashMap = new ConcurrentHashMap<Integer, NetworkChannelReference>();
+	private static final ConcurrentHashMap<Integer, NetworkChannelReference> networkChannelShutdownOnSocketAddressConcurrentHashMap = 
+			new ConcurrentHashMap<Integer, NetworkChannelReference>();
 	/**
 	 * Hashmap for Currently blacklisted remote host based on IP address(String).hashCode()
 	 */
-	private static final ConcurrentHashMap<Integer, NetworkChannelReference> networkChannelBlacklistedOnInetSocketAddressConcurrentHashMap = new ConcurrentHashMap<Integer, NetworkChannelReference>();
+	private static final ConcurrentHashMap<Integer, NetworkChannelReference> networkChannelBlacklistedOnInetSocketAddressConcurrentHashMap = 
+			new ConcurrentHashMap<Integer, NetworkChannelReference>();
 
 	/**
 	 * Hashmap for currently active remote host based on socketAddress.hashCode()
 	 */
-	private static final ConcurrentHashMap<Integer, NetworkChannelReference> networkChannelOnSocketAddressConcurrentHashMap = new ConcurrentHashMap<Integer, NetworkChannelReference>();
+	private static final ConcurrentHashMap<Integer, NetworkChannelReference> networkChannelOnSocketAddressConcurrentHashMap = 
+			new ConcurrentHashMap<Integer, NetworkChannelReference>();
 	/**
 	 * Remote Client NetworkChannels: used to centralize remote requester hosts (possible different address used)
 	 */
-	private static final ConcurrentHashMap<String, ClientNetworkChannels> clientNetworkChannelsPerHostId = new ConcurrentHashMap<String, ClientNetworkChannels>();
+	private static final ConcurrentHashMap<String, ClientNetworkChannels> clientNetworkChannelsPerHostId = 
+			new ConcurrentHashMap<String, ClientNetworkChannels>();
 	/**
 	 * Hashmap for currently active Retrieve Runner (sender)
 	 */
-	private static final ConcurrentHashMap<Integer, RetrieveRunner> retrieveRunnerConcurrentHashMap = new ConcurrentHashMap<Integer, RetrieveRunner>();
-
+	private static final ConcurrentHashMap<Integer, RetrieveRunner> retrieveRunnerConcurrentHashMap = 
+			new ConcurrentHashMap<Integer, RetrieveRunner>();
 
 	/**
 	 * ExecutorService for RetrieveOperation
@@ -191,6 +201,7 @@ public class NetworkTransaction {
 		}
 		partial += "\n NetworkChannels: "+networkChannelOnSocketAddressConcurrentHashMap.size()+
 				" LockOnSocketAddress: "+reentrantLockOnSocketAddressConcurrentHashMap.size()+
+				" LockOnStringAddress: "+reentrantLockOnStringAddressConcurrentHashMap.size()+
 				" Sum of NetworkChannels LocalClients: "+nb+"] ";
 		return partial;
 	}
@@ -201,8 +212,11 @@ public class NetworkTransaction {
 	private static final void addLockNCR(SocketAddress sa, ReentrantLock lock) {
 		reentrantLockOnSocketAddressConcurrentHashMap.put(sa.hashCode(), lock);
 	}
-	private static final ReentrantLock removeLockNCR(SocketAddress sa) {
-		return reentrantLockOnSocketAddressConcurrentHashMap.remove(sa.hashCode());
+	private static final ReentrantLock getLockCNC(String name) {
+		return reentrantLockOnStringAddressConcurrentHashMap.get(name);
+	}
+	private static final void addLockCNC(String name, ReentrantLock lock) {
+		reentrantLockOnStringAddressConcurrentHashMap.put(name, lock);
 	}
 	private static final void addNCR(NetworkChannelReference ncr) {
 		networkChannelOnSocketAddressConcurrentHashMap.put(ncr.getSocketHashCode(), ncr);
@@ -248,7 +262,7 @@ public class NetworkTransaction {
 	}
 	
 	private static final ReentrantLock getChannelLock(SocketAddress socketAddress) {
-		lock.lock();
+		lockOfLock.lock();
 		try {
 			if (socketAddress == null) {
 				// should not
@@ -258,25 +272,49 @@ public class NetworkTransaction {
 			ReentrantLock socketLock = getLockNCR(socketAddress);
 			if (socketLock == null) {
 				socketLock = new ReentrantLock(true);
-				addLockNCR(socketAddress, socketLock);
 			}
+			// update TTL
+			addLockNCR(socketAddress, socketLock);
 			return socketLock;
 		} finally {
-			lock.unlock();
+			lockOfLock.unlock();
 		}
 	}
 
-	private static void removeChannelLock(SocketAddress socketAddress) {
-		lock.lock();
+	private static void removeChannelLock() {
+		lockOfLock.lock();
 		try {
-			if (socketAddress == null) {
-				// should not
-				logger.info("SocketAddress empty here !");
-				return;
-			}
-			removeLockNCR(socketAddress);
+			reentrantLockOnSocketAddressConcurrentHashMap.forceClearOldest();
 		} finally {
-			lock.unlock();
+			lockOfLock.unlock();
+		}
+	}
+	private static final ReentrantLock getRequesterLock(String requester) {
+		lockOfLock.lock();
+		try {
+			if (requester == null) {
+				// should not
+				logger.info("Requester empty here !");
+				return emptyLock;
+			}
+			ReentrantLock socketLock = getLockCNC(requester);
+			if (socketLock == null) {
+				socketLock = new ReentrantLock(true);
+			}
+			// update TTL
+			addLockCNC(requester, socketLock);
+			return socketLock;
+		} finally {
+			lockOfLock.unlock();
+		}
+	}
+
+	private static void removeRequesterLock() {
+		lockOfLock.lock();
+		try {
+			reentrantLockOnStringAddressConcurrentHashMap.forceClearOldest();
+		} finally {
+			lockOfLock.unlock();
 		}
 	}
 
@@ -293,6 +331,10 @@ public class NetworkTransaction {
 		LocalChannelReference localChannelReference = null;
 		OpenR66Exception lastException = null;
 		for (int i = 0; i < Configuration.RETRYNB; i++) {
+			if (R66ShutdownHook.isShutdownStarting()) {
+				lastException = new OpenR66ProtocolSystemException("Local system in shutdown");
+				break;
+			}
 			try {
 				localChannelReference =
 						createConnection(socketAddress, isSSL, futureRequest);
@@ -427,6 +469,9 @@ public class NetworkTransaction {
 			logger.debug("NEW PHYSICAL CONNECTION REQUIRED");
 			ChannelFuture channelFuture = null;
 			for (int i = 0; i < Configuration.RETRYNB; i++) {
+				if (R66ShutdownHook.isShutdownStarting()) {
+					throw new OpenR66ProtocolNoConnectionException("Local system in shutdown");
+				}
 				try {
 					if (isSSL) {
 						if (Configuration.configuration.HOST_SSLID != null) {
@@ -495,10 +540,11 @@ public class NetworkTransaction {
 	 * @return the LocalChannelReference
 	 * @throws OpenR66ProtocolRemoteShutdownException
 	 * @throws OpenR66ProtocolSystemException
+	 * @throws OpenR66ProtocolNoConnectionException 
 	 */
 	public static LocalChannelReference createConnectionFromNetworkChannelStartup(NetworkChannelReference networkChannelReference,
 			NetworkPacket packet)
-			throws OpenR66ProtocolRemoteShutdownException, OpenR66ProtocolSystemException {
+			throws OpenR66ProtocolRemoteShutdownException, OpenR66ProtocolSystemException, OpenR66ProtocolNoConnectionException {
 		return Configuration.configuration
 				.getLocalTransaction().createNewClient(networkChannelReference,
 						packet.getRemoteId(), null);
@@ -666,30 +712,38 @@ public class NetworkTransaction {
 	 * 
 	 * @param networkChannelReference
 	 */
+	private static void shuttingDownNetworkChannelInternal(NetworkChannelReference networkChannelReference) {
+		logger.info("Shutdown: {}", networkChannelReference);
+		if (containsShutdownNCR(networkChannelReference)) {
+			// already done
+			logger.debug("Already set as shutdown");
+			return;
+		}
+		logger.debug("Set as shutdown");
+		if (networkChannelReference != null) {
+			addShutdownNCR(networkChannelReference);
+			if (! networkChannelReference.isShuttingDown) {
+				networkChannelReference.shutdownAllLocalChannels();
+			}
+			R66ShutdownNetworkChannelTimerTask timerTask;
+			try {
+				timerTask = new R66ShutdownNetworkChannelTimerTask(networkChannelReference, false);
+				Configuration.configuration.getTimerClose().newTimeout(timerTask,
+						Configuration.configuration.TIMEOUTCON * 3, TimeUnit.MILLISECONDS);
+			} catch (OpenR66RunnerErrorException e) {
+				// ignore
+			}
+		}
+	}
+	/**
+	 * Shutdown one Network Channel
+	 * 
+	 * @param networkChannelReference
+	 */
 	public static void shuttingDownNetworkChannel(NetworkChannelReference networkChannelReference) {
 		networkChannelReference.lock.lock();
 		try {
-			logger.info("Shutdown: {}", networkChannelReference);
-			if (containsShutdownNCR(networkChannelReference)) {
-				// already done
-				logger.debug("Already set as shutdown");
-				return;
-			}
-			logger.debug("Set as shutdown");
-			if (networkChannelReference != null) {
-				addShutdownNCR(networkChannelReference);
-				if (! networkChannelReference.isShuttingDown) {
-					networkChannelReference.shutdownAllLocalChannels();
-				}
-				R66ShutdownNetworkChannelTimerTask timerTask;
-				try {
-					timerTask = new R66ShutdownNetworkChannelTimerTask(networkChannelReference, false);
-					Configuration.configuration.getTimerClose().newTimeout(timerTask,
-							Configuration.configuration.TIMEOUTCON * 3, TimeUnit.MILLISECONDS);
-				} catch (OpenR66RunnerErrorException e) {
-					// ignore
-				}
-			}
+			shuttingDownNetworkChannelInternal(networkChannelReference);
 		} finally {
 			networkChannelReference.lock.unlock();
 		}
@@ -703,7 +757,7 @@ public class NetworkTransaction {
 	public static boolean shuttingDownNetworkChannelBlackList(NetworkChannelReference networkChannelReference) {
 		networkChannelReference.lock.lock();
 		try {
-			shuttingDownNetworkChannel(networkChannelReference);
+			shuttingDownNetworkChannelInternal(networkChannelReference);
 			if (! Configuration.configuration.blacklistBadAuthent) {
 				return false;
 			}
@@ -757,17 +811,20 @@ public class NetworkTransaction {
 		if (requester == null) {
 			return false;
 		}
+		ClientNetworkChannels clientNetworkChannels = null;
+		ReentrantLock lock = getRequesterLock(requester);
 		lock.lock();
 		try {
-			ClientNetworkChannels clientNetworkChannels = clientNetworkChannelsPerHostId.get(requester);
+			clientNetworkChannels = clientNetworkChannelsPerHostId.get(requester);
 			logger.info("AddClient: shutdown previous exist? "+(clientNetworkChannels!=null) + " for :"+requester);
 			if (clientNetworkChannels != null) {
 				return clientNetworkChannels.shutdownAllNetworkChannels();
 			}
-			return false;
 		} finally {
 			lock.unlock();
+			removeRequesterLock();
 		}
+		return false;
 	}
 
 	/**
@@ -777,7 +834,8 @@ public class NetworkTransaction {
 	 * @param requester
 	 */
 	public static void addClient(NetworkChannelReference networkChannelReference, String requester) {
-		if (networkChannelReference != null) {
+		if (networkChannelReference != null && requester != null) {
+			ReentrantLock lock = getRequesterLock(requester);
 			lock.lock();
 			try {
 				ClientNetworkChannels clientNetworkChannels = clientNetworkChannelsPerHostId.get(requester);
@@ -787,6 +845,22 @@ public class NetworkTransaction {
 				}
 				logger.debug("AddClient: add count? "+clientNetworkChannels.size() + " for "+requester);
 				clientNetworkChannels.add(networkChannelReference);
+			} finally {
+				lock.unlock();
+			}
+		}
+	}
+	
+	private static void removeClient(NetworkChannelReference networkChannelReference, String requester, ClientNetworkChannels clientNetworkChannels) {
+		if (networkChannelReference != null && clientNetworkChannels != null && requester != null) {
+			ReentrantLock lock = getRequesterLock(requester);
+			lock.lock();
+			try {
+				clientNetworkChannels.remove(networkChannelReference);
+				logger.debug("removeClient: remove for :"+requester+ " still "+clientNetworkChannels.size());
+				if (clientNetworkChannels.isEmpty()) {
+					clientNetworkChannelsPerHostId.remove(requester);
+				}
 			} finally {
 				lock.unlock();
 			}
@@ -823,27 +897,17 @@ public class NetworkTransaction {
 			removeNCR(networkChannelReference);
 			if (networkChannelReference.clientNetworkChannels != null) {
 				String requester = networkChannelReference.clientNetworkChannels.getHostId();
-				networkChannelReference.clientNetworkChannels.remove(networkChannelReference);
-				logger.debug("removeClient: remove previous exist? "+(networkChannelReference.clientNetworkChannels!=null) +
-						" for :"+requester+ " still "+networkChannelReference.clientNetworkChannels.size());
-				if (networkChannelReference.clientNetworkChannels.isEmpty()) {
-					clientNetworkChannelsPerHostId.remove(requester);
-				}
+				removeClient(networkChannelReference, requester, networkChannelReference.clientNetworkChannels);
 			} else if (networkChannelReference.getHostId() != null) {
 				String requester = networkChannelReference.getHostId();
 				ClientNetworkChannels clientNetworkChannels = clientNetworkChannelsPerHostId.get(requester);
 				if (clientNetworkChannels != null) {
-					clientNetworkChannels.remove(networkChannelReference);
-					logger.debug("removeClient: remove previous exist? "+(clientNetworkChannels!=null) +
-						" for :"+requester+ " still "+clientNetworkChannels.size());
-					if (clientNetworkChannels.isEmpty()) {
-						clientNetworkChannelsPerHostId.remove(requester);
-					}
+					removeClient(networkChannelReference, requester, clientNetworkChannels);
 				}
 			}
 		} finally {
 			networkChannelReference.lock.unlock();
-			removeChannelLock(networkChannelReference.networkAddress);
+			removeChannelLock();
 		}
 	}
 	/**
@@ -962,7 +1026,7 @@ public class NetworkTransaction {
 	 * @return True if this socket Address is currently valid for connection
 	 */
 	private static boolean isAddressValid(SocketAddress address) {
-		if (R66ShutdownHook.isInShutdown()) {
+		if (R66ShutdownHook.isShutdownStarting()) {
 			logger.debug("IS IN SHUTDOWN");
 			return false;
 		}
@@ -993,7 +1057,7 @@ public class NetworkTransaction {
 	private static NetworkChannelReference getRemoteChannel(SocketAddress address)
 			throws OpenR66ProtocolRemoteShutdownException,
 			OpenR66ProtocolNoDataException {
-		if (R66ShutdownHook.isInShutdown()) {
+		if (R66ShutdownHook.isShutdownStarting()) {
 			logger.debug("IS IN SHUTDOWN");
 			throw new OpenR66ProtocolRemoteShutdownException(
 					"Local Host already in shutdown");
@@ -1016,6 +1080,11 @@ public class NetworkTransaction {
 					"Remote Host is blacklisted");
 		}
 		nc = getNCR(address);
+		if (nc != null && (nc.isShuttingDown || ! nc.getChannel().isConnected())) {
+			logger.debug("HOST IS DISCONNECTED: {}", address);
+			throw new OpenR66ProtocolRemoteShutdownException(
+					"Remote Host is disconnected");
+		}
 		if (nc == null) {
 			throw new OpenR66ProtocolNoDataException("Channel not found");
 		}
