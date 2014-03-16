@@ -121,57 +121,48 @@
 <a class="jxr_linenumber" name="111" href="#111">111</a> 	}
 <a class="jxr_linenumber" name="112" href="#112">112</a> 
 <a class="jxr_linenumber" name="113" href="#113">113</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="114" href="#114">114</a> <em class="jxr_javadoccomment">	 * To schedule an action in a fixed delay</em>
-<a class="jxr_linenumber" name="115" href="#115">115</a> <em class="jxr_javadoccomment">	 * @param thread</em>
-<a class="jxr_linenumber" name="116" href="#116">116</a> <em class="jxr_javadoccomment">	 * @param delay</em>
-<a class="jxr_linenumber" name="117" href="#117">117</a> <em class="jxr_javadoccomment">	 * @param unit</em>
-<a class="jxr_linenumber" name="118" href="#118">118</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="119" href="#119">119</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> submitExternalTask(Thread thread, <strong class="jxr_keyword">long</strong> delay, TimeUnit unit) {
-<a class="jxr_linenumber" name="120" href="#120">120</a> 		scheduledExecutorService.schedule(thread, delay, unit);
+<a class="jxr_linenumber" name="114" href="#114">114</a> <em class="jxr_javadoccomment">	 * First step while shutting down the service</em>
+<a class="jxr_linenumber" name="115" href="#115">115</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="116" href="#116">116</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> prepareStopInternalRunner() {
+<a class="jxr_linenumber" name="117" href="#117">117</a> 		isRunning = false;
+<a class="jxr_linenumber" name="118" href="#118">118</a> 		scheduledFuture.cancel(false);
+<a class="jxr_linenumber" name="119" href="#119">119</a> 		scheduledExecutorService.shutdown();
+<a class="jxr_linenumber" name="120" href="#120">120</a> 		threadPoolExecutor.shutdown();
 <a class="jxr_linenumber" name="121" href="#121">121</a> 	}
-<a class="jxr_linenumber" name="122" href="#122">122</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="123" href="#123">123</a> <em class="jxr_javadoccomment">	 * First step while shutting down the service</em>
-<a class="jxr_linenumber" name="124" href="#124">124</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="125" href="#125">125</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> prepareStopInternalRunner() {
-<a class="jxr_linenumber" name="126" href="#126">126</a> 		isRunning = false;
-<a class="jxr_linenumber" name="127" href="#127">127</a> 		scheduledFuture.cancel(false);
-<a class="jxr_linenumber" name="128" href="#128">128</a> 		scheduledExecutorService.shutdown();
-<a class="jxr_linenumber" name="129" href="#129">129</a> 		threadPoolExecutor.shutdown();
-<a class="jxr_linenumber" name="130" href="#130">130</a> 	}
-<a class="jxr_linenumber" name="131" href="#131">131</a> 
-<a class="jxr_linenumber" name="132" href="#132">132</a> 	<em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="133" href="#133">133</a> <em class="jxr_javadoccomment">	 * This should be called when the server is shutting down, after stopping active requests if</em>
-<a class="jxr_linenumber" name="134" href="#134">134</a> <em class="jxr_javadoccomment">	 * possible.</em>
-<a class="jxr_linenumber" name="135" href="#135">135</a> <em class="jxr_javadoccomment">	 */</em>
-<a class="jxr_linenumber" name="136" href="#136">136</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> stopInternalRunner() {
-<a class="jxr_linenumber" name="137" href="#137">137</a> 		isRunning = false;
-<a class="jxr_linenumber" name="138" href="#138">138</a> 		logger.info(<span class="jxr_string">"Stopping Commander and Runner Tasks"</span>);
-<a class="jxr_linenumber" name="139" href="#139">139</a> 		scheduledFuture.cancel(false);
-<a class="jxr_linenumber" name="140" href="#140">140</a> 		scheduledExecutorService.shutdownNow();
-<a class="jxr_linenumber" name="141" href="#141">141</a> 		threadPoolExecutor.shutdownNow();
-<a class="jxr_linenumber" name="142" href="#142">142</a> 		networkTransaction.closeAll();
-<a class="jxr_linenumber" name="143" href="#143">143</a> 	}
-<a class="jxr_linenumber" name="144" href="#144">144</a> 
-<a class="jxr_linenumber" name="145" href="#145">145</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> nbInternalRunner() {
-<a class="jxr_linenumber" name="146" href="#146">146</a> 		<strong class="jxr_keyword">return</strong> threadPoolExecutor.getActiveCount();
-<a class="jxr_linenumber" name="147" href="#147">147</a> 	}
-<a class="jxr_linenumber" name="148" href="#148">148</a> 
-<a class="jxr_linenumber" name="149" href="#149">149</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> reloadInternalRunner()
-<a class="jxr_linenumber" name="150" href="#150">150</a> 			<strong class="jxr_keyword">throws</strong> WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
-<a class="jxr_linenumber" name="151" href="#151">151</a> 		scheduledFuture.cancel(false);
-<a class="jxr_linenumber" name="152" href="#152">152</a> 		<strong class="jxr_keyword">if</strong> (commander != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="153" href="#153">153</a> 			commander.finalize();
-<a class="jxr_linenumber" name="154" href="#154">154</a> 		}
-<a class="jxr_linenumber" name="155" href="#155">155</a> 		<strong class="jxr_keyword">if</strong> (DbConstant.admin.isConnected) {
-<a class="jxr_linenumber" name="156" href="#156">156</a> 			commander = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/commander/Commander.html">Commander</a>(<strong class="jxr_keyword">this</strong>);
-<a class="jxr_linenumber" name="157" href="#157">157</a> 		} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="158" href="#158">158</a> 			commander = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/commander/CommanderNoDb.html">CommanderNoDb</a>(<strong class="jxr_keyword">this</strong>);
-<a class="jxr_linenumber" name="159" href="#159">159</a> 		}
-<a class="jxr_linenumber" name="160" href="#160">160</a> 		scheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(commander,
-<a class="jxr_linenumber" name="161" href="#161">161</a> 				Configuration.configuration.delayCommander,
-<a class="jxr_linenumber" name="162" href="#162">162</a> 				Configuration.configuration.delayCommander, TimeUnit.MILLISECONDS);
-<a class="jxr_linenumber" name="163" href="#163">163</a> 	}
-<a class="jxr_linenumber" name="164" href="#164">164</a> }
+<a class="jxr_linenumber" name="122" href="#122">122</a> 
+<a class="jxr_linenumber" name="123" href="#123">123</a> 	<em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="124" href="#124">124</a> <em class="jxr_javadoccomment">	 * This should be called when the server is shutting down, after stopping active requests if</em>
+<a class="jxr_linenumber" name="125" href="#125">125</a> <em class="jxr_javadoccomment">	 * possible.</em>
+<a class="jxr_linenumber" name="126" href="#126">126</a> <em class="jxr_javadoccomment">	 */</em>
+<a class="jxr_linenumber" name="127" href="#127">127</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> stopInternalRunner() {
+<a class="jxr_linenumber" name="128" href="#128">128</a> 		isRunning = false;
+<a class="jxr_linenumber" name="129" href="#129">129</a> 		logger.info(<span class="jxr_string">"Stopping Commander and Runner Tasks"</span>);
+<a class="jxr_linenumber" name="130" href="#130">130</a> 		scheduledFuture.cancel(false);
+<a class="jxr_linenumber" name="131" href="#131">131</a> 		scheduledExecutorService.shutdownNow();
+<a class="jxr_linenumber" name="132" href="#132">132</a> 		threadPoolExecutor.shutdownNow();
+<a class="jxr_linenumber" name="133" href="#133">133</a> 		networkTransaction.closeAll();
+<a class="jxr_linenumber" name="134" href="#134">134</a> 	}
+<a class="jxr_linenumber" name="135" href="#135">135</a> 
+<a class="jxr_linenumber" name="136" href="#136">136</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">int</strong> nbInternalRunner() {
+<a class="jxr_linenumber" name="137" href="#137">137</a> 		<strong class="jxr_keyword">return</strong> threadPoolExecutor.getActiveCount();
+<a class="jxr_linenumber" name="138" href="#138">138</a> 	}
+<a class="jxr_linenumber" name="139" href="#139">139</a> 
+<a class="jxr_linenumber" name="140" href="#140">140</a> 	<strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> reloadInternalRunner()
+<a class="jxr_linenumber" name="141" href="#141">141</a> 			<strong class="jxr_keyword">throws</strong> WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
+<a class="jxr_linenumber" name="142" href="#142">142</a> 		scheduledFuture.cancel(false);
+<a class="jxr_linenumber" name="143" href="#143">143</a> 		<strong class="jxr_keyword">if</strong> (commander != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="144" href="#144">144</a> 			commander.finalize();
+<a class="jxr_linenumber" name="145" href="#145">145</a> 		}
+<a class="jxr_linenumber" name="146" href="#146">146</a> 		<strong class="jxr_keyword">if</strong> (DbConstant.admin.isConnected) {
+<a class="jxr_linenumber" name="147" href="#147">147</a> 			commander = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/commander/Commander.html">Commander</a>(<strong class="jxr_keyword">this</strong>);
+<a class="jxr_linenumber" name="148" href="#148">148</a> 		} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="149" href="#149">149</a> 			commander = <strong class="jxr_keyword">new</strong> <a href="../../../../org/waarp/openr66/commander/CommanderNoDb.html">CommanderNoDb</a>(<strong class="jxr_keyword">this</strong>);
+<a class="jxr_linenumber" name="150" href="#150">150</a> 		}
+<a class="jxr_linenumber" name="151" href="#151">151</a> 		scheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(commander,
+<a class="jxr_linenumber" name="152" href="#152">152</a> 				Configuration.configuration.delayCommander,
+<a class="jxr_linenumber" name="153" href="#153">153</a> 				Configuration.configuration.delayCommander, TimeUnit.MILLISECONDS);
+<a class="jxr_linenumber" name="154" href="#154">154</a> 	}
+<a class="jxr_linenumber" name="155" href="#155">155</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>
