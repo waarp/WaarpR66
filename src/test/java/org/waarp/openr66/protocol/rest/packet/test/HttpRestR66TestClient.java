@@ -133,7 +133,7 @@ public class HttpRestR66TestClient  implements Runnable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-        /*count.set(0);
+        count.set(0);
     	long start = System.currentTimeMillis();
         launchThreads();
     	long stop = System.currentTimeMillis();
@@ -141,7 +141,7 @@ public class HttpRestR66TestClient  implements Runnable {
 			Thread.sleep(100);
 		} catch (InterruptedException e1) {
 		}
-    	System.out.println("Options: "+NBPERTHREAD*1000/(stop-start)+" req/s "+NBPERTHREAD*NB+"=?"+count.get());*/
+    	System.out.println("Options: "+count.get()*1000/(stop-start)+" req/s "+NBPERTHREAD*NB+"=?"+count.get());
         /*
         formget();
         formpost();
@@ -194,8 +194,8 @@ public class HttpRestR66TestClient  implements Runnable {
         HttpRequest request = new DefaultHttpRequest(HttpVersion.HTTP_1_1,
                 HttpMethod.GET, baseURI);
         request.headers().set(HttpHeaders.Names.HOST, host);
-        request.headers().set(HttpHeaders.Names.CONNECTION,
-                HttpHeaders.Values.CLOSE);
+        /*request.headers().set(HttpHeaders.Names.CONNECTION,
+                HttpHeaders.Values.KEEP_ALIVE);*/
         request.headers().set(HttpHeaders.Names.ACCEPT_ENCODING,
                 HttpHeaders.Values.GZIP + "," + HttpHeaders.Values.DEFLATE);
 

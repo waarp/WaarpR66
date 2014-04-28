@@ -144,9 +144,10 @@ public abstract class HttpRestAbstractR66Handler extends RestMethodHandler {
 		logger.debug("Will write: {}", body);
 		ChannelFuture future = channel.write(response);
 		if (handler.isWillClose()) {
+			System.err.println("Will close session in HttpRestAbstractR66Handler");
 			return future;
 		}
-		return future;
+		return null;
 	}
 
 	@Override

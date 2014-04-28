@@ -41,7 +41,6 @@ import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.rest.RestArgument;
 import org.waarp.gateway.kernel.rest.RootOptionsRestMethodHandler;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
@@ -80,15 +79,7 @@ public class HttpResponseHandler extends SimpleChannelUpstreamHandler {
     }
     
     protected void actionFromResponse(Channel channel) {
-    	try {
-			if (JsonHandler.mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonObject).length() > 100) {
-				System.err.println(HttpRestR66TestClient.count.incrementAndGet());
-			} else {
-				System.err.println(jsonObject != null);
-			}
-		} catch (JsonProcessingException e1) {
-			logger.warn("Error", e1);
-		}
+    	HttpRestR66TestClient.count.incrementAndGet();
     	boolean newMessage = false;
     	JsonNode node = jsonObject.path(RestArgument.ARGS_ANSWER).path(RestArgument.X_DETAILED_ALLOW);
     	if (! node.isMissingNode()) {
@@ -96,19 +87,20 @@ public class HttpResponseHandler extends SimpleChannelUpstreamHandler {
 				Iterator<String> iterator = jsonNode.fieldNames();
 				while (iterator.hasNext()) {
 					String name = iterator.next();
-		    		System.err.println(name);
+					if (! jsonNode.path(name).path(RestArgument.JSON_PATH).isMissingNode()) {
+						break;
+					}
 					if (name.equals(RootOptionsRestMethodHandler.ROOT)) {
 						continue;
 					}
 					try {
 						HttpRestR66TestClient.options(channel, name);
 					} catch (HttpInvalidAuthenticationException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						logger.error("Not authenticated", e);
 					}
+			    	newMessage = true;
 				}
 			}
-	    	newMessage = true;
     	}
         if (! newMessage && channel.isConnected()) {
             logger.debug("Will close");
@@ -123,18 +115,16 @@ public class HttpResponseHandler extends SimpleChannelUpstreamHandler {
         if (!readingChunks && (obj instanceof HttpResponse)) {
             HttpResponse response = (HttpResponse) e.getMessage();
             HttpResponseStatus status = response.getStatus();
-            System.out.println(HttpHeaders.Names.REFERER+": "+response.headers().get(HttpHeaders.Names.REFERER) +
+            logger.debug(HttpHeaders.Names.REFERER+": "+response.headers().get(HttpHeaders.Names.REFERER) +
                     " STATUS: " + status);
 
             if (response.getStatus().getCode() == 200 && response.isChunked()) {
                 readingChunks = true;
-            	System.out.println("CHUNKED CONTENT {");
             } else if (response.getStatus().getCode() != 200) {
-                System.err.println(" Error: "+response.getStatus().getCode());
+                logger.error(" Error: "+response.getStatus().getCode());
                 addContent(response);
                 actionFromResponse(e.getChannel());
             } else {
-                System.out.print(" CONTENT NOT CHUNKED: ");
                 
                 addContent(response);
                 actionFromResponse(e.getChannel());
@@ -144,7 +134,6 @@ public class HttpResponseHandler extends SimpleChannelUpstreamHandler {
             HttpChunk chunk = (HttpChunk) e.getMessage();
             if (chunk.isLast()) {
                 readingChunks = false;
-                System.out.println("} END OF CHUNKED CONTENT");
                 // get the Json equivalent of the Body
         		try {
         			String json = cumulativeBody.toString(WaarpStringUtils.UTF8);
@@ -173,7 +162,7 @@ public class HttpResponseHandler extends SimpleChannelUpstreamHandler {
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
             throws Exception {
         if (e.getCause() instanceof ClosedChannelException) {
-            System.err.println("Close before ending");
+        	logger.debug("Close before ending");
             return;
         } else if (e.getCause() instanceof ConnectException) {
             System.err.println("Connection refused");
