@@ -50,27 +50,27 @@ public class ShutdownOrBlockJsonPacket extends JsonPacket {
 		this.key = key;
 	}
 	/**
-	 * @return the isRestartOrBlock
+	 * @return True if isRestart Or False for Block
 	 */
 	public boolean isRestartOrBlock() {
 		return isRestartOrBlock;
 	}
 	/**
-	 * @param isRestartOrBlock the isRestartOrBlock to set
+	 * @param isRestart the isRestart to set
 	 */
-	public void setRestartOrBlock(boolean isRestartOrBlock) {
-		this.isRestartOrBlock = isRestartOrBlock;
+	public void setRestartOrBlock(boolean isRestart) {
+		this.isRestartOrBlock = isRestart;
 	}
 	/**
-	 * @return the isShutdownOrBlock
+	 * @return True if isShutdown Or False for Block
 	 */
 	public boolean isShutdownOrBlock() {
 		return isShutdownOrBlock;
 	}
 	/**
-	 * @param isShutdownOrBlock the isShutdownOrBlock to set
+	 * @param isShutdown the isShutdown to set
 	 */
-	public void setShutdownOrBlock(boolean isShutdownOrBlock) {
-		this.isShutdownOrBlock = isShutdownOrBlock;
+	public void setShutdownOrBlock(boolean isShutdown) {
+		this.isShutdownOrBlock = isShutdown;
 	}
 }

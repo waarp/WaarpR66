@@ -1612,6 +1612,7 @@ public class FileBasedConfiguration {
 				for (String namealias : alias) {
 					config.aliases.put(namealias, refHostId);
 				}
+				config.reverseAliases.put(refHostId, alias);
 				logger.info("Aliases for: " + refHostId +" = "+ aliasset);
 			}
 		}

@@ -67,6 +67,7 @@ import org.waarp.common.logging.WaarpInternalLoggerInterface;
 import org.waarp.common.logging.WaarpInternalLoggerInterface.WaarpLevel;
 import org.waarp.common.role.RoleDefault.ROLE;
 import org.waarp.common.utility.WaarpStringUtils;
+import org.waarp.gateway.kernel.http.HttpWriteCacheEnable;
 import org.waarp.openr66.client.Message;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66FiniteDualStates;
@@ -85,7 +86,6 @@ import org.waarp.openr66.protocol.exception.OpenR66Exception;
 import org.waarp.openr66.protocol.exception.OpenR66ExceptionTrappedFactory;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessNoWriteBackException;
-import org.waarp.openr66.protocol.http.HttpWriteCacheEnable;
 import org.waarp.openr66.protocol.localhandler.LocalChannelReference;
 import org.waarp.openr66.protocol.localhandler.ServerActions;
 import org.waarp.openr66.protocol.localhandler.packet.ErrorPacket;
@@ -2270,12 +2270,6 @@ public class HttpSslHandler extends SimpleChannelUpstreamHandler {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * org.jboss.netty.channel.SimpleChannelUpstreamHandler#channelOpen(org.jboss.netty.channel.
-	 * ChannelHandlerContext, org.jboss.netty.channel.ChannelStateEvent)
-	 */
 	@Override
 	public void channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e)
 			throws Exception {

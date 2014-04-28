@@ -58,6 +58,7 @@ import org.waarp.common.exception.InvalidArgumentException;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
+import org.waarp.gateway.kernel.http.HttpWriteCacheEnable;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.context.task.SpooledInformTask;

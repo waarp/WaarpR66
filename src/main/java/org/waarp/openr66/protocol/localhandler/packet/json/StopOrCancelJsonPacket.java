@@ -21,6 +21,7 @@
 package org.waarp.openr66.protocol.localhandler.packet.json;
 
 import org.waarp.openr66.database.DbConstant;
+import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 
 
 /**
@@ -69,5 +70,13 @@ public class StopOrCancelJsonPacket extends JsonPacket {
 	public void setSpecialid(long specialid) {
 		this.specialid = specialid;
 	}
-	
+	public void setRequestUserPacket() {
+		super.setRequestUserPacket(LocalPacketFactory.STOPPACKET);
+	}
+	public void setStop() {
+		super.setRequestUserPacket(LocalPacketFactory.STOPPACKET);
+	}
+	public void setCancel() {
+		super.setRequestUserPacket(LocalPacketFactory.CANCELPACKET);
+	}
 }

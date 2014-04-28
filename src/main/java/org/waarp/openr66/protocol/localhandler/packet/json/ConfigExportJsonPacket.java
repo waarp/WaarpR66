@@ -20,6 +20,8 @@
  */
 package org.waarp.openr66.protocol.localhandler.packet.json;
 
+import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
+
 
 /**
  * Exporting Configuration JSON packet
@@ -110,5 +112,8 @@ public class ConfigExportJsonPacket extends JsonPacket {
 			this.alias = other2.alias;
 			this.roles = other2.roles;
 		}
+	}
+	public void setRequestUserPacket() {
+		super.setRequestUserPacket(LocalPacketFactory.CONFEXPORTPACKET);
 	}
 }

@@ -334,4 +334,11 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 		}
 		throw new Reply530Exception("Key is not valid for this HostId");
 	}
+	/**
+	 * 
+	 * @return a copy of the Role of the current authenticated partner
+	 */
+	public RoleDefault getRole() {
+		return new RoleDefault().setRole(role);
+	}
 }

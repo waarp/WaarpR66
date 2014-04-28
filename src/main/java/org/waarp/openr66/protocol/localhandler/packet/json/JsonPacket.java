@@ -19,8 +19,7 @@ package org.waarp.openr66.protocol.localhandler.packet.json;
 
 import java.io.IOException;
 
-import org.waarp.common.json.AdaptativeJsonHandler;
-import org.waarp.common.json.AdaptativeJsonHandler.JsonCodec;
+import org.waarp.common.json.JsonHandler;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -38,15 +37,14 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  */
 @JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="@class")
 public class JsonPacket {
-	public static final AdaptativeJsonHandler handler = new AdaptativeJsonHandler(JsonCodec.JSON);
 	/**
 	 * @return the ObjectNode corresponding to this object
 	 * @throws OpenR66ProtocolPacketException
 	 */
 	public ObjectNode createObjectNode() throws OpenR66ProtocolPacketException {
 		try {
-			String value = handler.mapper.writeValueAsString(this);
-			return (ObjectNode) handler.mapper.readTree(value);
+			String value = JsonHandler.mapper.writeValueAsString(this);
+			return (ObjectNode) JsonHandler.mapper.readTree(value);
 		} catch (JsonProcessingException e) {
 			throw new OpenR66ProtocolPacketException("Json exception", e);
 		} catch (IOException e) {
@@ -73,6 +71,12 @@ public class JsonPacket {
 	}
 
 	/**
+	 * Default value to set
+	 */
+	public void setRequestUserPacket() {
+		throw new IllegalArgumentException("Not defined");
+	}
+	/**
 	 * @return the comment
 	 */
 	public String getComment() {
@@ -89,7 +93,7 @@ public class JsonPacket {
 
 	@Override
 	public String toString() {
-		return handler.writeAsString(this);
+		return JsonHandler.writeAsString(this);
 	}
 
 	/**
@@ -101,7 +105,7 @@ public class JsonPacket {
 	 */
 	public static JsonPacket createFromBuffer(String value) throws JsonParseException, JsonMappingException, IOException {
 		if (value != null && ! value.isEmpty()) {
-			return handler.mapper.readValue(value, JsonPacket.class);
+			return JsonHandler.mapper.readValue(value, JsonPacket.class);
 		}
 		return null;
 	}

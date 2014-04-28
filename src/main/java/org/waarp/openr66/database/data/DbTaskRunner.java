@@ -82,6 +82,9 @@ import org.waarp.openr66.protocol.utils.NbAndSpecialId;
 import org.waarp.openr66.protocol.utils.R66Future;
 import org.xml.sax.SAXException;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 /**
  * Task Runner from pre operation to transfer to post operation, except in case of error
  * 
@@ -89,6 +92,12 @@ import org.xml.sax.SAXException;
  * 
  */
 public class DbTaskRunner extends AbstractDbData {
+	public static final String JSON_ORIGINALSIZE = "ORIGINALSIZE";
+
+	public static final String JSON_THROUGHMODE = "THROUGHMODE";
+
+	public static final String JSON_RESCHEDULE = "RESCHEDULE";
+
 	/**
 	 * Internal Logger
 	 */
@@ -713,6 +722,104 @@ public class DbTaskRunner extends AbstractDbData {
 	}
 
 	/**
+	 * Minimal constructor from database
+	 * @param dbSession
+	 * @param id
+	 * @param requester
+	 * @param requested
+	 * @throws WaarpDatabaseException
+	 */
+	public DbTaskRunner(DbSession dbSession, long id, String requester, String requested)
+			throws WaarpDatabaseException {
+		super(dbSession);
+		specialId = id;
+		// retrieving a task should be made from the requester, but the caller
+		// is responsible of this
+		requestedHostId = requested;
+		requesterHostId = requester;
+		// always itself
+		ownerRequest = Configuration.configuration.HOST_ID;
+
+		select();
+		updateUsed(specialId);
+	}
+
+	/**
+	 * To create a new DbTaskRunner (specialId could be invalid) without making any entry in the database
+	 * @param dbSession
+	 * @param source
+	 * @throws WaarpDatabaseException
+	 */
+	public DbTaskRunner(DbSession dbSession, ObjectNode source) throws WaarpDatabaseException {
+		super(dbSession);
+		this.session = null;
+		setFromJson(source, false);
+	}
+
+	@Override
+	public void setFromJson(ObjectNode source, boolean ignorePrimaryKey) throws WaarpDatabaseSqlException {
+		ruleId = source.path(Columns.IDRULE.name()).asText();
+		rank = source.path(Columns.RANK.name()).asInt();
+		blocksize = source.path(Columns.BLOCKSZ.name()).asInt();
+		fileInformation = source.path(Columns.FILEINFO.name()).asText();
+		filename = source.path(Columns.FILENAME.name()).asText();
+		globallaststep = source.path(Columns.GLOBALLASTSTEP.name()).asInt();
+		globalstep = source.path(Columns.GLOBALSTEP.name()).asInt();
+		infostatus = ErrorCode.getFromCode(source.path(Columns.INFOSTATUS.name()).asText());
+		isFileMoved = source.path(Columns.ISMOVED.name()).asBoolean();
+		mode = source.path(Columns.MODETRANS.name()).asInt();
+		originalFilename = source.path(Columns.ORIGINALNAME.name()).asText();
+		if (! ignorePrimaryKey) {
+			ownerRequest = source.path(Columns.OWNERREQ.name()).asText();
+			if (ownerRequest == null || ownerRequest.isEmpty()) {
+				ownerRequest = Configuration.configuration.HOST_ID;
+			}
+			specialId = source.path(Columns.SPECIALID.name()).asLong();
+			requestedHostId = source.path(Columns.REQUESTED.name()).asText();
+			requesterHostId = source.path(Columns.REQUESTER.name()).asText();
+		}
+		isSender = source.path(Columns.RETRIEVEMODE.name()).asBoolean();
+		long msstart = source.path(Columns.STARTTRANS.name()).asLong();
+		if (msstart == 0) {
+			start = new Timestamp(System.currentTimeMillis());
+		} else {
+			start = new Timestamp(msstart);
+		}
+		msstart = source.path(Columns.STOPTRANS.name()).asLong();
+		if (msstart == 0) {
+			stop = new Timestamp(System.currentTimeMillis());
+		} else {
+			stop = new Timestamp(msstart);
+		}
+		step = source.path(Columns.STEP.name()).asInt();
+		status = ErrorCode.getFromCode(source.path(Columns.STEPSTATUS.name()).asText());
+		transferInformation = source.path(Columns.TRANSFERINFO.name()).asText();
+		rescheduledTransfer = source.path(JSON_RESCHEDULE).asBoolean(false);
+		JsonNode node = source.path(JSON_THROUGHMODE);
+		if (! node.isMissingNode()) {
+			if (RequestPacket.isRecvMode(mode)) {
+				isRecvThrough = node.asBoolean(); 
+			} else {
+				isSendThrough = node.asBoolean();
+			}
+		}
+		originalSize = source.path(JSON_ORIGINALSIZE).asLong(-1);
+		isSaved = false;
+		try {
+			this.rule = new DbRule(dbSession, ruleId);
+		} catch (WaarpDatabaseException e) {
+			throw new WaarpDatabaseSqlException(e);
+		}
+		if (mode != rule.mode) {
+			if (RequestPacket.isMD5Mode(mode)) {
+				mode = RequestPacket.getModeMD5(rule.mode);
+			} else {
+				mode = rule.mode;
+			}
+		}
+		checkThroughMode();
+	}
+	/**
 	 * Constructor to initiate a request with a valid previous Special Id so loaded from database.
 	 * 
 	 * This object cannot be used except to retrieve information.
@@ -1179,10 +1286,10 @@ public class DbTaskRunner extends AbstractDbData {
 	/**
 	 * Private constructor for Commander only
 	 * 
-	 * @param session
+	 * @param dbSession
 	 */
-	private DbTaskRunner(DbSession dBsession) {
-		super(dBsession);
+	private DbTaskRunner(DbSession dbSession) {
+		super(dbSession);
 		session = null;
 		rule = null;
 	}
@@ -3641,12 +3748,12 @@ public class DbTaskRunner extends AbstractDbData {
 			}
 		}
 		if (runner.rescheduledTransfer) {
-			values.put("RESCHEDULE", ""+true);
+			values.put(JSON_RESCHEDULE, ""+true);
 		}
 		if (runner.isRecvThrough || runner.isSendThrough) {
-			values.put("THROUGHMODE", ""+true);
+			values.put(JSON_THROUGHMODE, ""+true);
 		}
-		values.put("ORIGINALSIZE", ""+runner.originalSize);
+		values.put(JSON_ORIGINALSIZE, ""+runner.originalSize);
 		return values;
 	}
 	/**
@@ -3867,6 +3974,28 @@ public class DbTaskRunner extends AbstractDbData {
 		return node.asXML();
 	}
 	
+	@Override
+	public ObjectNode getJson() throws WaarpDatabaseSqlException {
+		ObjectNode node = super.getJson();
+		if (rescheduledTransfer) {
+			node.put(JSON_RESCHEDULE, true);
+		}
+		if (isRecvThrough || isSendThrough) {
+			node.put(JSON_THROUGHMODE, true);
+		}
+		node.put(JSON_ORIGINALSIZE, originalSize);
+		return node;
+	}
+	
+	/**
+	 * 
+	 * @return the DbValue associated with this table
+	 */
+	public static DbValue[] getAllType() {
+		DbTaskRunner item = new DbTaskRunner(null);
+		return item.allFields;
+	}
+
 	/**
 	 * Set the given runner from the root element of the runner itself (XMLRUNNER but not
 	 * XMLRUNNERS). Need to call 'setFromArray' after.

@@ -20,6 +20,8 @@
  */
 package org.waarp.openr66.protocol.localhandler.packet.json;
 
+import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
+
 
 /**
  * Bandwidth setting or getting JSON packet
@@ -103,4 +105,9 @@ public class BandwidthJsonPacket extends JsonPacket {
 			this.readsession = other2.readsession;
 		}
 	}
+
+	public void setRequestUserPacket() {
+		super.setRequestUserPacket(LocalPacketFactory.BANDWIDTHPACKET);
+	}
+	
 }

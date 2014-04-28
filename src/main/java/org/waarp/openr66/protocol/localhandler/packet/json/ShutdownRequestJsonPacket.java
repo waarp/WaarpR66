@@ -20,6 +20,8 @@
  */
 package org.waarp.openr66.protocol.localhandler.packet.json;
 
+import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
+
 
 /**
  * Shutdown current request JSON packet
@@ -40,5 +42,8 @@ public class ShutdownRequestJsonPacket extends JsonPacket {
 	 */
 	public void setRank(int rank) {
 		this.rank = rank;
+	}
+	public void setRequestUserPacket() {
+		super.setRequestUserPacket(LocalPacketFactory.SHUTDOWNPACKET);
 	}
 }

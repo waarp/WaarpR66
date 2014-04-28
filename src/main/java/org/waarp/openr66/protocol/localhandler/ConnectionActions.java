@@ -207,7 +207,7 @@ public abstract class ConnectionActions {
 						localChannelReference);
 				session.setStatus(52);
 			} else {
-				logger.error("Local Server Channel Closed but no LocalChannelReference: " +
+				logger.debug("Local Server Channel Closed but no LocalChannelReference: " +
 								e.getChannel().getId());
 			}
 			// Now if runner is not yet finished, finish it by force
@@ -613,7 +613,7 @@ public abstract class ConnectionActions {
 	 * @throws OpenR66ProtocolSystemException
 	 * @throws OpenR66RunnerErrorException
 	 */
-	protected final void tryFinalizeRequest(R66Result errorValue)
+	public final void tryFinalizeRequest(R66Result errorValue)
 			throws OpenR66RunnerErrorException, OpenR66ProtocolSystemException {
 		session.tryFinalizeRequest(errorValue);
 	}

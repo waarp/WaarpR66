@@ -35,10 +35,13 @@ import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.common.role.RoleDefault;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.networkhandler.NetworkTransaction;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Host Authentication Table object
@@ -308,6 +311,30 @@ public class DbHostAuth extends AbstractDbData {
 		}
 		setToArray();
 		isSaved = false;
+	}
+	
+	public DbHostAuth(DbSession dbSession, ObjectNode source) throws WaarpDatabaseSqlException {
+		super(dbSession);
+		setFromJson(source, false);
+		setToArray();
+		isSaved = false;
+	}
+
+	@Override
+	public void setFromJson(ObjectNode node, boolean ignorePrimaryKey) throws WaarpDatabaseSqlException {
+		super.setFromJson(node, ignorePrimaryKey);
+		if (hostkey != null) {
+			try {
+				// Save as crypted with the local Key and Base64
+				this.hostkey = Configuration.configuration.cryptoKey.cryptToHex(hostkey).getBytes(WaarpStringUtils.UTF8);
+			} catch (Exception e) {
+				this.hostkey = new byte[0];
+			}
+		}
+		if (this.port < 0) {
+			this.isClient = true;
+			this.address = DEFAULT_CLIENT_ADDRESS;
+		}
 	}
 
 	/**
@@ -779,12 +806,34 @@ public class DbHostAuth extends AbstractDbData {
 		String remoteHost = host;
 		String alias = "";
 		if (Configuration.configuration.aliases.containsKey(remoteHost)) {
-			alias = "(Alias: "+remoteHost+") ";
 			remoteHost = Configuration.configuration.aliases.get(remoteHost);
+			alias += "(Alias: "+remoteHost+") ";
+		}
+		if (Configuration.configuration.reverseAliases.containsKey(remoteHost)) {
+			String alias2 = "(Also alias: ";
+			String[] list = Configuration.configuration.reverseAliases.get(remoteHost);
+			boolean found = false;
+			for (String string : list) {
+				if (string.equals(host)) {
+					continue;
+				}
+				found = true;
+				alias2 += string+" ";
+			}
+			if (found) {
+				alias += alias2+") ";
+			}
+		}
+		if (Configuration.configuration.businessWhiteSet.contains(remoteHost)) {
+			alias += "(Business Allowed) ";
+		}
+		if (Configuration.configuration.roles.containsKey(remoteHost)) {
+			RoleDefault item = Configuration.configuration.roles.get(remoteHost);
+			alias += "(Role: "+item.toString()+") ";
 		}
 		return alias+(Configuration.configuration.versions.containsKey(remoteHost) ? 
 				Configuration.configuration.versions.get(remoteHost).toString() :
-					"Unknown");
+					"Version Unknown");
 	}
 
 	@Override
@@ -871,5 +920,14 @@ public class DbHostAuth extends AbstractDbData {
 			}
 		}
 		return val > 0;
+	}
+	
+	/**
+	 * 
+	 * @return the DbValue associated with this table
+	 */
+	public static DbValue[] getAllType() {
+		DbHostAuth item = new DbHostAuth(null);
+		return item.allFields;
 	}
 }

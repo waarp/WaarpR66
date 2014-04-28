@@ -183,6 +183,10 @@ public class Configuration {
 	 */
 	public HashMap<String, String> aliases = new HashMap<String, String>();
 	/**
+	 * reverse Aliases list for identified partners
+	 */
+	public HashMap<String, String[]> reverseAliases = new HashMap<String, String[]>();
+	/**
 	 * Versions for each HostID
 	 */
 	public ConcurrentHashMap<String, PartnerConfiguration> versions = new ConcurrentHashMap<String, PartnerConfiguration>();
@@ -659,7 +663,7 @@ public class Configuration {
 	}
 	
 	/**
-	 * Configure the pipeline for client (to be called ony once)
+	 * Configure the pipeline for client (to be called only once)
 	 */
 	public void pipelineInit() {
 		if (configured) {
@@ -696,6 +700,9 @@ public class Configuration {
 	}
 
 	public void httpPipelineInit() {
+		if (objectSizeEstimator == null) {
+			objectSizeEstimator = new NetworkPacketSizeEstimator();
+		}
 		httpPipelineExecutor = new OrderedMemoryAwareThreadPoolExecutor(
 				CLIENT_THREAD, maxGlobalMemory / 10, maxGlobalMemory, 1000,
 				TimeUnit.MILLISECONDS, objectSizeEstimator, new WaarpThreadFactory("HttpExecutor"));

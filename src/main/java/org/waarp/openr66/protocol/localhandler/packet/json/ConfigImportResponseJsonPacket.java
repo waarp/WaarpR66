@@ -20,6 +20,8 @@
  */
 package org.waarp.openr66.protocol.localhandler.packet.json;
 
+import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
+
 
 /**
  * Import Configuration response JSON packet
@@ -162,5 +164,8 @@ public class ConfigImportResponseJsonPacket extends ConfigImportJsonPacket {
 	 */
 	public void setImportedroles(boolean importedroles) {
 		this.importedroles = importedroles;
+	}
+	public void setRequestUserPacket() {
+		super.setRequestUserPacket(LocalPacketFactory.CONFIMPORTPACKET);
 	}
 }

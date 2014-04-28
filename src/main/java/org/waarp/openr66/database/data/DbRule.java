@@ -48,6 +48,8 @@ import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
 import org.waarp.openr66.protocol.localhandler.packet.RequestPacket;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 /**
  * Rule Table object
  * 
@@ -667,6 +669,38 @@ public class DbRule extends AbstractDbData {
 		spreTasks = setTasksRule(spretasksArray);
 		spostTasks = setTasksRule(sposttasksArray);
 		serrorTasks = setTasksRule(serrortasksArray);
+		setToArray();
+		isSaved = false;
+	}
+
+	/**
+	 * Constructor from Json
+	 * @param dbSession
+	 * @param source
+	 * @throws WaarpDatabaseSqlException
+	 */
+	public DbRule(DbSession dbSession, ObjectNode source) throws WaarpDatabaseSqlException {
+		super(dbSession);
+		setFromJson(source, false);
+	}
+
+	@Override
+	public void setFromJson(ObjectNode node, boolean ignorePrimaryKey) throws WaarpDatabaseSqlException {
+		super.setFromJson(node, ignorePrimaryKey);
+		getIdsRule(this.ids);
+		rpreTasksArray = getTasksRule(this.rpreTasks);
+		rpostTasksArray = getTasksRule(this.rpostTasks);
+		rerrorTasksArray = getTasksRule(this.rerrorTasks);
+		spreTasksArray = getTasksRule(this.spreTasks);
+		spostTasksArray = getTasksRule(this.spostTasks);
+		serrorTasksArray = getTasksRule(this.serrorTasks);
+		// and reverse
+		this.rpreTasks = setTasksRule(rpreTasksArray);
+		this.rpostTasks = setTasksRule(rpostTasksArray);
+		this.rerrorTasks = setTasksRule(rerrorTasksArray);
+		this.spreTasks = setTasksRule(spreTasksArray);
+		this.spostTasks = setTasksRule(spostTasksArray);
+		this.serrorTasks = setTasksRule(serrorTasksArray);
 		setToArray();
 		isSaved = false;
 	}
@@ -1313,4 +1347,12 @@ public class DbRule extends AbstractDbData {
 		return workPath;
 	}
 
+	/**
+	 * 
+	 * @return the DbValue associated with this table
+	 */
+	public static DbValue[] getAllType() {
+		DbRule item = new DbRule(null);
+		return item.allFields;
+	}
 }

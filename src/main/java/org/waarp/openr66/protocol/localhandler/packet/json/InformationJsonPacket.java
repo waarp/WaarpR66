@@ -20,6 +20,8 @@
  */
 package org.waarp.openr66.protocol.localhandler.packet.json;
 
+import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
+
 
 /**
  * Information (on request or on filesystem) JSON packet
@@ -105,5 +107,8 @@ public class InformationJsonPacket extends JsonPacket {
 	 */
 	public void setFilename(String filename) {
 		this.filename = filename;
+	}
+	public void setRequestUserPacket() {
+		super.setRequestUserPacket(LocalPacketFactory.INFORMATIONPACKET);
 	}
 }

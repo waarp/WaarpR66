@@ -31,6 +31,8 @@ import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.openr66.commander.CommanderNoDb;
 import org.waarp.openr66.protocol.configuration.Configuration;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 /**
  * Configuration Table object
  * 
@@ -270,6 +272,27 @@ public class DbConfiguration extends AbstractDbData {
 		setToArray();
 		isSaved = false;
 	}
+	/**
+	 * Constructor from Json
+	 * @param dbSession
+	 * @param source
+	 * @throws WaarpDatabaseSqlException
+	 */
+	public DbConfiguration(DbSession dbSession, ObjectNode source) throws WaarpDatabaseSqlException {
+		super(dbSession);
+		setFromJson(source, false);
+		setToArray();
+		isSaved = false;
+	}
+
+	@Override
+	public void setFromJson(ObjectNode node, boolean ignorePrimaryKey) throws WaarpDatabaseSqlException {
+		super.setFromJson(node, ignorePrimaryKey);
+		readgloballimit = (readgloballimit / 10) * 10;
+		writegloballimit = (writegloballimit / 10) * 10;
+		readsessionlimit = (readsessionlimit / 10) * 10;
+		writesessionlimit = (writesessionlimit / 10) * 10;
+	}
 
 	/**
 	 * @param dbSession
@@ -413,6 +436,44 @@ public class DbConfiguration extends AbstractDbData {
 		DbPreparedStatement prep = new DbPreparedStatement(session, request);
 		return prep;
 	}
+	
+	/**
+	 * 
+	 * @param session
+	 * @param hostid
+	 * @param limitBandwith 0 for no limit, > 0 for one limit, < 0 for no filter
+	 * @return the preparedStatement with the filter
+	 * @throws WaarpDatabaseNoConnectionException
+	 * @throws WaarpDatabaseSqlException
+	 */
+	public static DbPreparedStatement getFilterPrepareStament(DbSession session,
+			String hostid, long limitBandwith)
+			throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
+		DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
+		String request = "SELECT " + selectAllFields + " FROM " + table;
+		String condition = null;
+		if (hostid != null) {
+			condition = " WHERE " + Columns.HOSTID.name() + " LIKE '%" + hostid + "%' ";
+		}
+		if (limitBandwith >= 0) {
+			if (condition == null) {
+				condition = " WHERE ";
+			} else {
+				condition = " AND ";
+			}
+			if (limitBandwith == 0) {
+				condition += "("+ Columns.READGLOBALLIMIT+" == 0 AND "+ Columns.READSESSIONLIMIT+" == 0 AND "
+						+ Columns.WRITEGLOBALLIMIT+" == 0 AND "+ Columns.WRITESESSIONLIMIT+" == 0)";
+			} else {
+				condition += "("+ Columns.READGLOBALLIMIT+" > "+limitBandwith+" OR "+ Columns.READSESSIONLIMIT+" > "+limitBandwith+" OR "
+						+ Columns.WRITEGLOBALLIMIT+" > "+limitBandwith+" OR "+ Columns.WRITESESSIONLIMIT+" > "+limitBandwith+")";
+			}
+		}
+		preparedStatement.createPrepareStatement(request + condition +
+				" ORDER BY " + Columns.HOSTID.name());
+		return preparedStatement;
+	}
+
 
 	/*
 	 * (non-Javadoc)
@@ -441,5 +502,13 @@ public class DbConfiguration extends AbstractDbData {
 	 */
 	public boolean isOwnConfiguration() {
 		return this.hostid.equals(Configuration.configuration.HOST_ID);
+	}
+	/**
+	 * 
+	 * @return the DbValue associated with this table
+	 */
+	public static DbValue[] getAllType() {
+		DbConfiguration item = new DbConfiguration(null);
+		return item.allFields;
 	}
 }

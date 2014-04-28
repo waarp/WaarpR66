@@ -23,6 +23,7 @@ package org.waarp.openr66.protocol.localhandler.packet.json;
 import java.util.Date;
 
 import org.waarp.openr66.database.DbConstant;
+import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 
 
 /**
@@ -84,5 +85,7 @@ public class RestartTransferJsonPacket extends JsonPacket {
 	public void setRestarttime(Date restarttime) {
 		this.restarttime = restarttime;
 	}
-	
+	public void setRequestUserPacket() {
+		super.setRequestUserPacket(LocalPacketFactory.VALIDPACKET);
+	}
 }
