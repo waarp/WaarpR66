@@ -401,7 +401,7 @@ public class RequestTransfer implements Runnable {
 		logger.debug("Requester Host isClient: "+host.isClient());
 		if (host.isClient()) {
 			if (code == LocalPacketFactory.VALIDPACKET) {
-				logger.warn(Messages.getString("RequestTransfer.42")+ //$NON-NLS-1$
+				logger.debug(Messages.getString("RequestTransfer.42")+ //$NON-NLS-1$
 						runner.toShortString());
 				R66Future transfer = new R66Future(true);
 				DirectTransfer transaction = new DirectTransfer(transfer,

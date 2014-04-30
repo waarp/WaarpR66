@@ -172,7 +172,7 @@ public class ClientRunner extends Thread {
 								(result != null ? result.toString()
 										: "no result"));
 					} else {
-						logger.error(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Success")+"     " +
+						logger.error(Messages.getString("Transfer.Status")+Messages.getString("RequestInformation.Failure")+"     " +
 								(result != null ? result.toString()
 										: "no result"));
 					}

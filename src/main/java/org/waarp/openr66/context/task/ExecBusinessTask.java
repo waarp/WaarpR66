@@ -20,9 +20,7 @@ package org.waarp.openr66.context.task;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
-import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.packet.BusinessRequestPacket;
-import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
 
 /**
@@ -82,12 +80,6 @@ public class ExecBusinessTask extends AbstractExecJavaTask {
 				BusinessRequestPacket packet =
 						new BusinessRequestPacket(this.getClass().getName() +" execution ok", 0);
 				validate(packet);
-				try {
-					ChannelUtils.writeAbstractLocalPacket(session.getLocalChannelReference(),
-							packet, true);
-				} catch (OpenR66ProtocolPacketException e) {
-				}
-				this.status = 0;
 				return;
 			}
 			finalValidate("Validated");

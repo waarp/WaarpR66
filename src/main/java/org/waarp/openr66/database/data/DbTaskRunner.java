@@ -927,10 +927,6 @@ public class DbTaskRunner extends AbstractDbData {
 		CommanderNoDb.todoList.add(runner);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.databaseold.data.AbstractDbData#insert()
-	 */
 	@Override
 	public void insert() throws WaarpDatabaseException {
 		if (isSaved) {
@@ -999,8 +995,10 @@ public class DbTaskRunner extends AbstractDbData {
 			if (shallIgnore) {
 				dbR66TaskHashMap.put(specialId, this);
 			}
+			logger.debug("DEBUG: not created "+specialId);
 			return;
 		}
+		logger.debug("DEBUG: created "+specialId);
 		// First need to find a new id if id is not ok
 		if (specialId == DbConstant.ILLEGALVALUE) {
 			specialId = DbModelFactory.dbModel.nextSequence(dbSession);
@@ -1062,10 +1060,6 @@ public class DbTaskRunner extends AbstractDbData {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.databaseold.data.AbstractDbData#exist()
-	 */
 	@Override
 	public boolean exist() throws WaarpDatabaseException {
 		boolean shallIgnore = shallIgnoreSave();
@@ -1081,10 +1075,29 @@ public class DbTaskRunner extends AbstractDbData {
 		return super.exist();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.databaseold.data.AbstractDbData#select()
+	/**
+	 * Shall be called to ensure that item is really available in database
+	 * @return True iff the element exists in a database (and reloaded then from Database)
+	 * @throws WaarpDatabaseException
 	 */
+	public boolean checkFromDbForSubmit() throws WaarpDatabaseException {
+		if (dbSession == null) {
+			return false;
+		}
+		if (super.exist()) {
+			boolean isSenderBack = isSender;
+			super.select();
+			if (rule == null) {
+				rule = new DbRule(this.dbSession, ruleId);
+			}
+			checkThroughMode();
+			isSender = isSenderBack;
+			isSaved = false;
+			return true;
+		}
+		return false;
+	}
+	
 	@Override
 	public void select() throws WaarpDatabaseException {
 		if (dbSession == null) {
@@ -1176,10 +1189,6 @@ public class DbTaskRunner extends AbstractDbData {
 		checkThroughMode();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.waarp.openr66.databaseold.data.AbstractDbData#update()
-	 */
 	@Override
 	public void update() throws WaarpDatabaseException {
 		if (isSaved) {
