@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.waarp.openr66.protocol.rest.packet.test;
+package org.waarp.openr66.protocol.http.rest.test;
 
 import java.net.ConnectException;
 import java.nio.channels.ClosedChannelException;
@@ -40,8 +40,10 @@ import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.rest.RestArgument;
 import org.waarp.gateway.kernel.rest.RootOptionsRestMethodHandler;
+import org.waarp.gateway.kernel.rest.DataModelRestMethodHandler.COMMAND_TYPE;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * 
@@ -81,13 +83,111 @@ public class HttpResponseHandler extends SimpleChannelUpstreamHandler {
     protected void actionFromResponse(Channel channel) {
     	HttpRestR66TestClient.count.incrementAndGet();
     	boolean newMessage = false;
-    	JsonNode node = jsonObject.path(RestArgument.ARGS_ANSWER).path(RestArgument.X_DETAILED_ALLOW);
+    	RestArgument ra = new RestArgument((ObjectNode) jsonObject);
+    	if (HttpRestR66TestClient.DEBUG && jsonObject == null) {
+    		logger.warn("Recv: EMPTY");
+    	}
+    	switch (ra.getMethod()) {
+			case CONNECT:
+				break;
+			case DELETE:
+				newMessage = delete(channel, ra);
+				break;
+			case GET:
+				newMessage = get(channel, ra);
+				break;
+			case HEAD:
+				break;
+			case OPTIONS:
+				newMessage = options(channel, ra);
+				break;
+			case PATCH:
+				break;
+			case POST:
+				newMessage = post(channel, ra);
+				break;
+			case PUT:
+				newMessage = put(channel, ra);
+				break;
+			case TRACE:
+				break;
+			default:
+				break;
+    		
+    	}
+        if (! newMessage && channel.isConnected()) {
+            logger.debug("Will close");
+        	WaarpSslUtility.closingSslChannel(channel);
+        }
+    }
+    
+    protected boolean get(Channel channel, RestArgument ra) {
+    	boolean newMessage = false;
+    	if (HttpRestR66TestClient.DEBUG) {
+    		logger.warn(ra.prettyPrint());
+    	}
+    	if (ra.getCommand() == COMMAND_TYPE.GET) {
+	    	// Update 1
+	    	try {
+				HttpRestR66TestClient.updateData(channel, ra);
+		    	newMessage = true;
+			} catch (HttpInvalidAuthenticationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    	}
+    	return newMessage;
+    }
+    
+    protected boolean put(Channel channel, RestArgument ra) {
+    	boolean newMessage = false;
+    	if (HttpRestR66TestClient.DEBUG) {
+    		logger.warn(ra.prettyPrint());
+    	}
+    	// Delete 1
+    	try {
+			HttpRestR66TestClient.deleteData(channel, ra);
+	    	newMessage = true;
+		} catch (HttpInvalidAuthenticationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	return newMessage;
+    }
+
+    protected boolean post(Channel channel, RestArgument ra) {
+    	boolean newMessage = false;
+    	if (HttpRestR66TestClient.DEBUG) {
+    		logger.warn(ra.prettyPrint());
+    	}
+    	// Select 1
+    	try {
+			HttpRestR66TestClient.readData(channel, ra);
+	    	newMessage = true;
+		} catch (HttpInvalidAuthenticationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	return newMessage;
+    }
+    
+    protected boolean delete(Channel channel, RestArgument ra) {
+    	boolean newMessage = false;
+    	if (HttpRestR66TestClient.DEBUG) {
+    		logger.warn(ra.prettyPrint());
+    	}
+    	return newMessage;
+    }
+    
+    protected boolean options(Channel channel, RestArgument ra) {
+    	boolean newMessage = false;
+    	JsonNode node = ra.getDetailedAllowOption();
     	if (! node.isMissingNode()) {
 	    	for (JsonNode jsonNode : node) {
 				Iterator<String> iterator = jsonNode.fieldNames();
 				while (iterator.hasNext()) {
 					String name = iterator.next();
-					if (! jsonNode.path(name).path(RestArgument.JSON_PATH).isMissingNode()) {
+					if (! jsonNode.path(name).path(RestArgument.REST_FIELD.JSON_PATH.field).isMissingNode()) {
 						break;
 					}
 					if (name.equals(RootOptionsRestMethodHandler.ROOT)) {
@@ -95,17 +195,17 @@ public class HttpResponseHandler extends SimpleChannelUpstreamHandler {
 					}
 					try {
 						HttpRestR66TestClient.options(channel, name);
+				    	newMessage = true;
 					} catch (HttpInvalidAuthenticationException e) {
 						logger.error("Not authenticated", e);
 					}
-			    	newMessage = true;
 				}
 			}
     	}
-        if (! newMessage && channel.isConnected()) {
-            logger.debug("Will close");
-        	WaarpSslUtility.closingSslChannel(channel);
-        }
+    	if (HttpRestR66TestClient.DEBUG) {
+    		logger.warn(ra.prettyPrint());
+    	}
+    	return newMessage;
     }
     
     @Override
@@ -123,9 +223,16 @@ public class HttpResponseHandler extends SimpleChannelUpstreamHandler {
             } else if (response.getStatus().getCode() != 200) {
                 logger.error(" Error: "+response.getStatus().getCode());
                 addContent(response);
-                actionFromResponse(e.getChannel());
+                if (HttpRestR66TestClient.DEBUG && jsonObject != null) {
+                    RestArgument ra = new RestArgument((ObjectNode) jsonObject);
+                    logger.warn(ra.prettyPrint());
+            	}
+                HttpRestR66TestClient.count.incrementAndGet();
+            	if (e.getChannel().isConnected()) {
+                    logger.debug("Will close");
+                	WaarpSslUtility.closingSslChannel(e.getChannel());
+                }
             } else {
-                
                 addContent(response);
                 actionFromResponse(e.getChannel());
             }
@@ -134,16 +241,27 @@ public class HttpResponseHandler extends SimpleChannelUpstreamHandler {
             HttpChunk chunk = (HttpChunk) e.getMessage();
             if (chunk.isLast()) {
                 readingChunks = false;
+                ChannelBuffer content = chunk.getContent();
+                if (content != null && content.readable()) {
+                    if (cumulativeBody != null) {
+        				cumulativeBody = ChannelBuffers.wrappedBuffer(cumulativeBody, content);
+        			} else {
+        				cumulativeBody = content;
+        			}
+                }
                 // get the Json equivalent of the Body
-        		try {
-        			String json = cumulativeBody.toString(WaarpStringUtils.UTF8);
-        			jsonObject = JsonHandler.getFromString(json);
-        		} catch (Throwable e2) {
-        			logger.warn("Error", e2);
-        			throw new HttpIncorrectRequestException(e2);
-        		}
-    			cumulativeBody = null;
-                
+                if (cumulativeBody == null) {
+                	jsonObject = JsonHandler.createObjectNode();
+                } else {
+	        		try {
+	        			String json = cumulativeBody.toString(WaarpStringUtils.UTF8);
+	        			jsonObject = JsonHandler.getFromString(json);
+	        		} catch (Throwable e2) {
+	        			logger.warn("Error", e2);
+	        			throw new HttpIncorrectRequestException(e2);
+	        		}
+	    			cumulativeBody = null;
+                }                
                 actionFromResponse(e.getChannel());
             } else {
             	ChannelBuffer content = chunk.getContent();

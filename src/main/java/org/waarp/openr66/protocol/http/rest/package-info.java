@@ -20,4 +20,4 @@
  * @author "Frederic Bregier"
  * 
  */
-package org.waarp.openr66.protocol.localhandler.rest;
+package org.waarp.openr66.protocol.http.rest;

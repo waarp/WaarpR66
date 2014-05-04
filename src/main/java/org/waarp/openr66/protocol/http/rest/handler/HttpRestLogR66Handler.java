@@ -18,11 +18,12 @@
    You should have received a copy of the GNU General Public License
    along with Waarp .  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.waarp.openr66.protocol.localhandler.rest.handler;
+package org.waarp.openr66.protocol.http.rest.handler;
 
 import java.sql.Timestamp;
 import java.util.Date;
 
+import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
@@ -32,15 +33,14 @@ import org.waarp.gateway.kernel.rest.HttpRestHandler;
 import org.waarp.gateway.kernel.rest.DataModelRestMethodHandler.COMMAND_TYPE;
 import org.waarp.gateway.kernel.rest.HttpRestHandler.METHOD;
 import org.waarp.gateway.kernel.rest.RestArgument;
-import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNotAuthenticatedException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
+import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
 import org.waarp.openr66.protocol.localhandler.ServerActions;
 import org.waarp.openr66.protocol.localhandler.packet.json.JsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.LogJsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.LogResponseJsonPacket;
-import org.waarp.openr66.protocol.localhandler.rest.HttpRestR66Handler;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -79,8 +79,8 @@ public class HttpRestLogR66Handler extends HttpRestAbstractR66Handler {
 		// now action according to body
 		JsonPacket json = (JsonPacket) body;
 		if (json == null) {
-			result.addItem(JSON_DETAIL, "not enough information");
-			setError(handler, result, ErrorCode.CommandNotFound);
+			result.setDetail("not enough information");
+			setError(handler, result, HttpResponseStatus.BAD_REQUEST);
 			return;
 		}
 		try {
@@ -109,11 +109,11 @@ public class HttpRestLogR66Handler extends HttpRestAbstractR66Handler {
 				newjson.setFilename(sresult[0]);
 				newjson.setExported(Long.parseLong(sresult[1]));
 				newjson.setPurged(Long.parseLong(sresult[2]));
-				setOk(handler, result, newjson, ErrorCode.CompleteOk);
+				setOk(handler, result, newjson, HttpResponseStatus.OK);
 			} else {
 				logger.info("Validation is ignored: " + json);
-				result.addItem(JSON_DETAIL, "Unknown command");
-				setError(handler, result, json, ErrorCode.Unknown);
+				result.setDetail("Unknown command");
+				setError(handler, result, json, HttpResponseStatus.PRECONDITION_FAILED);
 			}
 		} catch (OpenR66ProtocolNotAuthenticatedException e) {
 			throw new HttpInvalidAuthenticationException(e);
@@ -125,9 +125,6 @@ public class HttpRestLogR66Handler extends HttpRestAbstractR66Handler {
 	protected ArrayNode getDetailedAllow() {
 		ArrayNode node = JsonHandler.createArrayNode();
 		
-		ObjectNode node2 = node.addObject().putObject(METHOD.GET.name());
-		node2.put(RestArgument.JSON_PATH, "/"+this.path);
-		node2.put(RestArgument.JSON_COMMAND, "GetLog");
 		LogJsonPacket node3 = new LogJsonPacket();
 		node3.setComment("Log export request (GET)");
 		node3.setRequest("The requester or requested host name");
@@ -136,15 +133,15 @@ public class HttpRestLogR66Handler extends HttpRestAbstractR66Handler {
 		node3.setStop(new Date());
 		node3.setStartid("Start id - long -");
 		node3.setStopid("Stop id - long -");
-		node2 = node2.putObject(RestArgument.JSON_JSON);
+		ObjectNode node2;
 		try {
-			node2.putAll(node3.createObjectNode());
-		} catch (OpenR66ProtocolPacketException e) {
+			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, "GetLog", node3.createObjectNode());
+			node.add(node2);
+		} catch (OpenR66ProtocolPacketException e1) {
 		}
 		
-		node2 = node.addObject().putObject(METHOD.OPTIONS.name());
-		node2.put(RestArgument.JSON_COMMAND, COMMAND_TYPE.OPTIONS.name());
-		node2.put(RestArgument.JSON_PATH, "/"+this.path);
+		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null);
+		node.add(node2);
 
 		return node;
 	}

@@ -459,7 +459,7 @@ public class DbConfiguration extends AbstractDbData {
 			if (condition == null) {
 				condition = " WHERE ";
 			} else {
-				condition = " AND ";
+				condition += " AND ";
 			}
 			if (limitBandwith == 0) {
 				condition += "("+ Columns.READGLOBALLIMIT+" == 0 AND "+ Columns.READSESSIONLIMIT+" == 0 AND "
@@ -469,8 +469,13 @@ public class DbConfiguration extends AbstractDbData {
 						+ Columns.WRITEGLOBALLIMIT+" > "+limitBandwith+" OR "+ Columns.WRITESESSIONLIMIT+" > "+limitBandwith+")";
 			}
 		}
-		preparedStatement.createPrepareStatement(request + condition +
-				" ORDER BY " + Columns.HOSTID.name());
+		if (condition != null) {
+			preparedStatement.createPrepareStatement(request + condition +
+					" ORDER BY " + Columns.HOSTID.name());
+		} else {
+			preparedStatement.createPrepareStatement(request + 
+					" ORDER BY " + Columns.HOSTID.name());
+		}
 		return preparedStatement;
 	}
 

@@ -26,7 +26,6 @@ import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -807,17 +806,19 @@ public class DbTaskRunner extends AbstractDbData {
 		isSaved = false;
 		try {
 			this.rule = new DbRule(dbSession, ruleId);
-		} catch (WaarpDatabaseException e) {
-			throw new WaarpDatabaseSqlException(e);
-		}
-		if (mode != rule.mode) {
-			if (RequestPacket.isMD5Mode(mode)) {
-				mode = RequestPacket.getModeMD5(rule.mode);
-			} else {
-				mode = rule.mode;
+			if (mode != rule.mode) {
+				if (RequestPacket.isMD5Mode(mode)) {
+					mode = RequestPacket.getModeMD5(rule.mode);
+				} else {
+					mode = rule.mode;
+				}
 			}
+		} catch (WaarpDatabaseException e) {
+			// ignore
+			this.rule = null;
 		}
 		checkThroughMode();
+		setToArray();
 	}
 	/**
 	 * Constructor to initiate a request with a valid previous Special Id so loaded from database.
@@ -3736,36 +3737,6 @@ public class DbTaskRunner extends AbstractDbData {
 	}
 
 	/**
-	 * Need to call 'setToArray' before
-	 * 
-	 * @param runner
-	 * @return The HashMap representing the given Runner
-	 * @throws WaarpDatabaseSqlException
-	 */
-	public static Map<String, String> getMapFromRunner(DbTaskRunner runner) {
-		HashMap<String, String> values = new HashMap<String, String>();
-		for (DbValue value : runner.allFields) {
-			if (value.column.equals(Columns.UPDATEDINFO.name()) ||
-					value.column.equals(Columns.TRANSFERINFO.name())) {
-				continue;
-			}
-			try {
-				values.put(value.column.toLowerCase(), value.getValueAsString());
-			} catch (WaarpDatabaseSqlException e) {
-				// ignore but put wring value
-				values.put(value.column.toLowerCase(), "UNREADABLE");
-			}
-		}
-		if (runner.rescheduledTransfer) {
-			values.put(JSON_RESCHEDULE, ""+true);
-		}
-		if (runner.isRecvThrough || runner.isSendThrough) {
-			values.put(JSON_THROUGHMODE, ""+true);
-		}
-		values.put(JSON_ORIGINALSIZE, ""+runner.originalSize);
-		return values;
-	}
-	/**
 	 * Construct a new Element with value
 	 * 
 	 * @param name
@@ -3984,7 +3955,7 @@ public class DbTaskRunner extends AbstractDbData {
 	}
 	
 	@Override
-	public ObjectNode getJson() throws WaarpDatabaseSqlException {
+	public ObjectNode getJson() {
 		ObjectNode node = super.getJson();
 		if (rescheduledTransfer) {
 			node.put(JSON_RESCHEDULE, true);

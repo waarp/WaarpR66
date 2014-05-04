@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.waarp.openr66.protocol.rest.packet.test;
+package org.waarp.openr66.protocol.http.rest.test;
 
 import static org.jboss.netty.channel.Channels.*;
 

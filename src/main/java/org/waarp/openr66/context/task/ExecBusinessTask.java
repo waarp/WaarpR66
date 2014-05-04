@@ -24,7 +24,7 @@ import org.waarp.openr66.protocol.localhandler.packet.BusinessRequestPacket;
 import org.waarp.openr66.protocol.utils.R66Future;
 
 /**
- * Example of Java Task for ExecJava
+ * Business Execution of a Java Task
  * 
  * @author Frederic Bregier
  * 
@@ -41,6 +41,7 @@ public class ExecBusinessTask extends AbstractExecJavaTask {
 	public void run() {
 		if (callFromBusiness) {
 			// Business Request to validate?
+			String validate = "Validated";
 			if (isToValidate) {
 				logger.debug("DEBUG: "+fullarg);
 				String [] args = fullarg.split(" ");
@@ -67,6 +68,9 @@ public class ExecBusinessTask extends AbstractExecJavaTask {
 							invalid();
 							return;
 						}
+						if (future.getResult() != null && future.getResult().other != null) {
+							validate = future.getResult().other.toString();
+						}
 					} else {
 						logger.error("ExecBusiness in error, Task invalid: "+operation);
 						invalid();
@@ -82,7 +86,7 @@ public class ExecBusinessTask extends AbstractExecJavaTask {
 				validate(packet);
 				return;
 			}
-			finalValidate("Validated");
+			finalValidate(validate);
 			return;
 		} else {
 			// Rule EXECJAVA based should be used instead

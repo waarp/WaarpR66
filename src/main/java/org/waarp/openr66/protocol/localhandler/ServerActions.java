@@ -2140,9 +2140,6 @@ public class ServerActions extends ConnectionActions {
 			} catch (OpenR66ProtocolBusinessException e) {
 				logger.error("RunnerTask cannot be found: " + id, e);
 				throw new OpenR66ProtocolNoDataException("RunnerTask cannot be found: " + id, e);
-			} catch (WaarpDatabaseSqlException e) {
-				logger.error("RunnerTask cannot be found: " + id, e);
-				throw new OpenR66ProtocolNoDataException("RunnerTask cannot be found: " + id, e);
 			}
 			R66Result result = new R66Result(session, true,
 					ErrorCode.CompleteOk, null);

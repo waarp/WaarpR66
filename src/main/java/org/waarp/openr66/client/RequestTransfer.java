@@ -21,7 +21,6 @@ import java.net.SocketAddress;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Map;
 
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.logging.InternalLoggerFactory;
@@ -401,7 +400,7 @@ public class RequestTransfer implements Runnable {
 		logger.debug("Requester Host isClient: "+host.isClient());
 		if (host.isClient()) {
 			if (code == LocalPacketFactory.VALIDPACKET) {
-				logger.debug(Messages.getString("RequestTransfer.42")+ //$NON-NLS-1$
+				logger.info(Messages.getString("RequestTransfer.42")+ //$NON-NLS-1$
 						runner.toShortString());
 				R66Future transfer = new R66Future(true);
 				DirectTransfer transaction = new DirectTransfer(transfer,
@@ -663,8 +662,7 @@ public class RequestTransfer implements Runnable {
 						outputFormat.setValue(FIELDS.status.name(), value);
 						outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.21")); //$NON-NLS-1$
 						outputFormat.setValue(FIELDS.remote.name(), rhost);
-						Map<String, String> map = DbTaskRunner.getMapFromRunner(result.runner);
-						outputFormat.setValueString(map);
+						outputFormat.setValueString(result.runner.getJson());
 						if (requestTransfer.normalInfoAsWarn) {
 							logger.warn(outputFormat.loggerOut());
 						} else {
@@ -674,14 +672,13 @@ public class RequestTransfer implements Runnable {
 							outputFormat.sysout();
 						}
 					} else {
-						Map<String, String> map = DbTaskRunner.getMapFromRunner(result.runner);
 						switch (finalValue.code) {
 							case CompleteOk:
 								value = 0;
 								outputFormat.setValue(FIELDS.status.name(), value);
 								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.70")); //$NON-NLS-1$
 								outputFormat.setValue(FIELDS.remote.name(), rhost);
-								outputFormat.setValueString(map);
+								outputFormat.setValueString(result.runner.getJson());
 								logger.warn(outputFormat.loggerOut());
 								if (! OutputFormat.isQuiet()) {
 									outputFormat.sysout();
@@ -692,7 +689,7 @@ public class RequestTransfer implements Runnable {
 								outputFormat.setValue(FIELDS.status.name(), value);
 								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.71")); //$NON-NLS-1$
 								outputFormat.setValue(FIELDS.remote.name(), rhost);
-								outputFormat.setValueString(map);
+								outputFormat.setValueString(result.runner.getJson());
 								logger.warn(outputFormat.loggerOut());
 								if (! OutputFormat.isQuiet()) {
 									outputFormat.sysout();
@@ -703,7 +700,7 @@ public class RequestTransfer implements Runnable {
 								outputFormat.setValue(FIELDS.status.name(), value);
 								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.72")); //$NON-NLS-1$
 								outputFormat.setValue(FIELDS.remote.name(), rhost);
-								outputFormat.setValueString(map);
+								outputFormat.setValueString(result.runner.getJson());
 								if (result.getCause() != null) {
 									outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
 								}
@@ -715,14 +712,13 @@ public class RequestTransfer implements Runnable {
 						}
 					}
 				} else if (sstop) {
-					Map<String, String> map = DbTaskRunner.getMapFromRunner(result.runner);
 					switch (finalValue.code) {
 						case CompleteOk:
 							value = 0;
 							outputFormat.setValue(FIELDS.status.name(), value);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.73")); //$NON-NLS-1$
 							outputFormat.setValue(FIELDS.remote.name(), rhost);
-							outputFormat.setValueString(map);
+							outputFormat.setValueString(result.runner.getJson());
 							if (requestTransfer.normalInfoAsWarn) {
 								logger.warn(outputFormat.loggerOut());
 							} else {
@@ -737,7 +733,7 @@ public class RequestTransfer implements Runnable {
 							outputFormat.setValue(FIELDS.status.name(), value);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.74")); //$NON-NLS-1$
 							outputFormat.setValue(FIELDS.remote.name(), rhost);
-							outputFormat.setValueString(map);
+							outputFormat.setValueString(result.runner.getJson());
 							logger.warn(outputFormat.loggerOut());
 							if (! OutputFormat.isQuiet()) {
 								outputFormat.sysout();
@@ -748,7 +744,7 @@ public class RequestTransfer implements Runnable {
 							outputFormat.setValue(FIELDS.status.name(), value);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.75")); //$NON-NLS-1$
 							outputFormat.setValue(FIELDS.remote.name(), rhost);
-							outputFormat.setValueString(map);
+							outputFormat.setValueString(result.runner.getJson());
 							if (result.getCause() != null) {
 								outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
 							}
@@ -759,14 +755,13 @@ public class RequestTransfer implements Runnable {
 							break;
 					}
 				} else if (srestart) {
-					Map<String, String> map = DbTaskRunner.getMapFromRunner(result.runner);
 					switch (finalValue.code) {
 						case QueryStillRunning:
 							value = 0;
 							outputFormat.setValue(FIELDS.status.name(), value);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.76")); //$NON-NLS-1$
 							outputFormat.setValue(FIELDS.remote.name(), rhost);
-							outputFormat.setValueString(map);
+							outputFormat.setValueString(result.runner.getJson());
 							logger.warn(outputFormat.loggerOut());
 							if (! OutputFormat.isQuiet()) {
 								outputFormat.sysout();
@@ -777,7 +772,7 @@ public class RequestTransfer implements Runnable {
 							outputFormat.setValue(FIELDS.status.name(), value);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.77")); //$NON-NLS-1$
 							outputFormat.setValue(FIELDS.remote.name(), rhost);
-							outputFormat.setValueString(map);
+							outputFormat.setValueString(result.runner.getJson());
 							logger.warn(outputFormat.loggerOut());
 							if (! OutputFormat.isQuiet()) {
 								outputFormat.sysout();
@@ -788,7 +783,7 @@ public class RequestTransfer implements Runnable {
 							outputFormat.setValue(FIELDS.status.name(), value);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.78")); //$NON-NLS-1$
 							outputFormat.setValue(FIELDS.remote.name(), rhost);
-							outputFormat.setValueString(map);
+							outputFormat.setValueString(result.runner.getJson());
 							if (requestTransfer.normalInfoAsWarn) {
 								logger.warn(outputFormat.loggerOut());
 							} else {
@@ -803,7 +798,7 @@ public class RequestTransfer implements Runnable {
 							outputFormat.setValue(FIELDS.status.name(), value);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.79")); //$NON-NLS-1$
 							outputFormat.setValue(FIELDS.remote.name(), rhost);
-							outputFormat.setValueString(map);
+							outputFormat.setValueString(result.runner.getJson());
 							logger.warn(outputFormat.loggerOut());
 							if (! OutputFormat.isQuiet()) {
 								outputFormat.sysout();
@@ -814,7 +809,7 @@ public class RequestTransfer implements Runnable {
 							outputFormat.setValue(FIELDS.status.name(), value);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.80")); //$NON-NLS-1$
 							outputFormat.setValue(FIELDS.remote.name(), rhost);
-							outputFormat.setValueString(map);
+							outputFormat.setValueString(result.runner.getJson());
 							logger.warn(outputFormat.loggerOut());
 							if (! OutputFormat.isQuiet()) {
 								outputFormat.sysout();
@@ -825,7 +820,7 @@ public class RequestTransfer implements Runnable {
 							outputFormat.setValue(FIELDS.status.name(), value);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.81")); //$NON-NLS-1$
 							outputFormat.setValue(FIELDS.remote.name(), rhost);
-							outputFormat.setValueString(map);
+							outputFormat.setValueString(result.runner.getJson());
 							logger.warn(outputFormat.loggerOut());
 							if (! OutputFormat.isQuiet()) {
 								outputFormat.sysout();
@@ -836,7 +831,7 @@ public class RequestTransfer implements Runnable {
 							outputFormat.setValue(FIELDS.status.name(), value);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.82")); //$NON-NLS-1$
 							outputFormat.setValue(FIELDS.remote.name(), rhost);
-							outputFormat.setValueString(map);
+							outputFormat.setValueString(result.runner.getJson());
 							if (result.getCause() != null) {
 								outputFormat.setValue(FIELDS.error.name(), result.getCause().getMessage());
 							}
@@ -853,8 +848,7 @@ public class RequestTransfer implements Runnable {
 				outputFormat.setValue(FIELDS.status.name(), value);
 				outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("RequestTransfer.83")); //$NON-NLS-1$
 				outputFormat.setValue(FIELDS.remote.name(), rhost);
-				Map<String, String> map = DbTaskRunner.getMapFromRunner(result.runner);
-				outputFormat.setValueString(map);
+				outputFormat.setValueString(result.runner.getJson());
 				if (requestTransfer.normalInfoAsWarn) {
 					logger.warn(outputFormat.loggerOut());
 				} else {

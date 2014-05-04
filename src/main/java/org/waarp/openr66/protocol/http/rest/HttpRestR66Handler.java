@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License along with
  * Waarp . If not, see <http://www.gnu.org/licenses/>.
  */
-package org.waarp.openr66.protocol.localhandler.rest;
+package org.waarp.openr66.protocol.http.rest;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,23 +39,26 @@ import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.rest.HttpRestHandler;
+import org.waarp.gateway.kernel.rest.RestMethodHandler;
 import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.protocol.configuration.Configuration;
+import org.waarp.openr66.protocol.http.rest.handler.DbConfigurationR66RestMethodHandler;
+import org.waarp.openr66.protocol.http.rest.handler.DbHostAuthR66RestMethodHandler;
+import org.waarp.openr66.protocol.http.rest.handler.DbHostConfigurationR66RestMethodHandler;
+import org.waarp.openr66.protocol.http.rest.handler.DbRuleR66RestMethodHandler;
+import org.waarp.openr66.protocol.http.rest.handler.DbTaskRunnerR66RestMethodHandler;
+import org.waarp.openr66.protocol.http.rest.handler.HttpRestBandwidthR66Handler;
+import org.waarp.openr66.protocol.http.rest.handler.HttpRestBusinessR66Handler;
+import org.waarp.openr66.protocol.http.rest.handler.HttpRestConfigR66Handler;
+import org.waarp.openr66.protocol.http.rest.handler.HttpRestInformationR66Handler;
+import org.waarp.openr66.protocol.http.rest.handler.HttpRestLogR66Handler;
+import org.waarp.openr66.protocol.http.rest.handler.HttpRestServerR66Handler;
+import org.waarp.openr66.protocol.http.rest.handler.HttpRestTransferR66Handler;
 import org.waarp.openr66.protocol.localhandler.ServerActions;
-import org.waarp.openr66.protocol.localhandler.rest.handler.DbHostAuthR66RestMethodHandler;
-import org.waarp.openr66.protocol.localhandler.rest.handler.DbRuleR66RestMethodHandler;
-import org.waarp.openr66.protocol.localhandler.rest.handler.DbTaskRunnerR66RestMethodHandler;
-import org.waarp.openr66.protocol.localhandler.rest.handler.HttpRestBandwidthR66Handler;
-import org.waarp.openr66.protocol.localhandler.rest.handler.HttpRestBusinessR66Handler;
-import org.waarp.openr66.protocol.localhandler.rest.handler.HttpRestConfigR66Handler;
-import org.waarp.openr66.protocol.localhandler.rest.handler.HttpRestInformationR66Handler;
-import org.waarp.openr66.protocol.localhandler.rest.handler.HttpRestLogR66Handler;
-import org.waarp.openr66.protocol.localhandler.rest.handler.HttpRestServerR66Handler;
-import org.waarp.openr66.protocol.localhandler.rest.handler.HttpRestTransferR66Handler;
 
 /**
- * Handler for HTTP support
+ * Handler for Rest HTTP support for R66
  * 
  * @author Frederic Bregier
  * 
@@ -67,22 +70,45 @@ public class HttpRestR66Handler extends HttpRestHandler {
     private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
             .getLogger(HttpRestR66Handler.class);
 
+    // XXX FIXME to change to real user database
     public static HashMap<String, String> falseRepoPassword = new HashMap<String, String>();
     
+    public static enum RESTHANDLERS {
+    	DbHostAuth("hosts"),
+    	DbRule("rules"),
+    	DbTaskRunner("transfers"),
+    	DbHostConfiguration("hostconfigs"),
+    	DbConfiguration("configurations"),
+    	Bandwidth(HttpRestBandwidthR66Handler.BASEURI),
+    	Business(HttpRestBusinessR66Handler.BASEURI),
+    	Config(HttpRestConfigR66Handler.BASEURI),
+    	Information(HttpRestInformationR66Handler.BASEURI),
+    	Log(HttpRestLogR66Handler.BASEURI),
+    	Server(HttpRestServerR66Handler.BASEURI),
+    	Transfer(HttpRestTransferR66Handler.BASEURI);
+    	
+    	public String uri;
+    	RESTHANDLERS(String uri) {
+    		this.uri = uri;
+    	}
+    	
+    	public RestMethodHandler getRestMethodHandler() {
+    		return restHashMap.get(uri);
+    	}
+    }
     static {
-    	restHashMap.put("transfers", new DbTaskRunnerR66RestMethodHandler("transfers", true));
-    	restHashMap.put("hosts", new DbHostAuthR66RestMethodHandler("hosts", true));
-    	restHashMap.put("rules", new DbRuleR66RestMethodHandler("rules", true));
-    	restHashMap.put("hostconfigs", new DbTaskRunnerR66RestMethodHandler("hostconfigs", true));
-    	restHashMap.put("configurations", new DbTaskRunnerR66RestMethodHandler("configurations", true));
-    	restHashMap.put(HttpRestBandwidthR66Handler.BASEURI, new HttpRestBandwidthR66Handler());
-    	restHashMap.put(HttpRestBusinessR66Handler.BASEURI, new HttpRestBusinessR66Handler());
-    	restHashMap.put(HttpRestConfigR66Handler.BASEURI, new HttpRestConfigR66Handler());
-    	restHashMap.put(HttpRestInformationR66Handler.BASEURI, new HttpRestInformationR66Handler());
-    	restHashMap.put(HttpRestLogR66Handler.BASEURI, new HttpRestLogR66Handler());
-    	restHashMap.put(HttpRestServerR66Handler.BASEURI, new HttpRestServerR66Handler());
-    	restHashMap.put(HttpRestTransferR66Handler.BASEURI, new HttpRestTransferR66Handler());
-    	//restHashMap.put("config", new Old_HttpRestMethodR66Handler("config", METHOD.GET, METHOD.POST));
+    	restHashMap.put(RESTHANDLERS.DbTaskRunner.uri, new DbTaskRunnerR66RestMethodHandler(RESTHANDLERS.DbTaskRunner.uri, true));
+    	restHashMap.put(RESTHANDLERS.DbHostAuth.uri, new DbHostAuthR66RestMethodHandler(RESTHANDLERS.DbHostAuth.uri, true));
+    	restHashMap.put(RESTHANDLERS.DbRule.uri, new DbRuleR66RestMethodHandler(RESTHANDLERS.DbRule.uri, true));
+    	restHashMap.put(RESTHANDLERS.DbHostConfiguration.uri, new DbHostConfigurationR66RestMethodHandler(RESTHANDLERS.DbHostConfiguration.uri, true));
+    	restHashMap.put(RESTHANDLERS.DbConfiguration.uri, new DbConfigurationR66RestMethodHandler(RESTHANDLERS.DbConfiguration.uri, true));
+    	restHashMap.put(RESTHANDLERS.Bandwidth.uri, new HttpRestBandwidthR66Handler());
+    	restHashMap.put(RESTHANDLERS.Business.uri, new HttpRestBusinessR66Handler());
+    	restHashMap.put(RESTHANDLERS.Config.uri, new HttpRestConfigR66Handler());
+    	restHashMap.put(RESTHANDLERS.Information.uri, new HttpRestInformationR66Handler());
+    	restHashMap.put(RESTHANDLERS.Log.uri, new HttpRestLogR66Handler());
+    	restHashMap.put(RESTHANDLERS.Server.uri, new HttpRestServerR66Handler());
+    	restHashMap.put(RESTHANDLERS.Transfer.uri, new HttpRestTransferR66Handler());
     	falseRepoPassword.put("admin2", "test");
     }
 
@@ -97,7 +123,7 @@ public class HttpRestR66Handler extends HttpRestHandler {
     /**
    	 * Server Actions handler
    	 */
-   	public volatile ServerActions serverHandler = new ServerActions();
+   	public ServerActions serverHandler = new ServerActions();
    	
 	@Override
     protected void checkConnection(Channel channel) throws HttpInvalidAuthenticationException {

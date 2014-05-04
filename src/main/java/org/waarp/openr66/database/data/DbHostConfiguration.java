@@ -788,34 +788,39 @@ public class DbHostConfiguration extends AbstractDbData {
 		}
 		if (business != null) {
 			if (condition != null) {
-				condition = " AND " + Columns.BUSINESS.name() + " LIKE '%" + business + "%' ";
+				condition += " AND " + Columns.BUSINESS.name() + " LIKE '%" + business + "%' ";
 			} else {
 				condition = " WHERE " + Columns.BUSINESS.name() + " LIKE '%" + business + "%' ";
 			}
 		}
 		if (role != null) {
 			if (condition != null) {
-				condition = " AND " + Columns.ROLES.name() + " LIKE '%" + role + "%' ";
+				condition += " AND " + Columns.ROLES.name() + " LIKE '%" + role + "%' ";
 			} else {
 				condition = " WHERE " + Columns.ROLES.name() + " LIKE '%" + role + "%' ";
 			}
 		}
 		if (alias != null) {
 			if (condition != null) {
-				condition = " AND " + Columns.ALIASES.name() + " LIKE '%" + alias + "%' ";
+				condition += " AND " + Columns.ALIASES.name() + " LIKE '%" + alias + "%' ";
 			} else {
 				condition = " WHERE " + Columns.ALIASES.name() + " LIKE '%" + alias + "%' ";
 			}
 		}
 		if (other != null) {
 			if (condition != null) {
-				condition = " AND " + Columns.OTHERS.name() + " LIKE '%" + other + "%' ";
+				condition += " AND " + Columns.OTHERS.name() + " LIKE '%" + other + "%' ";
 			} else {
 				condition = " WHERE " + Columns.OTHERS.name() + " LIKE '%" + other + "%' ";
 			}
 		}
-		preparedStatement.createPrepareStatement(request + condition +
-				" ORDER BY " + Columns.HOSTID.name());
+		if (condition != null) {
+			preparedStatement.createPrepareStatement(request + condition +
+					" ORDER BY " + Columns.HOSTID.name());
+		} else {
+			preparedStatement.createPrepareStatement(request + 
+					" ORDER BY " + Columns.HOSTID.name());
+		}
 		return preparedStatement;
 	}
 	

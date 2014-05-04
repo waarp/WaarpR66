@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License along with
  * Waarp . If not, see <http://www.gnu.org/licenses/>.
  */
-package org.waarp.openr66.protocol.localhandler.rest;
+package org.waarp.openr66.protocol.http.rest;
 
 import static org.jboss.netty.channel.Channels.pipeline;
 
@@ -38,7 +38,7 @@ import org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler;
 import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
 
 /**
- * Pipeline Factory for HTTP support
+ * Pipeline Factory for Rest HTTP support for R66
  * 
  * @author Frederic Bregier
  * 
@@ -86,6 +86,7 @@ public class HttpRestR66PipelineFactory implements ChannelPipelineFactory {
         }
         pipeline.addLast(CHUNKEDWRITER, new ChunkedWriteHandler());
         HttpRestR66Handler r66handler = new HttpRestR66Handler();
+        // XXX FIXME default but should be able to change the default by configuration
         r66handler.checkAuthent = true;
         r66handler.checkTime = 0;
         pipeline.addLast("handler", r66handler);

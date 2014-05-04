@@ -18,7 +18,7 @@
    You should have received a copy of the GNU General Public License
    along with Waarp .  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.waarp.openr66.protocol.localhandler.rest.handler;
+package org.waarp.openr66.protocol.http.rest.handler;
 
 
 import java.util.Date;
@@ -40,6 +40,7 @@ import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNotAuthenticatedException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
+import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
 import org.waarp.openr66.protocol.localhandler.ServerActions;
 import org.waarp.openr66.protocol.localhandler.packet.ValidPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.InformationJsonPacket;
@@ -47,7 +48,6 @@ import org.waarp.openr66.protocol.localhandler.packet.json.JsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.StopOrCancelJsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.RestartTransferJsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.TransferRequestJsonPacket;
-import org.waarp.openr66.protocol.localhandler.rest.HttpRestR66Handler;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -89,8 +89,8 @@ public class HttpRestTransferR66Handler extends HttpRestAbstractR66Handler {
 		// now action according to body
 		JsonPacket json = (JsonPacket) body;
 		if (json == null) {
-			result.addItem(JSON_DETAIL, "not enough information");
-			setError(handler, result, ErrorCode.CommandNotFound);
+			result.setDetail("not enough information");
+			setError(handler, result, HttpResponseStatus.BAD_REQUEST);
 			return;
 		}
 		METHOD method = arguments.getMethod();
@@ -101,21 +101,21 @@ public class HttpRestTransferR66Handler extends HttpRestAbstractR66Handler {
 				if (validPacket != null) {
 					ObjectNode resp = JsonHandler.getFromString(validPacket.getSheader());
 					handler.setStatus(HttpResponseStatus.OK);
-					result.addItem(JSON_MESSAGE, ErrorCode.CompleteOk.mesg);
-					result.addItem(JSON_MESSAGECODE, ""+ErrorCode.CompleteOk.code);
-					result.getAnswer().put(JSON_RESULT, resp);
+					result.setResult(HttpResponseStatus.OK);
+					result.getResults().add(resp);
 				} else {
-					result.addItem(JSON_DETAIL, "Error during information request");
-					setError(handler, result, ErrorCode.TransferError);
+					result.setDetail("Error during information request");
+					setError(handler, result, HttpResponseStatus.NOT_ACCEPTABLE);
 				}
 			} else if (json instanceof RestartTransferJsonPacket && method == METHOD.PUT) {//
 				RestartTransferJsonPacket node = (RestartTransferJsonPacket) json;
 				R66Result r66result = serverHandler.requestRestart(node.getRequested(), node.getRequester(), node.getSpecialid(), node.getRestarttime());
 				if (serverHandler.isCodeValid(r66result.code)) {
-					setOk(handler, result, node, r66result.code);
+					result.setDetail("Restart Transfer done");
+					setOk(handler, result, node, HttpResponseStatus.OK);
 				} else {
-					result.addItem(JSON_DETAIL, "Restart Transfer in error");
-					setError(handler, result, node, ErrorCode.TransferError);
+					result.setDetail("Restart Transfer in error");
+					setError(handler, result, node, HttpResponseStatus.NOT_ACCEPTABLE);
 				}
 			} else if (json instanceof StopOrCancelJsonPacket && method == METHOD.PUT) {//
 				StopOrCancelJsonPacket node = (StopOrCancelJsonPacket) json;
@@ -124,28 +124,30 @@ public class HttpRestTransferR66Handler extends HttpRestAbstractR66Handler {
 					ErrorCode code = ErrorCode.CommandNotFound;
 					resulttest = new R66Result(session, true,
 							code, session.getRunner());
-					result.addItem(JSON_DETAIL, "Not enough argument passed to identify a transfer");
-					setError(handler, result, node, resulttest.code);
+					result.setDetail("Not enough argument passed to identify a transfer");
+					setError(handler, result, node, HttpResponseStatus.NOT_FOUND);
 				} else {
 					String reqd = node.getRequested();
 					String reqr = node.getRequester();
 					long id = node.getSpecialid();
 					resulttest = serverHandler.stopOrCancel(node.getRequestUserPacket(), reqd, reqr, id);
-					setOk(handler, result, node, resulttest.code);
+					result.setDetail(resulttest.code.mesg);
+					setOk(handler, result, node, HttpResponseStatus.OK);
 				}
 			} else if (json instanceof TransferRequestJsonPacket && method == METHOD.POST) {
 				TransferRequestJsonPacket node = (TransferRequestJsonPacket) json;
 				R66Result r66result = serverHandler.transferRequest(node);
 				if (serverHandler.isCodeValid(r66result.code)) {
-					setOk(handler, result, node, r66result.code);
+					result.setDetail("New Transfer registered");
+					setOk(handler, result, node, HttpResponseStatus.OK);
 				} else {
-					result.addItem(JSON_DETAIL, "New Transfer cannot be registered");
-					setError(handler, result, r66result.code);
+					result.setDetail("New Transfer cannot be registered");
+					setError(handler, result, HttpResponseStatus.NOT_ACCEPTABLE);
 				}
 			} else {
 				logger.info("Validation is ignored: " + json);
-				result.addItem(JSON_DETAIL, "Unknown command");
-				setError(handler, result, json, ErrorCode.Unknown);
+				result.setDetail("Unknown command");
+				setError(handler, result, json, HttpResponseStatus.PRECONDITION_FAILED);
 			}
 		} catch (OpenR66ProtocolNotAuthenticatedException e) {
 			throw new HttpInvalidAuthenticationException(e);
@@ -159,47 +161,36 @@ public class HttpRestTransferR66Handler extends HttpRestAbstractR66Handler {
 	protected ArrayNode getDetailedAllow() {
 		ArrayNode node = JsonHandler.createArrayNode();
 		
-		ObjectNode node2 = node.addObject().putObject(METHOD.GET.name());
-		node2.put(RestArgument.JSON_PATH, "/"+this.path);
-		node2.put(RestArgument.JSON_COMMAND, "GetTransferInformation");
 		InformationJsonPacket node3 = new InformationJsonPacket();
 		node3.setComment("Information on Transfer request (GET)");
-		node2 = node2.putObject(RestArgument.JSON_JSON);
+		ObjectNode node2;
 		try {
-			node2.putAll(node3.createObjectNode());
-		} catch (OpenR66ProtocolPacketException e) {
+			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, "GetTransferInformation", node3.createObjectNode());
+			node.add(node2);
+		} catch (OpenR66ProtocolPacketException e1) {
 		}
-
-		node2 = node.addObject().putObject(METHOD.PUT.name());
-		node2.put(RestArgument.JSON_PATH, "/"+this.path);
-		node2.put(RestArgument.JSON_COMMAND, "RestartTransfer");
+		
 		RestartTransferJsonPacket node4 = new RestartTransferJsonPacket();
 		node4.setComment("Restart Transfer request (PUT)");
 		node4.setRequested("Requested host");
 		node4.setRequester("Requester host");
 		node4.setRestarttime(new Date());
-		node2 = node2.putObject(RestArgument.JSON_JSON);
 		try {
-			node2.putAll(node4.createObjectNode());
-		} catch (OpenR66ProtocolPacketException e) {
+			node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, "RestartTransfer", node4.createObjectNode());
+			node.add(node2);
+		} catch (OpenR66ProtocolPacketException e1) {
 		}
-
-		node2 = node.addObject().putObject(METHOD.PUT.name());
-		node2.put(RestArgument.JSON_PATH, "/"+this.path);
-		node2.put(RestArgument.JSON_COMMAND, "StopOrCancelTransfer");
+		
 		StopOrCancelJsonPacket node5 = new StopOrCancelJsonPacket();
 		node5.setComment("Stop Or Cancel request (PUT)");
 		node5.setRequested("Requested host");
 		node5.setRequester("Requester host");
-		node2 = node2.putObject(RestArgument.JSON_JSON);
 		try {
-			node2.putAll(node5.createObjectNode());
-		} catch (OpenR66ProtocolPacketException e) {
+			node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, "StopOrCancelTransfer", node5.createObjectNode());
+			node.add(node2);
+		} catch (OpenR66ProtocolPacketException e1) {
 		}
 		
-		node2 = node.addObject().putObject(METHOD.POST.name());
-		node2.put(RestArgument.JSON_PATH, "/"+this.path);
-		node2.put(RestArgument.JSON_COMMAND, "CreateTransfer");
 		TransferRequestJsonPacket node6 = new TransferRequestJsonPacket();
 		node6.setComment("Transfer Request (POST)");
 		node6.setFilename("Filename");
@@ -207,15 +198,14 @@ public class HttpRestTransferR66Handler extends HttpRestAbstractR66Handler {
 		node6.setRequested("Requested host");
 		node6.setRulename("Rulename");
 		node6.setStart(new Date());
-		node2 = node2.putObject(RestArgument.JSON_JSON);
 		try {
-			node2.putAll(node6.createObjectNode());
-		} catch (OpenR66ProtocolPacketException e) {
+			node2 = RestArgument.fillDetailedAllow(METHOD.POST, this.path, "CreateTransfer", node6.createObjectNode());
+			node.add(node2);
+		} catch (OpenR66ProtocolPacketException e1) {
 		}
 		
-		node2 = node.addObject().putObject(METHOD.OPTIONS.name());
-		node2.put(RestArgument.JSON_COMMAND, COMMAND_TYPE.OPTIONS.name());
-		node2.put(RestArgument.JSON_PATH, "/"+this.path);
+		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null);
+		node.add(node2);
 
 		return node;
 	}

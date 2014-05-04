@@ -18,7 +18,7 @@
    You should have received a copy of the GNU General Public License
    along with Waarp .  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.waarp.openr66.protocol.rest.packet.test;
+package org.waarp.openr66.protocol.http.rest.test;
 
 import java.io.File;
 
@@ -26,7 +26,7 @@ import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
-import org.waarp.openr66.protocol.localhandler.rest.HttpRestR66Handler;
+import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
 import org.waarp.openr66.server.R66Server;
 
 /**

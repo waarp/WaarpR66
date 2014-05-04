@@ -18,7 +18,7 @@
    You should have received a copy of the GNU General Public License
    along with Waarp .  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.waarp.openr66.protocol.localhandler.rest.handler;
+package org.waarp.openr66.protocol.http.rest.handler;
 
 
 import static org.waarp.openr66.context.R66FiniteDualStates.ERROR;
@@ -42,24 +42,20 @@ import org.waarp.gateway.kernel.rest.HttpRestHandler;
 import org.waarp.gateway.kernel.rest.HttpRestHandler.METHOD;
 import org.waarp.gateway.kernel.rest.RestArgument;
 import org.waarp.gateway.kernel.rest.RestMethodHandler;
-import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
+import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
 import org.waarp.openr66.protocol.localhandler.packet.json.JsonPacket;
-import org.waarp.openr66.protocol.localhandler.rest.HttpRestR66Handler;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
 /**
+ * Common method implementation for Action Rest R66 handlers
  * @author "Frederic Bregier"
  *
  */
 public abstract class HttpRestAbstractR66Handler extends RestMethodHandler {
 	
-	public static final String JSON_RESULT = "result";
-	public static final String JSON_MESSAGE = "message";
-	public static final String JSON_MESSAGECODE = "messagecode";
-	public static final String JSON_DETAIL = "detail";
 	/**
      * Internal Logger
      */
@@ -88,34 +84,31 @@ public abstract class HttpRestAbstractR66Handler extends RestMethodHandler {
 		logger.debug("debug: "+data.getName()+":"+data.getHttpDataType().name());
 	}
 
-	protected void setError(HttpRestHandler handler, RestArgument result, ErrorCode code) {
+	protected void setError(HttpRestHandler handler, RestArgument result, HttpResponseStatus code) {
 		handler.setStatus(HttpResponseStatus.BAD_REQUEST);
 		handler.setWillClose(true);
-		result.addItem(JSON_MESSAGE, code.mesg);
-		result.addItem(JSON_MESSAGECODE, ""+code.code);
+		result.setResult(code);
 	}
 
-	protected void setError(HttpRestHandler handler, RestArgument result, JsonPacket packet, ErrorCode code) {
+	protected void setError(HttpRestHandler handler, RestArgument result, JsonPacket packet, HttpResponseStatus code) {
 		handler.setStatus(HttpResponseStatus.BAD_REQUEST);
-		result.addItem(JSON_MESSAGE, code.mesg);
-		result.addItem(JSON_MESSAGECODE, ""+code.code);
+		result.setResult(code);
 		if (packet != null) {
 			try {
-				result.getAnswer().put(JSON_RESULT, packet.createObjectNode());
+				result.addResult(packet.createObjectNode());
 			} catch (OpenR66ProtocolPacketException e) {
 			}
 		}
 	}
 
-	protected void setOk(HttpRestHandler handler, RestArgument result, JsonPacket packet, ErrorCode code) {
+	protected void setOk(HttpRestHandler handler, RestArgument result, JsonPacket packet, HttpResponseStatus code) {
 		handler.setStatus(HttpResponseStatus.OK);
-		result.addItem(JSON_MESSAGE, code.mesg);
-		result.addItem(JSON_MESSAGECODE, ""+code.code);
+		result.setResult(code);
 		if (packet != null) {
 			try {
-				result.getAnswer().put(JSON_RESULT, packet.createObjectNode());
+				result.addResult(packet.createObjectNode());
 			} catch (OpenR66ProtocolPacketException e) {
-				result.addItem(JSON_DETAIL, "serialization impossible");
+				result.setDetail("serialization impossible");
 			}
 		}
 	}

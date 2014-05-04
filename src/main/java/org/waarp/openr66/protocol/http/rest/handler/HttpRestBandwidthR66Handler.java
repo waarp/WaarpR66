@@ -18,7 +18,8 @@
    You should have received a copy of the GNU General Public License
    along with Waarp .  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.waarp.openr66.protocol.localhandler.rest.handler;
+package org.waarp.openr66.protocol.http.rest.handler;
+
 
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.waarp.common.json.JsonHandler;
@@ -30,41 +31,38 @@ import org.waarp.gateway.kernel.rest.HttpRestHandler;
 import org.waarp.gateway.kernel.rest.DataModelRestMethodHandler.COMMAND_TYPE;
 import org.waarp.gateway.kernel.rest.HttpRestHandler.METHOD;
 import org.waarp.gateway.kernel.rest.RestArgument;
-import org.waarp.openr66.context.ErrorCode;
-import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNotAuthenticatedException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
+import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
 import org.waarp.openr66.protocol.localhandler.ServerActions;
-import org.waarp.openr66.protocol.localhandler.packet.ValidPacket;
-import org.waarp.openr66.protocol.localhandler.packet.json.InformationJsonPacket;
+import org.waarp.openr66.protocol.localhandler.packet.json.BandwidthJsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.JsonPacket;
-import org.waarp.openr66.protocol.localhandler.rest.HttpRestR66Handler;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- * Info Http REST interface: http://host/info?... + InformationJsonPacket as GET
+ * Bandwidth Http REST interface: http://host/bandwidth?... + BandwidthJsonPacket as GET or PUT
  * @author "Frederic Bregier"
  *
  */
-public class HttpRestInformationR66Handler extends HttpRestAbstractR66Handler {
+public class HttpRestBandwidthR66Handler extends HttpRestAbstractR66Handler {
 	
-	public static final String BASEURI = "info";
+	public static final String BASEURI = "bandwidth";
 	/**
      * Internal Logger
      */
     private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
-            .getLogger(HttpRestInformationR66Handler.class);
+            .getLogger(HttpRestBandwidthR66Handler.class);
    
 	/**
 	 * @param path
 	 * @param method
 	 */
-	public HttpRestInformationR66Handler() {
-		super(BASEURI, METHOD.GET);
+	public HttpRestBandwidthR66Handler() {
+		super(BASEURI, METHOD.GET, METHOD.PUT);
 	}
-
+	
 	@Override
 	public void endParsingRequest(HttpRestHandler handler, RestArgument arguments, RestArgument result, Object body)
 			throws HttpIncorrectRequestException, HttpInvalidAuthenticationException {
@@ -77,58 +75,67 @@ public class HttpRestInformationR66Handler extends HttpRestAbstractR66Handler {
 		// now action according to body
 		JsonPacket json = (JsonPacket) body;
 		if (json == null) {
-			result.addItem(JSON_DETAIL, "not enough information");
-			setError(handler, result, ErrorCode.CommandNotFound);
+			result.setDetail("not enough information");
+			setError(handler, result, HttpResponseStatus.BAD_REQUEST);
 			return;
 		}
 		try {
-			if (json instanceof InformationJsonPacket) {//
-				InformationJsonPacket node = (InformationJsonPacket) json;
-				ValidPacket validPacket = serverHandler.information(node.isIdRequest(), node.getId(), node.isTo(), node.getRequest(), node.getRulename(), node.getFilename(), true);
-				if (validPacket != null) {
-					// will not use default setOk
-					ObjectNode resp = JsonHandler.getFromString(validPacket.getSheader());
-					handler.setStatus(HttpResponseStatus.OK);
-					result.addItem(JSON_MESSAGE, ErrorCode.CompleteOk.mesg);
-					result.addItem(JSON_MESSAGECODE, ""+ErrorCode.CompleteOk.code);
-					result.getAnswer().put(JSON_RESULT, resp);
-				} else {
-					result.addItem(JSON_DETAIL, "Error during information request");
-					setError(handler, result, ErrorCode.TransferError);
+			if (json instanceof BandwidthJsonPacket) {//
+				// setter, writeglobal, readglobal, writesession, readsession
+				BandwidthJsonPacket node = (BandwidthJsonPacket) json;
+				boolean setter = node.isSetter();
+				if (setter && arguments.getMethod() != METHOD.PUT) {
+					// wrong
+					result.setDetail("Setter should be requested with a PUT method");
+					setError(handler, result, HttpResponseStatus.CONFLICT);
+					return;
+				} else if (! setter && arguments.getMethod() != METHOD.GET) {
+					// wrong
+					result.setDetail("Getter should not be requested with a GET method");
+					setError(handler, result, HttpResponseStatus.CONFLICT);
+					return;
 				}
+				// request of current values or set new values
+				long [] lresult = serverHandler.bandwidth(setter, 
+						node.getWriteglobal(), node.getReadglobal(),
+						node.getWritesession(),node.getReadsession());
+				// Now answer
+				node.setWriteglobal(lresult[0]);
+				node.setReadglobal(lresult[1]);
+				node.setWritesession(lresult[2]);
+				node.setReadsession(lresult[3]);
+				setOk(handler, result, json, HttpResponseStatus.OK);
 			} else {
 				logger.info("Validation is ignored: " + json);
-				result.addItem(JSON_DETAIL, "Unknown command");
-				setError(handler, result, json, ErrorCode.Unknown);
+				result.setDetail("Unknown command");
+				setError(handler, result, json, HttpResponseStatus.PRECONDITION_FAILED);
 			}
 		} catch (OpenR66ProtocolNotAuthenticatedException e) {
 			throw new HttpInvalidAuthenticationException(e);
-		} catch (OpenR66ProtocolPacketException e) {
-			throw new HttpIncorrectRequestException(e);
-		} catch (OpenR66ProtocolNoDataException e) {
-			throw new HttpIncorrectRequestException(e);
 		}
 	}
 
 	protected ArrayNode getDetailedAllow() {
 		ArrayNode node = JsonHandler.createArrayNode();
 		
-		ObjectNode node2 = node.addObject().putObject(METHOD.GET.name());
-		node2.put(RestArgument.JSON_PATH, "/"+this.path);
-		node2.put(RestArgument.JSON_COMMAND, "GetInformation");
-		InformationJsonPacket node3 = new InformationJsonPacket();
-		node3.setComment("Information request (GET)");
-		node3.setFilename("The filename to look for if any");
-		node3.setRulename("The rule name associated with the remote repository");
-		node2 = node2.putObject(RestArgument.JSON_JSON);
+		BandwidthJsonPacket node3 = new BandwidthJsonPacket();
+		node3.setComment("Bandwidth getter (GET)");
+		ObjectNode node2;
 		try {
-			node2.putAll(node3.createObjectNode());
-		} catch (OpenR66ProtocolPacketException e) {
+			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, "GetBandwidth", node3.createObjectNode());
+			node.add(node2);
+		} catch (OpenR66ProtocolPacketException e1) {
 		}
 		
-		node2 = node.addObject().putObject(METHOD.OPTIONS.name());
-		node2.put(RestArgument.JSON_COMMAND, COMMAND_TYPE.OPTIONS.name());
-		node2.put(RestArgument.JSON_PATH, "/"+this.path);
+		node3.setComment("Bandwidth setter (PUT)");
+		try {
+			node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, "SetBandwidth", node3.createObjectNode());
+			node.add(node2);
+		} catch (OpenR66ProtocolPacketException e1) {
+		}
+
+		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null);
+		node.add(node2);
 		
 		return node;
 	}

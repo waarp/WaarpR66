@@ -18,15 +18,15 @@
    You should have received a copy of the GNU General Public License
    along with Waarp .  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.waarp.openr66.protocol.localhandler.rest.handler;
+package org.waarp.openr66.protocol.http.rest.handler;
 
 
-import static org.waarp.openr66.context.R66FiniteDualStates.SHUTDOWN;
+import static org.waarp.openr66.context.R66FiniteDualStates.ERROR;
 
+import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
-import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.rest.HttpRestHandler;
@@ -36,41 +36,37 @@ import org.waarp.gateway.kernel.rest.RestArgument;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.R66Result;
 import org.waarp.openr66.context.R66Session;
-import org.waarp.openr66.protocol.configuration.Messages;
-import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNotAuthenticatedException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
-import org.waarp.openr66.protocol.exception.OpenR66ProtocolShutdownException;
+import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
 import org.waarp.openr66.protocol.localhandler.ServerActions;
+import org.waarp.openr66.protocol.localhandler.packet.json.BusinessRequestJsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.JsonPacket;
-import org.waarp.openr66.protocol.localhandler.packet.json.ShutdownOrBlockJsonPacket;
-import org.waarp.openr66.protocol.localhandler.rest.HttpRestR66Handler;
-import org.waarp.openr66.protocol.utils.ChannelUtils;
-import org.waarp.openr66.protocol.utils.R66ShutdownHook;
+import org.waarp.openr66.protocol.utils.R66Future;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- * Server Http REST interface: http://host/server?... + ShutdownOrBlockJsonPacket as PUT
+ * Business Http REST interface: http://host/business?... + BusinessRequestJsonPacket as GET
  * @author "Frederic Bregier"
  *
  */
-public class HttpRestServerR66Handler extends HttpRestAbstractR66Handler {
+public class HttpRestBusinessR66Handler extends HttpRestAbstractR66Handler {
 	
-	public static final String BASEURI = "server";
+	public static final String BASEURI = "business";
 	/**
      * Internal Logger
      */
     private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
-            .getLogger(HttpRestServerR66Handler.class);
+            .getLogger(HttpRestBusinessR66Handler.class);
    
 	/**
 	 * @param path
 	 * @param method
 	 */
-	public HttpRestServerR66Handler() {
-		super(BASEURI, METHOD.PUT);
+	public HttpRestBusinessR66Handler() {
+		super(BASEURI, METHOD.GET);
 	}
 	
 	@Override
@@ -86,64 +82,59 @@ public class HttpRestServerR66Handler extends HttpRestAbstractR66Handler {
 		// now action according to body
 		JsonPacket json = (JsonPacket) body;
 		if (json == null) {
-			result.addItem(JSON_DETAIL, "not enough information");
-			setError(handler, result, ErrorCode.CommandNotFound);
+			result.setDetail("not enough information");
+			setError(handler, result, HttpResponseStatus.BAD_REQUEST);
 			return;
 		}
 		try {
-			if (json instanceof ShutdownOrBlockJsonPacket) {//
-				ShutdownOrBlockJsonPacket node = (ShutdownOrBlockJsonPacket) json;
-				if (node.isShutdownOrBlock()) {
-					// Shutdown
-					session.newState(SHUTDOWN);
-					serverHandler.shutdown(node.getKey(), node.isRestartOrBlock());
-					setOk(handler, result, json, ErrorCode.Shutdown);
+			if (json instanceof BusinessRequestJsonPacket) {//
+				BusinessRequestJsonPacket node = (BusinessRequestJsonPacket) json;
+				R66Future future = serverHandler.businessRequest(node.isToApplied(), node.getClassName(), node.getArguments(), node.getExtraArguments(), node.getDelay());
+				if (future != null && ! future.isSuccess()) {
+					R66Result r66result = future.getResult();
+					if (r66result == null) {
+						r66result = new R66Result(session, false, ErrorCode.ExternalOp, session.getRunner());
+					}
+					logger.info("Task in Error:" + node.getClassName() + " " + r66result);
+					if (!r66result.isAnswered) {
+						node.setValidated(false);
+						session.newState(ERROR);
+					}
+					result.setDetail("Task in Error:" + node.getClassName() + " " + r66result);
+					setError(handler, result, HttpResponseStatus.NOT_ACCEPTABLE);
 				} else {
-					// Block
-					R66Result r66result = serverHandler.blockRequest(node.getKey(), node.isRestartOrBlock());
-					node.setComment((node.isRestartOrBlock() ? "Block" : "Unblock")+" new request");
-					result.addItem(JSON_DETAIL, (node.isRestartOrBlock() ? "Block" : "Unblock")+" new request");
-					setOk(handler, result, json, r66result.code);
+					setOk(handler, result, json, HttpResponseStatus.OK);
 				}
 			} else {
 				logger.info("Validation is ignored: " + json);
-				result.addItem(JSON_DETAIL, "Unknown command");
-				setError(handler, result, json, ErrorCode.Unknown);
+				result.setDetail("Unknown command");
+				setError(handler, result, json, HttpResponseStatus.PRECONDITION_FAILED);
 			}
 		} catch (OpenR66ProtocolNotAuthenticatedException e) {
 			throw new HttpInvalidAuthenticationException(e);
 		} catch (OpenR66ProtocolPacketException e) {
 			throw new HttpIncorrectRequestException(e);
-		} catch (OpenR66ProtocolBusinessException e) {
-			throw new HttpIncorrectRequestException(e);
-		} catch (OpenR66ProtocolShutdownException e) {
-			R66ShutdownHook.shutdownWillStart();
-			logger.warn(Messages.getString("LocalServerHandler.0") + //$NON-NLS-1$
-					serverHandler.getSession().getAuth().getUser());
-			// dont'close, thread will do
-			ChannelUtils.startShutdown();
 		}
 	}
-	
+
 	protected ArrayNode getDetailedAllow() {
 		ArrayNode node = JsonHandler.createArrayNode();
 		
-		ObjectNode node2 = node.addObject().putObject(METHOD.PUT.name());
-		node2.put(RestArgument.JSON_PATH, "/"+this.path);
-		node2.put(RestArgument.JSON_COMMAND, "ShutdownOrBlock");
-		ShutdownOrBlockJsonPacket node3 = new ShutdownOrBlockJsonPacket();
-		node3.setComment("Shutdown Or Block request (PUT)");
-		node3.setKey("Key".getBytes(WaarpStringUtils.UTF8));
-		node2 = node2.putObject(RestArgument.JSON_JSON);
+		BusinessRequestJsonPacket node3 = new BusinessRequestJsonPacket();
+		node3.setComment("Business execution request (GET)");
+		node3.setClassName("Class name to execute");
+		node3.setArguments("Arguments of the execution");
+		node3.setExtraArguments("Extra arguments");
+		ObjectNode node2;
 		try {
-			node2.putAll(node3.createObjectNode());
-		} catch (OpenR66ProtocolPacketException e) {
+			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, "ExecuteBusiness", node3.createObjectNode());
+			node.add(node2);
+		} catch (OpenR66ProtocolPacketException e1) {
 		}
-		
-		node2 = node.addObject().putObject(METHOD.OPTIONS.name());
-		node2.put(RestArgument.JSON_COMMAND, COMMAND_TYPE.OPTIONS.name());
-		node2.put(RestArgument.JSON_PATH, "/"+this.path);
 
+		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null);
+		node.add(node2);
+		
 		return node;
 	}
 }

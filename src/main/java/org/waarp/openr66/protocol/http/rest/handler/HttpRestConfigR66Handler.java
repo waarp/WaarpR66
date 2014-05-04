@@ -18,9 +18,10 @@
    You should have received a copy of the GNU General Public License
    along with Waarp .  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.waarp.openr66.protocol.localhandler.rest.handler;
+package org.waarp.openr66.protocol.http.rest.handler;
 
 
+import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
@@ -30,17 +31,16 @@ import org.waarp.gateway.kernel.rest.HttpRestHandler;
 import org.waarp.gateway.kernel.rest.DataModelRestMethodHandler.COMMAND_TYPE;
 import org.waarp.gateway.kernel.rest.HttpRestHandler.METHOD;
 import org.waarp.gateway.kernel.rest.RestArgument;
-import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNotAuthenticatedException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
+import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
 import org.waarp.openr66.protocol.localhandler.ServerActions;
 import org.waarp.openr66.protocol.localhandler.packet.json.ConfigExportJsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.ConfigExportResponseJsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.ConfigImportJsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.ConfigImportResponseJsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.JsonPacket;
-import org.waarp.openr66.protocol.localhandler.rest.HttpRestR66Handler;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -79,8 +79,8 @@ public class HttpRestConfigR66Handler extends HttpRestAbstractR66Handler {
 		// now action according to body
 		JsonPacket json = (JsonPacket) body;
 		if (json == null) {
-			result.addItem(JSON_DETAIL, "not enough information");
-			setError(handler, result, ErrorCode.CommandNotFound);
+			result.setDetail("not enough information");
+			setError(handler, result, HttpResponseStatus.BAD_REQUEST);
 			return;
 		}
 		try {
@@ -104,25 +104,25 @@ public class HttpRestConfigR66Handler extends HttpRestAbstractR66Handler {
 				if (resp.getFilerule() != null || resp.getFilehost() != null || 
 						resp.getFilebusiness() != null || resp.getFilealias() != null || 
 								resp.getFileroles() != null) {
-					setOk(handler, result, resp, ErrorCode.CompleteOk);
+					setOk(handler, result, resp, HttpResponseStatus.OK);
 				} else {
-					result.addItem(JSON_DETAIL, "Export configuration in error");
-					setError(handler, result, resp, ErrorCode.TransferError);
+					result.setDetail("Export configuration in error");
+					setError(handler, result, resp, HttpResponseStatus.NOT_ACCEPTABLE);
 				}
 			} else if (json instanceof ConfigImportJsonPacket && arguments.getMethod() == METHOD.PUT) {//
 				ConfigImportResponseJsonPacket resp = serverHandler.configImport((ConfigImportJsonPacket) json);
 				if (resp.isImportedhost() || resp.isImportedrule() || 
 						resp.isImportedbusiness() || resp.isImportedalias() || 
 						resp.isImportedroles()) {
-					setOk(handler, result, resp, ErrorCode.CompleteOk);
+					setOk(handler, result, resp, HttpResponseStatus.OK);
 				} else {
-					result.addItem(JSON_DETAIL, "Import configuration in error");
-					setError(handler, result, resp, ErrorCode.TransferError);
+					result.setDetail("Import configuration in error");
+					setError(handler, result, resp, HttpResponseStatus.NOT_ACCEPTABLE);
 				}
 			} else {
 				logger.info("Validation is ignored: " + json);
-				result.addItem(JSON_DETAIL, "Unknown command");
-				setError(handler, result, json, ErrorCode.Unknown);
+				result.setDetail("Unknown command");
+				setError(handler, result, json, HttpResponseStatus.PRECONDITION_FAILED);
 			}
 		} catch (OpenR66ProtocolNotAuthenticatedException e) {
 			throw new HttpInvalidAuthenticationException(e);
@@ -134,20 +134,15 @@ public class HttpRestConfigR66Handler extends HttpRestAbstractR66Handler {
 	protected ArrayNode getDetailedAllow() {
 		ArrayNode node = JsonHandler.createArrayNode();
 		
-		ObjectNode node2 = node.addObject().putObject(METHOD.GET.name());
-		node2.put(RestArgument.JSON_PATH, "/"+this.path);
-		node2.put(RestArgument.JSON_COMMAND, "ExportConfig");
 		ConfigExportJsonPacket node3 = new ConfigExportJsonPacket();
 		node3.setComment("ConfigExport request (GET)");
-		node2 = node2.putObject(RestArgument.JSON_JSON);
+		ObjectNode node2;
 		try {
-			node2.putAll(node3.createObjectNode());
-		} catch (OpenR66ProtocolPacketException e) {
+			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, "ExportConfig", node3.createObjectNode());
+			node.add(node2);
+		} catch (OpenR66ProtocolPacketException e1) {
 		}
-
-		node2 = node.addObject().putObject(METHOD.PUT.name());
-		node2.put(RestArgument.JSON_PATH, "/"+this.path);
-		node2.put(RestArgument.JSON_COMMAND, "ImportConfig");
+		
 		ConfigImportJsonPacket node4 = new ConfigImportJsonPacket();
 		node4.setComment("ConfigImport request (PUT) where items are either set through transfer Id, either set directly with a filename");
 		node4.setAlias("AliasFilename if not through TransferId");
@@ -155,15 +150,14 @@ public class HttpRestConfigR66Handler extends HttpRestAbstractR66Handler {
 		node4.setHost("HostFilename if not through TransferId");
 		node4.setRoles("RolesFilename if not through TransferId");
 		node4.setRule("RuleFilename if not through TransferId");
-		node2 = node2.putObject(RestArgument.JSON_JSON);
 		try {
-			node2.putAll(node4.createObjectNode());
-		} catch (OpenR66ProtocolPacketException e) {
+			node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, "ImportConfig", node4.createObjectNode());
+			node.add(node2);
+		} catch (OpenR66ProtocolPacketException e1) {
 		}
 		
-		node2 = node.addObject().putObject(METHOD.OPTIONS.name());
-		node2.put(RestArgument.JSON_COMMAND, COMMAND_TYPE.OPTIONS.name());
-		node2.put(RestArgument.JSON_PATH, "/"+this.path);
+		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null);
+		node.add(node2);
 
 		return node;
 	}

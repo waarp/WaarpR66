@@ -18,7 +18,7 @@
    You should have received a copy of the GNU General Public License
    along with Waarp .  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.waarp.openr66.protocol.localhandler.rest.handler;
+package org.waarp.openr66.protocol.http.rest.handler;
 
 import org.waarp.common.database.DbPreparedStatement;
 import org.waarp.common.database.data.DbValue;
@@ -35,12 +35,14 @@ import org.waarp.gateway.kernel.rest.RestArgument;
 import org.waarp.gateway.kernel.rest.HttpRestHandler.METHOD;
 import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbHostConfiguration;
+import org.waarp.openr66.database.data.DbHostConfiguration.Columns;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
+ * DbHostConfiguration Rest handler
  * @author "Frederic Bregier"
  *
  */
@@ -68,9 +70,10 @@ public class DbHostConfigurationR66RestMethodHandler extends DataModelRestMethod
 	protected DbHostConfiguration getItem(HttpRestHandler handler, RestArgument arguments,
 			RestArgument result, Object body) throws HttpIncorrectRequestException,
 			HttpInvalidAuthenticationException, HttpNotFoundRequestException {
-		ObjectNode arg = arguments.getBody();
+		ObjectNode arg = arguments.getUriArgs().deepCopy();
+		arg.putAll(arguments.getBody());
 		try {
-			JsonNode node = arg.path(JSON_ID);
+			JsonNode node = RestArgument.getId(arg);
 			String id;
 			if (node.isMissingNode()) {
 				// shall not be but continue however
@@ -80,7 +83,7 @@ public class DbHostConfigurationR66RestMethodHandler extends DataModelRestMethod
 			}
 			return new DbHostConfiguration(DbConstant.admin.session, id);
 		} catch (WaarpDatabaseException e) {
-			throw new HttpNotFoundRequestException("Issue while reading from database", e);
+			throw new HttpNotFoundRequestException("Issue while reading from database "+arg, e);
 		}
 	}
 
@@ -88,7 +91,8 @@ public class DbHostConfigurationR66RestMethodHandler extends DataModelRestMethod
 	protected DbHostConfiguration createItem(HttpRestHandler handler, RestArgument arguments,
 			RestArgument result, Object body) throws HttpIncorrectRequestException,
 			HttpInvalidAuthenticationException {
-		ObjectNode arg = arguments.getBody();
+		ObjectNode arg = arguments.getUriArgs().deepCopy();
+		arg.putAll(arguments.getBody());
 		try {
 			return new DbHostConfiguration(DbConstant.admin.session, arg);
 		} catch (WaarpDatabaseException e) {
@@ -100,7 +104,8 @@ public class DbHostConfigurationR66RestMethodHandler extends DataModelRestMethod
 	protected DbPreparedStatement getPreparedStatement(HttpRestHandler handler,
 			RestArgument arguments, RestArgument result, Object body)
 			throws HttpIncorrectRequestException, HttpInvalidAuthenticationException {
-		ObjectNode arg = arguments.getUriArgs();
+		ObjectNode arg = arguments.getUriArgs().deepCopy();
+		arg.putAll(arguments.getBody());
 		String hostid = arg.path(FILTER_ARGS.HOSTID.name()).asText();
 		if (hostid == null || hostid.isEmpty()) {
 			hostid = null;
@@ -147,47 +152,54 @@ public class DbHostConfigurationR66RestMethodHandler extends DataModelRestMethod
 	protected ArrayNode getDetailedAllow() {
 		ArrayNode node = JsonHandler.createArrayNode();
 		
-		ObjectNode node2 = node.addObject().putObject(METHOD.GET.name());
-		node2.put(RestArgument.JSON_COMMAND, COMMAND_TYPE.GET.name());
-		node2.put(RestArgument.JSON_PATH, "/"+this.path+"/id");
-		node2.put(DbHostConfiguration.Columns.HOSTID.name(), "HostId in URI as "+this.path+"/id"); 
+		ObjectNode node2;
+		node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path+"/id", COMMAND_TYPE.GET.name(), 
+				JsonHandler.createObjectNode().put(DbHostConfiguration.Columns.HOSTID.name(), "HostId as VARCHAR in URI as "+this.path+"/id"));
+		node.add(node2);
 
-		node2 = node.addObject().putObject(METHOD.GET.name());
-		node2.put(RestArgument.JSON_COMMAND, COMMAND_TYPE.MULTIGET.name());
-		node2.put(RestArgument.JSON_PATH, "/"+this.path);
-		node2 = node2.putObject(RestArgument.JSON_JSON);
+		ObjectNode node3 = JsonHandler.createObjectNode();
 		for (FILTER_ARGS arg : FILTER_ARGS.values()) {
-			node2.put(arg.name(), arg.type);
+			node3.put(arg.name(), arg.type);
 		}
-		
-		node2 = node.addObject().putObject(METHOD.PUT.name());
-		node2.put(RestArgument.JSON_COMMAND, COMMAND_TYPE.UPDATE.name());
-		node2.put(RestArgument.JSON_PATH, "/"+this.path+"/id");
-		node2.put(DbHostConfiguration.Columns.HOSTID.name(), "HostId in URI as "+this.path+"/id"); 
-		node2 = node2.putObject(RestArgument.JSON_JSON);
+		node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, COMMAND_TYPE.MULTIGET.name(), 
+				node3);
+		node.add(node2);
+
+		node3 = JsonHandler.createObjectNode();
+		node3.put(DbHostConfiguration.Columns.HOSTID.name(), "HostId as VARCHAR in URI as "+this.path+"/id"); 
 		DbValue []values = DbHostConfiguration.getAllType();
 		for (DbValue dbValue : values) {
-			node2.put(dbValue.column, dbValue.getType());
+			if (dbValue.column.equalsIgnoreCase(DbHostConfiguration.Columns.HOSTID.name())) {
+				continue;
+			}
+			node3.put(dbValue.column, dbValue.getType());
 		}
+		node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path+"/id", COMMAND_TYPE.UPDATE.name(), 
+				node3);
+		node.add(node2);
 		
-		node2 = node.addObject().putObject(METHOD.DELETE.name());
-		node2.put(RestArgument.JSON_COMMAND, COMMAND_TYPE.DELETE.name());
-		node2.put(RestArgument.JSON_PATH, "/"+this.path+"/id");
-		node2.put(DbHostConfiguration.Columns.HOSTID.name(), "HostId in URI as "+this.path+"/id"); 
-		
-		node2 = node.addObject().putObject(METHOD.POST.name());
-		node2.put(RestArgument.JSON_COMMAND, COMMAND_TYPE.CREATE.name());
-		node2.put(RestArgument.JSON_PATH, "/"+this.path);
-		node2 = node2.putObject(RestArgument.JSON_JSON);
+		node3 = JsonHandler.createObjectNode();
+		node3.put(DbHostConfiguration.Columns.HOSTID.name(), "HostId as VARCHAR in URI as "+this.path+"/id"); 
+		node2 = RestArgument.fillDetailedAllow(METHOD.DELETE, this.path+"/id", COMMAND_TYPE.DELETE.name(), 
+				node3);
+		node.add(node2);
+
+		node3 = JsonHandler.createObjectNode();
 		for (DbValue dbValue : values) {
-			node2.put(dbValue.column, dbValue.getType());
+			node3.put(dbValue.column, dbValue.getType());
 		}
-		
-		node2 = node.addObject().putObject(METHOD.OPTIONS.name());
-		node2.put(RestArgument.JSON_COMMAND, COMMAND_TYPE.OPTIONS.name());
-		node2.put(RestArgument.JSON_PATH, "/"+this.path);
+		node2 = RestArgument.fillDetailedAllow(METHOD.POST, this.path, COMMAND_TYPE.CREATE.name(), 
+				node3);
+		node.add(node2);
+				
+		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null);
+		node.add(node2);
 
 		return node;
+	}
+	@Override
+	public String getPrimaryPropertyName() {
+		return Columns.HOSTID.name();
 	}
 
 }
