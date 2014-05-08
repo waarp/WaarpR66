@@ -95,6 +95,11 @@ public class HttpRestBandwidthR66Handler extends HttpRestAbstractR66Handler {
 					setError(handler, result, HttpResponseStatus.CONFLICT);
 					return;
 				}
+				if (setter) {
+					result.setCommand(ACTIONS_TYPE.SetBandwidth.name());
+				} else {
+					result.setCommand(ACTIONS_TYPE.GetBandwidth.name());
+				}
 				// request of current values or set new values
 				long [] lresult = serverHandler.bandwidth(setter, 
 						node.getWriteglobal(), node.getReadglobal(),
@@ -122,14 +127,14 @@ public class HttpRestBandwidthR66Handler extends HttpRestAbstractR66Handler {
 		node3.setComment("Bandwidth getter (GET)");
 		ObjectNode node2;
 		try {
-			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, "GetBandwidth", node3.createObjectNode());
+			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.GetBandwidth.name(), node3.createObjectNode());
 			node.add(node2);
 		} catch (OpenR66ProtocolPacketException e1) {
 		}
 		
 		node3.setComment("Bandwidth setter (PUT)");
 		try {
-			node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, "SetBandwidth", node3.createObjectNode());
+			node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, ACTIONS_TYPE.SetBandwidth.name(), node3.createObjectNode());
 			node.add(node2);
 		} catch (OpenR66ProtocolPacketException e1) {
 		}

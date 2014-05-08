@@ -97,6 +97,11 @@ public class HttpRestTransferR66Handler extends HttpRestAbstractR66Handler {
 		try {
 			if (json instanceof InformationJsonPacket && method == METHOD.GET) {//
 				InformationJsonPacket node = (InformationJsonPacket) json;
+				if (node.isIdRequest()) {
+					result.setCommand(ACTIONS_TYPE.GetTransferInformation.name());
+				} else {
+					result.setCommand(ACTIONS_TYPE.GetInformation.name());
+				}
 				ValidPacket validPacket = serverHandler.information(node.isIdRequest(), node.getId(), node.isTo(), node.getRequest(), node.getRulename(), node.getFilename(), true);
 				if (validPacket != null) {
 					ObjectNode resp = JsonHandler.getFromString(validPacket.getSheader());
@@ -108,6 +113,7 @@ public class HttpRestTransferR66Handler extends HttpRestAbstractR66Handler {
 					setError(handler, result, HttpResponseStatus.NOT_ACCEPTABLE);
 				}
 			} else if (json instanceof RestartTransferJsonPacket && method == METHOD.PUT) {//
+				result.setCommand(ACTIONS_TYPE.RestartTransfer.name());
 				RestartTransferJsonPacket node = (RestartTransferJsonPacket) json;
 				R66Result r66result = serverHandler.requestRestart(node.getRequested(), node.getRequester(), node.getSpecialid(), node.getRestarttime());
 				if (serverHandler.isCodeValid(r66result.code)) {
@@ -118,6 +124,7 @@ public class HttpRestTransferR66Handler extends HttpRestAbstractR66Handler {
 					setError(handler, result, node, HttpResponseStatus.NOT_ACCEPTABLE);
 				}
 			} else if (json instanceof StopOrCancelJsonPacket && method == METHOD.PUT) {//
+				result.setCommand(ACTIONS_TYPE.StopOrCancelTransfer.name());
 				StopOrCancelJsonPacket node = (StopOrCancelJsonPacket) json;
 				R66Result resulttest;
 				if (node.getRequested() == null || node.getRequester() == null || node.getSpecialid() == DbConstant.ILLEGALVALUE) {
@@ -135,6 +142,7 @@ public class HttpRestTransferR66Handler extends HttpRestAbstractR66Handler {
 					setOk(handler, result, node, HttpResponseStatus.OK);
 				}
 			} else if (json instanceof TransferRequestJsonPacket && method == METHOD.POST) {
+				result.setCommand(ACTIONS_TYPE.CreateTransfer.name());
 				TransferRequestJsonPacket node = (TransferRequestJsonPacket) json;
 				R66Result r66result = serverHandler.transferRequest(node);
 				if (serverHandler.isCodeValid(r66result.code)) {
@@ -165,7 +173,7 @@ public class HttpRestTransferR66Handler extends HttpRestAbstractR66Handler {
 		node3.setComment("Information on Transfer request (GET)");
 		ObjectNode node2;
 		try {
-			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, "GetTransferInformation", node3.createObjectNode());
+			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.GetTransferInformation.name(), node3.createObjectNode());
 			node.add(node2);
 		} catch (OpenR66ProtocolPacketException e1) {
 		}
@@ -176,7 +184,7 @@ public class HttpRestTransferR66Handler extends HttpRestAbstractR66Handler {
 		node4.setRequester("Requester host");
 		node4.setRestarttime(new Date());
 		try {
-			node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, "RestartTransfer", node4.createObjectNode());
+			node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, ACTIONS_TYPE.RestartTransfer.name(), node4.createObjectNode());
 			node.add(node2);
 		} catch (OpenR66ProtocolPacketException e1) {
 		}
@@ -186,7 +194,7 @@ public class HttpRestTransferR66Handler extends HttpRestAbstractR66Handler {
 		node5.setRequested("Requested host");
 		node5.setRequester("Requester host");
 		try {
-			node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, "StopOrCancelTransfer", node5.createObjectNode());
+			node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, ACTIONS_TYPE.StopOrCancelTransfer.name(), node5.createObjectNode());
 			node.add(node2);
 		} catch (OpenR66ProtocolPacketException e1) {
 		}
@@ -199,7 +207,7 @@ public class HttpRestTransferR66Handler extends HttpRestAbstractR66Handler {
 		node6.setRulename("Rulename");
 		node6.setStart(new Date());
 		try {
-			node2 = RestArgument.fillDetailedAllow(METHOD.POST, this.path, "CreateTransfer", node6.createObjectNode());
+			node2 = RestArgument.fillDetailedAllow(METHOD.POST, this.path, ACTIONS_TYPE.CreateTransfer.name(), node6.createObjectNode());
 			node.add(node2);
 		} catch (OpenR66ProtocolPacketException e1) {
 		}

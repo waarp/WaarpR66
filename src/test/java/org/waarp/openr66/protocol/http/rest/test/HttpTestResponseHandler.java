@@ -19,6 +19,7 @@ import java.net.ConnectException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -29,6 +30,7 @@ import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.handler.codec.http.HttpChunk;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
+import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.waarp.common.crypto.ssl.WaarpSslUtility;
@@ -41,20 +43,26 @@ import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.rest.RestArgument;
 import org.waarp.gateway.kernel.rest.RootOptionsRestMethodHandler;
 import org.waarp.gateway.kernel.rest.DataModelRestMethodHandler.COMMAND_TYPE;
+import org.waarp.gateway.kernel.rest.client.RestFuture;
+import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler.RESTHANDLERS;
+import org.waarp.openr66.protocol.http.rest.handler.HttpRestAbstractR66Handler.ACTIONS_TYPE;
+import org.waarp.openr66.protocol.localhandler.packet.json.InformationJsonPacket;
+import org.waarp.openr66.protocol.localhandler.packet.json.JsonPacket;
+import org.waarp.openr66.protocol.localhandler.packet.json.TransferRequestJsonPacket;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- * 
+ * Test Rest client response handler
  * @author Frederic Bregier
  */
-public class HttpResponseHandler extends SimpleChannelUpstreamHandler {
+public class HttpTestResponseHandler extends SimpleChannelUpstreamHandler {
 	/**
      * Internal Logger
      */
     private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
-            .getLogger(HttpResponseHandler.class);
+            .getLogger(HttpTestResponseHandler.class);
     
     private volatile boolean readingChunks;
     private ChannelBuffer cumulativeBody = null;
@@ -80,13 +88,15 @@ public class HttpResponseHandler extends SimpleChannelUpstreamHandler {
         }
     }
     
-    protected void actionFromResponse(Channel channel) {
-    	HttpRestR66TestClient.count.incrementAndGet();
+    protected void actionFromResponse(Channel channel) throws HttpInvalidAuthenticationException {
+    	HttpTestRestR66Client.count.incrementAndGet();
     	boolean newMessage = false;
     	RestArgument ra = new RestArgument((ObjectNode) jsonObject);
-    	if (HttpRestR66TestClient.DEBUG && jsonObject == null) {
+    	if (HttpTestRestR66Client.DEBUG && jsonObject == null) {
     		logger.warn("Recv: EMPTY");
     	}
+    	// set the result as the "last" Json received
+    	((RestFuture) channel.getAttachment()).setRestArgument(ra);
     	switch (ra.getMethod()) {
 			case CONNECT:
 				break;
@@ -117,93 +127,194 @@ public class HttpResponseHandler extends SimpleChannelUpstreamHandler {
     	}
         if (! newMessage && channel.isConnected()) {
             logger.debug("Will close");
-        	WaarpSslUtility.closingSslChannel(channel);
+            // finalize the future only in Final success or Final error: when closing channel
+            ((RestFuture) channel.getAttachment()).setSuccess();
+            WaarpSslUtility.closingSslChannel(channel);
         }
     }
     
-    protected boolean get(Channel channel, RestArgument ra) {
+    protected boolean action(Channel channel, RestArgument ra, ACTIONS_TYPE act) {
     	boolean newMessage = false;
-    	if (HttpRestR66TestClient.DEBUG) {
+    	switch (act) {
+			case CreateTransfer: {
+				// Continue with GetTransferInformation
+				TransferRequestJsonPacket recv;
+				try {
+					recv = (TransferRequestJsonPacket) JsonPacket.createFromBuffer(ra.getAnswer().toString());
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					return newMessage;
+				}
+				InformationJsonPacket node = new InformationJsonPacket();
+				node.setRequestUserPacket();
+				node.setId(recv.getSpecialId());
+				node.setRulename(recv.getRequested());
+				node.setIdRequest(true);
+				HttpTestRestR66Client.action(channel, HttpMethod.GET, RESTHANDLERS.Transfer.uri, node);
+				newMessage = true;
+				break;
+			}
+			case ExecuteBusiness:
+				// End
+				break;
+			case ExportConfig:
+				// no Import in automatic test
+				break;
+			case GetBandwidth:
+				// End
+				break;
+			case GetInformation:
+				// End
+				break;
+			case GetLog:
+				// End
+				break;
+			case GetTransferInformation:
+				// Continue with Stop in StopOrCancelTransfer
+				break;
+			case ImportConfig:
+				// End
+				break;
+			case OPTIONS:
+				break;
+			case RestartTransfer:
+				// End
+				break;
+			case SetBandwidth:
+				// Continue with GetBandwidth
+				break;
+			case ShutdownOrBlock:
+				// End
+				break;
+			case StopOrCancelTransfer:
+				// Continue with RestartTransfer
+				break;
+			default:
+				break;
+    		
+    	}
+    	return newMessage;
+    }
+    
+    protected boolean get(Channel channel, RestArgument ra) throws HttpInvalidAuthenticationException {
+    	boolean newMessage = false;
+    	if (HttpTestRestR66Client.DEBUG) {
     		logger.warn(ra.prettyPrint());
     	}
     	if (ra.getCommand() == COMMAND_TYPE.GET) {
 	    	// Update 1
-	    	try {
-				HttpRestR66TestClient.updateData(channel, ra);
-		    	newMessage = true;
-			} catch (HttpInvalidAuthenticationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			HttpTestRestR66Client.updateData(channel, ra);
+	    	newMessage = true;
+    	} else {
+    		String cmd = ra.getCommandField();
+    		try {
+    			ACTIONS_TYPE act = ACTIONS_TYPE.valueOf(cmd);
+    			return action(channel, ra, act);
+    		} catch (Exception e) {
+    			return newMessage;
+    		}
     	}
     	return newMessage;
     }
     
-    protected boolean put(Channel channel, RestArgument ra) {
+    protected boolean put(Channel channel, RestArgument ra) throws HttpInvalidAuthenticationException {
     	boolean newMessage = false;
-    	if (HttpRestR66TestClient.DEBUG) {
+    	if (HttpTestRestR66Client.DEBUG) {
     		logger.warn(ra.prettyPrint());
     	}
-    	// Delete 1
-    	try {
-			HttpRestR66TestClient.deleteData(channel, ra);
+    	if (ra.getCommand() == COMMAND_TYPE.UPDATE) {
+	    	// Delete 1
+			HttpTestRestR66Client.deleteData(channel, ra);
 	    	newMessage = true;
-		} catch (HttpInvalidAuthenticationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} else {
+			String cmd = ra.getCommandField();
+			try {
+				ACTIONS_TYPE act = ACTIONS_TYPE.valueOf(cmd);
+				return action(channel, ra, act);
+			} catch (Exception e) {
+				return newMessage;
+			}
 		}
     	return newMessage;
     }
 
-    protected boolean post(Channel channel, RestArgument ra) {
+    protected boolean post(Channel channel, RestArgument ra) throws HttpInvalidAuthenticationException {
     	boolean newMessage = false;
-    	if (HttpRestR66TestClient.DEBUG) {
+    	if (HttpTestRestR66Client.DEBUG) {
     		logger.warn(ra.prettyPrint());
     	}
-    	// Select 1
-    	try {
-			HttpRestR66TestClient.readData(channel, ra);
+    	if (ra.getCommand() == COMMAND_TYPE.CREATE) {
+	    	// Select 1
+			HttpTestRestR66Client.readData(channel, ra);
 	    	newMessage = true;
-		} catch (HttpInvalidAuthenticationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} else {
+			String cmd = ra.getCommandField();
+			try {
+				ACTIONS_TYPE act = ACTIONS_TYPE.valueOf(cmd);
+				return action(channel, ra, act);
+			} catch (Exception e) {
+				return newMessage;
+			}
 		}
     	return newMessage;
     }
     
     protected boolean delete(Channel channel, RestArgument ra) {
     	boolean newMessage = false;
-    	if (HttpRestR66TestClient.DEBUG) {
+    	if (HttpTestRestR66Client.DEBUG) {
     		logger.warn(ra.prettyPrint());
     	}
+    	if (ra.getCommand() == COMMAND_TYPE.DELETE) {
+		} else {
+			String cmd = ra.getCommandField();
+			try {
+				ACTIONS_TYPE act = ACTIONS_TYPE.valueOf(cmd);
+				return action(channel, ra, act);
+			} catch (Exception e) {
+				return newMessage;
+			}
+		}
     	return newMessage;
     }
     
-    protected boolean options(Channel channel, RestArgument ra) {
+    protected boolean options(Channel channel, RestArgument ra) throws HttpInvalidAuthenticationException {
     	boolean newMessage = false;
-    	JsonNode node = ra.getDetailedAllowOption();
-    	if (! node.isMissingNode()) {
-	    	for (JsonNode jsonNode : node) {
-				Iterator<String> iterator = jsonNode.fieldNames();
-				while (iterator.hasNext()) {
-					String name = iterator.next();
-					if (! jsonNode.path(name).path(RestArgument.REST_FIELD.JSON_PATH.field).isMissingNode()) {
-						break;
-					}
-					if (name.equals(RootOptionsRestMethodHandler.ROOT)) {
-						continue;
-					}
-					try {
-						HttpRestR66TestClient.options(channel, name);
+    	AtomicInteger counter = null;
+    	RestFuture future = (RestFuture) channel.getAttachment();
+    	if (future.getOtherObject() == null) {
+    		counter = new AtomicInteger();
+    		future.setOtherObject(counter);
+        	JsonNode node = ra.getDetailedAllowOption();
+	    	if (! node.isMissingNode()) {
+		    	for (JsonNode jsonNode : node) {
+					Iterator<String> iterator = jsonNode.fieldNames();
+					while (iterator.hasNext()) {
+						String name = iterator.next();
+						if (! jsonNode.path(name).path(RestArgument.REST_FIELD.JSON_PATH.field).isMissingNode()) {
+							break;
+						}
+						if (name.equals(RootOptionsRestMethodHandler.ROOT)) {
+							continue;
+						}
+						counter.incrementAndGet();
+						HttpTestRestR66Client.options(channel, name);
 				    	newMessage = true;
-					} catch (HttpInvalidAuthenticationException e) {
-						logger.error("Not authenticated", e);
 					}
 				}
-			}
+	    	}
     	}
-    	if (HttpRestR66TestClient.DEBUG) {
+    	if (! newMessage) {
+    		counter = (AtomicInteger) future.getOtherObject();
+    		newMessage = counter.decrementAndGet() > 0;
+    		if (! newMessage) {
+    			future.setOtherObject(null);
+    		}
+    	}
+    	if (HttpTestRestR66Client.DEBUG) {
     		logger.warn(ra.prettyPrint());
+    	} else {
+    		logger.debug("Options received: "+ra.getBaseUri()+":"+counter);
     	}
     	return newMessage;
     }
@@ -221,13 +332,16 @@ public class HttpResponseHandler extends SimpleChannelUpstreamHandler {
             if (response.getStatus().getCode() == 200 && response.isChunked()) {
                 readingChunks = true;
             } else if (response.getStatus().getCode() != 200) {
-                logger.error(" Error: "+response.getStatus().getCode());
                 addContent(response);
-                if (HttpRestR66TestClient.DEBUG && jsonObject != null) {
+                if (HttpTestRestR66Client.DEBUG && jsonObject != null) {
                     RestArgument ra = new RestArgument((ObjectNode) jsonObject);
+                    ((RestFuture) e.getChannel().getAttachment()).setRestArgument(ra);
                     logger.warn(ra.prettyPrint());
+            	} else {
+                    logger.error("Error: "+response.getStatus().getCode());
             	}
-                HttpRestR66TestClient.count.incrementAndGet();
+                HttpTestRestR66Client.count.incrementAndGet();
+                ((RestFuture) e.getChannel().getAttachment()).cancel();
             	if (e.getChannel().isConnected()) {
                     logger.debug("Will close");
                 	WaarpSslUtility.closingSslChannel(e.getChannel());
@@ -281,16 +395,18 @@ public class HttpResponseHandler extends SimpleChannelUpstreamHandler {
             throws Exception {
         if (e.getCause() instanceof ClosedChannelException) {
         	logger.debug("Close before ending");
+        	((RestFuture) e.getChannel().getAttachment()).setFailure(e.getCause());
             return;
         } else if (e.getCause() instanceof ConnectException) {
-            System.err.println("Connection refused");
             if (ctx.getChannel().isConnected()) {
             	logger.debug("Will close");
+            	((RestFuture) e.getChannel().getAttachment()).setFailure(e.getCause());
             	WaarpSslUtility.closingSslChannel(e.getChannel());
             }
             return;
         }
         e.getCause().printStackTrace();
+        ((RestFuture) e.getChannel().getAttachment()).setFailure(e.getCause());
         logger.debug("Will close");
         WaarpSslUtility.closingSslChannel(e.getChannel());
     }

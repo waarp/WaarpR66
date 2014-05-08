@@ -92,6 +92,7 @@ public class HttpRestServerR66Handler extends HttpRestAbstractR66Handler {
 		try {
 			if (json instanceof ShutdownOrBlockJsonPacket) {//
 				ShutdownOrBlockJsonPacket node = (ShutdownOrBlockJsonPacket) json;
+				result.setCommand(ACTIONS_TYPE.ShutdownOrBlock.name());
 				if (node.isShutdownOrBlock()) {
 					// Shutdown
 					session.newState(SHUTDOWN);
@@ -130,7 +131,7 @@ public class HttpRestServerR66Handler extends HttpRestAbstractR66Handler {
 		node3.setKey("Key".getBytes(WaarpStringUtils.UTF8));
 		ObjectNode node2;
 		try {
-			node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, "ShutdownOrBlock", node3.createObjectNode());
+			node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, ACTIONS_TYPE.ShutdownOrBlock.name(), node3.createObjectNode());
 			node.add(node2);
 		} catch (OpenR66ProtocolPacketException e1) {
 		}

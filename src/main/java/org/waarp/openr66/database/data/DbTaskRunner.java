@@ -742,6 +742,32 @@ public class DbTaskRunner extends AbstractDbData {
 		select();
 		updateUsed(specialId);
 	}
+	/**
+	 * Minimal constructor from database
+	 * @param dbSession
+	 * @param id
+	 * @param requester
+	 * @param requested
+	 * @throws WaarpDatabaseException
+	 */
+	public DbTaskRunner(DbSession dbSession, long id, String requester, String requested, String owner)
+			throws WaarpDatabaseException {
+		super(dbSession);
+		specialId = id;
+		// retrieving a task should be made from the requester, but the caller
+		// is responsible of this
+		requestedHostId = requested;
+		requesterHostId = requester;
+		// might be not itself
+		if (owner == null || owner.isEmpty()) {
+			ownerRequest = Configuration.configuration.HOST_ID;
+		} else {
+			ownerRequest = owner;
+		}
+
+		select();
+		updateUsed(specialId);
+	}
 
 	/**
 	 * To create a new DbTaskRunner (specialId could be invalid) without making any entry in the database
@@ -1185,7 +1211,11 @@ public class DbTaskRunner extends AbstractDbData {
 		}
 		super.select();
 		if (rule == null) {
-			rule = new DbRule(this.dbSession, ruleId);
+			try {
+				rule = new DbRule(this.dbSession, ruleId);
+			} catch (WaarpDatabaseNoDataException e) {
+				// ignore
+			}
 		}
 		checkThroughMode();
 	}
@@ -1338,6 +1368,34 @@ public class DbTaskRunner extends AbstractDbData {
 		if (dbTaskRunner.rule == null) {
 			try {
 				dbTaskRunner.rule = new DbRule(dbTaskRunner.dbSession, dbTaskRunner.ruleId);
+			} catch (WaarpDatabaseException e) {
+				throw new WaarpDatabaseSqlException(e);
+			}
+		}
+		dbTaskRunner.checkThroughMode();
+		dbTaskRunner.isSaved = true;
+		return dbTaskRunner;
+	}
+	/**
+	 * For REST interface, to prevent DbRule issue
+	 * 
+	 * @param preparedStatement
+	 * @return the next updated DbTaskRunner
+	 * @throws WaarpDatabaseNoConnectionException
+	 * @throws WaarpDatabaseSqlException
+	 */
+	public static DbTaskRunner getFromStatementNoDbRule(
+			DbPreparedStatement preparedStatement)
+			throws WaarpDatabaseNoConnectionException, WaarpDatabaseSqlException {
+		DbTaskRunner dbTaskRunner = new DbTaskRunner(preparedStatement
+				.getDbSession());
+		dbTaskRunner.getValues(preparedStatement, dbTaskRunner.allFields);
+		dbTaskRunner.setFromArray();
+		if (dbTaskRunner.rule == null) {
+			try {
+				dbTaskRunner.rule = new DbRule(dbTaskRunner.dbSession, dbTaskRunner.ruleId);
+			} catch (WaarpDatabaseNoDataException e) {
+				// ignore
 			} catch (WaarpDatabaseException e) {
 				throw new WaarpDatabaseSqlException(e);
 			}
@@ -1649,14 +1707,52 @@ public class DbTaskRunner extends AbstractDbData {
 			String req, boolean pending, boolean transfer, boolean error,
 			boolean done, boolean all) throws WaarpDatabaseNoConnectionException,
 			WaarpDatabaseSqlException {
+		return getFilterPrepareStatement(session, limit, orderBySpecialId, startid, stopid, start, stop, rule, req, pending, transfer, error, done, all,
+				null);
+	}
+	/**
+	 * 
+	 * @param session
+	 * @param limit
+	 * @param orderBySpecialId
+	 * @param startid
+	 * @param stopid
+	 * @param start
+	 * @param stop
+	 * @param rule
+	 * @param req
+	 * @param pending
+	 * @param transfer
+	 * @param error
+	 * @param done
+	 * @param all
+	 * @param owner
+	 * @return the DbPreparedStatement according to the filter
+	 * @throws WaarpDatabaseNoConnectionException
+	 * @throws WaarpDatabaseSqlException
+	 */
+	public static DbPreparedStatement getFilterPrepareStatement(
+			DbSession session, int limit, boolean orderBySpecialId, String startid, String stopid,
+			Timestamp start, Timestamp stop, String rule,
+			String req, boolean pending, boolean transfer, boolean error,
+			boolean done, boolean all, String owner) throws WaarpDatabaseNoConnectionException,
+			WaarpDatabaseSqlException {
 		DbPreparedStatement preparedStatement = new DbPreparedStatement(session);
 		String request = "SELECT " + selectAllFields + " FROM " + table;
 		String orderby;
 		if (startid == null && stopid == null &&
 				start == null && stop == null && rule == null && req == null && all) {
-			orderby = " WHERE " + getLimitWhereCondition();
+			if (owner == null || owner.isEmpty()) {
+				orderby = " WHERE " + getLimitWhereCondition();
+			} else {
+				orderby = " WHERE " + Columns.OWNERREQ + " = '" + owner + "' ";
+			}
 		} else {
-			orderby = " AND " + getLimitWhereCondition();
+			if (owner == null || owner.isEmpty()) {
+				orderby = " AND " + getLimitWhereCondition();
+			} else {
+				orderby = " AND " + Columns.OWNERREQ + " = '" + owner + "' ";
+			}
 		}
 		if (orderBySpecialId) {
 			orderby += " ORDER BY " + Columns.SPECIALID.name() + " DESC ";

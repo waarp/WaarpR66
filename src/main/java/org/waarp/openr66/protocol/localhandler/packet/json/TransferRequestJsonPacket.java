@@ -28,7 +28,7 @@ import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 
 
 /**
- * File name or size changing Request JSON packet
+ * Transfer request JSON packet
  * @author "Frederic Bregier"
  *
  */
@@ -274,7 +274,10 @@ public class TransferRequestJsonPacket extends JsonPacket {
 	public void setSeparator(String separator) {
 		this.separator = separator;
 	}
-	
+	/**
+	 * Update the JsonPacket from runner (blocksize, rank, specialid)
+	 * @param runner
+	 */
 	public void setFromDbTaskRunner(DbTaskRunner runner) {
 		this.blocksize = runner.getBlocksize();
 		this.rank = runner.getRank();

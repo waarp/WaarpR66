@@ -85,6 +85,7 @@ public class HttpRestLogR66Handler extends HttpRestAbstractR66Handler {
 		}
 		try {
 			if (json instanceof LogJsonPacket) {//
+				result.setCommand(ACTIONS_TYPE.GetLog.name());
 				LogJsonPacket node = (LogJsonPacket) json;
 				boolean purge = node.isPurge();
 				boolean clean = node.isClean();
@@ -135,7 +136,7 @@ public class HttpRestLogR66Handler extends HttpRestAbstractR66Handler {
 		node3.setStopid("Stop id - long -");
 		ObjectNode node2;
 		try {
-			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, "GetLog", node3.createObjectNode());
+			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.GetLog.name(), node3.createObjectNode());
 			node.add(node2);
 		} catch (OpenR66ProtocolPacketException e1) {
 		}

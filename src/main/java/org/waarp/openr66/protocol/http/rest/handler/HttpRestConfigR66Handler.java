@@ -85,6 +85,7 @@ public class HttpRestConfigR66Handler extends HttpRestAbstractR66Handler {
 		}
 		try {
 			if (json instanceof ConfigExportJsonPacket && arguments.getMethod() == METHOD.GET) {//
+				result.setCommand(ACTIONS_TYPE.ExportConfig.name());
 				// host, rule, business, alias, roles
 				ConfigExportJsonPacket node = (ConfigExportJsonPacket) json;
 				boolean bhost = node.isHost();
@@ -110,6 +111,7 @@ public class HttpRestConfigR66Handler extends HttpRestAbstractR66Handler {
 					setError(handler, result, resp, HttpResponseStatus.NOT_ACCEPTABLE);
 				}
 			} else if (json instanceof ConfigImportJsonPacket && arguments.getMethod() == METHOD.PUT) {//
+				result.setCommand(ACTIONS_TYPE.ImportConfig.name());
 				ConfigImportResponseJsonPacket resp = serverHandler.configImport((ConfigImportJsonPacket) json);
 				if (resp.isImportedhost() || resp.isImportedrule() || 
 						resp.isImportedbusiness() || resp.isImportedalias() || 
@@ -138,7 +140,7 @@ public class HttpRestConfigR66Handler extends HttpRestAbstractR66Handler {
 		node3.setComment("ConfigExport request (GET)");
 		ObjectNode node2;
 		try {
-			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, "ExportConfig", node3.createObjectNode());
+			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.ExportConfig.name(), node3.createObjectNode());
 			node.add(node2);
 		} catch (OpenR66ProtocolPacketException e1) {
 		}
@@ -151,7 +153,7 @@ public class HttpRestConfigR66Handler extends HttpRestAbstractR66Handler {
 		node4.setRoles("RolesFilename if not through TransferId");
 		node4.setRule("RuleFilename if not through TransferId");
 		try {
-			node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, "ImportConfig", node4.createObjectNode());
+			node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, ACTIONS_TYPE.ImportConfig.name(), node4.createObjectNode());
 			node.add(node2);
 		} catch (OpenR66ProtocolPacketException e1) {
 		}

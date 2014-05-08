@@ -33,7 +33,6 @@ import org.waarp.gateway.kernel.rest.DataModelRestMethodHandler;
 import org.waarp.gateway.kernel.rest.HttpRestHandler;
 import org.waarp.gateway.kernel.rest.RestArgument;
 import org.waarp.gateway.kernel.rest.HttpRestHandler.METHOD;
-import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.database.data.DbHostAuth.Columns;
 
@@ -73,7 +72,6 @@ public class DbHostAuthR66RestMethodHandler extends DataModelRestMethodHandler<D
 		ObjectNode arg = arguments.getUriArgs().deepCopy();
 		arg.putAll(arguments.getBody());
 		try {
-			System.err.println(arg);
 			JsonNode node = RestArgument.getId(arg);
 			String id;
 			if (node.isMissingNode()) {
@@ -82,9 +80,9 @@ public class DbHostAuthR66RestMethodHandler extends DataModelRestMethodHandler<D
 			} else {
 				id = node.asText();
 			}
-			return new DbHostAuth(DbConstant.admin.session, id);
+			return new DbHostAuth(handler.getDbSession(), id);
 		} catch (WaarpDatabaseException e) {
-			throw new HttpNotFoundRequestException("Issue while reading from database "+arg, e);
+			throw new HttpNotFoundRequestException("Issue while reading from database "+arg+" was "+arguments, e);
 		}
 	}
 
@@ -95,7 +93,7 @@ public class DbHostAuthR66RestMethodHandler extends DataModelRestMethodHandler<D
 		ObjectNode arg = arguments.getUriArgs().deepCopy();
 		arg.putAll(arguments.getBody());
 		try {
-			return new DbHostAuth(DbConstant.admin.session, arg);
+			return new DbHostAuth(handler.getDbSession(), arg);
 		} catch (WaarpDatabaseException e) {
 			throw new HttpIncorrectRequestException("Issue while inserting into database", e);
 		}
@@ -107,7 +105,6 @@ public class DbHostAuthR66RestMethodHandler extends DataModelRestMethodHandler<D
 			throws HttpIncorrectRequestException, HttpInvalidAuthenticationException {
 		ObjectNode arg = arguments.getUriArgs().deepCopy();
 		arg.putAll(arguments.getBody());
-		System.err.println(arg);
 		String host = arg.path(FILTER_ARGS.HOSTID.name()).asText();
 		if (host == null || host.isEmpty()) {
 			host = null;
@@ -119,7 +116,7 @@ public class DbHostAuthR66RestMethodHandler extends DataModelRestMethodHandler<D
 		boolean isssl = arg.path(FILTER_ARGS.ISSSL.name()).asBoolean(false);
 		boolean isactive = arg.path(FILTER_ARGS.ISACTIVE.name()).asBoolean(false);
 		try {
-			return DbHostAuth.getFilterPrepareStament(DbConstant.admin.session, host, address, isssl, isactive);
+			return DbHostAuth.getFilterPrepareStament(handler.getDbSession(), host, address, isssl, isactive);
 		} catch (WaarpDatabaseNoConnectionException e) {
 			throw new HttpIncorrectRequestException("Issue while reading from database", e);
 		} catch (WaarpDatabaseSqlException e) {

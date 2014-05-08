@@ -2081,11 +2081,11 @@ public class ServerActions extends ConnectionActions {
 	/**
 	 * Receive a request of information (Transfer information or File listing)
 	 * 
-	 * @param isIdRequest
+	 * @param isIdRequest True for Transfer, False for file listing
 	 * @param id
-	 * @param isTo
+	 * @param isTo True for remote host is requester, False for requested (default)
 	 * @param request
-	 * @param rulename
+	 * @param rulename rulename for file, requester/requested (isTo true/false) for transfer if jsonOutput is True
 	 * @param filename
 	 * @param jsonOutput ValidPacket will contain Json format ?
 	 * @return the ValidPacket to answer containing: Transfer Information as Header, or File Listing as Header and Number of entries as Middle
@@ -2103,6 +2103,9 @@ public class ServerActions extends ConnectionActions {
 		DbSession dbSession = (localChannelReference != null) ? localChannelReference.getDbSession() : DbConstant.admin.session;
 		if (isIdRequest) {
 			String remote = session.getAuth().getUser();
+			if (jsonOutput && rulename != null && ! rulename.isEmpty()) {
+				remote = rulename;
+			}
 			String local = null;
 			try {
 				local = Configuration.configuration.getHostId(session.getAuth().isSsl());

@@ -43,7 +43,7 @@ public class InformationJsonPacket extends JsonPacket {
 		return isIdRequest;
 	}
 	/**
-	 * @param isIdRequest the isIdRequest to set
+	 * @param isIdRequest the isIdRequest to True for Transfer Request, else for File listing
 	 */
 	public void setIdRequest(boolean isIdRequest) {
 		this.isIdRequest = isIdRequest;
@@ -61,7 +61,7 @@ public class InformationJsonPacket extends JsonPacket {
 		this.id = id;
 	}
 	/**
-	 * @return the isTo
+	 * @return the isTo for Transfer, determine the way of the transfer as requester/requested (isTo true/false)
 	 */
 	public boolean isTo() {
 		return isTo;
@@ -91,7 +91,7 @@ public class InformationJsonPacket extends JsonPacket {
 		return rulename;
 	}
 	/**
-	 * @param rulename the rulename to set
+	 * @param rulename the rulename to set (if Transfer and Json requester/requested (isTo true/false))
 	 */
 	public void setRulename(String rulename) {
 		this.rulename = rulename;

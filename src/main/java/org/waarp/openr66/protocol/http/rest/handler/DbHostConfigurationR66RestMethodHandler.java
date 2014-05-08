@@ -33,7 +33,6 @@ import org.waarp.gateway.kernel.rest.DataModelRestMethodHandler;
 import org.waarp.gateway.kernel.rest.HttpRestHandler;
 import org.waarp.gateway.kernel.rest.RestArgument;
 import org.waarp.gateway.kernel.rest.HttpRestHandler.METHOD;
-import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbHostConfiguration;
 import org.waarp.openr66.database.data.DbHostConfiguration.Columns;
 
@@ -81,7 +80,7 @@ public class DbHostConfigurationR66RestMethodHandler extends DataModelRestMethod
 			} else {
 				id = node.asText();
 			}
-			return new DbHostConfiguration(DbConstant.admin.session, id);
+			return new DbHostConfiguration(handler.getDbSession(), id);
 		} catch (WaarpDatabaseException e) {
 			throw new HttpNotFoundRequestException("Issue while reading from database "+arg, e);
 		}
@@ -94,7 +93,7 @@ public class DbHostConfigurationR66RestMethodHandler extends DataModelRestMethod
 		ObjectNode arg = arguments.getUriArgs().deepCopy();
 		arg.putAll(arguments.getBody());
 		try {
-			return new DbHostConfiguration(DbConstant.admin.session, arg);
+			return new DbHostConfiguration(handler.getDbSession(), arg);
 		} catch (WaarpDatabaseException e) {
 			throw new HttpIncorrectRequestException("Issue while inserting into database", e);
 		}
@@ -127,7 +126,7 @@ public class DbHostConfigurationR66RestMethodHandler extends DataModelRestMethod
 			other = null;
 		}
 		try {
-			return DbHostConfiguration.getFilterPrepareStament(DbConstant.admin.session,
+			return DbHostConfiguration.getFilterPrepareStament(handler.getDbSession(),
 					hostid, business, role, alias, other);
 		} catch (WaarpDatabaseNoConnectionException e) {
 			throw new HttpIncorrectRequestException("Issue while reading from database", e);

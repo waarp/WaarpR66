@@ -33,7 +33,6 @@ import org.waarp.gateway.kernel.rest.DataModelRestMethodHandler;
 import org.waarp.gateway.kernel.rest.HttpRestHandler;
 import org.waarp.gateway.kernel.rest.RestArgument;
 import org.waarp.gateway.kernel.rest.HttpRestHandler.METHOD;
-import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbRule;
 import org.waarp.openr66.database.data.DbRule.Columns;
 
@@ -79,7 +78,7 @@ public class DbRuleR66RestMethodHandler extends DataModelRestMethodHandler<DbRul
 			} else {
 				id = node.asText();
 			}
-			return new DbRule(DbConstant.admin.session, id);
+			return new DbRule(handler.getDbSession(), id);
 		} catch (WaarpDatabaseException e) {
 			throw new HttpNotFoundRequestException("Issue while reading from database "+arg, e);
 		}
@@ -92,7 +91,7 @@ public class DbRuleR66RestMethodHandler extends DataModelRestMethodHandler<DbRul
 		ObjectNode arg = arguments.getUriArgs().deepCopy();
 		arg.putAll(arguments.getBody());
 		try {
-			return new DbRule(DbConstant.admin.session, arg);
+			return new DbRule(handler.getDbSession(), arg);
 		} catch (WaarpDatabaseException e) {
 			throw new HttpIncorrectRequestException("Issue while inserting into database", e);
 		}
@@ -110,7 +109,7 @@ public class DbRuleR66RestMethodHandler extends DataModelRestMethodHandler<DbRul
 		}
 		int mode = arg.path(FILTER_ARGS.MODETRANS.name()).asInt();
 		try {
-			return DbRule.getFilterPrepareStament(DbConstant.admin.session, 
+			return DbRule.getFilterPrepareStament(handler.getDbSession(), 
 					rule, mode);
 		} catch (WaarpDatabaseNoConnectionException e) {
 			throw new HttpIncorrectRequestException("Issue while reading from database", e);

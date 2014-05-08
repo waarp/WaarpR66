@@ -32,6 +32,8 @@ import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.waarp.common.command.exception.Reply421Exception;
 import org.waarp.common.command.exception.Reply530Exception;
+import org.waarp.common.database.DbSession;
+import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.exception.CryptoException;
 import org.waarp.common.logging.WaarpInternalLogger;
@@ -70,26 +72,31 @@ public class HttpRestR66Handler extends HttpRestHandler {
     private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
             .getLogger(HttpRestR66Handler.class);
 
+    public static HashMap<String, DbSession> dbSessionFromUser = new HashMap<String, DbSession>();
     // XXX FIXME to change to real user database
     public static HashMap<String, String> falseRepoPassword = new HashMap<String, String>();
     
     public static enum RESTHANDLERS {
-    	DbHostAuth("hosts"),
-    	DbRule("rules"),
-    	DbTaskRunner("transfers"),
-    	DbHostConfiguration("hostconfigs"),
-    	DbConfiguration("configurations"),
-    	Bandwidth(HttpRestBandwidthR66Handler.BASEURI),
-    	Business(HttpRestBusinessR66Handler.BASEURI),
-    	Config(HttpRestConfigR66Handler.BASEURI),
-    	Information(HttpRestInformationR66Handler.BASEURI),
-    	Log(HttpRestLogR66Handler.BASEURI),
-    	Server(HttpRestServerR66Handler.BASEURI),
-    	Transfer(HttpRestTransferR66Handler.BASEURI);
+    	DbHostAuth("hosts", org.waarp.openr66.database.data.DbHostAuth.class),
+    	DbRule("rules", org.waarp.openr66.database.data.DbRule.class),
+    	DbTaskRunner("transfers", org.waarp.openr66.database.data.DbTaskRunner.class),
+    	DbHostConfiguration("hostconfigs", org.waarp.openr66.database.data.DbHostConfiguration.class),
+    	DbConfiguration("configurations", org.waarp.openr66.database.data.DbConfiguration.class),
+    	Bandwidth(HttpRestBandwidthR66Handler.BASEURI, null),
+    	Business(HttpRestBusinessR66Handler.BASEURI, null),
+    	Config(HttpRestConfigR66Handler.BASEURI, null),
+    	Information(HttpRestInformationR66Handler.BASEURI, null),
+    	Log(HttpRestLogR66Handler.BASEURI, null),
+    	Server(HttpRestServerR66Handler.BASEURI, null),
+    	Transfer(HttpRestTransferR66Handler.BASEURI, null);
     	
     	public String uri;
-    	RESTHANDLERS(String uri) {
+    	@SuppressWarnings("rawtypes")
+		public Class clasz;
+    	@SuppressWarnings("rawtypes")
+		RESTHANDLERS(String uri, Class clasz) {
     		this.uri = uri;
+    		this.clasz = clasz;
     	}
     	
     	public RestMethodHandler getRestMethodHandler() {
@@ -145,9 +152,21 @@ public class HttpRestR66Handler extends HttpRestHandler {
 			user = Configuration.configuration.ADMINNAME;
 			session.getAuth().specialNoSessionAuth(true, Configuration.configuration.HOST_SSLID);
 		} else {
-			// XXX FIXME Should we have one DbSession per connection ? Maybe only after authentication
+			// we have one DbSession per connection, only after authentication
+			DbSession temp = dbSessionFromUser.get(user);
+			if (temp == null) {
+				try {
+					temp = new DbSession(DbConstant.admin, false);
+					dbSessionFromUser.put(user, temp);
+				} catch (WaarpDatabaseNoConnectionException e) {
+				}
+			}
+			if (temp != null) {
+				temp.useConnection();
+				this.dbSession = temp;
+			}
 			try {
-				session.getAuth().connectionHttps(DbConstant.admin.session, user, 
+				session.getAuth().connectionHttps(getDbSession(), user, 
 						FilesystemBasedDigest.passwdCrypt(key.getBytes(WaarpStringUtils.UTF8)));
 			} catch (Reply530Exception e) {
 				status = HttpResponseStatus.UNAUTHORIZED;

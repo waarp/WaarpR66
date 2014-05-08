@@ -36,7 +36,6 @@ import org.waarp.gateway.kernel.rest.DataModelRestMethodHandler;
 import org.waarp.gateway.kernel.rest.HttpRestHandler;
 import org.waarp.gateway.kernel.rest.RestArgument;
 import org.waarp.gateway.kernel.rest.HttpRestHandler.METHOD;
-import org.waarp.openr66.database.DbConstant;
 import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.database.data.DbTaskRunner.Columns;
 
@@ -93,10 +92,10 @@ public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler
 			} else {
 				id = node.asLong();
 			}
-			System.err.println(arg+" => "+id+":"+arg.path(DbTaskRunner.Columns.REQUESTER.name()).asText());
-			return new DbTaskRunner(DbConstant.admin.session, id, 
+			return new DbTaskRunner(handler.getDbSession(), id, 
 					arg.path(DbTaskRunner.Columns.REQUESTER.name()).asText(), 
-					arg.path(DbTaskRunner.Columns.REQUESTED.name()).asText());
+					arg.path(DbTaskRunner.Columns.REQUESTED.name()).asText(),
+					arg.path(DbTaskRunner.Columns.OWNERREQ.name()).asText());
 		} catch (WaarpDatabaseException e) {
 			throw new HttpNotFoundRequestException("Issue while reading from database "+arg, e);
 		}
@@ -109,7 +108,7 @@ public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler
 		ObjectNode arg = arguments.getUriArgs().deepCopy();
 		arg.putAll(arguments.getBody());
 		try {
-			return new DbTaskRunner(DbConstant.admin.session, arg);
+			return new DbTaskRunner(handler.getDbSession(), arg);
 		} catch (WaarpDatabaseException e) {
 			throw new HttpIncorrectRequestException("Issue while inserting into database", e);
 		}
@@ -121,7 +120,6 @@ public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler
 			throws HttpIncorrectRequestException, HttpInvalidAuthenticationException {
 		ObjectNode arg = arguments.getUriArgs().deepCopy();
 		arg.putAll(arguments.getBody());
-		System.err.println(arg);
 		int limit = arg.path(FILTER_ARGS.LIMIT.name()).asInt(0);
 		boolean orderBySpecialId = arg.path(FILTER_ARGS.ORDERBYID.name()).asBoolean(false);
 		JsonNode node = arg.path(FILTER_ARGS.STARTID.name());
@@ -147,6 +145,10 @@ public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler
 		String req = arg.path(FILTER_ARGS.PARTNER.name()).asText();
 		if (req == null || req.isEmpty()) {
 			req = null;
+		}
+		String owner = arg.path(DbTaskRunner.Columns.OWNERREQ.name()).asText();
+		if (owner == null || owner.isEmpty()) {
+			owner = null;
 		}
 		boolean pending = arg.path(FILTER_ARGS.PENDING.name()).asBoolean(false);
 		boolean transfer = arg.path(FILTER_ARGS.INTRANSFER.name()).asBoolean(false);
@@ -174,8 +176,8 @@ public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler
 			stop = new Timestamp(val);
 		}
 		try {
-			return DbTaskRunner.getFilterPrepareStatement(DbConstant.admin.session, 
-					limit, orderBySpecialId, startid, stopid, start, stop, rule, req, pending, transfer, error, done, all);
+			return DbTaskRunner.getFilterPrepareStatement(handler.getDbSession(), 
+					limit, orderBySpecialId, startid, stopid, start, stop, rule, req, pending, transfer, error, done, all, owner);
 		} catch (WaarpDatabaseNoConnectionException e) {
 			throw new HttpIncorrectRequestException("Issue while reading from database", e);
 		} catch (WaarpDatabaseSqlException e) {
@@ -187,7 +189,7 @@ public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler
 	protected DbTaskRunner getItemPreparedStatement(DbPreparedStatement statement)
 			throws HttpIncorrectRequestException, HttpNotFoundRequestException {
 		try {
-			return DbTaskRunner.getFromStatement(statement);
+			return DbTaskRunner.getFromStatementNoDbRule(statement);
 		} catch (WaarpDatabaseNoConnectionException e) {
 			throw new HttpIncorrectRequestException("Issue while selecting from database", e);
 		} catch (WaarpDatabaseSqlException e) {
@@ -202,8 +204,9 @@ public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler
 		ObjectNode node2;
 		ObjectNode node3 = JsonHandler.createObjectNode();
 		node3.put(DbTaskRunner.Columns.SPECIALID.name(), "Special Id as LONG in URI as "+this.path+"/id"); 
-		node3.put(DbTaskRunner.Columns.REQUESTER.name(), "Partner as requester"); 
-		node3.put(DbTaskRunner.Columns.REQUESTED.name(), "Partner as requested");
+		node3.put(DbTaskRunner.Columns.REQUESTER.name(), "Partner as requester as VARCHAR");
+		node3.put(DbTaskRunner.Columns.REQUESTED.name(), "Partner as requested as VARCHAR");
+		node3.put(DbTaskRunner.Columns.OWNERREQ.name(), "Owner of this request (optional) as VARCHAR");
 		node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path+"/id", COMMAND_TYPE.GET.name(), 
 				node3);
 		node.add(node2);
@@ -212,14 +215,16 @@ public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler
 		for (FILTER_ARGS arg : FILTER_ARGS.values()) {
 			node3.put(arg.name(), arg.type);
 		}
+		node3.put(DbTaskRunner.Columns.OWNERREQ.name(), "Owner of this request (optional) as VARCHAR");
 		node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, COMMAND_TYPE.MULTIGET.name(), 
 				node3);
 		node.add(node2);
 
 		node3 = JsonHandler.createObjectNode();
 		node3.put(DbTaskRunner.Columns.SPECIALID.name(), "Special Id as LONG in URI as "+this.path+"/id"); 
-		node3.put(DbTaskRunner.Columns.REQUESTER.name(), "Partner as requester"); 
-		node3.put(DbTaskRunner.Columns.REQUESTED.name(), "Partner as requested");
+		node3.put(DbTaskRunner.Columns.REQUESTER.name(), "Partner as requester as VARCHAR"); 
+		node3.put(DbTaskRunner.Columns.REQUESTED.name(), "Partner as requested as VARCHAR");
+		node3.put(DbTaskRunner.Columns.OWNERREQ.name(), "Owner of this request (optional) as VARCHAR");
 		DbValue []values = DbTaskRunner.getAllType();
 		for (DbValue dbValue : values) {
 			if (dbValue.column.equalsIgnoreCase(DbTaskRunner.Columns.IDRULE.name())) {
@@ -233,8 +238,9 @@ public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler
 		
 		node3 = JsonHandler.createObjectNode();
 		node3.put(DbTaskRunner.Columns.SPECIALID.name(), "Special Id as LONG in URI as "+this.path+"/id"); 
-		node3.put(DbTaskRunner.Columns.REQUESTER.name(), "Partner as requester"); 
-		node3.put(DbTaskRunner.Columns.REQUESTED.name(), "Partner as requested");
+		node3.put(DbTaskRunner.Columns.REQUESTER.name(), "Partner as requester as VARCHAR"); 
+		node3.put(DbTaskRunner.Columns.REQUESTED.name(), "Partner as requested as VARCHAR");
+		node3.put(DbTaskRunner.Columns.OWNERREQ.name(), "Owner of this request (optional) as VARCHAR");
 		node2 = RestArgument.fillDetailedAllow(METHOD.DELETE, this.path+"/id", COMMAND_TYPE.DELETE.name(), 
 				node3);
 		node.add(node2);

@@ -88,6 +88,7 @@ public class HttpRestBusinessR66Handler extends HttpRestAbstractR66Handler {
 		}
 		try {
 			if (json instanceof BusinessRequestJsonPacket) {//
+				result.setCommand(ACTIONS_TYPE.ExecuteBusiness.name());
 				BusinessRequestJsonPacket node = (BusinessRequestJsonPacket) json;
 				R66Future future = serverHandler.businessRequest(node.isToApplied(), node.getClassName(), node.getArguments(), node.getExtraArguments(), node.getDelay());
 				if (future != null && ! future.isSuccess()) {
@@ -127,7 +128,7 @@ public class HttpRestBusinessR66Handler extends HttpRestAbstractR66Handler {
 		node3.setExtraArguments("Extra arguments");
 		ObjectNode node2;
 		try {
-			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, "ExecuteBusiness", node3.createObjectNode());
+			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.ExecuteBusiness.name(), node3.createObjectNode());
 			node.add(node2);
 		} catch (OpenR66ProtocolPacketException e1) {
 		}

@@ -83,6 +83,11 @@ public class HttpRestInformationR66Handler extends HttpRestAbstractR66Handler {
 		try {
 			if (json instanceof InformationJsonPacket) {//
 				InformationJsonPacket node = (InformationJsonPacket) json;
+				if (node.isIdRequest()) {
+					result.setCommand(ACTIONS_TYPE.GetTransferInformation.name());					
+				} else {
+					result.setCommand(ACTIONS_TYPE.GetInformation.name());
+				}
 				ValidPacket validPacket = serverHandler.information(node.isIdRequest(), node.getId(), node.isTo(), node.getRequest(), node.getRulename(), node.getFilename(), true);
 				if (validPacket != null) {
 					// will not use default setOk
@@ -117,7 +122,7 @@ public class HttpRestInformationR66Handler extends HttpRestAbstractR66Handler {
 		node3.setRulename("The rule name associated with the remote repository");
 		ObjectNode node2;
 		try {
-			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, "GetInformation", node3.createObjectNode());
+			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.GetInformation.name(), node3.createObjectNode());
 			node.add(node2);
 		} catch (OpenR66ProtocolPacketException e1) {
 		}

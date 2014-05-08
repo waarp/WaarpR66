@@ -62,6 +62,15 @@ public abstract class HttpRestAbstractR66Handler extends RestMethodHandler {
     private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
             .getLogger(HttpRestAbstractR66Handler.class);
    
+    public static enum ACTIONS_TYPE {
+    	OPTIONS, GetBandwidth, SetBandwidth,
+    	ExecuteBusiness,
+    	ExportConfig, ImportConfig,
+    	GetInformation, GetTransferInformation,
+    	GetLog,
+    	ShutdownOrBlock,
+    	RestartTransfer, StopOrCancelTransfer, CreateTransfer
+    }
 	/**
 	 * @param path
 	 * @param method

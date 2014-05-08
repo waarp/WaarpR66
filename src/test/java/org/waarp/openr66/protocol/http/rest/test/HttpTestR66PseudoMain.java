@@ -33,7 +33,7 @@ import org.waarp.openr66.server.R66Server;
  * @author "Frederic Bregier"
  *
  */
-public class HttpR66PseudoMain {
+public class HttpTestR66PseudoMain {
 
 	/**
 	 * @param args
@@ -42,7 +42,7 @@ public class HttpR66PseudoMain {
 	public static void main(String[] args) throws Exception {
 		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
         final WaarpInternalLogger logger = WaarpInternalLoggerFactory
-                .getLogger(HttpR66PseudoMain.class);
+                .getLogger(HttpTestR66PseudoMain.class);
         String pathTemp = "J:/Temp/temp";
         if (!R66Server.initialize(args[0])) {
         	System.err.println("Error during startup");

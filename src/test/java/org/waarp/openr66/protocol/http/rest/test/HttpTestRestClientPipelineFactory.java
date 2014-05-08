@@ -29,17 +29,12 @@ import org.waarp.common.crypto.ssl.WaarpSslContextFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
 
 /**
- * @author <a href="http://www.jboss.org/netty/">The Netty Project</a>
- * @author Andy Taylor (andy.taylor@jboss.org)
- * @author <a href="http://gleamynode.net/">Trustin Lee</a>
- * @author <a href="http://openr66.free.fr/">Frederic Bregier</a>
- * 
- * @version $Rev: 612 $, $Date: 2010-11-11 19:35:43 +0100 (jeu., 11 nov. 2010) $
+ * Test Rest client pipeline factory
  */
-public class HttpClientPipelineFactory implements ChannelPipelineFactory {
+public class HttpTestRestClientPipelineFactory implements ChannelPipelineFactory {
     private final WaarpSslContextFactory waarpSslContextFactory;
 
-    public HttpClientPipelineFactory(WaarpSslContextFactory waarpSslContextFactory) {
+    public HttpTestRestClientPipelineFactory(WaarpSslContextFactory waarpSslContextFactory) {
         this.waarpSslContextFactory = waarpSslContextFactory;
     }
 
@@ -74,7 +69,7 @@ public class HttpClientPipelineFactory implements ChannelPipelineFactory {
         // to be used since huge file transfer
         pipeline.addLast("streamer", new ChunkedWriteHandler());
 
-        pipeline.addLast("handler", new HttpResponseHandler());
+        pipeline.addLast("handler", new HttpTestResponseHandler());
         return pipeline;
     }
 }
