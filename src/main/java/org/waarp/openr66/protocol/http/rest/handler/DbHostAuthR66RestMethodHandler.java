@@ -139,10 +139,18 @@ public class DbHostAuthR66RestMethodHandler extends DataModelRestMethodHandler<D
 	@Override
 	protected ArrayNode getDetailedAllow() {
 		ArrayNode node = JsonHandler.createArrayNode();
+
+		ObjectNode node1 = JsonHandler.createObjectNode();
+		node1.put(DbHostAuth.JSON_MODEL, DbHostAuth.class.getSimpleName());
+		DbValue []values = DbHostAuth.getAllType();
+		for (DbValue dbValue : values) {
+			node1.put(dbValue.column, dbValue.getType());
+		}
 		
 		ObjectNode node2;
 		node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path+"/id", COMMAND_TYPE.GET.name(), 
-				JsonHandler.createObjectNode().put(DbHostAuth.Columns.HOSTID.name(), "HostId as VARCHAR in URI as "+this.path+"/id"));
+				JsonHandler.createObjectNode().put(DbHostAuth.Columns.HOSTID.name(), "HostId as VARCHAR in URI as "+this.path+"/id"),
+				node1);
 		node.add(node2);
 
 		ObjectNode node3 = JsonHandler.createObjectNode();
@@ -150,12 +158,11 @@ public class DbHostAuthR66RestMethodHandler extends DataModelRestMethodHandler<D
 			node3.put(arg.name(), arg.type);
 		}
 		node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, COMMAND_TYPE.MULTIGET.name(), 
-				node3);
+				node3, JsonHandler.createArrayNode().add(node1));
 		node.add(node2);
 
 		node3 = JsonHandler.createObjectNode();
-		node3.put(DbHostAuth.Columns.HOSTID.name(), "HostId as VARCHAR in URI as "+this.path+"/id"); 
-		DbValue []values = DbHostAuth.getAllType();
+		node3.put(DbHostAuth.Columns.HOSTID.name(), "HostId as VARCHAR in URI as "+this.path+"/id");
 		for (DbValue dbValue : values) {
 			if (dbValue.column.equalsIgnoreCase(DbHostAuth.Columns.HOSTID.name())) {
 				continue;
@@ -163,13 +170,13 @@ public class DbHostAuthR66RestMethodHandler extends DataModelRestMethodHandler<D
 			node3.put(dbValue.column, dbValue.getType());
 		}
 		node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path+"/id", COMMAND_TYPE.UPDATE.name(), 
-				node3);
+				node3, node1);
 		node.add(node2);
 		
 		node3 = JsonHandler.createObjectNode();
 		node3.put(DbHostAuth.Columns.HOSTID.name(), "HostId as VARCHAR in URI as "+this.path+"/id"); 
 		node2 = RestArgument.fillDetailedAllow(METHOD.DELETE, this.path+"/id", COMMAND_TYPE.DELETE.name(), 
-				node3);
+				node3, node1);
 		node.add(node2);
 
 		node3 = JsonHandler.createObjectNode();
@@ -177,10 +184,10 @@ public class DbHostAuthR66RestMethodHandler extends DataModelRestMethodHandler<D
 			node3.put(dbValue.column, dbValue.getType());
 		}
 		node2 = RestArgument.fillDetailedAllow(METHOD.POST, this.path, COMMAND_TYPE.CREATE.name(), 
-				node3);
+				node3, node1);
 		node.add(node2);
 
-		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null);
+		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null, null);
 		node.add(node2);
 
 		return node;

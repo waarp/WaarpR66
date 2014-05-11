@@ -38,17 +38,18 @@ import org.joda.time.DateTime;
 import org.waarp.common.crypto.ssl.WaarpSslUtility;
 import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.database.exception.WaarpDatabaseException;
+import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.exception.CryptoException;
 import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
+import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.rest.DataModelRestMethodHandler;
 import org.waarp.gateway.kernel.rest.HttpRestHandler;
 import org.waarp.gateway.kernel.rest.RestArgument;
 import org.waarp.gateway.kernel.rest.client.RestFuture;
-import org.waarp.openr66.client.BusinessRequest;
 import org.waarp.openr66.context.ErrorCode;
 import org.waarp.openr66.context.task.test.TestExecJavaTask;
 import org.waarp.openr66.database.DbConstant;
@@ -69,6 +70,7 @@ import org.waarp.openr66.protocol.http.rest.handler.DbHostConfigurationR66RestMe
 import org.waarp.openr66.protocol.http.rest.handler.DbRuleR66RestMethodHandler;
 import org.waarp.openr66.protocol.http.rest.handler.DbTaskRunnerR66RestMethodHandler;
 import org.waarp.openr66.protocol.localhandler.packet.InformationPacket;
+import org.waarp.openr66.protocol.localhandler.packet.LocalPacketFactory;
 import org.waarp.openr66.protocol.localhandler.packet.json.BandwidthJsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.BusinessRequestJsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.ConfigExportJsonPacket;
@@ -221,6 +223,38 @@ public class HttpTestRestR66Client  implements Runnable {
 	    	stop = System.currentTimeMillis();
 	    	logger.warn("CreateMultipleThread: "+count.get()*1000/(stop-start)+" req/s "+NBPERTHREAD*NB+"=?"+count.get());
 	
+	    	// Set usefull item first
+	    	{
+	    		Channel channel = clientHelper.getChannel(host, port);
+	    		Entry<String, String> id = HttpRestR66Handler.falseRepoPassword.entrySet().iterator().next();
+		    	// Need business
+		    	String buz = "<business><businessid>hostas</businessid><businessid>hosta2</businessid><businessid>hostas2</businessid>" +
+		    			"<businessid>hosta</businessid><businessid>test</businessid><businessid>tests</businessid>" +
+		    			"<businessid>"+id.getKey()+"</businessid></business>";
+	    		ObjectNode node = JsonHandler.createObjectNode();
+	    		node.put(DbHostConfiguration.Columns.BUSINESS.name(), buz);
+	            RestFuture future = clientHelper.sendQuery(channel, HttpMethod.PUT, host, RESTHANDLERS.DbHostConfiguration.uri+"/hosta", id.getKey(), id.getValue(),
+	            		null,
+	            		JsonHandler.writeAsString(node));
+	            try {
+	    			future.await();
+	    		} catch (InterruptedException e) {
+	    		}
+	            WaarpSslUtility.closingSslChannel(channel);
+		    	// Need Hostzz
+	            channel = clientHelper.getChannel(host, port);
+	            AbstractDbData dbData;
+				dbData = new DbHostAuth(null, hostid, address, port, false, key.getBytes(), true, false);
+	            future = clientHelper.sendQuery(channel, HttpMethod.POST, host, RESTHANDLERS.DbHostAuth.uri, id.getKey(), id.getValue(),
+	            		null,
+	            		dbData.asJson());
+	            try {
+	    			future.await();
+	    		} catch (InterruptedException e) {
+	    		}
+	       		WaarpSslUtility.closingSslChannel(channel);
+	    	}
+	    	
 	    	// Other Command as actions
 	    	count.set(0);
 	    	start = System.currentTimeMillis();
@@ -237,6 +271,50 @@ public class HttpTestRestR66Client  implements Runnable {
 	        stop = System.currentTimeMillis();
 	        logger.warn("Commands: "+count.get()*1000/(stop-start)+" req/s "+NBPERTHREAD*NB+"=?"+count.get());
 	
+	        // Clean
+	    	{
+	    		Channel channel = clientHelper.getChannel(host, port);
+	    		Entry<String, String> id = HttpRestR66Handler.falseRepoPassword.entrySet().iterator().next();
+		    	// Reset business
+		    	String buz = "<business><businessid>hostas</businessid><businessid>hosta2</businessid><businessid>hostas2</businessid>" +
+		    			"<businessid>hosta</businessid><businessid>test</businessid><businessid>tests</businessid></business>";
+	    		ObjectNode node = JsonHandler.createObjectNode();
+	    		node.put(DbHostConfiguration.Columns.BUSINESS.name(), buz);
+	            RestFuture future = clientHelper.sendQuery(channel, HttpMethod.PUT, host, RESTHANDLERS.DbHostConfiguration.uri+"/hosta", id.getKey(), id.getValue(),
+	            		null,
+	            		JsonHandler.writeAsString(node));
+	            try {
+	    			future.await();
+	    		} catch (InterruptedException e) {
+	    		}
+	            WaarpSslUtility.closingSslChannel(channel);
+		    	// Remove Hostzz
+	            channel = clientHelper.getChannel(host, port);
+	            try {
+					future = deleteData(channel, RESTHANDLERS.DbHostAuth);
+		            try {
+		    			future.await();
+		    		} catch (InterruptedException e) {
+		    		}
+				} catch (HttpInvalidAuthenticationException e1) {
+				}
+	       		WaarpSslUtility.closingSslChannel(channel);
+		    	// Shutdown
+	            channel = clientHelper.getChannel(host, port);
+	            ShutdownOrBlockJsonPacket shutd = new ShutdownOrBlockJsonPacket();
+	            shutd.setRestartOrBlock(false);
+	            shutd.setShutdownOrBlock(true);
+	            shutd.setRequestUserPacket(LocalPacketFactory.SHUTDOWNPACKET);
+	            String pwd = "pwdhttp";
+	            byte [] bpwd = FilesystemBasedDigest.passwdCrypt(pwd.getBytes(WaarpStringUtils.UTF8));
+	            shutd.setKey(bpwd);
+	            future = action(channel, HttpMethod.PUT, RESTHANDLERS.Server.uri, shutd);
+				try {
+					future.await();
+				} catch (InterruptedException e) {
+				}
+	       		WaarpSslUtility.closingSslChannel(channel);
+	    	}
 	        try {
 				Thread.sleep(100);
 			} catch (InterruptedException e1) {
@@ -418,7 +496,7 @@ public class HttpTestRestR66Client  implements Runnable {
         }
         RestFuture future = clientHelper.sendQuery(channel, HttpMethod.DELETE, host, data.uri+"/"+item, id.getKey(), id.getValue(),
         		args,
-        		dbData.asJson());
+        		null);
 		logger.debug("Query sent");
         return future;
     }
@@ -537,6 +615,19 @@ public class HttpTestRestR66Client  implements Runnable {
 		logger.debug("Query sent");
         return future;
     }
+
+    protected static RestFuture deleteData(Channel channel, String reqd, String reqr, long specid) throws HttpInvalidAuthenticationException {
+		logger.debug("Send query");
+        Entry<String, String> id = HttpRestR66Handler.falseRepoPassword.entrySet().iterator().next();
+        Map<String, String> args = new HashMap<String, String>();
+    	args.put(DbTaskRunner.Columns.REQUESTER.name(), reqr);
+    	args.put(DbTaskRunner.Columns.REQUESTED.name(), reqd);
+        RestFuture future = clientHelper.sendQuery(channel, HttpMethod.DELETE, host, RESTHANDLERS.DbTaskRunner.uri+"/"+specid, id.getKey(), id.getValue(),
+        		args,
+        		null);
+		logger.debug("Query sent");
+        return future;
+    }
     
     protected static void action(RESTHANDLERS data) throws HttpInvalidAuthenticationException {
     	Channel channel = clientHelper.getChannel(host, port);
@@ -553,7 +644,7 @@ public class HttpTestRestR66Client  implements Runnable {
     }
     
     protected static RestFuture action(Channel channel, RESTHANDLERS data) throws HttpInvalidAuthenticationException {
-		logger.debug("Send query");
+		logger.warn("Send query: "+data);
 		JsonPacket packet = null;
 		HttpMethod method = null;
 		switch (data) {
@@ -569,8 +660,8 @@ public class HttpTestRestR66Client  implements Runnable {
 			}
 			case Business: {
 				BusinessRequestJsonPacket node = new BusinessRequestJsonPacket();
-				node.setClassName(BusinessRequest.DEFAULT_CLASS);
-				node.setArguments(" EXECJAVA "+TestExecJavaTask.class.getName()+" business 100 other arguments 0");
+				node.setClassName(TestExecJavaTask.class.getName());
+				node.setArguments("business 100 other arguments 0");
 				node.setRequestUserPacket();
 				node.setToApplied(true);
 				packet = node;
@@ -612,12 +703,15 @@ public class HttpTestRestR66Client  implements Runnable {
 				ShutdownOrBlockJsonPacket node = new ShutdownOrBlockJsonPacket();
 				node.setRestartOrBlock(true);
 				node.setShutdownOrBlock(false);
-				node.setRequestUserPacket();
+	            String pwd = "pwdhttp";
+	            byte [] bpwd = FilesystemBasedDigest.passwdCrypt(pwd.getBytes(WaarpStringUtils.UTF8));
+	            node.setKey(bpwd);
+				node.setRequestUserPacket(LocalPacketFactory.BLOCKREQUESTPACKET);
 				packet = node;
 				method = HttpMethod.PUT;
 				break;
 			}
-			case Transfer: {
+			case Control: {
 				TransferRequestJsonPacket node = new TransferRequestJsonPacket();
 				node.setRequestUserPacket();
 				node.setRulename("rule4");

@@ -201,6 +201,13 @@ public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler
 	protected ArrayNode getDetailedAllow() {
 		ArrayNode node = JsonHandler.createArrayNode();
 		
+		ObjectNode node1 = JsonHandler.createObjectNode();
+		node1.put(DbTaskRunner.JSON_MODEL, DbTaskRunner.class.getSimpleName());
+		DbValue []values = DbTaskRunner.getAllType();
+		for (DbValue dbValue : values) {
+			node1.put(dbValue.column, dbValue.getType());
+		}
+		
 		ObjectNode node2;
 		ObjectNode node3 = JsonHandler.createObjectNode();
 		node3.put(DbTaskRunner.Columns.SPECIALID.name(), "Special Id as LONG in URI as "+this.path+"/id"); 
@@ -208,7 +215,7 @@ public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler
 		node3.put(DbTaskRunner.Columns.REQUESTED.name(), "Partner as requested as VARCHAR");
 		node3.put(DbTaskRunner.Columns.OWNERREQ.name(), "Owner of this request (optional) as VARCHAR");
 		node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path+"/id", COMMAND_TYPE.GET.name(), 
-				node3);
+				node3, node1);
 		node.add(node2);
 
 		node3 = JsonHandler.createObjectNode();
@@ -217,7 +224,7 @@ public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler
 		}
 		node3.put(DbTaskRunner.Columns.OWNERREQ.name(), "Owner of this request (optional) as VARCHAR");
 		node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, COMMAND_TYPE.MULTIGET.name(), 
-				node3);
+				node3, JsonHandler.createArrayNode().add(node1));
 		node.add(node2);
 
 		node3 = JsonHandler.createObjectNode();
@@ -225,7 +232,6 @@ public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler
 		node3.put(DbTaskRunner.Columns.REQUESTER.name(), "Partner as requester as VARCHAR"); 
 		node3.put(DbTaskRunner.Columns.REQUESTED.name(), "Partner as requested as VARCHAR");
 		node3.put(DbTaskRunner.Columns.OWNERREQ.name(), "Owner of this request (optional) as VARCHAR");
-		DbValue []values = DbTaskRunner.getAllType();
 		for (DbValue dbValue : values) {
 			if (dbValue.column.equalsIgnoreCase(DbTaskRunner.Columns.IDRULE.name())) {
 				continue;
@@ -233,7 +239,7 @@ public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler
 			node3.put(dbValue.column, dbValue.getType());
 		}
 		node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path+"/id", COMMAND_TYPE.UPDATE.name(), 
-				node3);
+				node3, node1);
 		node.add(node2);
 		
 		node3 = JsonHandler.createObjectNode();
@@ -242,7 +248,7 @@ public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler
 		node3.put(DbTaskRunner.Columns.REQUESTED.name(), "Partner as requested as VARCHAR");
 		node3.put(DbTaskRunner.Columns.OWNERREQ.name(), "Owner of this request (optional) as VARCHAR");
 		node2 = RestArgument.fillDetailedAllow(METHOD.DELETE, this.path+"/id", COMMAND_TYPE.DELETE.name(), 
-				node3);
+				node3, node1);
 		node.add(node2);
 
 		node3 = JsonHandler.createObjectNode();
@@ -250,10 +256,10 @@ public class DbTaskRunnerR66RestMethodHandler extends DataModelRestMethodHandler
 			node3.put(dbValue.column, dbValue.getType());
 		}
 		node2 = RestArgument.fillDetailedAllow(METHOD.POST, this.path, COMMAND_TYPE.CREATE.name(), 
-				node3);
+				node3, node1);
 		node.add(node2);
 
-		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null);
+		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null, null);
 		node.add(node2);
 
 		return node;

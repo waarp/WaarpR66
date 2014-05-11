@@ -154,6 +154,9 @@ public class ExecJavaTask extends AbstractTask {
 		}
 		if (status == 0) {
 			if (waitForValidation) {
+				R66Result result = new R66Result(session, true, ErrorCode.CompleteOk, null);
+				result.other = runnable.toString();
+				futureCompletion.setResult(result);
 				futureCompletion.setSuccess();
 			}
 			if (isSpooled) {
@@ -164,6 +167,9 @@ public class ExecJavaTask extends AbstractTask {
 		} else if (status == 1) {
 			logger.warn("Exec in warning with " + runnable);
 			if (waitForValidation) {
+				R66Result result = new R66Result(session, true, ErrorCode.CompleteOk, null);
+				result.other = runnable.toString();
+				futureCompletion.setResult(result);
 				futureCompletion.setSuccess();
 			}
 		} else {

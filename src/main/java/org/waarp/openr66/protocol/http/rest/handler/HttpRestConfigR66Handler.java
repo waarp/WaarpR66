@@ -22,6 +22,7 @@ package org.waarp.openr66.protocol.http.rest.handler;
 
 
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
@@ -35,6 +36,7 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolNotAuthenticatedExcep
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolSystemException;
 import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
+import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler.RESTHANDLERS;
 import org.waarp.openr66.protocol.localhandler.ServerActions;
 import org.waarp.openr66.protocol.localhandler.packet.json.ConfigExportJsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.ConfigExportResponseJsonPacket;
@@ -83,6 +85,7 @@ public class HttpRestConfigR66Handler extends HttpRestAbstractR66Handler {
 			setError(handler, result, HttpResponseStatus.BAD_REQUEST);
 			return;
 		}
+		result.getAnswer().put(AbstractDbData.JSON_MODEL, RESTHANDLERS.Config.name());
 		try {
 			if (json instanceof ConfigExportJsonPacket && arguments.getMethod() == METHOD.GET) {//
 				result.setCommand(ACTIONS_TYPE.ExportConfig.name());
@@ -137,28 +140,50 @@ public class HttpRestConfigR66Handler extends HttpRestAbstractR66Handler {
 		ArrayNode node = JsonHandler.createArrayNode();
 		
 		ConfigExportJsonPacket node3 = new ConfigExportJsonPacket();
+		node3.setRequestUserPacket();
 		node3.setComment("ConfigExport request (GET)");
 		ObjectNode node2;
+		ArrayNode node1 = JsonHandler.createArrayNode();
+		ConfigExportResponseJsonPacket resp = new ConfigExportResponseJsonPacket();
+		resp.setComment("ConfigExport response");
+		resp.setFilealias("filepath");
+		resp.setFilebusiness("filepath");
+		resp.setFilehost("filepath");
+		resp.setFileroles("filepath");
+		resp.setFilerule("filepath");
+		resp.setRequestUserPacket();
 		try {
-			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.ExportConfig.name(), node3.createObjectNode());
+			node1.add(resp.createObjectNode());
+			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.ExportConfig.name(), node3.createObjectNode(), node1);
 			node.add(node2);
 		} catch (OpenR66ProtocolPacketException e1) {
 		}
 		
 		ConfigImportJsonPacket node4 = new ConfigImportJsonPacket();
+		node4.setRequestUserPacket();
 		node4.setComment("ConfigImport request (PUT) where items are either set through transfer Id, either set directly with a filename");
 		node4.setAlias("AliasFilename if not through TransferId");
 		node4.setBusiness("BusinessFilename if not through TransferId");
 		node4.setHost("HostFilename if not through TransferId");
 		node4.setRoles("RolesFilename if not through TransferId");
 		node4.setRule("RuleFilename if not through TransferId");
+		ConfigImportResponseJsonPacket resp2 = new ConfigImportResponseJsonPacket();
+		resp2.setComment("ConfigImport response");
+		resp2.setAlias("filepath");
+		resp2.setBusiness("filepath");
+		resp2.setHost("filepath");
+		resp2.setRoles("filepath");
+		resp2.setRule("filepath");
+		resp2.setRequestUserPacket();
+		node1 = JsonHandler.createArrayNode();
 		try {
-			node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, ACTIONS_TYPE.ImportConfig.name(), node4.createObjectNode());
+			node1.add(resp2.createObjectNode());
+			node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, ACTIONS_TYPE.ImportConfig.name(), node4.createObjectNode(), node1);
 			node.add(node2);
 		} catch (OpenR66ProtocolPacketException e1) {
 		}
 		
-		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null);
+		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null, null);
 		node.add(node2);
 
 		return node;

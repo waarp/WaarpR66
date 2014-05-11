@@ -262,6 +262,7 @@ public class ServerActions extends ConnectionActions {
 			case LocalPacketFactory.CANCELPACKET: {
 				String[] keys = packet.getSmiddle().split(" ");
 				long id = Long.parseLong(keys[2]);
+				session.newState(VALIDOTHER);
 				R66Result resulttest = stopOrCancel(packet.getTypeValid(), keys[0], keys[1], id);
 				// inform back the requester
 				ValidPacket valid = new ValidPacket(packet.getSmiddle(), resulttest.code.getCode(),
@@ -305,6 +306,7 @@ public class ServerActions extends ConnectionActions {
 						} catch (ParseException e) {
 						}
 					}
+					session.newState(VALIDOTHER);
 					R66Result result = requestRestart(keys[0], keys[1], id, date);
 					valid = new ValidPacket(packet.getSmiddle(),
 							result.code.getCode(),
@@ -432,6 +434,7 @@ public class ServerActions extends ConnectionActions {
 				String srule = packet.getSmiddle();
 				boolean bhost = Boolean.parseBoolean(shost);
 				boolean brule = Boolean.parseBoolean(srule);
+				session.newState(VALIDOTHER);
 				String [] sresult = configExport(bhost, brule, false, false, false);
 				R66Result result = null;
 				if (sresult[0] != null || sresult[1] != null) {
@@ -592,12 +595,15 @@ public class ServerActions extends ConnectionActions {
 				ValidPacket valid = null;
 				if (splitglobal.length < 2 || splitsession.length < 2) {
 					// request of current values
+					session.newState(VALIDOTHER);
+
 					long [] lresult = bandwidth(false, 0, 0, 0, 0);
 					// Now answer
 					valid = new ValidPacket(lresult[0]+" "+lresult[1]+
 							" "+lresult[2]+" "+lresult[3], result.code.getCode(),
 							LocalPacketFactory.REQUESTUSERPACKET);
 				} else {
+					session.newState(VALIDOTHER);
 					bandwidth(true, Long.parseLong(splitglobal[0]), Long.parseLong(splitglobal[1]),
 							Long.parseLong(splitsession[0]), Long.parseLong(splitsession[1]));
 					// Now answer
@@ -703,13 +709,14 @@ public class ServerActions extends ConnectionActions {
 			}
 			case LocalPacketFactory.BLOCKREQUESTPACKET: {
 				ShutdownOrBlockJsonPacket node = (ShutdownOrBlockJsonPacket) json;
+				byte [] key = node.getKey();
 				if (node.isShutdownOrBlock()) {
 					// Shutdown
 					session.newState(SHUTDOWN);
-					shutdown(node.getKey(), node.isRestartOrBlock());
+					shutdown(key, node.isRestartOrBlock());
 				} else {
 					// Block
-					R66Result result = blockRequest(node.getKey(), node.isRestartOrBlock());
+					R66Result result = blockRequest(key, node.isRestartOrBlock());
 					node.setComment((node.isRestartOrBlock() ? "Block" : "Unblock")+" new request");
 					JsonCommandPacket valid = new JsonCommandPacket(json, result.code.getCode(),
 							LocalPacketFactory.REQUESTUSERPACKET);
@@ -724,6 +731,9 @@ public class ServerActions extends ConnectionActions {
 			}
 			case LocalPacketFactory.BUSINESSREQUESTPACKET: {
 				BusinessRequestJsonPacket node = (BusinessRequestJsonPacket) json;
+				if (node.isToApplied()) {
+					session.newState(BUSINESSD);
+				}
 				R66Future future = businessRequest(node.isToApplied(), node.getClassName(), node.getArguments(), node.getExtraArguments(), node.getDelay());
 				if (future != null && ! future.isSuccess()) {
 					R66Result result = future.getResult();
@@ -800,6 +810,7 @@ public class ServerActions extends ConnectionActions {
 					String reqd = node.getRequested();
 					String reqr = node.getRequester();
 					long id = node.getSpecialid();
+					session.newState(VALIDOTHER);
 					resulttest = stopOrCancel(packet.getTypeValid(), reqd, reqr, id);
 				}
 				// inform back the requester
@@ -818,6 +829,7 @@ public class ServerActions extends ConnectionActions {
 			}
 			case LocalPacketFactory.VALIDPACKET: {
 				RestartTransferJsonPacket node = (RestartTransferJsonPacket) json;
+				session.newState(VALIDOTHER);
 				R66Result result = requestRestart(node.getRequested(), node.getRequester(), node.getSpecialid(), node.getRestarttime());
 				result.other = packet;
 				JsonCommandPacket valid = new JsonCommandPacket(node, 
@@ -882,6 +894,7 @@ public class ServerActions extends ConnectionActions {
 				boolean done = node.isStatusdone();
 				boolean error = node.isStatuserror();
 				boolean isPurge = (packet.getTypeValid() == LocalPacketFactory.LOGPURGEPACKET || purge);
+				session.newState(VALIDOTHER);
 				String sresult[] = logPurge(purge, clean, start, stop, startid, stopid, rule, request, pending, transfer, done, error, isPurge);
 				LogResponseJsonPacket newjson = new LogResponseJsonPacket();
 				newjson.fromJson(node);
@@ -910,6 +923,7 @@ public class ServerActions extends ConnectionActions {
 				boolean bbusiness = node.isBusiness();
 				boolean balias = node.isAlias();
 				boolean broles = node.isRoles();
+				session.newState(VALIDOTHER);
 				String sresult[] = configExport(bhost, brule, bbusiness, balias, broles);
 				// Now answer
 				ConfigExportResponseJsonPacket resp = new ConfigExportResponseJsonPacket();
@@ -965,6 +979,7 @@ public class ServerActions extends ConnectionActions {
 				BandwidthJsonPacket node = (BandwidthJsonPacket) json;
 				boolean setter = node.isSetter();
 				// request of current values or set new values
+				session.newState(VALIDOTHER);
 				long [] lresult = bandwidth(setter, 
 						node.getWriteglobal(), node.getReadglobal(),
 						node.getWritesession(),node.getReadsession());
@@ -1070,12 +1085,11 @@ public class ServerActions extends ConnectionActions {
 			long writeglobal, long readglobal, 
 			long writesession, long readsession)
 			throws OpenR66ProtocolNotAuthenticatedException {
-		session.newState(VALIDOTHER);
 		// Authentication must be the local server or LIMIT authorization
 		try {
 			if (!session.getAuth().getUser().equals(
-					Configuration.configuration.getHostId(session.getAuth().isSsl())) &&
-					!session.getAuth().isValidRole(ROLE.LIMIT)) {
+					Configuration.configuration.getHostId(session.getAuth().isSsl())) 
+					&& !session.getAuth().isValidRole(ROLE.LIMIT)) {
 				throw new OpenR66ProtocolNotAuthenticatedException(
 						"Not correctly authenticated");
 			}
@@ -1421,7 +1435,6 @@ public class ServerActions extends ConnectionActions {
 	public final String [] configExport(boolean bhost, boolean brule, 
 			boolean bbusiness, boolean balias, boolean broles)
 			throws OpenR66ProtocolNotAuthenticatedException {
-		session.newState(VALIDOTHER);
 		// Authentication must be the local server or CONFIGADMIN authorization
 		try {
 			if (!session.getAuth().getUser().equals(
@@ -1572,7 +1585,6 @@ public class ServerActions extends ConnectionActions {
 	 */
 	public final R66Result requestRestart(String reqd, String reqr, long id, Date date)
 			throws OpenR66ProtocolNotAuthenticatedException {
-		session.newState(VALIDOTHER);
 		ErrorCode returnCode = ErrorCode.Internal;
 		R66Result resulttest = null;
 		// should be from the local server or from an authorized hosts: TRANSFER
@@ -1707,7 +1719,6 @@ public class ServerActions extends ConnectionActions {
 			Timestamp start, Timestamp stop, String startid, String stopid, String rule, String request,
 			boolean pending, boolean transfer, boolean done, boolean error, boolean isPurge)
 			throws OpenR66ProtocolNotAuthenticatedException, OpenR66ProtocolBusinessException {
-		session.newState(VALIDOTHER);
 		// should be from the local server or from an authorized hosts: LOGCONTROL
 		try {
 			if (!session.getAuth().getUser().equals(
@@ -1796,7 +1807,6 @@ public class ServerActions extends ConnectionActions {
 	 */
 	public final R66Result stopOrCancel(byte type, String reqd, String reqr, long id)
 			throws OpenR66ProtocolNotAuthenticatedException {
-		session.newState(VALIDOTHER);
 		// should be from the local server or from an authorized hosts: SYSTEM
 		try {
 			if (!session.getAuth().getUser().equals(
@@ -1886,6 +1896,7 @@ public class ServerActions extends ConnectionActions {
 			throws OpenR66ProtocolShutdownException,
 			OpenR66ProtocolNotAuthenticatedException,
 			OpenR66ProtocolBusinessException {
+		session.newState(SHUTDOWN);
 		shutdown(packet.getKey(), packet.isRestart());
 	}
 
@@ -1945,6 +1956,9 @@ public class ServerActions extends ConnectionActions {
 			throws OpenR66ProtocolNotAuthenticatedException,
 			OpenR66ProtocolPacketException {
 		String argRule = packet.getSheader();
+		if (packet.isToValidate()) {
+			session.newState(BUSINESSD);
+		}
 		R66Future future = businessRequest(packet.isToValidate(), argRule, null, null, packet.getDelay());
 		if (future != null && ! future.isSuccess()) {
 			R66Result result = future.getResult();
@@ -1972,7 +1986,7 @@ public class ServerActions extends ConnectionActions {
 	 * Note: the thread called should manage all writeback informations, as well as status, channel
 	 * closing if needed or not.
 	 * 
-	 * @param isToApplied
+	 * @param isToApplied True means this is an action request, False it is the feedback
 	 * @param className
 	 * @param arguments
 	 * @param extraArguments
@@ -1989,9 +2003,6 @@ public class ServerActions extends ConnectionActions {
 					"Not authenticated while BusinessRequest received");
 		}
 		boolean argTransfer = isToApplied;
-		if (argTransfer) {
-			session.newState(BUSINESSD);
-		}
 		if (argTransfer && !Configuration.configuration.businessWhiteSet.contains(session.getAuth().getUser())) {
 			logger.warn("Not allow to execute a BusinessRequest: "+session.getAuth().getUser());
 			throw new OpenR66ProtocolNotAuthenticatedException(
@@ -2048,7 +2059,7 @@ public class ServerActions extends ConnectionActions {
 	 * @throws OpenR66ProtocolBusinessException 
 	 */
 	public final R66Result blockRequest(byte []key, boolean isBlocking)
-			throws OpenR66ProtocolPacketException, OpenR66ProtocolBusinessException {
+			throws OpenR66ProtocolBusinessException {
 		if (!session.isAuthenticated()) {
 			throw new OpenR66ProtocolNotAuthenticatedException(
 					"Not authenticated while BlockRequest received");
@@ -2135,7 +2146,9 @@ public class ServerActions extends ConnectionActions {
 					throw new OpenR66ProtocolNoDataException("Local "+Messages.getString("LocalServerHandler.21") + id, e);
 				}
 			}
-			session.newState(VALIDOTHER);
+			if (! jsonOutput) {
+				session.newState(VALIDOTHER);
+			}
 			ValidPacket validPacket;
 			try {
 				validPacket = new ValidPacket(jsonOutput ? runner.asJson() : runner.asXML(), "",
@@ -2181,14 +2194,16 @@ public class ServerActions extends ConnectionActions {
 					for (String elt : list) {
 						array.add(elt);
 					}
-					builder.append(array.toString());
+					builder.append(JsonHandler.writeAsString(node));
 				} else {
 					for (String elt : list) {
 						builder.append(elt);
 						builder.append('\n');
 					}
 				}
-				session.newState(VALIDOTHER);
+				if (! jsonOutput) {
+					session.newState(VALIDOTHER);
+				}
 				ValidPacket validPacket = new ValidPacket(builder.toString(), "" + list.size(),
 						LocalPacketFactory.INFORMATIONPACKET);
 				R66Result result = new R66Result(session, true,
@@ -2225,7 +2240,9 @@ public class ServerActions extends ConnectionActions {
 					logger.warn("Unknown Request " + request);
 					return null;
 				}
-				session.newState(VALIDOTHER);
+				if (! jsonOutput) {
+					session.newState(VALIDOTHER);
+				}
 				ValidPacket validPacket = new ValidPacket(sresult, "1",
 						LocalPacketFactory.INFORMATIONPACKET);
 				R66Result result = new R66Result(session, true,

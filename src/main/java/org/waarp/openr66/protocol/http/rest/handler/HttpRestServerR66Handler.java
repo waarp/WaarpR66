@@ -21,26 +21,24 @@
 package org.waarp.openr66.protocol.http.rest.handler;
 
 
-import static org.waarp.openr66.context.R66FiniteDualStates.SHUTDOWN;
-
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
-import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.gateway.kernel.exception.HttpIncorrectRequestException;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.rest.HttpRestHandler;
 import org.waarp.gateway.kernel.rest.DataModelRestMethodHandler.COMMAND_TYPE;
 import org.waarp.gateway.kernel.rest.HttpRestHandler.METHOD;
 import org.waarp.gateway.kernel.rest.RestArgument;
-import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNotAuthenticatedException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolShutdownException;
 import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
+import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler.RESTHANDLERS;
 import org.waarp.openr66.protocol.localhandler.ServerActions;
 import org.waarp.openr66.protocol.localhandler.packet.json.JsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.ShutdownOrBlockJsonPacket;
@@ -81,7 +79,6 @@ public class HttpRestServerR66Handler extends HttpRestAbstractR66Handler {
 		}
 		handler.setWillClose(false);
 		ServerActions serverHandler = ((HttpRestR66Handler) handler).serverHandler;
-		R66Session session = serverHandler.getSession();
 		// now action according to body
 		JsonPacket json = (JsonPacket) body;
 		if (json == null) {
@@ -89,18 +86,20 @@ public class HttpRestServerR66Handler extends HttpRestAbstractR66Handler {
 			setError(handler, result, HttpResponseStatus.BAD_REQUEST);
 			return;
 		}
+		result.getAnswer().put(AbstractDbData.JSON_MODEL, RESTHANDLERS.Server.name());
 		try {
 			if (json instanceof ShutdownOrBlockJsonPacket) {//
 				ShutdownOrBlockJsonPacket node = (ShutdownOrBlockJsonPacket) json;
 				result.setCommand(ACTIONS_TYPE.ShutdownOrBlock.name());
+				byte [] key = node.getKey();
 				if (node.isShutdownOrBlock()) {
 					// Shutdown
-					session.newState(SHUTDOWN);
-					serverHandler.shutdown(node.getKey(), node.isRestartOrBlock());
+					serverHandler.shutdown(key, node.isRestartOrBlock());
 					result.setDetail("Shutdown on going");
 					setOk(handler, result, json, HttpResponseStatus.OK);
 				} else {
 					// Block
+					serverHandler.blockRequest(key, node.isRestartOrBlock());
 					node.setComment((node.isRestartOrBlock() ? "Block" : "Unblock")+" new request");
 					result.setDetail((node.isRestartOrBlock() ? "Block" : "Unblock")+" new request");
 					setOk(handler, result, json, HttpResponseStatus.OK);
@@ -128,15 +127,17 @@ public class HttpRestServerR66Handler extends HttpRestAbstractR66Handler {
 		
 		ShutdownOrBlockJsonPacket node3 = new ShutdownOrBlockJsonPacket();
 		node3.setComment("Shutdown Or Block request (PUT)");
-		node3.setKey("Key".getBytes(WaarpStringUtils.UTF8));
+		node3.setKey("Key".getBytes());
 		ObjectNode node2;
+		ArrayNode node1 = JsonHandler.createArrayNode();
 		try {
-			node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, ACTIONS_TYPE.ShutdownOrBlock.name(), node3.createObjectNode());
+			node1.add(node3.createObjectNode());
+			node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, ACTIONS_TYPE.ShutdownOrBlock.name(), node3.createObjectNode(), node1);
 			node.add(node2);
 		} catch (OpenR66ProtocolPacketException e1) {
 		}
 		
-		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null);
+		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null, null);
 		node.add(node2);
 
 		return node;

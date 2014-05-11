@@ -56,7 +56,7 @@ import org.waarp.openr66.protocol.http.rest.handler.HttpRestConfigR66Handler;
 import org.waarp.openr66.protocol.http.rest.handler.HttpRestInformationR66Handler;
 import org.waarp.openr66.protocol.http.rest.handler.HttpRestLogR66Handler;
 import org.waarp.openr66.protocol.http.rest.handler.HttpRestServerR66Handler;
-import org.waarp.openr66.protocol.http.rest.handler.HttpRestTransferR66Handler;
+import org.waarp.openr66.protocol.http.rest.handler.HttpRestControlR66Handler;
 import org.waarp.openr66.protocol.localhandler.ServerActions;
 
 /**
@@ -88,7 +88,7 @@ public class HttpRestR66Handler extends HttpRestHandler {
     	Information(HttpRestInformationR66Handler.BASEURI, null),
     	Log(HttpRestLogR66Handler.BASEURI, null),
     	Server(HttpRestServerR66Handler.BASEURI, null),
-    	Transfer(HttpRestTransferR66Handler.BASEURI, null);
+    	Control(HttpRestControlR66Handler.BASEURI, null);
     	
     	public String uri;
     	@SuppressWarnings("rawtypes")
@@ -115,7 +115,7 @@ public class HttpRestR66Handler extends HttpRestHandler {
     	restHashMap.put(RESTHANDLERS.Information.uri, new HttpRestInformationR66Handler());
     	restHashMap.put(RESTHANDLERS.Log.uri, new HttpRestLogR66Handler());
     	restHashMap.put(RESTHANDLERS.Server.uri, new HttpRestServerR66Handler());
-    	restHashMap.put(RESTHANDLERS.Transfer.uri, new HttpRestTransferR66Handler());
+    	restHashMap.put(RESTHANDLERS.Control.uri, new HttpRestControlR66Handler());
     	falseRepoPassword.put("admin2", "test");
     }
 

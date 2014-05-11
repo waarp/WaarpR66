@@ -24,6 +24,7 @@ import java.sql.Timestamp;
 import java.util.Date;
 
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
@@ -37,6 +38,7 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNotAuthenticatedException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
+import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler.RESTHANDLERS;
 import org.waarp.openr66.protocol.localhandler.ServerActions;
 import org.waarp.openr66.protocol.localhandler.packet.json.JsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.LogJsonPacket;
@@ -83,6 +85,7 @@ public class HttpRestLogR66Handler extends HttpRestAbstractR66Handler {
 			setError(handler, result, HttpResponseStatus.BAD_REQUEST);
 			return;
 		}
+		result.getAnswer().put(AbstractDbData.JSON_MODEL, RESTHANDLERS.Log.name());
 		try {
 			if (json instanceof LogJsonPacket) {//
 				result.setCommand(ACTIONS_TYPE.GetLog.name());
@@ -127,6 +130,7 @@ public class HttpRestLogR66Handler extends HttpRestAbstractR66Handler {
 		ArrayNode node = JsonHandler.createArrayNode();
 		
 		LogJsonPacket node3 = new LogJsonPacket();
+		node3.setRequestUserPacket();
 		node3.setComment("Log export request (GET)");
 		node3.setRequest("The requester or requested host name");
 		node3.setRule("The rule name");
@@ -135,13 +139,18 @@ public class HttpRestLogR66Handler extends HttpRestAbstractR66Handler {
 		node3.setStartid("Start id - long -");
 		node3.setStopid("Stop id - long -");
 		ObjectNode node2;
+		LogResponseJsonPacket resp = new LogResponseJsonPacket();
+		resp.setComment("Log export response");
+		resp.setFilename("filepath");
+		ArrayNode node1 = JsonHandler.createArrayNode();
 		try {
-			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.GetLog.name(), node3.createObjectNode());
+			node1.add(resp.createObjectNode());
+			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.GetLog.name(), node3.createObjectNode(), node1);
 			node.add(node2);
 		} catch (OpenR66ProtocolPacketException e1) {
 		}
 		
-		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null);
+		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null, null);
 		node.add(node2);
 
 		return node;

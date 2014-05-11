@@ -22,6 +22,7 @@ package org.waarp.openr66.protocol.http.rest.handler;
 
 
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
@@ -34,6 +35,7 @@ import org.waarp.gateway.kernel.rest.RestArgument;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNotAuthenticatedException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
+import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler.RESTHANDLERS;
 import org.waarp.openr66.protocol.localhandler.ServerActions;
 import org.waarp.openr66.protocol.localhandler.packet.json.BandwidthJsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.JsonPacket;
@@ -79,6 +81,7 @@ public class HttpRestBandwidthR66Handler extends HttpRestAbstractR66Handler {
 			setError(handler, result, HttpResponseStatus.BAD_REQUEST);
 			return;
 		}
+		result.getAnswer().put(AbstractDbData.JSON_MODEL, RESTHANDLERS.Bandwidth.name());
 		try {
 			if (json instanceof BandwidthJsonPacket) {//
 				// setter, writeglobal, readglobal, writesession, readsession
@@ -125,21 +128,24 @@ public class HttpRestBandwidthR66Handler extends HttpRestAbstractR66Handler {
 		
 		BandwidthJsonPacket node3 = new BandwidthJsonPacket();
 		node3.setComment("Bandwidth getter (GET)");
+		node3.setRequestUserPacket();
 		ObjectNode node2;
+		ArrayNode node1 = JsonHandler.createArrayNode();
 		try {
-			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.GetBandwidth.name(), node3.createObjectNode());
+			node1.add(node3.createObjectNode());
+			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.GetBandwidth.name(), node3.createObjectNode(), node1);
 			node.add(node2);
 		} catch (OpenR66ProtocolPacketException e1) {
 		}
 		
 		node3.setComment("Bandwidth setter (PUT)");
 		try {
-			node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, ACTIONS_TYPE.SetBandwidth.name(), node3.createObjectNode());
+			node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path, ACTIONS_TYPE.SetBandwidth.name(), node3.createObjectNode(), node1);
 			node.add(node2);
 		} catch (OpenR66ProtocolPacketException e1) {
 		}
 
-		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null);
+		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null, null);
 		node.add(node2);
 		
 		return node;

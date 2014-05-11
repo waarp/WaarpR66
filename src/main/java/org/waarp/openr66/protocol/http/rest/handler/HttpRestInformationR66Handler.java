@@ -21,6 +21,8 @@
 package org.waarp.openr66.protocol.http.rest.handler;
 
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.common.database.data.AbstractDbData;
+import org.waarp.common.database.data.DbValue;
 import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
@@ -30,10 +32,12 @@ import org.waarp.gateway.kernel.rest.HttpRestHandler;
 import org.waarp.gateway.kernel.rest.DataModelRestMethodHandler.COMMAND_TYPE;
 import org.waarp.gateway.kernel.rest.HttpRestHandler.METHOD;
 import org.waarp.gateway.kernel.rest.RestArgument;
+import org.waarp.openr66.database.data.DbTaskRunner;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoDataException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNotAuthenticatedException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
+import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler.RESTHANDLERS;
 import org.waarp.openr66.protocol.localhandler.ServerActions;
 import org.waarp.openr66.protocol.localhandler.packet.ValidPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.InformationJsonPacket;
@@ -80,6 +84,7 @@ public class HttpRestInformationR66Handler extends HttpRestAbstractR66Handler {
 			setError(handler, result, HttpResponseStatus.BAD_REQUEST);
 			return;
 		}
+		result.getAnswer().put(AbstractDbData.JSON_MODEL, RESTHANDLERS.Information.name());
 		try {
 			if (json instanceof InformationJsonPacket) {//
 				InformationJsonPacket node = (InformationJsonPacket) json;
@@ -91,10 +96,21 @@ public class HttpRestInformationR66Handler extends HttpRestAbstractR66Handler {
 				ValidPacket validPacket = serverHandler.information(node.isIdRequest(), node.getId(), node.isTo(), node.getRequest(), node.getRulename(), node.getFilename(), true);
 				if (validPacket != null) {
 					// will not use default setOk
-					ObjectNode resp = JsonHandler.getFromString(validPacket.getSheader());
+					if (node.isIdRequest()) {
+						try {
+							ObjectNode resp = JsonHandler.getFromString(validPacket.getSheader());
+							result.setResult(HttpResponseStatus.OK);
+							result.getResults().add(resp);
+						} catch (Exception e) {
+							logger.warn(validPacket.getSheader(), e);
+							result.setResult(HttpResponseStatus.OK);
+							result.getResults().add(validPacket.getSheader());
+						}
+					} else {
+						result.setResult(HttpResponseStatus.OK);
+						result.getResults().add(validPacket.getSheader());
+					}
 					handler.setStatus(HttpResponseStatus.OK);
-					result.setResult(HttpResponseStatus.OK);
-					result.getResults().add(resp);
 				} else {
 					result.setDetail("Error during information request");
 					setError(handler, result, HttpResponseStatus.NOT_ACCEPTABLE);
@@ -117,17 +133,31 @@ public class HttpRestInformationR66Handler extends HttpRestAbstractR66Handler {
 		ArrayNode node = JsonHandler.createArrayNode();
 		
 		InformationJsonPacket node3 = new InformationJsonPacket();
+		node3.setRequestUserPacket();
 		node3.setComment("Information request (GET)");
 		node3.setFilename("The filename to look for if any");
 		node3.setRulename("The rule name associated with the remote repository");
 		ObjectNode node2;
+		ArrayNode node1 = JsonHandler.createArrayNode();
+		node2 = JsonHandler.createObjectNode();
+		node2.put("fileInfo", JsonHandler.createArrayNode().add("path"));
+		node1.add(node2);
+		ObjectNode node1b = JsonHandler.createObjectNode();
+		node1b.put(DbTaskRunner.JSON_MODEL, DbTaskRunner.class.getSimpleName());
+		DbValue []values = DbTaskRunner.getAllType();
+		for (DbValue dbValue : values) {
+			node1b.put(dbValue.column, dbValue.getType());
+		}
+		node2 = JsonHandler.createObjectNode();
+		node2.put("transferInfo", JsonHandler.createArrayNode().add(node1b));
+		node1.add(node2);
 		try {
-			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.GetInformation.name(), node3.createObjectNode());
+			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.GetInformation.name(), node3.createObjectNode(), node1);
 			node.add(node2);
 		} catch (OpenR66ProtocolPacketException e1) {
 		}
 		
-		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null);
+		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null, null);
 		node.add(node2);
 		
 		return node;

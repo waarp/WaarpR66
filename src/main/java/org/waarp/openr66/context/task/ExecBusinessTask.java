@@ -26,6 +26,8 @@ import org.waarp.openr66.protocol.utils.R66Future;
 /**
  * Business Execution of a Java Task
  * 
+ * Fullarg = First argument is the Java class name, Last argument is the delay.
+ * 
  * @author Frederic Bregier
  * 
  */

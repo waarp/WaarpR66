@@ -24,6 +24,7 @@ package org.waarp.openr66.protocol.http.rest.handler;
 import static org.waarp.openr66.context.R66FiniteDualStates.ERROR;
 
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import org.waarp.common.database.data.AbstractDbData;
 import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
@@ -39,6 +40,7 @@ import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNotAuthenticatedException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
+import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler.RESTHANDLERS;
 import org.waarp.openr66.protocol.localhandler.ServerActions;
 import org.waarp.openr66.protocol.localhandler.packet.json.BusinessRequestJsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.JsonPacket;
@@ -86,6 +88,7 @@ public class HttpRestBusinessR66Handler extends HttpRestAbstractR66Handler {
 			setError(handler, result, HttpResponseStatus.BAD_REQUEST);
 			return;
 		}
+		result.getAnswer().put(AbstractDbData.JSON_MODEL, RESTHANDLERS.Business.name());
 		try {
 			if (json instanceof BusinessRequestJsonPacket) {//
 				result.setCommand(ACTIONS_TYPE.ExecuteBusiness.name());
@@ -94,7 +97,7 @@ public class HttpRestBusinessR66Handler extends HttpRestAbstractR66Handler {
 				if (future != null && ! future.isSuccess()) {
 					R66Result r66result = future.getResult();
 					if (r66result == null) {
-						r66result = new R66Result(session, false, ErrorCode.ExternalOp, session.getRunner());
+						r66result = new R66Result(session, false, ErrorCode.ExternalOp, null);
 					}
 					logger.info("Task in Error:" + node.getClassName() + " " + r66result);
 					if (!r66result.isAnswered) {
@@ -104,6 +107,11 @@ public class HttpRestBusinessR66Handler extends HttpRestAbstractR66Handler {
 					result.setDetail("Task in Error:" + node.getClassName() + " " + r66result);
 					setError(handler, result, HttpResponseStatus.NOT_ACCEPTABLE);
 				} else {
+					R66Result r66result = future.getResult();
+					if (r66result != null && r66result.other != null) {
+						result.setDetail(r66result.other.toString());
+						node.setArguments(r66result.other.toString());
+					}
 					setOk(handler, result, json, HttpResponseStatus.OK);
 				}
 			} else {
@@ -122,18 +130,21 @@ public class HttpRestBusinessR66Handler extends HttpRestAbstractR66Handler {
 		ArrayNode node = JsonHandler.createArrayNode();
 		
 		BusinessRequestJsonPacket node3 = new BusinessRequestJsonPacket();
+		node3.setRequestUserPacket();
 		node3.setComment("Business execution request (GET)");
 		node3.setClassName("Class name to execute");
 		node3.setArguments("Arguments of the execution");
 		node3.setExtraArguments("Extra arguments");
 		ObjectNode node2;
+		ArrayNode node1 = JsonHandler.createArrayNode();
 		try {
-			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.ExecuteBusiness.name(), node3.createObjectNode());
+			node1.add(node3.createObjectNode());
+			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.ExecuteBusiness.name(), node3.createObjectNode(), node1);
 			node.add(node2);
 		} catch (OpenR66ProtocolPacketException e1) {
 		}
 
-		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null);
+		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null, null);
 		node.add(node2);
 		
 		return node;

@@ -35,6 +35,7 @@ import org.waarp.gateway.kernel.rest.RestArgument;
 import org.waarp.gateway.kernel.rest.HttpRestHandler.METHOD;
 import org.waarp.openr66.database.data.DbHostConfiguration;
 import org.waarp.openr66.database.data.DbHostConfiguration.Columns;
+import org.waarp.openr66.protocol.configuration.Configuration;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -151,9 +152,17 @@ public class DbHostConfigurationR66RestMethodHandler extends DataModelRestMethod
 	protected ArrayNode getDetailedAllow() {
 		ArrayNode node = JsonHandler.createArrayNode();
 		
+		ObjectNode node1 = JsonHandler.createObjectNode();
+		node1.put(DbHostConfiguration.JSON_MODEL, DbHostConfiguration.class.getSimpleName());
+		DbValue []values = DbHostConfiguration.getAllType();
+		for (DbValue dbValue : values) {
+			node1.put(dbValue.column, dbValue.getType());
+		}
+		
 		ObjectNode node2;
 		node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path+"/id", COMMAND_TYPE.GET.name(), 
-				JsonHandler.createObjectNode().put(DbHostConfiguration.Columns.HOSTID.name(), "HostId as VARCHAR in URI as "+this.path+"/id"));
+				JsonHandler.createObjectNode().put(DbHostConfiguration.Columns.HOSTID.name(), "HostId as VARCHAR in URI as "+this.path+"/id"),
+				node1);
 		node.add(node2);
 
 		ObjectNode node3 = JsonHandler.createObjectNode();
@@ -161,12 +170,11 @@ public class DbHostConfigurationR66RestMethodHandler extends DataModelRestMethod
 			node3.put(arg.name(), arg.type);
 		}
 		node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, COMMAND_TYPE.MULTIGET.name(), 
-				node3);
+				node3, JsonHandler.createArrayNode().add(node1));
 		node.add(node2);
 
 		node3 = JsonHandler.createObjectNode();
-		node3.put(DbHostConfiguration.Columns.HOSTID.name(), "HostId as VARCHAR in URI as "+this.path+"/id"); 
-		DbValue []values = DbHostConfiguration.getAllType();
+		node3.put(DbHostConfiguration.Columns.HOSTID.name(), "HostId as VARCHAR in URI as "+this.path+"/id");
 		for (DbValue dbValue : values) {
 			if (dbValue.column.equalsIgnoreCase(DbHostConfiguration.Columns.HOSTID.name())) {
 				continue;
@@ -174,13 +182,13 @@ public class DbHostConfigurationR66RestMethodHandler extends DataModelRestMethod
 			node3.put(dbValue.column, dbValue.getType());
 		}
 		node2 = RestArgument.fillDetailedAllow(METHOD.PUT, this.path+"/id", COMMAND_TYPE.UPDATE.name(), 
-				node3);
+				node3, node1);
 		node.add(node2);
 		
 		node3 = JsonHandler.createObjectNode();
 		node3.put(DbHostConfiguration.Columns.HOSTID.name(), "HostId as VARCHAR in URI as "+this.path+"/id"); 
 		node2 = RestArgument.fillDetailedAllow(METHOD.DELETE, this.path+"/id", COMMAND_TYPE.DELETE.name(), 
-				node3);
+				node3, node1);
 		node.add(node2);
 
 		node3 = JsonHandler.createObjectNode();
@@ -188,10 +196,10 @@ public class DbHostConfigurationR66RestMethodHandler extends DataModelRestMethod
 			node3.put(dbValue.column, dbValue.getType());
 		}
 		node2 = RestArgument.fillDetailedAllow(METHOD.POST, this.path, COMMAND_TYPE.CREATE.name(), 
-				node3);
+				node3, node1);
 		node.add(node2);
 				
-		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null);
+		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null, null);
 		node.add(node2);
 
 		return node;
@@ -199,6 +207,18 @@ public class DbHostConfigurationR66RestMethodHandler extends DataModelRestMethod
 	@Override
 	public String getPrimaryPropertyName() {
 		return Columns.HOSTID.name();
+	}
+
+	@Override
+	protected void put(HttpRestHandler handler, RestArgument arguments, RestArgument result,
+			Object body) throws HttpIncorrectRequestException, HttpInvalidAuthenticationException,
+			HttpNotFoundRequestException {
+		super.put(handler, arguments, result, body);
+		// according to what is updated and if concerned
+		DbHostConfiguration item = getItem(handler, arguments, result, body);
+		if (item.getHostid().equals(Configuration.configuration.HOST_ID)) {
+			DbHostConfiguration.updateHostConfiguration(Configuration.configuration, item);
+		}
 	}
 
 }

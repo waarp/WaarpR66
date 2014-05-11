@@ -28,7 +28,7 @@ package org.waarp.openr66.protocol.localhandler.packet.json;
  */
 public class ShutdownOrBlockJsonPacket extends JsonPacket {
 
-	protected byte []key;
+	protected byte[] key;
 	/**
 	 * Shutdown: isRestart, Block: block/unblock
 	 */

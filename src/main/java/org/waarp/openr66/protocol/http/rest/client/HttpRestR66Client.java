@@ -36,16 +36,18 @@ import org.waarp.openr66.protocol.localhandler.packet.json.JsonPacket;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
+ * Http Rest R66 client helper class
  * @author "Frederic Bregier"
  *
  */
 public class HttpRestR66Client extends HttpRestClientHelper {
 
 	/**
-	 * @param baseUri
-	 * @param nbclient
-	 * @param timeout
-	 * @param pipelineFactory
+	 * Prepare the future connection
+	 * @param baseUri in general = '/'
+	 * @param nbclient maximum number of client at once
+	 * @param timeout timeout in connection as client
+	 * @param pipelineFactory the associated pipelineFactory including the REST handler for client side
 	 */
 	public HttpRestR66Client(String baseUri, int nbclient, long timeout,
 			ChannelPipelineFactory pipelineFactory) {
@@ -54,31 +56,35 @@ public class HttpRestR66Client extends HttpRestClientHelper {
 
 	/**
 	 * 
-	 * @param arg
+	 * @param bodyResponse
 	 * @return the associated RESTHANDLERS if any, else null
 	 */
-	public RESTHANDLERS getRestHandler(RestArgument arg) {
-		ObjectNode node = arg.getAnswer();
+	public RESTHANDLERS getRestHandler(RestArgument bodyResponse) {
+		ObjectNode node = bodyResponse.getAnswer();
 		String model = node.path(AbstractDbData.JSON_MODEL).asText();
-		if (model != null && ! model.isEmpty()) {
-			return RESTHANDLERS.valueOf(model);
-		}
+		try {
+			if (model != null && ! model.isEmpty()) {
+				return RESTHANDLERS.valueOf(model);
+			}
+		} catch (Exception e) {}
 		return null;
 	}
 	
 	/**
 	 * 
-	 * @param arg
+	 * @param bodyResponse
 	 * @return the primary property value associated with the Model, else null
 	 */
-	public String getPrimaryProperty(RestArgument arg) {
-		ObjectNode answer = arg.getAnswer();
+	public String getPrimaryProperty(RestArgument bodyResponse) {
+		ObjectNode answer = bodyResponse.getAnswer();
 		String model = answer.path(AbstractDbData.JSON_MODEL).asText();
-		if (model != null && ! model.isEmpty()) {
-			RESTHANDLERS dbdata = RESTHANDLERS.valueOf(model);
-			DataModelRestMethodHandler<?> handler = (DataModelRestMethodHandler<?>) dbdata.getRestMethodHandler();
-			return answer.path(handler.getPrimaryPropertyName()).asText();
-		}
+		try {
+			if (model != null && ! model.isEmpty()) {
+				RESTHANDLERS dbdata = RESTHANDLERS.valueOf(model);
+				DataModelRestMethodHandler<?> handler = (DataModelRestMethodHandler<?>) dbdata.getRestMethodHandler();
+				return answer.path(handler.getPrimaryPropertyName()).asText();
+			}
+		} catch (Exception e) {}
 		return null;
 	}
 
@@ -95,14 +101,16 @@ public class HttpRestR66Client extends HttpRestClientHelper {
 			RestArgument arg = future.getRestArgument();
 			ObjectNode node = arg.getAnswer();
 			String model = node.path(AbstractDbData.JSON_MODEL).asText();
-			if (model != null && ! model.isEmpty()) {
-				RESTHANDLERS rmodel = RESTHANDLERS.valueOf(model);
-				try {
-					return (AbstractDbData) rmodel.clasz.getConstructor(DbSession.class, ObjectNode.class).newInstance(dbSession, node);
-				} catch (Exception e) {
-					throw new HttpIncorrectRequestException(e);
+			try {
+				if (model != null && ! model.isEmpty()) {
+					RESTHANDLERS rmodel = RESTHANDLERS.valueOf(model);
+					try {
+						return (AbstractDbData) rmodel.clasz.getConstructor(DbSession.class, ObjectNode.class).newInstance(dbSession, node);
+					} catch (Exception e) {
+						throw new HttpIncorrectRequestException(e);
+					}
 				}
-			}
+			} catch (Exception e) {}
 		}
 		return null;
 	}
