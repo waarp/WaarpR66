@@ -29,6 +29,7 @@
         <serversslport>6667</serversslport>
         <serverhttpport>8066</serverhttpport>
         <serverhttpsport>8067</serverhttpsport>
+        <serverrestport>8068</serverrestport>
     </network>
     <ssl>
         <keypath>D:\GG\R66\certs\testsslnocert.jks</keypath>
@@ -72,6 +73,13 @@
         <delaythrottle>1000</delaythrottle>
         <limitlowbandwidth>4096</limitlowbandwidth>
     </limit>
+    <rest>
+        <restssl>False</restssl>
+        <restdelete>True</restdelete>
+        <resttimelimit>10000</resttimelimit>
+        <restauthenticated>True</restauthenticated>
+        <restauthkey>D:/GG/R66/conf/key.sha256</restauthkey>
+    </rest>
     <db>
         <dbdriver>h2</dbdriver>
         <dbserver>jdbc:h2:D:/GG/R66/data/openr66;IFEXISTS=TRUE;MODE=Oracle;AUTO_SERVER=TRUE</dbserver>
