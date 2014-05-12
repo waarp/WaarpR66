@@ -886,7 +886,7 @@ public class Configuration {
 	public void startRestSupport() {
 		if (REST_PORT > 0) {
 			logger.info(Messages.getString("Configuration.HTTPStart") +" (REST Support) "+ REST_PORT);
-			HttpRestR66Handler.initializeService(workingPath+"/httptemp");
+			HttpRestR66Handler.initializeService(baseDirectory+"/"+workingPath+"/httptemp");
 		}
 	}
 
