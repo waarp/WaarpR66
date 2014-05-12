@@ -33,6 +33,7 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.waarp.common.command.exception.Reply421Exception;
 import org.waarp.common.command.exception.Reply530Exception;
 import org.waarp.common.database.DbSession;
+import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.digest.FilesystemBasedDigest;
 import org.waarp.common.exception.CryptoException;
@@ -41,9 +42,11 @@ import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.rest.HttpRestHandler;
+import org.waarp.gateway.kernel.rest.RestArgument;
 import org.waarp.gateway.kernel.rest.RestMethodHandler;
 import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.database.DbConstant;
+import org.waarp.openr66.database.data.DbHostAuth;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.http.rest.handler.DbConfigurationR66RestMethodHandler;
 import org.waarp.openr66.protocol.http.rest.handler.DbHostAuthR66RestMethodHandler;
@@ -73,8 +76,6 @@ public class HttpRestR66Handler extends HttpRestHandler {
             .getLogger(HttpRestR66Handler.class);
 
     public static HashMap<String, DbSession> dbSessionFromUser = new HashMap<String, DbSession>();
-    // XXX FIXME to change to real user database
-    public static HashMap<String, String> falseRepoPassword = new HashMap<String, String>();
     
     public static enum RESTHANDLERS {
     	DbHostAuth("hosts", org.waarp.openr66.database.data.DbHostAuth.class),
@@ -103,7 +104,7 @@ public class HttpRestR66Handler extends HttpRestHandler {
     		return restHashMap.get(uri);
     	}
     }
-    static {
+    public static void instantiateHandlers() {
     	restHashMap.put(RESTHANDLERS.DbTaskRunner.uri, new DbTaskRunnerR66RestMethodHandler(RESTHANDLERS.DbTaskRunner.uri, true));
     	restHashMap.put(RESTHANDLERS.DbHostAuth.uri, new DbHostAuthR66RestMethodHandler(RESTHANDLERS.DbHostAuth.uri, true));
     	restHashMap.put(RESTHANDLERS.DbRule.uri, new DbRuleR66RestMethodHandler(RESTHANDLERS.DbRule.uri, true));
@@ -116,7 +117,7 @@ public class HttpRestR66Handler extends HttpRestHandler {
     	restHashMap.put(RESTHANDLERS.Log.uri, new HttpRestLogR66Handler());
     	restHashMap.put(RESTHANDLERS.Server.uri, new HttpRestServerR66Handler());
     	restHashMap.put(RESTHANDLERS.Control.uri, new HttpRestControlR66Handler());
-    	falseRepoPassword.put("admin2", "test");
+		logger.debug("Initialized handler: "+RESTHANDLERS.values().length);
     }
 
     /**
@@ -135,21 +136,37 @@ public class HttpRestR66Handler extends HttpRestHandler {
 	@Override
     protected void checkConnection(Channel channel) throws HttpInvalidAuthenticationException {
 		logger.debug("Request: {} ### {}",arguments,response);
-		String user = arguments.getXAuthUser();
-		String key = user != null ? falseRepoPassword.get(user) : null;
+		String user = null;
+		String key = null;
 		if (checkAuthent) {
-			if (key == null) {
+			user = arguments.getXAuthUser();
+			if (user == null || user.isEmpty()) {
+				status = HttpResponseStatus.UNAUTHORIZED;
+				throw new HttpInvalidAuthenticationException("Empty Authentication");
+			}
+			DbHostAuth host;
+			try {
+				host = new DbHostAuth(DbConstant.admin.session, user);
+				key = new String(host.getHostkey(), WaarpStringUtils.UTF8);
+			} catch (WaarpDatabaseException e) {
+				// might be global Admin
+				if (user.equals(Configuration.configuration.ADMINNAME)) {
+					key = new String(Configuration.configuration.getSERVERADMINKEY(), WaarpStringUtils.UTF8);
+				}
+			}
+			if (key == null || key.isEmpty()) {
 				status = HttpResponseStatus.UNAUTHORIZED;
 				throw new HttpInvalidAuthenticationException("Wrong Authentication");
 			}
 			arguments.checkBaseAuthent(key, checkTime);
 		} else {
+			// User set only for right access, not for signature check
+			user = Configuration.configuration.ADMINNAME;
 			arguments.checkBaseAuthent(null, checkTime);
 		}
 		serverHandler.newSession();
 		R66Session session = serverHandler.getSession();
 		if (! checkAuthent) {
-			user = Configuration.configuration.ADMINNAME;
 			session.getAuth().specialNoSessionAuth(true, Configuration.configuration.HOST_SSLID);
 		} else {
 			// we have one DbSession per connection, only after authentication
@@ -198,7 +215,14 @@ public class HttpRestR66Handler extends HttpRestHandler {
 		super.initialize();
 	}
 
-	public static void initializeService(long connectImeout, int port, String pathTemp, File keyFile) throws CryptoException, IOException {
+	/**
+	 * Initialize the REST service (server side) specifying pathTemp
+	 * @param pathTemp
+	 * @throws CryptoException
+	 * @throws IOException
+	 */
+	public static void initializeService(String pathTemp) throws CryptoException, IOException {
+		instantiateHandlers();
         group = Configuration.configuration.getHttpChannelGroup();
 		// Configure the server.
         NioServerSocketChannelFactory httpChannelFactory = new NioServerSocketChannelFactory(
@@ -207,17 +231,22 @@ public class HttpRestR66Handler extends HttpRestHandler {
 				Configuration.configuration.SERVER_THREAD);
         ServerBootstrap httpBootstrap = new ServerBootstrap(httpChannelFactory);
 		// Set up the event pipeline factory.
-        HttpRestR66Handler.initialize(pathTemp, keyFile);
+        HttpRestR66Handler.initialize(pathTemp);
+		RestArgument.initializeKey(new File(Configuration.configuration.REST_AUTH_KEY));
 
-		httpBootstrap.setPipelineFactory(new HttpRestR66PipelineFactory(false, null));
+		if (Configuration.configuration.REST_SSL) {
+			httpBootstrap.setPipelineFactory(new HttpRestR66PipelineFactory(false, Configuration.waarpSslContextFactory));
+		} else {
+			httpBootstrap.setPipelineFactory(new HttpRestR66PipelineFactory(false, null));
+		}
 		httpBootstrap.setOption("child.tcpNoDelay", true);
 		httpBootstrap.setOption("child.keepAlive", true);
 		httpBootstrap.setOption("child.reuseAddress", true);
-		httpBootstrap.setOption("child.connectTimeoutMillis", connectImeout);
+		httpBootstrap.setOption("child.connectTimeoutMillis", Configuration.configuration.TIMEOUTCON);
 		httpBootstrap.setOption("tcpNoDelay", true);
 		httpBootstrap.setOption("reuseAddress", true);
-		httpBootstrap.setOption("connectTimeoutMillis", connectImeout);
+		httpBootstrap.setOption("connectTimeoutMillis", Configuration.configuration.TIMEOUTCON);
 		// Bind and start to accept incoming connections.
-		group.add(httpBootstrap.bind(new InetSocketAddress(port)));
+		group.add(httpBootstrap.bind(new InetSocketAddress(Configuration.configuration.REST_PORT)));
 	}
 }

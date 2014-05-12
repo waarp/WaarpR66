@@ -6,6 +6,7 @@
 	</properties>
 	<body>
         <release version="2.4.27" date="2014-05-15" description="Fix release">
+            <action dev="Frederic Bregier" type="fix">Add return of information within Java Exec (BusinessTask, JavaTask)</action>
             <action dev="Frederic Bregier" type="fix">Move kernel.exec module into Waarp R66 (strong dependency)</action>
             <action dev="Frederic Bregier" type="fix">Move HttpWriteCacheEnable in Waarp Gateway Kernel package</action>
             <action dev="Frederic Bregier" type="add">Add Json support for DbData</action>

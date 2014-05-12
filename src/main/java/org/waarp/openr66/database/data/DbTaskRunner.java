@@ -1369,7 +1369,7 @@ public class DbTaskRunner extends AbstractDbData {
 			try {
 				dbTaskRunner.rule = new DbRule(dbTaskRunner.dbSession, dbTaskRunner.ruleId);
 			} catch (WaarpDatabaseException e) {
-				throw new WaarpDatabaseSqlException(e);
+				throw new WaarpDatabaseSqlException("Rule cannot be found for DbTaskRunner: "+dbTaskRunner.ruleId, e);
 			}
 		}
 		dbTaskRunner.checkThroughMode();

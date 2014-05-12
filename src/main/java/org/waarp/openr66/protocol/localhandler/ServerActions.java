@@ -178,19 +178,24 @@ public class ServerActions extends ConnectionActions {
 			throws OpenR66ProtocolNotAuthenticatedException,
 			OpenR66ProtocolNoDataException, OpenR66ProtocolPacketException {
 		byte request = packet.getRequest();
-		String sid = packet.getRulename();
-		String sisto = packet.getFilename();
+		String rulename = packet.getRulename();
+		String filename = packet.getFilename();
 		long id = DbConstant.ILLEGALVALUE;
 		if (request == -1) {
 			try {
-				id = Long.parseLong(sid);
+				id = Long.parseLong(rulename);
 			} catch (NumberFormatException e) {
 				logger.error("Incorrect Transfer ID", e);
 				throw new OpenR66ProtocolNoDataException("Incorrect Transfer ID", e);
 			}
 		}
-		boolean isTo = sisto.equals("1");
-		ValidPacket validPacket = information(request == -1, id, isTo, request, sid, sisto, false);
+		boolean isTo = filename.equals("1");
+		ValidPacket validPacket = null;
+		if (request == -1) {
+			validPacket = informationRequest(id, isTo, rulename, false);
+		} else {
+			validPacket = informationFile(request, rulename, filename, false);
+		}
 		if (validPacket != null) {
 			ChannelUtils.writeAbstractLocalPacket(localChannelReference,
 					validPacket, true);
@@ -757,7 +762,12 @@ public class ServerActions extends ConnectionActions {
 			}
 			case LocalPacketFactory.INFORMATIONPACKET: {
 				InformationJsonPacket node = (InformationJsonPacket) json;
-				ValidPacket validPacket = information(node.isIdRequest(), node.getId(), node.isTo(), node.getRequest(), node.getRulename(), node.getFilename(), false);
+				ValidPacket validPacket = null;
+				if (node.isIdRequest()) {
+					validPacket = informationRequest(node.getId(), node.isTo(), node.getRulename(), false);
+				} else {
+					validPacket = informationFile(node.getRequest(), node.getRulename(), node.getFilename(), false);
+				}
 				if (validPacket != null) {
 					ChannelUtils.writeAbstractLocalPacket(localChannelReference,
 							validPacket, true);
@@ -2092,19 +2102,16 @@ public class ServerActions extends ConnectionActions {
 	/**
 	 * Receive a request of information (Transfer information or File listing)
 	 * 
-	 * @param isIdRequest True for Transfer, False for file listing
-	 * @param id
-	 * @param isTo True for remote host is requester, False for requested (default)
-	 * @param request
-	 * @param rulename rulename for file, requester/requested (isTo true/false) for transfer if jsonOutput is True
-	 * @param filename
+	 * @param request InformationPacket.ASKENUM ordinal
+	 * @param rulename rulename for file path
+	 * @param filename partial name (including wildcard)
 	 * @param jsonOutput ValidPacket will contain Json format ?
-	 * @return the ValidPacket to answer containing: Transfer Information as Header, or File Listing as Header and Number of entries as Middle
+	 * @return the ValidPacket to answer containing: File Listing as Header and Number of entries as Middle
 	 * @throws OpenR66ProtocolNotAuthenticatedException
 	 * @throws OpenR66ProtocolNoDataException
 	 * @throws OpenR66ProtocolPacketException
 	 */
-	public final ValidPacket information(boolean isIdRequest, long id, boolean isTo, byte request, String rulename, String filename, boolean jsonOutput)
+	public final ValidPacket informationFile(byte request, String rulename, String filename, boolean jsonOutput)
 			throws OpenR66ProtocolNotAuthenticatedException,
 			OpenR66ProtocolNoDataException, OpenR66ProtocolPacketException {
 		if (!session.isAuthenticated()) {
@@ -2112,60 +2119,6 @@ public class ServerActions extends ConnectionActions {
 					"Not authenticated while Information received");
 		}
 		DbSession dbSession = (localChannelReference != null) ? localChannelReference.getDbSession() : DbConstant.admin.session;
-		if (isIdRequest) {
-			String remote = session.getAuth().getUser();
-			if (jsonOutput && rulename != null && ! rulename.isEmpty()) {
-				remote = rulename;
-			}
-			String local = null;
-			try {
-				local = Configuration.configuration.getHostId(session.getAuth().isSsl());
-			} catch (OpenR66ProtocolNoSslException e1) {
-				logger.error("Local Ssl Host is unknown", e1);
-				throw new OpenR66ProtocolNoDataException("Local Ssl Host is unknown", e1);
-			}
-			DbTaskRunner runner = null;
-			if (isTo) {
-				try {
-					runner = new DbTaskRunner(dbSession, 
-							session, null, 
-							id, remote, local);
-				} catch (WaarpDatabaseException e) {
-					logger.error(Messages.getString("LocalServerHandler.21") + id); //$NON-NLS-1$
-					logger.debug("RunnerTask is not found: " + id, e);
-					throw new OpenR66ProtocolNoDataException(Messages.getString("LocalServerHandler.22") + id, e); //$NON-NLS-1$
-				}
-			} else {
-				try {
-					runner = new DbTaskRunner(dbSession,
-							session, null, 
-							id, local, remote);
-				} catch (WaarpDatabaseException e) {
-					logger.debug("RunnerTask is not found: " + id, e);
-					logger.error(Messages.getString("LocalServerHandler.21") + id);
-					throw new OpenR66ProtocolNoDataException("Local "+Messages.getString("LocalServerHandler.21") + id, e);
-				}
-			}
-			if (! jsonOutput) {
-				session.newState(VALIDOTHER);
-			}
-			ValidPacket validPacket;
-			try {
-				validPacket = new ValidPacket(jsonOutput ? runner.asJson() : runner.asXML(), "",
-						LocalPacketFactory.INFORMATIONPACKET);
-			} catch (OpenR66ProtocolBusinessException e) {
-				logger.error("RunnerTask cannot be found: " + id, e);
-				throw new OpenR66ProtocolNoDataException("RunnerTask cannot be found: " + id, e);
-			}
-			R66Result result = new R66Result(session, true,
-					ErrorCode.CompleteOk, null);
-			result.other = validPacket;
-			if (localChannelReference != null) {
-				localChannelReference.validateEndTransfer(result);
-				localChannelReference.validateRequest(result);
-			}
-			return validPacket;
-		}
 		DbRule rule;
 		try {
 			rule = new DbRule(dbSession, rulename);
@@ -2260,6 +2213,79 @@ public class ServerActions extends ConnectionActions {
 					+ e.getMessage());
 			return null;
 		}
+	}
+	/**
+	 * Receive a request of information (Transfer information or File listing)
+	 * 
+	 * @param id Id of request
+	 * @param isTo True for remote host is requester, False for requested (default)
+	 * @param remoteHost requester/requested for transfer if jsonOutput is True, else (jsonOutput False) remoteHost is from current Authenticated user
+	 * @param jsonOutput ValidPacket will contain Json format ?
+	 * @return the ValidPacket to answer containing: Transfer Information as Header
+	 * @throws OpenR66ProtocolNotAuthenticatedException
+	 * @throws OpenR66ProtocolNoDataException
+	 * @throws OpenR66ProtocolPacketException
+	 */
+	public final ValidPacket informationRequest(long id, boolean isTo, String remoteHost, boolean jsonOutput)
+			throws OpenR66ProtocolNotAuthenticatedException,
+			OpenR66ProtocolNoDataException, OpenR66ProtocolPacketException {
+		if (!session.isAuthenticated()) {
+			throw new OpenR66ProtocolNotAuthenticatedException(
+					"Not authenticated while Information received");
+		}
+		DbSession dbSession = (localChannelReference != null) ? localChannelReference.getDbSession() : DbConstant.admin.session;
+		String remote = session.getAuth().getUser();
+		if (jsonOutput && remoteHost != null && ! remoteHost.isEmpty()) {
+			remote = remoteHost;
+		}
+		String local = null;
+		try {
+			local = Configuration.configuration.getHostId(dbSession, remote);
+		} catch (WaarpDatabaseException e1) {
+			logger.error("Remote Host is unknown", e1);
+			throw new OpenR66ProtocolNoDataException("Remote Host is unknown", e1);
+		}
+		DbTaskRunner runner = null;
+		if (isTo) {
+			try {
+				runner = new DbTaskRunner(dbSession, 
+						session, null, 
+						id, remote, local);
+			} catch (WaarpDatabaseException e) {
+				logger.error(Messages.getString("LocalServerHandler.21") + id); //$NON-NLS-1$
+				logger.debug("RunnerTask is not found: " + id+":"+remote+":"+local, e);
+				throw new OpenR66ProtocolNoDataException(Messages.getString("LocalServerHandler.22") + id, e); //$NON-NLS-1$
+			}
+		} else {
+			try {
+				runner = new DbTaskRunner(dbSession,
+						session, null, 
+						id, local, remote);
+			} catch (WaarpDatabaseException e) {
+				logger.debug("RunnerTask is not found: " + id+":"+local+":"+remote, e);
+				logger.error(Messages.getString("LocalServerHandler.21") + id);
+				throw new OpenR66ProtocolNoDataException("(Local) "+Messages.getString("LocalServerHandler.21") + id, e);
+			}
+		}
+		if (! jsonOutput) {
+			session.newState(VALIDOTHER);
+		}
+		ValidPacket validPacket;
+		try {
+			validPacket = new ValidPacket(jsonOutput ? runner.asJson() : runner.asXML(), "",
+					LocalPacketFactory.INFORMATIONPACKET);
+		} catch (OpenR66ProtocolBusinessException e) {
+			logger.error("RunnerTask cannot be found: " + id, e);
+			throw new OpenR66ProtocolNoDataException("RunnerTask cannot be found: " + id, e);
+		}
+		R66Result result = new R66Result(session, true,
+				ErrorCode.CompleteOk, null);
+		result.other = validPacket;
+		if (localChannelReference != null) {
+			localChannelReference.validateEndTransfer(result);
+			localChannelReference.validateRequest(result);
+		}
+		return validPacket;
 	}
 
 	/**

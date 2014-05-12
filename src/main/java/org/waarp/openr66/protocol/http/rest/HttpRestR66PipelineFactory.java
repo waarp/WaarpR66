@@ -23,8 +23,6 @@ import static org.jboss.netty.channel.Channels.pipeline;
 
 import org.waarp.common.crypto.ssl.WaarpSslContextFactory;
 import org.waarp.openr66.protocol.configuration.Configuration;
-import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoDataException;
-import org.waarp.openr66.protocol.networkhandler.NetworkServerPipelineFactory;
 
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
@@ -34,8 +32,6 @@ import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
 import org.jboss.netty.handler.execution.ExecutionHandler;
 import org.jboss.netty.handler.ssl.SslHandler;
 import org.jboss.netty.handler.stream.ChunkedWriteHandler;
-import org.jboss.netty.handler.traffic.ChannelTrafficShapingHandler;
-import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
 
 /**
  * Pipeline Factory for Rest HTTP support for R66
@@ -44,10 +40,9 @@ import org.jboss.netty.handler.traffic.GlobalTrafficShapingHandler;
  * 
  */
 public class HttpRestR66PipelineFactory implements ChannelPipelineFactory {
-    public boolean useHttpCompression = false;
+	private final boolean useHttpCompression;
     private final WaarpSslContextFactory waarpSslContextFactory;
-    public static String CHUNKEDWRITER = "chunkedWriter";
-
+    
     public HttpRestR66PipelineFactory(boolean useHttpCompression, WaarpSslContextFactory waarpSslContextFactory) {
         this.waarpSslContextFactory = waarpSslContextFactory;
         this.useHttpCompression = useHttpCompression;
@@ -60,13 +55,14 @@ public class HttpRestR66PipelineFactory implements ChannelPipelineFactory {
         // Enable HTTPS if necessary.
         if (waarpSslContextFactory != null) {
         	SslHandler handler = waarpSslContextFactory.initPipelineFactory(true,
-                    waarpSslContextFactory.needClientAuthentication(), false);
+                    false, false);
         	handler.setIssueHandshake(true);
         	pipeline.addLast("ssl", handler);
         }
         
         pipeline.addLast("decoder", new HttpRequestDecoder());
         pipeline.addLast("encoder", new HttpResponseEncoder());
+        /*
         GlobalTrafficShapingHandler handler = Configuration.configuration.getGlobalTrafficShapingHandler();
         if (handler != null) {
             pipeline.addLast(NetworkServerPipelineFactory.LIMIT, handler);
@@ -79,16 +75,16 @@ public class HttpRestR66PipelineFactory implements ChannelPipelineFactory {
             }
         } catch (OpenR66ProtocolNoDataException e) {
         }
+        */
         pipeline.addLast("pipelineExecutor", new ExecutionHandler(
                 Configuration.configuration.getHttpPipelineExecutor()));
         if (useHttpCompression) {
             pipeline.addLast("deflater", new HttpContentCompressor());
         }
-        pipeline.addLast(CHUNKEDWRITER, new ChunkedWriteHandler());
+        pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
         HttpRestR66Handler r66handler = new HttpRestR66Handler();
-        // XXX FIXME default but should be able to change the default by configuration
-        r66handler.checkAuthent = true;
-        r66handler.checkTime = 0;
+        r66handler.checkAuthent = Configuration.configuration.REST_AUTHENTICATED;
+        r66handler.checkTime = Configuration.configuration.REST_TIME_LIMIT;
         pipeline.addLast("handler", r66handler);
         return pipeline;
     }

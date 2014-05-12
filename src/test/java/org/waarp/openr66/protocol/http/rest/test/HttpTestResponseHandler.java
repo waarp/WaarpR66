@@ -167,11 +167,7 @@ public class HttpTestResponseHandler extends HttpRestR66ClientResponseHandler {
 					e.printStackTrace();
 					return newMessage;
 				}
-				InformationJsonPacket node = new InformationJsonPacket();
-				node.setRequestUserPacket();
-				node.setId(recv.getSpecialId());
-				node.setRulename(recv.getRequested());
-				node.setIdRequest(true);
+				InformationJsonPacket node = new InformationJsonPacket(recv.getSpecialId(), false, recv.getRequested());
 				HttpTestRestR66Client.action(channel, HttpMethod.GET, RESTHANDLERS.Control.uri, node);
 				newMessage = true;
 				break;

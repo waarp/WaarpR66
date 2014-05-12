@@ -104,17 +104,24 @@ public class HttpRestControlR66Handler extends HttpRestAbstractR66Handler {
 				InformationJsonPacket node = (InformationJsonPacket) json;
 				if (node.isIdRequest()) {
 					result.setCommand(ACTIONS_TYPE.GetTransferInformation.name());
+					ValidPacket validPacket = null;
+					if (node.isIdRequest()) {
+						validPacket = serverHandler.informationRequest(node.getId(), node.isTo(), node.getRulename(), true);
+					} else {
+						validPacket = serverHandler.informationFile(node.getRequest(), node.getRulename(), node.getFilename(), true);
+					}
+					if (validPacket != null) {
+						ObjectNode resp = JsonHandler.getFromString(validPacket.getSheader());
+						handler.setStatus(HttpResponseStatus.OK);
+						result.setResult(HttpResponseStatus.OK);
+						result.getResults().add(resp);
+					} else {
+						result.setDetail("Error during information request");
+						setError(handler, result, HttpResponseStatus.NOT_ACCEPTABLE);
+					}
 				} else {
 					result.setCommand(ACTIONS_TYPE.GetInformation.name());
-				}
-				ValidPacket validPacket = serverHandler.information(node.isIdRequest(), node.getId(), node.isTo(), node.getRequest(), node.getRulename(), node.getFilename(), true);
-				if (validPacket != null) {
-					ObjectNode resp = JsonHandler.getFromString(validPacket.getSheader());
-					handler.setStatus(HttpResponseStatus.OK);
-					result.setResult(HttpResponseStatus.OK);
-					result.getResults().add(resp);
-				} else {
-					result.setDetail("Error during information request");
+					result.setDetail("Error: FileInformation is not applicable with URI "+BASEURI);
 					setError(handler, result, HttpResponseStatus.NOT_ACCEPTABLE);
 				}
 			} else if (json instanceof RestartTransferJsonPacket && method == METHOD.PUT) {//
@@ -174,23 +181,17 @@ public class HttpRestControlR66Handler extends HttpRestAbstractR66Handler {
 	protected ArrayNode getDetailedAllow() {
 		ArrayNode node = JsonHandler.createArrayNode();
 		
-		InformationJsonPacket node3 = new InformationJsonPacket();
-		node3.setRequestUserPacket();
+		InformationJsonPacket node3 = new InformationJsonPacket(Long.MIN_VALUE, false, "remoteHost");
 		node3.setComment("Information on Transfer request (GET)");
-		ObjectNode node2;
 		ArrayNode node1 = JsonHandler.createArrayNode();
-		node2 = JsonHandler.createObjectNode();
-		node2.put("fileInfo", JsonHandler.createArrayNode().add("path"));
-		node1.add(node2);
 		ObjectNode node1b = JsonHandler.createObjectNode();
 		node1b.put(DbTaskRunner.JSON_MODEL, DbTaskRunner.class.getSimpleName());
 		DbValue []values = DbTaskRunner.getAllType();
 		for (DbValue dbValue : values) {
 			node1b.put(dbValue.column, dbValue.getType());
 		}
-		node2 = JsonHandler.createObjectNode();
-		node2.put("transferInfo", JsonHandler.createArrayNode().add(node1b));
-		node1.add(node2);
+		node1.add(node1b);
+		ObjectNode node2;
 		try {
 			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.GetTransferInformation.name(), node3.createObjectNode(), node1);
 			node.add(node2);

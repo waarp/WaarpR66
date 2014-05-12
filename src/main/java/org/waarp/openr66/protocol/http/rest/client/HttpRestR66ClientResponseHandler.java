@@ -297,7 +297,7 @@ public abstract class HttpRestR66ClientResponseHandler extends SimpleChannelUpst
                 if (jsonObject != null) {
                     ra = new RestArgument((ObjectNode) jsonObject);
                     ((RestFuture) e.getChannel().getAttachment()).setRestArgument(ra);
-                    logger.error(ra.prettyPrint());
+                    logger.error("Error: "+response.getStatus().getCode()+" "+response.getStatus().getReasonPhrase()+"\n"+ra.prettyPrint());
             	} else {
                     logger.error("Error: "+response.getStatus().getCode()+" "+response.getStatus().getReasonPhrase());
             	}

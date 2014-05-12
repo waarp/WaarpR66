@@ -20,12 +20,11 @@
  */
 package org.waarp.openr66.protocol.http.rest.test;
 
-import java.io.File;
-
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
+import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
 import org.waarp.openr66.server.R66Server;
 
@@ -35,6 +34,14 @@ import org.waarp.openr66.server.R66Server;
  */
 public class HttpTestR66PseudoMain {
 
+	public static void setTestConfiguration() {
+        Configuration.configuration.REST_PORT = 8080;
+        Configuration.configuration.REST_SSL = false;
+        Configuration.configuration.REST_ALLOW_DELETE = true;
+        Configuration.configuration.REST_AUTHENTICATED = true;
+        Configuration.configuration.REST_AUTH_KEY = "J:/Temp/temp/key.sha256";
+        Configuration.configuration.REST_TIME_LIMIT = 10000;
+	}
 	/**
 	 * @param args
 	 * @throws Exception 
@@ -48,7 +55,11 @@ public class HttpTestR66PseudoMain {
         	System.err.println("Error during startup");
         	System.exit(1);
         }
-        HttpRestR66Handler.initializeService(10000, 8080, pathTemp, new File("J:/Temp/temp/key.sha256"));
+
+        setTestConfiguration();
+        
+        HttpRestR66Handler.initializeService(pathTemp);
+        
 		logger.warn("Server RestOpenR66 starts");
 		/* HmacSha256 sha = new HmacSha256();
 		sha.generateKey();

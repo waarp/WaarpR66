@@ -39,6 +39,7 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
 import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler.RESTHANDLERS;
 import org.waarp.openr66.protocol.localhandler.ServerActions;
+import org.waarp.openr66.protocol.localhandler.packet.InformationPacket;
 import org.waarp.openr66.protocol.localhandler.packet.ValidPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.InformationJsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.JsonPacket;
@@ -93,7 +94,12 @@ public class HttpRestInformationR66Handler extends HttpRestAbstractR66Handler {
 				} else {
 					result.setCommand(ACTIONS_TYPE.GetInformation.name());
 				}
-				ValidPacket validPacket = serverHandler.information(node.isIdRequest(), node.getId(), node.isTo(), node.getRequest(), node.getRulename(), node.getFilename(), true);
+				ValidPacket validPacket = null;
+				if (node.isIdRequest()) {
+					validPacket = serverHandler.informationRequest(node.getId(), node.isTo(), node.getRulename(), true);
+				} else {
+					validPacket = serverHandler.informationFile(node.getRequest(), node.getRulename(), node.getFilename(), true);
+				}
 				if (validPacket != null) {
 					// will not use default setOk
 					if (node.isIdRequest()) {
@@ -132,25 +138,28 @@ public class HttpRestInformationR66Handler extends HttpRestAbstractR66Handler {
 	protected ArrayNode getDetailedAllow() {
 		ArrayNode node = JsonHandler.createArrayNode();
 		
-		InformationJsonPacket node3 = new InformationJsonPacket();
-		node3.setRequestUserPacket();
+		InformationJsonPacket node3 = new InformationJsonPacket((byte) InformationPacket.ASKENUM.ASKEXIST.ordinal(), 
+				"The rule name associated with the remote repository",
+				"The filename to look for if any");
 		node3.setComment("Information request (GET)");
-		node3.setFilename("The filename to look for if any");
-		node3.setRulename("The rule name associated with the remote repository");
 		ObjectNode node2;
-		ArrayNode node1 = JsonHandler.createArrayNode();
-		node2 = JsonHandler.createObjectNode();
-		node2.put("fileInfo", JsonHandler.createArrayNode().add("path"));
-		node1.add(node2);
+		ArrayNode node1 = JsonHandler.createArrayNode().add("path");
+		try {
+			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.GetInformation.name(), node3.createObjectNode(), node1);
+			node.add(node2);
+		} catch (OpenR66ProtocolPacketException e1) {
+		}
+
+		node3 = new InformationJsonPacket(Long.MIN_VALUE, false, "remoteHost");
+		node3.setComment("Information on Transfer request (GET)");
+		node1 = JsonHandler.createArrayNode();
 		ObjectNode node1b = JsonHandler.createObjectNode();
 		node1b.put(DbTaskRunner.JSON_MODEL, DbTaskRunner.class.getSimpleName());
 		DbValue []values = DbTaskRunner.getAllType();
 		for (DbValue dbValue : values) {
 			node1b.put(dbValue.column, dbValue.getType());
 		}
-		node2 = JsonHandler.createObjectNode();
-		node2.put("transferInfo", JsonHandler.createArrayNode().add(node1b));
-		node1.add(node2);
+		node1.add(node1b);
 		try {
 			node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.GetInformation.name(), node3.createObjectNode(), node1);
 			node.add(node2);

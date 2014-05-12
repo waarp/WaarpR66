@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -33,6 +32,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.handler.codec.http.HttpMethod;
+import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.joda.time.DateTime;
 import org.waarp.common.crypto.ssl.WaarpSslUtility;
@@ -47,7 +47,6 @@ import org.waarp.common.logging.WaarpSlf4JLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.rest.DataModelRestMethodHandler;
-import org.waarp.gateway.kernel.rest.HttpRestHandler;
 import org.waarp.gateway.kernel.rest.RestArgument;
 import org.waarp.gateway.kernel.rest.client.RestFuture;
 import org.waarp.openr66.context.ErrorCode;
@@ -96,13 +95,15 @@ public class HttpTestRestR66Client  implements Runnable {
     private static HttpRestR66Client clientHelper;
 	private static final String baseURI = "/";
 	private static final String host = "127.0.0.1";
-	private static final int port = 8080;
     
+	private static final String userAuthent = "admin2";
+	private static final String keyAuthent = "test";
+	
 	private static final long limit = 10000000;
 	private static final long delaylimit = 5000;
 	private static final String hostid = "hostZZ";
 	private static final String address = "10.10.10.10";
-	private static final String key = "ABCDEFGH";
+	private static final String hostkey = "ABCDEFGH";
 	private static final String business = "<business><businessid>hostas</businessid></business>";
 	private static final String roles = "<roles><role><roleid>hostas</roleid><roleset>FULLADMIN</roleset></role></roles>";
 	private static final String aliases = "<aliases><alias><realid>hostZZ</realid><aliasid>hostZZ2</aliasid></alias></aliases>";
@@ -134,9 +135,12 @@ public class HttpTestRestR66Client  implements Runnable {
 		if (NB == 1 && NBPERTHREAD == 1) {
 			DEBUG = true;
 		}
-		String pathTemp = "J:/Temp/temp";
+		
+        HttpTestR66PseudoMain.setTestConfiguration();
+        
 	    try {
-			HttpRestHandler.initialize(pathTemp, new File("J:/Temp/temp/key.sha256"));
+	    	HttpRestR66Handler.instantiateHandlers();
+		    RestArgument.initializeKey(new File(Configuration.configuration.REST_AUTH_KEY));
 		} catch (CryptoException e2) {
 			e2.printStackTrace();
 			return;
@@ -144,8 +148,12 @@ public class HttpTestRestR66Client  implements Runnable {
 			e2.printStackTrace();
 			return;
 		}
+	    OrderedMemoryAwareThreadPoolExecutor executor = Configuration.configuration.getHttpPipelineExecutor();
+        if (executor == null) {
+        	Configuration.configuration.httpPipelineInit();
+        }
 		// Configure the client.
-		clientHelper = new HttpRestR66Client(baseURI, Configuration.configuration.CLIENT_THREAD, Configuration.configuration.TIMEOUTCON, new HttpTestRestClientPipelineFactory(null));
+		clientHelper = new HttpRestR66Client(baseURI, new HttpTestRestClientPipelineFactory(null), Configuration.configuration.CLIENT_THREAD, Configuration.configuration.TIMEOUTCON);
 		logger.warn("ClientHelper created");
 		try {
 	        try {
@@ -225,15 +233,26 @@ public class HttpTestRestR66Client  implements Runnable {
 	
 	    	// Set usefull item first
 	    	{
-	    		Channel channel = clientHelper.getChannel(host, port);
-	    		Entry<String, String> id = HttpRestR66Handler.falseRepoPassword.entrySet().iterator().next();
-		    	// Need business
-		    	String buz = "<business><businessid>hostas</businessid><businessid>hosta2</businessid><businessid>hostas2</businessid>" +
-		    			"<businessid>hosta</businessid><businessid>test</businessid><businessid>tests</businessid>" +
-		    			"<businessid>"+id.getKey()+"</businessid></business>";
+	            String key = null, value = null;
+	    		Channel channel = clientHelper.getChannel(host, Configuration.configuration.REST_PORT);
+	    		String buz = null;
+	            if (Configuration.configuration.REST_AUTHENTICATED) {
+	            	key = userAuthent;
+	            	value = keyAuthent;
+			    	// Need business
+			    	buz = "<business><businessid>hostas</businessid><businessid>hosta2</businessid><businessid>hostas2</businessid>" +
+			    			"<businessid>hosta</businessid><businessid>test</businessid><businessid>tests</businessid>" +
+			    			"<businessid>"+userAuthent+"</businessid></business>";
+	            } else {
+			    	// Need business
+			    	buz = "<business><businessid>hostas</businessid><businessid>hosta2</businessid><businessid>hostas2</businessid>" +
+			    			"<businessid>hosta</businessid><businessid>test</businessid><businessid>tests</businessid>" +
+			    			"<businessid>monadmin</businessid></business>";
+	            }
 	    		ObjectNode node = JsonHandler.createObjectNode();
 	    		node.put(DbHostConfiguration.Columns.BUSINESS.name(), buz);
-	            RestFuture future = clientHelper.sendQuery(channel, HttpMethod.PUT, host, RESTHANDLERS.DbHostConfiguration.uri+"/hosta", id.getKey(), id.getValue(),
+	    		logger.warn("Send query: "+RESTHANDLERS.DbHostConfiguration.uri);
+	            RestFuture future = clientHelper.sendQuery(channel, HttpMethod.PUT, host, RESTHANDLERS.DbHostConfiguration.uri+"/hosta", key, value,
 	            		null,
 	            		JsonHandler.writeAsString(node));
 	            try {
@@ -242,10 +261,11 @@ public class HttpTestRestR66Client  implements Runnable {
 	    		}
 	            WaarpSslUtility.closingSslChannel(channel);
 		    	// Need Hostzz
-	            channel = clientHelper.getChannel(host, port);
+	    		channel = clientHelper.getChannel(host, Configuration.configuration.REST_PORT);
 	            AbstractDbData dbData;
-				dbData = new DbHostAuth(null, hostid, address, port, false, key.getBytes(), true, false);
-	            future = clientHelper.sendQuery(channel, HttpMethod.POST, host, RESTHANDLERS.DbHostAuth.uri, id.getKey(), id.getValue(),
+				dbData = new DbHostAuth(null, hostid, address, Configuration.configuration.REST_PORT, false, hostkey.getBytes(), true, false);
+	    		logger.warn("Send query: "+RESTHANDLERS.DbHostAuth.uri);
+				future = clientHelper.sendQuery(channel, HttpMethod.POST, host, RESTHANDLERS.DbHostAuth.uri, key, value,
 	            		null,
 	            		dbData.asJson());
 	            try {
@@ -273,14 +293,19 @@ public class HttpTestRestR66Client  implements Runnable {
 	
 	        // Clean
 	    	{
-	    		Channel channel = clientHelper.getChannel(host, port);
-	    		Entry<String, String> id = HttpRestR66Handler.falseRepoPassword.entrySet().iterator().next();
+	            String key = null, value = null;
+	    		Channel channel = clientHelper.getChannel(host, Configuration.configuration.REST_PORT);
+	            if (Configuration.configuration.REST_AUTHENTICATED) {
+	            	key = userAuthent;
+	            	value = keyAuthent;
+	            }
 		    	// Reset business
 		    	String buz = "<business><businessid>hostas</businessid><businessid>hosta2</businessid><businessid>hostas2</businessid>" +
 		    			"<businessid>hosta</businessid><businessid>test</businessid><businessid>tests</businessid></business>";
 	    		ObjectNode node = JsonHandler.createObjectNode();
 	    		node.put(DbHostConfiguration.Columns.BUSINESS.name(), buz);
-	            RestFuture future = clientHelper.sendQuery(channel, HttpMethod.PUT, host, RESTHANDLERS.DbHostConfiguration.uri+"/hosta", id.getKey(), id.getValue(),
+	    		logger.warn("Send query: "+RESTHANDLERS.DbHostConfiguration.uri);
+	            RestFuture future = clientHelper.sendQuery(channel, HttpMethod.PUT, host, RESTHANDLERS.DbHostConfiguration.uri+"/hosta", key, value,
 	            		null,
 	            		JsonHandler.writeAsString(node));
 	            try {
@@ -289,9 +314,9 @@ public class HttpTestRestR66Client  implements Runnable {
 	    		}
 	            WaarpSslUtility.closingSslChannel(channel);
 		    	// Remove Hostzz
-	            channel = clientHelper.getChannel(host, port);
+	    		channel = clientHelper.getChannel(host, Configuration.configuration.REST_PORT);
 	            try {
-					future = deleteData(channel, RESTHANDLERS.DbHostAuth);
+	            	future = deleteData(channel, RESTHANDLERS.DbHostAuth);
 		            try {
 		    			future.await();
 		    		} catch (InterruptedException e) {
@@ -300,7 +325,7 @@ public class HttpTestRestR66Client  implements Runnable {
 				}
 	       		WaarpSslUtility.closingSslChannel(channel);
 		    	// Shutdown
-	            channel = clientHelper.getChannel(host, port);
+	            channel = clientHelper.getChannel(host, Configuration.configuration.REST_PORT);
 	            ShutdownOrBlockJsonPacket shutd = new ShutdownOrBlockJsonPacket();
 	            shutd.setRestartOrBlock(false);
 	            shutd.setShutdownOrBlock(true);
@@ -308,6 +333,7 @@ public class HttpTestRestR66Client  implements Runnable {
 	            String pwd = "pwdhttp";
 	            byte [] bpwd = FilesystemBasedDigest.passwdCrypt(pwd.getBytes(WaarpStringUtils.UTF8));
 	            shutd.setKey(bpwd);
+	    		logger.warn("Send query: "+RESTHANDLERS.Server.uri);
 	            future = action(channel, HttpMethod.PUT, RESTHANDLERS.Server.uri, shutd);
 				try {
 					future.await();
@@ -344,8 +370,9 @@ public class HttpTestRestR66Client  implements Runnable {
     }
 
     public static void options(String uri) throws HttpInvalidAuthenticationException {
-    	Channel channel = clientHelper.getChannel(host, port);
+    	Channel channel = clientHelper.getChannel(host, Configuration.configuration.REST_PORT);
         if (channel == null) {
+        	logger.warn("Cannot connect to: "+host+":"+Configuration.configuration.REST_PORT);
         	return;
         }
 		RestFuture future = options(channel, uri);
@@ -360,8 +387,12 @@ public class HttpTestRestR66Client  implements Runnable {
 
     protected static RestFuture options(Channel channel, String uri) throws HttpInvalidAuthenticationException {
 		logger.debug("Send query");
-        Entry<String, String> id = HttpRestR66Handler.falseRepoPassword.entrySet().iterator().next();
-    	RestFuture future = clientHelper.sendQuery(channel, HttpMethod.OPTIONS, host, uri, id.getKey(), id.getValue(), null, null);
+        String key = null, value = null;
+        if (Configuration.configuration.REST_AUTHENTICATED) {
+        	key = userAuthent;
+        	value = keyAuthent;
+        }
+    	RestFuture future = clientHelper.sendQuery(channel, HttpMethod.OPTIONS, host, uri, key, value, null, null);
 		logger.debug("Query sent");
 		return future;
     }
@@ -371,7 +402,7 @@ public class HttpTestRestR66Client  implements Runnable {
 			case DbConfiguration:
 				return new DbConfiguration(null, hostid, limit, limit, limit, limit, delaylimit);
 			case DbHostAuth:
-				return new DbHostAuth(null, hostid, address, port, false, key.getBytes(), false, false);
+				return new DbHostAuth(null, hostid, address, Configuration.configuration.REST_PORT, false, hostkey.getBytes(), false, false);
 			case DbHostConfiguration:
 				return new DbHostConfiguration(null, hostid, business, roles, aliases, others);
 			case DbRule:
@@ -414,8 +445,9 @@ public class HttpTestRestR66Client  implements Runnable {
     }
     
     protected static void realAllData(RESTHANDLERS data) throws HttpInvalidAuthenticationException {
-    	Channel channel = clientHelper.getChannel(host, port);
+    	Channel channel = clientHelper.getChannel(host, Configuration.configuration.REST_PORT);
         if (channel == null) {
+        	logger.warn("Cannot connect to: "+host+":"+Configuration.configuration.REST_PORT);
         	return;
         }
         RestFuture future = realAllData(channel, data);
@@ -429,7 +461,11 @@ public class HttpTestRestR66Client  implements Runnable {
     
     protected static RestFuture realAllData(Channel channel, RESTHANDLERS data) throws HttpInvalidAuthenticationException {
 		logger.debug("Send query");
-        Entry<String, String> id = HttpRestR66Handler.falseRepoPassword.entrySet().iterator().next();
+        String key = null, value = null;
+        if (Configuration.configuration.REST_AUTHENTICATED) {
+        	key = userAuthent;
+        	value = keyAuthent;
+        }
         ObjectNode answer = JsonHandler.createObjectNode();
         switch (data) {
 			case DbConfiguration:
@@ -455,15 +491,16 @@ public class HttpTestRestR66Client  implements Runnable {
 	        	WaarpSslUtility.closingSslChannel(channel);
 	            return future;
         }
-    	RestFuture future = clientHelper.sendQuery(channel, HttpMethod.GET, host, data.uri, id.getKey(), id.getValue(), null,
+    	RestFuture future = clientHelper.sendQuery(channel, HttpMethod.GET, host, data.uri, key, value, null,
     			JsonHandler.writeAsString(answer));
 		logger.debug("Query sent");
 		return future;
     }
 
     protected static void deleteData(RESTHANDLERS data) throws HttpInvalidAuthenticationException {
-    	Channel channel = clientHelper.getChannel(host, port);
+    	Channel channel = clientHelper.getChannel(host, Configuration.configuration.REST_PORT);
         if (channel == null) {
+        	logger.warn("Cannot connect to: "+host+":"+Configuration.configuration.REST_PORT);
         	return;
         }
         RestFuture future = deleteData(channel, data);
@@ -486,7 +523,11 @@ public class HttpTestRestR66Client  implements Runnable {
         }
         DataModelRestMethodHandler<?> handler = (DataModelRestMethodHandler<?>) data.getRestMethodHandler();
         String item = dbData.getJson().path(handler.getPrimaryPropertyName()).asText();
-        Entry<String, String> id = HttpRestR66Handler.falseRepoPassword.entrySet().iterator().next();
+        String key = null, value = null;
+        if (Configuration.configuration.REST_AUTHENTICATED) {
+        	key = userAuthent;
+        	value = keyAuthent;
+        }
         Map<String, String> args = null;
         if (dbData instanceof DbTaskRunner) {
         	args = new HashMap<String, String>();
@@ -494,7 +535,7 @@ public class HttpTestRestR66Client  implements Runnable {
         	args.put(DbTaskRunner.Columns.REQUESTED.name(), hostid);
         	args.put(Columns.OWNERREQ.name(), Configuration.configuration.HOST_ID);
         }
-        RestFuture future = clientHelper.sendQuery(channel, HttpMethod.DELETE, host, data.uri+"/"+item, id.getKey(), id.getValue(),
+        RestFuture future = clientHelper.sendQuery(channel, HttpMethod.DELETE, host, data.uri+"/"+item, key, value,
         		args,
         		null);
 		logger.debug("Query sent");
@@ -502,8 +543,9 @@ public class HttpTestRestR66Client  implements Runnable {
     }
     
     protected static void multiDataRequests(RESTHANDLERS data) throws HttpInvalidAuthenticationException {
-    	Channel channel = clientHelper.getChannel(host, port);
+    	Channel channel = clientHelper.getChannel(host, Configuration.configuration.REST_PORT);
         if (channel == null) {
+        	logger.warn("Cannot connect to: "+host+":"+Configuration.configuration.REST_PORT);
         	return;
         }
         RestFuture future = createData(channel, data);
@@ -524,9 +566,13 @@ public class HttpTestRestR66Client  implements Runnable {
         	WaarpSslUtility.closingSslChannel(channel);
             return future;
         }
-        Entry<String, String> id = HttpRestR66Handler.falseRepoPassword.entrySet().iterator().next();
+        String key = null, value = null;
+        if (Configuration.configuration.REST_AUTHENTICATED) {
+        	key = userAuthent;
+        	value = keyAuthent;
+        }
         Map<String, String> args = null;
-        RestFuture future = clientHelper.sendQuery(channel, HttpMethod.POST, host, data.uri, id.getKey(), id.getValue(),
+        RestFuture future = clientHelper.sendQuery(channel, HttpMethod.POST, host, data.uri, key, value,
         		args,
         		dbData.asJson());
 		logger.debug("Query sent");
@@ -537,7 +583,11 @@ public class HttpTestRestR66Client  implements Runnable {
 		logger.debug("Send query");
         String base = arg.getBaseUri();
         String item = clientHelper.getPrimaryProperty(arg);
-        Entry<String, String> id = HttpRestR66Handler.falseRepoPassword.entrySet().iterator().next();
+        String key = null, value = null;
+        if (Configuration.configuration.REST_AUTHENTICATED) {
+        	key = userAuthent;
+        	value = keyAuthent;
+        }
         Map<String, String> args = null;
         if (base.equals(HttpRestR66Handler.RESTHANDLERS.DbTaskRunner.uri)) {
         	args = new HashMap<String, String>();
@@ -545,7 +595,7 @@ public class HttpTestRestR66Client  implements Runnable {
         	args.put(DbTaskRunner.Columns.REQUESTED.name(), hostid);
         	args.put(Columns.OWNERREQ.name(), Configuration.configuration.HOST_ID);
         }
-        RestFuture future = clientHelper.sendQuery(channel, HttpMethod.GET, host, base+"/"+item, id.getKey(), id.getValue(),
+        RestFuture future = clientHelper.sendQuery(channel, HttpMethod.GET, host, base+"/"+item, key, value,
         		args,
         		null);
 		logger.debug("Query sent");
@@ -558,7 +608,11 @@ public class HttpTestRestR66Client  implements Runnable {
         String base = arg.getBaseUri();
         String item = clientHelper.getPrimaryProperty(arg);
         RESTHANDLERS dbdata = clientHelper.getRestHandler(arg);
-        Entry<String, String> id = HttpRestR66Handler.falseRepoPassword.entrySet().iterator().next();
+        String key = null, value = null;
+        if (Configuration.configuration.REST_AUTHENTICATED) {
+        	key = userAuthent;
+        	value = keyAuthent;
+        }
         Map<String, String> args = null;
         if (base.equals(HttpRestR66Handler.RESTHANDLERS.DbTaskRunner.uri)) {
         	args = new HashMap<String, String>();
@@ -590,7 +644,7 @@ public class HttpTestRestR66Client  implements Runnable {
 	        	WaarpSslUtility.closingSslChannel(channel);
 	            return future;
         }
-        RestFuture future = clientHelper.sendQuery(channel, HttpMethod.PUT, host, base+"/"+item, id.getKey(), id.getValue(),
+        RestFuture future = clientHelper.sendQuery(channel, HttpMethod.PUT, host, base+"/"+item, key, value,
         		args,
         		JsonHandler.writeAsString(answer));
 		logger.debug("Query sent");
@@ -601,7 +655,11 @@ public class HttpTestRestR66Client  implements Runnable {
 		logger.debug("Send query");
         String base = arg.getBaseUri();
         String item = clientHelper.getPrimaryProperty(arg);
-        Entry<String, String> id = HttpRestR66Handler.falseRepoPassword.entrySet().iterator().next();
+        String key = null, value = null;
+        if (Configuration.configuration.REST_AUTHENTICATED) {
+        	key = userAuthent;
+        	value = keyAuthent;
+        }
         Map<String, String> args = null;
         if (base.equals(HttpRestR66Handler.RESTHANDLERS.DbTaskRunner.uri)) {
         	args = new HashMap<String, String>();
@@ -609,7 +667,7 @@ public class HttpTestRestR66Client  implements Runnable {
         	args.put(DbTaskRunner.Columns.REQUESTED.name(), hostid);
         	args.put(Columns.OWNERREQ.name(), Configuration.configuration.HOST_ID);
         }
-        RestFuture future = clientHelper.sendQuery(channel, HttpMethod.DELETE, host, base+"/"+item, id.getKey(), id.getValue(),
+        RestFuture future = clientHelper.sendQuery(channel, HttpMethod.DELETE, host, base+"/"+item, key, value,
         		args,
         		null);
 		logger.debug("Query sent");
@@ -618,11 +676,15 @@ public class HttpTestRestR66Client  implements Runnable {
 
     protected static RestFuture deleteData(Channel channel, String reqd, String reqr, long specid) throws HttpInvalidAuthenticationException {
 		logger.debug("Send query");
-        Entry<String, String> id = HttpRestR66Handler.falseRepoPassword.entrySet().iterator().next();
+        String key = null, value = null;
+        if (Configuration.configuration.REST_AUTHENTICATED) {
+        	key = userAuthent;
+        	value = keyAuthent;
+        }
         Map<String, String> args = new HashMap<String, String>();
     	args.put(DbTaskRunner.Columns.REQUESTER.name(), reqr);
     	args.put(DbTaskRunner.Columns.REQUESTED.name(), reqd);
-        RestFuture future = clientHelper.sendQuery(channel, HttpMethod.DELETE, host, RESTHANDLERS.DbTaskRunner.uri+"/"+specid, id.getKey(), id.getValue(),
+        RestFuture future = clientHelper.sendQuery(channel, HttpMethod.DELETE, host, RESTHANDLERS.DbTaskRunner.uri+"/"+specid, key, value,
         		args,
         		null);
 		logger.debug("Query sent");
@@ -630,8 +692,9 @@ public class HttpTestRestR66Client  implements Runnable {
     }
     
     protected static void action(RESTHANDLERS data) throws HttpInvalidAuthenticationException {
-    	Channel channel = clientHelper.getChannel(host, port);
+    	Channel channel = clientHelper.getChannel(host, Configuration.configuration.REST_PORT);
         if (channel == null) {
+        	logger.warn("Cannot connect to: "+host+":"+Configuration.configuration.REST_PORT);
         	return;
         }
         RestFuture future = action(channel, data);
@@ -681,12 +744,8 @@ public class HttpTestRestR66Client  implements Runnable {
 				break;
 			}
 			case Information: {
-				InformationJsonPacket node = new InformationJsonPacket();
-				node.setFilename("test*");
-				node.setIdRequest(false);
-				node.setRequest((byte) InformationPacket.ASKENUM.ASKLIST.ordinal());
-				node.setRequestUserPacket();
-				node.setRulename("rule4");
+				InformationJsonPacket node = new InformationJsonPacket((byte) InformationPacket.ASKENUM.ASKLIST.ordinal(),
+						"rule4", "test*");
 				packet = node;
 				method = HttpMethod.GET;
 				break;
@@ -742,8 +801,12 @@ public class HttpTestRestR66Client  implements Runnable {
         	WaarpSslUtility.closingSslChannel(channel);
             return future;
         }
-        Entry<String, String> id = HttpRestR66Handler.falseRepoPassword.entrySet().iterator().next();
-        RestFuture future = clientHelper.sendQuery(channel, method, host, uri, id.getKey(), id.getValue(),
+        String key = null, value = null;
+        if (Configuration.configuration.REST_AUTHENTICATED) {
+        	key = userAuthent;
+        	value = keyAuthent;
+        }
+        RestFuture future = clientHelper.sendQuery(channel, method, host, uri, key, value,
         		null,
         		packet.toString());
 		logger.debug("Query sent");

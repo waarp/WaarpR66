@@ -465,8 +465,18 @@ public class Commander implements CommanderInterface {
 						// no more task to submit
 						return;
 					}
-					DbTaskRunner taskRunner = DbTaskRunner
-							.getFromStatement(preparedStatementRunner);
+					DbTaskRunner taskRunner = null;
+					try {
+						taskRunner = DbTaskRunner
+								.getFromStatement(preparedStatementRunner);
+					} catch (WaarpDatabaseSqlException e) {
+						// ignore and continue if NoData
+						if (e.getCause() instanceof WaarpDatabaseNoDataException) {
+							logger.warn("DbTaskRunner cannot be loaded: "+e.getMessage());
+							continue;
+						}
+						throw e;
+					}
 					logger.debug("get a task: {}", taskRunner);
 					// Launch if possible this task
 					String key = taskRunner.getRequested() + " " + taskRunner.getRequester() +

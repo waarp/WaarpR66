@@ -45,7 +45,7 @@ public class HttpTestRestClientPipelineFactory implements ChannelPipelineFactory
         // Enable HTTPS if necessary.
         if (waarpSslContextFactory != null) {
         	SslHandler handler = waarpSslContextFactory.initPipelineFactory(false,
-                    waarpSslContextFactory.needClientAuthentication(), false);
+                    false, false);
         	handler.setIssueHandshake(true);
         	pipeline.addLast("ssl", handler);
         }

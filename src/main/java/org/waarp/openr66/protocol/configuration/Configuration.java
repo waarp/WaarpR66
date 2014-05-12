@@ -280,6 +280,36 @@ public class Configuration {
 	public long maxGlobalMemory = 0x100000000L;
 
 	/**
+	 * Http REST port (SSL or not SSL), <=0 for no REST support
+	 */
+	public int REST_PORT = -1;
+	
+	/**
+	 * SERVER REST interface using SSL
+	 */
+	public boolean REST_SSL = false;
+
+	/**
+	 * SERVER REST interface allowing delete
+	 */
+	public boolean REST_ALLOW_DELETE = false;
+
+	/**
+	 * SERVER REST interface using time limit (default: no limit <= 0)
+	 */
+	public long REST_TIME_LIMIT = -1;
+	
+	/**
+	 * SERVER REST interface using authentication
+	 */
+	public boolean REST_AUTHENTICATED = false;
+
+	/**
+	 * SERVER REST interface SHA Key for correctness of authentication (filepath)
+	 */
+	public String REST_AUTH_KEY = null;
+	
+	/**
 	 * Base Directory
 	 */
 	public String baseDirectory;

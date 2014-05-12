@@ -45,13 +45,12 @@ public class HttpRestR66Client extends HttpRestClientHelper {
 	/**
 	 * Prepare the future connection
 	 * @param baseUri in general = '/'
-	 * @param nbclient maximum number of client at once
-	 * @param timeout timeout in connection as client
 	 * @param pipelineFactory the associated pipelineFactory including the REST handler for client side
+	 * @param client limit number of concurrent connected clients
+	 * @param timeout time out for network connection
 	 */
-	public HttpRestR66Client(String baseUri, int nbclient, long timeout,
-			ChannelPipelineFactory pipelineFactory) {
-		super(baseUri, nbclient, timeout, pipelineFactory);
+	public HttpRestR66Client(String baseUri, ChannelPipelineFactory pipelineFactory, int client, long timeout) {
+		super(baseUri, client, timeout, pipelineFactory);
 	}
 
 	/**

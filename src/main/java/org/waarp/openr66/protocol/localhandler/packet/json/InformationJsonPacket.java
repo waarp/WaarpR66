@@ -36,6 +36,40 @@ public class InformationJsonPacket extends JsonPacket {
 	protected byte request;
 	protected String rulename;
 	protected String filename;
+	
+	/**
+	 * Empty constructor
+	 */
+	public InformationJsonPacket() {
+		
+	}
+	
+	/**
+	 * Constructor for Transfer Request Information
+	 * @param id
+	 * @param isTo
+	 * @param remoteHost
+	 */
+	public InformationJsonPacket(long id, boolean isTo, String remoteHost) {
+		setId(id);
+		setTo(isTo);
+		setRulename(remoteHost);
+		setIdRequest(true);
+		setRequestUserPacket();
+	}
+	/**
+	 * Constructor for File information
+	 * @param request InformationPacket.ASKENUM ordinal (converted to byte)
+	 * @param rulename
+	 * @param filename
+	 */
+	public InformationJsonPacket(byte request, String rulename, String filename) {
+		setRequest(request);
+		setFilename(filename);
+		setRulename(rulename);
+		setIdRequest(false);
+		setRequestUserPacket();
+	}
 	/**
 	 * @return the isIdRequest
 	 */
