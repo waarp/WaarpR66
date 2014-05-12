@@ -74,6 +74,7 @@ import org.waarp.openr66.protocol.exception.OpenR66ProtocolNoSslException;
 import org.waarp.openr66.protocol.http.HttpPipelineFactory;
 import org.waarp.openr66.protocol.http.adminssl.HttpSslHandler;
 import org.waarp.openr66.protocol.http.adminssl.HttpSslPipelineFactory;
+import org.waarp.openr66.protocol.http.rest.HttpRestR66Handler;
 import org.waarp.openr66.protocol.localhandler.LocalTransaction;
 import org.waarp.openr66.protocol.localhandler.Monitoring;
 import org.waarp.openr66.protocol.localhandler.packet.LocalPacketSizeEstimator;
@@ -303,11 +304,6 @@ public class Configuration {
 	 * SERVER REST interface using authentication
 	 */
 	public boolean REST_AUTHENTICATED = false;
-
-	/**
-	 * SERVER REST interface SHA Key for correctness of authentication (filepath)
-	 */
-	public String REST_AUTH_KEY = null;
 	
 	/**
 	 * Base Directory
@@ -686,7 +682,7 @@ public class Configuration {
 
 	public String toString() {
 		return "Config: { ServerPort: "+ SERVER_PORT+", ServerSslPort: "+SERVER_SSLPORT+", ServerView: "+SERVER_HTTPPORT+", ServerAdmin: "+SERVER_HTTPSPORT+
-				", ThriftPort: "+(thriftport > 0 ? thriftport : "'NoThriftSupport'")+
+				", ThriftPort: "+(thriftport > 0 ? thriftport : "'NoThriftSupport'")+", RestPort: "+(REST_PORT > 0 ? REST_PORT : "'NoRestSupport'")+
 				", TimeOut: "+TIMEOUTCON+", BaseDir: '"+baseDirectory+ "', DigestAlgo: '"+digest.name+ "', checkRemote: "+checkRemoteAddress+
 				", checkClient: "+checkClientAddress+ ", snmpActive: "+(agentSnmp!=null)+ ", chrootChecked: "+chrootChecked+
 				", blacklist: "+blacklistBadAuthent + ", isHostProxified: "+isHostProxyfied +"}";
@@ -766,6 +762,7 @@ public class Configuration {
 		startHttpSupport();
 		startMonitoring();
 		launchStatistics();
+		startRestSupport();
 	}
 	/**
 	 * Used to log statistics information regularly
@@ -884,6 +881,13 @@ public class Configuration {
 		httpsBootstrap.setOption("connectTimeoutMillis", TIMEOUTCON);
 		// Bind and start to accept incoming connections.
 		httpChannelGroup.add(httpsBootstrap.bind(new InetSocketAddress(SERVER_HTTPSPORT)));
+	}
+	
+	public void startRestSupport() {
+		if (REST_PORT > 0) {
+			logger.info(Messages.getString("Configuration.HTTPStart") +" (REST Support) "+ REST_PORT);
+			HttpRestR66Handler.initializeService(workingPath+"/httptemp");
+		}
 	}
 
 	public void startMonitoring() throws WaarpDatabaseSqlException {

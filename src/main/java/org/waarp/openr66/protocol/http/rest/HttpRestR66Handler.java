@@ -19,8 +19,6 @@
  */
 package org.waarp.openr66.protocol.http.rest;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 
@@ -36,13 +34,11 @@ import org.waarp.common.database.DbSession;
 import org.waarp.common.database.exception.WaarpDatabaseException;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.digest.FilesystemBasedDigest;
-import org.waarp.common.exception.CryptoException;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.common.utility.WaarpStringUtils;
 import org.waarp.gateway.kernel.exception.HttpInvalidAuthenticationException;
 import org.waarp.gateway.kernel.rest.HttpRestHandler;
-import org.waarp.gateway.kernel.rest.RestArgument;
 import org.waarp.gateway.kernel.rest.RestMethodHandler;
 import org.waarp.openr66.context.R66Session;
 import org.waarp.openr66.database.DbConstant;
@@ -218,10 +214,8 @@ public class HttpRestR66Handler extends HttpRestHandler {
 	/**
 	 * Initialize the REST service (server side) specifying pathTemp
 	 * @param pathTemp
-	 * @throws CryptoException
-	 * @throws IOException
 	 */
-	public static void initializeService(String pathTemp) throws CryptoException, IOException {
+	public static void initializeService(String pathTemp) {
 		instantiateHandlers();
         group = Configuration.configuration.getHttpChannelGroup();
 		// Configure the server.
@@ -232,7 +226,6 @@ public class HttpRestR66Handler extends HttpRestHandler {
         ServerBootstrap httpBootstrap = new ServerBootstrap(httpChannelFactory);
 		// Set up the event pipeline factory.
         HttpRestR66Handler.initialize(pathTemp);
-		RestArgument.initializeKey(new File(Configuration.configuration.REST_AUTH_KEY));
 
 		if (Configuration.configuration.REST_SSL) {
 			httpBootstrap.setPipelineFactory(new HttpRestR66PipelineFactory(false, Configuration.waarpSslContextFactory));

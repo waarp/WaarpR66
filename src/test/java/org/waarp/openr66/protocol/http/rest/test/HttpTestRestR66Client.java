@@ -79,6 +79,8 @@ import org.waarp.openr66.protocol.localhandler.packet.json.LogJsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.ShutdownOrBlockJsonPacket;
 import org.waarp.openr66.protocol.localhandler.packet.json.TransferRequestJsonPacket;
 
+import ch.qos.logback.classic.Level;
+
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 
@@ -120,7 +122,11 @@ public class HttpTestRestR66Client  implements Runnable {
 	 */
 	@SuppressWarnings("unused")
 	public static void main(String[] args) {
-		InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+		if (args.length > 2) {
+			InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(Level.DEBUG));
+		} else {
+			InternalLoggerFactory.setDefaultFactory(new WaarpSlf4JLoggerFactory(null));
+		}
 		logger = WaarpInternalLoggerFactory.getLogger(HttpTestRestR66Client.class);
     	Configuration.configuration.HOST_ID = hostid;
 		if (args.length > 0) {
@@ -137,10 +143,9 @@ public class HttpTestRestR66Client  implements Runnable {
 		}
 		
         HttpTestR66PseudoMain.setTestConfiguration();
-        
+    	HttpRestR66Handler.instantiateHandlers();
 	    try {
-	    	HttpRestR66Handler.instantiateHandlers();
-		    RestArgument.initializeKey(new File(Configuration.configuration.REST_AUTH_KEY));
+		    RestArgument.initializeKey(new File(HttpTestR66PseudoMain.REST_AUTH_KEY));
 		} catch (CryptoException e2) {
 			e2.printStackTrace();
 			return;

@@ -34,12 +34,14 @@ import org.waarp.openr66.server.R66Server;
  */
 public class HttpTestR66PseudoMain {
 
+	public static String REST_AUTH_KEY = null;
+	
 	public static void setTestConfiguration() {
-        Configuration.configuration.REST_PORT = 8080;
+        Configuration.configuration.REST_PORT = 8088;
         Configuration.configuration.REST_SSL = false;
         Configuration.configuration.REST_ALLOW_DELETE = true;
         Configuration.configuration.REST_AUTHENTICATED = true;
-        Configuration.configuration.REST_AUTH_KEY = "J:/Temp/temp/key.sha256";
+        REST_AUTH_KEY = "J:/GG/R66/conf/key.sha256";
         Configuration.configuration.REST_TIME_LIMIT = 10000;
 	}
 	/**

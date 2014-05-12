@@ -54,6 +54,7 @@ import org.waarp.common.xml.XmlHash;
 import org.waarp.common.xml.XmlType;
 import org.waarp.common.xml.XmlUtil;
 import org.waarp.common.xml.XmlValue;
+import org.waarp.gateway.kernel.rest.RestArgument;
 import org.waarp.openr66.context.authentication.R66Auth;
 import org.waarp.openr66.context.task.localexec.LocalExecClient;
 import org.waarp.openr66.database.DbConstant;
@@ -162,7 +163,7 @@ public class FileBasedConfiguration {
 	private static final String XML_REST_AUTHENTICATED = "restauthenticated";
 
 	/**
-	 * SERVER REST interface SHA Key for correctness of authentication
+	 * SERVER REST interface SHA Key for request checking
 	 */
 	private static final String XML_REST_AUTH_KEY = "restauthkey";
 
@@ -1431,21 +1432,20 @@ public class FileBasedConfiguration {
 	 * @return True if the REST configuration is correctly loaded
 	 */
 	private static boolean loadRest(Configuration config) {
-		XmlValue value = hashConfig.get(XML_REST_SSL);
-		boolean restSsl = false;
-		if (value != null && (!value.isEmpty())) {
-			restSsl = value.getBoolean();
-		}
-		config.REST_SSL = restSsl;
-		value = hashConfig.get(XML_REST_AUTHENTICATED);
-		boolean restAuthent = false;
-		if (value != null && (!value.isEmpty())) {
-			restAuthent = value.getBoolean();
-		}
-		// XXX FIXME : shall we use KEY only if authenticated ?
-		config.REST_AUTHENTICATED = restAuthent;
-		String fileKey = null;
-		if (restAuthent) {
+		if (config.REST_PORT > 0) {
+			XmlValue value = hashConfig.get(XML_REST_SSL);
+			boolean restSsl = false;
+			if (value != null && (!value.isEmpty())) {
+				restSsl = value.getBoolean();
+			}
+			config.REST_SSL = restSsl;
+			value = hashConfig.get(XML_REST_AUTHENTICATED);
+			boolean restAuthent = false;
+			if (value != null && (!value.isEmpty())) {
+				restAuthent = value.getBoolean();
+			}
+			config.REST_AUTHENTICATED = restAuthent;
+			String fileKey = null;
 			value = hashConfig.get(XML_REST_AUTH_KEY);
 			if (value != null && (!value.isEmpty())) {
 				fileKey = value.getString();
@@ -1458,21 +1458,29 @@ public class FileBasedConfiguration {
 					}
 					fileKey = config.configPath+FilesystemBasedDirImpl.SEPARATOR+fileKey;
 				}
+				try {
+					RestArgument.initializeKey(file);
+				} catch (CryptoException e) {
+					logger.error("Unable to load REST Key from Config file: "+fileKey, e);
+					return false;
+				} catch (IOException e) {
+					logger.error("Unable to load REST Key from Config file: "+fileKey, e);
+					return false;
+				}
 			}
+			value = hashConfig.get(XML_REST_ALLOW_DELETE);
+			boolean restDelete = false;
+			if (value != null && (!value.isEmpty())) {
+				restDelete = value.getBoolean();
+			}
+			config.REST_ALLOW_DELETE = restDelete;
+			value = hashConfig.get(XML_REST_TIME_LIMIT);
+			long restTimeLimit = -1;
+			if (value != null && (!value.isEmpty())) {
+				restTimeLimit = value.getLong();
+			}
+			config.REST_TIME_LIMIT = restTimeLimit;
 		}
-		config.REST_AUTH_KEY = fileKey;
-		value = hashConfig.get(XML_REST_ALLOW_DELETE);
-		boolean restDelete = false;
-		if (value != null && (!value.isEmpty())) {
-			restDelete = value.getBoolean();
-		}
-		config.REST_ALLOW_DELETE = restDelete;
-		value = hashConfig.get(XML_REST_TIME_LIMIT);
-		long restTimeLimit = -1;
-		if (value != null && (!value.isEmpty())) {
-			restTimeLimit = value.getLong();
-		}
-		config.REST_TIME_LIMIT = restTimeLimit;
 		return true;
 	}
 	
@@ -2011,10 +2019,6 @@ public class FileBasedConfiguration {
 				return false;
 			}
 		}
-		if (! loadRest(config)) {
-			logger.error("Cannot load REST configuration");
-			return false;
-		}
 		if (!loadNetworkServer(config)) {
 			logger.error("Cannot load Network configuration");
 			return false;
@@ -2100,12 +2104,12 @@ public class FileBasedConfiguration {
 				return false;
 			}
 		}
-		if (! loadRest(config)) {
-			logger.error("Cannot load REST configuration");
-			return false;
-		}
 		if (!loadNetworkServer(config)) {
 			logger.error("Cannot load Network configuration");
+			return false;
+		}
+		if (! loadRest(config)) {
+			logger.error("Cannot load REST configuration");
 			return false;
 		}
 		if (!loadFromDatabase(config)) {
@@ -2195,10 +2199,6 @@ public class FileBasedConfiguration {
 				logger.error("Cannot load SSL configuration");
 				return false;
 			}
-		}
-		if (! loadRest(config)) {
-			logger.error("Cannot load REST configuration");
-			return false;
 		}
 		if (!loadFromDatabase(config)) {
 			logger.error("Cannot load configuration from Database");

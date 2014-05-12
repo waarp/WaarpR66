@@ -25,10 +25,12 @@
 
     <xsd:include schemaLocation="R66-AliasTypes.xsd" />
 
+    <xsd:include schemaLocation="R66-RestTypes.xsd" />
+
     <xsd:notation
         name="version"
-        public="2.4.12"
-        system="2.4.12" />
+        public="2.4.27"
+        system="2.4.27" />
 
     <xsd:element name="config" >
 
@@ -89,6 +91,12 @@
                     maxOccurs="1"
                     minOccurs="0"
                     type="AliasType" />
+                    
+                <xsd:element
+                    name="rest"
+                    maxOccurs="1"
+                    minOccurs="0"
+                    type="RestType" />
             </xsd:sequence>
         </xsd:complexType>
     </xsd:element>
