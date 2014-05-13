@@ -475,72 +475,82 @@
 <a class="jxr_linenumber" name="465" href="#465">465</a> 						<em class="jxr_comment">// no more task to submit</em>
 <a class="jxr_linenumber" name="466" href="#466">466</a> 						<strong class="jxr_keyword">return</strong>;
 <a class="jxr_linenumber" name="467" href="#467">467</a> 					}
-<a class="jxr_linenumber" name="468" href="#468">468</a> 					DbTaskRunner taskRunner = <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>
-<a class="jxr_linenumber" name="469" href="#469">469</a> 							.getFromStatement(preparedStatementRunner);
-<a class="jxr_linenumber" name="470" href="#470">470</a> 					logger.debug(<span class="jxr_string">"get a task: {}"</span>, taskRunner);
-<a class="jxr_linenumber" name="471" href="#471">471</a> 					<em class="jxr_comment">// Launch if possible this task</em>
-<a class="jxr_linenumber" name="472" href="#472">472</a> 					String key = taskRunner.getRequested() + <span class="jxr_string">" "</span> + taskRunner.getRequester() +
-<a class="jxr_linenumber" name="473" href="#473">473</a> 							<span class="jxr_string">" "</span> + taskRunner.getSpecialId();
-<a class="jxr_linenumber" name="474" href="#474">474</a> 					<strong class="jxr_keyword">if</strong> (Configuration.configuration.getLocalTransaction().
-<a class="jxr_linenumber" name="475" href="#475">475</a> 							getFromRequest(key) != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="476" href="#476">476</a> 						<em class="jxr_comment">// already running</em>
-<a class="jxr_linenumber" name="477" href="#477">477</a> 						<strong class="jxr_keyword">continue</strong>;
-<a class="jxr_linenumber" name="478" href="#478">478</a> 					}
-<a class="jxr_linenumber" name="479" href="#479">479</a> 					<strong class="jxr_keyword">if</strong> (taskRunner.isSelfRequested()) {
-<a class="jxr_linenumber" name="480" href="#480">480</a> 						<em class="jxr_comment">// cannot schedule a request where the host is the requested host</em>
-<a class="jxr_linenumber" name="481" href="#481">481</a> 						taskRunner.changeUpdatedInfo(UpdatedInfo.INTERRUPTED);
-<a class="jxr_linenumber" name="482" href="#482">482</a> 						taskRunner.update();
-<a class="jxr_linenumber" name="483" href="#483">483</a> 						<strong class="jxr_keyword">continue</strong>;
-<a class="jxr_linenumber" name="484" href="#484">484</a> 					}
-<a class="jxr_linenumber" name="485" href="#485">485</a> 					taskRunner.changeUpdatedInfo(UpdatedInfo.RUNNING);
-<a class="jxr_linenumber" name="486" href="#486">486</a> 					taskRunner.forceSaveStatus();
-<a class="jxr_linenumber" name="487" href="#487">487</a> 					internalRunner.submitTaskRunner(taskRunner);
-<a class="jxr_linenumber" name="488" href="#488">488</a> 					taskRunner = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="489" href="#489">489</a> 				}
-<a class="jxr_linenumber" name="490" href="#490">490</a> 			} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e) {
-<a class="jxr_linenumber" name="491" href="#491">491</a> 				<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="492" href="#492">492</a> 					DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
-<a class="jxr_linenumber" name="493" href="#493">493</a> 				} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
-<a class="jxr_linenumber" name="494" href="#494">494</a> 				}
-<a class="jxr_linenumber" name="495" href="#495">495</a> 				logger.error(<span class="jxr_string">"Database No Connection Error: Cannot execute Commander"</span>, e);
-<a class="jxr_linenumber" name="496" href="#496">496</a> 				<strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="497" href="#497">497</a> 			} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseSqlException e) {
-<a class="jxr_linenumber" name="498" href="#498">498</a> 				<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="499" href="#499">499</a> 					DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
-<a class="jxr_linenumber" name="500" href="#500">500</a> 				} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
-<a class="jxr_linenumber" name="501" href="#501">501</a> 				}
-<a class="jxr_linenumber" name="502" href="#502">502</a> 				logger.error(<span class="jxr_string">"Database SQL Error: Cannot execute Commander"</span>, e);
-<a class="jxr_linenumber" name="503" href="#503">503</a> 				<strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="504" href="#504">504</a> 			} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
-<a class="jxr_linenumber" name="505" href="#505">505</a> 				<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="506" href="#506">506</a> 					DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
-<a class="jxr_linenumber" name="507" href="#507">507</a> 				} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
-<a class="jxr_linenumber" name="508" href="#508">508</a> 				}
-<a class="jxr_linenumber" name="509" href="#509">509</a> 				logger.error(<span class="jxr_string">"Database Error: Cannot execute Commander"</span>, e);
-<a class="jxr_linenumber" name="510" href="#510">510</a> 				<strong class="jxr_keyword">return</strong>;
-<a class="jxr_linenumber" name="511" href="#511">511</a> 			} <strong class="jxr_keyword">finally</strong> {
-<a class="jxr_linenumber" name="512" href="#512">512</a> 				preparedStatementRunner.close();
-<a class="jxr_linenumber" name="513" href="#513">513</a> 			}
-<a class="jxr_linenumber" name="514" href="#514">514</a> 			logger.debug(<span class="jxr_string">"end commander"</span>);
-<a class="jxr_linenumber" name="515" href="#515">515</a> 		} <strong class="jxr_keyword">finally</strong> {
-<a class="jxr_linenumber" name="516" href="#516">516</a> 			<strong class="jxr_keyword">if</strong> (multipleMonitor != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="517" href="#517">517</a> 				<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="518" href="#518">518</a> 					<em class="jxr_comment">// Now update and Commit so releasing the lock</em>
-<a class="jxr_linenumber" name="519" href="#519">519</a> 					logger.debug(<span class="jxr_string">"Update "</span> + multipleMonitor);
-<a class="jxr_linenumber" name="520" href="#520">520</a> 					multipleMonitor.update();
-<a class="jxr_linenumber" name="521" href="#521">521</a> 					DbConstant.noCommitAdmin.session.commit();
-<a class="jxr_linenumber" name="522" href="#522">522</a> 				} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
-<a class="jxr_linenumber" name="523" href="#523">523</a> 					<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="524" href="#524">524</a> 						DbModelFactory.dbModel.validConnection(DbConstant.noCommitAdmin.session);
-<a class="jxr_linenumber" name="525" href="#525">525</a> 					} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
-<a class="jxr_linenumber" name="526" href="#526">526</a> 					}
-<a class="jxr_linenumber" name="527" href="#527">527</a> 				}
-<a class="jxr_linenumber" name="528" href="#528">528</a> 				multipleMonitor = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="529" href="#529">529</a> 			}
-<a class="jxr_linenumber" name="530" href="#530">530</a> 		}
-<a class="jxr_linenumber" name="531" href="#531">531</a> 	}
-<a class="jxr_linenumber" name="532" href="#532">532</a> 
-<a class="jxr_linenumber" name="533" href="#533">533</a> }
+<a class="jxr_linenumber" name="468" href="#468">468</a> 					DbTaskRunner taskRunner = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="469" href="#469">469</a> 					<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="470" href="#470">470</a> 						taskRunner = <a href="../../../../org/waarp/openr66/database/data/DbTaskRunner.html">DbTaskRunner</a>
+<a class="jxr_linenumber" name="471" href="#471">471</a> 								.getFromStatement(preparedStatementRunner);
+<a class="jxr_linenumber" name="472" href="#472">472</a> 					} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseSqlException e) {
+<a class="jxr_linenumber" name="473" href="#473">473</a> 						<em class="jxr_comment">// ignore and continue if NoData</em>
+<a class="jxr_linenumber" name="474" href="#474">474</a> 						<strong class="jxr_keyword">if</strong> (e.getCause() instanceof WaarpDatabaseNoDataException) {
+<a class="jxr_linenumber" name="475" href="#475">475</a> 							logger.warn(<span class="jxr_string">"DbTaskRunner cannot be loaded: "</span>+e.getMessage());
+<a class="jxr_linenumber" name="476" href="#476">476</a> 							<strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="477" href="#477">477</a> 						}
+<a class="jxr_linenumber" name="478" href="#478">478</a> 						<strong class="jxr_keyword">throw</strong> e;
+<a class="jxr_linenumber" name="479" href="#479">479</a> 					}
+<a class="jxr_linenumber" name="480" href="#480">480</a> 					logger.debug(<span class="jxr_string">"get a task: {}"</span>, taskRunner);
+<a class="jxr_linenumber" name="481" href="#481">481</a> 					<em class="jxr_comment">// Launch if possible this task</em>
+<a class="jxr_linenumber" name="482" href="#482">482</a> 					String key = taskRunner.getRequested() + <span class="jxr_string">" "</span> + taskRunner.getRequester() +
+<a class="jxr_linenumber" name="483" href="#483">483</a> 							<span class="jxr_string">" "</span> + taskRunner.getSpecialId();
+<a class="jxr_linenumber" name="484" href="#484">484</a> 					<strong class="jxr_keyword">if</strong> (Configuration.configuration.getLocalTransaction().
+<a class="jxr_linenumber" name="485" href="#485">485</a> 							getFromRequest(key) != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="486" href="#486">486</a> 						<em class="jxr_comment">// already running</em>
+<a class="jxr_linenumber" name="487" href="#487">487</a> 						<strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="488" href="#488">488</a> 					}
+<a class="jxr_linenumber" name="489" href="#489">489</a> 					<strong class="jxr_keyword">if</strong> (taskRunner.isSelfRequested()) {
+<a class="jxr_linenumber" name="490" href="#490">490</a> 						<em class="jxr_comment">// cannot schedule a request where the host is the requested host</em>
+<a class="jxr_linenumber" name="491" href="#491">491</a> 						taskRunner.changeUpdatedInfo(UpdatedInfo.INTERRUPTED);
+<a class="jxr_linenumber" name="492" href="#492">492</a> 						taskRunner.update();
+<a class="jxr_linenumber" name="493" href="#493">493</a> 						<strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="494" href="#494">494</a> 					}
+<a class="jxr_linenumber" name="495" href="#495">495</a> 					taskRunner.changeUpdatedInfo(UpdatedInfo.RUNNING);
+<a class="jxr_linenumber" name="496" href="#496">496</a> 					taskRunner.forceSaveStatus();
+<a class="jxr_linenumber" name="497" href="#497">497</a> 					internalRunner.submitTaskRunner(taskRunner);
+<a class="jxr_linenumber" name="498" href="#498">498</a> 					taskRunner = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="499" href="#499">499</a> 				}
+<a class="jxr_linenumber" name="500" href="#500">500</a> 			} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e) {
+<a class="jxr_linenumber" name="501" href="#501">501</a> 				<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="502" href="#502">502</a> 					DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+<a class="jxr_linenumber" name="503" href="#503">503</a> 				} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
+<a class="jxr_linenumber" name="504" href="#504">504</a> 				}
+<a class="jxr_linenumber" name="505" href="#505">505</a> 				logger.error(<span class="jxr_string">"Database No Connection Error: Cannot execute Commander"</span>, e);
+<a class="jxr_linenumber" name="506" href="#506">506</a> 				<strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="507" href="#507">507</a> 			} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseSqlException e) {
+<a class="jxr_linenumber" name="508" href="#508">508</a> 				<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="509" href="#509">509</a> 					DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+<a class="jxr_linenumber" name="510" href="#510">510</a> 				} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
+<a class="jxr_linenumber" name="511" href="#511">511</a> 				}
+<a class="jxr_linenumber" name="512" href="#512">512</a> 				logger.error(<span class="jxr_string">"Database SQL Error: Cannot execute Commander"</span>, e);
+<a class="jxr_linenumber" name="513" href="#513">513</a> 				<strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="514" href="#514">514</a> 			} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
+<a class="jxr_linenumber" name="515" href="#515">515</a> 				<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="516" href="#516">516</a> 					DbModelFactory.dbModel.validConnection(DbConstant.admin.session);
+<a class="jxr_linenumber" name="517" href="#517">517</a> 				} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
+<a class="jxr_linenumber" name="518" href="#518">518</a> 				}
+<a class="jxr_linenumber" name="519" href="#519">519</a> 				logger.error(<span class="jxr_string">"Database Error: Cannot execute Commander"</span>, e);
+<a class="jxr_linenumber" name="520" href="#520">520</a> 				<strong class="jxr_keyword">return</strong>;
+<a class="jxr_linenumber" name="521" href="#521">521</a> 			} <strong class="jxr_keyword">finally</strong> {
+<a class="jxr_linenumber" name="522" href="#522">522</a> 				preparedStatementRunner.close();
+<a class="jxr_linenumber" name="523" href="#523">523</a> 			}
+<a class="jxr_linenumber" name="524" href="#524">524</a> 			logger.debug(<span class="jxr_string">"end commander"</span>);
+<a class="jxr_linenumber" name="525" href="#525">525</a> 		} <strong class="jxr_keyword">finally</strong> {
+<a class="jxr_linenumber" name="526" href="#526">526</a> 			<strong class="jxr_keyword">if</strong> (multipleMonitor != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="527" href="#527">527</a> 				<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="528" href="#528">528</a> 					<em class="jxr_comment">// Now update and Commit so releasing the lock</em>
+<a class="jxr_linenumber" name="529" href="#529">529</a> 					logger.debug(<span class="jxr_string">"Update "</span> + multipleMonitor);
+<a class="jxr_linenumber" name="530" href="#530">530</a> 					multipleMonitor.update();
+<a class="jxr_linenumber" name="531" href="#531">531</a> 					DbConstant.noCommitAdmin.session.commit();
+<a class="jxr_linenumber" name="532" href="#532">532</a> 				} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseException e) {
+<a class="jxr_linenumber" name="533" href="#533">533</a> 					<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="534" href="#534">534</a> 						DbModelFactory.dbModel.validConnection(DbConstant.noCommitAdmin.session);
+<a class="jxr_linenumber" name="535" href="#535">535</a> 					} <strong class="jxr_keyword">catch</strong> (WaarpDatabaseNoConnectionException e1) {
+<a class="jxr_linenumber" name="536" href="#536">536</a> 					}
+<a class="jxr_linenumber" name="537" href="#537">537</a> 				}
+<a class="jxr_linenumber" name="538" href="#538">538</a> 				multipleMonitor = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="539" href="#539">539</a> 			}
+<a class="jxr_linenumber" name="540" href="#540">540</a> 		}
+<a class="jxr_linenumber" name="541" href="#541">541</a> 	}
+<a class="jxr_linenumber" name="542" href="#542">542</a> 
+<a class="jxr_linenumber" name="543" href="#543">543</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>

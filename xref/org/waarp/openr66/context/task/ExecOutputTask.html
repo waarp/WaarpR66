@@ -273,95 +273,101 @@
 <a class="jxr_linenumber" name="263" href="#263">263</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> finalize(<strong class="jxr_keyword">int</strong> status, String newName, String commandLine) {
 <a class="jxr_linenumber" name="264" href="#264">264</a> 		String newname = newName;
 <a class="jxr_linenumber" name="265" href="#265">265</a> 		<strong class="jxr_keyword">if</strong> (status == 0) {
-<a class="jxr_linenumber" name="266" href="#266">266</a> 			futureCompletion.setSuccess();
-<a class="jxr_linenumber" name="267" href="#267">267</a> 			logger.info(<span class="jxr_string">"Exec OK with {} returns {}"</span>, commandLine,
-<a class="jxr_linenumber" name="268" href="#268">268</a> 					newname);
-<a class="jxr_linenumber" name="269" href="#269">269</a> 		} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (status == 1) {
-<a class="jxr_linenumber" name="270" href="#270">270</a> 			logger.warn(<span class="jxr_string">"Exec in warning with "</span> + commandLine +
-<a class="jxr_linenumber" name="271" href="#271">271</a> 					<span class="jxr_string">" returns "</span> + newname);
-<a class="jxr_linenumber" name="272" href="#272">272</a> 			session.getRunner().setErrorExecutionStatus(ErrorCode.Warning);
-<a class="jxr_linenumber" name="273" href="#273">273</a> 			futureCompletion.setSuccess();
-<a class="jxr_linenumber" name="274" href="#274">274</a> 		} <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="275" href="#275">275</a> 			<strong class="jxr_keyword">int</strong> pos = newname.lastIndexOf(DELIMITER);
-<a class="jxr_linenumber" name="276" href="#276">276</a> 			<strong class="jxr_keyword">if</strong> (pos &gt;= 0) {
-<a class="jxr_linenumber" name="277" href="#277">277</a> 				String newfilename = newname.substring(pos + DELIMITER.length());
-<a class="jxr_linenumber" name="278" href="#278">278</a> 				newname = newname.substring(0, pos);
-<a class="jxr_linenumber" name="279" href="#279">279</a> 				<strong class="jxr_keyword">if</strong> (newfilename.indexOf(' ') &gt; 0) {
-<a class="jxr_linenumber" name="280" href="#280">280</a> 					logger.warn(<span class="jxr_string">"Exec returns a multiple string in final line: "</span> +
-<a class="jxr_linenumber" name="281" href="#281">281</a> 							newfilename);
-<a class="jxr_linenumber" name="282" href="#282">282</a> 					<em class="jxr_comment">// XXX FIXME: should not split String[] args = newfilename.split(" ");</em>
-<a class="jxr_linenumber" name="283" href="#283">283</a> 					<em class="jxr_comment">// newfilename = args[args.length - 1];</em>
-<a class="jxr_linenumber" name="284" href="#284">284</a> 				}
-<a class="jxr_linenumber" name="285" href="#285">285</a> 				<em class="jxr_comment">// now test if the previous file was deleted (should be)</em>
-<a class="jxr_linenumber" name="286" href="#286">286</a> 				File file = <strong class="jxr_keyword">new</strong> File(newfilename);
-<a class="jxr_linenumber" name="287" href="#287">287</a> 				<strong class="jxr_keyword">if</strong> (!file.exists()) {
-<a class="jxr_linenumber" name="288" href="#288">288</a> 					logger.warn(<span class="jxr_string">"New file does not exist at the end of the exec: "</span> + newfilename);
-<a class="jxr_linenumber" name="289" href="#289">289</a> 				}
-<a class="jxr_linenumber" name="290" href="#290">290</a> 				<em class="jxr_comment">// now replace the file with the new one</em>
-<a class="jxr_linenumber" name="291" href="#291">291</a> 				<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="292" href="#292">292</a> 					session.getFile().replaceFilename(newfilename, <strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="293" href="#293">293</a> 				} <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
-<a class="jxr_linenumber" name="294" href="#294">294</a> 					logger
-<a class="jxr_linenumber" name="295" href="#295">295</a> 							.warn(<span class="jxr_string">"Exec in warning with "</span> + commandLine,
-<a class="jxr_linenumber" name="296" href="#296">296</a> 									e);
-<a class="jxr_linenumber" name="297" href="#297">297</a> 				}
-<a class="jxr_linenumber" name="298" href="#298">298</a> 				session.getRunner().setFileMoved(newfilename, <strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="299" href="#299">299</a> 			}
-<a class="jxr_linenumber" name="300" href="#300">300</a> 			logger.error(<span class="jxr_string">"Status: "</span> + status + <span class="jxr_string">" Exec in error with "</span> +
-<a class="jxr_linenumber" name="301" href="#301">301</a> 					commandLine + <span class="jxr_string">" returns "</span> + newname);
-<a class="jxr_linenumber" name="302" href="#302">302</a> 			OpenR66RunnerErrorException exc =
-<a class="jxr_linenumber" name="303" href="#303">303</a> 					<strong class="jxr_keyword">new</strong> OpenR66RunnerErrorException(<span class="jxr_string">"&lt;STATUS&gt;"</span> + status + <span class="jxr_string">"&lt;/STATUS&gt;&lt;ERROR&gt;"</span>
-<a class="jxr_linenumber" name="304" href="#304">304</a> 							+ newname + <span class="jxr_string">"&lt;/ERROR&gt;"</span>);
-<a class="jxr_linenumber" name="305" href="#305">305</a> 			futureCompletion.setFailure(exc);
-<a class="jxr_linenumber" name="306" href="#306">306</a> 		}
-<a class="jxr_linenumber" name="307" href="#307">307</a> 	}
-<a class="jxr_linenumber" name="308" href="#308">308</a> 
-<a class="jxr_linenumber" name="309" href="#309">309</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> finalizeFromError(PipedOutputStream outputStream,
-<a class="jxr_linenumber" name="310" href="#310">310</a> 			PumpStreamHandler pumpStreamHandler,
-<a class="jxr_linenumber" name="311" href="#311">311</a> 			PipedInputStream inputStream, <a href="../../../../../org/waarp/openr66/context/task/AllLineReader.html">AllLineReader</a> allLineReader, Thread thread,
-<a class="jxr_linenumber" name="312" href="#312">312</a> 			<strong class="jxr_keyword">int</strong> status, CommandLine commandLine) {
-<a class="jxr_linenumber" name="313" href="#313">313</a> 		<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="314" href="#314">314</a> 			Thread.sleep(Configuration.RETRYINMS);
-<a class="jxr_linenumber" name="315" href="#315">315</a> 		} <strong class="jxr_keyword">catch</strong> (InterruptedException e) {
-<a class="jxr_linenumber" name="316" href="#316">316</a> 		}
-<a class="jxr_linenumber" name="317" href="#317">317</a> 		<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="318" href="#318">318</a> 			outputStream.flush();
-<a class="jxr_linenumber" name="319" href="#319">319</a> 		} <strong class="jxr_keyword">catch</strong> (IOException e2) {
-<a class="jxr_linenumber" name="320" href="#320">320</a> 		}
-<a class="jxr_linenumber" name="321" href="#321">321</a> 		<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="322" href="#322">322</a> 			Thread.sleep(Configuration.RETRYINMS);
-<a class="jxr_linenumber" name="323" href="#323">323</a> 		} <strong class="jxr_keyword">catch</strong> (InterruptedException e) {
-<a class="jxr_linenumber" name="324" href="#324">324</a> 		}
-<a class="jxr_linenumber" name="325" href="#325">325</a> 		<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="326" href="#326">326</a> 			outputStream.close();
-<a class="jxr_linenumber" name="327" href="#327">327</a> 		} <strong class="jxr_keyword">catch</strong> (IOException e1) {
-<a class="jxr_linenumber" name="328" href="#328">328</a> 		}
-<a class="jxr_linenumber" name="329" href="#329">329</a> 		thread.interrupt();
-<a class="jxr_linenumber" name="330" href="#330">330</a> 		<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="331" href="#331">331</a> 			inputStream.close();
-<a class="jxr_linenumber" name="332" href="#332">332</a> 		} <strong class="jxr_keyword">catch</strong> (IOException e1) {
-<a class="jxr_linenumber" name="333" href="#333">333</a> 		}
-<a class="jxr_linenumber" name="334" href="#334">334</a> 		<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="335" href="#335">335</a> 			Thread.sleep(Configuration.RETRYINMS);
-<a class="jxr_linenumber" name="336" href="#336">336</a> 		} <strong class="jxr_keyword">catch</strong> (InterruptedException e) {
-<a class="jxr_linenumber" name="337" href="#337">337</a> 		}
-<a class="jxr_linenumber" name="338" href="#338">338</a> 		<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="339" href="#339">339</a> 			pumpStreamHandler.stop();
-<a class="jxr_linenumber" name="340" href="#340">340</a> 		} <strong class="jxr_keyword">catch</strong> (IOException e2) {
-<a class="jxr_linenumber" name="341" href="#341">341</a> 		}
-<a class="jxr_linenumber" name="342" href="#342">342</a> 		<strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="343" href="#343">343</a> 			Thread.sleep(Configuration.RETRYINMS);
-<a class="jxr_linenumber" name="344" href="#344">344</a> 		} <strong class="jxr_keyword">catch</strong> (InterruptedException e) {
-<a class="jxr_linenumber" name="345" href="#345">345</a> 		}
-<a class="jxr_linenumber" name="346" href="#346">346</a> 		String result = allLineReader.lastLine.toString();
-<a class="jxr_linenumber" name="347" href="#347">347</a> 		logger.error(<span class="jxr_string">"Status: "</span> + status + <span class="jxr_string">" Exec in error with "</span> +
-<a class="jxr_linenumber" name="348" href="#348">348</a> 				commandLine + <span class="jxr_string">" returns "</span> + result);
-<a class="jxr_linenumber" name="349" href="#349">349</a> 		OpenR66RunnerErrorException exc =
-<a class="jxr_linenumber" name="350" href="#350">350</a> 				<strong class="jxr_keyword">new</strong> OpenR66RunnerErrorException(<span class="jxr_string">"&lt;STATUS&gt;"</span> + status + <span class="jxr_string">"&lt;/STATUS&gt;&lt;ERROR&gt;"</span> + result
-<a class="jxr_linenumber" name="351" href="#351">351</a> 						+ <span class="jxr_string">"&lt;/ERROR&gt;"</span>);
-<a class="jxr_linenumber" name="352" href="#352">352</a> 		futureCompletion.setFailure(exc);
-<a class="jxr_linenumber" name="353" href="#353">353</a> 	}
-<a class="jxr_linenumber" name="354" href="#354">354</a> }
+<a class="jxr_linenumber" name="266" href="#266">266</a> 			R66Result result = <strong class="jxr_keyword">new</strong> R66Result(session, <strong class="jxr_keyword">true</strong>, ErrorCode.CompleteOk, <strong class="jxr_keyword">this</strong>.session.getRunner());
+<a class="jxr_linenumber" name="267" href="#267">267</a> 			result.other = newName;
+<a class="jxr_linenumber" name="268" href="#268">268</a> 			futureCompletion.setResult(result);
+<a class="jxr_linenumber" name="269" href="#269">269</a> 			futureCompletion.setSuccess();
+<a class="jxr_linenumber" name="270" href="#270">270</a> 			logger.info(<span class="jxr_string">"Exec OK with {} returns {}"</span>, commandLine,
+<a class="jxr_linenumber" name="271" href="#271">271</a> 					newname);
+<a class="jxr_linenumber" name="272" href="#272">272</a> 		} <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (status == 1) {
+<a class="jxr_linenumber" name="273" href="#273">273</a> 			R66Result result = <strong class="jxr_keyword">new</strong> R66Result(session, <strong class="jxr_keyword">true</strong>, ErrorCode.Warning, <strong class="jxr_keyword">this</strong>.session.getRunner());
+<a class="jxr_linenumber" name="274" href="#274">274</a> 			result.other = newName;
+<a class="jxr_linenumber" name="275" href="#275">275</a> 			futureCompletion.setResult(result);
+<a class="jxr_linenumber" name="276" href="#276">276</a> 			logger.warn(<span class="jxr_string">"Exec in warning with "</span> + commandLine +
+<a class="jxr_linenumber" name="277" href="#277">277</a> 					<span class="jxr_string">" returns "</span> + newname);
+<a class="jxr_linenumber" name="278" href="#278">278</a> 			session.getRunner().setErrorExecutionStatus(ErrorCode.Warning);
+<a class="jxr_linenumber" name="279" href="#279">279</a> 			futureCompletion.setSuccess();
+<a class="jxr_linenumber" name="280" href="#280">280</a> 		} <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="281" href="#281">281</a> 			<strong class="jxr_keyword">int</strong> pos = newname.lastIndexOf(DELIMITER);
+<a class="jxr_linenumber" name="282" href="#282">282</a> 			<strong class="jxr_keyword">if</strong> (pos &gt;= 0) {
+<a class="jxr_linenumber" name="283" href="#283">283</a> 				String newfilename = newname.substring(pos + DELIMITER.length());
+<a class="jxr_linenumber" name="284" href="#284">284</a> 				newname = newname.substring(0, pos);
+<a class="jxr_linenumber" name="285" href="#285">285</a> 				<strong class="jxr_keyword">if</strong> (newfilename.indexOf(' ') &gt; 0) {
+<a class="jxr_linenumber" name="286" href="#286">286</a> 					logger.warn(<span class="jxr_string">"Exec returns a multiple string in final line: "</span> +
+<a class="jxr_linenumber" name="287" href="#287">287</a> 							newfilename);
+<a class="jxr_linenumber" name="288" href="#288">288</a> 					<em class="jxr_comment">// XXX FIXME: should not split String[] args = newfilename.split(" ");</em>
+<a class="jxr_linenumber" name="289" href="#289">289</a> 					<em class="jxr_comment">// newfilename = args[args.length - 1];</em>
+<a class="jxr_linenumber" name="290" href="#290">290</a> 				}
+<a class="jxr_linenumber" name="291" href="#291">291</a> 				<em class="jxr_comment">// now test if the previous file was deleted (should be)</em>
+<a class="jxr_linenumber" name="292" href="#292">292</a> 				File file = <strong class="jxr_keyword">new</strong> File(newfilename);
+<a class="jxr_linenumber" name="293" href="#293">293</a> 				<strong class="jxr_keyword">if</strong> (!file.exists()) {
+<a class="jxr_linenumber" name="294" href="#294">294</a> 					logger.warn(<span class="jxr_string">"New file does not exist at the end of the exec: "</span> + newfilename);
+<a class="jxr_linenumber" name="295" href="#295">295</a> 				}
+<a class="jxr_linenumber" name="296" href="#296">296</a> 				<em class="jxr_comment">// now replace the file with the new one</em>
+<a class="jxr_linenumber" name="297" href="#297">297</a> 				<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="298" href="#298">298</a> 					session.getFile().replaceFilename(newfilename, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="299" href="#299">299</a> 				} <strong class="jxr_keyword">catch</strong> (CommandAbstractException e) {
+<a class="jxr_linenumber" name="300" href="#300">300</a> 					logger
+<a class="jxr_linenumber" name="301" href="#301">301</a> 							.warn(<span class="jxr_string">"Exec in warning with "</span> + commandLine,
+<a class="jxr_linenumber" name="302" href="#302">302</a> 									e);
+<a class="jxr_linenumber" name="303" href="#303">303</a> 				}
+<a class="jxr_linenumber" name="304" href="#304">304</a> 				session.getRunner().setFileMoved(newfilename, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="305" href="#305">305</a> 			}
+<a class="jxr_linenumber" name="306" href="#306">306</a> 			logger.error(<span class="jxr_string">"Status: "</span> + status + <span class="jxr_string">" Exec in error with "</span> +
+<a class="jxr_linenumber" name="307" href="#307">307</a> 					commandLine + <span class="jxr_string">" returns "</span> + newname);
+<a class="jxr_linenumber" name="308" href="#308">308</a> 			OpenR66RunnerErrorException exc =
+<a class="jxr_linenumber" name="309" href="#309">309</a> 					<strong class="jxr_keyword">new</strong> OpenR66RunnerErrorException(<span class="jxr_string">"&lt;STATUS&gt;"</span> + status + <span class="jxr_string">"&lt;/STATUS&gt;&lt;ERROR&gt;"</span>
+<a class="jxr_linenumber" name="310" href="#310">310</a> 							+ newname + <span class="jxr_string">"&lt;/ERROR&gt;"</span>);
+<a class="jxr_linenumber" name="311" href="#311">311</a> 			futureCompletion.setFailure(exc);
+<a class="jxr_linenumber" name="312" href="#312">312</a> 		}
+<a class="jxr_linenumber" name="313" href="#313">313</a> 	}
+<a class="jxr_linenumber" name="314" href="#314">314</a> 
+<a class="jxr_linenumber" name="315" href="#315">315</a> 	<strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> finalizeFromError(PipedOutputStream outputStream,
+<a class="jxr_linenumber" name="316" href="#316">316</a> 			PumpStreamHandler pumpStreamHandler,
+<a class="jxr_linenumber" name="317" href="#317">317</a> 			PipedInputStream inputStream, <a href="../../../../../org/waarp/openr66/context/task/AllLineReader.html">AllLineReader</a> allLineReader, Thread thread,
+<a class="jxr_linenumber" name="318" href="#318">318</a> 			<strong class="jxr_keyword">int</strong> status, CommandLine commandLine) {
+<a class="jxr_linenumber" name="319" href="#319">319</a> 		<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="320" href="#320">320</a> 			Thread.sleep(Configuration.RETRYINMS);
+<a class="jxr_linenumber" name="321" href="#321">321</a> 		} <strong class="jxr_keyword">catch</strong> (InterruptedException e) {
+<a class="jxr_linenumber" name="322" href="#322">322</a> 		}
+<a class="jxr_linenumber" name="323" href="#323">323</a> 		<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="324" href="#324">324</a> 			outputStream.flush();
+<a class="jxr_linenumber" name="325" href="#325">325</a> 		} <strong class="jxr_keyword">catch</strong> (IOException e2) {
+<a class="jxr_linenumber" name="326" href="#326">326</a> 		}
+<a class="jxr_linenumber" name="327" href="#327">327</a> 		<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="328" href="#328">328</a> 			Thread.sleep(Configuration.RETRYINMS);
+<a class="jxr_linenumber" name="329" href="#329">329</a> 		} <strong class="jxr_keyword">catch</strong> (InterruptedException e) {
+<a class="jxr_linenumber" name="330" href="#330">330</a> 		}
+<a class="jxr_linenumber" name="331" href="#331">331</a> 		<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="332" href="#332">332</a> 			outputStream.close();
+<a class="jxr_linenumber" name="333" href="#333">333</a> 		} <strong class="jxr_keyword">catch</strong> (IOException e1) {
+<a class="jxr_linenumber" name="334" href="#334">334</a> 		}
+<a class="jxr_linenumber" name="335" href="#335">335</a> 		thread.interrupt();
+<a class="jxr_linenumber" name="336" href="#336">336</a> 		<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="337" href="#337">337</a> 			inputStream.close();
+<a class="jxr_linenumber" name="338" href="#338">338</a> 		} <strong class="jxr_keyword">catch</strong> (IOException e1) {
+<a class="jxr_linenumber" name="339" href="#339">339</a> 		}
+<a class="jxr_linenumber" name="340" href="#340">340</a> 		<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="341" href="#341">341</a> 			Thread.sleep(Configuration.RETRYINMS);
+<a class="jxr_linenumber" name="342" href="#342">342</a> 		} <strong class="jxr_keyword">catch</strong> (InterruptedException e) {
+<a class="jxr_linenumber" name="343" href="#343">343</a> 		}
+<a class="jxr_linenumber" name="344" href="#344">344</a> 		<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="345" href="#345">345</a> 			pumpStreamHandler.stop();
+<a class="jxr_linenumber" name="346" href="#346">346</a> 		} <strong class="jxr_keyword">catch</strong> (IOException e2) {
+<a class="jxr_linenumber" name="347" href="#347">347</a> 		}
+<a class="jxr_linenumber" name="348" href="#348">348</a> 		<strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="349" href="#349">349</a> 			Thread.sleep(Configuration.RETRYINMS);
+<a class="jxr_linenumber" name="350" href="#350">350</a> 		} <strong class="jxr_keyword">catch</strong> (InterruptedException e) {
+<a class="jxr_linenumber" name="351" href="#351">351</a> 		}
+<a class="jxr_linenumber" name="352" href="#352">352</a> 		String result = allLineReader.lastLine.toString();
+<a class="jxr_linenumber" name="353" href="#353">353</a> 		logger.error(<span class="jxr_string">"Status: "</span> + status + <span class="jxr_string">" Exec in error with "</span> +
+<a class="jxr_linenumber" name="354" href="#354">354</a> 				commandLine + <span class="jxr_string">" returns "</span> + result);
+<a class="jxr_linenumber" name="355" href="#355">355</a> 		OpenR66RunnerErrorException exc =
+<a class="jxr_linenumber" name="356" href="#356">356</a> 				<strong class="jxr_keyword">new</strong> OpenR66RunnerErrorException(<span class="jxr_string">"&lt;STATUS&gt;"</span> + status + <span class="jxr_string">"&lt;/STATUS&gt;&lt;ERROR&gt;"</span> + result
+<a class="jxr_linenumber" name="357" href="#357">357</a> 						+ <span class="jxr_string">"&lt;/ERROR&gt;"</span>);
+<a class="jxr_linenumber" name="358" href="#358">358</a> 		futureCompletion.setFailure(exc);
+<a class="jxr_linenumber" name="359" href="#359">359</a> 	}
+<a class="jxr_linenumber" name="360" href="#360">360</a> }
 </pre>
 <hr/><div id="footer">This page was automatically generated by <a href="http://maven.apache.org/">Maven</a></div></body>
 </html>

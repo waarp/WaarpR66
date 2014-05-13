@@ -38,7 +38,7 @@
 <a class="jxr_linenumber" name="28" href="#28">28</a>  <em class="jxr_javadoccomment"> * @author Frederic Bregier</em>
 <a class="jxr_linenumber" name="29" href="#29">29</a>  <em class="jxr_javadoccomment"> * </em>
 <a class="jxr_linenumber" name="30" href="#30">30</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="31" href="#31">31</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../org/waarp/openr66/protocol/networkhandler/ChannelTrafficHandler.html">ChannelTrafficHandler</a> <strong class="jxr_keyword">extends</strong> ChannelTrafficShapingHandler {
+<a class="jxr_linenumber" name="31" href="#31">31</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../org/waarp/openr66/protocol/networkhandler/ChannelTrafficHandler.html">ChannelTrafficHandler</a> <strong class="jxr_keyword">extends</strong> <a href="../../../../../org/jboss/netty/handler/traffic/ChannelTrafficShapingHandler.html">ChannelTrafficShapingHandler</a> {
 <a class="jxr_linenumber" name="32" href="#32">32</a>  	<em class="jxr_javadoccomment">/**</em>
 <a class="jxr_linenumber" name="33" href="#33">33</a>  <em class="jxr_javadoccomment">	 * Internal Logger</em>
 <a class="jxr_linenumber" name="34" href="#34">34</a>  <em class="jxr_javadoccomment">	 */</em>
@@ -67,7 +67,7 @@
 <a class="jxr_linenumber" name="57" href="#57">57</a>  <em class="jxr_comment">	 */</em>
 <a class="jxr_linenumber" name="58" href="#58">58</a>  	@SuppressWarnings(<span class="jxr_string">"unused"</span>)
 <a class="jxr_linenumber" name="59" href="#59">59</a>  	@Override
-<a class="jxr_linenumber" name="60" href="#60">60</a>  	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> doAccounting(TrafficCounter counter) {
+<a class="jxr_linenumber" name="60" href="#60">60</a>  	<strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> doAccounting(<a href="../../../../../org/jboss/netty/handler/traffic/TrafficCounter.html">TrafficCounter</a> counter) {
 <a class="jxr_linenumber" name="61" href="#61">61</a>  		<strong class="jxr_keyword">if</strong> (false)
 <a class="jxr_linenumber" name="62" href="#62">62</a>  			logger.debug(<strong class="jxr_keyword">this</strong>.toString() + <span class="jxr_string">"    {}"</span>, counter);
 <a class="jxr_linenumber" name="63" href="#63">63</a>  	}
