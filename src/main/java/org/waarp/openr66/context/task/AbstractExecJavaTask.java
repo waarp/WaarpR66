@@ -17,6 +17,7 @@
  */
 package org.waarp.openr66.context.task;
 
+import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.openr66.context.ErrorCode;
@@ -53,6 +54,8 @@ public abstract class AbstractExecJavaTask implements R66Runnable {
 	protected boolean isToValidate;
 	protected boolean callFromBusiness;
 
+	protected String finalInformation;
+	
 	/**
 	 * Server side method to validate the request
 	 * 
@@ -62,13 +65,18 @@ public abstract class AbstractExecJavaTask implements R66Runnable {
 		this.status = 0;
 		packet.validate();
 		if (callFromBusiness) {
-			R66Result result = new R66Result(session, true,
-					ErrorCode.CompleteOk, null);
-			session.getLocalChannelReference().validateRequest(result);
-			try {
-				ChannelUtils.writeAbstractLocalPacket(session.getLocalChannelReference(),
-						packet, true);
-			} catch (OpenR66ProtocolPacketException e) {
+			LocalChannelReference localChannelReference = session.getLocalChannelReference();
+			if (localChannelReference != null) {
+				R66Result result = new R66Result(session, true,
+						ErrorCode.CompleteOk, null);
+				localChannelReference.validateRequest(result);
+				try {
+					ChannelUtils.writeAbstractLocalPacket(localChannelReference,
+							packet, true);
+				} catch (OpenR66ProtocolPacketException e) {
+				}
+			} else {
+				finalInformation = packet.toString();
 			}
 		}
 	}
@@ -82,11 +90,16 @@ public abstract class AbstractExecJavaTask implements R66Runnable {
 	public void finalValidate(Object object) {
 		this.status = 0;
 		if (callFromBusiness) {
-			R66Result result = new R66Result(session, true,
-					ErrorCode.CompleteOk, null);
-			result.other = object;
-			session.getLocalChannelReference().validateRequest(result);
-			ChannelUtils.close(session.getLocalChannelReference().getLocalChannel());
+			LocalChannelReference localChannelReference = session.getLocalChannelReference();
+			if (localChannelReference != null) {
+				R66Result result = new R66Result(session, true,
+						ErrorCode.CompleteOk, null);
+				result.other = object;
+				localChannelReference.validateRequest(result);
+				ChannelUtils.close(localChannelReference.getLocalChannel());
+			} else {
+				finalInformation = JsonHandler.writeAsString(object);
+			}
 		}
 	}
 
@@ -149,10 +162,14 @@ public abstract class AbstractExecJavaTask implements R66Runnable {
 
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder(this.getClass().getSimpleName() + ": [");
-		builder.append(fullarg);
-		builder.append(']');
-		return builder.toString();
+		if (status == -1 || finalInformation == null) {
+			StringBuilder builder = new StringBuilder(this.getClass().getSimpleName() + ": [");
+			builder.append(fullarg);
+			builder.append(']');
+			return builder.toString();
+		} else {
+			return finalInformation;
+		}
 	}
 
 }

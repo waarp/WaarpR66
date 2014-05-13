@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:fg="http://www.FGolubov.com/XMLEditor"
+    elementFormDefault="qualified" >
+
+    <xsd:include schemaLocation="R66-GlobalTypes.xsd" />
+
+    <xsd:notation
+        name="versionRest"
+        public="2.4.27"
+        system="2.4.27" />
+    
+    <xsd:complexType name="RestType" >
+        <xsd:all>
+            <xsd:element name="restssl" maxOccurs="1" minOccurs="0" type="booleanType" default="False">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <fg:node-info message="Is the SERVER REST interface using SSL" />
+                    </xsd:appinfo>
+                    <xsd:documentation>
+Is the SERVER REST interface using SSL
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="restdelete" maxOccurs="1" minOccurs="0" type="booleanType" default="False">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <fg:node-info message="Is the SERVER REST interface allowing delete" />
+                    </xsd:appinfo>
+                    <xsd:documentation>
+Is the SERVER REST interface allowing delete
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="restauthenticated" maxOccurs="1" minOccurs="0" type="booleanType" default="False">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <fg:node-info message="Is the SERVER REST interface using authentication" />
+                    </xsd:appinfo>
+                    <xsd:documentation>
+Is the SERVER REST interface using authentication
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="resttimelimit" maxOccurs="1" minOccurs="0" type="xsd:long" default="-1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <fg:node-info message="Is the SERVER REST interface using time limit" />
+                    </xsd:appinfo>
+                    <xsd:documentation>
+Is the SERVER REST interface using time limit
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="restauthkey" maxOccurs="1" minOccurs="1" type="pathType">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <fg:node-info message="SERVER REST interface SHA 256 Key file for request checking" />
+                    </xsd:appinfo>
+                    <xsd:documentation>
+SERVER REST interface SHA 256 Key file for request checking
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:all>
+    </xsd:complexType>
+
+</xsd:schema>

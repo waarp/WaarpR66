@@ -93,6 +93,9 @@ import org.waarp.openr66.protocol.utils.R66ShutdownHook;
  * 
  */
 public class SpooledDirectoryTransfer implements Runnable {
+	public static final String NEEDFULL = "needfull";
+	public static final String PARTIALOK = "Validated";
+
 	/**
 	 * Internal Logger
 	 */
@@ -357,6 +360,10 @@ public class SpooledDirectoryTransfer implements Runnable {
 								if (! future.isSuccess()) {
 									logger.info("Can't inform Waarp server: "+host + " since " + future.getCause());
 								} else {
+									status = (String) future.getResult().other;
+									if (status.equalsIgnoreCase(NEEDFULL)) {
+										monitorArg.setNextAsFullStatus();
+									}
 									logger.debug("Inform back Waarp hosts over for: "+host);
 								}
 							}

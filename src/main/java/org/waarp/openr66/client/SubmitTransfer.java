@@ -18,7 +18,6 @@
 package org.waarp.openr66.client;
 
 import java.sql.Timestamp;
-import java.util.Map;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.database.data.AbstractDbData;
@@ -153,8 +152,7 @@ public class SubmitTransfer extends AbstractTransfer {
 			outputFormat.setValue(FIELDS.status.name(), 0);
 			outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
 			outputFormat.setValue(FIELDS.remote.name(), rhost);
-			Map<String, String> map = DbTaskRunner.getMapFromRunner(runner);
-			outputFormat.setValueString(map);
+			outputFormat.setValueString(runner.getJson());
 			if (transaction.normalInfoAsWarn) {
 				logger.warn(outputFormat.loggerOut());
 			} else {
@@ -171,8 +169,7 @@ public class SubmitTransfer extends AbstractTransfer {
 			} else {
 				outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Failure")); //$NON-NLS-1$
 				outputFormat.setValue(FIELDS.remote.name(), rhost);
-				Map<String, String> map = DbTaskRunner.getMapFromRunner(runner);
-				outputFormat.setValueString(map);
+				outputFormat.setValueString(runner.getJson());
 			}
 			logger.error(outputFormat.loggerOut(), future.getCause());
 			if (future.getCause() != null) {

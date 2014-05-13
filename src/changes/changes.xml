@@ -5,7 +5,16 @@
 		<author email="waarp1 at free.fr">Frederic Bregier</author>
 	</properties>
 	<body>
-        <release version="2.4.26" date="2014-03-15" description="Fix release">
+        <release version="2.4.27" date="2014-05-15" description="Fix release">
+            <action dev="Frederic Bregier" type="fix">Add return of information within Java Exec (BusinessTask, JavaTask)</action>
+            <action dev="Frederic Bregier" type="fix">Move kernel.exec module into Waarp R66 (strong dependency)</action>
+            <action dev="Frederic Bregier" type="fix">Move HttpWriteCacheEnable in Waarp Gateway Kernel package</action>
+            <action dev="Frederic Bregier" type="add">Add Json support for DbData</action>
+            <action dev="Frederic Bregier" type="add">Add reverse Alias listing support</action>
+            <action dev="Frederic Bregier" type="add">Improve output of Host by adding extra information from Role, Alias and Business informations</action>
+            <action dev="Frederic Bregier" type="add">Add HTTP REST Full support</action>
+        </release>
+	    <release version="2.4.26" date="2014-03-15" description="Fix release">
             <action dev="Frederic Bregier" type="fix">Fix DbTaskRunner LRU cache</action>
             <action dev="Frederic Bregier" type="add">Add option -Dopenr66.cache.limit and -Dopenr66.cache.timelimit</action>
             <action dev="Frederic Bregier" type="fix">Improve Log in SpooledDirectory</action>

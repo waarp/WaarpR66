@@ -29,6 +29,7 @@ import org.waarp.common.filemonitor.FileMonitor.FileMonitorInformation;
 import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
+import org.waarp.openr66.client.SpooledDirectoryTransfer;
 import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
@@ -72,24 +73,42 @@ public class SpooledInformTask extends AbstractExecJavaTask {
 	public void run() {
 		if (callFromBusiness) {
 			// Business Request to validate?
+			String validated = SpooledDirectoryTransfer.PARTIALOK;
 			if (isToValidate) {
 				try {
 					FileMonitorInformation fileMonitorInformation = 
 							JsonHandler.mapper.readValue(fullarg, FileMonitorInformation.class);
-					logger.info("Receive SpooledInform of size: "+fullarg.length()+" ("+fileMonitorInformation.fileItems.size()+")");
+					logger.info("Receive SpooledInform of size: "+fullarg.length()+" ("+fileMonitorInformation.fileItems.size()+", "+
+							(fileMonitorInformation.removedFileItems != null ? fileMonitorInformation.removedFileItems.size() : -1)+")");
 					String host = this.session.getAuth().getUser();
 					synchronized (spooledInformationMap) {
-						SpooledInformation old = spooledInformationMap.put(fileMonitorInformation.name, new SpooledInformation(host, fileMonitorInformation));
-						if  (old != null && old.fileMonitorInformation != null) {
-							if (old.fileMonitorInformation.directories != null) {
-								old.fileMonitorInformation.directories.clear();
+						if (fileMonitorInformation.removedFileItems == null || fileMonitorInformation.removedFileItems.isEmpty()) {
+							SpooledInformation old = spooledInformationMap.put(fileMonitorInformation.name, new SpooledInformation(host, fileMonitorInformation));
+							if  (old != null && old.fileMonitorInformation != null) {
+								if (old.fileMonitorInformation.directories != null) {
+									old.fileMonitorInformation.directories.clear();
+								}
+								if (old.fileMonitorInformation.fileItems != null) {
+									old.fileMonitorInformation.fileItems.clear();
+								}
+								old.fileMonitorInformation = null;
 							}
-							if (old.fileMonitorInformation.fileItems != null) {
-								old.fileMonitorInformation.fileItems.clear();
+							old = null;
+						} else {
+							// partial update
+							SpooledInformation update = spooledInformationMap.get(fileMonitorInformation.name);
+							if (update == null) {
+								// Issue since update is not existing so full update is needed next time
+								spooledInformationMap.put(fileMonitorInformation.name, new SpooledInformation(host, fileMonitorInformation));
+								validated = SpooledDirectoryTransfer.NEEDFULL;
+							} else {
+								for (String item : fileMonitorInformation.removedFileItems) {
+									update.fileMonitorInformation.fileItems.remove(item);
+								}
+								update.fileMonitorInformation.fileItems.putAll(fileMonitorInformation.fileItems);
+								update.lastUpdate = new Date();
 							}
-							old.fileMonitorInformation = null;
 						}
-						old = null;
 					}
 				} catch (JsonParseException e1) {
 					logger.warn("Cannot parse SpooledInformation: "+ fullarg +" "+ e1.getMessage());
@@ -108,7 +127,7 @@ public class SpooledInformTask extends AbstractExecJavaTask {
 				}
 				this.status = 0;
 			}
-			finalValidate("Validated");
+			finalValidate(validated);
 		} else {
 			// unallowed
 			logger.warn("SpooledInformTask not allowed as Java Task: "+fullarg);

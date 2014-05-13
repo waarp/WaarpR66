@@ -103,6 +103,7 @@ public class TransferActions extends ServerActions {
 				+ " {} runner {}",
 				e1 != null ? e1.getMessage() : "no exception",
 				(runner != null ? runner.toShortString() : "no runner"));
+		logger.debug("DEBUG Full stack", e1);
 		localChannelReference.invalidateRequest(new R66Result(
 				e1, session, true, code, null));
 
@@ -243,6 +244,7 @@ public class TransferActions extends ServerActions {
 			// Reload or create
 			String requested = DbTaskRunner.getRequested(session, packet);
 			String requester = DbTaskRunner.getRequester(session, packet);
+			logger.debug("DEBUG: "+packet.getSpecialId()+":"+isRetrieve);
 			if (packet.isToValidate()) {
 				// Id could be a creation or a reload
 				// Try reload
@@ -253,44 +255,11 @@ public class TransferActions extends ServerActions {
 					// Patch to prevent self request to be stored by sender
 					boolean ignoreSave = runner.shallIgnoreSave();
 					runner.setSender(isRetrieve);
-					if (ignoreSave && ! runner.shallIgnoreSave()) {
+					logger.debug("DEBUG: "+runner.getSpecialId()+":"+ignoreSave+":"+runner.shallIgnoreSave()+":"+isRetrieve);
+					if (ignoreSave && ! runner.shallIgnoreSave() && ! runner.checkFromDbForSubmit()) {
 						// Since status changed, it means that object should be created and not reloaded
+						// But in case of submit, item already exist so shall be loaded from database
 						throw new WaarpDatabaseNoDataException("False load, must reopen and create DbTaskRunner");
-					}
-					if (runner.isAllDone()) {
-						// truly an error since done
-						session.setStatus(31);
-						endInitRequestInError(channel,
-								ErrorCode.QueryAlreadyFinished, runner,
-								new OpenR66ProtocolBusinessQueryAlreadyFinishedException(
-										Messages.getString("LocalServerHandler.13") //$NON-NLS-1$
-												+
-												packet.getSpecialId()), packet);
-						return;
-					}
-					LocalChannelReference lcr =
-							Configuration.configuration.getLocalTransaction().
-									getFromRequest(
-											requested + " " + requester + " "
-													+ packet.getSpecialId());
-					if (lcr != null) {
-						// truly an error since still running
-						session.setStatus(32);
-						endInitRequestInError(channel,
-								ErrorCode.QueryStillRunning, runner,
-								new OpenR66ProtocolBusinessQueryStillRunningException(
-										Messages.getString("LocalServerHandler.14") //$NON-NLS-1$
-												+
-												packet.getSpecialId()), packet);
-						return;
-					}
-					logger.debug("Runner before any action: {} {}", runner.shallIgnoreSave(), runner);
-					// ok to restart
-					try {
-						if (runner.restart(false)) {
-							runner.saveStatus();
-						}
-					} catch (OpenR66RunnerErrorException e) {
 					}
 				} catch (WaarpDatabaseNoDataException e) {
 					// Reception of request from requester host
@@ -310,6 +279,41 @@ public class TransferActions extends ServerActions {
 							new OpenR66DatabaseGlobalException(e), packet);
 					return;
 				}
+				if (runner.isAllDone()) {
+					// truly an error since done
+					session.setStatus(31);
+					endInitRequestInError(channel,
+							ErrorCode.QueryAlreadyFinished, runner,
+							new OpenR66ProtocolBusinessQueryAlreadyFinishedException(
+									Messages.getString("LocalServerHandler.13") //$NON-NLS-1$
+											+
+											packet.getSpecialId()), packet);
+					return;
+				}
+				LocalChannelReference lcr =
+						Configuration.configuration.getLocalTransaction().
+								getFromRequest(
+										requested + " " + requester + " "
+												+ packet.getSpecialId());
+				if (lcr != null) {
+					// truly an error since still running
+					session.setStatus(32);
+					endInitRequestInError(channel,
+							ErrorCode.QueryStillRunning, runner,
+							new OpenR66ProtocolBusinessQueryStillRunningException(
+									Messages.getString("LocalServerHandler.14") //$NON-NLS-1$
+											+
+											packet.getSpecialId()), packet);
+					return;
+				}
+				logger.debug("Runner before any action: {} {}", runner.shallIgnoreSave(), runner);
+				// ok to restart
+				try {
+					if (runner.restart(false)) {
+						runner.saveStatus();
+					}
+				} catch (OpenR66RunnerErrorException e) {
+				}
 				// Change the SpecialID! => could generate an error ?
 				packet.setSpecialId(runner.getSpecialId());
 			} else {
@@ -318,25 +322,6 @@ public class TransferActions extends ServerActions {
 					runner = new DbTaskRunner(localChannelReference.getDbSession(),
 							session, rule, packet.getSpecialId(),
 							requester, requested);
-					runner.setSender(isRetrieve);
-					// FIX check for SelfRequest
-					if (runner.isSelfRequest()) {
-						runner.setFilename(runner.getOriginalFilename());
-					}
-					if (! runner.isSender()) {
-						logger.debug("New filename ? :" +packet.getFilename());
-						runner.setOriginalFilename(packet.getFilename());
-						runner.setFilename(packet.getFilename());
-					}
-					logger.debug("Runner before any action: {} {}", runner.shallIgnoreSave(), runner);
-					try {
-						if (runner.restart(false)) {
-							if (!runner.isSelfRequest()) {
-								runner.saveStatus();
-							}
-						}
-					} catch (OpenR66RunnerErrorException e) {
-					}
 				} catch (WaarpDatabaseException e) {
 					if (localChannelReference.getDbSession() == null) {
 						// Special case of no database client
@@ -356,6 +341,25 @@ public class TransferActions extends ServerActions {
 						session.setStatus(36);
 						return;
 					}
+				}
+				runner.setSender(isRetrieve);
+				// FIX check for SelfRequest
+				if (runner.isSelfRequest()) {
+					runner.setFilename(runner.getOriginalFilename());
+				}
+				if (! runner.isSender()) {
+					logger.debug("New filename ? :" +packet.getFilename());
+					runner.setOriginalFilename(packet.getFilename());
+					runner.setFilename(packet.getFilename());
+				}
+				logger.debug("Runner before any action: {} {}", runner.shallIgnoreSave(), runner);
+				try {
+					if (runner.restart(false)) {
+						if (!runner.isSelfRequest()) {
+							runner.saveStatus();
+						}
+					}
+				} catch (OpenR66RunnerErrorException e) {
 				}
 			}
 		} else {

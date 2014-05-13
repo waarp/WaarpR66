@@ -54,6 +54,7 @@ import org.waarp.common.xml.XmlHash;
 import org.waarp.common.xml.XmlType;
 import org.waarp.common.xml.XmlUtil;
 import org.waarp.common.xml.XmlValue;
+import org.waarp.gateway.kernel.rest.RestArgument;
 import org.waarp.openr66.context.authentication.R66Auth;
 import org.waarp.openr66.context.task.localexec.LocalExecClient;
 import org.waarp.openr66.database.DbConstant;
@@ -132,9 +133,39 @@ public class FileBasedConfiguration {
 	private static final String XML_SERVER_HTTPPORT = "serverhttpport";
 
 	/**
-	 * SERVER HTTP PORT
+	 * SERVER HTTPS PORT
 	 */
 	private static final String XML_SERVER_HTTPSPORT = "serverhttpsport";
+
+	/**
+	 * SERVER HTTP(S) PORT for REST interface
+	 */
+	private static final String XML_SERVER_REST_PORT = "serverrestport";
+
+	/**
+	 * SERVER REST interface using SSL
+	 */
+	private static final String XML_REST_SSL = "restssl";
+
+	/**
+	 * SERVER REST interface allowing delete
+	 */
+	private static final String XML_REST_ALLOW_DELETE = "restdelete";
+
+	/**
+	 * SERVER REST interface using time limit
+	 */
+	private static final String XML_REST_TIME_LIMIT = "resttimelimit";
+	
+	/**
+	 * SERVER REST interface using authentication
+	 */
+	private static final String XML_REST_AUTHENTICATED = "restauthenticated";
+
+	/**
+	 * SERVER REST interface SHA Key for request checking
+	 */
+	private static final String XML_REST_AUTH_KEY = "restauthkey";
 
 	/**
 	 * SERVER SSL STOREKEY PATH
@@ -475,7 +506,8 @@ public class FileBasedConfiguration {
 			new XmlDecl(XmlType.INTEGER, XML_SERVER_PORT),
 			new XmlDecl(XmlType.INTEGER, XML_SERVER_SSLPORT),
 			new XmlDecl(XmlType.INTEGER, XML_SERVER_HTTPPORT),
-			new XmlDecl(XmlType.INTEGER, XML_SERVER_HTTPSPORT)
+			new XmlDecl(XmlType.INTEGER, XML_SERVER_HTTPSPORT),
+			new XmlDecl(XmlType.INTEGER, XML_SERVER_REST_PORT)
 	};
 
 	/**
@@ -572,6 +604,18 @@ public class FileBasedConfiguration {
 			new XmlDecl(XmlType.STRING, XML_WORKINGPATH),
 			new XmlDecl(XmlType.STRING, XML_CONFIGPATH)
 	};
+	/**
+	 * Structure of the Configuration file
+	 * 
+	 */
+	private static final XmlDecl[] configRestDecls = {
+			// Rest support configuration
+		new XmlDecl(XmlType.BOOLEAN, XML_REST_SSL),
+		new XmlDecl(XmlType.BOOLEAN, XML_REST_AUTHENTICATED),
+		new XmlDecl(XmlType.STRING, XML_REST_AUTH_KEY),
+		new XmlDecl(XmlType.BOOLEAN, XML_REST_ALLOW_DELETE),
+		new XmlDecl(XmlType.LONG, XML_REST_TIME_LIMIT)
+	};
 
 	/**
 	 * Overall structure of the Configuration file
@@ -585,6 +629,7 @@ public class FileBasedConfiguration {
 	private static final String XML_NETWORK = "network";
 	private static final String XML_SSL = "ssl";
 	private static final String XML_DB = "db";
+	private static final String XML_REST = "rest";
 	/**
 	 * Global Structure for Server Configuration
 	 */
@@ -599,6 +644,7 @@ public class FileBasedConfiguration {
 			new XmlDecl(XML_DIRECTORY, XmlType.XVAL, XML_ROOT + XML_DIRECTORY,
 					configDirectoryDecls, false),
 			new XmlDecl(XML_LIMIT, XmlType.XVAL, XML_ROOT + XML_LIMIT, configLimitDecls, false),
+			new XmlDecl(XML_REST, XmlType.XVAL, XML_ROOT + XML_REST, configRestDecls, false),
 			new XmlDecl(XML_DB, XmlType.XVAL, XML_ROOT + XML_DB, configDbDecls, false),
 			new XmlDecl(DbHostConfiguration.XML_BUSINESS, XmlType.STRING, XML_ROOT + DbHostConfiguration.XML_BUSINESS + "/"
 					+ DbHostConfiguration.XML_BUSINESSID, true),
@@ -619,6 +665,7 @@ public class FileBasedConfiguration {
 			new XmlDecl(XML_DIRECTORY, XmlType.XVAL, XML_ROOT + XML_DIRECTORY,
 					configDirectoryDecls, false),
 			new XmlDecl(XML_LIMIT, XmlType.XVAL, XML_ROOT + XML_LIMIT, configLimitDecls, false),
+			new XmlDecl(XML_REST, XmlType.XVAL, XML_ROOT + XML_REST, configRestDecls, false),
 			new XmlDecl(XML_DB, XmlType.XVAL, XML_ROOT + XML_DB, configDbDecls, false),
 			new XmlDecl(DbHostConfiguration.XML_BUSINESS, XmlType.STRING, XML_ROOT + DbHostConfiguration.XML_BUSINESS + "/"
 					+ DbHostConfiguration.XML_BUSINESSID, true),
@@ -1370,9 +1417,73 @@ public class FileBasedConfiguration {
 			httpsport = value.getInteger();
 		}
 		config.SERVER_HTTPSPORT = httpsport;
+		value = hashConfig.get(XML_SERVER_REST_PORT);
+		int restPort = -1;
+		if (value != null && (!value.isEmpty())) {
+			restPort = value.getInteger();
+		}
+		config.REST_PORT = restPort;
 		return true;
 	}
 
+	/**
+	 * 
+	 * @param config
+	 * @return True if the REST configuration is correctly loaded
+	 */
+	private static boolean loadRest(Configuration config) {
+		if (config.REST_PORT > 0) {
+			XmlValue value = hashConfig.get(XML_REST_SSL);
+			boolean restSsl = false;
+			if (value != null && (!value.isEmpty())) {
+				restSsl = value.getBoolean();
+			}
+			config.REST_SSL = restSsl;
+			value = hashConfig.get(XML_REST_AUTHENTICATED);
+			boolean restAuthent = false;
+			if (value != null && (!value.isEmpty())) {
+				restAuthent = value.getBoolean();
+			}
+			config.REST_AUTHENTICATED = restAuthent;
+			String fileKey = null;
+			value = hashConfig.get(XML_REST_AUTH_KEY);
+			if (value != null && (!value.isEmpty())) {
+				fileKey = value.getString();
+				File file = new File(fileKey);
+				if (! file.canRead()) {
+					file = new File(config.configPath+FilesystemBasedDirImpl.SEPARATOR+fileKey);
+					if (! file.canRead()) {
+						logger.error("Unable to find REST Key in Config file");
+						return false;
+					}
+					fileKey = config.configPath+FilesystemBasedDirImpl.SEPARATOR+fileKey;
+				}
+				try {
+					RestArgument.initializeKey(file);
+				} catch (CryptoException e) {
+					logger.error("Unable to load REST Key from Config file: "+fileKey, e);
+					return false;
+				} catch (IOException e) {
+					logger.error("Unable to load REST Key from Config file: "+fileKey, e);
+					return false;
+				}
+			}
+			value = hashConfig.get(XML_REST_ALLOW_DELETE);
+			boolean restDelete = false;
+			if (value != null && (!value.isEmpty())) {
+				restDelete = value.getBoolean();
+			}
+			config.REST_ALLOW_DELETE = restDelete;
+			value = hashConfig.get(XML_REST_TIME_LIMIT);
+			long restTimeLimit = -1;
+			if (value != null && (!value.isEmpty())) {
+				restTimeLimit = value.getLong();
+			}
+			config.REST_TIME_LIMIT = restTimeLimit;
+		}
+		return true;
+	}
+	
 	/**
 	 * Set the Crypto Key from the Document
 	 * 
@@ -1612,6 +1723,7 @@ public class FileBasedConfiguration {
 				for (String namealias : alias) {
 					config.aliases.put(namealias, refHostId);
 				}
+				config.reverseAliases.put(refHostId, alias);
 				logger.info("Aliases for: " + refHostId +" = "+ aliasset);
 			}
 		}
@@ -1994,6 +2106,10 @@ public class FileBasedConfiguration {
 		}
 		if (!loadNetworkServer(config)) {
 			logger.error("Cannot load Network configuration");
+			return false;
+		}
+		if (! loadRest(config)) {
+			logger.error("Cannot load REST configuration");
 			return false;
 		}
 		if (!loadFromDatabase(config)) {

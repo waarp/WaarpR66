@@ -235,6 +235,11 @@
   	"text14": "Tous",
   	"text15": "Statut (test)",
   	"text16": "Nombre en cours (0 pour tous) :",
-	"text17": "Tous les démons SpooledDirectory"
+	"text17": "Tous les démons SpooledDirectory",
+    "text18": "Statut détaillé du serveur au format XML",
+    "text19": "Statut du serveur au format Json",
+    "text20": "Statut détaillé du serveur au format Json",
+    "text21": "Tous les démons SpooledDirectory détaillés",
+    "text22": "Statut du serveur au format XML"
   }
 }

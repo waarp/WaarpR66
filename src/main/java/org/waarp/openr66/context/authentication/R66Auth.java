@@ -132,7 +132,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 					// set to default PARTNER
 					role.setRole(ROLE.PARTNER);
 				} else {
-					role.setRole(configRole);
+					role.setRoleDefault(configRole);
 					if (this.role.isContaining(ROLE.FULLADMIN)) {
 						isAdmin = true;
 					}
@@ -320,7 +320,7 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 			} else {
 				RoleDefault configRole = Configuration.configuration.roles.get(hostId);
 				if (configRole != null) {
-					role.setRole(configRole);
+					role.setRoleDefault(configRole);
 					if (this.role.isContaining(ROLE.FULLADMIN)) {
 						isAdmin = true;
 					}
@@ -333,5 +333,12 @@ public class R66Auth extends FilesystemBasedAuthImpl {
 			return true;
 		}
 		throw new Reply530Exception("Key is not valid for this HostId");
+	}
+	/**
+	 * 
+	 * @return a copy of the Role of the current authenticated partner
+	 */
+	public RoleDefault getRole() {
+		return new RoleDefault().setRoleDefault(role);
 	}
 }

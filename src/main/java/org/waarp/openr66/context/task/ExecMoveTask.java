@@ -296,6 +296,9 @@ public class ExecMoveTask extends AbstractTask {
 								e);
 			}
 			session.getRunner().setFileMoved(newname, true);
+			R66Result result = new R66Result(session, true, ErrorCode.CompleteOk, this.session.getRunner());
+			result.other = newname;
+			futureCompletion.setResult(result);
 			futureCompletion.setSuccess();
 			logger.info("Exec OK with {} returns {}", commandLine,
 					newname);
@@ -303,6 +306,9 @@ public class ExecMoveTask extends AbstractTask {
 			logger.warn("Exec in warning with " + commandLine +
 					" returns " + newname);
 			session.getRunner().setErrorExecutionStatus(ErrorCode.Warning);
+			R66Result result = new R66Result(session, true, ErrorCode.Warning, this.session.getRunner());
+			result.other = newname;
+			futureCompletion.setResult(result);
 			futureCompletion.setSuccess();
 		} else {
 			logger.error("Status: " + status + " Exec in error with " +

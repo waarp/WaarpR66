@@ -20,7 +20,6 @@ package org.waarp.openr66.client;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.waarp.common.database.exception.WaarpDatabaseException;
@@ -119,8 +118,7 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 							outputFormat.setValue(FIELDS.status.name(), 0);
 							outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Success")); //$NON-NLS-1$
 							outputFormat.setValue(FIELDS.remote.name(), host);
-							Map<String, String> map = DbTaskRunner.getMapFromRunner(runner);
-							outputFormat.setValueString(map);
+							outputFormat.setValueString(runner.getJson());
 							results.add(outputFormat);
 							if (transaction.normalInfoAsWarn) {
 								logger.warn(outputFormat.loggerOut());
@@ -136,8 +134,7 @@ public class MultipleSubmitTransfer extends SubmitTransfer {
 							} else {
 								outputFormat.setValue(FIELDS.statusTxt.name(), Messages.getString("SubmitTransfer.3")+Messages.getString("RequestInformation.Failure")); //$NON-NLS-1$
 								outputFormat.setValue(FIELDS.remote.name(), host);
-								Map<String, String> map = DbTaskRunner.getMapFromRunner(runner);
-								outputFormat.setValueString(map);
+								outputFormat.setValueString(runner.getJson());
 							}
 							logger.error(outputFormat.loggerOut(), future.getCause());
 							if (future.getCause() != null) {

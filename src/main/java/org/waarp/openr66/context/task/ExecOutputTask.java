@@ -263,10 +263,16 @@ public class ExecOutputTask extends AbstractTask {
 	private void finalize(int status, String newName, String commandLine) {
 		String newname = newName;
 		if (status == 0) {
+			R66Result result = new R66Result(session, true, ErrorCode.CompleteOk, this.session.getRunner());
+			result.other = newName;
+			futureCompletion.setResult(result);
 			futureCompletion.setSuccess();
 			logger.info("Exec OK with {} returns {}", commandLine,
 					newname);
 		} else if (status == 1) {
+			R66Result result = new R66Result(session, true, ErrorCode.Warning, this.session.getRunner());
+			result.other = newName;
+			futureCompletion.setResult(result);
 			logger.warn("Exec in warning with " + commandLine +
 					" returns " + newname);
 			session.getRunner().setErrorExecutionStatus(ErrorCode.Warning);

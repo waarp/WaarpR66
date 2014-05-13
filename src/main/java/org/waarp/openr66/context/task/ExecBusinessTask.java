@@ -20,13 +20,13 @@ package org.waarp.openr66.context.task;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.openr66.context.task.exception.OpenR66RunnerErrorException;
-import org.waarp.openr66.protocol.exception.OpenR66ProtocolPacketException;
 import org.waarp.openr66.protocol.localhandler.packet.BusinessRequestPacket;
-import org.waarp.openr66.protocol.utils.ChannelUtils;
 import org.waarp.openr66.protocol.utils.R66Future;
 
 /**
- * Example of Java Task for ExecJava
+ * Business Execution of a Java Task
+ * 
+ * Fullarg = First argument is the Java class name, Last argument is the delay.
  * 
  * @author Frederic Bregier
  * 
@@ -43,6 +43,7 @@ public class ExecBusinessTask extends AbstractExecJavaTask {
 	public void run() {
 		if (callFromBusiness) {
 			// Business Request to validate?
+			String validate = "Validated";
 			if (isToValidate) {
 				logger.debug("DEBUG: "+fullarg);
 				String [] args = fullarg.split(" ");
@@ -69,6 +70,9 @@ public class ExecBusinessTask extends AbstractExecJavaTask {
 							invalid();
 							return;
 						}
+						if (future.getResult() != null && future.getResult().other != null) {
+							validate = future.getResult().other.toString();
+						}
 					} else {
 						logger.error("ExecBusiness in error, Task invalid: "+operation);
 						invalid();
@@ -82,15 +86,9 @@ public class ExecBusinessTask extends AbstractExecJavaTask {
 				BusinessRequestPacket packet =
 						new BusinessRequestPacket(this.getClass().getName() +" execution ok", 0);
 				validate(packet);
-				try {
-					ChannelUtils.writeAbstractLocalPacket(session.getLocalChannelReference(),
-							packet, true);
-				} catch (OpenR66ProtocolPacketException e) {
-				}
-				this.status = 0;
 				return;
 			}
-			finalValidate("Validated");
+			finalValidate(validate);
 			return;
 		} else {
 			// Rule EXECJAVA based should be used instead

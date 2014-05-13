@@ -17,9 +17,8 @@
  */
 package org.waarp.openr66.protocol.localhandler;
 
-import java.util.Date;
-
 import org.jboss.netty.handler.traffic.TrafficCounter;
+import org.joda.time.DateTime;
 import org.waarp.common.database.DbAdmin;
 import org.waarp.common.database.DbPreparedStatement;
 import org.waarp.common.database.DbSession;
@@ -27,6 +26,7 @@ import org.waarp.common.database.data.AbstractDbData.UpdatedInfo;
 import org.waarp.common.database.exception.WaarpDatabaseNoConnectionException;
 import org.waarp.common.database.exception.WaarpDatabaseSqlException;
 import org.waarp.common.database.model.DbModelFactory;
+import org.waarp.common.json.JsonHandler;
 import org.waarp.common.logging.WaarpInternalLogger;
 import org.waarp.common.logging.WaarpInternalLoggerFactory;
 import org.waarp.openr66.commander.CommanderNoDb;
@@ -42,6 +42,8 @@ import org.waarp.snmp.r66.WaarpPrivateMib.MibLevel;
 import org.waarp.snmp.r66.WaarpPrivateMib.WaarpDetailedValuesIndex;
 import org.waarp.snmp.r66.WaarpPrivateMib.WaarpErrorValuesIndex;
 import org.waarp.snmp.r66.WaarpPrivateMib.WaarpGlobalValuesIndex;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Monitoring class as an helper to get values of interest. Also used by SNMP support.
@@ -605,13 +607,13 @@ public class Monitoring implements WaarpInterfaceMonitor {
 		builder.append(Configuration.configuration.HOST_ID);
 		builder.append("</HostID>");
 		builder.append("<Date>");
-		builder.append(new Date());
+		builder.append(new DateTime().toString());
 		builder.append("</Date>");
 		builder.append("<LastRun>");
-		builder.append(new Date(lastTry));
+		builder.append(new DateTime(lastTry).toString());
 		builder.append("</LastRun>");
 		builder.append("<FromDate>");
-		builder.append(new Date(currentLimit));
+		builder.append(new DateTime(currentLimit).toString());
 		builder.append("</FromDate>");
 		builder.append("<SecondsRunning>");
 		builder.append(secondsRunning);
@@ -662,10 +664,10 @@ public class Monitoring implements WaarpInterfaceMonitor {
 		builder.append(nbOutActiveTransfer);
 		builder.append("</OutRunning>");
 		builder.append("<LastInRunning>");
-		builder.append((new Date(lastInActiveTransfer)).toString());
+		builder.append(new DateTime(lastInActiveTransfer).toString());
 		builder.append("</LastInRunning>");
 		builder.append("<LastOutRunning>");
-		builder.append((new Date(lastOutActiveTransfer)).toString());
+		builder.append(new DateTime(lastOutActiveTransfer).toString());
 		builder.append("</LastOutRunning>");
 		builder.append("<InAll>");
 		builder.append(nbInTotalTransfer);
@@ -809,6 +811,105 @@ public class Monitoring implements WaarpInterfaceMonitor {
 		}
 		builder.append("</STATUS>");
 		return builder.toString();
+	}
+
+
+	/**
+	 * @param detail
+	 * @return The Json representation of the current status
+	 */
+	public String exportJson(boolean detail) {
+		return JsonHandler.prettyPrint(exportAsJson(detail));
+	}
+	
+	/**
+	 * 
+	 * @param detail
+	 * @return The Json representation of the current status
+	 */
+	public ObjectNode exportAsJson(boolean detail) {
+		ObjectNode node = JsonHandler.createObjectNode();
+		node = node.putObject("STATUS");
+		// Global Informations
+		node.put("HostID", Configuration.configuration.HOST_ID);
+		node.put("Date", new DateTime().toString());
+		node.put("LastRun", new DateTime(lastTry).toString());
+		node.put("FromDate", new DateTime(currentLimit).toString());
+		node.put("SecondsRunning", secondsRunning);
+		node.put("NetworkConnections", nbNetworkConnection);
+		node.put("NbThreads", nbThread);
+		node.put("InBandwidth", bandwidthIn);
+		node.put("OutBandwidth", bandwidthOut);
+
+		// Overall status including past, future and current transfers
+		ObjectNode node2 = node.putObject("OVERALL");
+		node2.put("AllTransfer", nbCountStepAllTransfer);
+		node2.put("Unknown", nbCountInfoUnknown);
+		node2.put("NotUpdated", nbCountInfoNotUpdated);
+		node2.put("Interrupted", nbCountInfoInterrupted);
+		node2.put("ToSubmit", nbCountInfoToSubmit);
+		node2.put("Error", nbCountInfoError);
+		node2.put("Running", nbCountInfoRunning);
+		node2.put("Done", nbCountInfoDone);
+		node2.put("InRunning", nbInActiveTransfer);
+		node2.put("OutRunning", nbOutActiveTransfer);
+		node2.put("LastInRunning", new DateTime(lastInActiveTransfer).toString());
+		node2.put("LastOutRunning", new DateTime(lastOutActiveTransfer).toString());
+		node2.put("InAll", nbInTotalTransfer);
+		node2.put("OutAll", nbOutTotalTransfer);
+		node2.put("InError", nbInErrorTransfer);
+		node2.put("OutError", nbOutErrorTransfer);
+
+		// Current situation of all transfers, running or not
+		node2 = node.putObject("STEPS");
+		node2.put("Notask", nbCountStepNotask);
+		node2.put("Pretask", nbCountStepPretask);
+		node2.put("Transfer", nbCountStepTransfer);
+		node2.put("Posttask", nbCountStepPosttask);
+		node2.put("AllDone", nbCountStepAllDone);
+		node2.put("Error", nbCountStepError);
+
+		// On Running Transfers only
+		node2 = node.putObject("RUNNINGSTEPS");
+		node2.put("AllRunning", nbCountAllRunningStep);
+		if (detail) {
+			node2.put("Running", nbCountRunningStep);
+			node2.put("InitOk", nbCountInitOkStep);
+			node2.put("PreProcessingOk", nbCountPreProcessingOkStep);
+			node2.put("TransferOk", nbCountTransferOkStep);
+			node2.put("PostProcessingOk", nbCountPostProcessingOkStep);
+			node2.put("CompleteOk", nbCountCompleteOkStep);
+		}
+
+		if (detail) {
+			// Error Status on all transfers
+			node2 = node.putObject("ERRORTYPES");
+			node2.put("ConnectionImpossible", nbCountStatusConnectionImpossible);
+			node2.put("ServerOverloaded", nbCountStatusServerOverloaded);
+			node2.put("BadAuthent", nbCountStatusBadAuthent);
+			node2.put("ExternalOp", nbCountStatusExternalOp);
+			node2.put("TransferError", nbCountStatusTransferError);
+			node2.put("MD5Error", nbCountStatusMD5Error);
+			node2.put("Disconnection", nbCountStatusDisconnection);
+			node2.put("FinalOp", nbCountStatusFinalOp);
+			node2.put("Unimplemented", nbCountStatusUnimplemented);
+			node2.put("Internal", nbCountStatusInternal);
+			node2.put("Warning", nbCountStatusWarning);
+			node2.put("QueryAlreadyFinished", nbCountStatusQueryAlreadyFinished);
+			node2.put("QueryStillRunning", nbCountStatusQueryStillRunning);
+			node2.put("KnownHost", nbCountStatusNotKnownHost);
+			node2.put("RemotelyUnknown", nbCountStatusQueryRemotelyUnknown);
+			node2.put("CommandNotFound", nbCountStatusCommandNotFound);
+			node2.put("PassThroughMode", nbCountStatusPassThroughMode);
+			node2.put("RemoteShutdown", nbCountStatusRemoteShutdown);
+			node2.put("Shutdown", nbCountStatusShutdown);
+			node2.put("RemoteError", nbCountStatusRemoteError);
+			node2.put("Stopped", nbCountStatusStopped);
+			node2.put("Canceled", nbCountStatusCanceled);
+			node2.put("FileNotFound", nbCountStatusFileNotFound);
+			node2.put("Unknown", nbCountStatusUnknown);
+		}
+		return node;
 	}
 
 	public void setAgent(WaarpSnmpAgent agent) {

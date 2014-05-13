@@ -30,6 +30,8 @@ import org.waarp.openr66.protocol.utils.ChannelUtils;
 /**
  * Example of Java Task for ExecJava
  * 
+ * 2nd argument is a numerical rank. When rank > 100 stops, else increment rank.
+ * 
  * @author Frederic Bregier
  * 
  */
@@ -58,10 +60,12 @@ public class TestExecJavaTask extends AbstractExecJavaTask {
 				} else {
 					logger.info("Continue: " + rank);
 				}
-				try {
-					ChannelUtils.writeAbstractLocalPacket(session.getLocalChannelReference(),
-							packet, true);
-				} catch (OpenR66ProtocolPacketException e) {
+				if (session.getLocalChannelReference() != null) {
+					try {
+						ChannelUtils.writeAbstractLocalPacket(session.getLocalChannelReference(),
+								packet, true);
+					} catch (OpenR66ProtocolPacketException e) {
+					}
 				}
 				this.status = 0;
 				return;
