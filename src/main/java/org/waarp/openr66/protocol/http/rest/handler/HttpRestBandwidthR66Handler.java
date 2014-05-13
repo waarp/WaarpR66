@@ -57,10 +57,6 @@ public class HttpRestBandwidthR66Handler extends HttpRestAbstractR66Handler {
     private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
             .getLogger(HttpRestBandwidthR66Handler.class);
    
-	/**
-	 * @param path
-	 * @param method
-	 */
 	public HttpRestBandwidthR66Handler() {
 		super(BASEURI, METHOD.GET, METHOD.PUT);
 	}
