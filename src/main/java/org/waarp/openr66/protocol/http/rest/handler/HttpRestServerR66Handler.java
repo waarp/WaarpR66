@@ -32,6 +32,7 @@ import org.waarp.gateway.kernel.rest.HttpRestHandler;
 import org.waarp.gateway.kernel.rest.DataModelRestMethodHandler.COMMAND_TYPE;
 import org.waarp.gateway.kernel.rest.HttpRestHandler.METHOD;
 import org.waarp.gateway.kernel.rest.RestArgument;
+import org.waarp.openr66.protocol.configuration.Configuration;
 import org.waarp.openr66.protocol.configuration.Messages;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolBusinessException;
 import org.waarp.openr66.protocol.exception.OpenR66ProtocolNotAuthenticatedException;
@@ -49,7 +50,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- * Server Http REST interface: http://host/server?... + ShutdownOrBlockJsonPacket as PUT
+ * Server Http REST interface: http://host/server?... + ShutdownOrBlockJsonPacket as PUT or no Json body but PUT to get Current Status in Json
  * @author "Frederic Bregier"
  *
  */
@@ -67,7 +68,7 @@ public class HttpRestServerR66Handler extends HttpRestAbstractR66Handler {
 	 * @param method
 	 */
 	public HttpRestServerR66Handler() {
-		super(BASEURI, METHOD.PUT);
+		super(BASEURI, METHOD.GET, METHOD.PUT);
 	}
 	
 	@Override
@@ -79,6 +80,16 @@ public class HttpRestServerR66Handler extends HttpRestAbstractR66Handler {
 		}
 		handler.setWillClose(false);
 		ServerActions serverHandler = ((HttpRestR66Handler) handler).serverHandler;
+		if (arguments.getMethod() == METHOD.GET) {
+			// status Json
+			result.setCommand(ACTIONS_TYPE.GetStatus.name());
+			Configuration.configuration.monitoring.run(0, true);
+			ObjectNode node = Configuration.configuration.monitoring.exportAsJson(true);
+			result.setDetail("Current Waarp R66 status");
+			result.addResult(node);
+			setOk(handler, result, null, HttpResponseStatus.OK);
+			return;
+		}
 		// now action according to body
 		JsonPacket json = (JsonPacket) body;
 		if (json == null) {
@@ -136,6 +147,11 @@ public class HttpRestServerR66Handler extends HttpRestAbstractR66Handler {
 			node.add(node2);
 		} catch (OpenR66ProtocolPacketException e1) {
 		}
+
+		node1 = JsonHandler.createArrayNode();
+		node1.add(Configuration.configuration.monitoring.exportAsJson(true));
+		node2 = RestArgument.fillDetailedAllow(METHOD.GET, this.path, ACTIONS_TYPE.GetStatus.name(), null, node1);
+		node.add(node2);
 		
 		node2 = RestArgument.fillDetailedAllow(METHOD.OPTIONS, this.path, COMMAND_TYPE.OPTIONS.name(), null, null);
 		node.add(node2);

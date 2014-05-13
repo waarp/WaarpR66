@@ -92,7 +92,8 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 		done("monitoring_header.html", "monitoring_end.html"),
 		all("monitoring_header.html", "monitoring_end.html"),
 		status("monitoring_header.html", "monitoring_end.html"),
-		statusxml("");
+		statusxml(""),
+		statusjson("");
 
 		private String header;
 		private String end;
@@ -177,6 +178,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 	 */
 	private boolean isPrivateDbSession = false;
 	private boolean isCurrentRequestXml = false;
+	private boolean isCurrentRequestJson = false;
 
 	private Map<String, List<String>> params = null;
 
@@ -231,6 +233,7 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
 			throws Exception {
 		isCurrentRequestXml = false;
+		isCurrentRequestJson = false;
 		status = HttpResponseStatus.OK;
 		HttpRequest request = this.request = (HttpRequest) e.getMessage();
 		QueryStringDecoder queryStringDecoder = new QueryStringDecoder(request
@@ -275,6 +278,10 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 				isCurrentRequestXml = true;
 			} else if (uriRequest.toLowerCase().startsWith("/spooled")) {
 				cval = '6';
+			} else if (uriRequest.equalsIgnoreCase("/statusjson")) {
+				cval = '7';
+				nb = 0; // since it could be the default or setup by request
+				isCurrentRequestJson = true;
 			}
 			// Get the params according to get or post
 			if (request.getMethod() == HttpMethod.GET) {
@@ -368,6 +375,9 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 							extraBoolean = true;
 						}
 						spooled(ctx, extraBoolean, name, istatus);
+						break;
+					case '7':
+						statusjson(ctx, nb, extraBoolean);
 						break;
 					default:
 						responseContent.append(REQUEST.index.readFileUnique(this));
@@ -633,6 +643,17 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 		Configuration.configuration.monitoring.run(nb, detail);
 		responseContent.append(Configuration.configuration.monitoring.exportXml(detail));
 	}
+
+	/**
+	 * print only status
+	 * 
+	 * @param ctx
+	 * @param nb
+	 */
+	private void statusjson(ChannelHandlerContext ctx, long nb, boolean detail) {
+		Configuration.configuration.monitoring.run(nb, detail);
+		responseContent.append(Configuration.configuration.monitoring.exportJson(detail));
+	}
 	
 	private void spooled(ChannelHandlerContext ctx, boolean detail, String name, int istatus) {
 		responseContent.append(REQUEST.status.readHeader(this));
@@ -696,6 +717,8 @@ public class HttpFormattedHandler extends SimpleChannelUpstreamHandler {
 		response.setContent(buf);
 		if (isCurrentRequestXml) {
 			response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml");
+		} else if (isCurrentRequestJson) {
+			response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/json");
 		} else {
 			response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html");
 		}

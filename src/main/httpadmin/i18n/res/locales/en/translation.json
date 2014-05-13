@@ -235,6 +235,11 @@
   	"text14": "All",
   	"text15": "Status(test)",
   	"text16": "Number of runners (0 for all):",
-	"text17": "All Spooled daemons"
+	"text17": "All Spooled daemons",
+    "text18": "Detailed Statut of the server in XML format",
+    "text19": "Statut of the server in Json format",
+    "text20": "Detailed Statut of the server in Json format",
+    "text21": "All detailed Spooled daemons",
+    "text22": "Statut of the server in XML format"
   }
 }

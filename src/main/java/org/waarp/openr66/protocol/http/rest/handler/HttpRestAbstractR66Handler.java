@@ -68,7 +68,7 @@ public abstract class HttpRestAbstractR66Handler extends RestMethodHandler {
     	ExportConfig, ImportConfig,
     	GetInformation, GetTransferInformation,
     	GetLog,
-    	ShutdownOrBlock,
+    	ShutdownOrBlock, GetStatus,
     	RestartTransfer, StopOrCancelTransfer, CreateTransfer
     }
 	/**

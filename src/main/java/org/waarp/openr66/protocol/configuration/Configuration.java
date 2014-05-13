@@ -594,8 +594,7 @@ public class Configuration {
 	/**
 	 * Monitoring: minimal interval in ms before redo real monitoring
 	 */
-	public long minimalDelay = 5000; // 5
-										// seconds
+	public long minimalDelay = 5000; // 5 seconds
 	/**
 	 * Monitoring: snmp configuration file (empty means no snmp support)
 	 */

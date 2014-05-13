@@ -261,6 +261,8 @@ public class HttpTestResponseHandler extends HttpRestR66ClientResponseHandler {
 				newMessage = true;
 				break;
 			}
+			case GetStatus:
+				break;
 			default:
 				break;
     		

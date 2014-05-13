@@ -115,6 +115,7 @@ public class HttpTestRestR66Client  implements Runnable {
 	private static final String tasks = "<tasks><task><type>LOG</type><path>log</path><delay>0</delay><comment></comment></task></tasks>";
 
 	public static boolean DEBUG = false;
+	private static boolean isStatus = false;
 	
 	public static AtomicLong count = new AtomicLong();
 	/**
@@ -293,9 +294,25 @@ public class HttpTestRestR66Client  implements Runnable {
 					}
 	    		}
 	        }
+	    	getStatus();
 	        stop = System.currentTimeMillis();
 	        logger.warn("Commands: "+count.get()*1000/(stop-start)+" req/s "+NBPERTHREAD*NB+"=?"+count.get());
 	
+	        count.set(0);
+	    	start = System.currentTimeMillis();
+	    	for (int i = 0; i < NBPERTHREAD; i++) {
+	        	getStatus();
+	        }
+	    	stop = System.currentTimeMillis();
+	    	logger.warn("GetStatusMultiple: "+count.get()*1000/(stop-start)+" req/s "+NBPERTHREAD+"=?"+count.get());
+	    	
+	        count.set(0);
+	        isStatus = true;
+	    	start = System.currentTimeMillis();
+	        launchThreads();
+	    	stop = System.currentTimeMillis();
+	    	logger.warn("GetStatusMultipleThread: "+count.get()*1000/(stop-start)+" req/s "+NBPERTHREAD*NB+"=?"+count.get());
+	        
 	        // Clean
 	    	{
 	            String key = null, value = null;
@@ -696,6 +713,28 @@ public class HttpTestRestR66Client  implements Runnable {
         return future;
     }
     
+    protected static void getStatus() {
+    	Channel channel = clientHelper.getChannel(host, Configuration.configuration.REST_PORT);
+        if (channel == null) {
+        	logger.warn("Cannot connect to: "+host+":"+Configuration.configuration.REST_PORT);
+        	return;
+        }
+        String key = null, value = null;
+        if (Configuration.configuration.REST_AUTHENTICATED) {
+        	key = userAuthent;
+        	value = keyAuthent;
+        }
+        RestFuture future = clientHelper.sendQuery(channel, HttpMethod.GET, host, RESTHANDLERS.Server.uri, key, value,
+        		null, null);
+		logger.debug("Query sent");
+    	try {
+			future.await();
+		} catch (InterruptedException e) {
+		}
+   		WaarpSslUtility.closingSslChannel(channel);
+		logger.debug("Channel closed");
+    }
+
     protected static void action(RESTHANDLERS data) throws HttpInvalidAuthenticationException {
     	Channel channel = clientHelper.getChannel(host, Configuration.configuration.REST_PORT);
         if (channel == null) {
@@ -820,14 +859,20 @@ public class HttpTestRestR66Client  implements Runnable {
 
 	@Override
 	public void run() {
-        for (int i = 0; i < NBPERTHREAD; i ++) {
-            try {
-            	multiDataRequests(RESTHANDLERS.DbTaskRunner);
-			} catch (HttpInvalidAuthenticationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-        }
+		if (isStatus) {
+	        for (int i = 0; i < NBPERTHREAD; i ++) {
+	        	getStatus();
+	        }
+		} else {
+	        for (int i = 0; i < NBPERTHREAD; i ++) {
+	            try {
+	            	multiDataRequests(RESTHANDLERS.DbTaskRunner);
+				} catch (HttpInvalidAuthenticationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+	        }
+		}
 	}
 
 }
