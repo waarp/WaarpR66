@@ -122,7 +122,7 @@ public class OutputFormat extends JsonHandler {
 	}
 	/**
 	 * 
-	 * @param values
+	 * @param node
 	 */
 	public void setValueString(ObjectNode node) {
 		node.putAll(node);

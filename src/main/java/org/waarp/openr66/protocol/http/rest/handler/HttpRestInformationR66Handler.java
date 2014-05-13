@@ -61,10 +61,6 @@ public class HttpRestInformationR66Handler extends HttpRestAbstractR66Handler {
     private static final WaarpInternalLogger logger = WaarpInternalLoggerFactory
             .getLogger(HttpRestInformationR66Handler.class);
    
-	/**
-	 * @param path
-	 * @param method
-	 */
 	public HttpRestInformationR66Handler() {
 		super(BASEURI, METHOD.GET);
 	}
