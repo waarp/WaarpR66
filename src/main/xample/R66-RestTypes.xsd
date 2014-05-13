@@ -11,7 +11,7 @@
         system="2.4.27" />
     
     <xsd:complexType name="RestType" >
-        <xsd:sequence>
+        <xsd:all>
             <xsd:element name="restssl" maxOccurs="1" minOccurs="0" type="booleanType" default="False">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -62,7 +62,7 @@ SERVER REST interface SHA 256 Key file for request checking
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-        </xsd:sequence>
+        </xsd:all>
     </xsd:complexType>
 
 </xsd:schema>

@@ -3889,6 +3889,7 @@ public class DbTaskRunner extends AbstractDbData {
 				value.setValueFromString(newValue);
 			}
 		}
+		runner.allFields[Columns.TRANSFERINFO.ordinal()].setValue("{}");
 	}
 
 	/**
@@ -3949,7 +3950,7 @@ public class DbTaskRunner extends AbstractDbData {
 		try {
 			outputStream = new FileOutputStream(filename);
 			OutputFormat format = OutputFormat.createPrettyPrint();
-			format.setEncoding("ISO-8859-1");
+			format.setEncoding(WaarpStringUtils.UTF_8);
 			xmlWriter = new XMLWriter(outputStream, format);
 			preparedStatement.executeQuery();
 			nbAndSpecialId = writeXML(preparedStatement, xmlWriter);
@@ -4095,6 +4096,7 @@ public class DbTaskRunner extends AbstractDbData {
 				}
 			}
 		}
+		runner.allFields[Columns.TRANSFERINFO.ordinal()].setValue("{}");
 	}
 	
 	/**
@@ -4148,7 +4150,7 @@ public class DbTaskRunner extends AbstractDbData {
 		try {
 			outputStream = new FileOutputStream(filename);
 			OutputFormat format = OutputFormat.createPrettyPrint();
-			format.setEncoding("ISO-8859-1");
+			format.setEncoding(WaarpStringUtils.UTF_8);
 			xmlWriter = new XMLWriter(outputStream, format);
 			Element root = new DefaultElement(XMLRUNNERS);
 			try {
@@ -4185,7 +4187,7 @@ public class DbTaskRunner extends AbstractDbData {
 					File file = new File(filename);
 					file.delete();
 					logger.error("Cannot write XML file", e);
-					throw new OpenR66ProtocolBusinessException("Unsupported Encoding");
+					throw new OpenR66ProtocolBusinessException("Cannot write XML file");
 				} catch (IOException e) {
 					try {
 						outputStream.close();
@@ -4194,7 +4196,7 @@ public class DbTaskRunner extends AbstractDbData {
 					File file = new File(filename);
 					file.delete();
 					logger.error("Cannot write XML file", e);
-					throw new OpenR66ProtocolBusinessException("Unsupported Encoding");
+					throw new OpenR66ProtocolBusinessException("IO error on XML file", e);
 				}
 			} else if (outputStream != null) {
 				try {
@@ -4225,14 +4227,14 @@ public class DbTaskRunner extends AbstractDbData {
 			document = reader.read(file);
 		} catch (DocumentException e) {
 			throw new OpenR66ProtocolBusinessException(
-					"Backend XML file cannot be read as an XML file");
+					"Backend XML file cannot be read as an XML file", e);
 		}
 		Element root = (Element) document.selectSingleNode("/" + XMLRUNNERS + "/" + XMLRUNNER);
 		try {
 			setRunnerFromElement(this, root);
 		} catch (WaarpDatabaseSqlException e) {
 			throw new OpenR66ProtocolBusinessException(
-					"Backend XML file is not conform to the model");
+					"Backend XML file is not conform to the model", e);
 		}
 	}
 	
@@ -4266,11 +4268,12 @@ public class DbTaskRunner extends AbstractDbData {
 			document = reader.read(logsFile);
 		} catch (DocumentException e) {
 			throw new OpenR66ProtocolBusinessException(
-					"XML file cannot be read as an XML file");
+					"XML file cannot be read as an XML file", e);
 		}
 		@SuppressWarnings("unchecked")
 		List<Element> elts = document.selectNodes("/" + XMLRUNNERS + "/" + XMLRUNNER);
 		boolean error = false;
+		Exception one = null;
 		for (Element element : elts) {
 			DbTaskRunner runnerlog = new DbTaskRunner(DbConstant.admin.session);
 			try {
@@ -4279,13 +4282,15 @@ public class DbTaskRunner extends AbstractDbData {
 				runnerlog.insertOrUpdateForLogsImport();
 			} catch (WaarpDatabaseSqlException e) {
 				error = true;
+				one = e;
 			} catch (WaarpDatabaseException e) {
 				error = true;
+				one = e;
 			}
 		}
 		if (error) {
 			throw new OpenR66ProtocolBusinessException(
-				"Backend XML file is not conform to the model");
+				"Backend XML file is not conform to the model", one);
 		}
 	}
 

@@ -74,7 +74,7 @@ public class LogImport {
 				DbTaskRunner.loadXml(logsFile);
 			} catch (OpenR66ProtocolBusinessException e) {
 				logger.error("Cannot load the logs from " + logsFile.getAbsolutePath()
-						+ " since: " + e.getMessage());
+						+ " since: " + e.getMessage(), e);
 				if (DbConstant.admin != null) {
 					DbConstant.admin.close();
 				}

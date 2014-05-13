@@ -196,7 +196,7 @@ public abstract class ConnectionActions {
 			}
 			session.setStatus(50);
 			session.newState(CLOSEDCHANNEL);
-			session.clear();
+			session.partialClear();
 			session.setStatus(51);
 			if (localChannelReference != null) {
 				if (localChannelReference.getDbSession() != null) {

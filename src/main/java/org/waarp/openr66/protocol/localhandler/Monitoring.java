@@ -819,7 +819,7 @@ public class Monitoring implements WaarpInterfaceMonitor {
 	 * @return The Json representation of the current status
 	 */
 	public String exportJson(boolean detail) {
-		return JsonHandler.writeAsString(exportAsJson(detail));
+		return JsonHandler.prettyPrint(exportAsJson(detail));
 	}
 	
 	/**
